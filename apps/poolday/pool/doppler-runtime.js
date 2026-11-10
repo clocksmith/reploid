@@ -1,4 +1,3 @@
-import { computeManifestShardSetHash } from '../../../shared/vendor/reploid/artifacts/manifest-identity.js';
 /**
  * @fileoverview Browser-only Doppler runtime adapter for pool providers.
  *
@@ -8,6 +7,22 @@ import { computeManifestShardSetHash } from '../../../shared/vendor/reploid/arti
  */
 
 import { hashJson, sha256Hex } from '../../../shared/pool/inference-receipt.js';
+import {
+  assertDopplerSessionIdentity,
+  cancelDopplerSession,
+  createDopplerModuleLoader,
+  dopplerEmbedMethod,
+  dopplerGenerateMethod,
+  embedWithDopplerSession,
+  generateWithDopplerSession,
+  readDopplerEmbedding,
+  readDopplerOutputText,
+  readDopplerSessionIdentity,
+  readDopplerTokenCounts,
+  readDopplerTokenIds,
+  resetDopplerSession,
+  verifyDopplerGenerationEvidence
+} from '../../../shared/vendor/reploid/adapters/doppler-session.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../../shared/pool/config.js';
 import {
@@ -40,7 +55,6 @@ const DOPPLER_IMPORTS = Object.freeze([
   'doppler-gpu'
 ]);
 
-let dopplerModulePromise = null;
 let dopplerStorageModulePromise = null;
 
 const hasIdentityValue = (value) => value !== undefined && value !== null && String(value).trim() !== '';
@@ -49,26 +63,6 @@ const normalizeHashIdentity = (value) => {
   if (!text) return '';
   return text.startsWith('sha256:') ? text : `sha256:${text}`;
 };
-
-const identityValuesMatch = (field, expected, actual) => {
-  if (field === 'modelHash' || field === 'manifestHash') {
-    return normalizeHashIdentity(expected) === normalizeHashIdentity(actual);
-  }
-  return expected === actual;
-};
-
-const isBrowserResolvableSpecifier = (specifier) => (
-  typeof specifier === 'string'
-  && (
-    specifier.startsWith('/')
-    || specifier.startsWith('./')
-    || specifier.startsWith('../')
-    || specifier.startsWith('http://')
-    || specifier.startsWith('https://')
-    || specifier.startsWith('blob:')
-    || specifier.startsWith('data:')
-  )
-);
 
 const configuredDopplerModuleCandidates = () => {
   const candidates = [];
@@ -107,7 +101,6 @@ const importDopplerCandidate = async (candidate) => {
   const specifier = String(candidate || '').trim();
   if (!specifier) throw new Error('empty Doppler module specifier');
   disableNodeQuickstartCacheForBrowser();
-  if (isBrowserResolvableSpecifier(specifier)) return import(specifier);
   return import(specifier);
 };
 
@@ -182,87 +175,11 @@ export async function collectBrowserDeviceInfo() {
   }
 }
 
-const generateMethodName = (candidate) => {
-  if (!candidate) return null;
-  if (typeof candidate.generateWithEvidence === 'function') return 'generateWithEvidence';
-  if (typeof candidate.generate === 'function') return 'generate';
-  if (typeof candidate.generateText === 'function') return 'generateText';
-  if (typeof candidate.run === 'function') return 'run';
-  return null;
-};
-
-const embeddingMethodName = (candidate) => {
-  if (!candidate) return null;
-  if (typeof candidate.embed === 'function') return 'embed';
-  if (typeof candidate.embedText === 'function') return 'embedText';
-  if (typeof candidate.run === 'function') return 'run';
-  return null;
-};
-
 const publicMethodNameForWorkload = (candidate, model = {}) => {
   const workload = getPoolModelWorkload(model);
-  if (workload === POOLDAY_MODEL_WORKLOADS.embedding) return embeddingMethodName(candidate);
+  if (workload === POOLDAY_MODEL_WORKLOADS.embedding) return dopplerEmbedMethod(candidate);
   if (isSequenceWorkload(workload)) return sequenceMethodName(candidate);
-  return generateMethodName(candidate);
-};
-
-const normalizeTokenIds = (value) => {
-  const candidates = [
-    value?.tokenIds,
-    value?.tokens,
-    value?.generatedTokenIds,
-    value?.outputTokenIds,
-    value?.receipt?.tokenIds,
-    value?.receipt?.generatedTokenIds,
-    value?.usage?.tokenIds
-  ];
-  const raw = candidates.find(Array.isArray);
-  if (!raw) return [];
-  return raw
-    .map((token) => {
-      if (Number.isInteger(token)) return token;
-      if (Number.isInteger(token?.id)) return token.id;
-      if (Number.isInteger(token?.tokenId)) return token.tokenId;
-      return null;
-    })
-    .filter(Number.isInteger);
-};
-
-const normalizeOutputText = (value) => {
-  if (typeof value === 'string') return value;
-  const direct = value?.outputText ?? value?.text ?? value?.content ?? value?.completion ?? value?.response;
-  if (typeof direct === 'string') return direct;
-  const firstOutput = value?.output?.[0]?.content?.[0]?.text ?? value?.choices?.[0]?.message?.content ?? value?.choices?.[0]?.text;
-  return typeof firstOutput === 'string' ? firstOutput : '';
-};
-
-const normalizeTokenCounts = (value, tokenIds) => {
-  const counts = value?.tokenCounts || value?.usage || value?.receipt?.tokenCounts;
-  if (counts) {
-    return {
-      input: Number(counts.input ?? counts.promptTokens ?? counts.prompt_tokens ?? 0),
-      output: Number(counts.output ?? counts.completionTokens ?? counts.completion_tokens ?? tokenIds.length)
-    };
-  }
-  return {
-    input: 0,
-    output: tokenIds.length
-  };
-};
-
-const normalizeEmbeddingValues = (value) => {
-  const candidate = ArrayBuffer.isView(value) || Array.isArray(value)
-    ? value
-    : (
-        value?.embedding
-        || value?.vector
-        || value?.values
-        || value?.outputEmbedding
-        || value?.result?.embedding
-        || value?.receipt?.embedding
-      );
-  if (!(ArrayBuffer.isView(candidate) || Array.isArray(candidate))) return [];
-  return Array.from(candidate, (item) => Math.fround(Number(item)));
+  return dopplerGenerateMethod(candidate);
 };
 
 const summarizeEmbeddingValues = (values) => {
@@ -282,50 +199,10 @@ const summarizeEmbeddingValues = (values) => {
   };
 };
 
-const isAsyncIterable = (value) => value && typeof value[Symbol.asyncIterator] === 'function';
-const isIterable = (value) => value && typeof value[Symbol.iterator] === 'function' && typeof value !== 'string';
-
-const collectGenerationResult = async (value) => {
-  if (isAsyncIterable(value)) {
-    const chunks = [];
-    for await (const chunk of value) {
-      chunks.push(String(chunk ?? ''));
-    }
-    const outputText = chunks.join('');
-    return {
-      outputText,
-      tokenIds: [],
-      transcript: {
-        chunks,
-        outputText,
-        tokenIds: [],
-        stream: true
-      }
-    };
-  }
-  if (isIterable(value)) {
-    const chunks = Array.from(value, (chunk) => String(chunk ?? ''));
-    const outputText = chunks.join('');
-    return {
-      outputText,
-      tokenIds: [],
-      transcript: {
-        chunks,
-        outputText,
-        tokenIds: [],
-        stream: false
-      }
-    };
-  }
-  return value;
-};
-
-const collectEmbeddingResult = async (value) => value;
-
 const normalizeModelInfo = async (model, handle) => {
   const { packSource, packOpenOptions, ...descriptor } = model || {};
   const manifest = model?.manifest || handle?.manifest || handle?.model?.manifest || null;
-  const evidence = await getHandleModelEvidence(handle);
+  const evidence = await readDopplerSessionIdentity(handle);
   const manifestHash = model?.manifestHash
     || evidence.manifestHash
     || (manifest ? await hashJson(manifest) : null);
@@ -368,7 +245,7 @@ const normalizeRuntimeInfo = (runtime, handle) => ({
     || null,
   backend: 'browser-webgpu',
   hasWebGPU: hasWebGpu(),
-  publicApi: generateMethodName(handle),
+  publicApi: dopplerGenerateMethod(handle),
   device: runtime?.device || handle?.deviceInfo || handle?.device || null,
   profile: runtime?.profile || handle?.runtimeProfile || handle?.profile || null,
   persistentCache: runtime?.persistentCache || handle?.persistentCache || null,
@@ -390,134 +267,21 @@ const versionAtLeast = (actual, minimum) => {
   return true;
 };
 
-const getHandleModelEvidence = async (handle) => {
-  const manifest = handle?.manifest || handle?.model?.manifest || null;
-  const artifactIdentity = manifest?.artifactIdentity || handle?.artifactIdentity || handle?.model?.artifactIdentity || null;
-  const modelHash = manifest?.modelHash
-    || manifest?.artifactIdentity?.weightPackHash
-    || manifest?.artifactIdentity?.shardSetHash
-    || (manifest ? await computeManifestShardSetHash(manifest) : null)
-    || handle?.modelHash
-    || handle?.hash
-    || handle?.model?.modelHash
-    || handle?.model?.hash
-    || (artifactIdentity ? await hashJson(artifactIdentity) : null);
-  const declaredManifestHash = manifest?.manifestHash || manifest?.hash || null;
-  const manifestHash = declaredManifestHash
-    || handle?.manifestHash
-    || handle?.model?.manifestHash
-    || handle?.model?.manifest?.hash
-    || null;
-  const runtimeManifestHash = manifest ? await hashJson(manifest) : null;
-  return {
-    modelId: manifest?.modelId
-      || manifest?.id
-      || handle?.modelId
-      || handle?.id
-      || handle?.model?.modelId
-      || handle?.model?.id
-      || null,
-    modelHash,
-    manifestHash,
-    runtimeManifestHash,
-    declaredManifestHash,
-    artifactIdentity
-  };
-};
+// A signed session's contract names the identity record that replaces manifest hashes.
+const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => assertDopplerSessionIdentity(handle, descriptor,
+  descriptor.executablePack
+    ? { packIdentity: handle[resolveDopplerExecutionContract(descriptor.executablePack.schema).sessionIdentity] }
+    : {});
 
-const artifactIdentityValueMatches = (expected, actual) => {
-  if (expected === undefined) return true;
-  if (Array.isArray(expected)) {
-    return Array.isArray(actual)
-      && expected.length === actual.length
-      && expected.every((value, index) => artifactIdentityValueMatches(value, actual[index]));
-  }
-  if (isObject(expected)) {
-    return isObject(actual)
-      && Object.entries(expected).every(([key, value]) => artifactIdentityValueMatches(value, actual[key]));
-  }
-  return expected === actual;
-};
-
-const artifactIdentityMatches = (expected = {}, actual = {}) => (
-  isObject(actual)
-  && Object.entries(expected || {}).every(([key, value]) => artifactIdentityValueMatches(value, actual[key]))
-);
-
-const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
-  const evidence = await getHandleModelEvidence(handle);
-  if (descriptor.executablePack) {
-    const contract = resolveDopplerExecutionContract(descriptor.executablePack.schema);
-    const identity = handle[contract.sessionIdentity];
-    evidence.modelHash = identity.semanticRoot;
-    evidence.manifestHash = identity.envelopeDigest;
-    evidence.declaredManifestHash = identity.envelopeDigest;
-  }
-  const assertField = (field, expected, actual) => {
-    if (!hasIdentityValue(expected)) return;
-    if (!hasIdentityValue(actual)) {
-      throw new Error(`Loaded Doppler handle must expose ${field} before provider registration`);
-    }
-    if (!identityValuesMatch(field, expected, actual)) {
-      throw new Error(`Loaded Doppler handle ${field} does not match requested model identity`);
-    }
-  };
-  assertField('modelId', descriptor?.modelId || descriptor?.id, evidence.modelId);
-  assertField('modelHash', descriptor?.modelHash || descriptor?.hash, evidence.modelHash);
-  if (hasIdentityValue(descriptor?.manifestHash)) {
-    if (hasIdentityValue(evidence.declaredManifestHash)) {
-      assertField('manifestHash', descriptor.manifestHash, evidence.declaredManifestHash);
-    } else {
-      const observedManifestHashes = [evidence.manifestHash, evidence.runtimeManifestHash]
-        .filter(hasIdentityValue);
-      if (observedManifestHashes.length === 0 && !evidence.artifactIdentity) {
-        throw new Error('Loaded Doppler handle must expose manifestHash or artifactIdentity before provider registration');
-      }
-      const canonicalHashMatches = observedManifestHashes.some((observedHash) => identityValuesMatch(
-        'manifestHash',
-        descriptor.manifestHash,
-        observedHash
-      ));
-      const byteHashMatches = hasIdentityValue(descriptor.manifestByteHash)
-        && hasIdentityValue(evidence.manifestHash)
-        && identityValuesMatch('manifestHash', descriptor.manifestByteHash, evidence.manifestHash);
-      if (
-        observedManifestHashes.length > 0
-        && !canonicalHashMatches
-        && !byteHashMatches
-      ) {
-        throw new Error('Loaded Doppler handle manifestHash does not match requested model identity');
-      }
-    }
-  }
-  if (descriptor?.artifactIdentity && !artifactIdentityMatches(descriptor.artifactIdentity, evidence.artifactIdentity)) {
-    throw new Error('Loaded Doppler handle artifactIdentity does not match requested model identity');
-  }
-};
-
-const loadDopplerModule = async () => {
-  if (!dopplerModulePromise) {
-    dopplerModulePromise = (async () => {
-      ensureDopplerKernelBasePath();
-      const errors = [];
-      for (const candidate of configuredDopplerModuleCandidates()) {
-        const label = typeof candidate === 'string' ? candidate : 'globalThis.REPLOID_DOPPLER_MODULE';
-        try {
-          return await importDopplerCandidate(candidate);
-        } catch (error) {
-          errors.push(`${label}: ${error.message}`);
-        }
-      }
-      const globalCandidate = globalThis.Doppler || globalThis.doppler || globalThis.dopplerGpu;
-      if (globalCandidate && typeof globalCandidate === 'object') return globalCandidate;
-      throw new Error(`Unable to load public Doppler module. Configure window.REPLOID_DOPPLER_MODULE_URL or window.REPLOID_DOPPLER_MODULE. Attempts: ${errors.join('; ') || 'none'}`);
-    })().catch((error) => {
-      dopplerModulePromise = null;
-      throw error;
-    });
-  }
-  return dopplerModulePromise;
-};
+const dopplerModules = createDopplerModuleLoader({
+  candidates: configuredDopplerModuleCandidates,
+  importModule: importDopplerCandidate,
+  prepare: ensureDopplerKernelBasePath,
+  fallback: () => globalThis.Doppler || globalThis.doppler || globalThis.dopplerGpu,
+  injectedLabel: 'globalThis.REPLOID_DOPPLER_MODULE',
+  unavailableMessage: 'Unable to load public Doppler module. Configure window.REPLOID_DOPPLER_MODULE_URL or window.REPLOID_DOPPLER_MODULE.'
+});
+const loadDopplerModule = () => dopplerModules.load();
 
 const loadDopplerStorageModule = async () => {
   const configured = configuredDopplerStorageModule();
@@ -546,7 +310,7 @@ const preflightPersistentModelCache = async (model, loadOptions) => {
 };
 
 export function resetDopplerModuleCacheForTests() {
-  dopplerModulePromise = null;
+  dopplerModules.reset();
   dopplerStorageModulePromise = null;
   DopplerRuntimeService.resetModuleForTests();
 }
@@ -593,232 +357,6 @@ const assertModelRuntimeCapabilities = async (model = {}) => {
   throw error;
 };
 
-const positiveIntegerOrUndefined = (value) => {
-  const number = Number(value);
-  return Number.isInteger(number) && number > 0 ? number : undefined;
-};
-
-const finiteNumberOrUndefined = (value) => {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : undefined;
-};
-
-const normalizeStopList = (value, mapItem) => {
-  if (!Array.isArray(value)) return undefined;
-  const list = value.map(mapItem).filter((item) => item != null);
-  return list.length ? list : undefined;
-};
-
-const toDopplerGenerationOptions = (generationConfig = {}) => {
-  const maxTokens = positiveIntegerOrUndefined(
-    generationConfig.maxTokens ?? generationConfig.maxOutputTokens
-  );
-  const temperature = finiteNumberOrUndefined(generationConfig.temperature);
-  const topP = finiteNumberOrUndefined(generationConfig.topP);
-  const topK = positiveIntegerOrUndefined(generationConfig.topK);
-  const options = {
-    maxTokens,
-    temperature,
-    topP,
-    topK,
-    useSpeculative: typeof generationConfig.useSpeculative === 'boolean'
-      ? generationConfig.useSpeculative
-      : false,
-    stopTokens: normalizeStopList(generationConfig.stopTokens, (token) => (
-      Number.isInteger(token) ? token : null
-    )),
-    stopSequences: normalizeStopList(generationConfig.stopSequences, (sequence) => (
-      typeof sequence === 'string' ? sequence : null
-    ))
-  };
-  if (generationConfig.mode === 'greedy') {
-    options.temperature = 0;
-    options.topK = 1;
-    options.topP = 1;
-  }
-  if (typeof generationConfig.useChatTemplate === 'boolean') {
-    options.useChatTemplate = generationConfig.useChatTemplate;
-  }
-  return Object.fromEntries(
-    Object.entries(options).filter(([, value]) => value !== undefined)
-  );
-};
-
-const toDopplerGenerationRequest = (prompt, generationConfig, assignment) => {
-  const samplingOptions = toDopplerGenerationOptions(generationConfig);
-  return {
-    prompt,
-    assignment,
-    generationConfig,
-    samplingOptions,
-    ...samplingOptions
-  };
-};
-
-const runGenerationAttempts = async (attempts) => {
-  let firstError = null;
-  for (const attempt of attempts) {
-    try {
-      return await collectGenerationResult(await attempt());
-    } catch (error) {
-      if (!firstError) firstError = error;
-    }
-  }
-  throw firstError || new Error('Doppler generation failed without an error');
-};
-
-const callGenerate = async (session, prompt, generationConfig, assignment) => {
-  const dopplerOptions = toDopplerGenerationOptions(generationConfig);
-  const request = toDopplerGenerationRequest(prompt, generationConfig, assignment);
-  if (typeof session.generateWithEvidence === 'function') {
-    return collectGenerationResult(await session.generateWithEvidence(prompt, dopplerOptions));
-  }
-  if (typeof session.generateText === 'function') {
-    const promptAttempt = () => session.generateText(prompt, dopplerOptions);
-    const requestAttempt = () => session.generateText(request);
-    return runGenerationAttempts([promptAttempt, requestAttempt]);
-  }
-  if (typeof session.generate === 'function') {
-    const promptAttempt = () => session.generate(prompt, dopplerOptions);
-    const requestAttempt = () => session.generate(request);
-    return runGenerationAttempts([promptAttempt, requestAttempt]);
-  }
-  if (typeof session.run === 'function') {
-    return collectGenerationResult(await session.run(request));
-  }
-  throw new Error('Doppler public handle does not expose generate, generateText, or run');
-};
-
-const DOPPLER_GENERATION_EVIDENCE_SCHEMA = 'doppler_generation_evidence/v1';
-const DOPPLER_EVIDENCE_COMPARISON_SCHEMA = 'reploid.doppler_generation_evidence_comparison/v1';
-
-const compareEvidenceField = (field, expected, actual) => ({
-  field,
-  expected,
-  actual,
-  matched: expected === actual
-});
-
-const assertEvidenceFieldsMatched = (fields) => {
-  const mismatch = fields.find((field) => field.matched !== true);
-  if (mismatch) {
-    throw new Error(
-      `Doppler generation evidence ${mismatch.field} mismatch: ` +
-      `expected ${mismatch.expected}, got ${mismatch.actual}`
-    );
-  }
-};
-
-const compareDopplerGenerationEvidence = async ({
-  result,
-  generationConfig,
-  modelInfo
-}) => {
-  if (result?.schema !== DOPPLER_GENERATION_EVIDENCE_SCHEMA) return null;
-  if (!isObject(result.transcript) || !isObject(result.generationConfig)) {
-    throw new Error('Doppler generation evidence is missing transcript or generationConfig');
-  }
-  if (!isObject(result.runtimeProfile) || !isObject(result.backendIdentity)) {
-    throw new Error('Doppler generation evidence is missing runtimeProfile or backendIdentity');
-  }
-  const outputText = normalizeOutputText(result);
-  const tokenIds = normalizeTokenIds(result);
-  const translatedConfig = toDopplerGenerationOptions(generationConfig);
-  const configFields = await Promise.all(
-    Object.entries(translatedConfig)
-      .filter(([field]) => field !== 'stopTokens')
-      .map(async ([field, expected]) => compareEvidenceField(
-        `generationConfig.${field}`,
-        await hashJson(expected),
-        await hashJson(result.generationConfig[field])
-      ))
-  );
-  const fields = [
-    compareEvidenceField('outputText', outputText, result.transcript.outputText),
-    compareEvidenceField(
-      'tokenIdsHash',
-      await hashJson(tokenIds),
-      await hashJson(result.transcript.tokenIds)
-    ),
-    compareEvidenceField(
-      'transcriptHash',
-      await hashJson(result.transcript),
-      result.transcriptHash
-    ),
-    compareEvidenceField(
-      'generationConfigHash',
-      await hashJson(result.generationConfig),
-      result.generationConfigHash
-    ),
-    compareEvidenceField(
-      'runtimeProfileHash',
-      await hashJson(result.runtimeProfile),
-      result.runtimeProfileHash
-    ),
-    compareEvidenceField(
-      'backendIdentityHash',
-      await hashJson(result.backendIdentity),
-      result.backendIdentityHash
-    ),
-    compareEvidenceField(
-      'modelId',
-      modelInfo?.modelId || null,
-      result.runtimeProfile?.model?.modelId || null
-    ),
-    compareEvidenceField(
-      'manifestHash',
-      normalizeHashIdentity(modelInfo?.manifestHash),
-      normalizeHashIdentity(result.runtimeProfile?.model?.manifestHash)
-    ),
-    compareEvidenceField(
-      'backend',
-      'webgpu',
-      result.backendIdentity?.backend || null
-    ),
-    ...configFields
-  ];
-  assertEvidenceFieldsMatched(fields);
-  return {
-    schema: DOPPLER_EVIDENCE_COMPARISON_SCHEMA,
-    verified: true,
-    evidenceSchema: result.schema,
-    transcriptHash: result.transcriptHash,
-    generationConfigHash: result.generationConfigHash,
-    runtimeProfileHash: result.runtimeProfileHash,
-    backendIdentityHash: result.backendIdentityHash,
-    fields
-  };
-};
-
-const callEmbed = async (session, prompt, assignment) => {
-  const request = {
-    prompt,
-    input: prompt,
-    assignment,
-    workload: POOLDAY_MODEL_WORKLOADS.embedding
-  };
-  if (typeof session.embed === 'function') {
-    return collectEmbeddingResult(await session.embed(prompt, { assignment }));
-  }
-  if (typeof session.embedText === 'function') {
-    return collectEmbeddingResult(await session.embedText(prompt, { assignment }));
-  }
-  if (typeof session.run === 'function') {
-    return collectEmbeddingResult(await session.run(request));
-  }
-  throw new Error('Doppler public handle does not expose embed, embedText, or run');
-};
-
-const resetSessionGenerationState = async (session) => {
-  if (typeof session?.resetGenerationState === 'function') {
-    await session.resetGenerationState();
-    return;
-  }
-  if (typeof session?.resetToSeqLen === 'function') {
-    await session.resetToSeqLen(0);
-  }
-};
-
 const cancelledRuntimeWorkError = (reason = 'cancelled') => {
   const error = new Error(`Doppler runtime work was cancelled: ${reason}`);
   error.code = 'pool_runtime_work_cancelled';
@@ -832,16 +370,6 @@ const staleRuntimeResultError = (reason = 'superseded') => {
   error.code = 'pool_runtime_stale_result';
   error.reason = reason;
   return error;
-};
-
-const requestPublicSessionCancellation = async (session, reason) => {
-  if (!session) return { requested: false, method: null };
-  for (const method of ['abort', 'cancel']) {
-    if (typeof session[method] !== 'function') continue;
-    await session[method]({ reason });
-    return { requested: true, method };
-  }
-  return { requested: false, method: null };
 };
 
 export function createDopplerRuntime({
@@ -1114,7 +642,7 @@ export function createDopplerRuntime({
           signalCancellation.method = 'abort_signal';
         }
       }
-      const sessionCancellation = await requestPublicSessionCancellation(session, reason).catch((error) => ({
+      const sessionCancellation = await cancelDopplerSession(session, reason).catch((error) => ({
         requested: false,
         method: null,
         error: error.message
@@ -1134,22 +662,23 @@ export function createDopplerRuntime({
       };
     },
     async generate({ prompt, generationConfig, assignment }) {
-      if (!session || !generateMethodName(session)) {
+      if (!session || !dopplerGenerateMethod(session)) {
         throw new Error('Doppler browser model session is not connected');
       }
       const runGeneration = async (assertCurrent, _signal, assertResultCurrent) => {
-        await resetSessionGenerationState(session);
+        await resetDopplerSession(session);
         assertCurrent();
         const startedAt = new Date().toISOString();
-        const result = await callGenerate(session, prompt, generationConfig, assignment);
+        const result = await generateWithDopplerSession(session, prompt, generationConfig, assignment);
         assertResultCurrent();
         const completedAt = new Date().toISOString();
-        const outputText = normalizeOutputText(result);
-        const tokenIds = normalizeTokenIds(result);
-        const dopplerEvidenceComparison = await compareDopplerGenerationEvidence({
+        const outputText = readDopplerOutputText(result);
+        const tokenIds = readDopplerTokenIds(result);
+        const dopplerEvidenceComparison = await verifyDopplerGenerationEvidence({
           result,
           generationConfig,
-          modelInfo
+          modelId: modelInfo?.modelId,
+          manifestHash: modelInfo?.manifestHash
         });
         const evidenceWarnings = [];
         if (!dopplerEvidenceComparison && tokenIds.length === 0) {
@@ -1166,7 +695,7 @@ export function createDopplerRuntime({
           outputText,
           tokenIds,
           transcript,
-          tokenCounts: normalizeTokenCounts(result, tokenIds),
+          tokenCounts: readDopplerTokenCounts(result, tokenIds),
           timing: result?.timing || { startedAt, completedAt },
           dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
           dopplerEvidenceComparison,
@@ -1180,17 +709,17 @@ export function createDopplerRuntime({
       return enqueueWork(runGeneration);
     },
     async embed({ prompt, assignment }) {
-      if (!session || !embeddingMethodName(session)) {
+      if (!session || !dopplerEmbedMethod(session)) {
         throw new Error('Doppler browser embedding session is not connected');
       }
       const runEmbedding = async (assertCurrent, _signal, assertResultCurrent) => {
-        await resetSessionGenerationState(session);
+        await resetDopplerSession(session);
         assertCurrent();
         const startedAt = new Date().toISOString();
-        const result = await callEmbed(session, prompt, assignment);
+        const result = await embedWithDopplerSession(session, prompt, assignment, { workload: POOLDAY_MODEL_WORKLOADS.embedding });
         assertResultCurrent();
         const completedAt = new Date().toISOString();
-        const values = normalizeEmbeddingValues(result);
+        const values = readDopplerEmbedding(result);
         if (values.length === 0) throw new Error('Doppler embedding result did not include an embedding vector');
         const stats = summarizeEmbeddingValues(values);
         if (stats.nonFiniteCount > 0) {
@@ -1238,7 +767,7 @@ export function createDopplerRuntime({
       if (!validation.ok) throw new Error(`Sequence request rejected: ${validation.reasons.join('; ')}`);
       if (await sha256Hex(sequence) !== request.sequenceHash) throw new Error('sequence input hash mismatch');
       const runSequence = async (assertCurrent, signal, assertResultCurrent) => {
-        await resetSessionGenerationState(session);
+        await resetDopplerSession(session);
         assertCurrent();
         const startedAt = new Date().toISOString();
         const result = await callDopplerSequence(

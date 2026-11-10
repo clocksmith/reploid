@@ -1,6 +1,7 @@
 import type { DopplerRuntimeSession, RuntimePorts } from 'doppler-gpu';
 import type { ResolvedConfig } from '../config/index.js';
 import type { GenerationProvider, GenerationResult, Message, Closable } from '../index.js';
+export * from './doppler-session.js';
 type OperationRequest = Parameters<DopplerRuntimeSession['executeOperation']>[0];
 type OperationEvent = Exclude<Awaited<ReturnType<ReturnType<DopplerRuntimeSession['executeOperation']>['next']>>['value'], void>;
 export type DopplerGenerationResult = GenerationResult & (

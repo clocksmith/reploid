@@ -3,12 +3,15 @@
  *
  * Doppler owns model loading and model handles. Reploid adapts those public
  * handles into its chat/stream/status + LoRA + KV-prefill provider contract.
+ * Runtime export resolution and stream decoding come from the library's
+ * Doppler session contract; this file keeps Zero/X lifecycle and wording.
  */
 
 import {
   DOPPLER_MODULE_URL,
   DOPPLER_TOOLING_URL
 } from '../../shared/config/doppler-local-models.js';
+import { resolveDopplerRuntime, streamDopplerText } from '../../shared/vendor/reploid/adapters/doppler-session.js';
 import { DopplerRuntimeService } from '../core/doppler-runtime-service.js';
 
 async function loadDopplerTooling() {
@@ -81,7 +84,7 @@ const configError = (Errors, message) => {
 let providerAdapterSequence = 0;
 
 export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = null } = {}) {
-  const runtime = dopplerModule?.doppler || dopplerModule?.dr || dopplerModule?.default || null;
+  const runtime = resolveDopplerRuntime(dopplerModule);
   const legacyTestLoad = globalThis.process?.env?.VITEST === 'true'
     && typeof (dopplerModule?.load || runtime?.load) === 'function';
   if (typeof runtime?.open !== 'function' && !legacyTestLoad) {
@@ -132,9 +135,7 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
       return requireHandle().generate(messages, generationOptionsFromModel(options));
     },
     async *stream(messages, options = {}) {
-      for await (const event of requireHandle().stream(messages, generationOptionsFromModel(options))) {
-        if (event?.type === 'text-delta') yield event.text;
-      }
+      yield* streamDopplerText(requireHandle(), messages, generationOptionsFromModel(options));
     },
     async prefillKV(prompt, options = {}) {
       const prefill = requireHandle().advanced?.prefillKV;

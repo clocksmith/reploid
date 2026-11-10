@@ -3,6 +3,9 @@ import { assertSessionCompletion, assertSessionIdentity, createV1Verifier } from
 import { abortable } from '../agent/cancellation.js';
 import choiceDefinition from './doppler-choice.json' with { type: 'json' };
 
+// Public session calls applications share; importable alone without the lazy runtime import below.
+export * from './doppler-session.js';
+
 // Doppler remains an optional peer dependency. Loading this adapter has no
 // model, GPU, network or credential side effects.
 export function createDopplerProvider({ config, session, ownership, toGenerationRequest, toOperationRequest, runtime }) {

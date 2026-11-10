@@ -91,19 +91,29 @@
       "sha256": "968d1d6ad6c4f66e6a952779f961395307be080d10b9222a5e91ebbf61ab1207"
     },
     {
+      "path": "adapters/doppler-session.d.ts",
+      "bytes": 3983,
+      "sha256": "09e6d865bdb60b2f5583fd5fbb265b4c5c6d75fef8d6e8126b86aa83bb57acb7"
+    },
+    {
+      "path": "adapters/doppler-session.js",
+      "bytes": 17371,
+      "sha256": "e6878aec9552643851d98b358c170cb525fed35a3b85613ed37b6b460f62d87f"
+    },
+    {
       "path": "adapters/doppler-stream.js",
       "bytes": 4187,
       "sha256": "e286dfe4492774afb05350e799ac695293504bfb2e2154495a4736410fd328a7"
     },
     {
       "path": "adapters/doppler.d.ts",
-      "bytes": 4879,
-      "sha256": "8d704bfe9dd82e8aceb7b637eae7a4e6f61ecc18fb4c5497bb28b3d52c6d6de1"
+      "bytes": 4917,
+      "sha256": "da4b176590bcb099229805dc6f0424ae937326f2675f724d101d933906432e8f"
     },
     {
       "path": "adapters/doppler.js",
-      "bytes": 12755,
-      "sha256": "0dc4a6abedc25190126338de174de96fef92c59e3e81b1247010c2cf22f1db86"
+      "bytes": 12894,
+      "sha256": "1eca1128f5fbc79d05be1874f7e9918712cf42630a5efca5538700cfb533a79e"
     },
     {
       "path": "agent/belief-planner.js",
