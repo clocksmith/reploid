@@ -89,10 +89,12 @@ describe('poolday home navigation', () => {
   });
 
   it('uses Reploid publicly and keeps model evidence out of the main form', () => {
-    for (const route of ['home', 'compute', 'records']) {
+    // The workspace brand opens the left Threads drawer (owner clarification, November 6, 2026);
+    // focused routes keep the brand as their way home.
+    for (const [route, brandLabel] of [['home', 'Reploid threads'], ['compute', 'Reploid home'], ['records', 'Reploid home']]) {
       const host = document.createElement('div');
       host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
-      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe('Reploid home');
+      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe(brandLabel);
       expect(host.querySelector('.pool-primary-brand .pool-power-tower')).not.toBeNull();
       expect(host.textContent).not.toMatch(/\bpoolday\b/i);
       for (const node of host.querySelectorAll('[aria-label]')) expect(node.getAttribute('aria-label')).not.toMatch(/poolday/i);
@@ -203,10 +205,13 @@ describe('poolday home navigation', () => {
     expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
     expect(host.querySelector('[data-inspector-pane="settings"] [data-open-network]')).toBeNull();
     expect(host.querySelector('[data-chat-workspace]')).not.toBeNull();
+    // The brand is the Threads drawer toggle: one URL-backed link to the left drawer.
     const brand = host.querySelector('[data-chat-rail-toolbar] .pool-primary-brand');
-    expect(brand.getAttribute('aria-label')).toBe('Reploid home');
-    expect(brand.getAttribute('href')).toBe('/');
-    expect(host.querySelector('[data-toggle-thread-rail]').textContent).toContain('Threads');
+    expect(brand.getAttribute('aria-label')).toBe('Reploid threads');
+    expect(new URL(brand.href).searchParams.get('view')).toBe('threads');
+    expect(host.querySelectorAll('[data-toggle-thread-rail]')).toHaveLength(1);
+    expect(host.querySelector('[data-toggle-thread-rail]')).toBe(brand);
+    expect(host.querySelector('[data-threads-dialog]').getAttribute('aria-label')).toBe('Threads');
     expect(host.querySelector('[data-inspector-section="settings"]')).not.toBeNull();
   });
 

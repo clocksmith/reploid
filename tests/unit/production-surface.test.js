@@ -117,10 +117,13 @@ it('keeps one composer picker and contribution in Computers, preserving drafts o
   expect(document.querySelectorAll('[data-production-surface]')).toHaveLength(1);
   expect(device.open).toBe(false);
   expect(document.querySelector('[data-device-state-summary]').textContent).toBe('');
-  // Weights, context and availability are read once, on each choice; the picker repeats none of them below the list.
-  expect(document.querySelector('[data-model-facts]')).toBeNull();
-  expect(document.querySelector('[data-model-picker] [data-model-providers]')).not.toBeNull();
-  expect(document.querySelector('[data-model-picker] [data-execution-location]')).not.toBeNull();
+  // Technical facts, providers and execution location stay in one collapsed disclosure, outside the choice list.
+  const details = document.querySelector('[data-model-picker] [data-model-details]');
+  expect(details.open).toBe(false);
+  expect(details.querySelector('[data-model-facts]')).not.toBeNull();
+  expect(document.querySelector('[data-model-picker] .chat-model-choices [data-model-facts]')).toBeNull();
+  expect(details.querySelector('[data-model-providers]')).not.toBeNull();
+  expect(details.querySelector('[data-execution-location]')).not.toBeNull();
   const input = document.querySelector('[data-composer-input]');
   input.value = 'Draft question';
   input.dispatchEvent(new Event('input', { bubbles: true }));
