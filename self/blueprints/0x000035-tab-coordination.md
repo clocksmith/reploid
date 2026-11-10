@@ -120,7 +120,7 @@ const TabCoordinator = {
       widget: {
         element: 'tab-coordinator-widget',
         displayName: 'Tab Coordinator',
-        icon: '⚯',
+        icon: '☍',
         category: 'coordination',
         updateInterval: 3000
       }

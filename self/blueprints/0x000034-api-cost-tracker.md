@@ -131,7 +131,7 @@ class CostTrackerWidget extends HTMLElement {
         /* Cost visualization styles */
       </style>
       <div class="cost-tracker-panel">
-        <h4>⚯ Cost Tracker</h4>
+        <h4>⚖ Cost Tracker</h4>
         <!-- Cost breakdown, provider stats, rate limits -->
       </div>
     `;
@@ -147,7 +147,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Cost Tracker',
-  icon: '⚯',
+  icon: '⚖',
   category: 'analytics'
 };
 ```

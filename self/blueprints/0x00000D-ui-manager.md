@@ -115,7 +115,7 @@ const UI = {
       getControls() {
         return [
           { id: 'panel-thoughts', label: '☁ Thoughts Panel', action: () => { /* ... */ } },
-          { id: 'panel-performance', label: '☱ Performance Panel', action: () => { /* ... */ } },
+          { id: 'panel-performance', label: '☷ Performance Panel', action: () => { /* ... */ } },
           { id: 'panel-logs', label: '✎ Logs Panel', action: () => { /* ... */ } }
         ];
       }

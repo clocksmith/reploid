@@ -113,11 +113,11 @@ class ToolAnalyticsWidget extends HTMLElement {
       </style>
 
       <div class="widget-panel">
-        <h3>☱ Tool Analytics</h3>
+        <h3>☷ Tool Analytics</h3>
 
         <div class="controls">
           <button id="reset-btn">↻ Reset</button>
-          <button id="report-btn">⛿ Report</button>
+          <button id="report-btn">☐ Report</button>
         </div>
 
         <h3>Top 5 Most Used Tools</h3>
@@ -171,7 +171,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Tool Analytics',
-  icon: '☱',
+  icon: '☷',
   category: 'analytics',
   updateInterval: 5000
 };

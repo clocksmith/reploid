@@ -1,4 +1,4 @@
-/** Enforce docs/EMOJI.md: tracked source and documentation contain no emoji. */
+/** Enforce docs/EMOJI.md: no emoji, and only approved pictographic symbols, in tracked source and documentation. */
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -12,20 +12,32 @@ const RECORDS = /^(?:artifacts|docs\/status|reports|shared\/vendor\/doppler)\//;
 const DATA = Object.freeze({
   'self/blueprints/0x00003B-dogs-cats-browser-parser.md': 'DOGS/CATS bundle markers are part of the bundle format this blueprint specifies'
 });
-// Emoji presentation, the emoji variation selector, and supplementary-plane pictographs.
-const EMOJI = /\p{Emoji_Presentation}|\uFE0F|(?=\p{Extended_Pictographic})[\u{1F000}-\u{1FAFF}]/u;
+const PICTOGRAPH = /\p{Extended_Pictographic}|\uFE0F/gu;
+const PRESENTATION = /\p{Emoji_Presentation}/u;
+
+/** Every symbol listed in the policy's tables (first column, space-separated pairs included). */
+export function approvedSymbols(policy) {
+  const symbols = new Set();
+  for (const line of policy.split('\n')) {
+    const cell = line.match(/^\|\s*([^|]+?)\s*\|\s*U\+/u);
+    if (cell) for (const token of cell[1].split(/\s+/u)) for (const symbol of token) symbols.add(symbol);
+  }
+  return symbols;
+}
 
 export function findEmoji({ root = ROOT, files } = {}) {
+  const approved = approvedSymbols(readFileSync(path.join(root, 'docs/EMOJI.md'), 'utf8'));
   const listed = files || execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0');
   const violations = [];
   for (const file of listed) {
     if (!file || !TEXT.test(file) || RECORDS.test(file) || DATA[file]) continue;
     let text;
     try { text = readFileSync(path.join(root, file), 'utf8'); } catch { continue; }
-    if (!EMOJI.test(text)) continue;
     text.split('\n').forEach((line, index) => {
-      const match = line.match(EMOJI);
-      if (match) violations.push({ file, line: index + 1, symbol: match[0] });
+      for (const [symbol] of line.matchAll(PICTOGRAPH)) {
+        const emoji = symbol === '\uFE0F' || PRESENTATION.test(symbol);
+        if (emoji || !approved.has(symbol)) violations.push({ file, line: index + 1, symbol, kind: emoji ? 'emoji' : 'unapproved' });
+      }
     });
   }
   return violations;
@@ -35,7 +47,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const violations = findEmoji();
   if (violations.length) {
     console.error('[emoji] Use an approved symbol from docs/EMOJI.md instead of:');
-    for (const { file, line, symbol } of violations) console.error(`- ${file}:${line} U+${symbol.codePointAt(0).toString(16).toUpperCase()}`);
+    for (const { file, line, symbol, kind } of violations) {
+      console.error(`- ${file}:${line} U+${symbol.codePointAt(0).toString(16).toUpperCase()} (${kind})`);
+    }
     process.exitCode = 1;
-  } else console.log('[emoji] No emoji in tracked source or documentation');
+  } else console.log('[emoji] Only approved symbols in tracked source and documentation');
 }

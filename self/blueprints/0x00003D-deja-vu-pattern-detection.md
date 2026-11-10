@@ -143,13 +143,13 @@ class DejaVuDetectorWidget extends HTMLElement {
       </style>
 
       <div class="deja-vu-panel">
-        <h3>♲ Déjà Vu Detector</h3>
+        <h3>♺ Déjà Vu Detector</h3>
 
         <div class="controls">
           <button class="detect-patterns">⌕ Detect Patterns</button>
-          <button class="inefficiency-score">☱ Inefficiency Score</button>
+          <button class="inefficiency-score">☷ Inefficiency Score</button>
           <button class="suggest-improvements">◯ Suggest Improvements</button>
-          <button class="clear-cache">⛶ Clear Cache</button>
+          <button class="clear-cache">☈ Clear Cache</button>
         </div>
 
         <div class="section">
@@ -200,7 +200,7 @@ if (!customElements.get('deja-vu-detector-widget')) {
 const widget = {
   element: 'deja-vu-detector-widget',
   displayName: 'Déjà Vu Detector',
-  icon: '♲',
+  icon: '♺',
   category: 'rsi'
 };
 ```

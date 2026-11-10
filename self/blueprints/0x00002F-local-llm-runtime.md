@@ -119,7 +119,7 @@ class LocalLLMWidget extends HTMLElement {
     }
 
     if (isReady && !isGenerating) {
-      controls.push({ id: 'unload-model', label: '⛶ Unload Model', action: async () => await unload() });
+      controls.push({ id: 'unload-model', label: '⏏ Unload Model', action: async () => await unload() });
     }
 
     return controls;
@@ -226,7 +226,7 @@ The widget provides complete runtime visibility and control for local LLM operat
 **Step 4: Implement Interactive Controls**
 - `getControls()` as class method returning action buttons:
   - "☇ Load Model" button when not ready and not loading
-  - "⛶ Unload Model" button when ready and not generating
+  - "⏏ Unload Model" button when ready and not generating
 - Each control executes module API methods via closure access
 
 **Step 5: Implement Render Method**

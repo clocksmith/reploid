@@ -80,7 +80,7 @@ Key pipeline stages:
 1. **Web Component Registration**
    - Define `ASTVisualizerWidget` extending `HTMLElement`.
    - Register custom element: `customElements.define('ast-visualizer-widget', ASTVisualizerWidget)`.
-   - Export widget metadata: `{ element, displayName: 'AST Visualizer', icon: '♣', category: 'ui' }`.
+   - Export widget metadata: `{ element, displayName: 'AST Visualizer', icon: '☰', category: 'ui' }`.
 2. **Lifecycle: connectedCallback**
    - Call `attachShadow({ mode: 'open' })` in constructor.
    - No auto-refresh interval (AST visualized on-demand only).

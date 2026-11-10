@@ -1,7 +1,7 @@
 # Emoji Policy: STRICT NO EMOJIS
 
 This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visual indicators.
-`npm run verify:emoji` fails on emoji in tracked source and documentation; retained evidence and the Doppler mirror are records, not authored here.
+`npm run verify:emoji` fails on emoji, and on pictographic symbols missing from these tables, in tracked source and documentation; retained evidence and the Doppler mirror are records, not authored here.
 
 ## Approved Unicode Symbols
 

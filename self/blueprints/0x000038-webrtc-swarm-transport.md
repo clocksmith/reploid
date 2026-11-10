@@ -153,7 +153,7 @@ const WebRTCSwarm = {
       widget: {
         element: 'webrtc-swarm-widget',
         displayName: 'WebRTC Swarm',
-        icon: '♁',
+        icon: '☁',
         category: 'communication',
         updateInterval: 2000
       }
@@ -864,7 +864,7 @@ class WebRTCSwarmWidget extends HTMLElement {
           ` : ''}
           ${signalingConnected ? `
             <button class="disconnect-btn">■ Disconnect</button>
-            <button class="announce-btn">⚠ Announce Presence</button>
+            <button class="announce-btn">☍ Announce Presence</button>
           ` : ''}
         </div>
       </div>

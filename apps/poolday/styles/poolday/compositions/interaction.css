@@ -50,7 +50,7 @@
 .execution-ribbon-node small { white-space: nowrap; }
 .execution-ribbon-wire { position: relative; flex: 1; min-width: var(--pool-size-16); height: var(--pool-size-44); }
 .execution-ribbon-wire::before { content: ''; position: absolute; inset-inline: 0; top: var(--pool-size-12); }
-.execution-ribbon-wire::after { content: '↔'; position: absolute; right: 0; top: 0; }
+.execution-ribbon-wire::after { content: '⇄'; position: absolute; right: 0; top: 0; }
 .execution-ribbon-wire.is-unassigned::after { content: ''; }
 .execution-ribbon-executors { display: grid; flex: 2; min-width: 0; gap: var(--pool-size-4); }
 .execution-ribbon-model { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

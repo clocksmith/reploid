@@ -4,19 +4,32 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { findEmoji } from '../../scripts/verify-emoji.js';
+import { approvedSymbols, findEmoji } from '../../scripts/verify-emoji.js';
+
+const POLICY = [
+  '| Symbol | Code | HTML Entity | Usage |',
+  '|--------|------|-------------|-------|',
+  '| ✓ | U+2713 | `&#10003;` | Confirm |',
+  '| ⌨ | U+2328 | `&#9000;` | Keyboard |',
+  '| « » | U+00AB U+00BB | `&#171;` `&#187;` | Quotes |'
+].join('\n');
 
 describe('emoji policy check', () => {
-  it('reports emoji and emoji-presentation selectors, and allows approved symbols and records', async () => {
+  it('reads every approved symbol, including paired cells', () => {
+    expect([...approvedSymbols(POLICY)].sort()).toEqual(['«', '»', '⌨', '✓'].sort());
+  });
+
+  it('reports emoji, emoji selectors and unapproved pictographs; allows approved symbols, escapes and records', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-emoji-'));
     try {
       const files = {
-        'src/approved.js': "const icons = { ok: '✓', stop: '■', keys: '⌨', info: '☛' };\n",
+        'docs/EMOJI.md': POLICY,
+        'src/approved.js': "const icons = { ok: '✓', keys: '⌨' };\n",
         'src/emoji.js': "const icon = '\u{1F504}';\n",
-        'docs/selector.md': '# Heading\n\n☛\uFE0F Note\n',
-        'docs/supplementary.md': 'A pictograph without default emoji presentation: \u{1F5C2}\n',
+        'docs/selector.md': '# Heading\n\n✓️ Note\n',
+        'src/unapproved.js': "const shuffle = '⚄';\n",
         'src/escaped.test.js': "const input = 'ab\\u{1F600}cd';\n",
-        'artifacts/run/report.json': '{"observed":"\u2705"}\n'
+        'artifacts/run/report.json': '{"observed":"✅"}\n'
       };
       for (const [file, text] of Object.entries(files)) {
         await fs.mkdir(path.join(root, path.dirname(file)), { recursive: true });
@@ -24,16 +37,12 @@ describe('emoji policy check', () => {
       }
       const violations = findEmoji({ root, files: Object.keys(files) });
       expect(violations).toEqual([
-        { file: 'src/emoji.js', line: 1, symbol: '\u{1F504}' },
-        { file: 'docs/selector.md', line: 3, symbol: '\uFE0F' },
-        { file: 'docs/supplementary.md', line: 1, symbol: '\u{1F5C2}' }
+        { file: 'src/emoji.js', line: 1, symbol: '\u{1F504}', kind: 'emoji' },
+        { file: 'docs/selector.md', line: 3, symbol: '️', kind: 'emoji' },
+        { file: 'src/unapproved.js', line: 1, symbol: '⚄', kind: 'unapproved' }
       ]);
     } finally {
       await fs.rm(root, { recursive: true, force: true });
     }
-  });
-
-  it('passes on the repository', () => {
-    expect(findEmoji()).toEqual([]);
   });
 });

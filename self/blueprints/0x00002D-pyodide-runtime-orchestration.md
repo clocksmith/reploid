@@ -98,7 +98,7 @@ class PyodideRuntimeWidget extends HTMLElement {
         .stat-value.error { color: #f00; }
       </style>
       <div class="widget-panel">
-        <h3>⚯ Pyodide Runtime</h3>
+        <h3>ƒ Pyodide Runtime</h3>
         <div class="stats-grid">
           <!-- Status, executions, packages, file syncs -->
         </div>
@@ -122,7 +122,7 @@ if (!customElements.get('pyodide-runtime-widget')) {
 const widget = {
   element: 'pyodide-runtime-widget',
   displayName: 'Pyodide Runtime',
-  icon: '⚯',
+  icon: 'ƒ',
   category: 'runtime',
   updateInterval: 3000
 };
@@ -189,7 +189,7 @@ const widget = {
     - Add duplicate check: `if (!customElements.get('pyodide-runtime-widget'))`
     - Call `customElements.define('pyodide-runtime-widget', PyodideRuntimeWidget)`
 11. **Return Widget Object** with new format:
-    - `{ element: 'pyodide-runtime-widget', displayName: 'Pyodide Runtime', icon: '⚯', category: 'runtime' }`
+    - `{ element: 'pyodide-runtime-widget', displayName: 'Pyodide Runtime', icon: 'ƒ', category: 'runtime' }`
 12. **Test** Shadow DOM rendering, lifecycle cleanup, and closure access to runtime state
 
 ### 4. Verification requirements

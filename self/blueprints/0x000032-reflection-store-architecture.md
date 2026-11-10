@@ -106,9 +106,9 @@ class ReflectionStoreWidget extends HTMLElement {
       <div class="widget-panel">
         <h3>☁ Reflection Store</h3>
         <div class="controls">
-          <button class="generate-report">⛿ Generate Report</button>
+          <button class="generate-report">☐ Generate Report</button>
           <button class="export-data">⇑ Export Data</button>
-          <button class="get-summary">☱ Get Summary</button>
+          <button class="get-summary">☷ Get Summary</button>
         </div>
         <div class="stats-grid">
           <!-- Total, success rate, added count, DB status -->

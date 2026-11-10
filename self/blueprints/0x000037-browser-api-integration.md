@@ -93,7 +93,7 @@ class BrowserAPIsWidget extends HTMLElement {
     return {
       state: availableCount > 0 ? (hasRecentOp ? 'active' : 'idle') : 'disabled',
       primaryMetric: `${availableCount}/${totalCount} APIs`,
-      secondaryMetric: state.fileSystemHandle ? `⛁ ${state.fileSystemHandle.name}` : 'No FS access',
+      secondaryMetric: state.fileSystemHandle ? `☗ ${state.fileSystemHandle.name}` : 'No FS access',
       lastActivity: state.operationStats.lastOperation ? state.operationStats.lastOperation.timestamp : null
     };
   }

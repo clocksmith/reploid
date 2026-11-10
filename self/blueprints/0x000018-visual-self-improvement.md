@@ -163,7 +163,7 @@ class VisualSelfImprovementWidget extends HTMLElement {
       </style>
 
       <div class="vrsi-panel">
-        <h3>⛉ Visual Self-Improvement</h3>
+        <h3>◎ Visual Self-Improvement</h3>
 
         <div class="controls">
           <button class="generate-insights">⌕ Generate Insights</button>
@@ -198,7 +198,7 @@ if (!customElements.get('visual-self-improvement-widget')) {
 const widget = {
   element: 'visual-self-improvement-widget',
   displayName: 'Visual Self-Improvement',
-  icon: '⛉',
+  icon: '◎',
   category: 'rsi',
   order: 90
 };

@@ -140,7 +140,7 @@ const WebRTCCoordinator = {
             .init-btn { padding: 4px 8px; background: #0a0; color: #000; border: none; cursor: pointer; margin-top: 8px; }
           </style>
           <div class="coordinator-panel">
-            <h4>♁ WebRTC Coordinator</h4>
+            <h4>☁ WebRTC Coordinator</h4>
             <div class="stats-grid">
               <div class="stat">Tasks: ${coordinationStats.totalTasks}</div>
               <div class="stat">Success: ${successRate}%</div>
@@ -198,7 +198,7 @@ const WebRTCCoordinator = {
       widget: {
         element: 'webrtc-coordinator-widget',
         displayName: 'WebRTC Coordinator',
-        icon: '♁',
+        icon: '☁',
         category: 'communication',
         updateInterval: 2000
       }

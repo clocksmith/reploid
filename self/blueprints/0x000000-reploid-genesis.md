@@ -443,7 +443,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Genesis',
-  icon: '⛊',
+  icon: '⌂',
   category: 'core',
   order: 0
 };

@@ -273,10 +273,10 @@ class MetaCognitiveLayerWidget extends HTMLElement {
       </style>
 
       <div class="meta-cognitive-panel">
-        <h3>⚛ Meta-Cognitive Layer</h3>
+        <h3>⊢ Meta-Cognitive Layer</h3>
 
         <div class="controls">
-          <button class="toggle-monitoring">${status.enabled ? '⏸ Stop' : '☇ Start'}</button>
+          <button class="toggle-monitoring">${status.enabled ? '■ Stop' : '☇ Start'}</button>
           <button class="check-now">⌕ Check Now</button>
         </div>
 
@@ -332,7 +332,7 @@ if (!customElements.get('meta-cognitive-layer-widget')) {
 const widget = {
   element: 'meta-cognitive-layer-widget',
   displayName: 'Meta-Cognitive Layer',
-  icon: '⚛',
+  icon: '⊢',
   category: 'meta-cognitive'
 };
 ```

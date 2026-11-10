@@ -115,10 +115,10 @@ class VizDataAdapterWidget extends HTMLElement {
       </style>
 
       <div class="viz-data-adapter-panel">
-        <h4>☱ Viz Data Adapter</h4>
+        <h4>☷ Viz Data Adapter</h4>
 
         <div class="controls">
-          <button class="clear-cache">⛶ Clear Cache</button>
+          <button class="clear-cache">☈ Clear Cache</button>
         </div>
 
         <div class="adapter-stats">
@@ -169,7 +169,7 @@ if (!customElements.get('viz-data-adapter-widget')) {
 const widget = {
   element: 'viz-data-adapter-widget',
   displayName: 'Viz Data Adapter',
-  icon: '☱',
+  icon: '☷',
   category: 'ui',
   order: 85
 };

@@ -117,7 +117,7 @@ const AppLogic = {
             .success { color: #0f0; }
           </style>
           <div class="boot-panel">
-            <h4>⛻ Boot Orchestrator</h4>
+            <h4>⏻ Boot Orchestrator</h4>
             <div class="status-badge status-${_bootStats.status}">
               ${_bootStats.status}
             </div>
@@ -153,7 +153,7 @@ const AppLogic = {
       widget: {
         element: elementName,
         displayName: 'Boot Orchestrator',
-        icon: '⛻',
+        icon: '⏻',
         category: 'core',
         updateInterval: null
       }
@@ -319,7 +319,7 @@ class AppLogicWidget extends HTMLElement {
         .success { color: #0f0; }
       </style>
       <div class="boot-panel">
-        <h4>⛻ Boot Orchestrator</h4>
+        <h4>⏻ Boot Orchestrator</h4>
         <div class="status-badge status-${_bootStats.status}">${_bootStats.status}</div>
         <div>Total Time: ${durationSec}s</div>
         <div>Modules: ${_bootStats.modulesLoaded.length}</div>
@@ -354,7 +354,7 @@ return {
   widget: {
     element: elementName,
     displayName: 'Boot Orchestrator',
-    icon: '⛻',
+    icon: '⏻',
     category: 'core',
     updateInterval: null
   }

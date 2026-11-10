@@ -95,7 +95,7 @@ Responsibilities:
 1. **Web Component Registration**
    - Define `CanvasVisualizerWidget` extending `HTMLElement`.
    - Register custom element: `customElements.define('canvas-visualizer-widget', CanvasVisualizerWidget)`.
-   - Export widget metadata: `{ element, displayName: 'Canvas Visualizer', icon: '⛉', category: 'ui', updateInterval: 2000 }`.
+   - Export widget metadata: `{ element, displayName: 'Canvas Visualizer', icon: '◎', category: 'ui', updateInterval: 2000 }`.
 2. **Lifecycle: connectedCallback**
    - Call `attachShadow({ mode: 'open' })` in constructor.
    - Initialize auto-refresh interval (2000ms) for FPS and stats updates.

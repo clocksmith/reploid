@@ -294,7 +294,7 @@ class HITLControllerWidget extends HTMLElement {
           <div class="history-list scrollable">
             ${approvalStats.history.slice(0, 10).map(h => `
               <div class="history-item ${h.outcome}">
-                <span class="history-icon">${h.outcome === 'approved' ? '✓' : h.outcome === 'rejected' ? '✗' : '⏱'}</span>
+                <span class="history-icon">${h.outcome === 'approved' ? '✓' : h.outcome === 'rejected' ? '✗' : '○'}</span>
                 <span class="history-time">${formatTimestamp(h.timestamp)}</span>
                 ${h.reason ? `<span class="history-reason">${h.reason}</span>` : ''}
               </div>
@@ -344,7 +344,7 @@ const widget = {
 - **Approval Statistics**: Shows total, approved, rejected, approval rate (color-coded).
 - **Module Overrides**: Lists modules with explicit mode overrides (not `inherit`).
 - **Approval History**: Shows last 10 approvals with outcome (approved/rejected/timeout), timestamp, reason.
-- **Interactive Controls**: Toggle master mode (HITL ↔ Autonomous), Reset to defaults button.
+- **Interactive Controls**: Toggle master mode (HITL ⇄ Autonomous), Reset to defaults button.
 - **EventBus Integration**: Real-time updates on mode changes, approvals, rejections.
 - **Color Coding**: Green (approved), red (rejected), orange (timeout/warning).
 - **Shadow DOM**: Fully encapsulated styling prevents CSS leakage.

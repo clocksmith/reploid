@@ -40,7 +40,7 @@ Chart artifacts must remain accurate, performant, and accessible.
 const widget = {
   element: 'metrics-proto-widget',
   displayName: 'Metrics Proto',
-  icon: '☱',
+  icon: '☷',
   category: 'analytics',
   updateInterval: 5000
 };
@@ -105,7 +105,7 @@ Core behaviour:
    - Derive data from `PerformanceMonitor.getLLMStats()`.
 
 7. **Interactive Controls**
-   - **Pause Button**: Emits toast notification (⏸ icon, orange background).
+   - **Pause Button**: Emits toast notification (⏾ icon, orange background).
    - **Export Button**: Copies summary to clipboard via `navigator.clipboard` (⇓ icon, blue background).
    - **Refresh Button**: Calls `updateCharts()` and re-renders (↻ icon, green background).
    - Wire up event listeners in `render()` using `shadowRoot.querySelector()`.

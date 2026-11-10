@@ -179,7 +179,7 @@ class DiffViewerUIWidget extends HTMLElement {
             <button class="approve-all">✓ Approve All</button>
             <button class="reject-all">✗ Reject All</button>
             <button class="copy-diff">☷ Copy Diff</button>
-            <button class="export-diff">⛃ Export</button>
+            <button class="export-diff">⎘ Export</button>
           </div>
         ` : ''}
 

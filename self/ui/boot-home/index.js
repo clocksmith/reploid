@@ -288,7 +288,7 @@ const renderRunReplayImportControl = (state) => {
              accept="application/json,.json"
              hidden />
       <button class="btn btn-primary btn-op goal-action-button"
-              data-op="☋"
+              data-op="☷"
               data-action="import-run-json"
               type="button">
         Import setup JSON

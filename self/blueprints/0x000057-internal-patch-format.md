@@ -705,7 +705,7 @@ describe('InternalPatchFormat Module', () => {
 - [x] Parses JSON patches in ~1ms (vs ~10ms for DOGS)
 - [x] Reduces memory usage by ~80% (JSON vs markdown)
 - [x] Validates patches via JSON schema (no regex)
-- [x] Converts IPAT ↔ DOGS for backward compatibility
+- [x] Converts IPAT ⇄ DOGS for backward compatibility
 - [x] Implements Module Widget Protocol (getStatus, widget interface)
 - [x] Tracks performance statistics
 - [x] Emits EventBus events for widget updates

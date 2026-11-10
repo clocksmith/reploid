@@ -333,7 +333,7 @@ class DiffUtilsWidget extends HTMLElement {
           ${_diffHistory.slice(-5).reverse().map(d => `
             <div class="diff-entry">
               <div class="diff-meta">
-                <span class="diff-files">${d.fileA} ↔ ${d.fileB}</span>
+                <span class="diff-files">${d.fileA} ⇄ ${d.fileB}</span>
                 <span class="diff-time">${formatTimeDiff(d.timestamp)}</span>
               </div>
               <div class="diff-stats">

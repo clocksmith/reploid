@@ -418,7 +418,7 @@ for (const edge of graph.edges) {
     e => e.from === edge.to && e.to === edge.from
   );
   if (reverseExists) {
-    logger.warn(`[Introspector] Circular dependency: ${edge.from} ↔ ${edge.to}`);
+    logger.warn(`[Introspector] Circular dependency: ${edge.from} ⇄ ${edge.to}`);
     // Propose architectural change to break cycle
   }
 }

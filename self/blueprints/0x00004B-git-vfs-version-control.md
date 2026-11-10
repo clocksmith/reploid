@@ -137,7 +137,7 @@ const gitVFS = {
         return [
           {
             id: 'create-checkpoint',
-            label: '⛃ Create Checkpoint',
+            label: '⚑ Create Checkpoint',
             action: async () => {
               const label = prompt('Checkpoint label:');
               if (label) {
@@ -149,7 +149,7 @@ const gitVFS = {
           },
           {
             id: 'view-history',
-            label: '⏱ View History',
+            label: '☙ View History',
             action: () => {
               const history = getHistory('', 20);
               console.table(history);

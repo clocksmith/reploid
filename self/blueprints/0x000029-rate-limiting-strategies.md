@@ -183,7 +183,7 @@ class RateLimiterWidget extends HTMLElement {
         }
       </style>
       <div class="rate-limiter-panel">
-        <h4>⏲ Rate Limiter</h4>
+        <h4>⚖ Rate Limiter</h4>
         <div class="limiter-section">
           <h5>API Limiter (Token Bucket)</h5>
           <div class="token-bucket-visual">
@@ -218,7 +218,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Rate Limiter',
-  icon: '⏲',
+  icon: '⚖',
   category: 'performance'
 };
 ```

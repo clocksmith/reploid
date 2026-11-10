@@ -192,10 +192,10 @@ class HotReloadWidget extends HTMLElement {
       </style>
 
       <div class="hot-reload-panel">
-        <h3>☄ Hot Reload</h3>
+        <h3>♺ Hot Reload</h3>
 
         <div class="controls">
-          <button class="cleanup">⛶ Cleanup</button>
+          <button class="cleanup">☈ Cleanup</button>
         </div>
 
         <div class="stats-grid">
@@ -244,7 +244,7 @@ if (!customElements.get('hot-reload-widget')) {
 const widget = {
   element: 'hot-reload-widget',
   displayName: 'Hot Reload',
-  icon: '☄',
+  icon: '♺',
   category: 'core'
 };
 ```
@@ -403,7 +403,7 @@ const widget = {
     - Call `customElements.define('hot-reload-widget', HotReloadWidget)`
 
 17. **Return Widget Object** with new format:
-    - `{ element: 'hot-reload-widget', displayName: 'Hot Reload', icon: '☄', category: 'core' }`
+    - `{ element: 'hot-reload-widget', displayName: 'Hot Reload', icon: '♺', category: 'core' }`
 
 18. **Test** Blob URL creation/cleanup, module proxy behavior, reload with state preservation, error rollback, profiling accuracy
 

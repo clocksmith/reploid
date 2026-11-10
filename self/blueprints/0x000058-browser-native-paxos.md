@@ -719,7 +719,7 @@ class MultiModelArenaWidget extends HTMLElement {
       </style>
 
       <div class="arena-panel">
-        <h4>⚔ Multi-Model Arena</h4>
+        <h4>⚖ Multi-Model Arena</h4>
 
         ${active ? `
           <div>
@@ -810,7 +810,7 @@ return {
   widget: {
     element: elementName,
     displayName: 'Multi-Model Arena',
-    icon: '⚔',
+    icon: '⚖',
     category: 'rsi',
     updateInterval: 1000,
     visible: true,

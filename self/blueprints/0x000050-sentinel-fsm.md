@@ -194,7 +194,7 @@ class SentinelFSMWidget extends HTMLElement {
     } else if (currentState !== 'ERROR') {
       controls.push({
         id: 'pause',
-        label: '⏸ Pause',
+        label: '⏾ Pause',
         action: () => {
           pauseCycle();
           return { success: true, message: 'Cycle paused' };

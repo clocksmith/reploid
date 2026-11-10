@@ -32,11 +32,11 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
     <button id="optimization-tab-btn" class="sidebar-btn" data-tab="optimization" title="RSI Workbench (7)">
-      <span class="sidebar-icon">☫</span>
+      <span class="sidebar-icon">⚗</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
     <button id="workers-tab-btn" class="sidebar-btn" data-tab="workers" title="Workers (8)">
-      <span class="sidebar-icon">☌</span>
+      <span class="sidebar-icon">⚙</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
     <div class="sidebar-spacer"></div>

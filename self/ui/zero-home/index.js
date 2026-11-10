@@ -305,7 +305,7 @@ const renderGoalStep = () => {
           <div class="goal-primary-action">
             <button class="btn btn-primary btn-op goal-action-button"
                     type="button"
-                    data-op="⚄"
+                    data-op="⇄"
                     data-action="shuffle-goal">
               Shuffle
             </button>
