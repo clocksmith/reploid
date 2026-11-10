@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 const ports = vi.hoisted(() => ({ retained: vi.fn(async () => null) }));
 vi.mock('../../apps/poolday/host/model-acquisition.js', () => ({ retainedModelSource: ports.retained }));
 vi.mock('../../apps/poolday/infrastructure/custody-supply-budget.js', () => ({
@@ -8,7 +9,7 @@ vi.mock('../../apps/poolday/infrastructure/custody-supply-budget.js', () => ({
   openBrowserAcquisitionBudget: async () => { throw Object.assign(Error('No allowance'), { code: 'CUSTODY_BUDGET_MISSING' }); }
 }));
 import { createWorkModelFiles } from '../../apps/poolday/host/work-model-files.js';
-import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
+import { DOPPLER_MODULE_URL, LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 afterEach(() => { vi.unstubAllGlobals(); ports.retained.mockReset(); ports.retained.mockResolvedValue(null); });
 
@@ -28,7 +29,8 @@ it('reads the pinned manifest from Doppler for mesh custody without copying or d
     async *entries() {}, getFileHandle: missing
   }) }) } });
   vi.stubGlobal('location', { href: 'http://localhost/' });
-  vi.stubGlobal('REPLOID_DOPPLER_MODULE_URL', new URL('../../shared/vendor/doppler/0.6.32/src/index.js', import.meta.url).href);
+  // The served Doppler path comes from the package pin, so a version bump needs no test edit.
+  vi.stubGlobal('REPLOID_DOPPLER_MODULE_URL', pathToFileURL(resolveServedFile(DOPPLER_MODULE_URL)).href);
   const close = vi.fn(async () => {}), read = vi.fn(async path => {
     expect(path).toBe('manifest.json'); return new TextEncoder().encode(text).buffer;
   });

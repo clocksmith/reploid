@@ -9,6 +9,11 @@ import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src
 import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 
+// Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
+// checked in). These injected routes are approved per fixture so the host exercises the partition executor.
+const releases = vi.hoisted(() => []);
+vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals: releases } }));
+
 const policy = { maxTokens: 4, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 1024,
   maxAttempts: 32, maxConcurrentAttempts: 4 };
 const generation = { maxTokens: 4, maxSeqLen: 128, temperature: 0, topK: 0, topP: 1,
@@ -16,7 +21,7 @@ const generation = { maxTokens: 4, maxSeqLen: 128, temperature: 0, topK: 0, topP
 const channelPolicy = { maxFrameBytes: 64, maxControlBytes: 8192, maxPayloadBytes: 4096, maxPendingBytes: 16384,
   maxPendingRequests: 8, maxRequestsPerChannel: 128, maxBufferedBytes: 16384, maxTransferBytes: 1048576, timeoutMs: 1000 };
 const cleanup = [];
-afterEach(async () => { await Promise.allSettled(cleanup.splice(0).reverse().map(close => close())); });
+afterEach(async () => { await Promise.allSettled(cleanup.splice(0).reverse().map(close => close())); releases.length = 0; });
 const gate = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 function channels() {
   const pair = [new EventTarget(), new EventTarget()];
@@ -51,6 +56,9 @@ async function fixture(options = {}) {
     generation, generationDigest: await partitionFingerprint(generation), binding, a, b };
 }
 function host(f, storage = null) {
+  const { partition } = f.chat.getModels()[0];
+  releases.push({ modelId: f.model.id, modelIdentity: f.model.identity, adapterIdentities: [], partition,
+    evidence: 'test-fixture://partition-api' });
   const session = createChatSession({ partitions: f.chat, storage, models: [f.model], participantId: f.a.peerId, meshId: 'mesh',
     service: { open() { throw new Error('Whole-model fallback forbidden'); } } });
   cleanup.push(() => session.close());
@@ -419,7 +427,8 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     const f = await fixture(), session = host(f);
     const id = session.createThread({ model: f.chat.getModels()[0] });
     const result = await session.send(id, '1');
-    expect(result.status).toBe('failed'); expect(result.error).toContain('No ready contributors');
+    // The public release gate refuses an unavailable route before the partition executor runs.
+    expect(result.status).toBe('failed'); expect(result.error).toContain('Selected distributed route is unavailable');
     expect(f.factory.log.opens).toEqual([]);
   });
 
