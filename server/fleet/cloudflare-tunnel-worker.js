@@ -42,19 +42,70 @@ export default {
       if (value) headers.set(name, value);
     }
     const target = new URL(url.pathname, 'http://127.0.0.1:18785');
+    const controller = new AbortController();
+    const abortUpstream = () => controller.abort(request.signal.reason);
+    request.signal.addEventListener('abort', abortUpstream, { once: true });
+    if (request.signal.aborted) abortUpstream();
     try {
       const upstream = await env.FLEET_API.fetch(new Request(target.toString(), {
         method: request.method,
         headers,
         ...(request.method === 'POST' ? { body: request.body, duplex: 'half' } : {}),
         redirect: 'manual',
-        signal: request.signal
+        signal: controller.signal
       }));
       const responseHeaders = new Headers(upstream.headers);
       responseHeaders.set('cache-control', 'no-store');
       responseHeaders.set('x-content-type-options', 'nosniff');
+      if (upstream.body && (responseHeaders.get('content-type') || '').includes('text/event-stream')) {
+        request.signal.removeEventListener('abort', abortUpstream);
+        const reader = upstream.body.getReader();
+        let released = false;
+        const release = () => {
+          if (released) return;
+          released = true;
+          request.signal.removeEventListener('abort', cancelStream);
+        };
+        const cancelStream = () => {
+          controller.abort(request.signal.reason);
+          release();
+          reader.cancel(request.signal.reason).catch(() => {});
+        };
+        request.signal.addEventListener('abort', cancelStream, { once: true });
+        if (request.signal.aborted) cancelStream();
+        const body = new ReadableStream({
+          async pull(streamController) {
+            try {
+              const { done, value } = await reader.read();
+              if (done) {
+                release();
+                streamController.close();
+                return;
+              }
+              streamController.enqueue(value);
+            } catch (error) {
+              release();
+              streamController.error(error);
+            }
+          },
+          async cancel(reason) {
+            controller.abort(reason);
+            release();
+            await reader.cancel(reason).catch(() => {});
+          }
+        });
+        return new Response(body, { status: upstream.status, headers: responseHeaders });
+      }
+      request.signal.removeEventListener('abort', abortUpstream);
       return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
     } catch {
+      request.signal.removeEventListener('abort', abortUpstream);
+      if (request.signal.aborted || controller.signal.aborted) {
+        return new Response(null, {
+          status: 499,
+          headers: { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }
+        });
+      }
       return jsonResponse(503, 'Fleet requester unreachable');
     }
   }

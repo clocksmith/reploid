@@ -11,10 +11,15 @@ export function createHttpRequestOwner({ timeoutMs }) {
       let resolve;
       const item = { controller, completion: new Promise(done => { resolve = done; }) };
       active.add(item);
-      const cancel = () => controller.abort(disconnectError());
-      req.once('aborted', cancel); res.once('close', cancel);
-      const timer = setTimeout(() => controller.abort(deadlineError()), timeoutMs);
       let finished = false;
+      const socket = req.socket ?? null;
+      const cancel = () => {
+        if (!finished && !res.writableEnded) controller.abort(disconnectError());
+      };
+      req.once('aborted', cancel);
+      res.once('close', cancel);
+      socket?.once('close', cancel);
+      const timer = setTimeout(() => controller.abort(deadlineError()), timeoutMs);
       return {
         controller, signal: controller.signal, item,
         clearDeadline() { clearTimeout(timer); },
@@ -22,7 +27,9 @@ export function createHttpRequestOwner({ timeoutMs }) {
           if (finished) return;
           finished = true;
           clearTimeout(timer);
-          req.removeListener('aborted', cancel); res.removeListener('close', cancel);
+          req.removeListener('aborted', cancel);
+          res.removeListener('close', cancel);
+          socket?.removeListener('close', cancel);
           active.delete(item);
           try { onFinish(item); } finally { resolve(); }
         }

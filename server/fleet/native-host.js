@@ -10,6 +10,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { inspectDeviceMemory } from 'doppler-gpu/partitions';
 import { getDevice, getKernelCapabilities } from 'doppler-gpu/tooling/device';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
+import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createNativeParticipant, createNativeRtcAdapter, createNativeGpuHost, readNativeRoomTokenFile } from '../native-participant.js';
 import { openNativeOwnerControls } from '../native-owner/controls.js';
 import custodyPolicy from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
@@ -17,7 +18,7 @@ import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'j
 import { startFleetBrowserBridge } from './browser-bridge.js';
 import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
-import { createFleetRequester } from './requester.js';
+import { createFleetRequester, buildFleetRequestOutcome } from './requester.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
 import { assert, text, same } from './contract.js';
 import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -99,7 +100,28 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
     : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
   let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
-  const requests = new Map();
+  const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
+  function recordOutcome(outcome) {
+    if (!outcome) return outcome;
+    if (outcome.attemptId) {
+      outcomesByAttempt.delete(outcome.attemptId);
+      outcomesByAttempt.set(outcome.attemptId, outcome);
+      while (outcomesByAttempt.size > 128) outcomesByAttempt.delete(outcomesByAttempt.keys().next().value);
+    }
+    if (outcome.reservationId) {
+      outcomesByReservation.delete(outcome.reservationId);
+      outcomesByReservation.set(outcome.reservationId, outcome);
+      while (outcomesByReservation.size > 128) outcomesByReservation.delete(outcomesByReservation.keys().next().value);
+    }
+    return outcome;
+  }
+  const lookupOutcome = id => outcomesByReservation.get(id) ?? outcomesByAttempt.get(id) ?? null;
+  const resolveProviderId = (_reservationId, binding) => {
+    const target = binding?.providers?.[0]?.participantId;
+    if (!target) return null;
+    const peers = participant?.getNetworkState()?.peers || [];
+    return peers.find(peer => peer.participantId === target)?.peerId ?? null;
+  };
   const state = () => ({ computerId: config.computerId, name: config.name, participantId: identity.peerId,
     selected: selected && { modelId: selected.model.id, modelIdentity: selected.model.identity, mode: selected.mode },
     preparing, activeRequests: requests.size, error: lastError, hardware: fleetHardwareSnapshot(), execution: participant?.getState() ?? null,
@@ -183,9 +205,71 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     generate: (request, controls) => {
       assert(participant && !closed && !preparing, 'Requester unavailable');
       return participant.generate(request, controls);
+    },
+    recoverGeneration: (request, reference, controls) => {
+      assert(participant && !closed && !preparing, 'Requester unavailable');
+      return participant.recoverGeneration(request, reference, controls);
     }
   });
+  const requesterPorts = extra => ({
+    identity, credits, maxOutputTokens: config.maxOutputTokens,
+    onOutcome: recordOutcome, lookupOutcome, resolveProviderId, ...extra
+  });
+  async function recordPreDispatchFailure(request, error) {
+    const recordedAt = Date.now();
+    const outcome = recordOutcome(buildFleetRequestOutcome({
+      attemptId: request.attemptId ?? null,
+      threadId: request.threadId ?? null,
+      mode: request.model?.partition ? 'partition' : 'whole-model',
+      model: request.model,
+      inputDigest: await hashJson(request.messages),
+      phase: 'queued',
+      dispatched: false,
+      acknowledged: { deltaCount: 0, outputCharacters: 0, acknowledgedOutputTokens: 0 },
+      settlement: { status: 'cancelled_queued', charge: 0, outputTokens: 0, settledAt: recordedAt },
+      maximum: 0,
+      recordedAt
+    }));
+    if (error && typeof error === 'object' && !error.disconnect) error.disconnect = outcome;
+    return outcome;
+  }
   return Object.freeze({ identity, state, select, reconcile, textParticipant,
+    outcome: id => lookupOutcome(id),
+    async inspectOutcome(id) {
+      const prior = lookupOutcome(id);
+      const reservationId = prior?.reservationId ?? (typeof id === 'string' && id.startsWith('service:') ? id : null);
+      if (!reservationId || !credits) return prior;
+      let row;
+      try { row = await credits.call('request', { id: reservationId }); }
+      catch { return prior; }
+      if (!row) return prior;
+      const dispatched = row.state !== 'reserved' && row.state !== 'abandoned';
+      const settlement = row.state === 'settled' ? row.outcome
+        : row.state === 'abandoned' ? { status: 'abandoned', charge: 0, outputTokens: 0, settledAt: row.binding.createdAt }
+        : { id: reservationId, status: 'pending' };
+      const settledCompleted = row.state === 'settled' && !['cancelled', 'failed'].includes(row.outcome?.status);
+      return recordOutcome(buildFleetRequestOutcome({
+        attemptId: prior?.attemptId ?? null,
+        threadId: prior?.threadId ?? null,
+        reservationId,
+        executionId: row.binding.executionId,
+        mode: row.binding.mode,
+        model: row.binding.model,
+        providerId: prior?.providerId ?? null,
+        providerIdentity: row.binding.providers[0]?.participantId ?? null,
+        inputDigest: row.binding.inputDigest,
+        phase: dispatched ? 'in-flight' : 'queued',
+        dispatched,
+        acknowledged: {
+          deltaCount: prior?.acknowledged?.deltaCount ?? 0,
+          outputCharacters: prior?.acknowledged?.outputCharacters ?? 0,
+          acknowledgedOutputTokens: settledCompleted ? (row.outcome.outputTokens ?? 0) : (prior?.acknowledged?.acknowledgedOutputTokens ?? 0)
+        },
+        settlement,
+        maximum: dispatched ? row.binding.maximum : 0,
+        recordedAt: Date.now()
+      }));
+    },
     allowsModel: model => config.models.some(entry => entry.model.id === model?.id && entry.model.identity === model?.identity),
     async enrolledRecipients() {
       assert(credits, 'Service credits are not configured');
@@ -206,10 +290,31 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       requests.set(request.attemptId, { controller, request, since: Date.now() });
       try {
         await publishDemand();
-        const requester = createFleetRequester({
-          participant: { generate: execute },
-          identity, credits, maxOutputTokens: config.maxOutputTokens
-        });
+        if (config.followPlacement === true) {
+          assert(Number.isSafeInteger(config.capacityWaitMs) && config.capacityWaitMs > 0, 'Explicit capacity wait bound required');
+          const end = Date.now() + config.capacityWaitMs;
+          try {
+            for (;;) {
+              controller.signal.throwIfAborted();
+              const available = (participant.getState().models || []).filter(model => model.id === request.model.id
+                && model.identity === request.model.identity
+                && (request.model.partition ? model.availability === 'ready' : ['ready', 'busy'].includes(model.availability))
+                && same(partitionAdapterIdentities(model), partitionAdapterIdentities(request.model)));
+              const chosen = request.model.partition ? available.find(model => same(model.partition, request.model.partition))
+                : available.find(model => !model.partition);
+              if (chosen) break;
+              assert(Date.now() < end, 'No ready capacity within the configured wait');
+              await delay(1000, undefined, { signal: controller.signal });
+              await publishDemand();
+            }
+          } catch (error) {
+            await recordPreDispatchFailure(request, error);
+            throw error;
+          }
+        }
+        const requester = createFleetRequester(requesterPorts({
+          participant: { generate: execute, recoverGeneration: textParticipant.recoverGeneration }
+        }));
         const result = await requester.generate(request, { ...controls, signal: controller.signal });
         return { ...result, execution: { ...result.execution, serviceCredit: result.serviceCredit } };
       } finally {
@@ -217,6 +322,12 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         requests.delete(request.attemptId);
         await publishDemand().catch(error => onChange({ warning: error.message }));
       }
+    },
+    async recoverAccountedGeneration(input, controls, recoverExecution) {
+      assert(participant && !closed && !preparing, 'Requester unavailable');
+      assert(credits, 'Service credits are not configured');
+      const requester = createFleetRequester(requesterPorts({ participant: textParticipant }));
+      return requester.recover(input, controls, recoverExecution);
     },
     async browserState() {
       assert(credits, 'Service credits are not configured');
@@ -248,17 +359,22 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         if (config.followPlacement === true) {
           assert(Number.isSafeInteger(config.capacityWaitMs) && config.capacityWaitMs > 0, 'Explicit capacity wait bound required');
           const end = Date.now() + config.capacityWaitMs;
-          for (;;) {
-            controller.signal.throwIfAborted();
-            const available = (participant.getState().models || []).filter(model => model.id === request.model.id
-              && model.identity === request.model.identity && model.availability === 'ready'
-              && same(partitionAdapterIdentities(model), partitionAdapterIdentities(request.model)));
-            const chosen = request.model.partition ? available.find(model => same(model.partition, request.model.partition))
-              : available.find(model => !model.partition) || available.find(model => model.partition);
-            if (chosen) { request.model = structuredClone(chosen); break; }
-            assert(Date.now() < end, 'No ready capacity within the configured wait');
-            await delay(1000, undefined, { signal: controller.signal });
-            await publishDemand();
+          try {
+            for (;;) {
+              controller.signal.throwIfAborted();
+              const available = (participant.getState().models || []).filter(model => model.id === request.model.id
+                && model.identity === request.model.identity && model.availability === 'ready'
+                && same(partitionAdapterIdentities(model), partitionAdapterIdentities(request.model)));
+              const chosen = request.model.partition ? available.find(model => same(model.partition, request.model.partition))
+                : available.find(model => !model.partition) || available.find(model => model.partition);
+              if (chosen) { request.model = structuredClone(chosen); break; }
+              assert(Date.now() < end, 'No ready capacity within the configured wait');
+              await delay(1000, undefined, { signal: controller.signal });
+              await publishDemand();
+            }
+          } catch (error) {
+            await recordPreDispatchFailure(request, error);
+            throw error;
           }
         }
         const controls = { signal: controller.signal, onDelta,
@@ -267,7 +383,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
             onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.
           } };
-        const requester = credits ? createFleetRequester({ participant, identity, credits, maxOutputTokens: config.maxOutputTokens }) : participant;
+        const requester = credits ? createFleetRequester(requesterPorts({ participant })) : participant;
         return await requester.generate(request, controls);
       } finally { requests.delete(request.attemptId); await publishDemand().catch(error => onChange({ warning: error.message })); }
     },
@@ -321,14 +437,15 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           else if (command.op === 'generate') result = await host.generate(command.request,
             delta => console.log(JSON.stringify({ id: command.id, delta })));
           else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
+          else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           else throw Error('Unknown native fleet command');
           console.log(JSON.stringify({ id: command.id, result }));
         } catch (error) { console.log(JSON.stringify({ id: command?.id, error: error.message })); }
       })();
       pending.add(operation); operation.finally(() => pending.delete(operation));
     }
-  } finally {
     if (config.daemon === true && !stopped) await daemonStopped;
+  } finally {
     signals.removeListener('SIGTERM', stop); signals.removeListener('SIGINT', stop);
     clearInterval(timer); await textApi?.close(); await browserBridge?.close(); await host.close(); await Promise.allSettled(pending);
   }

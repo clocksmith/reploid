@@ -1,29 +1,88 @@
 {
   "schema": "reploid.hosting-delivery/v1",
-  "sourceCommit": "216ae3e2c0c7fcebbea41833fe8d7e2457254b83",
+  "sourceCommit": "f6419986725fb8ae079b60f4ee707635e3fd0062",
   "url": "https://replo.id/",
-  "bundleHash": "sha256:2f9b7c2892794e860c91d041c8017598411f1a95e7e75e6fb50684cd6495d463",
+  "bundleHash": "sha256:d76eaf80c68e85fdf10d9b450f567b009fdda97af7cb9782c9589eda2287737d",
   "hostingFileCount": 2404,
   "bundleFileCount": 2403,
   "deploymentScope": "hosting:reploid",
+  "runtime": {
+    "name": "doppler-gpu",
+    "version": "0.6.36",
+    "integrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog=="
+  },
+  "model": {
+    "id": "qwen-3-5-2b-q4k-ehaf16",
+    "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+    "mode": "whole-model"
+  },
+  "nativeRollout": {
+    "frozenReleaseDeliverySha256": "47e5b357c56d96526aedcb6c2936e02abf86792e5ce9eaf26abc4064eec3d27d",
+    "frozenReleaseArchiveSha256": "db8893739666a3abc20dc1e1f6061ca0cc0b228bc1147d060777d1e6ab53b842",
+    "disconnectPropagationDeliverySha256": "2d707a670380adbb6fbfd92745b455623baa8706bc72549ecb6e6829c92a9458",
+    "disconnectPropagationArchiveSha256": "653fe0922505ce9874886265bec7b2aa021897e2f8cb506373bcde683b5a05cd",
+    "providerSoftwareIdentity": "sha256:38a4c6fa2219a6149b6ee85ede6807540f0097801c1c878796e13520f02578bd",
+    "tunnelWorkerVersionId": "5d6dd4bb-4ae8-4301-86c1-972adc7a2766",
+    "requesterParticipantId": "peer:721778acd0c5f26a47f936d5",
+    "providerParticipantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+    "poolIdentity": "sha256:b1b8e3b20bf5d810844dcecdb8a62b59369570ec4be81178e31126dd04d7a358",
+    "public27BProviderRestarted": false
+  },
   "browser": {
-    "at": "2026-11-10T19:49:22.224Z",
-    "sourceCommit": "216ae3e2c0c7fcebbea41833fe8d7e2457254b83",
+    "at": "2026-11-10T22:00:29.000Z",
+    "sourceCommit": "f6419986725fb8ae079b60f4ee707635e3fd0062",
     "url": "https://replo.id/",
     "browserVersion": "157.0.8103.39",
     "assertions": [
-      "private pairing controls visible through keyboard",
-      "download choices separated from ready capacity",
-      "phone inspector tabs keyboard accessible; no automatic-download control"
+      "paired https://replo.id browser with local native requester bridge",
+      "selected exact qwen-3-5-2b-q4k-ehaf16 whole-model variant with zero requester weight downloads",
+      "completed generation settled 70 credits after holding 512 maximum credits with zero remaining hold",
+      "page reload preserved completed answer and provider attribution without resending",
+      "active streaming cancellation transitioned browser attempt to cancelled in 91 ms and settled 0 credits via reploid.generation-terminal/v1 in 327 ms after token-step stop and GPU queue settlement",
+      "second reload preserved completed and cancelled attempt states without resending"
     ],
     "pageErrors": [],
     "modelDownloads": [],
-    "privateGenerationRun": false,
-    "nativeServicesRestarted": false
+    "privateGenerationRun": true,
+    "completedReservationId": "service:peer:721778acd0c5f26a47f936d5:50378eb7-2385-4fe7-99ee-09a0223c8cf2",
+    "completedCharge": 70,
+    "completedMaximumHold": 512,
+    "cancelledReservationId": "service:peer:721778acd0c5f26a47f936d5:b1dfb075-2dfc-435f-8892-99a15b389925",
+    "cancelledCharge": 0,
+    "cancelledMaximumHold": 512,
+    "stopToBrowserCancelMs": 91,
+    "stopToCoordinatorSettleMs": 327
   },
-  "cloudServicesRedeployed": false,
-  "nativeServicesRestarted": false,
-  "nativeJourneyQualifiedAtThisCommit": false,
+  "disconnectPropagation": {
+    "at": "2026-11-10T22:27:02.063Z",
+    "upstreamHopFinding": "Firebase Hosting CDN rewrite on app.valera.systems/api/cloud/** drained backend Cloud Run response for 24.144s on client stream reset during synthetic run cbbe2d58; direct Worker and tunnel ingress propagate client abort.",
+    "queuedAbortBeforeDispatch": {
+      "abortedAfterMs": 309,
+      "reservationsCreated": 0,
+      "heldCredits": 0,
+      "charge": 0
+    },
+    "inFlightAbortAndRecovery": {
+      "reservationId": "service:peer:721778acd0c5f26a47f936d5:1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+      "immediateHeldCreditsAtAbort": 512,
+      "settledAtCoordinatorInMs": 202,
+      "acknowledgedDeltaCount": 7,
+      "acknowledgedOutputCharacters": 35,
+      "acknowledgedOutputTokens": 0,
+      "finishedStatus": "cancelled",
+      "finishedCharge": 0,
+      "unknownProviderExecutionTokensBeforeStop": "unmetered",
+      "recoverHttpStatus": 200
+    }
+  },
+  "replayBundles": [
+    "valera-synthetic-replay.json",
+    "hosted-browser-replay.json",
+    "worker-disconnect-replay.json"
+  ],
+  "cloudServicesRedeployed": true,
+  "nativeServicesRestarted": true,
+  "nativeJourneyQualifiedAtThisCommit": true,
   "screenshots": [
     {
       "file": "desktop.png",

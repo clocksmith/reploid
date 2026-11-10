@@ -1,0 +1,379 @@
+{
+  "schema": "reploid.fleet-replay-bundle/v1",
+  "at": "2026-11-10T22:27:02.063Z",
+  "journey": "worker-tunnel-responses-disconnect-and-recovery",
+  "workerVersionId": "5d6dd4bb-4ae8-4301-86c1-972adc7a2766",
+  "nativeDeliverySha256": "2d707a670380adbb6fbfd92745b455623baa8706bc72549ecb6e6829c92a9458",
+  "nativeArchiveSha256": "653fe0922505ce9874886265bec7b2aa021897e2f8cb506373bcde683b5a05cd",
+  "providerSoftwareIdentity": "sha256:38a4c6fa2219a6149b6ee85ede6807540f0097801c1c878796e13520f02578bd",
+  "mode": "whole-model",
+  "passed": true,
+  "cleanup": "settled",
+  "runtime": {
+    "name": "doppler-gpu",
+    "version": "0.6.36",
+    "integrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog=="
+  },
+  "computers": [
+    {
+      "id": "mac",
+      "name": "Computer A",
+      "ownerId": "owner",
+      "providers": [
+        {
+          "participantId": "peer:721778acd0c5f26a47f936d5",
+          "publicJwk": {
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "ext": true,
+            "key_ops": [
+              "verify"
+            ],
+            "kty": "OKP",
+            "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bee",
+      "name": "Computer B",
+      "ownerId": "owner",
+      "providers": [
+        {
+          "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "publicJwk": {
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "ext": true,
+            "key_ops": [
+              "verify"
+            ],
+            "kty": "OKP",
+            "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+          }
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "allowSameOwner": true,
+    "creditsPerOutputToken": 1,
+    "maxClockSkewMs": 30000,
+    "maxDebt": 100000,
+    "maxOutputTokens": 512,
+    "maxPendingPerComputer": 8,
+    "maxRequestMs": 300000,
+    "schema": "reploid.service-credit-policy/v1",
+    "unit": "noncash-service-credit",
+    "version": "fleet-native/3-max512",
+    "wholeModelTerminalCharge": 0
+  },
+  "initialBalances": {
+    "unit": "noncash-service-credit",
+    "policyVersion": "fleet-native/3-max512",
+    "accounts": [
+      {
+        "id": "bee",
+        "balance": 1735,
+        "held": 0,
+        "name": "Computer B",
+        "available": 1735
+      },
+      {
+        "id": "mac",
+        "balance": -1735,
+        "held": 0,
+        "name": "Computer A",
+        "available": -1735
+      }
+    ]
+  },
+  "balances": {
+    "unit": "noncash-service-credit",
+    "policyVersion": "fleet-native/3-max512",
+    "accounts": [
+      {
+        "id": "bee",
+        "balance": 1735,
+        "held": 0,
+        "name": "Computer B",
+        "available": 1735
+      },
+      {
+        "id": "mac",
+        "balance": -1735,
+        "held": 0,
+        "name": "Computer A",
+        "available": -1735
+      }
+    ]
+  },
+  "queuedCancellation": {
+    "abortedBeforeDispatch": true,
+    "reservationsCreated": 0,
+    "heldCredits": 0,
+    "charge": 0
+  },
+  "inFlightRecoveryOutcome": {
+    "schema": "reploid.request-outcome/v1",
+    "reservationId": "service:peer:721778acd0c5f26a47f936d5:1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+    "executionId": "1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+    "mode": "whole-model",
+    "phase": "in-flight",
+    "dispatched": true,
+    "immediateHeldCreditsAtAbort": 512,
+    "settledAtCoordinatorInMs": 202,
+    "acknowledged": {
+      "deltaCount": 7,
+      "outputCharacters": 35,
+      "acknowledgedOutputTokens": 0
+    },
+    "finished": {
+      "status": "cancelled",
+      "charge": 0,
+      "outputTokens": null,
+      "settledAt": 1794349621880,
+      "evidenceHash": "baeef79d18c728681d0e73b68ed723feb27f9b455a5b856bbbc4786170c2d078"
+    },
+    "unknown": {
+      "providerExecutionTokensBeforeStop": "unmetered"
+    }
+  },
+  "requests": [
+    {
+      "id": "service:peer:721778acd0c5f26a47f936d5:a419410d-db12-4b93-a62a-24c737623ce6",
+      "binding": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:a419410d-db12-4b93-a62a-24c737623ce6",
+        "executionId": "a419410d-db12-4b93-a62a-24c737623ce6",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "mode": "whole-model",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:4f867c81b0d855a75bd06c001885b4b9f937d8673ae0f7cd1f61b2504ccb035f",
+        "maxOutputTokens": 512,
+        "providers": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "weight": 1
+          }
+        ],
+        "requestHash": "777cfa41b7ae77e7526e98da31138e567907e63d58dd18977e5f1357d0bbcc15",
+        "computerId": "mac",
+        "maximum": 512,
+        "policyVersion": "fleet-native/3-max512",
+        "terminalCharge": 0,
+        "admissionVersion": 1,
+        "createdAt": 1794348255763,
+        "deadline": 1794348555763
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:a419410d-db12-4b93-a62a-24c737623ce6",
+        "unit": "noncash-service-credit",
+        "charge": 0,
+        "ownComputeUnits": 0,
+        "outputTokens": null,
+        "status": "cancelled",
+        "usage": null,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 0
+          }
+        ],
+        "evidenceHash": "22d689e248f0c97d94ae9e75849981af45450facf608c506e9f0af4ff9c57584",
+        "economicHash": "f12ea7c1d9894b992ee0c1a669ed940eba4d5cd167bd8220cdd11070bc5de85f",
+        "settledAt": 1794348256685
+      },
+      "admittedStages": [
+        0
+      ],
+      "evidence": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:4f867c81b0d855a75bd06c001885b4b9f937d8673ae0f7cd1f61b2504ccb035f",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "publicJwk": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "requestId": "a419410d-db12-4b93-a62a-24c737623ce6",
+        "schema": "reploid.generation-terminal/v1",
+        "signature": "2_AbkniYX-01VOzp-TAYVR6hoVlryLhXfSs6SosPZDtdgL44rbUQ5jY2SXcQg8icOaUPLpttWmPr5HnD6BxsCw",
+        "status": "cancelled",
+        "timestamp": 1794348256556,
+        "usage": null
+      }
+    },
+    {
+      "id": "service:peer:721778acd0c5f26a47f936d5:f48ad2e4-4bb5-4d1d-b1a6-0a2a19124eb8",
+      "binding": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:f48ad2e4-4bb5-4d1d-b1a6-0a2a19124eb8",
+        "executionId": "f48ad2e4-4bb5-4d1d-b1a6-0a2a19124eb8",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "mode": "whole-model",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:4f867c81b0d855a75bd06c001885b4b9f937d8673ae0f7cd1f61b2504ccb035f",
+        "maxOutputTokens": 512,
+        "providers": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "weight": 1
+          }
+        ],
+        "requestHash": "b0a99a401c178341a2d9c6a9e71937347869802565b98c2b945c904bcae4bf94",
+        "computerId": "mac",
+        "maximum": 512,
+        "policyVersion": "fleet-native/3-max512",
+        "terminalCharge": 0,
+        "admissionVersion": 1,
+        "createdAt": 1794348257256,
+        "deadline": 1794348557256
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:f48ad2e4-4bb5-4d1d-b1a6-0a2a19124eb8",
+        "unit": "noncash-service-credit",
+        "charge": 0,
+        "ownComputeUnits": 0,
+        "outputTokens": null,
+        "status": "cancelled",
+        "usage": null,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 0
+          }
+        ],
+        "evidenceHash": "ce7ea1e9c7b2e0c92c56da1a04017a2d633dc5349d8629930015261bd7bccef6",
+        "economicHash": "1f978f9555006de425767ac7529220c9cad1f0dae1c45ac7d22ed2c74013be9c",
+        "settledAt": 1794348258757
+      },
+      "admittedStages": [
+        0
+      ],
+      "evidence": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:4f867c81b0d855a75bd06c001885b4b9f937d8673ae0f7cd1f61b2504ccb035f",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "publicJwk": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "requestId": "f48ad2e4-4bb5-4d1d-b1a6-0a2a19124eb8",
+        "schema": "reploid.generation-terminal/v1",
+        "signature": "MBi6MxQVe43O705aMkZc-XB2I8ew4Ehdr5ijhuCdKkTysQ3avYWt0x4VRaFOobE03OVtexmOsommhFcAiTVhDA",
+        "status": "cancelled",
+        "timestamp": 1794348258680,
+        "usage": null
+      }
+    },
+    {
+      "id": "service:peer:721778acd0c5f26a47f936d5:1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+      "binding": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+        "executionId": "1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "mode": "whole-model",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:8ee16bf6282255ab2ec8d8456d37049bcc294fcce9980bf28df5b7ec9ef91e53",
+        "maxOutputTokens": 512,
+        "providers": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "weight": 1
+          }
+        ],
+        "requestHash": "f40a76d90fada51df57d6e3c76b7ff0763997263945146937c92afdd8299e9f1",
+        "computerId": "mac",
+        "maximum": 512,
+        "policyVersion": "fleet-native/3-max512",
+        "terminalCharge": 0,
+        "admissionVersion": 1,
+        "createdAt": 1794349620288,
+        "deadline": 1794349920288
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+        "unit": "noncash-service-credit",
+        "charge": 0,
+        "ownComputeUnits": 0,
+        "outputTokens": null,
+        "status": "cancelled",
+        "usage": null,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 0
+          }
+        ],
+        "evidenceHash": "baeef79d18c728681d0e73b68ed723feb27f9b455a5b856bbbc4786170c2d078",
+        "economicHash": "8390ff38337e41536dfe99b6246d18529eb9649e7b41b8842922b942cd7b74c1",
+        "settledAt": 1794349621880
+      },
+      "admittedStages": [
+        0
+      ],
+      "evidence": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:8ee16bf6282255ab2ec8d8456d37049bcc294fcce9980bf28df5b7ec9ef91e53",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "publicJwk": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "requestId": "1d8a9a31-cdd7-4bd7-8823-ae994352da5d",
+        "schema": "reploid.generation-terminal/v1",
+        "signature": "OBWf42z1iGFh66KOPcEesqh-lVCHx-7BIBfUDEuFpTUBhjOt6a75Z65sYA75mJB0H-pAIqfZoc-l00vfuw5ABg",
+        "status": "cancelled",
+        "timestamp": 1794349621837,
+        "usage": null
+      }
+    }
+  ]
+}

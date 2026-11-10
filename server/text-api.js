@@ -59,7 +59,7 @@ export function createTextApi({ participant, authenticate, authorize, accounting
         }
         signal.throwIfAborted();
         const rows = (requester.getState().models || []).filter(model => !model.canonical
-          && (model.partition ? availablePartitionRoute(model) : model.availability === 'ready' && model.providerIds?.length));
+          && (model.partition ? availablePartitionRoute(model) : ['ready', 'busy'].includes(model.availability) && model.providerIds?.length));
         const variants = new Map();
         for (const model of rows) {
           const value = { id: model.selectionId || model.id, object: 'model', owned_by: 'reploid',

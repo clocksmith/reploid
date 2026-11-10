@@ -87,7 +87,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       requirePrivateScope();
       const models = participant.getState().models || [];
       let eligible = models.filter(value => (value.selectionId === input.model || value.id === input.model && !partitionAdapterIdentities(value).length) && !value.canonical
-        && (value.partition || value.availability === 'ready' && value.providerIds?.length));
+        && (value.partition || ['ready', 'busy'].includes(value.availability) && value.providerIds?.length));
       if (!eligible.length) throw fail(503, 'No ready route for this exact model variant', 'model');
       if (input.reploid) {
         eligible = eligible.filter(value => value.identity === input.reploid.expected_model_identity
@@ -111,6 +111,11 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       output = protocol.output({ id, created, model: model.id, input, write, end: value => res.end(value), json: value => json(res, 200, value) });
       const result = await participant.generate(request, {
         signal, principal, onState() {},
+        onReservation(reservationId) {
+          if (!res.headersSent && typeof reservationId === 'string' && reservationId.length > 0 && reservationId.length <= 512) {
+            res.setHeader('x-reploid-reservation-id', reservationId);
+          }
+        },
         onUsage(event) {
           try {
             signal.throwIfAborted();

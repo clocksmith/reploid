@@ -48,3 +48,11 @@ it('drains a daemon after stdin reaches EOF during asynchronous startup', async 
   await delay(30); signals.emit('SIGTERM');
   await running; expect(closed).toBe(true); expect(signals.listenerCount('SIGTERM')).toBe(0);
 });
+
+it('closes and rejects immediately when daemon startup fails instead of hanging on the stop signal', async () => {
+  const input = new PassThrough(), signals = new EventEmitter(); let closed = false;
+  const host = { async select() { throw Error('startup failed'); }, async close() { closed = true; } };
+  await expect(runFleetNativeCommands({ host, input, signals, config: { initialModel: 0, daemon: true } }))
+    .rejects.toThrow('startup failed');
+  expect(closed).toBe(true); expect(signals.listenerCount('SIGTERM')).toBe(0);
+});

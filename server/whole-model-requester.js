@@ -26,7 +26,7 @@ export function createWholeModelRequester({ mesh, models }) {
   models = structuredClone(models);
   const pending = new Map();
   const getModels = () => projectChatCatalog({ models, peers: mesh.getSwarmSnapshot().peers || [], partitionModels: [] })
-    .filter(model => !model.partition && model.availability === 'ready')
+    .filter(model => !model.partition && ['ready', 'busy'].includes(model.availability) && model.providerIds?.length)
     // The mesh's current protocol enforces only the model's prepared generation ceiling.
     .map(model => structuredClone({ ...model, textGeneration: supportsModelCeiling(model) ? TEXT_GENERATION_CAPABILITY : undefined }));
   return Object.freeze({

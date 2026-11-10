@@ -65,7 +65,7 @@ export async function startFleetBrowserBridge({ host, token, origins, port = 0, 
       });
       pending.set(attemptId, operation);
       try { emit({ result: await operation }); }
-      catch (error) { emit({ error: error.message, serviceCredit: error.serviceCredit || null }); }
+      catch (error) { emit({ error: error.message, serviceCredit: error.serviceCredit || null, ...(error.disconnect ? { disconnect: error.disconnect } : {}) }); }
       finally { pending.delete(attemptId); response.end(); }
     } catch (error) {
       if (attemptId) pending.delete(attemptId);

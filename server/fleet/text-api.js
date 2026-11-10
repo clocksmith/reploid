@@ -39,6 +39,7 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
       if (host.textParticipant.executionClass !== 'private-pool') return false;
       if (check.action === 'models.list') return true;
       if (check.action === 'chat.execute') return host.allowsModel(check.request?.model);
+      if (check.action === 'chat.recover') return typeof host.recoverAccountedGeneration === 'function';
       if (check.action === 'chat.disclose') {
         const enrolled = await host.enrolledRecipients();
         const recipients = previewRecipients(check.preview);
@@ -47,7 +48,10 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
       return false;
     },
     accounting: {
-      run: (request, controls, execute) => host.runAccountedGeneration(request, controls, execute)
+      run: (request, controls, execute) => host.runAccountedGeneration(request, controls, execute),
+      ...(typeof host.recoverAccountedGeneration === 'function'
+        ? { recover: (input, controls, recoverExecution) => host.recoverAccountedGeneration(input, controls, recoverExecution) }
+        : {})
     }
   });
   const handle = (req, res) => {
