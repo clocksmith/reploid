@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/evidence-record-contract.js`, `pool/evidence-normalization.js`, `pool/evidence-records.js`, `pool/evidence-verification.js`, `pool/evidence-admission.js`, `pool/evidence-queries.js`, `pool/model-evidence-view.js`, `pool/peer-room.js`, `pool/research-cycle.js`, `pool/sdk.js`
+**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/evidence-record-contract.js`, `pool/evidence-normalization.js`, `pool/evidence-records.js`, `pool/evidence-verification.js`, `pool/evidence-admission.js`, `pool/evidence-queries.js`, `pool/evidence/accepted-memory.js`, `pool/evidence/adjudication-normalization.js`, `pool/evidence/claim-records.js`, `pool/evidence/claim-verification.js`, `pool/evidence/compute-normalization.js`, `pool/evidence/compute-verification.js`, `pool/evidence/cross-room-normalization.js`, `pool/evidence/cross-room-projection.js`, `pool/evidence/discovery-normalization.js`, `pool/evidence/discovery-tasks.js`, `pool/evidence/experiment-links.js`, `pool/evidence/experiment-records.js`, `pool/evidence/experiment-verification.js`, `pool/evidence/governance-links.js`, `pool/evidence/governance-records.js`, `pool/evidence/governance-verification.js`, `pool/evidence/graph.js`, `pool/evidence/laboratory-normalization.js`, `pool/evidence/link-validation.js`, `pool/evidence/primitives.js`, `pool/evidence/question-links.js`, `pool/evidence/question-projections.js`, `pool/evidence/question-records.js`, `pool/evidence/record-signing.js`, `pool/evidence/record-verification.js`, `pool/evidence/research-rewards.js`, `pool/evidence/review-state.js`, `pool/evidence/scientific-normalization.js`, `pool/evidence/similarity.js`, `pool/evidence/verification-checks.js`, `pool/evidence/policy.json`, `pool/model-evidence-view.js`, `pool/peer-room.js`, `pool/research-cycle.js`, `pool/sdk.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x0000A8-pool-evidence-network.md`
 **Objective:** Preserve public protein research inputs, compute provenance, experimental outcomes, and human interpretation as separately signed immutable evidence, then derive governed Discovery Contract views without converting evidence into automatic truth.
@@ -39,7 +39,10 @@ owns kinds and shared identities; `evidence-normalization.js` owns field
 normalization; `evidence-records.js` constructs signed records;
 `evidence-verification.js` verifies them; `evidence-admission.js` applies review,
 correction, revocation, and link rules; `evidence-queries.js` builds read-only
-projections. These owners form an acyclic graph and never import the facade.
+projections. Each of these entries re-exports focused modules in `pool/evidence/`,
+where `primitives.js` owns shared hashing and comparison, `record-signing.js` owns
+role checks and signed wrappers, and `policy.json` owns roles, limits and reward
+points. These owners form an acyclic graph and never import the facade.
 The research cycle consumes admission directly. None is a second evidence store.
 
 ### 3. Current Discovery Projection

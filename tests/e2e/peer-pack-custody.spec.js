@@ -60,7 +60,8 @@ test('browser crypto reconstructs dependencies and the Verification Worker accep
     for (const file of [
       'peer-pack-custody.js', 'peer-pack-session.js', 'peer-pack-data-channel.js', 'executable-pack.js', 'pack-operation-adapters.js', 'pack-operation.js',
       'evidence-network.js', 'evidence-record-contract.js', 'evidence-normalization.js', 'evidence-records.js',
-      'evidence-verification.js', 'evidence-admission.js', 'evidence-queries.js', 'research-cycle.js', 'provider-client.js'
+      'evidence-verification.js', 'evidence-admission.js', 'evidence-queries.js', 'research-cycle.js', 'provider-client.js',
+      'evidence/accepted-memory.js', 'evidence/adjudication-normalization.js', 'evidence/claim-records.js', 'evidence/claim-verification.js', 'evidence/compute-normalization.js', 'evidence/compute-verification.js', 'evidence/cross-room-normalization.js', 'evidence/cross-room-projection.js', 'evidence/discovery-normalization.js', 'evidence/discovery-tasks.js', 'evidence/experiment-links.js', 'evidence/experiment-records.js', 'evidence/experiment-verification.js', 'evidence/governance-links.js', 'evidence/governance-records.js', 'evidence/governance-verification.js', 'evidence/graph.js', 'evidence/laboratory-normalization.js', 'evidence/link-validation.js', 'evidence/primitives.js', 'evidence/question-links.js', 'evidence/question-projections.js', 'evidence/question-records.js', 'evidence/record-signing.js', 'evidence/record-verification.js', 'evidence/research-rewards.js', 'evidence/review-state.js', 'evidence/scientific-normalization.js', 'evidence/similarity.js', 'evidence/verification-checks.js', 'evidence/policy.json'
     ]) {
       snapshot[`/pool/${file}`] = await (await fetch(`/self/pool/${file}`)).text();
     }
