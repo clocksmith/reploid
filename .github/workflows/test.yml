@@ -39,6 +39,8 @@ jobs:
           node-version: 22.x
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Deployment checkouts stay untracked
+        run: test -z "$(git ls-files .deployment-checkouts)"
       - run: npm run verify:catscan
       - run: npm run verify:emoji
       - run: npm run verify:layers
