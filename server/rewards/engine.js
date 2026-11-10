@@ -9,7 +9,7 @@
  * same backend; a crash between steps resumes without a second effect.
  */
 
-import { createDocumentTransactions } from '../document-transactions.js';
+import { claimIdFor as claimId, createDocumentTransactions } from '../document-transactions.js';
 import { WHOLE_MODEL_CONDITIONS } from './whole-model-inference.js';
 import { createKnownKeyValidator } from '../input-validation.js';
 import { randomInt, randomUUID } from 'node:crypto';
@@ -46,6 +46,7 @@ import {
   FUNDING_SCHEMA,
   REWARD_FUNDER_KINDS,
   FUNDING_USE,
+  ISSUANCE_BASES,
   OFFER_INPUT_KEYS,
   REWARD_CATEGORIES,
   VALIDATION_SCHEMA,
@@ -190,7 +191,6 @@ export function createRewardStore({
   }
   if (typeof issuance?.allocate !== 'function') throw new TypeError('reward store requires its issuance authority');
   if (fundingAuthority !== null && typeof fundingAuthority !== 'function') throw new TypeError('fundingAuthority must be a function');
-  const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
   const { lookupIdempotent, mutate } = createDocumentTransactions({ backend, fail });
 
   const readOffer = async (offerId) => {
@@ -632,7 +632,7 @@ export function createRewardStore({
       return {
         authorizedTotal: state?.authorizedTotal ?? 0,
         allowances: state?.allowances ?? 0,
-        byBasis: { settled_demand: state?.byBasis?.settled_demand ?? 0, funded_reservation: state?.byBasis?.funded_reservation ?? 0 },
+        byBasis: Object.fromEntries(ISSUANCE_BASES.map((basis) => [basis, state?.byBasis?.[basis] ?? 0])),
         updatedAt: state?.updatedAt ?? null
       };
     },

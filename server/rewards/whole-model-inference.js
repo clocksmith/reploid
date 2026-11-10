@@ -1,7 +1,7 @@
 /** Whole-request rewards reuse the contribution ledger and issuance authority.
  * Their evidence is a settled requester quote plus the accounting owner's kept,
  * countersigned execution and explicit quality decision, never a claimant report. */
-import { computeReward } from './domain.js';
+import { claimWindowClosed, computeReward } from './domain.js';
 import { checkCounterparty } from './counterparty.js';
 import { toMs } from '../ledger/domain.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
@@ -60,7 +60,7 @@ export async function evaluateWholeModelInference({ claim, offer, ledger, identi
   if (!(boundAt >= toMs(offer.acceptedAt) && boundAt >= toMs(offer.duration.startsAt) && settledAt <= toMs(offer.duration.endsAt))) {
     reject('work_outside_offer_window', 'work did not execute inside the accepted offer');
   }
-  if (toMs(now) > settledAt + offer.paymentTiming.claimWindowMs) reject('claim_window_closed', 'claim window ended');
+  if (claimWindowClosed(offer, settledAt, now)) reject('claim_window_closed', 'claim window ended');
   for (const meter of ['context', 'output']) {
     const limit = reservation.service.limits[meter], bound = offer.resourceBounds[meter];
     if (limit.unit !== bound.unit || limit.max > bound.max) reject('work_exceeds_offer_bounds', `${meter} exceeds the accepted offer`);

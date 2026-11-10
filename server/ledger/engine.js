@@ -13,7 +13,7 @@
  * and currency allocations recompute their credits from the record they stamp.
  */
 
-import { createDocumentTransactions } from '../document-transactions.js';
+import { claimIdFor as claimId, createDocumentTransactions } from '../document-transactions.js';
 import { createKnownKeyValidator } from '../input-validation.js';
 import { randomUUID } from 'node:crypto';
 
@@ -32,7 +32,6 @@ import {
   fail,
   isNonEmptyString,
   lotIdForSource,
-  sha256Hex,
   sourceClaimKey,
   toMs,
   validateAccountingPolicy,
@@ -145,7 +144,6 @@ export function createLedgerStore({
   if (signerAuthority !== null && typeof signerAuthority !== 'function') throw new TypeError('signerAuthority must be a function');
   const activePolicy = validateAccountingPolicy(policy);
   const activeReversalPolicy = validateReversalPolicy(reversalPolicy);
-  const claimId = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
   const { lookupIdempotent, mutate: mutateDocuments } = createDocumentTransactions({ backend, fail, applyWrites });
   const mutate = (input) => {
     assertIdempotencyKey(input.idempotencyKey);

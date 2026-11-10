@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Operators enable the earning routes from environment and one policy file kept outside the repository.
 
 ## Authority
-- Owns store and provider selection, policy reading, quote and offer templates, conversion publication, operator digests, evidence files, scheduler hosting.
+- Owns [earning](../../docs/open-mesh-architecture.md#earning-vocabulary) wiring: store and provider selection, policy reading, quote and offer templates, conversion publication, operator digests, evidence files, scheduler hosting.
 - Excludes policy values, credentials, component rules, route behavior, capacity measurement.
 
 ## Scope
@@ -27,7 +27,7 @@ Outputs:
 - No price, rate, budget, deadline or limit defaults; components validate their sections.
 - Real providers only when configured; test sign-in and processor only when enabled, outside production.
 - Production refuses memory stores; all stores share one database.
-- Quotes and offers come only from templates, naming their policy version; clients name a model or category, never terms.
+- Quotes and offers come only from templates, naming their policy version.
 - Templates the ledger or Community Access would refuse refuse to start.
 - Published conversion ids never change; conflicting policy, or policy before its `effectiveFrom`, refuses to start.
 - Deferred work runs through the in-process or external scheduler, which production requires with evidence terms or Community Access.

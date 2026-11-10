@@ -15,7 +15,7 @@ import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../pa
 import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
 import { hashCanonical, isNonEmptyString, toMs } from '../ledger/domain.js';
 import { checkCounterparty } from './counterparty.js';
-import { CATEGORY_TERMS, computeReward } from './domain.js';
+import { CATEGORY_TERMS, claimWindowClosed, computeReward } from './domain.js';
 import { evaluateWholeModelInference } from './whole-model-inference.js';
 
 /** Conditions disclosed in every demanded-inference offer and checked for every claim. */
@@ -186,7 +186,7 @@ export async function evaluateDemandedInference({ claim, offer, ledger, identity
   if (!(boundAt >= toMs(offer.duration.startsAt)) || !(settledAt <= toMs(offer.duration.endsAt))) {
     reject('work_outside_offer_window', 'the attempt was not bound and settled inside the offer duration');
   }
-  if (toMs(now) > settledAt + offer.paymentTiming.claimWindowMs) reject('claim_window_closed', 'the claim arrived after the offer\'s claim window');
+  if (claimWindowClosed(offer, settledAt, now)) reject('claim_window_closed', 'the claim arrived after the offer\'s claim window');
   for (const meter of ['context', 'output']) {
     const quoted = reservation.service.limits?.[meter];
     const bound = offer.resourceBounds[meter];

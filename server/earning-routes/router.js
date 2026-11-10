@@ -37,8 +37,8 @@ import {
   validateRouteLimits
 } from './http.js';
 import { createRouteIdempotency } from './idempotency.js';
+import { VERIFIED_DELIVERY_CLAIM_KEYS as DELIVERY_EVIDENCE_KEYS } from '../rewards/verified-delivery.js';
 
-const DELIVERY_EVIDENCE_KEYS = Object.freeze(['artifactId', 'authorization', 'index', 'receipt', 'attestation', 'supplierCertificate', 'acquirerCertificate']);
 const STAGE_SHARE_KEYS = Object.freeze(['contribution', 'stageIndex', 'reservationId', 'attemptId']);
 const CLAIM_KEYS = Object.freeze([...DELIVERY_EVIDENCE_KEYS, 'deliveryId', 'wholeModel', ...STAGE_SHARE_KEYS]);
 const SETTLEMENT_KEYS = Object.freeze(['billableEventId', 'outcome', 'attemptId', 'metering', 'completedAt', 'reason', 'evidenceRef']);

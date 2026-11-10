@@ -744,6 +744,27 @@ evaluation and adoption separately. Recheck grants and budgets at the relevant
 boundary. Changing the authorized recipient scope or model identity requires appropriate approval; record actual recipients within the existing grant.
 Discovery observes capacity; it does not prove execution or honest hardware.
 
+<a id="earning-vocabulary"></a>
+
+### Earning vocabulary
+
+The [product contract](product-specification.md) sets the requirements for credits
+(section 3) and contribution rewards (section 5). This table is the repository's one
+definition of the terms its earning code uses; component charters link here and
+state only the part they own. It adds no requirement and sets no amount.
+
+| Term | Meaning | Owner |
+| --- | --- | --- |
+| Earning | A contributor receiving credit for validated work under an accepted contribution offer. Only categories the reward policy enables earn; online time or presence never does. | [Contribution Rewards](../server/rewards/CATSCAN.md) |
+| Reward category | The kind of work an offer pays for: `demanded_inference` (a route stage's share of a settled paid request, or a whole-model execution of one), `verified_delivery` (pieces an acquirer requested, verified and attested), and `contracted_storage` and `prepared_readiness` (obligations proven by challenges and probes the reward store runs over the accepted interval). | Contribution Rewards |
+| Contribution offer | Terms the service authors for one category and model, `reploid.contribution-offer/v1`: requested work, reward formula and maximum, validation conditions, resource bounds, duration, payment timing and failure compensation. Offers pay on validation, within a claim window. Clients name a category and model, never terms. | Contribution Rewards, from the templates of [Earning Composition](../server/earning-composition/CATSCAN.md) |
+| Claim | A contributor device's request to validate one unit of work under its accepted offer. The validation, `reploid.reward-validation/v1`, is kept whether accepted or rejected, and each unit of work earns once. | Contribution Rewards validate; [Earning Routes](../server/earning-routes/CATSCAN.md) carry; the [Earning Client](../apps/poolday/host/earning/CATSCAN.md) submits |
+| Issuance | Turning an accepted validation into a credit lot through the reward issuance authority, within an issuance basis and admitted-capacity evidence. A declined issuance stays pending. | Contribution Rewards decide; the [Service Credit Ledger](../server/ledger/CATSCAN.md) records |
+| Earned credit | Credit issued on the `settled_demand` basis, within a policy share of measured net settled spending. Lot provenance `earned`. | Contribution Rewards, Service Credit Ledger |
+| Subsidized credit | Credit issued on the `funded_reservation` basis from an approved [funding](../server/ledger/funding/CATSCAN.md) allocation. Lot provenance `subsidized`; it never counts as earned demand. | Contribution Rewards, Service Credit Ledger |
+| Quote | Requester-side terms the service authors for one request; section 3 of the product contract lists what a quote discloses. Accepting a quote authorizes spending. It is not a contribution offer. | Service Credit Ledger |
+| Settlement | The ledger's one economic decision for a reservation: outcome, metering and charge. A settled charge is the evidence root for demanded inference. | Service Credit Ledger |
+
 ### Conversations, cancellation and recovery
 
 Conversations own independent history, drafts, permissions, attempts and output.

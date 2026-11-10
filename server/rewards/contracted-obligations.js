@@ -24,7 +24,7 @@
 import { isNonEmptyString, toMs } from '../ledger/domain.js';
 import { checkCounterparty } from './counterparty.js';
 import { CHALLENGE_ANSWER_SCHEMA, certifiedCustodyKey, verifyChunkBytes, verifyCustodyDelivery, verifySigned } from './custody-evidence.js';
-import { computeReward, fail } from './domain.js';
+import { claimWindowClosed, computeReward, fail } from './domain.js';
 import { transferKey } from './verified-delivery.js';
 
 // v2 adds `obligationRef`: the scheduled obligation slot that issued it, or null.
@@ -187,7 +187,7 @@ export async function evaluateContract({ offer, challenges, ledger, identity, re
     reject('contract_interval_open', 'the contracted interval and its last challenge deadlines have not closed');
     return { reasons, evidence };
   }
-  if (toMs(now) > closesAt + offer.paymentTiming.claimWindowMs) reject('claim_window_closed', 'the claim arrived after the offer\'s claim window');
+  if (claimWindowClosed(offer, closesAt, now)) reject('claim_window_closed', 'the claim arrived after the offer\'s claim window');
   if (await identity.participantAccount(offer.work.participantId) !== offer.accountId) {
     reject('contributor_identity_mismatch', 'the offer participant no longer belongs to the contributor account');
   }

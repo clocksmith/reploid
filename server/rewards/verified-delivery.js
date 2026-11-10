@@ -11,7 +11,7 @@
 import { isNonEmptyString, toMs } from '../ledger/domain.js';
 import { checkCounterparty } from './counterparty.js';
 import { certifiedCustodyKey, verifyCustodyDelivery } from './custody-evidence.js';
-import { computeReward } from './domain.js';
+import { claimWindowClosed, computeReward } from './domain.js';
 
 export const VERIFIED_DELIVERY_CONDITIONS = Object.freeze([
   'custody_grant_bound: the REP-5 grant, artifact set, chunk index and acquirer receipt bind one transfer',
@@ -85,7 +85,7 @@ export async function evaluateVerifiedDelivery({ claim, offer, ledger, identity,
   if (!(attestedAt >= toMs(offer.duration.startsAt)) || !(attestedAt <= toMs(offer.duration.endsAt)) || attestedAt > toMs(now)) {
     reject('work_outside_offer_window', 'the delivery was not attested inside the offer duration');
   }
-  if (toMs(now) > attestedAt + offer.paymentTiming.claimWindowMs) reject('claim_window_closed', 'the claim arrived after the offer\'s claim window');
+  if (claimWindowClosed(offer, attestedAt, now)) reject('claim_window_closed', 'the claim arrived after the offer\'s claim window');
   if (delivery.deliveredBytes > offer.resourceBounds.transferBytes.max) {
     reject('work_exceeds_offer_bounds', 'the delivered bytes exceed the offer\'s transfer bound');
   }

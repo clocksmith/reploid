@@ -7,7 +7,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Authenticated HTTP for accounts, devices, quotes, reservations, reports, balances, offers, claims, top-ups, payment notifications and operator funding, settlement and links.
 
 ## Authority
-- Owns route authentication/authorization, body bounds, rate limits, Idempotency-Key bindings, refusal statuses, the off-by-default mount.
+- Owns [earning](../../docs/open-mesh-architecture.md#earning-vocabulary) transport: route authentication/authorization, body bounds, rate limits, Idempotency-Key bindings, refusal statuses, the off-by-default mount.
 - Excludes identity, balances, prices, outcomes, reward validation, funding decisions, operator credential holders.
 
 ## Scope

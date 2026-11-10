@@ -6,7 +6,7 @@ Parent: [Product Host](../CATSCAN.md)
 Connect browser/native hosts to earning routes: partition-attempt spending and contributor claims.
 
 ## Authority
-- Owns sign-in through an injected provider port, session-bound device registration, durable outbox, partition quote acceptance, output acknowledgments, evidence and claim submission.
+- Owns the host's side of [earning](../../../../docs/open-mesh-architecture.md#earning-vocabulary): sign-in through an injected provider port, session-bound device registration, durable outbox, partition quote acceptance, output acknowledgments, evidence and claim submission.
 - Excludes prices, terms, outcomes, rewards, identity decisions, disclosure permissions and UI.
 
 ## Scope

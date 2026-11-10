@@ -22,6 +22,7 @@ import { randomUUID } from 'node:crypto';
 import { REWARD_PROVENANCE, assertId, cloneJson, isNonEmptyString, toMs } from '../ledger/domain.js';
 import {
   BASIS_PROVENANCE,
+  ISSUANCE_BASES,
   ISSUANCE_DECISION_SCHEMA,
   ISSUANCE_STATE_SCHEMA,
   evaluateCapacity,
@@ -37,7 +38,7 @@ export const decisionIdForValidation = (validationId) => `issuance:${validationI
 
 const emptyState = () => ({
   schema: ISSUANCE_STATE_SCHEMA, authorizedTotal: 0, allowances: 0,
-  byBasis: { settled_demand: 0, funded_reservation: 0 }, updatedAt: null
+  byBasis: Object.fromEntries(ISSUANCE_BASES.map((basis) => [basis, 0])), updatedAt: null
 });
 
 const validIdentifier = (value) => {

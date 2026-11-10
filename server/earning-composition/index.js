@@ -44,6 +44,7 @@ import { createCommunityAccess, createFundingIssuanceAuthority } from '../commun
 import { createFirestoreCommunityAccessBackend, createMemoryCommunityAccessBackend } from '../community-access/stores.js';
 import { EARNING_ROUTES_PREFIX } from '../earning-routes/mount.js';
 import { createFirestoreRouteBackend, createMemoryRouteBackend } from '../earning-routes/idempotency.js';
+import { OPERATOR_ROLES } from '../earning-routes/http.js';
 import { buildQuote, hashCanonical } from '../ledger/domain.js';
 import { sha256Hex } from '../hashing.js';
 import { createLedgerStore } from '../ledger/engine.js';
@@ -64,7 +65,6 @@ export const TEST_SIGN_IN_PROVIDER_ID = 'local-test';
 export const TEST_PROCESSOR_ID = 'test-processor';
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const STORES = Object.freeze(['firestore', 'memory']);
-const OPERATOR_ROLES = Object.freeze(['funding', 'settlement', 'issuance', 'links', 'audit']);
 // The test processor's own signature tolerance and checkout lifetime; test-only, never a product setting.
 const TEST_PROCESSOR_TIMING = Object.freeze({ signatureToleranceMs: 5 * 60_000, checkoutTtlMs: 30 * 60_000 });
 

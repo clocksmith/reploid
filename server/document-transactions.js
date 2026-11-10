@@ -2,6 +2,8 @@
 import { cloneJson, hashCanonical, sha256Hex } from './ledger/domain.js';
 
 const idempotencyId = (operation, scopeId, key) => sha256Hex(`${operation}\u0000${scopeId}\u0000${key}`);
+/** Document id of a uniqueness claim: one per (kind, key) across the ledger and reward stores. */
+export const claimIdFor = (kind, key) => sha256Hex(`${kind}\u0000${key}`);
 
 export function applyDocumentWrites(tx, writes) {
   for (const write of writes) {

@@ -501,6 +501,13 @@ export function buildOffer(input, { ledgerPolicy, rewardPolicy, conditions, now 
 }
 
 /**
+ * Whether a claim at `now` arrives after the accepted offer's claim window. The
+ * window opens at `openedAtMs`, when the category's evidence completes:
+ * settlement, attestation or the contract's close.
+ */
+export const claimWindowClosed = (offer, openedAtMs, now) => toMs(now) > openedAtMs + offer.paymentTiming.claimWindowMs;
+
+/**
  * Reward from the accepted terms over validated meters: the formula, less any
  * deduction, capped at the maximum. Crossing a void threshold voids it.
  */
