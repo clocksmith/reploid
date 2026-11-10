@@ -1356,7 +1356,7 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
         },
         {
           "label": "Doe ordinary execution and integration goals",
-          "url": "https://github.com/clocksmith/doe/blob/89ecba41/GOALS.md",
+          "url": "https://github.com/clocksmith/fawn/blob/89ecba41/GOALS.md",
           "kind": "intent"
         }
       ]
@@ -3235,6 +3235,7 @@ function exportSVG(doc,view) {
  return `<svg xmlns="${NS}" viewBox="0 0 ${view.width} ${view.height}" width="${view.width}" height="${view.height}" font-family="Arial, Helvetica, sans-serif"><title>${esc(doc.title)} — ${esc(view.title)}</title><desc>${esc(view.subtitle)} Intended architecture, not proof of implementation.</desc><rect width="100%" height="100%" fill="${T.background}"/>${textBlock(doc.title,48,48,{size:27,weight:600})}${textBlock(view.subtitle,48,79,{size:15,fill:T.muted})}${svgContents(doc,view)}</svg>`;
 }
 
+/* global dashPattern, diagramTheme, exportSVG, svgContents, validateDocument */
 /** Plain DOM editor. JSON is always parsed as data; never evaluated as JavaScript. */
 (() => {
   const $=s=>document.querySelector(s),stage=$('#stage'),svg=$('#diagram'),group=$('#world');
