@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Settings storage view: lists measured model downloads and confirms removal.
+ * Inventory and guarded removal belong to host/model-storage.js, passed in by the session.
+ */
 import { bindDialog } from '../components/dialog.js';
 
 export const renderModelStorage = () => `<div class="pool-stack pool-gap-sm" data-model-storage hidden>

@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { createModelStorage } from '../../apps/poolday/host/model-storage.js';
 import { retainModelStorage, withUnusedModelStorage } from '../../apps/poolday/infrastructure/model-storage-lock.js';
-import { bindModelStorage, renderModelStorage } from '../../apps/poolday/ui/pool-home/model-storage.js';
+import { bindModelStorage, renderModelStorage } from '../../apps/poolday/ui/pool-home/model-storage-view.js';
 
 function lockManager() {
   const held = new Map();

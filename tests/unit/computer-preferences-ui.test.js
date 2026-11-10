@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { createComputerPreferences } from '../../apps/poolday/host/computer-preferences.js';
-import { renderComputerDiagnostic, renderComputerRename, bindComputerPreferences } from '../../apps/poolday/ui/pool-home/computer-preferences.js';
+import { renderComputerDiagnostic, renderComputerRename, bindComputerPreferences } from '../../apps/poolday/ui/pool-home/computer-preferences-view.js';
 import { withComputerLabels, computerLabel, setComputerNames, participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 import { projectNetworkPeers } from '../../apps/poolday/ui/pool-home/network-controls.js';
 

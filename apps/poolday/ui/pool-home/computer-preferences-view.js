@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Computers view of the computer-preferences store: local names for verified
+ * computers and the optional GPU check. The store (persistence, validation, measurement)
+ * is host/computer-preferences.js, passed in through the product session.
+ */
 import policy from '../../config/computer-preferences.json' with { type: 'json' };
 import { setComputerNames } from './computer-labels.js';
 import { hardwareText } from './execution-ribbon.js';

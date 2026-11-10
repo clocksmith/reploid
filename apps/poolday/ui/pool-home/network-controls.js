@@ -3,7 +3,7 @@ import { preparationStatus } from './model-preparation.js';
 import { publicPreparationProgress } from '../../../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
-import { renderComputerRename, bindComputerPreferences } from './computer-preferences.js';
+import { renderComputerRename, bindComputerPreferences } from './computer-preferences-view.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 

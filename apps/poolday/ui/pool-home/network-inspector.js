@@ -7,7 +7,7 @@ import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 /** One projection of conversation execution, participant availability, and device contribution. */
 import { renderComputeSharingControls, renderFileSharingControls, renderContributionLimits, renderConnectionControl, bindNetworkControls, projectNetworkPeers } from './network-controls.js';
-import { renderComputerDiagnostic } from './computer-preferences.js';
+import { renderComputerDiagnostic } from './computer-preferences-view.js';
 import { bindDialog } from '../components/dialog.js';
 import { updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
@@ -16,7 +16,7 @@ import { renderRemotePermissionSettings, updateRemotePermissionSettings } from '
 import { renderAutoDownloadSetting } from './auto-download.js';
 import { renderWebSearchSettings, bindWebSearchSettings } from './web-search-settings.js';
 import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
-import { renderModelStorage, bindModelStorage } from './model-storage.js';
+import { renderModelStorage, bindModelStorage } from './model-storage-view.js';
 import { renderThemeSelector } from './theme.js';
 
 export function renderInspectorNavigation({ workspace = false } = {}) {
