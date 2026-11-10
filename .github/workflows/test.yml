@@ -49,3 +49,16 @@ jobs:
       - run: npm run verify:ownership-inventory
       - run: npm run verify:zero-source
       - run: npm run verify:registry
+
+  unit:
+    # The vitest unit suite; integration, heavy, browser and GPU suites stay manual.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:unit
