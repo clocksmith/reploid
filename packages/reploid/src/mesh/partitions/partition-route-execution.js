@@ -82,9 +82,10 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       const results = await Promise.allSettled([...item.owned].map(async index => {
         try {
           await settledCall(item, index);
-          await devices[index].closeAttempt({ identity: item.binding, partitionIndex: index, ...(acknowledged ? { acknowledged } : {}) });
+          const closing = await devices[index].closeAttempt({ identity: item.binding, partitionIndex: index, ...(acknowledged ? { acknowledged } : {}) });
           item.owned.delete(index);
-          item.receipt.cleanup[index] = { partitionIndex: index, status: 'settled', error: null };
+          item.receipt.cleanup[index] = { partitionIndex: index, status: 'settled', error: null,
+            ...(closing?.receipt ? { receipt: structuredClone(closing.receipt) } : {}) };
         } catch (error) {
           // A lost stage stays unknown in this receipt; it is never reported as
           // settled. It stops being retryable debt because its channel is gone.

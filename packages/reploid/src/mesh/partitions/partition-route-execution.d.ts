@@ -30,7 +30,7 @@ export interface OrderedStageDevice {
     generation: Record<string, unknown> & { maxTokens: number }; continuation: unknown; activation?: unknown;
     executionGrant: object; tokenContextGrant: object; incomingActivationGrant?: object; outgoingActivationGrant?: object; outputGrant?: object;
     acknowledged?: AcknowledgedOutput; signal: AbortSignal }): Promise<OrderedStageResult>;
-  closeAttempt(options: OrderedStageBinding & { acknowledged?: AcknowledgedOutput }): Promise<void>;
+  closeAttempt(options: OrderedStageBinding & { acknowledged?: AcknowledgedOutput }): Promise<void | { receipt: StageReceipt }>;
 }
 export interface OrderedRouteLimits {
   maxTokens: number; maxPromptTokens: number; maxActivationBytes: number; maxOutputCharacters: number;
@@ -56,7 +56,7 @@ export interface OrderedRouteRequest {
 }
 export interface OrderedRouteReceipt {
   identity: RouteAttemptBinding; phase: 'admitting' | 'executing' | 'settling' | 'cleanup-failed' | 'completed' | 'cancelled' | 'failed';
-  reservations: OrderedReservation[]; cleanup: Array<{ partitionIndex: number; status: 'settled' | 'unknown'; error: string | null; code?: 'CONNECTION_LOST' }>;
+  reservations: OrderedReservation[]; cleanup: Array<{ partitionIndex: number; status: 'settled' | 'unknown'; error: string | null; code?: 'CONNECTION_LOST'; receipt?: StageReceipt }>;
   cleanupSettledAt: number | null; failure: string | null;
   /** Charged attempts only: the bound K and the measured waits for acknowledgments. */
   acknowledgments?: { bound: number; waits: number; waitedMs: number };

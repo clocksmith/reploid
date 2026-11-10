@@ -21,6 +21,8 @@ Launch 3 source design (off by default): [orchestration](launch-3-orchestration.
 
 Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md).
 
+Native computer identity, non-cash credits and placement: [Fleet service](fleet-service.md).
+
 ---
 
 ## Getting Started

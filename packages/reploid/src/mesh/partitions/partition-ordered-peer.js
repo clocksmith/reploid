@@ -134,7 +134,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     // including reserve-before-first-step attempts unknown to this receiver.
     settleAttempt: async () => {},
   });
-  const settleLocal = identity => {
+  const settleLocal = (identity, acknowledged = null) => {
     const previous = settlements.get(identity.attemptId);
     if (previous) { assert(sameRouteAttemptIdentity(previous.identity, identity), 'Ordered settlement identity collision'); return previous.promise; }
     const record = { identity: canonicalRouteAttemptBinding(identity), promise: null, completed: false, acknowledged: false, request: null };
@@ -142,7 +142,10 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     record.promise = (async () => {
       const failures = [];
       try { await receiver.closeAttempt(record.identity); } catch (error) { failures.push(error); }
-      try { await contributor.closeAttempt({ identity: record.identity, partitionIndex: index }); } catch (error) { failures.push(error); }
+      try {
+        const closing = await contributor.closeAttempt({ identity: record.identity, partitionIndex: index, acknowledged });
+        record.signedReceipt = closing?.receipt ?? null;
+      } catch (error) { failures.push(error); }
       if (failures.length) throw new AggregateError(failures, 'Ordered remote cleanup failed');
       record.completed = true;
       reservations.delete(identity.attemptId); outputCharacters.delete(identity.attemptId); verifiedGrants.delete(identity.attemptId);
@@ -227,13 +230,13 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       if (metadata.operation === 'settle') {
         const previous = reservations.get(metadata.identity.attemptId);
         assert(!previous || sameRouteAttemptIdentity(previous.identity, metadata.identity), 'Ordered settlement identity collision');
-        const pending = settleLocal(metadata.identity), record = settlements.get(metadata.identity.attemptId);
+        const pending = settleLocal(metadata.identity, metadata.acknowledged ?? null), record = settlements.get(metadata.identity.attemptId);
         record.request ||= structuredClone(metadata);
         assert(record.request.generationDigest === metadata.generationDigest, 'Ordered settlement generation collision');
         // Keep the request until its coordinator confirms receipt. Returning
         // from serve does not establish delivery of the ordinary settle reply.
         if (!record.acknowledged) retirementReceipts.set(metadata.identity.attemptId, record.request);
-        await pending; return { settled: true };
+        await pending; return { settled: true, ...(record.signedReceipt ? { receipt: record.signedReceipt } : {}) };
       }
       assert(resolveGrants(metadata), 'Ordered grant reference is not verified for this attempt');
       const result = await receiver.receive({ ...metadata, payload }, { signal });
@@ -262,16 +265,21 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     unsettled: serving ? new Set([...reservations.keys(), ...retirementReceipts.keys()]).size : active.size,
     ...(serving ? { undeliveredRetirements } : {}) });
   const notify = () => { for (const listener of listeners) { try { listener(getState()); } catch {} } };
-  const closeAttempt = async ({ identity }) => {
+  const closeAttempt = async ({ identity, acknowledged = null }) => {
     identity = canonicalRouteAttemptBinding(identity);
     await ready;
-    const previous = active.get(identity.attemptId); if (!previous) return;
+    const previous = active.get(identity.attemptId);
+    if (!previous) {
+      const cached = confirmed.get(identity.attemptId);
+      assert(!cached || sameRouteAttemptIdentity(cached.identity, identity), 'Ordered settlement identity collision');
+      return cached?.signedReceipt ? { receipt: structuredClone(cached.signedReceipt) } : undefined;
+    }
     assert(sameRouteAttemptIdentity(previous.identity, identity), 'Ordered settlement identity collision');
     try {
       if (!confirmed.has(identity.attemptId)) {
-        const result = await endpoint.request({ ...previous, operation: 'settle' }, new Uint8Array());
+        const result = await endpoint.request({ ...previous, operation: 'settle', ...(acknowledged ? { acknowledged } : {}) }, new Uint8Array());
         assert(result.settled === true, 'Ordered settlement not acknowledged');
-        confirmed.set(identity.attemptId, previous);
+        confirmed.set(identity.attemptId, { ...previous, signedReceipt: result.receipt ?? null });
       }
       const receipt = await endpoint.request({ ...previous, operation: 'settle-accepted' }, new Uint8Array());
       assert(receipt.accepted === true, 'Ordered settlement receipt not acknowledged');
@@ -283,6 +291,8 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       if ((!remoteRetiring && !closed) || !sameRouteAttemptIdentity(confirmed.get(identity.attemptId)?.identity, identity)) throw error;
       active.delete(identity.attemptId);
     }
+    const signedReceipt = confirmed.get(identity.attemptId)?.signedReceipt;
+    return signedReceipt ? { receipt: structuredClone(signedReceipt) } : undefined;
   };
   const close = () => {
     if (closing) return closing;

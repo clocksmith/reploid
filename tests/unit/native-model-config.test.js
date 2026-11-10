@@ -62,15 +62,18 @@ it('uses catalog generation and runtime settings with explicit private split and
   base.executionModes = ['whole-model'];
   base.loadOptions = { runtimeConfig: { inference: { session: { decodeLoop: { batchSize: 1 } } } } };
   base.partitionPlan = { stageCount: 2 };
+  base.partitionSplitLayer = 2;
   f.configuration.model = base.id;
   f.configuration.partitionRuntime = { maxGpuBufferBytes: [4096, 8192, 4096], runtimeConfig: 'model' };
   await f.write();
   const model = await readNativeModelConfiguration(f.file, { modelId: base.id, modelDirectory: f.directory,
     models: [base], loadRuntime: f.loadRuntime });
   expect(model.partitionPlan.stageCount).toBe(3);
+  expect(model.partitionSplitLayer).toBeUndefined();
   expect(model.executionModes).toContain('partition');
   expect(model.partitionRuntime.runtimeConfig).toEqual(base.loadOptions.runtimeConfig);
   expect(base.partitionPlan.stageCount).toBe(2);
+  expect(base.partitionSplitLayer).toBe(2);
   expect(base.executionModes).toEqual(['whole-model']);
 });
 it('refuses an older runtime and incomplete stage budgets rather than inventing a split', async () => {

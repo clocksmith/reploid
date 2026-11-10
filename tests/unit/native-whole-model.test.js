@@ -8,11 +8,12 @@ import { createNativeWholeModel } from '../../server/native-whole-model.js';
 
 const roots = [];
 afterEach(async () => { for (const root of roots.splice(0)) await fs.rm(root, { recursive: true, force: true }); });
-async function fixture({ prepare, owner, adapter = false } = {}) {
+async function fixture({ prepare, owner, adapter = false, omitBudget = false } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-whole-')); roots.push(root);
   const bytes = JSON.stringify({ modelId: 'model' }); await fs.writeFile(path.join(root, 'manifest.json'), bytes);
   const model = { id: 'model', identity: 'sha256:' + createHash('sha256').update(bytes).digest('hex'),
     loadOptions: { runtimeConfig: { shared: { bufferPool: { budget: { maxTotalBytes: 1000 } } } } } };
+  if (omitBudget) delete model.loadOptions;
   if (adapter) {
     model.adapters = [{ id: 'adapter', identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: model.identity }];
     model.availableAdapters = structuredClone(model.adapters);
@@ -21,9 +22,9 @@ async function fixture({ prepare, owner, adapter = false } = {}) {
   const resident = { getState: () => ({ phase: ready ? 'ready' : 'loading', ready, modelIdentity: model.identity, adapterIdentities: ready ? (model.adapters || []).map(item => item.identity) : [] }),
     prepare: vi.fn(async () => { await prepare?.(); ready = true; }),
     close: vi.fn(async () => { ready = false; }), generate: vi.fn(async () => ({ content: 'answer' })) };
-  const nativeGpu = vi.fn(), createResident = vi.fn(() => resident);
-  const participant = createNativeWholeModel({ model, modelDirectory: root, nativeGpu, createResident, owner });
-  return { participant, model, nativeGpu, resident, createResident, root };
+  const nativeGpu = vi.fn(), createResident = vi.fn(() => resident), configureMemory = vi.fn();
+  const participant = createNativeWholeModel({ model, modelDirectory: root, nativeGpu, createResident, configureMemory, owner });
+  return { participant, model, nativeGpu, resident, createResident, configureMemory, root };
 }
 it('requires consent, validates identity before GPU work, and advertises only a prepared model', async () => {
   const f = await fixture();
@@ -59,6 +60,14 @@ it('stopping during preparation waits for ownership settlement and never adverti
   await Promise.resolve(); expect(stopped).toBe(false); expect(f.participant.getState().ready).toBe(false);
   gate.resolve(); await Promise.all([opening, stopping]);
   expect(f.participant.getState().ready).toBe(false);
+});
+it('enforces the owner GPU ceiling even when the model has no explicit budget', async () => {
+  const f = await fixture({ omitBudget: true, owner: { decide: () => ({ action: 'admit' }), gpuBufferBytes: limit => Math.min(limit, 700) } });
+  await f.participant.contribute(true);
+  expect(f.createResident.mock.calls[0][0].loadOptions.runtimeConfig.shared.bufferPool.budget.maxTotalBytes).toBe(700);
+  expect(f.model.loadOptions).toBeUndefined();
+  expect(f.configureMemory).toHaveBeenCalledExactlyOnceWith(700);
+  await f.participant.close();
 });
 it('keeps prepared capacity discoverable during execution without overriding owner withdrawal', async () => {
   let action = 'admit';

@@ -26,7 +26,7 @@ export function nativePackageManifest(application) {
     name: application.name, version: application.version, private: true, type: 'module',
     description: 'Native delivery of the Reploid application', license: application.license,
     engines: { node: '>=22.13.0' },
-    bin: { 'reploid-participant': './server/native-participant.js' },
+    bin: { 'reploid-participant': './server/native-participant.js', 'reploid-fleet-host': './server/fleet/native-host.js' },
     scripts: { start: 'node server/native-participant.js' },
     dependencies: {
       'doppler-gpu': application.dependencies['doppler-gpu'],
@@ -44,7 +44,7 @@ export async function collectNativeFiles(sourceRoot) {
     if (!existsSync(absolute)) continue;
     for (const file of await walkFiles(absolute)) available.add(`${directory}/${file}`);
   }
-  const selected = await collectModuleClosure({ root: sourceRoot, available, entries: ['server/native-participant.js'] });
+  const selected = await collectModuleClosure({ root: sourceRoot, available, entries: ['server/native-participant.js', 'server/fleet/native-host.js', 'server/fleet/credits.js'] });
   // Served URLs resolve to whichever browser root holds the file.
   const servedSource = served => path.relative(sourceRoot, resolveServedFile(served, { repoRoot: sourceRoot })).split(path.sep).join('/');
   const catalogName = servedSource('config/chat-models.json');
@@ -80,6 +80,7 @@ export async function collectNativeFiles(sourceRoot) {
   selected.add(archive);
   retained.set(archive, archiveBytes);
   selected.add('docs/native-participant.md');
+  selected.add('docs/fleet-service.md');
   const files = [...selected].sort();
   const contents = new Map(await Promise.all(files.map(async name => [name, retained.get(name) || await fs.readFile(path.join(sourceRoot, name))])));
   // Bind the retained bytes, not a subsequent checkout read, to the runtime pin.
@@ -107,6 +108,7 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
     entries.push({ path: name, bytes: bytes.length, sha256: digest(bytes) });
   }
   await fs.chmod(path.join(directory, 'server/native-participant.js'), 0o755);
+  await fs.chmod(path.join(directory, 'server/fleet/native-host.js'), 0o755);
   await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
   // Start from the application's resolved graph, then prune unrelated packages.
   // Native install scripts are not executed while producing the delivery.

@@ -67,6 +67,13 @@ async function network(count = 3) {
       delta: result.delta, done: result.done, stopReason: result.stopReason });
     return { ...result, receipt };
   });
+  const finalClose = final.closeAttempt.getMockImplementation();
+  final.closeAttempt.mockImplementation(async request => {
+    await finalClose(request);
+    const tally = tallies.get(request.identity.attemptId);
+    if (request.acknowledged) await tally.acknowledge(request.acknowledged);
+    return { receipt: await tally.close() };
+  });
   for (let index = 1; index < count; index++) {
     const identity = stageIdentities[index], stage = f.stages[index];
     const stageAuthority = createPartitionGrantAuthority({ identity, meshId: 'mesh', maxGrants: 20, maxTtlMs: 10000 });
@@ -124,6 +131,9 @@ describe('signed attempt evidence over the ordered route\'s channels', () => {
       expect(n.received.acknowledged[0]).toEqual([0, null]);
       expect(n.received.acknowledged.slice(1).every(([, count]) => count === null || count >= 1)).toBe(true);
       expect(n.received.closed.find(([index]) => index === 0)).toEqual([0, 3]);
+      expect(n.received.closed.find(([index]) => index === 2)).toEqual([2, 3]);
+      const closing = result.execution.settlement.cleanup.find(row => row.partitionIndex === 2).receipt;
+      expect(await verifyStageReceipt(closing)).toMatchObject({ ok: true, body: { status: 'settled', steps: 3 } });
     } finally { await n.close(); }
   });
 

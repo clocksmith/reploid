@@ -4011,7 +4011,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:1ec71cc7999d5a498fb0080d552bf5e8623344e15e578e7efc67cc12dda31426",
+      "sha256": "sha256:79c2dca6932e471647ef67c9a921754dfdfc58570c66e8bc79770b80ef4f01b4",
       "imports": []
     },
     {
@@ -18248,7 +18248,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-peer.js",
       "owner": "vendor",
-      "sha256": "sha256:4847bde0acea902af5d4a33f2a18ba95521d1500c956d43079c1ce44da13ec8a",
+      "sha256": "sha256:0c83e38c847056726f25161a7eef5e9fe230f1fb16cec503ddf9dd6345547ede",
       "imports": [
         "../../transport/partition-data-channel.js",
         "./partition-contract.js",
@@ -18310,7 +18310,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-execution.js",
       "owner": "vendor",
-      "sha256": "sha256:f8d3ae82702d49567386026bfea29e6e281491891f684f32c8026b1aaa0ee505",
+      "sha256": "sha256:5e4fbbcfd6cc0c68d8dff4277114e8ce7a25b21fe38cab894e2cfedb1a32cdd1",
       "imports": [
         "../../transport/partition-errors.json",
         "./partition-attempt-evidence.js",
@@ -18387,7 +18387,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
       "owner": "vendor",
-      "sha256": "sha256:43d5cfffcd774a2bdecd700dc483b9e887fa0d87117e5a41a28921337dca292c",
+      "sha256": "sha256:9465fa5078d43fb0c3236b7b3a7ea60b73b6a0e0a78416126a3b4d5d9e615ef6",
       "imports": [
         "../../transport/partition-errors.json",
         "./partition-attempt-evidence.js",

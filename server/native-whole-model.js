@@ -9,6 +9,7 @@ import { createWorkAdapterResolver, selectWorkAdapters } from '../apps/poolday/p
 import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
 
 export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner = null, onChange = () => {},
+  configureMemory = async maxBytes => (await import('doppler-gpu/partitions')).configureDeviceMemoryBudget({ maxBytes }),
   resolveAdapter = createWorkAdapterResolver({ models: [model] }),
   service = createReploidDopplerRuntimeService({ loadModule: () => import('doppler-gpu/compat') }),
   createResident = createWorkResidentProvider }) {
@@ -63,7 +64,16 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         if (!enabled || closed) throw new Error('Whole-model contribution stopped');
         const loadOptions = structuredClone(model.loadOptions || {});
         const budget = loadOptions.runtimeConfig?.shared?.bufferPool?.budget;
-        if (owner && budget) budget.maxTotalBytes = owner.gpuBufferBytes(budget.maxTotalBytes);
+        const maximum = owner?.gpuBufferBytes(budget?.maxTotalBytes ?? Infinity);
+        if (Number.isFinite(maximum)) {
+          // The pool limit alone excludes some persistent weight/state allocations.
+          await configureMemory(maximum);
+          loadOptions.runtimeConfig ??= {};
+          loadOptions.runtimeConfig.shared ??= {};
+          loadOptions.runtimeConfig.shared.bufferPool ??= {};
+          loadOptions.runtimeConfig.shared.bufferPool.budget ??= {};
+          loadOptions.runtimeConfig.shared.bufferPool.budget.maxTotalBytes = maximum;
+        }
         resident = createResident({ service, model, resolveAdapter, generation: model.generation || profile.generation,
           maxOutcomeCharacters: profile.maxOutcomeCharacters, loadOptions,
           source: { manifest: JSON.parse(manifest.toString('utf8')), manifestText: manifest.toString('utf8'),

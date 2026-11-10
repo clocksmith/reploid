@@ -71,8 +71,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     const tally = await tallies.get(identity?.attemptId)?.catch(() => null);
     if (!tally) return;
     if (acknowledged) await tally.acknowledge(acknowledged);
-    await tally.close({ failed: reservations.failureOf(identity) != null });
+    const receipt = await tally.close({ failed: reservations.failureOf(identity) != null });
     reservations.attachEvidence(identity, tally.evidence());
+    return receipt;
   };
   let draining = null, finishDrain = null;
   let phase = 'idle', error = null, session = null, preparing = null, closing = null, disposal = null, descriptor = null;
@@ -293,7 +294,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
         throw Object.assign(new Error(failureMessages.CLEANUP_FAILED, { cause }), { code: 'CLEANUP_FAILED' });
       }
       // The closing receipt is signed only after the runtime confirmed cleanup; signing never unsettles it.
-      try { await closeTally(identity, acknowledged); } catch {} finally { notify(); }
+      try {
+        const receipt = await closeTally(identity, acknowledged);
+        return receipt ? { receipt } : undefined;
+      } catch {} finally { notify(); }
     },
     drain() {
       if (draining) return draining;

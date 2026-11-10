@@ -42,6 +42,9 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
     'Installed Doppler lacks manifest-driven partition preparation; install the matching runtime');
     model.partitionPlan = runtime.createOrderedLayerPartitionPlanFromManifest(manifest, configuration.partition);
     model.partitionPlanId = runtime.hashLayerPartitionPlan(model.partitionPlan);
+    // An explicit ordered plan replaces the catalog's legacy two-stage cut.
+    // Keeping both makes downstream selection reject the otherwise valid plan.
+    delete model.partitionSplitLayer;
     if (catalogReference) model.executionModes = [...new Set([...(model.executionModes || []), 'partition'])];
     const budgets = model.partitionRuntime?.maxGpuBufferBytes;
     requireValue(Array.isArray(budgets) && budgets.length === model.partitionPlan.stageCount

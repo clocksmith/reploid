@@ -2,6 +2,15 @@
 
 ## Operating mission
 
+Owner clarification, November 10, 2026: participating computers should retain
+their identities, earn credit for serving and spend credit for requesting;
+negative balances are permitted for now. Pool contribution using hardware limits,
+owner-selected models and observed demand.
+
+Implementation boundary: the first fleet exchange uses explicit non-cash service
+credits. It does not convert purchased balances, activate cash
+payouts or qualify model arithmetic. Existing financial obligations remain intact.
+
 Owner clarification, November 4, 2026: show available shared models first and
 let visitors choose and use them before downloading anything. Model selection
 prioritizes mesh capacity, with the same presentation on desktop and mobile.

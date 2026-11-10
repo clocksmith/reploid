@@ -384,9 +384,11 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
-  generationJournalFile = null }) {
+  generationJournalFile = null, executionAdmission = null }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
+  requireValue(executionAdmission === null || ['whole', 'partition', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
+    'Execution admission requires whole-model, partition and receipt ports');
   requireValue(!wholeMode || canonical === null && ordered === null && readiness === null,
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
   requireValue(earning === null || ownerGate && typeof earning.observe === 'function', 'Native earning requires the owner policy and an earning contribution port');
@@ -445,6 +447,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'
       || request.action === 'mesh.execute' && whole?.getState().ready === true && wholeEarningReady
+        && (!executionAdmission || await executionAdmission.whole({ request: request.request,
+          consumer: await mesh.verifyPeerIdentity(request.peerId) }))
       || request.action === 'mesh.dispatch' && await wholeRequester?.authorize(request) === true),
     generate: async (messages, onUpdate, controls) => {
       requireValue(!closed && whole, 'Native whole-model execution was not enabled');
@@ -454,8 +458,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       return whole.generate(messages, onUpdate, controls);
     },
     onReceipt: async receipt => {
-      if (!earning?.recordWholeModelReceipt) return;
-      const write = earning.recordWholeModelReceipt(receipt); earningWrites.add(write);
+      if (!earning?.recordWholeModelReceipt && !executionAdmission) return;
+      const write = Promise.all([earning?.recordWholeModelReceipt(receipt), executionAdmission?.receipt(receipt)]); earningWrites.add(write);
       try { await write; observeEarning(); }
       catch (error) { logger.warn('Earning receipt deferred', error?.code || error?.message); }
       finally { earningWrites.delete(write); }
@@ -540,7 +544,14 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes) } : {}) });
-        const prepared = ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
+        let prepared = ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
+        if (executionAdmission) {
+          const resident = prepared.resident;
+          prepared = { ...prepared, resident: { ...resident, async reserve(request) {
+            await executionAdmission.partition({ ...request, partitionIndex: index });
+            return resident.reserve(request);
+          } } };
+        }
         readiness?.watchResident(prepared.resident);
         return prepared;
       }, onChange: earning || readiness ? state => { onChange(state); readiness?.observe(state); if (earning) observeEarning(); } : onChange

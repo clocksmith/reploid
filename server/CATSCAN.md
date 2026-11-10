@@ -6,11 +6,11 @@ Parent: [Reploid](../CATSCAN.md)
 Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims.
 
 ## Authority
-- Owns server validation, signaling, relay, external adapters, native composition, accounts, credit accounting, purchase reconciliation, Community Access, contribution rewards and durable scheduling.
+- Owns validation, signaling/relay, external adapters, native composition, accounts, accounting, purchases, Community Access, rewards and durable scheduling.
 - Excludes browser execution claims, exactly-once delivery, scientific validity and Research Room decisions.
 
 ## Scope
-Directory and unchartered descendants.
+This directory.
 
 ## Contracts
 Inputs: [proxy.js](proxy.js), [reploid-signaling.js](reploid-signaling.js), [public-inference-guard.js](public-inference-guard.js).
@@ -18,10 +18,11 @@ Outputs: authenticated, bounded responses and delivery records.
 
 ## Invariants
 - Relay acknowledgement proves receipt, not acceptance; auth/transport never prove model/scientific validity; failures stay explicit.
-- HTTP inference requires auth, exact disclosure and a production accounting owner (unbilled is test-only). Trial admission caps exposure without pricing/issuance and retains unsettled reservations across restarts.
-- Recovery queries bind account/device, input digest and signing identities without replacement inference. Native journals retain bounded results/fences without prompt text; missing evidence stays unresolved; signed cleanup without meters settles only fixed terminal formulas.
+- HTTP inference requires auth, exact disclosure and accounting (unbilled is test-only). Trial admission retains unsettled reservations across restarts without pricing/issuance.
+- Enrolled fleets may exchange non-cash credits: bounded debt, explicit same-owner permission, signed completed work and requester acknowledgment. Purchased balances and payouts remain separate.
+- Recovery binds account/device, input digest and signing identities without replacement inference. Journals bound results/fences, omit prompts and preserve uncertainty; unmetered signed cleanup permits only fixed terminal formulas.
 - Native hosts reuse participant contracts: Doppler computes; adapters own provider lifetime, authorized files and settlement; receipts retain opening/runtime/provider identities.
-- File supply needs separate consent; signed custody/Doppler verification acquire requested pieces only, caching verified files, quarantining corruption and restarting partials.
+- File supply needs separate consent; custody/Doppler verify requested pieces, cache verified files, quarantine corruption and restart partials.
 - `/swarm` is bounded discovery only (hosted/loopback origins, namespace/destination admission, heartbeat/expiry; no relay/virtual peers; origin is not auth).
 
 ## Acceptance
