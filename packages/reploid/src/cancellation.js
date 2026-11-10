@@ -21,6 +21,18 @@ export function abortable(operation, signal) {
 }
 
 /**
+ * abortable() that also stops waiting at `deadline` (epoch milliseconds),
+ * rejecting with `expired()`; the operation itself is not cancelled.
+ * @template T @param {() => T | Promise<T>} operation @param {AbortSignal} signal
+ * @param {{ deadline: number, expired: () => unknown }} limit @returns {Promise<T>}
+ */
+export function abortableBefore(operation, signal, { deadline, expired }) {
+  const timeout = new AbortController();
+  const timer = setTimeout(() => timeout.abort(expired()), Math.max(0, deadline - Date.now()));
+  return abortable(operation, AbortSignal.any([signal, timeout.signal])).finally(() => clearTimeout(timer));
+}
+
+/**
  * Awaits work that has already started unless `signal` aborts first. A failure
  * the work reports after the abort stays handled.
  * @template T @param {T | Promise<T>} pending @param {AbortSignal} signal @returns {Promise<T>}

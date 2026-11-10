@@ -1,4 +1,6 @@
 /** Reusable complete-job behavior. The host supplies policy, protocol and execution ports. */
+import { abortableBefore } from '../../cancellation.js';
+
 export function createPackProviderFactory(ports) {
   const { DopplerRuntimeService, PEER_MESSAGE_TYPES, createLocalPackExecutor, createPackOperationRegistry, snapshot, assertPackOperationEvent, createPackOperationStream, hashDopplerEvidence, openPackJobJournal, PACK_JOB_POLICY, resolvePackJobPolicy, PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, packJobBytes, requirePackJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage, packPeerModel, createPackProviderAdvert } = ports;
   for (const name of ["DopplerRuntimeService","PEER_MESSAGE_TYPES","createLocalPackExecutor","createPackOperationRegistry","snapshot","assertPackOperationEvent","createPackOperationStream","hashDopplerEvidence","openPackJobJournal","PACK_JOB_POLICY","resolvePackJobPolicy","PACK_JOB_SCHEMA","PACK_UPDATE_SCHEMA","PACK_CANCEL_SCHEMA","packJobBytes","requirePackJob","verifyPackPeerJob","verifyPackPeerMessage","signPackPeerMessage","packPeerModel","createPackProviderAdvert"]) {
@@ -49,22 +51,16 @@ function createPackPeerProvider({ identity, bus, models, authorize, adapterResol
     record.controller.signal.throwIfAborted();
     requirePackJob(!closed && active === record && Date.now() < record.expiresAt, 'attempt is no longer current');
   };
+  // Admission stops waiting on cancellation or at the job's expiry; the host's authorization call is not cancelled.
   const admitted = async (job, signal = lifecycle.signal) => {
-    signal.throwIfAborted();
-    let timer, abort;
-    const stopped = new Promise((_resolve, reject) => {
-      abort = () => reject(signal.reason);
-      signal.addEventListener('abort', abort, { once: true });
-      timer = setTimeout(() => reject(new Error('admission deadline exceeded')), Math.max(0, Date.parse(job.expiresAt) - Date.now()));
-    });
-    try { requirePackJob(await Promise.race([Promise.resolve().then(async () => {
+    requirePackJob(await abortableBefore(async () => {
       if (job.body.intent.adapterSet.length) {
         requirePackJob(typeof adapterResolver?.assertCurrent === 'function', 'adapter admission owner required');
         await adapterResolver.assertCurrent({ adapterSet: job.body.intent.adapterSet, model: job.body.intent.model });
       }
       return authorize(job);
-    }), stopped]) === true, 'application did not authorize public delegation'); }
-    finally { clearTimeout(timer); signal.removeEventListener('abort', abort); }
+    }, signal, { deadline: Date.parse(job.expiresAt), expired: () => new Error('admission deadline exceeded') }) === true,
+    'application did not authorize public delegation');
   };
 
   async function update(record, status, event = null) {

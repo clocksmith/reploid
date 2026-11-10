@@ -469,13 +469,13 @@
     },
     {
       "path": "cancellation.d.ts",
-      "bytes": 187,
-      "sha256": "d4451d2b678c577239a3f540aea993da5647ab369175aa310b3e8dbd838bd737"
+      "bytes": 344,
+      "sha256": "1bed820a0d02c9efc96f77aed3053a481ae6f123076f200bee3bc8f3cceaf644"
     },
     {
       "path": "cancellation.js",
-      "bytes": 1249,
-      "sha256": "17e2de149196945585dea8258825883ead4ddb14969423dac9b0328ecefabdf3"
+      "bytes": 1895,
+      "sha256": "770b8e17e5321e905243b25df64eab21668383024fdf71d134ddf19bbc93f889"
     },
     {
       "path": "chat/index.d.ts",
@@ -894,8 +894,8 @@
     },
     {
       "path": "mesh/jobs/provider.js",
-      "bytes": 18466,
-      "sha256": "6db3927b7468669637257f2fa07db0b0e08709e76de01d680bbbe593f39d1b97"
+      "bytes": 18274,
+      "sha256": "0aa61ca28e6c95ff266555c4225d94e8a3b36f27ce1aa1e7a16cdb6f00da39be"
     },
     {
       "path": "mesh/jobs/requester.d.ts",
