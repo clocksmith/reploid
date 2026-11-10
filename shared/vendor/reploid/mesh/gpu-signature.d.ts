@@ -8,8 +8,13 @@ export interface GpuSignature {
 }
 export type GpuSignatureResult = GpuSignature | { status: 'unavailable'; reason: string };
 export interface GpuSignatureThresholds { calibrationId: string; consistentMax: number; changedMin: number }
-export function captureGpuSignature(device?: GPUDevice | null, options?: {
-  consent?: boolean; signal?: AbortSignal; gpu?: GPU;
+// WebGPU types come from @webgpu/types when a consumer installs them; without them
+// the core entry still compiles and accepts any device or GPU object.
+type WebGpuGlobal<Name extends string, Fallback> = typeof globalThis extends Record<Name, { prototype: infer T }> ? T : Fallback;
+export type GpuSignatureDevice = WebGpuGlobal<'GPUDevice', object>;
+export type GpuSignatureGpu = WebGpuGlobal<'GPU', { requestAdapter(options?: unknown): Promise<unknown> }>;
+export function captureGpuSignature(device?: GpuSignatureDevice | null, options?: {
+  consent?: boolean; signal?: AbortSignal; gpu?: GpuSignatureGpu;
 }): Promise<GpuSignatureResult>;
 export function compareGpuSignatures(baseline: GpuSignatureResult | null, candidate: GpuSignatureResult | null,
   thresholds?: GpuSignatureThresholds | null): {

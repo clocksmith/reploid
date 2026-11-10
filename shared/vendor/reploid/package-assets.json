@@ -65,6 +65,18 @@
       "types": "./src/agent/legacy-loop.d.ts",
       "import": "./src/agent/legacy-loop.js"
     },
+    "./tool-runner": {
+      "types": "./src/agent/tool-runner.d.ts",
+      "import": "./src/agent/tool-runner.js"
+    },
+    "./response-parser": {
+      "types": "./src/agent/response-parser.d.ts",
+      "import": "./src/agent/response-parser.js"
+    },
+    "./cycle-artifacts": {
+      "types": "./src/agent/cycle-artifacts.d.ts",
+      "import": "./src/agent/cycle-artifacts.js"
+    },
     "./jobs": {
       "types": "./src/mesh/jobs/index.d.ts",
       "import": "./src/mesh/jobs/index.js"
@@ -317,8 +329,8 @@
     },
     {
       "path": "artifacts/checkpoint.js",
-      "bytes": 1187,
-      "sha256": "0ad3d3ad274cefe1bd6030f07334ca7a23612d41d0f43fd0fef369f15de91c91"
+      "bytes": 1033,
+      "sha256": "e8d4a74d087e4bc9a4bfdae8f4ba38e1e5e4b4a99bcc715ed5f4e6bb42b668cf"
     },
     {
       "path": "artifacts/custody/exchange.d.ts",
@@ -392,8 +404,8 @@
     },
     {
       "path": "artifacts/identity.js",
-      "bytes": 3225,
-      "sha256": "fa29e7c78d199a3c9fcb9f28a71c0b771bfe8ce04b49af7dbe66f43b45feaaee"
+      "bytes": 3025,
+      "sha256": "13a444bab82a8a10d5a1156ee7b3330db4c3c0945728bc9e19659cd4ab3aba48"
     },
     {
       "path": "artifacts/independent-unit-journal.d.ts",
@@ -437,13 +449,13 @@
     },
     {
       "path": "artifacts/receipt.js",
-      "bytes": 4436,
-      "sha256": "9f4b625c942c6a7566b9a9f1cb2613b7f4fb91f8996737a8b82e29130df44aca"
+      "bytes": 4253,
+      "sha256": "1c28d6a0eb864ec416cf2336cf9d33018ec04fc51ea21dd27107017b32c3002e"
     },
     {
       "path": "artifacts/signatures.js",
-      "bytes": 3117,
-      "sha256": "2cab796cb864d7adc97994d12da2db75208bf55d19e5deaa64b1fbbf97342c5c"
+      "bytes": 3857,
+      "sha256": "2ccac503833dd17eac861c99fff82f2720f1d3fed63d162c313a62f50b5c33b8"
     },
     {
       "path": "artifacts/store.d.ts",
@@ -567,8 +579,8 @@
     },
     {
       "path": "config/index.js",
-      "bytes": 11638,
-      "sha256": "4f4b3494d4fff00021a3dd9c5b1710f903fe5fa7b6ac80a1abbe5955e481d1c9"
+      "bytes": 11532,
+      "sha256": "bdbc9c5475d9f8491133a7167a51a3f64f739ae6741dca439a78bcfc0b19b16e"
     },
     {
       "path": "config/profiles/local.json",
@@ -707,8 +719,8 @@
     },
     {
       "path": "improvement/episodes.js",
-      "bytes": 48828,
-      "sha256": "5a48a71313e4fcf2cdb37f60e09aa84d43ff324f73908ebddacb66cd03af3cf2"
+      "bytes": 48958,
+      "sha256": "f06c2c460e71302f1ee9fb163c3f7df5df03718858f7ee89784e516e628b818f"
     },
     {
       "path": "improvement/index.d.ts",
@@ -802,8 +814,8 @@
     },
     {
       "path": "mesh/gpu-signature.d.ts",
-      "bytes": 1241,
-      "sha256": "c0420cbdba82ef948db2daa11ff2ced7af7f12eb8d7e9fd9ff5bf27a7ae01eba"
+      "bytes": 1723,
+      "sha256": "ceb3f2efae4f7ad7023d1bc2e40edbe3553bdf784cdc2dc00bafbdc9040b0876"
     },
     {
       "path": "mesh/gpu-signature.js",
@@ -1337,8 +1349,8 @@
     },
     {
       "path": "plugins/session.js",
-      "bytes": 6597,
-      "sha256": "1c4795f60b31d1125278037a2143e54636270bbc3818c51e3b6b55a279716208"
+      "bytes": 6474,
+      "sha256": "215065f64567b8b992abf43beb4caf593a1471c489c7806bdc8cb9f0fef148c5"
     },
     {
       "path": "retrieval/citations.js",
@@ -1422,8 +1434,8 @@
     },
     {
       "path": "retrieval/text.js",
-      "bytes": 1440,
-      "sha256": "7ea3e1f8271525f0792d025a363fe63f2a7f8bd6d3445072d76c4053df977d19"
+      "bytes": 1270,
+      "sha256": "d14ac094de99fe77a95c5570d6bb6e5b5e7eb4d8af6eea9efdb321a0054222af"
     },
     {
       "path": "rules/contribution.rules.json",
@@ -1452,8 +1464,8 @@
     },
     {
       "path": "training/session.js",
-      "bytes": 12965,
-      "sha256": "d937818c9e3951e8380861e243a2d89db7c3a6def819ecf0ceb05b6e3862a6dd"
+      "bytes": 12957,
+      "sha256": "2c01b29a3113653392050a6da1c1cb9cc5e1ead36b2ab60634dc3b33fb6c1b17"
     },
     {
       "path": "transport/assignment.d.ts",
@@ -1592,8 +1604,8 @@
     },
     {
       "path": "transport/tool-offer-channel.js",
-      "bytes": 8865,
-      "sha256": "ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
+      "bytes": 8692,
+      "sha256": "0c29cf8925a41e69c6b183485d1fa85c4543c9a86712d313736f354849ca36c1"
     }
   ]
 }

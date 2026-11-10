@@ -73,6 +73,18 @@
       "types": "./src/agent/legacy-loop.d.ts",
       "import": "./src/agent/legacy-loop.js"
     },
+    "./tool-runner": {
+      "types": "./src/agent/tool-runner.d.ts",
+      "import": "./src/agent/tool-runner.js"
+    },
+    "./response-parser": {
+      "types": "./src/agent/response-parser.d.ts",
+      "import": "./src/agent/response-parser.js"
+    },
+    "./cycle-artifacts": {
+      "types": "./src/agent/cycle-artifacts.d.ts",
+      "import": "./src/agent/cycle-artifacts.js"
+    },
     "./jobs": {
       "types": "./src/mesh/jobs/index.d.ts",
       "import": "./src/mesh/jobs/index.js"
