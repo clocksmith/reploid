@@ -3,8 +3,7 @@
 Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
-Enrolled computers serve exact models within owner preferences and measured
-capacity, exchanging non-cash credits for acknowledged output after proven cleanup.
+Serve exact models within owner preferences and measured capacity; credit acknowledged output after cleanup.
 
 ## Authority
 - Owns computer/provider associations, observations, placement, native reconciliation
@@ -31,6 +30,7 @@ Outputs: durable balances, work records and placement decisions.
 - Credits are non-cash and conserved. Explicit policy bounds debt and permits
   same-owner transfers. A requester's local partition share is unbilled.
 - Fence admission before release; retain signed proof and recover it across restarts.
+- Browser delegation requires pairing, loopback and exact origins; keys stay native.
 - Unknown work stays pending; stopping does not prove GPU settlement.
 - Busy providers retain work. Placement changes only at idle boundaries.
 - Capacity observations and measured envelopes have separate expiry; envelopes
@@ -47,4 +47,4 @@ Physical runs qualify only their exercised runtime and devices.
 Trustless computation, anonymous debt, guaranteed speedups.
 
 ## Freedom
-Preserve these boundaries and existing obligations.
+Preserve boundaries and obligations.

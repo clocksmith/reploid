@@ -2621,7 +2621,7 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:5dd8e3c4d4ebde72fe39ace9b665ef6d9d6f4302bde998ade7789aae5353f736",
+      "sha256": "sha256:b7980fb9ad3619882bf8e0b86483206f822e124cc2c099fd9998de2fa60e6c4d",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
@@ -2653,7 +2653,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:6f2054ecda0af88938116b8b22d34861022858f0e509464dad0f692afd6c6baf",
+      "sha256": "sha256:045ffd0a74cedf447f90220ddfa89560e08c18b7ea52ea132778dd1729dc2d29",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2670,6 +2670,7 @@
         "./document-comparison.js",
         "./model-acquisition.js",
         "./partition-release.js",
+        "./private-computers.js",
         "./readonly-view.js"
       ]
     },
@@ -2896,6 +2897,12 @@
         "./peer-execution-config.js",
         "./product-context.js"
       ]
+    },
+    {
+      "path": "self/host/private-computers.js",
+      "owner": "self",
+      "sha256": "sha256:a4e59093ba84e26799d7026b855a14eb66418c42fc55372cf975166e2df0b1a4",
+      "imports": []
     },
     {
       "path": "self/host/product-context.js",
@@ -3962,7 +3969,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:1eca17b239f15ca1902935036ab69ec8244f16b805b634f82be402bd2349352d",
+      "sha256": "sha256:cc16d1ba7b037d653b70b2d651b0aad84806ecc4a845a934a3c6f10090067914",
       "imports": [
         "./attachments.js"
       ]
@@ -4011,7 +4018,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:620e7da0f8e671d736570efdc961251f9dfd377bf67aa5154264a505a9a651ac",
+      "sha256": "sha256:3000dcc612dbcac41102a81b83a95c39cb79d5e0920eb1875303dc15b76cefaf",
       "imports": []
     },
     {
@@ -4131,7 +4138,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:d93f05ed32573dd34fe0389c91274ca459532ca4638f193a0031a549e8413f72",
+      "sha256": "sha256:6649d483e7a3a48272b49c8a3e3f1ab6582d64c4dd5084f079be5999202f8829",
       "imports": [
         "../components/attachments.js",
         "../components/control-help.js",
@@ -4140,7 +4147,6 @@
         "../components/drawer.js",
         "../components/interface-icons.js",
         "../components/model-select.js",
-        "./auto-download.js",
         "./computer-labels.js",
         "./context-indicator.js",
         "./contribution-models.js",
@@ -4191,7 +4197,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:b7740f9e5440a8fab07aeb0946b35c6ce3a42f88bdf856e40323700d6aa9dc5c",
+      "sha256": "sha256:4b18470ec1c5f00a89850fc6c752a93675db1eb0aece88ed4426d29a68625437",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -4201,7 +4207,7 @@
     {
       "path": "ui/pool-home/execution-ribbon.js",
       "owner": "ui",
-      "sha256": "sha256:02765335108f600ade8b98c12b990082c57694adc8b1a513b78e9661ac36716d",
+      "sha256": "sha256:8b55ed79114eeb44ce6b0f21c271d0bdbf917db3b0add8b30a5830dcbd1d9247",
       "imports": [
         "../../vendor/reploid/mesh/provider-hardware.js",
         "./computer-labels.js"
@@ -4291,7 +4297,7 @@
     {
       "path": "ui/pool-home/model-providers.js",
       "owner": "ui",
-      "sha256": "sha256:b209535ef3bcee59725ac678b3dc8c084383a1945d66cc150d9043ada504ddb5",
+      "sha256": "sha256:5c2ec902c69663a712af1683f5831154955929495dd27ab0e8a15bb6439eaee8",
       "imports": [
         "../components/attachments.js",
         "./computer-labels.js",
@@ -4331,7 +4337,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:98de538aefe83000de52a728fa8aa7f5a6b09f5909a744a77d7e8ad38ef4947a",
+      "sha256": "sha256:7ad55e9bf5723c146df63ca414eefa4781e3657bbc57c8beab5da7888f347299",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -4339,7 +4345,6 @@
         "../components/interface-icons.js",
         "../components/model-select.js",
         "./account-panel.js",
-        "./auto-download.js",
         "./computer-labels.js",
         "./computer-preferences-view.js",
         "./context-indicator.js",
@@ -4347,6 +4352,7 @@
         "./execution-ribbon.js",
         "./model-storage-view.js",
         "./network-controls.js",
+        "./private-computers-view.js",
         "./remote-permission.js",
         "./shell-view.js",
         "./theme.js",
@@ -4443,6 +4449,14 @@
         "../components/diamond-renderer.js",
         "./constants.js",
         "./contribution-state.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/private-computers-view.js",
+      "owner": "ui",
+      "sha256": "sha256:c1df8dece6c53e262a890a52e843e9eb5a74865c4814b6e9d7acba04259f3160",
+      "imports": [
+        "../components/attachments.js"
       ]
     },
     {

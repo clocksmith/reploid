@@ -31,7 +31,8 @@ export function projectExecutionActivity(state) {
 const SUPPLY_LABELS = { local: 'This device', mesh: 'Mesh', hosted: 'Hosted', unknown: 'Executor not verified' };
 const supplyLabel = part => part?.supply === 'mixed' ? `Mixed: ${part.classes.map(name => SUPPLY_LABELS[name]).join(' + ')}`
   : SUPPLY_LABELS[part?.supply] ?? null;
-const supplyCaption = (view, supply) => view.local || supply.answer === 'This device' ? 'This device'
+const supplyCaption = (view, supply) => view.execution?.privateDelegation && view.nodes.length
+  ? (view.split ? 'split across ' : '') + view.nodes.map(node => node.label).join(' + ') : view.local || supply.answer === 'This device' ? 'This device'
   : supply.answer === 'Hosted' || view.attempt?.execution?.provider === 'hosted' ? 'Hosted'
   : supply.answer === 'Executor not verified' ? 'Executor not verified'
   : view.nodes.length || supply.answer === 'Mesh' || supply.answer?.startsWith('Mixed:') || view.attempt?.execution?.provider === 'peer' || view.attempt?.execution?.placement ? 'Shared computer' : '';
@@ -76,7 +77,9 @@ export function updateExecutionActivity(root, state) {
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
   if (view.active) {
     const status = root.querySelector('[data-execution-trigger] [data-tool-status]');
-    status.hidden = false; status.textContent = toolStatus || (view.status === 'executing' ? 'Generating' : view.statusLabel);
+    status.hidden = false; status.textContent = toolStatus || (view.execution?.privateDelegation && view.nodes.length
+      ? `${view.model} · ${view.split ? 'split across ' : view.status === 'executing' ? 'running on ' : 'assigned to '}${view.nodes.map(node => node.label).join(' + ')}`
+      : view.status === 'executing' ? 'Generating' : view.statusLabel);
   }
   const detail = root.querySelector('[data-activity-detail]');
   if (detail) updateExecutionDetail(detail, state);

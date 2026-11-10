@@ -68,6 +68,16 @@ export function fleetHardwareSnapshot() {
       maxBytes: memory.maxBytes, categories: memory.categories } };
 }
 
+/** A direct reply proves this requester process is online, not that it contributes GPU capacity. */
+export function includeRequesterPresence(computers, state, at) {
+  return computers.map(computer => computer.id !== state.computerId ? computer : {
+    ...computer, online: true, observedAt: at, requester: true,
+    activeRequests: Math.max(computer.online ? computer.activeRequests || 0 : 0, state.activeRequests),
+    preparing: state.preparing,
+    ...(!computer.online ? { resident: null, freeHostBytes: state.hardware.freeHostBytes } : {})
+  });
+}
+
 /** One process owns one GPU host. Model changes drain the old resident before preparing another. */
 export async function openFleetNativeHost({ configuration, loadRtc = () => import('@roamhq/wrtc'), loadSocket = () => import('ws'),
   loadGpu = () => import('webgpu'), onChange = () => {} }) {
@@ -180,7 +190,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
           contextLength: model.contextLength, generation: model.generation, availability: status };
       });
       return { schema: 'reploid.fleet-browser/v1', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
-        models, computers: network.computers, at: network.at };
+        models, computers: includeRequesterPresence(network.computers, state(), network.at), at: network.at };
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
     async balances() { assert(credits, 'Service credits are not configured'); await credits.reconcile(); return credits.call('snapshot', {}); },
@@ -227,11 +237,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   });
 }
 
-if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
-  const config = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
-  const host = await openFleetNativeHost({ configuration: config, onChange: value => process.stderr.write(JSON.stringify({ event: 'fleet-state', ...value }) + '\n') });
-  console.log(JSON.stringify({ ready: true, computerId: config.computerId, participantId: host.identity.peerId, publicJwk: host.identity.publicJwk }));
-  const pending = new Set(), lines = createInterface({ input: process.stdin });
+export async function runFleetNativeCommands({ host, config, input = process.stdin, signals = process }) {
+  const pending = new Set(); let lines = null;
   let timer = null, browserBridge = null;
   if (config.auto === true) {
     assert(Number.isSafeInteger(config.pollMs) && config.pollMs >= 1000, 'Explicit bounded placement interval required');
@@ -244,13 +251,16 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
   }
   let stopped = false, endDaemon;
   const daemonStopped = new Promise(resolve => { endDaemon = resolve; });
-  const stop = () => { stopped = true; lines.close(); endDaemon(); };
-  process.once('SIGTERM', stop); process.once('SIGINT', stop);
+  const stop = () => { stopped = true; lines?.close(); endDaemon(); };
+  signals.once('SIGTERM', stop); signals.once('SIGINT', stop);
   try {
     if (Number.isSafeInteger(config.initialModel)) await host.select(config.initialModel, config.initialContribution === true);
     if (config.browserBridge) browserBridge = await startFleetBrowserBridge({ host, ...config.browserBridge,
       token: (await readOwnFile(config.browserBridge.tokenFile)).trim() });
-    for await (const line of lines) {
+    // Readline begins consuming immediately: create it only when its iterator can
+    // subscribe, after asynchronous model/bridge setup, or EOF can be lost.
+    if (!stopped) lines = createInterface({ input });
+    for await (const line of lines || []) {
       const operation = (async () => {
         let command;
         try {
@@ -271,6 +281,14 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
     }
   } finally {
     if (config.daemon === true && !stopped) await daemonStopped;
+    signals.removeListener('SIGTERM', stop); signals.removeListener('SIGINT', stop);
     clearInterval(timer); await browserBridge?.close(); await host.close(); await Promise.allSettled(pending);
   }
+}
+
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  const config = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
+  const host = await openFleetNativeHost({ configuration: config, onChange: value => process.stderr.write(JSON.stringify({ event: 'fleet-state', ...value }) + '\n') });
+  console.log(JSON.stringify({ ready: true, computerId: config.computerId, participantId: host.identity.peerId, publicJwk: host.identity.publicJwk }));
+  await runFleetNativeCommands({ host, config });
 }

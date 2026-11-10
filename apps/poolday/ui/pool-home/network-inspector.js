@@ -45,7 +45,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     <section data-inspector-pane="conversation" ${mounted ? 'role="tabpanel" id="inspector-pane-conversation" aria-labelledby="inspector-tab-conversation"' : ''} aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-inspector-context-detail></p><div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
-      <details><summary>Execution details</summary><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
+      <details><summary>Execution details</summary><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
@@ -148,6 +148,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const privateComputers = bindPrivateComputers(panel, session);
   const storagePanel = bindModelStorage(panel, modelStorage);
   if (modelStorage) find('[data-settings-storage-summary]').hidden = true;
+  let creditRequest = null;
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
   const select = section => {
     activeSection = section === 'device' ? 'participants' : section;
@@ -192,6 +193,13 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }, options);
   navigation.addEventListener('keydown', onEscape, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
+  on('[data-credit-receipt]', 'click', () => void act(async () => {
+    const id = creditRequest, receipt = await session.privateComputers.receipt(id);
+    const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'reploid-service-receipt.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    if (id === creditRequest) { const label = find('[data-credit-receipt-status]'); label.hidden = false;
+      label.textContent = receipt.state === 'settled' ? `${receipt.outcome.charge} credits settled` : 'Pending · outcome not yet settled'; }
+  }));
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     privateComputers.update(state);
@@ -204,7 +212,10 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const stored = (state.models || []).filter(model => model.localCached);
     find('[data-settings-storage-summary]').textContent = stored.length ? stored.map(model => model.name || model.id).join(' · ') : 'No downloaded models';
     const view = projectExecutionRibbon(inspectedState), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs, view.executors.map(node => node.label)]);
+    creditRequest = view.execution?.serviceCredit?.id || null;
+    find('[data-credit-receipt]').hidden = !creditRequest || !state.privateComputers?.connected;
     if (key !== executionKey) {
+      find('[data-credit-receipt-status]').hidden = true;
       executionKey = key; find('[data-inspector-route]').innerHTML = routeMarkup(view);
       find('[data-ribbon-facts]').innerHTML = detailMarkup(view);
       const events = [];
@@ -217,7 +228,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const connection = find('[data-connection-label]').textContent;
     const summaries = {
       conversation: view.statusLabel,
-      participants: connection === 'Connected' ? `${peers.filter(peer => peer.connectionPhase === 'connected').length} connected · ${peers.filter(peer => peer.phase === 'ready').length} ready` : connection,
+      participants: (state.privateComputers?.connected ? `${state.privateComputers.computers.filter(row => row.online).length} private online · ` : '') + (connection === 'Connected' ? `${peers.filter(peer => peer.connectionPhase === 'connected').length} connected · ${peers.filter(peer => peer.phase === 'ready').length} public ready` : connection),
       device: [find('[data-contrib-label]').textContent, state.network?.files?.sharing ? 'Files on' : ''].filter(Boolean).join(' · ')
     };
     for (const [section, summary] of Object.entries(summaries)) {

@@ -461,7 +461,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-active-model-select]').value).toBe(route.selectionId);
     expect(find('[data-composer-send]').disabled).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('');
-    expect(find('[data-open-model]').getAttribute('aria-label')).toContain('Shared · Distributed');
+    expect(find('[data-open-model]').getAttribute('aria-label')).toContain('Public network · Split model');
     expect(find('[data-download-local]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('hi');
     state = { ...state, models: [base, { ...route, availability: 'unavailable', networkAvailability: 'unavailable' }] }; emit(state);

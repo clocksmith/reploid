@@ -5,8 +5,9 @@ placement to the existing native participant. It uses the existing WebRTC,
 whole-model and ordered-partition execution paths. It does not change Doppler's
 model arithmetic or qualification rules.
 
-This is an operator-configured private fleet. The public chat site does not yet
-use this credit coordinator. Purchased credits and payouts are separate.
+This is an operator-configured private fleet. A paired browser can use it from the
+normal chat workspace; unpaired public-network chats do not use this coordinator.
+Purchased credits and payouts are separate.
 
 ## Computer identity
 
@@ -132,3 +133,46 @@ REPLOID_FLEET_PHYSICAL=1 node tests/fixtures/fleet-native-physical.js /absolute/
 Physical receipts establish only the recorded devices, prompts, package and
 route. They do not establish general model quality, a speed advantage for
 sharding, Flash-Next readiness, or public-site deployment.
+
+## Browser workspace
+
+The existing Computers panel can pair with a native requester on the same computer.
+Add `browserBridge` to its private `reploid.fleet-native/v1` configuration:
+
+```json
+{
+  "browserBridge": {
+    "port": 18784,
+    "tokenFile": "/absolute/owner-only/browser-pairing-secret",
+    "origins": ["https://replo.id", "http://localhost:8000"]
+  },
+  "daemon": true
+}
+```
+
+Use at least 32 random bytes encoded as text for the pairing secret, with an
+owner-only file. Run the existing `server/fleet/native-host.js` entry point with
+that configuration. The bridge binds only 127.0.0.1. Every request checks the exact
+browser origin and bearer secret. A browser may separately request permission to
+access the local network. No signing key, private room token or model-file path
+is returned to the browser.
+
+In Computers, choose **Connect a native host**, enter its local address and secret,
+and review the enrolled computer names. The pairing is stored only in that tab's
+session storage. Choose a model under **Your private computers**. This authorizes
+your native requester to serve the exact model through its reviewed private pool;
+its existing per-provider disclosure, admission, spending limits and settlement
+remain mandatory. It is delegation to the paired host, not browser-side hardware
+attestation. A changed enrollment requires reconnection. Private selections never
+fall back to public capacity or a local weight download.
+
+The answer retains actual whole-model or ordered-stage execution and service-credit
+records. Computers shows fresh observed capacity separately from execution receipts;
+expired observations are offline, not ready. Service credits and receipt export are
+on demand. Stop requests cancellation; a lost stream leaves a pending outcome until
+the native owners reconcile. There is no automatic resend after interruption.
+Browser history, drafts and reload use the existing conversation store; the bridge
+does not retain prompt text. Signing keys and durable accounting remain native.
+
+Local model downloads remain a separate reviewed action. Send does not acquire
+weights, even if an older automatic-download preference was stored.

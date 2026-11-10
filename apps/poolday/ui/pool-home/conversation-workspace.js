@@ -40,7 +40,7 @@ const renderModelControl = () => '<span data-model-control><select class="pool-i
 
 /** The highlighted variant's adapter facts, routes and providers, its answer limit and where the answer runs. One place: the picker.
  * Declared weights, context and availability are read once, on the variant's own choice. */
-const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Shared</button></div></div></details>`;
+const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Public network</button></div></div></details>`;
 
 export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
@@ -194,7 +194,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     drafts.set(selectedId, structuredClone(value)); return session.saveDraft?.(selectedId, value);
   };
   let selectedId = session.getState().selectedId, submitting = false;
-  // A message sent while no computer can answer waits here for its automatic download.
   // While another tab holds the history, the handover notice replaces its refusal.
   const history = session.getState().history;
   const refusal = history?.mode === 'refused' && historyHandover ? history.reason : null;
@@ -258,6 +257,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const available = selected && (preview.usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && !!selected.source && !selected.partition && !state.localDownloadIssue);
     for (const button of find('[data-execution-location]').querySelectorAll('[data-execution-choice]')) {
       const location = button.dataset.executionChoice;
+      if (location === 'network') button.textContent = selected?.fleet ? 'Private computers' : 'Public network';
       button.setAttribute('aria-pressed', String(location === pickerLocation));
       button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId)
         || location !== 'auto' && !modelExecutionState(selected, location).usable;

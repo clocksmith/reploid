@@ -3,7 +3,7 @@
 Parent: [Poolday Product](../../CATSCAN.md)
 
 ## Target
-Shared models first; contribution and production remain available.
+Shared models first; contribution remains available.
 
 ## Authority
 Owns presentation/actions, never execution, admission, promotion or scientific/financial truth.
@@ -21,6 +21,7 @@ Outputs: [production](production.js), [conversations](conversation-workspace.js)
 - Brief labels/actions; details via setup, tooltips or disclosures.
 - Reuse catalog components, tokens, gutters, accessible themes, responsive scrolling, charcoal/prism/grid styling; decoration never signals execution; respect reduced motion.
 - Reploid header; URL-backed left Threads drawer and right Conversation/Computers/Settings drawer preserve center chat (both on wide screens, one on narrow) with mirrored 7⁷ transitions. Bounded choices/confirmations use dialogs; storage lives in Settings.
+- Distinguish public, paired private and local capacity. Send never downloads; setup shows size before approval.
 - Chat opens without capacity; sending enforces readiness/disclosure.
 - Independent threads retain history, permissions and attempts; selection never cancels work; failures, Stop and unsettled cleanup stay visible.
 - Discovery, cached files and viewing grant nothing. Compute, file, training and remote disclosures keep separate permissions and local opt-outs.

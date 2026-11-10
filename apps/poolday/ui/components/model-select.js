@@ -13,7 +13,7 @@ export function modelExecutionState(model, location = 'auto') {
   const status = source === 'local' ? model?.partition ? 'unavailable' : model?.localReady ? 'ready' : local ? 'cached' : 'unavailable'
     : model?.networkAvailability ?? (local ? 'unavailable' : model?.availability ?? 'unavailable');
   return { source, status, usable: ['ready', 'busy', 'cached'].includes(status),
-    label: !['ready', 'busy', 'cached'].includes(status) ? ['loading', 'preparing'].includes(status) ? 'Loading' : 'Unavailable' : source === 'local' ? 'This device' : model?.fleet ? 'Private computers' : model?.partition && ['ready', 'busy'].includes(status) ? 'Shared · Distributed' : 'Shared' };
+    label: !['ready', 'busy', 'cached'].includes(status) ? ['loading', 'preparing'].includes(status) ? 'Loading' : 'Unavailable' : source === 'local' ? 'This device' : model?.fleet ? 'Private computers' : model?.partition && ['ready', 'busy'].includes(status) ? 'Public network · Split model' : 'Public network' };
 }
 
 /** Catalog facts shown beside a choice: declared weights and advertised context, nothing inferred. */

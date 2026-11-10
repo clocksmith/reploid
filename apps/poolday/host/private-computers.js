@@ -64,7 +64,7 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
         privateDelegation: { poolIdentity: snapshot.poolIdentity, computers: publicNames } });
       assert(approved === true, 'Private execution was not allowed'); signal.throwIfAborted();
       active.set(attemptId, controller);
-      let placement = { provider: 'peer', placement: 'peer-whole-request', peerId: snapshot.requester.participantId,
+      let placement = {
         privateDelegation: { poolIdentity: snapshot.poolIdentity, computers: publicNames }, serviceCredit: { status: 'pending' } };
       controls.onState({ threadId, attemptId, status: 'queued', execution: placement });
       const cancel = () => { void call('/cancel', { attemptId }, AbortSignal.timeout(10000), target).catch(() => {}); };

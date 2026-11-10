@@ -27,11 +27,11 @@ export function bindPrivateComputers(root, session) {
     const markup = (fleet.computers || []).map(row => {
       const online = fleet.connected && row.online;
       const status = !online ? 'Offline' : row.activeRequests > 0 ? 'Serving' : row.preparing ? 'Loading'
-        : row.preferences?.enabled === false ? 'Paused' : row.resident ? 'Ready' : 'Online · no model loaded';
+        : row.preferences?.enabled === false ? 'Paused' : row.resident ? 'Ready' : row.requester ? 'Online · requester' : 'Online · no model loaded';
       const model = fleet.models?.find(model => model.identity === row.resident?.modelIdentity);
       return `<li><details class="pool-disclosure"><summary>${escape(row.name)} <span class="pool-muted">${status}</span></summary>
         <dl class="pool-facts"><dt>Model</dt><dd>${escape(online && row.resident ? model?.name || row.resident.modelIdentity : 'None reported')}</dd>
-        <dt>Role</dt><dd>${online && row.resident ? row.resident.mode === 'partition' ? `Split model · stage ${row.resident.stageIndex + 1}` : 'Whole model' : 'No active role'}</dd>
+        <dt>Role</dt><dd>${online && row.resident ? row.resident.mode === 'partition' ? `Split model · stage ${row.resident.stageIndex + 1}` : 'Whole model' : row.requester ? 'Requester' : 'No active role'}</dd>
         <dt>Active work</dt><dd>${online ? row.activeRequests ?? 'Not reported' : 'Unknown'}</dd>
         <dt>Available GPU budget</dt><dd>${online ? gb(row.freeGpuBytes) : 'Unknown'}</dd><dt>Available system memory</dt><dd>${online ? gb(row.freeHostBytes) : 'Unknown'}</dd></dl></details></li>`;
     }).join('');

@@ -141,7 +141,7 @@ export function bindExecutionRibbon(root, { onInspect = () => {}, labelSession =
     update(state) {
       const view = projectExecutionRibbon(withComputerLabels(state, labelSession)), changed = view.key !== key;
       if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
-      find('[data-ribbon-status]').textContent = view.statusLabel;
+      find('[data-ribbon-status]').textContent = view.execution?.privateDelegation && view.executors.length ? `${view.model} · ${view.split ? 'split across ' : view.status === 'executing' ? 'running on ' : ''}${view.executors.map(node => node.label).join(' + ')}` : view.statusLabel;
       trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);
       ribbon.dataset.state = view.status;
       if (!changed && view.active && view.response.length > lastResponse.length && view.response.startsWith(lastResponse)) {

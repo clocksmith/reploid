@@ -34,6 +34,8 @@ Outputs: [product session](product-session.js), [conversations](chat-session.js)
 - Peers require authorization/exact identities/evidence. Uncovered requests wait;
   revocation spares admitted answers; never reroute them.
   metadataDigest catalogs open single-tab transactional history, otherwise ordinary.
+- A paired native requester delegates private service under its enrolled identities
+  and credit policy. A private choice cannot fall back to public or local execution.
 - Connection, introductions, cached compute/file sharing default on;
   Separate off controls; downloads require approval.
   Discovery never downloads weights.

@@ -5,7 +5,7 @@ import { renderConversationWorkspace, bindConversationWorkspace } from '../../ap
 import { AUTO_DOWNLOAD_STORAGE_KEY } from '../../apps/poolday/ui/pool-home/auto-download.js';
 const cleanups = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); localStorage.removeItem(AUTO_DOWNLOAD_STORAGE_KEY); });
-// The manual size-and-consent path applies when automatic download is off.
+// Legacy automatic-download preferences cannot bypass the explicit size-and-consent path.
 function fixture({ automatic = false } = {}) {
   localStorage.setItem(AUTO_DOWNLOAD_STORAGE_KEY, automatic ? 'on' : 'off');
   const session = createChatSession({ storage: null, service: createChatTestService(), models: [CANONICAL_CHAT_MODELS[0]] });
@@ -29,50 +29,31 @@ it('bounds the host discovery window even when signaling never connects, without
   expect(session.getState().peerDiscoveryTimedOut).toBe(true); expect(session.getState().acquisition.phase).toBe('idle');
   await session.close();
 });
-it('downloads only after a message that no computer can answer, then sends it on this device', async () => {
+it('never turns Send into download or queues an automatic answer, even with an old automatic preference', async () => {
   const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0];
-  const send = vi.fn(() => Object.assign(Promise.resolve(), { admitted: Promise.resolve() }));
-  f.api.send = send;
-  expect(f.find('[data-auto-download-toggle]').getAttribute('aria-checked')).toBe('true');
+  f.api.send = vi.fn(() => Object.assign(Promise.resolve(), { admitted: Promise.resolve() }));
   f.publish({ peerDiscoveryTimedOut: true });
-  await new Promise(resolve => setTimeout(resolve, 0));
-  // Visiting and waiting never download.
-  expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
-  expect(f.find('[data-model-status]').textContent).toBe('This model is unavailable. Send downloads it to this device first.');
-  expect(f.find('[data-acquisition-status]').hidden).toBe(true);
-  expect(f.find('[data-composer-send]').disabled).toBe(false);
-  f.find('[data-composer-input]').value = 'Hello';
-  f.find('[data-composer-form]').requestSubmit();
-  await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
-  expect(send).not.toHaveBeenCalled();
-  f.publish({ acquisition: { phase: 'downloading', modelId: model.id, progress: { message: 'Downloading model files.', receivedBytes: 1, totalBytes: 2 } } });
-  expect(f.find('[data-acquisition-status]').textContent)
-    .toBe(`${model.name} is downloading to this device because no computer can answer. Your message sends when it is ready. Downloading model files.`);
-  expect(f.find('[data-acquisition-progress]').hidden).toBe(false);
+  expect(f.find('[data-auto-download-toggle]')).toBeNull();
   expect(f.find('[data-composer-send]').disabled).toBe(true);
-  expect(f.find('[data-composer-input]').value).toBe('Hello');
-  f.publish({ acquisition: { phase: 'idle', modelId: null, progress: null },
-    models: f.state().models.map(entry => entry.id === model.id ? { ...entry, availability: 'cached', localCached: true } : entry) });
-  await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
-  expect(send.mock.calls[0][1]).toBe('Hello');
-  expect(f.api.downloadLocalModel).toHaveBeenCalledOnce();
+  f.find('[data-composer-input]').value = 'Hello'; f.find('[data-composer-form]').requestSubmit();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.api.downloadLocalModel).not.toHaveBeenCalled(); expect(f.api.send).not.toHaveBeenCalled();
+  f.publish({ models: f.state().models.map(entry => entry.id === model.id ? { ...entry, availability: 'cached', localCached: true } : entry) });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.api.send).not.toHaveBeenCalled(); expect(f.find('[data-composer-input]').value).toBe('Hello');
 });
-it('Cancel releases the waiting message and stops further automatic downloads', async () => {
-  const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0];
-  f.api.send = vi.fn();
-  f.publish({ peerDiscoveryTimedOut: true });
-  f.find('[data-composer-input]').value = 'Hello';
-  f.find('[data-composer-form]').requestSubmit();
+it('cancels an explicitly confirmed download while preserving the unsent draft', async () => {
+  const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0]; f.api.send = vi.fn();
+  f.publish({ peerDiscoveryTimedOut: true }); f.find('[data-composer-input]').value = 'Hello';
+  f.find('[data-download-local]').click(); await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
+  expect(f.api.downloadLocalModel).not.toHaveBeenCalled(); f.find('[data-download-confirm]').click();
   await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
   f.publish({ acquisition: { phase: 'downloading', modelId: model.id, progress: { message: 'Downloading model files.', receivedBytes: 1, totalBytes: 2 } } });
   f.find('[data-cancel-download]').click(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
   f.publish({ acquisition: { phase: 'cancelled', modelId: model.id, error: 'Download cancelled.', progress: null } });
-  expect(f.find('[data-composer-input]').value).toBe('Hello');
-  expect(f.find('[data-composer-send]').disabled).toBe(true);
-  f.find('[data-composer-form]').requestSubmit();
-  await new Promise(resolve => setTimeout(resolve, 0));
-  expect(f.api.downloadLocalModel).toHaveBeenCalledOnce();
-  expect(f.api.send).not.toHaveBeenCalled();
+  expect(f.find('[data-composer-input]').value).toBe('Hello'); expect(f.find('[data-composer-send]').disabled).toBe(true);
+  f.find('[data-composer-form]').requestSubmit(); await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.api.downloadLocalModel).toHaveBeenCalledOnce(); expect(f.api.send).not.toHaveBeenCalled();
   expect(f.find('[data-download-local]').textContent).toBe('Retry download');
 });
 it('offers explicit local download after no usable peers and reuses the existing size-and-consent dialog', async () => {
