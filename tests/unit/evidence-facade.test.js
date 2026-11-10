@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
+import { posix } from 'node:path';
 import { parse } from 'acorn';
 import * as evidence from '../../apps/poolday/pool/evidence-network.js';
 import * as admission from '../../apps/poolday/pool/evidence-admission.js';
@@ -149,8 +150,8 @@ const defaultNames = [
   "rankProposedCandidateActions",
   "projectResearchRewards"
 ];
-const owners = [
-  "evidence-record-contract.js",
+// Stable entries re-export implementations that live in pool/evidence/.
+const entries = [
   "evidence-normalization.js",
   "evidence-records.js",
   "evidence-verification.js",
@@ -167,14 +168,22 @@ describe('evidence public facade', () => {
     expect(evidence.validateResearchRecordLinks).toBe(admission.validateResearchRecordLinks);
   });
 
-  it('keeps implementation owners acyclic and independent of the compatibility facade', async () => {
+  it('keeps implementation owners acyclic and independent of the entries and the compatibility facade', async () => {
+    const modules = (await readdir(resolveServedFile('pool/evidence'))).filter((name) => name.endsWith('.js'))
+      .map((name) => 'pool/evidence/' + name);
+    const owners = ['pool/evidence-record-contract.js', ...entries.map((name) => 'pool/' + name), ...modules];
     const graph = new Map();
     for (const file of owners) {
-      const source = await readFile(resolveServedFile('pool/' + file), 'utf8');
+      const source = await readFile(resolveServedFile(file), 'utf8');
       const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
-      const imports = ast.body.filter((node) => node.type === 'ImportDeclaration').map((node) => node.source.value.replace(/^\.\//, ''));
-      expect(imports).not.toContain('evidence-network.js');
-      graph.set(file, imports.filter((name) => owners.includes(name)));
+      const dependencies = ast.body
+        .filter((node) => ['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) && node.source)
+        .map((node) => posix.normalize(posix.join(posix.dirname(file), node.source.value)));
+      expect(dependencies, file).not.toContain('pool/evidence-network.js');
+      if (modules.includes(file)) {
+        for (const entry of entries) expect(dependencies, file).not.toContain('pool/' + entry);
+      }
+      graph.set(file, dependencies.filter((name) => owners.includes(name)));
     }
     const visit = (file, stack = []) => {
       expect(stack, 'cycle at ' + file).not.toContain(file);

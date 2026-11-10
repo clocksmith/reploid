@@ -1,0 +1,44 @@
+{
+  "schema": "reploid.evidence-policy/v1",
+  "maxTextLength": 8000,
+  "maxEmbeddingDimensions": 4096,
+  "authorRoles": {
+    "research_submission": { "label": "submission", "roles": ["requester", "researcher"] },
+    "research_result": { "label": "result", "roles": ["requester", "researcher"] },
+    "human_claim": { "label": "human claim", "roles": ["reviewer", "verifier", "researcher"] },
+    "research_hypothesis": { "label": "hypothesis", "roles": ["requester", "researcher", "reviewer", "agent"] },
+    "research_prior_evidence": { "label": "prior evidence", "roles": ["researcher", "reviewer", "verifier", "agent"] },
+    "research_prediction": { "label": "prediction", "roles": ["researcher", "requester", "verifier", "agent"] },
+    "research_resolution_policy": { "label": "resolution policy", "roles": ["researcher", "reviewer", "requester"] },
+    "research_work_order": { "label": "work order", "roles": ["researcher", "reviewer", "requester", "agent"] },
+    "research_work_claim": { "label": "work claim", "roles": ["researcher", "verifier"] },
+    "research_outcome": { "label": "outcome", "roles": ["researcher", "verifier"] },
+    "research_cohort": { "label": "cohort", "roles": ["verifier", "researcher", "reviewer"] },
+    "research_evaluation": { "label": "evaluation", "roles": ["verifier", "reviewer"] },
+    "research_realized_action_value": { "label": "realized action-value", "roles": ["verifier", "reviewer"] },
+    "research_adjudication_experiment": { "label": "adjudication experiment", "roles": ["researcher", "reviewer", "verifier"] },
+    "research_adjudication_evaluation": { "label": "adjudication evaluation", "roles": ["verifier", "reviewer"] },
+    "research_discovery_checkpoint": { "label": "discovery checkpoint", "roles": ["researcher", "reviewer", "verifier"] },
+    "research_candidate_action": { "label": "candidate action", "roles": ["requester", "researcher", "reviewer", "agent"] },
+    "research_sequence_link": { "label": "sequence link", "roles": ["researcher", "reviewer", "verifier"] },
+    "research_revocation": { "label": "revocation", "roles": ["requester", "researcher", "reviewer", "verifier"] }
+  },
+  "crossRoomSnapshotLimit": 1000,
+  "similarity": {
+    "defaultLimit": 12,
+    "acceptedClaimConfidenceBoost": 0.002,
+    "clusterThreshold": 0.8
+  },
+  "lowConfidenceClaimThreshold": 0.5,
+  "rewardPoints": {
+    "verifiedComputeReceipt": 2,
+    "acceptedOutcome": 8,
+    "independentReplication": 5,
+    "evaluation": 3,
+    "improvedEvaluationMetric": 2,
+    "acceptedEvidence": 5,
+    "durableEvidence": 3,
+    "acceptedReview": 2,
+    "durableReview": 1
+  }
+}

@@ -1,7 +1,31 @@
-/** Record kinds, shared primitives, and execution/context identity. */
+/**
+ * Record kinds, contract vocabularies, and execution/context identity. Shared primitives are
+ * owned by evidence/primitives.js and re-exported here for existing importers.
+ */
 import {
   SIGNATURE_DOMAINS
 } from '../../../shared/pool/inference-receipt.js';
+import {
+  compactText,
+  isSha256,
+  providerIdentities,
+  sameStringSet,
+  unique
+} from './evidence/primitives.js';
+export {
+  MAX_EMBEDDING_DIMENSIONS,
+  SHA256_PATTERN,
+  clone,
+  compactText,
+  deepFreeze,
+  providerIdentities,
+  sameStringSet,
+  stableTaskId,
+  unique,
+  withoutIdentity,
+  withoutSignature
+} from './evidence/primitives.js';
+
 export const RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v2';
 export const LEGACY_RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v1';
 export const RESEARCH_RECORD_KINDS = Object.freeze({
@@ -165,9 +189,18 @@ export const RESEARCH_REVIEW_DECISIONS = Object.freeze([
   'replication_requested'
 ]);
 
-export const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
-const MAX_TEXT_LENGTH = 8000;
-export const MAX_EMBEDDING_DIMENSIONS = 4096;
+/** Prior-evidence kinds that report an assay finding and require the public protein contract. */
+export const PUBLIC_FINDING_EVIDENCE_KINDS = Object.freeze(['assay', 'negative_result', 'failed_attempt']);
+/** Prior-evidence kinds that require a normalized protein annotation identity when public. */
+export const ANNOTATION_EVIDENCE_KINDS = Object.freeze(['annotation', 'domain']);
+export const METRIC_DIRECTIONS = Object.freeze(['higher_is_better', 'lower_is_better']);
+export const ACCEPTED_AGREEMENT_STATUSES = Object.freeze(['accepted', 'agreed']);
+export const PREDICTION_OUTCOME_ACCESS = Object.freeze(['blinded', 'not_available']);
+export const OUTCOME_BLIND_STATES = Object.freeze(['sealed', 'revealed']);
+export const SEQUENCE_LINK_COORDINATE_SYSTEMS = Object.freeze(['zero_based_half_open', 'one_based_closed']);
+export const SEQUENCE_LINK_STRANDS = Object.freeze(['forward', 'reverse']);
+export const TRANSLATION_READING_FRAMES = Object.freeze([0, 1, 2]);
+
 export const DOMAIN_BY_KIND = Object.freeze({
   [RESEARCH_RECORD_KINDS.submission]: SIGNATURE_DOMAINS.researchSubmission,
   [RESEARCH_RECORD_KINDS.result]: SIGNATURE_DOMAINS.researchResult,
@@ -190,35 +223,11 @@ export const DOMAIN_BY_KIND = Object.freeze({
   [RESEARCH_RECORD_KINDS.revocation]: SIGNATURE_DOMAINS.researchRevocation
 });
 
-export const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
-export const deepFreeze = (value) => {
-  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
-  Object.freeze(value);
-  for (const entry of Object.values(value)) deepFreeze(entry);
-  return value;
-};
-export const compactText = (value, max = MAX_TEXT_LENGTH) => String(value || '').trim().slice(0, max);
-export const unique = (values) => [...new Set(values.filter(Boolean))];
-export const providerIdentities = (values) => unique((Array.isArray(values) ? values : [])
-  .filter((value) => typeof value === 'string')
-  .map((value) => compactText(value, 240))
-  .filter(Boolean))
-  .sort();
-export const sameStringSet = (left = [], right = []) => {
-  const normalizedLeft = unique(left.map(String)).sort();
-  const normalizedRight = unique(right.map(String)).sort();
-  return normalizedLeft.length === normalizedRight.length
-    && normalizedLeft.every((value, index) => value === normalizedRight[index]);
-};
-export const stableTaskId = (kind, targetHash) => `task:${kind}:${targetHash}`;
-export const withoutSignature = (record = {}) => {
-  const { signature, ...payload } = record;
-  return payload;
-};
-export const withoutIdentity = (record = {}) => {
-  const { recordHash, signature, ...payload } = record;
-  return payload;
-};
+/** Whether a compute agreement declares an accepted status. */
+export const agreementIsAccepted = (agreement) => ACCEPTED_AGREEMENT_STATUSES
+  .includes(compactText(agreement?.status, 64).toLowerCase());
+/** Provider identities a compute agreement declares, under either historical field name. */
+export const declaredAgreementProviderIds = (agreement) => agreement?.providerIds ?? agreement?.acceptedProviderIds;
 
 export const normalizeRoomId = (roomId) => {
   const normalized = compactText(roomId, 160).replace(/[^a-z0-9_.:-]/gi, '_');
@@ -387,12 +396,12 @@ export function projectResearchQuestionClarity(submission = null) {
 export function projectResearchExecutionIndependence(record = {}) {
   const agreement = record.compute?.agreement || null;
   const declaredReceiptHashes = Array.isArray(agreement?.receiptHashes) ? agreement.receiptHashes : [];
-  const declaredProviderIds = agreement?.providerIds ?? agreement?.acceptedProviderIds ?? [];
+  const declaredProviderIds = declaredAgreementProviderIds(agreement) ?? [];
   const receiptEvidence = Array.isArray(record.compute?.receiptEvidence)
     ? record.compute.receiptEvidence
     : [];
   const structurallyBoundEvidence = receiptEvidence.filter((entry) => (
-    SHA256_PATTERN.test(String(entry?.receiptHash || ''))
+    isSha256(entry?.receiptHash)
     && compactText(entry?.providerId, 240)
     && compactText(entry?.providerPublicKey, 12000)
     && entry?.receipt?.providerId === entry.providerId
@@ -404,7 +413,7 @@ export function projectResearchExecutionIndependence(record = {}) {
   const independentReceiptCount = receiptHashes.length;
   const independentProviderCount = providerIds.length;
   const independentProviderKeyCount = providerPublicKeys.length;
-  const agreementAccepted = ['accepted', 'agreed'].includes(compactText(agreement?.status, 64).toLowerCase());
+  const agreementAccepted = agreementIsAccepted(agreement);
   const primaryReceiptBound = receiptHashes.includes(record.compute?.receiptHash);
   const agreementEvidenceBound = agreementAccepted
     && sameStringSet(receiptHashes, declaredReceiptHashes)
