@@ -68,6 +68,7 @@ const cleanedModules = [
   'packages/reploid/src/artifacts/signatures.js',
   'packages/reploid/src/artifacts/identity.js',
   'packages/reploid/src/agent/lab-strategy.js',
+  'packages/reploid/src/agent/lab-strategy-*.js',
   'packages/reploid/src/artifacts/acceptance.js',
   'packages/reploid/src/artifacts/manifest-identity.js',
   'packages/reploid/src/agent/tool-operation-retry.js',

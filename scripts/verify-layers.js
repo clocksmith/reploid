@@ -65,7 +65,7 @@ export function findLayerViolations({ repoRoot, sourcePath, source }) {
     if (sourceLayer === 'packages/reploid/src' &&
       (resolved ? !target.startsWith('packages/reploid/src/') : !(relative === 'packages/reploid/src/adapters/doppler.js' && specifier === 'doppler-gpu'))) reason = 'library must remain independent of host and Node services';
     if (forbidden[sourceLayer]?.includes(targetLayer)) reason = 'forbidden layer dependency';
-    if (/packages\/reploid\/src\/agent\/(task-strategy|lab-strategy)\.js$/.test(relative)
+    if (/packages\/reploid\/src\/agent\/(task-strategy|lab-strategy(?:-[a-z-]+)?)\.js$/.test(relative)
       && /\/(lifecycle|cancellation|tool-dispatch)\.js$/.test(target)) reason = 'strategies must use the execution engine';
     if (relative.startsWith('packages/reploid/src/transport/') && /\/(adapters|agent|chat|mesh|improvement)\//.test(target)) reason = 'transport cannot own execution or application policy';
     const partitionRoot = 'packages/reploid/src/mesh/partitions/';
@@ -125,7 +125,7 @@ export function findRequiredModuleLeaks(surface, modules) {
 export function findExecutionOwnerViolations(relative, source) {
   const errors = [];
   const adapter = /packages\/reploid\/src\/agent\/(runtime|legacy-loop)\.js$/.test(relative);
-  const strategy = /packages\/reploid\/src\/agent\/(task-strategy|lab-strategy)\.js$/.test(relative);
+  const strategy = /packages\/reploid\/src\/agent\/(task-strategy|lab-strategy(?:-[a-z-]+)?)\.js$/.test(relative);
   if (!adapter && !strategy) return errors;
   const tree = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
   if (adapter && tree.body.some(node => !['ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) || !node.source)) {
