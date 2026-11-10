@@ -855,11 +855,12 @@
     {
       "path": "infrastructure/doppler-runtime-service.js",
       "owner": "infrastructure",
-      "sha256": "sha256:b99e396ce704e67aae141ec4a2baafb11592244d2e029dcd0338ba921110e14b",
+      "sha256": "sha256:dad7a9522ed017f9d87ce3efebbd80350af7108d18a489e5259bddf71b7a0673",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../config/doppler-generation-contract.js",
-        "../config/doppler-local-models.js"
+        "../config/doppler-local-models.js",
+        "../vendor/reploid/adapters/doppler-session.js"
       ]
     },
     {
@@ -1289,11 +1290,11 @@
     {
       "path": "pool/doppler-runtime.js",
       "owner": "pool",
-      "sha256": "sha256:05917b084c40bcdea94e3ca6116eea8179d72757d5d577f4615014c5d333fb61",
+      "sha256": "sha256:3fe5fb2ac6ae9d7b4f155abe880da51c025d2d5853d0ad02edf05058e877bdd1",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../infrastructure/doppler-runtime-service.js",
-        "../vendor/reploid/artifacts/manifest-identity.js",
+        "../vendor/reploid/adapters/doppler-session.js",
         "./adapter-pack.js",
         "./capsule-artifact-cache.js",
         "./config.js",
@@ -1309,12 +1310,11 @@
     {
       "path": "pool/evidence-admission.js",
       "owner": "pool",
-      "sha256": "sha256:3ef79853a2fce78f34783677eed677d3d7380696f5a8598cdd7cfa4a300fc586",
+      "sha256": "sha256:7c4f1f48baf486dca46a9163ce9b2dbc33a0b147ed9b09cea66e51635dd29c50",
       "imports": [
-        "./evidence-normalization.js",
-        "./evidence-record-contract.js",
-        "./model-contract.js",
-        "./sequence-workload.js"
+        "./evidence/accepted-memory.js",
+        "./evidence/link-validation.js",
+        "./evidence/review-state.js"
       ]
     },
     {
@@ -1333,71 +1333,412 @@
     {
       "path": "pool/evidence-normalization.js",
       "owner": "pool",
-      "sha256": "sha256:236dd3342107f9fa7db3833dc0083ba920834e56434b4ac9bd537bd0d85ef3d0",
+      "sha256": "sha256:5d8818c5b2c9febed27594f2c980a596b2e6e1dca8ecbc0d2f2ae77befe7fe91",
       "imports": [
-        "./adjudication-north-star.js",
-        "./discovery-action-value.js",
-        "./discovery-candidate-action.js",
-        "./evidence-record-contract.js",
-        "./inference-receipt.js",
-        "./model-contract.js",
-        "./sequence-workload.js"
+        "./evidence/adjudication-normalization.js",
+        "./evidence/compute-normalization.js",
+        "./evidence/cross-room-normalization.js",
+        "./evidence/discovery-normalization.js",
+        "./evidence/laboratory-normalization.js",
+        "./evidence/primitives.js",
+        "./evidence/scientific-normalization.js"
       ]
     },
     {
       "path": "pool/evidence-queries.js",
       "owner": "pool",
-      "sha256": "sha256:118ca164bfbfb34ebf38cee9198c70580d9117cb9a4199c8d61204bc2d48c808",
+      "sha256": "sha256:54aa2f598358680ce158048ea8ea2abfa516889acefb01d832ca10d804dcf62c",
       "imports": [
-        "./discovery-action-value.js",
-        "./discovery-candidate-action.js",
-        "./evidence-admission.js",
-        "./evidence-normalization.js",
-        "./evidence-record-contract.js",
-        "./model-contract.js",
-        "./model-evidence-view.js",
-        "./realized-action-value.js",
-        "./sequence-workload.js"
+        "./evidence/cross-room-projection.js",
+        "./evidence/discovery-tasks.js",
+        "./evidence/graph.js",
+        "./evidence/question-projections.js",
+        "./evidence/research-rewards.js",
+        "./evidence/similarity.js"
       ]
     },
     {
       "path": "pool/evidence-record-contract.js",
       "owner": "pool",
-      "sha256": "sha256:ca8dbaf5a365049508d30ceeb5934d33f13b4a56357f938ef240288714effb2b",
+      "sha256": "sha256:74e6ed62de6487d413f529bc45b0535310ad46c565f03f6b5769633eeaeebafd",
       "imports": [
+        "./evidence/primitives.js",
         "./inference-receipt.js"
       ]
     },
     {
       "path": "pool/evidence-records.js",
       "owner": "pool",
-      "sha256": "sha256:ac0b8a8a7589c26d6dc7cbc9a732856c579364a085bf82a11fccf37c653413e0",
+      "sha256": "sha256:5bc7e8d60fd742bf9a73172e3d414999b2cd1be87ded6c2e826f31fc7924281c",
       "imports": [
-        "./adjudication-north-star.js",
-        "./discovery-candidate-action.js",
-        "./evidence-normalization.js",
-        "./evidence-record-contract.js",
-        "./inference-receipt.js",
-        "./model-contract.js",
-        "./realized-action-value.js",
-        "./sequence-result.js",
-        "./sequence-workload.js"
+        "./evidence/claim-records.js",
+        "./evidence/experiment-records.js",
+        "./evidence/governance-records.js",
+        "./evidence/question-records.js"
       ]
     },
     {
       "path": "pool/evidence-verification.js",
       "owner": "pool",
-      "sha256": "sha256:df639497ca08cfc62f75e5fa8cefc89c066e725d2f211bfbd1e32d0c8ed3b880",
+      "sha256": "sha256:01def8070eca7d0b121982eaecd00ae3090fb315448f9462491a5878b8b17a8f",
       "imports": [
-        "./adjudication-north-star.js",
-        "./discovery-candidate-action.js",
-        "./evidence-normalization.js",
-        "./evidence-record-contract.js",
-        "./inference-receipt.js",
-        "./model-contract.js",
-        "./realized-action-value.js",
-        "./sequence-result.js",
-        "./sequence-workload.js"
+        "./evidence/record-verification.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/accepted-memory.js",
+      "owner": "pool",
+      "sha256": "sha256:e6742464bdcb0e176721c892758ac2810b8814ac89e0f8c58ccb399c3229d07a",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./primitives.js",
+        "./review-state.js",
+        "./scientific-normalization.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/adjudication-normalization.js",
+      "owner": "pool",
+      "sha256": "sha256:069b08c74bdcc17f291f7269e4a31c1561a368130188470ba6f5b4429b256e90",
+      "imports": [
+        "../adjudication-north-star.js",
+        "../discovery-candidate-action.js",
+        "../evidence-record-contract.js",
+        "./primitives.js",
+        "./scientific-normalization.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/claim-records.js",
+      "owner": "pool",
+      "sha256": "sha256:9dbd1cf4124e0f613f112312d745ecc50f762bfa1cb802ae6045b71d3c39f0e9",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./cross-room-normalization.js",
+        "./discovery-normalization.js",
+        "./primitives.js",
+        "./record-signing.js",
+        "./scientific-normalization.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/claim-verification.js",
+      "owner": "pool",
+      "sha256": "sha256:ee2ba0d96143909d1afec8b571bc678543f73faafd677811ee4a44a047eeaf74",
+      "imports": [
+        "../discovery-candidate-action.js",
+        "../evidence-record-contract.js",
+        "./cross-room-normalization.js",
+        "./discovery-normalization.js",
+        "./primitives.js",
+        "./scientific-normalization.js",
+        "./verification-checks.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/compute-normalization.js",
+      "owner": "pool",
+      "sha256": "sha256:2695846ef515734cf60da6f1fa8ec01a0537273f556d9ed6e842d7d6502b2795",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../inference-receipt.js",
+        "../model-contract.js",
+        "../sequence-workload.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/compute-verification.js",
+      "owner": "pool",
+      "sha256": "sha256:8e2592e716732fed8c3960d434d44f988c5a78dc48a483c491fa83645c98c55b",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../inference-receipt.js",
+        "../model-contract.js",
+        "../sequence-result.js",
+        "../sequence-workload.js",
+        "./compute-normalization.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/cross-room-normalization.js",
+      "owner": "pool",
+      "sha256": "sha256:d4f7f243c1b1dc0328518fb8c2ef03690ee1af313805704954e6d4158dd092cb",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../inference-receipt.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/cross-room-projection.js",
+      "owner": "pool",
+      "sha256": "sha256:97a26b0f347f41e3feefe82ccf0a4f92a1df5ea22f52d93b0315ddab3db4c666",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./accepted-memory.js",
+        "./cross-room-normalization.js",
+        "./primitives.js",
+        "./review-state.js",
+        "./scientific-normalization.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/discovery-normalization.js",
+      "owner": "pool",
+      "sha256": "sha256:1687a25627cdf7d4774c9aa6525e93f38000c8249453646b4958930a433bc8db",
+      "imports": [
+        "../discovery-action-value.js",
+        "../evidence-record-contract.js",
+        "../inference-receipt.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/discovery-tasks.js",
+      "owner": "pool",
+      "sha256": "sha256:a9f85aeece65ea309d763521466ec8cf7644fba2689e76fc3972f9e16412be41",
+      "imports": [
+        "../discovery-action-value.js",
+        "../discovery-candidate-action.js",
+        "../evidence-record-contract.js",
+        "./accepted-memory.js",
+        "./discovery-normalization.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/experiment-links.js",
+      "owner": "pool",
+      "sha256": "sha256:b9d185a33f78dda2e5b7a63e739e0c3fd7eb2400f9bd5f5dea231753e7d7bfe9",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/experiment-records.js",
+      "owner": "pool",
+      "sha256": "sha256:5c51864585329de8ce6cd25f81334c6e787425c29d6cda92b2abaa517cd94370",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../realized-action-value.js",
+        "./laboratory-normalization.js",
+        "./primitives.js",
+        "./record-signing.js",
+        "./scientific-normalization.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/experiment-verification.js",
+      "owner": "pool",
+      "sha256": "sha256:c464f4bb4b5f79d61a6bea3ddcd608fd6e40442a4d710c764117d57654bb528f",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../realized-action-value.js",
+        "./laboratory-normalization.js",
+        "./primitives.js",
+        "./verification-checks.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/governance-links.js",
+      "owner": "pool",
+      "sha256": "sha256:df9b0bf23e597d24459e0460d89510398f6157f21df57fdb5ad955a2fde069f7",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./adjudication-normalization.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/governance-records.js",
+      "owner": "pool",
+      "sha256": "sha256:faec4869913579767b1841ba207b5320ef39f1524565488204f4e09dbd53279f",
+      "imports": [
+        "../adjudication-north-star.js",
+        "../discovery-candidate-action.js",
+        "../evidence-record-contract.js",
+        "./adjudication-normalization.js",
+        "./discovery-normalization.js",
+        "./primitives.js",
+        "./record-signing.js",
+        "./scientific-normalization.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/governance-verification.js",
+      "owner": "pool",
+      "sha256": "sha256:cda8397a828abd66b389b16ee96419727903a27539288298d98d6f9107be5fea",
+      "imports": [
+        "../adjudication-north-star.js",
+        "../evidence-record-contract.js",
+        "./adjudication-normalization.js",
+        "./discovery-normalization.js",
+        "./primitives.js",
+        "./scientific-normalization.js",
+        "./verification-checks.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/graph.js",
+      "owner": "pool",
+      "sha256": "sha256:8e92dbe5f9816110ae6f7b66e5aecc5b9397d33ae0eebdb3c9106a54c9afb024",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../model-contract.js",
+        "../sequence-workload.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/laboratory-normalization.js",
+      "owner": "pool",
+      "sha256": "sha256:03337ae9e12a0521f0d56329240a696cf91397d6334f56fe338929428e5e7c56",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./primitives.js",
+        "./scientific-normalization.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/link-validation.js",
+      "owner": "pool",
+      "sha256": "sha256:00307934a968646ba7077b3b298dbadd08a0765617d882d8e785f295f84217e6",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./cross-room-normalization.js",
+        "./experiment-links.js",
+        "./governance-links.js",
+        "./primitives.js",
+        "./question-links.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/primitives.js",
+      "owner": "pool",
+      "sha256": "sha256:2285a4fcfc66e60cb334de0271d92f59265285a744f62e916835203ce8b6444f",
+      "imports": [
+        "../inference-receipt.js",
+        "./policy.json"
+      ]
+    },
+    {
+      "path": "pool/evidence/question-links.js",
+      "owner": "pool",
+      "sha256": "sha256:5dee7cc45fe49f7220accbe063a44c370ff3f0c1ee4ec1d9b12b34cb7dab91cf",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../model-contract.js",
+        "../sequence-workload.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/question-projections.js",
+      "owner": "pool",
+      "sha256": "sha256:731b135925357085750ccf8a220306968f02cbb1f98e8421c120daa5ecc3b6c5",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../model-evidence-view.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/question-records.js",
+      "owner": "pool",
+      "sha256": "sha256:db5cff578c48697612cc2c627a725479da15ad62183bef5c04ba8d3786154d1f",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../inference-receipt.js",
+        "../model-contract.js",
+        "../sequence-result.js",
+        "../sequence-workload.js",
+        "./compute-normalization.js",
+        "./primitives.js",
+        "./record-signing.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/record-signing.js",
+      "owner": "pool",
+      "sha256": "sha256:0856169d13309dfe5088efeebffa918002ddd6bf544831b4e492c05d0fbf0725",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../inference-receipt.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/record-verification.js",
+      "owner": "pool",
+      "sha256": "sha256:762b89ff09160f828d3d2b4d4b1d33edef394a1bcbcd98f4e873c44c1d6989de",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../inference-receipt.js",
+        "./claim-verification.js",
+        "./compute-verification.js",
+        "./experiment-verification.js",
+        "./governance-verification.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/research-rewards.js",
+      "owner": "pool",
+      "sha256": "sha256:e00a523cdd870c19702bf91065b76e40e869aff47352168a0d43c0a82487ec7f",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../realized-action-value.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/review-state.js",
+      "owner": "pool",
+      "sha256": "sha256:ea1a48b378749834867c3556327f30cd66a0581b4e4be2bf5733fbe9fcf88c04",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../model-contract.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/scientific-normalization.js",
+      "owner": "pool",
+      "sha256": "sha256:d63bdc7111a994c8356ce3eafcdf424b8fb4930f7027b7af37c1eaf03dee8e2b",
+      "imports": [
+        "../evidence-record-contract.js",
+        "./primitives.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/similarity.js",
+      "owner": "pool",
+      "sha256": "sha256:ffff57a11b71e75af48ab48aaa64b59ce4512082dab170fc9c92a59daac9680e",
+      "imports": [
+        "../evidence-record-contract.js",
+        "../model-contract.js",
+        "./primitives.js",
+        "./review-state.js"
+      ]
+    },
+    {
+      "path": "pool/evidence/verification-checks.js",
+      "owner": "pool",
+      "sha256": "sha256:c848b2572ff5efae94ad8b60f7f1a715b6fe3ce8919a7571034f786771e75746",
+      "imports": [
+        "./primitives.js",
+        "./scientific-normalization.js"
       ]
     },
     {
@@ -1636,10 +1977,11 @@
     {
       "path": "pool/pack-operation.js",
       "owner": "pool",
-      "sha256": "sha256:7438de28ca7cff830852976dac943e03d5aac565dad09aa3d086ad49e4228adf",
+      "sha256": "sha256:39439b14a8fd9d54d8756ab71739fa374f2df623d41bfa4c508e5853a610cb32",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../infrastructure/doppler-runtime-service.js",
+        "../vendor/reploid/adapters/doppler-session.js",
         "./executable-pack.js",
         "./pack-operation-adapters.js",
         "./pack-operation-policy.js"
@@ -2093,8 +2435,9 @@
     {
       "path": "pool/sequence-result.js",
       "owner": "pool",
-      "sha256": "sha256:bc6b4956e877996c9f90f107fdc9ea458690f3bee11f97868ec86a28b3c7bd51",
+      "sha256": "sha256:8d32244a43516b46239624aaa6528315d164cde92c7921c462335957a5dbb112",
       "imports": [
+        "../vendor/reploid/adapters/doppler-session.js",
         "./inference-receipt.js",
         "./sequence-workload.js"
       ]
@@ -2108,10 +2451,11 @@
     {
       "path": "providers/doppler-reploid.js",
       "owner": "providers",
-      "sha256": "sha256:ad6209c5dcef086e3285518ab090e83b5f2b6d6501eed414374506dc48cd50a9",
+      "sha256": "sha256:357738e9d0fd53524fdcb069ed78b248ceb4c9454047fbb7a7f610fb787897db",
       "imports": [
         "../config/doppler-local-models.js",
-        "../core/doppler-runtime-service.js"
+        "../core/doppler-runtime-service.js",
+        "../vendor/reploid/adapters/doppler-session.js"
       ]
     },
     {
@@ -2187,7 +2531,7 @@
     {
       "path": "self/bridge.js",
       "owner": "self",
-      "sha256": "sha256:e00ff4b07ec0885b671852ed0a2dff5aa11a36de9c536bfa075044f2d78b3b17",
+      "sha256": "sha256:77709396c029024ecdeeea6415236850b767d0c9a811dee950b72074dbce2cf9",
       "imports": [
         "./capabilities/communication/library-adapter.js",
         "./capabilities/communication/swarm-transport.js",
@@ -2419,8 +2763,9 @@
     {
       "path": "self/host/earning/attempts.js",
       "owner": "self",
-      "sha256": "sha256:123f05e73244a90deacd8543290aaa71c5947588bb8deb16147f849173d7d033",
+      "sha256": "sha256:95f6f039c13385e2d7cf7ef071395c1aaad4bb6b6c0455a1bc35f78e516b413f",
       "imports": [
+        "../../vendor/reploid/contracts/attempt-report.js",
         "../../vendor/reploid/mesh/partitions/partition-attempt-evidence.js"
       ]
     },
@@ -2489,10 +2834,11 @@
     {
       "path": "self/host/model-acquisition.js",
       "owner": "self",
-      "sha256": "sha256:023b8089bd40c0e49570d5548b802f388164cfeec8e111c1b03c59f331447c69",
+      "sha256": "sha256:a150ce4f4b98d45a18ab3c4c8f85086c8f5a0be1173193c00c3859da32aa6d77",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
+        "../vendor/reploid/cancellation.js",
         "./work-model-cache.js"
       ]
     },
@@ -2910,7 +3256,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:40047ffedc7fcd707b3d73bc0d4591352acc0f74753c279cdfbe7e1a1e51acf7",
+      "sha256": "sha256:cca17691aa9dd85e75a936619b28f3e0d70fb81133981f5eba7ed04fc89e4cb2",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3345,7 +3691,7 @@
     {
       "path": "ui/boot-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:855e70fb897dce329140dc794807dabc49d023f6a109c6f1b29232f8f8cd9cee",
+      "sha256": "sha256:9bc256496e9967bf3a3be33f76f85edc71a5301180b6b033aac268047b3cbb20",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -3665,7 +4011,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:54bdc629316d3529bbea5377dea2fae236e9a9523ca4a8f31c859848c4cc3a7d",
+      "sha256": "sha256:04859edeb01921b782bce20fe41bc31c5835cb4a4c5c857106c1b534441c20f5",
       "imports": []
     },
     {
@@ -3677,6 +4023,14 @@
       ]
     },
     {
+      "path": "ui/pool-home/capability-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:cb8c68a457c263a42752e73bdf587675fd70ebae84401dfd55573e5f918be0ab",
+      "imports": [
+        "../../host/device-capability.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/computer-labels.js",
       "owner": "ui",
       "sha256": "sha256:e89a46d4ef0a16bed5d87c682c212ce552696db36add936ff1c85fa0f8a77246",
@@ -3685,9 +4039,9 @@
       ]
     },
     {
-      "path": "ui/pool-home/computer-preferences.js",
+      "path": "ui/pool-home/computer-preferences-view.js",
       "owner": "ui",
-      "sha256": "sha256:622fdb499acf5759c5f8b1be90bc0f80fab944346d445442d2c46d5088fcd850",
+      "sha256": "sha256:9727ce37c9b1ceb48849b621e746977493e37498a84986d5d8dfbaed8800203a",
       "imports": [
         "../../config/computer-preferences.json",
         "./computer-labels.js",
@@ -3728,27 +4082,41 @@
       "imports": []
     },
     {
+      "path": "ui/pool-home/contribution-status-view.js",
+      "owner": "ui",
+      "sha256": "sha256:9b6910e9b9190058f888732f8625ed2fac50957e96d576444460a159917ba047",
+      "imports": [
+        "../components/html.js",
+        "./contribution-state.js",
+        "./record-ledger-view.js",
+        "./room-record-projection.js",
+        "./view-markup.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/control-display-text.js",
+      "owner": "ui",
+      "sha256": "sha256:583d37924de6605c7e0dbc5b7de5860bf173bf91139bf761329021006695feb9",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:d92ad5e21d4bfdb884a2a895426a5383c1eadcf7855b7d11860eb7be88fed14f",
+      "sha256": "sha256:3e484e087e2a9527c4c5628c3e85e16c9e18d00f2189f21a230dbec2d084c7e3",
       "imports": [
         "../../host/contribution-resume.js",
         "../../host/device-capability.js",
-        "../../host/peer-run-session.js",
-        "../../host/provider-contribution-session.js",
-        "../../pool/adapter-publication.js",
-        "../../pool/adapter-registry.js",
-        "../../pool/evidence-network.js",
-        "../../pool/identity.js",
-        "../../pool/model-contract.js",
-        "../../pool/participation-profile.js",
-        "../../pool/policy-router.js",
-        "../../pool/sdk.js",
-        "../../pool/sequence-workload.js",
-        "./constants.js",
-        "./contribution-state.js",
-        "./research-store.js",
-        "./view.js"
+        "./capability-controls.js",
+        "./dashboard-controls.js",
+        "./home-ask-controls.js",
+        "./page-identity.js",
+        "./participation-controls.js",
+        "./participation-state-view.js",
+        "./pending-request-recovery.js",
+        "./provider-controls.js",
+        "./record-controls.js",
+        "./room-activity-controls.js",
+        "./run-controls.js"
       ]
     },
     {
@@ -3763,7 +4131,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:6964a2e144f5de2625f71aed90871490bb54553eaf05a7142c60f490f9ecb46a",
+      "sha256": "sha256:d93f05ed32573dd34fe0389c91274ca459532ca4638f193a0031a549e8413f72",
       "imports": [
         "../components/attachments.js",
         "../components/control-help.js",
@@ -3788,6 +4156,12 @@
       ]
     },
     {
+      "path": "ui/pool-home/dashboard-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:ec53a46ececed8c4a4c3235f0a698f03ee87cd36a4659a66160c203f54885ce3",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/document-search.js",
       "owner": "ui",
       "sha256": "sha256:7441e5d55e0715b6a689a5e2c2b8b802da85ea0e0e85e410d5aeba97874a8960",
@@ -3796,6 +4170,22 @@
         "../components/attachments.js",
         "../components/permission-card.js",
         "./computer-labels.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/examples-view.js",
+      "owner": "ui",
+      "sha256": "sha256:9bf56505edc5f6b11652cfc475085be8c2fa51746db653e734f83e90fb21d077",
+      "imports": [
+        "../../config/surface-intents.js",
+        "../../pool/model-contract.js",
+        "../components/diamond.js",
+        "../components/html.js",
+        "./constants.js",
+        "./document-search.js",
+        "./route-controls.js",
+        "./run-result-view.js",
+        "./shell-view.js"
       ]
     },
     {
@@ -3811,7 +4201,7 @@
     {
       "path": "ui/pool-home/execution-ribbon.js",
       "owner": "ui",
-      "sha256": "sha256:19d054148352b5e1b11deb31149a3df82377fb2c847f3d666b2dabc4f5577fad",
+      "sha256": "sha256:02765335108f600ade8b98c12b990082c57694adc8b1a513b78e9661ac36716d",
       "imports": [
         "../../vendor/reploid/mesh/provider-hardware.js",
         "./computer-labels.js"
@@ -3822,6 +4212,18 @@
       "owner": "ui",
       "sha256": "sha256:a1cfa837762f2ecd388c875ee59ccdb2b0ac36b5e3e0a97a6258251a3a5edb7f",
       "imports": []
+    },
+    {
+      "path": "ui/pool-home/home-ask-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:831431b6b7aa0366518f16f1a0c754fcef12f2430bb8d41a05b8353d21a1c273",
+      "imports": [
+        "../../pool/model-contract.js",
+        "../../pool/sequence-workload.js",
+        "./constants.js",
+        "./peer-run-surface.js",
+        "./sequence-consent.js"
+      ]
     },
     {
       "path": "ui/pool-home/index.js",
@@ -3898,9 +4300,9 @@
       ]
     },
     {
-      "path": "ui/pool-home/model-storage.js",
+      "path": "ui/pool-home/model-storage-view.js",
       "owner": "ui",
-      "sha256": "sha256:53ebbf69f5ae7f7ada522afb8ddbb9912f0843287e415ac15e109e443c860474",
+      "sha256": "sha256:6ba045d55762e8bbbc1f83a3d94fa1c7ceb6e63a99cdf123a3508f4fcbb271c7",
       "imports": [
         "../components/dialog.js"
       ]
@@ -3916,12 +4318,12 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:bafd53de266a45a7aa510d023df33cb2651b4563c6adec9fe618aa0740df60fc",
+      "sha256": "sha256:1ea49cd05ba13223fee6e0f42ab9f0479e2ac2a9f6a01eda612028b3aacf23c6",
       "imports": [
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
         "./computer-labels.js",
-        "./computer-preferences.js",
+        "./computer-preferences-view.js",
         "./execution-ribbon.js",
         "./model-preparation.js"
       ]
@@ -3929,7 +4331,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:06e170f2dedc50f59d3ccec1f93cc324def1b81a41cdfcbdd7c2313cd818c4b6",
+      "sha256": "sha256:98de538aefe83000de52a728fa8aa7f5a6b09f5909a744a77d7e8ad38ef4947a",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -3939,11 +4341,11 @@
         "./account-panel.js",
         "./auto-download.js",
         "./computer-labels.js",
-        "./computer-preferences.js",
+        "./computer-preferences-view.js",
         "./context-indicator.js",
         "./execution-activity.js",
         "./execution-ribbon.js",
-        "./model-storage.js",
+        "./model-storage-view.js",
         "./network-controls.js",
         "./remote-permission.js",
         "./shell-view.js",
@@ -3972,6 +4374,68 @@
       ]
     },
     {
+      "path": "ui/pool-home/page-identity.js",
+      "owner": "ui",
+      "sha256": "sha256:23c51215d07eedf187e733a195573a7855e45cf5e61920f9db1e5fa88eec4442",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/participation-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:7b7de9c6803a815159dc27bd768ad9fc63c5d7e408d9eb7f31ec15691334238a",
+      "imports": [
+        "../../pool/participation-profile.js",
+        "./control-display-text.js",
+        "./participation-state-view.js",
+        "./provider-controls.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/participation-state-view.js",
+      "owner": "ui",
+      "sha256": "sha256:c8579189c1dc8602eebb439af689c18022540e4383464556761f0dfc0f497844",
+      "imports": [
+        "../../pool/identity.js",
+        "../../pool/participation-profile.js",
+        "./control-display-text.js",
+        "./view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/peer-run-surface.js",
+      "owner": "ui",
+      "sha256": "sha256:640f813dd1fb400784697198b3d5737899659b30be60a0f3a67cb954aa63becd",
+      "imports": [
+        "../../host/peer-run-session.js",
+        "../../pool/adapter-publication.js",
+        "../../pool/adapter-registry.js",
+        "../../pool/evidence-network.js",
+        "../../pool/identity.js",
+        "../../pool/model-contract.js",
+        "../../pool/policy-router.js",
+        "../../pool/sdk.js",
+        "../../pool/sequence-workload.js",
+        "./control-display-text.js",
+        "./page-identity.js",
+        "./pending-request-recovery.js",
+        "./research-store.js",
+        "./room-activity-controls.js",
+        "./sequence-consent.js",
+        "./view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/pending-request-recovery.js",
+      "owner": "ui",
+      "sha256": "sha256:326035ad1f53558a438ff105d5122837508f501584de91416cd4d67c3410fb05",
+      "imports": [
+        "../../pool/policy-router.js",
+        "../../pool/sequence-workload.js",
+        "./page-identity.js",
+        "./view.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/prism.js",
       "owner": "ui",
       "sha256": "sha256:51e82d2bdd687b16804c783100260b2e62eabc588c68a356e844f379b683a7ce",
@@ -3988,6 +4452,60 @@
       "imports": [
         "./contribution-models.js",
         "./conversation-workspace.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/provider-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:699e5656870781a17cba6c0d9d05c0ed822ef28f8006ed11378a1d26d42c694c",
+      "imports": [
+        "../../host/provider-contribution-session.js",
+        "../../pool/model-contract.js",
+        "./contribution-state.js",
+        "./control-display-text.js",
+        "./page-identity.js",
+        "./participation-state-view.js",
+        "./room-activity-controls.js",
+        "./view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/provider-status-view.js",
+      "owner": "ui",
+      "sha256": "sha256:23a2f21a2d6de47180968870f3488dedbcf07dd46d0044471810806d0ff05935",
+      "imports": [
+        "../components/html.js",
+        "./view-markup.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/record-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:f05e5dd446088377b8fafe6b05bceff57f26764a19286f2d8c311880444fa5fb",
+      "imports": [
+        "../../pool/sdk.js",
+        "./room-activity-controls.js",
+        "./view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/record-ledger-view.js",
+      "owner": "ui",
+      "sha256": "sha256:e39c401ec2227284c7cb5c102722b0a16caeac3f6092c56db8f1ecbe3f87b372",
+      "imports": [
+        "../../host/product-context.js",
+        "../../pool/peer-control-plane.js",
+        "../components/html.js",
+        "./constants.js",
+        "./contribution-state.js",
+        "./ledger-store.js",
+        "./record-persistence.js",
+        "./research-room-route.js",
+        "./room-record-projection.js",
+        "./room-view.js",
+        "./run-visual-state.js",
+        "./shell-view.js",
+        "./view-markup.js"
       ]
     },
     {
@@ -4022,12 +4540,49 @@
       ]
     },
     {
+      "path": "ui/pool-home/research-adjudication-records.js",
+      "owner": "ui",
+      "sha256": "sha256:9a9ddf5081a6694dcac924851f08b3b8d6300b9c14dc8d37d2d3c9d50cf2f052",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "./research-form-values.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-evaluation-records.js",
+      "owner": "ui",
+      "sha256": "sha256:d62178990e204717d6284aa14ccb05a89f1732bd781aed6e83923c8ef1a563cb",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "./research-panels.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-form-values.js",
+      "owner": "ui",
+      "sha256": "sha256:66196d5d8007f715874a7e51c925dc2157f6db11cef70730a9a1cf7a50915278",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/research-lifecycle-panel.js",
       "owner": "ui",
       "sha256": "sha256:868664bc0ec22bd16a4da53fcab5221d172e55343a7919958358c3747292c617",
       "imports": [
         "./research-adjudication-panel.js",
         "./research-panels.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-lifecycle-records.js",
+      "owner": "ui",
+      "sha256": "sha256:cbbd39a69d0ae058a331731d9afa1b8d281d5642c7a78e5badb8cd3d8e443ae2",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "../../pool/identity.js",
+        "./research-adjudication-records.js",
+        "./research-evaluation-records.js",
+        "./research-question-records.js",
+        "./research-work-records.js"
       ]
     },
     {
@@ -4045,6 +4600,47 @@
       "imports": [
         "../../host/research-plugins.js",
         "../components/attachments.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-question-records.js",
+      "owner": "ui",
+      "sha256": "sha256:bca7d04ea0dd591f9e46563f02b59924dc1e629ede8fe77faf157872664f1aa8",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "./research-form-values.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-review-records.js",
+      "owner": "ui",
+      "sha256": "sha256:7ba02591f635beabee801b377e26412def212a40f53df4e8a17e8ca2619c868d",
+      "imports": [
+        "../../pool/evidence-network.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-room-actions.js",
+      "owner": "ui",
+      "sha256": "sha256:6e3de8ab3177f23c61f7aa970f6661f73060c1cb177f5a017e23016ed9763931",
+      "imports": [
+        "../../pool/discovery-contract.js",
+        "../../pool/evidence-network.js",
+        "../../pool/identity.js",
+        "../../pool/model-contract.js",
+        "./research-store.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-room-route.js",
+      "owner": "ui",
+      "sha256": "sha256:10c2a6febb67b1465a63a06801e3e672b473dd79dd4211166329c62a167ecad0",
+      "imports": [
+        "../../host/product-context.js",
+        "./ledger-store.js",
+        "./research-store.js",
+        "./room-view.js",
+        "./shell-view.js"
       ]
     },
     {
@@ -4071,12 +4667,43 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:a995924b9d584e3c994d4109f02c743584c00187c5b1448bc8002902799ed74f",
+      "sha256": "sha256:75dcf729d34a15526ffebf30a4984ec21fdb8b65bb46d5de63a5b6f15ecd4777",
       "imports": [
-        "../../pool/discovery-contract.js",
+        "./research-lifecycle-records.js",
+        "./research-review-records.js",
+        "./research-room-actions.js",
+        "./research-workspace-binding.js",
+        "./research-workspace-render.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-work-records.js",
+      "owner": "ui",
+      "sha256": "sha256:b98e13b4293a69dca834557a6836e6722d1e95fb9aaf2e68bdcd1d3c7b2eef15",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "./research-form-values.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-workspace-binding.js",
+      "owner": "ui",
+      "sha256": "sha256:40f1157dc76a7122298e7c9a8fb9fdd96303f9cfab3386a28f8133a1b3297a40",
+      "imports": [
         "../../pool/evidence-network.js",
         "../../pool/identity.js",
-        "../../pool/model-contract.js",
+        "./research-lifecycle-records.js",
+        "./research-review-records.js",
+        "./research-store.js",
+        "./research-workspace-render.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-workspace-render.js",
+      "owner": "ui",
+      "sha256": "sha256:281ad5051cdbea3c4c39d2b049a3075e0b5e1e8309bcb938e6aee190b0fdda38",
+      "imports": [
+        "../../pool/evidence-network.js",
         "../components/html.js",
         "./research-lifecycle-panel.js",
         "./research-panels.js",
@@ -4085,13 +4712,70 @@
       ]
     },
     {
-      "path": "ui/pool-home/room-projection.js",
+      "path": "ui/pool-home/room-activity-controls.js",
       "owner": "ui",
-      "sha256": "sha256:7990388a110dfba7f63123ac6ceed10a8c5c5d61d4a31e28207e38c4f0c71abc",
+      "sha256": "sha256:e83dd9382093a1265e1b1ec68a371e907c0f0876a8b90303ed05c8bfa007a115",
+      "imports": [
+        "../../pool/sdk.js",
+        "./control-display-text.js",
+        "./view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-adjudication-proof.js",
+      "owner": "ui",
+      "sha256": "sha256:59bc61f7d87f08c3ab021a36b61011eee20abebe5be9a826970fedc2afc4922c",
+      "imports": [
+        "./room-projection-records.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-context-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:deb887aada9fcf86de7f8f7798c936f69e095322a291622692af353405872d70",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
-        "../../pool/research-cycle.js"
+        "./room-projection-records.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-evidence-archive.js",
+      "owner": "ui",
+      "sha256": "sha256:9a4d62e0dc786785bbd7d094e37d199d0643fceaa47c59bba2c886ee75d51688",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "./room-projection-records.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-open-work-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:612df9e13de2ebb43683abf5dd1134bd3fda168060b3d50a33cb222294ab6548",
+      "imports": [
+        "./room-projection-records.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-projection-records.js",
+      "owner": "ui",
+      "sha256": "sha256:25d2bd47a111524bfbe8aa780dc4a220d260cf94dbf77b9f7cccfbc0168b7bd8",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/room-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:33755ab9feb97b08f86cc6969751f56334f75c7849c48040884bdba3df4475cb",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "../../pool/research-cycle.js",
+        "./room-adjudication-proof.js",
+        "./room-context-projection.js",
+        "./room-evidence-archive.js",
+        "./room-open-work-projection.js",
+        "./room-projection-records.js",
+        "./room-result-projection.js",
+        "./room-timeline-projection.js"
       ]
     },
     {
@@ -4104,6 +4788,24 @@
       ]
     },
     {
+      "path": "ui/pool-home/room-result-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:77ace866fef12aff776a409111770184d21fd7773e39def4827b82293f4a7932",
+      "imports": [
+        "./room-projection-records.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-timeline-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:da4e85916f73c313446f3b8d99771b0e389f27c8bbd27cf4b784cd647bdc334f",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "./room-evidence-archive.js",
+        "./room-projection-records.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
       "sha256": "sha256:9ed554b629bda25098e6854d676a1a074bf62259f337278618c1c23ae159e9d7",
@@ -4111,6 +4813,101 @@
         "../components/html.js",
         "./room-projection.js"
       ]
+    },
+    {
+      "path": "ui/pool-home/route-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:eed356a6fe45443495715087dce4ba428c6cbdb45602ad755a1abf96dacabb8a",
+      "imports": [
+        "../../host/product-context.js",
+        "../../pool/model-contract.js",
+        "../../pool/participation-profile.js",
+        "../../pool/policy-router.js",
+        "../components/html.js",
+        "./view-markup.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/route-detail-view.js",
+      "owner": "ui",
+      "sha256": "sha256:f6f628f548943e52f86d16b346448528e3e4861bcf66fa4de15032c7039204d1",
+      "imports": [
+        "../../host/product-context.js",
+        "../../pool/model-contract.js",
+        "../../pool/participation-profile.js",
+        "../components/html.js",
+        "./constants.js",
+        "./contribution-status-view.js",
+        "./operation-sharing.js",
+        "./provider-status-view.js",
+        "./record-ledger-view.js",
+        "./requester-controls.js",
+        "./research-room-route.js",
+        "./research-store.js",
+        "./research-view.js",
+        "./route-controls.js",
+        "./run-result-view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/run-contribution-evidence.js",
+      "owner": "ui",
+      "sha256": "sha256:7318c54cf0f09347cd77c6b0262192e915208339fc2859a7952bf7cb350ec655",
+      "imports": [
+        "../components/html.js",
+        "./view-markup.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/run-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:0e2fd7118d40a1259f9c468d59bfcb18137495a0f3f2711694bff6b4d65eeddc",
+      "imports": [
+        "../../pool/model-contract.js",
+        "./peer-run-surface.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/run-result-format.js",
+      "owner": "ui",
+      "sha256": "sha256:fc2e264a7460add35f0cf6c80f87c6912597998ce82e1948c3267cda800f1fa5",
+      "imports": [
+        "./view-markup.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/run-result-view.js",
+      "owner": "ui",
+      "sha256": "sha256:1190b4e19339a5c3947c5591348737b235f552664ec9b7b4ebeffd7763594e9e",
+      "imports": [
+        "../../host/product-context.js",
+        "../components/html.js",
+        "./constants.js",
+        "./ledger-store.js",
+        "./record-ledger-view.js",
+        "./room-view.js",
+        "./run-contribution-evidence.js",
+        "./run-result-format.js",
+        "./run-visual-state.js",
+        "./shell-view.js",
+        "./view-markup.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/run-visual-state.js",
+      "owner": "ui",
+      "sha256": "sha256:9a5fd38c8e4e422d0163e1c11a034012b8584073db617461eecee29258dced12",
+      "imports": [
+        "../../host/product-context.js",
+        "./constants.js",
+        "./network-projection.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/sequence-consent.js",
+      "owner": "ui",
+      "sha256": "sha256:a7902af99e88595f7643f5193f10c9e67a20e0d17c98799867da6a502948e218",
+      "imports": []
     },
     {
       "path": "ui/pool-home/shell-view.js",
@@ -4150,12 +4947,25 @@
     {
       "path": "ui/pool-home/simulation-core.js",
       "owner": "ui",
-      "sha256": "sha256:123e5a0ad0ec10428bee865d929b6d6b282372c92462666fbaae6c12aed9f0fb",
+      "sha256": "sha256:26c17bbd2116b7115f6ddc79b61ff65b6371bd244c6492c0b2c5ebe3f8c3c328",
       "imports": [
         "./constants.js",
-        "./simulation-flow-specs.js",
-        "./simulation-flow-transition.js",
-        "./simulation-frame-state.js"
+        "./simulation-easing.js",
+        "./simulation-frame-state.js",
+        "./simulation-graph-layout.js",
+        "./simulation-graph-plan.js",
+        "./simulation-lines.js",
+        "./simulation-pointer-shooter.js",
+        "./simulation-state.js",
+        "./simulation-visual-state.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-easing.js",
+      "owner": "ui",
+      "sha256": "sha256:6047848e994d7eefc18165cf4f7375ae5c38b269091c82e3a53c8999ba6b0d7f",
+      "imports": [
+        "./constants.js"
       ]
     },
     {
@@ -4182,10 +4992,76 @@
       ]
     },
     {
+      "path": "ui/pool-home/simulation-graph-layout.js",
+      "owner": "ui",
+      "sha256": "sha256:1a4b1b491bbf224911f4810a5375da00a4cefe43ded793001243a68951544056",
+      "imports": [
+        "./constants.js",
+        "./simulation-easing.js",
+        "./simulation-flow-specs.js",
+        "./simulation-graph-plan.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-graph-plan.js",
+      "owner": "ui",
+      "sha256": "sha256:e968dfc5e0bc5790315d05b156fc2f7e3b947eb4c1f584fd2be9b5b5123e2e38",
+      "imports": [
+        "./constants.js",
+        "./simulation-easing.js",
+        "./simulation-flow-specs.js",
+        "./simulation-flow-transition.js",
+        "./simulation-frame-state.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-lines.js",
+      "owner": "ui",
+      "sha256": "sha256:152c6505ab9f109003bfc5f8d22cf6f3b3ab57188c0bbce91d87a92fefb12ba4",
+      "imports": [
+        "./constants.js",
+        "./simulation-easing.js",
+        "./simulation-flow-specs.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-pointer-shooter.js",
+      "owner": "ui",
+      "sha256": "sha256:135b1290c4e2a24b7c3d49c9ae03f11d0471a923cab07bd839f39ad46ff45945",
+      "imports": [
+        "./constants.js",
+        "./simulation-easing.js",
+        "./simulation-lines.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/simulation-renderer.js",
       "owner": "ui",
       "sha256": "sha256:ac748da193c8117253b57b7f8361273db2fe1259b150635e2e7f0303fc8428f6",
       "imports": []
+    },
+    {
+      "path": "ui/pool-home/simulation-state.js",
+      "owner": "ui",
+      "sha256": "sha256:6c5aa1cb44fc64978747953480d0fc2016dbec438a71e0ece35c0de95eccb6bd",
+      "imports": [
+        "./constants.js",
+        "./simulation-easing.js",
+        "./simulation-flow-specs.js",
+        "./simulation-frame-state.js",
+        "./simulation-graph-layout.js",
+        "./simulation-graph-plan.js",
+        "./simulation-pointer-shooter.js",
+        "./simulation-visual-state.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-visual-state.js",
+      "owner": "ui",
+      "sha256": "sha256:e42be32a032231b664c6c6056d6a15c6fdc0355cb122da6c8d0d14c814f7d9eb",
+      "imports": [
+        "./constants.js"
+      ]
     },
     {
       "path": "ui/pool-home/specialist-routes.js",
@@ -4212,34 +5088,32 @@
       ]
     },
     {
+      "path": "ui/pool-home/view-markup.js",
+      "owner": "ui",
+      "sha256": "sha256:c41becfeebc99acf7a104f32f15dfa694ce57cd2be24d0b00983c90283431674",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:f9b2bb29afbb254d74e855c495e2cc1465b90c1517e8f6e09e148157f0a09f60",
+      "sha256": "sha256:2e1b77d30b9794f77cb17af3d5b9971fa48cd998d6a2bd340a89ae44902340da",
       "imports": [
-        "../../config/surface-intents.js",
         "../../host/peer-execution-config.js",
         "../../host/product-context.js",
-        "../../pool/model-contract.js",
-        "../../pool/participation-profile.js",
-        "../../pool/peer-control-plane.js",
         "../../pool/peer-rendezvous.js",
-        "../../pool/policy-router.js",
-        "../components/diamond.js",
-        "../components/html.js",
-        "./constants.js",
-        "./contribution-state.js",
+        "./contribution-status-view.js",
         "./conversation-workspace.js",
-        "./document-search.js",
-        "./ledger-store.js",
+        "./examples-view.js",
         "./network-projection.js",
-        "./operation-sharing.js",
         "./production.js",
-        "./record-persistence.js",
-        "./requester-controls.js",
-        "./research-store.js",
-        "./research-view.js",
-        "./room-record-projection.js",
-        "./room-view.js",
+        "./provider-status-view.js",
+        "./record-ledger-view.js",
+        "./research-room-route.js",
+        "./route-controls.js",
+        "./route-detail-view.js",
+        "./run-result-format.js",
+        "./run-result-view.js",
+        "./run-visual-state.js",
         "./shell-view.js",
         "./work.js"
       ]
@@ -4416,7 +5290,7 @@
     {
       "path": "ui/proto/template.js",
       "owner": "ui",
-      "sha256": "sha256:23c12965a8ba1363cf4c33bba4a1f7f8e18ad6988b5504aff68bde9c81b36972",
+      "sha256": "sha256:ce900d28ecbbc20e1c6bb09a7a0206faed4ce7a01acfa830e623713e363f38fe",
       "imports": [
         "../../infrastructure/replay-engine.js"
       ]
@@ -4469,7 +5343,7 @@
     {
       "path": "ui/zero-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:4221b089fa64744c05612dc18114a43ffa8b4b5455640f5a93f927c532a44c83",
+      "sha256": "sha256:bcc273866ee06eff1a010f0f4393c0bb9d1a946232ee098a93921759ba2f7888",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -16467,21 +17341,33 @@
       ]
     },
     {
+      "path": "vendor/reploid/adapters/doppler-session.js",
+      "owner": "vendor",
+      "sha256": "sha256:991183c0297000f42f90a88dc583912d61d0f2bc19f968ee4e1903482ad88109",
+      "imports": [
+        "../artifacts/manifest-identity.js",
+        "../artifacts/signatures.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/adapters/doppler-stream.js",
       "owner": "vendor",
-      "sha256": "sha256:e286dfe4492774afb05350e799ac695293504bfb2e2154495a4736410fd328a7",
+      "sha256": "sha256:e2741b7edca94d2a89eb6768988f2b022f9cd1ebdf77808906190154cc3d1f72",
       "imports": [
+        "../artifacts/canonical-json.js",
+        "../artifacts/signatures.js",
         "../config/index.js"
       ]
     },
     {
       "path": "vendor/reploid/adapters/doppler.js",
       "owner": "vendor",
-      "sha256": "sha256:0dc4a6abedc25190126338de174de96fef92c59e3e81b1247010c2cf22f1db86",
+      "sha256": "sha256:badb0e6ec85ad5be1328ec401fa7292745a2ce09d01e989aca68ea344fee0477",
       "imports": [
-        "../agent/cancellation.js",
+        "../cancellation.js",
         "../config/index.js",
         "./doppler-choice.json",
+        "./doppler-session.js",
         "./doppler-stream.js"
       ]
     },
@@ -16492,12 +17378,6 @@
       "imports": [
         "../config/index.js"
       ]
-    },
-    {
-      "path": "vendor/reploid/agent/cancellation.js",
-      "owner": "vendor",
-      "sha256": "sha256:078cf6c78f3a26a107b3f38a58a3919ce70e6e367bc2aa739a922f4a4f577199",
-      "imports": []
     },
     {
       "path": "vendor/reploid/agent/cycle-artifacts.js",
@@ -16542,14 +17422,62 @@
       ]
     },
     {
+      "path": "vendor/reploid/agent/lab-strategy-cycle.js",
+      "owner": "vendor",
+      "sha256": "sha256:c3c032d0dcaca361316a3805416cb2fd4a72410f7c52b664483351f0f7a0540d",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/agent/lab-strategy-function-gemma.js",
+      "owner": "vendor",
+      "sha256": "sha256:5549ae1f360c2abf10e80ccb37853418ec31debd3dfff1cf7617d9ca01c25f1f",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/agent/lab-strategy-generation.js",
+      "owner": "vendor",
+      "sha256": "sha256:e9322dbc9e0aef54bc5e511ef040dc0978c62137326a8d5210874fc794e49018",
+      "imports": [
+        "./lab-strategy-function-gemma.js",
+        "./lab-strategy-provider-recovery.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/agent/lab-strategy-provider-recovery.js",
+      "owner": "vendor",
+      "sha256": "sha256:6f0dfbdb020fb4669c4479353e4d994ea723a90f829fa827b8021e612ffeb958",
+      "imports": [
+        "./provider-recovery.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/agent/lab-strategy-tool-results.js",
+      "owner": "vendor",
+      "sha256": "sha256:e35f05a555d63312f672d450b0da8f9bb2ee003b659e2914e748263e13901a51",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/agent/lab-strategy-tools.js",
+      "owner": "vendor",
+      "sha256": "sha256:20664e6e4256b64b27b07fe90a8e11e8a9ea72017fe2df67abc2f89f8112084b",
+      "imports": [
+        "./engine.js",
+        "./lab-strategy-tool-results.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/agent/lab-strategy.js",
       "owner": "vendor",
-      "sha256": "sha256:509967e61ed1037f25134960d3ca34ee748739347e3a8fd5070f5c7befd7f7c4",
+      "sha256": "sha256:cf47400bdb1f0ff96c2891fd1352e110325009863ad0729ddbe71c92e9154e2a",
       "imports": [
         "../config/index.js",
         "./cycle-artifacts.js",
         "./engine.js",
-        "./provider-recovery.js"
+        "./lab-strategy-cycle.js",
+        "./lab-strategy-function-gemma.js",
+        "./lab-strategy-generation.js",
+        "./lab-strategy-provider-recovery.js",
+        "./lab-strategy-tools.js"
       ]
     },
     {
@@ -16563,9 +17491,9 @@
     {
       "path": "vendor/reploid/agent/lifecycle.js",
       "owner": "vendor",
-      "sha256": "sha256:9fffc98a8e6870d50bea18e09bba805c4dc9fe2e4b94c8900fd859e465f18c80",
+      "sha256": "sha256:c1587ddc9d5f5fccac4cb2dc47b7e648af37e1f935bedd402628815eca4c5b85",
       "imports": [
-        "./cancellation.js"
+        "../cancellation.js"
       ]
     },
     {
@@ -16591,8 +17519,9 @@
     {
       "path": "vendor/reploid/agent/task-strategy.js",
       "owner": "vendor",
-      "sha256": "sha256:4410d8ebe275926e6d7e4bf03466bae00d7765eb8ac44a302762c8d1265e9b00",
+      "sha256": "sha256:49b4345bf10e8220ea2ce43a6c00afc54b3bf87ab34011521c798b47f6e2a3c8",
       "imports": [
+        "../artifacts/canonical-json.js",
         "../config/index.js",
         "./engine.js",
         "./provider-recovery.js"
@@ -16639,15 +17568,16 @@
     {
       "path": "vendor/reploid/artifacts/canonical-json.js",
       "owner": "vendor",
-      "sha256": "sha256:8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4",
+      "sha256": "sha256:f3400db617e514a3e0e352725bc499bf8707594d0b52aaf5202b097f96af4524",
       "imports": []
     },
     {
       "path": "vendor/reploid/artifacts/checkpoint.js",
       "owner": "vendor",
-      "sha256": "sha256:0ad3d3ad274cefe1bd6030f07334ca7a23612d41d0f43fd0fef369f15de91c91",
+      "sha256": "sha256:e8d4a74d087e4bc9a4bfdae8f4ba38e1e5e4b4a99bcc715ed5f4e6bb42b668cf",
       "imports": [
-        "../config/index.js"
+        "../config/index.js",
+        "./signatures.js"
       ]
     },
     {
@@ -16662,16 +17592,19 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:833cbbf46e913352d507e9d69685d3126ba4ff45c9ca89963149c5de28df465d",
+      "sha256": "sha256:acea18b4aa42298f31ba383ae271862635332e142c068165b6c21274fa990bdf",
       "imports": [
+        "../../cancellation.js",
         "../delivery-attestation.js"
       ]
     },
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
       "owner": "vendor",
-      "sha256": "sha256:9845e740ee6a37bef87d202953a54b37c6c344734756d6963907322763445cce",
-      "imports": []
+      "sha256": "sha256:c4978c5afd6677ebbfd61e26860a3a2888ce7ae43afd464ef5a3d0c5a3e65084",
+      "imports": [
+        "../../cancellation.js"
+      ]
     },
     {
       "path": "vendor/reploid/artifacts/custody/runtime.js",
@@ -16716,10 +17649,11 @@
     {
       "path": "vendor/reploid/artifacts/identity.js",
       "owner": "vendor",
-      "sha256": "sha256:fa29e7c78d199a3c9fcb9f28a71c0b771bfe8ce04b49af7dbe66f43b45feaaee",
+      "sha256": "sha256:13a444bab82a8a10d5a1156ee7b3330db4c3c0945728bc9e19659cd4ab3aba48",
       "imports": [
         "./binary.js",
-        "./canonical-json.js"
+        "./canonical-json.js",
+        "./signatures.js"
       ]
     },
     {
@@ -16758,17 +17692,18 @@
     {
       "path": "vendor/reploid/artifacts/receipt.js",
       "owner": "vendor",
-      "sha256": "sha256:9f4b625c942c6a7566b9a9f1cb2613b7f4fb91f8996737a8b82e29130df44aca",
+      "sha256": "sha256:1c28d6a0eb864ec416cf2336cf9d33018ec04fc51ea21dd27107017b32c3002e",
       "imports": [
         "./canonical-json.js",
         "./identity.js",
+        "./signatures.js",
         "./whole-model-receipt.js"
       ]
     },
     {
       "path": "vendor/reploid/artifacts/signatures.js",
       "owner": "vendor",
-      "sha256": "sha256:2cab796cb864d7adc97994d12da2db75208bf55d19e5deaa64b1fbbf97342c5c",
+      "sha256": "sha256:2ccac503833dd17eac861c99fff82f2720f1d3fed63d162c313a62f50b5c33b8",
       "imports": [
         "./binary.js",
         "./canonical-json.js"
@@ -16790,6 +17725,12 @@
         "./canonical-json.js",
         "./signatures.js"
       ]
+    },
+    {
+      "path": "vendor/reploid/cancellation.js",
+      "owner": "vendor",
+      "sha256": "sha256:770b8e17e5321e905243b25df64eab21668383024fdf71d134ddf19bbc93f889",
+      "imports": []
     },
     {
       "path": "vendor/reploid/chat/index.js",
@@ -16854,7 +17795,7 @@
     {
       "path": "vendor/reploid/chat/workspace-publication.js",
       "owner": "vendor",
-      "sha256": "sha256:17be8daa7de6b10ee76cec86b0b6d059e9d06c38ab28777a7f074e158f340a79",
+      "sha256": "sha256:b53b9eea48a7b1cf8e83fbdbb98c6027c506d3de431b7eac0681d30e00fc1fac",
       "imports": [
         "../mesh/partitions/partition-ordered-publication.js",
         "./publication-policy.json"
@@ -16882,11 +17823,20 @@
     {
       "path": "vendor/reploid/config/index.js",
       "owner": "vendor",
-      "sha256": "sha256:4f4b3494d4fff00021a3dd9c5b1710f903fe5fa7b6ac80a1abbe5955e481d1c9",
+      "sha256": "sha256:bdbc9c5475d9f8491133a7167a51a3f64f739ae6741dca439a78bcfc0b19b16e",
       "imports": [
+        "../artifacts/signatures.js",
         "../rules/routing.rules.json",
         "./defaults.json",
         "./request-overrides.json"
+      ]
+    },
+    {
+      "path": "vendor/reploid/contracts/attempt-report.js",
+      "owner": "vendor",
+      "sha256": "sha256:3c8095f0fcca92bd97a78cda8cb19a4996f1bca15b27c31270cb5717e2305249",
+      "imports": [
+        "../mesh/partitions/partition-contract.js"
       ]
     },
     {
@@ -16901,10 +17851,12 @@
     {
       "path": "vendor/reploid/improvement/episodes.js",
       "owner": "vendor",
-      "sha256": "sha256:5a48a71313e4fcf2cdb37f60e09aa84d43ff324f73908ebddacb66cd03af3cf2",
+      "sha256": "sha256:f06c2c460e71302f1ee9fb163c3f7df5df03718858f7ee89784e516e628b818f",
       "imports": [
+        "../artifacts/canonical-json.js",
         "../artifacts/event-signature.js",
-        "../artifacts/identity.js"
+        "../artifacts/identity.js",
+        "../artifacts/signatures.js"
       ]
     },
     {
@@ -17006,14 +17958,13 @@
     {
       "path": "vendor/reploid/mesh/index.js",
       "owner": "vendor",
-      "sha256": "sha256:71d85d0a6f8199ca777a271ab5d7e2848237038cc23ed82cf93318c177486394",
+      "sha256": "sha256:9b0ef038f7344a3dd5b835df9e103fa920c233cba1785d3b333ad5de26819088",
       "imports": [
         "../config/index.js",
         "../rules/routing.rules.json",
         "./computer-identity.js",
         "./contribution.js",
         "./gpu-signature.js",
-        "./legacy-generation.js",
         "./partitions/automatic-partitions.js",
         "./partitions/partition-attempt-evidence.js",
         "./partitions/partition-chat.js",
@@ -17030,6 +17981,7 @@
         "./partitions/partition-step-receiver.js",
         "./partitions/resident-partition.js",
         "./partitions/signed-resident-factory.js",
+        "./peer-generation.js",
         "./placement-beliefs.js",
         "./swarm-coordination.js"
       ]
@@ -17071,35 +18023,16 @@
     {
       "path": "vendor/reploid/mesh/jobs/provider.js",
       "owner": "vendor",
-      "sha256": "sha256:6db3927b7468669637257f2fa07db0b0e08709e76de01d680bbbe593f39d1b97",
-      "imports": []
+      "sha256": "sha256:0aa61ca28e6c95ff266555c4225d94e8a3b36f27ce1aa1e7a16cdb6f00da39be",
+      "imports": [
+        "../../cancellation.js"
+      ]
     },
     {
       "path": "vendor/reploid/mesh/jobs/requester.js",
       "owner": "vendor",
       "sha256": "sha256:47bb5e9876f1d903ee77661f03c6c0a04b3dab73c46f1d60fa0b5645310f596f",
       "imports": []
-    },
-    {
-      "path": "vendor/reploid/mesh/legacy-generation.js",
-      "owner": "vendor",
-      "sha256": "sha256:bf6ba21cabc418d4e5e53dfd03028f0a3cdbb5bb41645bb2f22a1c15298b8a54",
-      "imports": [
-        "../artifacts/generation-terminal.js",
-        "../artifacts/receipt.js",
-        "../artifacts/signatures.js",
-        "../artifacts/whole-model-receipt.js",
-        "../config/index.js",
-        "./computer-identity.js",
-        "./computer-identity.policy.json",
-        "./contribution.js",
-        "./generation-recovery.js",
-        "./peer-identity.js",
-        "./preparation-progress.js",
-        "./provider-hardware.js",
-        "./remote-generation-requests.js",
-        "./swarm-coordination.js"
-      ]
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
@@ -17145,9 +18078,10 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
       "owner": "vendor",
-      "sha256": "sha256:7874511420ed359ae7db77225ed0824a731fa06077b95d778fde3125043b6f45",
+      "sha256": "sha256:16b04c1a876ce66e26d8c54e4bf51461ba82844d50c3755cf32f36475f59babc",
       "imports": [
         "../../artifacts/participant-proofs.js",
+        "../../artifacts/signatures.js",
         "./partition-contract.js",
         "./partition-receiver-policy.json"
       ]
@@ -17164,9 +18098,11 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-canonical-contract.js",
       "owner": "vendor",
-      "sha256": "sha256:9af9855e42d49ad942b68d3cf2f57b65cd088635751311e4a60779875224de79",
+      "sha256": "sha256:03987bac1842d51e6f1852c422e5b2e834e7a52f8f7878e6da0daae7576e2ffe",
       "imports": [
+        "../../artifacts/signatures.js",
         "./partition-contract.js",
+        "./partition-ordered-publication.js",
         "./partition-stage-commit.js"
       ]
     },
@@ -17204,8 +18140,10 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-contract.js",
       "owner": "vendor",
-      "sha256": "sha256:82f5b2c81acc4ec0536358456184de6ff5568fb904b40835aae0c7590a45152f",
+      "sha256": "sha256:a2e94cc32ad1e5c4a052975fe7f3ace9fecb126546c3ab47e915ce481fb25c7b",
       "imports": [
+        "../../artifacts/canonical-json.js",
+        "../../artifacts/signatures.js",
         "../../transport/partition-errors.json"
       ]
     },
@@ -17313,7 +18251,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-publication.js",
       "owner": "vendor",
-      "sha256": "sha256:c09c63b0acc86fac95891928691557fbea0c8333b0feca70c76625c1d61106c4",
+      "sha256": "sha256:ef18098d41eee2e47cd3e054a1c655418ba0a890f51f957e572a945ea9c29f98",
       "imports": [
         "./partition-contract.js"
       ]
@@ -17468,6 +18406,27 @@
       "imports": []
     },
     {
+      "path": "vendor/reploid/mesh/peer-generation.js",
+      "owner": "vendor",
+      "sha256": "sha256:cf64d2caab76a8ed4c8e6a56e4d22515eb5545d3895218d07044d81ccc4e026a",
+      "imports": [
+        "../artifacts/generation-terminal.js",
+        "../artifacts/receipt.js",
+        "../artifacts/signatures.js",
+        "../artifacts/whole-model-receipt.js",
+        "../config/index.js",
+        "./computer-identity.js",
+        "./computer-identity.policy.json",
+        "./contribution.js",
+        "./generation-recovery.js",
+        "./peer-identity.js",
+        "./preparation-progress.js",
+        "./provider-hardware.js",
+        "./remote-generation-requests.js",
+        "./swarm-coordination.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/mesh/peer-identity.js",
       "owner": "vendor",
       "sha256": "sha256:9edfe930d23eb38076075d833119c41c11f7dcb392825aec4ce2022d16fbc5d2",
@@ -17531,16 +18490,18 @@
     {
       "path": "vendor/reploid/plugins/session.js",
       "owner": "vendor",
-      "sha256": "sha256:1c4795f60b31d1125278037a2143e54636270bbc3818c51e3b6b55a279716208",
+      "sha256": "sha256:215065f64567b8b992abf43beb4caf593a1471c489c7806bdc8cb9f0fef148c5",
       "imports": [
-        "../artifacts/canonical-json.js"
+        "../artifacts/canonical-json.js",
+        "../artifacts/signatures.js"
       ]
     },
     {
       "path": "vendor/reploid/retrieval/citations.js",
       "owner": "vendor",
-      "sha256": "sha256:61da2b8d54bd682a315e322563eeeba4573c62e0319d4cc87b713ca36d04485a",
+      "sha256": "sha256:3f41f6008d58b30873e590f31e9769862b8fde0fdc56b153a6f2dabc2ad90529",
       "imports": [
+        "../cancellation.js",
         "./costs.js"
       ]
     },
@@ -17610,7 +18571,7 @@
     {
       "path": "vendor/reploid/retrieval/page-text.js",
       "owner": "vendor",
-      "sha256": "sha256:bdbb585e70c73db38edfdf4fcf4afe2cc7de70debadfd40ff0e2df770f761a0e",
+      "sha256": "sha256:9c59f046251d49cb73e8401698702140ed32fd72714aac8645eadaa087643a6e",
       "imports": []
     },
     {
@@ -17643,8 +18604,9 @@
     {
       "path": "vendor/reploid/retrieval/sources.js",
       "owner": "vendor",
-      "sha256": "sha256:5358e5b88c280a3143c11f7c4926d0f960bd434d8ef2486500c087ee9a3e0fc3",
+      "sha256": "sha256:3a647da701d332715c291070486ed170a8eb29ed57588025ecce24a0bc3ad9bc",
       "imports": [
+        "../cancellation.js",
         "./costs.js",
         "./policy.json",
         "./text.js"
@@ -17662,8 +18624,10 @@
     {
       "path": "vendor/reploid/retrieval/text.js",
       "owner": "vendor",
-      "sha256": "sha256:7ea3e1f8271525f0792d025a363fe63f2a7f8bd6d3445072d76c4053df977d19",
-      "imports": []
+      "sha256": "sha256:d14ac094de99fe77a95c5570d6bb6e5b5e7eb4d8af6eea9efdb321a0054222af",
+      "imports": [
+        "../artifacts/signatures.js"
+      ]
     },
     {
       "path": "vendor/reploid/training/index.js",
@@ -17685,8 +18649,10 @@
     {
       "path": "vendor/reploid/training/session.js",
       "owner": "vendor",
-      "sha256": "sha256:d937818c9e3951e8380861e243a2d89db7c3a6def819ecf0ceb05b6e3862a6dd",
-      "imports": []
+      "sha256": "sha256:2c01b29a3113653392050a6da1c1cb9cc5e1ead36b2ab60634dc3b33fb6c1b17",
+      "imports": [
+        "../artifacts/signatures.js"
+      ]
     },
     {
       "path": "vendor/reploid/transport/assignment.js",
@@ -17732,8 +18698,9 @@
     {
       "path": "vendor/reploid/transport/introduction-bootstrap.js",
       "owner": "vendor",
-      "sha256": "sha256:2dbd3f813e6eaab4d2e843dd39fc28f9657a5bcd73c28364eb95e0f6376c5bb5",
+      "sha256": "sha256:1b65af48e0ec0d5c28e453df9080319d67134b22d012452547a8ac0d86a96d1e",
       "imports": [
+        "../cancellation.js",
         "./introduction-policy.json",
         "./introduction-records.js"
       ]
@@ -17812,9 +18779,9 @@
     {
       "path": "vendor/reploid/transport/tool-offer-channel.js",
       "owner": "vendor",
-      "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9",
+      "sha256": "sha256:0c29cf8925a41e69c6b183485d1fa85c4543c9a86712d313736f354849ca36c1",
       "imports": [
-        "../artifacts/canonical-json.js"
+        "../artifacts/signatures.js"
       ]
     },
     {
