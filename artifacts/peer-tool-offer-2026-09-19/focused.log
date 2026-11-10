@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/verification-manager.test.js (50 tests) 73ms
  ✓ tests/unit/agent-lifecycle.test.js (8 tests) 36ms

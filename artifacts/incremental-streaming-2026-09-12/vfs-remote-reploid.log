@@ -52,16 +52,16 @@
 2026-09-13T05:17:17.3266521Z ##[endgroup]
 2026-09-13T05:17:17.4102520Z Syncing repository: clocksmith/reploid
 2026-09-13T05:17:17.4105808Z ##[group]Getting Git version info
-2026-09-13T05:17:17.4107337Z Working directory is '/home/runner/work/reploid/reploid'
+2026-09-13T05:17:17.4107337Z Working directory is '~/work/reploid/reploid'
 2026-09-13T05:17:17.4109523Z [command]/usr/bin/git version
 2026-09-13T05:17:17.6345112Z git version 2.55.0
 2026-09-13T05:17:17.6361889Z ##[endgroup]
-2026-09-13T05:17:17.6374575Z Temporarily overriding HOME='/home/runner/work/_temp/0d222a16-85a9-48f1-bdb1-531049efb6c6' before making global git config changes
+2026-09-13T05:17:17.6374575Z Temporarily overriding HOME='~/work/_temp/0d222a16-85a9-48f1-bdb1-531049efb6c6' before making global git config changes
 2026-09-13T05:17:17.6376657Z Adding repository directory to the temporary git global config as a safe directory
-2026-09-13T05:17:17.6378762Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/reploid/reploid
-2026-09-13T05:17:17.7210155Z Deleting the contents of '/home/runner/work/reploid/reploid'
+2026-09-13T05:17:17.6378762Z [command]/usr/bin/git config --global --add safe.directory ~/work/reploid/reploid
+2026-09-13T05:17:17.7210155Z Deleting the contents of '~/work/reploid/reploid'
 2026-09-13T05:17:17.7214260Z ##[group]Initializing the repository
-2026-09-13T05:17:17.7217923Z [command]/usr/bin/git init /home/runner/work/reploid/reploid
+2026-09-13T05:17:17.7217923Z [command]/usr/bin/git init ~/work/reploid/reploid
 2026-09-13T05:17:18.3024364Z hint: Using 'master' as the name for the initial branch. This default branch name
 2026-09-13T05:17:18.3026383Z hint: will change to "main" in Git 3.0. To configure the initial branch name
 2026-09-13T05:17:18.3027660Z hint: to use in all of your new repositories, which will suppress this warning,
@@ -75,7 +75,7 @@
 2026-09-13T05:17:18.3032576Z hint: 	git branch -m <name>
 2026-09-13T05:17:18.3032978Z hint:
 2026-09-13T05:17:18.3033359Z hint: Disable this message with "git config set advice.defaultBranchName false"
-2026-09-13T05:17:18.3034172Z Initialized empty Git repository in /home/runner/work/reploid/reploid/.git/
+2026-09-13T05:17:18.3034172Z Initialized empty Git repository in ~/work/reploid/reploid/.git/
 2026-09-13T05:17:18.3035631Z [command]/usr/bin/git remote add origin https://github.com/clocksmith/reploid
 2026-09-13T05:17:18.3080207Z ##[endgroup]
 2026-09-13T05:17:18.3080911Z ##[group]Disabling automatic garbage collection
@@ -140,12 +140,12 @@
 2026-09-13T05:17:23.5287254Z yarn: 1.22.22
 2026-09-13T05:17:23.5288030Z ##[endgroup]
 2026-09-13T05:17:23.5304427Z [command]/opt/hostedtoolcache/node/22.23.2/x64/bin/npm config get cache
-2026-09-13T05:17:23.8764039Z /home/runner/.npm
+2026-09-13T05:17:23.8764039Z ~/.npm
 2026-09-13T05:17:23.9593248Z Cache hit for: node-cache-Linux-x64-npm-a8d1d5934fa073bed364543ab6ccc097f50585fc8799a5308ee68d6ac667ab46
 2026-09-13T05:17:23.9671968Z (node:2046) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 2026-09-13T05:17:24.3036471Z Received 70211106 of 70211106 (100.0%), 214.6 MBs/sec
 2026-09-13T05:17:24.3036921Z Cache Size: ~67 MB (70211106 B)
-2026-09-13T05:17:24.3057146Z [command]/usr/bin/tar -xf /home/runner/work/_temp/d1c364f3-c59d-41c4-b435-78c4162143f9/cache.tzst -P -C /home/runner/work/reploid/reploid --use-compress-program unzstd
+2026-09-13T05:17:24.3057146Z [command]/usr/bin/tar -xf ~/work/_temp/d1c364f3-c59d-41c4-b435-78c4162143f9/cache.tzst -P -C ~/work/reploid/reploid --use-compress-program unzstd
 2026-09-13T05:17:24.4723277Z Cache restored successfully
 2026-09-13T05:17:24.4755111Z Cache restored from key: node-cache-Linux-x64-npm-a8d1d5934fa073bed364543ab6ccc097f50585fc8799a5308ee68d6ac667ab46
 2026-09-13T05:17:24.4916553Z ##[group]Run npm ci
@@ -187,7 +187,7 @@
 2026-09-13T05:17:31.6948190Z [0m
 2026-09-13T05:17:31.6948564Z [2mRunning: npx vitest run[0m
 2026-09-13T05:17:32.1174189Z 
-2026-09-13T05:17:32.1176269Z [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m/home/runner/work/reploid/reploid[39m
+2026-09-13T05:17:32.1176269Z [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m~/work/reploid/reploid[39m
 2026-09-13T05:17:32.1176747Z 
 2026-09-13T05:17:33.3264263Z  [32m✓[39m tests/unit/pool-evidence-network.test.js [2m([22m[2m28 tests[22m[2m)[22m[32m 155[2mms[22m[39m
 2026-09-13T05:17:34.2751379Z AggregateError: 
@@ -1698,16 +1698,16 @@
 2026-09-13T05:17:59.8236787Z [90mstderr[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2memit[2m > [22m[2mshould continue emitting to other listeners if one throws
 2026-09-13T05:17:59.8264464Z [22m[39m[ERROR] [EventBus] Error in test:event Error: Listener error
 2026-09-13T05:17:59.8265874Z [90mstdout[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2mSubscription Tracking[2m > [22m[2mshould unsubscribe all listeners for a module
-2026-09-13T05:17:59.8279927Z     at [90m/home/runner/work/reploid/reploid/[39mtests/unit/event-bus.test.js:100:15
-2026-09-13T05:17:59.8281439Z     at Mock [90m(file:///home/runner/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/spy[24m/dist/index.js:332:34[90m)[39m
-2026-09-13T05:17:59.8282962Z     at Object.emit [90m(/home/runner/work/reploid/reploid/[39mself/infrastructure/event-bus.js:44:17[90m)[39m
-2026-09-13T05:17:59.8284371Z     at [90m/home/runner/work/reploid/reploid/[39mtests/unit/event-bus.test.js:107:16
-2026-09-13T05:17:59.8285785Z     at [90mfile:///home/runner/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
-2026-09-13T05:17:59.8287454Z     at [90mfile:///home/runner/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
-2026-09-13T05:17:59.8289187Z     at [90mfile:///home/runner/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+2026-09-13T05:17:59.8279927Z     at [90m~/work/reploid/reploid/[39mtests/unit/event-bus.test.js:100:15
+2026-09-13T05:17:59.8281439Z     at Mock [90m(file://~/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/spy[24m/dist/index.js:332:34[90m)[39m
+2026-09-13T05:17:59.8282962Z     at Object.emit [90m(~/work/reploid/reploid/[39mself/infrastructure/event-bus.js:44:17[90m)[39m
+2026-09-13T05:17:59.8284371Z     at [90m~/work/reploid/reploid/[39mtests/unit/event-bus.test.js:107:16
+2026-09-13T05:17:59.8285785Z     at [90mfile://~/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+2026-09-13T05:17:59.8287454Z     at [90mfile://~/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+2026-09-13T05:17:59.8289187Z     at [90mfile://~/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
 2026-09-13T05:17:59.8290200Z     at new Promise (<anonymous>)
-2026-09-13T05:17:59.8291539Z     at runWithCancel [90m(file:///home/runner/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
-2026-09-13T05:17:59.8293165Z     at [90mfile:///home/runner/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+2026-09-13T05:17:59.8291539Z     at runWithCancel [90m(file://~/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+2026-09-13T05:17:59.8293165Z     at [90mfile://~/work/reploid/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
 2026-09-13T05:17:59.8294122Z 
 2026-09-13T05:17:59.8309986Z [22m[39m[DEBUG] [EventBus] Unsubscribed module: TestModule
 2026-09-13T05:17:59.8320670Z 
@@ -2292,7 +2292,7 @@
 2026-09-13T05:18:22.1920957Z [2m   Start at [22m 05:17:32
 2026-09-13T05:18:22.1921917Z [2m   Duration [22m 50.00s[2m (transform 6.54s, setup 0ms, import 21.80s, tests 30.02s, environment 65.26s)[22m
 2026-09-13T05:18:22.1922399Z 
-2026-09-13T05:18:22.1989581Z JSON report written to /home/runner/work/reploid/reploid/test-results/vitest-results.json
+2026-09-13T05:18:22.1989581Z JSON report written to ~/work/reploid/reploid/test-results/vitest-results.json
 2026-09-13T05:18:22.2879685Z ##[error]Process completed with exit code 1.
 2026-09-13T05:18:22.2948418Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 2026-09-13T05:18:22.2949385Z ##[group]Run actions/upload-artifact@v4
@@ -2310,7 +2310,7 @@ playwright-report/
 2026-09-13T05:18:22.4273334Z (node:4449) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
 2026-09-13T05:18:22.4274290Z (Use `node --trace-deprecation ...` to show where the warning was created)
 2026-09-13T05:18:22.4328659Z Multiple search paths detected. Calculating the least common ancestor of all paths
-2026-09-13T05:18:22.4335012Z The least common ancestor is /home/runner/work/reploid/reploid. This will be the root directory of the artifact
+2026-09-13T05:18:22.4335012Z The least common ancestor is ~/work/reploid/reploid. This will be the root directory of the artifact
 2026-09-13T05:18:22.4335793Z With the provided path, there will be 1 file uploaded
 2026-09-13T05:18:22.4336402Z Artifact name is valid!
 2026-09-13T05:18:22.4336737Z Root directory input is valid!
@@ -2327,9 +2327,9 @@ playwright-report/
 2026-09-13T05:18:22.9319202Z Post job cleanup.
 2026-09-13T05:18:23.0011148Z [command]/usr/bin/git version
 2026-09-13T05:18:23.0046497Z git version 2.55.0
-2026-09-13T05:18:23.0075237Z Temporarily overriding HOME='/home/runner/work/_temp/1f9cceef-504c-4661-a649-d851396c3325' before making global git config changes
+2026-09-13T05:18:23.0075237Z Temporarily overriding HOME='~/work/_temp/1f9cceef-504c-4661-a649-d851396c3325' before making global git config changes
 2026-09-13T05:18:23.0076538Z Adding repository directory to the temporary git global config as a safe directory
-2026-09-13T05:18:23.0079449Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/reploid/reploid
+2026-09-13T05:18:23.0079449Z [command]/usr/bin/git config --global --add safe.directory ~/work/reploid/reploid
 2026-09-13T05:18:23.0115454Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
 2026-09-13T05:18:23.0146185Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
 2026-09-13T05:18:23.0364315Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader

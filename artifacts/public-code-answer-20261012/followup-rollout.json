@@ -131,11 +131,11 @@
           "--model",
           "qwen-3-5-0-8b-q4k-ehaf16",
           "--model-directory",
-          "/home/clocksmith/.local/share/reploid/public-native/weights",
+          "~/.local/share/reploid/public-native/weights",
           "--cache-directory",
-          "/home/clocksmith/.local/share/reploid/public-native/cache",
+          "~/.local/share/reploid/public-native/cache",
           "--identity-file",
-          "/home/clocksmith/.local/share/reploid/public-native/identity.json",
+          "~/.local/share/reploid/public-native/identity.json",
           "--rtc-module",
           "@roamhq/wrtc",
           "--ws-module",
@@ -169,7 +169,7 @@
         },
         "identitySha256": "313051cdce950090c08d408fc3a8d82f9713f7923cb8c5007c10e4d972718812",
         "budget": null,
-        "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+        "log": "~/.local/state/reploid/public-native-budget-20261012.log",
         "logOffset": 1249407574,
         "checkedAt": 1791857039.8348012,
         "exitObserved": true,
@@ -178,7 +178,7 @@
       "new": {
         "pid": 297260,
         "startedAt": 1791857040.276221,
-        "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+        "log": "~/.local/state/reploid/public-native-budget-20261012.log",
         "logOffset": 1249410801
       },
       "verification": {
@@ -503,7 +503,7 @@
           "--url",
           "https://replo.id/",
           "--profile",
-          "/home/clocksmith/.local/share/reploid/public-compute",
+          "~/.local/share/reploid/public-compute",
           "--model",
           "qwen-3-5-0-8b-q4k-ehaf16",
           "--contribute",
@@ -511,8 +511,8 @@
           "--browser",
           "chromium"
         ],
-        "cwd": "/home/clocksmith/deco/reploid",
-        "log": "/home/clocksmith/.local/state/reploid/public-browser-budget-restored-20261012.log",
+        "cwd": "~/deco/reploid",
+        "log": "~/.local/state/reploid/public-browser-budget-restored-20261012.log",
         "logOffset": 232814,
         "descendants": [
           8258,
@@ -646,7 +646,7 @@
           "model": "qwen-3-5-0-8b-q4k-ehaf16",
           "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
           "contribution": "compute",
-          "profile": "/home/clocksmith/.local/share/reploid/public-compute"
+          "profile": "~/.local/share/reploid/public-compute"
         },
         {
           "event": "participant",

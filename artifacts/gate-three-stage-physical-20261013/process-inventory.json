@@ -44,14 +44,14 @@
         "ppid": 1,
         "state": "Rsl",
         "elapsed": "15:31:59",
-        "command": "node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo."
+        "command": "node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory ~/.local/share/reploid/public-native/weights --cache-directory ~/.local/share/reploid/public-native/cache --identity-file ~/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo."
       },
       {
         "pid": 299769,
         "ppid": 1,
         "state": "Ssl",
         "elapsed": "15:28:44",
-        "command": "node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+        "command": "node scripts/run-mesh-contributor.js --url https://replo.id/ --profile ~/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
       }
     ],
     "gpuBusy": {},

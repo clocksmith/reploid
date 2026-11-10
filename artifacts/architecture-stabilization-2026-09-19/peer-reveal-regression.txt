@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/layer-verification.test.js (10 tests) 14ms
  ✓ tests/unit/pool-config-contract.test.js (10 tests) 29ms

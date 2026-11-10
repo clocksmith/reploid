@@ -14,4 +14,4 @@ deterministic-browser-consumer:/nested/app/: passed
 deterministic-browser-consumer:/nested/app/cross-origin.html: passed
 installed-work-goal-lifecycle: passed
 provider-verification-worker: passed
-Evidence: /home/clocksmith/deco/reploid/artifacts/library-acceptance/2026-09-19T20-36-57-289Z/report.json
+Evidence: ~/deco/reploid/artifacts/library-acceptance/2026-09-19T20-36-57-289Z/report.json

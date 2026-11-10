@@ -298,7 +298,7 @@
 2026-09-14T21:14:18.5648750Z     161|     expect(zeroBootFiles.length).toBeLessThanOrEqual(69);
 2026-09-14T21:14:18.5650589Z    Duration  58.91s (transform 7.74s, setup 0ms, import 26.33s, tests 38.95s, environment 71.89s)
 2026-09-14T21:14:18.5670303Z        |                                  ^
-2026-09-14T21:14:18.5689182Z JSON report written to /home/runner/work/reploid/reploid/test-results/vitest-results.json
+2026-09-14T21:14:18.5689182Z JSON report written to ~/work/reploid/reploid/test-results/vitest-results.json
 2026-09-14T21:14:18.5691241Z     163|     expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
 2026-09-14T21:14:18.5692104Z
 2026-09-14T21:14:18.5692727Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯

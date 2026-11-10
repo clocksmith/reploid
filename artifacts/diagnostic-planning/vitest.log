@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/catscan.test.js (5 tests) 148ms
  ✓ tests/unit/pool-peer-pack-job.test.js (23 tests) 2177ms
@@ -1193,16 +1193,16 @@ stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Access Tracking >
  ✓ tests/unit/boot-library-loading.test.js (6 tests) 44ms
 stderr | tests/unit/event-bus.test.js > EventBus > emit > should continue emitting to other listeners if one throws
 [ERROR] [EventBus] Error in test:event Error: Listener error
-    at /home/clocksmith/deco/reploid/tests/unit/event-bus.test.js:100:15
-    at Mock (file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
-    at Object.emit (/home/clocksmith/deco/reploid/self/infrastructure/event-bus.js:44:17)
-    at /home/clocksmith/deco/reploid/tests/unit/event-bus.test.js:107:16
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at ~/deco/reploid/tests/unit/event-bus.test.js:100:15
+    at Mock (file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
+    at Object.emit (~/deco/reploid/self/infrastructure/event-bus.js:44:17)
+    at ~/deco/reploid/tests/unit/event-bus.test.js:107:16
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
-    at runWithCancel (file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at runWithCancel (file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 
 stdout | tests/unit/event-bus.test.js > EventBus > Subscription Tracking > should unsubscribe all listeners for a module
 [DEBUG] [EventBus] Unsubscribed module: TestModule
@@ -1518,4 +1518,4 @@ stdout | tests/integration/doppler-arena.test.js > Arena passRate with Adapter S
    Start at  17:13:41
    Duration  61.20s (transform 6.23s, setup 0ms, import 23.41s, tests 33.79s, environment 85.39s)
 
-JSON report written to /home/clocksmith/deco/reploid/artifacts/diagnostic-planning/vitest.json
+JSON report written to ~/deco/reploid/artifacts/diagnostic-planning/vitest.json

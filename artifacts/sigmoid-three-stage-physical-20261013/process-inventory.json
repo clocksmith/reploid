@@ -15,8 +15,8 @@
   "suby": {
     "observedAt": "2026-10-13T16:34:24.408179+00:00",
     "processes": [
-      " 297260       1 Rsl     14:30:24 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
-      " 299769       1 Ssl     14:27:09 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+      " 297260       1 Rsl     14:30:24 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory ~/.local/share/reploid/public-native/weights --cache-directory ~/.local/share/reploid/public-native/cache --identity-file ~/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+      " 299769       1 Ssl     14:27:09 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile ~/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
     ]
   }
 }

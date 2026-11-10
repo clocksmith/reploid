@@ -780,9 +780,9 @@
       "kind": "text",
       "replacements": 2,
       "originalSha256": "sha256:5e26c11c59e8b595799dc346cb238a50ce4154ad6ffe559a76c3a9fa6bdecd41",
-      "redactedSha256": "sha256:8e8292ca545e4fcabba04657c47965cd4a944fa104a646c47f73ef3242cfa9fb",
+      "redactedSha256": "sha256:2211dbd64efbc17a1813798ca493237a25076b1714728ab4a318be5ce73d4de5",
       "originalBytes": 2341,
-      "redactedBytes": 2279
+      "redactedBytes": 2219
     },
     {
       "path": "artifacts/signaling-independence-20261011/awake-click-failure.json.gz",

@@ -9,7 +9,7 @@
 [0m
 [2mRunning: npx vitest run[0m
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/doppler-optimizer.test.js (8 tests) 2711ms
      ✓ rolls back activation when the canary rejects the promoted profile  487ms
@@ -1216,16 +1216,16 @@ stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Query History >
  ✓ tests/unit/pool-adapter-routes.test.js (4 tests) 124ms
 stderr | tests/unit/event-bus.test.js > EventBus > emit > should continue emitting to other listeners if one throws
 [ERROR] [EventBus] Error in test:event Error: Listener error
-    at /home/clocksmith/deco/reploid/tests/unit/event-bus.test.js:100:15
-    at Mock (file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
-    at Object.emit (/home/clocksmith/deco/reploid/self/infrastructure/event-bus.js:44:17)
-    at /home/clocksmith/deco/reploid/tests/unit/event-bus.test.js:107:16
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at ~/deco/reploid/tests/unit/event-bus.test.js:100:15
+    at Mock (file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
+    at Object.emit (~/deco/reploid/self/infrastructure/event-bus.js:44:17)
+    at ~/deco/reploid/tests/unit/event-bus.test.js:107:16
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
-    at runWithCancel (file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/clocksmith/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at runWithCancel (file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 
 stdout | tests/unit/event-bus.test.js > EventBus > Subscription Tracking > should unsubscribe all listeners for a module
 [DEBUG] [EventBus] Unsubscribed module: TestModule

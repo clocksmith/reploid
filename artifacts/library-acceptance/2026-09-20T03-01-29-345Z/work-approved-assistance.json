@@ -2,7 +2,7 @@
   "id": "approved-assistance",
   "provider": "deterministic-fixture",
   "status": "failed",
-  "error": "locator.click: Error: strict mode violation: locator('.pool-work-settings > summary') resolved to 3 elements:\n    1) <summary>Share compute</summary> aka getByText('Share compute')\n    2) <summary>…</summary> aka getByText('Files & task settings optional')\n    3) <summary>Import a tool</summary> aka getByText('Import a tool')\n\nCall log:\n\u001b[2m  - waiting for locator('.pool-work-settings > summary')\u001b[22m\n\n    at /home/clocksmith/deco/reploid/tests/library-package-acceptance.js:347:69\n    at async check (/home/clocksmith/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///home/clocksmith/deco/reploid/tests/library-package-acceptance.js:317:7",
+  "error": "locator.click: Error: strict mode violation: locator('.pool-work-settings > summary') resolved to 3 elements:\n    1) <summary>Share compute</summary> aka getByText('Share compute')\n    2) <summary>…</summary> aka getByText('Files & task settings optional')\n    3) <summary>Import a tool</summary> aka getByText('Import a tool')\n\nCall log:\n\u001b[2m  - waiting for locator('.pool-work-settings > summary')\u001b[22m\n\n    at ~/deco/reploid/tests/library-package-acceptance.js:347:69\n    at async check (~/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file://~/deco/reploid/tests/library-package-acceptance.js:317:7",
   "observation": {
     "state": {
       "busy": false,

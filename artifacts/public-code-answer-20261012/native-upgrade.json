@@ -270,11 +270,11 @@
         "--model",
         "qwen-3-5-0-8b-q4k-ehaf16",
         "--model-directory",
-        "/home/clocksmith/.local/share/reploid/public-native/weights",
+        "~/.local/share/reploid/public-native/weights",
         "--cache-directory",
-        "/home/clocksmith/.local/share/reploid/public-native/cache",
+        "~/.local/share/reploid/public-native/cache",
         "--identity-file",
-        "/home/clocksmith/.local/share/reploid/public-native/identity.json",
+        "~/.local/share/reploid/public-native/identity.json",
         "--rtc-module",
         "@roamhq/wrtc",
         "--ws-module",
@@ -286,7 +286,7 @@
         "--signaling-url",
         "wss://reploid-swarm.reploid.workers.dev/swarm"
       ],
-      "cwd": "/home/clocksmith/.local/share/reploid/native-budget-20261012/reploid",
+      "cwd": "~/.local/share/reploid/native-budget-20261012/reploid",
       "exe": "/usr/bin/node",
       "state": {
         "phase": "ready",
@@ -417,7 +417,7 @@
       },
       "identitySha256": "313051cdce950090c08d408fc3a8d82f9713f7923cb8c5007c10e4d972718812",
       "budget": null,
-      "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+      "log": "~/.local/state/reploid/public-native-budget-20261012.log",
       "logOffset": 1239160496,
       "checkedAt": 1791856741.109399,
       "exitObserved": true,
@@ -426,7 +426,7 @@
     "new": {
       "pid": 292233,
       "startedAt": 1791856741.7454262,
-      "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+      "log": "~/.local/state/reploid/public-native-budget-20261012.log",
       "logOffset": 1239163729
     },
     "verification": {

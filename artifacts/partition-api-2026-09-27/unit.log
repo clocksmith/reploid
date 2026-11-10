@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/conversation-workspace.test.js (7 tests) 230ms
  ✓ tests/unit/partition-api.test.js (11 tests) 337ms

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/chat-session.test.js (12 tests) 167ms
  ✓ tests/unit/work-threads.test.js (4 tests) 121ms

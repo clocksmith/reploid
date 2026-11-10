@@ -48,7 +48,7 @@ Running 18 tests using 1 worker
       40 |     await send(requester, 'First approved message');
       41 |     await expect(requester.locator('[data-approval-remember-label]')).toBeVisible();
       42 |     await expect(requester.locator('[data-approval-remember]')).not.toBeChecked();
-        at /home/clocksmith/deco/reploid/tests/e2e/thread-grants.spec.js:39:67
+        at ~/deco/reploid/tests/e2e/thread-grants.spec.js:39:67
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/thread-grants-real-WebRTC--49d7b-esh-with-injected-inference-chromium/test-failed-1.png

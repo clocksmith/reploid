@@ -109,12 +109,12 @@
       "sha256": "55c1b860598d8ca2990504b7f29d83a627c953a01c5643053836cf3c0b52d566"
     },
     "process-inventory.json": {
-      "bytes": 1828,
-      "sha256": "62298a49eb35820056c80ecff348abf1f8b57dd943649d71927407a506d38420"
+      "bytes": 1768,
+      "sha256": "7ba6b1a8635e3427725a3a8afd6763e4433fe8b6e894952897cf319dd12b57be"
     },
     "reservation.json": {
       "bytes": 686,
-      "sha256": "7f1a82634faa00eba3ea6f2e23dd68a72f3edf8f8c1613983998f459c1cccef8"
+      "sha256": "fd54ceb79fcdcdbf58b344282acfbe04e2752284127bddeb24840fff12200651"
     },
     "startup-binding.json": {
       "bytes": 471,

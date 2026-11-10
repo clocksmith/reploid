@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/legacy-generation-threads.test.js (9 tests) 450ms
  ✓ tests/unit/work-swarm-lifecycle.test.js (5 tests) 360ms

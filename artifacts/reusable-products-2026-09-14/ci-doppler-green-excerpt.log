@@ -631,16 +631,16 @@
 2026-09-14T21:21:14.5813164Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-4b5809eba812ae963bfd4c3ab4767baebbb696b7068da7e16c479c67600077ed, not saving cache.
 2026-09-14T21:21:14.5964841Z Post job cleanup.
 2026-09-14T21:21:14.6798004Z [command]/usr/bin/git version
-2026-09-14T21:21:14.6886430Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/doppler/doppler
+2026-09-14T21:21:14.6886430Z [command]/usr/bin/git config --global --add safe.directory ~/work/doppler/doppler
 2026-09-14T21:21:14.6918089Z Removing SSH command configuration
 2026-09-14T21:21:14.6925089Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
 2026-09-14T21:21:14.6960314Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
 2026-09-14T21:21:14.7215435Z Removing HTTP extra header
 2026-09-14T21:21:14.7220952Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
 2026-09-14T21:21:14.7560140Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
-2026-09-14T21:21:14.7566937Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/doppler/doppler/.git.path
-2026-09-14T21:21:14.7593542Z /home/runner/work/_temp/git-credentials-77604f5a-bb76-48dd-8ab0-a225b4814e33.config
-2026-09-14T21:21:14.7615682Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/doppler/doppler/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-77604f5a\-bb76\-48dd\-8ab0\-a225b4814e33\.config
+2026-09-14T21:21:14.7566937Z [command]/usr/bin/git config --local --get-all includeif.gitdir:~/work/doppler/doppler/.git.path
+2026-09-14T21:21:14.7593542Z ~/work/_temp/git-credentials-77604f5a-bb76-48dd-8ab0-a225b4814e33.config
+2026-09-14T21:21:14.7615682Z [command]/usr/bin/git config --local --unset includeif.gitdir:~/work/doppler/doppler/.git.path ~\/work\/_temp\/git\-credentials\-77604f5a\-bb76\-48dd\-8ab0\-a225b4814e33\.config
 2026-09-14T21:21:14.7834904Z /github/runner_temp/git-credentials-77604f5a-bb76-48dd-8ab0-a225b4814e33.config
 2026-09-14T21:21:14.7846951Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-77604f5a\-bb76\-48dd\-8ab0\-a225b4814e33\.config
 2026-09-14T21:21:14.7886705Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path

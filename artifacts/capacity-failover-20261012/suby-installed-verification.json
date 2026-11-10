@@ -1,5 +1,5 @@
 {
-  "nativeRoot": "/home/clocksmith/.local/share/reploid/native-recovery-20261012/reploid",
+  "nativeRoot": "~/.local/share/reploid/native-recovery-20261012/reploid",
   "manifestSha256": "d99cb971c56ca0c2009fe4302f5a3d15c8eb668a4d1abd4e54c5da48db878f35",
   "sourceFilesVerified": 86,
   "installedRuntimeFilesVerified": 1897,

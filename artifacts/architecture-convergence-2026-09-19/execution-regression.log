@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/integration/agent-surface-contract.test.js (10 tests) 313ms
  ✓ tests/unit/execution-engine.test.js (8 tests) 44ms

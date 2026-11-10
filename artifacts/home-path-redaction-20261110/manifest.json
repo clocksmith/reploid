@@ -1,16 +1,16 @@
 {
   "schema": "home-path-redaction-manifest/v1",
   "date": "2026-11-10",
-  "replacement": "Each machine-local home-directory prefix became ~ (so file URLs read file://~/...). Nothing else in the files changed except updated pins.",
+  "replacement": "Each machine-local home-directory prefix (/home/<user>, /Users/<user>, including ../ chains into a home and escaped slashes, and Windows <drive>:\\Users\\<user>) became ~, so file URLs read file://~/... Nothing else in the files changed except updated pins.",
   "pins": "SHA-256, SHA-512 and integrity values in this repository that matched a changed file or archive member were rewritten to the redacted bytes, with the byte count beside each pin. originalSha256 below lets a holder of the original bytes verify the mapping.",
   "files": [
     {
       "path": "artifacts/address-redaction-20261013/manifest.json",
       "kind": "text",
       "homeReplacements": 0,
-      "pinReplacements": 56,
+      "pinReplacements": 57,
       "originalSha256": "sha256:368f847721a7d1a4af5f836b514ea3a2a34a393e506b7c977d57f9b05b8594de",
-      "redactedSha256": "sha256:b7a06c77b702fe8a7bd16a91b08a4092e85f32c27b9dcbf80b9144cfe31f79ad",
+      "redactedSha256": "sha256:57cd48382a7c247883c44a61938b53558475e7fba898a904acff6c33b3d513db",
       "originalBytes": 45722,
       "redactedBytes": 45719
     },
@@ -215,6 +215,106 @@
       "redactedBytes": 6007
     },
     {
+      "path": "artifacts/architecture-convergence-2026-09-19/execution-regression.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:fd23c913d39f07b936a83eaf74ae0e19b470ad2f9cffe0e640d56a3189610acb",
+      "redactedSha256": "sha256:47c453e329212a552d229b07501a6cdbb2048f9db1aa83d6727f93bfddc4285c",
+      "originalBytes": 1629,
+      "redactedBytes": 1614
+    },
+    {
+      "path": "artifacts/architecture-convergence-2026-09-19/installed-package.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:15b95be2a6fe90a6025064c7dbe8faa91a3258060a780f88ba06a5169bbba823",
+      "redactedSha256": "sha256:946a466852e7a705ea254c009ff70a27c5711420f9f5652e83a0f424a6cae551",
+      "originalBytes": 783,
+      "redactedBytes": 768
+    },
+    {
+      "path": "artifacts/architecture-convergence-2026-09-19/peer-replay-regression.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:dbe4bbbe1d1117bc485953b83294b4f6aaacc9206c4f845ffc4136b4e64ea562",
+      "redactedSha256": "sha256:dfcb2b9d842a2b66dcb6903b9a6889d1b135a0b1ce6b0eda82dc57db85eb4c3c",
+      "originalBytes": 380,
+      "redactedBytes": 365
+    },
+    {
+      "path": "artifacts/architecture-convergence-2026-09-19/registry-idempotence.log",
+      "kind": "text",
+      "homeReplacements": 12,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:c56d86463b54396762cc649561945e733147719709426734a41452a25313c924",
+      "redactedSha256": "sha256:72299c8e51b2dccacbc07ee3c6bb6cab7a8f342e8920d31096f96f6a7bb57e80",
+      "originalBytes": 2061,
+      "redactedBytes": 1881
+    },
+    {
+      "path": "artifacts/architecture-convergence-2026-09-19/report.json",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 5,
+      "originalSha256": "sha256:244adb967f30c5bfbb1a1a0367e90f6575f919cd39596e7d7bfe5e7c4c9ed369",
+      "redactedSha256": "sha256:d87beaf3f7cbed02da36ef88462e3c4f8d1fcbb68494608feb7fadece4f4fbd9",
+      "originalBytes": 10354,
+      "redactedBytes": 10354
+    },
+    {
+      "path": "artifacts/architecture-convergence-2026-09-19/unit-integration.log",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:b73b618dfbe4d3f8ac627434e99cafd53487600cc549b1afb1574da95eda0471",
+      "redactedSha256": "sha256:e7960490635eccfedf908a2f3af61f4e8e62a4377f77d5364f913ebc869437f0",
+      "originalBytes": 90307,
+      "redactedBytes": 90157
+    },
+    {
+      "path": "artifacts/architecture-stabilization-2026-09-19/checks.txt",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:29d6cd995cef9ffdf193910402a15291e3c4782865a6ecfd7f8e9ec17500b411",
+      "redactedSha256": "sha256:f3dd732678b91d255a0bbf3b90ffb7500bad013455b9b47de899cd703e0a82af",
+      "originalBytes": 4440,
+      "redactedBytes": 4350
+    },
+    {
+      "path": "artifacts/architecture-stabilization-2026-09-19/installed-package.txt",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:9c5082ac3aaadbb10054d151e6fd409aa21b8841024c8454b84b00553d1392b0",
+      "redactedSha256": "sha256:88fb79d3907ac68d77e4c313387e6c4081435996d1277c901d3c4748d52e3024",
+      "originalBytes": 783,
+      "redactedBytes": 768
+    },
+    {
+      "path": "artifacts/architecture-stabilization-2026-09-19/peer-reveal-regression.txt",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:b71f68ebcc9f5f13188ff48d7fb5cd06b4d819a0e5f8cbb41f017755bfc10ddd",
+      "redactedSha256": "sha256:716aee54b28d1573eb0613895343ac51774e475d79f74f7c3659bc7755d741c4",
+      "originalBytes": 574,
+      "redactedBytes": 559
+    },
+    {
+      "path": "artifacts/architecture-stabilization-2026-09-19/unit-integration.txt",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:28ffaa8ef2803e9b02e5477aa0ae6e3c05a1a076fc8e940d72a3d1e06a62bdf9",
+      "redactedSha256": "sha256:3638354fc43913ab34c9187e0b48ceeb3c6075d683be66ad7d4da45f72442b14",
+      "originalBytes": 92351,
+      "redactedBytes": 92201
+    },
+    {
       "path": "artifacts/attachment-standalone-20261012/allocation-v2-replay.mjs",
       "kind": "text",
       "homeReplacements": 2,
@@ -343,6 +443,26 @@
       "redactedSha256": "sha256:6b73dc634aaf630d9653af085d4c7b008b5facfc300a478afd38bf63e181b375",
       "originalBytes": 32532,
       "redactedBytes": 32469
+    },
+    {
+      "path": "artifacts/bayesian-placement-2026-09-20/registry.log",
+      "kind": "text",
+      "homeReplacements": 5,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:a054b4860dff929163e8ed88d50f1ccf7ade57bd375982616aece82143378686",
+      "redactedSha256": "sha256:025dfb0f2a80b72587d5f042fc4628486b7c12f567b4cf9569f64175f11d1895",
+      "originalBytes": 765,
+      "redactedBytes": 690
+    },
+    {
+      "path": "artifacts/bayesian-placement-2026-09-20/vitest.log",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:331f3f8192b622c3c443174b86fb474ca3786ed1895ede5535a3c3e56119990b",
+      "redactedSha256": "sha256:920a7d6e5b8d84acf3f1adffe24ebbe63c8aaab704731b0510b9d40328b0c865",
+      "originalBytes": 92309,
+      "redactedBytes": 92159
     },
     {
       "path": "artifacts/boot-storage-recovery-20261018/before.log",
@@ -885,6 +1005,16 @@
       "redactedBytes": 3645
     },
     {
+      "path": "artifacts/capacity-failover-20261012/compressed-evidence.json",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 4,
+      "originalSha256": "sha256:d0a0425e16122ec035b7333b8988ff52e91a1d794db00b99ae90e0da0aae5d24",
+      "redactedSha256": "sha256:ce96d8b32f3b5a707c04208adbf728f4b180f9865b1768f1074125746b43780a",
+      "originalBytes": 821,
+      "redactedBytes": 821
+    },
+    {
       "path": "artifacts/capacity-failover-20261012/concurrent-draft-selection-failure.json",
       "kind": "text",
       "homeReplacements": 2,
@@ -905,6 +1035,16 @@
       "redactedBytes": 17541
     },
     {
+      "path": "artifacts/capacity-failover-20261012/input-replacement-state.json.gz",
+      "kind": "gzip",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:6bfbcb8dad58bbff317451c5d3014af6085c77fdcdfa562c9b9df236fb7a5d5b",
+      "redactedSha256": "sha256:a85d4c3cc1d93096931bd47e9153e3d3cfbdec31eda14e0ec6c6802a2d162644",
+      "originalBytes": 374698,
+      "redactedBytes": 374688
+    },
+    {
       "path": "artifacts/capacity-failover-20261012/native-package.json",
       "kind": "text",
       "homeReplacements": 2,
@@ -913,6 +1053,56 @@
       "redactedSha256": "sha256:130b14f99c9dd1052002ce24bbbc06fe086950c15b40df57f6f17e23290b6853",
       "originalBytes": 370,
       "redactedBytes": 352
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/suby-browser-replacement.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:8864a8f25a5598ffbcbc9a65bbe9e310c4138ce7d526438b72b40fb6373a1d81",
+      "redactedSha256": "sha256:40f3bbd6b0a1ee82af46bd443e4a04425eaf1b9b4dc6f13ad048fd5fc8f2d85d",
+      "originalBytes": 342,
+      "redactedBytes": 297
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/suby-final-processes.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:d6502479a40d37980897acd3f501208d0f494b44f1d8a12bd58b050296cf6397",
+      "redactedSha256": "sha256:8baafe6ee534558d11ed0a1a76917556bc5070388d845f91e117756c1f285ab6",
+      "originalBytes": 1233,
+      "redactedBytes": 1218
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/suby-final-state.json.gz",
+      "kind": "gzip",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:fc030e1db49fdb9b5dc67e6eaef435a5a648c188a2a49414d24cb7bd1e29b0e8",
+      "redactedSha256": "sha256:463a2e6eb6a8c411aa72fde3c06022a086c366d6fcc9fb575c0b0692d5c30de2",
+      "originalBytes": 375040,
+      "redactedBytes": 375031
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/suby-installed-verification.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:98d0d9e0cdfef8c43b842dd92dccf0118f85d940ddd129417efc96ad4e706b34",
+      "redactedSha256": "sha256:a17e13a899fb42b25b0d97dd42bd648acfcbed2934f278b22c377011efb063af",
+      "originalBytes": 490,
+      "redactedBytes": 475
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/suby-native-replacement.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:9ea4068748e5ccc89cd01efe2b6a9e68bb893991e7c9588a4a956b6de5929dce",
+      "redactedSha256": "sha256:bfea24e46fcacae3ade149ff63536a5f74edf157e9724931ca91d26e1a51c1f4",
+      "originalBytes": 416,
+      "redactedBytes": 371
     },
     {
       "path": "artifacts/capacity-failover-20261012/x-browser-replacement.json",
@@ -973,6 +1163,56 @@
       "redactedSha256": "sha256:0b8b38f6a7de932fec821451e44b981166efb1c860d85046e128da8e80fd23ee",
       "originalBytes": 47686,
       "redactedBytes": 47560
+    },
+    {
+      "path": "artifacts/chat-grants-2026-09-23/additional-unit.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:e6233d26daa206e676fb4ff6cc027fb0b5107fa73d29c33b94fd6e82a76bb4f7",
+      "redactedSha256": "sha256:7c7923acfb130910fae7c0fafaae9ee1f27ea4fc12ced77954d8c98f5d3f3d46",
+      "originalBytes": 341,
+      "redactedBytes": 326
+    },
+    {
+      "path": "artifacts/chat-grants-2026-09-23/catalog-unit.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:1e1c1eb9d55a54997fc41f698fe5f9547c8c0902baf877609c720ff10fcc7164",
+      "redactedSha256": "sha256:7df5f82f460d90c368e957a6b41d4c53cd122f202a36bfc5ca897ec6b3678eee",
+      "originalBytes": 559,
+      "redactedBytes": 544
+    },
+    {
+      "path": "artifacts/chat-grants-2026-09-23/registry.log",
+      "kind": "text",
+      "homeReplacements": 5,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:b7a2fa88997d239240ee086bb2564f199e505562d1cac6781a0f5dd93eb1d83a",
+      "redactedSha256": "sha256:112fd0d16c998fc22537127c57ddc65186f02eb032c27bbdf7f0b35baa5e7240",
+      "originalBytes": 1463,
+      "redactedBytes": 1388
+    },
+    {
+      "path": "artifacts/chat-grants-2026-09-23/rejected-browser-port.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:a399a2bc790b1259dc12c72eb7e5f1487f06edeb7c1b7779fedbb6db225a1c22",
+      "redactedSha256": "sha256:b1cbc4d090a7ec6c5615eedd16bb499c30929b2b26c54ebbb4581397306f5b9f",
+      "originalBytes": 6803,
+      "redactedBytes": 6788
+    },
+    {
+      "path": "artifacts/chat-grants-2026-09-23/unit.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:5bc7c5423a39d95005bb80975773e50000ad320928578428e5afc1ea4778f64b",
+      "redactedSha256": "sha256:43f7644c72dc45cade844b116f1549dfa2f83731c1356a322db96659d87c7806",
+      "originalBytes": 1544,
+      "redactedBytes": 1529
     },
     {
       "path": "artifacts/chat-journey-20261011/approved-reference/result.json.gz",
@@ -1085,6 +1325,16 @@
       "redactedBytes": 4400
     },
     {
+      "path": "artifacts/chat-readiness-2026-09-23/unit.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:4f165fe28d001b0cf59118c954cd2f1bd3c6996b689a2ad2fe502c7b38286a9a",
+      "redactedSha256": "sha256:ec50eb8c0eba0d88fb1600032d03419b2dd893cebdfb9ae8bd7e464dba4e0713",
+      "originalBytes": 1078,
+      "redactedBytes": 1063
+    },
+    {
       "path": "artifacts/chat-task-quality-20261011/initial-harness-failure.json",
       "kind": "text",
       "homeReplacements": 10,
@@ -1108,11 +1358,21 @@
       "path": "artifacts/ci-repair-20261017/SHA256SUMS",
       "kind": "text",
       "homeReplacements": 0,
-      "pinReplacements": 12,
+      "pinReplacements": 13,
       "originalSha256": "sha256:b2fbf4e8ff9a3a06f2e071b7a5f6d638bc95c9c8d58f54c018e8c48bfd6f6a91",
-      "redactedSha256": "sha256:99b1d5fc23736bd1627697a42301aa006263507df3f9c381aab18b69131de60f",
+      "redactedSha256": "sha256:6f57e18d79c71c9479f5dce93a6004d528c44263b5d874bf8ebf4deb3adef5a1",
       "originalBytes": 1525,
       "redactedBytes": 1525
+    },
+    {
+      "path": "artifacts/ci-repair-20261017/hosted-a11f27dc.log.gz",
+      "kind": "gzip",
+      "homeReplacements": 66,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:c51a6c221ba471fc96e5141a0aafddded664dcf996239153d6f14aa86e8900b4",
+      "redactedSha256": "sha256:fd0ae646d32aff3fcda89d42c1557572b562a400d4a9fb0faf82dba1ed19033c",
+      "originalBytes": 43870,
+      "redactedBytes": 43848
     },
     {
       "path": "artifacts/ci-repair-20261017/reploid-acknowledgment-recheck.log.gz",
@@ -1475,6 +1735,26 @@
       "redactedBytes": 797
     },
     {
+      "path": "artifacts/cleanup-failure-20261012/input-final-restoration.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:f486494f774aa72ff04dd053c04709806c92d6dbc72969325e194ea8f71c473c",
+      "redactedSha256": "sha256:953fc991332426b66fa82fe394a904fbab7cf46d997b401436861e9020cf38a8",
+      "originalBytes": 644,
+      "redactedBytes": 614
+    },
+    {
+      "path": "artifacts/cleanup-failure-20261012/input-observer-recovery.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:36371d8a253da37586ca91fca79624ad1b8618a218fefc5873317a4b98e61eca",
+      "redactedSha256": "sha256:9388a2fb84a8b6def4a5f1265661d439da3ec005e749daa1bbfdedf58550add8",
+      "originalBytes": 679,
+      "redactedBytes": 664
+    },
+    {
       "path": "artifacts/cleanup-failure-20261012/signed-hosting-tests.log",
       "kind": "text",
       "homeReplacements": 1,
@@ -1557,12 +1837,12 @@
     {
       "path": "artifacts/completion-candidate-20261013/support-settlement.json",
       "kind": "text",
-      "homeReplacements": 3,
+      "homeReplacements": 6,
       "pinReplacements": 0,
       "originalSha256": "sha256:a735d6a0d7f10793dd1a2aefccbb0a01789377ef26e38206e79092b09854cb70",
-      "redactedSha256": "sha256:1720157115491caed6e023492eeb021d47ede27f7e01dbcb9f2373b220acaa1c",
+      "redactedSha256": "sha256:c74204e1f7ca3233110d14600bf5cf3242c09f8d232e65231c709855605307d8",
       "originalBytes": 1562,
-      "redactedBytes": 1544
+      "redactedBytes": 1499
     },
     {
       "path": "artifacts/completion-qualification-2-20261013/producer-config.json",
@@ -1685,6 +1965,26 @@
       "redactedBytes": 1103
     },
     {
+      "path": "artifacts/connection-journey-20261017/ci-39043016731.log",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:064775bec174efde139b38ed6ebf4a7a97d9f86d963cebbe18afc36b7d270819",
+      "redactedSha256": "sha256:d738f9f3bc5226cb0a869b1754f87f0863ca3e5ee66f3cfa367282f32eef5541",
+      "originalBytes": 2021,
+      "redactedBytes": 1988
+    },
+    {
+      "path": "artifacts/connection-journey-20261017/ci-39046487269.log.gz",
+      "kind": "gzip",
+      "homeReplacements": 121,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:11d92f35c60b767f3d6072f5ccf8ae2cc522d7d0fe2fd2e11f295a258f7e6ded",
+      "redactedSha256": "sha256:f7ec7ca7c486cc9fc477efd488f7d306b659201566ebf6f2cdd3d2928dce59d7",
+      "originalBytes": 52254,
+      "redactedBytes": 52215
+    },
+    {
       "path": "artifacts/connection-journey-20261017/installed-package-report.json",
       "kind": "text",
       "homeReplacements": 5,
@@ -1723,6 +2023,96 @@
       "redactedSha256": "sha256:e343164d0cd2442422ecc9621dbf1367e25efc78e87953dc05be18e537cfca56",
       "originalBytes": 223,
       "redactedBytes": 218
+    },
+    {
+      "path": "artifacts/continuing-improvement-2026-09-20/checks/failed-offer-refusal.log",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:6e848af098b06e5c405bf40b4e728ccf8396f2a498c85485b4be1da8e311d44b",
+      "redactedSha256": "sha256:a9aa01a4ff777deeb6e68a80a0c30bce30a0b4a7b00fb20ca099583af1db2029",
+      "originalBytes": 347,
+      "redactedBytes": 317
+    },
+    {
+      "path": "artifacts/continuing-improvement-2026-09-20/checks/full.log",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:f93277236f4a50428ee15088c75f3883cccccf37ea02351a7acc9640d2ca7319",
+      "redactedSha256": "sha256:1d3b67206084839e64ba6d9796e1704567058ca0068bf75abeead22ccd17f3b1",
+      "originalBytes": 93280,
+      "redactedBytes": 93130
+    },
+    {
+      "path": "artifacts/continuing-improvement-2026-09-20/checks/package.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:b441b44a63caa5dfaccb661b221e9258f4afee3b77e56701bb8adb5ac2753144",
+      "redactedSha256": "sha256:565bf4824cfaedc478f5a3746445f2b9fb59f91ee542a34a0c86cc1592f8658c",
+      "originalBytes": 783,
+      "redactedBytes": 768
+    },
+    {
+      "path": "artifacts/continuing-improvement-2026-09-20/checks/registry-idempotence.log",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:4e4bbf370ea212ecc0c502e9b324a6ddcc1b948b6ca882c71026c271a50dd607",
+      "redactedSha256": "sha256:97fd217bf8da0275f28b46edc3c25dcc11fa5250beb5c128936044c2ed640675",
+      "originalBytes": 1041,
+      "redactedBytes": 951
+    },
+    {
+      "path": "artifacts/continuing-improvement-2026-09-20/checks/retry-regression-before.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:a0b7b9973187002104e3cbc5330ccbf1b1596ea866cc1eab5a3c184825ab302f",
+      "redactedSha256": "sha256:b0d9d3658bd339cea7df542cf48aee8543dda3f50901551d7b3fa6d7e7f0f145",
+      "originalBytes": 2555,
+      "redactedBytes": 2540
+    },
+    {
+      "path": "artifacts/continuing-improvement-2026-09-20/checks/unit.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:ecb016416f7284aed449a26152d1690e584c9ad7e4c1f1211b72e1a0efd199c7",
+      "redactedSha256": "sha256:7f0915df9a8d064293d01d6baa7c1dea8015150812d9006e112493adb0136c36",
+      "originalBytes": 275,
+      "redactedBytes": 260
+    },
+    {
+      "path": "artifacts/diagnostic-planning/package.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:42d2adb8ea314e5aff3a6a52fd8e9aad02dacd7cf5cd0119b9262339fc5788b3",
+      "redactedSha256": "sha256:ee3eae3382d8f1baac80ba1acd6fc3250a50ff0a76120ade15f64d2d1dc7c4bc",
+      "originalBytes": 783,
+      "redactedBytes": 768
+    },
+    {
+      "path": "artifacts/diagnostic-planning/vitest.json",
+      "kind": "text",
+      "homeReplacements": 227,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:303994a3a7443b3ebb0b4f72f418a6c05d854ecfaf78891b4bd48cc2339c2153",
+      "redactedSha256": "sha256:01956b5dff136248c1c5b4837d5741279e0ab3dbc431e72b65c650468795b237",
+      "originalBytes": 875855,
+      "redactedBytes": 872450
+    },
+    {
+      "path": "artifacts/diagnostic-planning/vitest.log",
+      "kind": "text",
+      "homeReplacements": 11,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:29e53c48c30de2cbbdef4f474545dabc7550f3b9f2260f79932cf44a78835938",
+      "redactedSha256": "sha256:79de01a8e767a87868a1a086f9f5e039467b62f5a53ddf76da349b09dda8d35c",
+      "originalBytes": 90855,
+      "redactedBytes": 90690
     },
     {
       "path": "artifacts/distributed-closure-20261011/installed-report.json",
@@ -2132,12 +2522,12 @@
     {
       "path": "artifacts/gate-three-stage-physical-20261013/process-inventory.json",
       "kind": "text",
-      "homeReplacements": 4,
+      "homeReplacements": 8,
       "pinReplacements": 0,
       "originalSha256": "sha256:d03622869f51a45ac9b8be14846eebdcdac549e42af8181c3bd5d3a7494721b9",
-      "redactedSha256": "sha256:9bc12c2705d0443c566fd410430a1f7be22e0f3438b4429a9be62475b1ba99ed",
+      "redactedSha256": "sha256:0067c943096dff95cbf24116b02394f28fd9997f027f40b52b76bbd3fcdd987a",
       "originalBytes": 2411,
-      "redactedBytes": 2387
+      "redactedBytes": 2327
     },
     {
       "path": "artifacts/generation-completion-20261011/baseline.log.gz",
@@ -2358,6 +2748,16 @@
       "redactedBytes": 11387
     },
     {
+      "path": "artifacts/incremental-streaming-2026-09-12/final-ci-reploid-consumer.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:859c7e1f65e74cf4d4af9716bd46366000fc5f68b0fcf7da7234ea93f1554ca0",
+      "redactedSha256": "sha256:07a16020b69454f916dadb5ad4d875bec94f654e2c73cbf945ceec81facd9e61",
+      "originalBytes": 2177,
+      "redactedBytes": 2166
+    },
+    {
       "path": "artifacts/incremental-streaming-2026-09-12/final-physical-reploid.json",
       "kind": "text",
       "homeReplacements": 1,
@@ -2396,6 +2796,16 @@
       "redactedSha256": "sha256:38ac6ba1213e5b0cc7a7aa3deac2a88d96dc55a5d9b8d04823e6590092668642",
       "originalBytes": 2444,
       "redactedBytes": 2438
+    },
+    {
+      "path": "artifacts/incremental-streaming-2026-09-12/peer-transport-ci-reploid.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:d49816e4b340da34e80df4d192a7d47b262c45afe05814cf8af94fe30b56ee5a",
+      "redactedSha256": "sha256:dd8ec79d1c53195de9ae7f2fd3494fab25134fe10d56629a18041e78f56754c1",
+      "originalBytes": 2177,
+      "redactedBytes": 2166
     },
     {
       "path": "artifacts/incremental-streaming-2026-09-12/peer-transport-close-before.log",
@@ -2468,6 +2878,16 @@
       "redactedBytes": 50837
     },
     {
+      "path": "artifacts/incremental-streaming-2026-09-12/vfs-ci-reploid.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:fa88ef12dad8be8bbf9e007fee03703661ad9a56d3ed4498be71d65eac8f9569",
+      "redactedSha256": "sha256:46d206f548d8ee5de81127a69683f44188b5894f5ef6deb3fa324dc79f985de1",
+      "originalBytes": 2177,
+      "redactedBytes": 2166
+    },
+    {
       "path": "artifacts/incremental-streaming-2026-09-12/vfs-full-suite.log",
       "kind": "text",
       "homeReplacements": 10,
@@ -2491,9 +2911,9 @@
       "path": "artifacts/incremental-streaming-2026-09-12/vfs-readiness-acceptance.json",
       "kind": "text",
       "homeReplacements": 0,
-      "pinReplacements": 4,
+      "pinReplacements": 5,
       "originalSha256": "sha256:903c77e9209b71678d84f906e6528b4f7facab8efb1f853ec69e4596aff81da1",
-      "redactedSha256": "sha256:f595cac12ffc31d9fefe9ee287c6640e3b98e5713004f5583b1705f3b721ccb5",
+      "redactedSha256": "sha256:85a6a69efa91623d5a2355a0bf282b0b72930058ccd20c5e88fb32840532bdf0",
       "originalBytes": 4190,
       "redactedBytes": 4190
     },
@@ -2506,6 +2926,16 @@
       "redactedSha256": "sha256:5420c4997b59ff5d4d950b70721b3438a4320461d7e66e57eb7e71aa84beb8a9",
       "originalBytes": 286,
       "redactedBytes": 280
+    },
+    {
+      "path": "artifacts/incremental-streaming-2026-09-12/vfs-remote-reploid.log",
+      "kind": "text",
+      "homeReplacements": 23,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:40e3fea185061873b028b6a6db2cc4eda3d00d1974d66803b0153a4f66709ec3",
+      "redactedSha256": "sha256:1f7a519e07d4efe7615d614d80aa49375d2cd0d70658903c984d2ded6c2b1f30",
+      "originalBytes": 252243,
+      "redactedBytes": 251990
     },
     {
       "path": "artifacts/incremental-streaming-2026-09-12/vfs-verifier-before.log",
@@ -3324,6 +3754,346 @@
       "redactedSha256": "sha256:41cab5324aa2cb297acd927df2bba47596a1f408060940a02c764b870229a8e1",
       "originalBytes": 15325,
       "redactedBytes": 15307
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T19-37-02-311Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:013b6cefbb858aed7d57bac2d2226339af71604e7cf88e273f42d2e65a39138d",
+      "redactedSha256": "sha256:689ee1828f5eaf82d33fa5806d57f9629ee3ac78b0113a3e863d75a6784f8538",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T19-37-02-311Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:c8781122b8a78caaad2ab6d9a4d9da8d3e77053afa61268b81aa13a2d1ee364a",
+      "redactedSha256": "sha256:fab0f5e231b3c1f492d8e92135e932982dddf664ba5c60cf885b3180df18fd94",
+      "originalBytes": 21538,
+      "redactedBytes": 21508
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T20-36-57-289Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:657d548f9bad5314a0340d27c08d8708bb26461bd32a7e9b353e9b077e3903b5",
+      "redactedSha256": "sha256:fcda1c29c9d1ec1ef8b4eaa3d1f736fa6f2439f7abb6ba3db099aa5640fa8452",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T20-36-57-289Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:5a937402d4ca722dffad5939769d81a1478db8e8963b8499bd8eb8ef97ee3aa5",
+      "redactedSha256": "sha256:75c9a5ff2b124f163b44ecc1b11e04483fa888bc59b1d29461fe99e378e33525",
+      "originalBytes": 21549,
+      "redactedBytes": 21519
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-14-28-712Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:b5a825ac86630897ec0b4969ad04f4c237da88de7b54d1525d472b452bbe547a",
+      "redactedSha256": "sha256:ffe846a524253decd0e89792a9d4be3ae1c30150f1043e4157e2a3bc215b428e",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-14-28-712Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:231fe2a3338c800f3a59079a05fb4a90b157b50135afb66f51dfb20c318a71e8",
+      "redactedSha256": "sha256:477d33a5561de8cd38a3d446137d87e4b153edddc3dae3aadfe965b167591468",
+      "originalBytes": 21990,
+      "redactedBytes": 21960
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-39-58-025Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:ec7d2570618c1ac831cd9ff2dcdbaee5686abcd78f68a88f2ee5042de4b2a1d5",
+      "redactedSha256": "sha256:10da162959acb99ea3f4f8451d66b535cb63a0b24528b58949d00427674a28da",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-39-58-025Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:261db6b1d169b3bdcadbfa281f18ee019ebc9164a5ef8540443aaa661dac2493",
+      "redactedSha256": "sha256:2ad2cce09b8bb6cac0c38fbc36ff6c14351b343d9a248c67e1eae3a34fdfdddd",
+      "originalBytes": 21986,
+      "redactedBytes": 21956
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-42-02-565Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:e49c8b2454c7bc52a06fccded6a2f126356e6fb4494c1a528cf83055641c495f",
+      "redactedSha256": "sha256:b543fea21de26da016648a38d25cd3093e1b29be9cdd88a36343c9cd604bd80e",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-42-02-565Z/report.json",
+      "kind": "text",
+      "homeReplacements": 8,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:8f253fea2222a48130d0efa0fcd443e3c0710bbd78e394c3f2a31504fcf8580a",
+      "redactedSha256": "sha256:b07fa37ea255840ad5dab193a7c4809b1563550b181fc34e9b67b84c3aa17e0d",
+      "originalBytes": 16707,
+      "redactedBytes": 16587
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-42-02-565Z/work-approved-assistance.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:33efede8f25dff661b619d1757ca84eb90e42f4a8173a90788af78d2c16c695d",
+      "redactedSha256": "sha256:a0c0b2d9c7da024c45cb1f9f1bf73a1ce5e2fd44e70d94f0cd87dfbea791d9ac",
+      "originalBytes": 88200,
+      "redactedBytes": 88155
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-42-02-565Z/work-denied-assistance.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:0829563e34ec92d7caca297e3b7c0534f81f62484ab8b5571763ce26cbc12488",
+      "redactedSha256": "sha256:99c9c34cb5a939b93ade110aab503c4a10ec9c45116471e08c9065c447cb1a26",
+      "originalBytes": 1795,
+      "redactedBytes": 1750
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-43-06-876Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:793045510c7ce0bba570dddb3f8adf72902810ed51d32d416972fd4070fe4b02",
+      "redactedSha256": "sha256:dc43d93aeaee65c3f66903289ce7f3708301b678e7be183b64fb5590e6d21666",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T21-43-06-876Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:61e3ff32591069d275e7f14df52b5afeabb70c0f4a6cbd21486803be86772bb3",
+      "redactedSha256": "sha256:bb5b9186c77eb2c820172d73e6be39aaa32bb6b8a128b7b37e46a1b6db8ddb6c",
+      "originalBytes": 21977,
+      "redactedBytes": 21947
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T23-36-50-982Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:4af8fff1cb0d72db099040c9de3340cc7753e4e093325fbce2da4b95d75456d7",
+      "redactedSha256": "sha256:6cc09d6aeaebddbc5247c2b43254c686c616f145c1c8c4bb00d5c691b2637571",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T23-36-50-982Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:1572851628298be89e9b6794092f29d344fcafcf2ba73608df692bc85735b475",
+      "redactedSha256": "sha256:2e6750c67a13d81820bd747689522afbf5f304ad4e10113dd1a86168b9162c70",
+      "originalBytes": 22063,
+      "redactedBytes": 22033
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T23-40-13-888Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:8d3249ac4e09e3509e58b12e3bf005472ee670fd900a336a63f62acfaeb90e01",
+      "redactedSha256": "sha256:4da917f68f4efcb0e88efcc760d23f93c26d27098327c5dd6a0cb6666a212242",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-19T23-40-13-888Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:3ff03f8b47a6ca5d76cc62f3b2449ea261b3dff8b8cd5573f94443f93ff7b65d",
+      "redactedSha256": "sha256:d8ef73546563d21dcf33fd2d48770348d416af606b1fe3285210315ef7730215",
+      "originalBytes": 22052,
+      "redactedBytes": 22022
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-01-29-345Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:bb3d21a400e0fb2aa782d799b526bf083632837042e087bc854459bb9cbddfc5",
+      "redactedSha256": "sha256:d11f90220a957081e7ff15fa9e6bf218bfdfa6ca535ac3a7b3b47cbbb179aa76",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-01-29-345Z/report.json",
+      "kind": "text",
+      "homeReplacements": 5,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:149d37dc7f0918a2e35e11ccb0fe7fa309e2978d80210710c4c0f735b7d87881",
+      "redactedSha256": "sha256:3c3bf40fbc45ff3149c0d98eb8628f4d492bb9693ea7f8e5c4673475a76a8527",
+      "originalBytes": 19625,
+      "redactedBytes": 19550
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-01-29-345Z/work-approved-assistance.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:3471118c357996a59784c69ffe1ef5c95cbbf48b2677b6349cfbf6a58d3d283f",
+      "redactedSha256": "sha256:2d1ab6364c1033873e792f59ba791cb96300c3683e9d476e6b2809755a2520c5",
+      "originalBytes": 91488,
+      "redactedBytes": 91443
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-01-29-345Z/work-denied-assistance.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:8f62e4f2534b4f80b2dd9f8022d9bb18570bb09c6821c19023ed875a1d0793d6",
+      "redactedSha256": "sha256:d841a29d76ca7982b24d78abac1da6378ded144b05acbfe80beeb5e0ddfa5eb9",
+      "originalBytes": 166067,
+      "redactedBytes": 166022
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-02-29-713Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:ed2caac913a37c99245bf0ea70419b20277e10826b944e9e0fa143bf4aca9eef",
+      "redactedSha256": "sha256:6c001db76575ac4fea23d7e1fe46b689d8a199ee416e06c6b2418498bde380bc",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-02-29-713Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:92a518a6341cd243bc5769c5d8ccbfe462687d6c41010e71f58a9c5a5ca24314",
+      "redactedSha256": "sha256:95cf5767d949c30085a1708e738a7dadd333ee77fe7818b6ed43afe52671b129",
+      "originalBytes": 22060,
+      "redactedBytes": 22030
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-25-15-014Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:216a23edb10b72b5bc6aac035313fe71b287e98b3bc1306a5d71c541fd5e7dc6",
+      "redactedSha256": "sha256:08642f0b52859525249af266b94e0853183d9a95abcfa67fe98a1b9e021a4068",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-25-15-014Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:cc0d5e0cc3324a83a3a2c59ca1793639c3db2558241f7376458f4629d63c1289",
+      "redactedSha256": "sha256:fdeade1d2455325e1a1b2c905028c99ab0c4c7787989581b748363c97dc47540",
+      "originalBytes": 22275,
+      "redactedBytes": 22245
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-38-19-147Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:74e2f572a3e784ae835bc414c6074fa18305b3db7dcf675f14e51fdc9bc05b35",
+      "redactedSha256": "sha256:f5089a40e704854e900d0eaad48d04885e279a4ccad2f088b566285f9a79074d",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T03-38-19-147Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:ddb51b485bcd1f070ac509db1d7967163142804c68103741ad052adcd132c3c7",
+      "redactedSha256": "sha256:eae551e3ea48d930f384108f44bb512a4637f8c01778d1a5d91c0b265192945d",
+      "originalBytes": 22251,
+      "redactedBytes": 22221
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T13-33-20-968Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:c5e3fd5185265ad7f685445e7d80632c75cae9bd94f8710583ee46d8ac1de95e",
+      "redactedSha256": "sha256:9d3a48092562bd7862a700580859265bfe11ac829482fa182e0e9819f5eb8a9e",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T13-33-20-968Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:fbe697fb098cd51fe1d053044db39ab5d8e0ace8801c54aa72eb98f7f85352b0",
+      "redactedSha256": "sha256:8b1ce0bf3148bdd2c04ea92f0006e4b224ce8b1eae107fd1a2cc5335ad766992",
+      "originalBytes": 22242,
+      "redactedBytes": 22212
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T13-40-54-539Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:2a0dee1edba93ae4f2df67a7b7af9a7c9dc9ab9168843bf2b11ee9c23c85fae3",
+      "redactedSha256": "sha256:383a2d438fe12a750423669dfa78f73598030cec2198154042d7cace0e999ef9",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T13-40-54-539Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:faeffd5bea76dd1785a084f5cbbd753e02d0825ff92d5bf2e2842a20a55ccfc6",
+      "redactedSha256": "sha256:ac7ba3db24164c98c8ca5908e23bbfc6537e315af3cd6fdfe2f2662dfe756b84",
+      "originalBytes": 22267,
+      "redactedBytes": 22237
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T14-12-10-754Z/doppler-package-lock.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:413325b4ffa67a2a19f0c66a382f54269d38d2af31864b9dd6ab56075761c9ff",
+      "redactedSha256": "sha256:db4d87073afac52d0da1991c113b8b235f3fd49e662684064ba5c6f9853204d8",
+      "originalBytes": 4387,
+      "redactedBytes": 4352
+    },
+    {
+      "path": "artifacts/library-acceptance/2026-09-20T14-12-10-754Z/report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:63936e3df744e76a51064a75a18f756372e4c0f445cb2c03d418fe975dfbf32f",
+      "redactedSha256": "sha256:916871f3e4c901d31d6668bd764783bf5a3f0fa628dfa2457b12c5e64778803e",
+      "originalBytes": 24793,
+      "redactedBytes": 24763
     },
     {
       "path": "artifacts/library-acceptance/2026-09-20T21-36-05-580Z/doppler-package-lock.json",
@@ -4831,6 +5601,36 @@
       "redactedBytes": 1012
     },
     {
+      "path": "artifacts/network-home-2026-09-19/registry-second.log",
+      "kind": "text",
+      "homeReplacements": 5,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:31a6d4d45ac66ab9c1cc4f9d231ca76c2679e88a52d3d12a1edc3eb5bc62345a",
+      "redactedSha256": "sha256:1131d6a502efc0e94a0d983c6454ed52a475044c5e9dd204163cd6ac678e151b",
+      "originalBytes": 765,
+      "redactedBytes": 690
+    },
+    {
+      "path": "artifacts/network-home-2026-09-19/registry.log",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:619e66ea8ec033e9ac3ab979b00a08ae1301e62abac573922e540ec8b1547e5b",
+      "redactedSha256": "sha256:1d5293d1189345c5a3bc3bc642b1b8c3f0cbdd5540f3a9e43631a93afb1ff652",
+      "originalBytes": 1183,
+      "redactedBytes": 1093
+    },
+    {
+      "path": "artifacts/network-home-2026-09-19/vitest.log",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:7fe734e06060ae08015bd696cae2b7e0b56770d9005494eca082c382fd965ea2",
+      "redactedSha256": "sha256:625dfd188c51a4ca844a3b533c9bf741255dd1abad0efe969d2c9a6cf4d494bd",
+      "originalBytes": 91056,
+      "redactedBytes": 90906
+    },
+    {
       "path": "artifacts/open-mesh/20261001/browser-run.log",
       "kind": "text",
       "homeReplacements": 1,
@@ -5571,6 +6371,106 @@
       "redactedBytes": 199
     },
     {
+      "path": "artifacts/partition-api-2026-09-27/package-report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:fa458fc62941ff7db26bbcdbe15f40fdc304496bceb86cd3958752c1f7731d1e",
+      "redactedSha256": "sha256:09c273c17946da78a78b16188fbfcda75e118f5146f4dd39ee1b0941effe393f",
+      "originalBytes": 26073,
+      "redactedBytes": 26043
+    },
+    {
+      "path": "artifacts/partition-api-2026-09-27/package.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:010b1d68a96076aa05213b5bf6d6546c5bdffe2029d87a204cafc5e54fc8b303",
+      "redactedSha256": "sha256:0402b23865ae1a4087299d2fc6912c140cbd86f68aebec4a341d7d799fa76429",
+      "originalBytes": 820,
+      "redactedBytes": 805
+    },
+    {
+      "path": "artifacts/partition-api-2026-09-27/registry.log",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:7c2f9afa260ed600f39e16b925eae9a375a0cdf665375d2fba098be6075f52e5",
+      "redactedSha256": "sha256:7266524e408aff4cf76acba635354b54b52e6ce1e03170327aa09ef32f9fe32f",
+      "originalBytes": 1055,
+      "redactedBytes": 965
+    },
+    {
+      "path": "artifacts/partition-api-2026-09-27/unit.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:4d65ebac2ce0aa0cd1ad0dc7d773bacda476dad09f430eb1d1f4b06bcb5b5163",
+      "redactedSha256": "sha256:e06c78309ca9bbe99b616ce2e364d25582885bebccc92965011006a9b7f84822",
+      "originalBytes": 1052,
+      "redactedBytes": 1037
+    },
+    {
+      "path": "artifacts/partition-channel-2026-09-26/browser.json",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:058cd69c4fc01f50fbe59a8de3b953017472dbb4bb43e8cbae584b7ecbd582be",
+      "redactedSha256": "sha256:e7401e3a0b7b58ff9cf609341e23e5ba7e140ab6e4b307ba03fa206009b78b55",
+      "originalBytes": 403572,
+      "redactedBytes": 403482
+    },
+    {
+      "path": "artifacts/partition-channel-2026-09-26/idempotence.log",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:64be75db06d7a2ec8584800ede19df87e061a4faa7ecbb3cf06c6899738ceb15",
+      "redactedSha256": "sha256:1933cb2dd6ab245f31bf18979cb24b7fabea62b8e8d17d8eb0b7a62a0255f187",
+      "originalBytes": 1006,
+      "redactedBytes": 916
+    },
+    {
+      "path": "artifacts/partition-channel-2026-09-26/package-report.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:b470863c0ceedf4a5b362d909d08d929fdfa8e4fbc1ff3819c1e3b1e31113b6e",
+      "redactedSha256": "sha256:75e9aba6ff6dcd130b254913f47001aa498b060eca868ce4320c3718b1db4e37",
+      "originalBytes": 25607,
+      "redactedBytes": 25577
+    },
+    {
+      "path": "artifacts/partition-channel-2026-09-26/package.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:51bd6442aa35f6f6e98938c5eda1876891f095a0d6ccf06c996959310c09ac4b",
+      "redactedSha256": "sha256:f81cdf8b8b0cb97fdba1200ffd0fae0f817f493099e267ed1af030896cba3fac",
+      "originalBytes": 820,
+      "redactedBytes": 805
+    },
+    {
+      "path": "artifacts/partition-channel-2026-09-26/registry.log",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:64be75db06d7a2ec8584800ede19df87e061a4faa7ecbb3cf06c6899738ceb15",
+      "redactedSha256": "sha256:1933cb2dd6ab245f31bf18979cb24b7fabea62b8e8d17d8eb0b7a62a0255f187",
+      "originalBytes": 1006,
+      "redactedBytes": 916
+    },
+    {
+      "path": "artifacts/partition-channel-2026-09-26/unit.json",
+      "kind": "text",
+      "homeReplacements": 5,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:24adaa22abb5d9b423585131d8a21f2e3c57d66c874ff524e11cd8eea364b11c",
+      "redactedSha256": "sha256:0219eae0dd35b0e604b2c243c6e03a999051636993608a46a320924e8bfd1729",
+      "originalBytes": 22258,
+      "redactedBytes": 22183
+    },
+    {
       "path": "artifacts/partition-contracts-20261010/callback-tests.log",
       "kind": "text",
       "homeReplacements": 1,
@@ -6113,6 +7013,26 @@
       "redactedBytes": 1085
     },
     {
+      "path": "artifacts/peer-recovery-20261012/suby-after-replacement.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:451df41e180dff4d6b27dd58abcb0e6efe9d6f859b04d01c9b9a265ebcf3dd03",
+      "redactedSha256": "sha256:4b8c9eb765008ec10144b32cbbabbb9f3d79f3a1608ac9a54df76b84027a056e",
+      "originalBytes": 1150,
+      "redactedBytes": 1135
+    },
+    {
+      "path": "artifacts/peer-recovery-20261012/suby-browser-replacement.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:32821c89b8a78b48d97b394c375d16b563b8577a7be3bfc6cfe30998f1e8ddb1",
+      "redactedSha256": "sha256:03cab78000aeddd81a4e8e86fcc668d81dcf3b4163c11a0fcf6a887e5398683d",
+      "originalBytes": 346,
+      "redactedBytes": 301
+    },
+    {
       "path": "artifacts/peer-recovery-20261012/x-browser-replacement.json",
       "kind": "text",
       "homeReplacements": 3,
@@ -6121,6 +7041,46 @@
       "redactedSha256": "sha256:31fda576333c22c303cc72c1f616f8099e89013bed7d8ff6d85463a8873c40d1",
       "originalBytes": 319,
       "redactedBytes": 301
+    },
+    {
+      "path": "artifacts/peer-tool-offer-2026-09-19/focused.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:1c588407358e6d2008c825a61a4cfd830bb9a771fb0a6b426308c82cc5e9c581",
+      "redactedSha256": "sha256:8cccaf899c42e713d0b31148046af34a93caa4a6906388376995857d311eb06f",
+      "originalBytes": 447,
+      "redactedBytes": 432
+    },
+    {
+      "path": "artifacts/peer-tool-offer-2026-09-19/full-suite.log",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:484f755d6b90532cf3421cee2c96ccf6e9ace8f32a79d49978889f60c93f7cd2",
+      "redactedSha256": "sha256:416165fcc824180a45f3bf9b1e6dfe2d84c0c3626100ab86311b22a17444dfc5",
+      "originalBytes": 91666,
+      "redactedBytes": 91516
+    },
+    {
+      "path": "artifacts/peer-tool-offer-2026-09-19/installed.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:e06db71f081ee43c91bb567820e6548c11ca9c34f77d30afeaad58cc90e624c1",
+      "redactedSha256": "sha256:9c2c1e568664a2ea624f2388d19c0f6fc4793b69f84df0ce18dd4d3feda5bc0a",
+      "originalBytes": 783,
+      "redactedBytes": 768
+    },
+    {
+      "path": "artifacts/peer-tool-offer-2026-09-19/registry.log",
+      "kind": "text",
+      "homeReplacements": 12,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:0a3eb27b7c4d4dae4905c1a8c0a367308b3d392ad87ba1ecb9b90ddd4e7d94a2",
+      "redactedSha256": "sha256:f61446abafce67cd40ef87bb6b947ea5557c7a0f1630aca30e044e0d9d6de107",
+      "originalBytes": 2560,
+      "redactedBytes": 2380
     },
     {
       "path": "artifacts/phase-timing-20261014/config/measure-a.json",
@@ -6153,6 +7113,16 @@
       "redactedBytes": 2060
     },
     {
+      "path": "artifacts/phase-timing-20261014/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:f10dafa8af2ad4c0be5fb3a8fa9aed86811b0bb922ed3ab716b5a203e073911d",
+      "redactedSha256": "sha256:c120d4c0329a049856e35832b874dc5c24a56b1498becf8ebd1363ad8e79cc09",
+      "originalBytes": 1654,
+      "redactedBytes": 1594
+    },
+    {
       "path": "artifacts/phase-timing-20261014/preflight/mac-host.json",
       "kind": "text",
       "homeReplacements": 6,
@@ -6171,6 +7141,16 @@
       "redactedSha256": "sha256:e79a5cd92310caa621129ed5442aaf6cbd25642067a99918fcafbc53bdbc07e1",
       "originalBytes": 2084,
       "redactedBytes": 2060
+    },
+    {
+      "path": "artifacts/phase-timing-20261014/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:73e357e7d9c8e58ad150d66468e36b2af2e1e9392fb100f4b6bfefe04944c2a8",
+      "redactedSha256": "sha256:30b061f09b666de540058e48ccd7e2403b59ce3b3cf030c88b06c84c7ea1829f",
+      "originalBytes": 1656,
+      "redactedBytes": 1596
     },
     {
       "path": "artifacts/phase-timing-20261014/settlement/mac-host.json",
@@ -6357,6 +7337,16 @@
       "redactedBytes": 3762
     },
     {
+      "path": "artifacts/public-capacity-20261012/suby-native-ready.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:a0a7c3e612f9d0bec511390b0be863efdb357cbb60fd9d3f9bbdb95ebf2f80f4",
+      "redactedSha256": "sha256:b4101564edc24086a0fc564fd1fed0e2358d65b26d28a2160cf9284681587b88",
+      "originalBytes": 68646,
+      "redactedBytes": 68631
+    },
+    {
       "path": "artifacts/public-capacity-20261012/x-native-settled.json",
       "kind": "text",
       "homeReplacements": 1,
@@ -6369,12 +7359,12 @@
     {
       "path": "artifacts/public-code-answer-20261012/followup-rollout.json",
       "kind": "text",
-      "homeReplacements": 10,
+      "homeReplacements": 19,
       "pinReplacements": 0,
       "originalSha256": "sha256:874cad9e5f04a657e7619d2a3197ae12d68f34c0e2df2e96ad994fc94d239fd8",
-      "redactedSha256": "sha256:53ae89c42ab37426d1acb788d728e081da4d886f789482aa076964c0e52eb976",
+      "redactedSha256": "sha256:affadcfd72f1f2566fede5964e7fc65b43e75d204c095cc74e486e82255baed1",
       "originalBytes": 24001,
-      "redactedBytes": 23941
+      "redactedBytes": 23806
     },
     {
       "path": "artifacts/public-code-answer-20261012/fresh-request.json",
@@ -6387,14 +7377,24 @@
       "redactedBytes": 618
     },
     {
+      "path": "artifacts/public-code-answer-20261012/native-trace.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:00330fea6a672c78d257d702476d8de8a32cbdff97ec7cdbd7f8b0c5bfd9e44f",
+      "redactedSha256": "sha256:62bc01004051265dfa8e08f741fe5c134909c6290d7a980d5756d5a17d4ceb78",
+      "originalBytes": 59114,
+      "redactedBytes": 59099
+    },
+    {
       "path": "artifacts/public-code-answer-20261012/native-upgrade.json",
       "kind": "text",
-      "homeReplacements": 5,
+      "homeReplacements": 11,
       "pinReplacements": 0,
       "originalSha256": "sha256:6a19b64c9eadffbd071394796989fede5a0c3230c48312b96a9efe34c5d3ed8b",
-      "redactedSha256": "sha256:9e7a30b0d5599dffe3441a9a23e6caa132cbd8bf5d1c84995d2beb8b01614c3a",
+      "redactedSha256": "sha256:5ce221a04f09a18242c6942a68edd62c4d9ab36d944e8832c61390028fc76d6d",
       "originalBytes": 19539,
-      "redactedBytes": 19509
+      "redactedBytes": 19419
     },
     {
       "path": "artifacts/public-code-answer-20261012/output-owner-after.txt",
@@ -7137,6 +8137,16 @@
       "redactedBytes": 3003
     },
     {
+      "path": "artifacts/recurrent-repair-native-20261013/suby-preflight.json",
+      "kind": "text",
+      "homeReplacements": 14,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:235f161dd901864ca1984ac86625df1dce788588f7656f2c573f2b1779617a02",
+      "redactedSha256": "sha256:db207a5e96321a8c1fe616af0b23795d89f322e09030991e5fcadb669d5e311b",
+      "originalBytes": 2151,
+      "redactedBytes": 1941
+    },
+    {
       "path": "artifacts/reference-correction-20261011/required-gate-tests.log.gz",
       "kind": "gzip",
       "homeReplacements": 1,
@@ -7307,12 +8317,62 @@
       "redactedBytes": 5147
     },
     {
+      "path": "artifacts/reusable-products-2026-09-14/ci-commands.json",
+      "kind": "text",
+      "homeReplacements": 26,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:fbea5dfa962baa7f7dfa582a59450fb2ba44cdea68886748b02e357fd5d547ec",
+      "redactedSha256": "sha256:2cfa27223bd155d2a05f200cb6fefa646999bde3fe06eae2d6c1ee29a6e8c4a7",
+      "originalBytes": 247579,
+      "redactedBytes": 247293
+    },
+    {
+      "path": "artifacts/reusable-products-2026-09-14/ci-doppler-green-excerpt.log",
+      "kind": "text",
+      "homeReplacements": 5,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:c95b0172713504e95903abd14a105ad815eb2b1c2069fe88f04f56ad46c07a56",
+      "redactedSha256": "sha256:18efcc8c8ff6025b26eac7b2ffb70aa6a41b475d65ad7d7b8a8138b0fb9296ad",
+      "originalBytes": 34990,
+      "redactedBytes": 34933
+    },
+    {
+      "path": "artifacts/reusable-products-2026-09-14/ci-published-v1.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:3669d4966725a488f062d5dfa0821297610f9c6fc1672df542aa146fe42fe849",
+      "redactedSha256": "sha256:4f3af96a4cc3eba64efff2635237f787044968ae9e46cd725e88cbccd085647a",
+      "originalBytes": 1382,
+      "redactedBytes": 1360
+    },
+    {
+      "path": "artifacts/reusable-products-2026-09-14/ci-reploid-application-excerpt.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:44e9db773ab766c55d27ef35c98ac346e066b44c78aa0db323c79b1035249750",
+      "redactedSha256": "sha256:bc0cdfe5cdfcbc5ea3f769d40c266f1f0760ae9c3f85b3dba8fc12a7f032aff5",
+      "originalBytes": 27296,
+      "redactedBytes": 27285
+    },
+    {
+      "path": "artifacts/reusable-products-2026-09-14/ci-reploid.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:726de5eab8075e837608c856cde735440fdbd447be379c22e28a7124573a1f2a",
+      "redactedSha256": "sha256:9874c28ec184eb5535dcd038e666a2f8cf359f181e75bab19c9e341a5ec41baa",
+      "originalBytes": 3997,
+      "redactedBytes": 3975
+    },
+    {
       "path": "artifacts/reusable-products-2026-09-14/files.json",
       "kind": "text",
       "homeReplacements": 0,
-      "pinReplacements": 12,
+      "pinReplacements": 18,
       "originalSha256": "sha256:fb51b948b759a0abe9de6d789b776fd6d1202b5a80d43434b9bc8fd0f6d062b4",
-      "redactedSha256": "sha256:db435713242f06c1e01c4a57f59267872af63830bf34fc8937c3e907ac5743e0",
+      "redactedSha256": "sha256:205be6a79d1adbaa907a59a7bc11a5d0ef01427b95127b6a8e575cefdff229f1",
       "originalBytes": 6916,
       "redactedBytes": 6916
     },
@@ -7365,6 +8425,16 @@
       "redactedSha256": "sha256:d28f47335c447b056d99740c6f86bf70da77a5e40a053ce70626c94663bd901f",
       "originalBytes": 54725,
       "redactedBytes": 54719
+    },
+    {
+      "path": "artifacts/reusable-products-2026-09-14/reconciliation/ci-library.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:e430190e69007aec05d1b0a2cfaa223b295c527414bbb0ee2aa40eb1356d71fb",
+      "redactedSha256": "sha256:574b1101194ceaff094dc28c5c39768c3909b1fbb046e11d32dda84b38636a78",
+      "originalBytes": 3997,
+      "redactedBytes": 3975
     },
     {
       "path": "artifacts/reusable-products-2026-09-14/reconciliation/local-unit.log",
@@ -7726,39 +8796,39 @@
       "path": "artifacts/sigmoid-three-stage-physical-20261013/disposition.json",
       "kind": "text",
       "homeReplacements": 0,
-      "pinReplacements": 2,
+      "pinReplacements": 4,
       "originalSha256": "sha256:5c94f63dcd149ef8d7476d7ca03f7c716d304a852e8e54f753f69031504c55cf",
-      "redactedSha256": "sha256:8b4a8f01785e4541f1a4fdb761eb48015d29337a393234ce6e234909dfebff7d",
+      "redactedSha256": "sha256:d49101641d322d008179f4f7232eca7aec1c65bcc3e7e5acd958afbe9040c5ae",
       "originalBytes": 4215,
       "redactedBytes": 4215
     },
     {
       "path": "artifacts/sigmoid-three-stage-physical-20261013/final-process-inventory.json",
       "kind": "text",
-      "homeReplacements": 4,
+      "homeReplacements": 8,
       "pinReplacements": 0,
       "originalSha256": "sha256:6e6885b3ba3b60bc6bf23fc841ebdf0b15f7bfc3e9f75645b294618d37bcf6ba",
-      "redactedSha256": "sha256:8e8292ca545e4fcabba04657c47965cd4a944fa104a646c47f73ef3242cfa9fb",
+      "redactedSha256": "sha256:2211dbd64efbc17a1813798ca493237a25076b1714728ab4a318be5ce73d4de5",
       "originalBytes": 2303,
-      "redactedBytes": 2279
+      "redactedBytes": 2219
     },
     {
       "path": "artifacts/sigmoid-three-stage-physical-20261013/process-inventory.json",
       "kind": "text",
-      "homeReplacements": 4,
+      "homeReplacements": 8,
       "pinReplacements": 0,
       "originalSha256": "sha256:906088f3753c108735b5c610bbe1766370c396dc688c100e5175f36ecdecac1f",
-      "redactedSha256": "sha256:62298a49eb35820056c80ecff348abf1f8b57dd943649d71927407a506d38420",
+      "redactedSha256": "sha256:7ba6b1a8635e3427725a3a8afd6763e4433fe8b6e894952897cf319dd12b57be",
       "originalBytes": 1852,
-      "redactedBytes": 1828
+      "redactedBytes": 1768
     },
     {
       "path": "artifacts/sigmoid-three-stage-physical-20261013/reservation.json",
       "kind": "text",
       "homeReplacements": 0,
-      "pinReplacements": 1,
+      "pinReplacements": 2,
       "originalSha256": "sha256:ac1bdddb600a6df77156efc2e7ba6f40b85fd7be9cf3af14c9844d7f8e149f98",
-      "redactedSha256": "sha256:7f1a82634faa00eba3ea6f2e23dd68a72f3edf8f8c1613983998f459c1cccef8",
+      "redactedSha256": "sha256:fd54ceb79fcdcdbf58b344282acfbe04e2752284127bddeb24840fff12200651",
       "originalBytes": 686,
       "redactedBytes": 686
     },
@@ -8283,6 +9353,16 @@
       "redactedBytes": 2087
     },
     {
+      "path": "artifacts/signed-completion-journey-20261013/run-1/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:fda61e18a91584cac3a59fa2180e0764a475ff77a8a0f2284da47b5edad69ec0",
+      "redactedSha256": "sha256:c577750ccb29c82c7f0be29b3e2c71d92b6492979a2a4a1f6b427f6c2f230948",
+      "originalBytes": 1678,
+      "redactedBytes": 1618
+    },
+    {
       "path": "artifacts/signed-completion-journey-20261013/run-1/preflight/mac-host.json",
       "kind": "text",
       "homeReplacements": 2,
@@ -8301,6 +9381,16 @@
       "redactedSha256": "sha256:046f2c6593503db398471270fbb496dcdf9ec0611f64bf7af03b0b19cce3abf0",
       "originalBytes": 2111,
       "redactedBytes": 2087
+    },
+    {
+      "path": "artifacts/signed-completion-journey-20261013/run-1/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:7b29df87dcddd297c64e6f7068932079bf0e8dee36cf95bc27ea31a2905b3810",
+      "redactedSha256": "sha256:77a124eae716aba9d39b3ea0075f3b5004ffbe2b97483e197bb6b5759fa6485d",
+      "originalBytes": 1676,
+      "redactedBytes": 1616
     },
     {
       "path": "artifacts/signed-completion-journey-20261013/run-1/settlement/mac-host.json",
@@ -8353,6 +9443,16 @@
       "redactedBytes": 2087
     },
     {
+      "path": "artifacts/signed-completion-journey-20261013/run-2/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:d7fdc6f6a6de5d910aa1838b04db69f79da5e3873952c35bd020bddac6bbf354",
+      "redactedSha256": "sha256:ac8f4e77cadfb02c33af3063457318d73c38fb03bec7cfdcd8c9971f6f65bf83",
+      "originalBytes": 1677,
+      "redactedBytes": 1617
+    },
+    {
       "path": "artifacts/signed-completion-journey-20261013/run-2/preflight/mac-host.json",
       "kind": "text",
       "homeReplacements": 4,
@@ -8401,6 +9501,16 @@
       "redactedSha256": "sha256:1ca6d9aa6aef930e9f1c72198614c66f1c80afe68c864c1ed61002677c3d0bd3",
       "originalBytes": 2111,
       "redactedBytes": 2087
+    },
+    {
+      "path": "artifacts/signed-completion-journey-20261013/run-2/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:2f28d02acc046c0a96500e30c77a1fcf1b3b30b069c546af678469d63e2ead73",
+      "redactedSha256": "sha256:888fc53fd97a65615b332a83ce5f459722499cd74a228c343b18cd550d16ce87",
+      "originalBytes": 1678,
+      "redactedBytes": 1618
     },
     {
       "path": "artifacts/signed-completion-journey-20261013/run-2/settlement/mac-host.json",
@@ -8453,6 +9563,16 @@
       "redactedBytes": 2087
     },
     {
+      "path": "artifacts/signed-completion-journey-20261013/run-3/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:e5ffbb84a1558e829c355c134cab725d544d4e1e687efccca822c04b1ef8bef9",
+      "redactedSha256": "sha256:10bcef60d2be2bdf182b2612ab3c49e3b49611c3c5a1e1f4c83e4b9d67d727a3",
+      "originalBytes": 1678,
+      "redactedBytes": 1618
+    },
+    {
       "path": "artifacts/signed-completion-journey-20261013/run-3/preflight/mac-host.json",
       "kind": "text",
       "homeReplacements": 4,
@@ -8501,6 +9621,16 @@
       "redactedSha256": "sha256:fd470156f70fd6d6e30f590941af407dff8cd0cc6c7051037c35c07f9caf41c4",
       "originalBytes": 2111,
       "redactedBytes": 2087
+    },
+    {
+      "path": "artifacts/signed-completion-journey-20261013/run-3/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:645f6feb5cdb14ff0418fef5930e4667677612f5b128ae001747e1be60be7617",
+      "redactedSha256": "sha256:448149b7c74e16021b5c2930898c68c620c424cc4a2ff0632138f75ae749a559",
+      "originalBytes": 1678,
+      "redactedBytes": 1618
     },
     {
       "path": "artifacts/signed-completion-journey-20261013/run-3/settlement/mac-host.json",
@@ -8583,6 +9713,16 @@
       "redactedBytes": 2087
     },
     {
+      "path": "artifacts/signed-completion-journey-20261013/run-4/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:9d302bc44318d249316462ada84e4f93e327cb611f8d3f318220ff9ac6282220",
+      "redactedSha256": "sha256:b83c3b7061af60dce4ca9017ab1030dd5594c08d3e3131c84d4bf024efdb6934",
+      "originalBytes": 1678,
+      "redactedBytes": 1618
+    },
+    {
       "path": "artifacts/signed-completion-journey-20261013/run-4/preflight/mac-host.json",
       "kind": "text",
       "homeReplacements": 2,
@@ -8631,6 +9771,16 @@
       "redactedSha256": "sha256:bb34895ccedba2b99c01deb3ee18ab12bbd180754b17188a2fa99657449baabf",
       "originalBytes": 2226,
       "redactedBytes": 2202
+    },
+    {
+      "path": "artifacts/signed-completion-journey-20261013/run-4/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:3460398040e79d34be5a88430a7557c5166c5bf56937dd1f7364303e412d4e6e",
+      "redactedSha256": "sha256:716518e2f912c95836e33a67fef04486a06b3348708eae0c3f22d2045fa24bf9",
+      "originalBytes": 1798,
+      "redactedBytes": 1738
     },
     {
       "path": "artifacts/signed-completion-journey-20261013/run-4/settlement/mac-host.json",
@@ -8683,6 +9833,16 @@
       "redactedBytes": 2120
     },
     {
+      "path": "artifacts/signed-completion-journey-20261013/run-5/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:638461fb8ba0286589f966b98be5e568ff6fc1f579f3c2a2f9da653862009ec6",
+      "redactedSha256": "sha256:01c479bd5290567137aa48e5826f7593fb70578e609b260e4a04bd12cc8a457f",
+      "originalBytes": 1714,
+      "redactedBytes": 1654
+    },
+    {
       "path": "artifacts/signed-completion-journey-20261013/run-5/preflight/mac-host.json",
       "kind": "text",
       "homeReplacements": 2,
@@ -8733,6 +9893,16 @@
       "redactedBytes": 2120
     },
     {
+      "path": "artifacts/signed-completion-journey-20261013/run-5/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:357bc3657c942c5a9d1e8896519c99cc77b309d09ddb1727fa640d93c5e8928f",
+      "redactedSha256": "sha256:303fbde145b0362a5ee3ba78a989fd28ee0e6c56f8118263ff4c5f3a2edff9e9",
+      "originalBytes": 1714,
+      "redactedBytes": 1654
+    },
+    {
       "path": "artifacts/signed-completion-journey-20261013/run-5/settlement/mac-host.json",
       "kind": "text",
       "homeReplacements": 2,
@@ -8773,6 +9943,16 @@
       "redactedBytes": 2120
     },
     {
+      "path": "artifacts/signed-completion-journey-20261013/run-6/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:e31d7c79bad372f7f17ee3f3d6cb0f0d368f900b08ce9bb8e3153178b1f3e4fd",
+      "redactedSha256": "sha256:de6017f56ce4e39d28cdd862cd8dbb436929887dec5f8a96548937a32da00967",
+      "originalBytes": 1714,
+      "redactedBytes": 1654
+    },
+    {
       "path": "artifacts/signed-completion-journey-20261013/run-6/preflight/mac-host.json",
       "kind": "text",
       "homeReplacements": 2,
@@ -8801,6 +9981,16 @@
       "redactedSha256": "sha256:d7b7cd7b799353d91e91dd773be2712e1606f993276c5c5726a7e2f6b5be03f6",
       "originalBytes": 2144,
       "redactedBytes": 2120
+    },
+    {
+      "path": "artifacts/signed-completion-journey-20261013/run-6/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:21b3afbd80f7bd0d494cb22fb456cb5743fc5224a996e19cbce6ecc1274ac98f",
+      "redactedSha256": "sha256:e2d45a11887548f19e39f9b30fbcb530651b2cacdee826d873e76e9f72dde37c",
+      "originalBytes": 1714,
+      "redactedBytes": 1654
     },
     {
       "path": "artifacts/signed-completion-journey-20261013/run-6/settlement/mac-host.json",
@@ -8921,6 +10111,16 @@
       "redactedSha256": "sha256:82e2b825c5dd279a4fc6134f262912a7dd2dc0b26781b36b99b0f3e86180de9a",
       "originalBytes": 2084,
       "redactedBytes": 2060
+    },
+    {
+      "path": "artifacts/signed-completion-journey-20261013/run-7/preflight/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:9a60247b34c7840796763860ad6aeff35c4ee46e6291258b1e693ff8c849d5bf",
+      "redactedSha256": "sha256:cf3b2d990c93791212290b346f22a050c0300da1d1d1f514b8ed9229e4ca6c7c",
+      "originalBytes": 1715,
+      "redactedBytes": 1655
     },
     {
       "path": "artifacts/signed-completion-journey-20261013/run-7/preflight/mac-host.json",
@@ -9141,6 +10341,16 @@
       "redactedSha256": "sha256:3a579319088bd680b9fdec4b0ee4200acf7813236df2d89637a8ff61d1de1adf",
       "originalBytes": 2204,
       "redactedBytes": 2180
+    },
+    {
+      "path": "artifacts/signed-completion-journey-20261013/run-7/settlement/intel-host.json",
+      "kind": "text",
+      "homeReplacements": 4,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:187635adcdf1f46db5b610ce579dcef926de6656e28d9f9b5c344e499dcaa608",
+      "redactedSha256": "sha256:d4c2287ae401a1c3301ac1901d3c9e7a22d38fef82a51d185591a24b38dd3bb6",
+      "originalBytes": 1774,
+      "redactedBytes": 1714
     },
     {
       "path": "artifacts/signed-completion-journey-20261013/run-7/settlement/mac-host.json",
@@ -9513,6 +10723,26 @@
       "redactedBytes": 21347
     },
     {
+      "path": "artifacts/split-chat-local-tabs-2026-09-26/browser.json",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:2b6bc42b05c6c437b91bf988fe66f6eb370981a627638ea7be2b1b38296eaadd",
+      "redactedSha256": "sha256:b59fd1b2425de94b52d4c309023e743ac74710235de97fc11144530ae05073e3",
+      "originalBytes": 13044,
+      "redactedBytes": 12954
+    },
+    {
+      "path": "artifacts/split-chat-local-tabs-2026-09-26/unit.json",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:e204ac79545e82354991e22a74d2c26139d6d2cc987149e44411f41406b6b54b",
+      "redactedSha256": "sha256:6d8b7f32a593fde85b8c36fd25c680510a12795ca2cd00793f362d5db2253df6",
+      "originalBytes": 27921,
+      "redactedBytes": 27771
+    },
+    {
       "path": "artifacts/stateless-responses-20261013/binding.json",
       "kind": "text",
       "homeReplacements": 0,
@@ -9621,6 +10851,86 @@
       "redactedSha256": "sha256:aea308695429bc5f7aec07fe933aeb1d260c9b8905655821f081c8dae6680068",
       "originalBytes": 610,
       "redactedBytes": 598
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-after-upgrade.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:db667b5a340c11e5e546a28ce2a26629ccb0c0121e18949b70e91aa79f0d44b4",
+      "redactedSha256": "sha256:166a24dfc7147595856309516b0d2c09f1bff3d3c787426d6aa7d19d3ddb4c19",
+      "originalBytes": 1148,
+      "redactedBytes": 1133
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-browser-pause.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:eea738fb6e753d1b27cf60479269223aee0edd446240535892d986a17b766e02",
+      "redactedSha256": "sha256:c3079bd5df7dbbcd9308482a8a5b8f381fe700ce361eee709ff83dd544872003",
+      "originalBytes": 358,
+      "redactedBytes": 328
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-browser-replacement.json",
+      "kind": "text",
+      "homeReplacements": 2,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:0be6e3d906b44491b04904d616aecabe7329d5cd5a130629a9a9c8e2d49d8b7d",
+      "redactedSha256": "sha256:da327e9c7ed30e7f61abc21fd8978a602bbfb8cf1707a025b9c0daa3665350bb",
+      "originalBytes": 443,
+      "redactedBytes": 413
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-browser-restored.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:8a85f4b86c476608fa5f937f4c14d27779ad2d35f99e9f377a3825978bfc9e78",
+      "redactedSha256": "sha256:a2a3172d26feb91233872ee5343dee3ebe2757c3ddb92be75d30e14056ac410e",
+      "originalBytes": 418,
+      "redactedBytes": 373
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-installed-identity.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:237aebbc5983ec03a8b3ff4a8ef2832cb567098b80eae006d43524c47854c4aa",
+      "redactedSha256": "sha256:74a694bf5471a27b93b04cbab3104d8271e4474c195547db565e122a91fb6514",
+      "originalBytes": 483,
+      "redactedBytes": 468
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-native-replacement.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:688867944b4830ace10cf25d4ed1f0b43157315e4b08773384adc704af075e24",
+      "redactedSha256": "sha256:15b69a9fab00970c246ad975fe7c86449fac63127c7608971617db2db8f2f01e",
+      "originalBytes": 459,
+      "redactedBytes": 414
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-restored-ready.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:653019867a7aef5718c80f46695f49f7f08df57763d2ff67555995a2aacb45c2",
+      "redactedSha256": "sha256:ed2605b5fbd9fe8937ae0df088c0798db4c79da27c7b5ff3d0bac939717e35f4",
+      "originalBytes": 1145,
+      "redactedBytes": 1130
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/suby-restored.json",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:18ca911d839c174cd0d914a121d73d80c988d91276469070dd2c052f80eb771e",
+      "redactedSha256": "sha256:07141f9b8f5c3c6190694eeb9be8ca7db4c8e694b32e27e56e961b086e0228e9",
+      "originalBytes": 1084,
+      "redactedBytes": 1069
     },
     {
       "path": "artifacts/supply-budget-persistence-20261012/unit-after.log",
@@ -9883,6 +11193,46 @@
       "redactedBytes": 12149
     },
     {
+      "path": "artifacts/tool-offer-exchange-2026-09-19/installed.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:26387e173cb321417b1ec113a79cd8bf4a1c0c0989361e299895b458c123cb1b",
+      "redactedSha256": "sha256:85ddf6c967cee5ca3dd4b72e268705dbfc7cf31615c04647751493587cdc867f",
+      "originalBytes": 783,
+      "redactedBytes": 768
+    },
+    {
+      "path": "artifacts/tool-offer-exchange-2026-09-19/registry-second.log",
+      "kind": "text",
+      "homeReplacements": 5,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:4d3b8239d1b6bf0f3ceaa0c30b3ed776e173aaf9b52bdada0a1acf40ccd483f1",
+      "redactedSha256": "sha256:73de51ec4a8fa31fc540b5f11114383a2eae7787b013e49c4489c7db705a5025",
+      "originalBytes": 765,
+      "redactedBytes": 690
+    },
+    {
+      "path": "artifacts/tool-offer-exchange-2026-09-19/registry.log",
+      "kind": "text",
+      "homeReplacements": 6,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:32627972942e453e32479a348faa299e3676d83e83f04f3e33ec45ecfb7cd316",
+      "redactedSha256": "sha256:2363b176781944ee6705776164f5daec8d93c8f5114b0ae0a38ae0791fee6358",
+      "originalBytes": 1043,
+      "redactedBytes": 953
+    },
+    {
+      "path": "artifacts/tool-offer-exchange-2026-09-19/vitest.log",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:d4999dd5a1743d3212fbc2aa8832cad57611cc717ad51131c5efd26b593ac132",
+      "redactedSha256": "sha256:009cdaf27a02c898a5390595ddbeeadcf9b14c4756e7079f4b45a52dc2fa1ccb",
+      "originalBytes": 90701,
+      "redactedBytes": 90551
+    },
+    {
       "path": "artifacts/transport-recovery-20261012/after.log",
       "kind": "text",
       "homeReplacements": 1,
@@ -9901,6 +11251,36 @@
       "redactedSha256": "sha256:5d02af7d463f981912f8a1f7cc05040c9f45f1f03b703bd582ed522a0e6403c9",
       "originalBytes": 2356,
       "redactedBytes": 2347
+    },
+    {
+      "path": "artifacts/ui-clarity/installed-package.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:905e63178310666aebf3d10f3bf9f56d71705010726208cc7a1a72fb240c5a3a",
+      "redactedSha256": "sha256:b93b3f10bde1e1bcaeeb963451dc781cad18648d3bb1d056b6d61143e8ec8e3c",
+      "originalBytes": 783,
+      "redactedBytes": 768
+    },
+    {
+      "path": "artifacts/ui-clarity/registry.log",
+      "kind": "text",
+      "homeReplacements": 10,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:99e81f63ac35826a53b62e2d8b143d18548fcc9133c7cb05c9132ddd74509549",
+      "redactedSha256": "sha256:c8901c943760dcf03864e5b6c1ebea8cf8725a538cac60952bd14c6ea1823397",
+      "originalBytes": 1696,
+      "redactedBytes": 1546
+    },
+    {
+      "path": "artifacts/ui-clarity/unit.log",
+      "kind": "text",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:3fa36d18e5564c611635ebb5ff9752b3a4fbfa01c2928a845b613aa1068d5a3a",
+      "redactedSha256": "sha256:88e73e081be3d2bb50a9aa43f69edd80be12b2cb0a4e880a05e4016a06d383c7",
+      "originalBytes": 917,
+      "redactedBytes": 902
     },
     {
       "path": "artifacts/unified-network-20261012/auth-tests.txt",
@@ -9943,6 +11323,16 @@
       "redactedBytes": 252
     },
     {
+      "path": "artifacts/work-integration/vitest.json",
+      "kind": "text",
+      "homeReplacements": 228,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:dc0f4e7bba5ab47f279747855085c16eb204130b80a53d5cdfba771bd115054f",
+      "redactedSha256": "sha256:92406e2b780fd158b3247d7631daddd925def958d617d1e838510ac6bba82d37",
+      "originalBytes": 877761,
+      "redactedBytes": 874341
+    },
+    {
       "path": "docs/status/document-answer-evidence-2026-09-07/SHA256SUMS",
       "kind": "text",
       "homeReplacements": 0,
@@ -9977,6 +11367,175 @@
       "redactedSha256": "sha256:96af5b782d26241891106adc61268dcc7e413e5118e7c002d9e9f8c0e1ef8872",
       "originalBytes": 410624,
       "redactedBytes": 410624
+    },
+    {
+      "path": "docs/status/document-answer-linux-2026-09-07/SHA256SUMS",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 3,
+      "originalSha256": "sha256:596ad30e61ec48f0ccb839c9c164c92b1cd31d331e2dce3f1859399897ca4a67",
+      "redactedSha256": "sha256:7d0e6f20947871f3f48b0682a4552f55c333aa39fe6e644ee013a398d9cf8141",
+      "originalBytes": 263,
+      "redactedBytes": 263
+    },
+    {
+      "path": "docs/status/document-answer-linux-2026-09-07/evidence.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:50731ae0a85073e2e11c290be6b70ecaefa6dbd2a67f80bf7d8a7aae33d9dd58",
+      "redactedSha256": "sha256:7dc126d2cf8e86faeae119c4371ea3c6a44981ff88ee0332728fc43a51b6c18c",
+      "originalBytes": 1099602,
+      "redactedBytes": 1101212,
+      "changedMembers": [
+        "answers-linux-01/execution.json",
+        "answers-linux-01/progress.json",
+        "evaluation-config.json"
+      ]
+    },
+    {
+      "path": "docs/status/document-answer-linux-2026-09-07/prompt-development.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 17,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:f43828445e2e7a69932720ab477a9993dae68bfe868ecb61b5b22991f79ef817",
+      "redactedSha256": "sha256:ce833fe0ef845d722d5efac77253a1d740d74b890d62b0785b2535f37c7d70ce",
+      "originalBytes": 50181,
+      "redactedBytes": 49730,
+      "changedMembers": [
+        "few-shot-attempt.tar.gz/prepare.js",
+        "prepare-concise.js",
+        "prepare.js",
+        "reploid-answer-review-validation-suite-20260907.log"
+      ]
+    },
+    {
+      "path": "docs/status/document-answer-linux-2026-09-07/source-evidence.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 2,
+      "pinReplacements": 7,
+      "originalSha256": "sha256:2ff29568b76d17a7115e7fbfa2b1bd57f5c24669d687ecdd62b13d92a924ba32",
+      "redactedSha256": "sha256:79a17afaac24ca59c61eb98290aa0f50a7c6f49b1282b8840cfb4ab4865f338b",
+      "originalBytes": 24337,
+      "redactedBytes": 25217,
+      "changedMembers": [
+        "capture-inputs.js",
+        "source-inputs.json",
+        "source-reference-02/reference.json",
+        "source-reference-adverse-01.tar.gz/source-reference-01/reference.json",
+        "source-reference-adverse-01.tar.gz/source-reference.py",
+        "source-reference.py"
+      ]
+    },
+    {
+      "path": "docs/status/document-answer-linux-2026-09-07/verify.js",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 2,
+      "originalSha256": "sha256:278e01aa6b36ae967c1cfe84e16df905fbb3504f1a4d5d330aa94e963c1adf12",
+      "redactedSha256": "sha256:799fcb16da0d437355cba09b1134223d4800f1ca4a016bb2a24b9ff14d9fc964",
+      "originalBytes": 4523,
+      "redactedBytes": 4523
+    },
+    {
+      "path": "docs/status/document-answer-model-screens-2026-09-07/SHA256SUMS",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 3,
+      "originalSha256": "sha256:3c3151ec5f1b69cb8e6ede0ac322d429d285522a80b57001330bd6890d44767e",
+      "redactedSha256": "sha256:4cd829e66724652f538b9be54666a59e573cac0eaecf33d83b960bbdcb7058d4",
+      "originalBytes": 279,
+      "redactedBytes": 279
+    },
+    {
+      "path": "docs/status/document-answer-model-screens-2026-09-07/gemma-observation.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 11,
+      "pinReplacements": 1,
+      "originalSha256": "sha256:55d6eef8ed24867ef350408d7a81e89f73e2628c1d7b1412a9b37817f9be6094",
+      "redactedSha256": "sha256:4a9f2bcd419819dca2c9e8c9d6308486f0c6c57ddc94c394c6c885287c2ccef6",
+      "originalBytes": 1047661,
+      "redactedBytes": 1050401,
+      "changedMembers": [
+        "config.json",
+        "execution.json",
+        "screen.js"
+      ]
+    },
+    {
+      "path": "docs/status/document-answer-model-screens-2026-09-07/qwen35-observation.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 16,
+      "pinReplacements": 10,
+      "originalSha256": "sha256:bf6126f8e9524ecf2c3433984536145e4263c250ef3f78ff5e085238a8c021ef",
+      "redactedSha256": "sha256:45f54c3a96f2f9b0870521fdff24631e1bc3bdb9fe03467dd453faec4757aa62",
+      "originalBytes": 1090528,
+      "redactedBytes": 1092450,
+      "changedMembers": [
+        "acquire-source.log",
+        "acquire.js",
+        "capture-inputs.js",
+        "screen-01/config.json",
+        "screen-01/execution.json",
+        "screen-01/runner.js",
+        "source-acquisition.json",
+        "source-inputs.json",
+        "source-metadata.json",
+        "source-reference-01/reference.json",
+        "source/README.md"
+      ]
+    },
+    {
+      "path": "docs/status/document-answer-model-screens-2026-09-07/qwen35-readable-source.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 4,
+      "pinReplacements": 18,
+      "originalSha256": "sha256:a81adf26d4946c4d3128c391c51c5d053ddd22d15ca932c7e25622624be659d8",
+      "redactedSha256": "sha256:37c47f9849224e262a5ee95e12188fdbf016a08d0e8d9e6fd793bfc3df6745ef",
+      "originalBytes": 39116,
+      "redactedBytes": 40161,
+      "changedMembers": [
+        "prepare-readable.js",
+        "readable-01-rejected.tar.gz/prepare-readable.js",
+        "readable-01-rejected.tar.gz/readable-inputs.json",
+        "readable-01-rejected.tar.gz/readable-source-01/reference.json",
+        "readable-inputs-02.json",
+        "readable-source-02/reference.json",
+        "source-acquisition.json",
+        "source-metadata.json",
+        "source-reference-01/reference.json"
+      ]
+    },
+    {
+      "path": "docs/status/document-answer-prompt-structure-2026-09-07.md",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 1,
+      "originalSha256": "sha256:25310dc837500e71e99f26c707845f75bb5af1b52866c6e1c0bb198ce6975e97",
+      "redactedSha256": "sha256:6d3b1b78fe6e4f195900c7172a02045f7fe9c435d7e05ef1ed1cd81a3b53d6ec",
+      "originalBytes": 4313,
+      "redactedBytes": 4313
+    },
+    {
+      "path": "docs/status/document-answer-prompt-structure-2026-09-07.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 21,
+      "pinReplacements": 6,
+      "originalSha256": "sha256:53d32956d9db05ea66ee19668591a0a58cbc3bc8eacbcccbbd02b6c34451803f",
+      "redactedSha256": "sha256:68e9a5554d942252bb3586a3ac2e8a89eb68bc59d294e70f23c3a17bd20dd26a",
+      "originalBytes": 2074797,
+      "redactedBytes": 2076465,
+      "changedMembers": [
+        "f16-candidate-screen-01/acquisition.json",
+        "f16-candidate-screen-01/config.json",
+        "f16-candidate-screen-01/execution.json",
+        "f16-candidate-screen-01/runner.js",
+        "f16-structured-prompt-comparison-01.json",
+        "f16-structured-prompt-screen-01/acquisition.json",
+        "f16-structured-prompt-screen-01/config.json",
+        "f16-structured-prompt-screen-01/execution.json",
+        "f16-structured-prompt-screen-01/runner.js"
+      ]
     },
     {
       "path": "docs/status/document-assistant-2026-09-06/artifact-tests.txt",
@@ -10166,6 +11725,46 @@
       "redactedBytes": 7208
     },
     {
+      "path": "docs/status/esm2-pack-operation-2026-09-05/episode.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:2c522ffed4060588e8b97eb83ed9a3757b3536173b16d12c01463553fa5e5a85",
+      "redactedSha256": "sha256:7b5fdb7f14c52e0652eaaa0e6f1206af86ccb11d3259d52f22af982a8e4f461b",
+      "originalBytes": 1427273,
+      "redactedBytes": 1427228
+    },
+    {
+      "path": "docs/status/esm2-pack-operation-2026-09-05/index.json",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 1,
+      "originalSha256": "sha256:63196c6134d23432c93260ded6ed11bf699a9601ce7b7e1374fa0f3e16ef0f9a",
+      "redactedSha256": "sha256:fda058d40bdec4c95241881f7517fd6e9d3a986a2a87929e42a67773a5b87671",
+      "originalBytes": 7038,
+      "redactedBytes": 7038
+    },
+    {
+      "path": "docs/status/esm2-peer-pack-2026-09-05/episode.json",
+      "kind": "text",
+      "homeReplacements": 3,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:b97d459315e3896e7f93ca8bbfe843efd52cd87c216dd2d7d733872e5fb36417",
+      "redactedSha256": "sha256:246a096e8a5500087c2f745bbfb806457f805a814662c07daa475a6fd572b9f3",
+      "originalBytes": 999765,
+      "redactedBytes": 999720
+    },
+    {
+      "path": "docs/status/esm2-peer-pack-2026-09-05/index.json",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 1,
+      "originalSha256": "sha256:0d53e4d2f41f8029da8b2f081b62c02d03936fc74d082ddbe816264839d84b27",
+      "redactedSha256": "sha256:21a7ff89b86f7ada95f47cc6dcb8ec27a388904c8688222971a33fc68994f90d",
+      "originalBytes": 7399,
+      "redactedBytes": 7399
+    },
+    {
       "path": "docs/status/esm2-process-restart-2026-09-06/attachments/episode.json",
       "kind": "text",
       "homeReplacements": 1,
@@ -10316,6 +11915,35 @@
       "redactedBytes": 88675
     },
     {
+      "path": "docs/status/local-fallback-ui-2026-09-07/SHA256SUMS",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 1,
+      "originalSha256": "sha256:0f18cea83cc8d187c216024d4578bbf2ed8ae072538976abd5491976ebd0ebdc",
+      "redactedSha256": "sha256:b5323e2143980702706cdcd41a69c40b74bc933a07682d0e3e244c43e898d8ea",
+      "originalBytes": 82,
+      "redactedBytes": 82
+    },
+    {
+      "path": "docs/status/local-fallback-ui-2026-09-07/evidence.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 25,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:d8b121aff8f8e1e43d1f28a61f0c8193c808ba266b6be5efa76aae14f39daa65",
+      "redactedSha256": "sha256:00db59925be9be1b64554f5f6ee6574a77e46edd5983c67c7036b8143aa22962",
+      "originalBytes": 2001845,
+      "redactedBytes": 2005545,
+      "changedMembers": [
+        "reploid-centered-ui-20260907.log",
+        "reploid-fallback-ui-verified-suite-20260907.log",
+        "reploid-local-fallback-20260907-evidence.tar.gz/test-results/e2e-results.json",
+        "reploid-local-fallback-reload-20260907-evidence.tar.gz/test-results/e2e-results.json",
+        "reploid-local-ui-checked-unit-20260907.log",
+        "reploid-local-ui-final-unit-20260907.log",
+        "test-results/e2e-results.json"
+      ]
+    },
+    {
       "path": "docs/status/product-closure-2026-09-07/evidence.tar.gz",
       "kind": "tar.gz",
       "homeReplacements": 13,
@@ -10339,6 +11967,37 @@
       "redactedSha256": "sha256:477cff53e11c54700237414be96213a4a479c2a1e59f34300975a4ca05e6288a",
       "originalBytes": 1911,
       "redactedBytes": 1911
+    },
+    {
+      "path": "docs/status/product-closure-linux-2026-09-07/evidence.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 46,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:5b3c7cc61c916b81cc32d60b8d448ceda802512ffc55b5870df8fa7f18fc1092",
+      "redactedSha256": "sha256:3ae264c1216e533f4193e1ec4f9d0d0485890fefffd3e138a7862ac224e5d54c",
+      "originalBytes": 850297,
+      "redactedBytes": 849995,
+      "changedMembers": [
+        "reploid-closure-ci-20260907.jsonl",
+        "reploid-closure-esm2-20260907.log",
+        "reploid-closure-esm2-cancel-reuse-20260907-evidence.tar.gz/test-results/e2e-results.json",
+        "reploid-closure-esm2-chromium145-20260907-evidence.tar.gz/test-results/e2e-results.json",
+        "reploid-closure-esm2-failures-20260907-evidence.tar.gz/test-results/e2e-results.json",
+        "reploid-closure-esm2-integrity-20260907-evidence.tar.gz/test-results/e2e-results.json",
+        "reploid-closure-esm2-origin-20260907.log",
+        "reploid-closure-final-unit-20260907.log",
+        "reploid-closure-unsupported-browser-20260907.log"
+      ]
+    },
+    {
+      "path": "docs/status/product-closure-linux-2026-09-07/receipt.json",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 1,
+      "originalSha256": "sha256:21ae303d466cc0ab4b0ce8426aa8808da0f23bb54d2fe710ffdf076660bc4089",
+      "redactedSha256": "sha256:73870b1f0f57dc932b7dac4e0cf545640181028e074c4cf606239128e426a5c0",
+      "originalBytes": 3299,
+      "redactedBytes": 3299
     },
     {
       "path": "docs/status/qwen-adapter-2026-09-06/evidence.tar.gz",
@@ -10431,6 +12090,44 @@
       "redactedSha256": "sha256:9470f11bd142d6935f3522642ad2418357573e528db1e476de9ef763f35f3c53",
       "originalBytes": 776,
       "redactedBytes": 770
+    },
+    {
+      "path": "docs/status/zero-boot-boundaries-2026-09-07/SHA256SUMS",
+      "kind": "text",
+      "homeReplacements": 0,
+      "pinReplacements": 2,
+      "originalSha256": "sha256:6a4742cf39bde1b7a30363ca1d8394fef2d644e2effb322706009849437fc587",
+      "redactedSha256": "sha256:27bfe56673fa1f8e8d451a41946352c5e2c54b01e5505185eeda66cea6ddbe80",
+      "originalBytes": 168,
+      "redactedBytes": 168
+    },
+    {
+      "path": "docs/status/zero-boot-boundaries-2026-09-07/evidence.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 14,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:4d1b210134a40eebe98398e024ad648b1513a000548f99c553faa3c82263b084",
+      "redactedSha256": "sha256:8c521ff29c834f75889085e082e62963d0284fd987dc083a9986707253a643e8",
+      "originalBytes": 88753,
+      "redactedBytes": 89139,
+      "changedMembers": [
+        "reploid-zero-boot-boundaries-20260907.log",
+        "reploid-zero-boot-unit-suite-20260907.log",
+        "reploid-zero-mirror-original-proof.js"
+      ]
+    },
+    {
+      "path": "docs/status/zero-boot-boundaries-2026-09-07/final-source.tar.gz",
+      "kind": "tar.gz",
+      "homeReplacements": 1,
+      "pinReplacements": 0,
+      "originalSha256": "sha256:487af230420f88c69ca3916425662525e097662900345281de8f790174615087",
+      "redactedSha256": "sha256:53c9ace6ccad5e4a762879a273da708daa5512bbfbd832538589165d168de7e6",
+      "originalBytes": 63160,
+      "redactedBytes": 63384,
+      "changedMembers": [
+        "reploid-zero-access-final-unit-20260907.log"
+      ]
     },
     {
       "path": "reports/local/cited-calculation-available-20261013/command.json",
@@ -10912,6 +12609,10 @@
       "reason": "byte-identical to the published package file deploy/artifacts/doppler-gpu-0.6.10.tgz member package/src/inference/pipelines/text/tsir-fixture-writer.js"
     },
     {
+      "path": "docs/status/esm2-attempt-v2-2026-09-06/pack/artifacts/evidence/browser-qualification.json",
+      "reason": "its SHA-256 is pinned inside the signed record docs/status/esm2-process-restart-2026-09-06/attachments/episode.json"
+    },
+    {
       "path": "docs/status/model-manifests/397dcc5fbf1a388a50fddd731cc42515ce1d0217afa3e0d7c50adcbff3c6f141.json",
       "reason": "file name is the SHA-256 of its bytes (content-addressed model manifest)"
     },
@@ -10994,7 +12695,7 @@
     },
     {
       "path": "tests/fixtures/distributed-reference-manifest.json.gz",
-      "reason": "outside the evidence folders this redaction covered"
+      "reason": "its decompressed bytes are the frozen reference model manifest whose SHA-256 is a model identity pinned outside tests/ and scripts/ (shared/pool/pool-config.json and the chat model catalog)"
     }
   ]
 }

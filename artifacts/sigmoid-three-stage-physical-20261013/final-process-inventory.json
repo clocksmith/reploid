@@ -30,7 +30,7 @@
         "ps -p 824408,824417,297260,299769 -o pid,ppid,etime,args"
       ],
       "code": 0,
-      "stdout": "    PID    PPID     ELAPSED COMMAND\n 297260       1    14:42:04 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm\n 299769       1    14:38:50 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium\n",
+      "stdout": "    PID    PPID     ELAPSED COMMAND\n 297260       1    14:42:04 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory ~/.local/share/reploid/public-native/weights --cache-directory ~/.local/share/reploid/public-native/cache --identity-file ~/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm\n 299769       1    14:38:50 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile ~/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium\n",
       "stderr": ""
     }
   }

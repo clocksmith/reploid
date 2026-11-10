@@ -1,6 +1,6 @@
 {
   "host": "suby",
-  "logPath": "/home/clocksmith/.local/state/reploid/public-native-supply-retry.log",
+  "logPath": "~/.local/state/reploid/public-native-supply-retry.log",
   "state": {
     "phase": "ready",
     "error": null,

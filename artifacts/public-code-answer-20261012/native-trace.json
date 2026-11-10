@@ -1,5 +1,5 @@
 {
-  "sourcePath": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+  "sourcePath": "~/.local/state/reploid/public-native-budget-20261012.log",
   "readOnly": true,
   "sourceSizeAtRead": 1214134341,
   "scope": "Selected exact native state fields from adjacent complete JSON log rows; capability clocks are observations, not log timestamps; no restart or GPU launch.",

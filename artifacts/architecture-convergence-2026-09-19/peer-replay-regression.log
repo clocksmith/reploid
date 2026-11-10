@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/pool-peer-pack-job.test.js (23 tests) 1507ms
      ✓ enforces deadline, event, byte and admission limits without accepting a partial answer  704ms

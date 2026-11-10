@@ -3,7 +3,7 @@
   "node": "v22.23.2",
   "platform": "linux",
   "architecture": "x64",
-  "evidence": "/home/clocksmith/deco/reploid/artifacts/library-acceptance/2026-09-27T02-03-26-802Z",
+  "evidence": "~/deco/reploid/artifacts/library-acceptance/2026-09-27T02-03-26-802Z",
   "consumer": "/tmp/reploid-installed-consumer-V0joRE",
   "checks": [
     {
@@ -808,7 +808,7 @@
     "Deployment"
   ],
   "archive": {
-    "path": "/home/clocksmith/deco/reploid/artifacts/library-acceptance/2026-09-27T02-03-26-802Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-09-27T02-03-26-802Z/reploid-0.1.0.tgz",
     "sha256": "6b925138462ed8a88d99a53f1ce1703949cb91a86e6986afbe8c15fd95bd2ace"
   },
   "dopplerConsumer": "/tmp/reploid-doppler-consumer-G8xY2r",

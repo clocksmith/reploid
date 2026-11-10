@@ -1,8 +1,8 @@
 {
   "oldPid": 4037818,
-  "oldDirectory": "/home/clocksmith/deco/reploid",
-  "newDirectory": "/home/clocksmith/deco/reploid",
-  "log": "/home/clocksmith/.local/state/reploid/public-browser-recovery-20261012.log",
+  "oldDirectory": "~/deco/reploid",
+  "newDirectory": "~/deco/reploid",
+  "log": "~/.local/state/reploid/public-browser-recovery-20261012.log",
   "startedAt": 1791820187.0585124,
   "oldExitedAt": 1791820187.1590571,
   "newPid": 4088018,

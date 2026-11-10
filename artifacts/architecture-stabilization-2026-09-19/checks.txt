@@ -133,13 +133,13 @@ CHECK verify:pool:css
 [poolday-css-layers] OK: layering contract holds across tokens/primitives/components
 EXIT 0
 Generated application library assets: 99 files
-[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 417 modules
-[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
-[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+[module-inventory] Wrote ~/deco/reploid/self/config/module-inventory.json with 417 modules
+[genesis-manifest] Skipping ~/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote ~/deco/reploid/self/config/genesis-levels.json
 [blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
-[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
-[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
-[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 772 served files as sha256:44f2e297775e483307cae0a545d10df4028c294e620caaa5acfa5bb407e12779
+[module-registry] Unchanged ~/deco/reploid/self/config/module-registry.json
+[vfs-manifest] Wrote ~/deco/reploid/self/config/vfs-manifest.json
+[browser-bundle] Wrote ~/deco/reploid/self/config/browser-bundle-manifest.json with 772 served files as sha256:44f2e297775e483307cae0a545d10df4028c294e620caaa5acfa5bb407e12779
 [validate] {"sourceFiles":417,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
 [validate] Inventoried helpers: 239; modules without an architectural blueprint: 18
 {"changed": [], "idempotent": true}

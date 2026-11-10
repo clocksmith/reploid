@@ -1,7 +1,7 @@
 {
   "recordedAt": "2026-10-12T12:43:48.867835+00:00",
   "restoredPid": 4018571,
-  "profile": "/home/clocksmith/.local/share/reploid/live-compute-20261012",
+  "profile": "~/.local/share/reploid/live-compute-20261012",
   "phase": "Sharing",
   "progress": "Waiting for another contributor",
   "error": "",

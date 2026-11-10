@@ -55,7 +55,7 @@
     "vfs-full-suite-comparison.json": "f12d8bf75a273d1d657661d43e81794184e16e67adbdbb56bda6de1556cc8c4d",
     "vfs-installed-reploid.json": "06d7bbea2c5ef7b9decbf57ecac066dd5bcaec085c22e37273892d1826deda13",
     "vfs-installed-browser.json": "d5ea52ccb4a81576015a72ed8cb39880e837febccda74e8c3537848470a957d5",
-    "vfs-remote-reploid.log": "40e3fea185061873b028b6a6db2cc4eda3d00d1974d66803b0153a4f66709ec3"
+    "vfs-remote-reploid.log": "1f7a519e07d4efe7615d614d80aa49375d2cd0d70658903c984d2ded6c2b1f30"
   },
   "scope": "Storage readiness, existing database compatibility, transaction commit/abort and isolated connection cleanup; public installed Doppler contracts use injected programs. Verification policy remains an isolated draft candidate, not approved or activated self-modification. Physical model receipts retain their original revisions."
 }

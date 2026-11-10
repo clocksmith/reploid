@@ -3,7 +3,7 @@
   "native": {
     "pid": 4187994,
     "running": true,
-    "directory": "/home/clocksmith/.local/share/reploid/native-budget-20261012/reploid",
+    "directory": "~/.local/share/reploid/native-budget-20261012/reploid",
     "phase": "ready",
     "placement": [
       "peer:688e732256ab83155c54f72e",

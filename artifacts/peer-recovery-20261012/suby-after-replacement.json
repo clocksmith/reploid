@@ -3,7 +3,7 @@
   "native": {
     "pid": 4086709,
     "running": true,
-    "directory": "/home/clocksmith/.local/share/reploid/native-recovery-20261012/reploid",
+    "directory": "~/.local/share/reploid/native-recovery-20261012/reploid",
     "phase": "ready",
     "placement": [
       "peer:688e732256ab83155c54f72e",

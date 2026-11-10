@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/mesh-peer-identity.test.js (4 tests) 24ms
  ✓ tests/unit/pool-peer-adapter-execution.test.js (3 tests) 79ms

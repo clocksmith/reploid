@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/code-evolution.test.js (16 tests | 1 failed | 15 skipped) 53ms
      × evaluates a replacement after a rejected candidate against the same baseline 51ms

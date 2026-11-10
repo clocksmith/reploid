@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/clocksmith/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/pool-home-record.test.js (22 tests) 159ms
 POST http://localhost:3000/pool/research/records 401 (Unauthorized)

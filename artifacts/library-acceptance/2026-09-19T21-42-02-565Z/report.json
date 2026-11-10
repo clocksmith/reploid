@@ -3,7 +3,7 @@
   "node": "v22.23.2",
   "platform": "linux",
   "architecture": "x64",
-  "evidence": "/home/clocksmith/deco/reploid/artifacts/library-acceptance/2026-09-19T21-42-02-565Z",
+  "evidence": "~/deco/reploid/artifacts/library-acceptance/2026-09-19T21-42-02-565Z",
   "consumer": "/tmp/reploid-installed-consumer-XjOx1Y",
   "checks": [
     {
@@ -530,13 +530,13 @@
       "name": "installed-work-goal-lifecycle",
       "status": "failed",
       "durationMs": 57481.322966,
-      "error": "browserContext.newPage: Target page, context or browser has been closed\n    at /home/clocksmith/deco/reploid/tests/library-package-acceptance.js:328:40\n    at async check (/home/clocksmith/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///home/clocksmith/deco/reploid/tests/library-package-acceptance.js:317:7"
+      "error": "browserContext.newPage: Target page, context or browser has been closed\n    at ~/deco/reploid/tests/library-package-acceptance.js:328:40\n    at async check (~/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file://~/deco/reploid/tests/library-package-acceptance.js:317:7"
     },
     {
       "name": "provider-verification-worker",
       "status": "failed",
       "durationMs": 0.6782449999955134,
-      "error": "browser.newPage: Target page, context or browser has been closed\n    at /home/clocksmith/deco/reploid/tests/library-package-acceptance.js:461:36\n    at async check (/home/clocksmith/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///home/clocksmith/deco/reploid/tests/library-package-acceptance.js:457:7"
+      "error": "browser.newPage: Target page, context or browser has been closed\n    at ~/deco/reploid/tests/library-package-acceptance.js:461:36\n    at async check (~/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file://~/deco/reploid/tests/library-package-acceptance.js:457:7"
     }
   ],
   "scope": "Installed ESM imports, public boundaries, declaration resolution, asset identity and deterministic browser consumer.",
@@ -548,7 +548,7 @@
     "Deployment"
   ],
   "archive": {
-    "path": "/home/clocksmith/deco/reploid/artifacts/library-acceptance/2026-09-19T21-42-02-565Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-09-19T21-42-02-565Z/reploid-0.1.0.tgz",
     "sha256": "cc9f68996b14bea63e595fce0fbec175abd45f865d3bb8f41a0dd0f8824bc1a6"
   },
   "dopplerConsumer": "/tmp/reploid-doppler-consumer-hdDyXo",
