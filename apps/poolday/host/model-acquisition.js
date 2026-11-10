@@ -1,5 +1,8 @@
 /** Download consent and lifetime; Doppler owns acquisition, verification and resume. */
 import { DOPPLER_MODULE_URL } from '../../../shared/config/doppler-local-models.js';
+// Imports and adapter discovery cannot be cancelled by their native APIs. Stop
+// awaiting them on cancellation; neither operation starts a model transfer.
+import { untilAborted } from '../../../shared/vendor/reploid/cancellation.js';
 import { announceModelCacheChange } from './work-model-cache.js';
 import policy from '../config/chat-files.json' with { type: 'json' };
 
@@ -13,19 +16,6 @@ export async function retainedModelSource(model, load = loadModelCache) {
     await source.storageContext?.close?.(); return null;
   }
   return source;
-}
-
-// Imports and adapter discovery cannot be cancelled by their native APIs. Stop
-// awaiting them on cancellation; neither operation starts a model transfer.
-async function awaitSetup(pending, signal) {
-  signal.throwIfAborted();
-  let onAbort;
-  const aborted = new Promise((_, reject) => {
-    onAbort = () => reject(signal.reason);
-    signal.addEventListener('abort', onAbort, { once: true });
-  });
-  try { return await Promise.race([pending, aborted]); }
-  finally { signal.removeEventListener('abort', onAbort); }
 }
 
 export function acquisitionProgress(value) {
@@ -65,13 +55,13 @@ export function createModelAcquisition({ onChange = () => {}, load = loadModelCa
     operation.promise = Promise.resolve().then(async () => {
       const support = capabilities();
       const unsupported = supportError(); if (unsupported) throw Error(unsupported);
-      if (support.checkGpu && !await awaitSetup(support.checkGpu(), controller.signal)) throw Error('No WebGPU adapter is available. Reconnect to network capacity or try another browser.');
+      if (support.checkGpu && !await untilAborted(support.checkGpu(), controller.signal)) throw Error('No WebGPU adapter is available. Reconnect to network capacity or try another browser.');
       controller.signal.throwIfAborted();
       if (!Number.isSafeInteger(sizeBytes) || sizeBytes <= 0 || sizeBytes > policy.maxStoredBytes) throw Error('Model exceeds this device’s approved storage limit. Choose a smaller model.');
       const run = async lock => {
         if (!lock) throw Error('Another tab is downloading a model. Wait for it to finish, then retry.');
         controller.signal.throwIfAborted();
-        const cache = await awaitSetup(load(), controller.signal); controller.signal.throwIfAborted();
+        const cache = await untilAborted(load(), controller.signal); controller.signal.throwIfAborted();
         let source;
         try {
           source = await cache.ensureModelCachedSource(model.id, model.source.baseUrl.replace(/\/+$/, ''), value => {

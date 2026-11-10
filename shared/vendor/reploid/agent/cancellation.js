@@ -1,15 +1,2 @@
-/** @template T @param {() => T | Promise<T>} operation @param {AbortSignal} signal @returns {Promise<T>} */
-export function abortable(operation, signal) {
-  if (signal.aborted) return Promise.reject(signal.reason);
-  return new Promise((resolve, reject) => {
-    const abort = () => {
-      signal.removeEventListener('abort', abort);
-      reject(signal.reason);
-    };
-    signal.addEventListener('abort', abort, { once: true });
-    Promise.resolve().then(() => {
-      signal.throwIfAborted();
-      return operation();
-    }).then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
-  });
-}
+// The abort race lives at the library root so transport may use it; adapters/doppler.js still imports this path.
+export { abortable } from '../cancellation.js';

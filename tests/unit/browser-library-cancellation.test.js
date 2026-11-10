@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { abortable } from '../../packages/reploid/src/agent/cancellation.js';
+import { abortable } from '../../packages/reploid/src/cancellation.js';
 
 describe('borrowed operation cancellation', () => {
   it('releases its signal listener even when the borrowed operation never settles', async () => {

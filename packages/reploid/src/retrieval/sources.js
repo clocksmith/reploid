@@ -5,7 +5,7 @@ import { SHA256, sha256Text } from './text.js';
 import { COST_BEARERS, retrievalCostEntry, retrievalCostRecord, unknownRetrievalCosts } from './costs.js';
 // Provider and extractor calls are awaited only until the deadline passes or the attempt stops;
 // providers that ignore their signal cannot extend it.
-import { abortable } from '../agent/cancellation.js';
+import { abortable } from '../cancellation.js';
 
 export const RETRIEVAL_RECORD_SCHEMA = 'reploid.retrieval-record/v1';
 export const RETRIEVAL_OUTCOMES = Object.freeze(['pending', 'retrieved', 'empty', 'failed', 'cancelled', 'interrupted']);

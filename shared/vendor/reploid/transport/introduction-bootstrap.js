@@ -1,5 +1,6 @@
 import defaults from './introduction-policy.json' with { type: 'json' };
 import { boundedSnapshot, verifyContact } from './introduction-records.js';
+import { abortable, untilAborted } from '../cancellation.js';
 
 /** Host-owned entry points, tried in retained-contact order, then configured order. */
 export async function bootstrapIntroductions({ introductions, routes, store, signal, isConnected,
@@ -12,12 +13,7 @@ export async function bootstrapIntroductions({ introductions, routes, store, sig
   const local = introductions.exportContact(), roomId = local.body.roomId;
   signal?.throwIfAborted();
   const loadSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(policy.messageTtlMs)]) : AbortSignal.timeout(policy.messageTtlMs);
-  const loaded = store ? await new Promise((resolve, reject) => {
-    const aborted = () => reject(loadSignal.reason);
-    loadSignal.addEventListener('abort', aborted, { once: true });
-    Promise.resolve().then(() => store.load()).then(resolve, reject)
-      .finally(() => loadSignal.removeEventListener('abort', aborted));
-  }) : [];
+  const loaded = store ? await abortable(() => store.load(), loadSignal) : [];
   const saved = boundedSnapshot(loaded, policy.maxMessageBytes);
   if (!Array.isArray(saved) || saved.length > policy.maxBootstrapRoutes) throw new Error('Invalid retained introduction routes');
   const retained = new Map();
@@ -34,26 +30,22 @@ export async function bootstrapIntroductions({ introductions, routes, store, sig
     const lifetime = signal ? AbortSignal.any([signal, timeout]) : timeout;
     let session, remotePeerId, expired = false;
     onState({ state: 'connecting', routeId: route.id });
-    const abortable = operation => new Promise((resolve, reject) => {
-      const aborted = () => { expired = true; reject(lifetime.reason); };
-      if (lifetime.aborted) { aborted(); return; }
-      lifetime.addEventListener('abort', aborted, { once: true });
-      Promise.resolve(operation).then(resolve, reject).finally(() => lifetime.removeEventListener('abort', aborted));
-    });
+    // Each step stops waiting when this route attempt's lifetime ends.
+    const step = operation => untilAborted(operation, lifetime);
     try {
-      session = await abortable(Promise.resolve(route.open({ contact: local, retainedContact: retained.get(route.id) || null,
+      session = await step(Promise.resolve(route.open({ contact: local, retainedContact: retained.get(route.id) || null,
         signal: lifetime, receive: packet => introductions.receive(null, 'reploid:introduction-signal', packet,
           answer => { if (!session || lifetime.aborted) throw new Error('Bootstrap route closed'); return session.publish(answer); })
       })).then(opened => { if (expired || lifetime.aborted) { opened?.close(); throw new Error('Stale bootstrap opening'); } return opened; }));
       if (!session || typeof session.publish !== 'function' || typeof session.close !== 'function') throw new Error('Invalid bootstrap session');
-      const remote = await abortable(verifyContact(session.contact, { roomId, policy }));
+      const remote = await step(verifyContact(session.contact, { roomId, policy }));
       remotePeerId = remote.body.peerId;
       if (retained.has(route.id) && retained.get(route.id).body.participantId !== remote.body.participantId) throw new Error('Bootstrap participant changed');
-      await abortable(introductions.connect(remote, packet => {
+      await step(introductions.connect(remote, packet => {
         lifetime.throwIfAborted(); return session.publish(packet);
       }, lifetime));
       while (!isConnected(remote.body.peerId)) {
-        await abortable(new Promise(resolve => {
+        await step(new Promise(resolve => {
           const finish = () => { clearTimeout(timer); lifetime.removeEventListener('abort', finish); resolve(); };
           const timer = setTimeout(finish, 25);
           lifetime.addEventListener('abort', finish, { once: true });
@@ -62,7 +54,7 @@ export async function bootstrapIntroductions({ introductions, routes, store, sig
       lifetime.throwIfAborted();
       // Store public verified contact records, never keys, prompts or credentials.
       retained.set(route.id, remote);
-      if (store) await abortable(store.save([...retained].slice(-policy.maxBootstrapRoutes)
+      if (store) await step(store.save([...retained].slice(-policy.maxBootstrapRoutes)
         .map(([routeId, contact]) => ({ routeId, contact }))));
       onState({ state: 'connected', routeId: route.id, peerId: remote.body.peerId });
       return { routeId: route.id, peerId: remote.body.peerId, failures };

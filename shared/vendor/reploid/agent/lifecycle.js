@@ -1,4 +1,4 @@
-import { abortable } from './cancellation.js';
+import { abortable } from '../cancellation.js';
 
 export const TURN_NEXT = 'next';
 export const TURN_STOP = 'stop';

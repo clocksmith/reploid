@@ -1,7 +1,7 @@
 /** Coordinates verified acquisition across eligible sources. Existing custody
  * exchanges can supply read(piece); storage and source credentials are host ports.
  */
-import { abortable } from '../../agent/cancellation.js';
+import { untilAborted } from '../../cancellation.js';
 
 export function createPieceAcquisition({ sources, cache, authorize, verify, limits, foregroundIdle }) {
   if (typeof sources !== 'function' || typeof authorize !== 'function' || typeof verify !== 'function'
@@ -58,8 +58,7 @@ export function createPieceAcquisition({ sources, cache, authorize, verify, limi
       // Cancelling one consumer does not discard a shared verified transfer.
       const shared = task.promise;
       if (!signal) return shared.then(bytes => bytes.slice());
-      shared.catch(() => {}); // A failure after this consumer cancelled stays handled.
-      return abortable(() => shared, signal).then(bytes => bytes.slice());
+      return untilAborted(shared, signal).then(bytes => bytes.slice());
     },
     getReceipt: () => structuredClone(receipt),
     async close() {

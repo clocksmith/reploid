@@ -134,13 +134,13 @@
     },
     {
       "path": "agent/cancellation.d.ts",
-      "bytes": 96,
-      "sha256": "604bdedf590f80e78eb339f16cfa7e89fdac598b81a89b40226046cad8bb8e1b"
+      "bytes": 48,
+      "sha256": "a38eab7e60730ab99b09c8bdf205bb71956fd1dec6e217ca11e6a1176666890c"
     },
     {
       "path": "agent/cancellation.js",
-      "bytes": 621,
-      "sha256": "078cf6c78f3a26a107b3f38a58a3919ce70e6e367bc2aa739a922f4a4f577199"
+      "bytes": 162,
+      "sha256": "49c9b253af494be4bbbd4e60a14c90012d0707b828a069113f2ea00915602776"
     },
     {
       "path": "agent/cycle-artifacts.d.ts",
@@ -229,8 +229,8 @@
     },
     {
       "path": "agent/lifecycle.js",
-      "bytes": 2656,
-      "sha256": "9fffc98a8e6870d50bea18e09bba805c4dc9fe2e4b94c8900fd859e465f18c80"
+      "bytes": 2657,
+      "sha256": "c1587ddc9d5f5fccac4cb2dc47b7e648af37e1f935bedd402628815eca4c5b85"
     },
     {
       "path": "agent/protocol.json",
@@ -339,8 +339,8 @@
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 26054,
-      "sha256": "35320c556188fe481ba472211d5a80acc51a05bf923f45a60e4fdbfcbeeada23"
+      "bytes": 25965,
+      "sha256": "acea18b4aa42298f31ba383ae271862635332e142c068165b6c21274fa990bdf"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
@@ -349,8 +349,8 @@
     },
     {
       "path": "artifacts/custody/piece-acquisition.js",
-      "bytes": 3951,
-      "sha256": "fcb956e8d5ce42b15dd976036cc124bbb0106500b39686e644816753a7e2c3e2"
+      "bytes": 3857,
+      "sha256": "c4978c5afd6677ebbfd61e26860a3a2888ce7ae43afd464ef5a3d0c5a3e65084"
     },
     {
       "path": "artifacts/custody/runtime.d.ts",
@@ -476,6 +476,16 @@
       "path": "artifacts/whole-model-receipt.js",
       "bytes": 2848,
       "sha256": "6b5f81fcd8280b246f822ae5b3e1c897c592727b873212c01f03311d5aea27e0"
+    },
+    {
+      "path": "cancellation.d.ts",
+      "bytes": 187,
+      "sha256": "d4451d2b678c577239a3f540aea993da5647ab369175aa310b3e8dbd838bd737"
+    },
+    {
+      "path": "cancellation.js",
+      "bytes": 1249,
+      "sha256": "17e2de149196945585dea8258825883ead4ddb14969423dac9b0328ecefabdf3"
     },
     {
       "path": "chat/index.d.ts",
@@ -1354,8 +1364,8 @@
     },
     {
       "path": "retrieval/citations.js",
-      "bytes": 9451,
-      "sha256": "8d58feadb8d65796eac60f870aaa35cc2bb53858e6a7ddf49a988a26e026995a"
+      "bytes": 9445,
+      "sha256": "3f41f6008d58b30873e590f31e9769862b8fde0fdc56b153a6f2dabc2ad90529"
     },
     {
       "path": "retrieval/claim-support.js",
@@ -1424,8 +1434,8 @@
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 18382,
-      "sha256": "5b6ecfad1d095c962ed6b0991b435c6536a2b59fb367447c270022a32e2726a3"
+      "bytes": 18376,
+      "sha256": "3a647da701d332715c291070486ed170a8eb29ed57588025ecce24a0bc3ad9bc"
     },
     {
       "path": "retrieval/support-review.js",
@@ -1514,8 +1524,8 @@
     },
     {
       "path": "transport/introduction-bootstrap.js",
-      "bytes": 7793,
-      "sha256": "2dbd3f813e6eaab4d2e843dd39fc28f9657a5bcd73c28364eb95e0f6376c5bb5"
+      "bytes": 7320,
+      "sha256": "1b65af48e0ec0d5c28e453df9080319d67134b22d012452547a8ac0d86a96d1e"
     },
     {
       "path": "transport/introduction-policy.json",

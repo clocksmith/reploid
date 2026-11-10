@@ -1,7 +1,7 @@
 /** Mechanical citation checks for one answer against its retrieval record. Parsing and mapping are exact;
  * whether a source supports a claim is delegated to a host support checker and is never inferred here. */
 import { sumMicroUsd } from './costs.js';
-import { abortable } from '../agent/cancellation.js';
+import { abortable } from '../cancellation.js';
 
 export const CITATION_VERIFICATION_SCHEMA = 'reploid.citation-verification/v1';
 export const SUPPORT_VERDICTS = Object.freeze(['supported', 'unsupported', 'unverified']);
