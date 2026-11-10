@@ -1,7 +1,7 @@
 {
   "schema": "reploid.product-closure-evidence/v1",
   "archive": "evidence.tar.gz",
-  "sha256": "5b3c7cc61c916b81cc32d60b8d448ceda802512ffc55b5870df8fa7f18fc1092",
+  "sha256": "3ae264c1216e533f4193e1ec4f9d0d0485890fefffd3e138a7862ac224e5d54c",
   "sourceBaseRevision": "855e429b34567924513a31cf4d295ebbff5bc969",
   "sourceDirty": true,
   "browserBundleHash": "sha256:5f744a3790847f69204e536d9373ad495265bf10ad406c76820e4c36a2d07da4",

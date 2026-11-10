@@ -17,7 +17,7 @@ const apple = await pinned(originalRoot,
   'reploid-useful-specialization-20260907/answers-03/execution.json',
   'sha256:5992b11cdcff073f9d90e6bebc916765bb2bde2d5883dff0dca4face9dcab5d5');
 const linux = await pinned(linuxRoot, 'answers-linux-01/execution.json',
-  'sha256:ece0d5eab6481d09a0ab1f4a4aa2f86e7041a60353877b4f05d8e2757c4d2cd5');
+  'sha256:462b30344c09d1156be4716b5c6a8d023a8973ed4d5b67928b93fa36e9ef39fb');
 assert.equal(linux.executionPassed, true);
 assert.equal(linux.semanticSupportQualified, false);
 assert.equal(linux.execution.gpu.vendor, 'intel');
@@ -54,13 +54,13 @@ let sourceMatches = null;
 if (process.argv[4]) {
   const sourceRoot = resolve(process.argv[4]);
   const source = await pinned(sourceRoot, 'source-reference-02/reference.json',
-    'sha256:c58dae96937f926a0c20e0a0f3dbcfde8f5b057019c2782882becbf2980f9a25');
+    'sha256:1057d39af92354cb05e1daae4afe26cbfc19b0e6fde9604279d75fc99f60d08c');
   const inputBytes = await readFile(resolve(sourceRoot, 'source-inputs.json'));
   assert.equal(digest(inputBytes), source.inputDigest);
   const inputs = JSON.parse(inputBytes);
   assert.equal(source.executionDigest, inputs.executionDigest);
   assert.equal(source.executionDigest,
-    'sha256:ece0d5eab6481d09a0ab1f4a4aa2f86e7041a60353877b4f05d8e2757c4d2cd5');
+    'sha256:462b30344c09d1156be4716b5c6a8d023a8973ed4d5b67928b93fa36e9ef39fb');
   assert.equal(source.complete, true);
   assert.equal(source.semanticSupportQualified, false);
   assert.equal(source.tokenizationMatchedCases, 8);

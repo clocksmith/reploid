@@ -23,8 +23,8 @@
   "files": [
     {
       "path": "episode.json",
-      "hash": "sha256:b97d459315e3896e7f93ca8bbfe843efd52cd87c216dd2d7d733872e5fb36417",
-      "sizeBytes": 999765
+      "hash": "sha256:246a096e8a5500087c2f745bbfb806457f805a814662c07daa475a6fd572b9f3",
+      "sizeBytes": 999720
     },
     {
       "path": "pack/pack.json",

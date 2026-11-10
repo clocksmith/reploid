@@ -54,7 +54,7 @@ the ticket improvement does not justify overlooking the other failures.
 full browser reports, raw answers, corpus, model acquisition identities,
 captured runtime sources, candidate prompt, runner, and comparator. It omits
 model weights. Archive SHA-256:
-`53d32956d9db05ea66ee19668591a0a58cbc3bc8eacbcccbbd02b6c34451803f`.
+`68e9a5554d942252bb3586a3ac2e8a89eb68bc59d294e70f23c3a17bd20dd26a`.
 
 Extract into a fresh directory and run:
 

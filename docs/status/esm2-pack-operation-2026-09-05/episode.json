@@ -12,8 +12,8 @@
   },
   "config": {
     "packPath": "/tmp/doppler-esm2-closed-pack-34q5w4/pack/pack.json",
-    "dopplerRoot": "/home/clocksmith/deco/doppler",
-    "referencePath": "/home/clocksmith/deco/doppler/tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+    "dopplerRoot": "~/deco/doppler",
+    "referencePath": "~/deco/doppler/tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
     "referenceDigest": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
     "dopplerVersion": "0.5.1",
     "runtimeBootstrapShaders": [
@@ -27,7 +27,7 @@
       }
     ],
     "outputPath": "/tmp/esm2-operation-proof-eTNoNm/episode.json",
-    "browserExecutablePath": "/home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
+    "browserExecutablePath": "~/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
     "browserArgs": [
       "--enable-unsafe-webgpu",
       "--ignore-gpu-blocklist",
