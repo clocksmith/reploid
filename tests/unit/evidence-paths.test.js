@@ -12,6 +12,31 @@ describe('evidence paths', () => {
       `at ~/deco/a.js:1\nfile://~/deco/b.js "cwd": "~" ${home}-other ${home}er/x`);
   });
 
+  it('replaces other users\' homes too: Linux, macOS, ../ chains, escaped slashes and Windows forms', () => {
+    // Built from parts so this file carries no literal home path.
+    const linux = ['', 'home', 'peer'].join('/'), mac = ['', 'Users', 'peer'].join('/');
+    const windows = ['C:', 'Users', 'peer'].join('\\');
+    const text = [`${linux}/a.js`, `file://${mac}/b`, `\u001b[90m${linux}/c`, `file:../..${linux}/d`,
+      `${linux.replaceAll('/', '\\/')}\\/e`, `${windows}\\f`, windows.replaceAll('\\', '/') + '/g',
+      JSON.stringify(`${windows}\\h`)].join(' ');
+    expect(redactHomeText(text, { home })).toBe(
+      ['~/a.js', 'file://~/b', '\u001b[90m~/c', 'file:~/d', '~\\/e', '~\\f', '~/g', '"~\\\\h"'].join(' '));
+  });
+
+  it('leaves URL paths, shared folders and look-alike names alone', () => {
+    const url = `http://127.0.0.1:8080${['', 'home', 'peer', 'x'].join('/')}`;
+    const shared = ['', 'Users', 'Shared', 'x'].join('/');
+    expect(redactHomeText(`${url} ${shared}`, { home })).toBe(`${url} ${shared}`);
+    expect(redactHomeText(`${['', 'home', 'peer'].join('/')}. Done`, { home })).toBe('~. Done');
+  });
+
+  it('matches a Windows current home in any separator form and letter case', () => {
+    const windowsHome = ['C:', 'Users', 'Operator'].join('\\');
+    expect(redactHomeText(['c:', 'users', 'operator', 'x'].join('/'), { home: windowsHome })).toBe('~/x');
+    expect(redactHomeText(['D:', 'Profiles', 'Operator', 'x'].join('\\\\'), { home: ['D:', 'Profiles', 'Operator'].join('\\') }))
+      .toBe('~\\\\x');
+  });
+
   it('writes repo-relative paths inside the checkout and ~/ paths elsewhere under home', () => {
     const root = path.join(home, 'deco', 'reploid');
     expect(portablePath(path.join(root, 'artifacts', 'x.json'), { root, home })).toBe(path.join('artifacts', 'x.json'));
