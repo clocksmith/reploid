@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { sha256Hex } from './hashing.js';
 
 /** Explicitly rooted VFS backups and development console storage. */
 export function mountProxyStorageRoutes(app, { rootDirectory, requireServerAccess }) {
@@ -8,7 +9,7 @@ const VFS_BACKUP_DIRECTORY = path.join(rootDirectory, 'vfs_backups');
 const VFS_BACKUP_MAX_BYTES = Number(process.env.REPLOID_VFS_BACKUP_MAX_BYTES || 1024 * 1024);
 const vfsBackupPathFor = (req) => {
   const subject = String(req.reploidAccessSubject || 'unknown');
-  const namespace = crypto.createHash('sha256').update(subject).digest('hex');
+  const namespace = sha256Hex(subject);
   return path.join(VFS_BACKUP_DIRECTORY, `${namespace}.json`);
 };
 

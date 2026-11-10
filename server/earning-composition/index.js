@@ -31,7 +31,7 @@
  * again together with any composition lacking a real sign-in provider.
  */
 
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { timingSafeEqual } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -45,6 +45,7 @@ import { createFirestoreCommunityAccessBackend, createMemoryCommunityAccessBacke
 import { EARNING_ROUTES_PREFIX } from '../earning-routes/mount.js';
 import { createFirestoreRouteBackend, createMemoryRouteBackend } from '../earning-routes/idempotency.js';
 import { buildQuote, hashCanonical } from '../ledger/domain.js';
+import { sha256Hex } from '../hashing.js';
 import { createLedgerStore } from '../ledger/engine.js';
 import { createFirestoreLedgerBackend } from '../ledger/firestore-store.js';
 import { createMemoryLedgerBackend, createMemoryLedgerState } from '../ledger/memory-store.js';
@@ -71,7 +72,6 @@ const refuse = (code, message) => {
   throw new EarningPolicyError(code, message);
 };
 const read = (env, name) => (typeof env[name] === 'string' && env[name].trim() ? env[name].trim() : null);
-const sha256 = (value) => createHash('sha256').update(value).digest('hex');
 const switchOn = (env, name, production) => {
   const value = read(env, name);
   if (value === null || value === 'disabled') return false;
@@ -95,7 +95,7 @@ export function createOperatorAuthority(file) {
   return Object.freeze({
     async authenticate({ token } = {}) {
       if (typeof token !== 'string' || !token) return null;
-      const digest = Buffer.from(sha256(token), 'hex');
+      const digest = Buffer.from(sha256Hex(token), 'hex');
       const match = operators.find((entry) => entry.digest.length === digest.length && timingSafeEqual(entry.digest, digest));
       return match ? { actorId: match.actorId, roles: [...match.roles] } : null;
     }

@@ -1,12 +1,11 @@
-import { canonicalize } from '../artifacts/canonical-json.js';
+import { hashJson } from '../artifacts/signatures.js';
 
 export const TOOL_OFFER_MESSAGE = 'reploid:tool-offer';
 export const TOOL_OFFER_ACK = 'reploid:tool-offer-ack';
 const copy = value => JSON.parse(JSON.stringify(value));
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const bytes = value => new TextEncoder().encode(value);
-const digest = async value => 'sha256:' + [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes(canonicalize(value))))]
-  .map(byte => byte.toString(16).padStart(2, '0')).join('');
+const digest = hashJson;
 const hashPattern = /^sha256:[a-f0-9]{64}$/;
 const identifier = value => typeof value === 'string' && /^[a-zA-Z0-9:._-]{1,180}$/.test(value);
 

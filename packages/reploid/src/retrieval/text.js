@@ -1,12 +1,9 @@
 /** Text identity and word tokens shared by retrieval, citation checks and the fixed test provider. */
-const encoder = new TextEncoder();
+import { sha256Hex } from '../artifacts/signatures.js';
 
 export const SHA256 = /^sha256:[a-f0-9]{64}$/;
 
-export async function sha256Text(text) {
-  const digest = await globalThis.crypto.subtle.digest('SHA-256', encoder.encode(String(text)));
-  return 'sha256:' + Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
-}
+export const sha256Text = text => sha256Hex(String(text));
 
 // Function words carry no checkable content. Negations are deliberately absent.
 export const STOPWORDS = new Set(('a an and are as at be been being but by can could did do does for from had has have he her his '

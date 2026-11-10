@@ -1,7 +1,7 @@
 /** Operator-local model configuration; never public catalog or release authority. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { sha256Digest } from './hashing.js';
 import { resolveGenerationOptions } from '../shared/config/doppler-generation-contract.js';
 
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
@@ -22,7 +22,7 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
   const manifestPath = await fs.realpath(path.join(root, 'manifest.json'));
   requireValue(path.dirname(manifestPath) === root, 'Native model manifest escapes the approved directory');
   const bytes = await fs.readFile(manifestPath);
-  requireValue('sha256:' + createHash('sha256').update(bytes).digest('hex') === model.identity,
+  requireValue(sha256Digest(bytes) === model.identity,
     'Native model configuration differs from the actual manifest');
   const manifest = JSON.parse(bytes);
   requireValue(manifest.modelId === model.id, 'Native model configuration differs from the actual model id');

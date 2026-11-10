@@ -2,10 +2,10 @@
  * @fileoverview Firestore compare-and-append Change Passport store.
  */
 
-import crypto from 'crypto';
+import { sha256Hex } from '../hashing.js';
 
 const cloneJson = (value) => JSON.parse(JSON.stringify(value));
-const documentId = (value) => crypto.createHash('sha256').update(String(value)).digest('hex');
+const documentId = (value) => sha256Hex(String(value));
 const eventId = (sequence) => String(sequence).padStart(12, '0');
 
 const assertPrior = (snapshot, requestHash, label) => {

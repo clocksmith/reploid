@@ -7,6 +7,7 @@
  */
 import crypto from 'node:crypto';
 import express from 'express';
+import { sha256Hex } from '../hashing.js';
 import { extractDocumentText } from '../../packages/reploid/src/retrieval/page-text.js';
 import { selectPassage } from '../../packages/reploid/src/retrieval/passage.js';
 import pageFetchPolicy from '../../packages/reploid/src/retrieval/page-fetch.json' with { type: 'json' };
@@ -16,7 +17,6 @@ export const SERVER_SEARCH_RESULTS_SCHEMA = 'reploid.server-search-results/v1';
 export const SERVER_PASSAGE_SCHEMA = 'reploid.server-passage/v1';
 const MAX_QUERY = 512, MAX_COUNT = 20, MAX_PASSAGE = 12000, SEARCH_DEADLINE_MS = 10000;
 
-const sha256Hex = value => crypto.createHash('sha256').update(value).digest('hex');
 const mac = (secret, url, expiresAt) => crypto.createHmac('sha256', secret).update(`${url}\n${expiresAt}`).digest('base64url');
 
 export function signFetchToken(secret, url, expiresAt) { return `${mac(secret, url, expiresAt)}.${expiresAt}`; }

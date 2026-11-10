@@ -1,4 +1,5 @@
 /** Training lifecycle only. Doppler owns sample identities, gradients and optimizer state. */
+import { sha256HexUnprefixed } from '../artifacts/signatures.js';
 const assert = (value, message) => { if (!value) throw new Error(message); };
 const copy = value => structuredClone(value);
 
@@ -144,7 +145,7 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
         }
         const exported = await call('export', { ...input.adapter, weightsPath: 'adapter.safetensors', metadata: provenance }, signal);
         assert(exported.weights instanceof ArrayBuffer && exported.weightsSha256, 'Doppler returned no verified adapter weights');
-        const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', exported.weights))].map(byte => byte.toString(16).padStart(2, '0')).join('');
+        const digest = await sha256HexUnprefixed(new Uint8Array(exported.weights));
         current(signal);
         assert(digest === exported.weightsSha256 && exported.manifest.checksum === digest, 'Exported adapter checksum mismatch');
         candidate = { ...exported, metrics, evaluated: false, activated: false };

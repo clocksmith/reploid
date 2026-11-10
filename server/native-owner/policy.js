@@ -3,7 +3,7 @@
  * control, and an unrecognized key is rejected rather than silently ignored. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { sha256Digest } from '../hashing.js';
 
 export const NATIVE_OWNER_POLICY_SCHEMA = 'reploid.native-owner-policy/v1';
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -173,7 +173,7 @@ function deepFreeze(value) {
   return Object.freeze(value);
 }
 
-export const nativeOwnerPolicyDigest = policy => 'sha256:' + createHash('sha256').update(JSON.stringify(policy)).digest('hex');
+export const nativeOwnerPolicyDigest = policy => sha256Digest(JSON.stringify(policy));
 
 /** Reads the owner file once. The path must be absolute and name a regular file. */
 export async function readNativeOwnerPolicy(file, { custody }) {

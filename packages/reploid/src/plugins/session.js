@@ -1,4 +1,5 @@
 import { canonicalize } from '../artifacts/canonical-json.js';
+import { hashJson } from '../artifacts/signatures.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -30,8 +31,7 @@ export async function openPluginSession({ definition, config, sessionId, store, 
     }
   } else {
     const frozen = copy(config);
-    const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalize({ manifest, config: frozen })));
-    const configurationHash = 'sha256:' + [...new Uint8Array(bytes)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    const configurationHash = await hashJson({ manifest, config: frozen });
     record = { schema: 'reploid.plugin-session/v1', id: sessionId, plugin: manifest, configurationHash,
       config: frozen, createdAt: now(), status: 'ready', state: definition.initialize(copy(frozen)), effects: [], events: [] };
     await save();

@@ -1,5 +1,6 @@
 import { toBase64Url, fromBase64Url } from './binary.js';
 import { canonicalize as stableJson } from './canonical-json.js';
+import { sha256HexUnprefixed } from './signatures.js';
 const encoder = new TextEncoder();
 
 
@@ -11,10 +12,6 @@ const getCryptoApi = (cryptoApi) => {
   return api;
 };
 
-async function sha256Hex(text, cryptoApi = globalThis.crypto) {
-  const digest = await getCryptoApi(cryptoApi).subtle.digest('SHA-256', encoder.encode(String(text || '')));
-  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
-}
 
 function inferIdentityAlgorithm(bundleOrJwk = {}) {
   const algorithm = String(bundleOrJwk?.algorithm || '').trim();
@@ -46,7 +43,7 @@ export async function createPeerIdFromPublicJwk(publicJwk, cryptoApi = globalThi
     n: publicJwk.n || null,
     e: publicJwk.e || null
   } : {};
-  const digest = await sha256Hex(stableJson(publicShape), cryptoApi);
+  const digest = await sha256HexUnprefixed(stableJson(publicShape), getCryptoApi(cryptoApi));
   return `peer:${digest.slice(0, 24)}`;
 }
 

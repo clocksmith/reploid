@@ -2,7 +2,7 @@
  * @fileoverview Deterministic identity for the code and locked inputs executed by Cloud Run.
  */
 
-import { createHash } from 'crypto';
+import { sha256Digest as sha256 } from '../hashing.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -26,7 +26,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DEFAULT_ROOT = path.resolve(__dirname, '..', '..');
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
-const sha256 = (bytes) => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 
 const normalizeRelativePath = (value) => {
   const normalized = String(value || '').replace(/\\/g, '/').replace(/^\.\//, '');

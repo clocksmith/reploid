@@ -817,13 +817,13 @@
     },
     {
       "path": "mesh/index.d.ts",
-      "bytes": 2262,
-      "sha256": "e1910db5574cca3cc7afdb61eb61d94d5da3089f77a992f6b6b11fb3b1d86b38"
+      "bytes": 2397,
+      "sha256": "fb35a1c3e3c79a93734b93dbfbc691fb901c3429b3446ca0c25657badb2ccd25"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 3757,
-      "sha256": "71d85d0a6f8199ca777a271ab5d7e2848237038cc23ed82cf93318c177486394"
+      "bytes": 3908,
+      "sha256": "8c88234fea460d5eb609e71643552fe9a53c9aad8e6842712188440f603ce7f7"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
@@ -884,16 +884,6 @@
       "path": "mesh/jobs/requester.js",
       "bytes": 10675,
       "sha256": "47bb5e9876f1d903ee77661f03c6c0a04b3dab73c46f1d60fa0b5645310f596f"
-    },
-    {
-      "path": "mesh/legacy-generation.d.ts",
-      "bytes": 3460,
-      "sha256": "39426b20f3d7a9defa7e9898743cf722b7d425fa3d7897982301e28aeef5a207"
-    },
-    {
-      "path": "mesh/legacy-generation.js",
-      "bytes": 39487,
-      "sha256": "bf6ba21cabc418d4e5e53dfd03028f0a3cdbb5bb41645bb2f22a1c15298b8a54"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1269,6 +1259,16 @@
       "path": "mesh/partitions/signed-resident-factory.js",
       "bytes": 3679,
       "sha256": "c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5"
+    },
+    {
+      "path": "mesh/peer-generation.d.ts",
+      "bytes": 3470,
+      "sha256": "9031fa58275de8e1a343dd82fccbdc95550636590e313987bb32be4d1136179b"
+    },
+    {
+      "path": "mesh/peer-generation.js",
+      "bytes": 39584,
+      "sha256": "cf64d2caab76a8ed4c8e6a56e4d22515eb5545d3895218d07044d81ccc4e026a"
     },
     {
       "path": "mesh/peer-identity.js",

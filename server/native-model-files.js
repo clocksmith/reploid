@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import { openNativeSupplyBudget } from './native-supply-budget.js';
 import { constants } from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { sha256Hex as digest } from './hashing.js';
 import { createCustodyExchange, createCustodyContracts, createPieceAcquisition } from '../packages/reploid/src/artifacts/custody/runtime.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../packages/reploid/src/artifacts/signatures.js';
 import { createPeerPackDataChannel } from '../apps/poolday/pool/peer-pack-data-channel.js';
@@ -14,7 +14,6 @@ import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' 
 import { resolveServedFile } from './browser-roots.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
-const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const key = file => { assert(file.hashAlgorithm === 'sha256' && /^[a-f0-9]{64}$/.test(file.hash), 'Pinned SHA-256 file required'); return 'sha256-' + file.hash; };
 const verify = async (file, bytes) => {
   assert(bytes instanceof Uint8Array && bytes.byteLength === file.sizeBytes && bytes.byteLength <= policy.maxArtifactBytes,

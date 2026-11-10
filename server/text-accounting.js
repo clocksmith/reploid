@@ -1,7 +1,7 @@
 /** Whole-model HTTP accounting over accepted ledger quotes. No prices, credits,
  * quality rules or account authority originate here. Interrupted dispatch stays
  * held until execution evidence exists; reconnecting never executes it again. */
-import { createHash } from 'node:crypto';
+import { sha256Hex as key } from './hashing.js';
 import { assertLedgerBackend, assertLedgerStoreContract } from './ledger/store-contract.js';
 import { billableEventIdFor } from './ledger/attempt-outcomes.js';
 import { conversionHash } from './ledger/conversion/records.js';
@@ -13,7 +13,6 @@ import { hashJson } from '../packages/reploid/src/artifacts/signatures.js';
 import { partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 
 export const TEXT_ACCOUNTING_COLLECTIONS = Object.freeze({ jobs: 'text_accounting_jobs', receipts: 'text_accounting_receipts' });
-const key = value => createHash('sha256').update(value).digest('hex');
 const assert = (ok, message, status = 409) => { if (!ok) throw Object.assign(Error(message), { status }); };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const text = value => typeof value === 'string' && value.length > 0 && value.length <= 512;

@@ -1,10 +1,10 @@
 /** Durable exposure limits around accepted ledger reservations. This creates no money,
  * price, credit, or settlement. Quote and settled-cost projections belong to the ledger adapter. */
 import { assertLedgerBackend } from './ledger/store-contract.js';
-import { createHash } from 'node:crypto';
+import { sha256Hex } from './hashing.js';
 
 export const TRIAL_COLLECTIONS = Object.freeze({ totals: 'trial_totals', accounts: 'trial_accounts', holds: 'trial_holds' });
-const key = (...parts) => createHash('sha256').update(JSON.stringify(parts)).digest('hex');
+const key = (...parts) => sha256Hex(JSON.stringify(parts));
 const assert = (ok, message, status = 409) => { if (!ok) throw Object.assign(Error(message), { status }); };
 const amount = n => Number.isSafeInteger(n) && n >= 0;
 const text = value => typeof value === 'string' && value.length > 0 && value.length <= 512;

@@ -8,8 +8,7 @@ import { collectUnknownKeys } from '../input-validation.js';
  * price, reward or policy value.
  */
 
-import { createHash } from 'node:crypto';
-
+import { canonicalJson, hashCanonical, sha256Hex } from '../hashing.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 
 export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.4.0';
@@ -81,19 +80,8 @@ export const fail = (code, message, details) => {
   throw new LedgerError(code, message, details);
 };
 
-export const canonicalJson = (value) => {
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort()
-      .filter((key) => value[key] !== undefined)
-      .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
-      .join(',')}}`;
-  }
-  return JSON.stringify(value ?? null);
-};
-
-export const sha256Hex = (value) => createHash('sha256').update(String(value)).digest('hex');
-export const hashCanonical = (value) => `sha256:${sha256Hex(canonicalJson(value))}`;
+// Ledger ids and record hashes use the hosted services' one canonical JSON and SHA-256.
+export { canonicalJson, sha256Hex, hashCanonical };
 export const cloneJson = (value) => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
 const deepFreeze = (value) => {
   if (value && typeof value === 'object') Object.values(value).forEach(deepFreeze);

@@ -1,6 +1,7 @@
 import defaults from './defaults.json' with { type: 'json' };
 import requestPolicy from './request-overrides.json' with { type: 'json' };
 import routing from '../rules/routing.rules.json' with { type: 'json' };
+import { sha256Hex } from '../artifacts/signatures.js';
 
 const resolvedConfigurations = new WeakSet();
 const forbiddenKeys = new Set(['__proto__', 'prototype', 'constructor']);
@@ -204,6 +205,5 @@ export function requireResolvedConfig(config) {
 
 export async function hashConfiguration(config, cryptoApi = globalThis.crypto) {
   requireResolvedConfig(config);
-  const bytes = await cryptoApi.subtle.digest('SHA-256', new TextEncoder().encode(config.identity));
-  return `sha256:${Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('')}`;
+  return sha256Hex(config.identity, cryptoApi);
 }

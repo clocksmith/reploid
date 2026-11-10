@@ -1,10 +1,7 @@
 import { snapshotJson, hashConfiguration } from '../config/index.js';
+import { sha256Hex } from './signatures.js';
 
-async function digest(value, cryptoApi) {
-  const bytes = new TextEncoder().encode(JSON.stringify(snapshotJson(value)));
-  const hash = await cryptoApi.subtle.digest('SHA-256', bytes);
-  return `sha256:${Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('')}`;
-}
+const digest = (value, cryptoApi) => sha256Hex(JSON.stringify(snapshotJson(value)), cryptoApi);
 
 export async function createCheckpoint({ config, instanceId, state, cryptoApi = globalThis.crypto }) {
   const payload = snapshotJson({ schema: 'reploid.checkpoint/v1', instanceId,

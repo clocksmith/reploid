@@ -2,7 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createHash } from 'node:crypto';
+import { sha256Digest } from './hashing.js';
 import { createReploidDopplerRuntimeService } from '../shared/infrastructure/doppler-runtime-service.js';
 import { createWorkResidentProvider } from '../apps/poolday/providers/work-resident-provider.js';
 import { createWorkAdapterResolver, selectWorkAdapters } from '../apps/poolday/providers/work-adapter.js';
@@ -55,7 +55,7 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         const manifestPath = await fs.realpath(path.join(root, 'manifest.json'));
         if (!manifestPath.startsWith(root + path.sep)) throw new Error('Native whole-model manifest escapes approved directory');
         const manifest = await fs.readFile(manifestPath);
-        if ('sha256:' + createHash('sha256').update(manifest).digest('hex') !== model.identity) {
+        if (sha256Digest(manifest) !== model.identity) {
           throw new Error('Native whole-model manifest differs from the catalog');
         }
         if (!enabled || closed) throw new Error('Whole-model contribution stopped');

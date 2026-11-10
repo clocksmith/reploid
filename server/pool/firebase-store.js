@@ -6,6 +6,7 @@ import { createPeerRoomRelayRecord } from './relay-record.js';
 import crypto from 'crypto';
 import { prepareReceiptSettlement, validateSettlementSnapshot } from './services/acceptance-settlement.js';
 import { hashJson } from './hash.js';
+import { sha256Hex } from '../hashing.js';
 import poolStore from './store.js';
 import { assertPoolStoreContract } from './store-contract.js';
 import { resolveIdempotentRelay } from './relay-identity.js';
@@ -163,10 +164,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const normalizedKey = String(key || 'unknown');
       const bucketStart = Math.floor(Number(now) / bucketMs) * bucketMs;
       const resetAt = bucketStart + bucketMs;
-      const bucketId = crypto
-        .createHash('sha256')
-        .update(`${normalizedKey}:${bucketStart}`)
-        .digest('hex');
+      const bucketId = sha256Hex(`${normalizedKey}:${bucketStart}`);
       const bucketRef = doc(COLLECTIONS.rateLimits, bucketId);
       const consume = async (transaction = null) => {
         const snapshot = transaction
@@ -176,7 +174,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         const count = current + 1;
         const record = {
           bucketId,
-          keyHash: crypto.createHash('sha256').update(normalizedKey).digest('hex'),
+          keyHash: sha256Hex(normalizedKey),
           count,
           limit: maxRequests,
           bucketStart,

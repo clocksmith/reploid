@@ -23,7 +23,7 @@ import { installedPackageDirectory, nativeShaderCacheIdentity, openNativeShaderC
 import { openNativeReadinessLog } from './native-readiness-log.js';
 import { createReadinessRecorder } from '../packages/reploid/src/measurement/index.js';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { sha256Digest as hash, sha256Hex } from './hashing.js';
 import { EventEmitter } from 'node:events';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -48,7 +48,6 @@ import { assertWorkResidentCapsule } from '../apps/poolday/host/work-partition-c
 import { createPartitionTokenizerGuard } from '../apps/poolday/host/work-partition-tokenizer-guard.js';
 import { resolveServedFile } from './browser-roots.js';
 
-const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
 /** CLI status only. Detailed receipts remain available through getState(); routine
@@ -777,7 +776,7 @@ is separate from backend selection; --help opens no provider.`);
     generationJournalFile: path.join(path.dirname(identityFile), 'generation-journal.sqlite'),
     webWorker,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
-      createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
+      sha256Hex(values.room || bootstrap.publicRoomId)) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
     onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
     onChange: state => {

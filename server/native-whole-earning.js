@@ -1,7 +1,7 @@
 /** Durable whole-model contribution references. The service owns validation,
  * settlement and issuance; this file retains no prompts or generated text. */
 import { verifyReceipt } from '../packages/reploid/src/artifacts/receipt.js';
-import { createHash } from 'node:crypto';
+import { sha256Hex } from './hashing.js';
 
 const STORE = 'whole-model-work';
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
@@ -22,7 +22,7 @@ export function createNativeWholeEarning({ storage, participantId, ownerPolicyDi
       assert(offer, 'Whole-model offer must be accepted before admitting requests');
       return serial(async () => {
         const rows = await read(), jobHash = `request:${requestId}`;
-        const admissionKey = 'whole-admission:' + createHash('sha256').update(JSON.stringify([participantId, consumer, requestId])).digest('hex');
+        const admissionKey = 'whole-admission:' + sha256Hex(JSON.stringify([participantId, consumer, requestId]));
         const prior = await storage.get(admissionKey);
         assert(!prior, 'Whole-model admission already recorded; do not repeat execution');
         const record = { jobHash, consumer, offerId: offer.offerId, model, startedAt: now(), receiptId: null, ownerPolicyDigest };

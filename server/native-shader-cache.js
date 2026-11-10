@@ -24,7 +24,8 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
+import { canonicalJson, sha256Hex as sha256 } from './hashing.js';
 
 export const NATIVE_SHADER_CACHE_SCHEMA = 'reploid.native-shader-cache/v1';
 const SEAL_SCHEMA = 'reploid.native-shader-cache-seal/v1';
@@ -36,18 +37,11 @@ const DRIVER_ENVIRONMENT = /^(MESA|INTEL|ANV|RADV|ACO|NIR|LP|GALLIUM|VK)_/;
 const SESSION = /^([0-9a-f]{12})-(\d+)-(\d+)-([0-9a-f]{8})(?:\.rejected)?$/;
 const PROMOTION = /^\.promote-([0-9a-f]{12}-\d+-\d+-[0-9a-f]{8})$/;
 
-const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 const missing = error => error?.code === 'ENOENT' || error?.code === 'ENOTDIR';
 const present = target => fs.lstat(target).then(() => true, error => { if (missing(error)) return false; throw error; });
 
-export function canonicalJson(value) {
-  if (value === undefined) return 'null';
-  if (Array.isArray(value)) return '[' + value.map(canonicalJson).join(',') + ']';
-  if (value && typeof value === 'object') return '{' + Object.keys(value).sort().filter(key => value[key] !== undefined)
-    .map(key => JSON.stringify(key) + ':' + canonicalJson(value[key])).join(',') + '}';
-  return JSON.stringify(value);
-}
+export { canonicalJson };
 
 /** Sorted relative paths of regular files (and symbolic links when `links` is true) below `root`. */
 async function listTree(root, { links = false } = {}, relative = '') {

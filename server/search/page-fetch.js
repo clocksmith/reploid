@@ -5,13 +5,13 @@
  * re-checked. Content type is checked before the body is read; raw and decompressed bytes are capped.
  * PDF is declared unsupported rather than extracted.
  */
-import crypto from 'node:crypto';
 import dns from 'node:dns';
 import http from 'node:http';
 import https from 'node:https';
 import net from 'node:net';
 import zlib from 'node:zlib';
 import { PageFetchError } from './errors.js';
+import { sha256Digest } from '../hashing.js';
 // The limits device-side extractors share (packages/reploid/src/retrieval/page-fetch.json).
 import policy from '../../packages/reploid/src/retrieval/page-fetch.json' with { type: 'json' };
 
@@ -175,7 +175,7 @@ export function createPageFetcher({ maxBytes = policy.maxBytes, timeoutMs = poli
         try { body = await readBody(response, controller.signal); }
         catch (error) { if (controller.signal.aborted) throw controller.signal.reason; throw error; }
         return { url: url.href, status, contentType, charset: charsetOf(contentType), bytes: body.length,
-          byteSha256: 'sha256:' + crypto.createHash('sha256').update(body).digest('hex'), body };
+          byteSha256: sha256Digest(body), body };
       }
     } finally {
       clearTimeout(timer); signal?.removeEventListener('abort', forward);

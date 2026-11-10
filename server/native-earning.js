@@ -22,7 +22,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { sha256Hex } from './hashing.js';
 import { createNativeWholeEarning } from './native-whole-earning.js';
 
 import { hashDopplerEvidence } from '../shared/pool/executable-pack.js';
@@ -136,7 +136,7 @@ export async function openNativeEarning({ settings, identity, ownerAuthorization
         && (model.executionMode !== 'whole-model' || offer.ownerPolicyDigest === ownerPolicyDigest && now() >= toMs(offer.startsAt))
         && now() < toMs(offer.startsAt) + RENEW_AT * (toMs(offer.endsAt) - toMs(offer.startsAt)));
       if (current) return current;
-      const offered = await client.send({ opId: `offer:${createHash('sha256').update(modelKey(model)).digest('hex')}:${now()}`, path: '/offers', durable: false,
+      const offered = await client.send({ opId: `offer:${sha256Hex(modelKey(model))}:${now()}`, path: '/offers', durable: false,
         body: { category: STAGE_SHARE, model: selectedModel(model) } });
       if (model.executionMode === 'whole-model' && (offered.work?.participantId !== identity.peerId
         || modelKey(offered.work.model) !== modelKey(model))) fail('Offered whole-model variant differs from this contributor');

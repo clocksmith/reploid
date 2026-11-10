@@ -2,12 +2,12 @@
 import { allowsSwarmOrigin } from '../swarm-origin-policy.js';
 import { DurableObject } from 'cloudflare:workers';
 import bootstrap from '../../shared/config/swarm-bootstrap.json';
+import { sha256Bytes as digest } from '../../packages/reploid/src/artifacts/signatures.js';
 
 const peerPattern = /^[a-z0-9][a-z0-9_-]{2,127}$/i;
 export const roomPattern = /^reploid-swarm-[a-z0-9][a-z0-9_-]{0,127}$/i;
 const limits = bootstrap.server;
 const encoder = new TextEncoder();
-const digest = token => crypto.subtle.digest('SHA-256', encoder.encode(token));
 
 export function namespace(url) {
   const scope = url.searchParams.get('scope');

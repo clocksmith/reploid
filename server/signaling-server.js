@@ -7,7 +7,7 @@ import { tokensEqual } from './token-auth.js';
 
 import { EventEmitter } from 'node:events';
 import { WebSocketServer, WebSocket } from 'ws';
-import crypto from 'node:crypto';
+import { sha256Hex } from './hashing.js';
 
 export const SIGNALING_MESSAGE_TYPES = new Set([
   'join',
@@ -101,7 +101,7 @@ const accessTokenFromRequest = (req) => {
   }
 };
 
-const roomCapabilityHash = (token) => crypto.createHash('sha256').update(token).digest('hex');
+const roomCapabilityHash = (token) => sha256Hex(token);
 
 class SignalingServer extends EventEmitter {
   constructor(options = {}) {

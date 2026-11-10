@@ -4,6 +4,8 @@ import { verifyEventSignature } from '../artifacts/event-signature.js';
  */
 
 import { encodeBytes, getIdentitySignAlgorithm, importSigningKey, toBase64Url } from '../artifacts/identity.js';
+import { canonicalize } from '../artifacts/canonical-json.js';
+import { sha256Hex } from '../artifacts/signatures.js';
 
 export const IMPROVEMENT_EPISODE_SCHEMA = 'rsi.improvement-episode/v1';
 export const IMPROVEMENT_EVENT_SCHEMA = 'rsi.improvement-episode-event/v1';
@@ -51,29 +53,27 @@ const isObject = (value) => value !== null && typeof value === 'object' && !Arra
 
 const cloneJson = (value) => JSON.parse(JSON.stringify(value));
 
-export const canonicalJson = (value) => {
-  if (value === null || typeof value === 'boolean' || typeof value === 'string') {
-    return JSON.stringify(value);
-  }
+// Evidence admits only JSON values: finite numbers, no undefined, functions, symbols or bigints.
+const assertEvidenceValue = (value) => {
+  if (value === null || typeof value === 'boolean' || typeof value === 'string') return;
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) throw new Error('Improvement evidence contains a non-finite number');
-    return Object.is(value, -0) ? '0' : JSON.stringify(value);
+    return;
   }
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (isObject(value)) {
-    return `{${Object.keys(value).sort().map((key) => (
-      `${JSON.stringify(key)}:${canonicalJson(value[key])}`
-    )).join(',')}}`;
-  }
+  if (Array.isArray(value)) return value.forEach((item) => assertEvidenceValue(item));
+  if (isObject(value)) return Object.keys(value).sort().forEach((key) => assertEvidenceValue(value[key]));
   throw new Error(`Improvement evidence contains unsupported ${typeof value}`);
+};
+
+/** The shared canonical JSON (artifacts/canonical-json.js) of a value checked to hold only JSON values. */
+export const canonicalJson = (value) => {
+  assertEvidenceValue(value);
+  return canonicalize(value);
 };
 
 export async function hashImprovementValue(value, cryptoApi = globalThis.crypto) {
   if (!cryptoApi?.subtle) throw new Error('SHA-256 is unavailable');
-  const digest = await cryptoApi.subtle.digest('SHA-256', encodeBytes(canonicalJson(value)));
-  return `sha256:${Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('')}`;
+  return sha256Hex(canonicalJson(value), cryptoApi);
 }
 
 const assertText = (value, label) => {

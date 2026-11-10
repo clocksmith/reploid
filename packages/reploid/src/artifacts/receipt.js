@@ -1,5 +1,6 @@
 import { canonicalize as stableJson } from './canonical-json.js';
 import { wholeModelReceiptFields } from './whole-model-receipt.js';
+import { sha256HexUnprefixed } from './signatures.js';
 /**
  * @fileoverview Signed receipt primitives for swarm contribution proof.
  */
@@ -24,10 +25,6 @@ const getCryptoApi = (cryptoApi) => {
   return api;
 };
 
-async function sha256Hex(text, cryptoApi = globalThis.crypto) {
-  const digest = await getCryptoApi(cryptoApi).subtle.digest('SHA-256', encodeBytes(text));
-  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
-}
 
 export function getReceiptPayload(receipt = {}) {
   return {
@@ -54,7 +51,7 @@ export async function createReceiptDraft(input = {}, cryptoApi = globalThis.cryp
     ...input,
     receiptId: ''
   });
-  const digest = await sha256Hex(canonicalizeReceiptPayload(payload), cryptoApi);
+  const digest = await sha256HexUnprefixed(canonicalizeReceiptPayload(payload), getCryptoApi(cryptoApi));
 
   return {
     ...payload,
