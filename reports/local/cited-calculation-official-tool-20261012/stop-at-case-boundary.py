@@ -1,7 +1,7 @@
 import json,os,time,signal,subprocess
 from pathlib import Path
 from datetime import datetime,timezone
-root=Path("/home/x/deco/reploid/reports/local/cited-calculation-official-tool-20261012")
+root=Path("~/deco/reploid/reports/local/cited-calculation-official-tool-20261012")
 pid=3408285
 while True:
  try:
