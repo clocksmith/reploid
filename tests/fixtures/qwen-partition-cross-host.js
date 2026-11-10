@@ -6,6 +6,7 @@ import { spawn } from 'node:child_process';
 import readline from 'node:readline';
 import { createHash, randomUUID } from 'node:crypto';
 import { inspectPackageArchive, preflightInstalledWorkers } from './installed-package-identity.js';
+import { portableEvidence } from '../../scripts/evidence-paths.js';
 
 const [configPath, outputPath] = process.argv.slice(2);
 const configBytes = await fs.readFile(configPath), config = JSON.parse(configBytes);
@@ -17,7 +18,7 @@ await fs.mkdir(outputPath);
 const report = { schema: 'reploid.q4-cross-host/v1', startedAt: new Date().toISOString(),
   scope: 'Doppler resident execution across Mac Metal and AMD Vulkan over private SSH; not Reploid WebRTC or signed release',
   configSha256: sha(configBytes), baselineSha256: sha(baselineBytes), packages: [], opens: [], rows: [], cleanup: [], passed: false };
-const save = () => fs.writeFile(path.join(outputPath, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+const save = () => fs.writeFile(path.join(outputPath, 'report.json'), JSON.stringify(portableEvidence(report), null, 2) + '\n');
 const workers = [];
 async function start(spec, index) {
   const child = spawn(spec.command, spec.args, { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, ...spec.env } });

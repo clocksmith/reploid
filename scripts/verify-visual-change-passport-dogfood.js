@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { chromium } from '@playwright/test';
+import { portablePath } from './evidence-paths.js';
 
 import { createChangeControlEffectRegistry } from '../server/change-control/effects.js';
 import { createChangeControlService } from '../server/change-control/service.js';
@@ -447,8 +448,8 @@ export async function runVisualChangePassportDogfood({
       effectState: finished.reopening.projection.effect.state,
       sourceRestoredExactly: true,
       independentBrowser: 'physical Chromium via Playwright',
-      bridgeRoot: selectedBridgeRoot,
-      outputPath: outputPath ? path.resolve(outputPath) : null,
+      bridgeRoot: portablePath(selectedBridgeRoot),
+      outputPath: outputPath ? portablePath(path.resolve(outputPath)) : null,
       stages: [
         'visual_complaint',
         'source_owned_patch',

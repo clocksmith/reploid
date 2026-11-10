@@ -17,6 +17,7 @@ import { assembleIndependentReference } from '../tests/fixtures/independent-nume
 import referenceContract from '../tests/fixtures/distributed-reference-contract.json' with { type: 'json' };
 import { resolveNumericalPolicy, numericalEvidence, requireNumericalQualification } from '../tests/fixtures/distributed-numerical-policy.js';
 import { resolveServedFile } from '../server/browser-roots.js';
+import { homeRedactingStream, portableEvidence } from './evidence-paths.js';
 
 const root = resolve(import.meta.dirname, '..');
 const modelArgument = process.argv.indexOf('--model');
@@ -92,7 +93,8 @@ function start(command, args, options = {}) {
   children.push(child);
   const log = createWriteStream(resolve(output, `${children.length}-${command === 'ssh' ? 'ssh' : 'node'}.log`));
   logs.push(log);
-  child.stdout.pipe(log, { end: false }); child.stderr.pipe(log, { end: false });
+  child.stdout.pipe(homeRedactingStream()).pipe(log, { end: false });
+  child.stderr.pipe(homeRedactingStream()).pipe(log, { end: false });
   child.stderr.on('data', bytes => process.stderr.write(bytes));
   return child;
 }
@@ -400,7 +402,7 @@ try {
   await stopChildren();
   await Promise.all(logs.map(log => new Promise(done => log.end(done))));
 
-  await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
+  await writeFile(resolve(output, 'result.json'), JSON.stringify(portableEvidence({ ok: !failure, failure, modelId, modelFixtureHost,
     conversationBaseUrl, conversationDeployment, browserDelivery,
     conversationTarget: localConversation ? 'isolated-loopback' : 'configured-host',
     scope: numericalDiagnostic ? probePrompt !== null
@@ -422,5 +424,5 @@ try {
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
     maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,
     referenceSha256: evaluatedReferenceSha256, historicalReferenceSha256: referenceContract.sha256,
-    numericalReference, referenceRevision: referenceContract.revision }, null, 2));
+    numericalReference, referenceRevision: referenceContract.revision }), null, 2));
 }

@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import dopplerFixture from './library-doppler-fixture.json' with { type: 'json' };
 import workCases from './fixtures/work-goal-cases.json' with { type: 'json' };
+import { portablePath, redactHomeText } from '../scripts/evidence-paths.js';
 import { readServedHarnessFile } from './helpers/served-browser-files.js';
 import { resolveServedFile } from '../server/browser-roots.js';
 
@@ -20,10 +21,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const evidence = path.join(root, 'artifacts/library-acceptance', new Date().toISOString().replace(/[:.]/g, '-'));
 const consumer = await mkdtemp(path.join(tmpdir(), 'reploid-installed-consumer-'));
 await mkdir(evidence, { recursive: true });
+// Retained evidence is public: write repo-relative or ~/ paths, never the home directory.
+const writeEvidence = (file, text) => writeFile(file, redactHomeText(String(text)));
 const report = {
   schema: 'reploid.library-package-acceptance/v1',
   node: process.version, platform: process.platform, architecture: process.arch,
-  evidence, consumer, checks: [],
+  evidence: portablePath(evidence), consumer, checks: [],
   scope: 'Installed ESM imports, public boundaries, declaration resolution, asset identity and deterministic browser consumer.',
   exclusions: ['Actual model inference', 'Independent peers', 'Full application acceptance', 'Publication', 'Deployment']
 };
@@ -41,10 +44,10 @@ async function check(name, run) {
 async function command(name, executable, args, cwd) {
   try {
     const result = await execute(executable, args, { cwd, timeout: 90000, maxBuffer: 4 * 1024 * 1024 });
-    await writeFile(path.join(evidence, name + '.log'), result.stdout + result.stderr);
+    await writeEvidence(path.join(evidence, name + '.log'), result.stdout + result.stderr);
     return result.stdout;
   } catch (error) {
-    await writeFile(path.join(evidence, name + '.log'), (error.stdout || '') + (error.stderr || '') + '\n' + String(error));
+    await writeEvidence(path.join(evidence, name + '.log'), (error.stdout || '') + (error.stderr || '') + '\n' + String(error));
     throw error;
   }
 }
@@ -147,7 +150,7 @@ try {
       `;
       const output = await command('node-imports', process.execPath, ['--input-type=module', '-e', code], consumer);
       const results = JSON.parse(output.trim());
-      await writeFile(path.join(evidence, 'node-imports.json'), JSON.stringify(results, null, 2));
+      await writeEvidence(path.join(evidence, 'node-imports.json'), JSON.stringify(results, null, 2));
       assert(results.every(result => result.ok), 'Public import failures; see node-imports.json');
       return results;
     });
@@ -200,7 +203,7 @@ try {
         assert.equal(installed.version, expected);
         typePackages[name] = installed.version;
       }
-      await writeFile(path.join(evidence, 'doppler-package-lock.json'), await readFile(path.join(directory, 'package-lock.json')));
+      await writeEvidence(path.join(evidence, 'doppler-package-lock.json'), await readFile(path.join(directory, 'package-lock.json')));
       dopplerConsumer = directory;
       return { version: installedDoppler.version, typePackages, directory };
     });
@@ -292,7 +295,7 @@ try {
             }
             return { entries: results, sideEffects };
           }, names);
-          await writeFile(path.join(evidence, 'browser-imports.json'), JSON.stringify(results, null, 2));
+          await writeEvidence(path.join(evidence, 'browser-imports.json'), JSON.stringify(results, null, 2));
           assert(results.entries.every(result => result.ok), 'Public import failures; see browser-imports.json');
           assert.deepEqual(results.sideEffects, [], 'Imports must not fetch models, open storage or register a service worker');
           return results;
@@ -331,7 +334,7 @@ try {
           await page.waitForFunction(() => document.querySelector('#state')?.textContent === 'Closed', null, { timeout: 5000 });
           return { model: 'deterministic-fixture', networkJobs: 0, route };
         } finally {
-          await writeFile(path.join(evidence, 'consumer-page-errors.json'), JSON.stringify(errors, null, 2));
+          await writeEvidence(path.join(evidence, 'consumer-page-errors.json'), JSON.stringify(errors, null, 2));
           await page.close();
         }
       });
@@ -457,7 +460,7 @@ try {
               entry.observation = await page.evaluate(() => window.__reploidWorkFixture?.snapshot()).catch(() => null);
             } finally {
               entry.pageErrors = errors; entry.durationMs = performance.now() - started;
-              await writeFile(path.join(evidence, 'work-' + scenario.id + '.json'), JSON.stringify(entry, null, 2));
+              await writeEvidence(path.join(evidence, 'work-' + scenario.id + '.json'), JSON.stringify(entry, null, 2));
               results.push({ id: entry.id, status: entry.status, durationMs: entry.durationMs,
                 evidence: 'work-' + scenario.id + '.json' });
               await page.close();
@@ -472,7 +475,7 @@ try {
           causalControl: 'The same configuration produces 4000 ms or 4 ms when the reported unit changes.',
           retainedHistoryControl: 'Recall is delivered to the next invocation; no performance improvement is inferred.'
         };
-        await writeFile(path.join(evidence, 'work-lifecycle-report.json'), JSON.stringify(summary, null, 2));
+        await writeEvidence(path.join(evidence, 'work-lifecycle-report.json'), JSON.stringify(summary, null, 2));
         assert(results.every(item => item.status === 'passed'), 'Work lifecycle cases failed; inspect work-lifecycle-report.json');
         return summary;
       });
@@ -502,7 +505,7 @@ try {
   if (server) await new Promise(resolve => server.close(resolve));
   if (assetServer) await new Promise(resolve => assetServer.close(resolve));
   report.passed = report.checks.every(check => check.status === 'passed');
-  await writeFile(path.join(evidence, 'report.json'), JSON.stringify(report, null, 2) + '\n');
-  process.stdout.write('Evidence: ' + path.join(evidence, 'report.json') + '\n');
+  await writeEvidence(path.join(evidence, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+  process.stdout.write('Evidence: ' + portablePath(path.join(evidence, 'report.json')) + '\n');
   if (!report.passed) process.exitCode = 1;
 }

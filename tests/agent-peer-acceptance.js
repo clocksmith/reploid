@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import { readServedText } from './helpers/served-browser-files.js';
+import { portablePath, redactHomeText } from '../scripts/evidence-paths.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 assert(process.env.DOPPLER_TEST_CONSUMER, 'DOPPLER_TEST_CONSUMER must name an installed Doppler + Reploid consumer with generation-fixture.json');
@@ -36,7 +37,7 @@ for (const name of ['reploid', 'doppler-gpu']) {
   const manifest = JSON.parse(await readFile(path.join(consumer, 'node_modules', name, 'package.json')));
   const entry = lock.packages['node_modules/' + name];
   assert(entry?.integrity && entry.resolved, `Lockfile must identify installed ${name}`);
-  report.packages[name] = { version: manifest.version, integrity: entry.integrity, resolved: entry.resolved };
+  report.packages[name] = { version: manifest.version, integrity: entry.integrity, resolved: redactHomeText(entry.resolved) };
   if (entry.resolved.startsWith('file:')) report.packages[name].archiveSha256 = hash(
     await readFile(path.resolve(consumer, entry.resolved.slice(5))));
 }
@@ -134,8 +135,9 @@ try {
   assert.equal(report.verificationWorker.passed, true, JSON.stringify(report.verificationWorker));
   await Promise.all([requester, provider].map(page => page.evaluate(() => window.fixture.close())));
   report.passed = true;
-} catch (error) { report.error = String(error.stack || error);
-  if (requester) report.agentFailure = await requester.evaluate(() => window.agentFailure || null).catch(() => null);
+} catch (error) { report.error = redactHomeText(String(error.stack || error));
+  if (requester) report.agentFailure = await requester.evaluate(() => window.agentFailure || null)
+    .then(failure => failure && redactHomeText(failure)).catch(() => null);
   if (requester) report.requesterFailureState = await requester.evaluate(() => window.fixture?.state()).catch(() => null);
   if (provider) report.providerFailureState = await provider.evaluate(() => window.fixture?.state()).catch(() => null);
   throw error;
@@ -144,5 +146,5 @@ try {
   if (server) await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
   await rm(profile, { recursive: true, force: true });
   await writeFile(path.join(evidence, 'report.json'), JSON.stringify(report, null, 2) + '\n');
-  console.log(JSON.stringify({ passed: report.passed, evidence: path.join(evidence, 'report.json') }));
+  console.log(JSON.stringify({ passed: report.passed, evidence: portablePath(path.join(evidence, 'report.json')) }));
 }

@@ -9,6 +9,7 @@ import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { checkInstalledAdapters } from './doppler-installed-adapters.js';
 import { checkInstalledPeerStreaming } from './doppler-installed-peer-streaming.js';
 import { checkInstalledLibraryProvider, createInstalledLibraryOperationRunner } from './doppler-installed-library.js';
+import { redactHomeText } from '../../scripts/evidence-paths.js';
 
 const consumer = process.env.DOPPLER_TEST_CONSUMER;
 assert(consumer, 'DOPPLER_TEST_CONSUMER must name the retained installed candidate consumer directory.');
@@ -149,7 +150,7 @@ const libraryIncrementalAdapterAcceptance = await checkInstalledAdapters({ consu
   makeRequest: options => ({ ...makeRequest(options), schema: 'doppler.capsule-operation-request/v2' }), runOperation: runLibraryOperation });
 checks.push('request-bound adapters, failure replacement, cancellation and independent session cleanup in both stream formats');
 console.log(JSON.stringify({ schema: 'reploid.installed-generation-contract-test/v1', passed: true,
-  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance, incrementalAdapterAcceptance, streamingAcceptance, libraryAcceptance,
+  runtimeEntry: redactHomeText(entry), runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance, incrementalAdapterAcceptance, streamingAcceptance, libraryAcceptance,
   libraryAdapterAcceptance, libraryIncrementalAdapterAcceptance,
   model: { kind: 'signed test fixture with injected logits', modelId: fixture.capsule.modelId,
     capsuleHash: await hashDopplerEvidence(fixture.capsule) },

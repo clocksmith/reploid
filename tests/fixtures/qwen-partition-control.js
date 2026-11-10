@@ -6,6 +6,7 @@ import { spawn } from 'node:child_process';
 import readline from 'node:readline';
 import { createHash, randomUUID } from 'node:crypto';
 import { inspectPackageArchive, preflightInstalledWorkers } from './installed-package-identity.js';
+import { portableEvidence } from '../../scripts/evidence-paths.js';
 
 const [configPath, contractPath, outputPath] = process.argv.slice(2);
 await fs.mkdir(outputPath);
@@ -16,7 +17,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const report = { schema: 'reploid.q4-partition-control/v1', startedAt: new Date().toISOString(),
   scope: 'Native same-device control; not public or cross-host qualification',
   configSha256: hash(configBytes), contractSha256: hash(contractBytes), packages: [], opens: [], cases: [], cleanup: [], passed: false };
-const save = () => fs.writeFile(path.join(outputPath, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+const save = () => fs.writeFile(path.join(outputPath, 'report.json'), JSON.stringify(portableEvidence(report), null, 2) + '\n');
 let child, childExited, pending = new Map(), serial = 0;
 async function start() {
   child = spawn(process.execPath, [new URL('./qwen-partition-worker.js', import.meta.url).pathname, configPath],

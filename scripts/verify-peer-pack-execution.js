@@ -10,6 +10,7 @@ import { hashDopplerEvidence } from '../shared/pool/executable-pack.js';
 import { sha256Hex } from '../shared/pool/inference-receipt.js';
 import { resolveDopplerExecutionContract } from '../shared/config/doppler-execution-contracts.js';
 import { servedTreeSnapshot } from './package-hosting.js';
+import { portableEvidence, redactHomeText } from './evidence-paths.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -130,7 +131,7 @@ export async function verifyPeerPackExecution(config) {
   const report = { schema: 'reploid.pool.peer-pack-browser-episode/v1', passed: false, generatedAt: new Date().toISOString(),
     claimBoundary: { actualModel: true, physicalBrowserRequired: true, internalOperatorCount: 1,
       independentMachines: false, independentOperators: false, historyImprovement: false },
-    config, installedPackage, sources: { reploid: revision(ROOT), doppler: revision(dopplerRoot) }, binding,
+    config: portableEvidence(config), installedPackage: portableEvidence(installedPackage), sources: { reploid: revision(ROOT), doppler: revision(dopplerRoot) }, binding,
     stage: 'supplier-bootstrap', origin: { disabled: false, bootstrapBytes: 0, rejectedRequests: [], receiverBootstrapRequests: 0 },
     runtimeBootstrap: { shaders: runtimeBootstrap.receipts, modelArtifacts: 0 }, browserLogs: [] };
   let browser;
@@ -363,7 +364,7 @@ export async function verifyPeerPackExecution(config) {
           && report.execution.remoteProvider.executionReceiptDigest === report.remoteOperation.execution.receipt.receiptDigest));
     }
     report.stage = 'complete';
-  } catch (error) { report.error = error.message; }
+  } catch (error) { report.error = redactHomeText(error.message); }
   finally {
     for (const cleanup of [() => requesterContext?.close(), () => browser?.close(), () => server && new Promise((resolve) => { server.close(resolve); server.closeAllConnections(); })]) {
       try { await cleanup(); } catch (error) { report.passed = false; report.cleanupError = error.message; }

@@ -7,6 +7,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { validateOperationModel } from '../shared/pool/operation-model.js';
 import { servedTreeSnapshot } from './package-hosting.js';
+import { portableEvidence } from './evidence-paths.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -225,7 +226,7 @@ export async function verifyDocumentSearch(config) {
     }
     report.cleanup = { passed: !errors.length, errors };
     report.passed &&= !errors.length;
-    await writeFile(resolve(config.outputDir, 'qualification.json'), JSON.stringify(report, null, 2) + '\n');
+    await writeFile(resolve(config.outputDir, 'qualification.json'), JSON.stringify(portableEvidence(report), null, 2) + '\n');
   }
   requireValue(report.passed, `Document qualification failed: ${report.error?.message ?? 'frozen relevance acceptance'}; retained at ${config.outputDir}`);
   return report;

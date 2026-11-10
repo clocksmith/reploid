@@ -5,6 +5,7 @@ import { dirname, resolve, sep, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { sha256Hex } from '../shared/pool/inference-receipt.js';
+import { expandHomePath } from './evidence-paths.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -17,11 +18,13 @@ const inside = (root, path) => {
 export async function retainPeerPackExecution({ reportPath, outputDirectory, weightOrigin, attachments = [] }) {
   const report = JSON.parse(await readFile(reportPath, 'utf8'));
   assert(report.passed && report.runtimeBootstrap?.files?.length, 'Retention requires a passed source-bound episode');
-  const packRoot = dirname(resolve(report.config.packPath));
-  const packBytes = await readFile(report.config.packPath);
+  // Episode reports write home paths as ~/; resolve them on the retaining machine.
+  const packPath = expandHomePath(report.config.packPath);
+  const packRoot = dirname(resolve(packPath));
+  const packBytes = await readFile(packPath);
   assert(await sha256Hex(packBytes) === report.authorization.envelopeArtifact.hash, 'Episode envelope bytes changed');
   const pack = JSON.parse(packBytes);
-  const roots = { reploid: ROOT, doppler: resolve(report.config.dopplerRoot) };
+  const roots = { reploid: ROOT, doppler: resolve(expandHomePath(report.config.dopplerRoot)) };
   const paths = { reploid: ['scripts/verify-peer-pack-execution.js'], doppler: ['tools/lib/sequence-model-qualification.js'] };
   for (const entry of report.runtimeBootstrap.files) {
     const owner = entry.path.startsWith('/doppler/src/') ? 'doppler' : 'reploid';

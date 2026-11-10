@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
 import { routeDiagnosticModel } from './capacity-observer.js';
 import { resolveGenerationOptions } from '../../shared/config/doppler-generation-contract.js';
+import { portableEvidence } from '../../scripts/evidence-paths.js';
 import { readServedHarnessFile } from '../helpers/served-browser-files.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 
@@ -70,7 +71,7 @@ try {
       && eosTokenIds.includes(row.result.evidence.stats.stopTokenId);
     row.passed = row.exactText && row.naturalStop;
     report.results.push(row);
-    await writeFile(destination, JSON.stringify(report, null, 2) + '\n');
+    await writeFile(destination, JSON.stringify(portableEvidence(report), null, 2) + '\n');
     console.log(JSON.stringify({ id: row.id, variant: row.variant, passed: row.passed,
       text: row.result.evidence.outputText, stopReason: row.result.evidence.stats.stopReason }));
   });
@@ -129,7 +130,7 @@ try {
 } catch (error) {
   report.failure = { name: error.name, message: error.message }; process.exitCode = 1;
 } finally {
-  await writeFile(destination, JSON.stringify(report, null, 2) + '\n');
+  await writeFile(destination, JSON.stringify(portableEvidence(report), null, 2) + '\n');
   await browser?.close();
   for (const owned of [server, modelServer].filter(Boolean)) {
     owned.closeAllConnections(); await new Promise(done => owned.close(done));

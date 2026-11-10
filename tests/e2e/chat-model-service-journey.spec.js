@@ -5,6 +5,7 @@ import { once } from 'node:events';
 import path from 'node:path';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
+import { portableEvidence, redactHomeText } from '../../scripts/evidence-paths.js';
 
 // This campaign owns its contributor process and private room. Never stop an
 // operator's existing provider to simulate departure.
@@ -23,7 +24,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
   url.searchParams.set('swarmToken', (await readFile(tokenFile, 'utf8')).trim());
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
   const pages = await Promise.all(contexts.map(context => context.newPage()));
-  const receipt = { config, modelIdentity: model.identity, browser: browser.version(), at: new Date().toISOString(),
+  const receipt = { config: portableEvidence(config), modelIdentity: model.identity, browser: browser.version(), at: new Date().toISOString(),
     passed: false, observations: [], providerStarts: [], weightRequests: [], pageErrors: [], permissionDialogs: [] };
   let provider, providerLog = '', providerIdentity;
   const startProvider = async (replacement = false) => {
@@ -210,7 +211,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
   } finally {
     receipt.histories = await Promise.all(pages.map(page => readChatWorkspace(page).catch(() => null)));
     await stopProvider('SIGTERM');
-    await writeFile(info.outputPath('provider.log'), providerLog);
+    await writeFile(info.outputPath('provider.log'), redactHomeText(providerLog));
     await writeFile(info.outputPath('service-journey.json'), JSON.stringify(receipt, null, 2));
     await info.attach('service-journey', { contentType: 'application/json', path: info.outputPath('service-journey.json') });
     await Promise.all(contexts.map(context => context.close()));

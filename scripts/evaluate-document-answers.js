@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { servedTreeSnapshot } from './package-hosting.js';
+import { portableEvidence } from './evidence-paths.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -156,7 +157,7 @@ export async function evaluateDocumentAnswers(config) {
     });
     await page.exposeFunction('retainCase', async row => {
       report.cases.push({ ...row, outputDigest: hash(row.output ?? '') });
-      await writeFile(resolve(output, 'progress.json'), JSON.stringify(report, null, 2) + '\n');
+      await writeFile(resolve(output, 'progress.json'), JSON.stringify(portableEvidence(report), null, 2) + '\n');
       console.log(JSON.stringify({ caseId: row.id, status: row.inspection?.status, error: row.error, elapsedMs: row.elapsedMs }));
     });
     await page.goto(`${server.baseUrl}/evaluation`);
@@ -205,7 +206,7 @@ export async function evaluateDocumentAnswers(config) {
     report.cleanupErrors = cleanup.filter(row => row.status === 'rejected').map(row => String(row.reason));
     report.executionPassed &&= report.cleanupErrors.length === 0;
     report.servedSources = [...sources.values()];
-    await writeFile(resolve(output, 'execution.json'), JSON.stringify(report, null, 2) + '\n');
+    await writeFile(resolve(output, 'execution.json'), JSON.stringify(portableEvidence(report), null, 2) + '\n');
   }
   return report;
 }

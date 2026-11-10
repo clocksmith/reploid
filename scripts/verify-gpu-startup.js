@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { platform, release, arch } from 'node:os';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { portableEvidence } from './evidence-paths.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -106,7 +107,7 @@ export async function verifyGpuStartup(config) {
       finally {
         clearTimeout(timer); sample.elapsedMs = performance.now() - started;
         report.samples.push(sample);
-        await writeFile(resolve(config.outputDir, `attempt-${index + 1}.json`), JSON.stringify(sample, null, 2));
+        await writeFile(resolve(config.outputDir, `attempt-${index + 1}.json`), JSON.stringify(portableEvidence(sample), null, 2));
         if (browser) await browser.close();
       }
       console.log(`[gpu-startup] ${index + 1}/${config.attempts}: ${sample.passed ? 'passed' : sample.stage + ': ' + sample.error.message}`);
@@ -114,7 +115,7 @@ export async function verifyGpuStartup(config) {
     report.summary = summarizeStartup(report.samples, config.attempts);
     report.passed = report.summary.failures === 0;
   } finally {
-    await writeFile(resolve(config.outputDir, 'report.json'), JSON.stringify(report, null, 2));
+    await writeFile(resolve(config.outputDir, 'report.json'), JSON.stringify(portableEvidence(report), null, 2));
     server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
   }
   return report;

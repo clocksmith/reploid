@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { portableEvidence } from '../../scripts/evidence-paths.js';
 
 const [configPath, inputPath, output] = process.argv.slice(2);
 const configBytes = await fs.readFile(configPath), config = JSON.parse(configBytes);
@@ -72,6 +73,6 @@ finally {
     assert.equal(report.cleanup.resources.deferredCleanup.bytes, 0);
     destroyBufferPool(); destroyDevice(); await releaseNodeWebGPU();
   } catch (error) { report.cleanupError = error.message; report.passed = false; process.exitCode = 1; }
-  await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+  await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(portableEvidence(report), null, 2) + '\n');
   console.log(JSON.stringify({ passed: report.passed, error: report.error?.message, cleanupError: report.cleanupError }));
 }

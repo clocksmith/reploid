@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { create, globals } from 'webgpu';
+import { portableEvidence } from '../../scripts/evidence-paths.js';
 
 const [dopplerRoot, reploidRoot, capsulePath, signerPath, qualificationPath, archivePath, outputPath] = process.argv.slice(2);
 assert(outputPath, 'Expected installed Doppler/Reploid roots, Capsule, public signer, qualification, archive, report');
@@ -89,8 +90,8 @@ finally {
     report.checks.push({ id: 'provider-and-session-closed', passed: true });
   } catch (error) { report.cleanupFailure = String(error.stack || error); report.passed = false; }
   await mkdir(dirname(resolve(outputPath)), { recursive: true });
-  await writeFile(outputPath, JSON.stringify(report, null, 2) + '\n');
-  console.log(JSON.stringify({ outputPath, passed: report.passed, cases: report.cases.length, failure: report.failure ?? null }));
+  await writeFile(outputPath, JSON.stringify(portableEvidence(report), null, 2) + '\n');
+  console.log(JSON.stringify(portableEvidence({ outputPath, passed: report.passed, cases: report.cases.length, failure: report.failure ?? null })));
 }
 // The owned provider process ends after GPU settlement and durable evidence.
 process.exit(report.passed ? 0 : 1);

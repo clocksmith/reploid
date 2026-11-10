@@ -8,6 +8,7 @@ import { resolveGenerationOptions } from 'doppler-gpu/generation-contract';
 import { createDopplerRun } from 'doppler-gpu';
 import { createResidentPartitionFactory, hashLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { createResidentPartition } from '../../packages/reploid/src/mesh/index.js';
+import { portablePath } from '../../scripts/evidence-paths.js';
 
 const fixture = JSON.parse(await fs.readFile(new URL('../../artifacts/partition-resident/20260927/signed-opening-fixture.json',
   import.meta.url), 'utf8'));
@@ -91,6 +92,6 @@ try {
   assert.deepEqual(local.getState().recovery, { schema: 'doppler.resident-recovery/v1',
     inputReplay: false, checkpointExport: false, checkpointImport: false });
   console.log(JSON.stringify({ schema: 'reploid.installed-signed-partition-opening/v1', passed: true,
-    packageRoot, archiveIntegrity: pin.integrity, planId, modelIdentity: model.identity, qualifiedIndex: 0,
+    packageRoot: portablePath(packageRoot), archiveIntegrity: pin.integrity, planId, modelIdentity: model.identity, qualifiedIndex: 0,
     unqualifiedIndexRejected: 1, rejectionCases: cases.map(([name]) => name), modelMath: false }));
 } finally { await local.close(); }
