@@ -59,7 +59,8 @@ const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagn
 const standaloneControls = !capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic && !signalingDiagnostic
   && (recoveryDiagnostic ? process.env.REPLOID_E2E_CAPACITY === '1' : !frozenWorkloads);
 const peer = process.env.REPLOID_TEST_PEER || 'amd-host';
-const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
+// SSH starts in the peer's home directory, so the default checkout path is relative to it.
+const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || 'deco/reploid';
 const peerBrowserOptions = physicalWebGpuBrowserOptions('linux', process.env.REPLOID_TEST_PEER_CHROMIUM_CHANNEL || 'chrome');
 // Exercise the hosted conversation's normal authentication and renewable RTC
 // credentials. Installed-package diagnostics retain their isolated local server.
@@ -224,7 +225,7 @@ try {
       });
       // The exact fixture normally already exists beside the peer's package.
       // Read it on that host instead of uploading the whole model before P2P.
-      const directory = ${JSON.stringify(process.env.REPLOID_TEST_PEER_MODEL_DIR || resolve(peerRoot, '../doppler/models/local', modelId))};
+      const directory = ${JSON.stringify(process.env.REPLOID_TEST_PEER_MODEL_DIR || null)} || join(process.cwd(), '..', 'doppler', 'models', 'local', ${JSON.stringify(modelId)});
       try {
         const bytes = await readFile(join(directory, 'manifest.json'));
         if (createHash('sha256').update(bytes).digest('hex') !== ${JSON.stringify(catalog.identity.slice(7))}) throw Error('Peer fixture model identity mismatch');
