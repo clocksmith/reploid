@@ -14,6 +14,7 @@ import { createWholeModelRequester } from '../../server/whole-model-requester.js
 import { residentRoute } from '../helpers/resident-route.js';
 import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
+import { acceptFleetOutputLimitPolicy } from '../../server/fleet/terminal-policy.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 
 const model = { id: 'test-model', identity: 'sha256:' + 'a'.repeat(64) };
@@ -428,4 +429,25 @@ it('replays a zero-output fenced partition settlement without inventing stage re
     expect(await client.settle(id, row.evidence)).toEqual(row.outcome);
     expect(credits.snapshot().accounts[0].held).toBe(0);
   } finally { await route.close(); }
+});
+
+it('migrates maxOutputTokens only when all reservations and holds are settled and rate terms are unchanged', async () => {
+  const file = path.join(root, 'credits.sqlite');
+  const computers = keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
+    providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] }));
+  const nextPolicy = { ...credits.policy, version: 'test/2-max512', maxOutputTokens: 512 };
+  await client.reserve({ id: 'service:open-hold', executionId: 'open-hold', consumer: keys[0].peerId, mode: 'whole-model',
+    model: { ...model, adapterIdentities: [] }, inputDigest: 'sha256:' + 'b'.repeat(64), maxOutputTokens: 5,
+    providers: [{ participantId: keys[1].peerId, weight: 1 }] });
+  credits.close(); credits = null;
+  await expect(acceptFleetOutputLimitPolicy({ file, previousVersion: 'test/1', policy: nextPolicy })).rejects.toThrow('zero open reservations');
+  credits = await openFleetCredits({ file, computers, policy: { ...nextPolicy, version: 'test/1', maxOutputTokens: 20 } });
+  credits.abandonBeforeDispatch('service:open-hold', keys[0].peerId);
+  credits.close(); credits = null;
+  await expect(acceptFleetOutputLimitPolicy({ file, previousVersion: 'test/1',
+    policy: { ...nextPolicy, creditsPerOutputToken: 2 } })).rejects.toThrow('rate');
+  const migrated = await acceptFleetOutputLimitPolicy({ file, previousVersion: 'test/1', policy: nextPolicy });
+  expect(migrated.acceptance.policy.maxOutputTokens).toBe(512);
+  credits = await openFleetCredits({ file, computers, policy: nextPolicy });
+  expect(credits.policy.maxOutputTokens).toBe(512);
 });

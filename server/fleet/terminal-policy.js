@@ -47,3 +47,37 @@ export async function acceptFleetTerminalPolicy({ file, previousVersion, policy:
   } catch (error) { if (transactionOpen) db.exec('ROLLBACK'); throw error; }
   finally { db.close(); }
 }
+
+export async function acceptFleetOutputLimitPolicy({ file, previousVersion, policy: supplied, now = Date.now }) {
+  const policy = creditPolicy(supplied);
+  assert(path.isAbsolute(file) && text(previousVersion) && policy.version !== previousVersion,
+    'Explicit output-limit policy version change required');
+  const handle = await fs.open(file, constants.O_RDWR | constants.O_NOFOLLOW);
+  try { assert((await handle.stat()).isFile(), 'Existing credit database required'); } finally { await handle.close(); }
+  const db = new DatabaseSync(file);
+  let transactionOpen = false;
+  try {
+    db.exec('BEGIN IMMEDIATE'); transactionOpen = true;
+    const key = `output-limit-policy:${policy.version}`;
+    const priorAcceptance = db.prepare('SELECT value FROM fleet_metadata WHERE id=?').get(key);
+    const acceptance = { schema: 'reploid.fleet-output-limit-policy/v1', previousVersion, policy };
+    if (priorAcceptance) {
+      const retained = JSON.parse(priorAcceptance.value);
+      assert(same(retained.acceptance, acceptance), 'Output-limit policy acceptance scope changed');
+      db.exec('COMMIT'); transactionOpen = false; return retained;
+    }
+    const current = JSON.parse(db.prepare("SELECT value FROM fleet_metadata WHERE id='policy'").get().value);
+    const { version: _oldVersion, maxOutputTokens: _oldLimit, ...oldTerms } = current;
+    const { version: _newVersion, maxOutputTokens: _newLimit, ...newTerms } = policy;
+    assert(current.version === previousVersion && same(oldTerms, newTerms),
+      'Output-limit migration cannot change credit unit, rate, debt or terminal terms');
+    const openCount = db.prepare("SELECT COUNT(*) AS count FROM fleet_requests WHERE state IN ('reserved','dispatched','closing')").get().count;
+    const heldCount = db.prepare('SELECT COUNT(*) AS count FROM fleet_accounts WHERE held != 0').get().count;
+    assert(openCount === 0 && heldCount === 0, 'Output-limit migration requires zero open reservations and holds');
+    const record = { acceptance, previousPolicy: current, acceptedAt: now() };
+    db.prepare('INSERT INTO fleet_metadata VALUES (?,?)').run(key, JSON.stringify(record));
+    db.prepare("UPDATE fleet_metadata SET value=? WHERE id='policy'").run(canonicalize(policy));
+    db.exec('COMMIT'); transactionOpen = false; return record;
+  } catch (error) { if (transactionOpen) db.exec('ROLLBACK'); throw error; }
+  finally { db.close(); }
+}
