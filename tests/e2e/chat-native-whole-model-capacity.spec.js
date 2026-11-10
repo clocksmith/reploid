@@ -31,6 +31,8 @@ test('whole-model browser conversation preserves the qualified long prompt', asy
     await choice.check();
     await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
     await page.locator('[data-change-model]').click();
+    // The composer is inert until the modal picker closes; typing earlier is lost.
+    await expect(page.locator('[data-model-picker]')).toBeHidden();
     await page.locator('[data-composer-input]').fill(fixture.messages[0].content);
     await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 60000 });
     const started = performance.now();

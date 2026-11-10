@@ -85,6 +85,8 @@ test('native split chat streams, follows up, cancels, reuses and reloads', async
     }
     await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
     await page.locator('[data-change-model]').click();
+    // The composer is inert until the modal picker closes; typing earlier is lost.
+    await expect(page.locator('[data-model-picker]')).toBeHidden();
     await send('What is 17 + 25? Answer with the number only.');
     // Current default network permission may already admit the request. Older
     // deployments ask once; neither case is a reason to bypass the normal UI.
