@@ -72,12 +72,16 @@ describe('ToolRunner', () => {
     // Default VFS.list to return empty for /tools/
     mockVFS.list.mockResolvedValue([]);
 
-    toolRunner = ToolRunnerModule.factory({
-      Utils: mockUtils,
-      VFS: mockVFS,
-      ToolWriter: mockToolWriter,
-      SchemaRegistry: mockSchemaRegistry
-    });
+    toolRunner = composeToolRunner();
+  });
+
+  // The runner resolves its mode once per host composition (start-app composes after
+  // window.getReploidMode exists), so mode-specific cases compose under that window.
+  const composeToolRunner = () => ToolRunnerModule.factory({
+    Utils: mockUtils,
+    VFS: mockVFS,
+    ToolWriter: mockToolWriter,
+    SchemaRegistry: mockSchemaRegistry
   });
 
   afterEach(() => {
@@ -148,6 +152,7 @@ describe('ToolRunner', () => {
   describe('configured lab gates', () => {
     it.each(['x', 'zero'])('blocks %s tool import and execution when saved security lacks PolicyEngine', async mode => {
       global.window = { getReploidMode: () => mode };
+      toolRunner = composeToolRunner();
       setSecurityEnabled(true);
       expect(getCurrentReploidStorage().getItem('REPLOID_SECURITY_MODE')).toBe('on');
       await expect(toolRunner.init()).rejects.toThrow('requires PolicyEngine');
@@ -158,6 +163,7 @@ describe('ToolRunner', () => {
 
     it.each(['hitl', 'every_n'])('blocks saved %s approval requirements without HITLController', async approvalMode => {
       global.window = { getReploidMode: () => 'x' };
+      toolRunner = composeToolRunner();
       getCurrentReploidStorage().setItem('REPLOID_HITL_CONFIG', JSON.stringify({ approvalMode }));
       await expect(toolRunner.init()).rejects.toThrow('require HITLController');
       await expect(toolRunner.loadPath('/self/tools/Unsafe.js')).rejects.toThrow('require HITLController');
@@ -165,8 +171,18 @@ describe('ToolRunner', () => {
       expect(mockVFS.read).not.toHaveBeenCalled();
     });
 
+    it('keeps an X composition gated after the window mode changes', async () => {
+      global.window = { getReploidMode: () => 'x' };
+      toolRunner = composeToolRunner();
+      global.window = { getReploidMode: () => 'reploid' };
+      getCurrentReploidStorage().setItem('REPLOID_HITL_CONFIG', JSON.stringify({ approvalMode: 'hitl' }));
+      await expect(toolRunner.execute('CreateTool')).rejects.toThrow('require HITLController');
+      expect(mockVFS.read).not.toHaveBeenCalled();
+    });
+
     it('checks both scoped and legacy HITL requirements for named instances', async () => {
       global.window = { getReploidMode: () => 'x', REPLOID_INSTANCE_ID: 'named-security-test' };
+      toolRunner = composeToolRunner();
       const storage = getCurrentReploidStorage();
       storage.setItem('REPLOID_HITL_CONFIG', JSON.stringify({ approvalMode: 'autonomous' }));
       localStorage.setItem('REPLOID_HITL_CONFIG', JSON.stringify({ approvalMode: 'hitl' }));
@@ -179,6 +195,7 @@ describe('ToolRunner', () => {
 
     it('keeps an unconfigured fresh X boot unchanged', async () => {
       global.window = { getReploidMode: () => 'x' };
+      toolRunner = composeToolRunner();
       setSecurityEnabled(false, { persist: false });
       await expect(toolRunner.init()).resolves.toBe(true);
     });
