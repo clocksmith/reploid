@@ -1,4 +1,6 @@
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
+import { canonicalize } from '../../artifacts/canonical-json.js';
+import { sha256Hex } from '../../artifacts/signatures.js';
 
 /** Shared orchestration bindings. Tensor semantics remain supplied by Doppler. */
 export const partitionIdentityKeys = Object.freeze(['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB']);
@@ -52,21 +54,23 @@ export function canonicalPartitionBinding(identity) {
     : [...partitionIdentityKeys, 'requesterId', 'placementGeneration'];
   return Object.freeze(Object.fromEntries(keys.map(key => [key, identity[key]])));
 }
-export function canonicalPartitionJson(value) {
-  if (Array.isArray(value)) return '[' + value.map(canonicalPartitionJson).join(',') + ']';
-  if (value && typeof value === 'object') return '{' + Object.keys(value).sort()
-    .map(key => JSON.stringify(key) + ':' + canonicalPartitionJson(value[key])).join(',') + '}';
+const assertFiniteJson = value => {
+  if (Array.isArray(value)) return value.forEach(item => assertFiniteJson(item));
+  if (value && typeof value === 'object') return Object.keys(value).forEach(key => assertFiniteJson(value[key]));
   assertPartition(value === null || ['string', 'boolean'].includes(typeof value)
     || typeof value === 'number' && Number.isFinite(value), 'Partition metadata must be finite JSON');
-  return JSON.stringify(value);
+};
+/** The library's canonical JSON (artifacts/canonical-json.js) of finite JSON metadata. */
+export function canonicalPartitionJson(value) {
+  assertFiniteJson(value);
+  return canonicalize(value);
 }
 export async function partitionFingerprint(metadata, bytes = new Uint8Array()) {
   const header = new TextEncoder().encode(canonicalPartitionJson(metadata));
   const input = new Uint8Array(4 + header.length + bytes.length);
   new DataView(input.buffer).setUint32(0, header.length);
   input.set(header, 4); input.set(bytes, 4 + header.length);
-  const hash = await crypto.subtle.digest('SHA-256', input);
-  return 'sha256:' + [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+  return sha256Hex(input);
 }
 
 export const PARTITION_ROUTE_SCHEMA = 'reploid.partition-route/v1';

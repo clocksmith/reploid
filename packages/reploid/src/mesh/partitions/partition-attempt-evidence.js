@@ -19,6 +19,7 @@
  * verifies with.
  */
 import { canonicalPartitionJson, canonicalRouteAttemptBinding } from './partition-contract.js';
+import { sha256Hex as digestText } from '../../artifacts/signatures.js';
 import { normalizeParticipantPublicKey, participantIdFor, signAsParticipant, verifyParticipantSignature } from '../../artifacts/participant-proofs.js';
 import receiverPolicy from './partition-receiver-policy.json' with { type: 'json' };
 
@@ -52,8 +53,6 @@ const text = (value, max) => typeof value === 'string' && value.length > 0 && va
 const count = value => Number.isSafeInteger(value) && value >= 0;
 const isoOrNull = value => value === null || typeof value === 'string' && value.length <= 40 && Number.isFinite(Date.parse(value));
 const iso = ms => new Date(ms).toISOString();
-const hex = buffer => [...new Uint8Array(buffer)].map(byte => byte.toString(16).padStart(2, '0')).join('');
-const digestText = async value => `sha256:${hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)))}`;
 const sameJson = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 
 /** The ledger's route hash: sha256 over the canonical route attempt binding. */

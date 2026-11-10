@@ -1,17 +1,12 @@
 import { freezeJson, snapshotJson } from '../config/index.js';
+import { canonicalizeWith } from '../artifacts/canonical-json.js';
+import { sha256Hex } from '../artifacts/signatures.js';
 
 // Compatibility with published operation v1. V2 reconstruction belongs to
 // Doppler's public accumulator; never copy or hash cumulative v2 partials here.
-const canonical = value => {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  return `{${Object.keys(value).sort((a, b) => a.localeCompare(b))
-    .map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(',')}}`;
-};
-async function hash(value) {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical(value)));
-  return `sha256:${Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('')}`;
-}
+// Operation v1 orders object keys by localeCompare, not code units.
+const canonical = canonicalizeWith((a, b) => a.localeCompare(b));
+const hash = value => sha256Hex(canonical(value));
 const requireValue = (value, message) => { if (!value) throw new Error(`Doppler stream: ${message}`); };
 
 export async function createV1Verifier(request) {

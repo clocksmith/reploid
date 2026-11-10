@@ -2,6 +2,7 @@ import { isTransientProviderFailure, providerRetryDelay } from './provider-recov
 import { createExecutionEngine } from './engine.js';
 import { TURN_NEXT, TURN_STOP, TURN_RETURN } from './engine.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
+import { canonicalize as stableStringify } from '../artifacts/canonical-json.js';
 
 export function createTaskStrategy(options) {
   const policy = requireResolvedConfig(options.config);
@@ -294,14 +295,6 @@ const formatToolBatchResult = (entries = [], groups = []) => {
 };
 
 const clamp01 = (value) => Math.max(0, Math.min(1, Number(value) || 0));
-
-const stableStringify = (value) => {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
-  return `{${Object.keys(value).sort().map((key) => (
-    `${JSON.stringify(key)}:${stableStringify(value[key])}`
-  )).join(',')}}`;
-};
 
 const hashString = (value) => {
   const text = String(value || '');

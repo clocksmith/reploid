@@ -1,12 +1,11 @@
 import { assertPartition as assert, samePartitionIdentity, canonicalPartitionBinding,
   partitionActivationContract, matchingPartitionActivation } from './partition-contract.js';
 import { verifyPartitionStageCommit } from './partition-stage-commit.js';
+import { sha256Hex } from '../../artifacts/signatures.js';
 
 const SCHEMA = 'reploid.canonical-partition-request/v1';
 const stepKeys = ['schema', 'operation', 'phase', 'identity', 'canonicalAttempt', 'generationId', 'sequence',
   'step', 'tokenPosition', 'inputTokenCount', 'inputTokenIds', 'baseCursorId', 'baseCursor', 'grant', 'continuation'];
-const digestBytes = async bytes => 'sha256:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
-  byte => byte.toString(16).padStart(2, '0')).join('');
 const exact = (value, keys) => assert(value && typeof value === 'object' && !Array.isArray(value)
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key)), 'Invalid canonical wire fields');
 
@@ -101,7 +100,7 @@ export function createCanonicalPartitionContract({ runtime, plan, planId, modelI
       const { payload = new Uint8Array(), ...metadata } = structuredClone(request);
       assert(payload instanceof Uint8Array, 'Canonical payload bytes required');
       return hash('reploid.canonical-partition-request-digest/v1', { metadata,
-        payloadBytes: payload.byteLength, payloadDigest: await digestBytes(payload) });
+        payloadBytes: payload.byteLength, payloadDigest: await sha256Hex(payload) });
     },
     async serializeActivation(request) {
       const { activationTensor: source, ...metadata } = request;
@@ -113,7 +112,7 @@ export function createCanonicalPartitionContract({ runtime, plan, planId, modelI
       const frame = { ...runtime.serializeActivationFrame({ ...activationTensor, metadata: {} }) };
       const payload = new Uint8Array(frame.buffer);
       frame.metadata = { identity: canonicalPartitionBinding(request.identity),
-        activation: activationHeader(request, payload.byteLength, await digestBytes(payload)) };
+        activation: activationHeader(request, payload.byteLength, await sha256Hex(payload)) };
       const { buffer, ...header } = frame;
       assert(validateHeader({ ...request, frame: header }, payload.byteLength), 'Canonical serialized header mismatch');
       runtime.validateOrdinaryActivation(frame.metadata.activation, payload,

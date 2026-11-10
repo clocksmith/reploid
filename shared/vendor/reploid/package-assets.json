@@ -114,8 +114,8 @@
     },
     {
       "path": "adapters/doppler-stream.js",
-      "bytes": 4187,
-      "sha256": "e286dfe4492774afb05350e799ac695293504bfb2e2154495a4736410fd328a7"
+      "bytes": 3922,
+      "sha256": "e2741b7edca94d2a89eb6768988f2b022f9cd1ebdf77808906190154cc3d1f72"
     },
     {
       "path": "adapters/doppler.d.ts",
@@ -254,8 +254,8 @@
     },
     {
       "path": "agent/task-strategy.js",
-      "bytes": 48339,
-      "sha256": "4410d8ebe275926e6d7e4bf03466bae00d7765eb8ac44a302762c8d1265e9b00"
+      "bytes": 48086,
+      "sha256": "49b4345bf10e8220ea2ce43a6c00afc54b3bf87ab34011521c798b47f6e2a3c8"
     },
     {
       "path": "agent/tool-dispatch.js",
@@ -309,8 +309,8 @@
     },
     {
       "path": "artifacts/canonical-json.js",
-      "bytes": 482,
-      "sha256": "8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4"
+      "bytes": 748,
+      "sha256": "f3400db617e514a3e0e352725bc499bf8707594d0b52aaf5202b097f96af4524"
     },
     {
       "path": "artifacts/checkpoint.d.ts",
@@ -934,8 +934,8 @@
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.js",
-      "bytes": 20133,
-      "sha256": "7874511420ed359ae7db77225ed0824a731fa06077b95d778fde3125043b6f45"
+      "bytes": 19975,
+      "sha256": "16b04c1a876ce66e26d8c54e4bf51461ba82844d50c3755cf32f36475f59babc"
     },
     {
       "path": "mesh/partitions/partition-attempt-queue-policy.json",
@@ -959,8 +959,8 @@
     },
     {
       "path": "mesh/partitions/partition-canonical-contract.js",
-      "bytes": 12704,
-      "sha256": "9af9855e42d49ad942b68d3cf2f57b65cd088635751311e4a60779875224de79"
+      "bytes": 12583,
+      "sha256": "1de8c83b789ede647f18969c4ea65f77096fe5b62720f58278c3de576a6610a6"
     },
     {
       "path": "mesh/partitions/partition-canonical-execution.d.ts",
@@ -999,8 +999,8 @@
     },
     {
       "path": "mesh/partitions/partition-contract.js",
-      "bytes": 13581,
-      "sha256": "82f5b2c81acc4ec0536358456184de6ff5568fb904b40835aae0c7590a45152f"
+      "bytes": 13648,
+      "sha256": "a2e94cc32ad1e5c4a052975fe7f3ace9fecb126546c3ab47e915ce481fb25c7b"
     },
     {
       "path": "mesh/partitions/partition-device-admission.d.ts",
