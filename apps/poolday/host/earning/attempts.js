@@ -17,8 +17,8 @@
  * carries the latest acknowledgment with its receipt.
  */
 import { openOutputAcknowledgments } from '../../../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { ATTEMPT_REPORT_SCHEMA as REPORT_SCHEMA, FAILURE_CODE, ROUTE_ATTEMPT_SCHEMA } from '../../../../shared/vendor/reploid/contracts/attempt-report.js';
 
-const REPORT_SCHEMA = 'reploid.attempt-report/v1';
 // The outcome rules read ordered route records; other partition paths are not charged through them.
 const ORDERED_SELECTION = 'reploid.partition-selection/v2';
 const SUMMARY_KEYS = ['schema', 'identity', 'activationBytes', 'stopReason', 'settlement', 'stepSummary'];
@@ -153,7 +153,7 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
           // The charge binding is signed before binding; a route this device cannot bind sends nothing.
           try {
             acknowledgments = await openOutputAcknowledgments({ signer: client.evidenceSigner, reservationId: thread.reservationId, now,
-              identity: { schema: 'reploid.partition-attempt/v2', threadId, attemptId, requesterId: client.participantId,
+              identity: { schema: ROUTE_ATTEMPT_SCHEMA, threadId, attemptId, requesterId: client.participantId,
                 placementGeneration: request.placementGeneration ?? 0, route: preview.route } });
           } catch { return false; }
         }
@@ -205,11 +205,11 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
         else await settleThread(threadId, thread, null, await report(thread, null, { schema: REPORT_SCHEMA, result: 'cancelled', attemptId: null }));
         throw error;
       }
-      identity ??= previewRoute && { schema: 'reploid.partition-attempt/v2', threadId, attemptId, requesterId: client.participantId,
+      identity ??= previewRoute && { schema: ROUTE_ATTEMPT_SCHEMA, threadId, attemptId, requesterId: client.participantId,
         placementGeneration: request.placementGeneration ?? 0, route: previewRoute };
       const body = deadline.signal.aborted ? { result: 'cancelled', cancellation: { cause: 'deadline' }, ...(activity ? { activity } : {}) }
         : controls.signal?.aborted ? { result: 'cancelled', cancellation: { cause: 'requester' }, ...(activity ? { activity } : {}) }
-          : { result: 'failed', failure: { code: typeof error?.code === 'string' && /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(error.code) ? error.code : 'EXECUTION_FAILED' } };
+          : { result: 'failed', failure: { code: typeof error?.code === 'string' && FAILURE_CODE.test(error.code) ? error.code : 'EXECUTION_FAILED' } };
       await settleThread(threadId, thread, attemptId, await report(thread, attemptId, { schema: REPORT_SCHEMA, attemptId, identity, ...body, ...evidenceOf() }));
       throw error;
     } finally { cancelTimer(); firstOutput(); }

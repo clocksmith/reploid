@@ -613,6 +613,16 @@
       "sha256": "48555be6fa31fc3bc9d0f414e6dc86b6f8ae674a3ff941c77393a2bc2668a21b"
     },
     {
+      "path": "contracts/attempt-report.d.ts",
+      "bytes": 197,
+      "sha256": "8290c61022efe7b40e508120b827706657c9db5821326198c8ed3f7959f24ded"
+    },
+    {
+      "path": "contracts/attempt-report.js",
+      "bytes": 464,
+      "sha256": "3c8095f0fcca92bd97a78cda8cb19a4996f1bca15b27c31270cb5717e2305249"
+    },
+    {
       "path": "contracts/config/doppler-execution-contracts.d.ts",
       "bytes": 1184,
       "sha256": "90ffa92025453f0f32a6394c5ba47f568da7cdd6431110b7485532a2b38ebc41"

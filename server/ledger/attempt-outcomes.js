@@ -20,10 +20,11 @@
 
 import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { partitionActivity } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
+import { ATTEMPT_REPORT_SCHEMA, FAILURE_CODE } from '../../packages/reploid/src/contracts/attempt-report.js';
 import { cloneJson, fail, hashCanonical, sha256Hex, toMs } from './domain.js';
 
 export const ATTEMPT_OUTCOME_RULES_ID = 'reploid.attempt-outcome-rules/1.0.0';
-export const ATTEMPT_REPORT_SCHEMA = 'reploid.attempt-report/v1';
+export { ATTEMPT_REPORT_SCHEMA };
 export const ATTEMPT_RECORD_SCHEMA = 'reploid.attempt-record/v1';
 export const REPORT_RESULTS = Object.freeze(['completed', 'failed', 'cancelled', 'abandoned']);
 // The partition transport's code for a stage whose authenticated channel closed.
@@ -45,7 +46,6 @@ export const ATTEMPT_OUTCOME_RULES = Object.freeze({
 const SUMMARY_SCHEMA = 'reploid.mesh.partition-summary/v2';
 // `evidence` carries the requester's signed acknowledgments under evidence terms (attempt-evidence.js).
 const REPORT_KEYS = Object.freeze(['schema', 'result', 'attemptId', 'identity', 'execution', 'activity', 'failure', 'cancellation', 'evidence']);
-const FAILURE_CODE = /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/;
 
 /** All attempts under one acceptance are one billable event. */
 export const billableEventIdFor = (reservationId) => `bill_${sha256Hex(`reservation\u0000${reservationId}`).slice(0, 32)}`;
