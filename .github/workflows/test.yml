@@ -27,3 +27,23 @@ jobs:
           cache: npm
       - run: npm ci --omit=dev --omit=optional --no-audit --no-fund
       - run: npm run package:hosting
+
+  verify:
+    # Charter, ownership, layer, generated-manifest and symbol checks; static, no browser or GPU.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run verify:catscan
+      - run: npm run verify:emoji
+      - run: npm run verify:layers
+      - run: npm run verify:module-system
+      - run: npm run verify:planning-boundary
+      - run: npm run verify:ownership-inventory
+      - run: npm run verify:zero-source
+      - run: npm run verify:registry
