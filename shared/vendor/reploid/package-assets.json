@@ -327,8 +327,8 @@
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 26130,
-      "sha256": "833cbbf46e913352d507e9d69685d3126ba4ff45c9ca89963149c5de28df465d"
+      "bytes": 26054,
+      "sha256": "35320c556188fe481ba472211d5a80acc51a05bf923f45a60e4fdbfcbeeada23"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
@@ -337,8 +337,8 @@
     },
     {
       "path": "artifacts/custody/piece-acquisition.js",
-      "bytes": 3972,
-      "sha256": "9845e740ee6a37bef87d202953a54b37c6c344734756d6963907322763445cce"
+      "bytes": 3951,
+      "sha256": "fcb956e8d5ce42b15dd976036cc124bbb0106500b39686e644816753a7e2c3e2"
     },
     {
       "path": "artifacts/custody/runtime.d.ts",
@@ -1342,8 +1342,8 @@
     },
     {
       "path": "retrieval/citations.js",
-      "bytes": 9521,
-      "sha256": "61da2b8d54bd682a315e322563eeeba4573c62e0319d4cc87b713ca36d04485a"
+      "bytes": 9451,
+      "sha256": "8d58feadb8d65796eac60f870aaa35cc2bb53858e6a7ddf49a988a26e026995a"
     },
     {
       "path": "retrieval/claim-support.js",
@@ -1412,8 +1412,8 @@
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 18666,
-      "sha256": "5358e5b88c280a3143c11f7c4926d0f960bd434d8ef2486500c087ee9a3e0fc3"
+      "bytes": 18382,
+      "sha256": "5b6ecfad1d095c962ed6b0991b435c6536a2b59fb367447c270022a32e2726a3"
     },
     {
       "path": "retrieval/support-review.js",

@@ -1,6 +1,8 @@
 /** Coordinates verified acquisition across eligible sources. Existing custody
  * exchanges can supply read(piece); storage and source credentials are host ports.
  */
+import { abortable } from '../../agent/cancellation.js';
+
 export function createPieceAcquisition({ sources, cache, authorize, verify, limits, foregroundIdle }) {
   if (typeof sources !== 'function' || typeof authorize !== 'function' || typeof verify !== 'function'
     || typeof foregroundIdle !== 'function' || !cache?.get || !cache?.put
@@ -54,12 +56,10 @@ export function createPieceAcquisition({ sources, cache, authorize, verify, limi
         tasks.set(piece.identity, task); queue.push(task); pump();
       } else if (task.piece.size !== piece.size) throw new Error('Conflicting piece identity');
       // Cancelling one consumer does not discard a shared verified transfer.
-      return new Promise((resolve, reject) => {
-        const abort = () => reject(signal.reason);
-        signal?.addEventListener('abort', abort, { once: true });
-        task.promise.then(bytes => { if (!signal?.aborted) resolve(bytes.slice()); }, reject)
-          .finally(() => signal?.removeEventListener('abort', abort));
-      });
+      const shared = task.promise;
+      if (!signal) return shared.then(bytes => bytes.slice());
+      shared.catch(() => {}); // A failure after this consumer cancelled stays handled.
+      return abortable(() => shared, signal).then(bytes => bytes.slice());
     },
     getReceipt: () => structuredClone(receipt),
     async close() {

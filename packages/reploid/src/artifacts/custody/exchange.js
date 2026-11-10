@@ -1,4 +1,5 @@
 import { signDeliveryAttestation } from '../delivery-attestation.js';
+import { abortable } from '../../agent/cancellation.js';
 
 /** Discovery composition for the existing signed custody store and bounded byte channel. */
 export function createCustodyExchange({ transport, identity, policy, ports }) {
@@ -117,11 +118,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         }
       }
     }
-    return new Promise((resolve, reject) => {
-      const abort = () => reject(signal.reason);
-      signal.addEventListener('abort', abort, { once: true });
-      ready.then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
-    });
+    ready.catch(() => {}); // A failure after this waiter cancelled stays handled.
+    return abortable(() => ready, signal);
   };
   const revokeSupply = () => {
     supply = false; supplyEpoch++;

@@ -3,6 +3,9 @@
 import defaults from './policy.json' with { type: 'json' };
 import { SHA256, sha256Text } from './text.js';
 import { COST_BEARERS, retrievalCostEntry, retrievalCostRecord, unknownRetrievalCosts } from './costs.js';
+// Provider and extractor calls are awaited only until the deadline passes or the attempt stops;
+// providers that ignore their signal cannot extend it.
+import { abortable } from '../agent/cancellation.js';
 
 export const RETRIEVAL_RECORD_SCHEMA = 'reploid.retrieval-record/v1';
 export const RETRIEVAL_OUTCOMES = Object.freeze(['pending', 'retrieved', 'empty', 'failed', 'cancelled', 'interrupted']);
@@ -134,15 +137,6 @@ export function renderSourceContext(sources, policy = defaults) {
   return `${policy.context.instructions}\n\n${policy.context.sourcesHeading}\n\n${sources.map(sourceBlock).join('\n\n')}`;
 }
 
-/** Waits for `operation` unless the deadline passes or the attempt stops; providers that ignore their signal cannot extend it. */
-function race(operation, signal) {
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) { reject(signal.reason); return; }
-    const stop = () => reject(signal.reason);
-    signal.addEventListener('abort', stop, { once: true });
-    Promise.resolve().then(operation).then(resolve, reject).finally(() => signal.removeEventListener('abort', stop));
-  });
-}
 
 /** Runs one retrieval and returns the finished record. Failures are recorded, never thrown and never filled with sources.
  * `answer` is an opaque key for the answer this retrieval serves; providers may pass it to their own usage log so
@@ -167,7 +161,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
     progress();
     let returned;
     try {
-      returned = providerResults(await race(() => { meter.searched = true; return provider.search(record.query, copy(limits), deadline.signal, copy(context)); },
+      returned = providerResults(await abortable(() => { meter.searched = true; return provider.search(record.query, copy(limits), deadline.signal, copy(context)); },
         deadline.signal));
     } catch (error) { throw error instanceof RetrievalError ? error : new RetrievalError('provider-error', error); }
     if (!returned || !returned.results.every(validResult) || !validUsage(returned.usage)) throw new RetrievalError('invalid-provider-result');
@@ -188,7 +182,7 @@ export async function retrieveSources({ record, provider, extractor = null, sign
     if (extractor) meter.attempted = kept.length;
     progress(kept.length);
     const passages = await Promise.allSettled(kept.map(source => (extractor
-      ? race(() => extractor.extract({ source: copy(source), query: record.query, limits: copy(limits), signal: deadline.signal, ...copy(context) }),
+      ? abortable(() => extractor.extract({ source: copy(source), query: record.query, limits: copy(limits), signal: deadline.signal, ...copy(context) }),
         deadline.signal)
         .then(value => { if (!validPassage(value, source)) throw new Error('Invalid extracted passage'); return { ...value, origin: 'extract' }; })
       : Promise.resolve({ sourceId: source.sourceId, text: source.excerpt, retrievedAt: source.retrievedAt,

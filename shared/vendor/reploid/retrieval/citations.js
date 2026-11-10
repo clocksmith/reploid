@@ -1,6 +1,7 @@
 /** Mechanical citation checks for one answer against its retrieval record. Parsing and mapping are exact;
  * whether a source supports a claim is delegated to a host support checker and is never inferred here. */
 import { sumMicroUsd } from './costs.js';
+import { abortable } from '../agent/cancellation.js';
 
 export const CITATION_VERIFICATION_SCHEMA = 'reploid.citation-verification/v1';
 export const SUPPORT_VERDICTS = Object.freeze(['supported', 'unsupported', 'unverified']);
@@ -75,10 +76,9 @@ const STOPPED = 'Support checking stopped before this citation.';
 /** A checker that ignores its signal cannot hold the attempt past it. */
 function untilStopped(operation, signal) {
   if (!signal) return Promise.resolve().then(operation);
-  return new Promise((resolve, reject) => {
-    const stop = () => resolve(unverified(STOPPED));
-    signal.addEventListener('abort', stop, { once: true });
-    Promise.resolve().then(operation).then(resolve, reject).finally(() => signal.removeEventListener('abort', stop));
+  return abortable(operation, signal).catch(error => {
+    if (signal.aborted && error === signal.reason) return unverified(STOPPED);
+    throw error;
   });
 }
 function judged(value) {
