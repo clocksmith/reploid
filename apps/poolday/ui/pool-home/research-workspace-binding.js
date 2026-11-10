@@ -23,7 +23,8 @@ import { reviewTargetFromUrl, renderRecord, renderResearchWorkspace } from './re
 import { reviewActionClaims, createContextualReviewRecord } from './research-review-records.js';
 import { createLifecycleRecordFromForm } from './research-lifecycle-records.js';
 
-const replaceWorkspace = (workspace, options = {}) => {
+// Rebinding keeps the caller's publisher: a re-render must not fall back to the default store.
+const replaceWorkspace = (workspace, options = {}, binding = {}) => {
   const roomId = workspace.dataset.roomId;
   const parent = workspace.parentElement;
   if (!parent) return;
@@ -32,7 +33,7 @@ const replaceWorkspace = (workspace, options = {}) => {
     reviewTarget: reviewTargetFromUrl() || selectedReviewTarget,
     ...options
   });
-  bindResearchWorkspace(parent.querySelector('[data-pool-research-workspace]'));
+  bindResearchWorkspace(parent.querySelector('[data-pool-research-workspace]'), binding);
 };
 
 const retainReviewTargetInUrl = (targetHash) => {
@@ -61,7 +62,7 @@ export function bindResearchWorkspace(
       : '<p class="pool-caption">No matching signed evidence yet.</p>';
   });
   workspace.querySelector('[data-research-similarity-target]')?.addEventListener('change', (event) => {
-    replaceWorkspace(workspace, { similarityTarget: event.target.value });
+    replaceWorkspace(workspace, { similarityTarget: event.target.value }, { publishRecord });
   });
   const reviewTargetSelect = workspace.querySelector('[data-research-review-form] select[name="targetHash"]');
   reviewTargetSelect?.addEventListener('change', (event) => {
@@ -107,7 +108,7 @@ export function bindResearchWorkspace(
         contextDetermination: values.get('contextDetermination')
       });
       const publication = await publishRecord(record, { roomId });
-      replaceWorkspace(workspace, { reviewTarget: values.get('targetHash') });
+      replaceWorkspace(workspace, { reviewTarget: values.get('targetHash') }, { publishRecord });
       const nextStatus = document.querySelector('[data-research-review-status]');
       if (nextStatus) nextStatus.textContent = publication.remote ? 'Signed review record published.' : 'Signed review record saved locally; coordinator sync is pending.';
     } catch (error) {
@@ -135,8 +136,8 @@ export function bindResearchWorkspace(
           taskId: button.dataset.researchApproveTask,
           taskContract: task.taskContract
         });
-        await publishResearchRecord(record, { roomId });
-        replaceWorkspace(workspace);
+        await publishRecord(record, { roomId });
+        replaceWorkspace(workspace, {}, { publishRecord });
       } catch (error) {
         button.disabled = false;
         button.title = error.message;
@@ -167,7 +168,7 @@ export function bindResearchWorkspace(
           actionContractHash: candidate.action.contractHash
         });
         await publishRecord(record, { roomId });
-        replaceWorkspace(workspace);
+        replaceWorkspace(workspace, {}, { publishRecord });
       } catch (error) {
         button.disabled = false;
         button.title = error.message;
@@ -231,8 +232,8 @@ export function bindResearchWorkspace(
           roomId,
           activeResearchRecords(loadResearchRecords(roomId))
         );
-        const publication = await publishResearchRecord(record, { roomId });
-        replaceWorkspace(workspace);
+        const publication = await publishRecord(record, { roomId });
+        replaceWorkspace(workspace, {}, { publishRecord });
         const sync = document.querySelector('[data-pool-research-sync]');
         if (sync) sync.textContent = publication.remote ? 'Lifecycle evidence synchronized' : 'Lifecycle evidence saved locally; coordinator sync pending';
       } catch (error) {
@@ -249,7 +250,8 @@ export async function hydrateAndBindResearchWorkspace(
   {
     hydrate = hydrateResearchRecords,
     hydrateCrossRoom = hydrateCrossRoomSequenceEvidence,
-    hydrateCampaign = hydrateProteinUncertaintyCampaignQueue
+    hydrateCampaign = hydrateProteinUncertaintyCampaignQueue,
+    publishRecord = publishResearchRecord
   } = {}
 ) {
   if (!roomId) return null;
@@ -257,7 +259,7 @@ export async function hydrateAndBindResearchWorkspace(
   let localRenderCompleted = false;
   const renderLocalEvidence = () => {
     if (!workspace || !document.body.contains(workspace)) return;
-    replaceWorkspace(workspace);
+    replaceWorkspace(workspace, {}, { publishRecord });
     localRenderCompleted = true;
   };
   const hydrated = workspace
@@ -273,7 +275,7 @@ export async function hydrateAndBindResearchWorkspace(
   const campaignQueue = await hydrateCampaign(roomId);
   const currentWorkspace = document.querySelector('[data-pool-research-workspace]');
   if (workspace && currentWorkspace?.dataset.roomId === roomId) {
-    replaceWorkspace(currentWorkspace);
+    replaceWorkspace(currentWorkspace, {}, { publishRecord });
   }
   const current = document.querySelector('[data-pool-research-sync]');
   if (current) {

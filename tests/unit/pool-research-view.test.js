@@ -8,6 +8,7 @@ import {
   createSignedResearchResult,
   createSignedResearchSubmission,
   projectAcceptedResearchMemory,
+  proposeDiscoveryTasks,
   validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../apps/poolday/pool/evidence-network.js';
@@ -15,6 +16,7 @@ import { createSigningKeyPair } from '../../shared/pool/inference-receipt.js';
 import { buildLaunchProviderModel } from '../../shared/pool/model-contract.js';
 import { hashSequenceFloat32Values } from '../../apps/poolday/pool/sequence-result.js';
 import {
+  bindResearchRoomActions,
   bindResearchWorkspace,
   createContextualReviewRecord,
   createCurrentRoomPriorEvidence,
@@ -576,6 +578,52 @@ describe('Poolday research Records model evidence view', () => {
       }
     });
     expect(await verifyResearchRecord(record)).toMatchObject({ ok: true });
+  });
+
+  it('sends task approvals and lifecycle records only through the injected publisher, across re-renders', async () => {
+    localStorage.clear();
+    resetResearchStore();
+    const roomId = 'injected-publisher-room';
+    const submission = await createSignedResearchSubmission({
+      identity: await identity('requester'),
+      roomId,
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: { kind: 'question', text: 'Which follow-up should this room approve?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: buildLaunchProviderModel(),
+      policyId: 'redundant_agreement'
+    });
+    await appendResearchRecord(submission);
+    const [task] = proposeDiscoveryTasks(loadResearchRecords(roomId));
+    expect(task).toBeTruthy();
+    const publishRecord = vi.fn(async (_record, options) => ({ remote: true, roomId: options.roomId }));
+    const published = (predicate) => publishRecord.mock.calls.filter(([record]) => predicate(record));
+
+    // Research workspace: a rendered task approval, then a lifecycle form in the re-rendered workspace.
+    document.body.innerHTML = `<div>${renderResearchWorkspace(roomId, loadResearchRecords(roomId))}</div>`;
+    const workspace = document.querySelector('[data-pool-research-workspace]');
+    bindResearchWorkspace(workspace, { publishRecord });
+    workspace.querySelector(`[data-research-approve-task="${task.taskId}"]`).click();
+    await vi.waitFor(() => expect(published((record) => record.claim?.kind === 'task_approval')).toHaveLength(1));
+    const revocation = document.querySelector('[data-research-lifecycle-form][data-research-action="revocation"]');
+    revocation.elements.targetHash.value = submission.recordHash;
+    revocation.elements.reason.value = 'Withdraw this question from future reuse.';
+    revocation.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(published((record) => record.kind === 'research_revocation')).toHaveLength(1));
+
+    // Research Room-1: the next-action approval.
+    const room = document.createElement('section');
+    room.innerHTML = `<button type="button" data-pool-room-approve-task="${task.taskId}" data-pool-room-task-target="${task.targetHash}" data-pool-room-id="${roomId}">Approve next action</button>`;
+    document.body.append(room);
+    bindResearchRoomActions(room, { publishRecord });
+    room.querySelector('[data-pool-room-approve-task]').click();
+    await vi.waitFor(() => expect(published((record) => record.claim?.kind === 'task_approval')).toHaveLength(2));
+
+    expect(publishRecord.mock.calls.every(([, options]) => options.roomId === roomId)).toBe(true);
+    // The default store publisher never ran: the room still holds only the question.
+    expect(loadResearchRecords(roomId).map((record) => record.recordHash)).toEqual([submission.recordHash]);
+    resetResearchStore();
+    localStorage.clear();
   });
 
   it('hydrates the active room even when the technical workspace is not mounted', async () => {

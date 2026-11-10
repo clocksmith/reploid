@@ -245,7 +245,7 @@ export function bindResearchRoomActions(root = document, {
         taskId,
         taskContract: task.taskContract
       });
-      const publication = await publishResearchRecord(record, { roomId });
+      const publication = await publishRecord(record, { roomId });
       button.textContent = publication.remote ? 'Approved next action' : 'Approval saved locally';
     } catch (error) {
       button.disabled = false;
@@ -293,7 +293,7 @@ export function bindResearchRoomActions(root = document, {
         modelContract,
         policyId: 'redundant_agreement'
       });
-      await publishResearchRecord(submission, { roomId });
+      await publishRecord(submission, { roomId });
       sampleButton.textContent = 'Canonical dispute loaded';
       if (typeof globalThis.location?.reload === 'function') {
         globalThis.location.reload();
