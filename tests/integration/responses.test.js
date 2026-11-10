@@ -149,6 +149,30 @@ it.each(['public-pool','unknown'])('refuses a requester whose execution class is
  const response=await f.post({...input,reploid:{pool_id:'valera-private-pool-v1',expected_model_identity:model.identity,allowed_recipients:['actual-stage'],include_execution:true}});
  expect(response.status).toBe(403);expect(f.generate).not.toHaveBeenCalled();
 });
+it('binds whole-model token ceiling, JSON output and persistent recipient identity without transport UUID drift', async()=>{
+  const whole={id:'whole-model',identity:model.identity,availability:'ready',providerIds:['transport-session-1'],
+    generation:{maxTokens:64},textGeneration:{schema:'reploid.text-generation/v1',usage:'raw-model-tokens/v1'}};
+  const f=await boot({participant:{getState:()=>({models:[whole]}),generate:async(request,controls)=>{
+    expect(request.generationRequest.maxOutputTokens).toBe(64);
+    await controls.requestApproval({threadId:request.threadId,attemptId:request.attemptId,modelId:whole.id,modelIdentity:whole.identity,
+      adapterIdentities:[],providerId:'transport-session-1',recipientIdentity:'peer:5c0ecd2fd5fd8a105a4f8068',
+      recipients:['peer:5c0ecd2fd5fd8a105a4f8068'],input:{messages:request.messages,generationRequest:request.generationRequest}});
+    controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'{"ok":true}'});
+    return {threadId:request.threadId,attemptId:request.attemptId,modelId:whole.id,modelIdentity:whole.identity,adapterIdentities:[],
+      content:'{"ok":true}',usage:{schema:'raw-model-tokens/v1',inputTokens:9,outputTokens:4},
+      execution:{placement:'peer-whole-request',providerId:'transport-session-1',providerIdentity:'peer:5c0ecd2fd5fd8a105a4f8068',
+        stopReason:'eos-token',completion:{promptTokenCount:9,generatedTokenCount:4,stopReason:'eos-token'}}};
+  }}});
+  const response=await f.post({model:whole.id,input:[{role:'user',content:'Return JSON'}],store:false,stream:true,max_output_tokens:64,
+    text:{format:{type:'json_object'}},reploid:{pool_id:'valera-private-pool-v1',expected_model_identity:whole.identity,
+      expected_adapter_identities:[],expected_plan_identity:null,allowed_recipients:['peer:5c0ecd2fd5fd8a105a4f8068'],include_execution:true}});
+  expect(response.status).toBe(200);
+  const rows=events(await response.text()),final=rows.at(-1).response;
+  expect(final.status).toBe('completed');
+  expect(final.usage).toEqual({input_tokens:9,output_tokens:4,total_tokens:13});
+  expect(final.reploid).toMatchObject({schema:'reploid.http-execution/v1',poolId:'valera-private-pool-v1',executionClass:'private-pool',
+    modelIdentity:whole.identity,recipients:['peer:5c0ecd2fd5fd8a105a4f8068']});
+});
 it.each(['chat.execute','chat.disclose'])('rejects private-pool drift while %s authorization awaits',async action=>{
   let f;
   f=await boot({authorize:async request=>{if(request.action===action)f.participant.executionClass='public-pool';return true;}});

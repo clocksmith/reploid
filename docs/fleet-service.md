@@ -186,3 +186,29 @@ does not retain prompt text. Signing keys and durable accounting remain native.
 
 Local model downloads remain a separate reviewed action. Send does not acquire
 weights, even if an older automatic-download preference was stored.
+
+## Authenticated HTTP text API
+
+An enrolled native requester can also serve `/v1/models`, `/v1/chat/completions`
+and `/v1/responses` over its private pool by adding `textApi` to its
+`reploid.fleet-native/v1` configuration:
+
+```json
+{
+  "textApi": {
+    "listenHost": "127.0.0.1",
+    "port": 18785,
+    "tokenFile": "/absolute/owner-only/fleet-api-secret",
+    "allowedRecipients": ["peer:5c0ecd2fd5fd8a105a4f8068"]
+  }
+}
+```
+
+Use at least 32 random bytes encoded as text for `tokenFile` with mode `0600`.
+Non-loopback `listenHost` values require `tls: { "keyFile": "...", "certFile": "..." }`.
+Every request checks the bearer secret in constant time, verifies that the
+requester remains in `private-pool` scope, checks disclosed provider signing
+identities against the coordinator's enrolled computers (and optional
+`allowedRecipients`), and reserves and settles non-cash service credits before
+publishing `reploid.http-execution/v1`. Signing keys and room tokens remain on
+the native host.

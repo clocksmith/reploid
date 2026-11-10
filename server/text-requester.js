@@ -130,7 +130,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             preview = freeze(structuredClone(preview));
             const recipients = [...new Set([...(preview.recipients || []), ...(preview.input?.recipients || []),
               ...(preview.route?.stages?.map(stage => stage.participantId) || []),
-              ...[preview.participantA, preview.participantB, preview.providerId].filter(Boolean)])];
+              ...[preview.participantA, preview.participantB, preview.recipientIdentity || preview.providerId].filter(Boolean)])];
             if (input.reploid && (!recipients.length || recipients.some(id => !input.reploid.allowed_recipients.includes(id)))) {
               throw fail(403, 'Actual route recipients exceed the permitted private pool');
             }
@@ -159,7 +159,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             assert(disclosureApproved, 'Recipient disclosure must precede output');
             assert(event?.threadId === threadId && event.attemptId === attemptId && event.sequence === sequence++
               && typeof event.text === 'string', 'Requester delta identity or sequence mismatch');
-            assert(!requested || observedUsage, 'Provider token usage must precede text');
+            assert(!model.partition || !requested || observedUsage, 'Provider token usage must precede text');
             emitted += event.text;
             assert(emitted.length <= policy.inputLimits.maxOutputCharacters, 'Output text limit exceeded');
             if (input.stream) output.delta(event.text);
@@ -188,11 +188,16 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       }
       if (requested) {
         usage = tokenUsage(result.usage?.inputTokens, result.usage?.outputTokens, requested);
-        assert(observedUsage && usage.inputTokens === observedUsage.inputTokens && result.usage.schema === usage.schema
-          && usage.outputTokens === (result.execution?.stepSummary?.count ?? result.execution?.steps?.length), 'Provider final token usage differs from input observation');
+        assert(model.partition
+          ? observedUsage && usage.inputTokens === observedUsage.inputTokens && result.usage.schema === usage.schema
+            && usage.outputTokens === (result.execution?.stepSummary?.count ?? result.execution?.steps?.length)
+          : !observedUsage && result.usage?.schema === usage.schema
+            && usage.inputTokens === result.execution?.completion?.promptTokenCount
+            && usage.outputTokens === result.execution?.completion?.generatedTokenCount,
+        'Provider final token usage differs from input observation');
       }
       if (input.stream && !sequence) {
-        assert(!requested || observedUsage, 'Provider token usage must precede text');
+        assert(!model.partition || !requested || observedUsage, 'Provider token usage must precede text');
         output.delta(result.content);
       }
       const evidence = input.reploid?.include_execution ? { schema: 'reploid.http-execution/v1',

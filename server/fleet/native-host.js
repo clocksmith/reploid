@@ -15,6 +15,7 @@ import { openNativeOwnerControls } from '../native-owner/controls.js';
 import custodyPolicy from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
 import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { startFleetBrowserBridge } from './browser-bridge.js';
+import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester } from './requester.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
@@ -175,7 +176,48 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     }
     await credits.call('demand', { id: config.computerId, requests: [...demand.values()] });
   }
-  return Object.freeze({ identity, state, select, reconcile,
+  const textParticipant = Object.freeze({
+    roomId: config.roomId,
+    executionClass: 'private-pool',
+    getState: () => participant?.getState() ?? { models: [] },
+    generate: (request, controls) => {
+      assert(participant && !closed && !preparing, 'Requester unavailable');
+      return participant.generate(request, controls);
+    }
+  });
+  return Object.freeze({ identity, state, select, reconcile, textParticipant,
+    allowsModel: model => config.models.some(entry => entry.model.id === model?.id && entry.model.identity === model?.identity),
+    async enrolledRecipients() {
+      assert(credits, 'Service credits are not configured');
+      const network = await credits.call('computers', {});
+      return new Set((network.computers || []).flatMap(row => row.participantIds || []));
+    },
+    async runAccountedGeneration(request, controls, execute) {
+      assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
+      assert(credits, 'Service credits are not configured');
+      assert(Number.isSafeInteger(config.maxOutputTokens) && config.maxOutputTokens > 0, 'Explicit fleet output limit required');
+      if (request.generationRequest && request.generationRequest.maxOutputTokens > config.maxOutputTokens) {
+        throw Object.assign(Error('max_output_tokens exceeds fleet credit policy'), { status: 400, param: 'max_output_tokens' });
+      }
+      const controller = new AbortController();
+      const abort = () => controller.abort(controls.signal.reason);
+      controls.signal.addEventListener('abort', abort, { once: true });
+      if (controls.signal.aborted) abort();
+      requests.set(request.attemptId, { controller, request, since: Date.now() });
+      try {
+        await publishDemand();
+        const requester = createFleetRequester({
+          participant: { generate: execute },
+          identity, credits, maxOutputTokens: config.maxOutputTokens
+        });
+        const result = await requester.generate(request, { ...controls, signal: controller.signal });
+        return { ...result, execution: { ...result.execution, serviceCredit: result.serviceCredit } };
+      } finally {
+        controls.signal.removeEventListener('abort', abort);
+        requests.delete(request.attemptId);
+        await publishDemand().catch(error => onChange({ warning: error.message }));
+      }
+    },
     async browserState() {
       assert(credits, 'Service credits are not configured');
       const network = await credits.call('computers', {});
@@ -239,7 +281,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
 
 export async function runFleetNativeCommands({ host, config, input = process.stdin, signals = process }) {
   const pending = new Set(); let lines = null;
-  let timer = null, browserBridge = null;
+  let timer = null, browserBridge = null, textApi = null;
   if (config.auto === true) {
     assert(Number.isSafeInteger(config.pollMs) && config.pollMs >= 1000, 'Explicit bounded placement interval required');
     let busy = false;
@@ -257,6 +299,12 @@ export async function runFleetNativeCommands({ host, config, input = process.std
     if (Number.isSafeInteger(config.initialModel)) await host.select(config.initialModel, config.initialContribution === true);
     if (config.browserBridge) browserBridge = await startFleetBrowserBridge({ host, ...config.browserBridge,
       token: (await readOwnFile(config.browserBridge.tokenFile)).trim() });
+    if (config.textApi) {
+      const tls = config.textApi.tls ? (assert(path.isAbsolute(config.textApi.tls.certFile), 'Absolute TLS certificate path required'),
+        { key: await readOwnFile(config.textApi.tls.keyFile), cert: await fs.readFile(config.textApi.tls.certFile) }) : null;
+      textApi = await startFleetTextApi({ host, ...config.textApi, tls,
+        token: (await readOwnFile(config.textApi.tokenFile)).trim() });
+    }
     // Readline begins consuming immediately: create it only when its iterator can
     // subscribe, after asynchronous model/bridge setup, or EOF can be lost.
     if (!stopped) lines = createInterface({ input });
@@ -282,7 +330,7 @@ export async function runFleetNativeCommands({ host, config, input = process.std
   } finally {
     if (config.daemon === true && !stopped) await daemonStopped;
     signals.removeListener('SIGTERM', stop); signals.removeListener('SIGINT', stop);
-    clearInterval(timer); await browserBridge?.close(); await host.close(); await Promise.allSettled(pending);
+    clearInterval(timer); await textApi?.close(); await browserBridge?.close(); await host.close(); await Promise.allSettled(pending);
   }
 }
 

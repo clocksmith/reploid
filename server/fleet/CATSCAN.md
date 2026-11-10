@@ -30,7 +30,7 @@ Outputs: durable balances, work records and placement decisions.
 - Credits are non-cash and conserved. Explicit policy bounds debt and permits
   same-owner transfers. A requester's local partition share is unbilled.
 - Fence admission before release; retain signed proof and recover it across restarts.
-- Browser delegation requires pairing, loopback and exact origins; keys stay native.
+- Delegation requires pairing/loopback/origins (browser) or bearer/TLS/enrolled-recipient checks (HTTP); keys stay native.
 - Unknown work stays pending; stopping does not prove GPU settlement.
 - Busy providers retain work. Placement changes only at idle boundaries.
 - Capacity observations and measured envelopes have separate expiry; envelopes

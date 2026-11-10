@@ -62,6 +62,44 @@ it('refuses unsupported caller token limits before dispatch', async () => {
   expect(f.mesh.generate).not.toHaveBeenCalled();
 });
 
+it('binds verified peer signing identity in recipients and enforces prepared whole-model token ceilings', async () => {
+  const boundedModel = { ...model, generation: { maxTokens: 16 } };
+  const controller = new AbortController();
+  const controls = { signal: controller.signal, requestApproval: vi.fn(async () => true), onDelta: vi.fn() };
+  let requester;
+  const mesh = {
+    getSwarmSnapshot: () => ({ peers: [{ peerId: 'transport-uuid', participantId: 'peer:enrolled1234567890abcdef',
+      model: boundedModel.id, modelIdentity: boundedModel.identity, hasInference: true, readiness: 'ready', availableSlots: 1 }] }),
+    generate: vi.fn(async (messages, onDelta, options) => {
+      if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'transport-uuid',
+        recipientIdentity: 'peer:enrolled1234567890abcdef', requestId: 'req-1',
+        modelId: options.modelId, modelIdentity: options.modelIdentity, adapterIdentities: options.adapterIdentities,
+        requestContext: options.requestContext, messages })) throw Error('Disclosure denied');
+      onDelta('{"ok":true}');
+      return { model: boundedModel.id, modelIdentity: boundedModel.identity, adapterIdentities: [], content: '{"ok":true}',
+        completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'eos-token', promptTokenCount: 7, generatedTokenCount: 4 } };
+    })
+  };
+  requester = createWholeModelRequester({ mesh, models: [boundedModel] });
+  expect(requester.getModels()[0].textGeneration).toEqual({ schema: 'reploid.text-generation/v1', usage: 'raw-model-tokens/v1' });
+  await expect(requester.generate({ ...request, model: boundedModel, generationRequest: {
+    schema: 'reploid.partition-generation-request/v1', maxOutputTokens: 8, usage: 'raw-model-tokens/v1'
+  } }, controls)).rejects.toThrow('below the prepared model ceiling');
+  expect(mesh.generate).not.toHaveBeenCalled();
+  const value = await requester.generate({ ...request, model: boundedModel, generationRequest: {
+    schema: 'reploid.partition-generation-request/v1', maxOutputTokens: 16, usage: 'raw-model-tokens/v1'
+  } }, controls);
+  expect(controls.requestApproval).toHaveBeenCalledWith(expect.objectContaining({
+    providerId: 'transport-uuid',
+    recipientIdentity: 'peer:enrolled1234567890abcdef',
+    recipients: ['peer:enrolled1234567890abcdef'],
+    input: { messages: request.messages, generationRequest: {
+      schema: 'reploid.partition-generation-request/v1', maxOutputTokens: 16, usage: 'raw-model-tokens/v1'
+    } }
+  }));
+  expect(value.usage).toEqual({ schema: 'raw-model-tokens/v1', inputTokens: 7, outputTokens: 4 });
+});
+
 function recoveryFixture() {
   const f = fixture();
   let finish;
