@@ -2,7 +2,7 @@ import type { Authorize, GenerationProvider, GenerationResult, Message } from '.
 import type { ResolvedConfig } from '../config/index.js';
 import type { SigningIdentity } from '../artifacts/identity.js';
 import type { SwarmTransport, SwarmOptions } from '../transport/swarm.js';
-export interface LegacyGenerationMesh extends GenerationProvider {
+export interface PeerGenerationMesh extends GenerationProvider {
   connect(): Promise<unknown>; initialize(): Promise<unknown>; close(): Promise<void>;
   verifyPeerIdentity(peerId: string, signal?: AbortSignal): Promise<string | null>;
   identifyComputer(peerId: string, options?: {
@@ -17,7 +17,7 @@ export interface LegacyGenerationMesh extends GenerationProvider {
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;
 }
-export interface LegacyMeshPorts {
+export interface PeerGenerationMeshPorts {
   instanceId: string; modelConfig: Record<string, unknown> | null; utils: SwarmOptions['Utils'];
   getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown; hardware?: import('./provider-hardware.js').ProviderHardware | null };
   authorize: Authorize; createTransport(): SwarmTransport;
@@ -34,4 +34,4 @@ export interface LegacyMeshPorts {
   identity: { ensure(options: object): Promise<SigningIdentity>; save(identity: SigningIdentity): unknown | Promise<unknown>;
     rotate(options: object): Promise<SigningIdentity>; sync(identity: SigningIdentity, context: object): Promise<unknown> };
 }
-export function createLegacyGenerationMesh(options: { config: ResolvedConfig; ports: LegacyMeshPorts }): LegacyGenerationMesh;
+export function createPeerGenerationMesh(options: { config: ResolvedConfig; ports: PeerGenerationMeshPorts }): PeerGenerationMesh;

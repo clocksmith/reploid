@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it, vi } from 'vitest';
-import { createLegacyGenerationMesh } from '../../packages/reploid/src/mesh/legacy-generation.js';
+import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
@@ -20,7 +20,7 @@ async function fixture(tamper = false, measured = true, onReceipt) {
       on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name).delete(fn); },
       emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
     };
-    return createLegacyGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'receipt-test' } } }), ports: {
+    return createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'receipt-test' } } }), ports: {
       instanceId: 'instance-' + i, modelConfig: i ? { id: 'model' } : null,
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
       authorize: async () => true, events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },

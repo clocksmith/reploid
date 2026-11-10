@@ -29,7 +29,7 @@ import {
 } from '../shared/identity.js';
 import { getCurrentReploidInstanceId } from '../shared/instance.js';
 import { verifyReceipt } from './receipt.js';
-import { createLegacyGenerationMesh } from '../shared/vendor/reploid/mesh/index.js';
+import { createPeerGenerationMesh } from '../shared/vendor/reploid/mesh/index.js';
 import { createLegacyNetworkOptions } from '../shared/capabilities/communication/library-adapter.js';
 import { createSelfToolRunner } from './tool-runner.js';
 import { promoteShadowCandidate } from './tools/Promote.js';
@@ -426,7 +426,7 @@ export function createSelfBridge(options = {}) {
   });
 
   const networkOptions = createLegacyNetworkOptions({ Utils: utils, EventBus: eventBus }, { enabled: swarmEnabled });
-  const mesh = createLegacyGenerationMesh({
+  const mesh = createPeerGenerationMesh({
     config: networkOptions.config,
     ports: {
       instanceId, modelConfig, utils, eventBus, events: bridgeEvents,

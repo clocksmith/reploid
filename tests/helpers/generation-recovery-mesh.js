@@ -3,7 +3,7 @@ import { expect, vi } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createLegacyGenerationMesh } from '../../packages/reploid/src/mesh/legacy-generation.js';
+import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { openNativeGenerationJournal } from '../../server/native-generation-journal.js';
@@ -31,7 +31,7 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
       on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name).delete(fn); },
       emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
     };
-    meshes[i] = createLegacyGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'recovery' } } }), ports: {
+    meshes[i] = createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'recovery' } } }), ports: {
       instanceId: 'instance-' + i, modelConfig: i ? { id: modelId } : null,
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
       authorize: async input => { if (input.action === 'mesh.dispatch') reference = { requestId: input.requestId, providerId: input.peerId,

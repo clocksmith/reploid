@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { createLegacyGenerationMesh } from '../../packages/reploid/src/mesh/legacy-generation.js';
+import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 function fixture(meshOverrides = {}, execution = {}) {
@@ -9,7 +9,7 @@ function fixture(meshOverrides = {}, execution = {}) {
     emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
   };
   const authorize = vi.fn(async () => true);
-  const mesh = createLegacyGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test', ...meshOverrides } } }), ports: {
+  const mesh = createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test', ...meshOverrides } } }), ports: {
     instanceId: 'test', modelConfig: execution.modelConfig || null, authorize,
     getExecutionState: execution.getExecutionState, generate: execution.generate || (async () => {}),
     utils: { generateId: () => crypto.randomUUID() }, events, eventBus: events,

@@ -11,7 +11,7 @@ vi.mock('../../shared/pool/identity.js', async original => ({ ...await original(
 vi.mock('../../shared/identity.js', async original => ({ ...await original(),
   ensureIdentityBundle: async () => ports.connection, saveIdentityBundle: async () => { ports.saved += 1; } }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
-  createLegacyGenerationMesh: ({ ports: input }) => {
+  createPeerGenerationMesh: ({ ports: input }) => {
     let identity = null;
     const mesh = { async connect() { identity = await input.identity.ensure({}); input.createTransport(); }, async close() {},
       save: bundle => input.identity.save(bundle), rotate: value => input.identity.rotate(value),

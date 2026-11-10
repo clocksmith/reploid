@@ -1,6 +1,6 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
 import { createWebAccessNetwork } from '../../../shared/vendor/reploid/mesh/web-access-network.js';
-import { createLegacyGenerationMesh, createAutomaticPartitions } from '../../../shared/vendor/reploid/mesh/index.js';
+import { createPeerGenerationMesh, createAutomaticPartitions } from '../../../shared/vendor/reploid/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../../../shared/vendor/reploid/transport/index.js';
 import { resolveConfig } from '../../../shared/vendor/reploid/config/index.js';
 import { createLegacyNetworkOptions } from '../../../shared/capabilities/communication/library-adapter.js';
@@ -128,7 +128,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     events.on('swarm-state', notify);
     const config = resolveConfig({ overrides: { ...options.config.value, mesh: { ...options.config.value.mesh,
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
-    return createLegacyGenerationMesh({ config, ports: {
+    return createPeerGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events,
       getExecutionState: () => {
         const state = execution?.getState();

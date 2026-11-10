@@ -26,9 +26,10 @@ const matchesRequestedModel = (actual, requested) => (!requested.model || actual
 const sameModelBinding = (actual, expected) => actual.model === expected.model
   && actual.modelIdentity === expected.modelIdentity;
 
-// Preserves the legacy swarm-generation protocol. Receipts are signed records,
+// Whole-request generation by authorized peers over the swarm protocol: advertisement,
+// provider choice, streamed requests, receipts and recovery. Receipts are signed records,
 // not independent evaluation, durable job replay, or hardware attestation.
-export function createLegacyGenerationMesh({ config, ports }) {
+export function createPeerGenerationMesh({ config, ports }) {
   const policy = requireResolvedConfig(config);
   for (const name of ['authorize', 'createTransport', 'generate']) {
     if (typeof ports?.[name] !== 'function') throw new TypeError(`Mesh port ${name} is required`);

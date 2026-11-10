@@ -380,7 +380,7 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
 
 test('connection runtime passes the Verification Worker', async ({ page }, info) => {
   const files = ['host/work-swarm.js', 'vendor/reploid/transport/swarm.js', 'vendor/reploid/transport/room.js',
-    'vendor/reploid/mesh/legacy-generation.js', 'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js',
+    'vendor/reploid/mesh/peer-generation.js', 'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js',
     'ui/pool-home/computer-labels.js', 'ui/pool-home/shell-view.js', 'ui/pool-home/message-list.js',
     'providers/work-resident-provider.js', 'vendor/reploid/mesh/preparation-progress.js', 'vendor/reploid/mesh/peer-identity.js',
     'vendor/reploid/mesh/partitions/automatic-partitions.js', 'vendor/reploid/mesh/partitions/automatic-ordered-partitions.js',

@@ -8,11 +8,12 @@ vi.mock('../../shared/config/doppler-local-models.js', async original => ({ ...a
 vi.mock('../../shared/identity.js', () => ({ ensureIdentityBundle: async () => ports.identity, saveIdentityBundle() {}, rotateIdentityBundle() {} }));
 const meshFactory = ({ports: input}) => ({ async connect() { await input.identity.ensure({}); input.createTransport(); }, async close() {}, getSwarmSnapshot: () => ({peers:[]}) });
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
-  createLegacyGenerationMesh: (...args) => meshFactory(...args),
+  createPeerGenerationMesh: (...args) => meshFactory(...args),
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }, createPartitionNetwork(options) { ports.networkOptions = options; return ports.networkOwner; }
 }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...await original(),
-  createLegacyGenerationMesh: (...args) => meshFactory(...args),
+  // The native participant still imports the former name until it switches.
+  createPeerGenerationMesh: (...args) => meshFactory(...args), createLegacyGenerationMesh: (...args) => meshFactory(...args),
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }
 }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));

@@ -1,4 +1,5 @@
-export { createLegacyGenerationMesh } from './legacy-generation.js';
+export { createPeerGenerationMesh, createPeerGenerationMesh as createLegacyGenerationMesh } from './peer-generation.js';
+export type { PeerGenerationMesh, PeerGenerationMeshPorts } from './peer-generation.js';
 export * from './computer-identity.js';
 export * from './gpu-signature.js';
 export * from './placement-beliefs.js';
@@ -10,9 +11,9 @@ export { default as contributionPolicy } from './contribution.js';
 export { default as swarmCoordination } from './swarm-coordination.js';
 import type { ResolvedConfig, Json } from '../config/index.js';
 import type { Authorize, GenerationProvider } from '../index.js';
-import type { LegacyGenerationMesh } from './legacy-generation.js';
+import type { PeerGenerationMesh } from './peer-generation.js';
 export function createIntelligenceMesh(options: { config: ResolvedConfig; ports: {
-  authorize: Authorize; local?: GenerationProvider; remote?: LegacyGenerationMesh;
+  authorize: Authorize; local?: GenerationProvider; remote?: PeerGenerationMesh;
 } }): GenerationProvider & { connect(): Promise<unknown>; describe(): Json; close(): Promise<void> };
 
 export * from './partitions/resident-partition.js';

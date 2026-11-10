@@ -101,7 +101,7 @@ test('new integration modules pass the Verification Worker',async({page})=>{
     'apps/poolday/infrastructure/code-sandbox.js','apps/poolday/ui/pool-home/work-capabilities.js','apps/poolday/ui/pool-home/work.js','apps/poolday/ui/pool-home/index.js',
     'apps/poolday/ui/pool-home/view.js','apps/poolday/host/work-view.js','packages/reploid/src/improvement/code-evolution.js',
     'apps/poolday/providers/work-network-provider.js','apps/poolday/ui/pool-home/work-goal-composer.js',
-    'apps/poolday/ui/pool-home/work-task-header.js','apps/poolday/ui/pool-home/agent-network.js','packages/reploid/src/mesh/legacy-generation.js'];
+    'apps/poolday/ui/pool-home/work-task-header.js','apps/poolday/ui/pool-home/agent-network.js','packages/reploid/src/mesh/peer-generation.js'];
   const snapshot=Object.fromEntries(await Promise.all(paths.map(async path=>servedPathOf(path)===null?[path,await readFile(path,'utf8')]:['/'+servedPathOf(path),await readServedText(servedPathOf(path))])));
   await page.goto('/');
   const result=await page.evaluate(snapshot=>new Promise((resolve,reject)=>{

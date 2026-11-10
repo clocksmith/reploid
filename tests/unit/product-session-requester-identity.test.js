@@ -19,7 +19,7 @@ const releases = vi.hoisted(() => []);
 vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals: releases } }));
 vi.mock('../../shared/identity.js', async original => ({ ...await original(), ensureIdentityBundle: async () => ports.identity }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
-  createLegacyGenerationMesh: ({ ports: input }) => {
+  createPeerGenerationMesh: ({ ports: input }) => {
     let identity = null;
     return { async connect() { identity = await input.identity.ensure({}); input.createTransport(); }, async close() {},
       getSwarmSnapshot: () => ({ peerId: identity?.peerId ?? null, connectionState: identity ? 'connected' : 'disconnected', peers: [] }) };

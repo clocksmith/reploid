@@ -1,6 +1,6 @@
 import { vi, expect } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
-import { createLegacyGenerationMesh } from '../../packages/reploid/src/mesh/legacy-generation.js';
+import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
@@ -30,7 +30,7 @@ export async function createChatPeerLifecycle() {
       emit(name, value) { for (const fn of endpoint.listeners.get(name) || []) fn(value); }
     };
     endpoint.events = events;
-    return createLegacyGenerationMesh({ config: resolveConfig({ overrides: { mesh: {
+    return createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: {
       enabled: true, executeJobs: i > 0, roomId: 'track-a-controlled', generationTimeoutMs: 1500
     } } }), ports: {
       instanceId: endpoint.id, modelConfig: i ? { id: model.id } : null,
