@@ -3,7 +3,7 @@
   "node": "v22.20.0",
   "platform": "darwin",
   "architecture": "arm64",
-  "evidence": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-09-17T01-35-23-664Z",
+  "evidence": "~/deco/reploid/artifacts/library-acceptance/2026-09-17T01-35-23-664Z",
   "consumer": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-installed-consumer-cquwHk",
   "checks": [
     {
@@ -407,7 +407,7 @@
       "name": "installed-work-goal-lifecycle",
       "status": "failed",
       "durationMs": 1271.6112910000002,
-      "error": "AssertionError [ERR_ASSERTION]: Work lifecycle cases failed; inspect work-lifecycle-report.json\n    at file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:433:9\n    at async check (file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:298:7"
+      "error": "AssertionError [ERR_ASSERTION]: Work lifecycle cases failed; inspect work-lifecycle-report.json\n    at file://~/deco/reploid/tests/library-package-acceptance.js:433:9\n    at async check (file://~/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file://~/deco/reploid/tests/library-package-acceptance.js:298:7"
     }
   ],
   "scope": "Installed ESM imports, public boundaries, declaration resolution, asset identity and deterministic browser consumer.",
@@ -419,7 +419,7 @@
     "Deployment"
   ],
   "archive": {
-    "path": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-09-17T01-35-23-664Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-09-17T01-35-23-664Z/reploid-0.1.0.tgz",
     "sha256": "8388e4c9c6c154f84e26ec759b6489e53de55d0061612446a1c4889efcdb4620"
   },
   "dopplerConsumer": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-doppler-consumer-WkDGfe",

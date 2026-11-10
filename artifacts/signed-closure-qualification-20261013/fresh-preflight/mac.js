@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { hostname } from 'node:os';
 import { physicalWebGpuBrowserOptions } from '/var/tmp/reploid-closure-qualification-20261013/tests/fixtures/physical-webgpu-browser.js';
-const require = createRequire('/Users/xyz/deco/reploid/package.json');
+const require = createRequire('~/deco/reploid/package.json');
 const { chromium } = require('playwright');
 const browser = await chromium.launch(physicalWebGpuBrowserOptions(process.platform));
 try {

@@ -11,7 +11,7 @@ N=0 and full-context admission use actual Doppler admission results from both ow
 `after.log`, `types.log`, `legacy.log` (114 tests), `worker.json` (actual Worker, 9 warnings) and `mirror.log` retain the results. Reproduce:
 
 ```sh
-DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-runner-source.js
+DOPPLER_SOURCE_ROOT=~/deco/doppler node tests/canonical-runner-source.js
 npm run verify:library-types
 npx vitest run --config tests/vitest.config.js tests/unit/partition-api.test.js tests/unit/partition-runner.test.js tests/unit/partition-step-receiver.test.js tests/unit/partition-data-channel.test.js tests/unit/catscan.test.js --maxWorkers=2
 ```

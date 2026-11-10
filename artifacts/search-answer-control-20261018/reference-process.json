@@ -1,9 +1,9 @@
 {
   "command": [
-    "/home/x/deco/gamma/.venv_rocm/bin/python",
+    "~/deco/gamma/.venv_rocm/bin/python",
     "/tmp/reploid-search-answer-control-20261018/qwen35-deployed-reference.py",
     "--model",
-    "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
     "--source-config",
     "/tmp/reploid-search-answer-control-20261018/source-config.json",
     "--capture",

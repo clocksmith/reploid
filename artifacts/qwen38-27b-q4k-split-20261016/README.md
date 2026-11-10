@@ -74,7 +74,7 @@ are in `boundary-cpu-1/reference.json`; its equations/reader belong to Doppler's
 retained Q4 qualification, not an independently requantized checkpoint.
 
 Full whole-model logit vectors are retained on AMD at
-`/home/x/.local/share/reploid/evidence/qwen38-27b-q4k-split-20261016/capitals55-whole.json`,
+`~/.local/share/reploid/evidence/qwen38-27b-q4k-split-20261016/capitals55-whole.json`,
 SHA256 `a12724c5caf53ec1d64c1b096308acd5ef4c520e77977a4fd5e8aeb3f6015286`.
 Cross-host per-step error metrics and token IDs are retained; its full logit
 vectors were not saved. Recomputing those metrics requires another bounded run.

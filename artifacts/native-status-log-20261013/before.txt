@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/native-status-log.test.js (3 tests | 3 failed) 3ms
    × bounds routine CLI status without visiting Capsule/source bodies or losing settlement state 2ms

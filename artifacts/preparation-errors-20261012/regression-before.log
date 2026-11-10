@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/work-partitions-lifecycle.test.js (49 tests | 4 failed) 22ms
      × preserves missing-supplier failure when tokenizer loader masks it (fallback=false) 5ms

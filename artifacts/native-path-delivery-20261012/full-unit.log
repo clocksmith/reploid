@@ -1,5 +1,5 @@
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m/home/x/deco/reploid[39m
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m~/deco/reploid[39m
 
  [32m✓[39m tests/integration/agent-loop.test.js [2m([22m[2m54 tests[22m[2m)[22m[33m 2628[2mms[22m[39m
        [33m[2m✓[22m[39m circuit-breaks LoadModule after repeated module load failures [33m 909[2mms[22m[39m
@@ -1425,16 +1425,16 @@ Tier 3 (Basic):
  [32m✓[39m tests/unit/utils-core.test.js [2m([22m[2m59 tests[22m[2m)[22m[32m 14[2mms[22m[39m
 [90mstderr[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2memit[2m > [22m[2mshould continue emitting to other listeners if one throws
 [22m[39m[ERROR] [EventBus] Error in test:event Error: Listener error
-    at [90m/home/x/deco/reploid/[39mtests/unit/event-bus.test.js:100:15
-    at Mock [90m(file:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/spy[24m/dist/index.js:332:34[90m)[39m
-    at Object.emit [90m(/home/x/deco/reploid/[39mself/infrastructure/event-bus.js:44:17[90m)[39m
-    at [90m/home/x/deco/reploid/[39mtests/unit/event-bus.test.js:107:16
-    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
-    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
-    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at [90m~/deco/reploid/[39mtests/unit/event-bus.test.js:100:15
+    at Mock [90m(file://~/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/spy[24m/dist/index.js:332:34[90m)[39m
+    at Object.emit [90m(~/deco/reploid/[39mself/infrastructure/event-bus.js:44:17[90m)[39m
+    at [90m~/deco/reploid/[39mtests/unit/event-bus.test.js:107:16
+    at [90mfile://~/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile://~/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile://~/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
-    at runWithCancel [90m(file:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
-    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at runWithCancel [90m(file://~/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile://~/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
 
 [90mstdout[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2mSubscription Tracking[2m > [22m[2mshould unsubscribe all listeners for a module
 [22m[39m[DEBUG] [EventBus] Unsubscribed module: TestModule

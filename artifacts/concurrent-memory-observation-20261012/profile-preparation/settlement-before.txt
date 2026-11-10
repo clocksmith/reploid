@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/partition-memory-settlement.test.js (5 tests | 1 failed) 5ms
    × accepts settled ownership with the exact retained reusable-weight accounting control 3ms

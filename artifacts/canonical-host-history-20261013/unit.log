@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/chat-workspace.test.js (13 tests) 11ms
  ✓ tests/unit/chat-draft-transactions.test.js (3 tests) 2ms

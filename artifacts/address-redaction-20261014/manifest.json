@@ -84,9 +84,9 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:563f2dfb4c39387cd5e1995c8e9c586d5112272b188971d21a131b4d70a5f6d2",
-      "redactedSha256": "sha256:b455aea53b95c82521607d15c6453a4a440814936ac1c984a2f823573c8909ec",
+      "redactedSha256": "sha256:ee4971bc6edf27a02a64b5c2f7f54a1a53fb32f32bca1dd47989e14bacf9b383",
       "originalBytes": 6865,
-      "redactedBytes": 6868
+      "redactedBytes": 6856
     },
     {
       "path": "artifacts/native-signed-opening-20261012/README.md",
@@ -120,9 +120,9 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:945a8e6c618ad6f1853db4f40c365cca1cbb059f8fa105375201c4026f558697",
-      "redactedSha256": "sha256:4dbc08eca791ac40e14c813d33dbe14d9cd116a25ac1d93da6ef8981ced4eb1d",
+      "redactedSha256": "sha256:aea308695429bc5f7aec07fe933aeb1d260c9b8905655821f081c8dae6680068",
       "originalBytes": 607,
-      "redactedBytes": 610
+      "redactedBytes": 598
     },
     {
       "path": "artifacts/unified-network-20261012/README.md",

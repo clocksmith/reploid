@@ -1564,7 +1564,7 @@
     }
   ],
   "passed": false,
-  "error": "Error: expect(locator).toHaveValue(expected) failed\n\nLocator:  locator('[data-composer-input]')\nExpected: \"Keep this unsent draft after reload.\"\nReceived: \"\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.value\" with timeout 5000ms\n  - waiting for locator('[data-composer-input]')\n    4 × locator resolved to <textarea rows=\"1\" required=\"\" id=\"chat-message\" data-composer-input=\"\" placeholder=\"Ask a question…\"></textarea>\n      - unexpected value \"\"\n\n    at Proxy.<anonymous> (/Users/xyz/deco/reploid/node_modules/playwright/lib/matchers/expect.js:213:24)\n    at file:///Users/xyz/deco/reploid/artifacts/capacity-failover-20261012/concurrent-chat.js:35:54",
+  "error": "Error: expect(locator).toHaveValue(expected) failed\n\nLocator:  locator('[data-composer-input]')\nExpected: \"Keep this unsent draft after reload.\"\nReceived: \"\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.value\" with timeout 5000ms\n  - waiting for locator('[data-composer-input]')\n    4 × locator resolved to <textarea rows=\"1\" required=\"\" id=\"chat-message\" data-composer-input=\"\" placeholder=\"Ask a question…\"></textarea>\n      - unexpected value \"\"\n\n    at Proxy.<anonymous> (~/deco/reploid/node_modules/playwright/lib/matchers/expect.js:213:24)\n    at file://~/deco/reploid/artifacts/capacity-failover-20261012/concurrent-chat.js:35:54",
   "failedState": [
     {
       "id": "f57e741b-875b-4fff-adb8-a2c899462f05",

@@ -5,19 +5,19 @@
   },
   {
     "path": "2026-09-15T01-05-07-552Z/report.json",
-    "sha256": "96941f787698e964b4604423d32503bb7f5861ac2311c313457f54f0a7b929d1"
+    "sha256": "1c34bc44cad85d4d3f4c413c0f765f62ef939ade0104cb91cb5c9cf98be0013b"
   },
   {
     "path": "2026-09-15T01-07-19-302Z/report.json",
-    "sha256": "0761e0efbd2777feee9a2045b3855fee081f1accf90cc1511d012c50edba7cc6"
+    "sha256": "a4b10884e665e97c7aedb799064bd3c3da7b1abf0b2e0e19938a3d3eea6a52cd"
   },
   {
     "path": "2026-09-15T01-08-31-371Z/report.json",
-    "sha256": "d46158a49e510fd18963d357e3965679b8cf1742d074ee95c24d0360af0e957a"
+    "sha256": "7c98bb0bfa680368adf25813c63b7b349f547290536d7369ee7b5aa139cb986c"
   },
   {
     "path": "2026-09-15T01-10-19-005Z/report.json",
-    "sha256": "2ff7d437d106b73ce653a24e8fcfa4dbce3e579a9c9ae1038b563be34da2ec3c"
+    "sha256": "3d7129fe68085e305e1e53f06974b378a4daab638cc358fe993b0827ad23b8d4"
   },
   {
     "path": "2026-09-15T01-11-37-169Z/report.json",
@@ -25,11 +25,11 @@
   },
   {
     "path": "2026-09-15T01-13-43-943Z/report.json",
-    "sha256": "1ef1f562d54e1ff8c2a95c1782795a3f2f94422d6fc39aee50d0323105178447"
+    "sha256": "9c68957d36d0c748316e493a148117341b2e1821115002ab2a8b0db44369069d"
   },
   {
     "path": "2026-09-15T01-15-22-113Z/report.json",
-    "sha256": "0891f70a392ad97e69e3950c2d63bac308d7567ed892400db92031c9595086c8"
+    "sha256": "b502d95cf0daa746fec9aec5da2ca107e25734bb0c50659899d0e1df12eb47ab"
   },
   {
     "path": "README.md",
@@ -37,11 +37,11 @@
   },
   {
     "path": "acceptance.json",
-    "sha256": "1f3c8f814e624280647a490d3c30773f5726a0cb758e45614fc99a21c5e72403"
+    "sha256": "966411a760ed4fb10d0478278a08908265deb78227f65feb57b613f448d74a86"
   },
   {
     "path": "checks/browser-results.json",
-    "sha256": "e4a4bd457c0e3e7c2f8f512c08f7d45024408e233ffe2b168b3c634649962c92"
+    "sha256": "d306b4ec99b3f550a78031dda19d876a609a9db6dd000d8fd7d8e4aa437588d6"
   },
   {
     "path": "checks/browser.log",
@@ -49,18 +49,18 @@
   },
   {
     "path": "checks/installed-package-lock.json",
-    "sha256": "52b747f5b2a964771ecac699baa3cb200c6fd59f922a3ba8f0812fc05f0fe24a"
+    "sha256": "9c1a385204681817e07330294ebcfb23d3d4c911cb9902cbca7c537f4dd4aa39"
   },
   {
     "path": "checks/reveal-before.json",
-    "sha256": "bafc9d69f316410946c2eeebec2dcd6e820fcaef698bc54590de9041bd5d9cab"
+    "sha256": "80b4cf9bf0a830564df630cdf4227693057e50fd5170556b4c2a60bbcb0a4353"
   },
   {
     "path": "checks/unit-results.json",
-    "sha256": "5e7ec6802e11a4ee3acdafc1be6fc944206315e893d69fbb7a885c9631497785"
+    "sha256": "456f709175d3b19cd5d7ac8baf24557ca56082b760a8ae6b5bb328b152af5b68"
   },
   {
     "path": "checks/unit.log",
-    "sha256": "5fc58fd31c4dd69e14e8f08a1062a9bfac11fe28a50b972c97529be0e2022fff"
+    "sha256": "79ed091fd50396cd0113e2170644d909446d9dc28a918db20a55eadcc76495c0"
   }
 ]

@@ -6,13 +6,13 @@
     "reploid": {
       "version": "0.1.0",
       "integrity": "sha512-IgfY15xKEIuJLgERXRGHpAWjeWGznKHh786OZQ5yilzdiG9ejS+7knIf65KzP1Vh40rWVHI7YPEEkRs5Oqvk/w==",
-      "resolved": "file:../../../../home/x/deco/releases/doppler-0.6.2-candidate/reploid-0.1.0.tgz",
+      "resolved": "file:../../../..~/deco/releases/doppler-0.6.2-candidate/reploid-0.1.0.tgz",
       "archiveSha256": "6f12af6f5d7ea31b23917d35eccc2aceacb29416a07af6441b58048d591f7a46"
     },
     "doppler-gpu": {
       "version": "0.6.2",
       "integrity": "sha512-Tvedjt9mJWka08GBAsvxtdR2H6YEOxG8yePJdOEBnXI/ez+ygyOiShA7L4eipSlqo/X7Gi6MEiofHeA7XRyANw==",
-      "resolved": "file:../../../../home/x/deco/releases/doppler-0.6.2-candidate/doppler-gpu-0.6.2.tgz",
+      "resolved": "file:../../../..~/deco/releases/doppler-0.6.2-candidate/doppler-gpu-0.6.2.tgz",
       "archiveSha256": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7"
     }
   },

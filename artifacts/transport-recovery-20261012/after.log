@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/swarm-credential-renewal.test.js (1 test) 6ms
  ✓ tests/unit/swarm-signaling-independence.test.js (15 tests) 20ms

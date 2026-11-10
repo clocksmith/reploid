@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "/Users/xyz/deco/reploid/playwright.config.js",
-    "rootDir": "/Users/xyz/deco/reploid/tests/e2e",
+    "configFile": "~/deco/reploid/playwright.config.js",
+    "rootDir": "~/deco/reploid/tests/e2e",
     "forbidOnly": false,
     "fullyParallel": false,
     "globalSetup": null,
@@ -16,7 +16,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -24,7 +24,7 @@
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -32,7 +32,7 @@
         "timeout": 300000
       },
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -40,7 +40,7 @@
         },
         "id": "chromium-swiftshader",
         "name": "chromium-swiftshader",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -106,9 +106,9 @@
                   "duration": 194311,
                   "error": {
                     "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m",
-                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m\n    at /Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js:49:69",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m\n    at ~/deco/reploid/tests/e2e/chat-real-adapter.spec.js:49:69",
                     "location": {
-                      "file": "/Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
+                      "file": "~/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
                       "column": 69,
                       "line": 49
                     },
@@ -117,11 +117,11 @@
                   "errors": [
                     {
                       "location": {
-                        "file": "/Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
+                        "file": "~/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
                         "column": 69,
                         "line": 49
                       },
-                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m\n\n  47 |       || document.querySelector('[data-network-message]')?.textContent, null, { timeout: 600000 });\n  48 |     expect(await b.locator('[data-chat-error]').textContent()).toBe('');\n> 49 |     expect(await b.locator('[data-network-message]').textContent()).toBe('');\n     |                                                                     ^\n  50 |     await expect(b.locator('[data-contrib-label]')).toHaveText('Ready');\n  51 |     await send(specialist, 'Extract people and cities as JSON: Alice visited Bob in Paris.');\n  52 |     await send(base, 'Reply with a short greeting.');\n    at /Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js:49:69"
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m\n\n  47 |       || document.querySelector('[data-network-message]')?.textContent, null, { timeout: 600000 });\n  48 |     expect(await b.locator('[data-chat-error]').textContent()).toBe('');\n> 49 |     expect(await b.locator('[data-network-message]').textContent()).toBe('');\n     |                                                                     ^\n  50 |     await expect(b.locator('[data-contrib-label]')).toHaveText('Ready');\n  51 |     await send(specialist, 'Extract people and cities as JSON: Alice visited Bob in Paris.');\n  52 |     await send(base, 'Reply with a short greeting.');\n    at ~/deco/reploid/tests/e2e/chat-real-adapter.spec.js:49:69"
                     }
                   ],
                   "stdout": [
@@ -140,21 +140,21 @@
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-3.png"
+                      "path": "~/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-3.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-2.png"
+                      "path": "~/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-2.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-1.png"
+                      "path": "~/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-1.png"
                     }
                   ],
                   "errorLocation": {
-                    "file": "/Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
+                    "file": "~/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
                     "column": 69,
                     "line": 49
                   }

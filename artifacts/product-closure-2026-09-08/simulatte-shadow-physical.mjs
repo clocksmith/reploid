@@ -1,4 +1,4 @@
-import {chromium} from '/Users/xyz/deco/reploid/node_modules/playwright/index.mjs';
+import {chromium} from '~/deco/reploid/node_modules/playwright/index.mjs';
 import fs from 'node:fs/promises';
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-unsafe-webgpu','--ignore-gpu-blocklist','--use-angle=metal']});
 const page=await browser.newPage();await page.goto('http://127.0.0.1:4301/');

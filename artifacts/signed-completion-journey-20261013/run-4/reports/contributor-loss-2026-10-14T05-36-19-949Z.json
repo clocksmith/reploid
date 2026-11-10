@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "contributor-loss",
   "startedAt": "2026-10-14T05:36:19.950Z",
-  "configSha256": "d3ebb873f646337e300bbe61991238081b07abc04db272a8353f731edcdd026a",
+  "configSha256": "7da4da7caba09f0287b78ac0d650c842c644d77e3c9d545bc19258d6f40c4387",
   "fixtureSha256": "7dd06aa4488c8e79b4e5aa8b4dbe804d39bc71a9bfaa3ceafab970c343d0edc1",
   "freeze": {
     "browserBundle": "sha256:2890c961afde518abde48107fa8d99c148d11dfaf5d6c9e546ae118ddde357a1",
@@ -61672,7 +61672,7 @@
       }
     }
   },
-  "failure": "Error: Capacity return deadline\n    at waitFor (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:183:9)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:93:5",
+  "failure": "Error: Capacity return deadline\n    at waitFor (file://~/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:183:9)\n    at async file://~/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:93:5",
   "body": "7\n7\nThreads\nQwen 3.5 0.8B\nConversation\nCount from 1 to 500 in order, one integer per line. No commentary.\nfailed\n…\nCount from 1 to 500 in order, one integer per line. No commentary.\nFailed · 3 computers\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n\nThis answer could not finish.\n\nTechnical details\nRetry response\nStarts a new attempt; keeps this response.\nMessage\nAttach files\n\nModel unavailable.\n\nRetry connection",
   "finalState": {
     "schema": "reploid.chat-owner-observation/v1",

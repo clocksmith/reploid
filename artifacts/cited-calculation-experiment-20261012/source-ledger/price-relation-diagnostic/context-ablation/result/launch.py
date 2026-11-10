@@ -7,7 +7,7 @@ def sha(path):
  with path.open('rb') as stream:
   for block in iter(lambda:stream.read(1024*1024),b''):h.update(block)
  return h.hexdigest()
-freeze=json.loads((root/'freeze.json').read_text());expected='5a1cb7335fa494b12cc1c38afe84f1ecd94ef672ae4795969af112b84c4b5198';assert sha(root/'freeze.json')==expected
+freeze=json.loads((root/'freeze.json').read_text());expected='5d93decdc67e2bb0a65c7e0ae83d96d17ee0abe6673da2bb758230ae1ed192ae';assert sha(root/'freeze.json')==expected
 observed={}
 for category,directory in [('files',root),('reusedSources',repo),('dopplerSources',doppler),('sourceIdentity',source)]:
  observed[category]={name:sha(directory/name) for name in freeze[category]}

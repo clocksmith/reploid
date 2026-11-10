@@ -1,6 +1,6 @@
 {
   "schema": "reploid.partition-boundary-trace/v1",
-  "configSha256": "f216e493ada7b70c46cc74c1d4a493ae42ff4fc7fb7f935d288eb63b6e4177d7",
+  "configSha256": "dc06defd5e98e080e7d89e6e197f2ce6771a2d76bb439206388e1c4ce787aa04",
   "inputSha256": "29dd52e637caaf4839be85781fca4c56f744a92bbabeffa8fbee0834d8707a00",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
   "steps": [
@@ -21,7 +21,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/pre_layer_input.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/pre_layer_input.npy",
           "shape": [
             5,
             5120
@@ -37,7 +37,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_rmsnorm.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_rmsnorm.npy",
           "shape": [
             5,
             5120
@@ -53,7 +53,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_qkv.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_qkv.npy",
           "shape": [
             5,
             10240
@@ -69,7 +69,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_oproj.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_oproj.npy",
           "shape": [
             5,
             5120
@@ -85,7 +85,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_attn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_attn.npy",
           "shape": [
             5,
             5120
@@ -101,7 +101,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/pre_ffn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/pre_ffn.npy",
           "shape": [
             5,
             5120
@@ -117,7 +117,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/ffn_mlp_out.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/ffn_mlp_out.npy",
           "shape": [
             5,
             5120
@@ -133,7 +133,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_ffn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_ffn.npy",
           "shape": [
             5,
             5120
@@ -149,7 +149,7 @@
           "layerIdx": 0,
           "phase": "prefill",
           "generationStep": 0,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_ffn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-0/layer_0/post_ffn.npy",
           "shape": [
             5,
             5120
@@ -263,7 +263,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/pre_layer_input.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/pre_layer_input.npy",
           "shape": [
             1,
             5120
@@ -279,7 +279,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_rmsnorm.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_rmsnorm.npy",
           "shape": [
             1,
             5120
@@ -295,7 +295,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_qkv.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_qkv.npy",
           "shape": [
             1,
             10240
@@ -311,7 +311,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_oproj.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_oproj.npy",
           "shape": [
             1,
             5120
@@ -327,7 +327,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_attn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_attn.npy",
           "shape": [
             1,
             5120
@@ -343,7 +343,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/pre_ffn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/pre_ffn.npy",
           "shape": [
             1,
             5120
@@ -359,7 +359,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/ffn_mlp_out.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/ffn_mlp_out.npy",
           "shape": [
             1,
             5120
@@ -375,7 +375,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_ffn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_ffn.npy",
           "shape": [
             1,
             5120
@@ -391,7 +391,7 @@
           "layerIdx": 0,
           "phase": "decode",
           "generationStep": null,
-          "filePath": "/home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_ffn.npy",
+          "filePath": "~/deco/reploid/.tmp/qwen38-q4-split-20261016/boundary-amd-1/step-1/layer_0/post_ffn.npy",
           "shape": [
             1,
             5120

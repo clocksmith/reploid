@@ -13,9 +13,9 @@ Component: conversation publication. Intent: preserved. This source-only opt-in 
 Reproduce from Reploid:
 
 ```sh
-DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-publication-evidence-source.js
-DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-publication-source.js
-DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler npx playwright test --config artifacts/canonical-publication-evidence-20261012/playwright.config.mjs
+DOPPLER_SOURCE_ROOT=~/deco/doppler node tests/canonical-publication-evidence-source.js
+DOPPLER_SOURCE_ROOT=~/deco/doppler node tests/canonical-publication-source.js
+DOPPLER_SOURCE_ROOT=~/deco/doppler npx playwright test --config artifacts/canonical-publication-evidence-20261012/playwright.config.mjs
 npm run verify:library-types
 ```
 

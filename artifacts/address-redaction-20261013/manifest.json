@@ -15,9 +15,9 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:1544c624f5c5a7cd19aeb6da5e9110d3e6d2f20cddef9bb0cd890e81790f3b5f",
-      "redactedSha256": "sha256:97de3f97526e86b99a1342604f3bd2c194b59ee9f7aae86043fc5b608b92a277",
+      "redactedSha256": "sha256:16625bd39bbb6dabfe106d7c740ebe18d26a2aba6a3749fa80360a90015b080b",
       "originalBytes": 3666,
-      "redactedBytes": 3651
+      "redactedBytes": 3645
     },
     {
       "path": "artifacts/chat-journey-20261011/README.md",
@@ -33,36 +33,36 @@
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:65a847e3cd48d2f82309ca01afec2cc06b88be6a3df1bb0c1311791eea8c0b0b",
-      "redactedSha256": "sha256:5886249609f8f53d57750c70f8d85d798370d4a9d83e4547d6a032fd8c884156",
+      "redactedSha256": "sha256:53c96c599f35ecd236533834afade0a7b5854a0771a3d796af4cc76dd0b099cb",
       "originalBytes": 2784,
-      "redactedBytes": 2770
+      "redactedBytes": 2763
     },
     {
       "path": "artifacts/chat-journey-20261011/approved-reference/summary.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:f106487b9a2789cb375f82c535cd3fe849baffd57431c2a4da81781cde28e334",
-      "redactedSha256": "sha256:bdebe12cac951cd293d8526a3b349303b009988ee3c53cbfb66986d23134d68e",
+      "redactedSha256": "sha256:3610e9ceff71b1136d94b1430ca99871b4829906b28c1c3d97f8637bcbe008ac",
       "originalBytes": 2737,
-      "redactedBytes": 2722
+      "redactedBytes": 2704
     },
     {
       "path": "artifacts/chat-journey-20261011/extended-failure/reploid-long-recovery-20261011.log.gz",
       "kind": "gzip",
       "replacements": 5,
       "originalSha256": "sha256:b4fa643caf64165eb1b216d001a2c79e1ed8259175e35e59544a94e29712398a",
-      "redactedSha256": "sha256:089150b70b6f0e25393fb6afa62b413a200964a387f80d165ac96f555cc68963",
+      "redactedSha256": "sha256:3643341c3106adf096394ac3f664a8699a96697cd409c9de9d4c188f92a2ea78",
       "originalBytes": 2069,
-      "redactedBytes": 2053
+      "redactedBytes": 2045
     },
     {
       "path": "artifacts/chat-journey-20261011/extended-failure/result.json.gz",
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:907bdd4f27d219e4d9137721111392aeb46ba3256a20e0fb2eed05bc3381115c",
-      "redactedSha256": "sha256:89d10e0026c34b4ea50bc8b62092cbd1c970c8ef2912bfbebc0c027f3671616a",
+      "redactedSha256": "sha256:a65db3469a4bed8c445219117d20fddd27d9f581587846bc725a5d0d81e256db",
       "originalBytes": 1311,
-      "redactedBytes": 1293
+      "redactedBytes": 1287
     },
     {
       "path": "artifacts/chat-journey-20261011/extended-failure/state-at-exit.json.gz",
@@ -78,18 +78,18 @@
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:7a849634ce8ad989e8fbd13c6c2abf054f129fd8b6a986697918bc8b3e3406cd",
-      "redactedSha256": "sha256:31194f7362307f1cfc89e49e2bdf169c3faead054eaa7c58d7716f7025792444",
+      "redactedSha256": "sha256:04865aea95d5e927227d3a7a5b170705ac36e5ebd99bee6f3ae7b47b84d547fa",
       "originalBytes": 1166,
-      "redactedBytes": 1119
+      "redactedBytes": 1112
     },
     {
       "path": "artifacts/chat-journey-20261011/physical-result.gz",
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:9fa920641a2b08d43edb8a54a8280a4abbd6a79035de4de1f1546d9978beac42",
-      "redactedSha256": "sha256:ba1a77fe201b6ed9d45a7bdaf99dd7d205577326d18f557a8effdc853b280305",
+      "redactedSha256": "sha256:f4de8c9d78acd3210adc499c931ba8e076786eabd35a0fefe983e0c695666607",
       "originalBytes": 1110,
-      "redactedBytes": 1075
+      "redactedBytes": 1068
     },
     {
       "path": "artifacts/chat-journey-20261011/physical-summary.json",
@@ -105,72 +105,72 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:43f3080e97ac38a235927d5339c18203d5fa2c582b54c09e92f0ceb0d4002bf4",
-      "redactedSha256": "sha256:090d49d8e5e5d7ade272cd6eef54ffc7590f7ac1b50ed413ace623c43c6344c3",
+      "redactedSha256": "sha256:6a037e693354296804db26c3c6feea95eaa0dcc340259c659c7db13eb4bff296",
       "originalBytes": 1425,
-      "redactedBytes": 1410
+      "redactedBytes": 1380
     },
     {
       "path": "artifacts/cited-calculation-experiment-20261012/lexical-catalog/run-binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:10c855c1e5039f6306c3682f7be9ba97ba444972e7cf28d59eed04072a794f4a",
-      "redactedSha256": "sha256:354c4745beb4859136466c58b2daaa097330dac4660495e0eef4df209a7ed845",
+      "redactedSha256": "sha256:21a482d3c96af6c280df146761c9578d6d581ea47af51a2a540e6a577c262fb6",
       "originalBytes": 1224,
-      "redactedBytes": 1209
+      "redactedBytes": 1179
     },
     {
       "path": "artifacts/cited-calculation-experiment-20261012/official-tool-protocol/run-binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:36f3ea9175f670dbb9700e986b0f5e60bd079832a11c2668f3c39c1161030a70",
-      "redactedSha256": "sha256:1c08a801401cc818b5591fd5e36d24c3c3a0817777246c8f937d8c6f2600f29b",
+      "redactedSha256": "sha256:95c80c6896e1ad8543ec1525bbc3f8128a2fee9cfb3a5c60b4def4fd73105398",
       "originalBytes": 1085,
-      "redactedBytes": 1070
+      "redactedBytes": 1034
     },
     {
       "path": "artifacts/cited-calculation-experiment-20261012/qwen3-17b-typed/run-binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:37fe15ea8b9f7024163a987da6fd868dacbc367edb13fde2094256ea8489e623",
-      "redactedSha256": "sha256:83a38e2e34bc00235af1f56d9b76961fcd5980b41d1c65bdb9cb115aa1fc63d8",
+      "redactedSha256": "sha256:a64b37247b06303e5b7d32648bcdc680880b88bffe0f4e2b34dae5a8c7776719",
       "originalBytes": 1463,
-      "redactedBytes": 1448
+      "redactedBytes": 1418
     },
     {
       "path": "artifacts/cited-calculation-experiment-20261012/run-binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:70ca8874b93b1f4dd89c2c2647048ed390c31accb9d6ef58456ca461e54989c2",
-      "redactedSha256": "sha256:ca18839ab577d4024162e5b0a6a0f833626da39e6c109145bd1b932427dfa18d",
+      "redactedSha256": "sha256:96b957287dea3b77b4928b31a2d10fc8185d4d604fe3452568a32b4dd4d67499",
       "originalBytes": 1148,
-      "redactedBytes": 1133
+      "redactedBytes": 1097
     },
     {
       "path": "artifacts/cited-calculation-experiment-20261012/source-scoped-selection/run-binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:3d89ab075a929960c0b78d0735d00fc3f5bf50cf045a0b9b6f2759455cc33204",
-      "redactedSha256": "sha256:9e3f31f7b1e21cb796fd7933b55cf64eabd431171241fa0cd37af5201b8c7489",
+      "redactedSha256": "sha256:95c9a92b137228a500fc40e7214b7948e8a117bbd6b4ddfb1398450dcc17dd03",
       "originalBytes": 1603,
-      "redactedBytes": 1588
+      "redactedBytes": 1552
     },
     {
       "path": "artifacts/cited-calculation-experiment-20261012/typed-requests/run-binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:f73c0d24f6d209500a215849733730984997efe4d845fbb018bd5869efa52c47",
-      "redactedSha256": "sha256:1e15e8fc7db877da8d5fc542d31ccba69e71490d9d48513036728d9f7483a7db",
+      "redactedSha256": "sha256:8dcefdd041c41700f5edcf9cfe47d56e26b3ed712933618643dc7a3326aab9aa",
       "originalBytes": 1479,
-      "redactedBytes": 1464
+      "redactedBytes": 1428
     },
     {
       "path": "artifacts/cited-calculation-experiment-20261012/worked-tool-contract/run-binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:c55a6b44b8d347e186ba7e2a14f6bd9c01faf6e24235a5ff66e7bc36ae17d7db",
-      "redactedSha256": "sha256:0066f8bff83ecdf5b29de835cf1ac10af6ff52ccf0f02e62bef204300a48b7e7",
+      "redactedSha256": "sha256:91eb2750dc931326b56448cf016c47f22121abda7034f6f98e05792f7edeed60",
       "originalBytes": 1237,
-      "redactedBytes": 1222
+      "redactedBytes": 1192
     },
     {
       "path": "artifacts/cold-compile-native-20261013/three-stage/amd-preflight.json",
@@ -285,18 +285,18 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:355e33590f71cd51ffbd9416daec1cef5fa4c2636dcd4e7aeca238b3d23475e7",
-      "redactedSha256": "sha256:95a90a5e79900ab03a7b97cf79ca4ba7e108a333e876536426d5567fddb0ad80",
+      "redactedSha256": "sha256:fd6501ea5a03d60e6da6460d143f84c2b41661bc83843e7f15897be9962148de",
       "originalBytes": 1136,
-      "redactedBytes": 1121
+      "redactedBytes": 1112
     },
     {
       "path": "artifacts/concurrent-memory-observation-20261012/bounded-0fad/run-concurrent.sh",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:fe85b04a5c6cb8cfd9d3a072c6bb4a8ba8992248ec9f95e00697a0683b2e728d",
-      "redactedSha256": "sha256:795abd4d7f039bc8c1fa12dedc65ef756248db5e9c4fc56d337f97085f3d1235",
+      "redactedSha256": "sha256:02715775fc4e3dc32322e6db38c318637ac77eb8d0da7aea5cfb9566c9076105",
       "originalBytes": 1133,
-      "redactedBytes": 1118
+      "redactedBytes": 1109
     },
     {
       "path": "artifacts/concurrent-memory-observation-20261012/bounded-result/direction-0.json.gz",
@@ -321,45 +321,45 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:88af0e8c97b0323857ab32bd647bd0eb13e7c83bd565c45ff19092432f480fd1",
-      "redactedSha256": "sha256:0a546fa5dd9ce24f06ea76c31ed9b206448b2dcf65a2d4117591bb5a6a40fbc1",
+      "redactedSha256": "sha256:707f1aa510955cfcfee128252d2b24e6d32398c7c0a59cc9dfe900cc94cc92d4",
       "originalBytes": 1215,
-      "redactedBytes": 1200
+      "redactedBytes": 1191
     },
     {
       "path": "artifacts/concurrent-memory-observation-20261012/run-concurrent.sh",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:b598365c76ffce06ff84ab9af38d4a412d25896f106561be5049958f9c5d21ac",
-      "redactedSha256": "sha256:6dbfed93da1e3a571c77a9176bffae9b2479a9fa1ed5bd79f6b938d2e809764d",
+      "redactedSha256": "sha256:18657b038b1e9e29c888600b9213f6750a11855c27299c9eb8471aaf17111021",
       "originalBytes": 1127,
-      "redactedBytes": 1112
+      "redactedBytes": 1103
     },
     {
       "path": "artifacts/focused-recovery-20261011/physical-run.tar.gz",
       "kind": "tar.gz",
       "replacements": 1,
       "originalSha256": "sha256:5c6c7a903ef465f45cc77d470d4b25ab7f95604c1219b8ced14cc5e51a77576f",
-      "redactedSha256": "sha256:d31db7351ff20d38bfbd66915a96bee4d05caf9d64a963769d14f5402acd9600",
+      "redactedSha256": "sha256:ad81c69b38737d61efd8029dac17b62585528caad9ad505efeb1fe7190bfde86",
       "originalBytes": 2468355,
-      "redactedBytes": 2439807
+      "redactedBytes": 2439796
     },
     {
       "path": "artifacts/ice-acquisition-20261011/failed-physical-run.tar.gz",
       "kind": "tar.gz",
       "replacements": 1,
       "originalSha256": "sha256:558f4485cdece9326af7603bb1adaf75271d8746c26c33f45f0237cab374a38c",
-      "redactedSha256": "sha256:d62cce120c1321cdf40e07357f5c651972c69c1436b8d16e74d2d262c79c6619",
+      "redactedSha256": "sha256:8a896e3010f3042b4e60119033d28e4cf35a5f0580542711d8c1b82c6d7c615d",
       "originalBytes": 527466,
-      "redactedBytes": 527433
+      "redactedBytes": 527410
     },
     {
       "path": "artifacts/ice-acquisition-20261011/post-fix-physical-run.tar.gz",
       "kind": "tar.gz",
       "replacements": 1,
       "originalSha256": "sha256:f02f2abce8526d1ac1eb8a8791e5bd093eabf22207025c127d160894180c70c3",
-      "redactedSha256": "sha256:9b3ddc3665b8e2418f69c599f0bc5681088cb4e448968b29cb268d271e384c30",
+      "redactedSha256": "sha256:5dc8070ffe3d06cca8a42d5f266a353f0f2a7ac41b5c08dea2561361c1206cb9",
       "originalBytes": 957533,
-      "redactedBytes": 957495
+      "redactedBytes": 957441
     },
     {
       "path": "artifacts/native-participant-20261012/compute-ready.json",
@@ -402,9 +402,9 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:df6a60e9b6a69c972d17adf2127f9c55978b6470fbb7552ef65bc093d65c1923",
-      "redactedSha256": "sha256:354af6b52830047923946b8dd24f7c161b2de02d9ef3cec832705a05f7dfa06d",
+      "redactedSha256": "sha256:c131f09c9ca5b05185b721d550e170686bf7c6870c8499d69af4032d46bb451d",
       "originalBytes": 1592,
-      "redactedBytes": 1577
+      "redactedBytes": 1568
     },
     {
       "path": "artifacts/native-partition-0.6.28-20261012/private-cache/local-infrastructure-stop.json",
@@ -429,18 +429,18 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:2a56bbf2d68bb9c6e074131511c6ec03b1bf516d930bf8f5832d88123cad6965",
-      "redactedSha256": "sha256:a329925af5293a4a927bb103fa8e6797e8f4d7e220a8dd4ab9e4bbd94e7e4cd9",
+      "redactedSha256": "sha256:372f3014e7b7472760a543c6af28b1cb08a338e444e5018771e7a20b98d6456d",
       "originalBytes": 1598,
-      "redactedBytes": 1583
+      "redactedBytes": 1574
     },
     {
       "path": "artifacts/native-partition-0.6.28-20261012/run-native-reference.sh",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:ece5246c5ff77e340cf174dc8912d9eba8a8d550031c0e373b5b06bd99c0dc4e",
-      "redactedSha256": "sha256:95f48bcc0a21b6160885003f014fc95090eaf2e22aeec91164e0e31d4b20ce76",
+      "redactedSha256": "sha256:c0f20ccb8370cdd33de08253ea44732da12a1a938fa4e531d89332dd7871df6f",
       "originalBytes": 1580,
-      "redactedBytes": 1565
+      "redactedBytes": 1556
     },
     {
       "path": "artifacts/native-partition-0.6.28-20261012/summary.json",
@@ -456,70 +456,70 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:57fde81c28c8d97f910f1f8011e30c699b4057a694eef4c56806ef200d5c244d",
-      "redactedSha256": "sha256:44c72e04c96de6ccb5915a0f44191722e129f14ef985f053e2c87dcaa04d16f2",
+      "redactedSha256": "sha256:844ae554926ed31d3fd9aa82fa223ca1e3c88b1ac51f9c78a6b2148584d07840",
       "originalBytes": 2423,
-      "redactedBytes": 2408
+      "redactedBytes": 2381
     },
     {
       "path": "artifacts/partition-contracts-20261010/physical/application-reverse-generation-failure.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:ef8eeab4bae95457fb0f33b1e662f71030f584dcd4df9c24b4a576dd6729ebbe",
-      "redactedSha256": "sha256:5a96bc490582f2d6dc72919c89adb34922451ba6e00c57eab1b03c13798e0c54",
+      "redactedSha256": "sha256:66091e063835c65fc72bfa23145468ed970677946f14a06da950880265aa52f8",
       "originalBytes": 2290,
-      "redactedBytes": 2275
+      "redactedBytes": 2248
     },
     {
       "path": "artifacts/partition-contracts-20261010/physical/memory-result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:af24380eeed66320a8134a9602ee803c57dfd63dd6efd910d891bad79d9f06b6",
-      "redactedSha256": "sha256:0a869b9f4d4ac617b7ccff5b545dfd42146ee54adaabae554697deaee71b04ab",
+      "redactedSha256": "sha256:39067e3587cd66d8541d2960fffcda3cc3a3a3555b30a9abfe33a9b712131e49",
       "originalBytes": 3291,
-      "redactedBytes": 3276
+      "redactedBytes": 3240
     },
     {
       "path": "artifacts/partition-contracts-20261010/physical/numerical-result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:c82920f0b6942841f710985de6412f5578cc065964a4e49e67c08fbb534cd708",
-      "redactedSha256": "sha256:3e44470e47804ccb5b9c09faa80ab8e707a68d1a8792f1aa86559837bfb53d68",
+      "redactedSha256": "sha256:53dcd778d578b9150889ba37a8ff61b1733134fc0f126066b8a6bf77604dbac5",
       "originalBytes": 6626,
-      "redactedBytes": 6611
+      "redactedBytes": 6575
     },
     {
       "path": "artifacts/partition-contracts-20261010/physical/recovery-binding-interrupted.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:82b09cd04b65a174968c4a471e87199bca5e21a6b267f67064d11b40c98cd3e4",
-      "redactedSha256": "sha256:c321061cc7ef08b7db3c33d810ab65e3cc3d2260ab0974e25f1b24b655f2e699",
+      "redactedSha256": "sha256:9cb77de1287b73f91d1b80a7737c9f34111e00514f82bc1e32f183e058999347",
       "originalBytes": 2198,
-      "redactedBytes": 2183
+      "redactedBytes": 2165
     },
     {
       "path": "artifacts/partition-contracts-20261010/physical/recovery-result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:a86364c965cf49e2110523c306b6004f83d79fcc3089b416fc37bf4acc68abab",
-      "redactedSha256": "sha256:2b324926ec49c9a01c42d5fab87c09a2a627203c8c8df87b697388e59f3e2a7d",
+      "redactedSha256": "sha256:b2769f7663bea94bcbdb504601e8b01dda4320ab66388b6bd650da553e2fe8de",
       "originalBytes": 2097,
-      "redactedBytes": 2082
+      "redactedBytes": 2064
     },
     {
       "path": "artifacts/partition-contracts-20261010/physical/recovery-selector-failure.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:918ea0aed82661bc09052bf791e4bb738523d4849a5541702241133759317fbc",
-      "redactedSha256": "sha256:2e81ded6707727a6d9d8c45a2960b95e64910e60f584b3c013ed7fffa2271c06",
+      "redactedSha256": "sha256:c15c36cae41f1abb3698c1ccdb47bcb9cf7cdc10f24d7eddbb89671482345951",
       "originalBytes": 2354,
-      "redactedBytes": 2339
+      "redactedBytes": 2312
     },
     {
       "path": "artifacts/peer-introductions-20261010/embedding-20261011/bindings.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:81c10cd8b7e17a8eec0482227710259e1b56d9f646236fd72c9b7bafb859836f",
-      "redactedSha256": "sha256:730079471ae638a2141ce6886f46557424b9f1cd0a300cd1c4cb6db1d584bed0",
+      "redactedSha256": "sha256:089a00f51baad364d2036cacdd21904e76df102244478dd151c77cd81e1b64f8",
       "originalBytes": 4389,
       "redactedBytes": 4360
     },
@@ -528,7 +528,7 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:5ce1f488f2090e76f19bbe2411419d5a5491ef1119efa5d40060ff4353196001",
-      "redactedSha256": "sha256:def0874a58670f16bf92629ccb77af9e55ef025dfa29069ddfb7f8e0f60fcc71",
+      "redactedSha256": "sha256:c98c7c74111b02d89b2ab0a45cd32502dd4dacbfda73468c8a38b95034f4c723",
       "originalBytes": 1617,
       "redactedBytes": 1588
     },
@@ -546,81 +546,81 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:1e325c7a8d7ffe1464de7b024b66b6647e464b591bde14c438a290cfde97dd81",
-      "redactedSha256": "sha256:2569df79725a47d819a9c2b3ff3171cb8d0ef355d2daf3d96acaf5e66eb725d7",
+      "redactedSha256": "sha256:7da9d53f4f2f6175ba650466794f1fa29795f451d377d5466938b6fbebb52c71",
       "originalBytes": 3221,
-      "redactedBytes": 3206
+      "redactedBytes": 3170
     },
     {
       "path": "artifacts/recovery-20261009/memory-023-physical/result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:4167ebd22ac718e2cfe4318bef195c776f0ff06958217f9ddce452372106ebf0",
-      "redactedSha256": "sha256:58d6fb00716124534869600ee6583e520dcd9c4b9d55525f951f7f845e108ade",
+      "redactedSha256": "sha256:28440979898b4a44bd937ba6cb9027082e524c326c4ac5f9f999085053a63274",
       "originalBytes": 3222,
-      "redactedBytes": 3207
+      "redactedBytes": 3171
     },
     {
       "path": "artifacts/recovery-20261009/numerical-019-physical-result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:7f967a792ee481132ef65830a05a7af56c8b2b24da0cbffc006b0dd1adfafd36",
-      "redactedSha256": "sha256:25a238556defd9390d75ee4c53824edfc85d4012b6706b08d81d13e86c47c48e",
+      "redactedSha256": "sha256:583cee1f098b3c70e4e8d65f86fc7b38557cd21fc7cff0e353d9aec720676e85",
       "originalBytes": 5543,
-      "redactedBytes": 5528
+      "redactedBytes": 5492
     },
     {
       "path": "artifacts/recovery-20261009/numerical-024/result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:d5c62f6c0d2941b789a832bc6550cc41f0541d20f5b3f77b18a57aabe568c614",
-      "redactedSha256": "sha256:11d48c81b539695ac49801cf78f7030dce463110a9ddb9a26904d8d27201cd7f",
+      "redactedSha256": "sha256:8350536dc6dc06d5216d199ada36d9babd834563798ea95194d70cba56c2f7a1",
       "originalBytes": 6625,
-      "redactedBytes": 6610
+      "redactedBytes": 6574
     },
     {
       "path": "artifacts/recovery-20261009/numerical-025/result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:460cb488c143f02fe54f9d22fe72772eb12b06521deaac28b1c5f94c43470baa",
-      "redactedSha256": "sha256:f954474d3fe92a1371d5b28381cbb88701cec983085f3c90c58f81ff3bc94914",
+      "redactedSha256": "sha256:e6272e9984dbbe1edd0dffe9d87efd4e58e32837cc1b2e72e2d079f650bfa955",
       "originalBytes": 6625,
-      "redactedBytes": 6610
+      "redactedBytes": 6574
     },
     {
       "path": "artifacts/recovery-20261009/numerical-026/result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:67fdf42657e16f2795f90aa8674f361b41f12a305d911b32fd19262065513984",
-      "redactedSha256": "sha256:cc0649f4fbf6186b45171c39cf0c15bc5b9431ac5bbb864d2eb169c8df89b112",
+      "redactedSha256": "sha256:a573d4c3cd483e9de7937e3ef352a0234095173c0e13d7226bdbada64b053b5b",
       "originalBytes": 6626,
-      "redactedBytes": 6611
+      "redactedBytes": 6575
     },
     {
       "path": "artifacts/recovery-20261009/qwen2b-recovery-023/result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:4f320a20594ad63d086eb88987f2ef1a49c824c7e6b6848f9870c95f65a497cd",
-      "redactedSha256": "sha256:7a7b60f9ba087a181cd1c32003efc3e159cf1de15607cea2a7f2f9da9ec8dcbc",
+      "redactedSha256": "sha256:e07b4c4a0c79c22cf74d3764954a5c1a2f9e1d7f2f319c083f7fbd078203fcb6",
       "originalBytes": 2352,
-      "redactedBytes": 2337
+      "redactedBytes": 2310
     },
     {
       "path": "artifacts/recovery-20261009/recovery-023-corrected-reverse/result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:8616b592c9beb5908ea7cc2d917abcbcf56e8dfc8221cf3c5a551910cc92033c",
-      "redactedSha256": "sha256:ce66b1a609d9877161d1f4c9997574e1da5e5c995af809e25755ecd2a5750368",
+      "redactedSha256": "sha256:9cbcf7d053c9ebd8631dfccf9838cb92d8852db17f3700c942c683595df6dca9",
       "originalBytes": 1996,
-      "redactedBytes": 1981
+      "redactedBytes": 1963
     },
     {
       "path": "artifacts/recovery-20261009/recovery-023-corrected/result.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:ae508fc1b015320438b970cc3421dc98cec124d5993fae95d0a1a3b76dde07e3",
-      "redactedSha256": "sha256:5fe30147a9db1cae4bde6ee80c99ab2803d8478937af5c23ab1420ee729a1aed",
+      "redactedSha256": "sha256:2795a52cf78c1ad7bc4be224734742a862164cf8f0020a8748e9de54c8ba4039",
       "originalBytes": 1997,
-      "redactedBytes": 1982
+      "redactedBytes": 1964
     },
     {
       "path": "artifacts/recurrent-repair-native-20261013/three-stage/amd-preflight.json",
@@ -690,9 +690,9 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:d71aeee4232b0aa39b2d088337ccc65cd4f1542385b9d04630b7784aebcefd88",
-      "redactedSha256": "sha256:f92e9b68c6ef31b9b3e1c8140023ea3857f713dbea821465e8bd57c8bf20cb56",
+      "redactedSha256": "sha256:af65eb0a4eb1aa3e2af0163c95c71fa3d828bd18c2332a4b2a2da06db7c044cf",
       "originalBytes": 6080,
-      "redactedBytes": 6065
+      "redactedBytes": 6056
     },
     {
       "path": "artifacts/resident-readiness-qualification-20261012/native-direction-0-expectations.json",
@@ -762,81 +762,81 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:0adf7ce7e88408a026b0f79cc77bcb5c6fb4b30ff4989ae7382ac72a3276dfce",
-      "redactedSha256": "sha256:41f5b33fcba9422764053ad6f620066b4a879f5a43b54a73a8fbc87a606b3267",
+      "redactedSha256": "sha256:296a75611eb745c187707b608b4383ea42e591954d561cb0a193452e289eaced",
       "originalBytes": 1623,
-      "redactedBytes": 1608
+      "redactedBytes": 1599
     },
     {
       "path": "artifacts/reverse-recovery-20261011/physical-run.tar.gz",
       "kind": "tar.gz",
       "replacements": 1,
       "originalSha256": "sha256:85590ea58d0b71f10068cdb713314dde96d024ab2e9e31cba999f1b52bc1af3a",
-      "redactedSha256": "sha256:b190c129d520d6d87372b991a77faf18c1842987dc8c89ea1141937f07c1caf6",
+      "redactedSha256": "sha256:6198e2cddf180fafed84463ac2b23341a532e1da933a01dc15eab5cf213f2932",
       "originalBytes": 1034240,
-      "redactedBytes": 1013259
+      "redactedBytes": 1013237
     },
     {
       "path": "artifacts/sigmoid-three-stage-physical-20261013/final-process-inventory.json",
       "kind": "text",
       "replacements": 2,
       "originalSha256": "sha256:5e26c11c59e8b595799dc346cb238a50ce4154ad6ffe559a76c3a9fa6bdecd41",
-      "redactedSha256": "sha256:6e6885b3ba3b60bc6bf23fc841ebdf0b15f7bfc3e9f75645b294618d37bcf6ba",
+      "redactedSha256": "sha256:8e8292ca545e4fcabba04657c47965cd4a944fa104a646c47f73ef3242cfa9fb",
       "originalBytes": 2341,
-      "redactedBytes": 2303
+      "redactedBytes": 2279
     },
     {
       "path": "artifacts/signaling-independence-20261011/awake-click-failure.json.gz",
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:2e136d00b0ff62bc3e0d0c28ea4ac39b8cbedaef54d23a6b4b4343bcd0d550a0",
-      "redactedSha256": "sha256:3476b7e2961b36d089b5d35389204431110c49e4ebb16d87e6ab826c2626a55f",
+      "redactedSha256": "sha256:82424218e4e40419d60d1557d608b6ab6b7138c5bf2258afab625624501ba4a2",
       "originalBytes": 1141,
-      "redactedBytes": 1127
+      "redactedBytes": 1120
     },
     {
       "path": "artifacts/signaling-independence-20261011/initial-setup-failure.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:a7cdca3b41bce1b7b49665f08a8dca35b574bbd139ee44d11f55649444a29d8e",
-      "redactedSha256": "sha256:ff322e883eea4c2271f3e1b172460e439b9d01a519592eb777d6caa1015f1a40",
+      "redactedSha256": "sha256:a64ffbb31fa649d3c346da6c57b8c60bc8dd0d27193aab3c8f43db8b1f425e38",
       "originalBytes": 2253,
-      "redactedBytes": 2238
+      "redactedBytes": 2220
     },
     {
       "path": "artifacts/signaling-independence-20261011/interrupted-run.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:6097f7e1f192d11483445384e35d56441fd6754df137cf91c66acf78165107a4",
-      "redactedSha256": "sha256:e2629ed1a9b382ffa3ae4a6b520b2a4c74e810061dc503c066ffb891b82a68f7",
+      "redactedSha256": "sha256:b73310881dfe81ca6f4cb2a3699a1672223dd2c30cb915d4418961606b8b51ec",
       "originalBytes": 2334,
-      "redactedBytes": 2319
+      "redactedBytes": 2292
     },
     {
       "path": "artifacts/signaling-independence-20261011/normal-result.json.gz",
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:99e4f6d42a166402d3cb863d2400c6950befadb9dcf931344dff7c5c1dcbde15",
-      "redactedSha256": "sha256:a793502e7480cb67f5263c3c89ea0af69c059dadae337fb03b4adf70ed539cf6",
+      "redactedSha256": "sha256:78733b76a43595cc338a5206482e4a07a60d6dcc265965bc7eac4639813d11ae",
       "originalBytes": 1011,
-      "redactedBytes": 998
+      "redactedBytes": 991
     },
     {
       "path": "artifacts/signaling-independence-20261011/recovered-mac-result.json.gz",
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:a57f75ba17284f53ec22c051bafbf607a8d823d2e40d0c046e09632b908f7ac7",
-      "redactedSha256": "sha256:d18f46c255b988ec6b609bbd5a232286e7c235669b6af862328c6e61ccc6ef05",
+      "redactedSha256": "sha256:c901c82d017e4aaea8ceaa87f89522611295365c7a7dd88b752b2cd7f99bfb13",
       "originalBytes": 1110,
-      "redactedBytes": 1097
+      "redactedBytes": 1089
     },
     {
       "path": "artifacts/signaling-independence-20261011/reverse-result.json.gz",
       "kind": "gzip",
       "replacements": 1,
       "originalSha256": "sha256:d445912d610f95f978bc9e8f478a82583e389226611d8539f5c4a00fc34d8c54",
-      "redactedSha256": "sha256:890ff8c3d9486123ad0dcfcf687b8d1921410f5c8ee4d1c4643e46d978f676dc",
+      "redactedSha256": "sha256:ac192a7d704c25fe837206cc4caf430329a0c2b645ed6a35c8858667b96149ff",
       "originalBytes": 1012,
-      "redactedBytes": 1000
+      "redactedBytes": 993
     },
     {
       "path": "artifacts/signed-closure-qualification-20261013/direction-0-expectations.json",
@@ -951,63 +951,63 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:da2673adea9aa4519a1d03c81e7e8805799669904f8259f34e724d1ae094dcb9",
-      "redactedSha256": "sha256:92ff6d9a7894423fa1b0faf3f0c673e991f5e1f3f6c771ec19daa7b9442d4375",
+      "redactedSha256": "sha256:8a327efda77e13bb30216eeec81a8141a2694335335b8fdac8efee773ff3c610",
       "originalBytes": 1025,
-      "redactedBytes": 1010
+      "redactedBytes": 974
     },
     {
       "path": "reports/local/cited-calculation-experiment-20261012/retained/binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:da2673adea9aa4519a1d03c81e7e8805799669904f8259f34e724d1ae094dcb9",
-      "redactedSha256": "sha256:92ff6d9a7894423fa1b0faf3f0c673e991f5e1f3f6c771ec19daa7b9442d4375",
+      "redactedSha256": "sha256:8a327efda77e13bb30216eeec81a8141a2694335335b8fdac8efee773ff3c610",
       "originalBytes": 1025,
-      "redactedBytes": 1010
+      "redactedBytes": 974
     },
     {
       "path": "reports/local/cited-calculation-lexical-catalog-20261012/binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:10c855c1e5039f6306c3682f7be9ba97ba444972e7cf28d59eed04072a794f4a",
-      "redactedSha256": "sha256:354c4745beb4859136466c58b2daaa097330dac4660495e0eef4df209a7ed845",
+      "redactedSha256": "sha256:21a482d3c96af6c280df146761c9578d6d581ea47af51a2a540e6a577c262fb6",
       "originalBytes": 1224,
-      "redactedBytes": 1209
+      "redactedBytes": 1179
     },
     {
       "path": "reports/local/cited-calculation-lexical-catalog-20261012/supervisor.py",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:9475790497f512a4fbd527172d9b182a5fec7e38d3538de62e2d6dbad609e768",
-      "redactedSha256": "sha256:d09c307e837d31c5c988fd3aa660c88fe4b69047844a9d341644f834d4fc6ec1",
+      "redactedSha256": "sha256:b636c721a5fe258ddf6d83f7c84fa90546f3b6e6dd0e4064dadb82e06dc149fc",
       "originalBytes": 1743,
-      "redactedBytes": 1728
+      "redactedBytes": 1680
     },
     {
       "path": "reports/local/cited-calculation-official-tool-20261012/binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:36f3ea9175f670dbb9700e986b0f5e60bd079832a11c2668f3c39c1161030a70",
-      "redactedSha256": "sha256:1c08a801401cc818b5591fd5e36d24c3c3a0817777246c8f937d8c6f2600f29b",
+      "redactedSha256": "sha256:95c80c6896e1ad8543ec1525bbc3f8128a2fee9cfb3a5c60b4def4fd73105398",
       "originalBytes": 1085,
-      "redactedBytes": 1070
+      "redactedBytes": 1034
     },
     {
       "path": "reports/local/cited-calculation-worked-contract-20261012/binding.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:c55a6b44b8d347e186ba7e2a14f6bd9c01faf6e24235a5ff66e7bc36ae17d7db",
-      "redactedSha256": "sha256:0066f8bff83ecdf5b29de835cf1ac10af6ff52ccf0f02e62bef204300a48b7e7",
+      "redactedSha256": "sha256:91eb2750dc931326b56448cf016c47f22121abda7034f6f98e05792f7edeed60",
       "originalBytes": 1237,
-      "redactedBytes": 1222
+      "redactedBytes": 1192
     },
     {
       "path": "reports/local/cited-calculation-worked-contract-20261012/supervisor.py",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:aaac2e02d3a7dc33bceffc4b419390c8be725ed106877d9644633b29bc9d3bdd",
-      "redactedSha256": "sha256:a4d690ce9bf5e80a1f631f1fa13744ca5d9a1a594515859750c3f93e0e99f4dd",
+      "redactedSha256": "sha256:239d0edb2c8cb7b0d4b8f2460201fe5c0ecbe0c8ade75dfed1ca4548b7b45e14",
       "originalBytes": 1758,
-      "redactedBytes": 1743
+      "redactedBytes": 1695
     },
     {
       "path": "scripts/test-distributed.js",

@@ -16,7 +16,7 @@ The first browser run (`browser-public-namespace-failure.log`) joined the existi
 
 The user approved one fresh persistent 4 GiB allowance on x; exact scope is in
 `migration-approval.json`. Its old cache remains intact. The new directory is
-`/home/x/.local/share/reploid/public-native/cache-budget-20261012` and future
+`~/.local/share/reploid/public-native/cache-budget-20261012` and future
 restarts reuse its ledger. Suby's separate file-sharing permission stays off.
 
 Both native contributors now run the same installed artifact outside checkout.

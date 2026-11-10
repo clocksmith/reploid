@@ -22,7 +22,7 @@
     "final-6/preflight.js": "2a7c46448da544ccefa57c3a4239ee21c133ee01ad51b3529fd90b722f76f855",
     "final-6/check-changed-files.js": "295dbe037ec5e292b2e86abc6747cb70cbb76d60c9e69ea1b25753d7076e8f44",
     "final-6/verify-worker.js": "6281ddf4dc09e3894c1f5c4f0f63d732ad9eb8cf6633079242c7c21f7f30d246",
-    "final-6/prepare-catalog.sh": "08456ca858f1a88b8fc25a9a0da784867d283336b5be6f8c583e7724a088af1d"
+    "final-6/prepare-catalog.sh": "75241b43ebf8198753d7a9a23c862f25b13ad683ad86a9c87f0415028e9618e5"
   },
   "outputs": {
     "sourceTar": {

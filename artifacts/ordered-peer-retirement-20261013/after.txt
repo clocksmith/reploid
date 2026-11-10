@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/ordered-partition-peer.test.js > ordered authenticated peer (in-process channels, injected computation) > traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 100ms
  ✓ tests/unit/ordered-partition-peer.test.js > replays an identical output without recomputation and rejects different activation bytes 36ms

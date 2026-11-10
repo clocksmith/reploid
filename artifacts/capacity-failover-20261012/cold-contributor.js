@@ -29,7 +29,7 @@ try {
   report.withoutSupplier = await state();
   expect(report.withoutSupplier.sharingFiles).toBe('false');
   report.restore = (await exec('ssh', ['amd-host',
-    'cd /home/x/deco/reploid && node reports/local/capacity-failover-20261012/native-control.js files-on reports/local/capacity-failover-20261012/supplier-restored.json'])).stdout;
+    'cd ~/deco/reploid && node reports/local/capacity-failover-20261012/native-control.js files-on reports/local/capacity-failover-20261012/supplier-restored.json'])).stdout;
   // Existing contribution toggle provides an explicit new preparation attempt.
   await page.locator('[data-toggle-contribution]').click();
   await expect(page.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');

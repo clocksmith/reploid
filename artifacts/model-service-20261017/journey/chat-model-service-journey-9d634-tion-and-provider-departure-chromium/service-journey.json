@@ -7,9 +7,9 @@
     "baseUrl": "http://localhost:8127",
     "room": "reploid-swarm-qwen-service-20261017",
     "modelId": "qwen-3-5-2b-q4k-ehaf16",
-    "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
-    "participantEntry": "/Users/xyz/deco/reploid/.tmp/qwen-service-20261017/server/native-participant.js",
-    "stateDirectory": "/Users/xyz/deco/reploid/.tmp/qwen-service-20261017/state",
+    "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "participantEntry": "~/deco/reploid/.tmp/qwen-service-20261017/server/native-participant.js",
+    "stateDirectory": "~/deco/reploid/.tmp/qwen-service-20261017/state",
     "maxConcurrentRequests": 2
   },
   "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",

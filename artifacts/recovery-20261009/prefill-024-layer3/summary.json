@@ -5,11 +5,11 @@
       "direction": "linux-mac",
       "rawEvidence": {
         "local": "/tmp/reploid-prefill-024-layer3-linux-mac.json.gz",
-        "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-01-58-668Z/reference-linux-mac.json",
+        "remote": "~/deco/reploid/artifacts/distributed/2026-10-10T04-01-58-668Z/reference-linux-mac.json",
         "compressedSha256": "c1649f5cc339be09947383b3886e887104cd7c5fed41a930315f614edaff4b18"
       },
       "projection": "artifacts/recovery-20261009/prefill-024-layer3/reference-linux-mac.json.gz",
-      "projectionSha256": "34ff706c843645ac5f0b838034d6008b5174d03c0cb52448583ec994d01efc3d",
+      "projectionSha256": "139050e9e83934a14a4b0b4455ef180e85af56fccc6ab2944352455efd670b55",
       "comparisons": [
         {
           "host": "mac",
@@ -81,11 +81,11 @@
       "direction": "mac-linux",
       "rawEvidence": {
         "local": "/tmp/reploid-prefill-024-layer3-mac-linux.json.gz",
-        "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-01-58-668Z/reference-mac-linux.json",
+        "remote": "~/deco/reploid/artifacts/distributed/2026-10-10T04-01-58-668Z/reference-mac-linux.json",
         "compressedSha256": "4b163f6cf8cfaf204b4d3b36a397364f1f022555e941399e1819798131d83a4c"
       },
       "projection": "artifacts/recovery-20261009/prefill-024-layer3/reference-mac-linux.json.gz",
-      "projectionSha256": "f309c0ac0edda3399c39a90882ebd965d1a02a303ba327d8f03629545c779f44",
+      "projectionSha256": "e363301a6143f1f0374b38698eec5cb75a538476303eb77a0294d590619eff90",
       "comparisons": [
         {
           "host": "mac",

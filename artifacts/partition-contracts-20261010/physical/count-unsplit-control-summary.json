@@ -41,7 +41,7 @@
     "conclusion": "Repetitive output reproduces without a second conversation or cancellation; this does not distinguish model capability from shared runtime arithmetic."
   },
   "rawSha256": "676ba22fbddd4c0927c1cc4e8d44620648f121d04da70bf75fd45157197850a7",
-  "scriptSha256": "fe87ddd18ad52db81980d91034a16681e58fc9240155d677c2ec2f0980aeff2c",
+  "scriptSha256": "5d069ed42afc2ce7e9d56d29afa8c3c40ce1788d6c6adece39e931b7ddfdc295",
   "maxGpuBufferBytes": 6000000000,
   "tokenIds": [
     248045,

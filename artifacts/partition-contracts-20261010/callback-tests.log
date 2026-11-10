@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-runner.test.js (23 tests) 24ms
 

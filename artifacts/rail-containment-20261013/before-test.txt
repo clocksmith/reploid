@@ -24,7 +24,7 @@ Running 1 test using 1 worker
       68 |     }
       69 |     await page.locator('[data-composer-input]').fill('Keep this draft.');
       70 |     await page.screenshot({ path: info.outputPath('collapsed.png'), fullPage: true });
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:67:39
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:67:39
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/before/chat-rail-layout-light-rai-eaf19-l-expanded-widths-at-1440px-chromium-swiftshader/test-failed-1.png

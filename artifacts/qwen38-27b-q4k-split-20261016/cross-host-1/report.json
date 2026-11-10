@@ -10,7 +10,7 @@
   "passed": false,
   "error": {
     "message": "Cannot access 'start' before initialization",
-    "stack": "ReferenceError: Cannot access 'start' before initialization\n    at file:///Users/xyz/deco/reploid/tests/fixtures/qwen-partition-cross-host.js:55:20"
+    "stack": "ReferenceError: Cannot access 'start' before initialization\n    at file://~/deco/reploid/tests/fixtures/qwen-partition-cross-host.js:55:20"
   },
   "finishedAt": "2026-10-16T18:11:37.172Z"
 }

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-placement.test.js (4 tests) 8ms
  ✓ tests/unit/partition-api.test.js (40 tests) 3606ms

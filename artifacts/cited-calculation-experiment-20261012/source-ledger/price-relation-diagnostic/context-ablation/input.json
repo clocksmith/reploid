@@ -2,7 +2,7 @@
   "schema": "reploid.price-context-ablation-input/v1",
   "globalQuestion": "Compare these fictional workshop quotes for my $6,200 budget. Explain prices, exclusions and conditions, citing source IDs.",
   "selection": "All nine fresh occurrences, source order, control then treatment; no case selection by output.",
-  "originalDocumentCases": "/Users/xyz/deco/reploid/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/suite.json",
+  "originalDocumentCases": "~/deco/reploid/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/suite.json",
   "pairs": [
     {
       "sourceOccurrence": {

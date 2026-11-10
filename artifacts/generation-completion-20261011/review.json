@@ -25,7 +25,7 @@
     "browserManifest": true
   },
   "installedArchive": {
-    "path": "/home/x/deco/reploid/artifacts/library-acceptance/2026-10-11T15-42-40-969Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-10-11T15-42-40-969Z/reploid-0.1.0.tgz",
     "sha256": "f25ef3155a9baba1627de1e9dfe06275dec72e79cef07441a82353842e8ec39e"
   },
   "unchangedDopplerStandardSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
@@ -37,24 +37,24 @@
     "missing existing signed Capsule loader declaration, corrected explicitly"
   ],
   "artifacts": {
-    "combined-focused-qualified.log.gz": "bdc69d4f1e6dd6a6d54f2d6ea68cabda8e474e77ef733c4926c90a52c840bb30",
+    "combined-focused-qualified.log.gz": "03350596dfbcd939710df3bfbe5d71eda12e373641fc421ec79f39cf12c6504a",
     "types.log.gz": "fd86b7c241bea5c5221c957026e258dc9ebf2855988c557b03724140531c4f5f",
-    "baseline.log.gz": "f35d4640ca2bed46e9ba2e9e26701b1264424442b5fc13c13769b350b82a2cdb",
-    "browser.log.gz": "1d2e7f0c47dbeea163fea35c51001a34818cba5c9dde80eca6818374ad867388",
-    "repository-final.log.gz": "c07cc045c12e12063123772a05298f91d9ac69c59c2a4327349aa7e02e749b35",
+    "baseline.log.gz": "f4b38849e5e02347d3d1364816b2d86e2a3f5b4c5e8ab497bdfeab8b6bd59176",
+    "browser.log.gz": "29855ee9927003e48615938d4079f8c4e3fece4bb8b1d1ffdda5344cdf957c37",
+    "repository-final.log.gz": "5f7c4566e1ba4c61a66a837cfbca0d609b30f6a5a93c7e47ae18215bdd528f8f",
     "sync.log.gz": "12781859696c7231cbcb67ce8f1ae1bc12010b8478ea76ee88d7ea0f06f99dbf",
-    "focused.log.gz": "4293c037e631e3a16b29866c054d6821c6122945a8c79cce8def0cc0bd4751d2",
-    "combined-focused.log.gz": "6ee3a104a807e1c8c2833ed7461535cf3146e4d01d821588e702713d25688b36",
+    "focused.log.gz": "e9a939bd781b76a5708c3b47358c895fbdc815fc3b664c537c677bc018e8c13a",
+    "combined-focused.log.gz": "83b28a51987d9b6e42b9d9c43d615ef63a1c8f3d083a67b3bf616ef7a4dee1a4",
     "browser-corrected.log.gz": "d2373dd7fa043a6ee60360fbe0ab646f78a760acb276adebf6e65f698988ce6d",
     "delivery.log.gz": "cecb114f35a7d7dd549c908e985bad21ce2c2da69c3412fd47c321a3234e0584",
     "browser-final.log.gz": "bed93193289898b21ae69c74329a168d338e411ca659dbd72020260704693735",
     "manifest-check.log.gz": "7294fde7cebd3082213823aef15b1137130419d13975acbb5803fcd2ce95eb7d",
     "delivery-corrected.log.gz": "e5e1921c041487e86ae9ecead8ed93ed2f5eb6f78a730b71a340c68d1c07d6ea",
-    "installed-evidence.tar.gz": "236d5af39637542410450117f1387d343ed21c2b358d9647b2b85a0083edb68b",
-    "manifest.log.gz": "da21aa8df4dd06c33c64a961d5c085b0a511c4ba7ae0d23fc642d6e8cbb074ec",
+    "installed-evidence.tar.gz": "bbad2f0fb867ff91b99b6271af3e6799bd5d49f1a43f097e70b80e6b7430ea51",
+    "manifest.log.gz": "7546183bb5aec31e85110dde34c657b98745f6b6cf1f4782733c2e3c55aefb01",
     "repository.log.gz": "d6cda77bfa3447c7806d385bfa8e745ecc40a213f685abe050327b796cf072cf",
-    "installed.log.gz": "eb5a2ab80cd22c7a4d87fc7dc7ffbae334f34e4e65cc0410b737ec9a1905c48f",
-    "manifest-final.log.gz": "e7fb7a3f4ae53eb7a67eae298353575553cb96e543638d806a9cf26c7f61ccc1",
-    "combined-focused-final.log.gz": "19b172ea41c675c2397162cc88eeceb87a63cc3774cddd081dc5666350edb6dc"
+    "installed.log.gz": "b8eb44be61bfb49a53a195e4790762886bdcad5831b40b7750d8bd80ca29efe9",
+    "manifest-final.log.gz": "199a154fb5e35ad36d6afe023041f664d3b4f0c5c0c2306d6d204d1f18c48c46",
+    "combined-focused-final.log.gz": "e8da660579e48272c9d6581720f0aa872c86b7647e7d618522b501e8aa88f044"
   }
 }

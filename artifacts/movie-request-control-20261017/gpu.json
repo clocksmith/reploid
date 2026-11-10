@@ -1,6 +1,6 @@
 {
   "schema": "reploid.movie-request-control/v1",
-  "contractSha256": "94080246f2dbe2903d4a44a5900098b36e31306791576a4582119aeef6dc2d0d",
+  "contractSha256": "52c3355148da44a9964a900b22079ba0111878f175f021222793106641f4e9dc",
   "producerSha256": "e4f7e1c1c71b6476b10cd6f376351c6062c27d6748844aca695f67b04db87c3b",
   "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
   "node": "v22.20.0",

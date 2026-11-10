@@ -42,7 +42,7 @@
     "hash": "sha256:b7a89b6ea8da0f8bab27008b27aeb827dd9ea2e796af6087dc4a5c1eb0ca74e7"
   },
   "evaluator": {
-    "path": "/Users/xyz/deco/doppler/tools/qwen35-f64-reference.py",
+    "path": "~/deco/doppler/tools/qwen35-f64-reference.py",
     "hash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7"
   }
 }

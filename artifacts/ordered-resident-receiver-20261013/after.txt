@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-step-receiver.test.js (23 tests) 10ms
  ✓ tests/unit/ordered-resident-facade.test.js (7 tests) 11ms

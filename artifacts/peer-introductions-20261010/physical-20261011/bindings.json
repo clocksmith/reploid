@@ -31,7 +31,7 @@
   "publicBootstrap": false,
   "generalNATAcceptance": false,
   "testHelper": "tests/fixtures/physical-webgpu-browser.js#connectPhysicalBrowser",
-  "reportSha256": "32df1cd852ad1a6b782a8169b8c26f7ceaefa2d25317ac27ce1ca6b5fd6eb108",
+  "reportSha256": "58d7ca98d9bfa6f10f48ced7fae36f6ddc5725df6a66ed8c402266c52d51782b",
   "fixturePort": 37589,
   "controlPath": "SSH forwards the fixture HTTP endpoint and owned Mac CDP endpoint; application traffic uses actual WebRTC data channels",
   "cleanup": {

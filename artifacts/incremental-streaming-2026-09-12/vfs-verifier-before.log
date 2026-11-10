@@ -30,7 +30,7 @@ Running 1 test using 1 worker
       161 |     '/apps/storage.js', '/tools/Storage.js',
       162 |     '/vendor/reploid/adapters/browser.js/child.js', '/vendor/reploid/adapters/neighbor.js'
       163 |   ]);
-        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:160:32
+        at ~/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:160:32
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/vfs-storage-contract-Verif-83eb4--preserves-other-rejections-chromium-swiftshader/test-failed-1.png

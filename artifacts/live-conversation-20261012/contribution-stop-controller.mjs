@@ -1,4 +1,4 @@
-import {chromium,expect} from '/Users/xyz/deco/reploid/node_modules/@playwright/test/index.mjs';
+import {chromium,expect} from '~/deco/reploid/node_modules/@playwright/test/index.mjs';
 import {writeFile} from 'node:fs/promises';
 const b=await chromium.connectOverCDP('http://127.0.0.1:54307'),p=b.contexts()[0].pages()[0];
 const [target]=await(await fetch('http://127.0.0.1:9229/json/list')).json();
@@ -25,4 +25,4 @@ try{
  await expect.poll(async()=>{const a=(await thread()).attempts.find(a=>a.id===retryId);if(a.status==='failed')throw Error(a.error);return a.status},{timeout:180000}).toBe('completed');
  r.after=await thread();expect(r.after.messages.slice(0,r.interrupted.messages.length)).toEqual(r.interrupted.messages);r.ok=true;
 }catch(error){r.ok=false;r.error=error.stack;r.after=threadId?await thread():null;}
-r.finishedAt=new Date().toISOString();await writeFile('/Users/xyz/deco/reploid/artifacts/live-conversation-20261012/contribution-stop-retry.json',JSON.stringify(r,null,2));console.log(JSON.stringify({ok:r.ok,error:r.error,stop:r.stop,answer:r.after?.messages.at(-1)?.content}));ws.close();process.exit(r.ok?0:1);
+r.finishedAt=new Date().toISOString();await writeFile('~/deco/reploid/artifacts/live-conversation-20261012/contribution-stop-retry.json',JSON.stringify(r,null,2));console.log(JSON.stringify({ok:r.ok,error:r.error,stop:r.stop,answer:r.after?.messages.at(-1)?.content}));ws.close();process.exit(r.ok?0:1);

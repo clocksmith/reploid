@@ -9,7 +9,7 @@ assert memory['MemAvailable']>=contract['minimumHostAvailableGiB']*1024**3,memor
 out=root/'original-reference.json'
 assert not out.exists(),'Refuse to overwrite prior reference'
 env={**os.environ,'PYTHONPATH':contract['pythonPath'],'HF_HUB_OFFLINE':'1','TRANSFORMERS_OFFLINE':'1'}
-cmd=[contract['python'],str(root/'qwen35-original-weight-generation.py'),'--source',contract['sourceDirectory'],'--revision',contract['sourceRevision'],'--deployed','/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16','--control',str(root/'control.json'),'--out',str(out),'--threads',str(contract['threads'])]
+cmd=[contract['python'],str(root/'qwen35-original-weight-generation.py'),'--source',contract['sourceDirectory'],'--revision',contract['sourceRevision'],'--deployed','~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16','--control',str(root/'control.json'),'--out',str(out),'--threads',str(contract['threads'])]
 def limit():
  cap=contract['maxAddressSpaceGiB']*1024**3;resource.setrlimit(resource.RLIMIT_AS,(cap,cap))
 started=time.monotonic()

@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "contributor-loss",
   "startedAt": "2026-10-14T04:33:21.959Z",
-  "configSha256": "ee3f71ccfedeb47d0b0f98514a9a8763b7afa85923c098dbc861acfecef25b28",
+  "configSha256": "ff5a58c8221fe4f9532552b3cebc763c25b55cc25877c9c21c979a4e78d6bfb8",
   "fixtureSha256": "7dd06aa4488c8e79b4e5aa8b4dbe804d39bc71a9bfaa3ceafab970c343d0edc1",
   "freeze": {
     "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
@@ -91,7 +91,7 @@
     },
     "receipts": []
   },
-  "failure": "Error: Streaming before loss: attempt ended failed: Peer disclosure does not match the selected model and verified recipients\n    at waitFor.timeout.timeout (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:240:101)\n    at async waitFor (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:165:19)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:57:21",
+  "failure": "Error: Streaming before loss: attempt ended failed: Peer disclosure does not match the selected model and verified recipients\n    at waitFor.timeout.timeout (file://~/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:240:101)\n    at async waitFor (file://~/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:165:19)\n    at async file://~/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:57:21",
   "body": "7\n7\nThreads\nQwen 3.5 0.8B\nConversation\nCount from 1 to 500 in order, one integer per line. No commentary.\nfailed\n…\nCount from 1 to 500 in order, one integer per line. No commentary.\n\nThis answer could not finish.\n\nTechnical details\nRetry response\nStarts a new attempt; keeps this response.\nMessage\nAttach files",
   "finalState": {
     "schema": "reploid.chat-owner-observation/v1",

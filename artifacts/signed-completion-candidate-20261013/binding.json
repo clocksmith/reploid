@@ -23,7 +23,7 @@
     "preflight.js": "3f668f59c757b24cee8720c2d51ade5238714ca5f227ed2c45126147102921c5",
     "preflight.json": "514fabcc90c487083028f950ab36906b80a925de5b7d96e7db13cf77cbfbae0c",
     "prepare-catalog.js": "ba32f907684d6e9f93d0ca14fbd12ecdce2cf4915487140833146b759b08e0d3",
-    "prepare-catalog.sh": "af7633d51013ab91cceb22de3a05542abb06a072fcc86f272a2ff994aea5189b",
+    "prepare-catalog.sh": "fc8c2423ce8717467df4e5d4a8810641077f47445df49dd97ec16659bc50d90a",
     "verify-worker.js": "0c1b1cff387a7ea4a97e6312bd40b51b231f1981c553a3a7edc5290caaf6fd38",
     "worker.json": "adf6df817b4d99b95e4266c93ee2546ec745eeab61153473d187fd50caf20997"
   }

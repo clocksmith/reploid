@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "storage-contribution",
   "startedAt": "2026-10-14T17:35:57.709Z",
-  "configSha256": "6f111a7118931a27e51e98ac01e20eed005e68701188c427bc3d6782f45b52a1",
+  "configSha256": "c10552fb3e9017046c882ca30508a47f0437e05f9ef07cb2e77af46fcf3595a6",
   "fixtureSha256": "9a4c9f00183edd673c2087b81f19e99e5730f09101ff73dbeb95cb4f4ae4b988",
   "freeze": {
     "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
@@ -3545,7 +3545,7 @@
     }
   ],
   "stepErrors": {
-    "stopSettles": "Error: In-flight acquisition deadline\n    at waitFor (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/harness.mjs:190:9)\n    at async file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-contribution.mjs:175:28\n    at async step (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-contribution.mjs:58:9)\n    at async file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-contribution.mjs:170:3"
+    "stopSettles": "Error: In-flight acquisition deadline\n    at waitFor (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/harness.mjs:190:9)\n    at async file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-contribution.mjs:175:28\n    at async step (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-contribution.mjs:58:9)\n    at async file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-contribution.mjs:170:3"
   },
   "permissions": [
     {

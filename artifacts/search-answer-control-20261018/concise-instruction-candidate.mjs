@@ -19,7 +19,7 @@ const captures=[];
 const base=createReploidDopplerRuntimeService({loadModule:()=>import('doppler-gpu/compat')});
 const service={...base,async open(args){const session=await base.open(args);return {...session,advanced:{...session.advanced,getStats(){const stats=session.advanced.getStats();captures.push(structuredClone(stats));return stats;}}};}};
 const gpu=createNativeGpuHost(()=>import('webgpu'));
-const owner=createNativeWholeModel({model,modelDirectory:'/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16',nativeGpu:()=>gpu.open(),service});
+const owner=createNativeWholeModel({model,modelDirectory:'~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16',nativeGpu:()=>gpu.open(),service});
 const receipt={at:new Date().toISOString(),scope:'Development-only candidate v2: concise source-answer instructions on four exposed search contexts, max64 output tokens, max4 generations, 90 seconds each; original repetition penalty, production unchanged; not held-out qualification',modelId:model.id,modelIdentity:model.identity,expected:baseline.answer,runs:[],passed:false};
 const save=()=>fs.writeFile(new URL('./concise-instruction-candidate.json',import.meta.url),JSON.stringify(receipt,null,2));
 try{

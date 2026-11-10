@@ -2,7 +2,7 @@
   "schema": "reploid.q4-partition-control/v1",
   "startedAt": "2026-10-16T18:09:48.009Z",
   "scope": "Native same-device control; not public or cross-host qualification",
-  "configSha256": "f216e493ada7b70c46cc74c1d4a493ae42ff4fc7fb7f935d288eb63b6e4177d7",
+  "configSha256": "dc06defd5e98e080e7d89e6e197f2ce6771a2d76bb439206388e1c4ce787aa04",
   "contractSha256": "95f3ff989c49e968963f2a8c4c912272287fbdf03ca580ba8ae12fc5a517b078",
   "opens": [
     {

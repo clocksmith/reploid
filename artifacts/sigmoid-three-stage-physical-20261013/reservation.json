@@ -3,7 +3,7 @@
   "approved": true,
   "authority": "Root authorizes fresh Mac/AMD/Suby load-only after candidate bindings verified",
   "frozenAt": "2026-10-13T16:34:58.297033+00:00",
-  "inventorySha256": "906088f3753c108735b5c610bbe1766370c396dc688c100e5175f36ecdecac1f",
+  "inventorySha256": "62298a49eb35820056c80ecff348abf1f8b57dd943649d71927407a506d38420",
   "bindingSha256": "55c1b860598d8ca2990504b7f29d83a627c953a01c5643053836cf3c0b52d566",
   "publicCoTenants": {
     "mac": [

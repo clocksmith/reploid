@@ -1,14 +1,14 @@
 {
   "schema": "reploid.source-ledger-executing-identity/v1",
   "frozenRevision": "474e8009",
-  "freezeSha256": "5a1cb7335fa494b12cc1c38afe84f1ecd94ef672ae4795969af112b84c4b5198",
+  "freezeSha256": "5d93decdc67e2bb0a65c7e0ae83d96d17ee0abe6673da2bb758230ae1ed192ae",
   "sourceTarSha256": "9ea874721e0c84c8449fe0e628825aa075c43219e5de5c23bd6fbac24c7ffffa",
   "verifiedBeforeImport": {
     "files": {
       "bind_preflight.py": "12e707303b88929125a757f78e5431a011e9bc433138500263f03e5097286e9a",
       "fixture_test.py": "cce9c727d3631ff2cf4fd6059b1db4ac45066120f6fa01d8cf5dee78281cd231",
       "freeze.py": "8685a597f154fd4f7e27217694a9ca1b6ddf8603b43873acd6f03d1db4a8ce95",
-      "input.json": "004a53d453df321ab28fe37ae0b67393752baa629e989b77c35f6322da12e8c9",
+      "input.json": "5970642e3c6f284933815cda3c3fefc431505ffab08ab34c4c8ec5025d10c834",
       "preflight.py": "e531081cfa771dc263e18a6ec7f3051078f7e88386fa94a2f7147597c36c223d",
       "prepare.py": "a90f56aed94d151553203f2a6a75896e36fe62428bd7c06c4ae422a2102c79d4",
       "review-criteria.json": "dcb6278aea064d8d04edca0a0bb3a3e36a4c4d955e847c00e119596be1091d0e",

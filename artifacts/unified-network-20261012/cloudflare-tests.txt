@@ -3,7 +3,7 @@
 > vitest run --config tests/cloudflare/vitest.config.js
 
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
 
  Test Files  1 passed (1)

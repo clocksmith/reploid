@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "/home/x/deco/reploid/playwright.config.js",
-    "rootDir": "/home/x/deco/reploid/tests/e2e",
+    "configFile": "~/deco/reploid/playwright.config.js",
+    "rootDir": "~/deco/reploid/tests/e2e",
     "forbidOnly": false,
     "fullyParallel": false,
     "globalSetup": null,
@@ -16,7 +16,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/home/x/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -24,7 +24,7 @@
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "/home/x/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -32,7 +32,7 @@
         "timeout": 300000
       },
       {
-        "outputDir": "/home/x/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -40,7 +40,7 @@
         },
         "id": "chromium-swiftshader",
         "name": "chromium-swiftshader",
-        "testDir": "/home/x/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"

@@ -98,7 +98,7 @@
     "directions": [
       {
         "direction": "linux-mac",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
         "partitionHosts": [
           {
             "index": 1,
@@ -116,7 +116,7 @@
       },
       {
         "direction": "mac-linux",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
         "partitionHosts": [
           {
             "index": 0,
@@ -1457,11 +1457,11 @@
       ],
       "rawEvidence": {
         "retainedCompressedLinux": "/tmp/reploid-numerical-024/reference-linux-mac.json.gz",
-        "retainedMac": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
+        "retainedMac": "~/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
         "compressedSha256": "e857cbfb0153b37a58e60291f468550392b1cf5112d3df0777c7e64061600a74",
         "projection": "Complete first-failure tensors and native logits retained here; full operator timeline and streaming chunks remain in raw evidence."
       },
-      "projectionSha256": "c69a3935338153f97c2325ad6b2f22a32ca32c0eac2b8439f3d1db2c0ac089c7"
+      "projectionSha256": "a497b5ea4f9de82d6df611202d3e939ca538184b6cfa8f1a662dcafd02edfe2a"
     },
     {
       "direction": "mac-linux",
@@ -2785,11 +2785,11 @@
       ],
       "rawEvidence": {
         "retainedCompressedLinux": "/tmp/reploid-numerical-024/reference-mac-linux.json.gz",
-        "retainedMac": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
+        "retainedMac": "~/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
         "compressedSha256": "9d009b90ea300273d7576891441a246a2fe1df3cb7c6943055d8a17981bf7568",
         "projection": "Complete first-failure tensors and native logits retained here; full operator timeline and streaming chunks remain in raw evidence."
       },
-      "projectionSha256": "8b576f41e39b720d769e8c472429ebbc96b6ec55a9e4de078e34789d586acbcf"
+      "projectionSha256": "2c683220701a316f672946e01cb12222a6da5ce34698080f9679fef64a46996d"
     }
   ]
 }

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/work-partition-capsule-source.test.js (4 tests | 1 failed) 9ms
    ✓ provides pinned metadata and complete cached pieces without requiring an external signal 3ms

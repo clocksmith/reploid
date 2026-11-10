@@ -208,7 +208,7 @@
  },
  "hfCheckpoint": {
   "repository": "Qwen/Qwen3.5-0.8B",
-  "path": "/Users/xyz/deco/valera/generated/hf-models/Qwen-Qwen3.5-0.8B-2fc0636",
+  "path": "~/deco/valera/generated/hf-models/Qwen-Qwen3.5-0.8B-2fc0636",
   "files": [
    {
     "file": "config.json",

@@ -26,8 +26,8 @@
  "runsAgree": true,
  "runs": {
   "run-5": {
-   "report": "/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-5/reports/requester-journey-2026-10-14T06-49-02-971Z.json",
-   "reportSha256": "sha256:7a83171c9ea4d8e5cee2ba5510415b1acb137b75f8c8578ddd2893ea1d789617",
+   "report": "~/deco/reploid/artifacts/signed-completion-journey-20261013/run-5/reports/requester-journey-2026-10-14T06-49-02-971Z.json",
+   "reportSha256": "sha256:997b3d5d29d21aa3366bf8ba07bee9bdc5dee8045dbf7f3c2e436fa6b1fa505d",
    "freeze": {
     "browserBundle": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2",
     "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
@@ -642,8 +642,8 @@
    ]
   },
   "run-4": {
-   "report": "/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-4/reports/requester-journey-2026-10-14T05-06-31-364Z.json",
-   "reportSha256": "sha256:0bea7e26f54d4b4acd60f18dc08118a82b3aa3642d66c519ae4eefe55424d69d",
+   "report": "~/deco/reploid/artifacts/signed-completion-journey-20261013/run-4/reports/requester-journey-2026-10-14T05-06-31-364Z.json",
+   "reportSha256": "sha256:600160c3c90f7b2e65c0a191f54adb8af34f5a16e8e4492fe0fd65c23db969ef",
    "freeze": {
     "browserBundle": "sha256:2890c961afde518abde48107fa8d99c148d11dfaf5d6c9e546ae118ddde357a1",
     "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",

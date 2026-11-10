@@ -23,7 +23,7 @@
           "status": "failed",
           "durationMs": 37451,
           "errors": [
-            "Error: code-trace\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"2\u001b[7m6\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"2\u001b[7m2\u001b[27m\"\u001b[39m\n\n  46 |         try { parsed = JSON.parse(answer); } catch { parsed = answer; }\n  47 |         expect.soft(parsed, task.id).toEqual(task.expectedJson);\n> 48 |       } else expect.soft(answer, task.id).toBe(task.expected);\n     |                                           ^\n  49 |     }\n  50 |     expect(errors).toEqual([]);\n  51 |   } finally {\n    at /Users/xyz/deco/reploid/tests/e2e/chat-native-whole-model-tasks.spec.js:48:43"
+            "Error: code-trace\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"2\u001b[7m6\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"2\u001b[7m2\u001b[27m\"\u001b[39m\n\n  46 |         try { parsed = JSON.parse(answer); } catch { parsed = answer; }\n  47 |         expect.soft(parsed, task.id).toEqual(task.expectedJson);\n> 48 |       } else expect.soft(answer, task.id).toBe(task.expected);\n     |                                           ^\n  49 |     }\n  50 |     expect(errors).toEqual([]);\n  51 |   } finally {\n    at ~/deco/reploid/tests/e2e/chat-native-whole-model-tasks.spec.js:48:43"
           ]
         }
       ]

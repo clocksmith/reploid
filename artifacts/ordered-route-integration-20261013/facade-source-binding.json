@@ -1,7 +1,7 @@
 {
   "reploidCommit": "b784c91aff251bb5de51e308e0ab9692364a07ea",
   "dopplerCommit": "77af06b995d76c415ee53f324bc4b8b9dfb4266e",
-  "facadeReceiptSha256": "5b47730f548c562a528a1df1d116ef2f412c51c276acecda9ff898e466b7d5d2",
+  "facadeReceiptSha256": "00fb0918b9aef972958818ec138d7302b9af5031fd75d45e59d8960abb87b692",
   "matchedReploidFiles": 6,
   "matchedDopplerFiles": 8,
   "scope": "Named source bytes match these commits; actual WebCrypto grant verification and source lifecycle only. No signed execution publication, GPU or physical capacity acceptance."

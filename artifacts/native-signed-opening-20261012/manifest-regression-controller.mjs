@@ -1,4 +1,4 @@
-import {chromium,expect} from '/Users/xyz/deco/reploid/node_modules/@playwright/test/index.mjs';
+import {chromium,expect} from '~/deco/reploid/node_modules/@playwright/test/index.mjs';
 import {writeFile} from 'node:fs/promises';
 const b=await chromium.connectOverCDP('http://127.0.0.1:54307'),p=b.contexts()[0].pages()[0];
 const threads=()=>p.evaluate(()=>JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')).threads);
@@ -13,4 +13,4 @@ try {
  await p.locator('[data-composer-input]').fill('And four tickets at that same price?');await p.locator('[data-composer-send]').click();await expect.poll(async()=>{const a=(await thread()).attempts.at(-1);if(a.status==='failed')throw Error(a.error);return a.status},{timeout:180000}).toBe('completed');r.final=await thread();expect(r.final.messages.at(-1).content).toMatch(/\$?48/);expect(r.weights).toEqual([]);
  r.after=(await threads()).filter(t=>r.before.some(old=>old.id===t.id)).map(t=>({id:t.id,messages:t.messages}));expect(r.after).toEqual(r.before);r.ok=true;
 }catch(error){r.ok=false;r.error=error.stack;r.final=id?(await threads()).find(t=>t.id===id):null;}
-r.finishedAt=new Date().toISOString();await writeFile('/Users/xyz/deco/reploid/artifacts/native-signed-opening-20261012/manifest-regression-physical.json',JSON.stringify(r,null,2));console.log(JSON.stringify({ok:r.ok,error:r.error,answer:r.final?.messages.at(-1)?.content,recipients:r.approval?.recipients}));process.exit(r.ok?0:1);
+r.finishedAt=new Date().toISOString();await writeFile('~/deco/reploid/artifacts/native-signed-opening-20261012/manifest-regression-physical.json',JSON.stringify(r,null,2));console.log(JSON.stringify({ok:r.ok,error:r.error,answer:r.final?.messages.at(-1)?.content,recipients:r.approval?.recipients}));process.exit(r.ok?0:1);

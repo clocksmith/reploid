@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+ RUN  v4.1.10 ~/deco/worktrees/reploid-consumer-streaming
 
  ✓ tests/unit/doppler-runtime-service.test.js (10 tests) 8ms
  ✓ tests/unit/pool-pack-operation.test.js (9 tests) 36ms

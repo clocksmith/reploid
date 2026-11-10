@@ -9,7 +9,7 @@
   ],
   "mappedProviderLibraries": [
     {
-      "path": "/home/x/deco/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+      "path": "~/deco/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
       "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
     },
     {

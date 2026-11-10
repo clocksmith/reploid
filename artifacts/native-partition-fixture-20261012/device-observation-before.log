@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/partition-memory-observation.test.js (1 test | 1 failed) 4ms
    × device loss remains observable when the global device and pool disappear 4ms

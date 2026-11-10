@@ -1,5 +1,5 @@
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m/home/x/deco/reploid[39m
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m~/deco/reploid[39m
 
  [32m✓[39m tests/unit/native-participant.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 18[2mms[22m[39m
 

@@ -17,7 +17,7 @@
     {
       "phase": "repetition",
       "ok": true,
-      "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T01-55-29-670Z/memory-repetition.json",
+      "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T01-55-29-670Z/memory-repetition.json",
       "cases": [
         {
           "inputTokens": 494,
@@ -43,7 +43,7 @@
     {
       "phase": "cancellation",
       "ok": true,
-      "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T01-55-29-670Z/memory-cancellation.json",
+      "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T01-55-29-670Z/memory-cancellation.json",
       "cases": [
         {
           "inputTokens": 1588,
@@ -69,8 +69,8 @@
   },
   "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
   "peer": "amd-host",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
-  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "~/deco/reploid/tests/fixtures/distributed-reference.json.gz",
   "referenceBinding": null,
   "generation": {
     "maxTokens": 4096,

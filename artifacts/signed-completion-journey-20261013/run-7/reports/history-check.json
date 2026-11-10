@@ -91,6 +91,6 @@
       0
     ]
   },
-  "failure": "Error: Host session observation unavailable\n    at withHost (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/observe.mjs:57:25)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processImmediate (node:internal/timers:453:9)\n    at process.callbackTrampoline (node:internal/async_hooks:130:17)\n    at async file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-7/tools/history-check.mjs:54:21",
+  "failure": "Error: Host session observation unavailable\n    at withHost (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/observe.mjs:57:25)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processImmediate (node:internal/timers:453:9)\n    at process.callbackTrampoline (node:internal/async_hooks:130:17)\n    at async file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-7/tools/history-check.mjs:54:21",
   "finishedAt": "2026-10-14T14:51:03.513Z"
 }

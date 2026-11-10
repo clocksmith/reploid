@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/work-partitions-lifecycle.test.js (64 tests) 1497ms
    ✓ uses composed public openers while the low-level entry requires explicit runtime ports  1478ms

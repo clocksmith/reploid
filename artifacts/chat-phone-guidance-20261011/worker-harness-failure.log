@@ -37,7 +37,7 @@ Running 12 tests using 1 worker
         at async <anonymous>:316:30
         at eval (eval at evaluate (:290:30), <anonymous>:4:29)
         at async <anonymous>:316:30
-        at /Users/xyz/deco/reploid/tests/e2e/chat-material.spec.js:266:35
+        at ~/deco/reploid/tests/e2e/chat-material.spec.js:266:35
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/chat-material-Verification-ad1f8-rsation-presentation-module-chromium/test-failed-1.png

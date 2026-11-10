@@ -25,7 +25,7 @@ Running 4 tests using 1 worker
       196 |   expect(observed.text).toBe(observed.expectedText);
       197 |   expect(observed.corruptionRejected).toBe(true);
       198 | });
-        at /Users/xyz/deco/reploid/tests/e2e/canonical-chat-history.spec.js:195:38
+        at ~/deco/reploid/tests/e2e/canonical-chat-history.spec.js:195:38
 
   1 failed
     tests/e2e/canonical-chat-history.spec.js:137:1 › signed canonical evidence survives actual IndexedDB closure and rejects retained corruption 

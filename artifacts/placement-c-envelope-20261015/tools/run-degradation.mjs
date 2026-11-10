@@ -22,7 +22,7 @@ const { SELECTORS, openRequesterProfile, appUrl, openApp, chooseOrderedModel, se
   allowPermissionIfAsked } = await import(new URL(H + 'harness.mjs', import.meta.url));
 const { observeChat, observeNetwork } = await import(new URL(H + 'observe.mjs', import.meta.url));
 const { buildTimingRecord } = await import(new URL(H + 'timing.mjs', import.meta.url));
-const { chromium } = await import('/Users/xyz/deco/reploid/node_modules/playwright/index.mjs');
+const { chromium } = await import('~/deco/reploid/node_modules/playwright/index.mjs');
 const [configPath, label, mode, delay, jitter, sendLoss, recvLoss, outageMs, stall, promptPath, outputPath] = process.argv.slice(2);
 const prompt = await fs.readFile(promptPath, 'utf8');
 const { config } = await loadConfig(configPath);

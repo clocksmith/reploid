@@ -1,6 +1,6 @@
 {
   "host": "128",
-  "logPath": "/home/x/.local/state/reploid/public-native-sharing.log",
+  "logPath": "~/.local/state/reploid/public-native-sharing.log",
   "state": {
     "phase": "ready",
     "error": null,

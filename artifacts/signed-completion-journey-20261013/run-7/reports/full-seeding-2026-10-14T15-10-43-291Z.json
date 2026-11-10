@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "full-seeding",
   "startedAt": "2026-10-14T15:10:43.291Z",
-  "configSha256": "acf53fd036fddfc72e191492cad3acff915d9f8d0c001be781ad7936cf9a1615",
+  "configSha256": "78014f64c336b6e42ea8befe6794581c6a44918666d03fa707249c416eea2011",
   "fixtureSha256": "886139451cc5f2ffa7e94433f7384fc66c958a063f2d52629c7c2152971a349c",
   "freeze": {
     "browserBundle": "sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653",
@@ -1790,9 +1790,9 @@
     }
   ],
   "stepErrors": {
-    "peerAcquiresWholeModel": "Error: Prerequisite seeding step did not share\n    at file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:131:45\n    at step (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:35:15)\n    at file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:130:9",
-    "reloadRebuildsWhole": "Error: Prerequisite seeding step did not share\n    at file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:146:45\n    at step (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:35:15)\n    at file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:145:9",
-    "stopSettlesSeeding": "Error: Chat streaming: attempt ended failed: A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.\n    at waitFor.timeout.timeout (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/harness.mjs:303:101)\n    at async waitFor (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/harness.mjs:186:19)\n    at async startChat (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:80:23)\n    at async file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:179:18\n    at async step (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:35:9)\n    at async file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:177:3"
+    "peerAcquiresWholeModel": "Error: Prerequisite seeding step did not share\n    at file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:131:45\n    at step (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:35:15)\n    at file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:130:9",
+    "reloadRebuildsWhole": "Error: Prerequisite seeding step did not share\n    at file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:146:45\n    at step (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:35:15)\n    at file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:145:9",
+    "stopSettlesSeeding": "Error: Chat streaming: attempt ended failed: A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.\n    at waitFor.timeout.timeout (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/harness.mjs:303:101)\n    at async waitFor (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/harness.mjs:186:19)\n    at async startChat (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:80:23)\n    at async file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:179:18\n    at async step (file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:35:9)\n    at async file://~/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-seeding.mjs:177:3"
   },
   "sends": [
     {

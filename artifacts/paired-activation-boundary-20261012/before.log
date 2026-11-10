@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/partition-paired-boundary.test.js (5 tests | 5 failed) 5ms
    × forwards every high/low bit with the provider-declared paired contract 4ms

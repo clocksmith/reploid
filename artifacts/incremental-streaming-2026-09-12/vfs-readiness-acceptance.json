@@ -46,12 +46,12 @@
     "tests/integration/vfs.test.js": "c43e5315bf949b83c9c0e0bf81f7b7a35fa07d7c3b6bfd684f856b6723a23eb1"
   },
   "evidenceSha256": {
-    "vfs-native-before.log": "3791c859ac4c70a6561188bcc62690325f809a170d0142ca34a53a267beb4567",
-    "vfs-verifier-before.log": "ea6a5d8166b38c7040dbb14009af755065107060624466f88d54d37a8bef9aab",
+    "vfs-native-before.log": "f71acb90653c89ef7ca8ce21f6f455654e7847cf82ed64d080fb3981a1eca06b",
+    "vfs-verifier-before.log": "afa3f2eeacb9b153a66500be45ee5480c1bb200f42703c65ff954b7cd4934f57",
     "vfs-native-after.log": "2925d56a09f9ac810fec8f3f8f5b3088d3a0ae728c4c15e7b763bdff786aeb46",
-    "vfs-regressions.log": "d0662281a7329139302d9a93e9755ce70ebc843542694447a5527a4a16c25708",
+    "vfs-regressions.log": "5420c4997b59ff5d4d950b70721b3438a4320461d7e66e57eb7e71aa84beb8a9",
     "vfs-catscan.log": "6e394cc75c76307e27e3cc13788aec90d84c3b2bec21fea3a624f215b6650ba2",
-    "vfs-full-suite.log": "46687d19fe29e22aafb08161c18623334105f16cda3fc7362dd49a72dfa0f502",
+    "vfs-full-suite.log": "1fea3a21e4532e3afdba43f9d315d319a008e9f5c6327101b822f5f2b512b6c9",
     "vfs-full-suite-comparison.json": "f12d8bf75a273d1d657661d43e81794184e16e67adbdbb56bda6de1556cc8c4d",
     "vfs-installed-reploid.json": "06d7bbea2c5ef7b9decbf57ecac066dd5bcaec085c22e37273892d1826deda13",
     "vfs-installed-browser.json": "d5ea52ccb4a81576015a72ed8cb39880e837febccda74e8c3537848470a957d5",

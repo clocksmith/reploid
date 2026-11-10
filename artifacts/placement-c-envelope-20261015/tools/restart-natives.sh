@@ -30,7 +30,7 @@ done
 REMOTE
   done
   sleep 10
-  cd /Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-7/tools
+  cd ~/deco/reploid/artifacts/signed-completion-journey-20261013/run-7/tools
   node observe-coordinator.mjs http://127.0.0.1:29671 http://127.0.0.1:29670/ 300000 | cut -c1-600
   echo "$new" > "$R/natives-suffix"
   date -u +%s > "$R/natives-started"

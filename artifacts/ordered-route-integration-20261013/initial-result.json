@@ -1,7 +1,7 @@
 {
   "scope": "CPU source integration: real ordered Reploid runner and Doppler resident state/sampling/decoder; injected numerical kernels and private cache allocation; no signed publication, GPU, physical capacity or answer-quality claim",
   "startedAt": "2026-10-13T14:03:08.842Z",
-  "doppler": "/Users/xyz/deco/doppler",
+  "doppler": "~/deco/doppler",
   "cases": [],
   "sources": {
     "src/inference/pipelines/text/resident-partition.js": "dcba8f0d54dd14212ae26f26be002bcad9e41197fe37141925b176375af076fa",
@@ -36,7 +36,7 @@
   },
   "expectedGenerationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
   "passed": false,
-  "failure": "Error: Ordered stage generation digest mismatch.\n    at Object.executeStage (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/resident-partition.js:361:15)\n    at Object.executeStage (file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:102:38)\n    at file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:155:55\n    at async lease (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:53:18)\n    at async Object.execute (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:146:26)\n    at async run (file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:122:20)\n    at async file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:128:17",
+  "failure": "Error: Ordered stage generation digest mismatch.\n    at Object.executeStage (file://~/deco/doppler/src/inference/pipelines/text/resident-partition.js:361:15)\n    at Object.executeStage (file://~/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:102:38)\n    at file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:155:55\n    at async lease (file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:53:18)\n    at async Object.execute (file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:146:26)\n    at async run (file://~/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:122:20)\n    at async file://~/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:128:17",
   "cleanup": [
     {
       "status": "fulfilled",

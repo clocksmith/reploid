@@ -13,7 +13,7 @@
    "ppid": 11046,
    "elapsed": "00:07",
    "owned": true,
-   "args": "/bin/zsh -c source /Users/xyz/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cd /Users/xyz/deco/"
+   "args": "/bin/zsh -c source ~/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cd ~/deco/"
   },
   {
    "pid": 33755,
@@ -27,14 +27,14 @@
    "ppid": 11046,
    "elapsed": "06:38",
    "owned": false,
-   "args": "/bin/zsh -c source /Users/xyz/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'node --version; S=/"
+   "args": "/bin/zsh -c source ~/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'node --version; S=/"
   },
   {
    "pid": 99417,
    "ppid": 99414,
    "elapsed": "06:38",
    "owned": false,
-   "args": "node /Users/xyz/deco/reploid/artifacts/answer-cause-20261014/scripts/doppler-reproduce.mjs /private/tmp/claude-501/-Users-xyz-deco/22e82490-1b9a-4712-a891-83c7a29fe6ca/scratchpad/archive-2df37d88/package /var/tmp/qwen35-capsule-completion-20261013-c /var/tmp/reploid-signed-completion-app-5-20261013/"
+   "args": "node ~/deco/reploid/artifacts/answer-cause-20261014/scripts/doppler-reproduce.mjs /private/tmp/claude-501/-Users-xyz-deco/22e82490-1b9a-4712-a891-83c7a29fe6ca/scratchpad/archive-2df37d88/package /var/tmp/qwen35-capsule-completion-20261013-c /var/tmp/reploid-signed-completion-app-5-20261013/"
   },
   {
    "pid": 78844,
@@ -62,14 +62,14 @@
    "ppid": 34586,
    "elapsed": "08-20:53:55",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 46688,
    "ppid": 46363,
    "elapsed": "01-16:08:04",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 13551,

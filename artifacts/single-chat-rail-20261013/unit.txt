@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/network-controls.test.js (6 tests) 87ms
  ✓ tests/unit/pool-home-nav.test.js (25 tests) 68ms

@@ -1,12 +1,12 @@
-import { chromium } from '/home/x/deco/reploid/node_modules/playwright/index.mjs';
+import { chromium } from '~/deco/reploid/node_modules/playwright/index.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { resolve, extname } from 'node:path';
 import { createHash } from 'node:crypto';
-import { physicalWebGpuBrowserOptions } from '/home/x/deco/reploid/tests/fixtures/physical-webgpu-browser.js';
-import { routeDiagnosticModel } from '/home/x/deco/reploid/tests/fixtures/capacity-observer.js';
-const root='/home/x/deco/reploid';
+import { physicalWebGpuBrowserOptions } from '~/deco/reploid/tests/fixtures/physical-webgpu-browser.js';
+import { routeDiagnosticModel } from '~/deco/reploid/tests/fixtures/capacity-observer.js';
+const root='~/deco/reploid';
 const stateBytes=await readFile('/tmp/reploid-contracts027-reverse-generation-state.json');
 const state=JSON.parse(stateBytes);
 const thread=state.states[0].history.threads.find(t=>t.messages[0].content==='Count from one to two hundred, one number per line.');
@@ -22,9 +22,9 @@ const server=createServer(async (req,res)=>{
  }catch{res.writeHead(404).end();}
 });
 server.listen(0,'127.0.0.1');await once(server,'listening');
-process.env.DOPPLER_CHAT_MODEL_DIR='/home/x/deco/doppler/models/local/'+selected.id;
+process.env.DOPPLER_CHAT_MODEL_DIR='~/deco/doppler/models/local/'+selected.id;
 process.env.REPLOID_MODEL_PORT='0';
-const {server:modelServer}=await import('/home/x/deco/reploid/tests/fixtures/numerical-model-server.js');
+const {server:modelServer}=await import('~/deco/reploid/tests/fixtures/numerical-model-server.js');
 if(!modelServer.listening)await once(modelServer,'listening');
 let browser;
 const report={schema:'reploid.conversation-isolation-control/v1',scope:'Unsplit prompt replay, no companion conversation or cancellation; not release acceptance',sourceStateSha256:createHash('sha256').update(stateBytes).digest('hex'),package:JSON.parse(await readFile(root+'/self/config/doppler-package.json')),input:{messages:[thread.messages[0]].map(({role,content})=>({role,content})),generation:thread.model.generation},modelIdentity:selected.identity};

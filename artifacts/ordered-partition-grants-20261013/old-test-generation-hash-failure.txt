@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/ordered-partition-grants.test.js (5 tests | 1 failed) 14ms
      ✓ signs and verifies complete coordinator-mediated recipient closure with actual WebCrypto 5ms

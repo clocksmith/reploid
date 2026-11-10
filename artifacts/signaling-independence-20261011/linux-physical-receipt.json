@@ -2,7 +2,7 @@
   "sourceCommit": "c7fb777b037da6ad05598c3d8cc5b117ea05af31",
   "result": "passed",
   "test": "tests/e2e/chat-cooperative-real.spec.js",
-  "command": "DOPPLER_CHAT_MODEL_DIR=/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 REPLOID_E2E_SIGNALING=1 REPLOID_E2E_REPLICA=1 REPLOID_E2E_CUSTODY_TRACE=1 REPLOID_E2E_CHROMIUM_CHANNEL=chrome REPLOID_E2E_BASE_URL=http://localhost:44237 PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/reploid-signaling-local-report.json npx playwright test --config tests/playwright.config.js tests/e2e/chat-cooperative-real.spec.js --project=chromium --output=artifacts/signaling-independence-20261011/linux-local",
+  "command": "DOPPLER_CHAT_MODEL_DIR=~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 REPLOID_E2E_SIGNALING=1 REPLOID_E2E_REPLICA=1 REPLOID_E2E_CUSTODY_TRACE=1 REPLOID_E2E_CHROMIUM_CHANNEL=chrome REPLOID_E2E_BASE_URL=http://localhost:44237 PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/reploid-signaling-local-report.json npx playwright test --config tests/playwright.config.js tests/e2e/chat-cooperative-real.spec.js --project=chromium --output=artifacts/signaling-independence-20261011/linux-local",
   "scope": "One physical Linux GPU, two isolated contributor contexts; signaling independence only. Not two-host, numerical, capacity-benefit, full-application or deployment acceptance.",
   "physicalDevices": 1,
   "browserContexts": 4,

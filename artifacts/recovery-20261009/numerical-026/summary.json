@@ -9,7 +9,7 @@
     "directions": [
       {
         "direction": "linux-mac",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-linux-mac.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-linux-mac.json",
         "partitionHosts": [
           {
             "index": 1,
@@ -27,7 +27,7 @@
       },
       {
         "direction": "mac-linux",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-mac-linux.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-mac-linux.json",
         "partitionHosts": [
           {
             "index": 0,
@@ -263,12 +263,12 @@
   "rawCaptures": [
     {
       "direction": "linux-mac",
-      "source": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-linux-mac.json",
+      "source": "~/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-linux-mac.json",
       "decompressedSha256": "aa6853a7cea13a35b337cfe034dc335c2aae6aa1fcc493caddf05befe7480455"
     },
     {
       "direction": "mac-linux",
-      "source": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-mac-linux.json",
+      "source": "~/deco/reploid/artifacts/distributed/2026-10-10T04-59-09-350Z/reference-mac-linux.json",
       "decompressedSha256": "f46223134757a607949f987f69cde6dd100355f1da7932eb9fb311744aeeb3b8"
     }
   ],

@@ -11,29 +11,29 @@ peer publication
   failedAt: 1791857531765,
   settledAt: 1791857531765
 }
-file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:203
+file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:203
       if (failures.length) throw new AggregateError(failures, 'Partition peer settlement failed');
                                  ^
 
 AggregateError: Partition peer settlement failed
-    at file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:203:34 {
+    at file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:203:34 {
   [errors]: [
     AggregateError: Partition receiver settlement failed
-        at Object.close (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-step-receiver.js:272:34)
+        at Object.close (file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-step-receiver.js:272:34)
         at async Promise.allSettled (index 0)
-        at async file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:199:23 {
+        at async file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:199:23 {
       [errors]: [
         Error: fixture cleanup rejected
-            at Object.closeAttempt (file:///Users/xyz/deco/reploid/tests/canonical-peer-contract-source.js:87:60)
-            at settleAttempt (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:119:32)
-            at file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-step-receiver.js:148:13
+            at Object.closeAttempt (file://~/deco/reploid/tests/canonical-peer-contract-source.js:87:60)
+            at settleAttempt (file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:119:32)
+            at file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-step-receiver.js:148:13
       ]
     },
     Error: fixture cleanup rejected
-        at Object.closeAttempt (file:///Users/xyz/deco/reploid/tests/canonical-peer-contract-source.js:87:60)
-        at file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:200:67
+        at Object.closeAttempt (file://~/deco/reploid/tests/canonical-peer-contract-source.js:87:60)
+        at file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:200:67
         at async Promise.allSettled (index 1)
-        at async file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:199:23
+        at async file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-peer.js:199:23
   ]
 }
 

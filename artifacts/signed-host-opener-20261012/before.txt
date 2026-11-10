@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/work-partitions-lifecycle.test.js (63 tests | 1 failed | 61 skipped) 7ms
      × uses signed opening only when explicitly configured and passes pinned custody without changing trust 3ms

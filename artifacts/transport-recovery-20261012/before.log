@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/swarm-signaling-independence.test.js (15 tests | 1 failed) 19ms
    ✓ keeps direct traffic and heartbeats after signaling close, removes dependent relay routes 5ms

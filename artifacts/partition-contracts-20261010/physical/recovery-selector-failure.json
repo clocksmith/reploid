@@ -2,7 +2,7 @@
   "ok": false,
   "failure": {
     "phase": "contributor restart diagnostic",
-    "message": "Error: locator.textContent: Error: strict mode violation: locator('[data-mesh-peers]') resolved to 2 elements:; inspect /Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T20-33-40-180Z"
+    "message": "Error: locator.textContent: Error: strict mode violation: locator('[data-mesh-peers]') resolved to 2 elements:; inspect ~/deco/reploid/artifacts/distributed/2026-10-10T20-33-40-180Z"
   },
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
   "modelFixtureHost": "peer",
@@ -29,8 +29,8 @@
   },
   "browserIdentity": "sha256:ecd5445bb5842faafad797e75cfe735027f7c64ae2804dfd5f22374baf08fefe",
   "peer": "amd-host",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
-  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "~/deco/reploid/tests/fixtures/distributed-reference.json.gz",
   "referenceBinding": null,
   "generation": {
     "maxTokens": 4096,

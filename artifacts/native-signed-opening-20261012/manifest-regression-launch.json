@@ -16,7 +16,7 @@
     "--ws-module",
     "/var/tmp/reploid-native-deps-20261012/node_modules/ws/wrapper.mjs",
     "--gpu-module",
-    "/home/x/deco/reploid/node_modules/webgpu/index.js",
+    "~/deco/reploid/node_modules/webgpu/index.js",
     "--signaling-url",
     "ws://127.0.0.1:18000/swarm?scope=public&roomId=reploid-swarm-public"
   ],

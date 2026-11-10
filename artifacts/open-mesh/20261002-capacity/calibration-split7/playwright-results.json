@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "/Users/xyz/deco/reploid/playwright.config.js",
-    "rootDir": "/Users/xyz/deco/reploid/tests/e2e",
+    "configFile": "~/deco/reploid/playwright.config.js",
+    "rootDir": "~/deco/reploid/tests/e2e",
     "forbidOnly": false,
     "fullyParallel": false,
     "globalSetup": null,
@@ -16,7 +16,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -24,7 +24,7 @@
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -32,7 +32,7 @@
         "timeout": 300000
       },
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -40,7 +40,7 @@
         },
         "id": "chromium-swiftshader",
         "name": "chromium-swiftshader",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -106,9 +106,9 @@
                   "duration": 586812,
                   "error": {
                     "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-active-model-select] option:checked')\nExpected substring: \u001b[32m\"ready\"\u001b[39m\nReceived string:    \u001b[31m\"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-active-model-select] option:checked')\u001b[22m\n\u001b[2m    33 \u00d7 locator resolved to <option value=\"qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0\">Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable</option>\u001b[22m\n\u001b[2m       - unexpected value \"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[22m\n",
-                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-active-model-select] option:checked')\nExpected substring: \u001b[32m\"ready\"\u001b[39m\nReceived string:    \u001b[31m\"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-active-model-select] option:checked')\u001b[22m\n\u001b[2m    33 \u00d7 locator resolved to <option value=\"qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0\">Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable</option>\u001b[22m\n\u001b[2m       - unexpected value \"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[22m\n\n    at /Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:173:82",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-active-model-select] option:checked')\nExpected substring: \u001b[32m\"ready\"\u001b[39m\nReceived string:    \u001b[31m\"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-active-model-select] option:checked')\u001b[22m\n\u001b[2m    33 \u00d7 locator resolved to <option value=\"qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0\">Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable</option>\u001b[22m\n\u001b[2m       - unexpected value \"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[22m\n\n    at ~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:173:82",
                     "location": {
-                      "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                      "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                       "column": 82,
                       "line": 173
                     },
@@ -117,11 +117,11 @@
                   "errors": [
                     {
                       "location": {
-                        "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                        "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                         "column": 82,
                         "line": 173
                       },
-                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-active-model-select] option:checked')\nExpected substring: \u001b[32m\"ready\"\u001b[39m\nReceived string:    \u001b[31m\"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-active-model-select] option:checked')\u001b[22m\n\u001b[2m    33 \u00d7 locator resolved to <option value=\"qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0\">Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable</option>\u001b[22m\n\u001b[2m       - unexpected value \"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[22m\n\n\n  171 |     await second.locator('[data-toggle-contribution]').click();\n  172 |     await expect(second.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 180000 });\n> 173 |     await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');\n      |                                                                                  ^\n  174 |     await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(recoveryId);\n  175 |     expect((await lastAttempt(recoveryId)).id).not.toBe(failedRecovery.id);\n  176 |     completed = await history(requester);\n    at /Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:173:82"
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-active-model-select] option:checked')\nExpected substring: \u001b[32m\"ready\"\u001b[39m\nReceived string:    \u001b[31m\"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[39m\nTimeout: 30000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-active-model-select] option:checked')\u001b[22m\n\u001b[2m    33 \u00d7 locator resolved to <option value=\"qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0\">Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable</option>\u001b[22m\n\u001b[2m       - unexpected value \"Qwen 3.5 0.8B \u00b7 split \u00b7 unavailable\"\u001b[22m\n\n\n  171 |     await second.locator('[data-toggle-contribution]').click();\n  172 |     await expect(second.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 180000 });\n> 173 |     await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');\n      |                                                                                  ^\n  174 |     await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(recoveryId);\n  175 |     expect((await lastAttempt(recoveryId)).id).not.toBe(failedRecovery.id);\n  176 |     completed = await history(requester);\n    at ~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:173:82"
                     }
                   ],
                   "stdout": [
@@ -637,26 +637,26 @@
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-1.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-1.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-2.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-2.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-3.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-3.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-4.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-4.png"
                     }
                   ],
                   "errorLocation": {
-                    "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                    "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                     "column": 82,
                     "line": 173
                   }

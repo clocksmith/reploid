@@ -14,7 +14,7 @@ then owns dispatch, acknowledgments and awaited requester publication.
 AbortSignal/runner fields to canonical finite-JSON grant validation. The canonical
 branch now sends only the declared verification fields. No validator was weakened.
 
-`DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-chat-source.js`
+`DOPPLER_SOURCE_ROOT=~/deco/doppler node tests/canonical-chat-source.js`
 passes direct and actual in-memory duplex entry composition with real Doppler
 cursor transitions, ECDSA grants/stage signatures and transaction publication.
 Numerical steps and tokenization are injected, so this does not qualify GPU or

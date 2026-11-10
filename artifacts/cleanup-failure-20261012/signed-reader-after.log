@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/work-partition-capsule-source.test.js (5 tests) 309ms
    ✓ uses actual signed-reader counters after host artifactStore acquisition bypasses manifest storage  302ms

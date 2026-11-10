@@ -92,10 +92,10 @@
   },
   {
     "file": "observer-stop.json",
-    "sourceBytes": 325,
-    "sourceSha256": "6ebaa5932d8dbb6fc28c3d6e7175013a10766131905721a32870c41859d7d1a8",
-    "retainedBytes": 325,
-    "retainedSha256": "6ebaa5932d8dbb6fc28c3d6e7175013a10766131905721a32870c41859d7d1a8"
+    "sourceBytes": 316,
+    "sourceSha256": "042399b00776ab56850ee7628abbeb7565b3435fa5eeb858b7b249d2d266bb0a",
+    "retainedBytes": 316,
+    "retainedSha256": "042399b00776ab56850ee7628abbeb7565b3435fa5eeb858b7b249d2d266bb0a"
   },
   {
     "file": "post-local-verification.json",

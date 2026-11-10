@@ -9,8 +9,8 @@
 #  3. Argument 8 sets the minimum release sequence to 2.
 # Unchanged: the inherited loopback closure URL.
 set -eu
-cd /Users/xyz/deco/reploid
-REPORTS=/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports
+cd ~/deco/reploid
+REPORTS=~/deco/reploid/artifacts/completion-qualification-2-20261013/reports
 node artifacts/signed-completion-candidate-20261013/final/prepare-catalog.js \
   /var/tmp/qwen35-capsule-completion-20261013-c \
   /var/tmp/reploid-signed-completion-app-20261013/app/node_modules/doppler-gpu \

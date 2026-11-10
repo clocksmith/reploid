@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "/Users/xyz/deco/reploid/playwright.config.js",
-    "rootDir": "/Users/xyz/deco/reploid/tests/e2e",
+    "configFile": "~/deco/reploid/playwright.config.js",
+    "rootDir": "~/deco/reploid/tests/e2e",
     "forbidOnly": false,
     "fullyParallel": false,
     "globalSetup": null,
@@ -16,7 +16,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -24,7 +24,7 @@
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -32,7 +32,7 @@
         "timeout": 300000
       },
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -40,7 +40,7 @@
         },
         "id": "chromium-swiftshader",
         "name": "chromium-swiftshader",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -106,9 +106,9 @@
                   "duration": 511574,
                   "error": {
                     "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate",
-                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate\n    at approve (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:58:5)\n    at /Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:245:64",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate\n    at approve (~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:58:5)\n    at ~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:245:64",
                     "location": {
-                      "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                      "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                       "column": 5,
                       "line": 58
                     },
@@ -117,11 +117,11 @@
                   "errors": [
                     {
                       "location": {
-                        "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                        "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                         "column": 5,
                         "line": 58
                       },
-                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate\n\n  56 |   };\n  57 |   const approve = async page => {\n> 58 |     await expect.poll(async () => {\n     |     ^\n  59 |       const data = await history(page);\n  60 |       const attempt = data?.threads.find(thread => thread.id === data.selectedId)?.attempts.at(-1);\n  61 |       if (attempt?.status === 'failed') throw new Error(attempt.error);\n    at approve (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:58:5)\n    at /Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:245:64"
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate\n\n  56 |   };\n  57 |   const approve = async page => {\n> 58 |     await expect.poll(async () => {\n     |     ^\n  59 |       const data = await history(page);\n  60 |       const attempt = data?.threads.find(thread => thread.id === data.selectedId)?.attempts.at(-1);\n  61 |       if (attempt?.status === 'failed') throw new Error(attempt.error);\n    at approve (~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:58:5)\n    at ~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:245:64"
                     }
                   ],
                   "stdout": [
@@ -728,31 +728,31 @@
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-2.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-2.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-1.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-1.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-3.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-3.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-4.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-4.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-5.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-5.png"
                     }
                   ],
                   "errorLocation": {
-                    "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                    "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                     "column": 5,
                     "line": 58
                   }

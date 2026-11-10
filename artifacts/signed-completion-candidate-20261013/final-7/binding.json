@@ -21,7 +21,7 @@
     "final-6/check-changed-files.js": "295dbe037ec5e292b2e86abc6747cb70cbb76d60c9e69ea1b25753d7076e8f44"
   },
   "newScripts": {
-    "final-7/prepare-catalog.sh": "bdc36fb7c1387d0e552f6c5a7639b5d3d0be8e5473bf049b229651dc45ed1406",
+    "final-7/prepare-catalog.sh": "dfc89d314e545aeafa41edd4ca668b2a8485f6185938fc8adf181322f3991ae2",
     "final-7/verify-worker.js": "aff2820fcac6c470db8d9d5471cea0f4f1ca103ab1cee161a92995d0224627b2"
   },
   "outputs": {

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+ RUN  v4.1.10 ~/deco/worktrees/reploid-consumer-streaming
 
  ❯ tests/unit/p2p-transport-lifecycle.test.js (4 tests | 4 failed) 17ms
      × settles connect while offer setup is pending 10ms

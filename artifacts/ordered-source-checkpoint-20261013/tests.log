@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/automatic-ordered-network.test.js (6 tests) 2041ms
    ✓ discovers a complete 5-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners  368ms

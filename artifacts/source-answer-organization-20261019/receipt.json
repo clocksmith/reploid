@@ -2,7 +2,7 @@
   "schema": "reploid.fixed-document-comparison-result/v1",
   "startedAt": "2026-10-19T01:39:25.465Z",
   "source": "3c4468d112ee80571fe9a89321b702f32b8afa18",
-  "contractSha256": "e08a83401c0d679542dbd690f30e7124eb41e956aaa8615de0f1ae879b1a2646",
+  "contractSha256": "ed8edc390dc14861ef6a0389358d0d5a775b599187137ae64cb7e4a6c639d56c",
   "sourceIdentities": [
     {
       "path": "server/native-whole-model.js",
@@ -44,7 +44,7 @@
   "runtime": {
     "name": "doppler-gpu",
     "version": "0.6.32",
-    "root": "/Users/xyz/deco/reploid/node_modules/doppler-gpu",
+    "root": "~/deco/reploid/node_modules/doppler-gpu",
     "inventorySha256": "c223304108534d075b316d9678777f69c7a4d06a861d3f7060ad5df445e84597",
     "files": 2032
   },

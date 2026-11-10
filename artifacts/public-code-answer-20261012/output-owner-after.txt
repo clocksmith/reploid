@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-placement.test.js (4 tests) 9ms
  ✓ tests/unit/automatic-partition-discovery-lifetime.test.js (4 tests) 17ms

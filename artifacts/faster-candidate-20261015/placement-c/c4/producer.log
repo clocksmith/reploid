@@ -3,9 +3,9 @@ node:internal/modules/run_main:123
     ^
 
 AssertionError [ERR_ASSERTION]: Failed physical execution cannot qualify
-    at producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:139:3)
-    at main (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:380:20)
-    at async file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:407:90 {
+    at producePhysicalReports (file://~/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:139:3)
+    at main (file://~/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:380:20)
+    at async file://~/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:407:90 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: false,

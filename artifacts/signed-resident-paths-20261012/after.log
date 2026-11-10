@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/native-delivery.test.js (2 tests) 291ms
  ✓ tests/unit/native-model-files.test.js (11 tests) 600ms

@@ -9,7 +9,7 @@
     "directions": [
       {
         "direction": "linux-mac",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-linux-mac.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-linux-mac.json",
         "partitionHosts": [
           {
             "index": 1,
@@ -27,7 +27,7 @@
       },
       {
         "direction": "mac-linux",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-mac-linux.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-mac-linux.json",
         "partitionHosts": [
           {
             "index": 0,
@@ -49,11 +49,11 @@
     {
       "direction": "linux-mac",
       "rawEvidence": {
-        "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-linux-mac.json",
+        "remote": "~/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-linux-mac.json",
         "localCompressed": "/tmp/reploid-numerical-025/reference-linux-mac.json.gz",
         "compressedSha256": "480b9d07c6fc5e3d2e413958055f38694bd6192ead63d0b5c15a2b5c8acd52c0"
       },
-      "projectionSha256": "6052810e387e303b8def06e9711814c0d03bcceb6a30100c2dbf3b0384a36de4",
+      "projectionSha256": "4bd281b7274a604c410ce7fe5114e2b8ca1d9e24af98f272d7f48e8fad580df3",
       "projection": "artifacts/recovery-20261009/numerical-025/reference-linux-mac.json.gz",
       "steps": [
         {
@@ -2402,11 +2402,11 @@
     {
       "direction": "mac-linux",
       "rawEvidence": {
-        "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-mac-linux.json",
+        "remote": "~/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-mac-linux.json",
         "localCompressed": "/tmp/reploid-numerical-025/reference-mac-linux.json.gz",
         "compressedSha256": "25b730b6dec09fe456dffd2dcd8a1b004e9c6eedfe257d368630b167ac7c48b5"
       },
-      "projectionSha256": "88cef7e325209519a9c0e5607efa7f6abc29c9876d41accb06ca369346fd4c26",
+      "projectionSha256": "de9a8d535f7d74d8be15926b5e1eda6dd8e37d249be4400d9f7a646973ed494c",
       "projection": "artifacts/recovery-20261009/numerical-025/reference-mac-linux.json.gz",
       "steps": [
         {

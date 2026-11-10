@@ -33,7 +33,7 @@ Running 1 test using 1 worker
       68 |     await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
       69 |     await expect(page.locator('[data-pool-settings] > summary')).toBeHidden();
       70 |     const controls = await measureControls(page);
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:67:63
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:67:63
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/single-chat-rail-20261013/before/chat-rail-layout-light-one-dd9e4--opens-each-panel-at-1440px-chromium-swiftshader/test-failed-1.png

@@ -4,19 +4,19 @@
     {
       "pid": 2499588,
       "comm": "tmux: server",
-      "cwd": "/home/x",
+      "cwd": "~",
       "scripts": []
     },
     {
       "pid": 2499985,
       "comm": "journalctl",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4018986,
       "comm": "node",
-      "cwd": "/home/x",
+      "cwd": "~",
       "scripts": [
         "/tmp/reploid-numerical-model-server.js"
       ]
@@ -32,7 +32,7 @@
     {
       "pid": 4121371,
       "comm": "node",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": [
         "scripts/run-mesh-contributor.js"
       ]
@@ -40,49 +40,49 @@
     {
       "pid": 4121431,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4121452,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4121453,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4121472,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4121476,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4121488,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4121525,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     },
     {
       "pid": 4121526,
       "comm": "chrome",
-      "cwd": "/home/x/deco/reploid",
+      "cwd": "~/deco/reploid",
       "scripts": []
     }
   ],

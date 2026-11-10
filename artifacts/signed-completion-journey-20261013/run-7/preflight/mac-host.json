@@ -20,7 +20,7 @@
    "ppid": 11046,
    "elapsed": "00:00",
    "owned": true,
-   "args": "/bin/zsh -c source /Users/xyz/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'T=/Users/xyz/deco/r"
+   "args": "/bin/zsh -c source ~/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'T=~/deco/r"
   },
   {
    "pid": 78844,
@@ -48,14 +48,14 @@
    "ppid": 34586,
    "elapsed": "08-22:36:30",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 46688,
    "ppid": 46363,
    "elapsed": "01-17:50:39",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 13551,

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/work-resident-provider.test.js (10 tests) 9ms
  ✓ tests/unit/work-swarm-lifecycle.test.js (16 tests) 492ms

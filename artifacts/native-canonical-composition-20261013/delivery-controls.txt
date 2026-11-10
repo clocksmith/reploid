@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/native-partition-endpoint.test.js (6 tests) 222ms
  ✓ tests/unit/native-delivery.test.js (3 tests) 383ms

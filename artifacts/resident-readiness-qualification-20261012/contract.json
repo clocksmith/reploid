@@ -60,7 +60,7 @@
   "settlement": "Each resident close and captured-device queue barrier must confirm; owned native PID must exit naturally after provider release. Retain failed/unknown owner settlement as failure.",
   "commands": {
     "remoteServer": "DOPPLER_CHAT_MODEL_DIR=/var/tmp/doppler-paired-first-20261012/model node delivery-server.js",
-    "localServer": "DOPPLER_CHAT_MODEL_DIR=/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-0.6.28/model node delivery-server.js",
+    "localServer": "DOPPLER_CHAT_MODEL_DIR=~/deco/doppler/reports/local/paired-intermediates-20261012/model-0.6.28/model node delivery-server.js",
     "tunnel": "ssh -N -L127.0.0.1:29429:127.0.0.1:29429 amd-host",
     "nativeDirection0": "sh supervise-native.sh 0 cold-readiness",
     "controllerDirection0": "sh run-native-reference.sh 0",

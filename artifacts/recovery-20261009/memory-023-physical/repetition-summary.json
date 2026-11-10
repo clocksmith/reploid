@@ -9,7 +9,7 @@
     "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
   },
   "browserBundle": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
-  "sourceRun": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T01-55-29-670Z",
+  "sourceRun": "~/deco/reploid/artifacts/distributed/2026-10-10T01-55-29-670Z",
   "rawReceipt": {
     "path": "memory-repetition.json.gz",
     "sha256": "d3e2240c57dcb69669192df9e5f6ff87a8b3fd9a88c740946474106e73e2a8bd"

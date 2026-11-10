@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "full-seeding",
   "startedAt": "2026-10-14T17:09:22.965Z",
-  "configSha256": "6f111a7118931a27e51e98ac01e20eed005e68701188c427bc3d6782f45b52a1",
+  "configSha256": "c10552fb3e9017046c882ca30508a47f0437e05f9ef07cb2e77af46fcf3595a6",
   "fixtureSha256": "c57081003999adf06cc345947998496b5c5e69ed6bb4a186fc54865e915a02db",
   "freeze": {
     "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",

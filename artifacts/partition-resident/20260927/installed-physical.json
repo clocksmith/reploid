@@ -175,8 +175,8 @@
       }
     ]
   },
-  "packageRoot": "/home/x/deco/reploid/node_modules/doppler-gpu",
-  "modelDirectory": "/home/x/deco/doppler/models/local/gemma-3-270m-it-f16-af32",
+  "packageRoot": "~/deco/reploid/node_modules/doppler-gpu",
+  "modelDirectory": "~/deco/doppler/models/local/gemma-3-270m-it-f16-af32",
   "provider": {
     "schema": "doe.webgpu-provider-receipt/v1",
     "contract": "doe.webgpu-provider/v1",
@@ -250,5 +250,5 @@
   "publicCapsuleAcquisition": false,
   "physicalDevices": 1,
   "archiveIntegrity": "sha512-g5Cxf/Epo+o0GFrEZUYkLg4mtcRjciUhJ/cTqIXI8JTDneh5KZCg67EUKRANbSgG/xcbDWBZeRII818xj92kMA==",
-  "command": "DOPPLER_PARTITION_MODEL_DIR=/home/x/deco/doppler/models/local/gemma-3-270m-it-f16-af32 node tests/contracts/doppler-partition-installed-physical.js"
+  "command": "DOPPLER_PARTITION_MODEL_DIR=~/deco/doppler/models/local/gemma-3-270m-it-f16-af32 node tests/contracts/doppler-partition-installed-physical.js"
 }

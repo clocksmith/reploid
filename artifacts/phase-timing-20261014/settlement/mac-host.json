@@ -13,7 +13,7 @@
    "ppid": 11671,
    "elapsed": "00:24",
    "owned": false,
-   "args": "/bin/zsh -c source /Users/xyz/.claude/shell-snapshots/snapshot-zsh-1791934671802-w1n69o.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cat > /private/tmp/"
+   "args": "/bin/zsh -c source ~/.claude/shell-snapshots/snapshot-zsh-1791934671802-w1n69o.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cat > /private/tmp/"
   },
   {
    "pid": 6474,
@@ -41,7 +41,7 @@
    "ppid": 11046,
    "elapsed": "00:07",
    "owned": true,
-   "args": "/bin/zsh -c source /Users/xyz/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cd /Users/xyz/deco/"
+   "args": "/bin/zsh -c source ~/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cd ~/deco/"
   },
   {
    "pid": 33755,
@@ -76,14 +76,14 @@
    "ppid": 34586,
    "elapsed": "08-21:07:03",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 46688,
    "ppid": 46363,
    "elapsed": "01-16:21:12",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 13551,

@@ -4,7 +4,7 @@
   "change": "Baseline keeps the deployed retrieval instruction and full source block in one user message. Candidate moves its declared instruction to a system message; the user message contains the unchanged full source block and question. No source filtering, truncation or reordering.",
   "modelId": "qwen-3-5-2b-q4k-ehaf16",
   "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
   "generation": {
     "maxTokens": 4096,
     "temperature": 0,

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded RESULT_EXPIRED while retaining local cause and callback settlement 11ms
  ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded RESOURCE_EXHAUSTED while retaining local cause and callback settlement 1ms

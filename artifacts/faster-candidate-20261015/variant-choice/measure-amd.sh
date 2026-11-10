@@ -7,7 +7,7 @@
 # Usage: measure-amd.sh <pu1|pu2|pr1|pr2>
 set -eu
 attempt=$1
-E=/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015
+E=~/deco/reploid/artifacts/faster-candidate-20261015
 case "$attempt" in pu*) root=/var/tmp/reploid-faster-candidate-20261015-2 ;; pr*) root=/var/tmp/reploid-faster-candidate-20261015-3 ;; *) exit 2 ;; esac
 out=$E/variant-choice/$attempt; mkdir "$out"
 ssh -o BatchMode=yes "$FC_SSH_AMD" sh -s -- "$attempt" < $E/placement-c/native-launch.sh > "$out/launch.txt" 2>&1

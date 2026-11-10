@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/signed-ordered-resident.test.js (4 tests | 3 failed) 7ms
    × checks the signed release before ordered dispatch and after execution, withholding revoked output 3ms

@@ -44,7 +44,7 @@ AssertionError [ERR_ASSERTION]: host must preserve explicit canonical allocation
 -   }
 - }
 
-    at file:///Users/xyz/deco/reploid/tests/canonical-resident-source.js:49:10 {
+    at file://~/deco/reploid/tests/canonical-resident-source.js:49:10 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: undefined,

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/partition-api.test.js (40 tests | 2 failed) 2899ms
      ✓ carries a sanitized DOPPLER_RESIDENT_OUTPUT_LIMIT failure through signed execution to the chat adapter 73ms

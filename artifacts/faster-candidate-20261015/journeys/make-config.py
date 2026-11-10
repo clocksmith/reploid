@@ -6,7 +6,7 @@ the loss target amd-host#2 (the output-head stage, as in run 7); the report dire
 Usage: python3 make-config.py <browser bundle sha256:...> <native tarball sha256:...> <stage-0 peer id> <stage-2 peer id> <manifest sha256 hex> <runtime archive sha256 hex> <output>"""
 import json, sys
 bundle, tarball, stage0, stage2, model, archive, output = sys.argv[1:8]
-here = '/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/journeys'
+here = '~/deco/reploid/artifacts/faster-candidate-20261015/journeys'
 run = '/var/tmp/reploid-faster-journey-20261015'
 config = {
   'schema': 'reploid.signed-completion-journey-config/v1',

@@ -43,7 +43,7 @@ Running 1 test using 1 worker
       115 |     expect(verification.stats.filesAnalyzed).toBeGreaterThan(0);
       116 |   });
       117 |   for (const path of [PRODUCT_HOME_PATH, '/pool-entry.html']) {
-        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:114:70
+        at ~/deco/reploid/tests/e2e/boot.spec.js:114:70
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/boot-Route-Entry-Points-ve-21562--in-the-Verification-Worker-chromium/test-failed-1.png

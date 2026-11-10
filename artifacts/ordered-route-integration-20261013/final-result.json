@@ -1,7 +1,7 @@
 {
   "scope": "CPU source integration: real ordered Reploid runner and Doppler resident state/sampling/decoder; injected numerical kernels and private cache allocation; no signed publication, GPU, physical capacity or answer-quality claim",
   "startedAt": "2026-10-13T14:05:22.231Z",
-  "doppler": "/Users/xyz/deco/doppler",
+  "doppler": "~/deco/doppler",
   "cases": [
     {
       "attemptId": "first",

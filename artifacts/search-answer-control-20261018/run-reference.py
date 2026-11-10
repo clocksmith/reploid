@@ -9,7 +9,7 @@ assert memory['MemAvailable']>=contract['minimumHostAvailableGiB']*1024**3,memor
 out=root/'reference.json'
 assert not out.exists(),'Refuse to overwrite prior reference'
 env={**os.environ,'PYTHONPATH':contract['pythonPath'],'HF_HUB_OFFLINE':'1','TRANSFORMERS_OFFLINE':'1'}
-cmd=[contract['python'],str(root/'qwen35-deployed-reference.py'),'--model','/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16','--source-config',str(root/'source-config.json'),'--capture',str(root/'capture.json'),'--piece-index',str(root/'pieces.json'),'--piece-index-identity','sha256:'+contract['files']['pieces.json'],'--reference',str(root/'control.json'),'--generation-control',str(root/'control.json'),'--prefixes','1','--threads',str(contract['threads']),'--linear-prefill',contract['linearPrefill'],'--normalization',contract['normalization'],'--out',str(out)]
+cmd=[contract['python'],str(root/'qwen35-deployed-reference.py'),'--model','~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16','--source-config',str(root/'source-config.json'),'--capture',str(root/'capture.json'),'--piece-index',str(root/'pieces.json'),'--piece-index-identity','sha256:'+contract['files']['pieces.json'],'--reference',str(root/'control.json'),'--generation-control',str(root/'control.json'),'--prefixes','1','--threads',str(contract['threads']),'--linear-prefill',contract['linearPrefill'],'--normalization',contract['normalization'],'--out',str(out)]
 def limit():
  cap=contract['maxAddressSpaceGiB']*1024**3;resource.setrlimit(resource.RLIMIT_AS,(cap,cap))
 started=time.monotonic()

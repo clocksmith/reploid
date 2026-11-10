@@ -22,7 +22,7 @@ Running 14 tests using 1 worker
       59 |       window.fixture = await import('/tests/fixtures/operation-room-browser.js');
       60 |       await window.fixture.start({ role, roomId, schema });
       61 |     }, { role: index === 0 ? 'provider' : 'requester', roomId: 'document-delegation-proof', schema });
-        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:58:61
+        at ~/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:58:61
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../../../../../dev/shm/doppler-consumer-streaming-20260912/journal-merged-tests/peer-pack-jobs-reviewed-pu-05b8a-tays-local-doppler-pack-v2--chromium/test-failed-1.png
@@ -53,7 +53,7 @@ Running 14 tests using 1 worker
       59 |       window.fixture = await import('/tests/fixtures/operation-room-browser.js');
       60 |       await window.fixture.start({ role, roomId, schema });
       61 |     }, { role: index === 0 ? 'provider' : 'requester', roomId: 'document-delegation-proof', schema });
-        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:58:61
+        at ~/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:58:61
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../../../../../dev/shm/doppler-consumer-streaming-20260912/journal-merged-tests/peer-pack-jobs-reviewed-pu-8b444-s-local-doppler-capsule-v2--chromium/test-failed-1.png
@@ -84,8 +84,8 @@ Running 14 tests using 1 worker
       126 |         window.fixture = await import('/tests/fixtures/peer-pack-job-browser.js');
       127 |         return window.fixture.start(data);
       128 |       }, { role: index === 0 ? 'requester' : 'provider', operation, large: operation === 'embed' })));
-        at map (/home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:125:73)
-        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:125:47
+        at map (~/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:125:73)
+        at ~/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:125:47
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../../../../../dev/shm/doppler-consumer-streaming-20260912/journal-merged-tests/peer-pack-jobs-common-oper-1fc81-unded-large-message-framing-chromium/test-failed-1.png

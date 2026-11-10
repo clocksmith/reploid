@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
-const repo=process.env.REPLOID_ROOT||'/home/x/deco/reploid';
+const repo=process.env.REPLOID_ROOT||'~/deco/reploid';
 const load=specifier=>import(specifier);
 const fixture=JSON.parse(await fs.readFile(new URL('input.json',import.meta.url),'utf8'));
 const r={startedAt:new Date().toISOString(),fixture,kind:'Unsplit accepted-runtime diagnostic, not source-model reference',cases:[]};let gpu,session;
@@ -13,7 +13,7 @@ try{
  const policy=JSON.parse(await fs.readFile(repo+'/self/config/partition-policy.json','utf8'));
  const catalog=JSON.parse(await fs.readFile(repo+'/self/config/chat-models.json','utf8'));const model=(Array.isArray(catalog)?catalog:catalog.models).find(m=>m.id==='qwen-3-5-0-8b-q4k-ehaf16');
  const {resolvePartitionGeneration}=await import(pathToFileURL(repo+'/self/config/partition-generation.js'));r.generation=resolvePartitionGeneration(model);
- const {doppler}=await load('doppler-gpu/compat');session=await doppler.open({url:'file:///home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/'},{cache:false,runtimeConfig:{shared:{bufferPool:policy.bufferPool,debug:{profiler:{enabled:false}}},inference:{session:{kvcache:{maxSeqLen:r.generation.maxSeqLen}},prefillChunkLayers:policy.prefillChunkLayers,prefillTokenChunkSize:policy.prefillTokenChunkSize}}});
+ const {doppler}=await load('doppler-gpu/compat');session=await doppler.open({url:'file://~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/'},{cache:false,runtimeConfig:{shared:{bufferPool:policy.bufferPool,debug:{profiler:{enabled:false}}},inference:{session:{kvcache:{maxSeqLen:r.generation.maxSeqLen}},prefillChunkLayers:policy.prefillChunkLayers,prefillTokenChunkSize:policy.prefillTokenChunkSize}}});
  for(const row of fixture.cases){session.resetGenerationState();const result=await session.generate({messages:row.messages},r.generation);r.cases.push({id:row.id,result,matchesMesh:result.outputText===row.meshOutput,memory:inspectDeviceMemory()});await save();}
  r.executionPass=true;
 }catch(error){r.executionPass=false;r.error=error.stack;}finally{try{await session?.close();await gpu?.close();r.settled=true;}catch(error){r.cleanupError=error.stack;}r.finishedAt=new Date().toISOString();await save();}

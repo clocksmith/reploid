@@ -57,7 +57,7 @@ Running 21 tests using 1 worker
       240 |   await page.evaluate(()=>{window.railState.network.consumer.peers.pop();window.emitRailState();});
       241 |   await page.locator('[data-inspector-section="participants"]').click();
       242 |   await expect(page.locator('[data-peer-readiness]')).toBeVisible();
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:239:44
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:239:44
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/single-chat-rail-20261013/final/chat-rail-layout-shared-sh-f8121--and-route-return-at-1440px-chromium-swiftshader/test-failed-1.png
@@ -89,7 +89,7 @@ Running 21 tests using 1 worker
       240 |   await page.evaluate(()=>{window.railState.network.consumer.peers.pop();window.emitRailState();});
       241 |   await page.locator('[data-inspector-section="participants"]').click();
       242 |   await expect(page.locator('[data-peer-readiness]')).toBeVisible();
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:239:44
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:239:44
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/single-chat-rail-20261013/final/chat-rail-layout-shared-sh-e4d12-g-and-route-return-at-320px-chromium-swiftshader/test-failed-1.png

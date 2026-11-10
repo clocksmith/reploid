@@ -27,7 +27,7 @@
     "directions": [
       {
         "direction": "linux-mac",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
         "partitionHosts": [
           {
             "index": 1,
@@ -45,7 +45,7 @@
       },
       {
         "direction": "mac-linux",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
+        "capture": "~/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
         "partitionHosts": [
           {
             "index": 0,
@@ -73,8 +73,8 @@
   },
   "browserIdentity": "sha256:631a05ebd196c3aafb0d1a7e089f3c2b75b2830b0997780e2994efea148f8edf",
   "peer": "amd-host",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
-  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "~/deco/reploid/tests/fixtures/distributed-reference.json.gz",
   "referenceBinding": {
     "frozenModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
     "weightsTokenizerAndExecutionContractUnchanged": true,

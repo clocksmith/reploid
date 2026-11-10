@@ -21,11 +21,11 @@
         "--model",
         "qwen-3-5-0-8b-q4k-ehaf16",
         "--model-directory",
-        "/home/x/.local/share/reploid/public-native/weights",
+        "~/.local/share/reploid/public-native/weights",
         "--cache-directory",
-        "/home/x/.local/share/reploid/public-native/cache-budget-20261012",
+        "~/.local/share/reploid/public-native/cache-budget-20261012",
         "--identity-file",
-        "/home/x/.local/share/reploid/public-native/identity.json",
+        "~/.local/share/reploid/public-native/identity.json",
         "--rtc-module",
         "@roamhq/wrtc",
         "--ws-module",
@@ -199,7 +199,7 @@
         "maxBytes": 4294967296,
         "reservedBytes": 637534208
       },
-      "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+      "log": "~/.local/state/reploid/public-native-budget-restart-20261012.log",
       "logOffset": 1224851961,
       "checkedAt": 1791856704.1653419,
       "exitObserved": true,
@@ -208,7 +208,7 @@
     "new": {
       "pid": 4047510,
       "startedAt": 1791856704.5992203,
-      "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+      "log": "~/.local/state/reploid/public-native-budget-restart-20261012.log",
       "logOffset": 1224855194
     },
     "verification": {

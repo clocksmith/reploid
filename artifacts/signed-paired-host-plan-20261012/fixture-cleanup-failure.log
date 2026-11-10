@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/work-partitions-lifecycle.test.js (61 tests | 2 failed) 21ms
    ✓ requires a session cleanup owner before constructing a signed factory 1ms

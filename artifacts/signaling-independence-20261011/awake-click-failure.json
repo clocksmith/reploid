@@ -3,7 +3,7 @@
   "result": false,
   "failure": {
     "phase": "physical signaling interruption diagnostic",
-    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed; inspect /Users/xyz/deco/reploid/artifacts/distributed/2026-10-11T02-31-21-839Z"
+    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed; inspect ~/deco/reploid/artifacts/distributed/2026-10-11T02-31-21-839Z"
   },
   "generation": {
     "status": "completed",

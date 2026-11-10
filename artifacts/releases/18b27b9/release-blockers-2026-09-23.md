@@ -9,7 +9,7 @@ fallback no longer clears host-owned localStorage.
 
 ## Pull and repairs
 
-`bash /Users/xyz/deco/rdpull.sh reploid` aligned with origin/main at
+`bash ~/deco/rdpull.sh reploid` aligned with origin/main at
 `1b6e50ebdf2fae358b5645b02515f8b6baae7acf`; pre-existing edits were preserved.
 
 - Removed the partition runner's eager package import; added missing-runtime

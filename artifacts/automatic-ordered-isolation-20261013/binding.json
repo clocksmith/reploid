@@ -32,7 +32,7 @@
     "tests": 47,
     "passed": 47,
     "failed": 0,
-    "sha256": "a626098ce18af08bb1c334623069aa9cfc69c3bf3f42c3adf093c1c78ee66199"
+    "sha256": "3397121703d2dfa31af28e63275630281029af7d2fc9a852870e688c6d079758"
   },
   "workerSha256": "949fc5b969259d1bdcbfbce302973a4377890c3568755e4d36dbb50c9eded91b",
   "independentReview": "Native participation owner reviewed fixture grants/auth/cleanup; no fake settlement or manual ledger clearing. Numerical ports remain injected."

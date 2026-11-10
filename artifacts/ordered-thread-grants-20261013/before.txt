@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/chat-ordered-thread-grants.test.js (5 tests | 4 failed) 77ms
    × binds an ordered 2-stage disclosure to every route identity and recipient 4ms

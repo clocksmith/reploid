@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/automatic-partition-discovery-lifetime.test.js > keeps an active healthy route across discovery expiry and replica changes until settlement 12ms
  ✓ tests/unit/automatic-partition-discovery-lifetime.test.js > does not treat a closed execution channel as healthy during discovery loss 1ms

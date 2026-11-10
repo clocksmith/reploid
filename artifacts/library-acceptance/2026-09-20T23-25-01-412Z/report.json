@@ -3,7 +3,7 @@
   "node": "v22.20.0",
   "platform": "darwin",
   "architecture": "arm64",
-  "evidence": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-09-20T23-25-01-412Z",
+  "evidence": "~/deco/reploid/artifacts/library-acceptance/2026-09-20T23-25-01-412Z",
   "consumer": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-installed-consumer-i5Wi54",
   "checks": [
     {
@@ -798,7 +798,7 @@
     "Deployment"
   ],
   "archive": {
-    "path": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-09-20T23-25-01-412Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-09-20T23-25-01-412Z/reploid-0.1.0.tgz",
     "sha256": "088f305d46e27abde8cc2f02785aa0528629b1920d37a895e5298dccaf279f8b"
   },
   "dopplerConsumer": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-doppler-consumer-q93gAM",

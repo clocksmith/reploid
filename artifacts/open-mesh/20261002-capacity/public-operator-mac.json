@@ -5,7 +5,7 @@
     "model": "qwen-3-5-0-8b-q4k-ehaf16",
     "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
     "contribution": "compute",
-    "profile": "/Users/xyz/Library/Application Support/Reploid/public-compute"
+    "profile": "~/Library/Application Support/Reploid/public-compute"
   },
   {
     "event": "participant",
@@ -32,7 +32,7 @@
     "model": "qwen-3-5-0-8b-q4k-ehaf16",
     "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
     "contribution": "compute",
-    "profile": "/Users/xyz/Library/Application Support/Reploid/public-compute"
+    "profile": "~/Library/Application Support/Reploid/public-compute"
   },
   {
     "event": "participant",
@@ -2518,7 +2518,7 @@
     "model": "qwen-3-5-0-8b-q4k-ehaf16",
     "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
     "contribution": "compute",
-    "profile": "/Users/xyz/Library/Application Support/Reploid/public-compute"
+    "profile": "~/Library/Application Support/Reploid/public-compute"
   },
   {
     "event": "participant",

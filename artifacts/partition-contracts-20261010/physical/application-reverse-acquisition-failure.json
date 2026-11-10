@@ -2,7 +2,7 @@
   "ok": false,
   "failure": {
     "phase": "contributor restart diagnostic",
-    "message": "Error: Contributor preparation failed: Pipeline load phase \"loadWeights\" failed: storageContext.loadShardRange failed for shard 1: No peer offers the required verified model piece; inspect /Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T20-56-47-995Z"
+    "message": "Error: Contributor preparation failed: Pipeline load phase \"loadWeights\" failed: storageContext.loadShardRange failed for shard 1: No peer offers the required verified model piece; inspect ~/deco/reploid/artifacts/distributed/2026-10-10T20-56-47-995Z"
   },
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
   "modelFixtureHost": "peer",
@@ -29,8 +29,8 @@
   },
   "browserIdentity": "sha256:863d9d29782cf1d0b7207e10a954623d32f48a7c55272ccbf87e2ec5d105612d",
   "peer": "amd-host",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
-  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "~/deco/reploid/tests/fixtures/distributed-reference.json.gz",
   "referenceBinding": null,
   "generation": {
     "maxTokens": 4096,

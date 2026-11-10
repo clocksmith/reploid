@@ -12,9 +12,9 @@
   "baseUrl": "http://localhost:8132",
   "room": "reploid-swarm-search-service-20261017",
   "modelId": "qwen-3-5-2b-q4k-ehaf16",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
-  "participantEntry": "/Users/xyz/deco/reploid/server/native-participant.js",
-  "stateDirectory": "/Users/xyz/deco/reploid/.tmp/search-service-20261017",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "participantEntry": "~/deco/reploid/server/native-participant.js",
+  "stateDirectory": "~/deco/reploid/.tmp/search-service-20261017",
   "maxConcurrentRequests": 2,
   "search": {
     "question": "What year was the Eiffel Tower completed? Cite a source.",

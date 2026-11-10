@@ -1,7 +1,7 @@
 {
   "component": "Installed Doppler resident partition memory and lifecycle",
   "intent": "preserved",
-  "sourceRun": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T02-18-40-522Z",
+  "sourceRun": "~/deco/reploid/artifacts/distributed/2026-10-10T02-18-40-522Z",
   "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
   "package": {
     "name": "doppler-gpu",

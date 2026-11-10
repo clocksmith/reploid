@@ -1,14 +1,14 @@
 {
   "schema": "reploid.single-price-postrun-identity/v1",
   "observedAtUtc": "2026-10-13T13:12:43.271694+00:00",
-  "freezeSha256": "5a1cb7335fa494b12cc1c38afe84f1ecd94ef672ae4795969af112b84c4b5198",
+  "freezeSha256": "5d93decdc67e2bb0a65c7e0ae83d96d17ee0abe6673da2bb758230ae1ed192ae",
   "frozenFilesUnchanged": true,
   "observed": {
     "files": {
       "bind_preflight.py": "12e707303b88929125a757f78e5431a011e9bc433138500263f03e5097286e9a",
       "fixture_test.py": "cce9c727d3631ff2cf4fd6059b1db4ac45066120f6fa01d8cf5dee78281cd231",
       "freeze.py": "8685a597f154fd4f7e27217694a9ca1b6ddf8603b43873acd6f03d1db4a8ce95",
-      "input.json": "004a53d453df321ab28fe37ae0b67393752baa629e989b77c35f6322da12e8c9",
+      "input.json": "5970642e3c6f284933815cda3c3fefc431505ffab08ab34c4c8ec5025d10c834",
       "preflight.py": "e531081cfa771dc263e18a6ec7f3051078f7e88386fa94a2f7147597c36c223d",
       "prepare.py": "a90f56aed94d151553203f2a6a75896e36fe62428bd7c06c4ae422a2102c79d4",
       "review-criteria.json": "dcb6278aea064d8d04edca0a0bb3a3e36a4c4d955e847c00e119596be1091d0e",
@@ -87,6 +87,6 @@
     "2873176": false,
     "2873496": false
   },
-  "sourceOutputSha256": "f345a109a18e51af615ce3d71e35438cf2997e15250c1ffea7fc11287ed9c5fa",
+  "sourceOutputSha256": "e55675666b1e47c3bd59484de4148dba09634a3a48b04e6f9cc661ed8b52c98b",
   "runLogSha256": "9a46102e5601353bf13724131510be445cd6f16dbf0b21295d9c22301219f9aa"
 }

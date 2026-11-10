@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+ RUN  v4.1.10 ~/deco/worktrees/reploid-consumer-streaming
 
  ❯ tests/unit/p2p-transport.test.js (9 tests | 1 failed) 21ms
      ✓ resolves validated runtime STUN and TURN configuration 3ms

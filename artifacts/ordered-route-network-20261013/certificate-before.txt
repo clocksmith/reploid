@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/ordered-partition-network.test.js (9 tests | 1 failed | 8 skipped) 9ms
      ↓ keeps simultaneous routes to the same participant on distinct channels and retires only the named route

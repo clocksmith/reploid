@@ -37,7 +37,7 @@ Running 4 tests using 1 worker
       188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
       189 |   });
       190 | }
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-light-sta-e4a4e-nd-reduced-motion-at-1440px-chromium-swiftshader/test-failed-1.png
@@ -59,7 +59,7 @@ Running 4 tests using 1 worker
       188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
       189 |   });
       190 | }
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-light-sta-cf42c-and-reduced-motion-at-320px-chromium-swiftshader/test-failed-1.png
@@ -81,7 +81,7 @@ Running 4 tests using 1 worker
       188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
       189 |   });
       190 | }
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-dark-stat-9aa0e-nd-reduced-motion-at-1440px-chromium-swiftshader/test-failed-1.png
@@ -103,7 +103,7 @@ Running 4 tests using 1 worker
       188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
       189 |   });
       190 | }
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-dark-stat-7746d-and-reduced-motion-at-320px-chromium-swiftshader/test-failed-1.png

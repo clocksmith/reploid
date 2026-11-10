@@ -12,9 +12,9 @@
   "baseUrl": "http://localhost:8132",
   "room": "reploid-swarm-service-repair-checked-20261018",
   "modelId": "qwen-3-5-2b-q4k-ehaf16",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
-  "participantEntry": "/Users/xyz/deco/reploid/server/native-participant.js",
-  "stateDirectory": "/Users/xyz/deco/reploid/.tmp/service-repair-20261018/qualified-journey",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "participantEntry": "~/deco/reploid/server/native-participant.js",
+  "stateDirectory": "~/deco/reploid/.tmp/service-repair-20261018/qualified-journey",
   "maxConcurrentRequests": 2,
   "search": {
     "question": "Eiffel Tower",

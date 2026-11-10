@@ -53,7 +53,7 @@ The candidate archive remains at the absolute path in `evidence.json`. To
 reproduce the cross-repository contract test with that installed candidate:
 
 ```sh
-DOPPLER_TEST_CONSUMER=/tmp/doppler-reploid-contract-6ovwOf/consumer DOPPLER_TEST_CHECKOUT=/home/x/deco/doppler npx vitest run tests/integration/doppler-installed-generation.test.js
+DOPPLER_TEST_CONSUMER=/tmp/doppler-reploid-contract-6ovwOf/consumer DOPPLER_TEST_CHECKOUT=~/deco/doppler npx vitest run tests/integration/doppler-installed-generation.test.js
 node scripts/sync-doppler-generation-contract.js --check --package-root=/tmp/doppler-reploid-contract-6ovwOf/consumer/node_modules/doppler-gpu
 npx playwright test tests/e2e/document-search.spec.js --project=chromium --grep 'actual Verification Worker'
 ```

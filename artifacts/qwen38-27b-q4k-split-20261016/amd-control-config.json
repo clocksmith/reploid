@@ -1,7 +1,7 @@
 {
-  "installedPackage": "/home/x/.local/share/reploid/releases/q4k-27b-6ba1f43a/reploid/node_modules/doppler-gpu",
-  "manifestPath": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e/manifest.json",
-  "modelUrl": "file:///home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e/",
+  "installedPackage": "~/.local/share/reploid/releases/q4k-27b-6ba1f43a/reploid/node_modules/doppler-gpu",
+  "manifestPath": "~/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e/manifest.json",
+  "modelUrl": "file://~/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e/",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
   "runtimeConfig": {
     "shared": {

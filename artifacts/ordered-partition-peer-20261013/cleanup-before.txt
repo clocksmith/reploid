@@ -1,9 +1,9 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
 stderr | tests/unit/ordered-partition-peer.test.js > waits for pending execution before invoking its one resident cleanup owner
 Promise returned by `expect(actual).rejects.toThrow()` was not awaited. Vitest currently auto-awaits hanging assertions at the end of the test, but this will cause the test to fail in the next Vitest major. Please remember to await the assertion.
-    at /Users/xyz/deco/reploid/tests/unit/ordered-partition-peer.test.js:181:93
+    at ~/deco/reploid/tests/unit/ordered-partition-peer.test.js:181:93
 
  ❯ tests/unit/ordered-partition-peer.test.js (11 tests | 1 failed) 395ms
      ✓ traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 191ms

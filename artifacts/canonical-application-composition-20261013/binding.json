@@ -26,7 +26,7 @@
     "npm run sync:library",
     "npm run verify:library-types",
     "node artifacts/canonical-application-composition-20261013/verify-worker.mjs",
-    "DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-automatic-source.js",
-    "DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler npx playwright test --config artifacts/canonical-publication-evidence-20261012/playwright.config.mjs"
+    "DOPPLER_SOURCE_ROOT=~/deco/doppler node tests/canonical-automatic-source.js",
+    "DOPPLER_SOURCE_ROOT=~/deco/doppler npx playwright test --config artifacts/canonical-publication-evidence-20261012/playwright.config.mjs"
   ]
 }

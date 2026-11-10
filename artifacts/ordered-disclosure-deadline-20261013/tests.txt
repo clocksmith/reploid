@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/ordered-partition-grants.test.js (6 tests) 40ms
  ✓ tests/unit/ordered-partition-chat-entry.test.js (22 tests) 549ms

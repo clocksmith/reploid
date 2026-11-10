@@ -29,8 +29,8 @@
   },
   "browserIdentity": "sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d",
   "peer": "amd-host",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
-  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "~/deco/reploid/tests/fixtures/distributed-reference.json.gz",
   "referenceBinding": null,
   "generation": {
     "maxTokens": 4096,

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/integration/agent-loop.test.js (54 tests) 2558ms
        ✓ circuit-breaks LoadModule after repeated module load failures  909ms
@@ -1470,16 +1470,16 @@ stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Query History >
  ✓ tests/unit/pool-adapter-canary-publication.test.js (3 tests) 12ms
 stderr | tests/unit/event-bus.test.js > EventBus > emit > should continue emitting to other listeners if one throws
 [ERROR] [EventBus] Error in test:event Error: Listener error
-    at /Users/xyz/deco/reploid/tests/unit/event-bus.test.js:100:15
-    at Mock (file:///Users/xyz/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
-    at Object.emit (/Users/xyz/deco/reploid/self/infrastructure/event-bus.js:44:17)
-    at /Users/xyz/deco/reploid/tests/unit/event-bus.test.js:107:16
-    at file:///Users/xyz/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///Users/xyz/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///Users/xyz/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at ~/deco/reploid/tests/unit/event-bus.test.js:100:15
+    at Mock (file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
+    at Object.emit (~/deco/reploid/self/infrastructure/event-bus.js:44:17)
+    at ~/deco/reploid/tests/unit/event-bus.test.js:107:16
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
-    at runWithCancel (file:///Users/xyz/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///Users/xyz/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at runWithCancel (file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file://~/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 
 stdout | tests/unit/event-bus.test.js > EventBus > Subscription Tracking > should unsubscribe all listeners for a module
 [DEBUG] [EventBus] Unsubscribed module: TestModule
@@ -1667,21 +1667,21 @@ stdout | tests/unit/trained-adapter-admission.test.js > trained adapter admissio
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
 
  FAIL  tests/unit/native-supply-budget.test.js > preserves a single allowance across competing processes and a later restart
-Error: Command failed: /Users/xyz/.nvm/versions/node/v22.20.0/bin/node /var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/custody-budget-nwJbio/reserve.mjs /var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/custody-budget-4HUQdv
+Error: Command failed: ~/.nvm/versions/node/v22.20.0/bin/node /var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/custody-budget-nwJbio/reserve.mjs /var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/custody-budget-4HUQdv
 (node:31743) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
-file:///Users/xyz/deco/reploid/packages/reploid/src/artifacts/custody/supply-budget.js:3
+file://~/deco/reploid/packages/reploid/src/artifacts/custody/supply-budget.js:3
   return Object.assign(new Error(message, { cause }), { code: 'CUSTODY_BUDGET_' + code });
                        ^
 
 Error: File contribution ledger unavailable; serving is blocked
-    at custodyBudgetError (file:///Users/xyz/deco/reploid/packages/reploid/src/artifacts/custody/supply-budget.js:3:24)
-    at openNativeSupplyBudget (file:///Users/xyz/deco/reploid/server/native-supply-budget.js:11:11)
+    at custodyBudgetError (file://~/deco/reploid/packages/reploid/src/artifacts/custody/supply-budget.js:3:24)
+    at openNativeSupplyBudget (file://~/deco/reploid/server/native-supply-budget.js:11:11)
     at async file:///private/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/custody-budget-nwJbio/reserve.mjs:2:10 {
   code: 'CUSTODY_BUDGET_STORAGE',
   [cause]: Error: database is locked
-      at openStore (file:///Users/xyz/deco/reploid/server/native-supply-budget.js:43:8)
-      at async openNativeSupplyBudget (file:///Users/xyz/deco/reploid/server/native-supply-budget.js:8:16)
+      at openStore (file://~/deco/reploid/server/native-supply-budget.js:43:8)
+      at async openNativeSupplyBudget (file://~/deco/reploid/server/native-supply-budget.js:8:16)
       at async file:///private/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/custody-budget-nwJbio/reserve.mjs:2:10 {
     code: 'ERR_SQLITE_ERROR',
     errcode: 5,

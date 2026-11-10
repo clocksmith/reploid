@@ -44,7 +44,7 @@
     {
       "source": "artifacts/distributed/2026-10-11T23-19-03-909Z/conversation/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/failure.json",
       "retained": "failure.json.gz",
-      "sha256": "95ac34d841ea73f037fcf31a01694e0969f4507bf531dd26b101a93266973f33"
+      "sha256": "45338a458f62547ba723e38961389152979b2e0939199d25e79f515bf5e0f218"
     },
     {
       "source": "/tmp/reploid-long-recovery-20261011.log",

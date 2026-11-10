@@ -33,7 +33,7 @@ Running 4 tests using 1 worker
       78 |   expect(result.opens).toBe(1);
       79 |   expect(result.closedError).toContain('closed');
       80 | });
-        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:77:25
+        at ~/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:77:25
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/vfs-storage-contract-init--8382c-ion-and-rejects-after-close-chromium-swiftshader/test-failed-1.png
@@ -53,7 +53,7 @@ Running 4 tests using 1 worker
        99 | });
       100 |
       101 | test('an aborted write emits no committed change and closing one VFS leaves another usable', async ({ page }) => {
-        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:98:18
+        at ~/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:98:18
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/vfs-storage-contract-init--361f9--before-declaring-readiness-chromium-swiftshader/test-failed-1.png

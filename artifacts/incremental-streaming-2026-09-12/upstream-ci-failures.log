@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-upstream-streaming-check
+ RUN  v4.1.10 ~/deco/worktrees/reploid-upstream-streaming-check
 
  ❯ tests/unit/catscan.test.js (5 tests | 1 failed) 55ms
      × validates the repository charter graph and generated index 34ms

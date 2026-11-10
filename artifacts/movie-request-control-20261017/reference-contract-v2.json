@@ -6,7 +6,7 @@
   "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
   "sourceConfigUrl": "https://huggingface.co/Qwen/Qwen3.5-2B/resolve/15852e8c16360a2fea060d615a32b45270f8a8fc/config.json",
   "pieceIndexIdentity": "sha256:fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
-  "gpuReceiptSha256": "dbf2dba2f27e0288039060ca4a46f212f5a8e8b6909b4df4690668b588b774d6",
+  "gpuReceiptSha256": "7ac4b65817fdb72bf0a24eccce3a19702cb9e0ceb69dbd29dea3475c0c498b4f",
   "controls": [
     {
       "file": "control-0.json",
@@ -34,7 +34,7 @@
     "blake3": "1.0.11"
   },
   "scope": "CPU only; exact captured token IDs and retained tensor bytes; independent equations, not GPU numerical qualification",
-  "supersedesSha256": "97a5d3d3f7c4dab9802e207f8cdddec02bd18d5b2bd83a06a140e79d3910fade",
+  "supersedesSha256": "0172e2630a4887421a5851e6088f170ee3baa63850bc67e0647afcf30c9cc3ef",
   "revision": 2,
   "maxTotalLoadAttempts": 4,
   "minimumHostAvailableGiB": 48,

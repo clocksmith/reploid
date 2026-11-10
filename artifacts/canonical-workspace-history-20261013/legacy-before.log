@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/chat-workspace.test.js (13 tests | 6 failed) 69ms
      ✓ authorizes a verified peer only for this explicit Send and records the exact attempt 55ms

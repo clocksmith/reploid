@@ -30,8 +30,8 @@
       "bytes": 3062
     },
     "focused-tests.log": {
-      "sha256": "4c6ddd22e674e2d25b74bf7cf847c54e2e7f7b1bb81a6ba1e70055b1583d4cbb",
-      "bytes": 387
+      "sha256": "60fcad6a47242d9e4a71b6de8017f8900a91ffbe505ecb464e5980720cc2933e",
+      "bytes": 378
     },
     "repository-summary.txt": {
       "sha256": "3a5e3ba471771cae90ed16c24ff22e4a462769d0393436bcb64f0b0c8a641be3",
@@ -42,8 +42,8 @@
       "bytes": 44239
     },
     "worker-harness-failure.log": {
-      "sha256": "a40a64970467646f05901dc7f09f2cd0aaba2ff19a7eb4d9e39d17b01df08b2b",
-      "bytes": 4409
+      "sha256": "d0c284d8f91335d82cc7eeb2dc3a89b216bb5338acd97b88101604f786ec1b82",
+      "bytes": 4400
     }
   }
 }

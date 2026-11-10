@@ -49,7 +49,7 @@ Running 4 tests using 1 worker
       67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
       68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
       69 |       await page.evaluate(() => window.firstUse.phase('ready'));
-        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+        at ~/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
 
     Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-2b3a1-eps-draft-at-390px-in-light/error-context.md
 
@@ -76,7 +76,7 @@ Running 4 tests using 1 worker
       67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
       68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
       69 |       await page.evaluate(() => window.firstUse.phase('ready'));
-        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+        at ~/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
 
     Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-2d167-ps-draft-at-1440px-in-light/error-context.md
 
@@ -103,7 +103,7 @@ Running 4 tests using 1 worker
       67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
       68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
       69 |       await page.evaluate(() => window.firstUse.phase('ready'));
-        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+        at ~/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
 
     Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-0eca0-eeps-draft-at-390px-in-dark/error-context.md
 
@@ -130,7 +130,7 @@ Running 4 tests using 1 worker
       67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
       68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
       69 |       await page.evaluate(() => window.firstUse.phase('ready'));
-        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+        at ~/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
 
     Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-6ea4a-eps-draft-at-1440px-in-dark/error-context.md
 

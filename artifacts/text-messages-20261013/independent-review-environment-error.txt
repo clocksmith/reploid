@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
 OPTIONS http://127.0.0.1:51427/v1/chat/completions 405 (Method Not Allowed)
 Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51427/v1/chat/completions".

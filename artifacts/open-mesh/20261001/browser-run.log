@@ -796,7 +796,7 @@ Real contributor ready from peer files with its origin unavailable
       90 |     await expect.poll(async () => (await history(requester)).threads[0].attempts.at(-1).status, { timeout: 180000 }).toBe('completed');
       91 |     const completed = await history(requester);
       92 |     expect(completed.threads[0].attempts[0].execution).toMatchObject({ placement: 'peer-whole-request', modelIdentity: model.identity });
-        at /Users/xyz/deco/reploid/tests/e2e/chat-open-mesh-real.spec.js:89:5
+        at ~/deco/reploid/tests/e2e/chat-open-mesh-real.spec.js:89:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/open-mesh-real/chat-open-mesh-real-open-c-e66a8--preserves-explicit-retries-chromium/test-failed-1.png

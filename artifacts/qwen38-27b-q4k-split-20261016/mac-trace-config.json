@@ -1,6 +1,6 @@
 {
-  "installedPackage": "/Users/xyz/deco/reploid/.tmp/qwen38-q4-split/runtime",
-  "manifestPath": "/Users/xyz/deco/reploid/.tmp/qwen38-q4-split/manifest.json",
+  "installedPackage": "~/deco/reploid/.tmp/qwen38-q4-split/runtime",
+  "manifestPath": "~/deco/reploid/.tmp/qwen38-q4-split/manifest.json",
   "modelUrl": "http://127.0.0.1:19278/",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
   "runtimeConfig": {

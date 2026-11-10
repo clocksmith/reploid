@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/ordered-partition-peer.test.js (1 test | 1 failed) 9ms
      × traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 8ms

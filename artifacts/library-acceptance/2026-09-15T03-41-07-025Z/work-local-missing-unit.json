@@ -2,7 +2,7 @@
   "id": "local-missing-unit",
   "provider": "deterministic-fixture",
   "status": "failed",
-  "error": "AssertionError [ERR_ASSERTION]: Reploid configuration $: call resolveConfig() before construction\n\n'failed' !== 'review'\n\n    at file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:370:22\n    at async check (file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:295:7",
+  "error": "AssertionError [ERR_ASSERTION]: Reploid configuration $: call resolveConfig() before construction\n\n'failed' !== 'review'\n\n    at file://~/deco/reploid/tests/library-package-acceptance.js:370:22\n    at async check (file://~/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file://~/deco/reploid/tests/library-package-acceptance.js:295:7",
   "observation": {
     "state": {
       "busy": false,

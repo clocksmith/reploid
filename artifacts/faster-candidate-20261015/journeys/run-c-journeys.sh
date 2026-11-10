@@ -4,9 +4,9 @@
 # amd-host#2), bounded contribution. The supplier (mac-host) and acquirer (amd-host) browsers are started
 # first. Destinations come from the environment (FC_RUN8_SSH_AMD).
 set -u
-J=/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/journeys; RUN=/var/tmp/reploid-faster-journey-20261015
-H=/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013; C=$J/config/journey-config-c.json
-cd /Users/xyz/deco/reploid
+J=~/deco/reploid/artifacts/faster-candidate-20261015/journeys; RUN=/var/tmp/reploid-faster-journey-20261015
+H=~/deco/reploid/artifacts/signed-completion-journey-20261013; C=$J/config/journey-config-c.json
+cd ~/deco/reploid
 node $H/run-7/tools/history-check.mjs $C $J/reports/history-check-c.json > $J/logs/c-history-check.out 2>&1; echo "history exit=$?"
 node $H/run-contributor-loss.mjs $C > $J/logs/c-run-contributor-loss.out 2>&1; echo "loss exit=$?"
 rm -f $RUN/supplier-chrome.pid

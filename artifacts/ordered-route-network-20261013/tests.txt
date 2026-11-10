@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/ordered-partition-network.test.js (11 tests) 110ms
  ✓ tests/unit/partition-api.test.js (42 tests) 3751ms

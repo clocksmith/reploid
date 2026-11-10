@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "contributor-loss",
   "startedAt": "2026-10-14T14:52:58.710Z",
-  "configSha256": "acf53fd036fddfc72e191492cad3acff915d9f8d0c001be781ad7936cf9a1615",
+  "configSha256": "78014f64c336b6e42ea8befe6794581c6a44918666d03fa707249c416eea2011",
   "fixtureSha256": "658f35be1d2beab062a8d7e1a54303c0af5d0619201acb4347730a0d944d162f",
   "freeze": {
     "browserBundle": "sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653",

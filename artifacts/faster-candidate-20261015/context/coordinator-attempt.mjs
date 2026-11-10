@@ -4,7 +4,7 @@
 // Usage: node coordinator-attempt.mjs <cdp endpoint> <origin> <attempt id> <output json>
 import fs from 'node:fs/promises';
 const H = '../../signed-completion-journey-20261013/';
-const { chromium } = await import('/Users/xyz/deco/reploid/node_modules/playwright/index.mjs');
+const { chromium } = await import('~/deco/reploid/node_modules/playwright/index.mjs');
 const { observeNetwork } = await import(new URL(H + 'observe.mjs', import.meta.url));
 const { findPage } = await import(new URL(H + 'harness.mjs', import.meta.url));
 const [endpoint, origin, attemptId, output] = process.argv.slice(2);

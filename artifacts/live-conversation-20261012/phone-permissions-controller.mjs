@@ -1,4 +1,4 @@
-import {chromium,expect} from '/Users/xyz/deco/reploid/node_modules/@playwright/test/index.mjs';
+import {chromium,expect} from '~/deco/reploid/node_modules/@playwright/test/index.mjs';
 import {writeFile} from 'node:fs/promises';
 const b=await chromium.connectOverCDP('http://127.0.0.1:54307');const c=b.contexts()[0],p=c.pages()[0];
 const r={startedAt:new Date().toISOString(),revision:'067bc73d',scope:'Actual Mac/Suby browser partitions; desktop Chromium at 390x844, not physical phone'};let id;
@@ -18,4 +18,4 @@ try{
  await p.locator('[data-composer-input]').fill('And four tickets at that same price?');await p.locator('[data-composer-send]').click();await p.locator('[data-approval-consent]').waitFor();await p.locator('[data-approval-consent]').check();await p.locator('[data-approval-send]').click();await completed();r.final=await thread();expect(r.final.messages.at(-1).content).toMatch(/\$?48/);expect(r.weights).toEqual([]);
  await p.locator('[data-composer-input]').fill('Draft preserved after permissions review');await p.reload();await p.locator('[data-open-threads]').click();await p.locator(`[data-thread-item-id="${id}"]`).click();await expect(p.locator('[data-composer-input]')).toHaveValue('Draft preserved after permissions review');r.restored=await thread();expect(r.restored.messages).toEqual(r.final.messages);r.after=(await threads()).filter(t=>r.before.some(old=>old.id===t.id)).map(t=>({id:t.id,messages:t.messages}));expect(r.after).toEqual(r.before);r.ok=true;
 }catch(error){r.ok=false;r.error=error.stack;r.failedThread=id?await thread():null;}
-r.finishedAt=new Date().toISOString();await writeFile('/Users/xyz/deco/reploid/artifacts/live-conversation-20261012/phone-permissions.json',JSON.stringify(r,null,2));console.log(JSON.stringify({ok:r.ok,error:r.error,answer:r.first?.messages.at(-1)?.content,followup:r.final?.messages.at(-1)?.content}));await p.setViewportSize({width:1440,height:1000});process.exit(r.ok?0:1);
+r.finishedAt=new Date().toISOString();await writeFile('~/deco/reploid/artifacts/live-conversation-20261012/phone-permissions.json',JSON.stringify(r,null,2));console.log(JSON.stringify({ok:r.ok,error:r.error,answer:r.first?.messages.at(-1)?.content,followup:r.final?.messages.at(-1)?.content}));await p.setViewportSize({width:1440,height:1000});process.exit(r.ok?0:1);

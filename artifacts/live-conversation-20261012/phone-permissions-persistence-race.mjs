@@ -1,8 +1,8 @@
-import {chromium,expect} from '/Users/xyz/deco/reploid/node_modules/@playwright/test/index.mjs';
+import {chromium,expect} from '~/deco/reploid/node_modules/@playwright/test/index.mjs';
 import {readFile,writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 const b=await chromium.connectOverCDP('http://127.0.0.1:54307');const c=b.contexts()[0],p=c.pages()[0];
-const prior=JSON.parse(await readFile('/Users/xyz/deco/reploid/artifacts/live-conversation-20261012/phone-permissions.json','utf8')),id=prior.first.id;
+const prior=JSON.parse(await readFile('~/deco/reploid/artifacts/live-conversation-20261012/phone-permissions.json','utf8')),id=prior.first.id;
 const r={startedAt:new Date().toISOString(),revision:'067bc73d',priorFailure:'phone-permissions.json',threadId:id,scope:'Continue UI/permission verification after factual and citation failure; original failure remains open'};
 const threads=()=>p.evaluate(()=>JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')).threads),thread=async()=>(await threads()).find(t=>t.id===id);
 try{
@@ -13,4 +13,4 @@ try{
  await p.locator('[data-composer-input]').fill('And four tickets at that same price?');await p.locator('[data-composer-send]').click();await p.locator('[data-approval-consent]').waitFor();await p.locator('[data-approval-consent]').check();await p.locator('[data-approval-send]').click();await expect.poll(async()=>{const a=(await thread()).attempts.at(-1);if(a.status==='failed')throw Error(a.error);return a.status;},{timeout:180000}).toBe('completed');r.final=await thread();r.followupFactualPass=/\$?48/.test(r.final.messages.at(-1).content);expect(r.weights).toEqual([]);
  await p.locator('[data-composer-input]').fill('Draft preserved after permissions review');await p.reload();await p.locator('[data-open-threads]').click();await p.locator(`[data-thread-item-id="${id}"]`).click();await expect(p.locator('[data-composer-input]')).toHaveValue('Draft preserved after permissions review');r.restored=await thread();expect(r.restored.messages).toEqual(r.final.messages);r.after=(await threads()).filter(t=>t.id!==id).map(t=>({id:t.id,messages:t.messages}));expect(r.after).toEqual(r.before.filter(t=>t.id!==id));r.interactionPass=true;
 }catch(error){r.interactionPass=false;r.error=error.stack;r.failedThread=await thread();}
-r.finishedAt=new Date().toISOString();await writeFile('/Users/xyz/deco/reploid/artifacts/live-conversation-20261012/phone-permissions-continuation.json',JSON.stringify(r,null,2));console.log(JSON.stringify({interactionPass:r.interactionPass,error:r.error,followupFactualPass:r.followupFactualPass,followup:r.final?.messages.at(-1)?.content}));await p.setViewportSize({width:1440,height:1000});process.exit(r.interactionPass?0:1);
+r.finishedAt=new Date().toISOString();await writeFile('~/deco/reploid/artifacts/live-conversation-20261012/phone-permissions-continuation.json',JSON.stringify(r,null,2));console.log(JSON.stringify({interactionPass:r.interactionPass,error:r.error,followupFactualPass:r.followupFactualPass,followup:r.final?.messages.at(-1)?.content}));await p.setViewportSize({width:1440,height:1000});process.exit(r.interactionPass?0:1);

@@ -22,8 +22,8 @@ Running 1 test using 1 worker
       135 |         expect(result.composer.x + result.composer.width).toBeLessThanOrEqual(result.right.x - 8);
       136 |       }
       137 |       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-        at check (/Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:134:35)
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:141:62
+        at check (~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:134:35)
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:141:62
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/column-before/chat-rail-layout-light-tra-f8795-e-available-column-at-900px-chromium-swiftshader/test-failed-1.png

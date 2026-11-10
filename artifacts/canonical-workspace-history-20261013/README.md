@@ -30,7 +30,7 @@ Evidence:
 - `types.log`: library declarations pass.
 - `worker.json`: actual Verification Worker, exact production hashes and warnings.
 
-Commands use `DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler` for source-contract
+Commands use `DOPPLER_SOURCE_ROOT=~/deco/doppler` for source-contract
 controls and the existing `canonical-publication-evidence-20261012/playwright.config.mjs`.
 Host session/draft/automatic execution composition remains the next boundary.
 No accepted package, catalog, public contributor or browser manifest was changed.

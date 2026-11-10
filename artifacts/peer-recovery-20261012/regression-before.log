@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/work-swarm-lifecycle.test.js (14 tests | 1 failed) 410ms
    × clears a connection failure only when its affected peer reconnects 8ms

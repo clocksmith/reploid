@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/review-generation-count.temp.test.js (42 tests | 1 failed | 41 skipped) 33ms
      ↓ streams through 2 stages and preserves the complete route in compact returned evidence

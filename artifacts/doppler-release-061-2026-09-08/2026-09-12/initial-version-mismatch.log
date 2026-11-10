@@ -39,8 +39,8 @@ Running 1 test using 1 worker
       526 |       return snapshot.parsed?.transport;
       527 |     }, { timeout: ACTUAL_INFERENCE_TIMEOUT_MS }).toBe('local_capsule');
       528 |     const result = (await readSnapshot(page, 'pool-home-run-result')).parsed;
-        at Object.expect.poll.timeout (/home/x/deco/worktrees/reploid-doppler-061/tests/e2e/p2p-actual-inference.spec.js:525:26)
-        at /home/x/deco/worktrees/reploid-doppler-061/tests/e2e/p2p-actual-inference.spec.js:522:5
+        at Object.expect.poll.timeout (~/deco/worktrees/reploid-doppler-061/tests/e2e/p2p-actual-inference.spec.js:525:26)
+        at ~/deco/worktrees/reploid-doppler-061/tests/e2e/p2p-actual-inference.spec.js:522:5
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/p2p-actual-inference-Run-a-778db-M-2-without-sharing-compute-chromium/test-failed-1.png

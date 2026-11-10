@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/integration/responses.test.js > rejects unsupported previous_response_id without executing 2ms
  ✓ tests/integration/responses.test.js > rejects unsupported conversation without executing 0ms

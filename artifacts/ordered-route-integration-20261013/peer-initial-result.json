@@ -1,7 +1,7 @@
 {
   "scope": "CPU source integration: real ordered Reploid peer ports over synthetic in-process channels, resident facade, WebCrypto v4 grants and runner and Doppler resident state/sampling/decoder; injected numerical kernels and private cache allocation; real grant signatures only; no signed execution publication, GPU, physical capacity or answer-quality claim",
   "startedAt": "2026-10-13T14:44:14.879Z",
-  "doppler": "/Users/xyz/deco/doppler",
+  "doppler": "~/deco/doppler",
   "cases": [
     {
       "tamperedSignatureRejectedBeforeNumerics": true
@@ -1593,7 +1593,7 @@
   },
   "expectedGenerationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
   "passed": false,
-  "failure": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Cancel only this request/. Input:\n\n'Partition request cancelled or timed out'\n\n    at file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/peer.mjs:176:10",
+  "failure": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Cancel only this request/. Input:\n\n'Partition request cancelled or timed out'\n\n    at file://~/deco/reploid/artifacts/ordered-route-integration-20261013/peer.mjs:176:10",
   "cleanup": [
     {
       "status": "fulfilled",

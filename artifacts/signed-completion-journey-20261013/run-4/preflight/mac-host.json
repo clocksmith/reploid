@@ -41,14 +41,14 @@
    "ppid": 34586,
    "elapsed": "08-13:44:17",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 46688,
    "ppid": 46363,
    "elapsed": "01-08:58:26",
    "owned": false,
-   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+   "args": "node ~/.nvm/versions/node/v22.20.0/bin/codex"
   },
   {
    "pid": 13551,

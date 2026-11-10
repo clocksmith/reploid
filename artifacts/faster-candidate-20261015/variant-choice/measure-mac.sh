@@ -7,7 +7,7 @@
 # Usage: measure-mac.sh <u|r>
 set -eu
 v=$1
-E=/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015
+E=~/deco/reploid/artifacts/faster-candidate-20261015
 case "$v" in
   u) root=/var/tmp/reploid-faster-candidate-20261015-2; model=/var/tmp/doppler-faster-model-20261015-2 ;;
   r) root=/var/tmp/reploid-faster-candidate-20261015-3; model=/var/tmp/doppler-faster-model-20261015-3 ;;

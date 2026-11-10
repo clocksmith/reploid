@@ -20327,7 +20327,7 @@
     }
   },
   "ok": false,
-  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"executing\"\nReceived: \"queued\"\n    at Proxy.<anonymous> (/Users/xyz/deco/reploid/node_modules/playwright/lib/matchers/expect.js:213:24)\n    at file:///Users/xyz/deco/reploid/artifacts/native-installed-execution-20261012/UI-controller.mjs:49:64",
+  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"executing\"\nReceived: \"queued\"\n    at Proxy.<anonymous> (~/deco/reploid/node_modules/playwright/lib/matchers/expect.js:213:24)\n    at file://~/deco/reploid/artifacts/native-installed-execution-20261012/UI-controller.mjs:49:64",
   "finalHistory": [
     {
       "id": "9b6d4ff4-2101-48ce-9559-a6cb74530312",

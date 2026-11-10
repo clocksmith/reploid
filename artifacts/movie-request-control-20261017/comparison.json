@@ -2,8 +2,8 @@
   "schema": "reploid.movie-request-comparison/v1",
   "qualified": false,
   "originalScore": "5/12 rejected, unchanged",
-  "gpuReceiptSha256": "dbf2dba2f27e0288039060ca4a46f212f5a8e8b6909b4df4690668b588b774d6",
-  "referenceContractSha256": "46cc73f092abc6fc838951973f3b6a763f9f270fdfc34433c086e81a76fb36fc",
+  "gpuReceiptSha256": "7ac4b65817fdb72bf0a24eccce3a19702cb9e0ceb69dbd29dea3475c0c498b4f",
+  "referenceContractSha256": "5b6a978f2dac6c832275b8b46eef213371f7a936c8065526ebd8c135eef14f46",
   "cases": [
     {
       "id": "format-followup/2",

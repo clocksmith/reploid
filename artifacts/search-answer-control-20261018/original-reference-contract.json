@@ -18,7 +18,7 @@
   "weights": "exact retained Q4_K pieces",
   "arithmetic": "float32",
   "kvStorage": "float16",
-  "python": "/home/x/deco/gamma/.venv_rocm/bin/python",
+  "python": "~/deco/gamma/.venv_rocm/bin/python",
   "pythonPath": "/tmp/reploid-movie-control-20261017/python-deps",
   "comparison": "Exact input and output IDs through stop token; no quality acceptance or general numerical gate",
   "sourceDirectory": "/var/tmp/doppler-qwen35-2b-source-20261011",

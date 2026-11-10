@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-doppler-061
+ RUN  v4.1.10 ~/deco/worktrees/reploid-doppler-061
 
  ↓ tests/integration/neural-compiler-lora.test.js (1 test | 1 skipped)
  ✓ tests/integration/fsm.test.js (18 tests) 11ms
@@ -276,16 +276,16 @@ stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Access Tracking >
  ✓ tests/unit/episodic-memory.test.js (36 tests) 75ms
 stderr | tests/unit/event-bus.test.js > EventBus > emit > should continue emitting to other listeners if one throws
 [ERROR] [EventBus] Error in test:event Error: Listener error
-    at /home/x/deco/worktrees/reploid-doppler-061/tests/unit/event-bus.test.js:100:15
-    at Mock (file:///home/x/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
-    at Object.emit (/home/x/deco/worktrees/reploid-doppler-061/self/infrastructure/event-bus.js:44:17)
-    at /home/x/deco/worktrees/reploid-doppler-061/tests/unit/event-bus.test.js:107:16
-    at file:///home/x/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/x/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/x/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at ~/deco/worktrees/reploid-doppler-061/tests/unit/event-bus.test.js:100:15
+    at Mock (file://~/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
+    at Object.emit (~/deco/worktrees/reploid-doppler-061/self/infrastructure/event-bus.js:44:17)
+    at ~/deco/worktrees/reploid-doppler-061/tests/unit/event-bus.test.js:107:16
+    at file://~/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file://~/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file://~/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
-    at runWithCancel (file:///home/x/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/x/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at runWithCancel (file://~/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file://~/deco/worktrees/reploid-doppler-061/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 
 stdout | tests/unit/event-bus.test.js > EventBus > Subscription Tracking > should unsubscribe all listeners for a module
 [DEBUG] [EventBus] Unsubscribed module: TestModule

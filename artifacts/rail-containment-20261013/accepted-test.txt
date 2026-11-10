@@ -37,7 +37,7 @@ Running 19 tests using 1 worker
       57 |     const controls = await page.evaluate(() => {
       58 |       const selectors = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-conversation-actions] > summary', '[data-pool-settings] > summary', '[data-toggle-inspector]'];
       59 |       return selectors.map(selector => document.querySelector(selector)).filter(node => node.checkVisibility()).map(node => ({
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:56:71
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:56:71
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/accepted/chat-rail-layout-light-rai-a8eb9-ll-expanded-widths-at-390px-chromium-swiftshader/test-failed-1.png
@@ -68,7 +68,7 @@ Running 19 tests using 1 worker
       57 |     const controls = await page.evaluate(() => {
       58 |       const selectors = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-conversation-actions] > summary', '[data-pool-settings] > summary', '[data-toggle-inspector]'];
       59 |       return selectors.map(selector => document.querySelector(selector)).filter(node => node.checkVisibility()).map(node => ({
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:56:71
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:56:71
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/rail-containment-20261013/accepted/chat-rail-layout-light-rai-97a9d-ll-expanded-widths-at-320px-chromium-swiftshader/test-failed-1.png

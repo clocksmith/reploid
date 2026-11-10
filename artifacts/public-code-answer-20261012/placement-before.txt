@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/partition-placement.test.js (5 tests | 1 failed) 11ms
      ✓ waits for the advertised A instead of loading a new A when B is discovered first 7ms

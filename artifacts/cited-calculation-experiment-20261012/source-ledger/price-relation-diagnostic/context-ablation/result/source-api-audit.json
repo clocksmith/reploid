@@ -2,7 +2,7 @@
   "schema": "reploid.price-context-source-api-audit/v1",
   "neuralModelConstructed": false,
   "newGenerationCalls": 0,
-  "sourceOutputSha256": "f345a109a18e51af615ce3d71e35438cf2997e15250c1ffea7fc11287ed9c5fa",
+  "sourceOutputSha256": "e55675666b1e47c3bd59484de4148dba09634a3a48b04e6f9cc661ed8b52c98b",
   "rows": [
     {
       "id": "fresh-1-control",
@@ -155,7 +155,7 @@
     "/var/tmp/doppler-qwen3-17b-source-20261011/config.json": "1ddb5b89ebc90dcb417a45c213d818577e65976454d29385c8f6140771d95197",
     "/var/tmp/doppler-qwen3-17b-source-20261011/tokenizer_config.json": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
     "/var/tmp/doppler-qwen3-17b-source-20261011/tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
-    "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3/modeling_qwen3.py": "fbdcfeeb1b54135ca67ba7df924da92f4b264e1252b517eea2de989289ebaeab"
+    "~/.local/lib/python3.14/site-packages/transformers/models/qwen3/modeling_qwen3.py": "fbdcfeeb1b54135ca67ba7df924da92f4b264e1252b517eea2de989289ebaeab"
   },
   "template": "Actual retained official template explicitly emits closed empty think block when enable_thinking=false. Exact source and official tokenizer IDs, complete input roundtrip, assistant prefix and bounds reproduce all18 recorded calls.",
   "policy": {

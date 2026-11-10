@@ -8,8 +8,8 @@
 #  4. Minimum release sequence 4 (this Capsule's event, chained to the sequence-3 renewal).
 # Unchanged: script, reference, closure URL and split layers.
 set -eu
-cd /Users/xyz/deco/reploid-wt-final6
-REPORTS=/Users/xyz/deco/reploid-wt-final6/artifacts/completion-qualification-3-20261014/b/reports
+cd ~/deco/reploid-wt-final6
+REPORTS=~/deco/reploid-wt-final6/artifacts/completion-qualification-3-20261014/b/reports
 node artifacts/signed-completion-candidate-20261013/final/prepare-catalog.js \
   /var/tmp/qwen35-capsule-chunk16-20261014-b \
   /var/tmp/reploid-signed-completion-app-7-20261014/app/node_modules/doppler-gpu \

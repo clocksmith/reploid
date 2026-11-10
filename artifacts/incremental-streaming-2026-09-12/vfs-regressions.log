@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+ RUN  v4.1.10 ~/deco/worktrees/reploid-consumer-streaming
 
  ✓ tests/integration/vfs.test.js (36 tests) 22ms
 

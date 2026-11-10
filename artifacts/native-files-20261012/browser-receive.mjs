@@ -1,4 +1,4 @@
-import { chromium } from '/Users/xyz/deco/reploid/node_modules/playwright/index.mjs';
+import { chromium } from '~/deco/reploid/node_modules/playwright/index.mjs';
 import fs from 'node:fs/promises';
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
@@ -39,6 +39,6 @@ try {
    return { supplier:target, requesterTransport:transport._getPeerId(), returnedBytes:[...bytes],source:source.getReceipt(),files:files.getState(),userAgent:navigator.userAgent };
   } catch(error) { return {error:error.message,peers:transport.getConnectedPeers(),files:files?.getState(),requesterTransport:transport._getPeerId()}; } finally {clearInterval(timer);await source?.storage.close();await files?.close();transport.disconnect();}
  });
- await fs.writeFile('/Users/xyz/deco/reploid/artifacts/native-files-20261012/browser-receive.json',JSON.stringify({...result,network},null,2));
+ await fs.writeFile('~/deco/reploid/artifacts/native-files-20261012/browser-receive.json',JSON.stringify({...result,network},null,2));
  console.log(JSON.stringify(result));
 } finally {await browser.close();}

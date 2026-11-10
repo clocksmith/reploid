@@ -1,7 +1,7 @@
 {
   "schema": "reploid.fixed-document-manual-review/v1",
   "reviewer": "assistant source/output inspection; not an independent protected or human review",
-  "receiptSha256": "f7bd6ac055c222fd2377e02ad5b45c01250e70a4ece7e7896eb030bfa0b5e89e",
+  "receiptSha256": "913057fdd0138f8f81bdde25413f5ad81e24d89635d828858042d3dca607b0db",
   "candidateAccepted": false,
   "protectedConfirmationRun": false,
   "productionChanged": false,

@@ -1374,7 +1374,7 @@
     "createdAt": 1791780118737
   },
   "interactionPass": false,
-  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"approval\"\nReceived: \"queued\"\n    at Proxy.<anonymous> (/Users/xyz/deco/reploid/node_modules/playwright/lib/matchers/expect.js:213:24)\n    at file:///private/tmp/reploid-phone-permissions-continuation.mjs:12:348",
+  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"approval\"\nReceived: \"queued\"\n    at Proxy.<anonymous> (~/deco/reploid/node_modules/playwright/lib/matchers/expect.js:213:24)\n    at file:///private/tmp/reploid-phone-permissions-continuation.mjs:12:348",
   "failedThread": {
     "id": "5c2bfc8a-9925-4333-905b-e4aa3069c7fa",
     "model": {

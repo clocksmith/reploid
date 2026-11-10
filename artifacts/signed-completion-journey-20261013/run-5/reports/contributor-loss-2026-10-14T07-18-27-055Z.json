@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "contributor-loss",
   "startedAt": "2026-10-14T07:18:27.055Z",
-  "configSha256": "e116cb698db0b9fd3bed10eab92f9d4fc67d6c57dbcbc5a8204cf68927501026",
+  "configSha256": "83a93ad0ebea24704ad824087ba7fa10230da94abd0aab494ee10f730e543379",
   "fixtureSha256": "658f35be1d2beab062a8d7e1a54303c0af5d0619201acb4347730a0d944d162f",
   "freeze": {
     "browserBundle": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2",
@@ -1127,7 +1127,7 @@
     "status": "A computer disconnected. Retry this answer.",
     "technical": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
   },
-  "failure": "Error: Coordinator failure receipt deadline\n    at waitFor (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:183:9)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:83:31",
+  "failure": "Error: Coordinator failure receipt deadline\n    at waitFor (file://~/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:183:9)\n    at async file://~/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:83:31",
   "body": "7\n7\nThreads\nQwen 3.5 0.8B\nConversation\nCount from 1 to 40 in order, one integer per line. No commentary.\nfailed\n…\nCount from 1 to 40 in order, one integer per line. No commentary.\nFailed · 3 computers\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n\nA computer disconnected. Retry this answer.\n\nTechnical details\nRetry response\nStarts a new attempt; keeps this response.\nMessage\nAttach files\n\nModel unavailable.\n\nRetry connection",
   "finalState": {
     "schema": "reploid.chat-owner-observation/v1",

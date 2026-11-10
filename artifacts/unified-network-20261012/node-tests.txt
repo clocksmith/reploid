@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/swarm-origin-policy.test.js (2 tests) 2ms
  ✓ tests/integration/public-swarm-server.test.js (6 tests) 807ms

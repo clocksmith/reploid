@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-paired-boundary.test.js (8 tests) 59ms
  ✓ tests/unit/partition-api.test.js (41 tests) 3605ms

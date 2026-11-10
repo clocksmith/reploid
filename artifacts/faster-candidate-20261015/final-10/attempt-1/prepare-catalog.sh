@@ -13,8 +13,8 @@
 #  5. Runs from the main checkout (5610260a), not a worktree.
 # Unchanged: script, closure URL and split layers.
 set -eu
-cd /Users/xyz/deco/reploid
-REPORTS=/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c/reports
+cd ~/deco/reploid
+REPORTS=~/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c/reports
 node artifacts/signed-completion-candidate-20261013/final/prepare-catalog.js \
   /var/tmp/qwen35-capsule-faster-20261015 \
   /var/tmp/reploid-signed-completion-app-10-20261015/app/node_modules/doppler-gpu \

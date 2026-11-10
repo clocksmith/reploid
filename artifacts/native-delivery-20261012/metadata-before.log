@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/native-delivery.test.js (2 tests | 1 failed) 86ms
    ✓ rejects undeclared native dependencies instead of emitting an incomplete installer 1ms

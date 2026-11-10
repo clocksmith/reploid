@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/native-gpu-lifetime.test.js (3 tests | 3 failed) 58ms
    × keeps the provider reachable until the exact owned device lost event settles 56ms

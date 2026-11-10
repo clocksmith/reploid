@@ -9,7 +9,7 @@ new npm publication was performed.
 
 Reploid `46a27ee175086e68fbf2603a13a3bc7f534609e6` includes the prepared
 published-0.6.1 pin update, now cherry-picked as `81f5dae`. The original prepared
-worktree is local at `/home/x/deco/worktrees/reploid-doppler-061`; no SSH host is
+worktree is local at `~/deco/worktrees/reploid-doppler-061`; no SSH host is
 required. Its [historical acceptance record](../doppler-release-061-2026-09-08/2026-09-12/)
 remains distinct from this streaming candidate.
 

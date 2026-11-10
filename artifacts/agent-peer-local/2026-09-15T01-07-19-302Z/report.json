@@ -110,6 +110,6 @@
       }
     }
   },
-  "error": "Error: agent uses recovered result timed out\n    at Timeout.<anonymous> (file:///home/x/deco/worktrees/reploid-agent-durable-peer/tests/agent-peer-acceptance.js:45:37)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)",
+  "error": "Error: agent uses recovered result timed out\n    at Timeout.<anonymous> (file://~/deco/worktrees/reploid-agent-durable-peer/tests/agent-peer-acceptance.js:45:37)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)",
   "agentFailure": null
 }

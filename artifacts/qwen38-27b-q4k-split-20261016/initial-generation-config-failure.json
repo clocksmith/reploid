@@ -10,7 +10,7 @@
   "passed": false,
   "error": {
     "message": "Worker exited 1/null",
-    "stack": "Error: Worker exited 1/null\n    at ChildProcess.<anonymous> (file:///home/x/deco/reploid/.tmp/qwen38-q4-split-20261016/qwen-partition-control.js:34:91)\n    at ChildProcess.emit (node:events:519:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)"
+    "stack": "Error: Worker exited 1/null\n    at ChildProcess.<anonymous> (file://~/deco/reploid/.tmp/qwen38-q4-split-20261016/qwen-partition-control.js:34:91)\n    at ChildProcess.emit (node:events:519:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)"
   },
   "finishedAt": "2026-10-16T18:08:44.586Z"
 }

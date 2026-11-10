@@ -109,6 +109,6 @@
       }
     }
   },
-  "error": "page.evaluate: TypeError: agent.getState is not a function\n    at Module.runAgent (http://127.0.0.1:42935/tests/fixtures/agent-peer-browser.js:190:25)\n    at /home/x/deco/worktrees/reploid-agent-durable-peer/tests/agent-peer-acceptance.js:95:34",
+  "error": "page.evaluate: TypeError: agent.getState is not a function\n    at Module.runAgent (http://127.0.0.1:42935/tests/fixtures/agent-peer-browser.js:190:25)\n    at ~/deco/worktrees/reploid-agent-durable-peer/tests/agent-peer-acceptance.js:95:34",
   "agentFailure": "TypeError: agent.getState is not a function\n    at Module.runAgent (http://127.0.0.1:42935/tests/fixtures/agent-peer-browser.js:190:25)"
 }

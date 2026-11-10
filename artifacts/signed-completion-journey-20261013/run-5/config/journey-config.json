@@ -1,6 +1,6 @@
 {
  "schema": "reploid.signed-completion-journey-config/v1",
- "reportDirectory": "/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-5/reports",
+ "reportDirectory": "~/deco/reploid/artifacts/signed-completion-journey-20261013/run-5/reports",
  "application": {
   "roomFile": "/var/tmp/reploid-signed-completion-journey-run5-20261013/private-room.json",
   "descriptorPath": "/config/browser-bundle-manifest.json",
@@ -82,7 +82,7 @@
   }
  },
  "contributorControl": {
-  "module": "/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-5/tools/contributor-control.mjs",
+  "module": "~/deco/reploid/artifacts/signed-completion-journey-20261013/run-5/tools/contributor-control.mjs",
   "stopExport": "stopContributor",
   "restoreExport": "restoreContributor",
   "lossTarget": "amd-host"

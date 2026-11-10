@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/partition-discovery-invalidation.test.js (2 tests | 1 failed) 4ms
      ✓ withdraws only the rejected model and does not resurrect it from an older in-flight observation 2ms

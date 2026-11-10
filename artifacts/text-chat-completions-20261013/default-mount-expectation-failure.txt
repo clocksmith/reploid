@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/integration/chat-completions.test.js > requires explicit authentication and disclosure ports 1ms
  ✓ tests/integration/chat-completions.test.js > rejects unsupported tools explicitly 0ms

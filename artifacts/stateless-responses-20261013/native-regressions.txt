@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/native-participant.test.js > settles the provider after failed participant cleanup and shares overlapping stops 1ms
  ✓ tests/unit/native-participant.test.js > native host boundary > does not substitute manifest opening for an explicitly requested signed Capsule 1ms

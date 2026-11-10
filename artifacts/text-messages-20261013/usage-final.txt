@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 2 stages and preserves the complete route in compact returned evidence 44ms
  ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 3 stages and preserves the complete route in compact returned evidence 32ms

@@ -3,7 +3,7 @@
   "node": "v22.22.1",
   "platform": "linux",
   "architecture": "x64",
-  "evidence": "/home/x/deco/reploid/artifacts/library-acceptance/2026-09-27T21-07-43-419Z",
+  "evidence": "~/deco/reploid/artifacts/library-acceptance/2026-09-27T21-07-43-419Z",
   "consumer": "/tmp/reploid-installed-consumer-d4XAfo",
   "checks": [
     {
@@ -820,7 +820,7 @@
     "Deployment"
   ],
   "archive": {
-    "path": "/home/x/deco/reploid/artifacts/library-acceptance/2026-09-27T21-07-43-419Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-09-27T21-07-43-419Z/reploid-0.1.0.tgz",
     "sha256": "cf4c980a7213f17f9c10f44703b04f28cb8833a8f5a2a38d00a4c08c9789d3b8"
   },
   "dopplerConsumer": "/tmp/reploid-doppler-consumer-V6G9dX",

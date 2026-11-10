@@ -1,8 +1,8 @@
 {
   "schema": "reploid.split-identity-audit/v1",
   "at": "2026-10-16T18:22:12Z",
-  "modelDirectory": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
-  "runtimeDirectory": "/home/x/.local/share/reploid/releases/q4k-27b-6ba1f43a/reploid/node_modules/doppler-gpu",
+  "modelDirectory": "~/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+  "runtimeDirectory": "~/.local/share/reploid/releases/q4k-27b-6ba1f43a/reploid/node_modules/doppler-gpu",
   "modelFiles": [
     {
       "path": "shard_00000.bin",

@@ -50,7 +50,7 @@ Running 2 tests using 1 worker
       108 |       expect(requests).toBe(2);
       109 |       await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
       110 |     });
-        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:107:56
+        at ~/deco/reploid/tests/e2e/boot.spec.js:107:56
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/boot-Route-Entry-Points-bo-b95a5-ion-storage-is-unavailable--chromium/test-failed-1.png
@@ -89,7 +89,7 @@ Running 2 tests using 1 worker
       108 |       expect(requests).toBe(2);
       109 |       await expect(page.locator('[data-chat-workspace]')).toHaveCount(0);
       110 |     });
-        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:107:56
+        at ~/deco/reploid/tests/e2e/boot.spec.js:107:56
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/boot-Route-Entry-Points-bo-b23e0-unavailable-pool-entry-html-chromium/test-failed-1.png

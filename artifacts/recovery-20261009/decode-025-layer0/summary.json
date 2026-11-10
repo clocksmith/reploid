@@ -100,7 +100,7 @@
   "rawEvidence": [
     {
       "direction": "linux-mac",
-      "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-14-18-449Z/reference-linux-mac.json",
+      "remote": "~/deco/reploid/artifacts/distributed/2026-10-10T04-14-18-449Z/reference-linux-mac.json",
       "local": "/tmp/reploid-decode-025-layer0-linux-mac.json.gz",
       "compressedSha256": "583195809aa2b7801529e15f961a8af9c74afb6571ddc5bbff7189fdaa3c3a24",
       "nativeComparisons": [
@@ -172,7 +172,7 @@
     },
     {
       "direction": "mac-linux",
-      "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-14-18-449Z/reference-mac-linux.json",
+      "remote": "~/deco/reploid/artifacts/distributed/2026-10-10T04-14-18-449Z/reference-mac-linux.json",
       "local": "/tmp/reploid-decode-025-layer0-mac-linux.json.gz",
       "compressedSha256": "abeb451dfa20d82c32c590a6159262d67d2785bc6d419cea888798394de04137",
       "nativeComparisons": [

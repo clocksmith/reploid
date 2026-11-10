@@ -6,7 +6,7 @@ import { configureDeviceMemoryBudget, inspectDeviceMemory } from 'doppler-gpu/pa
 import { getDevice, destroyBufferPool, captureMemorySnapshot } from 'doppler-gpu/tooling';
 import { doppler } from 'doppler-gpu/compat';
 
-const repo = '/home/x/deco/reploid';
+const repo = '~/deco/reploid';
 const fixture = JSON.parse(await fs.readFile(new URL('input.json', import.meta.url), 'utf8'));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const expectedArchive = '5f3eb80ec0d46e83039f00c340801591371c82bd8767ff8271486dd32c896132';
@@ -30,7 +30,7 @@ try {
   const model = (Array.isArray(catalog) ? catalog : catalog.models).find(row => row.id === 'qwen-3-5-0-8b-q4k-ehaf16');
   const { resolvePartitionGeneration } = await import(pathToFileURL(repo + '/self/config/partition-generation.js'));
   receipt.generation = resolvePartitionGeneration(model);
-  const modelPath = '/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/';
+  const modelPath = '~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/';
   receipt.manifestSha256 = sha(await fs.readFile(modelPath + 'manifest.json'));
   session = await doppler.open({ url: pathToFileURL(modelPath).href }, { cache: false, runtimeConfig: {
     shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: false } } },

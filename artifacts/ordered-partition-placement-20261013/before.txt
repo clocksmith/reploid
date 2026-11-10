@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/partition-route-placement.test.js (11 tests | 11 failed) 5ms
      × selects all 2 stages independently of replica inventory order 3ms

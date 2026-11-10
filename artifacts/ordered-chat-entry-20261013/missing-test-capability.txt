@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/ordered-partition-chat-entry.test.js (11 tests | 1 failed) 246ms
      ✓ streams through 2 stages and preserves the complete route in compact returned evidence 34ms

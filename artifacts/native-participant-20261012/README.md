@@ -71,11 +71,11 @@ npm install --prefix /var/tmp/reploid-native-deps-20261012 --no-audit --no-fund 
 node server/native-participant.js \
   --connect-only \
   --model qwen-3-5-0-8b-q4k-ehaf16 \
-  --model-directory /home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 \
+  --model-directory ~/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 \
   --identity-file /var/tmp/reploid-native-20261012/identity.json \
   --rtc-module /var/tmp/reploid-native-deps-20261012/node_modules/@roamhq/wrtc/lib/index.js \
   --ws-module /var/tmp/reploid-native-deps-20261012/node_modules/ws/wrapper.mjs \
-  --gpu-module /home/x/deco/reploid/node_modules/webgpu/index.js \
+  --gpu-module ~/deco/reploid/node_modules/webgpu/index.js \
   --signaling-url ws://127.0.0.1:18000/swarm
 ```
 

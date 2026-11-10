@@ -564,7 +564,7 @@
     "approvalId": "bbf1f0a7-40f7-4f78-8114-a7e5de923d8e"
   },
   "interactionPass": false,
-  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"approval\"\nReceived: \"queued\"\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at pollMatcher (/Users/xyz/deco/reploid/node_modules/playwright/lib/matchers/expect.js:293:11)\n    at async file:///private/tmp/reploid-phone-permissions-continuation.mjs:11:146",
+  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"approval\"\nReceived: \"queued\"\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at pollMatcher (~/deco/reploid/node_modules/playwright/lib/matchers/expect.js:293:11)\n    at async file:///private/tmp/reploid-phone-permissions-continuation.mjs:11:146",
   "failedThread": {
     "id": "5c2bfc8a-9925-4333-905b-e4aa3069c7fa",
     "model": {

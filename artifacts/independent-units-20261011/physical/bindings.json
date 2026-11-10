@@ -1,7 +1,7 @@
 {
   "schema": "reploid.independent-unit-physical-bindings/v1",
   "reploidArchive": {
-    "path": "/home/x/deco/reploid/artifacts/library-acceptance/2026-10-11T12-29-03-819Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-10-11T12-29-03-819Z/reploid-0.1.0.tgz",
     "sha256": "d403a08ff161a9bbee0e576aa255c12d87ba437a758c07527e6abe17fb9ed104"
   },
   "dopplerArchive": {
@@ -9536,8 +9536,8 @@
     "mode": "capsule",
     "packageBundlePath": "/tmp/doppler-embedding-subdivision-installed-20261011",
     "modelDir": "/tmp/doppler-embedding-retained-xss38o55/artifacts/model",
-    "referencePath": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
-    "outputDir": "/home/x/deco/doppler/reports/local/embedding-subdivision-20261011/managed",
+    "referencePath": "~/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
+    "outputDir": "~/deco/doppler/reports/local/embedding-subdivision-20261011/managed",
     "requiredVendor": "amd",
     "timeoutMs": 600000,
     "repeatRuns": 1,

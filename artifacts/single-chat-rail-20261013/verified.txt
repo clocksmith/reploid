@@ -57,7 +57,7 @@ Running 21 tests using 1 worker
       174 |     await expect(network).toBeFocused();await page.keyboard.press('Enter');
       175 |     const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
       176 |     const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/single-chat-rail-20261013/verified/chat-rail-layout-light-key-4cefa-d-marble-switches-at-1440px-chromium-swiftshader/test-failed-1.png
@@ -89,7 +89,7 @@ Running 21 tests using 1 worker
       174 |     await expect(network).toBeFocused();await page.keyboard.press('Enter');
       175 |     const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
       176 |     const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/single-chat-rail-20261013/verified/chat-rail-layout-light-key-250c6-nd-marble-switches-at-320px-chromium-swiftshader/test-failed-1.png
@@ -121,7 +121,7 @@ Running 21 tests using 1 worker
       174 |     await expect(network).toBeFocused();await page.keyboard.press('Enter');
       175 |     const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
       176 |     const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
-        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
+        at ~/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     artifacts/single-chat-rail-20261013/verified/chat-rail-layout-dark-keyb-70efe-d-marble-switches-at-1440px-chromium-swiftshader/test-failed-1.png

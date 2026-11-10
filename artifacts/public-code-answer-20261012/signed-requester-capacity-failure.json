@@ -7,7 +7,7 @@
   "errors": [],
   "turns": [],
   "ok": false,
-  "failure": "locator.waitFor: Timeout 300000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-model-control][data-activity=\"ready\"]') to be visible\u001b[22m\n\n    at /Users/xyz/deco/reploid/[eval1]:3:260",
+  "failure": "locator.waitFor: Timeout 300000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-model-control][data-activity=\"ready\"]') to be visible\u001b[22m\n\n    at ~/deco/reploid/[eval1]:3:260",
   "body": "7\n7\n7\n7\n2 peers\nMessage\nAttach files\nRetry connection",
   "finishedAt": "2026-10-13T11:33:46.005Z"
 }

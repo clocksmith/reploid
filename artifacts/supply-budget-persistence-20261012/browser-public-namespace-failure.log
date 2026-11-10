@@ -31,7 +31,7 @@ Running 4 tests using 1 worker
       50 |     for (const page of pages) await page.evaluate(() => window.fixture.exchange.offer([window.fixture.descriptor]));
       51 |     for (const page of pages) await expect.poll(() => page.evaluate(() => window.fixture.exchange.has(window.fixture.descriptor))).toBe(true);
       52 |     // Reproduce the restart boundary: the supplier still has the file, but
-        at /Users/xyz/deco/reploid/tests/e2e/custody-exchange.spec.js:49:31
+        at ~/deco/reploid/tests/e2e/custody-exchange.spec.js:49:31
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/custody-exchange-actual-sw-2fe43-clocks-and-no-channel-glare-chromium/test-failed-1.png

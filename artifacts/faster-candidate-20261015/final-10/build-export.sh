@@ -12,7 +12,7 @@
 set -eu
 X=$1; COMMIT=$2; CAPSULE=$3; REPORTS=$4; MIN=$5; R=$6; PHASE=$7; ARCHIVE=${8:-/var/tmp/doppler-faster-candidate-20261015/doppler-gpu-0.6.28.tgz}
 ARCHIVE_SHA=${9:-21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f}
-REPO=/Users/xyz/deco/reploid
+REPO=~/deco/reploid
 test "$(shasum -a 256 $ARCHIVE | cut -d' ' -f1)" = "$ARCHIVE_SHA"
 if [ "$PHASE" = prepare ]; then
   test ! -e "$X"; mkdir -p "$X/app" "$X/signed-catalog" "$R"

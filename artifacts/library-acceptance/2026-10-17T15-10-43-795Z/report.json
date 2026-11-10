@@ -3,7 +3,7 @@
   "node": "v22.20.0",
   "platform": "darwin",
   "architecture": "arm64",
-  "evidence": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-10-17T15-10-43-795Z",
+  "evidence": "~/deco/reploid/artifacts/library-acceptance/2026-10-17T15-10-43-795Z",
   "consumer": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-installed-consumer-hZLk7q",
   "checks": [
     {
@@ -20,7 +20,7 @@
       "name": "published-assets-and-application-copy",
       "status": "failed",
       "durationMs": 63.36433399999942,
-      "error": "AssertionError [ERR_ASSERTION]: chat/workspace.js\n+ actual - expected\n\n+ 'c892a8deed4f9b24dfa8316a606ed30b9e8f621a5fb522a5408a84cd104f0327'\n- '847e0bc7c1e2022dcf4c0716bc7fd1848b1ff565b454dc33211201e62a67bdcb'\n\n    at file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:92:16\n    at async check (file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:86:5"
+      "error": "AssertionError [ERR_ASSERTION]: chat/workspace.js\n+ actual - expected\n\n+ 'c892a8deed4f9b24dfa8316a606ed30b9e8f621a5fb522a5408a84cd104f0327'\n- '847e0bc7c1e2022dcf4c0716bc7fd1848b1ff565b454dc33211201e62a67bdcb'\n\n    at file://~/deco/reploid/tests/library-package-acceptance.js:92:16\n    at async check (file://~/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file://~/deco/reploid/tests/library-package-acceptance.js:86:5"
     },
     {
       "name": "migrated-adapters-use-public-entries",
@@ -1153,7 +1153,7 @@
     "Deployment"
   ],
   "archive": {
-    "path": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-10-17T15-10-43-795Z/reploid-0.1.0.tgz",
+    "path": "~/deco/reploid/artifacts/library-acceptance/2026-10-17T15-10-43-795Z/reploid-0.1.0.tgz",
     "sha256": "b1cd44773099b31081eb79091c56acb14d0279afe482073e37913cd6d200b3d8"
   },
   "dopplerConsumer": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-doppler-consumer-rCLF4G",

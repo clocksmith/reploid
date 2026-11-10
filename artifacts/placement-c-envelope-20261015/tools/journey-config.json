@@ -1,6 +1,6 @@
 {
   "schema": "reploid.signed-completion-journey-config/v1",
-  "reportDirectory": "/Users/xyz/deco/reploid/artifacts/placement-c-envelope-20261015/matrix",
+  "reportDirectory": "~/deco/reploid/artifacts/placement-c-envelope-20261015/matrix",
   "application": {
     "roomFile": "/var/tmp/reploid-faster-journey-20261015/private-room.json",
     "descriptorPath": "/config/browser-bundle-manifest.json",
@@ -81,7 +81,7 @@
     }
   },
   "contributorControl": {
-    "module": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/journeys/tools/contributor-control.mjs",
+    "module": "~/deco/reploid/artifacts/faster-candidate-20261015/journeys/tools/contributor-control.mjs",
     "stopExport": "stopContributor",
     "restoreExport": "restoreContributor",
     "lossTarget": "amd-host#2"

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-step-receiver.test.js (23 tests) 16ms
  ✓ tests/unit/doppler-partition-contract.test.js (4 tests) 15ms

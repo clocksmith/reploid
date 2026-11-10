@@ -2,7 +2,7 @@
   "ok": false,
   "failure": {
     "phase": "contributor restart diagnostic",
-    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed; inspect /Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T02-31-40-485Z"
+    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed; inspect ~/deco/reploid/artifacts/distributed/2026-10-10T02-31-40-485Z"
   },
   "modelId": "qwen-3-5-2b-q4k-ehaf16",
   "modelFixtureHost": "peer",
@@ -26,8 +26,8 @@
   },
   "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
   "peer": "amd-host",
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
-  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "modelDirectory": "~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "referenceSource": "~/deco/reploid/tests/fixtures/distributed-reference.json.gz",
   "referenceBinding": null,
   "generation": {
     "maxTokens": 4096,

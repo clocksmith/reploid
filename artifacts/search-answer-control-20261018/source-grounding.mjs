@@ -11,7 +11,7 @@ const model=catalog.find(m=>m.id==='qwen-3-5-2b-q4k-ehaf16');assert.equal(model.
 const baseline=JSON.parse(await fs.readFile(new URL('../../packages/reploid/src/retrieval/policy.json',import.meta.url))).context.instructions;
 const gpu=createNativeGpuHost(()=>import('webgpu'));
 const service=createReploidDopplerRuntimeService({loadModule:()=>import('doppler-gpu/compat')});
-const owner=createNativeWholeModel({model,modelDirectory:'/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16',nativeGpu:()=>gpu.open(),service});
+const owner=createNativeWholeModel({model,modelDirectory:'~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16',nativeGpu:()=>gpu.open(),service});
 const output=new URL('./source-grounding.json',import.meta.url);
 const receipt={at:new Date().toISOString(),contract,baselineInstructions:baseline,rows:[],completed:false};
 await fs.writeFile(output,JSON.stringify(receipt,null,2),{flag:'wx'});

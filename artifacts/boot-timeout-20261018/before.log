@@ -45,7 +45,7 @@ Running 2 tests using 1 worker
       102 |       expect(await page.evaluate(() => location.search)).not.toContain('reploidBootRetry');
       103 |     } finally { release(); }
       104 |   });
-        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:101:59
+        at ~/deco/reploid/tests/e2e/boot.spec.js:101:59
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/boot-Route-Entry-Points-op-a9209-odule-downloads-are-stalled-chromium/test-failed-1.png
@@ -74,7 +74,7 @@ Running 2 tests using 1 worker
       118 |     expect(requests).toBe(2);
       119 |   });
       120 |
-        at /Users/xyz/deco/reploid/tests/e2e/boot.spec.js:117:54
+        at ~/deco/reploid/tests/e2e/boot.spec.js:117:54
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/boot-Route-Entry-Points-bo-3a593-after-the-bundle-has-loaded-chromium/test-failed-1.png

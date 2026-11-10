@@ -1,7 +1,7 @@
 {
   "scope": "CPU source integration: real ordered Reploid peer ports over synthetic in-process channels, resident facade, WebCrypto v4 grants and runner and Doppler resident state/sampling/decoder; injected numerical kernels and private cache allocation; real grant signatures only; no signed execution publication, GPU, physical capacity or answer-quality claim",
   "startedAt": "2026-10-13T14:44:53.584Z",
-  "doppler": "/Users/xyz/deco/doppler",
+  "doppler": "~/deco/doppler",
   "cases": [
     {
       "tamperedSignatureRejectedBeforeNumerics": true
@@ -2158,7 +2158,7 @@
     }
   ],
   "passed": false,
-  "failure": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(report.peerStates.every(({ client, server }) => client.receipt.completedRequests > 0 && server.receipt.completedRequests > 0))\n\n    at file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/peer.mjs:187:3",
+  "failure": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(report.peerStates.every(({ client, server }) => client.receipt.completedRequests > 0 && server.receipt.completedRequests > 0))\n\n    at file://~/deco/reploid/artifacts/ordered-route-integration-20261013/peer.mjs:187:3",
   "cleanup": [
     {
       "status": "fulfilled",

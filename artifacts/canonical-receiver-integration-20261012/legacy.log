@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/catscan.test.js (5 tests) 138ms
  ✓ tests/unit/partition-runner.test.js (24 tests) 15ms

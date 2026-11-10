@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/message-list.test.js (6 tests) 30ms
  ✓ tests/unit/conversation-permission.test.js (2 tests) 85ms

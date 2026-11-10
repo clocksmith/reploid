@@ -18,11 +18,11 @@
           "--model",
           "qwen-3-5-0-8b-q4k-ehaf16",
           "--model-directory",
-          "/home/x/.local/share/reploid/public-native/weights",
+          "~/.local/share/reploid/public-native/weights",
           "--cache-directory",
-          "/home/x/.local/share/reploid/public-native/cache-budget-20261012",
+          "~/.local/share/reploid/public-native/cache-budget-20261012",
           "--identity-file",
-          "/home/x/.local/share/reploid/public-native/identity.json",
+          "~/.local/share/reploid/public-native/identity.json",
           "--rtc-module",
           "@roamhq/wrtc",
           "--ws-module",
@@ -60,7 +60,7 @@
           "maxBytes": 4294967296,
           "reservedBytes": 637534208
         },
-        "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+        "log": "~/.local/state/reploid/public-native-budget-restart-20261012.log",
         "logOffset": 1235697771,
         "checkedAt": 1791857017.4376388,
         "exitObserved": true,
@@ -69,7 +69,7 @@
       "new": {
         "pid": 4103868,
         "startedAt": 1791857017.8636572,
-        "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+        "log": "~/.local/state/reploid/public-native-budget-restart-20261012.log",
         "logOffset": 1235700998
       },
       "verification": {
@@ -239,12 +239,12 @@
           "--model",
           "qwen-3-5-0-8b-q4k-ehaf16",
           "--profile",
-          "/home/x/.local/share/reploid/public-compute",
+          "~/.local/share/reploid/public-compute",
           "--contribute",
           "compute"
         ],
-        "cwd": "/home/x/deco/reploid",
-        "log": "/home/x/.local/state/reploid/public-browser-budget-restored-20261012.log",
+        "cwd": "~/deco/reploid",
+        "log": "~/.local/state/reploid/public-browser-budget-restored-20261012.log",
         "logOffset": 156129,
         "descendants": [
           3391874,
@@ -264,7 +264,7 @@
             "model": "qwen-3-5-0-8b-q4k-ehaf16",
             "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
             "contribution": "compute",
-            "profile": "/home/x/.local/share/reploid/public-compute"
+            "profile": "~/.local/share/reploid/public-compute"
           },
           {
             "event": "participant",
@@ -399,7 +399,7 @@
           "model": "qwen-3-5-0-8b-q4k-ehaf16",
           "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
           "contribution": "compute",
-          "profile": "/home/x/.local/share/reploid/public-compute"
+          "profile": "~/.local/share/reploid/public-compute"
         },
         {
           "event": "participant",

@@ -13,8 +13,8 @@
 # Unchanged: the loopback closure URL. It names where the release owner serves the
 # prepared closure to the browser stage and is an inherited choice, not a measured one.
 set -eu
-cd /Users/xyz/deco/reploid
-REPORTS=/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports
+cd ~/deco/reploid
+REPORTS=~/deco/reploid/artifacts/completion-qualification-2-20261013/reports
 node artifacts/signed-completion-candidate-20261013/prepare-catalog.js \
   /var/tmp/qwen35-capsule-completion-20261013-b \
   /var/tmp/reploid-completion-chat-candidate-20261013/app/node_modules/doppler-gpu \

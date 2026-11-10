@@ -15,7 +15,7 @@ const captures=[];
 const base=createReploidDopplerRuntimeService({loadModule:()=>import('doppler-gpu/compat')});
 const service={...base,async open(args){const session=await base.open(args);return {...session,advanced:{...session.advanced,getStats(){const stats=session.advanced.getStats();captures.push(structuredClone(stats));return stats;}}};}};
 const gpu=createNativeGpuHost(()=>import('webgpu'));
-const owner=createNativeWholeModel({model,modelDirectory:'/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16',nativeGpu:()=>gpu.open(),service});
+const owner=createNativeWholeModel({model,modelDirectory:'~/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16',nativeGpu:()=>gpu.open(),service});
 const receipt={at:new Date().toISOString(),scope:'One diagnostic replay of the failed public 2B request on the owned Mac, identical retained context and pinned runtime; not provider equivalence or a speedup comparison',modelId:model.id,modelIdentity:model.identity,expected:baseline.answer,runs:[],passed:false};
 const save=()=>fs.writeFile(new URL('./failed-request-replay.json',import.meta.url),JSON.stringify(receipt,null,2));
 try{

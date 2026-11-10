@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/partition-data-channel.test.js (21 tests) 264ms
  ✓ tests/unit/catscan.test.js (5 tests) 252ms

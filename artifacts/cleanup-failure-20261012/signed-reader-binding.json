@@ -1,6 +1,6 @@
 {
   "scope": "Actual Reploid host artifact source with candidate signed reader; synthetic two-byte peer transport. No GPU, signatures, or physical qualification.",
-  "packagePath": "/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-3/package",
+  "packagePath": "~/deco/doppler/reports/local/paired-intermediates-20261012/model-3/package",
   "candidateFiles": {
     "src/client/runtime/capsule-piece-reader.js": "eecafa00489c76d36ec5f4e3b808e3d531c0d076731845c1c67a0b18165abff8",
     "src/client/runtime/composition-root.js": "1697d50b8efe8282c04690c2101280d3384badf3223b889ce9aaa7b2049acfc7",

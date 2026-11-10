@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/canonical-product-session.test.js (5 tests) 10ms
  ✓ tests/unit/canonical-shell-opening.test.js (3 tests) 80ms

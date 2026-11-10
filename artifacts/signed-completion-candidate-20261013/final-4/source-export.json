@@ -6,7 +6,7 @@
   "sourceTarSha256": "981bdbfce0014192f469149df60c89e29364f6c4703bd7993e2a42e8750eac80",
   "sameMethodAs": "../final-3/source-export.json",
   "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
-  "runtimeArchiveSource": "/Users/xyz/deco/doppler/artifacts/kernel-completion-repair-20261013/doppler-gpu-0.6.28.tgz",
+  "runtimeArchiveSource": "~/deco/doppler/artifacts/kernel-completion-repair-20261013/doppler-gpu-0.6.28.tgz",
   "excludedHistoricalDirectories": [
     "artifacts",
     "reports",

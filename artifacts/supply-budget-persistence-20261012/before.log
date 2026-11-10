@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ❯ tests/unit/custody-exchange.test.js (19 tests | 1 failed) 1382ms
    ✓ cannot renew the supply allowance by refreshing inventory or stopping and restarting 68ms

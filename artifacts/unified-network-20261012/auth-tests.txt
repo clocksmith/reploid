@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /Users/xyz/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/pool-firebase-auth.test.js (2 tests) 14ms
  ✓ tests/unit/pool-identity.test.js (2 tests) 7ms

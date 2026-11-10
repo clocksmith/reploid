@@ -34,9 +34,9 @@ Boundary effects: none in production. No new permissions, scheduler, model mathe
 
 ## Running receipt and reproduction
 
-`run-binding.json` records the exact command, environment, host and process identity. The supervisor writes final exit status to the same remote binding. Live output is `/home/x/deco/reploid/reports/local/cited-calculation-experiment-20261012/result.json`; `run.log` and per-case extract/answer JSON files retain incremental output. Inspect these read-only. Do not rerun a failed case or change policy while the frozen run is active.
+`run-binding.json` records the exact command, environment, host and process identity. The supervisor writes final exit status to the same remote binding. Live output is `~/deco/reploid/reports/local/cited-calculation-experiment-20261012/result.json`; `run.log` and per-case extract/answer JSON files retain incremental output. Inspect these read-only. Do not rerun a failed case or change policy while the frozen run is active.
 
-The source checkpoint is already verified locally on x128. Reproduce the command in the binding from `/home/x/deco/reploid` with its explicit environment, after coordinating the CPU window. Reproduction is diagnostic, not a way to select a favorable answer.
+The source checkpoint is already verified locally on x128. Reproduce the command in the binding from `~/deco/reploid` with its explicit environment, after coordinating the CPU window. Reproduction is diagnostic, not a way to select a favorable answer.
 
 ## Disposition
 

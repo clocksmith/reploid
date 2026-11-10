@@ -2,7 +2,7 @@
   "schema": "reploid.signed-completion-journey-report/v1",
   "harness": "requester-journey",
   "startedAt": "2026-10-14T06:49:02.972Z",
-  "configSha256": "e116cb698db0b9fd3bed10eab92f9d4fc67d6c57dbcbc5a8204cf68927501026",
+  "configSha256": "83a93ad0ebea24704ad824087ba7fa10230da94abd0aab494ee10f730e543379",
   "fixtureSha256": "67000d39ccb6c79822579a973477e33960d7c1a4cf625a2f8a5674177b2b1dd0",
   "freeze": {
     "browserBundle": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2",

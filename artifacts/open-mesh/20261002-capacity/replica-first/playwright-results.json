@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "/Users/xyz/deco/reploid/playwright.config.js",
-    "rootDir": "/Users/xyz/deco/reploid/tests/e2e",
+    "configFile": "~/deco/reploid/playwright.config.js",
+    "rootDir": "~/deco/reploid/tests/e2e",
     "forbidOnly": false,
     "fullyParallel": false,
     "globalSetup": null,
@@ -16,7 +16,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -24,7 +24,7 @@
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -32,7 +32,7 @@
         "timeout": 300000
       },
       {
-        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "outputDir": "~/deco/reploid/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -40,7 +40,7 @@
         },
         "id": "chromium-swiftshader",
         "name": "chromium-swiftshader",
-        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testDir": "~/deco/reploid/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -106,9 +106,9 @@
                   "duration": 321799,
                   "error": {
                     "message": "TypeError: Cannot read properties of undefined (reading 'attempts')",
-                    "stack": "TypeError: Cannot read properties of undefined (reading 'attempts')\n    at lastAttempt (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:149:104)\n    at Object.expect.poll.timeout (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:151:23)\n    at /Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:156:5",
+                    "stack": "TypeError: Cannot read properties of undefined (reading 'attempts')\n    at lastAttempt (~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:149:104)\n    at Object.expect.poll.timeout (~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:151:23)\n    at ~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:156:5",
                     "location": {
-                      "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                      "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                       "column": 104,
                       "line": 149
                     },
@@ -117,11 +117,11 @@
                   "errors": [
                     {
                       "location": {
-                        "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                        "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                         "column": 104,
                         "line": 149
                       },
-                      "message": "TypeError: Cannot read properties of undefined (reading 'attempts')\n\n  147 |       return (await history(requester)).selectedId;\n  148 |     };\n> 149 |     const lastAttempt = async id => (await history(requester)).threads.find(thread => thread.id === id).attempts.at(-1);\n      |                                                                                                        ^\n  150 |     const waitCompleted = async id => expect.poll(async () => {\n  151 |       const attempt = await lastAttempt(id);\n  152 |       if (['failed', 'cancelled', 'interrupted'].includes(attempt.status)) throw new Error(attempt.error || attempt.status);\n    at lastAttempt (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:149:104)\n    at Object.expect.poll.timeout (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:151:23)\n    at /Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:156:5"
+                      "message": "TypeError: Cannot read properties of undefined (reading 'attempts')\n\n  147 |       return (await history(requester)).selectedId;\n  148 |     };\n> 149 |     const lastAttempt = async id => (await history(requester)).threads.find(thread => thread.id === id).attempts.at(-1);\n      |                                                                                                        ^\n  150 |     const waitCompleted = async id => expect.poll(async () => {\n  151 |       const attempt = await lastAttempt(id);\n  152 |       if (['failed', 'cancelled', 'interrupted'].includes(attempt.status)) throw new Error(attempt.error || attempt.status);\n    at lastAttempt (~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:149:104)\n    at Object.expect.poll.timeout (~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:151:23)\n    at ~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:156:5"
                     }
                   ],
                   "stdout": [
@@ -610,26 +610,26 @@
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-1.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-1.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-2.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-2.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-4.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-4.png"
                     },
                     {
                       "name": "screenshot",
                       "contentType": "image/png",
-                      "path": "/Users/xyz/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-3.png"
+                      "path": "~/deco/reploid/test-results/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/test-failed-3.png"
                     }
                   ],
                   "errorLocation": {
-                    "file": "/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
+                    "file": "~/deco/reploid/tests/e2e/chat-cooperative-real.spec.js",
                     "column": 104,
                     "line": 149
                   }

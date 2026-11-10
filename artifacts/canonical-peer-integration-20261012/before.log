@@ -2,7 +2,7 @@ node:internal/modules/esm/resolve:274
     throw new ERR_MODULE_NOT_FOUND(
           ^
 
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-canonical-contract.js' imported from /Users/xyz/deco/reploid/tests/canonical-peer-contract-source.js
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '~/deco/reploid/packages/reploid/src/mesh/partitions/partition-canonical-contract.js' imported from ~/deco/reploid/tests/canonical-peer-contract-source.js
     at finalizeResolution (node:internal/modules/esm/resolve:274:11)
     at moduleResolve (node:internal/modules/esm/resolve:859:10)
     at defaultResolve (node:internal/modules/esm/resolve:983:11)
@@ -14,7 +14,7 @@ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/xyz/deco/reploid/packag
     at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
     at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
   code: 'ERR_MODULE_NOT_FOUND',
-  url: 'file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-canonical-contract.js'
+  url: 'file://~/deco/reploid/packages/reploid/src/mesh/partitions/partition-canonical-contract.js'
 }
 
 Node.js v22.20.0
