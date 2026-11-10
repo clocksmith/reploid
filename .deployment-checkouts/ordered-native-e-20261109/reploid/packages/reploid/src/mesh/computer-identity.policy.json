@@ -1,0 +1,8 @@
+{
+  "labelVersion": "reploid-label-v1:",
+  "storagePrefix": "reploid.computer-label:v1:",
+  "maxLabelLength": 64,
+  "maxBackgroundProofs": 1,
+  "colors": ["Amber", "Azure", "Bronze", "Cobalt", "Copper", "Coral", "Crimson", "Emerald", "Garnet", "Golden", "Indigo", "Ivory", "Jade", "Lavender", "Lilac", "Lunar", "Mint", "Moss", "Onyx", "Opal", "Pearl", "Plum", "Quartz", "Ruby", "Saffron", "Sapphire", "Scarlet", "Silver", "Slate", "Teal", "Violet", "Viridian"],
+  "animals": ["Badger", "Crane", "Dolphin", "Falcon", "Finch", "Fox", "Gecko", "Heron", "Ibis", "Jaguar", "Kestrel", "Kingfisher", "Lark", "Lynx", "Marten", "Moth", "Otter", "Owl", "Panda", "Puffin", "Raven", "Robin", "Seal", "Sparrow", "Starling", "Swift", "Tiger", "Tern", "Turtle", "Whale", "Wolf", "Wren"]
+}

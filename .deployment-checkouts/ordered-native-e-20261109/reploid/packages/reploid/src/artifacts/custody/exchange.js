@@ -1,0 +1,405 @@
+import { signDeliveryAttestation } from '../delivery-attestation.js';
+
+/** Discovery composition for the existing signed custody store and bounded byte channel. */
+export function createCustodyExchange({ transport, identity, policy, ports }) {
+  policy = structuredClone(policy);
+  for (const name of ['maxTransfers', 'maxPeers', 'maxAcquisitionAttempts', 'maxInventoryFiles', 'maxSupplyBytes', 'maxArtifactBytes', 'grantMs']) {
+    if (!Number.isSafeInteger(policy[name]) || policy[name] <= 0) throw new Error('Invalid custody policy: ' + name);
+  }
+  const { createSupplier, createStore, createChannel, readArtifact, verifyArtifact, hash, hashBytes, checkpoints } = ports;
+  const now = ports.now || Date.now;
+  const budgetState = (state = ports.supplyBudget?.getState()) => {
+    if (!state || state.maxBytes !== policy.maxSupplyBytes || !Number.isSafeInteger(state.reservedBytes)
+      || state.reservedBytes < 0 || state.reservedBytes > state.maxBytes) throw new Error('Persistent file contribution budget unavailable');
+    return state;
+  };
+  const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
+  const offerWaiters = new Set();
+  // A supplier that delivered nothing (silent past a deadline or disconnected) may answer a later grant.
+  const unavailable = message => Object.assign(new Error(message), { code: 'CUSTODY_SUPPLIER_UNAVAILABLE' });
+  const lifetime = new AbortController();
+  const operations = new Set(), supplyOperations = new Set();
+  const ownSupply = operation => {
+    operations.add(operation); supplyOperations.add(operation);
+    operation.finally(() => { operations.delete(operation); supplyOperations.delete(operation); }).catch(() => {});
+    return operation;
+  };
+  let offered = [], supply = false, supplyEpoch = 0, reserved = 0, preparing = 0, acquiring = 0, closed = false;
+  const key = artifact => JSON.stringify([artifact.path, artifact.hash, artifact.hashAlgorithm, artifact.sizeBytes]);
+  // Relative paths of plain segments: signed catalogs name program files under artifacts/... (full-model
+  // seeding offers them); never absolute, empty, '.' or '..' segments. Storage is keyed by hash, not path.
+  const safePath = path => typeof path === 'string' && path.length > 0 && path.length <= 256
+    && path.split('/').every(segment => /^[\w.-]+$/.test(segment) && segment !== '.' && segment !== '..');
+  const valid = artifact => artifact && typeof artifact === 'object' && safePath(artifact.path)
+    && typeof artifact.role === 'string' && artifact.role.length <= 64
+    && typeof artifact.hash === 'string' && /^[a-f0-9]{64}$/.test(artifact.hash)
+    && ['sha256', 'blake3'].includes(artifact.hashAlgorithm)
+    && Number.isSafeInteger(artifact.sizeBytes) && artifact.sizeBytes > 0 && artifact.sizeBytes <= policy.maxArtifactBytes;
+  const live = () => { lifetime.signal.throwIfAborted(); };
+  const connected = () => {
+    const ids = new Set(transport.getConnectedPeers().map(peer => peer.id));
+    for (const peer of peers.keys()) if (!ids.has(peer)) peers.delete(peer);
+    return ids;
+  };
+  const notify = () => ports.onChange?.();
+  // Identity certificates travel beside requests and grants, never inside them, so grant hashes
+  // and older peers are unchanged. Only one bound to the party's grant key and peer id is kept;
+  // verifying who signed it belongs to whoever attributes the transfer.
+  const bound = (certificate, party) => certificate !== null && typeof certificate === 'object' && !Array.isArray(certificate)
+    && certificate.custodyPeerId === party?.peerId && certificate.custodyPublicKey === party?.publicKey
+    && JSON.stringify(certificate).length <= policy.channel.maxControlBytes;
+  const ownCertificate = async () => {
+    if (!ports.certificate) return null;
+    try {
+      const certificate = await ports.certificate();
+      return bound(certificate, identity) ? structuredClone(certificate) : null;
+    } catch (error) { ports.onError?.(error); return null; }
+  };
+  // A certified requester signs the exact completed receipt with the custody key its grant names,
+  // for whoever claims the delivery. An uncertified host's key names no one, so it signs nothing.
+  const attest = async (receipt, certificate) => {
+    if (!certificate) return null;
+    try { return await signDeliveryAttestation({ receipt, attestedAt: new Date(now()).toISOString(), privateKey: identity.privateKey, hash }); }
+    catch (error) { ports.onError?.(error); return null; }
+  };
+  // Optional host admission: it withholds new supply and its advertisement; granted transfers continue.
+  const admitted = (active, advertise) => !ports.admitSupply || ports.admitSupply({ active, advertise }) === true;
+  const announce = peer => {
+    const payload = { artifacts: supply && admitted(0, true) ? offered : [] };
+    if (peer) transport.sendToPeer(peer, 'reploid:custody-offer', payload);
+    else transport.broadcast('reploid:custody-offer', payload);
+  };
+  const install = (peer, channel) => {
+    if (closed || channels.has(peer) || channels.size >= policy.maxPeers || !connected().has(peer)) { channel.close(); return; }
+    let bus;
+    const ready = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => { channel.close(); reject(unavailable('Custody channel open timed out')); }, policy.channel.timeoutMs);
+      const open = () => {
+        clearTimeout(timeout);
+        try {
+          bus = createChannel({ channel, limits: policy.channel, serve: request => {
+            const entry = suppliers.get(request.transferId);
+            if (!supply || entry?.peer !== peer) throw new Error('File supply is not authorized');
+            return ownSupply(Promise.resolve(entry.supplier.serve(request)));
+          } });
+          resolve(bus);
+        } catch (error) { channel.close(); reject(error); }
+      };
+      if (channel.readyState === 'open') open(); else channel.addEventListener('open', open, { once: true });
+      channel.addEventListener('close', () => { clearTimeout(timeout); reject(unavailable('Custody peer disconnected')); }, { once: true });
+    });
+    const entry = { ready, close: () => { bus?.close(); channel.close(); } };
+    channels.set(peer, entry); ready.catch(() => {});
+    channelWaiters.get(peer)?.finish(null, ready);
+    channel.addEventListener('close', () => { if (channels.get(peer) === entry) channels.delete(peer); }, { once: true });
+    return entry;
+  };
+  const channelFor = (peer, signal) => {
+    signal.throwIfAborted();
+    let ready = channels.get(peer)?.ready;
+    // Exactly one endpoint opens the auxiliary channel, including simultaneous
+    // acquisitions in opposite directions. No channel glare or replacement.
+    if (!ready && identity.peerId < peer) ready = install(peer, transport.openDataChannel(peer, 'reploid-custody')).ready;
+    if (!ready) {
+      ready = channelWaiters.get(peer)?.ready;
+      if (!ready) {
+        ready = new Promise((resolve, reject) => {
+          const timer = setTimeout(() => finish(unavailable('Custody channel open timed out')), policy.channel.timeoutMs);
+          const finish = (error, result) => {
+            clearTimeout(timer); channelWaiters.delete(peer);
+            if (error) reject(error); else resolve(result);
+          };
+          channelWaiters.set(peer, { finish });
+        });
+        channelWaiters.get(peer).ready = ready;
+        if (!transport.sendToPeer(peer, 'reploid:custody-request', { channel: true })) {
+          channelWaiters.get(peer).finish(unavailable('File peer disconnected'));
+        }
+      }
+    }
+    return new Promise((resolve, reject) => {
+      const abort = () => reject(signal.reason);
+      signal.addEventListener('abort', abort, { once: true });
+      ready.then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
+    });
+  };
+  const revokeSupply = () => {
+    supply = false; supplyEpoch++;
+    for (const entry of suppliers.values()) { clearTimeout(entry.timer); entry.supplier.close(); }
+    suppliers.clear();
+  };
+  const stopSupply = () => { revokeSupply(); announce(); notify(); return Promise.allSettled([...supplyOperations]); };
+  const unsub = transport.onDataChannel('reploid-custody', install);
+  transport.onMessage('reploid:custody-offer', (peer, message) => {
+    if (closed || !Array.isArray(message?.artifacts) || message.artifacts.length > policy.maxInventoryFiles
+      || !message.artifacts.every(valid)) return;
+    if (!connected().has(peer) || !peers.has(peer) && peers.size >= policy.maxPeers) return;
+    const first = !peers.has(peer);
+    peers.set(peer, structuredClone(message.artifacts)); if (first) announce(peer); notify();
+    for (const wake of offerWaiters) wake();
+  });
+  transport.onMessage('reploid:custody-response', (peer, message) => {
+    const entry = pending.get(message?.id);
+    if (!entry || entry.peer !== peer) return;
+    entry.finish(message.error ? new Error(message.error) : null, message);
+  });
+  transport.onMessage('reploid:custody-request', (peer, message) => {
+    if (closed) return;
+    if (message?.channel === true) {
+      if (identity.peerId < peer && !channels.has(peer)
+        && transport.getConnectedPeers().some(item => item.id === peer)) {
+        try { install(peer, transport.openDataChannel(peer, 'reploid-custody')); }
+        catch (error) { ports.onError?.(error); }
+      }
+      return;
+    }
+    if (message?.release) {
+      const entry = suppliers.get(message.release);
+      if (entry?.peer === peer) { entry.supplier.close(); clearTimeout(entry.timer); suppliers.delete(message.release); }
+      return;
+    }
+    const operation = (async () => {
+      live();
+      if (typeof message?.id !== 'string' || message.id.length > 128 || !valid(message.artifact)) throw new Error('Invalid file request');
+      if (message.maxExpiresAt !== undefined && !Number.isSafeInteger(message.maxExpiresAt)) throw new Error('Invalid file expiry limit');
+      if (!supply || preparing + suppliers.size >= policy.maxTransfers
+        || !admitted(preparing + suppliers.size, false)) throw new Error('File contribution unavailable');
+      const descriptor = offered.find(item => key(item) === key(message.artifact));
+      if (!descriptor || message.requester?.peerId !== peer || !message.requester.publicKey) throw new Error('Unapproved artifact request');
+      const selected = rangeDescriptor(descriptor, message.range);
+      if (!Number.isSafeInteger(descriptor.sizeBytes) || descriptor.sizeBytes > policy.maxArtifactBytes
+        || reserved + selected.sizeBytes > policy.maxSupplyBytes) throw new Error('File contribution limit reached');
+      const epoch = supplyEpoch; preparing++;
+      try {
+        budgetState();
+        const reservation = await ports.supplyBudget.reserve(selected.sizeBytes);
+        reserved = Math.max(reserved, budgetState(reservation).reservedBytes);
+        budgetState(); live();
+        if (!supply || epoch !== supplyEpoch) throw new Error('File contribution stopped');
+        let bytes = await readArtifact(descriptor, { signal: lifetime.signal });
+        await verifyArtifact(descriptor, bytes); live();
+        if (message.range) {
+          bytes = bytes.slice(message.range.offset, message.range.offset + message.range.size);
+          await verifyArtifact(selected, bytes);
+        }
+        if (!supply || epoch !== supplyEpoch) throw new Error('File contribution stopped');
+        const artifact = { artifactId: selected.path, path: selected.path, role: selected.role,
+          sizeBytes: bytes.byteLength, hash: await hashBytes(bytes) };
+        const artifacts = [artifact], chunks = [];
+        for (let offset = 0; offset < bytes.byteLength; offset += policy.channel.maxChunkBytes) {
+          const chunk = bytes.subarray(offset, offset + policy.channel.maxChunkBytes);
+          chunks.push({ index: chunks.length, offset, sizeBytes: chunk.byteLength, hash: await hashBytes(chunk) });
+        }
+        const artifactSet = { schema: 'reploid.pool.artifact-set/v1', identity: await hash(artifacts), artifacts };
+        const index = { schema: 'reploid.pool.pack-custody-index/v2', artifactSetIdentity: artifactSet.identity,
+          artifacts: [{ artifactId: artifact.artifactId, hash: artifact.hash, sizeBytes: artifact.sizeBytes, chunks }] };
+        // Both participants bound lifetime. Echoing the requester's absolute
+        // ceiling avoids comparing two independently minted full-duration grants.
+        const supplierExpiresAt = now() + policy.grantMs;
+        const authorization = { schema: 'reploid.pool.pack-custody-authorization/v2', artifactSet,
+          transferId: crypto.randomUUID(), attempt: 1,
+          expiresAt: Math.min(supplierExpiresAt, message.maxExpiresAt ?? supplierExpiresAt),
+          requester: structuredClone(message.requester), suppliers: [{ peerId: identity.peerId, publicKey: identity.publicKey }],
+          indexDigest: await hash(index), limits: { maxArtifactBytes: policy.maxArtifactBytes,
+            maxChunkBytes: policy.channel.maxChunkBytes, maxTransferBytes: selected.sizeBytes,
+            maxConcurrentChunks: policy.channel.maxPendingRequests,
+            requestTimeoutMs: policy.channel.timeoutMs } };
+        const supplier = await createSupplier({ authorization, index, peerId: identity.peerId, privateKey: identity.privateKey,
+          inventory: { expiresAt: authorization.expiresAt, maxBytes: selected.sizeBytes,
+            artifacts: [{ artifactId: artifact.artifactId, chunkIndexes: chunks.map(chunk => chunk.index) }] },
+          readChunk: async (_, chunk) => bytes.slice(chunk.offset, chunk.offset + chunk.sizeBytes), now });
+        const certificates = { requester: bound(message.requesterCertificate, message.requester) ? structuredClone(message.requesterCertificate) : null,
+          supplier: await ownCertificate() };
+        if (closed || !supply || epoch !== supplyEpoch) { supplier.close(); throw new Error('File contribution stopped'); }
+        const timer = setTimeout(() => { supplier.close(); suppliers.delete(authorization.transferId); }, Math.max(0, authorization.expiresAt - now()));
+        suppliers.set(authorization.transferId, { supplier, peer, timer });
+        try {
+          if (!transport.sendToPeer(peer, 'reploid:custody-response', { id: message.id, authorization, index, inventory: supplier.inventory,
+            ...(certificates.supplier ? { supplierCertificate: certificates.supplier } : {}) })) {
+            throw new Error('File offer response could not be queued');
+          }
+        } catch (error) {
+          // A rejected send owns no live grant. Keep the durable reservation
+          // charged, but release supplier bytes and the simultaneous-transfer slot.
+          clearTimeout(timer); suppliers.delete(authorization.transferId); supplier.close();
+          throw error;
+        }
+        ports.observeDelivery?.({ role: 'supplier', transferId: authorization.transferId, peerId: peer,
+          authorization: structuredClone(authorization), index: structuredClone(index), receipt: null, certificates, attestation: null });
+      } finally { preparing--; notify(); }
+    })().catch(error => {
+      if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });
+    });
+    ownSupply(operation);
+  });
+  const rangeDescriptor = (artifact, range) => {
+    if (range == null) return artifact;
+    if (!Number.isSafeInteger(range.offset) || range.offset < 0 || !Number.isSafeInteger(range.size)
+      || range.size < 1 || range.offset + range.size > artifact.sizeBytes
+      || !/^sha256:[a-f0-9]{64}$/.test(range.identity)) throw new Error('Invalid verified file range');
+    return { path: `piece-${range.identity.slice(7)}.bin`, role: artifact.role,
+      sizeBytes: range.size, hash: range.identity.slice(7), hashAlgorithm: 'sha256' };
+  };
+  const request = (peer, artifact, signal, range, maxExpiresAt, requesterCertificate) => new Promise((resolve, reject) => {
+    signal.throwIfAborted();
+    if (pending.size >= policy.maxTransfers) { reject(new Error('File acquisition limit reached')); return; }
+    const id = crypto.randomUUID();
+    const finish = (error, result) => {
+      if (!pending.delete(id)) return;
+      clearTimeout(timer); signal.removeEventListener('abort', abort);
+      if (error) reject(error); else resolve(result);
+    };
+    const abort = () => finish(signal.reason);
+    const timer = setTimeout(() => finish(unavailable('File offer timed out')), policy.channel.timeoutMs);
+    pending.set(id, { peer, finish }); signal.addEventListener('abort', abort, { once: true });
+    if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact, range, maxExpiresAt,
+      requester: { peerId: identity.peerId, publicKey: identity.publicKey },
+      ...(requesterCertificate ? { requesterCertificate } : {}) })) finish(unavailable('File peer disconnected'));
+  });
+  const acquireFrom = async (peer, source, combined, range, reserveDownload) => {
+      const artifact = rangeDescriptor(source, range);
+      const bus = await channelFor(peer, combined);
+      const maxExpiresAt = now() + policy.grantMs, requesterCertificate = await ownCertificate();
+      const result = await request(peer, source, combined, range, maxExpiresAt, requesterCertificate); combined.throwIfAborted();
+      const grant = result.authorization, declared = grant?.artifactSet?.artifacts?.[0];
+      if (grant?.artifactSet?.artifacts?.length !== 1 || declared?.path !== artifact.path || declared?.sizeBytes !== artifact.sizeBytes
+        || grant.requester?.peerId !== identity.peerId || grant.requester?.publicKey !== identity.publicKey
+        || grant.suppliers?.length !== 1 || grant.suppliers[0].peerId !== peer
+        || grant.limits.maxArtifactBytes > policy.maxArtifactBytes || grant.limits.maxChunkBytes > policy.channel.maxChunkBytes
+        || grant.limits.maxTransferBytes > artifact.sizeBytes || grant.limits.requestTimeoutMs > policy.channel.timeoutMs
+        || grant.expiresAt > maxExpiresAt) throw new Error('File grant exceeds requested acquisition');
+      let store, reservationFailure;
+      try {
+        store = await createStore({ authorization: grant, index: result.index, inventories: [result.inventory],
+          requesterPrivateKey: identity.privateKey, requestChunk: async (_, message, controls) => {
+            // Checkpoint hits never call this port. Reserve every requested chunk,
+            // including failed attempts/retries, before any payload can arrive.
+            controls.signal.throwIfAborted();
+            if (reservationFailure) throw reservationFailure;
+            if (reserveDownload) {
+              try { await reserveDownload(message.sizeBytes); }
+              catch (cause) { reservationFailure = cause; throw cause; }
+            }
+            controls.signal.throwIfAborted();
+            return bus.requestChunk(message, controls);
+          },
+          checkpoints, signal: combined, now,
+          maxConcurrentChunks: Math.min(grant.limits.maxConcurrentChunks ?? 1, policy.channel.maxPendingRequests) });
+        const bytes = await store.readArtifact(declared);
+        await verifyArtifact(artifact, bytes); combined.throwIfAborted();
+        if (ports.commitArtifact) {
+          try { await ports.commitArtifact(artifact, bytes, { signal: combined }); }
+          catch (cause) {
+            const error = new Error('Verified file could not be retained: ' + cause.message, { cause });
+            error.code = 'CUSTODY_LOCAL_COMMIT_FAILED'; throw error;
+          }
+          // Complete verified files now own durability. Keep checkpoints only
+          // for interrupted transfers, not a second copy of every model file.
+          for (const chunk of result.index.artifacts[0].chunks) {
+            try { await checkpoints?.deleteChunk(chunk, { signal: combined }); }
+            catch (error) { ports.onError?.(error); }
+          }
+          combined.throwIfAborted();
+        }
+        ports.observe?.(store.getReceipt());
+        if (ports.observeDelivery) {
+          const receipt = structuredClone(store.getReceipt());
+          ports.observeDelivery({ role: 'requester', transferId: grant.transferId, peerId: peer,
+            authorization: structuredClone(grant), index: structuredClone(result.index), receipt,
+            certificates: { requester: requesterCertificate,
+              supplier: bound(result.supplierCertificate, grant.suppliers[0]) ? structuredClone(result.supplierCertificate) : null },
+            attestation: await attest(receipt, requesterCertificate) });
+        }
+        return bytes;
+      } catch (error) {
+        if (store) ports.observe?.({ ...store.getReceipt(), failure: error.message }); throw reservationFailure || error;
+      } finally {
+        store?.close(); transport.sendToPeer(peer, 'reploid:custody-request', { release: grant.transferId });
+      }
+  };
+  const candidates = artifact => {
+    const ids = connected();
+    return [...peers.entries()].filter(([peer, files]) => ids.has(peer) && files.some(item => key(item) === key(artifact)))
+      .map(([peer]) => peer).slice(0, policy.maxAcquisitionAttempts);
+  };
+  // Waits at most one channel timeout for an eligible supplier to offer the file again, for
+  // example after its connection is re-established; resolves to the eligible suppliers, possibly none.
+  const reoffered = (artifact, excluded, signal) => new Promise((resolve, reject) => {
+    const eligible = () => candidates(artifact).filter(peer => !excluded.has(peer));
+    const done = (error, value) => {
+      clearTimeout(timer); offerWaiters.delete(check); signal.removeEventListener('abort', abort);
+      if (error) reject(error); else resolve(value);
+    };
+    const check = () => { const ids = eligible(); if (ids.length) done(null, ids); };
+    const abort = () => done(signal.reason);
+    const timer = setTimeout(() => done(null, eligible()), policy.channel.timeoutMs);
+    offerWaiters.add(check); signal.addEventListener('abort', abort, { once: true });
+    if (signal.aborted) abort(); else check();
+  });
+  return Object.freeze({
+    announce,
+    getState: () => { connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()] }; },
+    has: artifact => candidates(artifact).length > 0,
+    offer(artifacts) {
+      if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
+      live();
+      reserved = budgetState().reservedBytes;
+      const replacement = structuredClone(artifacts);
+      // Revoke old grants, but publish only the complete replacement. A transient
+      // empty inventory can make peers reject acquisition of a still-offered file.
+      // Inventory changes and stop/restart do not renew this owner's allowance.
+      revokeSupply(); offered = replacement; supply = true; announce(); notify();
+    },
+    stopSupply,
+    async acquire(artifact, { signal, range = null, reserveDownload = null }) {
+      live();
+      if (reserveDownload !== null && typeof reserveDownload !== 'function') throw new Error('Invalid acquisition accounting port');
+      if (!valid(artifact)) throw new Error('Invalid file acquisition');
+      range = range == null ? null : structuredClone(range);
+      rangeDescriptor(artifact, range);
+      if (acquiring >= policy.maxTransfers) throw new Error('File acquisition limit reached');
+      const combined = AbortSignal.any([lifetime.signal, signal]);
+      combined.throwIfAborted();
+      const descriptor = structuredClone(artifact), eligible = candidates(descriptor);
+      if (!eligible.length) throw new Error('No authorized peer offers this file');
+      acquiring++;
+      const operation = (async () => {
+        // At most maxAcquisitionAttempts grants, each fresh. A supplier that delivered nothing may be
+        // asked again (least-tried first); one that sent invalid data or refused is not. Verified chunks
+        // resume from checkpoints, and every requested chunk is charged, retries included.
+        const failures = [], tries = new Map(), excluded = new Set();
+        let suppliers = eligible;
+        while (suppliers.length) {
+          combined.throwIfAborted();
+          const peer = suppliers.reduce((best, id) => ((tries.get(id) || 0) < (tries.get(best) || 0) ? id : best));
+          tries.set(peer, (tries.get(peer) || 0) + 1);
+          try { return await acquireFrom(peer, descriptor, combined, range, reserveDownload); }
+          catch (error) {
+            combined.throwIfAborted();
+            if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED' || error.code?.startsWith('CUSTODY_BUDGET_')) throw error;
+            failures.push(error);
+            if (error.code !== 'CUSTODY_SUPPLIER_UNAVAILABLE') excluded.add(peer);
+          }
+          if (failures.length >= policy.maxAcquisitionAttempts) break;
+          suppliers = candidates(descriptor).filter(peer => !excluded.has(peer));
+          if (!suppliers.length && failures.at(-1).code === 'CUSTODY_SUPPLIER_UNAVAILABLE') suppliers = await reoffered(descriptor, excluded, combined);
+        }
+        if (failures.length === 1) throw failures[0];
+        throw new AggregateError(failures, 'Available file suppliers failed: ' + failures.map(error => error.message).join('; '));
+      })();
+      operations.add(operation); notify();
+      try { return await operation; }
+      finally { acquiring--; operations.delete(operation); notify(); }
+    },
+    close() {
+      if (closed) return Promise.allSettled([...operations]);
+      closed = true; stopSupply(); lifetime.abort(new Error('File exchange closed')); unsub();
+      for (const entry of pending.values()) entry.finish(lifetime.signal.reason);
+      for (const entry of channelWaiters.values()) entry.finish(lifetime.signal.reason);
+      offerWaiters.clear();
+      for (const channel of channels.values()) channel.close();
+      peers.clear(); channels.clear();
+      return Promise.allSettled([...operations]);
+    }
+  });
+}

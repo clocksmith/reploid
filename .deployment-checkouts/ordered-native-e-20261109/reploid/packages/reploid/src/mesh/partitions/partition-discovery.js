@@ -1,0 +1,96 @@
+import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
+import { assertPartition as assert, validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
+
+/** Owns bounded capability observation, never placement, loading or permission. */
+export function createPartitionDiscovery({ identity, catalog, policy, peers, createNetwork,
+  describe, onChange = () => {}, now = () => Date.now() }) {
+  const connections = new Map(), lifetime = new AbortController();
+  let refreshing = null, closed = false, closing = null, networkSettled = false;
+  const snapshot = () => [...connections.entries()].map(([transportId, peer]) => {
+    const expiresAt = peer.observedAt + policy.inputLimits.descriptorTtlMs;
+    return { transportId, participantId: peer.participantId, observedAt: peer.observedAt,
+      expiresAt, available: !closed && !!peer.description && now() < expiresAt,
+      reason: closed ? 'closed' : !peer.description ? peer.reason || 'unobserved'
+        : now() >= expiresAt ? 'expired' : 'observed', description: structuredClone(peer.description) };
+  });
+  const notify = () => onChange(snapshot());
+  const network = createNetwork({ label: 'reploid-partitions-control',
+    maxPeers: policy.maxPeers, timeoutMs: policy.connectTimeoutMs,
+    createEndpoint: ({ channel, remoteParticipantId }) => {
+      const endpoint = createPartitionDataChannel({ channel, localParticipantId: identity.peerId,
+        remoteParticipantId, limits: policy.controlChannel,
+        authorize: async ({ metadata, byteLength }) => metadata.operation === 'describe' && byteLength === 0,
+        serve: async () => structuredClone(describe()) });
+      const peer = { endpoint, participantId: remoteParticipantId, description: null, observedAt: 0, revision: 0,
+        close: () => endpoint.close() };
+      channel.addEventListener('close', () => {
+        for (const [id, value] of connections) if (value === peer) connections.delete(id);
+        notify();
+      }, { once: true });
+      return peer;
+    },
+    onPeer(transportId, peer) { if (!closed) connections.set(transportId, peer); }
+  });
+  return Object.freeze({
+    getSnapshot: snapshot,
+    getModels: () => snapshot().filter(peer => peer.available).flatMap(peer => peer.description.models
+      .filter(model => peer.description.schema !== 'reploid.partition-capability/v2'
+        || isOrderedPartitionEntryModel(model, peer))),
+    invalidateModel(transportId, model) {
+      const peer = connections.get(transportId);
+      if (!peer || closed) return;
+      peer.revision++;
+      if (peer.description) peer.description.models = peer.description.models.filter(candidate =>
+        candidate.id !== model.id || candidate.identity !== model.identity);
+      notify();
+    },
+    refresh() {
+      if (closed) return Promise.resolve(snapshot());
+      if (refreshing) return refreshing;
+      refreshing = (async () => {
+        for (const peer of peers().slice(0, policy.maxPeers)) {
+          if (closed) break;
+          if (!connections.has(peer.id) && peer.localTransportId < peer.id) {
+            try { await network.connect(peer.id); } catch { /* The next bounded refresh may retry. */ }
+          }
+        }
+        await Promise.allSettled([...connections.values()].map(async peer => {
+          const revision = peer.revision;
+          try {
+            const description = await peer.endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal: lifetime.signal });
+            if (description?.schema === 'reploid.partition-capability/v2') {
+              validateOrderedPartitionCapability(description, peer.participantId, policy.maxStageOffersPerPeer);
+            } else assert(description.participantId === peer.participantId && Array.isArray(description.models)
+              && (description.eligibleIndexes === undefined || Array.isArray(description.eligibleIndexes)
+                && description.eligibleIndexes.length > 0 && description.eligibleIndexes.length <= 2
+                && description.eligibleIndexes.every(index => index === 0 || index === 1))
+              && description.models.length <= catalog.length && [null, 0, 1].includes(description.index)
+              && (!description.capacity || Number.isSafeInteger(description.capacity.availableSlots)
+                && description.capacity.availableSlots >= 0 && Number.isSafeInteger(description.capacity.active)
+                && description.capacity.active >= 0 && typeof description.capacity.closed === 'boolean')
+              && ['idle', 'waiting', 'loading', 'ready', 'stopping', 'failed'].includes(description.phase),
+            'Partition capability identity or inventory mismatch');
+            // A describe already in flight cannot restore a hint rejected by a
+            // newer authoritative entry check. The next observation may restore it.
+            if (!closed && revision === peer.revision) { peer.description = structuredClone(description); peer.observedAt = now(); peer.reason = null; }
+          } catch { if (revision === peer.revision) { peer.description = null; peer.reason = 'description-unavailable'; } }
+        }));
+        notify(); return snapshot();
+      })().finally(() => { refreshing = null; });
+      return refreshing;
+    },
+    close() {
+      if (closing) return closing;
+      closed = true; lifetime.abort(new Error('Partition discovery closed'));
+      closing = (async () => {
+        const results = await Promise.allSettled([Promise.resolve().then(async () => {
+          if (!networkSettled) { await network.close(); networkSettled = true; }
+        }), refreshing]);
+        connections.clear();
+        const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+        if (failures.length) throw new AggregateError(failures, 'Partition discovery settlement failed');
+      })().catch(error => { closing = null; throw error; });
+      return closing;
+    }
+  });
+}

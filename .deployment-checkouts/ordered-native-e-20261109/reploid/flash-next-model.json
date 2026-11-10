@@ -1,0 +1,4898 @@
+{
+  "schema": "reploid.native-model/v1",
+  "model": {
+    "id": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "identity": "sha256:4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+    "name": "Qwen 3.8 Flash-Next",
+    "provider": "doppler",
+    "adapters": [],
+    "executionModes": [
+      "whole-model",
+      "partition"
+    ],
+    "generation": {
+      "maxTokens": 3,
+      "maxSeqLen": 64,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": false,
+      "suppressTokenIds": [],
+      "stopSequences": []
+    },
+    "source": {
+      "files": [
+        {
+          "role": "model-manifest",
+          "path": "manifest.json",
+          "hashAlgorithm": "sha256",
+          "hash": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+          "sizeBytes": 7422078
+        },
+        {
+          "role": "tokenizer",
+          "path": "tokenizer.json",
+          "hashAlgorithm": "sha256",
+          "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+          "sizeBytes": 9089356
+        },
+        {
+          "role": "model-piece-index",
+          "path": "ordered-native-pieces-20261109.json",
+          "hashAlgorithm": "sha256",
+          "hash": "9d575c50a2b4e60809698792b72982059d65bcc553ef82ddcf7c59065d131f49",
+          "sizeBytes": 34421212
+        }
+      ]
+    }
+  },
+  "partition": {
+    "splitLayers": [
+      16,
+      32
+    ],
+    "activationDtype": "f32",
+    "activationPrecision": "f32"
+  },
+  "partitionRuntime": {
+    "maxGpuBufferBytes": [
+      34359738368,
+      34359738368,
+      34359738368
+    ],
+    "runtimeConfig": {
+      "loading": {
+        "expertPreparation": {
+          "mode": "on-demand"
+        },
+        "expertCache": {
+          "qwen35Pager": {
+            "enabled": false,
+            "maxResidentLayers": 2
+          },
+          "qwen35Routed": {
+            "enabled": true,
+            "cacheBytes": 2147483648,
+            "stagingBytes": 16777216,
+            "readConcurrency": 2,
+            "routeChunkTokens": 256,
+            "gpuBudgetBytes": 25769803776,
+            "reserveBytes": 4294967296,
+            "hostCacheBytes": 0
+          }
+        },
+        "shardCache": {
+          "verifyHashes": false
+        }
+      },
+      "inference": {
+        "session": {
+          "decodeLoop": {
+            "disableCommandBatching": true
+          },
+          "kvcache": {
+            "kvDtype": "f32",
+            "maxSeqLen": 64
+          }
+        },
+        "moe": {
+          "routing": {
+            "activeExpertSelection": "topk-route"
+          }
+        },
+        "kernelPath": {
+          "id": "qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline-f32kv-00604bf8172b",
+          "name": "Execution inline kernel path",
+          "description": "Separate explicit F32 KV candidate; no F16 reference replacement or promotion",
+          "activationDtype": "f32",
+          "kvDtype": "f32",
+          "decode": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "fused_matmul_q4.wgsl",
+                "entry": "main_gemv",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "fused_matmul_q4.wgsl",
+                "entry": "main_gemv",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "fused_matmul_q4.wgsl",
+                "entry": "main_gemv",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_decode_online.wgsl",
+                "entry": "main",
+                "precision": {
+                  "kvDtype": "f32",
+                  "activationDtype": "f32"
+                }
+              },
+              {
+                "op": "o_proj",
+                "kernel": "fused_matmul_q4.wgsl",
+                "entry": "main_gemv",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "fused_matmul_q4.wgsl",
+                "entry": "main_gemv",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "fused_matmul_q4.wgsl",
+                "entry": "main_gemv",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "silu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "fused_matmul_q4.wgsl",
+                "entry": "main_gemv",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "moe_router",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate"
+              },
+              {
+                "op": "moe_topk",
+                "kernel": "softmax_topk_strided.wgsl",
+                "entry": "main",
+                "constants": {
+                  "MAX_EXPERTS": 512
+                }
+              },
+              {
+                "op": "moe_shared_router",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.shared_expert_gate"
+              },
+              {
+                "op": "linear_a_proj",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_a"
+              },
+              {
+                "op": "linear_b_proj",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_b"
+              },
+              {
+                "op": "attn_hc_down",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+              },
+              {
+                "op": "attn_hc_up",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+              },
+              {
+                "op": "attn_hc_inject",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+              },
+              {
+                "op": "mlp_hc_down",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+              },
+              {
+                "op": "mlp_hc_up",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+              },
+              {
+                "op": "mlp_hc_inject",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "q_proj",
+                "kernel": "fused_matmul_q4_widetile.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj"
+              },
+              {
+                "op": "k_proj",
+                "kernel": "fused_matmul_q4_widetile.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj"
+              },
+              {
+                "op": "v_proj",
+                "kernel": "fused_matmul_q4_widetile.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj"
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_small.wgsl",
+                "entry": "main",
+                "precision": {
+                  "kvDtype": "f32",
+                  "activationDtype": "f32"
+                }
+              },
+              {
+                "op": "o_proj",
+                "kernel": "fused_matmul_q4_widetile.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj"
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "fused_matmul_q4_widetile.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj"
+              },
+              {
+                "op": "up_proj",
+                "kernel": "fused_matmul_q4_widetile.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj"
+              },
+              {
+                "op": "activation",
+                "kernel": "silu.wgsl",
+                "entry": "main",
+                "constants": {
+                  "HAS_GATE": true
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "fused_matmul_q4_widetile.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj"
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "residual.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "moe_router",
+                "kernel": "matmul_f32_row_subgroup.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate"
+              },
+              {
+                "op": "moe_topk",
+                "kernel": "softmax_topk_strided.wgsl",
+                "entry": "main",
+                "constants": {
+                  "MAX_EXPERTS": 512
+                }
+              },
+              {
+                "op": "moe_shared_router",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.shared_expert_gate"
+              },
+              {
+                "op": "linear_a_proj",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_a"
+              },
+              {
+                "op": "linear_b_proj",
+                "kernel": "matmul_f32.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_b"
+              },
+              {
+                "op": "attn_hc_down",
+                "kernel": "matmul_f32_row_subgroup.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+              },
+              {
+                "op": "attn_hc_up",
+                "kernel": "matmul_f32_row_subgroup.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+              },
+              {
+                "op": "attn_hc_inject",
+                "kernel": "matmul_f32_row_subgroup.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+              },
+              {
+                "op": "mlp_hc_down",
+                "kernel": "matmul_f32_row_subgroup.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+              },
+              {
+                "op": "mlp_hc_up",
+                "kernel": "matmul_f32_row_subgroup.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+              },
+              {
+                "op": "mlp_hc_inject",
+                "kernel": "matmul_f32_row_subgroup.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+              }
+            ]
+          },
+          "layerOverrides": [
+            {
+              "layers": [
+                1
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "ple_key_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.ple.key_proj"
+                  },
+                  {
+                    "op": "ple_value_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.ple.value_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "ple_key_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.ple.key_proj"
+                  },
+                  {
+                    "op": "ple_value_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.ple.value_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                3
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                7
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                11
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                15
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                19
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                23
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                27
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                31
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                35
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                39
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                43
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            },
+            {
+              "layers": [
+                47
+              ],
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_gemv",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_small.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f32",
+                      "activationDtype": "f32"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "silu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "moe_router",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate"
+                  },
+                  {
+                    "op": "moe_topk",
+                    "kernel": "softmax_topk_strided.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "MAX_EXPERTS": 512
+                    }
+                  },
+                  {
+                    "op": "moe_shared_router",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.shared_expert_gate"
+                  },
+                  {
+                    "op": "linear_a_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_a"
+                  },
+                  {
+                    "op": "linear_b_proj",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.linear_attn.in_proj_b"
+                  },
+                  {
+                    "op": "attn_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "attn_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "attn_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.attn_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "mlp_hc_down",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_down"
+                  },
+                  {
+                    "op": "mlp_hc_up",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.input_mix_weight_up"
+                  },
+                  {
+                    "op": "mlp_hc_inject",
+                    "kernel": "matmul_f32_row_subgroup.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp_hyper_connection.block_inject_weight"
+                  },
+                  {
+                    "op": "qsa_index_qk",
+                    "kernel": "matmul_f32.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.indexer.index_qk_proj"
+                  }
+                ]
+              }
+            }
+          ],
+          "preLayer": [
+            {
+              "op": "embed",
+              "kernel": "gather_f16.wgsl",
+              "entry": "main",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "op": "hc_mixer_down",
+              "kernel": "matmul_f32.wgsl",
+              "entry": "main",
+              "weights": "hyper_connection_mixer.input_mix_weight_down"
+            },
+            {
+              "op": "hc_mixer_up",
+              "kernel": "matmul_f32.wgsl",
+              "entry": "main",
+              "weights": "hyper_connection_mixer.input_mix_weight_up"
+            },
+            {
+              "op": "lm_head",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "entry": "main",
+              "weights": "lm_head"
+            },
+            {
+              "op": "lm_head_prefill",
+              "kernel": "matmul_f16w_f32a.wgsl",
+              "entry": "main",
+              "weights": "lm_head"
+            },
+            {
+              "op": "sample",
+              "kernel": "sample.wgsl",
+              "entry": "sample_single_pass"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

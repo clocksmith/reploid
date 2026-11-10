@@ -1,0 +1,12 @@
+{
+  "schema": "reploid.introductions-policy/v1",
+  "contactTtlMs": 300000,
+  "messageTtlMs": 30000,
+  "maxContacts": 64,
+  "maxPending": 8,
+  "maxMessageBytes": 32768,
+  "maxMessagesPerWindow": 256,
+  "windowMs": 30000,
+  "maxBootstrapRoutes": 8,
+  "maxClockSkewMs": 5000
+}

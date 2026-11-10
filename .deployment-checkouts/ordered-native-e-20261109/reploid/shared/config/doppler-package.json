@@ -1,0 +1,7 @@
+{
+  "name": "doppler-gpu",
+  "version": "0.6.36",
+  "spec": "file:deploy/artifacts/doppler-gpu-0.6.36.tgz",
+  "resolved": "file:deploy/artifacts/doppler-gpu-0.6.36.tgz",
+  "integrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog=="
+}

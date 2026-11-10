@@ -1,0 +1,16 @@
+{
+  "RESULT_EXPIRED": "The retained canonical result expired. Start a new authorized attempt.",
+  "RESOURCE_EXHAUSTED": "A contributor exhausted its resource allowance. Retry with prepared capacity or a shorter conversation.",
+  "AUTHORIZATION_DENIED": "A contributor declined authorization for this request.",
+  "EXECUTION_FAILED": "Partition peer declined or failed request",
+  "OUTPUT_LIMIT_EXCEEDED": "A contributor exceeded the answer length allowance. The attempt failed; its partial answer is incomplete.",
+  "GENERATION_OUTPUT_INVALID": "A contributor did not produce a valid final answer. The attempt failed; its partial answer is incomplete.",
+  "CAPACITY_UNAVAILABLE": "A contributor has no available prepared capacity for this attempt. Select available capacity and retry.",
+  "CAPACITY_QUEUE_FULL": "Prepared capacity for this route is busy and its queue is full. The attempt was not run; retry later.",
+  "CAPACITY_QUEUE_TIMEOUT": "No prepared capacity for this route became free before this attempt's queue limit or permission window ended. The attempt was not run; retry starts a new attempt.",
+  "CONNECTION_LOST": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+  "REQUEST_TIMEOUT": "The contributor request timed out. Remote completion and cleanup are not confirmed.",
+  "CLEANUP_FAILED": "Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable.",
+  "ANSWER_DEADLINE_EXCEEDED": "Response timed out. Retry starts a new attempt.",
+  "WORKLOAD_OUTSIDE_ENVELOPE": "This route does not support a request of this prompt length, answer length or number of concurrent requests. Nothing was sent to its other contributors."
+}
