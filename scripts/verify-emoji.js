@@ -12,8 +12,16 @@ const RECORDS = /^(?:artifacts|docs\/status|reports|shared\/vendor\/doppler)\//;
 const DATA = Object.freeze({
   'self/blueprints/0x00003B-dogs-cats-browser-parser.md': 'DOGS/CATS bundle markers are part of the bundle format this blueprint specifies'
 });
-const PICTOGRAPH = /\p{Extended_Pictographic}|\uFE0F/gu;
-const PRESENTATION = /\p{Emoji_Presentation}/u;
+// Unicode properties change between Node releases, so the ranges are pinned in JSON.
+const RANGES = JSON.parse(readFileSync(path.join(ROOT, 'scripts/symbol-ranges.json'), 'utf8'));
+const parseRanges = (list) => list.map((item) => {
+  const [start, end = start] = item.split('..').map((value) => Number.parseInt(value, 16));
+  return [start, end];
+});
+const PICTOGRAPHIC = parseRanges(RANGES.extendedPictographic);
+const PRESENTATION = parseRanges(RANGES.emojiPresentation);
+const within = (ranges, codePoint) => ranges.some(([start, end]) => codePoint >= start && codePoint <= end);
+const VARIATION_SELECTOR = 0xFE0F;
 
 /** Every symbol listed in the policy's tables (first column, space-separated pairs included). */
 export function approvedSymbols(policy) {
@@ -34,9 +42,12 @@ export function findEmoji({ root = ROOT, files } = {}) {
     let text;
     try { text = readFileSync(path.join(root, file), 'utf8'); } catch { continue; }
     text.split('\n').forEach((line, index) => {
-      for (const [symbol] of line.matchAll(PICTOGRAPH)) {
-        const emoji = symbol === '\uFE0F' || PRESENTATION.test(symbol);
-        if (emoji || !approved.has(symbol)) violations.push({ file, line: index + 1, symbol, kind: emoji ? 'emoji' : 'unapproved' });
+      for (const symbol of line) {
+        const codePoint = symbol.codePointAt(0);
+        if (codePoint < 0xA9) continue;
+        const emoji = codePoint === VARIATION_SELECTOR || within(PRESENTATION, codePoint);
+        if (!emoji && (!within(PICTOGRAPHIC, codePoint) || approved.has(symbol))) continue;
+        violations.push({ file, line: index + 1, symbol, kind: emoji ? 'emoji' : 'unapproved' });
       }
     });
   }
