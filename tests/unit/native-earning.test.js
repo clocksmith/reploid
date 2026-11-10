@@ -20,7 +20,7 @@ vi.mock('../../server/native-whole-model.js', () => ({ createNativeWholeModel: (
 vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async (original) => ({ ...await original(),
-  createLegacyGenerationMesh: ({ ports: input }) => { ports.mesh = input; return { connect: async () => { input.createTransport(); }, close: async () => {}, refreshAdvertisement() {}, getSwarmSnapshot: () => ({}) }; },
+  createPeerGenerationMesh: ({ ports: input }) => { ports.mesh = input; return { connect: async () => { input.createTransport(); }, close: async () => {}, refreshAdvertisement() {}, getSwarmSnapshot: () => ({}) }; },
   createAutomaticPartitions: ({ onChange }) => {
     ports.onChange = onChange;
     return { getState: () => ({ phase: 'ready', reservations: { active: 0, records: structuredClone(ports.records) } }),

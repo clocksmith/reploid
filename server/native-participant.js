@@ -27,7 +27,7 @@ import { sha256Digest as hash, sha256Hex } from './hashing.js';
 import { EventEmitter } from 'node:events';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority, residentPreparationProgress } from '../packages/reploid/src/mesh/index.js';
+import { createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority, residentPreparationProgress } from '../packages/reploid/src/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
@@ -432,7 +432,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
     resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
-  const mesh = createLegacyGenerationMesh({ config, ports: {
+  const mesh = createPeerGenerationMesh({ config, ports: {
     generationJournal,
     settleGeneration: whole ? async () => {
       // The resident returns ready only after generation-state reset succeeds.

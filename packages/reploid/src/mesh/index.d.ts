@@ -1,4 +1,4 @@
-export { createPeerGenerationMesh, createPeerGenerationMesh as createLegacyGenerationMesh } from './peer-generation.js';
+export { createPeerGenerationMesh } from './peer-generation.js';
 export type { PeerGenerationMesh, PeerGenerationMeshPorts } from './peer-generation.js';
 export * from './computer-identity.js';
 export * from './gpu-signature.js';

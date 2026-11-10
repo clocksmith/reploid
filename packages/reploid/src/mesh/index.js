@@ -1,5 +1,4 @@
-// createLegacyGenerationMesh is the former name, kept only until the native participant switches.
-export { createPeerGenerationMesh, createPeerGenerationMesh as createLegacyGenerationMesh } from './peer-generation.js';
+export { createPeerGenerationMesh } from './peer-generation.js';
 export { identifyComputer, participantLabel } from './computer-identity.js';
 export { captureGpuSignature, compareGpuSignatures } from './gpu-signature.js';
 export { projectPlacementBeliefs, resolvePlacementBeliefPolicy } from './placement-beliefs.js';

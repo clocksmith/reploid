@@ -12,8 +12,7 @@ vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...awa
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }, createPartitionNetwork(options) { ports.networkOptions = options; return ports.networkOwner; }
 }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...await original(),
-  // The native participant still imports the former name until it switches.
-  createPeerGenerationMesh: (...args) => meshFactory(...args), createLegacyGenerationMesh: (...args) => meshFactory(...args),
+  createPeerGenerationMesh: (...args) => meshFactory(...args),
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }
 }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));

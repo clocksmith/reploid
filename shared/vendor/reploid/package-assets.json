@@ -839,13 +839,13 @@
     },
     {
       "path": "mesh/index.d.ts",
-      "bytes": 2397,
-      "sha256": "fb35a1c3e3c79a93734b93dbfbc691fb901c3429b3446ca0c25657badb2ccd25"
+      "bytes": 2341,
+      "sha256": "928a105766b7b627ffc89764aaa1c2c59002e819d61f9a1b999d2c2a2ac0f29c"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 3908,
-      "sha256": "8c88234fea460d5eb609e71643552fe9a53c9aad8e6842712188440f603ce7f7"
+      "bytes": 3753,
+      "sha256": "9b0ef038f7344a3dd5b835df9e103fa920c233cba1785d3b333ad5de26819088"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",

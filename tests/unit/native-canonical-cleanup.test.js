@@ -23,7 +23,7 @@ vi.mock('../../packages/reploid/src/mesh/partitions/partition-discovery.js', () 
 vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...await original(),
-  createLegacyGenerationMesh: ({ ports: input }) => { ports.mesh.connect.mockImplementation(async () => { input.createTransport(); }); return ports.mesh; },
+  createPeerGenerationMesh: ({ ports: input }) => { ports.mesh.connect.mockImplementation(async () => { input.createTransport(); }); return ports.mesh; },
   createPartitionNetwork: () => { const network = { close: vi.fn(async () => {}) }; ports.networks.push(network); return network; },
   createResidentPartition: () => ports.resident,
   createPartitionStageCommitAuthority: () => ({ close() {} })

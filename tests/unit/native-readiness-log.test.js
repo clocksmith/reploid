@@ -13,7 +13,7 @@ const ports = vi.hoisted(() => ({ onChange: null }));
 vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async (original) => ({ ...await original(),
-  createLegacyGenerationMesh: ({ ports: input }) => ({ connect: async () => { input.createTransport(); }, close: async () => {}, getSwarmSnapshot: () => ({}) }),
+  createPeerGenerationMesh: ({ ports: input }) => ({ connect: async () => { input.createTransport(); }, close: async () => {}, getSwarmSnapshot: () => ({}) }),
   createAutomaticPartitions: ({ onChange }) => {
     ports.onChange = onChange;
     return { getState: () => ({ phase: 'idle' }), contribute: async () => {}, stop: async () => {}, close: async () => {} };
