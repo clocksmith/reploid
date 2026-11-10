@@ -67,3 +67,12 @@ The source tests additionally cover requester/ledger restart, provider outbox
 recovery, final-output RPC failure, retirement and cancellation through real
 protocol channels, token/deadline bounds, and unknown-owner holds. Their numerical
 sessions are CPU fixtures, not GPU inference.
+
+## Private deployment
+
+[Deployment check](deployment.json): the restored coordinator and on-demand
+Windows scheduled task used the same delivery. A fresh sky-explanation request
+produced 30 output tokens and settled 30 credits. Existing balances were preserved:
+requester -60, provider +60, both with zero held balance. The old signed receipt
+was retained through an idempotent replay that changed no balance or journal row.
+This check covers the operator's private room; the public chat site is unchanged.

@@ -1,0 +1,214 @@
+{
+  "schema": "reploid.fleet-deployment-check/v1",
+  "at": "2026-11-10T18:33:07.480Z",
+  "sourceCommit": "31915e9029d415ff792290f8bfb8da9fde679ec5",
+  "nativeDeliverySha256": "e719f45c6078c26768cbb920cf7599a0fee44644d29c9620d76094bb7afa2421",
+  "providerTask": {
+    "TaskName": "ReploidFleetNative",
+    "State": 4
+  },
+  "public27BRestarted": false,
+  "result": {
+    "threadId": "b02a4d1c-2e19-4838-affd-5de7080b9639",
+    "attemptId": "bf3735e2-ec64-49e8-b44f-546982f3e054",
+    "modelId": "qwen-3-5-2b-q4k-ehaf16",
+    "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+    "adapterIdentities": [],
+    "content": "The sky appears blue because sunlight scatters shorter wavelengths of light (like blue) more effectively than longer wavelengths when it interacts with Earth's atmosphere.",
+    "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+    "usage": {
+      "schema": "raw-model-tokens/v1",
+      "inputTokens": 23,
+      "outputTokens": 30
+    },
+    "execution": {
+      "placement": "peer-whole-request",
+      "providerId": "3b4fe493-4694-4794-b8db-40d434b6cd7f",
+      "completion": {
+        "schema": "doppler.generation-completion/v1",
+        "stopReason": "stop-token",
+        "promptTokenCount": 23,
+        "generatedTokenCount": 30
+      },
+      "providerIdentity": "peer:5c0ecd2fd5fd8a105a4f8068",
+      "receipt": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:0fd8649817603e4a1ef9b9f0e4bf73eddc18c8132a29303993efc5152c36ce9e",
+        "inputTokens": 23,
+        "jobHash": "request:802b9421-e4c2-4a39-b2fc-c6409c50b8e2",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "outputDigest": "sha256:b4adbf92393a59d9362572e91d63ca7b41a40b2ccc4aabf5589e8495e40e177d",
+        "outputTokens": 30,
+        "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "providerKey": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "providerSignature": "t5cZEtWTnl77KSD-MbOTfY8yDdEQGrqBwwqB7y-F80FAig6MAF-uRrDcCqgXdH5PB-BX4DaaoNS1iQG_AOzGCg",
+        "receiptId": "receipt:dc6fc60178da66bb6897ed65",
+        "status": "completed",
+        "stopReason": "stop-token",
+        "timestamp": 1794335587437,
+        "usage": "raw-model-tokens/v1",
+        "version": 2,
+        "consumerSignature": "-xDnihOGJZImFDTFlCuevn0pq4JdRFP3H4ajRlHHUgsRYbSUixmtdgZh_J2DS4EYyG3cTInIWQ2YuMyLSGFxCg",
+        "consumerKey": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+          "kty": "OKP"
+        }
+      },
+      "stopReason": "stop-token",
+      "hardware": {
+        "architecture": "rdna-2",
+        "description": "AMD proprietary driver: 25.10.30.02 (AMD proprietary shader compiler) 2.0.353",
+        "device": "amd-radeon-tm-graphics",
+        "vendor": "amd"
+      },
+      "timing": {
+        "decodeMs": 3274.094500000003,
+        "firstTokenMs": 576.5087999999996,
+        "generatedTokenCount": 30,
+        "prefillComputedTokens": 23,
+        "prefillMs": 569.2841000000008,
+        "reusedPrefixTokens": 0,
+        "totalMs": 3853.5663999999997
+      }
+    },
+    "serviceCredit": {
+      "id": "service:peer:721778acd0c5f26a47f936d5:802b9421-e4c2-4a39-b2fc-c6409c50b8e2",
+      "unit": "noncash-service-credit",
+      "charge": 30,
+      "ownComputeUnits": 0,
+      "outputTokens": 30,
+      "credits": [
+        {
+          "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "computerId": "bee",
+          "amount": 30
+        }
+      ],
+      "evidenceHash": "f6b9a64623c80fb94a00b4cf4785e31a42a67bd15c03e175726f1f724a957c0a",
+      "economicHash": "07833ba6daedfae34f9eb024d776a28e64ee28fb83b26c1dda520eff84165dfa",
+      "settledAt": 1794335587429
+    }
+  },
+  "request": {
+    "id": "service:peer:721778acd0c5f26a47f936d5:802b9421-e4c2-4a39-b2fc-c6409c50b8e2",
+    "binding": {
+      "id": "service:peer:721778acd0c5f26a47f936d5:802b9421-e4c2-4a39-b2fc-c6409c50b8e2",
+      "executionId": "802b9421-e4c2-4a39-b2fc-c6409c50b8e2",
+      "consumer": "peer:721778acd0c5f26a47f936d5",
+      "mode": "whole-model",
+      "model": {
+        "id": "qwen-3-5-2b-q4k-ehaf16",
+        "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "adapterIdentities": []
+      },
+      "inputDigest": "sha256:0fd8649817603e4a1ef9b9f0e4bf73eddc18c8132a29303993efc5152c36ce9e",
+      "maxOutputTokens": 64,
+      "providers": [
+        {
+          "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "weight": 1
+        }
+      ],
+      "requestHash": "10beff75fda8356a52c5688ed74696a7a57e195001e4ba1e7b515cda1504e5d1",
+      "computerId": "mac",
+      "maximum": 64,
+      "policyVersion": "fleet-native/1",
+      "admissionVersion": 1,
+      "createdAt": 1794335583390,
+      "deadline": 1794335883390
+    },
+    "state": "settled",
+    "outcome": {
+      "id": "service:peer:721778acd0c5f26a47f936d5:802b9421-e4c2-4a39-b2fc-c6409c50b8e2",
+      "unit": "noncash-service-credit",
+      "charge": 30,
+      "ownComputeUnits": 0,
+      "outputTokens": 30,
+      "credits": [
+        {
+          "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "computerId": "bee",
+          "amount": 30
+        }
+      ],
+      "evidenceHash": "f6b9a64623c80fb94a00b4cf4785e31a42a67bd15c03e175726f1f724a957c0a",
+      "economicHash": "07833ba6daedfae34f9eb024d776a28e64ee28fb83b26c1dda520eff84165dfa",
+      "settledAt": 1794335587429
+    },
+    "evidence": {
+      "adapterIdentities": [],
+      "cleanup": "settled",
+      "consumer": "peer:721778acd0c5f26a47f936d5",
+      "inputDigest": "sha256:0fd8649817603e4a1ef9b9f0e4bf73eddc18c8132a29303993efc5152c36ce9e",
+      "inputTokens": 23,
+      "jobHash": "request:802b9421-e4c2-4a39-b2fc-c6409c50b8e2",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+      "outputDigest": "sha256:b4adbf92393a59d9362572e91d63ca7b41a40b2ccc4aabf5589e8495e40e177d",
+      "outputTokens": 30,
+      "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+      "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+      "providerKey": {
+        "alg": "Ed25519",
+        "crv": "Ed25519",
+        "ext": true,
+        "key_ops": [
+          "verify"
+        ],
+        "kty": "OKP",
+        "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+      },
+      "providerSignature": "t5cZEtWTnl77KSD-MbOTfY8yDdEQGrqBwwqB7y-F80FAig6MAF-uRrDcCqgXdH5PB-BX4DaaoNS1iQG_AOzGCg",
+      "receiptId": "receipt:dc6fc60178da66bb6897ed65",
+      "status": "completed",
+      "stopReason": "stop-token",
+      "timestamp": 1794335587437,
+      "usage": "raw-model-tokens/v1",
+      "version": 2,
+      "consumerSignature": "-xDnihOGJZImFDTFlCuevn0pq4JdRFP3H4ajRlHHUgsRYbSUixmtdgZh_J2DS4EYyG3cTInIWQ2YuMyLSGFxCg",
+      "consumerKey": {
+        "key_ops": [
+          "verify"
+        ],
+        "ext": true,
+        "alg": "Ed25519",
+        "crv": "Ed25519",
+        "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+        "kty": "OKP"
+      }
+    }
+  },
+  "accounts": [
+    {
+      "id": "bee",
+      "balance": 60,
+      "held": 0
+    },
+    {
+      "id": "mac",
+      "balance": -60,
+      "held": 0
+    }
+  ],
+  "historicalEvidenceRetained": true,
+  "replayChangedBalances": false
+}
