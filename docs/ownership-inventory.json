@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 375,
+    "apps/poolday": 377,
     "self": 448,
     "shared": 2320
   },
@@ -2395,6 +2395,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "host/private-computers.js",
+      "source": "apps/poolday/host/private-computers.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "host/product-context.js",
       "source": "apps/poolday/host/product-context.js",
       "owner": "apps/poolday",
@@ -4576,7 +4582,7 @@
       "served": "ui/pool-home/auto-download.js",
       "source": "apps/poolday/ui/pool-home/auto-download.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/capability-controls.js",
@@ -4809,6 +4815,12 @@
     {
       "served": "ui/pool-home/prism.js",
       "source": "apps/poolday/ui/pool-home/prism.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/private-computers-view.js",
+      "source": "apps/poolday/ui/pool-home/private-computers-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

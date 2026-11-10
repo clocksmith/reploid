@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 375 |
+| apps/poolday | 377 |
 | self | 448 |
 | shared | 2320 |
-| total | 3143 |
+| total | 3145 |
 
 Every file lives in its owner's root.
 
@@ -432,6 +432,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/partition-release.js` | `apps/poolday/host/partition-release.js` | apps/poolday | Reached only from product entries. |
 | `host/peer-execution-config.js` | `apps/poolday/host/peer-execution-config.js` | apps/poolday | Reached only from product entries. |
 | `host/peer-run-session.js` | `apps/poolday/host/peer-run-session.js` | apps/poolday | Reached only from product entries. |
+| `host/private-computers.js` | `apps/poolday/host/private-computers.js` | apps/poolday | Reached only from product entries. |
 | `host/product-context.js` | `apps/poolday/host/product-context.js` | apps/poolday | Reached only from product entries. |
 | `host/product-session.js` | `apps/poolday/host/product-session.js` | apps/poolday | Reached only from product entries. |
 | `host/provider-contribution-session.js` | `apps/poolday/host/provider-contribution-session.js` | apps/poolday | Reached only from product entries. |
@@ -795,7 +796,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/account-sign-in.js` | `apps/poolday/ui/pool-home/account-sign-in.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/agent-network.js` | `apps/poolday/ui/pool-home/agent-network.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/app.bundle.js` | `apps/poolday/ui/pool-home/app.bundle.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/capability-controls.js` | `apps/poolday/ui/pool-home/capability-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-labels.js` | `apps/poolday/ui/pool-home/computer-labels.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-preferences-view.js` | `apps/poolday/ui/pool-home/computer-preferences-view.js` | apps/poolday | Reached only from product entries. |
@@ -835,6 +836,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/peer-run-surface.js` | `apps/poolday/ui/pool-home/peer-run-surface.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/pending-request-recovery.js` | `apps/poolday/ui/pool-home/pending-request-recovery.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/prism.js` | `apps/poolday/ui/pool-home/prism.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/private-computers-view.js` | `apps/poolday/ui/pool-home/private-computers-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/production.js` | `apps/poolday/ui/pool-home/production.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/provider-controls.js` | `apps/poolday/ui/pool-home/provider-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/provider-status-view.js` | `apps/poolday/ui/pool-home/provider-status-view.js` | apps/poolday | Reached only from product entries. |
