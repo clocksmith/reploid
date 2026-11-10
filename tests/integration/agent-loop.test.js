@@ -1512,6 +1512,59 @@ describe('AgentLoop - Integration Tests', () => {
     });
   });
 
+  describe('FunctionGemma routing', () => {
+    const createRoutedLoop = execute => {
+      const orchestrator = {
+        initBase: vi.fn().mockResolvedValue(true),
+        registerExperts: vi.fn().mockResolvedValue(true),
+        execute: vi.fn(execute)
+      };
+      const loop = AgentLoopModule.factory({
+        Utils: mockUtils, EventBus: mockEventBus, LLMClient: mockLLMClient, ToolRunner: mockToolRunner,
+        ContextManager: mockContextManager, ResponseParser: mockResponseParser, StateManager: mockStateManager,
+        PersonaManager: mockPersonaManager, CircuitBreaker: mockCircuitBreaker,
+        SchemaRegistry: { getToolSchemas: vi.fn().mockReturnValue([]) },
+        ToolExecutor: ToolExecutorModule.factory({ Utils: mockUtils, EventBus: mockEventBus, ToolRunner: mockToolRunner }),
+        FunctionGemmaOrchestrator: orchestrator
+      });
+      loop.setModel({ id: 'base-model', provider: 'test', functionGemma: {
+        routingMode: 'always', modelId: 'fg-model', experts: [{ id: 'expert-a' }], useSharedPrefix: false
+      } });
+      return { loop, orchestrator };
+    };
+
+    it('answers a cycle through the prepared orchestrator instead of the selected model', async () => {
+      const { loop, orchestrator } = createRoutedLoop(async () => ({ output: 'DONE', cached: true }));
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await loop.run('Route this through experts');
+
+      expect(orchestrator.initBase).toHaveBeenCalledWith(expect.objectContaining({ modelId: 'fg-model' }));
+      expect(orchestrator.registerExperts).toHaveBeenCalledWith([{ id: 'expert-a' }]);
+      expect(orchestrator.execute).toHaveBeenCalledTimes(1);
+      expect(mockLLMClient.chat).not.toHaveBeenCalled();
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'llm_response', content: 'DONE', model: 'fg-model', provider: 'doppler'
+      }));
+      await loop.close();
+    });
+
+    it('falls back to the selected model when the orchestrator fails', async () => {
+      const { loop, orchestrator } = createRoutedLoop(async () => { throw new Error('expert offline'); });
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await loop.run('Route this through experts');
+
+      expect(orchestrator.execute).toHaveBeenCalledTimes(1);
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'llm_response', content: 'DONE', model: 'base-model'
+      }));
+      await loop.close();
+    });
+  });
+
   describe('reflection integration', () => {
     beforeEach(() => {
       agentLoop.setModel({ id: 'test-model', provider: 'test' });

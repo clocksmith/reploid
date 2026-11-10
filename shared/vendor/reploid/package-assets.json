@@ -171,9 +171,39 @@
       "sha256": "18a66d0f904b311a7fb3221f76996d7c33cf7b683974c133dd453cf348425f92"
     },
     {
+      "path": "agent/lab-strategy-cycle.js",
+      "bytes": 16649,
+      "sha256": "c3c032d0dcaca361316a3805416cb2fd4a72410f7c52b664483351f0f7a0540d"
+    },
+    {
+      "path": "agent/lab-strategy-function-gemma.js",
+      "bytes": 11628,
+      "sha256": "5549ae1f360c2abf10e80ccb37853418ec31debd3dfff1cf7617d9ca01c25f1f"
+    },
+    {
+      "path": "agent/lab-strategy-generation.js",
+      "bytes": 16883,
+      "sha256": "e9322dbc9e0aef54bc5e511ef040dc0978c62137326a8d5210874fc794e49018"
+    },
+    {
+      "path": "agent/lab-strategy-provider-recovery.js",
+      "bytes": 8069,
+      "sha256": "6f0dfbdb020fb4669c4479353e4d994ea723a90f829fa827b8021e612ffeb958"
+    },
+    {
+      "path": "agent/lab-strategy-tool-results.js",
+      "bytes": 6465,
+      "sha256": "e35f05a555d63312f672d450b0da8f9bb2ee003b659e2914e748263e13901a51"
+    },
+    {
+      "path": "agent/lab-strategy-tools.js",
+      "bytes": 20327,
+      "sha256": "20664e6e4256b64b27b07fe90a8e11e8a9ea72017fe2df67abc2f89f8112084b"
+    },
+    {
       "path": "agent/lab-strategy.js",
-      "bytes": 96474,
-      "sha256": "509967e61ed1037f25134960d3ca34ee748739347e3a8fd5070f5c7befd7f7c4"
+      "bytes": 20400,
+      "sha256": "cf47400bdb1f0ff96c2891fd1352e110325009863ad0729ddbe71c92e9154e2a"
     },
     {
       "path": "agent/legacy-loop.d.ts",
