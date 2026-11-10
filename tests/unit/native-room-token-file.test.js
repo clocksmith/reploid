@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { readNativeRoomTokenFile, resolveNativeRoomToken } from '../../server/native-participant.js';
 import { createRoomIntroductionAdmission } from '../../packages/reploid/src/transport/index.js';
+import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 
 const run = promisify(execFile);
 const script = new URL('../../server/native-participant.js', import.meta.url).pathname;
@@ -24,9 +25,11 @@ async function tokenFile(content, mode = 0o600, name = 'room-token') {
   return file;
 }
 // Modules are absent absolute paths: a run that passes token resolution fails at module import,
-// never connects, and leaves only a temporary identity in this directory.
+// never connects, and leaves only a temporary identity in this directory. The model is a catalog
+// entry because startup checks it before any native module loads.
+const MODEL = (Array.isArray(catalog) ? catalog : catalog.models)[0].id;
 const identity = () => path.join(root, 'identity.json');
-const cli = extra => run(process.execPath, [script, '--connect-only', '--model', 'unused', '--model-directory', root,
+const cli = extra => run(process.execPath, [script, '--connect-only', '--model', MODEL, '--model-directory', root,
   '--identity-file', identity(), '--rtc-module', '/must-not-import-rtc', '--ws-module', '/must-not-import-ws', ...extra],
 { timeout: 10000 }).then(result => ({ code: 0, ...result }), error => error);
 const noIdentity = () => expect(fs.stat(identity())).rejects.toMatchObject({ code: 'ENOENT' });

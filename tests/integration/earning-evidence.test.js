@@ -6,7 +6,10 @@
 // registration at its signing time and settles from acknowledged evidence under the quote's evidence
 // terms, holding unacknowledged asserted work in dispute for operational review. Memory and fake
 // Firestore stores; test-only provider, policies, windows and amounts.
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// The fixture routes are approved for release only inside this test.
+vi.mock('../../apps/poolday/config/partition-releases.json', async () => ({
+  default: { approvals: (await import('../helpers/resident-route.js')).FIXTURE_ROUTE_APPROVALS } }));
 
 import { MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner, openOutputAcknowledgments } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { CAPACITY_EVIDENCE_SCHEMA as COMMUNITY_CAPACITY_SCHEMA } from '../../server/community-access/domain.js';

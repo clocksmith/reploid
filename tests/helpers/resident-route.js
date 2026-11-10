@@ -14,6 +14,13 @@ import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/par
 import { createResidentPartition } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
 import { MODEL } from './reward-fixture.js';
 
+/**
+ * Release approvals for the fixture routes built here. A test that executes them through the
+ * Poolday host mocks apps/poolday/config/partition-releases.json with this list; it is never
+ * production release authority.
+ */
+export const FIXTURE_ROUTE_APPROVALS = [];
+
 export const GENERATION = `sha256:${'c'.repeat(64)}`;
 export const STEPS = 3;
 export const PROMPT_TOKENS = 2;
@@ -120,9 +127,11 @@ export async function residentRoute({ participants, requesterId, signers = [], s
   });
   const grant = { id: 'grant' };
   const model = {
-    id: MODEL.modelId, identity: MODEL.modelIdentity, name: 'Resident route fixture', provider: 'doppler',
+    id: MODEL.modelId, identity: MODEL.modelIdentity, name: 'Resident route fixture', provider: 'doppler', availability: 'ready',
     partition: { schema: 'reploid.partition-selection/v2', planId: MODEL.planId, coordinatorId: route.stages[0].participantId, route }
   };
+  FIXTURE_ROUTE_APPROVALS.push({ modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
+    partition: structuredClone(model.partition), evidence: 'test-fixture://resident-route' });
   const requester = {
     /** The ordered requester's generate contract over the in-process route. */
     async generate(request, controls) {

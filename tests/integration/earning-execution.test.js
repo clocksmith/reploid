@@ -6,7 +6,10 @@
 // custody transfer supplies the delivery evidence. Real accounts, ledger, rewards and route
 // idempotency over memory and fake-Firestore stores. Test-only provider, policies and amounts.
 import express from 'express';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// The fixture routes are approved for release only inside this test.
+vi.mock('../../apps/poolday/config/partition-releases.json', async () => ({
+  default: { approvals: (await import('../helpers/resident-route.js')).FIXTURE_ROUTE_APPROVALS } }));
 
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';

@@ -5,7 +5,10 @@
 // the ledger's declared outcome rules decide. Real accounts, ledger, routes and outcome rules over
 // memory and fake-Firestore stores, under report-only and evidence terms. The coordinator's admission
 // is the library's attempt queue in front of the resident route's requester port; test-only bounds.
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// The fixture routes are approved for release only inside this test.
+vi.mock('../../apps/poolday/config/partition-releases.json', async () => ({
+  default: { approvals: (await import('../helpers/resident-route.js')).FIXTURE_ROUTE_APPROVALS } }));
 
 import failureMessages from '../../packages/reploid/src/transport/partition-errors.json' with { type: 'json' };
 import { ATTEMPT_QUEUE_POLICY_SCHEMA, createPartitionAttemptQueue } from '../../packages/reploid/src/mesh/partitions/partition-attempt-queue.js';
