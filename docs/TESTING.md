@@ -205,22 +205,30 @@ describe('AgentLoop Integration', () => {
 ## CI/CD
 
 GitHub Actions: `.github/workflows/test.yml` has one automatic job on Ubuntu
-and Node.js 22. It installs only production, non-optional dependencies and runs
-`npm run package:hosting` to build the actual Firebase hosting payload. The
-existing packager parses the Doppler module dependency closure, rejects missing
-assets, verifies the pinned archive and projected bytes, validates the browser
-manifest, and writes exactly the validated bytes to `.firebase-hosting/reploid`.
-Any failure fails CI; the job does not deploy or regenerate a stale manifest.
+and Node.js 22. It installs the non-optional dependencies, runs
+`npm run build:browser-bundle` to rebuild the product entry bundle, module
+inventory and browser manifest from the commit's source, then runs
+`npm run package:hosting` to build the Firebase hosting payload from that
+output. The packager parses the Doppler module dependency closure, rejects
+missing assets, verifies the pinned archive and projected bytes, validates the
+browser manifest, and writes exactly the validated bytes to
+`.firebase-hosting/reploid`. A build or packaging failure fails CI. The job
+does not deploy, and it does not check whether the committed bundle and
+manifest are current: a stale committed bundle passes CI.
 
-Reproduce the gate on Node.js 22:
+Reproduce the job on Node.js 22 (the build rewrites the tracked bundle,
+inventory and manifest in the working tree):
 
 ```bash
-npm ci --omit=dev --omit=optional --no-audit --no-fund
+npm ci --omit=optional --no-audit --no-fund
+npm run build:browser-bundle
 npm run package:hosting
 ```
 
-For changes to browser assets, update their manifest with
-`npm run build:browser-bundle` before packaging and review the generated diff.
+Freshness of the committed bundle is checked before a deployment by
+`npm run prepare:hosting`, which runs `npm run verify:browser-bundle:local` and
+fails on a stale bundle or manifest. For changes to browser assets, update them
+with `npm run build:browser-bundle` and review the generated diff.
 A successful packaging check is not browser execution, model/GPU qualification,
 physical peer acceptance, or production deployment evidence.
 
