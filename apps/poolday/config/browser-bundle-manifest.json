@@ -1400,8 +1400,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 639513,
-      "sha256": "sha256:60aa4b2592aeda898f7bb55409305c49bca2bcc1a7f878c0692e0ab136f68383"
+      "byteLength": 639717,
+      "sha256": "sha256:b84f62c46b3de2b1add74a9922facaa7c9190a506ddfa390b70040695dc2cf72"
     },
     {
       "path": "config/module-registry.json",
@@ -1445,13 +1445,13 @@
     },
     {
       "path": "config/self-source-catalog.json",
-      "byteLength": 106311,
-      "sha256": "sha256:875cc84c806b7118c7a20f543b6e7c0d80ee3fc8037019cb005d99a3db662f24"
+      "byteLength": 106755,
+      "sha256": "sha256:4ee9f373fc02b348fdfebe1dd122eb77b4176790c29a88fc4799c699499fc2b7"
     },
     {
       "path": "config/self-source-manifest.json",
-      "byteLength": 8618,
-      "sha256": "sha256:06a73cceaf3fe8fdc4fe62217e12608be0ef00137947be913b59185c5a96ce7e"
+      "byteLength": 8684,
+      "sha256": "sha256:8a33bb4761b0caecbc25f0c99fcd14b0d00391b9e516168791453d8da93aedc0"
     },
     {
       "path": "config/service-worker.js",
@@ -1480,8 +1480,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 139337,
-      "sha256": "sha256:a762bd35fd15268d5bbca6d1d69b98b87b717bd8f52c9ba619d91df7b3501ec0"
+      "byteLength": 139370,
+      "sha256": "sha256:9c599075b00a69f291cef6b0b737db477853d58c4860dd77fe2d26ee4ce05790"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3645,8 +3645,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2407013,
-      "sha256": "sha256:04859edeb01921b782bce20fe41bc31c5835cb4a4c5c857106c1b534441c20f5"
+      "byteLength": 2407393,
+      "sha256": "sha256:1ec71cc7999d5a498fb0080d552bf5e8623344e15e578e7efc67cc12dda31426"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11265,8 +11265,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/signatures.js",
-      "byteLength": 3857,
-      "sha256": "sha256:2ccac503833dd17eac861c99fff82f2720f1d3fed63d162c313a62f50b5c33b8"
+      "byteLength": 2927,
+      "sha256": "sha256:8ef600bcc1c449c56189c59779b3dbd364068ddbe55fc496e077c22d88d1eac3"
     },
     {
       "path": "vendor/reploid/artifacts/store.js",
@@ -11350,8 +11350,8 @@
     },
     {
       "path": "vendor/reploid/config/index.js",
-      "byteLength": 11532,
-      "sha256": "sha256:bdbc9c5475d9f8491133a7167a51a3f64f739ae6741dca439a78bcfc0b19b16e"
+      "byteLength": 11519,
+      "sha256": "sha256:b516347ee56b3ecee9ed57b2b5f3608d2359d9109af44ea304a1a4b8b94b4887"
     },
     {
       "path": "vendor/reploid/config/profiles/local.json",
@@ -11382,6 +11382,11 @@
       "path": "vendor/reploid/contracts/doppler-partitions.provenance.json",
       "byteLength": 1666,
       "sha256": "sha256:8fd07a6dc8a9dc4b996106d8594e1e0dea7f5ca9e96b9cf09358b96fbcf79244"
+    },
+    {
+      "path": "vendor/reploid/hashing.js",
+      "byteLength": 1351,
+      "sha256": "sha256:0cf5fe45851242b29ea696e1b39799327f35287d758f04f301f1b7c4b737e8b4"
     },
     {
       "path": "vendor/reploid/improvement/code-evolution.js",
@@ -11750,8 +11755,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 53091,
-      "sha256": "sha256:42b1681853eabf113f8626160a1031f074465cdf49161c285e042bb8bd24e36c"
+      "byteLength": 53382,
+      "sha256": "sha256:70a4f3724358d84649c4520beb26f4532cc29e3a2a76e4287acdb670226e45ee"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -11985,8 +11990,8 @@
     },
     {
       "path": "zero/source.json",
-      "byteLength": 8422,
-      "sha256": "sha256:ffe78bdb93de6f4f24bb3f1759d1a5cd6734cfdd20fcfd6fa53e9054a8b8e947"
+      "byteLength": 8064,
+      "sha256": "sha256:8f9883f8b3b3c764f828223d772db926e314e67959301cd9166b7049605c3ab8"
     },
     {
       "path": "zero/store.js",
@@ -12009,5 +12014,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:976a1890c63c85a2b1e3afdfdd42786bf1649ff0b6d681db015b594d3d541818"
+  "bundleHash": "sha256:a94f5773b9d7a8aba63127abf50646075571e628530d9ccb538de79602b281a4"
 }

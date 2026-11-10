@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 375,
     "self": 448,
-    "shared": 2318
+    "shared": 2320
   },
   "pendingMoves": 0,
   "violations": [],
@@ -15655,6 +15655,16 @@
     {
       "served": "vendor/reploid/contracts/pool/peer-planning.d.ts",
       "source": "shared/vendor/reploid/contracts/pool/peer-planning.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/hashing.d.ts",
+      "source": "shared/vendor/reploid/hashing.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/hashing.js",
+      "source": "shared/vendor/reploid/hashing.js",
       "owner": "shared"
     },
     {

@@ -2277,6 +2277,7 @@
     "vendor/reploid/config/transport-defaults.json",
     "vendor/reploid/contracts/attempt-report.js",
     "vendor/reploid/contracts/doppler-partitions.provenance.json",
+    "vendor/reploid/hashing.js",
     "vendor/reploid/improvement/code-evolution.js",
     "vendor/reploid/improvement/episodes.js",
     "vendor/reploid/improvement/index.js",

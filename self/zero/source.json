@@ -148,21 +148,6 @@
       "sha256": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a"
     },
     {
-      "path": "vendor/reploid/artifacts/binary.js",
-      "bytes": 1036,
-      "sha256": "133382a28ae22d5ed02d9215d381a2b76efae40684d9e19aea7c06e0b603975a"
-    },
-    {
-      "path": "vendor/reploid/artifacts/canonical-json.js",
-      "bytes": 748,
-      "sha256": "f3400db617e514a3e0e352725bc499bf8707594d0b52aaf5202b097f96af4524"
-    },
-    {
-      "path": "vendor/reploid/artifacts/signatures.js",
-      "bytes": 3857,
-      "sha256": "2ccac503833dd17eac861c99fff82f2720f1d3fed63d162c313a62f50b5c33b8"
-    },
-    {
       "path": "vendor/reploid/cancellation.js",
       "bytes": 1895,
       "sha256": "770b8e17e5321e905243b25df64eab21668383024fdf71d134ddf19bbc93f889"
@@ -174,13 +159,18 @@
     },
     {
       "path": "vendor/reploid/config/index.js",
-      "bytes": 11532,
-      "sha256": "bdbc9c5475d9f8491133a7167a51a3f64f739ae6741dca439a78bcfc0b19b16e"
+      "bytes": 11519,
+      "sha256": "b516347ee56b3ecee9ed57b2b5f3608d2359d9109af44ea304a1a4b8b94b4887"
     },
     {
       "path": "vendor/reploid/config/request-overrides.json",
       "bytes": 166,
       "sha256": "6e80c26a4c07d317eae530199e86634356b8cb94e2d140087ed2e4e6be12306a"
+    },
+    {
+      "path": "vendor/reploid/hashing.js",
+      "bytes": 1351,
+      "sha256": "0cf5fe45851242b29ea696e1b39799327f35287d758f04f301f1b7c4b737e8b4"
     },
     {
       "path": "vendor/reploid/rules/routing.rules.json",

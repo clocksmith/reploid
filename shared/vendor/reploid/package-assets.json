@@ -323,11 +323,6 @@
       "sha256": "e8d4a74d087e4bc9a4bfdae8f4ba38e1e5e4b4a99bcc715ed5f4e6bb42b668cf"
     },
     {
-      "path": "artifacts/custody-certificate.js",
-      "bytes": 6059,
-      "sha256": "e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945"
-    },
-    {
       "path": "artifacts/custody/exchange.d.ts",
       "bytes": 5462,
       "sha256": "4185d039a8b39698ad81d5e60d9d181e7eede3db1acce4392f1868976ed9ebcf"
@@ -361,6 +356,11 @@
       "path": "artifacts/custody/supply-budget.js",
       "bytes": 1429,
       "sha256": "9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
+    },
+    {
+      "path": "artifacts/custody-certificate.js",
+      "bytes": 6059,
+      "sha256": "e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945"
     },
     {
       "path": "artifacts/delivery-attestation.js",

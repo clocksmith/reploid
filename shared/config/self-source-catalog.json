@@ -130,6 +130,7 @@
         "vendor/reploid/config/defaults.json",
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/rules/routing.rules.json"
       ],
       "seedFiles": [
@@ -252,6 +253,7 @@
         "vendor/reploid/config/defaults.json",
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/rules/routing.rules.json"
       ]
     },
@@ -417,6 +419,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -639,6 +642,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -886,6 +890,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -1124,6 +1129,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -1386,6 +1392,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -1639,6 +1646,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -1962,6 +1970,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -2286,6 +2295,7 @@
         "vendor/reploid/config/index.js",
         "vendor/reploid/config/request-overrides.json",
         "vendor/reploid/config/transport-defaults.json",
+        "vendor/reploid/hashing.js",
         "vendor/reploid/improvement/code-evolution.js",
         "vendor/reploid/improvement/episodes.js",
         "vendor/reploid/improvement/index.js",
@@ -2382,7 +2392,8 @@
         "vendor/reploid/artifacts/binary.js",
         "vendor/reploid/artifacts/canonical-json.js",
         "vendor/reploid/artifacts/manifest-identity.js",
-        "vendor/reploid/artifacts/signatures.js"
+        "vendor/reploid/artifacts/signatures.js",
+        "vendor/reploid/hashing.js"
       ],
       "seedFiles": [
         "config/chat-models.json",
@@ -2398,7 +2409,8 @@
         "vendor/reploid/artifacts/binary.js",
         "vendor/reploid/artifacts/canonical-json.js",
         "vendor/reploid/artifacts/manifest-identity.js",
-        "vendor/reploid/artifacts/signatures.js"
+        "vendor/reploid/artifacts/signatures.js",
+        "vendor/reploid/hashing.js"
       ]
     }
   }
