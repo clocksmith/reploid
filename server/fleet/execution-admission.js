@@ -21,6 +21,9 @@ export function createFleetExecutionAdmission({ credits, model }) {
         partitionIndex: request.partitionIndex, outputLimit: request.maxTokens });
     },
     partitionReceipt(bundle) { return credits.collect(bundle.reservationId, bundle); },
+    terminal(terminal) {
+      return credits.collect(`service:${terminal.consumer}:${terminal.requestId}`, { terminal });
+    },
     async receipt(receipt) {
       assert(receipt.jobHash?.startsWith('request:'), 'Whole-model request receipt required');
       return credits.settle(`service:${receipt.consumer}:${receipt.jobHash.slice(8)}`, receipt);

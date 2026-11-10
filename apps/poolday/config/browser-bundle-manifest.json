@@ -1401,7 +1401,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 640172,
-      "sha256": "sha256:f82c43824c0b2a5afb781454dbeca92008e14096a6aef675ac624e227fa52094"
+      "sha256": "sha256:d877f700e66240b02f015c070a76cfe998f19697399b2de9ec4bc231b2f8de8a"
     },
     {
       "path": "config/module-registry.json",
@@ -3650,8 +3650,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2417859,
-      "sha256": "sha256:3000dcc612dbcac41102a81b83a95c39cb79d5e0920eb1875303dc15b76cefaf"
+      "byteLength": 2417907,
+      "sha256": "sha256:f52413d8de2f5ed9297101c76a7b994205bb1cf350aadb0ef6f69b75468dc03b"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11720,8 +11720,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 39584,
-      "sha256": "sha256:cf64d2caab76a8ed4c8e6a56e4d22515eb5545d3895218d07044d81ccc4e026a"
+      "byteLength": 39664,
+      "sha256": "sha256:896a7e47475360ab07a0deea6896b803ba0af8072fee0ee2fd94c12aa50d17ef"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -11766,7 +11766,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 53382,
-      "sha256": "sha256:49639105e97ca6401a37476f877d075f0c557e5fdd70343221c546ccd0c90d0d"
+      "sha256": "sha256:9b5c27e5342b0f890a7b5bfe8ce063eafe6cc9a0ec4f423675d713592d4b2114"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12024,5 +12024,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:2f9b7c2892794e860c91d041c8017598411f1a95e7e75e6fb50684cd6495d463"
+  "bundleHash": "sha256:d76eaf80c68e85fdf10d9b450f567b009fdda97af7cb9782c9589eda2287737d"
 }

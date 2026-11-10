@@ -89,7 +89,8 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           'Service-credit admission limit reached');
         const createdAt = now();
         const binding = { ...value, requestHash, computerId: consumer.computerId, maximum,
-          policyVersion: policy.version, admissionVersion: 1, createdAt, deadline: createdAt + policy.maxRequestMs };
+          policyVersion: policy.version, terminalCharge: value.mode === 'whole-model' ? policy.wholeModelTerminalCharge ?? null : null,
+          admissionVersion: 1, createdAt, deadline: createdAt + policy.maxRequestMs };
         db.prepare("INSERT INTO fleet_requests VALUES (?,?,'reserved',NULL)").run(value.id, JSON.stringify(binding));
         db.prepare('UPDATE fleet_accounts SET held=held+? WHERE id=?').run(maximum, consumer.computerId);
         return binding;
@@ -99,6 +100,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       evidence = structuredClone(evidence);
       const row = read(id); assert(row, 'Unknown credit reservation');
       const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id) });
+      assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
       const economicHash = createHash('sha256').update(canonicalize(observed)).digest('hex');
       const previousEconomicHash = row.outcome?.economicHash ?? (row.evidence ? createHash('sha256').update(canonicalize(
         await verifyCreditEvidence(row.binding, row.evidence, enrollment, now(), policy.maxClockSkewMs))).digest('hex') : null);
@@ -111,7 +113,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           return current.outcome;
         }
         assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
-        const request = current.binding, totalUnits = observed.outputTokens * policy.creditsPerOutputToken;
+        const request = current.binding, totalUnits = observed.fixedCharge ?? observed.outputTokens * policy.creditsPerOutputToken;
         const totalWeight = request.providers.reduce((sum, row) => sum + row.weight, 0);
         let remaining = totalUnits, ownComputeUnits = 0;
         const credits = request.providers.map((provider, index) => {
@@ -134,7 +136,9 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           db.prepare('INSERT INTO fleet_journal (request_id,account_id,delta,at) VALUES (?,?,?,?)').run(id, computerId, delta, now());
         }
         db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, request.computerId);
-        const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens, credits, evidenceHash, economicHash, settledAt: now() };
+        const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens,
+          ...(observed.terminalStatus ? { status: observed.terminalStatus, usage: null } : {}),
+          credits, evidenceHash, economicHash, settledAt: now() };
         db.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
         db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
         return outcome;

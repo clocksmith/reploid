@@ -457,6 +457,13 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       controls.signal.throwIfAborted();
       return whole.generate(messages, onUpdate, controls);
     },
+    onGenerationTerminal: async terminal => {
+      if (!executionAdmission) return;
+      const write = executionAdmission.terminal(terminal); earningWrites.add(write);
+      try { await write; }
+      catch (error) { logger.warn('Fleet terminal evidence deferred', error?.code || error?.message); }
+      finally { earningWrites.delete(write); }
+    },
     onReceipt: async receipt => {
       if (!earning?.recordWholeModelReceipt && !executionAdmission) return;
       const write = Promise.all([earning?.recordWholeModelReceipt(receipt), executionAdmission?.receipt(receipt)]); earningWrites.add(write);

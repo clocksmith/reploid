@@ -10,7 +10,7 @@ import { openNativeGenerationJournal } from '../../server/native-generation-jour
 
 export async function createRecoveryMesh(cleanup, { execute, settle = async () => true, identities: suppliedIdentities,
   modelId = 'model', modelIdentity = 'sha256:' + 'a'.repeat(64), messages = [{ role: 'user', content: 'original prompt' }],
-  authorize = async () => true, result } = {}) {
+  authorize = async () => true, onGenerationTerminal, result } = {}) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'generation-recovery-'));
   cleanup.push(() => fs.rm(directory, { recursive: true, force: true }));
   const identities = suppliedIdentities || await Promise.all(['ECDSA', 'Ed25519'].map(algorithm => createSigningIdentity({ algorithm })));
@@ -38,7 +38,7 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
         providerIdentity: input.recipientIdentity, modelId: input.modelId, modelIdentity, adapterIdentities: [] }; return authorize(input); },
       events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
       identity: { ensure: async () => identities[i], sync: async () => {}, save: async () => {} },
-      generationJournal: i ? journal : null, settleGeneration: settle,
+      generationJournal: i ? journal : null, settleGeneration: settle, onGenerationTerminal,
       generate: async (...args) => { executions++; return execute ? execute(...args) : response; },
       createTransport: () => ({ init: async () => true, disconnect() {}, _getPeerId: () => channels[i],
         getPeerBinding: () => ({ local: 'cert-' + channels[i], remote: 'cert-' + channels[1-i] }),

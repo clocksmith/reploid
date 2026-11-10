@@ -26,6 +26,7 @@ export interface PeerGenerationMeshPorts {
       contextId?: string | null; contextOwner?: string | null }): Promise<GenerationResult>;
   transport?: SwarmTransport | null; forceFreshIdentity?: boolean;
   onReceipt?(receipt: import('../artifacts/receipt.js').Receipt): void | Promise<void>;
+  onGenerationTerminal?(terminal: import('../artifacts/generation-terminal.js').GenerationTerminal): void | Promise<void>;
   settleGeneration?(): Promise<boolean>;
   generationJournal?: { get(binding: Record<string, unknown>): Promise<{ binding: Record<string, unknown>; outcome: unknown } | null>;
     claim(binding: Record<string, unknown>): Promise<boolean>; finish(binding: Record<string, unknown>, outcome: unknown): Promise<void> } | null;

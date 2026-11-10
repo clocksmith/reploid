@@ -34,7 +34,9 @@ export function creditPolicy(source) {
     && integer(policy.maxDebt) && integer(policy.maxOutputTokens) && policy.maxOutputTokens > 0
     && integer(policy.maxPendingPerComputer) && policy.maxPendingPerComputer > 0
     && integer(policy.maxClockSkewMs) && integer(policy.maxRequestMs) && policy.maxRequestMs > 0
-    && typeof policy.allowSameOwner === 'boolean', 'Explicit non-cash credit policy required');
+    && typeof policy.allowSameOwner === 'boolean'
+    && (policy.wholeModelTerminalCharge === undefined || policy.wholeModelTerminalCharge === 0),
+  'Explicit non-cash credit policy required');
   assert(Number.isSafeInteger(policy.maxOutputTokens * policy.creditsPerOutputToken + policy.maxDebt), 'Credit policy exceeds integer precision');
   return Object.freeze(policy);
 }

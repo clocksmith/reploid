@@ -49,6 +49,16 @@ Unacknowledged work is not billed. A signed `failed` receipt proves cleanup only
 with its closing timestamp; it does not turn a failed answer into a completed one.
 Equivalent verified re-signatures retain the original economic outcome.
 
+For whole-model cancellation or failure, the provider retains and submits
+`reploid.generation-terminal/v1` only after its execution owner confirms cleanup.
+Usage remains unknown. Setting `creditPolicy.wholeModelTerminalCharge` to `0`
+accepts zero non-cash terminal charge, frozen into each reservation; omission
+keeps the hold pending. This does not change purchased-credit accounting.
+`acceptFleetTerminalPolicy` in `server/fleet/terminal-policy.js` records an
+operator-approved zero-charge policy migration and an explicit list of unresolved
+whole-model reservations to which it applies. It cannot change metered rates,
+completed balances, or release work without verified cleanup.
+
 Admission closes atomically before recovery. A never-dispatched reservation can
 expire. A dispatched request with no admitted providers can release after that
 fence; one with admitted providers still needs their signed closing receipts.

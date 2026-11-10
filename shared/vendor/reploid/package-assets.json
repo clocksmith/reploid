@@ -1294,13 +1294,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 3470,
-      "sha256": "9031fa58275de8e1a343dd82fccbdc95550636590e313987bb32be4d1136179b"
+      "bytes": 3593,
+      "sha256": "698926a33baaf71b6ddb0289145668f0a52830547d4c51aaf639f425adb58f45"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 39584,
-      "sha256": "cf64d2caab76a8ed4c8e6a56e4d22515eb5545d3895218d07044d81ccc4e026a"
+      "bytes": 39664,
+      "sha256": "896a7e47475360ab07a0deea6896b803ba0af8072fee0ee2fd94c12aa50d17ef"
     },
     {
       "path": "mesh/peer-identity.js",

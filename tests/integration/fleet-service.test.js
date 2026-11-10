@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, beforeEach, it, expect } from 'vitest';
+import { afterEach, beforeEach, it, expect, vi } from 'vitest';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -9,6 +9,8 @@ import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/w
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
+import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
+import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { residentRoute } from '../helpers/resident-route.js';
 import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
@@ -24,7 +26,7 @@ beforeEach(async () => {
       providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })),
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: 1, maxDebt: 100, maxOutputTokens: 20, maxPendingPerComputer: 2,
-      maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: true } });
+      maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: true, wholeModelTerminalCharge: 0 } });
   service = await startFleetService({ credits, models: [model],
     placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   client = createFleetClient({ url: service.url, identity: keys[0] });
@@ -51,6 +53,54 @@ it('meters a request through signed HTTP admission, disclosure and countersigned
     { signal: new AbortController().signal, requestApproval: async () => true });
   expect(dispatched).toBe(true); expect(result.serviceCredit.charge).toBe(3);
   expect((await client.call('snapshot', {})).accounts.map(row => row.balance)).toEqual([-3, 3, 0]);
+});
+
+it.each([false, true])('settles cancellation after cleanup, retaining lost HTTP replies for recovery (%s)', async loseReply => {
+  const cleanup = [], entered = Promise.withResolvers(), release = Promise.withResolvers();
+  let dropped = false;
+  const provider = createFleetClient({ url: service.url, identity: keys[1], outboxFile: path.join(root, 'provider-outbox.json'),
+    fetchImpl: async (url, options) => {
+      const response = await fetch(url, options);
+      if (loseReply && !dropped && JSON.parse(options.body).operation === 'collect') {
+        dropped = true; throw Error('Lost terminal settlement response');
+      }
+      return response;
+    } });
+  const admission = createFleetExecutionAdmission({ credits: provider, model: { ...model, generation: { maxTokens: 10 } } });
+  let wholeRequester;
+  const mesh = await createRecoveryMesh(cleanup, { identities: keys.slice(0, 2), modelId: model.id, modelIdentity: model.identity,
+    authorize: async input => {
+      if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
+      return true;
+    },
+    execute: async (_messages, update, controls) => {
+      entered.resolve(); update('partial, unmetered text'); await release.promise; controls.signal.throwIfAborted();
+    }, onGenerationTerminal: proof => admission.terminal(proof) });
+  wholeRequester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
+  const requester = createFleetRequester({ participant: wholeRequester, identity: keys[0], credits: client, maxOutputTokens: 10 });
+  const controller = new AbortController();
+  try {
+    const running = requester.generate({ model, messages: mesh.messages },
+      { signal: controller.signal, requestApproval: async () => true });
+    const rejected = expect(running).rejects.toThrow('Stopped');
+    await entered.promise;
+    controller.abort(Error('Stopped')); await rejected;
+    expect(credits.snapshot().accounts[0].held).toBe(10);
+    expect(await mesh.recover()).toEqual({ status: 'unresolved' });
+    release.resolve();
+    await vi.waitFor(() => expect(credits.snapshot().accounts[0].held).toBe(0));
+    const row = credits.request(`service:${keys[0].peerId}:${mesh.reference.requestId}`);
+    expect(row.outcome).toMatchObject({ charge: 0, status: 'cancelled', outputTokens: null, usage: null });
+    expect(row.evidence).toMatchObject({ schema: 'reploid.generation-terminal/v1', cleanup: 'settled' });
+    expect(mesh.executions).toBe(1);
+    const journalLength = credits.snapshot().journal.length;
+    await vi.waitFor(() => expect(mesh.wire.some(row => row.payload.terminal)).toBe(true));
+    const recovered = await provider.reconcile();
+    expect(recovered).toHaveLength(loseReply ? 1 : 0);
+    expect(credits.snapshot().journal).toHaveLength(journalLength);
+    expect(mesh.errors).toEqual([]);
+  } finally { release.resolve(); for (const close of cleanup.reverse()) await close(); }
 });
 
 it('refuses unenrolled keys and signed requests for another computer’s account', async () => {

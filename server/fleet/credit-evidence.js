@@ -1,3 +1,4 @@
+import { verifyGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outputChainGenesis } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -9,6 +10,20 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
     && at <= Math.min(now, request.deadline) + skew;
   if (request.mode === 'whole-model') {
+    if (evidence?.schema === 'reploid.generation-terminal/v1') {
+      const provider = request.providers[0]?.participantId;
+      assert(request.providers.length === 1 && await verifyGenerationTerminal(evidence, {
+        requestId: request.executionId, provider, consumer: request.consumer, model: request.model.id,
+        modelIdentity: request.model.identity, adapterIdentities: request.model.adapterIdentities,
+        inputDigest: request.inputDigest
+      }) && same(normalizeParticipantPublicKey(evidence.publicJwk), enrollment.byPeer.get(provider)?.publicJwk)
+        && evidence.timestamp >= request.createdAt - skew && evidence.timestamp <= now + skew,
+      'Terminal cleanup does not match the accepted request');
+      // Cleanup is not a token meter. A fixed terminal charge must have been
+      // accepted separately; missing terms leave this execution pending.
+      return { outputTokens: null, terminalStatus: evidence.status, fixedCharge: request.terminalCharge ?? null, outputIdentity: null,
+        workIds: [`whole:${provider}:${request.consumer}:request:${request.executionId}`] };
+    }
     const receipt = structuredClone(evidence);
     assert(request.providers.length === 1 && receipt.version === 2 && receipt.status === 'completed'
       && receipt.cleanup === 'settled' && receipt.provider === request.providers[0].participantId

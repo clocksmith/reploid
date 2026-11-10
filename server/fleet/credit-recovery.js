@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { assert, same } from './contract.js';
-import { verifyPartitionComponents } from './credit-evidence.js';
+import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
 
 /** Durable admission fences and independently verified proof components. No timeout asserts
  * remote cleanup. Deadline expiry only closes admission; an admitted owner must still sign. */
@@ -39,6 +39,18 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
     },
     async collect(id, evidence) {
       const row = read(id); assert(row, 'Unknown credit reservation');
+      if (row.binding.mode === 'whole-model') {
+        assert(evidence?.terminal, 'Whole-model terminal cleanup required');
+        await verifyCreditEvidence(row.binding, evidence.terminal, enrollment, now(), policy.maxClockSkewMs);
+        if (row.state === 'settled') return settle(id, evidence.terminal);
+        transaction(() => {
+          const prior = pieces(id).terminal;
+          assert(!prior || prior.status === evidence.terminal.status, 'Conflicting terminal cleanup');
+          if (!prior) store(id, 'terminal', evidence.terminal);
+          db.prepare("UPDATE fleet_requests SET state='closing' WHERE id=? AND state='dispatched'").run(id);
+        });
+        return this.recover(id);
+      }
       const proof = await verifyPartitionComponents(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs);
       if (proof.acknowledgment?.count > 0 && !proof.acknowledgedReceipt) {
         proof.acknowledgedReceipt = proof.receipts.find(receipt => receipt.partitionIndex === row.binding.providers.length - 1
@@ -95,6 +107,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       if (row.state !== 'closing') return { id, status: 'pending' };
       const data = pieces(id), missing = this.unadmitted(id), request = row.binding;
       if (request.mode === 'whole-model') {
+        if (data.terminal && request.terminalCharge != null) return settle(id, data.terminal);
         if (missing.length !== request.providers.length) return { id, status: 'pending' };
         // No provider could have started: admission was fenced in the same SQLite journal.
         return transaction(() => {

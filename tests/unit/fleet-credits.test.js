@@ -5,13 +5,15 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
+import { acceptFleetTerminalPolicy } from '../../server/fleet/terminal-policy.js';
+import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { createAttemptEvidenceSigner, attemptRouteHash, STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 
 const hash = 'sha256:' + 'a'.repeat(64), other = 'sha256:' + 'b'.repeat(64);
 const policy = { schema: 'reploid.service-credit-policy/v1', version: 'test/1', unit: 'noncash-service-credit',
   creditsPerOutputToken: 1, maxDebt: 20, maxOutputTokens: 20, maxPendingPerComputer: 2,
-  maxClockSkewMs: 1000, maxRequestMs: 60000, allowSameOwner: true };
+  maxClockSkewMs: 1000, maxRequestMs: 60000, allowSameOwner: true, wholeModelTerminalCharge: 0 };
 describe('enrolled fleet service credits', () => {
   let directory, ledger, identities, computers, options;
   const at = 1794300000000;
@@ -44,6 +46,78 @@ describe('enrolled fleet service credits', () => {
     expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-6, 0], [6, 0], [0, 0]]);
     await ledger.settle(input.id, receipt);
     expect(ledger.snapshot().journal).toHaveLength(2);
+  });
+  async function terminal(input, changes = {}, status = 'cancelled') {
+    const proof = await signGenerationTerminal({ requestId: input.executionId, provider: input.providers[0].participantId,
+      consumer: input.consumer, model: input.model.id, modelIdentity: input.model.identity,
+      adapterIdentities: input.model.adapterIdentities, inputDigest: input.inputDigest, ...changes }, status, identities[1]);
+    return proof;
+  }
+  it.each(['cancelled', 'failed'])('settles signed %s cleanup without inventing token usage, even after the deadline', async status => {
+    const input = request('terminal'); dispatch(input); ledger.admit(input.id, 0);
+    const proof = await terminal(input, {}, status);
+    ledger.close(); ledger = await openFleetCredits({ ...options, now: () => proof.timestamp + policy.maxRequestMs });
+    const outcome = await ledger.settle(input.id, proof);
+    expect(outcome).toMatchObject({ status, charge: 0, outputTokens: null, usage: null });
+    expect(ledger.request(input.id).evidence).toEqual(proof);
+    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
+    const journalLength = ledger.snapshot().journal.length;
+    expect(await ledger.settle(input.id, proof)).toEqual(outcome);
+    expect(ledger.snapshot().journal).toHaveLength(journalLength);
+    await expect(ledger.settle(input.id, await evidence(input))).rejects.toThrow('Conflicting');
+    ledger.close(); ledger = await openFleetCredits({ ...options, now: () => proof.timestamp + policy.maxRequestMs });
+    expect(await ledger.recover(input.id)).toEqual(outcome);
+  });
+  it('keeps the hold for mismatched or unsigned terminal evidence and rejects failure after paid completion', async () => {
+    const input = request('terminal'); dispatch(input); ledger.admit(input.id, 0);
+    const proof = await terminal(input);
+    ledger.close(); ledger = await openFleetCredits({ ...options, now: () => proof.timestamp });
+    for (const change of [{ inputDigest: other }, { modelIdentity: other }, { consumer: identities[2].peerId },
+      { requestId: 'another' }, { signature: '' }, { cleanup: 'pending' }]) {
+      await expect(ledger.settle(input.id, { ...proof, ...change })).rejects.toThrow('Terminal cleanup');
+    }
+    await expect(ledger.settle(input.id, await terminal(input, { inputDigest: other }))).rejects.toThrow('Terminal cleanup');
+    expect(ledger.snapshot().accounts[0].held).toBe(10);
+    await ledger.settle(input.id, await evidence(input));
+    await expect(ledger.settle(input.id, proof)).rejects.toThrow('Conflicting');
+    expect(ledger.snapshot().accounts.map(row => row.balance)).toEqual([-6, 6, 0]);
+  });
+  it('retains verified terminal evidence and the hold when no fixed terminal charge was accepted', async () => {
+    ledger.close();
+    const { wholeModelTerminalCharge: _charge, ...unmeteredPolicy } = policy;
+    ledger = await openFleetCredits({ ...options, file: path.join(directory, 'no-terminal-terms.sqlite'),
+      policy: unmeteredPolicy, now: Date.now });
+    const input = request('without-terms'); dispatch(input); ledger.admit(input.id, 0);
+    const proof = await terminal(input);
+    expect(await ledger.collect(input.id, { terminal: proof })).toEqual({ id: input.id, status: 'pending' });
+    await expect(ledger.settle(input.id, proof)).rejects.toThrow('fixed terminal terms');
+    expect(ledger.snapshot().accounts[0].held).toBe(10);
+    expect(ledger.request(input.id).state).toBe('closing');
+  });
+  it('accepts the operator’s explicit terminal terms without changing balances or forgiving unknown work', async () => {
+    ledger.close();
+    const { wholeModelTerminalCharge: _charge, ...originalPolicy } = policy;
+    const file = path.join(directory, 'migration.sqlite');
+    ledger = await openFleetCredits({ ...options, file, policy: originalPolicy, now: Date.now });
+    const input = request('accepted'), unknown = request('unknown');
+    dispatch(input); ledger.admit(input.id, 0); dispatch(unknown); ledger.admit(unknown.id, 0);
+    const proof = await terminal(input);
+    await ledger.collect(input.id, { terminal: proof });
+    ledger.close(); ledger = null;
+    const acceptedPolicy = { ...policy, version: 'test/terminal-2' };
+    const migration = { file, previousVersion: originalPolicy.version, policy: acceptedPolicy, requestIds: [input.id] };
+    await expect(acceptFleetTerminalPolicy({ ...migration, policy: { ...acceptedPolicy, creditsPerOutputToken: 2 } }))
+      .rejects.toThrow('cannot change metered');
+    const accepted = await acceptFleetTerminalPolicy(migration);
+    expect(await acceptFleetTerminalPolicy(migration)).toEqual(accepted);
+    await expect(acceptFleetTerminalPolicy({ ...migration, requestIds: [unknown.id] })).rejects.toThrow('scope changed');
+    ledger = await openFleetCredits({ ...options, file, policy: acceptedPolicy, now: Date.now });
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 20 });
+    expect(await ledger.recover(input.id)).toMatchObject({ charge: 0, status: 'cancelled', outputTokens: null });
+    expect(await ledger.fence(unknown.id, unknown.consumer)).toEqual({ id: unknown.id, status: 'pending' });
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 10 });
+    expect(ledger.request(input.id).binding.terminalPolicyVersion).toBe(acceptedPolicy.version);
+    expect(ledger.request(unknown.id).binding.terminalCharge).toBeNull();
   });
   it('reserves against outstanding debt and concurrent holds before execution', () => {
     ledger.reserve(request('one')); ledger.reserve(request('two'));

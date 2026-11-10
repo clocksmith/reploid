@@ -464,6 +464,7 @@ export function createPeerGenerationMesh({ config, ports }) {
             payload.terminal = await signGenerationTerminal(recoveryBinding,
               controller.signal.reason?.code === 'REQUESTER_CANCELLED' ? 'cancelled' : 'failed', identityBundle);
             await generationJournal.finish(recoveryBinding, { type: 'reploid:generation-error', payload });
+            await ports.onGenerationTerminal?.(snapshotJson(payload.terminal));
           }
         } catch { /* No terminal proof: retain the admission fence and uncertainty. */ }
       }
