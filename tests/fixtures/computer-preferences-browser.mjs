@@ -41,7 +41,7 @@ async function mount() {
     const { createComputerPreferences } = await import('/host/computer-preferences.js');
     const { captureGpuSignature } = await import('/vendor/reploid/mesh/gpu-signature.js');
     const { renderConnectionControl, renderSharingControls, bindNetworkControls } = await import('/ui/pool-home/network-controls.js');
-    const { renderComputerDiagnostic } = await import('/ui/pool-home/computer-preferences.js');
+    const { renderComputerDiagnostic } = await import('/ui/pool-home/computer-preferences-view.js');
     const key = 'peer:' + 'a'.repeat(24);
     window.__captures = 0; window.__measurements = [];
     window.__preferences = createComputerPreferences({ storage: localStorage, verifyPeer: async () => key,
@@ -105,7 +105,7 @@ try {
   const artifact = async file => hosted ? new Uint8Array(await (await fetch(origin + '/' + file, { cache: 'no-store' })).arrayBuffer()) : readFile(path.join(root, file));
   const bundle = JSON.parse(new TextDecoder().decode(await artifact('config/browser-bundle-manifest.json')));
   const sources = {};
-  for (const file of ['host/computer-preferences.js', 'ui/pool-home/computer-preferences.js',
+  for (const file of ['host/computer-preferences.js', 'ui/pool-home/computer-preferences-view.js',
     'ui/pool-home/network-controls.js', 'vendor/reploid/mesh/gpu-signature.js']) {
     sources[file] = createHash('sha256').update(await artifact(file)).digest('hex');
   }

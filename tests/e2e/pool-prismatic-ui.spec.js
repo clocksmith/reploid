@@ -6,7 +6,7 @@ test('centers desktop work and connects the brand to focus, status, and reduced 
   const task = page.locator('.pool-home-task');
   const box = await task.boundingBox();
   expect(Math.abs(box.x + box.width / 2 - 720)).toBeLessThan(1);
-  await expect(page.locator('.pool-primary-brand')).toHaveAccessibleName('Reploid home');
+  await expect(page.locator('.pool-primary-brand')).toHaveAccessibleName('Reploid threads');
   await expect(page.locator('.pool-primary-brand')).not.toContainText('Reploid');
   await expect(page.locator('h1.pool-home-brand-word')).toContainText('Reploid');
   const prism = page.locator('.pool-prism');

@@ -118,10 +118,12 @@ describe('Poolday audit boundaries', () => {
   });
 
   it('keeps forbidden trust claims out of public Poolday UI copy', () => {
+    // Every pool-home module renders public copy; the generated bundle repeats them.
+    const poolHome = 'apps/poolday/ui/pool-home';
     const publicFiles = [
-      'apps/poolday/ui/pool-home/constants.js',
-      'apps/poolday/ui/pool-home/view.js',
-      'apps/poolday/ui/pool-home/index.js',
+      ...fs.readdirSync(path.join(repoRoot, poolHome))
+        .filter((name) => name.endsWith('.js') && name !== 'app.bundle.js')
+        .map((name) => `${poolHome}/${name}`),
       'apps/poolday/index.html',
       'README.md'
     ];

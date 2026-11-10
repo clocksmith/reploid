@@ -128,7 +128,7 @@ test('network chat uses a permitted peer even with downloaded weights and respec
 test('changed runtime modules pass the Verification Worker sandbox', async ({ page }) => {
   const paths = ['ui/poolday-design/specimens.js', 'host/model-storage.js', 'host/work-model-files.js', 'host/chat-execution.js', 'host/chat-session.js', 'host/chat-view.js', 'vendor/reploid/chat/workspace.js', 'host/product-session.js',
     'infrastructure/model-storage-lock.js', 'providers/work-network-provider.js', 'providers/work-resident-provider.js', 'vendor/reploid/chat/scheduler.js',
-    'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js', 'ui/pool-home/model-storage.js',
+    'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js', 'ui/pool-home/model-storage-view.js',
     ...['production', 'contribution-models', 'conversation-workspace', 'index', 'shell-view'].map(name => `ui/pool-home/${name}.js`)];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readServedText(path)])));
   await page.goto('/');

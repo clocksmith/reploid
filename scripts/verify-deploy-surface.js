@@ -47,10 +47,12 @@ const STYLE_FILES = [
 // These modules make up the requester, provider, relay, and visible result
 // path. A build label alone cannot prove that Hosting served the matching
 // browser bundle, especially after a partial static deployment.
+// The pool-home screens are split across many modules, so check them all.
 const POOLDAY_MODULE_FILES = [
-  'ui/pool-home/index.js',
-  'ui/pool-home/controls.js',
-  'ui/pool-home/view.js',
+  ...fs.readdirSync(path.join(repoRoot, 'apps/poolday/ui/pool-home'))
+    .filter((name) => name.endsWith('.js') && name !== 'app.bundle.js')
+    .sort()
+    .map((name) => `ui/pool-home/${name}`),
   'pool/sdk.js',
   'pool/peer-rendezvous.js',
   'pool/p2p-signaling.js',
