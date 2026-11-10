@@ -13,7 +13,10 @@ import { portablePath } from '../../scripts/evidence-paths.js';
 const fixture = JSON.parse(await fs.readFile(new URL('../../artifacts/partition-resident/20260927/signed-opening-fixture.json',
   import.meta.url), 'utf8'));
 const pin = JSON.parse(await fs.readFile(new URL('../../shared/config/doppler-package.json', import.meta.url), 'utf8'));
-const archive = await fs.readFile(new URL('../../' + pin.resolved.replace(/^file:/, ''), import.meta.url));
+const archiveRelative = pin.resolved.startsWith('file:')
+  ? pin.resolved.slice('file:'.length)
+  : `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
+const archive = await fs.readFile(new URL('../../' + archiveRelative, import.meta.url));
 assert.equal('sha512-' + createHash('sha512').update(archive).digest('base64'), pin.integrity);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.resolve('doppler-gpu'))), '..');
 const installed = relative => import(pathToFileURL(path.join(packageRoot, 'src', relative)).href);

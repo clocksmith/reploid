@@ -186,11 +186,17 @@ try {
       report.dopplerConsumer = directory;
       const pin = JSON.parse(await readFile(resolveServedFile('config/doppler-package.json'), 'utf8'));
       const expectedVersion = pin.version;
-      const archive = path.resolve(root, pin.resolved.replace(/^file:/, ''));
+      const archive = path.resolve(root, pin.resolved.startsWith('file:')
+        ? pin.resolved.slice('file:'.length)
+        : `deploy/artifacts/doppler-gpu-${expectedVersion}.tgz`);
       assert.equal('sha512-' + createHash('sha512').update(await readFile(archive)).digest('base64'), pin.integrity);
       assert(/^\d+\.\d+\.\d+$/.test(expectedVersion), 'Doppler fixture must use an exact version');
       await writeFile(path.join(directory, 'package.json'), JSON.stringify({
-        ...dopplerFixture, dependencies: { ...dopplerFixture.dependencies, 'doppler-gpu': 'file:' + archive, reploid: 'file:' + report.archive.path }
+        ...dopplerFixture, dependencies: {
+          ...dopplerFixture.dependencies,
+          'doppler-gpu': pin.spec.startsWith('file:') ? 'file:' + archive : expectedVersion,
+          reploid: 'file:' + report.archive.path
+        }
       }, null, 2));
       await command('npm-install-doppler', 'npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund'], directory);
       const installedDoppler = JSON.parse(await readFile(path.join(directory, 'node_modules/doppler-gpu/package.json'), 'utf8'));

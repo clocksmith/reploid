@@ -32,7 +32,9 @@ if (suite.diagnosticManifestIdentity !== undefined) {
 assert(selected);
 const generation = resolveGenerationOptions({ ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen });
 const pin = JSON.parse(await readFile(resolveServedFile('config/doppler-package.json')));
-const archive = await readFile(resolve(root, pin.spec.slice(5)));
+const archive = await readFile(resolve(root, pin.spec.startsWith('file:')
+  ? pin.spec.slice(5)
+  : `deploy/artifacts/doppler-gpu-${pin.version}.tgz`));
 const manifestBytes = await readFile(resolve(process.env.DOPPLER_CHAT_MODEL_DIR, 'manifest.json'));
 assert.equal('sha256:' + hash(manifestBytes), selected.identity);
 assert.equal(JSON.parse(manifestBytes).modelId, suite.modelId);

@@ -171,7 +171,10 @@ try {
   }
   const model = JSON.parse(await readFile(resolve(modelDirectory, 'manifest.json')));
   if (frozenWorkloads) referenceBinding = await loadPairedPartitionFixture({ modelDirectory,
-    archivePath: resolve(root, packageIdentity.spec.replace(/^file:/, '')), referenceIdentity: JSON.parse(bytes).modelIdentity })
+    archivePath: resolve(root, packageIdentity.spec.startsWith('file:')
+      ? packageIdentity.spec.slice('file:'.length)
+      : `deploy/artifacts/doppler-gpu-${packageIdentity.version}.tgz`),
+    referenceIdentity: JSON.parse(bytes).modelIdentity })
       || await bindReferenceModel(model, JSON.parse(bytes).modelIdentity);
   const catalog = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'))).find(model => model.id === modelId);
   if (!catalog) throw new Error('Selected model is not in the application catalog');

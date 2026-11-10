@@ -15,7 +15,9 @@ describe('Cloud Run build context', () => {
   it('includes the exact lockfile-pinned Doppler archive in both build contexts', async () => {
     const lock = JSON.parse(await readRootFile('package-lock.json'));
     const pin = lock.packages['node_modules/doppler-gpu'];
-    const archivePath = pin.resolved.replace(/^file:/, '');
+    const archivePath = pin.resolved.startsWith('file:')
+      ? pin.resolved.slice('file:'.length)
+      : `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
     const archive = await readFile(path.join(repoRoot, archivePath));
     const integrity = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
     expect(integrity).toBe(pin.integrity);

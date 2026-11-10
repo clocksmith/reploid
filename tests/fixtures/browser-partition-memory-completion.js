@@ -38,10 +38,13 @@ for (const request of requests) {
   request.model = { ...request.model, ...selected, generation: request.model.generation,
     packageVersion: packageIdentity.version };
 }
+const packageArchiveRelative = packageIdentity.spec.startsWith('file:')
+  ? packageIdentity.spec.slice('file:'.length)
+  : `deploy/artifacts/doppler-gpu-${packageIdentity.version}.tgz`;
 const testDelivery = process.env.REPLOID_TEST_DELIVERY_BINDING ? await verifyNumericalTestDelivery({
   root: resolve(import.meta.dirname, '../..'), bindingPath: process.env.REPLOID_TEST_DELIVERY_BINDING,
   bindingSha256: process.env.REPLOID_TEST_DELIVERY_SHA256,
-  archivePath: resolve(import.meta.dirname, '../..', packageIdentity.spec.replace(/^file:/, '')),
+  archivePath: resolve(import.meta.dirname, '../..', packageArchiveRelative),
   runtimeDirectory: resolve(import.meta.dirname, '../../shared/vendor/doppler', packageIdentity.version)
 }) : null;
 const policy = JSON.parse(await readFile(resolveServedFile('config/partition-policy.json')));
@@ -60,7 +63,7 @@ if (reference) {
 }
 const pairedBinding = await loadPairedPartitionFixture({
   modelDirectory: process.env.DOPPLER_CHAT_MODEL_DIR || resolve(import.meta.dirname, '../../../doppler/models/local', requests[0].model.id),
-  archivePath: resolve(import.meta.dirname, '../..', packageIdentity.spec.replace(/^file:/, '')),
+  archivePath: resolve(import.meta.dirname, '../..', packageArchiveRelative),
   referenceIdentity: reference?.modelIdentity || retainedModelIdentity
 });
 const { prompt: probePrompt, step: probeStep, promptOnly } = selectPartitionDiagnostic({

@@ -10,14 +10,33 @@ function fromBase64Url(value) {
 }
 
 // shared/vendor/reploid/artifacts/canonical-json.js
-function canonicalize(value) {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => canonicalize(item)).join(",")}]`;
-  }
-  const keys = Object.keys(value).sort();
-  return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`).join(",")}}`;
+function canonicalizeWith(compare) {
+  const serialize = (value) => {
+    if (value === null || typeof value !== "object") return JSON.stringify(value);
+    if (Array.isArray(value)) {
+      return `[${value.map((item) => serialize(item)).join(",")}]`;
+    }
+    const keys = Object.keys(value).sort(compare);
+    return `{${keys.map((key) => `${JSON.stringify(key)}:${serialize(value[key])}`).join(",")}}`;
+  };
+  return serialize;
 }
+var canonicalize = canonicalizeWith();
+
+// shared/vendor/reploid/hashing.js
+var textEncoder = new TextEncoder();
+var bytesToHex = (bytes) => Array.from(bytes).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+async function sha256Bytes(value, cryptoApi = globalThis.crypto) {
+  const subtle = (cryptoApi || globalThis.crypto)?.subtle;
+  if (!subtle) throw new Error("WebCrypto unavailable");
+  return subtle.digest("SHA-256", value instanceof Uint8Array ? value : textEncoder.encode(String(value)));
+}
+async function sha256HexUnprefixed(value, cryptoApi = globalThis.crypto) {
+  return bytesToHex(new Uint8Array(await sha256Bytes(value, cryptoApi)));
+}
+
+// shared/vendor/reploid/artifacts/signatures.js
+var textEncoder2 = new TextEncoder();
 
 // shared/vendor/reploid/artifacts/identity.js
 var encoder = new TextEncoder();
@@ -28,10 +47,6 @@ var getCryptoApi = (cryptoApi) => {
   }
   return api;
 };
-async function sha256Hex(text, cryptoApi = globalThis.crypto) {
-  const digest2 = await getCryptoApi(cryptoApi).subtle.digest("SHA-256", encoder.encode(String(text || "")));
-  return Array.from(new Uint8Array(digest2)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
 function inferIdentityAlgorithm(bundleOrJwk = {}) {
   const algorithm = String(bundleOrJwk?.algorithm || "").trim();
   const crv = String(bundleOrJwk?.crv || bundleOrJwk?.publicJwk?.crv || "").trim();
@@ -55,7 +70,7 @@ async function createPeerIdFromPublicJwk(publicJwk, cryptoApi = globalThis.crypt
     n: publicJwk.n || null,
     e: publicJwk.e || null
   } : {};
-  const digest2 = await sha256Hex(canonicalize(publicShape), cryptoApi);
+  const digest2 = await sha256HexUnprefixed(canonicalize(publicShape), getCryptoApi(cryptoApi));
   return `peer:${digest2.slice(0, 24)}`;
 }
 async function importVerificationKey(bundleOrJwk, cryptoApi = globalThis.crypto) {
@@ -113,6 +128,44 @@ var SWARM_ROLES = Object.freeze({
   CONSUMER: "consumer",
   DEAD: "dead"
 });
+
+// shared/vendor/reploid/mesh/gpu-signature.policy.json
+var gpu_signature_policy_default = {
+  schema: "reploid.gpu-order-signature/v1",
+  profile: "atomic-finish-order-v1",
+  workgroups: 64,
+  lanes: 32,
+  iterations: 128,
+  trials: 16,
+  seeds: [305419896, 2654435769],
+  dataWords: 4096,
+  timeoutMs: 5e3
+};
+
+// shared/vendor/reploid/mesh/gpu-signature-shader.js
+var gpuSignatureShader = `
+@group(0) @binding(0) var<uniform> params: vec4u;
+@group(0) @binding(1) var<storage, read> data: array<u32>;
+@group(0) @binding(2) var<storage, read_write> result: array<atomic<u32>>;
+var<workgroup> laneValues: array<u32, ${gpu_signature_policy_default.lanes}>;
+@compute @workgroup_size(${gpu_signature_policy_default.lanes})
+fn main(@builtin(workgroup_id) group: vec3u, @builtin(local_invocation_index) lane: u32) {
+  var value = params.x ^ (group.x * 747796405u) ^ lane;
+  for (var i = 0u; i < ${gpu_signature_policy_default.iterations}u; i++) {
+    value = value * 1664525u + 1013904223u;
+    if (params.y == 1u) { value = value ^ data[value & ${gpu_signature_policy_default.dataWords - 1}u]; }
+    value = value ^ (value >> 16u);
+  }
+  laneValues[lane] = value;
+  workgroupBarrier();
+  if (lane == 0u) {
+    var checksum = 0u;
+    for (var i = 0u; i < ${gpu_signature_policy_default.lanes}u; i++) { checksum = checksum ^ laneValues[i]; }
+    let ticket = atomicAdd(&result[0], 1u);
+    atomicStore(&result[1u + group.x], ticket);
+    atomicStore(&result[1u + ${gpu_signature_policy_default.workgroups}u + group.x], checksum);
+  }
+}`;
 
 // shared/vendor/reploid/mesh/partitions/partition-contract.js
 var partitionIdentityKeys = Object.freeze(["modelId", "modelIdentity", "planId", "threadId", "attemptId", "participantA", "participantB"]);

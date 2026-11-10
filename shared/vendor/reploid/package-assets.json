@@ -629,8 +629,8 @@
     },
     {
       "path": "contracts/doppler-partitions.provenance.json",
-      "bytes": 1666,
-      "sha256": "8fd07a6dc8a9dc4b996106d8594e1e0dea7f5ca9e96b9cf09358b96fbcf79244"
+      "bytes": 1665,
+      "sha256": "22909da1a424a71e9eb2434ee8d04f54491a94fe88781540a1192aa8be0aaebd"
     },
     {
       "path": "contracts/host-ports.d.ts",

@@ -49,7 +49,10 @@ it('delivers the same native source and all catalog metadata outside the checkou
   expect(stdout).toContain('--canonical');
   await expect(fs.stat(path.join(directory, 'node_modules'))).rejects.toMatchObject({ code: 'ENOENT' });
   await expect(fs.stat(path.join(directory, 'state'))).rejects.toMatchObject({ code: 'ENOENT' });
-  const copied = await fs.readFile(path.join(directory, pin.spec.slice(5)));
+  const archivePath = pin.spec.startsWith('file:')
+    ? pin.spec.slice(5)
+    : `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
+  const copied = await fs.readFile(path.join(directory, archivePath));
   expect('sha512-' + createHash('sha512').update(copied).digest('base64')).toBe(pin.integrity);
 });
 

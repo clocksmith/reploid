@@ -73,7 +73,9 @@ export async function collectNativeFiles(sourceRoot) {
   retained.set(pinName, pinBytes);
   const pin = JSON.parse(pinBytes);
   const archive = `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
-  if (pin.spec !== `file:${archive}`) throw new Error('Native delivery requires the accepted application archive');
+  if (pin.spec !== pin.version && pin.spec !== `file:${archive}`) {
+    throw new Error('Native delivery requires the accepted application archive');
+  }
   const archiveBytes = await fs.readFile(path.join(sourceRoot, archive));
   const integrity = 'sha512-' + createHash('sha512').update(archiveBytes).digest('base64');
   if (integrity !== pin.integrity) throw new Error('Pinned Doppler archive integrity mismatch');
