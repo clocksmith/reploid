@@ -23,8 +23,8 @@
   "files": [
     {
       "path": "episode.json",
-      "hash": "sha256:c31dd7d59b69804e4f1274524ddf22cefb889d786254de757d2bb3a864b9b3bc",
-      "sizeBytes": 3330028
+      "hash": "sha256:53f40c2e8a0593499040ebb2fbbf79a670fb0c98ee17764711c39a186b0a54a3",
+      "sizeBytes": 3330022
     },
     {
       "path": "pack/pack.json",
@@ -153,28 +153,28 @@
     },
     {
       "path": "attachments/remote-reference.json",
-      "hash": "sha256:2e5fd46035917fe02927856de85ffb34e262b40eb0c5e7d104e186005f9476a7",
+      "hash": "sha256:996cd656134386e90540a806a1a51a1c50a92f5970e11bc70b12e968f70d288e",
       "sizeBytes": 362364
     },
     {
       "path": "attachments/attempt-01.txt",
-      "hash": "sha256:340329b2fe47062bd5cc02f87d671a01e21d54389c196b0573986393c5153db6",
-      "sizeBytes": 367
+      "hash": "sha256:f34c3309400f83ee8791d42605ad58ad387bdf34804dce6e6b91977f7e31c600",
+      "sizeBytes": 355
     },
     {
       "path": "attachments/attempt-02.json",
-      "hash": "sha256:ba5a695c75a0f25b2231262743a5b05cced4bc0b61c5022921e6c95383a7d579",
-      "sizeBytes": 195847
+      "hash": "sha256:bcc1b58a2ae6aaeea0f8fd1f02958fbfa1acc87de68878e419ef4e4804527816",
+      "sizeBytes": 195841
     },
     {
       "path": "attachments/attempt-03.json",
-      "hash": "sha256:89e7ee1043722f2cd142b194fabcfa634a2ac6ade2220f47aec593a18b3b2dea",
-      "sizeBytes": 1880302
+      "hash": "sha256:cd2e38ef59505fe36497450d1ded8ec4318ef492b5bec7602ddebe6836ec9863",
+      "sizeBytes": 1880296
     },
     {
       "path": "attachments/attempt-04.json",
-      "hash": "sha256:fd5634fd797a13451affc990a87b6aa214ad30cd179a2744d303efe975914053",
-      "sizeBytes": 3330021
+      "hash": "sha256:68b785933f7951818bfb728a08492fae2750bfdb7408615188e943c27707f68c",
+      "sizeBytes": 3330015
     },
     {
       "path": "attachments/runtime-package-equivalence.json",

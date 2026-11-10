@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/reploid
+ RUN  v4.1.10 ~/deco/reploid
 
  ✓ tests/unit/retained-document-search.test.js (1 test) 322ms
      ✓ binds source comparison, exact runtime, failed attempts, and bounded retrieval observations  321ms

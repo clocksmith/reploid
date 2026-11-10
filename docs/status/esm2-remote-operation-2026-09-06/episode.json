@@ -27,7 +27,7 @@
       }
     ],
     "outputPath": "/tmp/esm2-remote-operation-05-7q_sl6kr/episode.json",
-    "browserExecutablePath": "/home/x/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome",
+    "browserExecutablePath": "~/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome",
     "browserArgs": [
       "--enable-unsafe-webgpu",
       "--enable-webgpu-developer-features",
@@ -68,7 +68,7 @@
     "runtimePackageBundlePath": "/tmp/doppler-release-0.6.0-clean-bundle",
     "remoteOperation": {
       "referencePath": "/tmp/esm2-remote-operation-01-c7f2lb_z/remote-reference.json",
-      "referenceDigest": "sha256:2e5fd46035917fe02927856de85ffb34e262b40eb0c5e7d104e186005f9476a7"
+      "referenceDigest": "sha256:996cd656134386e90540a806a1a51a1c50a92f5970e11bc70b12e968f70d288e"
     }
   },
   "installedPackage": {

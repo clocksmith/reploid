@@ -13,8 +13,8 @@
       "command": "npx vitest run tests/unit/retained-document-assistant.test.js tests/unit/retained-document-search.test.js",
       "exitCode": 0,
       "log": "artifact-tests.txt",
-      "sha256": "1c8ea0449a33720c0c12c9adc9cceb0aebcb5d0dc163cf5038305cb77267643f",
-      "sizeBytes": 543
+      "sha256": "33898bb16a331e23fb0939573d9e405775d3d581ab35675d5b40165cd8dd08ad",
+      "sizeBytes": 537
     },
     {
       "command": "node scripts/retain-document-search-evidence.js extract docs/status/document-assistant-2026-09-06 /tmp/reploid-document-assistant-retained-check",
@@ -27,8 +27,8 @@
       "command": "npx vitest run",
       "exitCode": 0,
       "log": "full-tests.txt",
-      "sha256": "0f8f035f1c7bcd6b3176ca4f653d1e0fe3c5c7e4fef0aca01f89158877077824",
-      "sizeBytes": 88316
+      "sha256": "8bbde1d00932246fcc13997c36e814651683f3d7e0ba3a4c5b3bb583ad4e3efa",
+      "sizeBytes": 88256
     },
     {
       "command": "npm run verify:catscan",

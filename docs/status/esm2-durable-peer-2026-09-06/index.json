@@ -23,8 +23,8 @@
   "files": [
     {
       "path": "episode.json",
-      "hash": "sha256:6d047b03d30adccb140cf860ef4fdc2a53dc6b0b09fa0c7eb38cff2920b0fcf0",
-      "sizeBytes": 1434753
+      "hash": "sha256:e3ac49afbb5937a7ba80901a37a87b5a53f3515bc46ce12647f8007c6513ab92",
+      "sizeBytes": 1434747
     },
     {
       "path": "pack/pack.json",
@@ -163,8 +163,8 @@
     },
     {
       "path": "attachments/episode.json",
-      "hash": "sha256:69408550056ee0d03d5dd423048e1aca6ea275549c173feebd939484a142a841",
-      "sizeBytes": 1435041
+      "hash": "sha256:94a3dd072896c143c92a31a56e044325808c2a323906186387d19dd90191086d",
+      "sizeBytes": 1435035
     }
   ],
   "externalArtifacts": [

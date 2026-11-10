@@ -12,8 +12,8 @@
       "command": "npx vitest run",
       "exitCode": 0,
       "log": "full-tests.txt",
-      "sha256": "b4013d43fa1e37c0a7d87c3195ceecbe76b17015480282146fd2b6080280384c",
-      "sizeBytes": 88230
+      "sha256": "f5493cf9fceec442def6efd94427735b5f512d4a5be9411986fdf2f12d4c98aa",
+      "sizeBytes": 88170
     },
     {
       "command": "npx playwright test tests/e2e/peer-pack-custody.spec.js --project=chromium",

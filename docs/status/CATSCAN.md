@@ -27,6 +27,7 @@ Outputs:
 - Supported, partial, blocked, observed, forecast, and unverified states remain distinguishable.
 - Missing or stale evidence cannot be presented as current proof.
 - An observation is bounded to its recorded environment and artifact identities.
+- Retained evidence writes home paths as `~/`. Home-directory prefixes were redacted on 2026-11-10 and byte pins updated; signed or content-addressed records stay unchanged ([manifest](../../artifacts/home-path-redaction-20261110/manifest.json)).
 
 ## Acceptance
 - Every indexed claim has valid structure, evidence, and bounded language.

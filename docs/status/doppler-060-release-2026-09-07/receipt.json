@@ -5,7 +5,7 @@
   "dopplerVersion": "0.6.0",
   "dopplerIntegrity": "sha512-1SKgx0KWKMHJEg4m5BdqLS1oV/kImbHfLaug8tOuwghjca166lrL/Qi7t+AXW/O4MQjONcFaWwPjaKILGINspA==",
   "browserBundleHash": "sha256:f6d5ec38b13e4fbf1aab42116f4ad2d78b5779c4139a3c865549703dd1c9518a",
-  "archiveSha256": "7117b304acfb942cf5d2a472b201f148edf1d582c4268c2f6a655b49f2852695",
+  "archiveSha256": "42b20f432958bd27df2fe5249cde38ff379ac65622142fb34a93643b57ad4a17",
   "checks": {
     "fullSuiteBeforeFixtureCorrection": {
       "passed": 2436,

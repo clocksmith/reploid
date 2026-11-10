@@ -12,8 +12,8 @@
   "logs": [
     {
       "path": "validation/full-tests.txt",
-      "hash": "sha256:b02c735a2f9727a45a10fcc35fd4a4db51363c6e35bf9f5ec3baca208e9ba4db",
-      "sizeBytes": 88735
+      "hash": "sha256:8fc036da38b1d35c4cbf1994fdacc6da6760b47e763f9098d9787aa31a52ca22",
+      "sizeBytes": 88675
     },
     {
       "path": "validation/browser-tests.txt",

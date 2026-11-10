@@ -64,8 +64,8 @@
   },
   "archive": {
     "file": "evidence.json.gz",
-    "sha256": "847530412155f9cad91867755782ae3ca54bdc666f2fa69174fb95874ce6462f",
-    "sizeBytes": 118110,
+    "sha256": "8f4777abf65b5daa94838636eb974b432bb8c55a7f16a84300d9960ff6ec9cc9",
+    "sizeBytes": 118094,
     "unpackedBytes": 682867
   },
   "files": [
@@ -101,8 +101,8 @@
     },
     {
       "path": "candidate-recipe.json",
-      "sha256": "22e4dde6b8901f4becf50ae456d815ee16a97bb028844f48041c716537d473fc",
-      "sizeBytes": 994
+      "sha256": "c15095ae95fdbcbad107dbeca54a3bfa2de3f88150bfe0e0d086ed55e34a9599",
+      "sizeBytes": 988
     },
     {
       "path": "model-with-declared-adapter-kernels/manifest.json",

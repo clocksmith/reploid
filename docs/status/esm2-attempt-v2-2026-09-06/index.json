@@ -23,8 +23,8 @@
   "files": [
     {
       "path": "episode.json",
-      "hash": "sha256:649298ff9e698e6b128f83fa6230115e5eb6cf55650771d986ccada01b9031c2",
-      "sizeBytes": 3337824
+      "hash": "sha256:b2cda31724886aeb8e7bfe946a3019a379bda358d716b2d9159194e350f81e13",
+      "sizeBytes": 3337818
     },
     {
       "path": "pack/pack.json",
@@ -163,7 +163,7 @@
     },
     {
       "path": "attachments/remote-reference.json",
-      "hash": "sha256:2e5fd46035917fe02927856de85ffb34e262b40eb0c5e7d104e186005f9476a7",
+      "hash": "sha256:996cd656134386e90540a806a1a51a1c50a92f5970e11bc70b12e968f70d288e",
       "sizeBytes": 362364
     },
     {

@@ -216,8 +216,8 @@
   },
   {
     "path": "reploid-qwen-adapter-closure/source/adapter-kernel-recipe.json",
-    "bytes": 994,
-    "sha256": "22e4dde6b8901f4becf50ae456d815ee16a97bb028844f48041c716537d473fc"
+    "bytes": 988,
+    "sha256": "c15095ae95fdbcbad107dbeca54a3bfa2de3f88150bfe0e0d086ed55e34a9599"
   },
   {
     "path": "reploid-qwen-adapter-closure/source/capture-source.py",
@@ -241,8 +241,8 @@
   },
   {
     "path": "reploid-qwen-adapter-closure/source/prepare.js",
-    "bytes": 2935,
-    "sha256": "6010cc58a68873828ddcb831fcece6a81810a21ea3f22e8a743f933282a80512"
+    "bytes": 2911,
+    "sha256": "ca557eda939a0946d5a2c9e4ee149152fd439264e4ab91dc1418c881ee260338"
   },
   {
     "path": "reploid-qwen-adapter-closure/source/source-reference.json",
@@ -266,8 +266,8 @@
   },
   {
     "path": "reploid-useful-specialization-20260907/answers-01/execution.json",
-    "bytes": 242649,
-    "sha256": "e82974b49552e4047964cbe4d3c1956967ef8da8abf51e25c469f3ac72046a4d"
+    "bytes": 242631,
+    "sha256": "cbed8a02c2dc2afbeb75a053645d865e4924c109be738c8f85b78eaad8c380c8"
   },
   {
     "path": "reploid-useful-specialization-20260907/answers-01/progress.json",
@@ -3221,8 +3221,8 @@
   },
   {
     "path": "reploid-useful-specialization-20260907/answers-01.log",
-    "bytes": 979,
-    "sha256": "cf093b454d8640efc75b822f65ae388aaea4d31b66f6eee554d6b04087511067"
+    "bytes": 961,
+    "sha256": "900855783271ce07a54ebc2a4034060df41a5394fb45ee39006fbd8735aa7349"
   },
   {
     "path": "reploid-useful-specialization-20260907/answers-02/corpus.json",

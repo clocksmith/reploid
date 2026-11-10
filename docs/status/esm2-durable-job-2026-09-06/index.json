@@ -23,8 +23,8 @@
   "files": [
     {
       "path": "episode.json",
-      "hash": "sha256:2c35a978e147fab8568b5b712efb47a116af521c913cdc86a9e7cbb7bae42ba5",
-      "sizeBytes": 3330523
+      "hash": "sha256:d2e6d1980da9f39e0f9ab20a29bf1addb110ef7cbf34d92031a4a8ba5eebfbac",
+      "sizeBytes": 3330517
     },
     {
       "path": "pack/pack.json",
@@ -163,7 +163,7 @@
     },
     {
       "path": "attachments/remote-reference.json",
-      "hash": "sha256:2e5fd46035917fe02927856de85ffb34e262b40eb0c5e7d104e186005f9476a7",
+      "hash": "sha256:996cd656134386e90540a806a1a51a1c50a92f5970e11bc70b12e968f70d288e",
       "sizeBytes": 362364
     },
     {
@@ -178,8 +178,8 @@
     },
     {
       "path": "attachments/reploid-durable-all-tests.txt",
-      "hash": "sha256:da717fad423d045904a4f34835fffd252ab87c46624b886cdc01979b54ac8fbf",
-      "sizeBytes": 88720
+      "hash": "sha256:6b4e973748dc803df207df18af0a5c83f5eeed11f93e1a2495e2d94f8d66bbdc",
+      "sizeBytes": 88660
     },
     {
       "path": "attachments/reploid-durable-contracts.txt",
@@ -188,13 +188,13 @@
     },
     {
       "path": "attachments/reploid-durable-registry.txt",
-      "hash": "sha256:aceae01c3b32245d86b752adcff342deff121e32d4dd05520777c8cab07bc4c3",
-      "sizeBytes": 957
+      "hash": "sha256:a7337cf88782c0db8aab2dc8875568b92be6b4f61f011bfb276e8ece434adf49",
+      "sizeBytes": 921
     },
     {
       "path": "attachments/reploid-durable-registry-second.txt",
-      "hash": "sha256:29630877b7187956b5da39ab096ba41338dccec190b95fa9d7e46ecc0f5b4b61",
-      "sizeBytes": 767
+      "hash": "sha256:5245607f55e46b372ed37038b509384e4e0661f455d61682ecea69da3f9efd3c",
+      "sizeBytes": 731
     }
   ],
   "externalArtifacts": [
