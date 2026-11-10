@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { it, expect, vi } from 'vitest';
 import { startFleetBrowserBridge } from '../../server/fleet/browser-bridge.js';
+import { startFleetTextApi } from '../../server/fleet/text-api.js';
+import tunnelWorker from '../../server/fleet/cloudflare-tunnel-worker.js';
 import { createPrivateComputers } from '../../apps/poolday/host/private-computers.js';
 const identity = 'sha256:' + 'a'.repeat(64), requester = 'peer:' + '1'.repeat(24), provider = 'peer:' + '2'.repeat(24);
 const origin = 'http://localhost:8000', token = 'pairing-secret-for-owned-test-host-only-1234';
@@ -58,4 +60,95 @@ it('cancels the owned request on stream loss without inventing a refund or compl
     await vi.waitFor(() => expect(native.cancel).toHaveBeenCalledWith('cancel'));
     expect(states.at(-1).execution.serviceCredit.status).toBe('pending');
   } finally { client.close(); await bridge.close(); }
+});
+
+it('pairs over authenticated HTTPS /bridge via the Cloudflare tunnel Worker with strict secret/origin isolation and live queue state', async () => {
+  const apiToken = 'text-api-bearer-secret-separate-from-browser-5678';
+  const hostedOrigin = 'https://replo.id';
+  const native = {
+    ...host(),
+    identity: { peerId: requester },
+    allowsModel: () => true,
+    enrolledRecipients: async () => new Set([provider]),
+    runAccountedGeneration: vi.fn(),
+    recover: vi.fn(async ({ reservationId }) => ({ status: 'completed', serviceCredit: { id: reservationId, charge: 2, settledAt: 123 } })),
+    textParticipant: { roomId: 'private-room', executionClass: 'private-pool', getState: () => ({ models: [] }), generate: vi.fn() }
+  };
+  native.generate = vi.fn(async (_request, delta, route, onAdmission) => {
+    onAdmission({ status: 'queued', queuePosition: 1, queuedCount: 2, queuedAt: 100 });
+    route({ recipientIdentity: provider, requestId: 'work-https' });
+    delta('Streamed ');
+    delta('over HTTPS');
+    return {
+      modelId: model.id, modelIdentity: identity, adapterIdentities: [], content: 'Streamed over HTTPS',
+      execution: { placement: 'peer-whole-request', providerIdentity: provider, admission: { queuedMs: 120 } },
+      serviceCredit: { charge: 3, settledAt: Date.now() }
+    };
+  });
+  const api = await startFleetTextApi({
+    host: native,
+    token: apiToken,
+    browserBridge: { token, origins: [hostedOrigin] }
+  });
+  const baseOrigin = new URL(api.url).origin;
+  const env = {
+    FLEET_API: {
+      fetch: req => {
+        const rewritten = new URL(req.url);
+        return fetch(new Request(baseOrigin + rewritten.pathname, {
+          method: req.method,
+          headers: req.headers,
+          ...(req.method === 'POST' ? { body: req.body, duplex: 'half' } : {}),
+          signal: req.signal
+        }));
+      }
+    }
+  };
+  const workerFetch = (url, init = {}) => tunnelWorker.fetch(new Request(url, {
+    ...init,
+    headers: { ...(init.headers || {}), Origin: hostedOrigin }
+  }), env);
+  const client = createPrivateComputers({ storage: null, fetchImpl: workerFetch });
+  try {
+    // Browser CORS preflight succeeds without Authorization for the paired origin and rejects unpaired origins.
+    const preflight = await tunnelWorker.fetch(new Request('https://reploid-fleet-api.reploid.workers.dev/bridge/state', {
+      method: 'OPTIONS',
+      headers: { Origin: hostedOrigin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'authorization, content-type' }
+    }), env);
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get('access-control-allow-origin')).toBe(hostedOrigin);
+
+    const badOriginPreflight = await tunnelWorker.fetch(new Request('https://reploid-fleet-api.reploid.workers.dev/bridge/state', {
+      method: 'OPTIONS',
+      headers: { Origin: 'https://evil.example', 'Access-Control-Request-Method': 'POST' }
+    }), env);
+    expect(badOriginPreflight.status).toBe(400);
+
+    // Secrets are never interchangeable between /bridge/* and /v1/*.
+    expect((await workerFetch('https://reploid-fleet-api.reploid.workers.dev/bridge/state', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiToken}` }, body: '{}'
+    })).status).toBe(400);
+    expect((await tunnelWorker.fetch(new Request('https://reploid-fleet-api.reploid.workers.dev/v1/models', {
+      headers: { Authorization: `Bearer ${token}` }
+    }), env)).status).toBe(401);
+
+    // Full HTTPS pairing, streaming with live queue state, and recovery without local insecure HTTP.
+    await client.connect('https://reploid-fleet-api.reploid.workers.dev/bridge', token);
+    expect(client.state().connected).toBe(true);
+    const states = [], deltas = [];
+    const result = await client.execute(
+      { threadId: 't-https', attemptId: 'a-https', model: client.models()[0], messages: [{ role: 'user', content: 'Hi' }], permissions: { sharingScope: 'mesh' } },
+      { signal: new AbortController().signal, requestApproval: async () => true, onState: row => states.push(structuredClone(row)), onDelta: d => deltas.push(d.text) }
+    );
+    expect(deltas.join('')).toBe('Streamed over HTTPS');
+    expect(states.some(row => row.status === 'queued' && row.execution?.admission?.queuePosition === 1)).toBe(true);
+    expect(result.execution.admission.queuedMs).toBe(120);
+    expect(result.execution.serviceCredit.charge).toBe(3);
+
+    const recovered = await client.recover({ reservationId: 'service:test:1', messages: [{ role: 'user', content: 'Hi' }] });
+    expect(recovered.status).toBe('completed');
+  } finally {
+    client.close();
+    await api.close();
+  }
 });

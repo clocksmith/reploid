@@ -157,3 +157,41 @@ it('shows the GPU saved with a completed answer, never the providers reported no
   updateExecutionActivity(root, state);
   expect([...root.querySelectorAll('[data-recorded-hardware]')].map(node => node.textContent)).toEqual(['GPU not recorded', 'GPU not recorded']);
 });
+
+it('shows live queue position, cached prefix token reuse and service-credit settlement state', () => {
+  const attempt = {
+    id: 'attempt',
+    status: 'queued',
+    execution: {
+      provider: 'peer',
+      placement: 'peer-whole-request',
+      admission: { status: 'queued', queuePosition: 2, queuedCount: 3 },
+      serviceCredit: { status: 'pending' }
+    }
+  };
+  const state = { activeThread: { id: 'thread', model: { name: 'Qwen 3.5 2B' }, messages: [], attempts: [attempt] } };
+  const root = document.createElement('div');
+  root.innerHTML = '<button data-execution-trigger></button><div data-activity-detail></div>';
+  updateExecutionActivity(root, state);
+  expect(root.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Queued · 2 of 3. Execution details');
+  expect(root.textContent).toContain('Queue position2 of 3');
+  expect(root.textContent).toContain('Service creditsPending');
+
+  attempt.status = 'completed';
+  attempt.execution = {
+    provider: 'peer',
+    placement: 'peer-whole-request',
+    peerId: 'peer-miles',
+    privateDelegation: { poolIdentity: 'sha256:' + 'a'.repeat(64), computers: { 'peer-miles': 'miles' } },
+    completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 120, generatedTokenCount: 24, stopReason: 'eos-token' },
+    timing: { totalMs: 600, generatedTokenCount: 24, prefillMs: 45, decodeMs: 555, reusedPrefixTokens: 96, prefillComputedTokens: 24 },
+    admission: { queuedMs: 410 },
+    serviceCredit: { charge: 24, settledAt: 1700000000000 }
+  };
+  updateExecutionActivity(root, state);
+  expect(root.textContent).toContain('Prompt tokens120');
+  expect(root.textContent).toContain('Cached prefix tokens96');
+  expect(root.textContent).toContain('Computed prompt tokens24');
+  expect(root.textContent).toContain('Admission wait0.41 s');
+  expect(root.textContent).toContain('Service credits24 settled');
+});

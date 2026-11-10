@@ -32,7 +32,7 @@ export function bindPrivateComputers(root, session) {
       return `<li><details class="pool-disclosure"><summary>${escape(row.name)} <span class="pool-muted">${status}</span></summary>
         <dl class="pool-facts"><dt>Model</dt><dd>${escape(online && row.resident ? model?.name || row.resident.modelIdentity : 'None reported')}</dd>
         <dt>Role</dt><dd>${online && row.resident ? row.resident.mode === 'partition' ? `Split model · stage ${row.resident.stageIndex + 1}` : 'Whole model' : row.requester ? 'Requester' : 'No active role'}</dd>
-        <dt>Active work</dt><dd>${online ? row.activeRequests ?? 'Not reported' : 'Unknown'}</dd>
+        <dt>Active work</dt><dd>${online ? row.queuedRequests > 0 ? `${row.activeRequests ?? 0} active · ${row.queuedRequests} queued` : row.activeRequests ?? 'Not reported' : 'Unknown'}</dd>
         <dt>Available GPU budget</dt><dd>${online ? gb(row.freeGpuBytes) : 'Unknown'}</dd><dt>Available system memory</dt><dd>${online ? gb(row.freeHostBytes) : 'Unknown'}</dd></dl></details></li>`;
     }).join('');
     if (list.dataset.markup !== markup) { const opened = [...list.querySelectorAll('details')].map((node, index) => node.open ? index : -1); list.innerHTML = markup; list.dataset.markup = markup;

@@ -62,7 +62,8 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
     let streaming = false, emitted = '', sequence = 0, observedUsage = null, disclosureApproved = false, acceptingCallbacks = true;
     let approvedRecipients = [];
     const id = protocol.idPrefix + randomUUID().replaceAll('-', ''), created = Math.floor(Date.now() / 1000);
-    const threadId = randomUUID().replaceAll('-', ''), attemptId = randomUUID().replaceAll('-', '');
+    let threadId = randomUUID().replaceAll('-', '');
+    const attemptId = randomUUID().replaceAll('-', '');
     let model, output;
     const write = data => {
       signal.throwIfAborted();
@@ -80,6 +81,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       if (!object(authenticated) || typeof authenticated.subject !== 'string' || !authenticated.subject || authenticated.subject.length > 512) throw fail(401, 'Authentication required');
       const principal = freeze({ subject: authenticated.subject });
       const input = await readBody(req, signal, protocol.parse); signal.throwIfAborted();
+      if (input.reploid?.conversation_id) threadId = input.reploid.conversation_id;
       const requirePrivateScope = () => {
         if (input.reploid && (participant.roomId !== input.reploid.pool_id
           || !['private-pool', 'local-only'].includes(participant.executionClass))) throw fail(403, 'Requester is not in the permitted private pool');

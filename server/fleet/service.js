@@ -67,6 +67,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
         return credits.settle(payload.id, payload.evidence);
       }
       case 'recoverMine': return credits.recoverFor(signer);
+      case 'reconcileMine': return credits.reconcileConsumer(signer, payload?.activeIds ?? []);
       case 'snapshot': return credits.snapshot();
       case 'computers': return { at: now(), computers: [...credits.enrollment.byId.values()].map(computer => {
         const observation = observations.get(computer.id);
@@ -165,15 +166,46 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
   } finally { await service?.close(); credits.close(); }
 }
 
-export function createFleetClient({ url, identity, fetchImpl = fetch, now = Date.now, outboxFile = null }) {
+function createPinnedTlsFetch(ca) {
+  return (url, options = {}) => new Promise((resolve, reject) => {
+    const target = new URL(url);
+    const bodyBuffer = options.body ? Buffer.from(options.body) : null;
+    const req = https.request(target, {
+      method: options.method || 'POST',
+      headers: { ...options.headers, ...(bodyBuffer ? { 'content-length': String(bodyBuffer.length) } : {}) },
+      ca
+    }, res => {
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => {
+        const textBody = Buffer.concat(chunks).toString('utf8');
+        resolve({
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          status: res.statusCode || 500,
+          json: async () => JSON.parse(textBody)
+        });
+      });
+    });
+    const onAbort = () => req.destroy(options.signal?.reason || Error('Fleet TLS request aborted'));
+    options.signal?.addEventListener('abort', onAbort, { once: true });
+    if (options.signal?.aborted) { onAbort(); return; }
+    req.on('error', reject);
+    req.on('close', () => options.signal?.removeEventListener('abort', onAbort));
+    if (bodyBuffer) req.write(bodyBuffer);
+    req.end();
+  });
+}
+
+export function createFleetClient({ url, identity, fetchImpl = null, ca = null, now = Date.now, outboxFile = null }) {
   const target = new URL(url);
   assert(target.protocol === 'https:' || target.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(target.hostname),
     'Fleet service requires HTTPS or an owned loopback tunnel');
+  const send = fetchImpl || (ca && target.protocol === 'https:' ? createPinnedTlsFetch(ca) : fetch);
   const call = async (operation, payload) => {
     payload = wireValue(payload);
     const body = { schema: DOMAIN, participantId: identity.peerId, operation, payload, at: now(), nonce: randomUUID() };
     const signature = await signAsParticipant(identity, DOMAIN, body);
-    const response = await fetchImpl(url, { method: 'POST', headers: { 'content-type': 'application/json' },
+    const response = await send(url, { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...body, signature }), signal: AbortSignal.timeout(30000) });
     const answer = await response.json();
     if (!response.ok || answer.error) throw Object.assign(Error(answer.error || 'Fleet request failed'),
@@ -241,7 +273,7 @@ export function createFleetClient({ url, identity, fetchImpl = fetch, now = Date
   return { call, collect: (id, evidence) => recoverable('collect', { id, evidence }),
     fence: id => recoverable('fence', { id }), reserve: payload => call('reserve', payload), dispatch: id => call('dispatch', { id }), settle,
     abandonBeforeDispatch: id => call('abandonBeforeDispatch', { id }),
-    async reconcile() {
+    async reconcile({ activeIds = null } = {}) {
       await Promise.all([writes, recoveryWrites]);
       const pending = storage ? await storage.get('settlements') || [] : [], outcomes = [];
       for (const row of pending) {
@@ -252,6 +284,12 @@ export function createFleetClient({ url, identity, fetchImpl = fetch, now = Date
       for (const row of recovery) {
         try { outcomes.push(await recoverable(row.operation, row.payload)); }
         catch (error) { outcomes.push({ id: row.payload.id, status: 'pending', error: error.message }); }
+      }
+      if (Array.isArray(activeIds)) {
+        const consumerOutcomes = await call('reconcileMine', { activeIds });
+        for (const row of consumerOutcomes) {
+          if (!outcomes.some(value => value.id === row.id)) outcomes.push(row);
+        }
       }
       const recovered = await call('recoverMine', {});
       return [...outcomes, ...recovered.filter(row => !outcomes.some(value => value.id === row.id))];

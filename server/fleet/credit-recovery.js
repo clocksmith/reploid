@@ -99,6 +99,39 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       for (const { id } of ids) { const result = await this.recover(id); if (result.status !== 'pending') results.push(result); }
       return results;
     },
+    async reconcileConsumer(consumer, activeIds = []) {
+      assert(Array.isArray(activeIds) && activeIds.length <= 1024 && activeIds.every(id => typeof id === 'string' && id.length <= 512),
+        'Active reservation list must be bounded text IDs');
+      expiry();
+      const activeSet = new Set(activeIds);
+      const abandonedResults = [];
+      const toRecover = transaction(() => {
+        const rows = db.prepare("SELECT id FROM fleet_requests WHERE state IN ('reserved','dispatched','closing')").all();
+        const pendingIds = [];
+        for (const { id } of rows) {
+          if (activeSet.has(id)) continue;
+          const current = read(id);
+          if (!current || current.binding.consumer !== consumer) continue;
+          if (current.state === 'reserved') {
+            db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(current.binding.maximum, current.binding.computerId);
+            db.prepare("UPDATE fleet_requests SET state='abandoned' WHERE id=?").run(id);
+            abandonedResults.push({ id, status: 'abandoned', charge: 0, outputTokens: 0, settledAt: now() });
+            continue;
+          }
+          if (current.state === 'dispatched') {
+            db.prepare("UPDATE fleet_requests SET state='closing' WHERE id=?").run(id);
+          }
+          pendingIds.push(id);
+        }
+        return pendingIds;
+      });
+      const results = [...abandonedResults];
+      for (const id of toRecover) {
+        const result = await this.recover(id);
+        if (result.status !== 'pending') results.push(result);
+      }
+      return results;
+    },
     async recover(id) {
       expiry();
       const row = read(id); assert(row, 'Unknown credit reservation');

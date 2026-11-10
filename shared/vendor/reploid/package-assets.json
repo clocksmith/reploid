@@ -1299,8 +1299,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 39664,
-      "sha256": "896a7e47475360ab07a0deea6896b803ba0af8072fee0ee2fd94c12aa50d17ef"
+      "bytes": 45002,
+      "sha256": "78eb3a14184265ad2091b793f8d63a5f5c47b4a30b21eeb1b27d05966755ce54"
     },
     {
       "path": "mesh/peer-identity.js",

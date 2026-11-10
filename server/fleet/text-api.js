@@ -2,6 +2,7 @@ import http from 'node:http';
 import https from 'node:https';
 import { createTextApi } from '../text-api.js';
 import { tokensEqual } from '../token-auth.js';
+import { createFleetBrowserBridgeHandler } from './browser-bridge.js';
 import { assert } from './contract.js';
 
 function previewRecipients(preview) {
@@ -14,7 +15,7 @@ function previewRecipients(preview) {
  * over an enrolled native fleet requester. Non-loopback binding requires TLS;
  * every execution reserves and settles non-cash fleet service credits and checks
  * disclosed provider keys against the coordinator's enrolled computers. */
-export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1', port = 0, tls = null, allowedRecipients = null }) {
+export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1', port = 0, tls = null, allowedRecipients = null, browserBridge = null }) {
   assert(typeof token === 'string' && token.length >= 32, 'Strong API bearer secret required');
   assert(host?.textParticipant && typeof host.runAccountedGeneration === 'function'
     && typeof host.enrolledRecipients === 'function' && host.identity?.peerId,
@@ -29,6 +30,14 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
     'Allowed recipients must be distinct enrolled peer identities');
     pinned = new Set(allowedRecipients);
   }
+  const bridge = browserBridge ? createFleetBrowserBridgeHandler({
+    host,
+    token: browserBridge.token,
+    origins: browserBridge.origins,
+    basePath: browserBridge.basePath ?? '/bridge',
+    ...(browserBridge.maxBodyBytes !== undefined ? { maxBodyBytes: browserBridge.maxBodyBytes } : {}),
+    ...(browserBridge.maxConcurrent !== undefined ? { maxConcurrent: browserBridge.maxConcurrent } : {})
+  }) : null;
   const expectedHeader = `Bearer ${token}`;
   const api = createTextApi({
     participant: host.textParticipant,
@@ -57,16 +66,26 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
   const handle = (req, res) => {
     res.setHeader('cache-control', 'no-store');
     res.setHeader('x-content-type-options', 'nosniff');
+    if (bridge) {
+      let pathname = '';
+      try { pathname = new URL(req.url || '/', 'http://127.0.0.1').pathname; }
+      catch { pathname = ''; }
+      if (pathname === bridge.prefix || pathname.startsWith(bridge.prefix + '/')) {
+        return bridge.handle(req, res);
+      }
+    }
     return api.handle(req, res);
   };
   const server = tls ? https.createServer(tls, handle) : http.createServer(handle);
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, listenHost, resolve); });
   const address = server.address();
   const hostText = listenHost.includes(':') ? `[${listenHost}]` : listenHost;
+  const baseUrl = `${tls ? 'https' : 'http'}://${hostText}:${address.port}`;
   return Object.freeze({
-    url: `${tls ? 'https' : 'http'}://${hostText}:${address.port}/v1`,
+    url: `${baseUrl}/v1`,
+    ...(bridge ? { bridgeUrl: `${baseUrl}${bridge.prefix}` } : {}),
     async close() {
-      await api.close();
+      await Promise.all([api.close(), bridge?.close()]);
       server.closeIdleConnections();
       server.closeAllConnections();
       await new Promise(resolve => server.close(resolve));

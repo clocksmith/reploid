@@ -545,3 +545,91 @@ it('propagates client abort and SSE stream cancellation through the tunnel Worke
   expect(streamSignal.aborted).toBe(true);
   expect(upstreamCancelled).toBe(true);
 });
+
+it('queues concurrent whole-model requests fairly before provider credit admission and preserves conversation_id context across turns', async () => {
+  const cleanup = [], observedContexts = [];
+  let activeExecutions = 0, peakExecutions = 0;
+  const firstStarted = Promise.withResolvers(), releaseFirst = Promise.withResolvers();
+  const admission = createFleetExecutionAdmission({ credits: providerCredits, model });
+  let wholeRequester;
+  const mesh = await createRecoveryMesh(cleanup, {
+    identities: keys.slice(0, 2), modelId: model.id, modelIdentity: model.identity,
+    authorize: async input => {
+      if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
+      return true;
+    },
+    execute: async (messages, update, controls) => {
+      activeExecutions += 1;
+      peakExecutions = Math.max(peakExecutions, activeExecutions);
+      observedContexts.push({ contextOwner: controls.contextOwner, contextId: controls.contextId, promptCount: messages.length });
+      try {
+        if (observedContexts.length === 1) {
+          firstStarted.resolve();
+          await releaseFirst.promise;
+        }
+        const reply = `{"turn":${observedContexts.length}}`;
+        update(reply);
+        return {
+          model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: reply,
+          completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 10 * messages.length, generatedTokenCount: 3, stopReason: 'eos-token' },
+          timing: { totalMs: 25, generatedTokenCount: 3, prefillMs: 5, decodeMs: 20,
+            ...(messages.length > 2 ? { reusedPrefixTokens: 18, prefillComputedTokens: 12 } : {}) }
+        };
+      } finally {
+        activeExecutions -= 1;
+      }
+    },
+    onGenerationTerminal: proof => admission.terminal(proof)
+  });
+  wholeRequester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
+  const host = createHostAdapter(wholeRequester, mesh.requesterMesh);
+  const api = await startFleetTextApi({ host, token, allowedRecipients: [keys[1].peerId] });
+  cleanup.push(() => api.close());
+  try {
+    const sendTurn = (conversationId, messages) => fetch(`${api.url}/responses`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: model.id, store: false, stream: false, input: messages, max_output_tokens: 16,
+        text: { format: { type: 'json_object' } },
+        reploid: {
+          pool_id: roomId, expected_model_identity: model.identity,
+          allowed_recipients: [keys[1].peerId], include_execution: true,
+          conversation_id: conversationId
+        }
+      })
+    });
+
+    // Overlapping Conversation A and Conversation B complete serialized without Provider-is-busy admission leaks.
+    const convA1 = sendTurn('conv-alpha', [{ role: 'user', content: 'Turn 1 alpha' }]);
+    await firstStarted.promise;
+    const convB1 = sendTurn('conv-beta', [{ role: 'user', content: 'Turn 1 beta' }]);
+    releaseFirst.resolve();
+    const [resA1, resB1] = await Promise.all([convA1, convB1]);
+    expect(resA1.status).toBe(200);
+    expect(resB1.status).toBe(200);
+    expect(peakExecutions).toBe(1);
+
+    // Multi-turn follow-up on Conversation A preserves verified contextOwner + contextId and returns prefix-reuse timing.
+    const resA2 = await sendTurn('conv-alpha', [
+      { role: 'user', content: 'Turn 1 alpha' },
+      { role: 'assistant', content: '{"turn":1}' },
+      { role: 'user', content: 'Turn 2 alpha' }
+    ]);
+    expect(resA2.status).toBe(200);
+    const bodyA2 = await resA2.json();
+    expect(observedContexts.map(row => ({ contextOwner: row.contextOwner, contextId: row.contextId }))).toEqual([
+      { contextOwner: keys[0].peerId, contextId: 'conv-alpha' },
+      { contextOwner: keys[0].peerId, contextId: 'conv-beta' },
+      { contextOwner: keys[0].peerId, contextId: 'conv-alpha' }
+    ]);
+    expect(bodyA2.reploid.execution.timing).toMatchObject({ reusedPrefixTokens: 18, prefillComputedTokens: 12 });
+    expect(credits.snapshot().accounts.map(row => ({ balance: row.balance, held: row.held }))).toEqual([
+      { balance: -9, held: 0 }, { balance: 9, held: 0 }
+    ]);
+  } finally {
+    releaseFirst.resolve();
+    for (const close of cleanup.reverse()) await close();
+  }
+});

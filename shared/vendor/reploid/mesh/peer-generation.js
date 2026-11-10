@@ -45,7 +45,8 @@ export function createPeerGenerationMesh({ config, ports }) {
   const contextProviders = new Map();
   const identificationAttempts = new Map(), identifying = new Set();
   let observationSequence = 0;
-  const inbound = new Map(), completed = new Map();
+  const inbound = new Map(), inboundQueued = new Map(), completed = new Map();
+  const consumerOrder = [], consumerBuckets = new Map();
   const inboundSettlements = new Set();
   const receiptSettlements = new Set();
   const executions = new Set();
@@ -166,6 +167,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     advertisement.hardware = publicProviderHardware(executionState().hardware);
     advertisement.adapterIdentities = executionState().adapterIdentities || [];
     advertisement.availableSlots = ready() ? Math.max(0, policy.mesh.maxInboundJobs - inbound.size) : 0;
+    advertisement.queuedJobs = inboundQueued.size;
     advertisement.modelContract = policy.models.contract;
     advertisement.identityProtocol = 1;
     swarmTransport.broadcast('reploid:peer-advertisement', advertisement);
@@ -250,6 +252,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.hardware = publicProviderHardware(payload.hardware);
       next.adapterIdentities = payload.adapterIdentities || [];
       next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots > 0 ? payload.availableSlots : 0;
+      next.queuedJobs = Number.isSafeInteger(payload.queuedJobs) && payload.queuedJobs > 0 ? payload.queuedJobs : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
     }
@@ -348,6 +351,103 @@ export function createPeerGenerationMesh({ config, ports }) {
     await updateProviderContribution(payload.receipt);
   };
 
+  const removeQueuedBucketEntry = entry => {
+    const bucket = consumerBuckets.get(entry.consumer);
+    if (!bucket) return;
+    const queue = bucket.lanes.get(entry.laneKey);
+    if (queue) {
+      const index = queue.indexOf(entry);
+      if (index >= 0) queue.splice(index, 1);
+      if (!queue.length) {
+        bucket.lanes.delete(entry.laneKey);
+        const laneIndex = bucket.laneOrder.indexOf(entry.laneKey);
+        if (laneIndex >= 0) bucket.laneOrder.splice(laneIndex, 1);
+      }
+    }
+    if (!bucket.laneOrder.length) {
+      consumerBuckets.delete(entry.consumer);
+      const consumerIndex = consumerOrder.indexOf(entry.consumer);
+      if (consumerIndex >= 0) consumerOrder.splice(consumerIndex, 1);
+    }
+  };
+
+  const cancelQueuedInbound = (key, reason, notifyPeer = true) => {
+    const entry = inboundQueued.get(key);
+    if (!entry) return false;
+    inboundQueued.delete(key);
+    clearTimeout(entry.timer);
+    removeQueuedBucketEntry(entry);
+    entry.controller.abort(reason);
+    if (notifyPeer && !closed) {
+      swarmTransport?.sendToPeer(entry.remotePeerId, 'reploid:generation-error', {
+        requestId: entry.requestId,
+        error: reason?.message || 'Queued request cancelled'
+      });
+    }
+    advertiseSelf();
+    entry.resolve(false);
+    return true;
+  };
+
+  const drainInboundQueue = () => {
+    while (!closed && ready() && inbound.size < policy.mesh.maxInboundJobs && consumerOrder.length > 0) {
+      const consumer = consumerOrder.shift();
+      const bucket = consumerBuckets.get(consumer);
+      if (!bucket || !bucket.laneOrder.length) {
+        consumerBuckets.delete(consumer);
+        continue;
+      }
+      const laneKey = bucket.laneOrder.shift();
+      const queue = bucket.lanes.get(laneKey);
+      if (!queue || !queue.length) {
+        bucket.lanes.delete(laneKey);
+        if (bucket.laneOrder.length) consumerOrder.push(consumer);
+        else consumerBuckets.delete(consumer);
+        continue;
+      }
+      const entry = queue.shift();
+      if (queue.length) bucket.laneOrder.push(laneKey);
+      else bucket.lanes.delete(laneKey);
+      if (bucket.laneOrder.length) consumerOrder.push(consumer);
+      else consumerBuckets.delete(consumer);
+      inboundQueued.delete(entry.key);
+      clearTimeout(entry.timer);
+      inbound.set(entry.key, entry.controller);
+      entry.resolve(true);
+    }
+  };
+
+  const enqueueInboundSlot = (key, requestId, remotePeerId, consumer, contextId) => new Promise(resolve => {
+    const laneKey = contextId || key;
+    const entry = {
+      key,
+      requestId,
+      remotePeerId,
+      consumer,
+      laneKey,
+      controller: new AbortController(),
+      resolve,
+      timer: setTimeout(() => {
+        cancelQueuedInbound(key, new Error('Remote job deadline exceeded'), true);
+      }, policy.mesh.generationTimeoutMs)
+    };
+    let bucket = consumerBuckets.get(consumer);
+    if (!bucket) {
+      bucket = { laneOrder: [], lanes: new Map() };
+      consumerBuckets.set(consumer, bucket);
+      consumerOrder.push(consumer);
+    }
+    let queue = bucket.lanes.get(laneKey);
+    if (!queue) {
+      queue = [];
+      bucket.lanes.set(laneKey, queue);
+      bucket.laneOrder.push(laneKey);
+    }
+    queue.push(entry);
+    inboundQueued.set(key, entry);
+    advertiseSelf();
+  });
+
   const handleGenerationRequest = async (remotePeerId, payload = {}) => {
     if (closed || !policy.mesh.executeJobs || !ready() || !swarmEnabled || !swarmTransport || !identityBundle) return;
 
@@ -370,15 +470,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       return;
     }
     if (policy.models.contract !== null && JSON.stringify(snapshotJson(payload.modelContract ?? null)) !== JSON.stringify(policy.models.contract)) return;
-    if (await ports.authorize({ action: 'mesh.execute', peerId: remotePeerId, request: snapshotJson(payload) }) !== true) return;
-    if (closed) return;
-    if (!ready() || !bindingAvailable(binding, adapters)) {
-      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', {
-        requestId, error: 'Provider execution binding changed during authorization'
-      });
-      return;
-    }
     const key = `${remotePeerId}:${requestId}`;
+    if (inbound.has(key) || inboundQueued.has(key)) return;
     // A replay cannot evade the durable fence by downgrading its protocol flag.
     const earlierAdmission = !payload.recoverable && await generationJournal.get({ provider: identityBundle.peerId, consumer, requestId });
     if (closed || !ready() || !bindingAvailable(binding, adapters)) return;
@@ -391,13 +484,22 @@ export function createPeerGenerationMesh({ config, ports }) {
       swarmTransport.sendToPeer(remotePeerId, previous.type, previous.payload);
       return;
     }
-    if (inbound.has(key)) return;
-    if (inbound.size >= policy.mesh.maxInboundJobs) {
+    if (inbound.has(key) || inboundQueued.has(key)) return;
+
+    let controller;
+    if (inbound.size < policy.mesh.maxInboundJobs && inboundQueued.size === 0) {
+      controller = new AbortController();
+      inbound.set(key, controller);
+    } else if (inboundQueued.size >= policy.mesh.maxPendingJobs) {
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Provider is busy' });
       return;
+    } else {
+      const acquired = await enqueueInboundSlot(key, requestId, remotePeerId, consumer, contextId);
+      if (!acquired) return;
+      controller = inbound.get(key);
+      if (!controller) return;
     }
-    const controller = new AbortController();
-    inbound.set(key, controller);
+
     let finishSettlement;
     const settlement = new Promise(resolve => { finishSettlement = resolve; });
     inboundSettlements.add(settlement);
@@ -405,13 +507,34 @@ export function createPeerGenerationMesh({ config, ports }) {
 
     let recoveryBinding = null, claimedRecovery = false, retainedResult = false;
     try {
+      if (closed) return;
+      if (!ready() || !bindingAvailable(binding, adapters)) {
+        swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', {
+          requestId, error: 'Provider execution binding changed during authorization'
+        });
+        return;
+      }
+      controller.signal.throwIfAborted();
       // An asserted consumer string cannot select somebody else's decoder memory.
-      const contextOwner = contextId ? await peerIdentity.verify(remotePeerId, controller.signal) : null;
-      if (contextId && (!contextOwner || contextOwner !== consumer)) throw Error('Generation context consumer identity changed');
+      const verifiedConsumer = (contextId || payload.recoverable === true)
+        ? await peerIdentity.verify(remotePeerId, controller.signal) : null;
+      if (contextId && (!verifiedConsumer || verifiedConsumer !== consumer)) throw Error('Generation context consumer identity changed');
+      const contextOwner = contextId ? verifiedConsumer : null;
       if (payload.recoverable === true) {
-        if (await peerIdentity.verify(remotePeerId, controller.signal) !== consumer) throw Error('Generation consumer identity changed');
+        if (verifiedConsumer !== consumer) throw Error('Generation consumer identity changed');
         recoveryBinding = { requestId, provider: identityBundle.peerId, consumer, model: binding.model,
           modelIdentity: binding.modelIdentity, adapterIdentities: adapters, inputDigest: await hashJson(messages) };
+        const existing = await generationJournal.get(recoveryBinding);
+        if (existing) {
+          if (JSON.stringify(existing.binding) !== JSON.stringify(recoveryBinding)) throw Error('Generation replay binding changed');
+          if (existing.outcome) swarmTransport.sendToPeer(remotePeerId, existing.outcome.type, existing.outcome.payload);
+          else swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Execution unresolved; query recovery without repeating it' });
+          return;
+        }
+      }
+      controller.signal.throwIfAborted();
+      if (await ports.authorize({ action: 'mesh.execute', peerId: remotePeerId, request: snapshotJson(payload) }) !== true) return;
+      if (recoveryBinding) {
         claimedRecovery = await generationJournal.claim(recoveryBinding);
         if (!claimedRecovery) {
           const previous = await generationJournal.get(recoveryBinding);
@@ -421,6 +544,11 @@ export function createPeerGenerationMesh({ config, ports }) {
           return;
         }
       }
+      if (closed) return;
+      if (!ready() || !bindingAvailable(binding, adapters)) {
+        throw new Error('Provider execution binding changed during authorization');
+      }
+      controller.signal.throwIfAborted();
       advertiseSelf();
       const response = await generateBound(messages, (chunk) => {
         if (closed || controller.signal.aborted) return;
@@ -476,6 +604,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       while (completed.size > policy.mesh.maxRetainedJobs) completed.delete(completed.keys().next().value);
       clearTimeout(deadline);
       inbound.delete(key);
+      drainInboundQueue();
       inboundSettlements.delete(settlement);
       finishSettlement();
       advertiseSelf();
@@ -522,7 +651,9 @@ export function createPeerGenerationMesh({ config, ports }) {
         swarmTransport.onMessage('reploid:generation-result', handleGenerationResult);
         swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
         swarmTransport.onMessage('reploid:generation-cancel', (peerId, payload = {}) => {
-          inbound.get(`${peerId}:${String(payload.requestId || '')}`)?.abort(Object.assign(new Error('Requester stopped this job'), { code: 'REQUESTER_CANCELLED' }));
+          const key = `${peerId}:${String(payload.requestId || '')}`;
+          const reason = Object.assign(new Error('Requester stopped this job'), { code: 'REQUESTER_CANCELLED' });
+          if (!cancelQueuedInbound(key, reason, true)) inbound.get(key)?.abort(reason);
         });
         swarmTransport.onMessage('reploid:receipt', (peer, payload) => {
           if (closed) return;
@@ -546,6 +677,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           observedPeers.delete(peerId);
           identificationAttempts.delete(peerId);
           remoteRequests.retirePeer(peerId);
+          for (const key of [...inboundQueued.keys()]) if (key.startsWith(`${peerId}:`)) cancelQueuedInbound(key, new Error('Requester disconnected'), false);
           for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
           emitSwarmState();
         };
@@ -702,6 +834,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       const recoveryClose = recovery?.close();
       for (const finish of providerWaiters) finish(false);
       remoteRequests.close();
+      for (const key of [...inboundQueued.keys()]) cancelQueuedInbound(key, new Error('Mesh closed'), false);
       for (const controller of inbound.values()) controller.abort(new Error('Mesh closed'));
       for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
       swarmTransport?.disconnect();

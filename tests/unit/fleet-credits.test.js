@@ -207,4 +207,41 @@ describe('enrolled fleet service credits', () => {
     expect(result.credits.map(row => row.amount)).toEqual([2, 5]);
     expect(ledger.snapshot().accounts.map(row => row.balance)).toEqual([-7, 2, 5]);
   });
+  it('reconciles orphaned requester reservations on process restart without touching active or unresolved admitted holds', async () => {
+    ledger.close();
+    ledger = await openFleetCredits({
+      ...options,
+      file: path.join(directory, 'reconcile.sqlite'),
+      policy: { ...policy, maxPendingPerComputer: 4, maxDebt: 100 }
+    });
+    const reservedOnly = request('orphan-reserved');
+    ledger.reserve(reservedOnly);
+    const unadmittedDispatched = request('orphan-unadmitted');
+    dispatch(unadmittedDispatched);
+    const admittedDispatched = request('orphan-admitted');
+    dispatch(admittedDispatched);
+    ledger.admit(admittedDispatched.id, 0);
+    const stillActive = request('active-live');
+    ledger.reserve(stillActive);
+    expect(ledger.snapshot().accounts[0].held).toBe(40);
+
+    const outcomes = await ledger.reconcileConsumer(identities[0].peerId, [stillActive.id]);
+    expect(outcomes.map(row => ({ id: row.id, charge: row.charge }))).toEqual([
+      { id: reservedOnly.id, charge: 0 },
+      { id: unadmittedDispatched.id, charge: 0 }
+    ]);
+    expect(ledger.request(reservedOnly.id).state).toBe('abandoned');
+    expect(ledger.request(unadmittedDispatched.id).state).toBe('settled');
+    // Admitted work stays fenced in closing with its hold intact until provider proof arrives; active work stays reserved.
+    expect(ledger.request(admittedDispatched.id).state).toBe('closing');
+    expect(ledger.request(stillActive.id).state).toBe('reserved');
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 20 });
+
+    const receipt = await evidence(admittedDispatched);
+    await ledger.settle(admittedDispatched.id, receipt);
+    ledger.abandonBeforeDispatch(stillActive.id, identities[0].peerId);
+    expect(ledger.snapshot().accounts.map(row => ({ balance: row.balance, held: row.held }))).toEqual([
+      { balance: -6, held: 0 }, { balance: 6, held: 0 }, { balance: 0, held: 0 }
+    ]);
+  });
 });

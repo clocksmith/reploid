@@ -70,7 +70,12 @@ export function createWholeModelRequester({ mesh, models }) {
           requireValue(item.providerId, 'Whole-model output preceded disclosure');
           controls.onDelta?.({ threadId, attemptId, sequence: sequence++, text });
         }, { signal: controls.signal, modelId: model.id, modelIdentity: model.identity,
-          adapterIdentities: partitionAdapterIdentities(model), requestContext: { id, recoverable: true } });
+          adapterIdentities: partitionAdapterIdentities(model),
+          requestContext: {
+            id,
+            recoverable: true,
+            ...(typeof threadId === 'string' && threadId.length > 0 && threadId.length <= 256 ? { contextId: threadId } : {})
+          } });
         controls.signal.throwIfAborted();
         const projected = projectResult(request, result, item.providerId, item.providerIdentity);
         if (requested) tokenUsage(projected.usage.inputTokens, projected.usage.outputTokens, requested);

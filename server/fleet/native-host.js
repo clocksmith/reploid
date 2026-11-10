@@ -6,7 +6,6 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
-import { setTimeout as delay } from 'node:timers/promises';
 import { inspectDeviceMemory } from 'doppler-gpu/partitions';
 import { getDevice, getKernelCapabilities } from 'doppler-gpu/tooling/device';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
@@ -75,6 +74,7 @@ export function includeRequesterPresence(computers, state, at) {
   return computers.map(computer => computer.id !== state.computerId ? computer : {
     ...computer, online: true, observedAt: at, requester: true,
     activeRequests: Math.max(computer.online ? computer.activeRequests || 0 : 0, state.activeRequests),
+    ...(state.queuedRequests > 0 ? { queuedRequests: state.queuedRequests } : {}),
     preparing: state.preparing,
     ...(!computer.online ? { resident: null, freeHostBytes: state.hardware.freeHostBytes } : {})
   });
@@ -93,7 +93,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const [rtcModule, socketModule] = await Promise.all([loadRtc(), loadSocket()]);
   const rtc = createNativeRtcAdapter(rtcModule.default ?? rtcModule), Socket = socketModule.default ?? socketModule.WebSocket;
   class WebSocket extends Socket { constructor(url) { super(url, { origin: config.origin || 'http://localhost:8000' }); } }
-  const gpu = createNativeGpuHost(loadGpu), credits = config.serviceUrl ? createFleetClient({ url: config.serviceUrl, identity,
+  const serviceCa = config.serviceCaFile ? (assert(path.isAbsolute(config.serviceCaFile), 'Absolute service CA certificate path required'),
+    await fs.readFile(config.serviceCaFile)) : null;
+  const gpu = createNativeGpuHost(loadGpu), credits = config.serviceUrl ? createFleetClient({ url: config.serviceUrl, identity, ca: serviceCa,
     outboxFile: path.join(path.dirname(config.identityFile), 'service-credit-outbox.json') }) : null;
   const owner = config.ownerPolicyFile ? await openNativeOwnerControls({ file: config.ownerPolicyFile, custody: custodyPolicy,
     readGpuBuffers: async () => (await import('doppler-gpu/partitions')).inspectDeviceMemory() }) : null;
@@ -101,6 +103,12 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
   let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
   const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
+
+  // Per-thread round-robin fair queue for capacity-gated requester admission.
+  const queuedEntries = new Map(), laneOrder = [], laneBuckets = new Map();
+  const activeProvidersByAttempt = new Map();
+  let startingDispatches = 0, queuePollTimer = null;
+
   function recordOutcome(outcome) {
     if (!outcome) return outcome;
     if (outcome.attemptId) {
@@ -124,8 +132,222 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   };
   const state = () => ({ computerId: config.computerId, name: config.name, participantId: identity.peerId,
     selected: selected && { modelId: selected.model.id, modelIdentity: selected.model.identity, mode: selected.mode },
-    preparing, activeRequests: requests.size, error: lastError, hardware: fleetHardwareSnapshot(), execution: participant?.getState() ?? null,
-    network: participant?.getNetworkState() ?? null });
+    preparing, activeRequests: requests.size, queuedRequests: queuedEntries.size, error: lastError, hardware: fleetHardwareSnapshot(),
+    execution: participant?.getState() ?? null, network: participant?.getNetworkState() ?? null });
+
+  function findMatchingRoute(requested, allowPartitionFallback = false) {
+    const available = (participant?.getState()?.models || []).filter(model => model.id === requested.id
+      && model.identity === requested.identity
+      && (requested.partition ? model.availability === 'ready' : ['ready', 'busy'].includes(model.availability))
+      && same(partitionAdapterIdentities(model), partitionAdapterIdentities(requested)));
+    return requested.partition ? available.find(model => same(model.partition, requested.partition))
+      : available.find(model => !model.partition) || (allowPartitionFallback ? available.find(model => model.partition && model.availability === 'ready') : null);
+  }
+
+  function freeDispatchSlots(chosen) {
+    if (!chosen) return 0;
+    const busyPeers = new Set(activeProvidersByAttempt.values());
+    if (chosen.partition) {
+      return chosen.availability === 'ready' && busyPeers.size === 0 && startingDispatches === 0 ? 1 : 0;
+    }
+    const peers = participant?.getNetworkState()?.peers || [];
+    const matching = peers.filter(peer => peer.readiness === 'ready' && peer.model === chosen.id
+      && (!chosen.identity || peer.modelIdentity === chosen.identity));
+    if (matching.length > 0) {
+      const freePeers = matching.reduce((sum, peer) => {
+        if (busyPeers.has(peer.peerId)) return sum;
+        const slots = Number.isSafeInteger(peer.availableSlots) && peer.availableSlots > 0 ? peer.availableSlots : 0;
+        return sum + slots;
+      }, 0);
+      return Math.max(0, freePeers - startingDispatches);
+    }
+    return chosen.availability === 'ready' && busyPeers.size === 0 && startingDispatches === 0 ? 1 : 0;
+  }
+
+  function computeFairOrder() {
+    const copies = new Map();
+    for (const lane of laneOrder) {
+      const items = laneBuckets.get(lane);
+      if (items?.length) copies.set(lane, [...items]);
+    }
+    const order = [];
+    const activeLanes = [...copies.keys()];
+    while (activeLanes.length > 0) {
+      const lane = activeLanes.shift();
+      const items = copies.get(lane);
+      if (!items?.length) continue;
+      order.push(items.shift());
+      if (items.length > 0) activeLanes.push(lane);
+    }
+    return order;
+  }
+
+  function notifyQueuePositions() {
+    const ordered = computeFairOrder();
+    const total = ordered.length;
+    ordered.forEach((entry, index) => {
+      const position = index + 1;
+      if (entry.lastPosition !== position || entry.lastTotal !== total) {
+        entry.lastPosition = position;
+        entry.lastTotal = total;
+        entry.onAdmission?.({ status: 'queued', queuePosition: position, queuedCount: total, queuedAt: entry.queuedAt });
+      }
+    });
+  }
+
+  function removeQueuedEntry(entry) {
+    queuedEntries.delete(entry.attemptId);
+    clearTimeout(entry.timer);
+    entry.signal?.removeEventListener('abort', entry.onAbort);
+    const items = laneBuckets.get(entry.lane);
+    if (items) {
+      const index = items.indexOf(entry);
+      if (index >= 0) items.splice(index, 1);
+      if (!items.length) {
+        laneBuckets.delete(entry.lane);
+        const laneIndex = laneOrder.indexOf(entry.lane);
+        if (laneIndex >= 0) laneOrder.splice(laneIndex, 1);
+      }
+    }
+    if (queuedEntries.size === 0 && queuePollTimer) {
+      clearInterval(queuePollTimer);
+      queuePollTimer = null;
+    }
+  }
+
+  function drainRequesterQueue() {
+    if (closed || preparing || !queuedEntries.size) return;
+    let progressed = true;
+    while (progressed && laneOrder.length > 0) {
+      progressed = false;
+      const checkedLanes = laneOrder.length;
+      for (let i = 0; i < checkedLanes; i++) {
+        const lane = laneOrder.shift();
+        const items = laneBuckets.get(lane);
+        if (!items?.length) {
+          laneBuckets.delete(lane);
+          continue;
+        }
+        const entry = items[0];
+        const chosen = findMatchingRoute(entry.requestedModel, entry.allowPartitionFallback);
+        if (chosen && freeDispatchSlots(chosen) > 0) {
+          items.shift();
+          if (items.length > 0) laneOrder.push(lane);
+          else laneBuckets.delete(lane);
+          queuedEntries.delete(entry.attemptId);
+          clearTimeout(entry.timer);
+          entry.signal?.removeEventListener('abort', entry.onAbort);
+          startingDispatches += 1;
+          entry.resolve({ chosen, queuedMs: Math.max(0, Date.now() - entry.queuedAt), releaseStarting: true });
+          progressed = true;
+          break;
+        }
+        laneOrder.push(lane);
+      }
+    }
+    if (queuedEntries.size === 0 && queuePollTimer) {
+      clearInterval(queuePollTimer);
+      queuePollTimer = null;
+    }
+    notifyQueuePositions();
+  }
+
+  async function acquireDispatchSlot({ attemptId, threadId, requestedModel, allowPartitionFallback = false, signal, onAdmission }) {
+    signal.throwIfAborted();
+    if (config.followPlacement !== true) {
+      const immediate = findMatchingRoute(requestedModel, allowPartitionFallback);
+      return { chosen: immediate, queuedMs: 0, release() {} };
+    }
+    assert(Number.isSafeInteger(config.capacityWaitMs) && config.capacityWaitMs > 0, 'Explicit capacity wait bound required');
+    if (queuedEntries.size === 0) {
+      const immediate = findMatchingRoute(requestedModel, allowPartitionFallback);
+      if (immediate && freeDispatchSlots(immediate) > 0) {
+        startingDispatches += 1;
+        let startingHeld = true;
+        return {
+          chosen: immediate,
+          queuedMs: 0,
+          markDisclosed(providerId) {
+            if (typeof providerId === 'string' && providerId) activeProvidersByAttempt.set(attemptId, providerId);
+            if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
+            drainRequesterQueue();
+          },
+          release() {
+            activeProvidersByAttempt.delete(attemptId);
+            if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
+            drainRequesterQueue();
+          }
+        };
+      }
+    }
+    const queuedAt = Date.now();
+    const lane = typeof threadId === 'string' && threadId ? threadId : attemptId;
+    const acquired = await new Promise((resolve, reject) => {
+      const entry = {
+        attemptId,
+        lane,
+        requestedModel,
+        allowPartitionFallback,
+        signal,
+        onAdmission,
+        queuedAt,
+        lastPosition: 0,
+        lastTotal: 0,
+        resolve,
+        reject,
+        timer: setTimeout(() => {
+          removeQueuedEntry(entry);
+          notifyQueuePositions();
+          reject(Error('No ready capacity within the configured wait'));
+        }, config.capacityWaitMs),
+        onAbort: () => {
+          removeQueuedEntry(entry);
+          notifyQueuePositions();
+          reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+        }
+      };
+      signal.addEventListener('abort', entry.onAbort, { once: true });
+      let items = laneBuckets.get(lane);
+      if (!items) {
+        items = [];
+        laneBuckets.set(lane, items);
+        laneOrder.push(lane);
+      }
+      items.push(entry);
+      queuedEntries.set(attemptId, entry);
+      if (!queuePollTimer) {
+        queuePollTimer = setInterval(() => {
+          void publishDemand().catch(() => {});
+          drainRequesterQueue();
+        }, 500);
+        queuePollTimer.unref?.();
+      }
+      notifyQueuePositions();
+      drainRequesterQueue();
+    });
+    let startingHeld = acquired.releaseStarting === true;
+    onAdmission?.({ status: 'admitted', queuedMs: acquired.queuedMs });
+    return {
+      chosen: acquired.chosen,
+      queuedMs: acquired.queuedMs,
+      markDisclosed(providerId) {
+        if (typeof providerId === 'string' && providerId) activeProvidersByAttempt.set(attemptId, providerId);
+        if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
+        drainRequesterQueue();
+      },
+      release() {
+        activeProvidersByAttempt.delete(attemptId);
+        if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
+        drainRequesterQueue();
+      }
+    };
+  }
+
+  async function reconcileCredits() {
+    if (!credits) return [];
+    return credits.reconcile(requests.size === 0 ? { activeIds: [] } : {});
+  }
+
   async function select(index, contribute) {
     assert(!closed && !preparing && requests.size === 0, 'Computer is busy or closing');
     const entry = config.models[index]; assert(entry, 'Model is outside owner preferences');
@@ -143,17 +365,17 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model }) : null,
         generationJournalFile: path.join(path.dirname(config.identityFile), 'generation.sqlite'),
         logger: { info() {}, log() {}, debug() {}, warn: (...args) => onChange({ warning: args.join(' ') }), error: (...args) => onChange({ error: args.join(' ') }) },
-        onChange: () => onChange(state()) });
+        onChange: () => { drainRequesterQueue(); onChange(state()); } });
       selected = entry;
       if (contribute) await participant.contribute(true);
       assert(participant.getState()?.phase !== 'failed', participant.getState()?.error || 'Model preparation failed');
       preparedAt = Date.now(); return state();
     } catch (error) { lastError = error.message; throw error; }
-    finally { preparing = false; onChange(state()); }
+    finally { preparing = false; drainRequesterQueue(); onChange(state()); }
   }
   async function reconcile() {
     assert(credits && config.observationFile, 'Configured credit service and measured envelopes required for automatic placement');
-    await credits.reconcile();
+    await reconcileCredits();
     const observation = JSON.parse(await fs.readFile(config.observationFile, 'utf8'));
     // Generated after the package closure is collected; it cannot hash itself as an input.
     const delivery = await fs.readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'native-delivery.json'));
@@ -233,7 +455,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     if (error && typeof error === 'object' && !error.disconnect) error.disconnect = outcome;
     return outcome;
   }
-  return Object.freeze({ identity, state, select, reconcile, textParticipant,
+  return Object.freeze({ identity, state, select, reconcile, reconcileCredits, textParticipant,
     outcome: id => lookupOutcome(id),
     async inspectOutcome(id) {
       const prior = lookupOutcome(id);
@@ -288,36 +510,43 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       controls.signal.addEventListener('abort', abort, { once: true });
       if (controls.signal.aborted) abort();
       requests.set(request.attemptId, { controller, request, since: Date.now() });
+      let slot = null;
       try {
         await publishDemand();
-        if (config.followPlacement === true) {
-          assert(Number.isSafeInteger(config.capacityWaitMs) && config.capacityWaitMs > 0, 'Explicit capacity wait bound required');
-          const end = Date.now() + config.capacityWaitMs;
-          try {
-            for (;;) {
-              controller.signal.throwIfAborted();
-              const available = (participant.getState().models || []).filter(model => model.id === request.model.id
-                && model.identity === request.model.identity
-                && (request.model.partition ? model.availability === 'ready' : ['ready', 'busy'].includes(model.availability))
-                && same(partitionAdapterIdentities(model), partitionAdapterIdentities(request.model)));
-              const chosen = request.model.partition ? available.find(model => same(model.partition, request.model.partition))
-                : available.find(model => !model.partition);
-              if (chosen) break;
-              assert(Date.now() < end, 'No ready capacity within the configured wait');
-              await delay(1000, undefined, { signal: controller.signal });
-              await publishDemand();
-            }
-          } catch (error) {
-            await recordPreDispatchFailure(request, error);
-            throw error;
-          }
+        try {
+          slot = await acquireDispatchSlot({
+            attemptId: request.attemptId,
+            threadId: request.threadId,
+            requestedModel: request.model,
+            allowPartitionFallback: false,
+            signal: controller.signal
+          });
+        } catch (error) {
+          await recordPreDispatchFailure(request, error);
+          throw error;
         }
+        const wrappedControls = {
+          ...controls,
+          signal: controller.signal,
+          requestApproval: async disclosure => {
+            slot?.markDisclosed?.(disclosure?.providerId);
+            return controls.requestApproval(disclosure);
+          }
+        };
         const requester = createFleetRequester(requesterPorts({
           participant: { generate: execute, recoverGeneration: textParticipant.recoverGeneration }
         }));
-        const result = await requester.generate(request, { ...controls, signal: controller.signal });
-        return { ...result, execution: { ...result.execution, serviceCredit: result.serviceCredit } };
+        const result = await requester.generate(request, wrappedControls);
+        return {
+          ...result,
+          execution: {
+            ...result.execution,
+            ...(slot.queuedMs > 0 ? { admission: { ...(result.execution?.admission || {}), queuedMs: slot.queuedMs } } : {}),
+            serviceCredit: result.serviceCredit
+          }
+        };
       } finally {
+        slot?.release?.();
         controls.signal.removeEventListener('abort', abort);
         requests.delete(request.attemptId);
         await publishDemand().catch(error => onChange({ warning: error.message }));
@@ -328,6 +557,12 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       assert(credits, 'Service credits are not configured');
       const requester = createFleetRequester(requesterPorts({ participant: textParticipant }));
       return requester.recover(input, controls, recoverExecution);
+    },
+    async recover(input, signal = AbortSignal.timeout(30000)) {
+      assert(participant && !closed && !preparing, 'Requester unavailable');
+      assert(credits, 'Service credits are not configured');
+      const requester = createFleetRequester(requesterPorts({ participant }));
+      return requester.recover(input, { signal });
     },
     async browserState() {
       assert(credits, 'Service credits are not configured');
@@ -346,50 +581,54 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         models, computers: includeRequesterPresence(network.computers, state(), network.at), at: network.at };
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
-    async balances() { assert(credits, 'Service credits are not configured'); await credits.reconcile(); return credits.call('snapshot', {}); },
-    async generate(request, onDelta = () => {}, onRoute = () => {}) {
+    async balances() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('snapshot', {}); },
+    async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
       const configured = config.models.find(entry => entry.model.id === request.model.id && entry.model.identity === request.model.identity);
       assert(configured, 'Model is outside owner preferences');
       request.model = { ...structuredClone(configured.model), ...(request.model.partition ? { partition: request.model.partition } : {}) };
       const controller = new AbortController(); requests.set(request.attemptId, { controller, request, since: Date.now() });
+      let slot = null;
       try {
         await publishDemand();
-        if (config.followPlacement === true) {
-          assert(Number.isSafeInteger(config.capacityWaitMs) && config.capacityWaitMs > 0, 'Explicit capacity wait bound required');
-          const end = Date.now() + config.capacityWaitMs;
-          try {
-            for (;;) {
-              controller.signal.throwIfAborted();
-              const available = (participant.getState().models || []).filter(model => model.id === request.model.id
-                && model.identity === request.model.identity && model.availability === 'ready'
-                && same(partitionAdapterIdentities(model), partitionAdapterIdentities(request.model)));
-              const chosen = request.model.partition ? available.find(model => same(model.partition, request.model.partition))
-                : available.find(model => !model.partition) || available.find(model => model.partition);
-              if (chosen) { request.model = structuredClone(chosen); break; }
-              assert(Date.now() < end, 'No ready capacity within the configured wait');
-              await delay(1000, undefined, { signal: controller.signal });
-              await publishDemand();
-            }
-          } catch (error) {
-            await recordPreDispatchFailure(request, error);
-            throw error;
-          }
+        try {
+          slot = await acquireDispatchSlot({
+            attemptId: request.attemptId,
+            threadId: request.threadId,
+            requestedModel: request.model,
+            allowPartitionFallback: true,
+            signal: controller.signal,
+            onAdmission
+          });
+          if (slot.chosen) request.model = structuredClone(slot.chosen);
+        } catch (error) {
+          await recordPreDispatchFailure(request, error);
+          throw error;
         }
         const controls = { signal: controller.signal, onDelta,
           requestApproval: async disclosure => {
             assert(same(disclosure.input?.messages, request.messages), 'Changed prompt disclosure');
+            slot?.markDisclosed?.(disclosure?.providerId);
             onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.
           } };
         const requester = credits ? createFleetRequester(requesterPorts({ participant })) : participant;
-        return await requester.generate(request, controls);
-      } finally { requests.delete(request.attemptId); await publishDemand().catch(error => onChange({ warning: error.message })); }
+        const result = await requester.generate(request, controls);
+        return slot.queuedMs > 0
+          ? { ...result, execution: { ...result.execution, admission: { ...(result.execution?.admission || {}), queuedMs: slot.queuedMs } } }
+          : result;
+      } finally {
+        slot?.release?.();
+        requests.delete(request.attemptId);
+        await publishDemand().catch(error => onChange({ warning: error.message }));
+      }
     },
     cancel(attemptId) { requests.get(attemptId)?.controller.abort(new DOMException('Stopped by owner', 'AbortError')); },
     async close() {
-      closed = true; for (const { controller } of requests.values()) controller.abort();
+      closed = true;
+      if (queuePollTimer) { clearInterval(queuePollTimer); queuePollTimer = null; }
+      for (const { controller } of requests.values()) controller.abort();
       try { await participant?.close(); } finally { await owner?.close(); await gpu.close(); }
     }
   });
@@ -413,12 +652,24 @@ export async function runFleetNativeCommands({ host, config, input = process.std
   signals.once('SIGTERM', stop); signals.once('SIGINT', stop);
   try {
     if (Number.isSafeInteger(config.initialModel)) await host.select(config.initialModel, config.initialContribution === true);
+    if (typeof host.reconcileCredits === 'function') {
+      await host.reconcileCredits().catch(error => process.stderr.write(JSON.stringify({ event: 'fleet-error', error: error.message }) + '\n'));
+    }
+    const browserBridgeToken = config.browserBridge ? (await readOwnFile(config.browserBridge.tokenFile)).trim() : null;
     if (config.browserBridge) browserBridge = await startFleetBrowserBridge({ host, ...config.browserBridge,
-      token: (await readOwnFile(config.browserBridge.tokenFile)).trim() });
+      token: browserBridgeToken });
     if (config.textApi) {
       const tls = config.textApi.tls ? (assert(path.isAbsolute(config.textApi.tls.certFile), 'Absolute TLS certificate path required'),
         { key: await readOwnFile(config.textApi.tls.keyFile), cert: await fs.readFile(config.textApi.tls.certFile) }) : null;
+      const mountedBridge = config.browserBridge ? {
+        origins: config.browserBridge.origins,
+        token: browserBridgeToken,
+        basePath: config.browserBridge.tunnelPath ?? '/bridge',
+        ...(config.browserBridge.maxBodyBytes !== undefined ? { maxBodyBytes: config.browserBridge.maxBodyBytes } : {}),
+        ...(config.browserBridge.maxConcurrent !== undefined ? { maxConcurrent: config.browserBridge.maxConcurrent } : {})
+      } : null;
       textApi = await startFleetTextApi({ host, ...config.textApi, tls,
+        ...(mountedBridge ? { browserBridge: mountedBridge } : {}),
         token: (await readOwnFile(config.textApi.tokenFile)).trim() });
     }
     // Readline begins consuming immediately: create it only when its iterator can
@@ -438,6 +689,7 @@ export async function runFleetNativeCommands({ host, config, input = process.std
             delta => console.log(JSON.stringify({ id: command.id, delta })));
           else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
+          else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');
           console.log(JSON.stringify({ id: command.id, result }));
         } catch (error) { console.log(JSON.stringify({ id: command?.id, error: error.message })); }

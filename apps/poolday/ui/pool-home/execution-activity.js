@@ -59,7 +59,11 @@ export function updateExecutionActivity(root, state) {
   root.toggleAttribute('data-active', view.active);
   root.hidden = !view.attempt || !view.active && !toolStatus && !view.nodes.length && !supply.answer && !view.attempt.error;
   if (root.hidden) return;
-  const summary = [toolStatus || (view.status === 'executing' ? 'Generating' : view.statusLabel),
+  const admission = view.execution?.admission;
+  const queueLabel = view.status === 'queued' && Number.isSafeInteger(admission?.queuePosition) && admission.queuePosition > 0
+    && Number.isSafeInteger(admission?.queuedCount) && admission.queuedCount >= admission.queuePosition
+    ? `Queued · ${admission.queuePosition} of ${admission.queuedCount}` : null;
+  const summary = [toolStatus || queueLabel || (view.status === 'executing' ? 'Generating' : view.statusLabel),
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
     ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
   const supplyText = supplyCaption(view, supply);
@@ -77,7 +81,7 @@ export function updateExecutionActivity(root, state) {
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
   if (view.active) {
     const status = root.querySelector('[data-execution-trigger] [data-tool-status]');
-    status.hidden = false; status.textContent = toolStatus || (view.execution?.privateDelegation && view.nodes.length
+    status.hidden = false; status.textContent = toolStatus || queueLabel || (view.execution?.privateDelegation && view.nodes.length
       ? `${view.model} · ${view.split ? 'split across ' : view.status === 'executing' ? 'running on ' : 'assigned to '}${view.nodes.map(node => node.label).join(' + ')}`
       : view.status === 'executing' ? 'Generating' : view.statusLabel);
   }
@@ -109,6 +113,21 @@ export function updateExecutionDetail(detail, state) {
   if (decodeMs !== null) facts.push(['Recorded decode-stage time', duration(decodeMs)]);
   const inputTokens = view.execution?.completion?.promptTokenCount ?? phases?.prompt?.inputTokens;
   if (Number.isSafeInteger(inputTokens) && inputTokens >= 0) facts.push(['Prompt tokens', inputTokens.toLocaleString()]);
+  if (Number.isSafeInteger(timings?.reusedPrefixTokens) && timings.reusedPrefixTokens > 0) {
+    facts.push(['Cached prefix tokens', timings.reusedPrefixTokens.toLocaleString()]);
+    if (Number.isSafeInteger(timings?.prefillComputedTokens) && timings.prefillComputedTokens >= 0) {
+      facts.push(['Computed prompt tokens', timings.prefillComputedTokens.toLocaleString()]);
+    }
+  }
+  const admission = view.execution?.admission;
+  if (view.status === 'queued' && Number.isSafeInteger(admission?.queuePosition) && admission.queuePosition > 0
+    && Number.isSafeInteger(admission?.queuedCount) && admission.queuedCount >= admission.queuePosition) {
+    facts.push(['Queue position', `${admission.queuePosition} of ${admission.queuedCount}`]);
+  }
+  const credit = view.execution?.serviceCredit;
+  if (credit) {
+    facts.push(['Service credits', typeof credit.settledAt === 'number' ? `${credit.charge} settled` : 'Pending']);
+  }
   const transfer = view.execution?.stepSummary?.metrics?.transferMs;
   const transferMs = view.transferMs ?? (transfer?.count > 0 && transfer.count === view.execution.stepSummary.count ? transfer.total : null);
   if (Number.isFinite(transferMs) && transferMs >= 0) facts.push(['Activation transfer time', duration(transferMs)]);
