@@ -1,11 +1,11 @@
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
-import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outputChainGenesis } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { normalizeParticipantPublicKey } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
 
 /** Reuse execution signatures; the credit service never treats a completed counter as evidence. */
-export async function verifyCreditEvidence(request, evidence, enrollment, now, skew) {
+export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [] } = {}) {
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
     && at <= Math.min(now, request.deadline) + skew;
   if (request.mode === 'whole-model') {
@@ -21,28 +21,68 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
       && same(normalizeParticipantPublicKey(receipt.consumerKey), enrollment.byPeer.get(receipt.consumer).publicJwk), 'Receipt enrollment changed');
     const verified = await verifyReceipt(receipt);
     assert(verified.providerValid && verified.consumerValid, 'Countersigned completed receipt required');
-    return { outputTokens: receipt.outputTokens, workIds: [`whole:${receipt.provider}:${receipt.consumer}:${receipt.jobHash}`] };
+    return { outputTokens: receipt.outputTokens, outputIdentity: receipt.outputDigest, workIds: [`whole:${receipt.provider}:${receipt.consumer}:${receipt.jobHash}`] };
   }
-  const { identity, receipts, acknowledgment } = structuredClone(evidence);
-  const binding = canonicalRouteAttemptBinding(identity);
-  assert(same(binding, request.route), 'Partition route differs from accepted route');
-  const routeHash = await attemptRouteHash(identity);
-  assert(Array.isArray(receipts) && receipts.length === request.providers.length, 'Every contributing stage must settle');
-  const ack = await verifyOutputAcknowledgment(acknowledgment, { publicJwk: enrollment.byPeer.get(request.consumer).publicJwk });
-  assert(ack.ok && acknowledgment.requesterId === request.consumer && acknowledgment.reservationId === request.id
-    && acknowledgment.attemptId === request.executionId && acknowledgment.routeHash === routeHash
-    && within(Date.parse(acknowledgment.signedAt)) && acknowledgment.count <= request.maxOutputTokens, 'Matching requester acknowledgment required');
+  const proof = await verifyPartitionComponents(request, evidence, enrollment, now, skew);
+  const { receipts, acknowledgment, acknowledgedReceipt } = proof;
+  assert(acknowledgment, 'Matching requester acknowledgment required');
   const workIds = [];
-  for (let index = 0; index < receipts.length; index++) {
-    const receipt = receipts[index], provider = request.providers[index];
-    const verified = await verifyStageReceipt(receipt, { publicJwk: enrollment.byPeer.get(provider.participantId).publicJwk });
-    assert(verified.ok && receipt.participantId === provider.participantId && receipt.partitionIndex === index
-      && receipt.reservationId === request.id && receipt.attemptId === request.executionId && receipt.routeHash === routeHash
-      && receipt.status === 'settled' && receipt.steps === acknowledgment.count && within(Date.parse(receipt.signedAt)),
-    'Settled stage receipt does not match the acknowledged work');
-    if (index === receipts.length - 1) assert(receipt.output?.done === true && receipt.output.count === acknowledgment.count
-      && receipt.output.chain === acknowledgment.chain, 'Final output differs from requester acknowledgment');
+  for (let index = 0; index < request.providers.length; index++) {
+    const receipt = receipts.find(row => row.partitionIndex === index), provider = request.providers[index];
+    if (!receipt && unadmitted.includes(index) && acknowledgment.count === 0) continue;
+    assert(receipt && ['settled', 'failed'].includes(receipt.status) && receipt.timing.closedAt !== null
+      && receipt.steps >= acknowledgment.count, 'Settled stage receipt does not match the acknowledged work');
     workIds.push(`stage:${receipt.participantId}:${receipt.reservationId}:${receipt.attemptId}:${index}`);
   }
-  return { outputTokens: acknowledgment.count, workIds };
+  if (acknowledgment.count > 0) {
+    const final = acknowledgedReceipt ?? receipts.find(row => row.partitionIndex === request.providers.length - 1);
+    assert(final?.output?.count === acknowledgment.count && final.output.chain === acknowledgment.chain,
+      'Final output differs from requester acknowledgment');
+  }
+  return { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, workIds };
+}
+
+/** Validate independently submitted pieces before retaining them. A signed failure is a closing
+ * receipt only when it carries closedAt; executing receipts never establish cleanup. */
+export async function verifyPartitionComponents(request, evidence, enrollment, now, skew) {
+  assert(request.mode === 'partition' && evidence && same(canonicalRouteAttemptBinding(evidence.identity), request.route),
+    'Partition route differs from accepted route');
+  const routeHash = await attemptRouteHash(evidence.identity);
+  const signedTime = value => Number.isFinite(Date.parse(value)) && Date.parse(value) >= request.createdAt - skew
+    && Date.parse(value) <= now + skew;
+  const executionTime = value => signedTime(value) && Date.parse(value) <= request.deadline + skew;
+  const checkReceipt = async receipt => {
+    const provider = request.providers[receipt?.partitionIndex];
+    assert(provider, 'Unknown receipt stage');
+    const checked = await verifyStageReceipt(receipt, { publicJwk: enrollment.byPeer.get(provider.participantId).publicJwk });
+    assert(checked.ok && receipt.participantId === provider.participantId && receipt.reservationId === request.id
+      && receipt.attemptId === request.executionId && receipt.routeHash === routeHash && receipt.steps <= request.maxOutputTokens
+      && signedTime(receipt.signedAt) && executionTime(receipt.timing.reservedAt)
+      && (receipt.steps === 0 || executionTime(receipt.timing.firstStepAt) && executionTime(receipt.timing.lastStepAt))
+      && (receipt.status === 'executing' ? receipt.timing.closedAt === null : signedTime(receipt.timing.closedAt)),
+    'Stage receipt does not match the admitted work');
+    assert(receipt.partitionIndex === request.providers.length - 1 ? receipt.output !== null : receipt.output === null,
+      'Only the final stage commits outputs');
+    return structuredClone(receipt);
+  };
+  assert(Array.isArray(evidence.receipts) && evidence.receipts.length <= request.providers.length, 'Bounded stage receipts required');
+  const receipts = await Promise.all(evidence.receipts.map(checkReceipt));
+  assert(new Set(receipts.map(row => row.partitionIndex)).size === receipts.length, 'Duplicate stage receipt');
+  const acknowledgment = evidence.acknowledgment ?? evidence.acknowledged?.acknowledgment ?? null;
+  const acknowledgedReceipt = evidence.acknowledgedReceipt ?? evidence.acknowledged?.receipt ?? null;
+  if (acknowledgment) {
+    const ack = await verifyOutputAcknowledgment(acknowledgment, { publicJwk: enrollment.byPeer.get(request.consumer).publicJwk });
+    assert(ack.ok && acknowledgment.requesterId === request.consumer && acknowledgment.reservationId === request.id
+      && acknowledgment.attemptId === request.executionId && acknowledgment.routeHash === routeHash
+      && signedTime(acknowledgment.signedAt) && acknowledgment.count <= request.maxOutputTokens, 'Matching requester acknowledgment required');
+    if (acknowledgment.count === 0) assert(acknowledgment.chain === await outputChainGenesis({ reservationId: request.id, routeHash }),
+      'Zero acknowledgment must bind the genesis chain');
+    if (acknowledgedReceipt) {
+      await checkReceipt(acknowledgedReceipt);
+      assert(acknowledgedReceipt.partitionIndex === request.providers.length - 1
+        && acknowledgedReceipt.output.count === acknowledgment.count && acknowledgedReceipt.output.chain === acknowledgment.chain,
+      'Acknowledged output prefix differs');
+    }
+  } else assert(!acknowledgedReceipt, 'Output prefix needs its acknowledgment');
+  return { identity: request.route, receipts, acknowledgment, acknowledgedReceipt };
 }

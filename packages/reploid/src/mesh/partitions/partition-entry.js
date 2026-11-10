@@ -79,6 +79,12 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           && metadata.coordinatorId === request.coordinatorId && metadata.threadId === request.threadId
           && sameRouteAttemptIdentity(metadata.identity, attempt(request)) && ATTEMPT_STATES.includes(metadata.status);
       }
+      if (metadata.operation === 'closed') {
+        const sending = action === 'send' || action === 'accept';
+        const request = (sending ? active : deliveries).get(metadata.attemptId)?.request;
+        return !!request?.charge && sameRouteAttemptIdentity(metadata.identity, attempt(request))
+          && metadata.requesterId === request.requesterId && metadata.coordinatorId === request.coordinatorId;
+      }
       if (metadata.operation === 'output') {
         const sending = action === 'send' || action === 'accept';
         const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
@@ -123,6 +129,12 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         const delivery = deliveries.get(m.attemptId);
         assert(delivery, 'Unexpected attempt state');
         await delivery.onState?.(m.status); return { received: true };
+      }
+      if (m.operation === 'closed') {
+        const delivery = deliveries.get(m.attemptId);
+        assert(delivery, 'Unexpected accounting closure');
+        delivery.accountingClosed.resolve(m.settlement ?? null);
+        return { received: true };
       }
       if (m.operation === 'output') {
         // The requester's own port decides whether this output is acknowledged; only its signed answer returns.
@@ -192,7 +204,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           if (!acceptingCallbacks) return null;
           return endpoint.request({ operation: 'output', requesterId: m.requesterId, coordinatorId: m.coordinatorId, identity: attempt(m),
             threadId: m.threadId, attemptId: m.attemptId, step: record.step, delta: record.delta, done: record.done, receipt: record.receipt ?? null },
-          new Uint8Array(), { signal }).then(response => response?.acknowledged ?? null);
+          new Uint8Array()).then(response => response?.acknowledged ?? null);
         } } : {}),
         onState(value) {
           // Older requesters did not opt in; an opted-in one learns only queued/executing for this attempt.
@@ -225,8 +237,10 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           delivery.catch(() => {});
         } }));
       admission.operation = operation;
+      let settlement = null;
       try {
         const result = await operation;
+        settlement = result.execution?.settlement ?? null;
         acceptingCallbacks = false;
         await delivery;
         assert(typeof result.content === 'string' && result.content.length <= policy.maxOutputCharacters
@@ -234,7 +248,15 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
             : result.execution?.requesterId === m.requesterId && result.execution.attemptId === m.attemptId
               && result.execution.placementGeneration === m.placementGeneration), 'Execution returned an unbound result');
         return { content: result.content, ...(activity ? {activity:structuredClone(activity)} : {}), ...(requested ? {usage: result.usage} : {}), execution: summarizePartitionExecution(result.execution) };
-      } finally { acceptingCallbacks = false; active.delete(m.attemptId); }
+      } catch (error) {
+        settlement ??= error.partitionSettlement ?? null;
+        throw error;
+      } finally {
+        acceptingCallbacks = false;
+        if (m.charge) await endpoint.request({ operation: 'closed', requesterId: m.requesterId, coordinatorId: m.coordinatorId,
+          identity: attempt(m), attemptId: m.attemptId, settlement }, new Uint8Array()).catch(() => {});
+        active.delete(m.attemptId);
+      }
     },
   });
   return Object.freeze({
@@ -266,7 +288,8 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       const scope = publication !== undefined ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
         authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
         maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
-      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, onActivity, onOutput, onState, activity:null, usage:null, publication: scope });
+      const accountingClosed = Promise.withResolvers();
+      deliveries.set(metadata.attemptId, { accountingClosed, request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, onActivity, onOutput, onState, activity:null, usage:null, publication: scope });
       let result;
       let failure = null;
       try {
@@ -309,6 +332,16 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       }
       catch (error) { failure = error; }
       finally {
+        // Cancellation stops generation, not already-issued signed output receipts. Keep their
+        // receiving port until the coordinator closes accounting, or the channel's bounded wait.
+        if (failure && metadata.charge) {
+          let timer;
+          try {
+            const settlement = await Promise.race([accountingClosed.promise,
+              new Promise(resolve => { timer = setTimeout(() => resolve(null), limits.timeoutMs); })]);
+            if (settlement && typeof failure === 'object') failure.partitionSettlement = settlement;
+          } finally { clearTimeout(timer); }
+        }
         try { await scope?.close({ cancel: failure !== null }); }
         catch (error) {
           unsettledPublications.add(scope);

@@ -253,6 +253,8 @@ export async function openOutputAcknowledgments({ signer, identity, reservationI
     charge: structuredClone(state.charge),
     /** Acknowledge one step's output: `{ step, delta, receipt }` from the route. Returns the pair, or null when not acknowledged. */
     observe: ({ step, delta, receipt }) => serial(async () => {
+      if (!state.broken && step === state.count - 1 && state.lastObserved
+        && sameJson(state.lastObserved, { step, delta, receipt })) return structuredClone(state.acknowledged);
       if (state.broken || step !== state.count || typeof delta !== 'string') { state.broken = true; return null; }
       const checked = await verifyStageReceipt(receipt);
       const body = checked.body;
@@ -261,7 +263,8 @@ export async function openOutputAcknowledgments({ signer, identity, reservationI
         || body.partitionIndex !== finalStage.index || body.participantId !== finalStage.participantId
         || body.output?.count !== step + 1 || body.output.chain !== chain) { state.broken = true; return null; }
       const acknowledgment = await sign(step + 1, chain);
-      Object.assign(state, { count: step + 1, chain, acknowledged: { acknowledgment, receipt: structuredClone(receipt) }, latestReceipt: structuredClone(receipt) });
+      Object.assign(state, { count: step + 1, chain, acknowledged: { acknowledgment, receipt: structuredClone(receipt) }, latestReceipt: structuredClone(receipt),
+        lastObserved: structuredClone({ step, delta, receipt }) });
       return structuredClone(state.acknowledged);
     }),
     /** Durable state for a restarted host. */

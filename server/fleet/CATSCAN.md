@@ -4,18 +4,17 @@ Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
 Enrolled computers serve exact models within owner preferences and measured
-capacity, exchanging non-cash credits for acknowledged completed work.
+capacity, exchanging non-cash credits for acknowledged output after proven cleanup.
 
 ## Authority
 - Owns computer/provider associations, observations, placement, native reconciliation
-  and non-cash credit admission/settlement. Membership comes from the operator's
-  existing registry; no second machine inventory lives here.
-- Uses existing participant signing and execution protocols.
+  and non-cash credit admission/settlement. Membership uses the operator's
+  registry, never a second inventory.
 - Excludes purchased balances, cash conversion, payouts, numerical qualification,
   cryptographic identity design and operating-system access policy.
 
 ## Scope
-This directory.
+Subtree.
 
 ## Contracts
 Inputs: explicit enrollment, policies, preferences, measured envelopes and signed
@@ -27,9 +26,11 @@ Outputs: durable balances, work records and placement decisions.
 - Identity denotes enrollment, not hardware attestation.
 - Permission, exact artifacts and resource limits precede ranking.
 - Credit admission precedes disclosure/execution; completed work requires provider
-  signatures and requester acknowledgment. Replays have one economic effect.
+  signatures and requester acknowledgment. A cancelled run may settle its proven
+  acknowledged prefix. Replays have one economic effect.
 - Credits are non-cash and conserved. Explicit policy bounds debt and permits
   same-owner transfers. A requester's local partition share is unbilled.
+- Fence admission before release; retain signed proof and recover it across restarts.
 - Unknown work stays pending; stopping does not prove GPU settlement.
 - Busy providers retain work. Placement changes only at idle boundaries.
 - Capacity observations and measured envelopes have separate expiry; envelopes

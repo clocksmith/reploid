@@ -51,6 +51,23 @@ describe('enrolled fleet service credits', () => {
     ledger.abandonBeforeDispatch('two', identities[0].peerId);
     expect(ledger.reserve(request('three')).maximum).toBe(10);
   });
+  it('expires only never-dispatched reservations and fences a late dispatch after restart', async () => {
+    const input = request('crash-before-dispatch');
+    ledger.reserve(input); ledger.close();
+    ledger = await openFleetCredits({ ...options, now: () => at + policy.maxRequestMs + 1 });
+    expect(ledger.snapshot().accounts[0].held).toBe(0);
+    expect(ledger.request(input.id).state).toBe('abandoned');
+    expect(() => ledger.dispatch(input.id, input.consumer)).toThrow('cannot dispatch');
+    expect(ledger.snapshot().accounts[0].held).toBe(0);
+  });
+  it('deadline expiry fences new admissions but never releases an admitted unknown owner', async () => {
+    const input = request('unknown-owner'); dispatch(input); ledger.admit(input.id, 0); ledger.close();
+    ledger = await openFleetCredits({ ...options, now: () => at + policy.maxRequestMs + 1 });
+    expect(await ledger.recover(input.id)).toEqual({ id: input.id, status: 'pending' });
+    expect(ledger.request(input.id).state).toBe('closing');
+    expect(ledger.snapshot().accounts[0].held).toBe(10);
+    expect(() => ledger.admit(input.id, 0)).toThrow('closed');
+  });
   it('will not release a dispatched unknown attempt just because the requester disconnects', () => {
     const input = request(); dispatch(input);
     expect(() => ledger.abandonBeforeDispatch(input.id, input.consumer)).toThrow('closed');

@@ -202,7 +202,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         assert(!serving, 'Only coordinator accepts remote retirement');
         // This exact authenticated owner reports completed resident cleanup. A
         // channel close or unrelated receipt never clears another reservation.
-        confirmed.set(metadata.identity.attemptId, structuredClone(metadata));
+        confirmed.set(metadata.identity.attemptId, { ...structuredClone(metadata), signedReceipt: metadata.receipt });
         active.delete(metadata.identity.attemptId); retiring = true; remoteRetiring = true; descriptor = null;
         // Do not notify a host that could close the channel before this reply.
         // The retiring supplier closes it after receiving this acknowledgment.
@@ -316,7 +316,8 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         let settled = false;
         try {
           await settleLocal(request.identity); settled = true;
-          const result = await endpoint.request({ ...request, operation: 'retired' }, new Uint8Array());
+          const receipt = settlements.get(request.identity.attemptId)?.signedReceipt;
+          const result = await endpoint.request({ ...request, operation: 'retired', ...(receipt ? { receipt } : {}) }, new Uint8Array());
           assert(result.settled === true && result.partitionIndex === index
             && sameRouteAttemptIdentity(result.identity, request.identity), 'Ordered retirement acknowledgment mismatch');
           retirementReceipts.delete(id);

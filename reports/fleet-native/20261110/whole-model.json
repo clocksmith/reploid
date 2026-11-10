@@ -1,0 +1,1009 @@
+{
+  "schema": "reploid.fleet-physical/v1",
+  "at": "2026-11-10T18:28:53.090Z",
+  "mode": "whole-model",
+  "passed": true,
+  "cleanup": "settled",
+  "remoteExitCode": 0,
+  "runtime": {
+    "name": "doppler-gpu",
+    "version": "0.6.36",
+    "integrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog=="
+  },
+  "nativeDeliverySha256": "e719f45c6078c26768cbb920cf7599a0fee44644d29c9620d76094bb7afa2421",
+  "archiveSha256": "fe9c541de723b91702b8d855d7df051b3bc7fb76c0024c31dcfac13abf7ef5da",
+  "computers": [
+    {
+      "id": "mac",
+      "name": "Computer A",
+      "ownerId": "owner",
+      "providers": [
+        {
+          "participantId": "peer:721778acd0c5f26a47f936d5",
+          "publicJwk": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+            "kty": "OKP"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bee",
+      "name": "Computer B",
+      "ownerId": "owner",
+      "providers": [
+        {
+          "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "publicJwk": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw",
+            "kty": "OKP"
+          }
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "schema": "reploid.service-credit-policy/v1",
+    "version": "fleet-physical/1",
+    "unit": "noncash-service-credit",
+    "creditsPerOutputToken": 1,
+    "maxDebt": 10000,
+    "maxOutputTokens": 64,
+    "maxPendingPerComputer": 8,
+    "maxClockSkewMs": 30000,
+    "maxRequestMs": 300000,
+    "allowSameOwner": true
+  },
+  "requests": [
+    {
+      "id": "service:peer:721778acd0c5f26a47f936d5:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+      "binding": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+        "executionId": "036950df-3902-4fe4-9857-b5f4d4e2b89e",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "mode": "whole-model",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:2833211db2d5ef186b8c713a0d4c4c5e9155303c3e024fc9bfc0dc53a7cdb9e8",
+        "maxOutputTokens": 64,
+        "providers": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "weight": 1
+          }
+        ],
+        "requestHash": "d9027e0ceae69ececb28146fdd426e5eeea47cfcca491732dadb2e7299c40a39",
+        "computerId": "mac",
+        "maximum": 64,
+        "policyVersion": "fleet-physical/1",
+        "admissionVersion": 1,
+        "createdAt": 1794335360882,
+        "deadline": 1794335660882
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+        "unit": "noncash-service-credit",
+        "charge": 3,
+        "ownComputeUnits": 0,
+        "outputTokens": 3,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 3
+          }
+        ],
+        "evidenceHash": "365e99fcc928c6368d0734398fdb26823a4d65eb7132652e21c42108ba70698f",
+        "economicHash": "aaa3e7e8d2d7f6d6074cb3bd3177914ed1c3fce0edc18eb3407711f3770351a3",
+        "settledAt": 1794335362725
+      },
+      "evidence": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:2833211db2d5ef186b8c713a0d4c4c5e9155303c3e024fc9bfc0dc53a7cdb9e8",
+        "inputTokens": 18,
+        "jobHash": "request:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "outputDigest": "sha256:334d016f755cd6dc58c53a86e183882f8ec14f52fb05345887c8a5edd42c87b7",
+        "outputTokens": 3,
+        "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "providerKey": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "providerSignature": "YqW0Q6SELVmHBx7YIMJVB74VcX-4WGny74d7On6-zGwBnd4kSKvHra_kinC1FTi9twUZrR88n4etwJT87COPBQ",
+        "receiptId": "receipt:b4e8e2df754852aca74d8523",
+        "status": "completed",
+        "stopReason": "stop-token",
+        "timestamp": 1794335362677,
+        "usage": "raw-model-tokens/v1",
+        "version": 2,
+        "consumerSignature": "3Qivax2mkPIqyvkLcHmVKeIZVRyuBGKtx4SUq3mF_JlklfPlWS2bc4COc3ElTBNvsDEh8lMuqElTS5fAyJnHDA",
+        "consumerKey": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+          "kty": "OKP"
+        }
+      }
+    },
+    {
+      "id": "service:peer:721778acd0c5f26a47f936d5:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+      "binding": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+        "executionId": "30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "mode": "whole-model",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:f89697c6c79c7a51dc44ef69143a259ffe206aa02f84b3ddc42440df3e591a1e",
+        "maxOutputTokens": 64,
+        "providers": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "weight": 1
+          }
+        ],
+        "requestHash": "13f30fd16ee0732e65ddb91a9412cbdb69df87ef9ce6db91487ca7f1c72b7f32",
+        "computerId": "mac",
+        "maximum": 64,
+        "policyVersion": "fleet-physical/1",
+        "admissionVersion": 1,
+        "createdAt": 1794335362773,
+        "deadline": 1794335662773
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+        "unit": "noncash-service-credit",
+        "charge": 2,
+        "ownComputeUnits": 0,
+        "outputTokens": 2,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 2
+          }
+        ],
+        "evidenceHash": "b90f4a6b2db33040272b3e979363f29bef096bfa2e2337a3b025e466819257a3",
+        "economicHash": "a0b1a901a9d849d64f2b1abf970706c5cdd36286baa6ce004eb0ed40082ffa59",
+        "settledAt": 1794335363335
+      },
+      "evidence": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:f89697c6c79c7a51dc44ef69143a259ffe206aa02f84b3ddc42440df3e591a1e",
+        "inputTokens": 24,
+        "jobHash": "request:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "outputDigest": "sha256:4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+        "outputTokens": 2,
+        "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "providerKey": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "providerSignature": "uSFLcKiCG3cDWG6fm7VSGgXpC082ZIuNKzddtFp9cuI1CBPXJyUQBIBAzuVnjmvb1Ao6F6THARoLAOCnlVEnBA",
+        "receiptId": "receipt:d7aa23d31b70e8dfbd17dfbf",
+        "status": "completed",
+        "stopReason": "stop-token",
+        "timestamp": 1794335363329,
+        "usage": "raw-model-tokens/v1",
+        "version": 2,
+        "consumerSignature": "MmXNG_iUYUODEMeHaIEKOATtCYnk_BojXw6naeXnmrnpyu4AgoifCF_JytoFVTz2WOMW2KHGWUpmPDmODN6JCA",
+        "consumerKey": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+          "kty": "OKP"
+        }
+      }
+    },
+    {
+      "id": "service:peer:721778acd0c5f26a47f936d5:fd339be8-7b83-479e-9d4c-ff78f505a369",
+      "binding": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:fd339be8-7b83-479e-9d4c-ff78f505a369",
+        "executionId": "fd339be8-7b83-479e-9d4c-ff78f505a369",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "mode": "whole-model",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:062b61d57d6d5550b3460164c13a17de8d37a4564e0fb80c8b838c78badc011e",
+        "maxOutputTokens": 64,
+        "providers": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "weight": 1
+          }
+        ],
+        "requestHash": "1f31d49840982414846db2b32e0f9b2b2386ee3ba44245ecce8f8c139edb3b69",
+        "computerId": "mac",
+        "maximum": 64,
+        "policyVersion": "fleet-physical/1",
+        "admissionVersion": 1,
+        "createdAt": 1794335363412,
+        "deadline": 1794335663412
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:fd339be8-7b83-479e-9d4c-ff78f505a369",
+        "unit": "noncash-service-credit",
+        "charge": 64,
+        "ownComputeUnits": 0,
+        "outputTokens": 64,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 64
+          }
+        ],
+        "evidenceHash": "c4cf4ed351cccdd3aefefa8d65f79d9f0e534135ea26197006dcebc229d30ccb",
+        "economicHash": "4495044eed38459cf50deddbd80e4eb602ef41d6e1b33aff90bb72b86f38ed35",
+        "settledAt": 1794335374948
+      },
+      "evidence": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:062b61d57d6d5550b3460164c13a17de8d37a4564e0fb80c8b838c78badc011e",
+        "inputTokens": 921,
+        "jobHash": "request:fd339be8-7b83-479e-9d4c-ff78f505a369",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "outputDigest": "sha256:b5c77849398914b198f5a7e751ea1417d7262173d6a71e32b36bc90ef2a23efb",
+        "outputTokens": 64,
+        "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "providerKey": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "providerSignature": "pSAONc3u3gOqfIqGfxincdy6uaK1RPNw_7XCoj_cb4RyYYA_NYzuioUUeg1mF43vOV9rl91bKa9v5fAtCyYMAQ",
+        "receiptId": "receipt:27d49a10e000260ef202f4ab",
+        "status": "completed",
+        "stopReason": "max-tokens",
+        "timestamp": 1794335374952,
+        "usage": "raw-model-tokens/v1",
+        "version": 2,
+        "consumerSignature": "7TngKhc6CSjVqEXprxNpNQJBtTqBEanbXkORcVHXZtWweS3Bc3n9a_IA0cmFDBrT0gpqbmbAxHxEgdMGbz1yBQ",
+        "consumerKey": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+          "kty": "OKP"
+        }
+      }
+    },
+    {
+      "id": "service:peer:721778acd0c5f26a47f936d5:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+      "binding": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+        "executionId": "b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "mode": "whole-model",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:2833211db2d5ef186b8c713a0d4c4c5e9155303c3e024fc9bfc0dc53a7cdb9e8",
+        "maxOutputTokens": 64,
+        "providers": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "weight": 1
+          }
+        ],
+        "requestHash": "1a64cc2a92325126e36918fb7c84cace064069118c5cdc6cebda2d26196b5483",
+        "computerId": "mac",
+        "maximum": 64,
+        "policyVersion": "fleet-physical/1",
+        "admissionVersion": 1,
+        "createdAt": 1794335394879,
+        "deadline": 1794335694879
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+        "unit": "noncash-service-credit",
+        "charge": 3,
+        "ownComputeUnits": 0,
+        "outputTokens": 3,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 3
+          }
+        ],
+        "evidenceHash": "8ed83c610abc12b1df268cf4bd6a7b5cfdac1a937b23bf3adb8b496c1360bf14",
+        "economicHash": "a98353c3bd118abb6d3db487264b6a1fd9f0b116bf6e63f2f1001e6a122c4293",
+        "settledAt": 1794335395535
+      },
+      "evidence": {
+        "adapterIdentities": [],
+        "cleanup": "settled",
+        "consumer": "peer:721778acd0c5f26a47f936d5",
+        "inputDigest": "sha256:2833211db2d5ef186b8c713a0d4c4c5e9155303c3e024fc9bfc0dc53a7cdb9e8",
+        "inputTokens": 18,
+        "jobHash": "request:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+        "model": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+        "outputDigest": "sha256:334d016f755cd6dc58c53a86e183882f8ec14f52fb05345887c8a5edd42c87b7",
+        "outputTokens": 3,
+        "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+        "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "providerKey": {
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "OKP",
+          "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+        },
+        "providerSignature": "7CmQHPu8wlL5XMsF15ekQYvVFCC23KgNl0dYTZWA0YBy2cn8ch_deb5CQ6HYjX72jtV8hdWHZ2SrNmVSga7XDA",
+        "receiptId": "receipt:cf57ed4c9b19e0b7b439d03d",
+        "status": "completed",
+        "stopReason": "stop-token",
+        "timestamp": 1794335395523,
+        "usage": "raw-model-tokens/v1",
+        "version": 2,
+        "consumerSignature": "TiNyfFMaH9SCAHwI3cVOugXm8ZGZcFBTVebLPmMgZC_TEoln_aCipntO8nvc3_wniJeFvnFNqw8xXE76RyxtBQ",
+        "consumerKey": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+          "kty": "OKP"
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "prompt": "Say hello in one sentence.",
+      "wallMs": 1906.6767910000017,
+      "content": "Hello!",
+      "usage": {
+        "schema": "raw-model-tokens/v1",
+        "inputTokens": 18,
+        "outputTokens": 3
+      },
+      "execution": {
+        "placement": "peer-whole-request",
+        "providerId": "3ecb719a-12c3-4a73-861d-47c11738df1c",
+        "completion": {
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "stop-token",
+          "promptTokenCount": 18,
+          "generatedTokenCount": 3
+        },
+        "providerIdentity": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "receipt": {
+          "adapterIdentities": [],
+          "cleanup": "settled",
+          "consumer": "peer:721778acd0c5f26a47f936d5",
+          "inputDigest": "sha256:2833211db2d5ef186b8c713a0d4c4c5e9155303c3e024fc9bfc0dc53a7cdb9e8",
+          "inputTokens": 18,
+          "jobHash": "request:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "outputDigest": "sha256:334d016f755cd6dc58c53a86e183882f8ec14f52fb05345887c8a5edd42c87b7",
+          "outputTokens": 3,
+          "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+          "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "providerKey": {
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "ext": true,
+            "key_ops": [
+              "verify"
+            ],
+            "kty": "OKP",
+            "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+          },
+          "providerSignature": "YqW0Q6SELVmHBx7YIMJVB74VcX-4WGny74d7On6-zGwBnd4kSKvHra_kinC1FTi9twUZrR88n4etwJT87COPBQ",
+          "receiptId": "receipt:b4e8e2df754852aca74d8523",
+          "status": "completed",
+          "stopReason": "stop-token",
+          "timestamp": 1794335362677,
+          "usage": "raw-model-tokens/v1",
+          "version": 2,
+          "consumerSignature": "3Qivax2mkPIqyvkLcHmVKeIZVRyuBGKtx4SUq3mF_JlklfPlWS2bc4COc3ElTBNvsDEh8lMuqElTS5fAyJnHDA",
+          "consumerKey": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+            "kty": "OKP"
+          }
+        },
+        "stopReason": "stop-token",
+        "hardware": {
+          "architecture": "rdna-2",
+          "description": "AMD proprietary driver: 25.10.30.02 (AMD proprietary shader compiler) 2.0.353",
+          "device": "amd-radeon-tm-graphics",
+          "vendor": "amd"
+        },
+        "timing": {
+          "decodeMs": 262.96090000000186,
+          "firstTokenMs": 1053.286,
+          "generatedTokenCount": 3,
+          "prefillComputedTokens": 18,
+          "prefillMs": 1046.1060000000034,
+          "reusedPrefixTokens": 0,
+          "totalMs": 1318.5646000000015
+        }
+      },
+      "serviceCredit": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+        "unit": "noncash-service-credit",
+        "charge": 3,
+        "ownComputeUnits": 0,
+        "outputTokens": 3,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 3
+          }
+        ],
+        "evidenceHash": "365e99fcc928c6368d0734398fdb26823a4d65eb7132652e21c42108ba70698f",
+        "economicHash": "aaa3e7e8d2d7f6d6074cb3bd3177914ed1c3fce0edc18eb3407711f3770351a3",
+        "settledAt": 1794335362725
+      }
+    },
+    {
+      "prompt": "What is two plus two? Answer with the number only.",
+      "wallMs": 609.1699169999993,
+      "content": "4",
+      "usage": {
+        "schema": "raw-model-tokens/v1",
+        "inputTokens": 24,
+        "outputTokens": 2
+      },
+      "execution": {
+        "placement": "peer-whole-request",
+        "providerId": "3ecb719a-12c3-4a73-861d-47c11738df1c",
+        "completion": {
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "stop-token",
+          "promptTokenCount": 24,
+          "generatedTokenCount": 2
+        },
+        "providerIdentity": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "receipt": {
+          "adapterIdentities": [],
+          "cleanup": "settled",
+          "consumer": "peer:721778acd0c5f26a47f936d5",
+          "inputDigest": "sha256:f89697c6c79c7a51dc44ef69143a259ffe206aa02f84b3ddc42440df3e591a1e",
+          "inputTokens": 24,
+          "jobHash": "request:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "outputDigest": "sha256:4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+          "outputTokens": 2,
+          "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+          "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "providerKey": {
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "ext": true,
+            "key_ops": [
+              "verify"
+            ],
+            "kty": "OKP",
+            "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+          },
+          "providerSignature": "uSFLcKiCG3cDWG6fm7VSGgXpC082ZIuNKzddtFp9cuI1CBPXJyUQBIBAzuVnjmvb1Ao6F6THARoLAOCnlVEnBA",
+          "receiptId": "receipt:d7aa23d31b70e8dfbd17dfbf",
+          "status": "completed",
+          "stopReason": "stop-token",
+          "timestamp": 1794335363329,
+          "usage": "raw-model-tokens/v1",
+          "version": 2,
+          "consumerSignature": "MmXNG_iUYUODEMeHaIEKOATtCYnk_BojXw6naeXnmrnpyu4AgoifCF_JytoFVTz2WOMW2KHGWUpmPDmODN6JCA",
+          "consumerKey": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+            "kty": "OKP"
+          }
+        },
+        "stopReason": "stop-token",
+        "hardware": {
+          "architecture": "rdna-2",
+          "description": "AMD proprietary driver: 25.10.30.02 (AMD proprietary shader compiler) 2.0.353",
+          "device": "amd-radeon-tm-graphics",
+          "vendor": "amd"
+        },
+        "timing": {
+          "decodeMs": 99.06590000000142,
+          "firstTokenMs": 192.79669999999896,
+          "generatedTokenCount": 2,
+          "prefillComputedTokens": 24,
+          "prefillMs": 187.94440000000031,
+          "reusedPrefixTokens": 0,
+          "totalMs": 292.5355000000018
+        }
+      },
+      "serviceCredit": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+        "unit": "noncash-service-credit",
+        "charge": 2,
+        "ownComputeUnits": 0,
+        "outputTokens": 2,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 2
+          }
+        ],
+        "evidenceHash": "b90f4a6b2db33040272b3e979363f29bef096bfa2e2337a3b025e466819257a3",
+        "economicHash": "a0b1a901a9d849d64f2b1abf970706c5cdd36286baa6ce004eb0ed40082ffa59",
+        "settledAt": 1794335363335
+      }
+    },
+    {
+      "prompt": "Continue this numbered sequence, giving at least 100 more numbers without commentary: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200,",
+      "wallMs": 11614.227166999997,
+      "content": "201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213,",
+      "usage": {
+        "schema": "raw-model-tokens/v1",
+        "inputTokens": 921,
+        "outputTokens": 64
+      },
+      "execution": {
+        "placement": "peer-whole-request",
+        "providerId": "3ecb719a-12c3-4a73-861d-47c11738df1c",
+        "completion": {
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "max-tokens",
+          "promptTokenCount": 921,
+          "generatedTokenCount": 64
+        },
+        "providerIdentity": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "receipt": {
+          "adapterIdentities": [],
+          "cleanup": "settled",
+          "consumer": "peer:721778acd0c5f26a47f936d5",
+          "inputDigest": "sha256:062b61d57d6d5550b3460164c13a17de8d37a4564e0fb80c8b838c78badc011e",
+          "inputTokens": 921,
+          "jobHash": "request:fd339be8-7b83-479e-9d4c-ff78f505a369",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "outputDigest": "sha256:b5c77849398914b198f5a7e751ea1417d7262173d6a71e32b36bc90ef2a23efb",
+          "outputTokens": 64,
+          "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+          "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "providerKey": {
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "ext": true,
+            "key_ops": [
+              "verify"
+            ],
+            "kty": "OKP",
+            "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+          },
+          "providerSignature": "pSAONc3u3gOqfIqGfxincdy6uaK1RPNw_7XCoj_cb4RyYYA_NYzuioUUeg1mF43vOV9rl91bKa9v5fAtCyYMAQ",
+          "receiptId": "receipt:27d49a10e000260ef202f4ab",
+          "status": "completed",
+          "stopReason": "max-tokens",
+          "timestamp": 1794335374952,
+          "usage": "raw-model-tokens/v1",
+          "version": 2,
+          "consumerSignature": "7TngKhc6CSjVqEXprxNpNQJBtTqBEanbXkORcVHXZtWweS3Bc3n9a_IA0cmFDBrT0gpqbmbAxHxEgdMGbz1yBQ",
+          "consumerKey": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+            "kty": "OKP"
+          }
+        },
+        "stopReason": "max-tokens",
+        "hardware": {
+          "architecture": "rdna-2",
+          "description": "AMD proprietary driver: 25.10.30.02 (AMD proprietary shader compiler) 2.0.353",
+          "device": "amd-radeon-tm-graphics",
+          "vendor": "amd"
+        },
+        "timing": {
+          "decodeMs": 6297.649099999995,
+          "firstTokenMs": 4988.970400000002,
+          "generatedTokenCount": 64,
+          "prefillComputedTokens": 921,
+          "prefillMs": 4982.8734,
+          "reusedPrefixTokens": 0,
+          "totalMs": 11287.582299999998
+        }
+      },
+      "serviceCredit": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:fd339be8-7b83-479e-9d4c-ff78f505a369",
+        "unit": "noncash-service-credit",
+        "charge": 64,
+        "ownComputeUnits": 0,
+        "outputTokens": 64,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 64
+          }
+        ],
+        "evidenceHash": "c4cf4ed351cccdd3aefefa8d65f79d9f0e534135ea26197006dcebc229d30ccb",
+        "economicHash": "4495044eed38459cf50deddbd80e4eb602ef41d6e1b33aff90bb72b86f38ed35",
+        "settledAt": 1794335374948
+      }
+    }
+  ],
+  "remoteLoadMs": 24159.9175,
+  "hardware": {
+    "requester": {
+      "platform": "darwin",
+      "totalHostBytes": 25769803776,
+      "freeHostBytes": 2944499712,
+      "processResidentBytes": 125026304,
+      "adapter": null,
+      "maxStorageBufferBindingSize": null,
+      "maxBufferSize": null,
+      "gpuBuffers": null
+    },
+    "provider": {
+      "platform": "win32",
+      "totalHostBytes": 30866845696,
+      "freeHostBytes": 17679048704,
+      "processResidentBytes": 809570304,
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-2",
+        "device": "amd-radeon-tm-graphics",
+        "description": "AMD proprietary driver: 25.10.30.02 (AMD proprietary shader compiler) 2.0.353",
+        "subgroupMinSize": 32,
+        "subgroupMaxSize": 64
+      },
+      "maxStorageBufferBindingSize": 2147483648,
+      "maxBufferSize": 2147483648,
+      "gpuBuffers": {
+        "scope": "device-gpu-buffers",
+        "liveBytes": 2200343364,
+        "peakBytes": 4838204212,
+        "maxBytes": 6442450944,
+        "categories": {
+          "weights": 0,
+          "attention": 25166912,
+          "recurrent": 21233664,
+          "other": 2153942788
+        }
+      }
+    }
+  },
+  "balances": {
+    "unit": "noncash-service-credit",
+    "policyVersion": "fleet-physical/1",
+    "accounts": [
+      {
+        "id": "bee",
+        "balance": 72,
+        "held": 0,
+        "available": 72
+      },
+      {
+        "id": "mac",
+        "balance": -72,
+        "held": 0,
+        "available": -72
+      }
+    ],
+    "journal": [
+      {
+        "sequence": 1,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+        "account_id": "mac",
+        "delta": -3,
+        "at": 1794335362725
+      },
+      {
+        "sequence": 2,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:036950df-3902-4fe4-9857-b5f4d4e2b89e",
+        "account_id": "bee",
+        "delta": 3,
+        "at": 1794335362725
+      },
+      {
+        "sequence": 3,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+        "account_id": "mac",
+        "delta": -2,
+        "at": 1794335363335
+      },
+      {
+        "sequence": 4,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:30b03edb-0d79-4bdd-9b1d-47b2ed936302",
+        "account_id": "bee",
+        "delta": 2,
+        "at": 1794335363335
+      },
+      {
+        "sequence": 5,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:fd339be8-7b83-479e-9d4c-ff78f505a369",
+        "account_id": "mac",
+        "delta": -64,
+        "at": 1794335374948
+      },
+      {
+        "sequence": 6,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:fd339be8-7b83-479e-9d4c-ff78f505a369",
+        "account_id": "bee",
+        "delta": 64,
+        "at": 1794335374948
+      },
+      {
+        "sequence": 7,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+        "account_id": "mac",
+        "delta": -3,
+        "at": 1794335395535
+      },
+      {
+        "sequence": 8,
+        "request_id": "service:peer:721778acd0c5f26a47f936d5:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+        "account_id": "bee",
+        "delta": 3,
+        "at": 1794335395535
+      }
+    ]
+  },
+  "placement": {
+    "plan": {
+      "schema": "reploid.fleet-placement/v1",
+      "at": 1794335376114,
+      "decisions": [
+        {
+          "computerId": "bee",
+          "action": "prepare",
+          "reason": "fastest-feasible-whole-model",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "mode": "whole-model",
+          "planId": null,
+          "stageIndex": null,
+          "evidence": "whole-model.json",
+          "estimatedMs": 25600.547350000008
+        }
+      ],
+      "routes": [
+        {
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "mode": "whole-model",
+          "computers": [
+            "bee"
+          ],
+          "estimatedMs": 25600.547350000008
+        }
+      ],
+      "unavailable": []
+    },
+    "answer": {
+      "threadId": "05e8936d-4de6-4ef0-9354-792af9bfcbed",
+      "attemptId": "c5f7b466-cd9d-4c3f-a775-97964590fb8a",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+      "adapterIdentities": [],
+      "content": "Hello!",
+      "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+      "usage": {
+        "schema": "raw-model-tokens/v1",
+        "inputTokens": 18,
+        "outputTokens": 3
+      },
+      "execution": {
+        "placement": "peer-whole-request",
+        "providerId": "75909984-9813-49e8-b295-c17d3b8443b5",
+        "completion": {
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "stop-token",
+          "promptTokenCount": 18,
+          "generatedTokenCount": 3
+        },
+        "providerIdentity": "peer:5c0ecd2fd5fd8a105a4f8068",
+        "receipt": {
+          "adapterIdentities": [],
+          "cleanup": "settled",
+          "consumer": "peer:721778acd0c5f26a47f936d5",
+          "inputDigest": "sha256:2833211db2d5ef186b8c713a0d4c4c5e9155303c3e024fc9bfc0dc53a7cdb9e8",
+          "inputTokens": 18,
+          "jobHash": "request:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "outputDigest": "sha256:334d016f755cd6dc58c53a86e183882f8ec14f52fb05345887c8a5edd42c87b7",
+          "outputTokens": 3,
+          "ownerPolicyDigest": "sha256:562d79bce6b3fc4ec0fc66255d9f5e564a69aadb539c10eb1dcef626282b2ecb",
+          "provider": "peer:5c0ecd2fd5fd8a105a4f8068",
+          "providerKey": {
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "ext": true,
+            "key_ops": [
+              "verify"
+            ],
+            "kty": "OKP",
+            "x": "Y7MQ6dY-j62M3ygxVeEZFcnZ1NR6-CRgT6SSG_0gBEw"
+          },
+          "providerSignature": "7CmQHPu8wlL5XMsF15ekQYvVFCC23KgNl0dYTZWA0YBy2cn8ch_deb5CQ6HYjX72jtV8hdWHZ2SrNmVSga7XDA",
+          "receiptId": "receipt:cf57ed4c9b19e0b7b439d03d",
+          "status": "completed",
+          "stopReason": "stop-token",
+          "timestamp": 1794335395523,
+          "usage": "raw-model-tokens/v1",
+          "version": 2,
+          "consumerSignature": "TiNyfFMaH9SCAHwI3cVOugXm8ZGZcFBTVebLPmMgZC_TEoln_aCipntO8nvc3_wniJeFvnFNqw8xXE76RyxtBQ",
+          "consumerKey": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "pI4QTe00KBnN2o6NNSoafBxDimp2lrFERK57l0kbUWg",
+            "kty": "OKP"
+          }
+        },
+        "stopReason": "stop-token",
+        "hardware": {
+          "architecture": "rdna-2",
+          "description": "AMD proprietary driver: 25.10.30.02 (AMD proprietary shader compiler) 2.0.353",
+          "device": "amd-radeon-tm-graphics",
+          "vendor": "amd"
+        },
+        "timing": {
+          "decodeMs": 167.70440000000235,
+          "firstTokenMs": 310.1533000000054,
+          "generatedTokenCount": 3,
+          "prefillComputedTokens": 18,
+          "prefillMs": 303.21080000000075,
+          "reusedPrefixTokens": 0,
+          "totalMs": 478.9147000000012
+        }
+      },
+      "serviceCredit": {
+        "id": "service:peer:721778acd0c5f26a47f936d5:b31fa7ef-f998-4c6f-8c6d-234edd30d856",
+        "unit": "noncash-service-credit",
+        "charge": 3,
+        "ownComputeUnits": 0,
+        "outputTokens": 3,
+        "credits": [
+          {
+            "participantId": "peer:5c0ecd2fd5fd8a105a4f8068",
+            "computerId": "bee",
+            "amount": 3
+          }
+        ],
+        "evidenceHash": "8ed83c610abc12b1df268cf4bd6a7b5cfdac1a937b23bf3adb8b496c1360bf14",
+        "economicHash": "a98353c3bd118abb6d3db487264b6a1fd9f0b116bf6e63f2f1001e6a122c4293",
+        "settledAt": 1794335395535
+      }
+    },
+    "optOut": {
+      "schema": "reploid.fleet-placement/v1",
+      "at": 1794335396078,
+      "decisions": [
+        {
+          "computerId": "bee",
+          "action": "stop",
+          "reason": "owner-preferences",
+          "resident": {
+            "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+            "mode": "whole-model",
+            "preparedAt": 1794335394869,
+            "planId": null,
+            "stageIndex": null,
+            "gpuBytes": 2195745604,
+            "hostBytes": 0
+          }
+        }
+      ],
+      "routes": [],
+      "unavailable": [
+        {
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "reason": "no-measured-complete-route"
+        }
+      ]
+    },
+    "afterOptOut": {
+      "phase": "idle",
+      "offering": false,
+      "gpuBuffers": {
+        "scope": "device-gpu-buffers",
+        "liveBytes": 67859208,
+        "peakBytes": 4838204212,
+        "maxBytes": 6442450944,
+        "categories": {
+          "weights": 0,
+          "attention": 1088,
+          "recurrent": 0,
+          "other": 67858120
+        }
+      }
+    }
+  }
+}

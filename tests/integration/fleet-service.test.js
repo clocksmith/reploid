@@ -107,6 +107,9 @@ it('charges the requester and credits every settled resident stage through the a
       { signal: new AbortController().signal, requestApproval: async () => true });
     expect(answer.content).toBe('012');
     expect(answer.serviceCredit.charge).toBe(3);
+    const retained = await client.call('request', { id: answer.serviceCredit.id });
+    expect(retained.evidence.receipts).toHaveLength(2);
+    expect(retained.evidence.acknowledgment.count).toBe(3);
     expect(credits.snapshot().accounts.map(row => row.balance)).toEqual([-3, 1, 2]);
     expect(await client.reconcile()).toEqual([]);
   } finally { await route.close(); }
@@ -151,5 +154,228 @@ it('bills only the remote share when the requester also executes a local partiti
     expect(answer.serviceCredit).toMatchObject({ charge: 2, ownComputeUnits: 1 });
     expect(answer.serviceCredit.credits).toHaveLength(1);
     expect(credits.snapshot().accounts.map(row => row.balance)).toEqual([-2, 2, 0]);
+  } finally { await route.close(); }
+});
+
+async function chargedRoute(options = {}) {
+  const route = await residentRoute({ participants: keys.slice(1).map(key => key.peerId), requesterId: keys[0].peerId,
+    signers: keys.slice(1).map(identity => createAttemptEvidenceSigner({ identity })), ...options });
+  await service.close();
+  service = await startFleetService({ credits, models: [{ ...route.model, plans: [{ id: route.model.partition.planId, creditWeights: [1, 1] }] }],
+    placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
+  client = createFleetClient({ url: service.url, identity: keys[0], outboxFile: path.join(root, 'outbox.json') });
+  return route;
+}
+const routeRequest = (route, attemptId) => ({ model: route.model, threadId: 'thread', attemptId, messages: [{ role: 'user', content: 'test' }] });
+
+it.each(['0', '2'])('settles the acknowledged prefix when cancellation races with delta %s', async delta => {
+  const route = await chargedRoute();
+  try {
+    const requester = createFleetRequester({ participant: route.requester, identity: keys[0], credits: client, maxOutputTokens: 10 });
+    for (const attemptId of ['cancel-1', 'cancel-2']) {
+      const controller = new AbortController();
+      await expect(requester.generate(routeRequest(route, attemptId), { signal: controller.signal, requestApproval: async () => true,
+        onDelta: ({ text }) => { if (text === delta) controller.abort(Error('Stopped')); } })).rejects.toThrow('Stopped');
+      await client.reconcile();
+      const row = credits.request(`service:${keys[0].peerId}:${attemptId}`);
+      expect(row.state).toBe('settled');
+      expect(row.outcome.outputTokens).toBe(Number(delta) + 1);
+      expect(credits.snapshot().accounts[0].held).toBe(0);
+    }
+    expect((await requester.generate(routeRequest(route, 'after-cancels'), {
+      signal: new AbortController().signal, requestApproval: async () => true })).serviceCredit.charge).toBe(3);
+  } finally { await route.close(); }
+});
+
+it.each([false, true])('recovers a dropped final output acknowledgment (all attempts: %s)', async dropAll => {
+  const route = await chargedRoute();
+  try {
+    let dropped = false;
+    const participant = { generate(request, controls) {
+      const approve = controls.requestApproval;
+      controls.requestApproval = async disclosure => {
+        const ok = await approve(disclosure), observe = controls.onOutput;
+        controls.onOutput = record => {
+          if (record.done && (dropAll || !dropped)) { dropped = true; return Promise.reject(Error('Lost output RPC')); }
+          return observe(record);
+        };
+        return ok;
+      };
+      return route.requester.generate(request, controls);
+    } };
+    const requester = createFleetRequester({ participant, identity: keys[0], credits: client, maxOutputTokens: 10 });
+    const answer = await requester.generate(routeRequest(route, 'drop-final'), { signal: new AbortController().signal, requestApproval: async () => true });
+    expect(dropped).toBe(true); expect(answer.content).toBe('012'); expect(answer.serviceCredit.charge).toBe(3);
+    expect(await client.reconcile()).toEqual([]);
+  } finally { await route.close(); }
+});
+
+it('accepts a verified re-signature of the same work without a second economic effect', async () => {
+  const route = await chargedRoute();
+  try {
+    const requester = createFleetRequester({ participant: route.requester, identity: keys[0], credits: client, maxOutputTokens: 10 });
+    const answer = await requester.generate(routeRequest(route, 'resigned'), { signal: new AbortController().signal, requestApproval: async () => true });
+    const retained = credits.request(answer.serviceCredit.id).evidence;
+    const { publicJwk: _key, signature: _signature, ...body } = retained.acknowledgment;
+    const acknowledgment = await createAttemptEvidenceSigner({ identity: keys[0] }).sign(body.schema,
+      { ...body, signedAt: new Date(Date.parse(body.signedAt) + 1).toISOString() });
+    expect(await client.settle(answer.serviceCredit.id, { ...retained, acknowledgment })).toEqual(answer.serviceCredit);
+    expect(credits.snapshot().accounts.map(row => row.balance)).toEqual([-3, 1, 2]);
+    expect(credits.snapshot().journal).toHaveLength(3);
+  } finally { await route.close(); }
+});
+
+it('clamps output to the held budget and admits each stage using that request’s actual bound', async () => {
+  let route;
+  route = await chargedRoute({ steps: 3, beforeReserve: async (request, index) => {
+    const provider = createFleetClient({ url: service.url, identity: keys[index + 1] });
+    const admission = createFleetExecutionAdmission({ credits: provider, model: { ...route.model, generation: { maxTokens: 16 } } });
+    await admission.partition(request);
+  } });
+  try {
+    const requester = createFleetRequester({ participant: route.requester, identity: keys[0], credits: client, maxOutputTokens: 2 });
+    const answer = await requester.generate({ ...routeRequest(route, 'bounded'), generationRequest: {
+      schema: 'reploid.partition-generation-request/v1', usage: 'raw-model-tokens/v1', maxOutputTokens: 9 } },
+    { signal: new AbortController().signal, requestApproval: async () => true });
+    expect(answer.content).toBe('01'); expect(answer.serviceCredit.outputTokens).toBe(2);
+    expect(route.admissions(0)[0].evidence.receipts[0].steps).toBe(2);
+    expect(credits.snapshot().accounts[0].held).toBe(0);
+  } finally { await route.close(); }
+});
+
+it('fences a post-dispatch refusal before any provider admitted work and rejects subsequent admission', async () => {
+  const participant = { async generate(request, controls) {
+    await controls.requestApproval({ requestId: 'not-started', recipientIdentity: keys[1].peerId });
+    throw Error('No provider started');
+  } };
+  const requester = createFleetRequester({ participant, identity: keys[0], credits: client, maxOutputTokens: 10 });
+  await expect(requester.generate({ model, messages: [{ role: 'user', content: 'test' }] },
+    { signal: new AbortController().signal, requestApproval: async () => true })).rejects.toThrow('No provider started');
+  expect(credits.snapshot().accounts[0].held).toBe(0);
+  const id = `service:${keys[0].peerId}:not-started`;
+  expect(credits.request(id).state).toBe('settled');
+  expect(() => credits.admit(id, 0)).toThrow('closed');
+  expect(() => credits.dispatch(id, keys[0].peerId)).toThrow();
+});
+
+it('keeps a hold when an admitted stage disappears without a signed closing receipt', async () => {
+  let route;
+  route = await chargedRoute({ beforeReserve: async (request, index) => {
+    const provider = createFleetClient({ url: service.url, identity: keys[index + 1] });
+    await createFleetExecutionAdmission({ credits: provider, model: { ...route.model, generation: { maxTokens: 16 } } }).partition(request);
+  } });
+  try {
+    route.loseStage(1, 0);
+    const requester = createFleetRequester({ participant: route.requester, identity: keys[0], credits: client, maxOutputTokens: 10 });
+    await expect(requester.generate(routeRequest(route, 'lost'), {
+      signal: new AbortController().signal, requestApproval: async () => true })).rejects.toThrow();
+    await client.reconcile();
+    expect(credits.request(`service:${keys[0].peerId}:lost`).state).toBe('closing');
+    expect(credits.snapshot().accounts[0].held).toBe(3);
+    expect(credits.snapshot().journal).toHaveLength(0);
+  } finally { await route.close(); }
+});
+
+it('rejects sparse and non-finite evidence before signing or retaining an outbox entry', async () => {
+  const sparse = { identity: {}, receipts: [undefined] };
+  await expect(client.settle('bad', sparse)).rejects.toThrow('Undefined array');
+  await expect(client.call('observe', { observedAt: NaN })).rejects.toThrow('Non-finite');
+  expect(await client.reconcile()).toEqual([]);
+});
+
+it('recovers credited work from durable provider outboxes after the requester and ledger restart', async () => {
+  let route;
+  const providerClients = keys.slice(1).map((identity, index) => createFleetClient({ url: service.url, identity,
+    outboxFile: path.join(root, `provider-${index}.json`) }));
+  route = await chargedRoute({
+    beforeReserve: (request, index) => createFleetExecutionAdmission({ credits: providerClients[index],
+      model: { ...route.model, generation: { maxTokens: 16 } } }).partition(request),
+    onEvidence: bundle => providerClients[bundle.receipts[0].partitionIndex].collect(bundle.reservationId, bundle)
+  });
+  // Admission works, but each closing proof is durably written locally before its HTTP call fails.
+  for (let index = 0; index < 2; index++) providerClients[index] = createFleetClient({ url: service.url, identity: keys[index + 1],
+    outboxFile: path.join(root, `provider-${index}.json`), fetchImpl: (url, options) => {
+      if (JSON.parse(options.body).operation === 'collect') throw Error('Service unavailable during cleanup');
+      return fetch(url, options);
+    } });
+  try {
+    const { openOutputAcknowledgments } = await import('../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js');
+    const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'thread', attemptId: 'crashed', requesterId: keys[0].peerId,
+      placementGeneration: 0, route: route.route };
+    const id = `service:${keys[0].peerId}:crashed`;
+    const acknowledgments = await openOutputAcknowledgments({ signer: createAttemptEvidenceSigner({ identity: keys[0] }), identity, reservationId: id });
+    await client.reserve({ id, executionId: 'crashed', consumer: keys[0].peerId, mode: 'partition', route: identity,
+      model: { id: route.model.id, identity: route.model.identity, adapterIdentities: [] }, inputDigest: await hashJson([{ role: 'user', content: 'test' }]),
+      maxOutputTokens: 3, providers: keys.slice(1).map(key => ({ participantId: key.peerId, weight: 1 })) });
+    await client.collect(id, { identity, receipts: [], acknowledgment: acknowledgments.charge });
+    await client.dispatch(id);
+    await route.requester.generate(routeRequest(route, 'crashed'), { signal: new AbortController().signal,
+      requestApproval: async () => true, charge: acknowledgments.charge, onOutput: record => acknowledgments.observe(record) });
+    // The requester disappears without sending settlement or a fence. No answer is regenerated.
+    expect(credits.request(id).state).toBe('dispatched');
+    await service.close(); credits.close();
+    const policy = credits.policy;
+    credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'), policy,
+      computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
+        providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })), now: () => Date.now() + policy.maxRequestMs + 1 });
+    service = await startFleetService({ credits, models: [route.model],
+      placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
+    for (let index = 0; index < 2; index++) {
+      const resumed = createFleetClient({ url: service.url, identity: keys[index + 1], outboxFile: path.join(root, `provider-${index}.json`) });
+      await resumed.reconcile();
+      expect(await resumed.reconcile()).toEqual([]);
+    }
+    expect(credits.request(id).state).toBe('settled');
+    expect(credits.snapshot().accounts.map(row => row.balance)).toEqual([-3, 1, 2]);
+    expect(credits.snapshot().accounts[0].held).toBe(0);
+  } finally { await route.close(); }
+});
+
+it('propagates the earlier authorization deadline and settles zero-output cleanup', async () => {
+  const route = await chargedRoute();
+  try {
+    route.hold(0, 0);
+    const requester = createFleetRequester({ participant: route.requester, identity: keys[0], credits: client, maxOutputTokens: 10 });
+    const expires = Date.now() + 50;
+    await expect(requester.generate(routeRequest(route, 'deadline'), { signal: new AbortController().signal,
+      requestApproval: async () => true, authorizationExpiresAt: () => expires })).rejects.toMatchObject({ code: 'ANSWER_DEADLINE_EXCEEDED' });
+    const row = credits.request(`service:${keys[0].peerId}:deadline`);
+    expect(row.state).toBe('settled'); expect(row.outcome.charge).toBe(0);
+    expect(credits.snapshot().accounts[0].held).toBe(0);
+  } finally { await route.close(); }
+});
+
+it('retains rejected proof for diagnosis without leaving it in the retry queue', async () => {
+  const route = await chargedRoute();
+  try {
+    const requester = createFleetRequester({ participant: route.requester, identity: keys[0], credits: client, maxOutputTokens: 10 });
+    const answer = await requester.generate(routeRequest(route, 'bad-retry'), { signal: new AbortController().signal, requestApproval: async () => true });
+    const evidence = credits.request(answer.serviceCredit.id).evidence;
+    evidence.receipts[0].signature = 'invalid';
+    await expect(client.settle(answer.serviceCredit.id, evidence)).rejects.toThrow();
+    expect(await client.reconcile()).toEqual([]);
+    const { readFile } = await import('node:fs/promises');
+    const outbox = JSON.parse(await readFile(path.join(root, 'outbox.json'), 'utf8'));
+    expect(outbox[`rejected:settle:${answer.serviceCredit.id}`].payload.evidence).toEqual(evidence);
+    expect(credits.snapshot().journal).toHaveLength(3);
+  } finally { await route.close(); }
+});
+
+
+it('replays a zero-output fenced partition settlement without inventing stage receipts', async () => {
+  const route = await chargedRoute();
+  try {
+    const participant = { async generate(request, controls) {
+      const original = controls.requestApproval;
+      controls.requestApproval = async disclosure => { await original(disclosure); throw Error('Stopped before stage admission'); };
+      return route.requester.generate(request, controls);
+    } };
+    const requester = createFleetRequester({ participant, identity: keys[0], credits: client, maxOutputTokens: 3 });
+    await expect(requester.generate(routeRequest(route, 'no-stage'), { signal: new AbortController().signal,
+      requestApproval: async () => true })).rejects.toThrow('Stopped before stage admission');
+    const id = `service:${keys[0].peerId}:no-stage`, row = credits.request(id);
+    expect(row.state).toBe('settled'); expect(row.evidence.receipts).toEqual([]);
+    expect(await client.settle(id, row.evidence)).toEqual(row.outcome);
+    expect(credits.snapshot().accounts[0].held).toBe(0);
   } finally { await route.close(); }
 });

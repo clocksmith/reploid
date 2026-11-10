@@ -278,7 +278,7 @@ export function createNativeGpuHost(loadProvider, { backend = process.platform =
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
-  gpuBufferBytes, evidenceSigner = null, shaderCache = null }) {
+  gpuBufferBytes, evidenceSigner = null, onEvidence = null, shaderCache = null }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
@@ -342,7 +342,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId,
-      limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}),
+      limits: policy.limits, onEvidence, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}),
       // Ordered stages sign receipts for charged attempts with this host's participant identity.
       ...(orderedOptions.ordered && evidenceSigner?.participantId === participantId ? { evidence: evidenceSigner } : {}) });
     cleanupOwner.resident = resident;
@@ -387,7 +387,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   generationJournalFile = null, executionAdmission = null }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
-  requireValue(executionAdmission === null || ['whole', 'partition', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
+  requireValue(executionAdmission === null || ['whole', 'partition', 'partitionReceipt', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
     'Execution admission requires whole-model, partition and receipt ports');
   requireValue(!wholeMode || canonical === null && ordered === null && readiness === null,
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
@@ -542,6 +542,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         const program = await openNativePartition({ model: selected, index, modelDirectory,
           releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
           nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
+          onEvidence: executionAdmission ? bundle => executionAdmission.partitionReceipt(bundle) : null,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes) } : {}) });
         let prepared = ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;

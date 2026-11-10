@@ -78,6 +78,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       item.receipt.phase = 'settling';
       // Acknowledgments already requested reach the stages with their closing request.
       await item.acknowledging;
+      if (item.pendingOutputs.length) item.receipt.unacknowledgedOutputs = clone(item.pendingOutputs);
       const acknowledged = item.acknowledged;
       const results = await Promise.allSettled([...item.owned].map(async index => {
         try {
@@ -162,14 +163,17 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     const receipt = { identity: binding, phase: 'admitting', reservations: [], cleanup: [], cleanupSettledAt: null, failure: null };
     const completion = Promise.withResolvers();
     const item = { binding, controller, receipt, owned: new Set(), lost: new Set(), calls: new Map(), running: true, settled: completion.promise,
-      outcome: 'completed', cleaning: null, acknowledging: Promise.resolve(), acknowledged: null, waiters: new Set() };
+      outcome: 'completed', cleaning: null, pendingOutputs: [], acknowledging: Promise.resolve(), acknowledged: null, waiters: new Set() };
     if (charge) receipt.acknowledgments = { bound: MAX_UNACKNOWLEDGED_OUTPUTS, waits: 0, waitedMs: 0 };
     const acknowledgedCount = () => item.acknowledged?.acknowledgment.count ?? 0;
     // Keep only a newer acknowledgment of this attempt's outputs; stages and the service verify signatures.
     const accept = pair => {
       const ack = pair?.acknowledgment;
       if (ack?.attemptId === binding.attemptId && Number.isSafeInteger(ack.count) && ack.count > acknowledgedCount()
-        && pair.receipt?.output?.count === ack.count) item.acknowledged = clone(pair);
+        && pair.receipt?.output?.count === ack.count) {
+        item.acknowledged = clone(pair);
+        item.pendingOutputs = item.pendingOutputs.filter(record => record.step >= ack.count);
+      }
       for (const waiter of item.waiters) if (acknowledgedCount() >= waiter.target) waiter.done(null);
     };
     // Backpressure: the next step waits for the requester, bounded by the deadline and cancellation.
@@ -188,7 +192,22 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     });
     const requestAcknowledgment = record => {
       if (!onOutput) return;
-      item.acknowledging = item.acknowledging.then(() => onOutput(clone(record))).then(accept, () => {});
+      item.pendingOutputs.push(clone(record));
+      item.acknowledging = item.acknowledging.then(async () => {
+        // Re-send the identical proof, never a new output. Recovery is independent of a UI stop,
+        // bounded by the existing stage timeout and acknowledgment deadline.
+        for (let retry = 0; retry < 3; retry++) {
+          const remaining = Math.min(policy.stageTimeoutMs, acknowledgmentDeadlineAt - Date.now());
+          if (remaining <= 0) break;
+          let timer;
+          try {
+            const pair = await Promise.race([Promise.resolve().then(() => onOutput(clone(record))),
+              new Promise((_, reject) => { timer = setTimeout(() => reject(acknowledgmentOverdue()), remaining); })]);
+            if (pair) accept(pair);
+            break;
+          } catch {} finally { clearTimeout(timer); }
+        }
+      });
     };
     attempts.set(binding.attemptId, item);
     let input = [...tokenIds], position = 0, content = '', logits = null, stopReason = 'length', activationBytes = 0;
@@ -360,7 +379,10 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
         const lost = error.code === 'CONNECTION_LOST';
         throw Object.assign(new AggregateError(failure ? [failure, error] : [error],
           lost ? failureMessages.CONNECTION_LOST : 'Ordered route cleanup remains unsettled'), { code: lost ? 'CONNECTION_LOST' : 'CLEANUP_FAILED' }); }
-      finally { item.running = false; completion.resolve(); }
+      finally {
+        if (failure && typeof failure === 'object') failure.partitionSettlement = clone(receipt);
+        item.running = false; completion.resolve();
+      }
     }
   }
   return Object.freeze({ plan, route, execute,

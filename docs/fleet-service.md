@@ -35,8 +35,24 @@ request and participant identities must match. Duplicate settlement has one
 economic effect. Every credit has an equal debit. A requester's own partition
 share is unbilled; there is no reward for paying itself.
 
-SQLite retains balances, reservations, evidence hashes and the journal. A durable
-client outbox retries lost settlement responses without generating another answer.
+SQLite retains balances, reservations, the complete signed evidence, provider
+admissions, and the journal. Requester and provider outboxes retry proofs after
+process restart without generating another answer. Partition acknowledgments
+are retained before they return to the coordinator; each contributor independently
+submits its signed closing receipt. Invalid proof is retained as a rejected record
+rather than retried forever.
+
+Cancellation can settle an acknowledged prefix. All admitted stages must prove
+cleanup, and a signed final-stage receipt must match that prefix's output chain.
+Unacknowledged work is not billed. A signed `failed` receipt proves cleanup only
+with its closing timestamp; it does not turn a failed answer into a completed one.
+Equivalent verified re-signatures retain the original economic outcome.
+
+Admission closes atomically before recovery. A never-dispatched reservation can
+expire. A dispatched request with no admitted providers can release after that
+fence; one with admitted providers still needs their signed closing receipts.
+Deadline expiry closes admission but never proves remote cleanup. Old reservations
+without the admission journal cannot use the zero-admission release rule.
 A request whose dispatch or completion is uncertain retains its hold. Cancellation
 alone does not establish that work was never performed. There is no automatic
 hold forgiveness or cash conversion. Enrollment or policy changes require an
@@ -102,7 +118,8 @@ of source control.
 ## Evidence
 
 Focused tests cover admission, credit conservation, restart/replay, missing or
-forged evidence, pending settlement, local-stage exclusion, placement bounds,
+forged evidence, cancellation/completion races, partial settlement, remote retirement,
+requester/provider restarts, token caps, admission fencing, local-stage exclusion, placement bounds,
 clock skew and owner opt-out. The opt-in physical fixture is
 `tests/fixtures/fleet-native-physical.js`; it consumes private operator paths and
 an installed package receipt, verifies the remote delivery digest, runs real

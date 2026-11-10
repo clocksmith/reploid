@@ -42,6 +42,7 @@ try{
  const identity=await openComputerIdentity(root+'/state/identity.json');
  const computers=[{id:config.local.computerId,name:config.local.name,ownerId:'owner',providers:[{participantId:identity.peerId,publicJwk:identity.publicJwk}]},{id:config.remote.computerId,name:config.remote.name,ownerId:'owner',providers:[{participantId:remoteIdentity.participantId,publicJwk:remoteIdentity.publicJwk}]}];
  credits=await openFleetCredits({file:root+'/physical-credits-'+randomUUID()+'.sqlite',computers,policy:{schema:'reploid.service-credit-policy/v1',version:'fleet-physical/1',unit:'noncash-service-credit',creditsPerOutputToken:1,maxDebt:10000,maxOutputTokens:model.generation.maxTokens,maxPendingPerComputer:8,maxClockSkewMs:30000,maxRequestMs:300000,allowSameOwner:true}});
+ report.computers=computers;report.policy=credits.policy;
  service=await startFleetService({credits,port:config.coordinator.port,listenHost:config.coordinator.listenHost,tls:{key:await fs.readFile(config.coordinator.keyFile),cert:await fs.readFile(config.coordinator.certFile)},models:[{...model,...(config.mode==='partition'?{plans:[{id:model.partitionPlanId,creditWeights:[1,1],stageCount:2,activationBytesPerToken:model.partitionPlan.hiddenSize*4}]}:{})}],placementPolicy:{maxMeasurementAgeMs:86400000,maxObservationAgeMs:60000,minResidencyMs:60000,maxRouteCandidates:100,queuedRequestsPerReplica:2}});
  local=await openFleetNativeHost({configuration:{...common,computerId:config.local.computerId,name:config.local.name,identityFile:root+'/state/identity.json',roomTokenFile:root+'/room.token',serviceUrl:service.url,models:[{model,mode:'partition',ordered:config.mode==='partition'?ordered(0):null,directory:config.local.modelDirectory}]},onChange:()=>{}});
  await local.select(0,config.mode==='partition');log('local-stage-ready');
@@ -53,6 +54,21 @@ try{
   const request={threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:prompt}]};const start=performance.now(),deltas=[];
   const result=await local.generate(request,d=>deltas.push(d));report.rows.push({prompt,wallMs:performance.now()-start,deltas,result});log('answer',{content:result.content,usage:result.usage,credit:result.serviceCredit});await save();
   if(result.serviceCredit?.status==='pending')throw Error(result.serviceCredit.error);
+ }
+ if(config.exerciseCancellation){
+  if(config.mode!=='partition')throw Error('Signed partial cancellation check requires an ordered route');
+  const request={threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:'Count from one to twenty, one number per line.'}]};
+  let delivered=0,failure;
+  try{await local.generate(request,()=>{if(++delivered===1)local.cancel(request.attemptId)});}catch(error){failure=error;}
+  if(!failure||delivered===0)throw Error('Cancellation did not interrupt real streamed output');
+  const id='service:'+identity.peerId+':'+request.attemptId;
+  const settlement=await credits.recover(id);
+  report.cancellation={delivered,error:failure.message,request:credits.request(id),settlement};
+  if(settlement.status==='pending'||settlement.outputTokens<1||credits.snapshot().accounts.some(row=>row.held!==0))throw Error('Acknowledged cancellation failed to settle');
+  const result=await local.generate({threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:config.prompts[0]}]});
+  report.cancellation.reuse=result;
+  if(result.serviceCredit.status==='pending'||result.content!==report.rows[0].result.content)throw Error('Reuse after cancellation failed');
+  log('cancellation-and-reuse-passed',{acknowledged:settlement.outputTokens,charge:settlement.charge});
  }
  report.local=local.state();report.remote=await command('state');
  const gpuLimit=report.remote.hardware.gpuBuffers?.maxBytes;
@@ -89,6 +105,8 @@ try{
   await scheduler.call('demand',{id:config.local.computerId,requests:[]});
   log('automatic-placement-passed');
  }
- report.balances=credits.snapshot();report.passed=true;
+ report.balances=credits.snapshot();
+ report.requests=[...new Set(report.balances.journal.map(row=>row.request_id))].map(id=>credits.request(id));
+ report.passed=true;
 }catch(error){report.failure=error.stack;process.exitCode=1;log('failed',{error:String(error)});}
 finally{await save();await local?.close().catch(e=>{report.localCleanupError=e.message;report.passed=false;process.exitCode=1});remote.stdin.end();if(remote.exitCode===null)await Promise.race([new Promise(r=>remote.once('exit',r)),new Promise(r=>setTimeout(r,15000).unref())]);report.remoteExitCode=remote.exitCode; if(remote.exitCode===null){remote.kill('SIGTERM');report.remoteForcedStop=true;report.passed=false;process.exitCode=1;}await service?.close();credits?.close();await stderr.close();report.cleanup=report.localCleanupError||report.remoteForcedStop?'unknown':'settled';await save();log('finished',{passed:report.passed});}

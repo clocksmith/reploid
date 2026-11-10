@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { assert, creditPolicy, digest, enrollComputers, integer, same, text } from './contract.js';
+import { createCreditRecovery } from './credit-recovery.js';
 import { verifyCreditEvidence } from './credit-evidence.js';
 
 /** Non-redeemable mutual service credit. No purchased lots, issuance, or payout path. */
@@ -20,6 +21,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     CREATE TABLE IF NOT EXISTS fleet_accounts (id TEXT PRIMARY KEY, balance INTEGER NOT NULL DEFAULT 0, held INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE IF NOT EXISTS fleet_requests (id TEXT PRIMARY KEY, binding TEXT NOT NULL, state TEXT NOT NULL, outcome TEXT);
     CREATE TABLE IF NOT EXISTS fleet_work (id TEXT PRIMARY KEY, request_id TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS fleet_evidence (request_id TEXT PRIMARY KEY, payload TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS fleet_journal (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL, account_id TEXT NOT NULL, delta INTEGER NOT NULL, at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS fleet_metadata (id TEXT PRIMARY KEY, value TEXT NOT NULL);`);
   const transaction = work => {
@@ -41,11 +43,16 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
   const accountFor = peer => { const account = enrollment.byPeer.get(peer); assert(account, 'Unenrolled participant'); return account; };
   const read = id => {
     const row = db.prepare('SELECT * FROM fleet_requests WHERE id=?').get(id);
-    return row ? { ...row, binding: JSON.parse(row.binding), outcome: row.outcome && JSON.parse(row.outcome) } : null;
+    const evidence = row && db.prepare('SELECT payload FROM fleet_evidence WHERE request_id=?').get(id);
+    return row ? { ...row, binding: JSON.parse(row.binding), outcome: row.outcome && JSON.parse(row.outcome),
+      evidence: evidence ? JSON.parse(evidence.payload) : null } : null;
   };
-  return Object.freeze({
-    enrollment, policy,
+  let ledger;
+  const recovery = createCreditRecovery({ db, transaction, read, settle: (id, evidence) => ledger.settle(id, evidence), enrollment, policy, now });
+  ledger = Object.freeze({
+    enrollment, policy, ...recovery,
     reserve(input) {
+      recovery.expire();
       const value = structuredClone(input), consumer = accountFor(value.consumer);
       assert(text(value.id) && text(value.executionId) && ['whole-model', 'partition'].includes(value.mode)
         && text(value.model?.id) && digest(value.model.identity) && Array.isArray(value.model.adapterIdentities)
@@ -76,13 +83,13 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         const prior = read(value.id);
         if (prior) { assert(prior.binding.requestHash === requestHash, 'Reservation identity reused with different terms'); return prior.binding; }
         const account = db.prepare('SELECT * FROM fleet_accounts WHERE id=?').get(consumer.computerId);
-        const pending = db.prepare("SELECT COUNT(*) AS count FROM fleet_requests WHERE state IN ('reserved','dispatched') AND json_extract(binding,'$.computerId')=?").get(consumer.computerId).count;
+        const pending = db.prepare("SELECT COUNT(*) AS count FROM fleet_requests WHERE state IN ('reserved','dispatched','closing') AND json_extract(binding,'$.computerId')=?").get(consumer.computerId).count;
         const maximum = value.maxOutputTokens * policy.creditsPerOutputToken;
         assert(pending < policy.maxPendingPerComputer && account.balance - account.held - maximum >= -policy.maxDebt,
           'Service-credit admission limit reached');
         const createdAt = now();
         const binding = { ...value, requestHash, computerId: consumer.computerId, maximum,
-          policyVersion: policy.version, createdAt, deadline: createdAt + policy.maxRequestMs };
+          policyVersion: policy.version, admissionVersion: 1, createdAt, deadline: createdAt + policy.maxRequestMs };
         db.prepare("INSERT INTO fleet_requests VALUES (?,?,'reserved',NULL)").run(value.id, JSON.stringify(binding));
         db.prepare('UPDATE fleet_accounts SET held=held+? WHERE id=?').run(maximum, consumer.computerId);
         return binding;
@@ -91,12 +98,19 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     async settle(id, evidence) {
       evidence = structuredClone(evidence);
       const row = read(id); assert(row, 'Unknown credit reservation');
-      const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs);
+      const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id) });
+      const economicHash = createHash('sha256').update(canonicalize(observed)).digest('hex');
+      const previousEconomicHash = row.outcome?.economicHash ?? (row.evidence ? createHash('sha256').update(canonicalize(
+        await verifyCreditEvidence(row.binding, row.evidence, enrollment, now(), policy.maxClockSkewMs))).digest('hex') : null);
       const evidenceHash = createHash('sha256').update(canonicalize(evidence)).digest('hex');
       return transaction(() => {
         const current = read(id);
-        if (current.state === 'settled') { assert(current.outcome.evidenceHash === evidenceHash, 'Conflicting completed evidence'); return current.outcome; }
-        assert(current.state === 'dispatched', 'Request no longer admits settlement');
+        if (current.state === 'settled') {
+          assert(current.outcome.evidenceHash === evidenceHash || current.outcome.economicHash === economicHash || previousEconomicHash === economicHash, 'Conflicting completed evidence');
+          db.prepare('INSERT OR IGNORE INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
+          return current.outcome;
+        }
+        assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
         const request = current.binding, totalUnits = observed.outputTokens * policy.creditsPerOutputToken;
         const totalWeight = request.providers.reduce((sum, row) => sum + row.weight, 0);
         let remaining = totalUnits, ownComputeUnits = 0;
@@ -120,7 +134,8 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           db.prepare('INSERT INTO fleet_journal (request_id,account_id,delta,at) VALUES (?,?,?,?)').run(id, computerId, delta, now());
         }
         db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, request.computerId);
-        const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens, credits, evidenceHash, settledAt: now() };
+        const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens, credits, evidenceHash, economicHash, settledAt: now() };
+        db.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
         db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
         return outcome;
       });
@@ -146,6 +161,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     },
     request: read,
     snapshot() {
+      recovery.expire();
       const accounts = db.prepare('SELECT * FROM fleet_accounts ORDER BY id').all().map(row => ({ ...row,
         name: enrollment.byId.get(row.id).name, available: row.balance - row.held }));
       const journal = db.prepare('SELECT * FROM fleet_journal ORDER BY sequence').all();
@@ -154,4 +170,5 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     },
     close() { db.close(); }
   });
+  return ledger;
 }

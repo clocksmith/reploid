@@ -57,6 +57,9 @@ export interface OrderedRouteRequest {
 export interface OrderedRouteReceipt {
   identity: RouteAttemptBinding; phase: 'admitting' | 'executing' | 'settling' | 'cleanup-failed' | 'completed' | 'cancelled' | 'failed';
   reservations: OrderedReservation[]; cleanup: Array<{ partitionIndex: number; status: 'settled' | 'unknown'; error: string | null; code?: 'CONNECTION_LOST'; receipt?: StageReceipt }>;
+  /** At most K + 1 actual signed output records whose acknowledgment RPC did not finish.
+   * Carried to the requester for verified recovery, never interpreted as an acknowledgment. */
+  unacknowledgedOutputs?: Array<{step:number;delta:string;done:boolean;receipt:StageReceipt|null}>;
   cleanupSettledAt: number | null; failure: string | null;
   /** Charged attempts only: the bound K and the measured waits for acknowledgments. */
   acknowledgments?: { bound: number; waits: number; waitedMs: number };

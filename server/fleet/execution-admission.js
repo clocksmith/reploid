@@ -18,8 +18,9 @@ export function createFleetExecutionAdmission({ credits, model }) {
       assert(request.charge?.reservationId && request.identity?.requesterId, 'Credited stage requires signed admission');
       await credits.call('admit', { id: request.charge.reservationId, executionId: request.identity.attemptId,
         consumer: request.identity.requesterId, mode: 'partition', model: exact, route: request.identity,
-        partitionIndex: request.partitionIndex, outputLimit });
+        partitionIndex: request.partitionIndex, outputLimit: request.maxTokens });
     },
+    partitionReceipt(bundle) { return credits.collect(bundle.reservationId, bundle); },
     async receipt(receipt) {
       assert(receipt.jobHash?.startsWith('request:'), 'Whole-model request receipt required');
       return credits.settle(`service:${receipt.consumer}:${receipt.jobHash.slice(8)}`, receipt);

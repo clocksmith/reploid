@@ -50,15 +50,23 @@ export async function startFleetService({ credits, models, placementPolicy, port
         if (request.mode === 'whole-model') assert(request.inputDigest === payload.inputDigest, 'Input differs from credit admission');
         else assert(same(request.route, canonicalRouteAttemptBinding(payload.route))
           && request.providers[payload.partitionIndex]?.participantId === signer, 'Stage differs from credit admission');
+        credits.admit(payload.id, request.mode === 'whole-model' ? 0 : payload.partitionIndex);
         return { admitted: true, deadline: request.deadline, maximum: request.maximum };
       }
       case 'abandonBeforeDispatch':
         return credits.abandonBeforeDispatch(payload.id, signer) ?? { abandoned: true };
+      case 'collect':
+      case 'fence':
+      case 'recover':
       case 'settle': {
         const request = credits.request(payload.id)?.binding;
         assert(request && (request.consumer === signer || request.providers.some(row => row.participantId === signer)), 'Not a participant in this request');
+        if (operation === 'collect') return credits.collect(payload.id, payload.evidence);
+        if (operation === 'fence') return credits.fence(payload.id, signer);
+        if (operation === 'recover') return credits.recover(payload.id);
         return credits.settle(payload.id, payload.evidence);
       }
+      case 'recoverMine': return credits.recoverFor(signer);
       case 'snapshot': return credits.snapshot();
       case 'terms': {
         const model = models.find(row => row.id === payload.id && row.identity === payload.identity);
@@ -153,11 +161,15 @@ export function createFleetClient({ url, identity, fetchImpl = fetch, now = Date
   assert(target.protocol === 'https:' || target.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(target.hostname),
     'Fleet service requires HTTPS or an owned loopback tunnel');
   const call = async (operation, payload) => {
+    payload = wireValue(payload);
     const body = { schema: DOMAIN, participantId: identity.peerId, operation, payload, at: now(), nonce: randomUUID() };
     const signature = await signAsParticipant(identity, DOMAIN, body);
     const response = await fetchImpl(url, { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...body, signature }), signal: AbortSignal.timeout(30000) });
-    const answer = await response.json(); assert(response.ok && !answer.error, answer.error || 'Fleet request failed'); return answer.result;
+    const answer = await response.json();
+    if (!response.ok || answer.error) throw Object.assign(Error(answer.error || 'Fleet request failed'),
+      { code: response.status === 400 ? 'FLEET_REJECTED' : 'FLEET_UNAVAILABLE' });
+    return answer.result;
   };
   const storage = outboxFile ? createNativeEarningStorage(outboxFile) : null;
   let writes = Promise.resolve();
@@ -169,25 +181,83 @@ export function createFleetClient({ url, identity, fetchImpl = fetch, now = Date
     writes = result.catch(() => {}); return result;
   };
   async function settle(id, evidence) {
+    evidence = wireValue(evidence);
     if (storage) await update(rows => {
       const prior = rows.find(row => row.id === id);
       assert(!prior || same(prior.evidence, evidence), 'Conflicting pending settlement');
       return prior ? rows : [...rows, { id, evidence: structuredClone(evidence) }];
     });
-    const result = await call('settle', { id, evidence });
+    let result;
+    try { result = await call('settle', { id, evidence }); }
+    catch (error) {
+      if (storage && error.code === 'FLEET_REJECTED') {
+        await quarantine({ operation: 'settle', payload: { id, evidence }, error: error.message });
+        await update(rows => rows.filter(row => row.id !== id));
+      }
+      throw error;
+    }
     if (storage) await update(rows => rows.filter(row => row.id !== id));
     return result;
   }
-  return { call, reserve: payload => call('reserve', payload), dispatch: id => call('dispatch', { id }), settle,
+  const quarantine = async record => {
+    // Invalid proof is retained for diagnosis, never retried as if a transient network failure.
+    const key = `rejected:${record.operation}:${record.payload.id}`;
+    await storage.set(key, record);
+  };
+  let recoveryWrites = Promise.resolve();
+  const changeRecovery = task => {
+    const run = recoveryWrites.then(async () => {
+      if (!storage) return;
+      await storage.set('recovery', task(await storage.get('recovery') || []));
+    });
+    recoveryWrites = run.catch(() => {}); return run;
+  };
+  async function recoverable(operation, payload) {
+    payload = wireValue(payload);
+    const key = JSON.stringify({ operation, payload });
+    await changeRecovery(rows => rows.some(row => row.key === key) ? rows : [...rows, { key, operation, payload }]);
+    let result;
+    try { result = await call(operation, payload); }
+    catch (error) {
+      if (storage && error.code === 'FLEET_REJECTED') {
+        await quarantine({ operation, payload, error: error.message });
+        await changeRecovery(rows => rows.filter(row => row.key !== key));
+      }
+      throw error;
+    }
+    // Collected pieces are durable at the service. A fence remains retryable until final settlement.
+    if (operation === 'collect' || result.status !== 'pending') await changeRecovery(rows => rows.filter(row => row.key !== key));
+    return result;
+  }
+  return { call, collect: (id, evidence) => recoverable('collect', { id, evidence }),
+    fence: id => recoverable('fence', { id }), reserve: payload => call('reserve', payload), dispatch: id => call('dispatch', { id }), settle,
     abandonBeforeDispatch: id => call('abandonBeforeDispatch', { id }),
     async reconcile() {
-      if (!storage) return [];
-      await writes;
-      const pending = await storage.get('settlements') || [], outcomes = [];
+      await Promise.all([writes, recoveryWrites]);
+      const pending = storage ? await storage.get('settlements') || [] : [], outcomes = [];
       for (const row of pending) {
         try { outcomes.push(await settle(row.id, row.evidence)); }
         catch (error) { outcomes.push({ id: row.id, status: 'pending', error: error.message }); }
       }
-      return outcomes;
+      const recovery = storage ? await storage.get('recovery') || [] : [];
+      for (const row of recovery) {
+        try { outcomes.push(await recoverable(row.operation, row.payload)); }
+        catch (error) { outcomes.push({ id: row.payload.id, status: 'pending', error: error.message }); }
+      }
+      const recovered = await call('recoverMine', {});
+      return [...outcomes, ...recovered.filter(row => !outcomes.some(value => value.id === row.id))];
     } };
+}
+
+/** Sign and retain the exact JSON bytes' value. Sparse arrays and non-finite numbers are
+ * not valid evidence; object properties explicitly left undefined are omitted before signing. */
+function wireValue(value) {
+  const visit = (item, array = false) => {
+    assert(item !== undefined || !array, 'Undefined array entry in fleet evidence');
+    assert(typeof item !== 'number' || Number.isFinite(item), 'Non-finite fleet value');
+    if (Array.isArray(item)) for (let i = 0; i < item.length; i++) visit(item[i], true);
+    else if (item && typeof item === 'object') for (const field of Object.values(item)) visit(field);
+  };
+  visit(value);
+  return JSON.parse(JSON.stringify(value));
 }

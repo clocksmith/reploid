@@ -37,7 +37,7 @@ const lost = () => Object.assign(new Error('Partition stage channel closed'), { 
  * @param {number} [steps] tokens each answer runs to before the final stage stops (the runner allows at most 10)
  * @param {number} [acknowledgmentWaitMs] test-only bound on how long a charged attempt waits for acknowledgments
  */
-export async function residentRoute({ participants, requesterId, signers = [], steps = STEPS, acknowledgmentWaitMs = 60_000 }) {
+export async function residentRoute({ participants, requesterId, signers = [], steps = STEPS, onEvidence = null, beforeReserve = null, acknowledgmentWaitMs = 60_000 }) {
   const count = participants.length;
   const plan = {
     schema: 'doppler.layer-partition-contract/v3', modelId: MODEL.modelId, totalLayers: count * 2, hiddenSize: HIDDEN, vocabSize: 128,
@@ -69,7 +69,7 @@ export async function residentRoute({ participants, requesterId, signers = [], s
       tokenize: async () => ({ tokenIds: [1, 2] }),
       async executeStage(request) {
         const result = { identity: request.identity, partitionIndex: index, step: request.step, tokenPosition: request.tokenPosition, continuation: { step: request.step } };
-        if (final) return { ...result, tokenId: 10 + request.step, delta: String(request.step), done: request.step === steps - 1, stopReason: 'eos' };
+        if (final) return { ...result, tokenId: 10 + request.step, delta: String(request.step), done: request.step === Math.min(steps, request.maxTokens) - 1, stopReason: 'eos' };
         const tokens = request.inputTokenIds.length;
         return { ...result, activationTensor: { shape: [1, tokens, HIDDEN], dtype: 'f32', data: new Float32Array(tokens * HIDDEN).fill(index + request.step), seqOffset: request.tokenPosition, step: request.step } };
       },
@@ -80,7 +80,7 @@ export async function residentRoute({ participants, requesterId, signers = [], s
       runtime: { openResidentPartition: async () => session },
       model: { id: MODEL.modelId, identity: MODEL.modelIdentity, generation: { maxTokens: steps } },
       plan, planId: MODEL.planId, index, participantId, limits: { maxAttempts: 100, maxConcurrentAttempts: 2 },
-      ordered: { runtime, stage: route.stages[index] }, ...(signers[index] ? { evidence: signers[index] } : {})
+      ordered: { runtime, stage: route.stages[index] }, onEvidence, ...(signers[index] ? { evidence: signers[index] } : {})
     });
     await resident.prepare({ approved: true });
     residents.push(resident);
@@ -91,6 +91,7 @@ export async function residentRoute({ participants, requesterId, signers = [], s
     id: resident.id, transportId: resident.transportId, residentId: resident.residentId, executionId: resident.executionId,
     async reserve(request) {
       if (closedLinks.has(`${index}:${request.identity.attemptId}`)) throw lost();
+      if (beforeReserve) await beforeReserve(request, index);
       return resident.reserve(request);
     },
     async executeStage(request) {
@@ -127,7 +128,7 @@ export async function residentRoute({ participants, requesterId, signers = [], s
   });
   const grant = { id: 'grant' };
   const model = {
-    id: MODEL.modelId, identity: MODEL.modelIdentity, name: 'Resident route fixture', provider: 'doppler', availability: 'ready',
+    id: MODEL.modelId, identity: MODEL.modelIdentity, generation: { maxTokens: steps }, name: 'Resident route fixture', provider: 'doppler', availability: 'ready',
     partition: { schema: 'reploid.partition-selection/v2', planId: MODEL.planId, coordinatorId: route.stages[0].participantId, route }
   };
   FIXTURE_ROUTE_APPROVALS.push({ modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
@@ -148,8 +149,10 @@ export async function residentRoute({ participants, requesterId, signers = [], s
       if (approved !== true) throw new Error('Ordered disclosure declined or expired');
       controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing', execution: { placement: 'ordered-layer-partition', identity } });
       let sequence = 0;
+      const maxTokens = Math.min(steps, request.generationRequest?.maxOutputTokens ?? steps);
       const result = await runner.execute({
-        identity, tokenIds: [1, 2], generation: { maxTokens: steps }, maxTokens: steps, signal: controls.signal,
+        identity, tokenIds: [1, 2], generation: { maxTokens }, maxTokens, signal: controls.signal,
+        deadlineAt: controls.authorizationExpiresAt?.() ?? null,
         // The requester's charge binding and acknowledgment port, as the coordinator's ordered chat forwards them.
         ...(controls.charge ? { charge: controls.charge, acknowledgmentDeadlineAt: Date.now() + acknowledgmentWaitMs,
           ...(controls.onOutput ? { onOutput: controls.onOutput } : {}) } : {}),

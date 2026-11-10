@@ -102,7 +102,7 @@ async function network(count = 3) {
   const request = { meshId: 'mesh', modelId: 'model', modelIdentity: model.identity, planId: f.route.planId, route: f.route,
     coordinatorId: coordinator.peerId, threadId: 'thread', attemptId: 'attempt', placementGeneration: 0, messages: [{ role: 'user', content: 'Hello' }] };
   const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'thread', attemptId: 'attempt', requesterId: requester.peerId, placementGeneration: 0, route: f.route };
-  return { f, client, request, identity, requester, received, stageIdentities,
+  return { f, client, request, identity, requester, received, stageIdentities, stagePeers: owners,
     async close() { await Promise.allSettled([client.close(), server.close(), chat.close(), ...owners.map((owner) => owner.close())]); authority.close(); } };
 }
 
@@ -252,4 +252,36 @@ describe('stage receipt tallies', () => {
     expect(await acknowledgments.observe({ step: 0, delta: 'a', receipt: first })).toMatchObject({ acknowledgment: { count: 1, chain: first.output.chain } });
     expect(await acknowledgments.observe({ step: 1, delta: '', receipt: second })).toMatchObject({ acknowledgment: { count: 2, chain: second.output.chain } });
   });
+});
+
+
+it('retains the final stage signed closure when it retires during the final delta', async () => {
+  const n = await network(2);
+  try {
+    const acknowledgments = await openOutputAcknowledgments({ signer: createAttemptEvidenceSigner({ identity: n.requester }),
+      identity: n.identity, reservationId: 'rsv:retire' });
+    const result = await n.client.generate({ ...n.request, charge: acknowledgments.charge }, {
+      onOutput: record => acknowledgments.observe(record),
+      onDelta: async text => { if (text === '2') await n.stagePeers[0].close(); }
+    });
+    const closing = result.execution.settlement.cleanup[1].receipt;
+    expect(await verifyStageReceipt(closing)).toMatchObject({ ok: true, body: { status: 'settled', steps: 3, output: { done: true } } });
+  } finally { await n.close(); }
+});
+
+it('finishes in-flight acknowledgment delivery when the requester aborts on its final output', async () => {
+  const n = await network(2), controller = new AbortController();
+  try {
+    const acknowledgments = await openOutputAcknowledgments({ signer: createAttemptEvidenceSigner({ identity: n.requester }),
+      identity: n.identity, reservationId: 'rsv:cancel-final' });
+    await expect(n.client.generate({ ...n.request, charge: acknowledgments.charge }, {
+      signal: controller.signal, onDelta: () => {},
+      onOutput: async record => {
+        if (record.done) controller.abort(Error('Stopped on completed output'));
+        return acknowledgments.observe(record);
+      }
+    })).rejects.toThrow(/cancelled/);
+    expect(acknowledgments.evidence().acknowledged.acknowledgment.count).toBe(3);
+    expect(n.received.closed.find(([index]) => index === 1)).toEqual([1, 3]);
+  } finally { await n.close(); }
 });

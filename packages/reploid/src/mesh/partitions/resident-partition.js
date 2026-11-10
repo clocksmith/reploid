@@ -12,7 +12,7 @@ import { openStageReceipts } from './partition-attempt-evidence.js';
  * `evidence` signer (createAttemptEvidenceSigner over the host's participant identity, ordered only)
  * signs cumulative receipts for attempts that arrive with the requester's charge binding. */
 export function createResidentPartition({ runtime, model, plan, planId, index, participantId, limits,
-  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, ordered = null, device = null, attemptBytes, evidence = null, onChange = () => {} }) {
+  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, ordered = null, device = null, attemptBytes, evidence = null, onEvidence = null, onChange = () => {} }) {
   assert(evidence === null || ordered && typeof evidence.sign === 'function' && evidence.participantId === participantId,
     'Stage receipts need an ordered resident and this participant\'s signing identity');
   assert(typeof runtime?.openResidentPartition === 'function', 'Doppler resident partition API is unavailable');
@@ -72,7 +72,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     if (!tally) return;
     if (acknowledged) await tally.acknowledge(acknowledged);
     const receipt = await tally.close({ failed: reservations.failureOf(identity) != null });
-    reservations.attachEvidence(identity, tally.evidence());
+    const bundle = tally.evidence();
+    reservations.attachEvidence(identity, bundle);
+    if (onEvidence) await Promise.resolve().then(() => onEvidence(structuredClone(bundle))).catch(() => {});
     return receipt;
   };
   let draining = null, finishDrain = null;
@@ -88,8 +90,13 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     error, descriptor: structuredClone(descriptor), recovery: structuredClone(recovery), index, participantId,
     modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId });
   const notify = () => { for (const listener of listeners) { try { listener(state()); } catch {} } };
-  const dispose = () => disposal ||= Promise.resolve().then(() => session?.close()).then(() => {
+  const dispose = () => disposal ||= Promise.resolve().then(() => session?.close()).then(async () => {
     reservations.close(); reservations.settleAll(); attempts.clear(); device?.releaseResident(deviceOwner); finishDrain?.();
+    // Device/session cleanup also closes proofs for attempts whose coordinator disappeared.
+    for (const opening of tallies.values()) {
+      const tally = await opening.catch(() => null), bundle = tally?.evidence();
+      if (bundle && !bundle.receipts[0]?.timing.closedAt) await closeTally(bundle.identity).catch(() => {});
+    }
   }).catch(cause => {
     // A rejection is not settlement. Retain the session and charged attempts,
     // but allow the owner to explicitly retry a transient cleanup failure.

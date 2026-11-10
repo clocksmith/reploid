@@ -1,0 +1,1121 @@
+{
+  "schema": "reploid.native-delivery/v1",
+  "version": "0.1.0",
+  "runtime": {
+    "name": "doppler-gpu",
+    "version": "0.6.36",
+    "integrity": "sha512-0gqBQVBl6wVXZPBlRWyHmvGlcjSzGehk3wYMlXGp76tm2/VZWQvHW+Xqax+6Kc8M2DOw6AJicGvyZmy4YJTLog=="
+  },
+  "entries": [
+    {
+      "path": "apps/poolday/config/chat-files.json",
+      "bytes": 712,
+      "sha256": "2f23d29da01b2b88e7b09f128b920132148cfedf50fd6b26032da3fe1ee0c4b4"
+    },
+    {
+      "path": "apps/poolday/config/partition-generation.js",
+      "bytes": 1203,
+      "sha256": "ccefb44bca31a86b067c61d6a92b14f6ce8f0af4e3f6a1c582888c290aa2e3ec"
+    },
+    {
+      "path": "apps/poolday/config/partition-policy.json",
+      "bytes": 1875,
+      "sha256": "2642fdb597d35a771c29bbe72a69d66da8885f3517919fe0e5f211c844caaa21"
+    },
+    {
+      "path": "apps/poolday/config/work-profile.json",
+      "bytes": 5184,
+      "sha256": "8dc9f96e3076514c70f267e946de3f0e43516a310066262b658d4ed48a765c57"
+    },
+    {
+      "path": "apps/poolday/host/chat-view.js",
+      "bytes": 3156,
+      "sha256": "723be5d9f03eaa37d9ec184404602e40fbe7a54cabe9542ca768b29f9fc7e9c1"
+    },
+    {
+      "path": "apps/poolday/host/earning/client.js",
+      "bytes": 10884,
+      "sha256": "443a16bc042676a31d67fe8d1a1e442e3b8b715ce53483031b4991b439f03186"
+    },
+    {
+      "path": "apps/poolday/host/earning/contribution.js",
+      "bytes": 9620,
+      "sha256": "db90d0344364ea5568cf668e9149545f214379997f6068fcbe0c0f50b08b043f"
+    },
+    {
+      "path": "apps/poolday/host/work-partition-artifact-source.js",
+      "bytes": 2729,
+      "sha256": "0471d1367a3847025dd80d6a9d0f0116e2bcb2e46b4bcf0d7f9bbc6861f2e706"
+    },
+    {
+      "path": "apps/poolday/host/work-partition-capsule.js",
+      "bytes": 2681,
+      "sha256": "2802e7d55be6ad5eb6a53d048527d33dc746c58df4c7515cdc3efc6bd9bf57f9"
+    },
+    {
+      "path": "apps/poolday/host/work-partition-plan.js",
+      "bytes": 11686,
+      "sha256": "3d89050c99d714210b38a846e1b0e5e58c62a10df34ef2a9501c6c076530feea"
+    },
+    {
+      "path": "apps/poolday/host/work-partition-tokenizer-guard.js",
+      "bytes": 863,
+      "sha256": "a5c2ea8c6d89fdfd0c39177c19ff4570fe69407d83ef99d9ea38e7fb9fb39fe1"
+    },
+    {
+      "path": "apps/poolday/infrastructure/model-storage-lock.js",
+      "bytes": 1264,
+      "sha256": "61a3c54c243a18942dd1c3d7aa3f6798b2a9b6adef3a462f7df6bca18810f63d"
+    },
+    {
+      "path": "apps/poolday/infrastructure/pack-release-storage.js",
+      "bytes": 2653,
+      "sha256": "8710ec25f2d06a03d287d8ee06ca34454b0deb95417eadf329b158688a4db47c"
+    },
+    {
+      "path": "apps/poolday/pool/pack-operation.js",
+      "bytes": 12196,
+      "sha256": "cc38d4dc7b103258aa274a00666d92abfa9e2d9dbe5bfbc5a0d33155f3e59bb2"
+    },
+    {
+      "path": "apps/poolday/pool/pack-release-policy.js",
+      "bytes": 2821,
+      "sha256": "a64b4f69af62fa016d5066e4b694bea222cf17d58e7985efeed9b77fdba409aa"
+    },
+    {
+      "path": "apps/poolday/pool/peer-pack-data-channel.js",
+      "bytes": 10996,
+      "sha256": "7efc1728b482d3739722c587565d4178427400f02cfee116722730d47e45a1f3"
+    },
+    {
+      "path": "apps/poolday/providers/work-adapter.js",
+      "bytes": 3454,
+      "sha256": "36b09fedbab647fe7695b5d893c329556c44a9dc91cd5d35ed268410a66f938b"
+    },
+    {
+      "path": "apps/poolday/providers/work-device.js",
+      "bytes": 1300,
+      "sha256": "6c4a4ee40c7e20877d301e731d81695baeb93ff47a9f50b0d99fb290b8a3d5f8"
+    },
+    {
+      "path": "apps/poolday/providers/work-generation-completion.js",
+      "bytes": 3182,
+      "sha256": "98f12ea8f9a1f6f20a6170d300c92f68a42f6ba784ed57947c7afe93a9148150"
+    },
+    {
+      "path": "apps/poolday/providers/work-provider.js",
+      "bytes": 11635,
+      "sha256": "93797f3df3b83eee6b526407d0b07f6b6d18190a5f63a73a83d9aafacb02866b"
+    },
+    {
+      "path": "apps/poolday/providers/work-resident-provider.js",
+      "bytes": 6338,
+      "sha256": "5e041959976f98e50ff75217dbc14555e23332396a3f76181089d4a8d4c72b78"
+    },
+    {
+      "path": "deploy/artifacts/doppler-gpu-0.6.36.tgz",
+      "bytes": 3681186,
+      "sha256": "7569363e615adce08a9cc87efe09dc5c3e17e81ea2aaf3e262c5fae68862e5df"
+    },
+    {
+      "path": "docs/fleet-service.md",
+      "bytes": 7459,
+      "sha256": "87ea5c1cd91e2bc52090af91b8a555d99533946748df84feac98bb96cc28c8b2"
+    },
+    {
+      "path": "docs/native-participant.md",
+      "bytes": 28522,
+      "sha256": "70bd98ec83f071a578bc645b0f732863c1448db37e449ce60e1265604033a325"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 9037,
+      "sha256": "5f86c844004300f4c683cb4ee1a73fcc27cfb5b45094a0e4ba8e2ac63f8e8b86"
+    },
+    {
+      "path": "package.json",
+      "bytes": 613,
+      "sha256": "1e602e87ea5ea494e5521e909d22f2c904e92aa48470e2b92a6c337825bafcff"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/binary.js",
+      "bytes": 1036,
+      "sha256": "133382a28ae22d5ed02d9215d381a2b76efae40684d9e19aea7c06e0b603975a"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/canonical-json.js",
+      "bytes": 748,
+      "sha256": "f3400db617e514a3e0e352725bc499bf8707594d0b52aaf5202b097f96af4524"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/custody-certificate.js",
+      "bytes": 6059,
+      "sha256": "e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/custody/exchange.js",
+      "bytes": 25965,
+      "sha256": "acea18b4aa42298f31ba383ae271862635332e142c068165b6c21274fa990bdf"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/custody/piece-acquisition.js",
+      "bytes": 3857,
+      "sha256": "c4978c5afd6677ebbfd61e26860a3a2888ce7ae43afd464ef5a3d0c5a3e65084"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/custody/runtime.js",
+      "bytes": 22399,
+      "sha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/custody/supply-budget.js",
+      "bytes": 1429,
+      "sha256": "9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/delivery-attestation.js",
+      "bytes": 2707,
+      "sha256": "842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/generation-terminal.js",
+      "bytes": 2682,
+      "sha256": "930bcfa26ae43cd66980709bd3d69d69690b70fc786922b0b0723513d5d1fcf2"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/identity.js",
+      "bytes": 3025,
+      "sha256": "13a444bab82a8a10d5a1156ee7b3330db4c3c0945728bc9e19659cd4ab3aba48"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/participant-proofs.js",
+      "bytes": 7809,
+      "sha256": "af3e7303b3a513f584b70180e27dbaf72c52e58adf1af538d66adcad41fae985"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/receipt.js",
+      "bytes": 4253,
+      "sha256": "1c28d6a0eb864ec416cf2336cf9d33018ec04fc51ea21dd27107017b32c3002e"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/signatures.js",
+      "bytes": 2927,
+      "sha256": "8ef600bcc1c449c56189c59779b3dbd364068ddbe55fc496e077c22d88d1eac3"
+    },
+    {
+      "path": "packages/reploid/src/artifacts/whole-model-receipt.js",
+      "bytes": 2848,
+      "sha256": "6b5f81fcd8280b246f822ae5b3e1c897c592727b873212c01f03311d5aea27e0"
+    },
+    {
+      "path": "packages/reploid/src/cancellation.js",
+      "bytes": 1895,
+      "sha256": "770b8e17e5321e905243b25df64eab21668383024fdf71d134ddf19bbc93f889"
+    },
+    {
+      "path": "packages/reploid/src/config/defaults.json",
+      "bytes": 2465,
+      "sha256": "be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4"
+    },
+    {
+      "path": "packages/reploid/src/config/index.js",
+      "bytes": 11519,
+      "sha256": "b516347ee56b3ecee9ed57b2b5f3608d2359d9109af44ea304a1a4b8b94b4887"
+    },
+    {
+      "path": "packages/reploid/src/config/request-overrides.json",
+      "bytes": 166,
+      "sha256": "6e80c26a4c07d317eae530199e86634356b8cb94e2d140087ed2e4e6be12306a"
+    },
+    {
+      "path": "packages/reploid/src/config/transport-defaults.json",
+      "bytes": 206,
+      "sha256": "48555be6fa31fc3bc9d0f414e6dc86b6f8ae674a3ff941c77393a2bc2668a21b"
+    },
+    {
+      "path": "packages/reploid/src/hashing.js",
+      "bytes": 1351,
+      "sha256": "0cf5fe45851242b29ea696e1b39799327f35287d758f04f301f1b7c4b737e8b4"
+    },
+    {
+      "path": "packages/reploid/src/measurement/capacity-utilization.js",
+      "bytes": 21291,
+      "sha256": "2f79267007e00b4d2f0de4e463a32a9445835333812bfaa9d1819b42c1392f6e"
+    },
+    {
+      "path": "packages/reploid/src/measurement/index.js",
+      "bytes": 504,
+      "sha256": "c9fdec9159f3dcbb06068f03ca3569a62fda50ddc1ee382c2d41b34851d23d06"
+    },
+    {
+      "path": "packages/reploid/src/measurement/readiness-records.js",
+      "bytes": 19740,
+      "sha256": "4b8156c8861260a3f4bc61fd1fb6a51fe4580758166e1fb558c5dbeda28264eb"
+    },
+    {
+      "path": "packages/reploid/src/mesh/computer-identity.js",
+      "bytes": 2491,
+      "sha256": "4f522078ebd178b1e4ca77e489f0428bc5543686fe5508d612f8abbc3082d2c9"
+    },
+    {
+      "path": "packages/reploid/src/mesh/computer-identity.policy.json",
+      "bytes": 774,
+      "sha256": "50c2e9e727246e1d7fd51b8899f45c78d7128be8e0946e56f4787d96fead190b"
+    },
+    {
+      "path": "packages/reploid/src/mesh/contribution.js",
+      "bytes": 4997,
+      "sha256": "653e256f8586cf2c5741abf9c12b3aec1a0d190e34ecc2905fdcc2fe97b210d5"
+    },
+    {
+      "path": "packages/reploid/src/mesh/generation-recovery.js",
+      "bytes": 3200,
+      "sha256": "c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185"
+    },
+    {
+      "path": "packages/reploid/src/mesh/gpu-signature-shader.js",
+      "bytes": 1270,
+      "sha256": "d2fe8b9c0b1dcd5fe77433c02cb5385fab1bde1868c29f10ef1c5db7e099d1b0"
+    },
+    {
+      "path": "packages/reploid/src/mesh/gpu-signature.js",
+      "bytes": 8601,
+      "sha256": "1b95ceff311a7a39444ea7c09709ae3194ba1e9d7bd36adf39f38d03962f2fb6"
+    },
+    {
+      "path": "packages/reploid/src/mesh/gpu-signature.policy.json",
+      "bytes": 238,
+      "sha256": "0525dfcf9f58df07e9ce8b0e641eda9e0ca174eaab1bf3756a59ff9d3722f2b7"
+    },
+    {
+      "path": "packages/reploid/src/mesh/index.js",
+      "bytes": 3753,
+      "sha256": "9b0ef038f7344a3dd5b835df9e103fa920c233cba1785d3b333ad5de26819088"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+      "bytes": 43718,
+      "sha256": "4221660db55a49a8ad6ed982c07e5a7e3c619a6fcea6aaa4aa6f1e12b1fdc675"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/automatic-partitions.js",
+      "bytes": 21008,
+      "sha256": "a2eb56c542dccdf445cd49f903d8b62ec9bb29959b44422cde5b8640caf29274"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-attempt-evidence.js",
+      "bytes": 20225,
+      "sha256": "90fa946f333d42782614c3d5bc43103d6df6738eac6b478defa643ec83470d1e"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-attempt-queue-policy.json",
+      "bytes": 144,
+      "sha256": "188de9b2ffd0a56fb5d55dae56c9241e7f2d774d4a93bd6b11524777cde7d5d1"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-attempt-queue.js",
+      "bytes": 6713,
+      "sha256": "5d617d9d5a9e2e7d60e8d95b6347399073ec60c13244365cd2bb0adf46e8879b"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-canonical-contract.js",
+      "bytes": 12658,
+      "sha256": "03987bac1842d51e6f1852c422e5b2e834e7a52f8f7878e6da0daae7576e2ffe"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-canonical-execution.js",
+      "bytes": 12859,
+      "sha256": "b81075e71d15160e44e9ed90505a8e29b3d9e1d863bade85c7b8a90486d3371b"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-chat-canonical.js",
+      "bytes": 3867,
+      "sha256": "5370227a15d06624adfc8ae23b484aaa2ced8421e21466b8c80cb29f81ad823b"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-chat.js",
+      "bytes": 10465,
+      "sha256": "149a73917a02b338e9f151ec368e208b1badab5e09412fab52a8e67c740850d1"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-contract.js",
+      "bytes": 13648,
+      "sha256": "a2e94cc32ad1e5c4a052975fe7f3ace9fecb126546c3ab47e915ce481fb25c7b"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-device-admission.js",
+      "bytes": 6175,
+      "sha256": "f9d8c42f932e43df9f4c1011c1e6de85c7a02142e684d59d5d8ae374335f8582"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-discovery.js",
+      "bytes": 5979,
+      "sha256": "a6272c1a70108f95f8186a7e0e20dcab9d384a231b71aa02eef77401b9e5dd61"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-entry-publication.js",
+      "bytes": 13313,
+      "sha256": "9a38a052cc6296818e29088120f969da4fbb07bec88dad7f8e7fcf4db397d3d8"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-entry.js",
+      "bytes": 32315,
+      "sha256": "2a3b7115e7268814d114af2147c1c719c19d073aec4d4c55e5cc54d0cabfcd6b"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-generation-request.js",
+      "bytes": 2086,
+      "sha256": "f6bc06d1491095119b768d3ef822991e10af98409bf5e795b2f32eea7d7a717e"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-grants.js",
+      "bytes": 21013,
+      "sha256": "d0e76c100732165977982c1e235af7397eafe2e2fa732e6e27d61fd3c1bb3816"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-link.js",
+      "bytes": 6134,
+      "sha256": "4e0c6f5998d60c0bfd5c33ff407e0edf71050a7359c8552b0ead52ad6a39702b"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-network.js",
+      "bytes": 6128,
+      "sha256": "6397af362a2fc0b1b55e1968a764dcf9917de9a91c0af39a7e4f7b788426a9b1"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-ordered-chat.js",
+      "bytes": 22690,
+      "sha256": "cb1a94e34a3cbae87068bd1ad6a8538b6e856d37d6b354359a3eba773abaf8ed"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-ordered-peer.js",
+      "bytes": 29996,
+      "sha256": "ade621f6b86ff4d1d1ce30a1f8156cf84cd244b0f2674ff00e7e1f86df528cc6"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-ordered-publication.js",
+      "bytes": 7678,
+      "sha256": "ef18098d41eee2e47cd3e054a1c655418ba0a890f51f957e572a945ea9c29f98"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-peer.js",
+      "bytes": 22815,
+      "sha256": "0c4ec84d46769f3ba430dcff0c29d70eb3e8b892a484c7436df0def7c3137b72"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-placement.js",
+      "bytes": 10827,
+      "sha256": "80fadd92b7f6c7013858bbe2438a352047fe1e50aee6bfdf65254e3e128efe61"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-preparation-progress.js",
+      "bytes": 1814,
+      "sha256": "c490e21bed55390de9d590074a90f99977fe2c9f592f21bb73c524825342d521"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-receiver-policy.json",
+      "bytes": 152,
+      "sha256": "9812817d30a9193292e98c291a8b55db49b08c669fc284d5640ade26232b160e"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-reservations.js",
+      "bytes": 4190,
+      "sha256": "e5b607f64ff0786b330f5a4f99a859e8d10be95598ca62dafb482e6673843782"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-route-envelope-policy.json",
+      "bytes": 650,
+      "sha256": "815ba2a1b6ddd734041d6590808c47f0a69b8bbdad2241dceac730696932c6af"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-route-envelope.js",
+      "bytes": 4987,
+      "sha256": "c6bd7bf594e6abcc685acf66acd2ea2b2ceb6a7039682185a0dee25ebbb4dfb9"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-route-execution.js",
+      "bytes": 27926,
+      "sha256": "f3c439a3634399a0d4b6eb321d853355523b0be03512da395fbbfceabac0c5c1"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-route-network.js",
+      "bytes": 10579,
+      "sha256": "d8e80f1c5c7d0e9675ff7775c4fe3669cc7dc8f6d5a1dfc95387ee536953b585"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-route-ranking.js",
+      "bytes": 21266,
+      "sha256": "0604b1b1d3bbb192c7c5a701b534ee7da97155924bc54bf15897af3d031b2974"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-runner.js",
+      "bytes": 21326,
+      "sha256": "9fcd2fd43bba564e22627577ad90d850e021a9cf9da05ee46ea5693be8c702de"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-stage-assignment.js",
+      "bytes": 8188,
+      "sha256": "93fcea8b35f7f4d1a632ed328668094e6db6eef744db4b63a8562d3b9d66bd0c"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-stage-commit.js",
+      "bytes": 7472,
+      "sha256": "8c8607f4d69474f623e5648f3950c3114716c1a857d6062cf3a9990f0d1c4d29"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-step-receiver.js",
+      "bytes": 17160,
+      "sha256": "2d903153b08b49c3bc88eccb3af2e5d4eaefe957c4c7cc43e32e2ef7bfcc0cce"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-summary.js",
+      "bytes": 7745,
+      "sha256": "c5a5375aa292845fd22539f00dad29344f08e00eecde76b2220a57eed9ba8c9a"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/preparation-owner.js",
+      "bytes": 1899,
+      "sha256": "6c174c6023ca3e57d5ab193bf0cfdb4ac51e250d03fb795c06faa41ffb021c4c"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/resident-error-codes.json",
+      "bytes": 305,
+      "sha256": "6740f7b64ef193c82e1f0d880f9993109ac2592b3dffe8752ace8c290446e506"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/resident-partition.js",
+      "bytes": 22115,
+      "sha256": "34cdf9e1140243f6757aad69808e77cb3d4955b2b635e5dda356ed286d766f0c"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/resident-route.js",
+      "bytes": 3215,
+      "sha256": "6c3fc83f974b6e7cec5a46e1d01b50bcab4d076446d971b6eaa7c58c9522fe42"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/signed-resident-factory.js",
+      "bytes": 3679,
+      "sha256": "c64a2817c4b3606bc1ad83420b91440577f4cc5cfeff3a3cebd0a23d80fc4ee5"
+    },
+    {
+      "path": "packages/reploid/src/mesh/peer-generation.js",
+      "bytes": 39584,
+      "sha256": "cf64d2caab76a8ed4c8e6a56e4d22515eb5545d3895218d07044d81ccc4e026a"
+    },
+    {
+      "path": "packages/reploid/src/mesh/peer-identity.js",
+      "bytes": 5788,
+      "sha256": "9edfe930d23eb38076075d833119c41c11f7dcb392825aec4ce2022d16fbc5d2"
+    },
+    {
+      "path": "packages/reploid/src/mesh/placement-beliefs.js",
+      "bytes": 6986,
+      "sha256": "4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa"
+    },
+    {
+      "path": "packages/reploid/src/mesh/preparation-progress.js",
+      "bytes": 2668,
+      "sha256": "e96c88f01937c04990a4519e7ee67b4c033e51dc9e83026d4821d3f0d6410edd"
+    },
+    {
+      "path": "packages/reploid/src/mesh/provider-hardware.js",
+      "bytes": 540,
+      "sha256": "a1826bad43e22c0b71b17b59db6bee5d9b33fed78f4719c7aabc171269c4321f"
+    },
+    {
+      "path": "packages/reploid/src/mesh/remote-generation-requests.js",
+      "bytes": 2611,
+      "sha256": "7d71aa099f035a11560f30e89685cb8974a2f5e8bf8433b842e1ccd51049cd07"
+    },
+    {
+      "path": "packages/reploid/src/mesh/swarm-coordination.js",
+      "bytes": 4290,
+      "sha256": "35cd997e4f20ed6ba78bc8de4788b5cc172d34639aaf4b973f18f91a123db334"
+    },
+    {
+      "path": "packages/reploid/src/mesh/web-access-network.js",
+      "bytes": 7945,
+      "sha256": "38472a03e425d53f5804d0c051631f8dd4b591fd13b17cc4e0dc0dec14c0040f"
+    },
+    {
+      "path": "packages/reploid/src/mesh/web-access-policy.json",
+      "bytes": 313,
+      "sha256": "019ebf732adcffea73d1b6782ac61f2ebaf0488f0d8048ab76266bc59f18b07b"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/citations.js",
+      "bytes": 9445,
+      "sha256": "3f41f6008d58b30873e590f31e9769862b8fde0fdc56b153a6f2dabc2ad90529"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/claim-support.js",
+      "bytes": 7942,
+      "sha256": "808bc0703d54727f80c7dc95dcd5ff78afe59538db3326d1064a8238bce2e675"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/costs.js",
+      "bytes": 7721,
+      "sha256": "e0a07fdabddb86f68cf417c0b72b0856b7f2933998d0a647a231f59158d19395"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/fixed-provider.js",
+      "bytes": 2335,
+      "sha256": "4c0f26d3047fa5625d551f564b751a7a0455a522810077d4167e21f2c56b2bb2"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/index.js",
+      "bytes": 1859,
+      "sha256": "f34fddd2a5ff0dbb6e664e89dbbc442a84e6c7e3348ed31da65a739c12076f7f"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/lexical-support.js",
+      "bytes": 1932,
+      "sha256": "333f8772a5a13d911e7293b287ba2014ec450740327ba2561608d54f0aaa5c3e"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/model-reviewer.js",
+      "bytes": 5569,
+      "sha256": "a66188b67b091804c02427621492010aca0e325ec420eaa62f25b32cdf4dfd64"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/page-fetch.json",
+      "bytes": 277,
+      "sha256": "ebd43c3ad743538fdeb88601dad8d2f0c72145b55c7eb3ae544e7e0134ec399c"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/page-text.js",
+      "bytes": 10195,
+      "sha256": "9c59f046251d49cb73e8401698702140ed32fd72714aac8645eadaa087643a6e"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/passage.js",
+      "bytes": 2215,
+      "sha256": "5691cc6b8bd78959b90c2311feb71304773677352a141e72cf437631472d43bd"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/policy.json",
+      "bytes": 779,
+      "sha256": "4abc2bef4babe9181c815d31afa003c4a23bb45ddf71660f89d65f016bf26ae6"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/retrieval.js",
+      "bytes": 1832,
+      "sha256": "3958dbe2a93b5df5baca38e032843de45076d0c575701d27e1944af1362db008"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/review-queue.js",
+      "bytes": 5042,
+      "sha256": "1fd12b5bff3763b66edee576dbaa04d7465f33df2d6b367225581a4fd9b31336"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/sources.js",
+      "bytes": 18376,
+      "sha256": "3a647da701d332715c291070486ed170a8eb29ed57588025ecce24a0bc3ad9bc"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/support-review.js",
+      "bytes": 12388,
+      "sha256": "3d14f3507f8e3e00a668f63a1ae8fb6f1a76cf939803dca5d2f8e0176fd6ef15"
+    },
+    {
+      "path": "packages/reploid/src/retrieval/text.js",
+      "bytes": 1270,
+      "sha256": "d14ac094de99fe77a95c5570d6bb6e5b5e7eb4d8af6eea9efdb321a0054222af"
+    },
+    {
+      "path": "packages/reploid/src/rules/contribution.rules.json",
+      "bytes": 167,
+      "sha256": "08c1e3889f29309a5742b711faefd7d6d788368884f3c9e361eed38b1c988eb2"
+    },
+    {
+      "path": "packages/reploid/src/rules/routing.rules.json",
+      "bytes": 313,
+      "sha256": "9eb2ed7ffc1bc7c00a7a1435392f7539873e7ac1462611f77dbc92f3bfeff779"
+    },
+    {
+      "path": "packages/reploid/src/transport/assignment.js",
+      "bytes": 17421,
+      "sha256": "2df057da3fdeea5a2a73608a8d37d3830643961e527dff40ed942fcc01afc699"
+    },
+    {
+      "path": "packages/reploid/src/transport/bounded-channel-writer.js",
+      "bytes": 2033,
+      "sha256": "059424cb0a89301b8357ee45fc1c8d901fe087a4611c968a399e10c5d07702da"
+    },
+    {
+      "path": "packages/reploid/src/transport/index.js",
+      "bytes": 683,
+      "sha256": "312dad76a219fba0b74f5eb028eba6860ce70d9ad34353002f9eb16f6bf6eb89"
+    },
+    {
+      "path": "packages/reploid/src/transport/introduction-admission.js",
+      "bytes": 1402,
+      "sha256": "59393a285926bdb0f968fc5d8c639ac422d7703f7e8112041f205f78259672c1"
+    },
+    {
+      "path": "packages/reploid/src/transport/introduction-bootstrap.js",
+      "bytes": 7320,
+      "sha256": "1b65af48e0ec0d5c28e453df9080319d67134b22d012452547a8ac0d86a96d1e"
+    },
+    {
+      "path": "packages/reploid/src/transport/introduction-policy.json",
+      "bytes": 274,
+      "sha256": "f6d9da9b942fb7c5ed9fede2c36066f213f7637f9cb90bc3952880671bb8144b"
+    },
+    {
+      "path": "packages/reploid/src/transport/introduction-records.js",
+      "bytes": 6229,
+      "sha256": "6a850b815a3ba441eecf175a016c72a1e1ae6ad9069aa22a372751139a436993"
+    },
+    {
+      "path": "packages/reploid/src/transport/introductions.js",
+      "bytes": 12069,
+      "sha256": "9b36fc770991d0c1ab121e41b3dc8a7472387ed942851d5a457810ebff007c40"
+    },
+    {
+      "path": "packages/reploid/src/transport/partition-data-channel.js",
+      "bytes": 21542,
+      "sha256": "ce70d9ca7046405318ef6be4ae7cde1a94ac33e1172ebd6d7c6d9dd37cda7cdf"
+    },
+    {
+      "path": "packages/reploid/src/transport/partition-errors.json",
+      "bytes": 1734,
+      "sha256": "be1822b99cc7d11c8c7217d09b7f3be1c3dafd1a45f5a6bfd0d865b98fba9f8d"
+    },
+    {
+      "path": "packages/reploid/src/transport/retry-policy.js",
+      "bytes": 1186,
+      "sha256": "635a4fc46e997934e2ad6810dae726dab9e917a156b6a3e23b20fb67ce5fd7bf"
+    },
+    {
+      "path": "packages/reploid/src/transport/room.js",
+      "bytes": 15981,
+      "sha256": "896993c8e363490831a089307b9e6a6632e4d26495c2b2c8d861bb5fcf1c99ab"
+    },
+    {
+      "path": "packages/reploid/src/transport/sdp-fingerprint.js",
+      "bytes": 339,
+      "sha256": "a616be93464250662dcd0f07a7d9ee89f09919070e83a92926676370ae274229"
+    },
+    {
+      "path": "packages/reploid/src/transport/signaling.js",
+      "bytes": 16210,
+      "sha256": "4d2c0f80d4439648e96d28364a403c550a3ffa5330fc8e6af4c857eb68af75cc"
+    },
+    {
+      "path": "packages/reploid/src/transport/swarm.js",
+      "bytes": 48946,
+      "sha256": "07dbb6a969a6efd8bf76ad9c914c1d9efe54f95319d851e0fb8080d4fb48980f"
+    },
+    {
+      "path": "packages/reploid/src/transport/tool-offer-channel.js",
+      "bytes": 8692,
+      "sha256": "0c29cf8925a41e69c6b183485d1fa85c4543c9a86712d313736f354849ca36c1"
+    },
+    {
+      "path": "server/browser-roots.js",
+      "bytes": 2011,
+      "sha256": "86233ee79ddf57288346c4554f2c8029d55b4ccf3cbef458f5c91caef295cbee"
+    },
+    {
+      "path": "server/browser-web-worker.js",
+      "bytes": 5997,
+      "sha256": "3c6f65977baa6046ce6c3dd07c3b8d8f32427612b8e6fc79bc790801ea5d225b"
+    },
+    {
+      "path": "server/chat-completions.js",
+      "bytes": 3046,
+      "sha256": "6a437d9bbe4d603a1c29a52e69ed2613670a9cff385d214eb0bd3cd663df345c"
+    },
+    {
+      "path": "server/fleet/contract.js",
+      "bytes": 2704,
+      "sha256": "acb1fd58df362d31285a093c8cae221f8171191b1f60a3ea19daa6af18e23e2c"
+    },
+    {
+      "path": "server/fleet/credit-evidence.js",
+      "bytes": 7144,
+      "sha256": "b39e6f1c3caa7a3a66803d59139a1ebd6bd797ef5ddfbde429c70507db561f6a"
+    },
+    {
+      "path": "server/fleet/credit-recovery.js",
+      "bytes": 7428,
+      "sha256": "bead1a0825c9dbbfda2678e128f72fe7ba9caedf93077ed0035272a81ea9ed33"
+    },
+    {
+      "path": "server/fleet/credits.js",
+      "bytes": 12454,
+      "sha256": "e3b7ea23038c2de43c8e6a4b7c7a0ff50824672bce2d707f0666638b0248ebc3"
+    },
+    {
+      "path": "server/fleet/execution-admission.js",
+      "bytes": 1878,
+      "sha256": "2321e224278e4f351943f8e6ccb518fa701b11f6599ab37579e8e5e445e9e68b"
+    },
+    {
+      "path": "server/fleet/native-host.js",
+      "bytes": 17072,
+      "sha256": "ff5e36c0547d65c01ffde90f37fc0f15a910a5a0e60a4ca7f3bbc2cf3ec508c1"
+    },
+    {
+      "path": "server/fleet/placement.js",
+      "bytes": 9824,
+      "sha256": "e684508877895a408e72deacffff2c57a0e6b5df9c3de3808ced0556d8ee8bcd"
+    },
+    {
+      "path": "server/fleet/requester.js",
+      "bytes": 6868,
+      "sha256": "8012f8ee086af93947e2d793bcbd53c1aaec8bc015d5c3f04b6dc740c37737ed"
+    },
+    {
+      "path": "server/fleet/service.js",
+      "bytes": 16216,
+      "sha256": "eafbbbbad1db22d75ea8997a3d024bdcdffe3c332777d35490f50327ee7459ff"
+    },
+    {
+      "path": "server/hashing.js",
+      "bytes": 1453,
+      "sha256": "305abea2a1f06c903d7898aa142677b649b579ba6b160104cc60fb4621ac379b"
+    },
+    {
+      "path": "server/http-request-owner.js",
+      "bytes": 1685,
+      "sha256": "d35fc0afe21d92b87905020eeb8e8e7618ff5adb00ce781e58b442707ec8b916"
+    },
+    {
+      "path": "server/messages.js",
+      "bytes": 4236,
+      "sha256": "24a76b95649a37e3bb15800235be560f17d5f30777a632caf620af0bd8f65201"
+    },
+    {
+      "path": "server/native-canonical-epochs.js",
+      "bytes": 5378,
+      "sha256": "09854bb4c8631d37c2458e0e04c8fdbc0ffec404ac2e737caabfce178ce2929c"
+    },
+    {
+      "path": "server/native-change-log.js",
+      "bytes": 2040,
+      "sha256": "745b2317d8e818406c22cab78d6c3d7ce307b0b4eb0f0f19ecbebaef1518b1d5"
+    },
+    {
+      "path": "server/native-earning.js",
+      "bytes": 12113,
+      "sha256": "d50dfb8d4cd575738563347340fa0e006d5fcb36104eed8ffe005394d04f9880"
+    },
+    {
+      "path": "server/native-generation-journal.js",
+      "bytes": 2636,
+      "sha256": "d3ac8c4d307e2c47f8d7b7812afe725711e4e144efa9fac2919d883383d2487d"
+    },
+    {
+      "path": "server/native-model-config.js",
+      "bytes": 4133,
+      "sha256": "1c71600d827af421fa6d7caef2cf6f730d007f8c176e5dc5008d2a4a9da36282"
+    },
+    {
+      "path": "server/native-model-files.js",
+      "bytes": 21509,
+      "sha256": "e7ea59ef05ddab9eb886d45bca105df7d60e503a79a61af2f394b8bc285e4da5"
+    },
+    {
+      "path": "server/native-owner/controls.js",
+      "bytes": 10665,
+      "sha256": "3241d51819167338b19f7136041d264be24097340078d25103409a9cb4866d77"
+    },
+    {
+      "path": "server/native-owner/monitor.js",
+      "bytes": 15049,
+      "sha256": "cb7fe4596ba32c426f866682fde8680e6173c5aad6676a16055fc713469823f2"
+    },
+    {
+      "path": "server/native-owner/policy.js",
+      "bytes": 17883,
+      "sha256": "7f40ae49097307bf175d085cd3d88d299dfc22e6d5a48d8360c1e88c7e6f1f9d"
+    },
+    {
+      "path": "server/native-owner/rate.js",
+      "bytes": 4455,
+      "sha256": "999b62b1c033a6908d6623c99c95c9f9e621092fb0dbd14485d3dcbf10ccac78"
+    },
+    {
+      "path": "server/native-participant.js",
+      "bytes": 60851,
+      "sha256": "aba0a805e42c4b27ecdd59fffb5ec09e3af61d46d4e3138d7756a6f5ddcc1059"
+    },
+    {
+      "path": "server/native-readiness-log.js",
+      "bytes": 1505,
+      "sha256": "d7957c733203385f1b86fbb3a2213f6eca73139436a8a6f13632ba619e69c72d"
+    },
+    {
+      "path": "server/native-release-storage.js",
+      "bytes": 3686,
+      "sha256": "0bf52391ad24417a8d593e1df2f9d426af609910993faa6bf38b034f82ec3417"
+    },
+    {
+      "path": "server/native-shader-cache.js",
+      "bytes": 22715,
+      "sha256": "080266ec0afee3adc8da1ade53d3fe9e2222da9cec78a77c889f95363edd7cf6"
+    },
+    {
+      "path": "server/native-supply-budget.js",
+      "bytes": 3595,
+      "sha256": "f6e789133c265da2e1b94acf9087bb23ebf2d1727d0fff14bda1e4cd59bb171a"
+    },
+    {
+      "path": "server/native-whole-earning.js",
+      "bytes": 3764,
+      "sha256": "15855b0a9434743538f22e581519062631f86310d461abfcb14c178e6a677e98"
+    },
+    {
+      "path": "server/native-whole-model.js",
+      "bytes": 5986,
+      "sha256": "13c953ca203b2541f890de67d10b0471db55b5e19a54797742dce9473f4ea679"
+    },
+    {
+      "path": "server/public-web-worker.js",
+      "bytes": 4788,
+      "sha256": "9fd718e95e3adbfac1b13ffc3f7fd70ee2ede0314247803aac5df8923b7ca8b4"
+    },
+    {
+      "path": "server/responses.js",
+      "bytes": 6807,
+      "sha256": "6f0e85994f0143fc448adaa77992bb41d1db5caa21566a310dd9a5f9d2bce7d4"
+    },
+    {
+      "path": "server/search/errors.js",
+      "bytes": 2197,
+      "sha256": "eeeaeb86f4c663f2c1374ac7c0d8cfb0671b4bd5dc7521263682802c73cdb811"
+    },
+    {
+      "path": "server/search/page-fetch.js",
+      "bytes": 11112,
+      "sha256": "a6a258f9259c08b21019c74543447fe15c656617bd03151a05127398d312af7a"
+    },
+    {
+      "path": "server/text-request-options.js",
+      "bytes": 1692,
+      "sha256": "0a0962a432f1790af3811ba1b3e553fe85596b314d2ef6db40a211aed76e4feb"
+    },
+    {
+      "path": "server/text-requester.js",
+      "bytes": 15632,
+      "sha256": "e9b1bbadf6f126d12bd187ede8d2811c0d05e283a2079633220b83114045ce4e"
+    },
+    {
+      "path": "server/whole-model-requester.js",
+      "bytes": 5946,
+      "sha256": "767aa1460b1335d62b27ff4d4ae9dce1f4cb68afed7593e54d1930ea214d2b40"
+    },
+    {
+      "path": "shared/config/chat-models.json",
+      "bytes": 216298,
+      "sha256": "b341c3970cf0ebd62c1ea17acd67e5097e3dc06be5e416e6388ee15547956214"
+    },
+    {
+      "path": "shared/config/doppler-execution-contracts.js",
+      "bytes": 1965,
+      "sha256": "da74be2a290250d41b256b7a648ee8d78cecfe2a5105ac738bfc1d6b1a390730"
+    },
+    {
+      "path": "shared/config/doppler-execution-contracts.json",
+      "bytes": 1819,
+      "sha256": "06a33ca3aecf43ed99c86827ba1cfc0f835e17e1deb026a0f7026bc685bcc7d3"
+    },
+    {
+      "path": "shared/config/doppler-generation-contract.js",
+      "bytes": 7633,
+      "sha256": "82a45dec8b005d40e350eccfd1692ac21e0c66574dd7c8df3282850f590e862a"
+    },
+    {
+      "path": "shared/config/doppler-local-models.js",
+      "bytes": 3725,
+      "sha256": "730d90d8e92a55c7d4c3e34a21ea0b10e3720456dc8d841e1238cc7a46325515"
+    },
+    {
+      "path": "shared/config/doppler-package.json",
+      "bytes": 285,
+      "sha256": "dbb78ffcf5de59017d24ed2f31651ffcd3b036e6015635d6ab9dd07f6aa4a8c9"
+    },
+    {
+      "path": "shared/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
+      "bytes": 213035,
+      "sha256": "6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e"
+    },
+    {
+      "path": "shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
+      "bytes": 181671,
+      "sha256": "a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b"
+    },
+    {
+      "path": "shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
+      "bytes": 563614,
+      "sha256": "e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06"
+    },
+    {
+      "path": "shared/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
+      "bytes": 409715,
+      "sha256": "e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59"
+    },
+    {
+      "path": "shared/config/model-pieces/qwen-0-8b-pieces.json",
+      "bytes": 50016,
+      "sha256": "6f0b2ea5678a83124ca2f08b929f35334bc7b4ed7d58ee6f84bd03faf503f5a2"
+    },
+    {
+      "path": "shared/config/model-pieces/qwen-2b-pieces.json",
+      "bytes": 162108,
+      "sha256": "7dba21ccd3e2f55c16027e1b866bc74bab37a39215d3b563093d1fe860d786d6"
+    },
+    {
+      "path": "shared/config/model-pieces/qwen27b-q4-pieces.json",
+      "bytes": 979941,
+      "sha256": "fb840db2365527a8e8551005c47527db9c54e2b407a4377e61ecc46b27b27af8"
+    },
+    {
+      "path": "shared/config/model-pieces/qwen35b-q4_0-pieces.json",
+      "bytes": 967186,
+      "sha256": "d54116a53ee5e4fc99d5c50a90e29b86c88ea9ad84f46e596162f62bb182c1fc"
+    },
+    {
+      "path": "shared/config/reploid-library.json",
+      "bytes": 1102,
+      "sha256": "eed20fe51e8d35023cfeb44ce1019af0000d39984cfea1a873465f819d62c05b"
+    },
+    {
+      "path": "shared/config/swarm-bootstrap.json",
+      "bytes": 970,
+      "sha256": "e58556e86cbe99ab3d28fc2a01a5cd89596a9bb7d6264e58ab76978423c1074e"
+    },
+    {
+      "path": "shared/infrastructure/doppler-runtime-service.js",
+      "bytes": 10484,
+      "sha256": "dad7a9522ed017f9d87ce3efebbd80350af7108d18a489e5259bddf71b7a0673"
+    },
+    {
+      "path": "shared/pool/executable-pack.js",
+      "bytes": 6334,
+      "sha256": "9d163fd2be3029455cde493ea509e9b7927634fe09207c0b3d9b5c38fea2ba44"
+    },
+    {
+      "path": "shared/pool/pack-operation-adapters.js",
+      "bytes": 8323,
+      "sha256": "f3566fcbc37c00b3308a90c565b25aa480256925276734204c35bc74dff1a7ac"
+    },
+    {
+      "path": "shared/pool/pack-operation-policy.js",
+      "bytes": 5747,
+      "sha256": "18128c677c80cea91eb13cecd065dddc5ba87a46a85d53f8d183f58dedcb34d8"
+    },
+    {
+      "path": "shared/pool/pool-config.json",
+      "bytes": 79904,
+      "sha256": "f9ba29b3b0ffa0e5605a4987dc7f127fba645215898d14b0588447f26461e3de"
+    },
+    {
+      "path": "shared/vendor/reploid/adapters/doppler-session.js",
+      "bytes": 18771,
+      "sha256": "991183c0297000f42f90a88dc583912d61d0f2bc19f968ee4e1903482ad88109"
+    },
+    {
+      "path": "shared/vendor/reploid/artifacts/binary.js",
+      "bytes": 1036,
+      "sha256": "133382a28ae22d5ed02d9215d381a2b76efae40684d9e19aea7c06e0b603975a"
+    },
+    {
+      "path": "shared/vendor/reploid/artifacts/canonical-json.js",
+      "bytes": 748,
+      "sha256": "f3400db617e514a3e0e352725bc499bf8707594d0b52aaf5202b097f96af4524"
+    },
+    {
+      "path": "shared/vendor/reploid/artifacts/delivery-attestation.js",
+      "bytes": 2707,
+      "sha256": "842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac"
+    },
+    {
+      "path": "shared/vendor/reploid/artifacts/identity.js",
+      "bytes": 3025,
+      "sha256": "13a444bab82a8a10d5a1156ee7b3330db4c3c0945728bc9e19659cd4ab3aba48"
+    },
+    {
+      "path": "shared/vendor/reploid/artifacts/manifest-identity.js",
+      "bytes": 694,
+      "sha256": "e582ff0c2cb7c1a3de0c22846d29a0996335bece86b4e4daa3719898ea2843ac"
+    },
+    {
+      "path": "shared/vendor/reploid/artifacts/participant-proofs.js",
+      "bytes": 7809,
+      "sha256": "af3e7303b3a513f584b70180e27dbaf72c52e58adf1af538d66adcad41fae985"
+    },
+    {
+      "path": "shared/vendor/reploid/artifacts/signatures.js",
+      "bytes": 2927,
+      "sha256": "8ef600bcc1c449c56189c59779b3dbd364068ddbe55fc496e077c22d88d1eac3"
+    },
+    {
+      "path": "shared/vendor/reploid/config/defaults.json",
+      "bytes": 2465,
+      "sha256": "be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4"
+    },
+    {
+      "path": "shared/vendor/reploid/config/index.js",
+      "bytes": 11519,
+      "sha256": "b516347ee56b3ecee9ed57b2b5f3608d2359d9109af44ea304a1a4b8b94b4887"
+    },
+    {
+      "path": "shared/vendor/reploid/config/request-overrides.json",
+      "bytes": 166,
+      "sha256": "6e80c26a4c07d317eae530199e86634356b8cb94e2d140087ed2e4e6be12306a"
+    },
+    {
+      "path": "shared/vendor/reploid/hashing.js",
+      "bytes": 1351,
+      "sha256": "0cf5fe45851242b29ea696e1b39799327f35287d758f04f301f1b7c4b737e8b4"
+    },
+    {
+      "path": "shared/vendor/reploid/mesh/generation-context-cache.js",
+      "bytes": 3059,
+      "sha256": "297b9f5c85972a19e8324557e2c958fc3efdb4072ff82d61c5c33f83f352b584"
+    },
+    {
+      "path": "shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
+      "bytes": 20225,
+      "sha256": "90fa946f333d42782614c3d5bc43103d6df6738eac6b478defa643ec83470d1e"
+    },
+    {
+      "path": "shared/vendor/reploid/mesh/partitions/partition-contract.js",
+      "bytes": 13648,
+      "sha256": "a2e94cc32ad1e5c4a052975fe7f3ace9fecb126546c3ab47e915ce481fb25c7b"
+    },
+    {
+      "path": "shared/vendor/reploid/mesh/partitions/partition-receiver-policy.json",
+      "bytes": 152,
+      "sha256": "9812817d30a9193292e98c291a8b55db49b08c669fc284d5640ade26232b160e"
+    },
+    {
+      "path": "shared/vendor/reploid/mesh/partitions/partition-route-ranking.js",
+      "bytes": 21266,
+      "sha256": "0604b1b1d3bbb192c7c5a701b534ee7da97155924bc54bf15897af3d031b2974"
+    },
+    {
+      "path": "shared/vendor/reploid/mesh/preparation-progress.js",
+      "bytes": 2668,
+      "sha256": "e96c88f01937c04990a4519e7ee67b4c033e51dc9e83026d4821d3f0d6410edd"
+    },
+    {
+      "path": "shared/vendor/reploid/mesh/provider-hardware.js",
+      "bytes": 540,
+      "sha256": "a1826bad43e22c0b71b17b59db6bee5d9b33fed78f4719c7aabc171269c4321f"
+    },
+    {
+      "path": "shared/vendor/reploid/rules/routing.rules.json",
+      "bytes": 313,
+      "sha256": "9eb2ed7ffc1bc7c00a7a1435392f7539873e7ac1462611f77dbc92f3bfeff779"
+    },
+    {
+      "path": "shared/vendor/reploid/transport/partition-errors.json",
+      "bytes": 1734,
+      "sha256": "be1822b99cc7d11c8c7217d09b7f3be1c3dafd1a45f5a6bfd0d865b98fba9f8d"
+    }
+  ]
+}
