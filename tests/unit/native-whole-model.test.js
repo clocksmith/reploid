@@ -122,3 +122,19 @@ it('fills the model directory before reading its manifest, and stop aborts the f
   await expect(opening).rejects.toThrow('stopped');
   expect(aborted?.message).toMatch('stopped'); expect(g.nativeGpu).not.toHaveBeenCalled();
 });
+it('runs a catalog model without explicit generation under its partition route policy and context', async () => {
+  const f = await fixture({ omitBudget: true });
+  await f.participant.contribute(true);
+  const options = f.createResident.mock.calls[0][0];
+  const { resolvePartitionGeneration } = await import('../../apps/poolday/config/partition-generation.js');
+  const expected = resolvePartitionGeneration(f.model);
+  expect(options.generation).toEqual(expected);
+  expect(options.generation.maxSeqLen).toBeGreaterThan(options.generation.maxTokens);
+  expect(options.loadOptions.runtimeConfig.inference.session.kvcache.maxSeqLen).toBe(expected.maxSeqLen);
+  const g = await fixture();
+  g.model.generation = { maxTokens: 8 };
+  const explicit = createNativeWholeModel({ model: g.model, modelDirectory: g.root, nativeGpu: g.nativeGpu, createResident: g.createResident, configureMemory: g.configureMemory });
+  await explicit.contribute(true);
+  expect(g.createResident.mock.calls.at(-1)[0].generation).toEqual({ maxTokens: 8 });
+  expect(g.createResident.mock.calls.at(-1)[0].loadOptions.runtimeConfig.inference?.session?.kvcache).toBeUndefined();
+});

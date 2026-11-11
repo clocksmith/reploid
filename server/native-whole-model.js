@@ -7,6 +7,7 @@ import { createReploidDopplerRuntimeService } from '../shared/infrastructure/dop
 import { createWorkResidentProvider } from '../apps/poolday/providers/work-resident-provider.js';
 import { createWorkAdapterResolver, selectWorkAdapters } from '../apps/poolday/providers/work-adapter.js';
 import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
+import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
 
 /** `fill({signal})`, when given, completes the model directory from verified peer pieces before
  * the manifest is read (server/native-model-files.js fillWholeModel); stop aborts it. */
@@ -85,7 +86,18 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
           loadOptions.runtimeConfig.inference.session ??= {};
           loadOptions.runtimeConfig.inference.session.prefillChunkSubmitMode ??= 'sync';
         }
-        resident = createResident({ service, model, resolveAdapter, generation: model.generation || profile.generation,
+        // A catalog model without explicit generation runs whole with its partition route's
+        // policy: the same output budget and a KV cache sized to that policy's context. The work
+        // profile alone left the runtime's default context no larger than its output budget.
+        const generation = model.generation || resolvePartitionGeneration(model);
+        if (!model.generation) {
+          loadOptions.runtimeConfig ??= {};
+          loadOptions.runtimeConfig.inference ??= {};
+          loadOptions.runtimeConfig.inference.session ??= {};
+          loadOptions.runtimeConfig.inference.session.kvcache ??= {};
+          loadOptions.runtimeConfig.inference.session.kvcache.maxSeqLen ??= generation.maxSeqLen;
+        }
+        resident = createResident({ service, model, resolveAdapter, generation,
           maxOutcomeCharacters: profile.maxOutcomeCharacters, loadOptions,
           source: { manifest: JSON.parse(manifest.toString('utf8')), manifestText: manifest.toString('utf8'),
             manifestHash: model.identity.slice(7), baseUrl: pathToFileURL(root + path.sep).href }, onChange: notify });
