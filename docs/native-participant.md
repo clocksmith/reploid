@@ -10,6 +10,32 @@ Use Node 22.13 or newer. From the checkout, run `npm ci`, then
 `npm run start:native -- --help`. WebRTC and WebGPU dependencies are declared
 optional at the application root so browser development can omit them.
 
+## One command
+
+The delivered package has a short command that stands for the full one:
+
+```sh
+reploid qwen-3-5-0-8b-q4k-ehaf16
+```
+
+It runs `reploid-participant --contribute` for that catalog model with state
+under `~/.reploid` (`weights/` and `identity.json`) and the supported transport
+and GPU packages, and prints what it chose. Any participant option may follow
+and replaces the chosen value; `--connect-only` or `--share-files` choose
+another mode. No model is downloaded up front: the pieces this computer is
+assigned come from authenticated peers when needed, as with the full command,
+so nothing arrives while no authorized supplier is online.
+
+`npm run package:native -- --publishable` builds the same delivery with a
+manifest npm accepts. Published under the name `reploid`, the command above
+becomes `npx reploid qwen-3-5-0-8b-q4k-ehaf16` with no checkout. The package
+is not published; that is an owner decision. Checked: the built package
+installs, and its three commands start through npm's links (help text and
+argument expansion). A contribution through the short command has not been
+run against the fleet.
+
+## Delivery archive
+
 To create an installable native delivery without a source checkout on its host:
 
 ```sh

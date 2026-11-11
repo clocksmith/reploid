@@ -14,7 +14,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const exec = promisify(execFile);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 
-export function nativePackageManifest(application) {
+// `publishable` makes the manifest one npm accepts: the same files and pins, not marked private.
+export function nativePackageManifest(application, { publishable = false } = {}) {
   for (const [name, spec] of Object.entries({
     'doppler-gpu': application.dependencies?.['doppler-gpu'], ws: application.dependencies?.ws,
     '@roamhq/wrtc': application.optionalDependencies?.['@roamhq/wrtc'],
@@ -23,10 +24,12 @@ export function nativePackageManifest(application) {
     if (typeof spec !== 'string' || !spec.length) throw new Error(`Application must declare native dependency ${name}`);
   }
   return {
-    name: application.name, version: application.version, private: true, type: 'module',
+    name: application.name, version: application.version, ...(publishable ? {} : { private: true }), type: 'module',
     description: 'Native delivery of the Reploid application', license: application.license,
     engines: { node: '>=22.13.0' },
-    bin: { 'reploid-participant': './server/native-participant.js', 'reploid-fleet-host': './server/fleet/native-host.js' },
+    // `reploid` is the short form: `npx reploid <catalog model id>` (server/native-node.js).
+    bin: { reploid: './server/native-node.js', 'reploid-participant': './server/native-participant.js', 'reploid-fleet-host': './server/fleet/native-host.js' },
+    ...(publishable ? { repository: application.repository, homepage: application.homepage } : {}),
     scripts: { start: 'node server/native-participant.js' },
     dependencies: {
       'doppler-gpu': application.dependencies['doppler-gpu'],
@@ -44,7 +47,7 @@ export async function collectNativeFiles(sourceRoot) {
     if (!existsSync(absolute)) continue;
     for (const file of await walkFiles(absolute)) available.add(`${directory}/${file}`);
   }
-  const selected = await collectModuleClosure({ root: sourceRoot, available, entries: ['server/native-participant.js', 'server/fleet/native-host.js', 'server/fleet/credits.js', 'server/fleet/terminal-policy.js'] });
+  const selected = await collectModuleClosure({ root: sourceRoot, available, entries: ['server/native-node.js', 'server/native-participant.js', 'server/fleet/native-host.js', 'server/fleet/credits.js', 'server/fleet/terminal-policy.js'] });
   // Served URLs resolve to whichever browser root holds the file.
   const servedSource = served => path.relative(sourceRoot, resolveServedFile(served, { repoRoot: sourceRoot })).split(path.sep).join('/');
   const catalogName = servedSource('config/chat-models.json');
@@ -92,10 +95,10 @@ export async function collectNativeFiles(sourceRoot) {
   return { files, pin, contents };
 }
 
-export async function packageNative({ sourceRoot = root, outputParent = path.join(root, 'output') } = {}) {
+export async function packageNative({ sourceRoot = root, outputParent = path.join(root, 'output'), publishable = false } = {}) {
   const { files, pin, contents } = await collectNativeFiles(sourceRoot);
   const application = JSON.parse(await fs.readFile(path.join(sourceRoot, 'package.json')));
-  const manifest = nativePackageManifest(application);
+  const manifest = nativePackageManifest(application, { publishable });
   if (manifest.dependencies['doppler-gpu'] !== pin.spec) throw new Error('Application Doppler dependency differs from its pin');
   await fs.mkdir(outputParent, { recursive: true });
   const staging = await fs.mkdtemp(path.join(outputParent, 'reploid-native-'));
@@ -109,6 +112,7 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
     await fs.writeFile(target, bytes);
     entries.push({ path: name, bytes: bytes.length, sha256: digest(bytes) });
   }
+  await fs.chmod(path.join(directory, 'server/native-node.js'), 0o755);
   await fs.chmod(path.join(directory, 'server/native-participant.js'), 0o755);
   await fs.chmod(path.join(directory, 'server/fleet/native-host.js'), 0o755);
   await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
@@ -134,5 +138,6 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  console.log(JSON.stringify(await packageNative(), null, 2));
+  // --publishable: a directory `npm publish` accepts, for `npx reploid <catalog model id>`.
+  console.log(JSON.stringify(await packageNative({ publishable: process.argv.includes('--publishable') }), null, 2));
 }

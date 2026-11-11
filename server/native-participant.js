@@ -27,6 +27,7 @@ import { sha256Digest as hash, sha256Hex } from './hashing.js';
 import { EventEmitter } from 'node:events';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { realpathSync } from 'node:fs';
 import { createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority, residentPreparationProgress } from '../packages/reploid/src/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
@@ -668,7 +669,7 @@ export async function resolveNativeRoomToken(values, { warn = message => console
   return inline;
 }
 
-async function main() {
+export async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
     'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile'].map(key => [key, { type: 'string' }]).concat([
@@ -846,6 +847,9 @@ is separate from backend selection; --help opens no provider.`);
     throw error;
   }
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// npm starts a package command through a symbolic link, so real paths are compared:
+// a plain path comparison made the installed command exit without doing anything.
+const entered = (() => { try { return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); } catch { return false; } })();
+if (entered) {
   await main();
 }
