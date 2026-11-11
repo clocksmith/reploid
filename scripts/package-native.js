@@ -95,10 +95,32 @@ export async function collectNativeFiles(sourceRoot) {
   return { files, pin, contents };
 }
 
+// What a package on npm must not carry: a path into someone's home directory
+// names a person and a machine layout, and a published version cannot be taken
+// back. Content-addressed files cannot be edited to fix this (their name is the
+// hash of their bytes), so the build stops and names them instead.
+const HOME_PATH = /(?:file:\/\/)?\/(?:Users|home)\/[A-Za-z0-9._-]+\//;
+export function homePathFindings(contents) {
+  const findings = [];
+  for (const [name, bytes] of contents) {
+    if (!/\.(?:json|js|mjs|md|txt|wgsl|html|css)$/.test(name)) continue;
+    const match = Buffer.from(bytes).toString('utf8').match(HOME_PATH);
+    if (match) findings.push({ path: name, found: match[0] });
+  }
+  return findings.sort((a, b) => a.path.localeCompare(b.path));
+}
+
 export async function packageNative({ sourceRoot = root, outputParent = path.join(root, 'output'), publishable = false } = {}) {
   const { files, pin, contents } = await collectNativeFiles(sourceRoot);
   const application = JSON.parse(await fs.readFile(path.join(sourceRoot, 'package.json')));
   const manifest = nativePackageManifest(application, { publishable });
+  if (publishable) {
+    const findings = homePathFindings(contents);
+    if (findings.length) {
+      throw new Error('A publishable delivery must not contain home-directory paths. Re-issue or leave out:\n'
+        + findings.map(finding => `  ${finding.path}: ${finding.found}`).join('\n'));
+    }
+  }
   if (manifest.dependencies['doppler-gpu'] !== pin.spec) throw new Error('Application Doppler dependency differs from its pin');
   await fs.mkdir(outputParent, { recursive: true });
   const staging = await fs.mkdtemp(path.join(outputParent, 'reploid-native-'));

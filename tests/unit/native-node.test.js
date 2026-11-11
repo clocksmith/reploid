@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { nodeArguments } from '../../server/native-node.js';
-import { nativePackageManifest } from '../../scripts/package-native.js';
+import { homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 
 describe('reploid <model>: the short native command', () => {
   it('stands for an explicit contribute command with state under the home directory', () => {
@@ -32,5 +32,14 @@ describe('reploid <model>: the short native command', () => {
     expect(nativePackageManifest(application).bin.reploid).toBe('./server/native-node.js');
     expect(nativePackageManifest(application).private).toBe(true);
     expect('private' in nativePackageManifest(application, { publishable: true })).toBe(false);
+  });
+
+  it('names every packaged file that carries a home-directory path', () => {
+    const contents = new Map([
+      ['shared/config/model-manifests/abc.json', Buffer.from('{"metadata":{"source":"file:///home/someone/models/x"}}')],
+      ['server/ok.js', Buffer.from('const ranges = ["100.64.0.0"]; const dir = "~/models";')],
+      ['weights/shard_0.bin', Buffer.from('/Users/someone/ raw bytes are not text')],
+    ]);
+    expect(homePathFindings(contents)).toEqual([{ path: 'shared/config/model-manifests/abc.json', found: 'file:///home/someone/' }]);
   });
 });
