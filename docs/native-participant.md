@@ -15,7 +15,7 @@ optional at the application root so browser development can omit them.
 The delivered package has a short command that stands for the full one:
 
 ```sh
-reploid qwen-3-5-0-8b-q4k-ehaf16
+reploid qwen-3-5-2b-q4k-ehaf16
 ```
 
 It runs `reploid-participant --contribute` for that catalog model with state
@@ -28,7 +28,13 @@ so nothing arrives while no authorized supplier is online.
 
 `npm run package:native -- --publishable` builds the same delivery with a
 manifest npm accepts. Published under the name `reploid`, the command above
-becomes `npx reploid qwen-3-5-0-8b-q4k-ehaf16` with no checkout. The package
+becomes `npx reploid qwen-3-5-2b-q4k-ehaf16` with no checkout. The example names
+2B because the fleet supplies it; a model with no supplier online starts and
+waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
+files out of a delivery; the publishable build omits
+`qwen3-8-27b-text-q4k-ehaf16`, whose content-addressed manifest names a home
+directory and whose identity a live provider uses, so it cannot be re-issued
+in place. The package
 is not published; that is an owner decision. Checked: the built package
 installs, and its three commands start through npm's links (help text and
 argument expansion). A contribution through the short command has not been

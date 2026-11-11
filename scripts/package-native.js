@@ -40,7 +40,10 @@ export function nativePackageManifest(application, { publishable = false } = {})
   };
 }
 
-export async function collectNativeFiles(sourceRoot) {
+// omitModels: catalog model ids left out of this delivery, with their bundled files.
+// Each must name a catalog entry, so a stale or misspelled id fails instead of
+// silently shipping the model.
+export async function collectNativeFiles(sourceRoot, { omitModels = [] } = {}) {
   const available = new Set();
   for (const directory of ['server', 'packages/reploid/src', ...BROWSER_ROOTS]) {
     const absolute = path.join(sourceRoot, directory);
@@ -51,9 +54,14 @@ export async function collectNativeFiles(sourceRoot) {
   // Served URLs resolve to whichever browser root holds the file.
   const servedSource = served => path.relative(sourceRoot, resolveServedFile(served, { repoRoot: sourceRoot })).split(path.sep).join('/');
   const catalogName = servedSource('config/chat-models.json');
-  const catalogBytes = await fs.readFile(path.join(sourceRoot, catalogName));
+  const sourceCatalogBytes = await fs.readFile(path.join(sourceRoot, catalogName));
+  const sourceCatalog = JSON.parse(sourceCatalogBytes);
+  const unknown = omitModels.filter(id => !sourceCatalog.some(model => model.id === id));
+  if (unknown.length) throw new Error(`Cannot omit models absent from the catalog: ${unknown.join(', ')}`);
+  const catalog = sourceCatalog.filter(model => !omitModels.includes(model.id));
+  if (!catalog.length) throw new Error('A native delivery needs at least one catalog model');
+  const catalogBytes = omitModels.length ? Buffer.from(JSON.stringify(catalog, null, 2) + '\n') : sourceCatalogBytes;
   const retained = new Map([[catalogName, catalogBytes]]);
-  const catalog = JSON.parse(catalogBytes);
   for (const model of catalog) {
     for (const file of model.source?.files || []) {
       const bundled = /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '');
@@ -110,8 +118,8 @@ export function homePathFindings(contents) {
   return findings.sort((a, b) => a.path.localeCompare(b.path));
 }
 
-export async function packageNative({ sourceRoot = root, outputParent = path.join(root, 'output'), publishable = false } = {}) {
-  const { files, pin, contents } = await collectNativeFiles(sourceRoot);
+export async function packageNative({ sourceRoot = root, outputParent = path.join(root, 'output'), publishable = false, omitModels = [] } = {}) {
+  const { files, pin, contents } = await collectNativeFiles(sourceRoot, { omitModels });
   const application = JSON.parse(await fs.readFile(path.join(sourceRoot, 'package.json')));
   const manifest = nativePackageManifest(application, { publishable });
   if (publishable) {
@@ -150,7 +158,8 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
   }
   entries.sort((a, b) => a.path.localeCompare(b.path));
   const receipt = { schema: 'reploid.native-delivery/v1', version: application.version,
-    runtime: { name: pin.name, version: pin.version, integrity: pin.integrity }, entries };
+    runtime: { name: pin.name, version: pin.version, integrity: pin.integrity },
+    ...(omitModels.length ? { omittedModels: [...omitModels].sort() } : {}), entries };
   const bytes = Buffer.from(JSON.stringify(receipt, null, 2) + '\n');
   await fs.writeFile(path.join(directory, 'native-delivery.json'), bytes);
   const archive = path.join(staging, `reploid-native-${application.version}.tgz`);
@@ -161,5 +170,8 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   // --publishable: a directory `npm publish` accepts, for `npx reploid <catalog model id>`.
-  console.log(JSON.stringify(await packageNative({ publishable: process.argv.includes('--publishable') }), null, 2));
+  // --omit-model <id> (repeatable): leave that catalog model out of this delivery.
+  const omitModels = process.argv.flatMap((arg, index) => arg === '--omit-model' ? [process.argv[index + 1]] : []);
+  if (omitModels.some(id => !id || id.startsWith('--'))) throw new Error('--omit-model needs a catalog model id');
+  console.log(JSON.stringify(await packageNative({ publishable: process.argv.includes('--publishable'), omitModels }), null, 2));
 }

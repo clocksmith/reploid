@@ -79,3 +79,19 @@ it('packages pinned signed metadata and rejects remote or changed closure bytes'
   file.url = name.slice(4); await save(); await fs.writeFile(path.join(root, name), 'changed');
   await expect(collectNativeFiles(root)).rejects.toThrow('Native catalog metadata differs');
 });
+
+it('omits named catalog models and their bundled files, and rejects ids absent from the catalog', async () => {
+  const sourceRoot = path.resolve(import.meta.dirname, '../..');
+  const full = await collectNativeFiles(sourceRoot);
+  const fullCatalog = JSON.parse(full.contents.get('shared/config/chat-models.json'));
+  const [kept, omitted] = fullCatalog;
+  const { files, contents } = await collectNativeFiles(sourceRoot, { omitModels: [omitted.id] });
+  const catalog = JSON.parse(contents.get('shared/config/chat-models.json'));
+  expect(catalog.map(model => model.id)).toEqual(fullCatalog.filter(model => model.id !== omitted.id).map(model => model.id));
+  const bundledName = model => model.source.files.filter(file => /^\/config\/model-manifests\//.test(file.url || ''))
+    .map(file => path.relative(sourceRoot, resolveServedFile(file.url)).split(path.sep).join('/'));
+  for (const name of bundledName(omitted)) expect(files).not.toContain(name);
+  for (const name of bundledName(kept)) expect(files).toContain(name);
+  await expect(collectNativeFiles(sourceRoot, { omitModels: ['not-a-catalog-model'] }))
+    .rejects.toThrow('Cannot omit models absent from the catalog: not-a-catalog-model');
+});

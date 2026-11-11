@@ -15,7 +15,7 @@ const MODES = ['--connect-only', '--share-files', '--contribute'];
 const USAGE = `Reploid node (Node 22.13 or newer)
 Usage: reploid <catalog model id> [participant options]
 
-  reploid qwen-3-5-0-8b-q4k-ehaf16
+  reploid qwen-3-5-2b-q4k-ehaf16
 
 Contributes this computer's GPU for that model. Nothing is downloaded up front:
 the pieces this computer is assigned are fetched from authenticated peers as
