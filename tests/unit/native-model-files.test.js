@@ -18,7 +18,7 @@ function channels() {
     close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1-index].close()); } }));
   return pair;
 }
-async function fixture(count = 2, { certify = null } = {}) {
+async function fixture(count = 2, { certify = null, hostOptions = () => ({}) } = {}) {
   const stores = [], callbacks = [], owners = [], directories = [], cacheDirectories = [], writes = [];
   const chunks = [Buffer.from([1,2,3,4]), Buffer.from([5,6,7,8])], whole = Buffer.concat(chunks);
   const manifest = Buffer.from(JSON.stringify({ modelId: 'native-fixture', hashAlgorithm: 'sha256', shards: [{ filename: 'weights.bin', size: 8, hash: hash(whole) }] }));
@@ -38,7 +38,7 @@ async function fixture(count = 2, { certify = null } = {}) {
       sendToPeer(peer, type, payload) { const message = structuredClone(payload); writes.push({ from: i, peer, type, message }); network.intercept({ from: i, peer, type, message }); queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), message)); return true; },
       broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
       openDataChannel(peer) { const [left,right] = channels(); callbacks[Number(peer)](String(i), right); return left; } };
-    const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, ...(certify ? { certifyCustodyKey: certify(i) } : {}) });
+    const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, ...(certify ? { certifyCustodyKey: certify(i) } : {}), ...hostOptions(model) });
     owners.push(host); hosts.push(host);
   }
   return { owners, model, chunks, directories, cacheDirectories, writes, network,
@@ -280,4 +280,57 @@ it('fills a whole-model directory from an authorized peer and drops the duplicat
   // A complete directory is left alone and needs no supplier.
   f.owners[1].stopSupply();
   expect(await f.owners[0].fillWholeModel(f.model)).toEqual({ complete: true, filled: false });
+});
+function fakeOrigin(bytesFor, { corrupt = false } = {}) {
+  const requests = [];
+  const fetch = async (url, init) => {
+    const name = url.split('/').at(-1), bytes = bytesFor(name); requests.push({ url, range: init.headers.range ?? null, credentials: init.credentials });
+    if (!bytes) return new Response('missing', { status: 404 });
+    const [, start, end] = /bytes=(\d+)-(\d+)/.exec(init.headers.range || '') || [];
+    const body = start === undefined ? Buffer.from(bytes) : Buffer.from(bytes.subarray(Number(start), Number(end) + 1));
+    if (corrupt && start !== undefined && Number(start) > 0) body[0] ^= 0xff;
+    return new Response(body, start === undefined ? { status: 200 } : { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${bytes.length}` } });
+  };
+  return { fetch, requests };
+}
+const originTable = model => ({ schema: 'reploid.native-model-origins/v1', origins: { [model.id]: { modelIdentity: model.identity, kind: 'huggingface',
+  repoId: 'owner/repo', revision: 'a'.repeat(40), path: 'models/' + model.id } } });
+async function soloHost(f, origin) {
+  const directory = await folder(), cacheDirectory = await folder();
+  // Bundled pinned metadata (the delivery's served config) stands in as local files here.
+  for (const name of ['manifest.json', 'pieces.json']) await fs.copyFile(path.join(f.directories[0], name), path.join(directory, name));
+  const transport = { _getPeerId: () => 'solo', getConnectedPeers: () => [], onMessage() {}, onDataChannel: () => () => {}, sendToPeer: () => true, broadcast() {} };
+  const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, modelOrigins: originTable(f.model),
+    originFetch: origin.fetch, peerGraceMs: 20 });
+  hosts.push(host); return { host, directory };
+}
+it('fills from the pinned origin when no peer is online, by verified ranges and without credentials', async () => {
+  const f = await fixture(1), whole = Buffer.concat(f.chunks), origin = fakeOrigin(name => name === 'weights.bin' ? whole : null);
+  const { host, directory } = await soloHost(f, origin), events = [];
+  const result = await host.fillWholeModel(f.model, { onProgress: event => events.push(event) });
+  expect(await fs.readFile(path.join(directory, 'weights.bin'))).toEqual(whole);
+  expect(result.sources).toEqual({ 'pinned-origin:huggingface': { pieces: 2, bytes: 8 } });
+  expect(events.find(event => event.phase === 'source')).toMatchObject({ source: 'pinned-origin:huggingface',
+    origin: `huggingface:owner/repo@${'a'.repeat(40)}/models/native-fixture` });
+  expect(origin.requests.map(request => [request.url, request.range, request.credentials])).toEqual([
+    [`https://huggingface.co/owner/repo/resolve/${'a'.repeat(40)}/models/native-fixture/weights.bin`, 'bytes=0-3', 'omit'],
+    [`https://huggingface.co/owner/repo/resolve/${'a'.repeat(40)}/models/native-fixture/weights.bin`, 'bytes=4-7', 'omit']]);
+  // The manifest is the bundled pinned copy, never the origin's.
+  expect(origin.requests.some(request => request.url.endsWith('manifest.json'))).toBe(false);
+});
+it('rejects a corrupted origin range and leaves no model file', async () => {
+  const f = await fixture(1), origin = fakeOrigin(name => name === 'weights.bin' ? Buffer.concat(f.chunks) : null, { corrupt: true });
+  const { host, directory } = await soloHost(f, origin);
+  await expect(host.fillWholeModel(f.model)).rejects.toMatchObject({ code: 'WHOLE_MODEL_PIECE_REJECTED' });
+  const names = await fs.readdir(directory);
+  expect(names).not.toContain('weights.bin');
+});
+it('prefers authorized peers over the pinned origin', async () => {
+  const origin = fakeOrigin(() => { throw new Error('origin must not be asked'); });
+  const f = await fixture(2, { hostOptions: model => ({ modelOrigins: originTable(model), originFetch: origin.fetch }) });
+  await fs.rm(path.join(f.directories[0], 'manifest.json'));
+  await f.share();
+  const result = await f.owners[0].fillWholeModel(f.model);
+  expect(result.sources).toEqual({ 'authorized-custody-peers': { pieces: 2, bytes: 8 } });
+  expect(origin.requests).toEqual([]);
 });

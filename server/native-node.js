@@ -21,9 +21,9 @@ Usage: reploid <catalog model id> [participant options]
 
 Contributes this computer's GPU for that model and runs the whole model here,
 so it serves requests on its own. A model not yet on this computer is fetched
-from authorized peers piece by piece, each piece and each file verified against
-the catalog, into ~/.reploid/weights/<model id>; an interrupted fetch resumes.
-Nothing arrives while no authorized supplier is online.
+from authorized peers piece by piece (or, when no peer offers a piece, from the
+model's pinned public origin), each piece and each file verified against the
+catalog, into ~/.reploid/weights/<model id>; an interrupted fetch resumes.
 
 Chosen for you unless given: --contribute, --execution-mode whole-model,
 --model-directory ~/.reploid/weights/<model id>, --identity-file

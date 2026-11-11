@@ -23,6 +23,7 @@ Outputs: authenticated, bounded responses and delivery records.
 - Recovery binds account/device, input digest and signing identities without replacement inference. Journals bound results/fences, omit prompts and preserve uncertainty; unmetered signed cleanup permits only fixed terminal formulas.
 - Native hosts reuse participant contracts: Doppler computes; adapters own provider lifetime, authorized files and settlement; receipts retain opening/runtime/provider identities.
 - File supply needs separate consent; custody/Doppler verify requested pieces, cache verified files, quarantine corruption and restart partials.
+- Model bytes come from the approved directory, authorized custody peers, then only an origin pinned per exact model identity at an immutable revision (`native-model-origins.json`); every byte is verified against pinned piece or file hashes, and manifests never come from an origin.
 - `/swarm` is bounded discovery only (hosted/loopback origins, namespace/destination admission, heartbeat/expiry; no relay/virtual peers; origin is not auth).
 
 ## Acceptance

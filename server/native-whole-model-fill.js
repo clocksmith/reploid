@@ -91,8 +91,8 @@ async function syncDirectory(root) {
 }
 
 /**
- * `acquire(piece, {signal})` returns a piece's bytes from an authorized source; they are
- * verified here regardless. `readMetadata(file, signal)` returns a pinned catalog file.
+ * `acquire(piece, {signal})` returns a piece's bytes, or `{bytes, source}` naming the source,
+ * from an authorized source; they are verified here regardless. `readMetadata(file, signal)` returns a pinned catalog file.
  * `release(file)` lets the caller drop duplicate piece copies once `file` is in place.
  * `freeBytes(root)` reports writable space. `onProgress` receives `start`, `piece`, `file`
  * and `complete` events with cumulative counts.
@@ -123,8 +123,9 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
   }
   const totals = { files: missing.length + metadata.length, pieces: missing.reduce((sum, file) => sum + file.pieces.length, 0),
     bytes: missing.reduce((sum, file) => sum + file.size, 0) + metadata.reduce((sum, file) => sum + file.sizeBytes, 0) };
-  const progress = { fetchedPieces: 0, fetchedBytes: 0, reusedPieces: 0, reusedBytes: 0, completedFiles: 0 };
-  const emit = (phase, extra = {}) => onProgress({ phase, ...totals, ...progress, elapsedMs: Date.now() - started, ...extra });
+  const progress = { fetchedPieces: 0, fetchedBytes: 0, reusedPieces: 0, reusedBytes: 0, completedFiles: 0, sources: {} };
+  const count = (source, bytes) => { const row = progress.sources[source] ||= { pieces: 0, bytes: 0 }; row.pieces++; row.bytes += bytes; };
+  const emit = (phase, extra = {}) => onProgress(structuredClone({ phase, ...totals, ...progress, elapsedMs: Date.now() - started, ...extra }));
   const available = await freeBytes(root);
   assert(available >= totals.bytes, `Model directory needs ${totals.bytes} bytes; ${available} are free`, 'WHOLE_MODEL_STORAGE');
   emit('start');
@@ -141,15 +142,19 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
           signal.throwIfAborted();
           const present = await readRange(handle, piece.offset, piece.size);
           if (present && 'sha256:' + sha256(present) === piece.identity) {
-            progress.reusedPieces++; progress.reusedBytes += piece.size; emit('piece', { path: file.path, reused: true }); continue;
+            progress.reusedPieces++; progress.reusedBytes += piece.size; count('partial-file', piece.size);
+            emit('piece', { path: file.path, reused: true, source: 'partial-file' }); continue;
           }
-          const bytes = await acquire({ ...piece, path: file.path }, { signal });
+          const acquired = await acquire({ ...piece, path: file.path }, { signal });
+          const bytes = acquired instanceof Uint8Array ? acquired : acquired?.bytes;
+          const source = acquired instanceof Uint8Array ? 'acquired' : String(acquired?.source || 'acquired');
           signal.throwIfAborted();
           assert(bytes instanceof Uint8Array && bytes.byteLength === piece.size && 'sha256:' + sha256(bytes) === piece.identity,
             `Rejected unverified bytes for piece ${piece.identity} of ${file.path}`, 'WHOLE_MODEL_PIECE_REJECTED');
           let written = 0;
           while (written < bytes.byteLength) written += (await handle.write(bytes, written, bytes.byteLength - written, piece.offset + written)).bytesWritten;
-          progress.fetchedPieces++; progress.fetchedBytes += piece.size; emit('piece', { path: file.path, reused: false });
+          progress.fetchedPieces++; progress.fetchedBytes += piece.size; count(source, piece.size);
+          emit('piece', { path: file.path, reused: false, source });
         }
       };
       await Promise.all(Array.from({ length: Math.min(concurrency, file.pieces.length) }, worker));
@@ -165,11 +170,12 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
     await release(file);
   }
   for (const file of metadata) {
-    const bytes = await readMetadata(file, signal);
+    const read = await readMetadata(file, signal);
+    const bytes = read instanceof Uint8Array ? read : read?.bytes;
     assert(bytes instanceof Uint8Array && bytes.byteLength === file.sizeBytes && sha256(bytes) === file.hash,
       'Rejected unverified bytes for ' + file.path, 'WHOLE_MODEL_FILE_REJECTED');
     await writeAtomically(root, file.path, bytes, signal); await syncDirectory(root);
-    progress.completedFiles++; emit('file', { path: file.path });
+    progress.completedFiles++; emit('file', { path: file.path, ...(read instanceof Uint8Array ? {} : { source: read?.source }) });
   }
   emit('complete');
   return { ...totals, ...progress, elapsedMs: Date.now() - started };

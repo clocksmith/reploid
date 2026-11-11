@@ -1,0 +1,12 @@
+{
+  "schema": "reploid.native-model-origins/v1",
+  "origins": {
+    "qwen-3-5-2b-q4k-ehaf16": {
+      "modelIdentity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+      "kind": "huggingface",
+      "repoId": "clocksmith/rdrr",
+      "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+      "path": "models/qwen-3-5-2b-q4k-ehaf16"
+    }
+  }
+}

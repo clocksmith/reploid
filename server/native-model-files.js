@@ -1,6 +1,8 @@
 import { fetchAdapterFile } from '../apps/poolday/providers/work-adapter.js';
 import { resolvePartitionArtifactSource } from '../apps/poolday/host/work-partition-artifact-source.js';
-/** Filesystem host ports for the existing signed custody protocol. Model weights remain peer-only; explicit adapter acquisition permits its pinned origin. */
+/** Filesystem host ports for the existing signed custody protocol. Model weights come from the approved local
+ * directory, then authorized custody peers, then the model's pinned origin (native-model-origin.js) when one is
+ * pinned; every byte is verified against pinned identities. Explicit adapter acquisition permits its pinned origin. */
 import fs from 'node:fs/promises';
 import { openNativeSupplyBudget } from './native-supply-budget.js';
 import { constants } from 'node:fs';
@@ -13,6 +15,10 @@ import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } fro
 import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
 import { resolveServedFile } from './browser-roots.js';
 import { fillWholeModelDirectory, wholeModelDirectoryComplete } from './native-whole-model-fill.js';
+import { resolvePinnedOrigin, readPinnedOrigin } from './native-model-origin.js';
+
+// How long a whole-model fill with a pinned origin waits for peers to announce before using the origin.
+const PEER_GRACE_MS = 15000;
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const key = file => { assert(file.hashAlgorithm === 'sha256' && /^[a-f0-9]{64}$/.test(file.hash), 'Pinned SHA-256 file required'); return 'sha256-' + file.hash; };
@@ -80,7 +86,8 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * `certifyCustodyKey` (packages/reploid/src/artifacts/custody-certificate.js) lets the persistent
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
-export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null }) {
+export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null,
+  modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS }) {
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
   let budget = null, budgetError = null;
   try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: policy.maxSupplyBytes }); }
@@ -182,6 +189,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     preparePartitionSource(model, { signal } = {}) { return own((async () => {
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
       const data = await metadata(model, signal), descriptors = new Map(); signal.throwIfAborted();
+      const partitionOrigin = resolvePinnedOrigin(model, modelOrigins, originFetch);
       for (const file of data.index.files) for (const piece of file.pieces) descriptors.set(piece.identity, { ...piece, path: file.path });
       const acquisition = createPieceAcquisition({
         limits: { maxConcurrent: policy.maxPieceAcquisitions, maxQueued: policy.maxQueuedPieceAcquisitions,
@@ -215,7 +223,9 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
             assert(whole, 'Piece is outside pinned model files');
             assert(exchange.has(whole), 'No peer offers the assigned verified piece');
             return exchange.acquire(whole, { ...controls, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
-          } }
+          } },
+          ...(partitionOrigin ? [{ id: partitionOrigin.id, read: (_, controls) => readPinnedOrigin(partitionOrigin, piece.path,
+            { offset: piece.offset, size: piece.size, signal: controls.signal }) }] : [])
         ] });
       const abort = () => { acquisition.close().catch(() => {}); };
       signal.addEventListener('abort', abort, { once: true });
@@ -270,31 +280,61 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
       if (await wholeModelDirectoryComplete(root, model)) return { complete: true, filled: false };
       const data = await metadata(model, signal);
-      let supplied = false, waiting = false;
-      const offered = async (file, whole) => {
-        const deadline = supplied ? Date.now() + (owner ? owner.pieceTimeoutMs(policy.channel.timeoutMs, policy.maxArtifactBytes) : policy.channel.timeoutMs) : Infinity;
-        while (!exchange.has(file) && !(whole && exchange.has(whole))) {
+      const origin = resolvePinnedOrigin(model, modelOrigins, originFetch), graceUntil = Date.now() + peerGraceMs;
+      let supplied = false, waiting = false, originAnnounced = false;
+      const peerOffers = (file, whole) => exchange.has(file) || Boolean(whole && exchange.has(whole));
+      // Peers are preferred. Without a pinned origin the fill waits for a first supplier and then
+      // allows one channel timeout per piece; with one, it waits only a short grace for peers to announce.
+      const awaitPeers = async (file, whole) => {
+        const deadline = origin ? (supplied ? 0 : graceUntil)
+          : supplied ? Date.now() + (owner ? owner.pieceTimeoutMs(policy.channel.timeoutMs, policy.maxArtifactBytes) : policy.channel.timeoutMs) : Infinity;
+        while (!peerOffers(file, whole)) {
           signal.throwIfAborted();
-          assert(Date.now() < deadline, `No authorized peer offers piece ${file.hash} of ${whole?.path ?? file.path}`);
+          if (Date.now() >= deadline) {
+            assert(origin, `No authorized peer offers piece ${file.hash} of ${whole?.path ?? file.path}`);
+            return false;
+          }
           if (!waiting) { waiting = true; onProgress({ phase: 'waiting-for-supplier' }); }
           exchange.announce(); await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        waiting = false;
+        waiting = false; return true;
+      };
+      const fromOrigin = async (name, range, reason) => {
+        if (!originAnnounced) { originAnnounced = true; onProgress({ phase: 'source', source: origin.id, origin: origin.label, reason }); }
+        return { bytes: await readPinnedOrigin(origin, name, { ...range, signal }), source: origin.id };
       };
       const acquire = async (piece, controls) => {
         const file = pieceFile(piece), cached = await cache.get(file);
-        if (cached) return cached;
+        if (cached) return { bytes: cached, source: 'verified-cache' };
         const shard = data.manifest.shards.find(row => row.filename === piece.path);
         const whole = shard ? { path: shard.filename, role: 'model-weights', sizeBytes: shard.size, hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm } : null;
-        await offered(file, whole);
-        const bytes = exchange.has(file) ? await exchange.acquire(file, controls)
-          : await exchange.acquire(whole, { ...controls, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
-        supplied = true; return bytes;
+        let reason = 'no authorized peer offers the piece';
+        if (await awaitPeers(file, whole)) {
+          try {
+            const bytes = exchange.has(file) ? await exchange.acquire(file, controls)
+              : await exchange.acquire(whole, { ...controls, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+            supplied = true; return { bytes, source: 'authorized-custody-peers' };
+          } catch (error) {
+            if (!origin || signal.aborted) throw error;
+            reason = 'authorized peers failed: ' + error.message;
+            onProgress({ phase: 'source-failed', source: 'authorized-custody-peers', piece: piece.identity, error: error.message });
+          }
+        }
+        return fromOrigin(piece.path, { offset: piece.offset, size: piece.size }, reason);
+      };
+      const readPinned = async (file, current) => {
+        try { return await readMetadata(file, current); }
+        catch (error) {
+          // The manifest is always the bundled pinned copy, never an origin's.
+          if (!origin || file.path === 'manifest.json' || current.aborted) throw error;
+          const read = await fromOrigin(file.path, { size: file.sizeBytes, whole: true }, error.message);
+          await verify(file, read.bytes); return read;
+        }
       };
       const result = await fillWholeModelDirectory({ root, model, manifest: data.manifest, index: data.index, signal, onProgress, acquire,
         // The same piece concurrency as partition acquisition: one peer channel admits few pending chunk requests.
         concurrency: policy.maxPieceAcquisitions,
-        readMetadata: (file, current) => readMetadata(file, current),
+        readMetadata: readPinned,
         release: async file => { for (const piece of file.pieces) await cache.remove(pieceFile(piece)); },
         freeBytes: async directory => { const stat = await fs.statfs(directory); return stat.bavail * stat.bsize; } });
       return { complete: true, filled: true, ...result };

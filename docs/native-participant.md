@@ -28,17 +28,33 @@ participant option may follow and replaces the chosen value:
 keeps partition execution, which needs another contributor for the same model;
 `--connect-only` or `--share-files` choose another mode.
 
-Whole-model contribution with an incomplete model directory first fills it from
-authorized custody peers (`model-fill` status lines: `start`,
-`waiting-for-supplier`, `piece`, `file`, `complete`). Each piece is checked
+Whole-model contribution with an incomplete model directory first fills it
+(`model-fill` status lines: `start`, `waiting-for-supplier`, `source`,
+`source-failed`, `piece`, `file`, `complete`; piece lines and the per-source
+`sources` totals name where bytes came from). Sources are tried in order: the
+verified piece cache and pieces already written, authorized custody peers, then
+the model's pinned public origin when
+[`server/native-model-origins.json`](../server/native-model-origins.json) pins
+one. A pin binds the exact model identity to a Hugging Face repository, an
+immutable 40-hex revision and a path; nothing from peers or requests can name
+an origin, requests carry no credentials, and shards are read by HTTP range per
+pinned piece. The manifest always comes from the delivery's pinned copy, never
+an origin. With a pin, the fill gives peers a 15 s grace to announce and then
+uses the origin for pieces no peer offers or that peers fail to deliver, so it
+also completes with no peer online. Partition acquisition uses the same pinned
+origin as its last source. Only `qwen-3-5-2b-q4k-ehaf16` is pinned
+(`clocksmith/rdrr` at `3a05b346b1c86abf02c7620f2369a9a7b82cb62f`,
+`models/qwen-3-5-2b-q4k-ehaf16`); its 32 shard hashes there equal the pinned
+manifest's. Each piece is checked
 against the catalog's pinned piece index, each assembled shard against the
 manifest's SHA-256 and each other file against the catalog. A file is written as
 `<name>.partial` and renamed only after its whole hash matches; the manifest is
 written last. A restart reuses verified pieces already written. The fill needs
 free space for the missing files, follows the owner policy's admission and rates,
-and drops its cached piece copies once a shard is in place. It waits while no
-supplier is online; once one has delivered, a piece no connected supplier offers
-within one channel timeout stops contribution with that piece named. A directory
+and drops its cached piece copies once a shard is in place. Without a pinned
+origin it waits while no supplier is online; once one has delivered, a piece no
+connected supplier offers within one channel timeout stops contribution with
+that piece named. A directory
 holding another model's manifest is refused, never overwritten. A complete
 directory is used unchanged, as before.
 
