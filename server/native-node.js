@@ -12,11 +12,14 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const MODES = ['--connect-only', '--share-files', '--contribute'];
+// The model `reploid` serves when no model id is given: the one public peers supply.
+export const DEFAULT_MODEL = 'qwen-3-5-2b-q4k-ehaf16';
 // Options that only exist for partition execution; giving one keeps the participant's own default.
 const PARTITION_ONLY = ['--partition-index', '--ordered-config', '--canonical', '--readiness-log'];
 const USAGE = `Reploid node (Node 22.13 or newer)
-Usage: reploid <catalog model id> [participant options]
+Usage: reploid [catalog model id] [participant options]
 
+  reploid                          (same as: reploid qwen-3-5-2b-q4k-ehaf16)
   reploid qwen-3-5-2b-q4k-ehaf16
 
 Contributes this computer's GPU for that model and runs the whole model here,
@@ -36,8 +39,8 @@ list. Stop with Ctrl+C.`;
 
 /** The participant arguments this command stands for. Pure, so it can be checked. */
 export function nodeArguments(argv, { home }) {
-  const [model, ...rest] = argv;
-  if (!model || model.startsWith('-')) return null;
+  // Without a model id (nothing, or options only) the default model is served.
+  const [model, ...rest] = argv.length && !argv[0].startsWith('-') ? argv : [DEFAULT_MODEL, ...argv];
   const given = name => rest.includes(name) || rest.some(value => value.startsWith(name + '='));
   const state = path.join(home, '.reploid');
   const args = ['--model', model];
@@ -67,7 +70,6 @@ async function main() {
   const argv = process.argv.slice(2);
   if (argv.includes('--help') || argv.includes('-h')) { console.log(USAGE); return; }
   const node = nodeArguments(argv, { home: os.homedir() });
-  if (!node) { console.error(USAGE); process.exitCode = 2; return; }
   console.log(JSON.stringify({ event: 'reploid-node', model: node.model, chosen: node.chosen }));
   const { mkdir } = await import('node:fs/promises');
   // The participant reads weights from an existing directory; it creates the identity's.

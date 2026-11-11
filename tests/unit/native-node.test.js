@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { nodeArguments, participantProcessArgv } from '../../server/native-node.js';
+import { DEFAULT_MODEL, nodeArguments, participantProcessArgv } from '../../server/native-node.js';
 import { homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 
 describe('reploid <model>: the short native command', () => {
+  it('serves the default model when no model id is given, keeping any options', () => {
+    expect(DEFAULT_MODEL).toBe('qwen-3-5-2b-q4k-ehaf16');
+    expect(nodeArguments([], { home: '/h' }).args).toEqual(nodeArguments([DEFAULT_MODEL], { home: '/h' }).args);
+    const withOption = nodeArguments(['--connect-only'], { home: '/h' });
+    expect(withOption.model).toBe(DEFAULT_MODEL);
+    expect(withOption.args.slice(0, 2)).toEqual(['--model', DEFAULT_MODEL]);
+    expect(withOption.args).toContain('--connect-only');
+    expect(withOption.args).not.toContain('--contribute');
+  });
   it('stands for an explicit whole-model contribute command with state under the home directory', () => {
     const node = nodeArguments(['qwen-3-5-0-8b-q4k-ehaf16'], { home: '/home/someone' });
     expect(node.args).toEqual(['--model', 'qwen-3-5-0-8b-q4k-ehaf16', '--contribute', '--execution-mode', 'whole-model',
@@ -42,9 +51,8 @@ describe('reploid <model>: the short native command', () => {
     expect(argv[1]).not.toBe(participant);
   });
 
-  it('needs a model first', () => {
-    expect(nodeArguments([], { home: '/h' })).toBeNull();
-    expect(nodeArguments(['--contribute'], { home: '/h' })).toBeNull();
+  it('treats a leading option as the start of the options for the default model', () => {
+    expect(nodeArguments(['--contribute'], { home: '/h' }).model).toBe(DEFAULT_MODEL);
   });
 
   it('is a command of the delivered package, which is private unless built to publish', () => {

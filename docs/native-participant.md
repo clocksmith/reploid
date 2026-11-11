@@ -18,6 +18,9 @@ The delivered package has a short command that stands for the full one:
 reploid qwen-3-5-2b-q4k-ehaf16
 ```
 
+With no model id, `reploid` serves `qwen-3-5-2b-q4k-ehaf16`, the model public
+peers supply; any options may follow directly (`reploid --connect-only`).
+
 It runs `reploid-participant --contribute --execution-mode whole-model` for that
 catalog model with state under `~/.reploid` (`weights/<model id>/` and
 `identity.json`) and the supported transport and GPU packages, and prints what
