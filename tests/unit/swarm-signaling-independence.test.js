@@ -1,11 +1,12 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js';
+import { createGenerationRecovery, createMemoryGenerationJournal } from '../../packages/reploid/src/mesh/generation-recovery.js';
 import applicationProfile from '../../shared/config/reploid-library.json' with { type: 'json' };
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 afterEach(() => vi.useRealTimers());
 
-function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs = 30000 } = {}) {
+function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs = 30000, peerId = 'local', remotePeerId = 'direct' } = {}) {
   const sockets = [], connections = [], events = [];
   class Socket {
     static OPEN = 1;
@@ -34,16 +35,16 @@ function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs 
   const config = resolveConfig({ profile, overrides: { mesh: { enabled: true, roomId: 'test' },
     webrtc: { signalingUrl: 'wss://fixture.invalid', heartbeatIntervalMs: 100, peerTimeoutMs: 500,
       reconnectBaseMs: 1000, connectTimeoutMs } } });
-  const swarm = createWebRTCSwarm({ config, peerId: 'local', getSessionId: () => 'session',
+  const swarm = createWebRTCSwarm({ config, peerId, getSessionId: () => 'session',
     getRoomCredentials: () => ({ roomId: 'test', token: 'x'.repeat(32) }),
     WebSocket: Socket, RTCPeerConnection: Connection, getRtcConfig,
-    Utils: { generateId: () => 'local', logger: { info() {}, debug() {}, warn() {}, error() {} } },
+    Utils: { generateId: () => peerId, logger: { info() {}, debug() {}, warn() {}, error() {} } },
     EventBus: { emit: (...args) => events.push(args) } });
   async function open(incoming = false) {
     const pending = swarm.init(); sockets[0].onopen();
-    await sockets[0].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: incoming ? [] : ['direct'] });
+    await sockets[0].receive({ type: 'joined', peerId, roomId: 'test', peers: incoming ? [] : [remotePeerId] });
     if (incoming) {
-      await sockets[0].receive({ type: 'offer', peerId: 'direct', offer: { type: 'offer', sdp: '' } });
+      await sockets[0].receive({ type: 'offer', peerId: remotePeerId, offer: { type: 'offer', sdp: '' } });
       connections[0].ondatachannel({ channel: connections[0].channel });
     }
     connections[0].channel.onopen();
@@ -353,4 +354,55 @@ it('retains attempt identity through disconnect and ignores stale channel and au
     expect(receive).toHaveBeenCalledOnce();
     expect(f.swarm.sendToPeer('direct', 'sync-request', {})).toBe(true);
   } finally { f.swarm.disconnect(); }
+});
+
+it('delivers generation recovery queries and outcomes across direct WebRTC data channels', async () => {
+  const requester = fixture({ peerId: 'requester', remotePeerId: 'provider' });
+  const provider = fixture({ peerId: 'provider', remotePeerId: 'requester' });
+  try {
+    await requester.open(false);
+    await provider.open(true);
+    requester.connections[0].channel.send.mockImplementation((data) => {
+      queueMicrotask(() => provider.connections[0].channel.onmessage({ data }));
+    });
+    provider.connections[0].channel.send.mockImplementation((data) => {
+      queueMicrotask(() => requester.connections[0].channel.onmessage({ data }));
+    });
+    const journal = createMemoryGenerationJournal(4);
+    const binding = { provider: 'peer:provider-identity', consumer: 'peer:requester-identity', requestId: 'req-recover-1' };
+    await journal.claim(binding);
+    await journal.finish(binding, { type: 'reploid:generation-result', payload: { requestId: 'req-recover-1', content: 'recovered' } });
+    const requesterRecovery = createGenerationRecovery({
+      transport: requester.swarm,
+      getIdentity: () => ({ peerId: 'peer:requester-identity' }),
+      verifyPeer: async (peerId) => peerId === 'provider' ? 'peer:provider-identity' : null,
+      journal: createMemoryGenerationJournal(4),
+      timeoutMs: 1000,
+      maxPending: 4
+    });
+    const providerRecovery = createGenerationRecovery({
+      transport: provider.swarm,
+      getIdentity: () => ({ peerId: 'peer:provider-identity' }),
+      verifyPeer: async (peerId) => peerId === 'requester' ? 'peer:requester-identity' : null,
+      journal,
+      timeoutMs: 1000,
+      maxPending: 4
+    });
+    const outcome = await requesterRecovery.read({
+      requestId: 'req-recover-1',
+      providerId: 'provider',
+      providerIdentity: 'peer:provider-identity'
+    });
+    expect(outcome).toEqual({
+      type: 'reploid:generation-result',
+      payload: { requestId: 'req-recover-1', content: 'recovered' }
+    });
+    expect(requester.swarm.getStats().rejected).toBe(0);
+    expect(provider.swarm.getStats().rejected).toBe(0);
+    await requesterRecovery.close();
+    await providerRecovery.close();
+  } finally {
+    requester.swarm.disconnect();
+    provider.swarm.disconnect();
+  }
 });

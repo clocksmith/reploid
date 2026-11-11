@@ -26,7 +26,9 @@ export function bindPrivateComputers(root, session) {
     const list = find('[data-private-list]');
     const markup = (fleet.computers || []).map(row => {
       const online = fleet.connected && row.online;
-      const status = !online ? 'Offline' : row.activeRequests > 0 ? 'Serving' : row.preparing ? 'Loading'
+      const queuedSuffix = row.queuedRequests > 0 ? ` · ${row.queuedRequests} queued` : '';
+      const status = !online ? 'Offline' : row.requester && !row.resident ? `Online · requester${queuedSuffix}`
+        : row.activeRequests > 0 ? `Serving${queuedSuffix}` : row.preparing ? 'Loading'
         : row.preferences?.enabled === false ? 'Paused' : row.resident ? 'Ready' : row.requester ? 'Online · requester' : 'Online · no model loaded';
       const model = fleet.models?.find(model => model.identity === row.resident?.modelIdentity);
       return `<li><details class="pool-disclosure"><summary>${escape(row.name)} <span class="pool-muted">${status}</span></summary>

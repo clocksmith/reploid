@@ -99,6 +99,15 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       for (const { id } of ids) { const result = await this.recover(id); if (result.status !== 'pending') results.push(result); }
       return results;
     },
+    providerOpenRequests(participant) {
+      expiry();
+      return db.prepare("SELECT id FROM fleet_requests WHERE state IN ('dispatched','closing')").all()
+        .map(row => read(row.id))
+        .filter(row => row?.binding.mode === 'whole-model'
+          && row.binding.providers[0]?.participantId === participant
+          && !pieces(row.id).terminal)
+        .map(row => ({ id: row.id, binding: row.binding }));
+    },
     async reconcileConsumer(consumer, activeIds = []) {
       assert(Array.isArray(activeIds) && activeIds.length <= 1024 && activeIds.every(id => typeof id === 'string' && id.length <= 512),
         'Active reservation list must be bounded text IDs');

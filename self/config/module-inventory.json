@@ -4018,7 +4018,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:5d48f6219d34c61cd963d6b7360750f1185d113a46457851a3240d38ad0d6ce6",
+      "sha256": "sha256:648bb8041818b03fff3809d6e0bb37633effabbdd58e6e27635db8b64d011745",
       "imports": []
     },
     {
@@ -4454,7 +4454,7 @@
     {
       "path": "ui/pool-home/private-computers-view.js",
       "owner": "ui",
-      "sha256": "sha256:8d88a27cd02a8291105edb334d26a791574f1129d850bd2043f7c9557366a853",
+      "sha256": "sha256:d998395c9ea371d9a9daa552d1cec28549f07c145e40df70774ca32d695d2971",
       "imports": [
         "../components/attachments.js"
       ]
@@ -18776,7 +18776,7 @@
     {
       "path": "vendor/reploid/transport/room.js",
       "owner": "vendor",
-      "sha256": "sha256:896993c8e363490831a089307b9e6a6632e4d26495c2b2c8d861bb5fcf1c99ab",
+      "sha256": "sha256:a01ef06f4a0a5b90f70fb58ff9a76fa9f569cf806af62ff453a7e5c37bbc4940",
       "imports": [
         "../config/index.js",
         "./swarm.js"
@@ -18801,7 +18801,7 @@
     {
       "path": "vendor/reploid/transport/swarm.js",
       "owner": "vendor",
-      "sha256": "sha256:07dbb6a969a6efd8bf76ad9c914c1d9efe54f95319d851e0fb8080d4fb48980f",
+      "sha256": "sha256:8a2569e693cc612702ca7c9155ca947360e18ff816f031a3f1fe7879e27b293a",
       "imports": [
         "../config/index.js",
         "./introduction-bootstrap.js",

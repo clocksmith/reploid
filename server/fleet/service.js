@@ -67,6 +67,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
         return credits.settle(payload.id, payload.evidence);
       }
       case 'recoverMine': return credits.recoverFor(signer);
+      case 'providerOpenMine': return credits.providerOpenRequests(signer);
       case 'reconcileMine': return credits.reconcileConsumer(signer, payload?.activeIds ?? []);
       case 'snapshot': return credits.snapshot();
       case 'computers': return { at: now(), computers: [...credits.enrollment.byId.values()].map(computer => {

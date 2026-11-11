@@ -1,0 +1,606 @@
+{
+  "schema": "reploid.fleet-replay-bundle/v1",
+  "at": "2026-11-11T02:25:26.585Z",
+  "journey": "qwen3-8-27b-two-stage-partition-split-32",
+  "sourceCommit": "377b26538",
+  "mode": "partition",
+  "passed": true,
+  "cleanup": "settled",
+  "runtime": {
+    "name": "doppler-gpu",
+    "version": "0.7.0",
+    "integrity": "sha512-sRaOuz/K6YOhyitFlauZ3u8mFZdOmAEbcRKEhnm4rs7/ajCB/y7xPiI8mF+lpdvg39C+RPH+HDlbAQAen+lTjQ=="
+  },
+  "computers": [
+    {
+      "id": "comp-a",
+      "name": "Computer-A",
+      "ownerId": "owner",
+      "providers": [
+        {
+          "participantId": "peer:1fd554e9753b4c61ac5124ad",
+          "publicJwk": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "qW8LJkxENFYnIWFkI5_Z0wonPsH7F8sYxYIFlA_cfj8",
+            "kty": "OKP"
+          }
+        }
+      ]
+    },
+    {
+      "id": "comp-b",
+      "name": "Computer-B",
+      "ownerId": "owner",
+      "providers": [
+        {
+          "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+          "publicJwk": {
+            "key_ops": [
+              "verify"
+            ],
+            "ext": true,
+            "alg": "Ed25519",
+            "crv": "Ed25519",
+            "x": "PxQo90VFHOfJ_JrJsdOJQCEWbrlxwN2__qbnpTb6Q6w",
+            "kty": "OKP"
+          }
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "schema": "reploid.service-credit-policy/v1",
+    "version": "fleet-physical/1",
+    "unit": "noncash-service-credit",
+    "creditsPerOutputToken": 1,
+    "maxDebt": 10000,
+    "maxOutputTokens": 128,
+    "maxPendingPerComputer": 8,
+    "maxClockSkewMs": 30000,
+    "maxRequestMs": 300000,
+    "allowSameOwner": true
+  },
+  "requests": [
+    {
+      "id": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+      "binding": {
+        "id": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+        "executionId": "8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+        "consumer": "peer:1fd554e9753b4c61ac5124ad",
+        "mode": "partition",
+        "model": {
+          "id": "qwen3-8-27b-text-q4k-ehaf16",
+          "identity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:d3f105e400bff749daf24787f463cf177a0ff64d13d9406b0dde7bb8f04f4507",
+        "maxOutputTokens": 128,
+        "providers": [
+          {
+            "participantId": "peer:1fd554e9753b4c61ac5124ad",
+            "weight": 1
+          },
+          {
+            "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+            "weight": 1
+          }
+        ],
+        "route": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "a620a24b-22e6-48c0-b585-25c76272ea53",
+          "attemptId": "8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+          "requesterId": "peer:1fd554e9753b4c61ac5124ad",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+            "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:1fd554e9753b4c61ac5124ad",
+                "transportId": "d4d4554c-fb13-4508-926a-0d1361278e27",
+                "residentId": "fleet-resident-0-b6df7173-28a1-47f4-b654-13f94479657b",
+                "executionId": "fleet-execution-0-50b1a8c8-3a9d-40f6-857e-c1c8fafdfa66"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+                "transportId": "0224041d-a7c7-4202-a66c-666475532ad5",
+                "residentId": "fleet-resident-1-f4b7dd76-a583-4cee-a7b9-99de3df89f56",
+                "executionId": "fleet-execution-1-31723e93-0144-4bdc-91da-5023ae2ddbaf"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "requestHash": "7f3189afc464f9e060ff1ef15853d5f24c6155982fa4e4ac427101bdae3fded3",
+        "computerId": "comp-a",
+        "maximum": 128,
+        "policyVersion": "fleet-physical/1",
+        "terminalCharge": null,
+        "admissionVersion": 1,
+        "createdAt": 1794363713016,
+        "deadline": 1794364013016
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+        "unit": "noncash-service-credit",
+        "charge": 64,
+        "ownComputeUnits": 64,
+        "outputTokens": 128,
+        "credits": [
+          {
+            "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+            "computerId": "comp-b",
+            "amount": 64
+          }
+        ],
+        "evidenceHash": "3c99c51a37c94769cacf34d958469135b8990026c1cc1ca7febab255839fcaa5",
+        "economicHash": "2b4980c605866bd7dd2adcde4e00c89075f1cef44cc22625c9101887f46fbfe1",
+        "settledAt": 1794363815274
+      },
+      "evidence": {
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "a620a24b-22e6-48c0-b585-25c76272ea53",
+          "attemptId": "8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+          "requesterId": "peer:1fd554e9753b4c61ac5124ad",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+            "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:1fd554e9753b4c61ac5124ad",
+                "transportId": "d4d4554c-fb13-4508-926a-0d1361278e27",
+                "residentId": "fleet-resident-0-b6df7173-28a1-47f4-b654-13f94479657b",
+                "executionId": "fleet-execution-0-50b1a8c8-3a9d-40f6-857e-c1c8fafdfa66"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+                "transportId": "0224041d-a7c7-4202-a66c-666475532ad5",
+                "residentId": "fleet-resident-1-f4b7dd76-a583-4cee-a7b9-99de3df89f56",
+                "executionId": "fleet-execution-1-31723e93-0144-4bdc-91da-5023ae2ddbaf"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "receipts": [
+          {
+            "schema": "reploid.stage-receipt/v1",
+            "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+            "attemptId": "8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+            "routeHash": "sha256:3bac788a33108e3aa53104632272744fcc788fe3f82f19f585718d7a976511ed",
+            "partitionIndex": 0,
+            "participantId": "peer:1fd554e9753b4c61ac5124ad",
+            "sequence": 129,
+            "status": "settled",
+            "steps": 128,
+            "tokens": {
+              "prompt": 58,
+              "processed": 185
+            },
+            "timing": {
+              "reservedAt": "2026-11-11T02:21:53.595Z",
+              "firstStepAt": "2026-11-11T02:21:58.789Z",
+              "lastStepAt": "2026-11-11T02:23:34.770Z",
+              "closedAt": "2026-11-11T02:23:35.125Z"
+            },
+            "output": null,
+            "signedAt": "2026-11-11T02:23:35.125Z",
+            "publicJwk": {
+              "kty": "OKP",
+              "crv": "Ed25519",
+              "x": "qW8LJkxENFYnIWFkI5_Z0wonPsH7F8sYxYIFlA_cfj8"
+            },
+            "signature": "SYSvNFF--QFiQZzSsTiL6mv4_mjOOwMCBgiHZfRmvKQLG5NuA8dU1KeqlPS3f0tds_vD22Nkq0hxjtW_wJH1DA"
+          },
+          {
+            "schema": "reploid.stage-receipt/v1",
+            "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+            "attemptId": "8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+            "routeHash": "sha256:3bac788a33108e3aa53104632272744fcc788fe3f82f19f585718d7a976511ed",
+            "partitionIndex": 1,
+            "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+            "sequence": 129,
+            "status": "settled",
+            "steps": 128,
+            "tokens": {
+              "prompt": 58,
+              "processed": 185
+            },
+            "timing": {
+              "reservedAt": "2026-11-11T02:21:53.617Z",
+              "firstStepAt": "2026-11-11T02:22:02.184Z",
+              "lastStepAt": "2026-11-11T02:23:35.039Z",
+              "closedAt": "2026-11-11T02:23:35.081Z"
+            },
+            "output": {
+              "count": 128,
+              "chain": "sha256:bf8622228ab4dc8d8ffe7cda916297baf6dba8a587db075224c25e9087c6372e",
+              "done": true,
+              "stopReason": "max-tokens"
+            },
+            "signedAt": "2026-11-11T02:23:35.081Z",
+            "publicJwk": {
+              "kty": "OKP",
+              "crv": "Ed25519",
+              "x": "PxQo90VFHOfJ_JrJsdOJQCEWbrlxwN2__qbnpTb6Q6w"
+            },
+            "signature": "hFqoPC2-Wry9CbWudj15rhzuadELC3pIpLU_2Sofm5OZQKPZvEl0_3glQjd2MKOWU_m5wYAYNOiqnXGEu2WaBg"
+          }
+        ],
+        "acknowledgment": {
+          "schema": "reploid.output-acknowledgment/v1",
+          "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+          "attemptId": "8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+          "routeHash": "sha256:3bac788a33108e3aa53104632272744fcc788fe3f82f19f585718d7a976511ed",
+          "requesterId": "peer:1fd554e9753b4c61ac5124ad",
+          "count": 128,
+          "chain": "sha256:bf8622228ab4dc8d8ffe7cda916297baf6dba8a587db075224c25e9087c6372e",
+          "signedAt": "2026-11-11T02:23:35.118Z",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "qW8LJkxENFYnIWFkI5_Z0wonPsH7F8sYxYIFlA_cfj8"
+          },
+          "signature": "EfNQH2j8z0KmeILDvfwIKaCAO5JldluhrwG0mkOmuMp8ihklKCbxfR8Ril-JFK0P1WwJID4ls5TngwvbupTUCA"
+        },
+        "acknowledgedReceipt": {
+          "schema": "reploid.stage-receipt/v1",
+          "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+          "attemptId": "8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+          "routeHash": "sha256:3bac788a33108e3aa53104632272744fcc788fe3f82f19f585718d7a976511ed",
+          "partitionIndex": 1,
+          "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+          "sequence": 128,
+          "status": "executing",
+          "steps": 128,
+          "tokens": {
+            "prompt": 58,
+            "processed": 185
+          },
+          "timing": {
+            "reservedAt": "2026-11-11T02:21:53.617Z",
+            "firstStepAt": "2026-11-11T02:22:02.184Z",
+            "lastStepAt": "2026-11-11T02:23:35.039Z",
+            "closedAt": null
+          },
+          "output": {
+            "count": 128,
+            "chain": "sha256:bf8622228ab4dc8d8ffe7cda916297baf6dba8a587db075224c25e9087c6372e",
+            "done": true,
+            "stopReason": "max-tokens"
+          },
+          "signedAt": "2026-11-11T02:23:35.039Z",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "PxQo90VFHOfJ_JrJsdOJQCEWbrlxwN2__qbnpTb6Q6w"
+          },
+          "signature": "Yw82zIPEiJuVC6ceZc8p52clfL_r1f4wE9rq3DQdgaRN3Z8HeWxHdyNsDPHhZoe32I-iPGKbmFP8qevr36Q5Cg"
+        }
+      }
+    },
+    {
+      "id": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+      "binding": {
+        "id": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+        "executionId": "b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+        "consumer": "peer:1fd554e9753b4c61ac5124ad",
+        "mode": "partition",
+        "model": {
+          "id": "qwen3-8-27b-text-q4k-ehaf16",
+          "identity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+          "adapterIdentities": []
+        },
+        "inputDigest": "sha256:d3f105e400bff749daf24787f463cf177a0ff64d13d9406b0dde7bb8f04f4507",
+        "maxOutputTokens": 128,
+        "providers": [
+          {
+            "participantId": "peer:1fd554e9753b4c61ac5124ad",
+            "weight": 1
+          },
+          {
+            "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+            "weight": 1
+          }
+        ],
+        "route": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "f4972839-0d25-4ede-a150-38d9adba84ca",
+          "attemptId": "b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+          "requesterId": "peer:1fd554e9753b4c61ac5124ad",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+            "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:1fd554e9753b4c61ac5124ad",
+                "transportId": "d4d4554c-fb13-4508-926a-0d1361278e27",
+                "residentId": "fleet-resident-0-b6df7173-28a1-47f4-b654-13f94479657b",
+                "executionId": "fleet-execution-0-50b1a8c8-3a9d-40f6-857e-c1c8fafdfa66"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+                "transportId": "0224041d-a7c7-4202-a66c-666475532ad5",
+                "residentId": "fleet-resident-1-f4b7dd76-a583-4cee-a7b9-99de3df89f56",
+                "executionId": "fleet-execution-1-31723e93-0144-4bdc-91da-5023ae2ddbaf"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "requestHash": "e90e304a16b7452aef449d01b44d65dee922aaedce6c70afa982f98b3abc37df",
+        "computerId": "comp-a",
+        "maximum": 128,
+        "policyVersion": "fleet-physical/1",
+        "terminalCharge": null,
+        "admissionVersion": 1,
+        "createdAt": 1794363815320,
+        "deadline": 1794364115320
+      },
+      "state": "settled",
+      "outcome": {
+        "id": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+        "unit": "noncash-service-credit",
+        "charge": 64,
+        "ownComputeUnits": 64,
+        "outputTokens": 128,
+        "credits": [
+          {
+            "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+            "computerId": "comp-b",
+            "amount": 64
+          }
+        ],
+        "evidenceHash": "85afeeb1e24c3e4b2865a67f4744b97413879229d3aebd2b682b26b258a3cb89",
+        "economicHash": "33e247832589c3955c7a46f3039df6410950793e9738f2168566856b700ed7a6",
+        "settledAt": 1794363926585
+      },
+      "evidence": {
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "f4972839-0d25-4ede-a150-38d9adba84ca",
+          "attemptId": "b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+          "requesterId": "peer:1fd554e9753b4c61ac5124ad",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+            "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+            "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:1fd554e9753b4c61ac5124ad",
+                "transportId": "d4d4554c-fb13-4508-926a-0d1361278e27",
+                "residentId": "fleet-resident-0-b6df7173-28a1-47f4-b654-13f94479657b",
+                "executionId": "fleet-execution-0-50b1a8c8-3a9d-40f6-857e-c1c8fafdfa66"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+                "transportId": "0224041d-a7c7-4202-a66c-666475532ad5",
+                "residentId": "fleet-resident-1-f4b7dd76-a583-4cee-a7b9-99de3df89f56",
+                "executionId": "fleet-execution-1-31723e93-0144-4bdc-91da-5023ae2ddbaf"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 5120,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "receipts": [
+          {
+            "schema": "reploid.stage-receipt/v1",
+            "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+            "attemptId": "b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+            "routeHash": "sha256:0234b254671c40e2d1076ee556b9b1cd72bc3034597ac6828790a7d34dde23f9",
+            "partitionIndex": 0,
+            "participantId": "peer:1fd554e9753b4c61ac5124ad",
+            "sequence": 129,
+            "status": "settled",
+            "steps": 128,
+            "tokens": {
+              "prompt": 58,
+              "processed": 185
+            },
+            "timing": {
+              "reservedAt": "2026-11-11T02:23:35.408Z",
+              "firstStepAt": "2026-11-11T02:23:43.476Z",
+              "lastStepAt": "2026-11-11T02:25:26.059Z",
+              "closedAt": "2026-11-11T02:25:26.408Z"
+            },
+            "output": null,
+            "signedAt": "2026-11-11T02:25:26.408Z",
+            "publicJwk": {
+              "kty": "OKP",
+              "crv": "Ed25519",
+              "x": "qW8LJkxENFYnIWFkI5_Z0wonPsH7F8sYxYIFlA_cfj8"
+            },
+            "signature": "XIPusqfF-YNf_rNgHf0cMnxThuDfMGBgSVB0bvSEw1fLkiNg0ffRzg6_DXhon2h01w932G9f-irNYsng3hz8CA"
+          },
+          {
+            "schema": "reploid.stage-receipt/v1",
+            "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+            "attemptId": "b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+            "routeHash": "sha256:0234b254671c40e2d1076ee556b9b1cd72bc3034597ac6828790a7d34dde23f9",
+            "partitionIndex": 1,
+            "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+            "sequence": 129,
+            "status": "settled",
+            "steps": 128,
+            "tokens": {
+              "prompt": 58,
+              "processed": 185
+            },
+            "timing": {
+              "reservedAt": "2026-11-11T02:23:35.365Z",
+              "firstStepAt": "2026-11-11T02:23:47.496Z",
+              "lastStepAt": "2026-11-11T02:25:26.311Z",
+              "closedAt": "2026-11-11T02:25:26.345Z"
+            },
+            "output": {
+              "count": 128,
+              "chain": "sha256:2a02cf9dc67a4553875f51fb080e3a3c1276789596be98d8a7574a8fa6db216a",
+              "done": true,
+              "stopReason": "max-tokens"
+            },
+            "signedAt": "2026-11-11T02:25:26.345Z",
+            "publicJwk": {
+              "kty": "OKP",
+              "crv": "Ed25519",
+              "x": "PxQo90VFHOfJ_JrJsdOJQCEWbrlxwN2__qbnpTb6Q6w"
+            },
+            "signature": "_1L0faYe5okfwg6c3bQxOWEcoZ5RGuMrWIQCzY-pPdYkNvypNLo0XKlX1Q8C2Bx9i9BC9X9RLNC1nmb4YchcCQ"
+          }
+        ],
+        "acknowledgment": {
+          "schema": "reploid.output-acknowledgment/v1",
+          "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+          "attemptId": "b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+          "routeHash": "sha256:0234b254671c40e2d1076ee556b9b1cd72bc3034597ac6828790a7d34dde23f9",
+          "requesterId": "peer:1fd554e9753b4c61ac5124ad",
+          "count": 128,
+          "chain": "sha256:2a02cf9dc67a4553875f51fb080e3a3c1276789596be98d8a7574a8fa6db216a",
+          "signedAt": "2026-11-11T02:25:26.398Z",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "qW8LJkxENFYnIWFkI5_Z0wonPsH7F8sYxYIFlA_cfj8"
+          },
+          "signature": "7bko06JczSpcoVTboNm65OQY2e-3foALFjjzxwWK-ATfQaaK4ysL85pCeKZzog4IhYUBZ5dt3y6b2IX6MjH_CA"
+        },
+        "acknowledgedReceipt": {
+          "schema": "reploid.stage-receipt/v1",
+          "reservationId": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+          "attemptId": "b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+          "routeHash": "sha256:0234b254671c40e2d1076ee556b9b1cd72bc3034597ac6828790a7d34dde23f9",
+          "partitionIndex": 1,
+          "participantId": "peer:0d30d7fcec6afc86b8dff2ad",
+          "sequence": 128,
+          "status": "executing",
+          "steps": 128,
+          "tokens": {
+            "prompt": 58,
+            "processed": 185
+          },
+          "timing": {
+            "reservedAt": "2026-11-11T02:23:35.365Z",
+            "firstStepAt": "2026-11-11T02:23:47.496Z",
+            "lastStepAt": "2026-11-11T02:25:26.311Z",
+            "closedAt": null
+          },
+          "output": {
+            "count": 128,
+            "chain": "sha256:2a02cf9dc67a4553875f51fb080e3a3c1276789596be98d8a7574a8fa6db216a",
+            "done": true,
+            "stopReason": "max-tokens"
+          },
+          "signedAt": "2026-11-11T02:25:26.311Z",
+          "publicJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "PxQo90VFHOfJ_JrJsdOJQCEWbrlxwN2__qbnpTb6Q6w"
+          },
+          "signature": "KEAOtSUexXv7pwySTB0MceL6usI2JW8bwo0qO_7WHYywUrOOZfvq3M00KMo5K-sGVVy882osVFWLTVHfnG94BQ"
+        }
+      }
+    }
+  ],
+  "balances": {
+    "unit": "noncash-service-credit",
+    "policyVersion": "fleet-physical/1",
+    "accounts": [
+      {
+        "id": "comp-a",
+        "balance": -128,
+        "held": 0,
+        "name": "Computer-A",
+        "available": -128
+      },
+      {
+        "id": "comp-b",
+        "balance": 128,
+        "held": 0,
+        "name": "Computer-B",
+        "available": 128
+      }
+    ],
+    "journal": [
+      {
+        "sequence": 1,
+        "request_id": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+        "account_id": "comp-a",
+        "delta": -64,
+        "at": 1794363815274
+      },
+      {
+        "sequence": 2,
+        "request_id": "service:peer:1fd554e9753b4c61ac5124ad:8333c0cd-35ae-4d07-be84-e7f56e8bae63",
+        "account_id": "comp-b",
+        "delta": 64,
+        "at": 1794363815274
+      },
+      {
+        "sequence": 3,
+        "request_id": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+        "account_id": "comp-a",
+        "delta": -64,
+        "at": 1794363926585
+      },
+      {
+        "sequence": 4,
+        "request_id": "service:peer:1fd554e9753b4c61ac5124ad:b5dab187-da88-4edd-b4a7-a7f8b5e78162",
+        "account_id": "comp-b",
+        "delta": 64,
+        "at": 1794363926585
+      }
+    ]
+  }
+}

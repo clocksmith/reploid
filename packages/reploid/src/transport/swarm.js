@@ -26,7 +26,7 @@ const MESSAGE_TYPES = new Set([
   'reploid:identity-challenge', 'reploid:identity-proof',
   'reploid:generation-request', 'reploid:generation-update',
   'reploid:generation-result', 'reploid:generation-error',
-  'reploid:generation-cancel',
+  'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',
   'reploid:receipt',
   'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel',
   'reploid:tool-offer', 'reploid:tool-offer-ack',

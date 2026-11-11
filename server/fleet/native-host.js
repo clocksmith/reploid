@@ -9,6 +9,7 @@ import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'doppler-gpu/partitions';
 import { getDevice, getKernelCapabilities } from 'doppler-gpu/tooling/device';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
+import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createNativeParticipant, createNativeRtcAdapter, createNativeGpuHost, readNativeRoomTokenFile } from '../native-participant.js';
 import { openNativeOwnerControls } from '../native-owner/controls.js';
@@ -80,104 +81,55 @@ export function includeRequesterPresence(computers, state, at) {
   });
 }
 
-/** One process owns one GPU host. Model changes drain the old resident before preparing another. */
-export async function openFleetNativeHost({ configuration, loadRtc = () => import('@roamhq/wrtc'), loadSocket = () => import('ws'),
-  loadGpu = () => import('webgpu'), onChange = () => {} }) {
-  const config = structuredClone(configuration);
-  assert(config.schema === 'reploid.fleet-native/v1' && text(config.computerId) && text(config.name)
-    && Array.isArray(config.models) && config.models.length > 0
-    && config.models.every(row => ['partition', 'whole-model'].includes(row.mode)), 'Explicit fleet native configuration required');
-  assert(text(config.roomId) && config.roomId !== bootstrap.publicRoomId && config.roomTokenFile,
-    'Operator fleet models require an explicit private room');
-  const identity = await openComputerIdentity(config.identityFile);
-  const [rtcModule, socketModule] = await Promise.all([loadRtc(), loadSocket()]);
-  const rtc = createNativeRtcAdapter(rtcModule.default ?? rtcModule), Socket = socketModule.default ?? socketModule.WebSocket;
-  class WebSocket extends Socket { constructor(url) { super(url, { origin: config.origin || 'http://localhost:8000' }); } }
-  const serviceCa = config.serviceCaFile ? (assert(path.isAbsolute(config.serviceCaFile), 'Absolute service CA certificate path required'),
-    await fs.readFile(config.serviceCaFile)) : null;
-  const gpu = createNativeGpuHost(loadGpu), credits = config.serviceUrl ? createFleetClient({ url: config.serviceUrl, identity, ca: serviceCa,
-    outboxFile: path.join(path.dirname(config.identityFile), 'service-credit-outbox.json') }) : null;
-  const owner = config.ownerPolicyFile ? await openNativeOwnerControls({ file: config.ownerPolicyFile, custody: custodyPolicy,
-    readGpuBuffers: async () => (await import('doppler-gpu/partitions')).inspectDeviceMemory() }) : null;
-  const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
-    : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
-  let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
-  const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
-
-  // Per-thread round-robin fair queue for capacity-gated requester admission.
-  const queuedEntries = new Map(), laneOrder = [], laneBuckets = new Map();
+/** Fair round-robin admission scheduler across conversation lanes, including fast-path dispatches. */
+export function createFairLaneScheduler({
+  enabled = true,
+  capacityWaitMs = 30000,
+  canDrain = () => true,
+  findRoute,
+  freeSlots,
+  onPoll = () => {}
+}) {
+  const queuedEntries = new Map(), laneBuckets = new Map(), laneLastDispatched = new Map();
   const activeProvidersByAttempt = new Map();
-  let startingDispatches = 0, queuePollTimer = null;
+  let startingDispatches = 0, dispatchSequence = 0, queuePollTimer = null, closed = false;
 
-  function recordOutcome(outcome) {
-    if (!outcome) return outcome;
-    if (outcome.attemptId) {
-      outcomesByAttempt.delete(outcome.attemptId);
-      outcomesByAttempt.set(outcome.attemptId, outcome);
-      while (outcomesByAttempt.size > 128) outcomesByAttempt.delete(outcomesByAttempt.keys().next().value);
+  function recordLaneDispatch(lane) {
+    laneLastDispatched.set(lane, ++dispatchSequence);
+    if (laneLastDispatched.size > 256) {
+      for (const key of laneLastDispatched.keys()) {
+        if (!laneBuckets.has(key)) {
+          laneLastDispatched.delete(key);
+          if (laneLastDispatched.size <= 192) break;
+        }
+      }
     }
-    if (outcome.reservationId) {
-      outcomesByReservation.delete(outcome.reservationId);
-      outcomesByReservation.set(outcome.reservationId, outcome);
-      while (outcomesByReservation.size > 128) outcomesByReservation.delete(outcomesByReservation.keys().next().value);
-    }
-    return outcome;
-  }
-  const lookupOutcome = id => outcomesByReservation.get(id) ?? outcomesByAttempt.get(id) ?? null;
-  const resolveProviderId = (_reservationId, binding) => {
-    const target = binding?.providers?.[0]?.participantId;
-    if (!target) return null;
-    const peers = participant?.getNetworkState()?.peers || [];
-    return peers.find(peer => peer.participantId === target)?.peerId ?? null;
-  };
-  const state = () => ({ computerId: config.computerId, name: config.name, participantId: identity.peerId,
-    selected: selected && { modelId: selected.model.id, modelIdentity: selected.model.identity, mode: selected.mode },
-    preparing, activeRequests: requests.size, queuedRequests: queuedEntries.size, error: lastError, hardware: fleetHardwareSnapshot(),
-    execution: participant?.getState() ?? null, network: participant?.getNetworkState() ?? null });
-
-  function findMatchingRoute(requested, allowPartitionFallback = false) {
-    const available = (participant?.getState()?.models || []).filter(model => model.id === requested.id
-      && model.identity === requested.identity
-      && (requested.partition ? model.availability === 'ready' : ['ready', 'busy'].includes(model.availability))
-      && same(partitionAdapterIdentities(model), partitionAdapterIdentities(requested)));
-    return requested.partition ? available.find(model => same(model.partition, requested.partition))
-      : available.find(model => !model.partition) || (allowPartitionFallback ? available.find(model => model.partition && model.availability === 'ready') : null);
-  }
-
-  function freeDispatchSlots(chosen) {
-    if (!chosen) return 0;
-    const busyPeers = new Set(activeProvidersByAttempt.values());
-    if (chosen.partition) {
-      return chosen.availability === 'ready' && busyPeers.size === 0 && startingDispatches === 0 ? 1 : 0;
-    }
-    const peers = participant?.getNetworkState()?.peers || [];
-    const matching = peers.filter(peer => peer.readiness === 'ready' && peer.model === chosen.id
-      && (!chosen.identity || peer.modelIdentity === chosen.identity));
-    if (matching.length > 0) {
-      const freePeers = matching.reduce((sum, peer) => {
-        if (busyPeers.has(peer.peerId)) return sum;
-        const slots = Number.isSafeInteger(peer.availableSlots) && peer.availableSlots > 0 ? peer.availableSlots : 0;
-        return sum + slots;
-      }, 0);
-      return Math.max(0, freePeers - startingDispatches);
-    }
-    return chosen.availability === 'ready' && busyPeers.size === 0 && startingDispatches === 0 ? 1 : 0;
   }
 
   function computeFairOrder() {
     const copies = new Map();
-    for (const lane of laneOrder) {
-      const items = laneBuckets.get(lane);
-      if (items?.length) copies.set(lane, [...items]);
+    const virtualLast = new Map();
+    let virtualSeq = dispatchSequence;
+    for (const [lane, items] of laneBuckets.entries()) {
+      if (items?.length) {
+        copies.set(lane, [...items]);
+        virtualLast.set(lane, laneLastDispatched.get(lane) ?? 0);
+      }
     }
     const order = [];
-    const activeLanes = [...copies.keys()];
-    while (activeLanes.length > 0) {
-      const lane = activeLanes.shift();
-      const items = copies.get(lane);
-      if (!items?.length) continue;
+    while (copies.size > 0) {
+      let bestLane = null, bestSeq = Infinity, bestQueuedAt = Infinity;
+      for (const [lane, items] of copies.entries()) {
+        const seq = virtualLast.get(lane) ?? 0, queuedAt = items[0].queuedAt;
+        if (seq < bestSeq || (seq === bestSeq && queuedAt < bestQueuedAt)) {
+          bestLane = lane; bestSeq = seq; bestQueuedAt = queuedAt;
+        }
+      }
+      if (bestLane === null) break;
+      const items = copies.get(bestLane);
       order.push(items.shift());
-      if (items.length > 0) activeLanes.push(lane);
+      virtualLast.set(bestLane, ++virtualSeq);
+      if (items.length === 0) copies.delete(bestLane);
     }
     return order;
   }
@@ -203,11 +155,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     if (items) {
       const index = items.indexOf(entry);
       if (index >= 0) items.splice(index, 1);
-      if (!items.length) {
-        laneBuckets.delete(entry.lane);
-        const laneIndex = laneOrder.indexOf(entry.lane);
-        if (laneIndex >= 0) laneOrder.splice(laneIndex, 1);
-      }
+      if (!items.length) laneBuckets.delete(entry.lane);
     }
     if (queuedEntries.size === 0 && queuePollTimer) {
       clearInterval(queuePollTimer);
@@ -215,34 +163,32 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     }
   }
 
-  function drainRequesterQueue() {
-    if (closed || preparing || !queuedEntries.size) return;
+  function drain() {
+    if (closed || !canDrain() || !queuedEntries.size) return;
     let progressed = true;
-    while (progressed && laneOrder.length > 0) {
+    while (progressed && laneBuckets.size > 0) {
       progressed = false;
-      const checkedLanes = laneOrder.length;
-      for (let i = 0; i < checkedLanes; i++) {
-        const lane = laneOrder.shift();
-        const items = laneBuckets.get(lane);
-        if (!items?.length) {
-          laneBuckets.delete(lane);
-          continue;
-        }
+      const candidates = [...laneBuckets.entries()]
+        .filter(([, items]) => items?.length > 0)
+        .sort(([laneA, itemsA], [laneB, itemsB]) => {
+          const seqDiff = (laneLastDispatched.get(laneA) ?? 0) - (laneLastDispatched.get(laneB) ?? 0);
+          return seqDiff !== 0 ? seqDiff : itemsA[0].queuedAt - itemsB[0].queuedAt;
+        });
+      for (const [lane, items] of candidates) {
         const entry = items[0];
-        const chosen = findMatchingRoute(entry.requestedModel, entry.allowPartitionFallback);
-        if (chosen && freeDispatchSlots(chosen) > 0) {
+        const chosen = findRoute(entry.requestedModel, entry.allowPartitionFallback);
+        if (chosen && freeSlots(chosen, activeProvidersByAttempt, startingDispatches) > 0) {
           items.shift();
-          if (items.length > 0) laneOrder.push(lane);
-          else laneBuckets.delete(lane);
+          if (items.length === 0) laneBuckets.delete(lane);
           queuedEntries.delete(entry.attemptId);
           clearTimeout(entry.timer);
           entry.signal?.removeEventListener('abort', entry.onAbort);
+          recordLaneDispatch(lane);
           startingDispatches += 1;
           entry.resolve({ chosen, queuedMs: Math.max(0, Date.now() - entry.queuedAt), releaseStarting: true });
           progressed = true;
           break;
         }
-        laneOrder.push(lane);
       }
     }
     if (queuedEntries.size === 0 && queuePollTimer) {
@@ -252,54 +198,46 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     notifyQueuePositions();
   }
 
-  async function acquireDispatchSlot({ attemptId, threadId, requestedModel, allowPartitionFallback = false, signal, onAdmission }) {
+  async function acquire({ attemptId, threadId, requestedModel, allowPartitionFallback = false, signal, onAdmission }) {
     signal.throwIfAborted();
-    if (config.followPlacement !== true) {
-      const immediate = findMatchingRoute(requestedModel, allowPartitionFallback);
-      return { chosen: immediate, queuedMs: 0, release() {} };
+    if (!enabled) {
+      const immediate = findRoute(requestedModel, allowPartitionFallback);
+      return { chosen: immediate, queuedMs: 0, markDisclosed() {}, release() {} };
     }
-    assert(Number.isSafeInteger(config.capacityWaitMs) && config.capacityWaitMs > 0, 'Explicit capacity wait bound required');
+    assert(Number.isSafeInteger(capacityWaitMs) && capacityWaitMs > 0, 'Explicit capacity wait bound required');
+    const lane = typeof threadId === 'string' && threadId ? threadId : attemptId;
     if (queuedEntries.size === 0) {
-      const immediate = findMatchingRoute(requestedModel, allowPartitionFallback);
-      if (immediate && freeDispatchSlots(immediate) > 0) {
+      const immediate = findRoute(requestedModel, allowPartitionFallback);
+      if (immediate && freeSlots(immediate, activeProvidersByAttempt, startingDispatches) > 0) {
+        recordLaneDispatch(lane);
         startingDispatches += 1;
         let startingHeld = true;
         return {
           chosen: immediate,
           queuedMs: 0,
-          markDisclosed(providerId) {
-            if (typeof providerId === 'string' && providerId) activeProvidersByAttempt.set(attemptId, providerId);
+          markDisclosed(providerKey) {
+            if (providerKey) activeProvidersByAttempt.set(attemptId, providerKey);
             if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-            drainRequesterQueue();
+            drain();
           },
           release() {
             activeProvidersByAttempt.delete(attemptId);
             if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-            drainRequesterQueue();
+            drain();
           }
         };
       }
     }
     const queuedAt = Date.now();
-    const lane = typeof threadId === 'string' && threadId ? threadId : attemptId;
     const acquired = await new Promise((resolve, reject) => {
       const entry = {
-        attemptId,
-        lane,
-        requestedModel,
-        allowPartitionFallback,
-        signal,
-        onAdmission,
-        queuedAt,
-        lastPosition: 0,
-        lastTotal: 0,
-        resolve,
-        reject,
+        attemptId, lane, requestedModel, allowPartitionFallback, signal, onAdmission, queuedAt,
+        lastPosition: 0, lastTotal: 0, resolve, reject,
         timer: setTimeout(() => {
           removeQueuedEntry(entry);
           notifyQueuePositions();
           reject(Error('No ready capacity within the configured wait'));
-        }, config.capacityWaitMs),
+        }, capacityWaitMs),
         onAbort: () => {
           removeQueuedEntry(entry);
           notifyQueuePositions();
@@ -308,45 +246,178 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       };
       signal.addEventListener('abort', entry.onAbort, { once: true });
       let items = laneBuckets.get(lane);
-      if (!items) {
-        items = [];
-        laneBuckets.set(lane, items);
-        laneOrder.push(lane);
-      }
+      if (!items) { items = []; laneBuckets.set(lane, items); }
       items.push(entry);
       queuedEntries.set(attemptId, entry);
       if (!queuePollTimer) {
         queuePollTimer = setInterval(() => {
-          void publishDemand().catch(() => {});
-          drainRequesterQueue();
+          void Promise.resolve(onPoll()).catch(() => {});
+          drain();
         }, 500);
         queuePollTimer.unref?.();
       }
       notifyQueuePositions();
-      drainRequesterQueue();
+      drain();
     });
     let startingHeld = acquired.releaseStarting === true;
     onAdmission?.({ status: 'admitted', queuedMs: acquired.queuedMs });
     return {
       chosen: acquired.chosen,
       queuedMs: acquired.queuedMs,
-      markDisclosed(providerId) {
-        if (typeof providerId === 'string' && providerId) activeProvidersByAttempt.set(attemptId, providerId);
+      markDisclosed(providerKey) {
+        if (providerKey) activeProvidersByAttempt.set(attemptId, providerKey);
         if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-        drainRequesterQueue();
+        drain();
       },
       release() {
         activeProvidersByAttempt.delete(attemptId);
         if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-        drainRequesterQueue();
+        drain();
       }
     };
   }
 
+  return Object.freeze({
+    acquire,
+    drain,
+    queuedCount: () => queuedEntries.size,
+    close() {
+      closed = true;
+      if (queuePollTimer) { clearInterval(queuePollTimer); queuePollTimer = null; }
+    }
+  });
+}
+
+/** One process owns one GPU host. Model changes drain the old resident before preparing another. */
+export async function openFleetNativeHost({ configuration, loadRtc = () => import('@roamhq/wrtc'), loadSocket = () => import('ws'),
+  loadGpu = () => import('webgpu'), onChange = () => {} }) {
+  const config = structuredClone(configuration);
+  assert(config.schema === 'reploid.fleet-native/v1' && text(config.computerId) && text(config.name)
+    && Array.isArray(config.models) && config.models.length > 0
+    && config.models.every(row => ['partition', 'whole-model'].includes(row.mode)), 'Explicit fleet native configuration required');
+  assert(text(config.roomId) && config.roomId !== bootstrap.publicRoomId && config.roomTokenFile,
+    'Operator fleet models require an explicit private room');
+  const identity = await openComputerIdentity(config.identityFile);
+  const [rtcModule, socketModule] = await Promise.all([loadRtc(), loadSocket()]);
+  const rtc = createNativeRtcAdapter(rtcModule.default ?? rtcModule), Socket = socketModule.default ?? socketModule.WebSocket;
+  class WebSocket extends Socket { constructor(url) { super(url, { origin: config.origin || 'http://localhost:8000' }); } }
+  const serviceCa = config.serviceCaFile ? (assert(path.isAbsolute(config.serviceCaFile), 'Absolute service CA certificate path required'),
+    await fs.readFile(config.serviceCaFile)) : null;
+  const gpu = createNativeGpuHost(loadGpu), credits = config.serviceUrl ? createFleetClient({ url: config.serviceUrl, identity, ca: serviceCa,
+    outboxFile: path.join(path.dirname(config.identityFile), 'service-credit-outbox.json') }) : null;
+  const owner = config.ownerPolicyFile ? await openNativeOwnerControls({ file: config.ownerPolicyFile, custody: custodyPolicy,
+    readGpuBuffers: async () => (await import('doppler-gpu/partitions')).inspectDeviceMemory() }) : null;
+  const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
+    : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
+  let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
+  const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
+
+  function recordOutcome(outcome) {
+    if (!outcome) return outcome;
+    if (outcome.attemptId) {
+      outcomesByAttempt.delete(outcome.attemptId);
+      outcomesByAttempt.set(outcome.attemptId, outcome);
+      while (outcomesByAttempt.size > 128) outcomesByAttempt.delete(outcomesByAttempt.keys().next().value);
+    }
+    if (outcome.reservationId) {
+      outcomesByReservation.delete(outcome.reservationId);
+      outcomesByReservation.set(outcome.reservationId, outcome);
+      while (outcomesByReservation.size > 128) outcomesByReservation.delete(outcomesByReservation.keys().next().value);
+    }
+    return outcome;
+  }
+  const lookupOutcome = id => outcomesByReservation.get(id) ?? outcomesByAttempt.get(id) ?? null;
+  const resolveProviderId = (_reservationId, binding) => {
+    const target = binding?.providers?.[0]?.participantId;
+    if (!target) return null;
+    const peers = participant?.getNetworkState()?.peers || [];
+    return peers.find(peer => peer.participantId === target)?.peerId ?? null;
+  };
+
+  function findMatchingRoute(requested, allowPartitionFallback = false) {
+    const available = (participant?.getState()?.models || []).filter(model => model.id === requested.id
+      && model.identity === requested.identity
+      && (requested.partition ? model.availability === 'ready' : ['ready', 'busy'].includes(model.availability))
+      && same(partitionAdapterIdentities(model), partitionAdapterIdentities(requested)));
+    return requested.partition ? available.find(model => same(model.partition, requested.partition))
+      : available.find(model => !model.partition) || (allowPartitionFallback ? available.find(model => model.partition && model.availability === 'ready') : null);
+  }
+
+  function freeDispatchSlots(chosen, activeProvidersByAttempt, startingDispatches) {
+    if (!chosen) return 0;
+    const busyKeys = new Set();
+    for (const value of activeProvidersByAttempt.values()) {
+      for (const key of Array.isArray(value) ? value : [value]) {
+        if (typeof key === 'string' && key) busyKeys.add(key);
+      }
+    }
+    if (chosen.partition) {
+      return chosen.availability === 'ready' && busyKeys.size === 0 && startingDispatches === 0 ? 1 : 0;
+    }
+    const peers = participant?.getNetworkState()?.peers || [];
+    const matching = peers.filter(peer => peer.readiness === 'ready' && peer.model === chosen.id
+      && (!chosen.identity || peer.modelIdentity === chosen.identity));
+    if (matching.length > 0) {
+      const seenParticipants = new Set();
+      const freePeers = matching.reduce((sum, peer) => {
+        const participantKey = peer.participantId || peer.peerId;
+        if (busyKeys.has(peer.peerId) || (participantKey && (busyKeys.has(participantKey) || seenParticipants.has(participantKey)))) return sum;
+        if (participantKey) seenParticipants.add(participantKey);
+        const slots = Number.isSafeInteger(peer.availableSlots) && peer.availableSlots > 0 ? peer.availableSlots : 0;
+        return sum + slots;
+      }, 0);
+      return Math.max(0, freePeers - startingDispatches);
+    }
+    return chosen.availability === 'ready' && busyKeys.size === 0 && startingDispatches === 0 ? 1 : 0;
+  }
+
+  const laneScheduler = createFairLaneScheduler({
+    enabled: config.followPlacement === true,
+    capacityWaitMs: config.capacityWaitMs,
+    canDrain: () => !closed && !preparing,
+    findRoute: findMatchingRoute,
+    freeSlots: freeDispatchSlots,
+    onPoll: () => publishDemand()
+  });
+  const acquireDispatchSlot = options => laneScheduler.acquire(options);
+  const drainRequesterQueue = () => laneScheduler.drain();
+  const state = () => ({ computerId: config.computerId, name: config.name, participantId: identity.peerId,
+    selected: selected && { modelId: selected.model.id, modelIdentity: selected.model.identity, mode: selected.mode },
+    preparing, activeRequests: requests.size, queuedRequests: laneScheduler.queuedCount(), error: lastError, hardware: fleetHardwareSnapshot(),
+    execution: participant?.getState() ?? null, network: participant?.getNetworkState() ?? null });
+
+  let startupProviderCleaned = false;
   async function reconcileCredits() {
     if (!credits) return [];
-    return credits.reconcile(requests.size === 0 ? { activeIds: [] } : {});
+    const results = [];
+    if (!startupProviderCleaned && !participant && !preparing) {
+      try {
+        const orphaned = await credits.call('providerOpenMine', {});
+        for (const row of orphaned) {
+          if (row.binding?.providers?.[0]?.participantId !== identity.peerId) continue;
+          const terminal = await signGenerationTerminal({
+            requestId: row.binding.executionId,
+            provider: identity.peerId,
+            consumer: row.binding.consumer,
+            model: row.binding.model.id,
+            modelIdentity: row.binding.model.identity,
+            adapterIdentities: row.binding.model.adapterIdentities || [],
+            inputDigest: row.binding.inputDigest
+          }, 'failed', identity);
+          results.push(await credits.collect(row.id, { terminal }));
+        }
+        startupProviderCleaned = true;
+      } catch {
+        // Retry startup provider orphan cleanup on the next pre-mesh reconcile if service was unreachable.
+      }
+    }
+    const reconciled = await credits.reconcile(requests.size === 0 ? { activeIds: [] } : {});
+    for (const row of reconciled) {
+      if (!results.some(prior => prior.id === row.id)) results.push(row);
+    }
+    return results;
   }
+  await reconcileCredits().catch(() => {});
 
   async function select(index, contribute) {
     assert(!closed && !preparing && requests.size === 0, 'Computer is busy or closing');
@@ -529,7 +600,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
           ...controls,
           signal: controller.signal,
           requestApproval: async disclosure => {
-            slot?.markDisclosed?.(disclosure?.providerId);
+            slot?.markDisclosed?.([disclosure?.providerId, typeof disclosure?.recipientIdentity === 'string' ? disclosure.recipientIdentity : null].filter(Boolean));
             return controls.requestApproval(disclosure);
           }
         };
@@ -609,7 +680,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         const controls = { signal: controller.signal, onDelta,
           requestApproval: async disclosure => {
             assert(same(disclosure.input?.messages, request.messages), 'Changed prompt disclosure');
-            slot?.markDisclosed?.(disclosure?.providerId);
+            slot?.markDisclosed?.([disclosure?.providerId, typeof disclosure?.recipientIdentity === 'string' ? disclosure.recipientIdentity : null].filter(Boolean));
             onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.
           } };
@@ -627,7 +698,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     cancel(attemptId) { requests.get(attemptId)?.controller.abort(new DOMException('Stopped by owner', 'AbortError')); },
     async close() {
       closed = true;
-      if (queuePollTimer) { clearInterval(queuePollTimer); queuePollTimer = null; }
+      laneScheduler.close();
       for (const { controller } of requests.values()) controller.abort();
       try { await participant?.close(); } finally { await owner?.close(); await gpu.close(); }
     }

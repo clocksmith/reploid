@@ -30,6 +30,7 @@ import { parseArgs } from 'node:util';
 import { createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority, residentPreparationProgress } from '../packages/reploid/src/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
+import { signGenerationTerminal } from '../packages/reploid/src/artifacts/generation-terminal.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { resolveConfig, requireResolvedConfig } from '../packages/reploid/src/config/index.js';
 import { createWorkAdapterResolver } from '../apps/poolday/providers/work-adapter.js';
@@ -525,6 +526,19 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     if (failures.length) throw new AggregateError(failures, 'Native contribution did not settle cleanly');
   })().catch(error => { closePromise = null; throw error; });
   try {
+    if (generationJournal) {
+      for (const priorBinding of await generationJournal.unfinished()) {
+        if (priorBinding?.provider !== identity.peerId) continue;
+        const terminal = await signGenerationTerminal(priorBinding, 'failed', identity);
+        await generationJournal.finish(priorBinding, {
+          type: 'reploid:generation-error',
+          payload: { requestId: priorBinding.requestId, error: 'Provider restarted after unfinished execution', terminal }
+        });
+        if (executionAdmission) {
+          await executionAdmission.terminal(terminal).catch(error => logger.warn('Fleet terminal recovery deferred', error?.code || error?.message));
+        }
+      }
+    }
     if (canonical) epochs = await openNativeCanonicalEpochs({ directory: canonical.epochDirectory, participantId: identity.peerId, meshId: roomId });
     await mesh.connect();
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,

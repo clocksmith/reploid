@@ -20,6 +20,10 @@ export async function openNativeGenerationJournal({ file, maxResults, maxResultB
       const row = db.prepare('SELECT binding, outcome FROM generation WHERE id = ?').get(key(binding));
       return row ? { binding: JSON.parse(row.binding), outcome: row.outcome ? JSON.parse(row.outcome) : null } : null;
     },
+    async unfinished() {
+      return db.prepare('SELECT binding FROM generation WHERE finished = 0 ORDER BY rowid ASC').all()
+        .map(row => JSON.parse(row.binding));
+    },
     async claim(binding) {
       return db.prepare('INSERT OR IGNORE INTO generation (id, binding) VALUES (?, ?)')
         .run(key(binding), JSON.stringify(binding)).changes === 1;
