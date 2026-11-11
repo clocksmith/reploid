@@ -267,3 +267,43 @@ it('keeps the cache lease through failed GPU cleanup and releases it only after 
     if (descriptor) Object.defineProperty(navigator, 'locks', descriptor); else delete navigator.locks;
   }
 });
+
+it('clamps near-ceiling conversations to remaining context tokens and rejects over-ceiling turns without retiring the resident', async () => {
+  const seenMaxTokens = [];
+  const f = fixture({
+    supports: capability => capability === 'advanced' || capability === 'generationContext',
+    createGenerationContext: vi.fn(() => ({ close: vi.fn(), getStats: () => ({ allocatedBytes: 4096, cachedTokens: 32 }) })),
+    advanced: {
+      createIncrementalDecoder: () => ({ push: token => token, finish: () => '' }),
+      getGenerationGeometry: () => ({ vocabSize: 151936, maxSeqLen: 2048 }),
+      tokenizePrompt: messages => new Array(Number(messages[0].tokenCount))
+    },
+    async *stream(_messages, options) {
+      seenMaxTokens.push(options.maxTokens);
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'bounded reply' };
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'bounded reply',
+        completion: { schema: 'doppler.generation-completion/v1', stopReason: 'max-tokens', promptTokenCount: 1800, generatedTokenCount: 248 } };
+    }
+  }, {
+    generation: { maxTokens: 512, useChatTemplate: true },
+    loadOptions: { runtimeConfig: { shared: { bufferPool: { budget: { maxTotalBytes: 400000000 } } } } }
+  });
+  await f.owner.prepare();
+  expect(f.owner.getState().contextCache?.maxBytes).toBe(100000000);
+
+  const clamped = await f.owner.generate([{ role: 'user', content: 'near limit', tokenCount: 1800 }], () => {},
+    { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u1', contextId: 'thread-1' });
+  expect(clamped.content).toBe('bounded reply');
+  expect(seenMaxTokens).toEqual([248]);
+
+  await expect(f.owner.generate([{ role: 'user', content: 'over limit', tokenCount: 2048 }], () => {},
+    { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u1', contextId: 'thread-1' }))
+    .rejects.toMatchObject({ code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true });
+
+  expect(f.owner.getState()).toMatchObject({ phase: 'ready', ready: true, error: null });
+  const after = await f.owner.generate([{ role: 'user', content: 'short follow-up', tokenCount: 64 }], () => {},
+    { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u2', contextId: 'thread-2' });
+  expect(after.content).toBe('bounded reply');
+  expect(seenMaxTokens).toEqual([248, 512]);
+  await f.owner.close();
+});

@@ -24,8 +24,15 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
   if (session) requireValue(typeof session.stream === 'function', 'Configured Doppler session does not expose text streaming');
   else requireValue(typeof credentials === 'function', 'Firebase Auth and App Check credentials are required');
   let healthy = true;
+  const configuredBufferBudget = (loadOptions?.runtimeConfig ?? model.loadOptions?.runtimeConfig)?.shared?.bufferPool?.budget?.maxTotalBytes;
+  const contextCachePolicy = Number.isFinite(configuredBufferBudget) && configuredBufferBudget > 0
+    ? (() => {
+      const maxBytes = Math.min(profile.contextCache.maxBytes, Math.max(67108864, Math.floor(configuredBufferBudget * 0.25)));
+      return { ...profile.contextCache, maxBytes, maxEntryBytes: Math.min(profile.contextCache.maxEntryBytes, maxBytes) };
+    })()
+    : profile.contextCache;
   const contexts = session?.supports?.('generationContext') === true
-    ? createGenerationContextCache({ policy: profile.contextCache, create: options => session.createGenerationContext(options) }) : null;
+    ? createGenerationContextCache({ policy: contextCachePolicy, create: options => session.createGenerationContext(options) }) : null;
   const executionIdentity = () => {
     if (!session) return null;
     requireValue(healthy, 'Doppler session requires replacement after failed cleanup');
@@ -78,6 +85,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
   return Object.freeze({
     getIdentity: executionIdentity,
     getHardware: () => publicProviderHardware(session?.deviceInfo),
+    getContextCacheStats: () => contexts?.getStats?.() ?? null,
     isReady: () => healthy && session?.loaded === true,
     reset,
     close: () => contexts?.close(),
@@ -99,7 +107,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
       combined.throwIfAborted();
       requireValue(maxOutputTokens === undefined || Number.isSafeInteger(maxOutputTokens) && maxOutputTokens > 0,
         'Request maxOutputTokens must be a positive integer');
-      const requestGeneration = maxOutputTokens === undefined ? generation
+      let requestGeneration = maxOutputTokens === undefined ? generation
         : { ...generation, maxTokens: Math.min(generation.maxTokens ?? maxOutputTokens, maxOutputTokens) };
       let text = '', actualModel = model.id, actualIdentity = null, completion = null, timing = null;
       const update = delta => {
@@ -110,6 +118,23 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         return onUpdate(delta);
       };
       if (session) {
+        const advanced = session.supports?.('advanced') === false ? null : session.advanced;
+        if (typeof advanced?.getGenerationGeometry === 'function' && typeof advanced?.tokenizePrompt === 'function') {
+          const maxSeqLen = advanced.getGenerationGeometry()?.maxSeqLen;
+          if (Number.isSafeInteger(maxSeqLen) && maxSeqLen > 0) {
+            const promptTokens = advanced.tokenizePrompt(messages, { useChatTemplate: requestGeneration.useChatTemplate !== false }).length;
+            const remainingContextTokens = maxSeqLen - promptTokens;
+            if (remainingContextTokens < 1) {
+              throw Object.assign(
+                new Error(`Conversation exceeds model context limit (${promptTokens} >= ${maxSeqLen} tokens)`),
+                { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true }
+              );
+            }
+            if (Number.isSafeInteger(requestGeneration.maxTokens) && requestGeneration.maxTokens > remainingContextTokens) {
+              requestGeneration = { ...requestGeneration, maxTokens: remainingContextTokens };
+            }
+          }
+        }
         // Raw compatibility sessions cancel cooperatively; the host waits for settlement.
         await reset();
         let lease = null, complete = false;

@@ -6,16 +6,18 @@ export function createGenerationContextCache({ policy, create, now = Date.now })
   const entries = new Map();
   let closed = false;
   let cleanupError = null;
-  const remove = key => {
+  let hits = 0, misses = 0, evictions = 0;
+  const remove = (key, { evicted = false } = {}) => {
     const entry = entries.get(key);
     if (!entry || entry.active) return false;
     entry.context.close();
     clearTimeout(entry.timer);
     entries.delete(key);
+    if (evicted) evictions++;
     return true;
   };
   const sweep = () => {
-    for (const [key, entry] of entries) if (!entry.active && now() - entry.used >= idleMs) remove(key);
+    for (const [key, entry] of entries) if (!entry.active && now() - entry.used >= idleMs) remove(key, { evicted: true });
   };
   const chargedBytes = entry => {
     const bytes = entry.context.getStats?.().allocatedBytes;
@@ -33,9 +35,12 @@ export function createGenerationContextCache({ policy, create, now = Date.now })
       while ((!entry && entries.size >= maxEntries) || otherBytes() + maxEntryBytes > maxBytes) {
         const victim = [...entries].find(([id, candidate]) => id !== key && !candidate.active);
         if (!victim) return null;
-        remove(victim[0]);
+        remove(victim[0], { evicted: true });
       }
-      if (!entry) {
+      if (entry) {
+        hits++;
+      } else {
+        misses++;
         // Reserve the full per-entry allowance before the runtime allocates it.
         // Active requests cannot be evicted to make room for another request.
         entry = { context: create({ maxBytes: maxEntryBytes }), used: now(), active: false, timer: null };
@@ -55,10 +60,31 @@ export function createGenerationContextCache({ policy, create, now = Date.now })
           entries.delete(key);
           entries.set(key, entry);
           entry.timer = setTimeout(() => {
-            try { remove(key); } catch (error) { cleanupError = error; }
+            try { remove(key, { evicted: true }); } catch (error) { cleanupError = error; }
           }, idleMs);
           entry.timer.unref?.();
         },
+      });
+    },
+    getStats() {
+      let activeEntries = 0, allocatedBytes = 0, cachedTokens = 0;
+      for (const entry of entries.values()) {
+        if (entry.active) activeEntries++;
+        const stats = entry.context.getStats?.();
+        if (Number.isSafeInteger(stats?.allocatedBytes) && stats.allocatedBytes > 0) allocatedBytes += stats.allocatedBytes;
+        if (Number.isSafeInteger(stats?.cachedTokens) && stats.cachedTokens > 0) cachedTokens += stats.cachedTokens;
+      }
+      return Object.freeze({
+        entries: entries.size,
+        activeEntries,
+        allocatedBytes,
+        cachedTokens,
+        maxEntries,
+        maxBytes,
+        maxEntryBytes,
+        hits,
+        misses,
+        evictions,
       });
     },
     close() {

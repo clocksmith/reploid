@@ -56,3 +56,26 @@ it('expires idle memory, never expires executing memory, and discards cancelled 
     cache.close(); expect(() => cache.acquire('a')).toThrow('closed');
   } finally { vi.useRealTimers(); }
 });
+
+it('reports hit, miss, eviction, and retained GPU byte telemetry across multi-thread turnover', () => {
+  let nextBytes = 4;
+  const cache = createGenerationContextCache({
+    policy: { maxEntries: 2, maxBytes: 20, maxEntryBytes: 10, idleMs: 1000 },
+    create: () => {
+      const bytes = nextBytes++;
+      return { close: vi.fn(), getStats: () => ({ allocatedBytes: bytes, cachedTokens: bytes * 10 }) };
+    }
+  });
+  const a = cache.acquire('u1');
+  expect(cache.getStats()).toMatchObject({ entries: 1, activeEntries: 1, hits: 0, misses: 1, evictions: 0 });
+  a.release();
+  const aHit = cache.acquire('u1');
+  aHit.release();
+  const b = cache.acquire('u2');
+  b.release();
+  expect(cache.getStats()).toMatchObject({ entries: 2, activeEntries: 0, allocatedBytes: 9, cachedTokens: 90, hits: 1, misses: 2, evictions: 0 });
+  const c = cache.acquire('u3');
+  c.release();
+  expect(cache.getStats()).toMatchObject({ entries: 2, activeEntries: 0, allocatedBytes: 11, cachedTokens: 110, hits: 1, misses: 3, evictions: 1 });
+  cache.close();
+});

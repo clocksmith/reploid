@@ -188,6 +188,7 @@ export function createFleetRequester({
             settlement = await credits.settle(reservation.id, evidence);
           } else settlement = await credits.fence(reservation.id, identity.peerId);
         } else if (result?.execution?.receipt) settlement = await credits.settle(reservation.id, result.execution.receipt);
+        else if (failure?.generationTerminal) settlement = await credits.collect(reservation.id, { terminal: failure.generationTerminal });
         else settlement = await credits.fence(reservation.id, identity.peerId);
       } catch (error) {
         settlement = { id: reservation.id, status: 'pending', error: error.message };

@@ -336,10 +336,29 @@ export function createPeerGenerationMesh({ config, ports }) {
     } catch (error) { remoteRequests.settle(pending, { error }); }
   };
 
-  const handleGenerationError = (remotePeerId, payload = {}) => {
-    remoteRequests.settle(remoteRequests.get(payload.requestId, remotePeerId), {
-      error: new Error(String(payload.error || 'Remote generation failed'))
-    });
+  const handleGenerationError = async (remotePeerId, payload = {}) => {
+    const pending = remoteRequests.get(payload.requestId, remotePeerId);
+    if (!pending || pending.processing) return;
+    const error = new Error(String(payload.error || 'Remote generation failed'));
+    if (payload?.terminal && pending.providerIdentity && identityBundle) {
+      try {
+        const binding = {
+          requestId: pending.requestId,
+          provider: pending.providerIdentity,
+          consumer: identityBundle.peerId,
+          model: pending.modelId,
+          modelIdentity: pending.modelIdentity,
+          adapterIdentities: pending.adapterIdentities,
+          inputDigest: await hashJson(pending.messages),
+        };
+        if (await verifyGenerationTerminal(payload.terminal, binding)) {
+          error.generationTerminal = snapshotJson(payload.terminal);
+        }
+      } catch {
+        // Invalid terminal proof is ignored; normal request error settlement proceeds.
+      }
+    }
+    remoteRequests.settle(pending, { error });
   };
 
   const handleReceipt = async (_remotePeerId, payload = {}) => {
@@ -759,6 +778,16 @@ export function createPeerGenerationMesh({ config, ports }) {
       const connectionBinding = JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null);
       const recipientIdentity = provider.identityProtocol === 1 ? await peerIdentity.verify(provider.peerId, signal) : null;
       const requestId = utils.generateId('swarmreq');
+      const requestPayload = {
+        requestId, consumer: identityBundle.peerId, provider: provider.peerId,
+        ...(contextId && provider.identityProtocol === 1 ? { contextId } : {}),
+        model: modelId || provider.model || null, modelIdentity, adapterIdentities,
+        modelContract: policy.models.contract, messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {})
+      };
+      if (Number.isSafeInteger(policy.webrtc?.maxMessageBytes) && policy.webrtc.maxMessageBytes > 0
+        && new TextEncoder().encode(JSON.stringify(requestPayload)).byteLength > policy.webrtc.maxMessageBytes) {
+        throw new Error(`Conversation exceeds transport payload limit (${policy.webrtc.maxMessageBytes} bytes)`);
+      }
       if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, modelId, modelIdentity, messages: snapshotJson(messages),
         requestId, recipientIdentity, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext) }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
@@ -774,12 +803,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal }, () =>
-        swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', {
-          requestId, consumer: identityBundle.peerId, provider: provider.peerId,
-          ...(contextId && provider.identityProtocol === 1 ? { contextId } : {}),
-          model: modelId || provider.model || null, modelIdentity, adapterIdentities,
-          modelContract: policy.models.contract, messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {})
-        }));
+        swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload));
       if (affinityKey) {
         contextProviders.delete(affinityKey);
         contextProviders.set(affinityKey, provider.peerId);

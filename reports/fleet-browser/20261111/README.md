@@ -1,4 +1,4 @@
-# Private fleet browser HTTPS journey, fault recovery, queue/batching, and 27B placement qualification, November 11
+# Private fleet browser HTTPS journey, fault recovery, queue/batching, 27B placement, fleet memory, longer conversations, and multi-user load qualification, November 11
 
 This directory records physical verification on Reploid with `doppler-gpu` `0.7.0`
 (`sha512-sRaOuz/K6YOhyitFlauZ3u8mFZdOmAEbcRKEhnm4rs7/ajCB/y7xPiI8mF+lpdvg39C+RPH+HDlbAQAen+lTjQ==`).
@@ -106,7 +106,97 @@ Comparative outcome:
   reducing mean complete request latency on that two-machine pool by `68.5%`
   (`3.17x` request throughput).
 
-## 5. Sanitized replay verification and privacy boundaries
+## 5. Fleet memory accounting, reclamation, and UI telemetry
+
+Verified on native release `sha256:f633fe407f8e9227b56d6759442f51c0fb3eb93790600f04d15175ff877b5d3d`:
+
+- **Reclaimable host memory and resident observation (`server/fleet/native-host.js`)**:
+  `availableHostBytes()` reads reclaimable host memory (`vm_stat` `Pages free + File-backed pages`
+  on macOS, `/proc/meminfo` `MemAvailable` on Linux, `os.freemem()` fallback). `reconcile()`
+  computes `ownedHostBudget` (`ownerPolicy.budgets.maxProcessResidentBytes` vs physical host RAM),
+  tracks live `residentHostBytes` alongside `resident.gpuBytes`, `resident.peakGpuBytes`,
+  `resident.cachedContexts`, and `resident.contextCacheBytes`, and sets
+  `observation.freeHostBytes = Math.max(0, Math.min(hardware.freeHostBytes, ownedHostBudget - residentHostBytes))`
+  so placement retains an active resident instead of falsely evicting it when unified/file-cache
+  pages shift. `publishDemand()` estimates queued request tokens via UTF-8 byte length divided by
+  `4` (`estimate: "input-utf8-bytes-div4"`).
+- **Owner-budgeted KV prefix cache and telemetry (`packages/reploid/src/mesh/generation-context-cache.js`, `apps/poolday/providers/work-provider.js`, `apps/poolday/providers/work-resident-provider.js`)**:
+  When an owner or runtime GPU buffer ceiling is configured, `contextCache.maxBytes` is capped to
+  `Math.min(profile.contextCache.maxBytes, Math.max(67108864, Math.floor(configuredBufferBudget * 0.25)))`
+  (`1,610,612,736 B` / `1.50 GiB` under a `6.0 GiB` `maxGpuBufferBytes` owner policy).
+  `getStats()` reports `{ entries, activeEntries, allocatedBytes, cachedTokens, maxEntries, maxBytes, maxEntryBytes, hits, misses, evictions }`
+  across LRU entry-count eviction, byte-budget eviction, and idle-timeout disposal.
+- **Replay-window cap (`server/fleet/browser-bridge.js`)**:
+  `createFleetBrowserBridgeHandler` enforces `maxSeenAttempts = 10000`, evicting the oldest
+  settled `attemptId` entries while preserving active `pending` attempts.
+- **Poolday UI telemetry (`apps/poolday/ui/pool-home/private-computers-view.js`)**:
+  Online contributors with live resident metrics render
+  `Resident GPU use` (`<GB> · <N> cached thread(s)`) in the per-computer details disclosure.
+
+## 6. Longer conversations (`2,048` context ceiling and `262,144`-byte transport limit)
+
+Executed on `qwen-3-5-2b-q4k-ehaf16` (`contextLength: 2048`, `maxOutputTokens: 512`, `batchSize: 4`)
+across two isolated Metal WebGPU contributor processes (`Computer A (Replica 1)`
+`peer:cfc626464bf664fad49322ad` and `Computer A (Replica 2)` `peer:373ee15789b1bfa3334a5902`,
+each under `maxGpuBufferBytes: 6,442,450,944` and `maxProcessResidentBytes: 10,737,418,240`):
+
+| Turn | Prompt tokens | Output tokens | Total context tokens | Stop reason | `wallMs` | `cachedTokens` (`hits`) | GPU live buffers | Credits settled |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | `292` | `36` | `328` | `stop-token` | `9,497 ms` | `288` (`0`) | `2.26 GB` (`2,261,323,228 B`) | `36` |
+| 2 | `617` | `36` | `653` | `stop-token` | `6,923 ms` | `613` (`1`) | `2.32 GB` (`2,322,297,388 B`) | `36` |
+| 3 | `942` | `36` | `978` | `stop-token` | `6,771 ms` | `938` (`2`) | `2.35 GB` (`2,346,479,404 B`) | `36` |
+| 4 | `1,267` | `36` | `1,303` | `stop-token` | `7,418 ms` | `1,263` (`3`) | `2.35 GB` (`2,346,479,404 B`) | `36` |
+| 5 (clamped `512 -> 448`) | `1,600` | `36` | `1,636` | `stop-token` | `24,616 ms` | `1,596` (`4`) | `2.59 GB` (`2,594,459,180 B`) | `36` |
+| 6 (clamped `512 -> 228`) | `1,820` | `228` | `2,048` | `max-tokens` | `48,872 ms` | `1,816` (`5`) | `2.71 GB` (`2,713,440,052 B`) | `228` |
+
+- **Near-ceiling output clamping (`apps/poolday/providers/work-provider.js`)**:
+  Before decode, `tokenizePrompt()` checks `maxSeqLen - promptTokens`; Turn 5 clamped
+  `maxTokens` from `512` to `448` and Turn 6 clamped `maxTokens` from `512` to `228`,
+  halting cleanly at `stopReason: "max-tokens"` (`1,820 + 228 = 2,048` tokens) with zero
+  KV cache overflow.
+- **Over-ceiling context rejection without resident retirement (`apps/poolday/providers/work-resident-provider.js`, `packages/reploid/src/mesh/peer-generation.js`, `server/fleet/requester.js`)**:
+  Turn 7 (`2,921` prompt tokens, `10,977` UTF-8 bytes) failed pre-execution with
+  `Conversation exceeds model context limit (2921 >= 2048 tokens)`, signed
+  `reploid.generation-terminal/v1` (`status: "failed"`, `charge: 0`), settled the
+  requester credit reservation immediately (`held: 0`), and kept both GPU replicas
+  `ready: true` (`phase: "ready"`).
+- **Oversized WebRTC envelope guard (`packages/reploid/src/mesh/peer-generation.js`)**:
+  A `270,000`-byte UTF-8 conversation (`> policy.webrtc.maxMessageBytes = 262,144`) was
+  rejected before `mesh.dispatch` (`Conversation exceeds transport payload limit (262144 bytes)`)
+  with `0` credit reservations created and `held: 0`.
+
+## 7. Sustained multi-user load (`6` concurrent users across `4` waves + mid-wave cancellations)
+
+Executed across `Computer A (Replica 1)`, `Computer A (Replica 2)`, and `Requester`
+(`followPlacement: true` fair-lane scheduler over `/bridge` HTTP/NDJSON):
+
+- **Throughput, fairness, and latency**:
+  `6` concurrent multi-turn conversations (`> contextCache.maxEntries = 4`) x `4` waves
+  completed `24` generations (`13` served by `Replica 1`, `11` served by `Replica 2`),
+  with end-to-end `wallMs` `p50 = 6,377 ms`, `p95 = 10,543 ms`, `max = 14,110 ms`
+  (`queuedMs` `p50 = 2,805 ms`, `p95 = 8,662 ms`, `max = 8,690 ms`).
+- **Active mid-wave user cancellations**:
+  Two additional concurrent requests (`cancel-wave-2` at `4,139 ms` and `cancel-wave-3`
+  at `4,901 ms`) aborted after `1` streamed delta, signed `reploid.generation-terminal/v1`
+  (`status: "cancelled"`, `charge: 0`), and released holds to `0` without disrupting
+  the `12` co-scheduled wave requests.
+- **Context cache reuse, eviction, and GPU buffer stability**:
+  Across the full `33`-request campaign, the two replicas recorded `18` KV prefix hits
+  (`8` + `10`), `14` misses (`6` + `8`), and `4` LRU evictions (`1` + `3`), holding
+  `entries <= 4` (`284,812,944 B` allocated per replica at Wave 4). Baseline loaded
+  weights consumed `2,104,275,216 B` (`1.96 GiB`) GPU live buffers per replica
+  (`688.6 MB` / `688.8 MB` RSS). Combined warm GPU live buffers moved from
+  `5,226,653,384 B` at Wave 2 (`2.36 GB` + `2.87 GB`) to `5,262,370,712 B` at Wave 4
+  (`2.39 GB` + `2.87 GB`, `+0.683%` drift across two full 6-user turnover waves and
+  two mid-wave cancellations), RSS finished at `796.2 MB` and `855.6 MB`, and
+  `reconcile()` returned `action: "retain"` on both replicas after every wave.
+- **Credit conservation (`sustained-multiuser-load-replay.json`)**:
+  `30` completed whole-model receipts and `3` signed `reploid.generation-terminal/v1`
+  outcomes (`2` `cancelled` + `1` over-ceiling `failed`) settled `Replica 1: +104`,
+  `Replica 2: +496`, `Requester: -600` (`+104 + +496 + -600 = 0`, `held: 0` on every
+  account, `66` double-entry journal rows across `33` settled requests, zero duplicates).
+
+## 8. Sanitized replay verification and privacy boundaries
 
 Replay signatures, admission fences, maximum credit holds, settlements, duplicate
 settlement idempotence, conflicting-settlement rejection, and balance conservation:
@@ -115,7 +205,8 @@ settlement idempotence, conflicting-settlement rejection, and balance conservati
 node tests/fixtures/fleet-credit-replay.js \
   reports/fleet-browser/20261111/hosted-unmodified-chrome-replay.json \
   reports/fleet-browser/20261111/fair-queue-replay.json \
-  reports/fleet-browser/20261111/partition-27b-replay.json
+  reports/fleet-browser/20261111/partition-27b-replay.json \
+  reports/fleet-browser/20261111/sustained-multiuser-load-replay.json
 ```
 
 - Valera's browser streaming path was updated separately on `valera` `main`
@@ -124,4 +215,4 @@ node tests/fixtures/fleet-credit-replay.js \
   zero-cloud-egress default intact.
 - Private non-cash service credits remain separate from public chat. The public
   `27B` provider remained untouched throughout all tests. Public partitioning and
-  public payouts require separate multi-user load and economic qualification.
+  public payouts remain separately gated pending economic qualification.

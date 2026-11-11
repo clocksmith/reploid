@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
-import { constants } from 'node:fs';
+import { constants, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
@@ -59,9 +60,31 @@ export function activeProviderRequests(state) {
     state.unknownAttempts?.length || 0);
 }
 
+function availableHostBytes() {
+  const fallback = os.freemem();
+  try {
+    if (process.platform === 'darwin') {
+      const output = execFileSync('vm_stat', [], { encoding: 'utf8', timeout: 1000 });
+      const pageSize = Number(output.match(/page size of (\d+) bytes/i)?.[1] || 0);
+      const pages = label => Number(output.match(new RegExp(`${label}:\\s+(\\d+)\\.`))?.[1] || 0);
+      if (pageSize > 0) {
+        const reclaimable = (pages('Pages free') + pages('File-backed pages')) * pageSize;
+        if (Number.isSafeInteger(reclaimable) && reclaimable > fallback) return Math.min(os.totalmem(), reclaimable);
+      }
+    } else if (process.platform === 'linux') {
+      const meminfo = readFileSync('/proc/meminfo', 'utf8');
+      const availableKb = Number(meminfo.match(/^MemAvailable:\s+(\d+)\s+kB/m)?.[1] || 0);
+      if (availableKb > 0) return Math.min(os.totalmem(), availableKb * 1024);
+    }
+  } catch {
+    // Fall back to os.freemem() when platform virtual-memory counters are unavailable.
+  }
+  return fallback;
+}
+
 export function fleetHardwareSnapshot() {
   const device = getDevice(), memory = inspectDeviceMemory();
-  return { platform: process.platform, totalHostBytes: os.totalmem(), freeHostBytes: os.freemem(),
+  return { platform: process.platform, totalHostBytes: os.totalmem(), freeHostBytes: availableHostBytes(),
     processResidentBytes: process.memoryUsage().rss,
     adapter: device ? getKernelCapabilities().adapterInfo : null,
     maxStorageBufferBindingSize: device?.limits.maxStorageBufferBindingSize ?? null,
@@ -456,14 +479,24 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     observation.id = config.computerId; observation.participantId = identity.peerId; observation.observedAt = Date.now();
     observation.preparing = preparing;
     observation.activeRequests = requests.size + activeProviderRequests(activity);
-    observation.freeHostBytes = Math.min(observation.freeHostBytes, hardware.freeHostBytes);
+    const residentActive = Boolean(selected && (activity?.ready || ['ready', 'executing', 'draining'].includes(activity?.phase)));
+    const residentHostBytes = residentActive ? (hardware.processResidentBytes ?? 0) : 0;
+    const ownedHostBudget = Math.min(observation.preferences.maxHostBytes,
+      owner?.policy.memory?.maxProcessResidentBytes ?? observation.preferences.maxHostBytes);
+    observation.freeHostBytes = Math.max(0, Math.min(hardware.freeHostBytes, ownedHostBudget - residentHostBytes));
     observation.capacityScope = 'owned-gpu-buffer-budget';
     const ownedBudget = Math.min(observation.preferences.maxGpuBytes, owner?.policy.memory?.maxGpuBufferBytes ?? observation.preferences.maxGpuBytes);
     observation.freeGpuBytes = Math.max(0, ownedBudget - (hardware.gpuBuffers?.liveBytes ?? 0));
     if (hardware.maxStorageBufferBindingSize !== null) observation.maxStorageBufferBindingSize = hardware.maxStorageBufferBindingSize;
-    observation.resident = selected && (activity?.ready || ['ready', 'executing', 'draining'].includes(activity?.phase)) ? { modelIdentity: selected.model.identity, mode: selected.mode,
+    const contextCache = activity?.contextCache ?? null;
+    observation.resident = residentActive ? {
+      modelIdentity: selected.model.identity, mode: selected.mode,
       preparedAt, planId: selected.model.partitionPlanId ?? null, stageIndex: selected.ordered?.stage?.index ?? null,
-      gpuBytes: hardware.gpuBuffers?.liveBytes ?? 0, hostBytes: 0 } : null;
+      gpuBytes: hardware.gpuBuffers?.liveBytes ?? 0,
+      peakGpuBytes: hardware.gpuBuffers?.peakBytes ?? 0,
+      hostBytes: residentHostBytes,
+      ...(contextCache ? { cachedContexts: contextCache.entries, contextCacheBytes: contextCache.allocatedBytes } : {})
+    } : null;
     await credits.call('observe', observation);
     const plan = await credits.call('plan', {}), decision = plan.decisions.find(row => row.computerId === config.computerId);
     if (decision?.action === 'stop' && observation.activeRequests === 0 && participant) {
@@ -484,10 +517,10 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     for (const { request, since } of requests.values()) {
       const key = request.model.id + request.model.identity, prior = demand.get(key);
       // This is a scheduling estimate, never a token meter or a credit charge.
-      const promptTokens = Buffer.byteLength(request.messages.map(row => row.content).join('\n'));
+      const promptTokens = Math.max(1, Math.ceil(Buffer.byteLength(request.messages.map(row => row.content).join('\n')) / 4));
       demand.set(key, { id: request.model.id, identity: request.model.identity, queued: (prior?.queued || 0) + 1,
         since: Math.min(prior?.since ?? since, since), promptTokens: Math.max(prior?.promptTokens || 0, promptTokens),
-        outputTokens: config.maxOutputTokens, estimate: 'input-utf8-bytes' });
+        outputTokens: config.maxOutputTokens, estimate: 'input-utf8-bytes-div4' });
     }
     await credits.call('demand', { id: config.computerId, requests: [...demand.values()] });
   }

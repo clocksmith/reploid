@@ -2499,7 +2499,7 @@
     {
       "path": "providers/work-provider.js",
       "owner": "providers",
-      "sha256": "sha256:4d9280953cf72e7f80015e5ac1f9a23e566fbdeb0b2150b8d6d7c084b097546a",
+      "sha256": "sha256:107e895a105618b1f13cf9a7011dee50d4f0c9bbe8c8eec7940f7e224c1d9752",
       "imports": [
         "../config/work-profile.json",
         "../vendor/reploid/mesh/generation-context-cache.js",
@@ -2510,7 +2510,7 @@
     {
       "path": "providers/work-resident-provider.js",
       "owner": "providers",
-      "sha256": "sha256:c213f807696920643708e60ce4ddfbb50ebdf86439b77e894ae20ca7be30fecb",
+      "sha256": "sha256:0290949cc914d8aa530b3bd3b9ad475fd173e4eecc6fe11c3804979eac5746f3",
       "imports": [
         "../infrastructure/model-storage-lock.js",
         "../vendor/reploid/mesh/preparation-progress.js",
@@ -4018,7 +4018,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:648bb8041818b03fff3809d6e0bb37633effabbdd58e6e27635db8b64d011745",
+      "sha256": "sha256:38bcb866ce80ad675b0df2ea781d117b506c4ecdab86cad9ff2c3976b349751a",
       "imports": []
     },
     {
@@ -4454,7 +4454,7 @@
     {
       "path": "ui/pool-home/private-computers-view.js",
       "owner": "ui",
-      "sha256": "sha256:d998395c9ea371d9a9daa552d1cec28549f07c145e40df70774ca32d695d2971",
+      "sha256": "sha256:17916b014d84a7a32708e51e641ad04752d36b2c826c2f69905afb5c0faeecf3",
       "imports": [
         "../components/attachments.js"
       ]
@@ -17959,7 +17959,7 @@
     {
       "path": "vendor/reploid/mesh/generation-context-cache.js",
       "owner": "vendor",
-      "sha256": "sha256:297b9f5c85972a19e8324557e2c958fc3efdb4072ff82d61c5c33f83f352b584",
+      "sha256": "sha256:d51bc4c037c73a3e9ac47fedcfbf783d73ed0222e2bc4bdbb8891a6ea0e980bd",
       "imports": []
     },
     {
@@ -18441,7 +18441,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:78eb3a14184265ad2091b793f8d63a5f5c47b4a30b21eeb1b27d05966755ce54",
+      "sha256": "sha256:c386268696eff51a0ee38fc407704841ea3ae2f139f5b750072716738886e229",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",

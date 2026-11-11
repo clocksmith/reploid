@@ -83,4 +83,14 @@ describe('fleet placement', () => {
     a.activeRequests = 1;
     expect(run([a]).decisions[0]).toMatchObject({ action: 'retain', reason: 'active-requests' });
   });
+  it('reclaims resident host memory for the same model or idle replacement, but not while busy with another model', () => {
+    const a = computer('a');
+    a.freeHostBytes = 5;
+    a.resident = { modelIdentity: hash, mode: 'whole-model', preparedAt: 100, gpuBytes: 80, hostBytes: 20 };
+    expect(run([a]).routes[0]).toMatchObject({ computers: ['a'] });
+    a.resident = { modelIdentity: 'sha256:' + 'e'.repeat(64), mode: 'whole-model', preparedAt: 100, gpuBytes: 80, hostBytes: 20 };
+    a.preferences.models.push({ id: 'other', identity: a.resident.modelIdentity });
+    a.activeRequests = 1;
+    expect(run([a]).routes).toEqual([]);
+  });
 });

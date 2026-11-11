@@ -14,9 +14,10 @@ function normalizeBasePath(basePath = '') {
 /** Explicitly paired access to an owner-operated native requester over loopback or TLS/bound-tunnel HTTPS.
  * The pairing secret authorizes delegation to this host's enrolled private pool;
  * it never exposes the signing identity, room credential, file paths or raw config. */
-export function createFleetBrowserBridgeHandler({ host, token, origins, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8 }) {
+export function createFleetBrowserBridgeHandler({ host, token, origins, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000 }) {
   assert(typeof token === 'string' && token.length >= 32, 'Strong pairing secret required');
   assert(Array.isArray(origins) && origins.length && origins.every(origin => new URL(origin).origin === origin), 'Exact allowed browser origins required');
+  assert(Number.isSafeInteger(maxSeenAttempts) && maxSeenAttempts >= maxConcurrent, 'Positive replay window required');
   const prefix = normalizeBasePath(basePath);
   const pending = new Map(), seen = new Set();
   const authenticate = request => {
@@ -74,7 +75,12 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       assert(typeof body.attemptId === 'string' && body.attemptId.length <= 128 && typeof body.threadId === 'string'
         && body.threadId.length <= 128 && Array.isArray(body.messages) && body.messages.length > 0
         && body.messages.every(row => ['user', 'assistant', 'system'].includes(row.role) && typeof row.content === 'string'), 'Invalid conversation request');
-      assert(pending.size < maxConcurrent && !seen.has(body.attemptId) && seen.size < 10000, 'Request already used or bridge limit reached');
+      assert(pending.size < maxConcurrent && !seen.has(body.attemptId), 'Request already used or bridge limit reached');
+      while (seen.size >= maxSeenAttempts) {
+        const oldest = [...seen].find(id => !pending.has(id));
+        assert(oldest !== undefined, 'Request already used or bridge limit reached');
+        seen.delete(oldest);
+      }
       attemptId = body.attemptId; seen.add(attemptId); pending.set(attemptId, Promise.resolve());
       const state = await host.browserState();
       const model = state.models.find(row => row.id === body.model?.id && row.identity === body.model?.identity);
@@ -121,10 +127,10 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
   };
 }
 
-export async function startFleetBrowserBridge({ host, token, origins, listenHost = '127.0.0.1', port = 0, tls = null, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8 }) {
+export async function startFleetBrowserBridge({ host, token, origins, listenHost = '127.0.0.1', port = 0, tls = null, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000 }) {
   const loopback = ['127.0.0.1', '::1', 'localhost'].includes(listenHost);
   assert(loopback || Boolean(tls?.key && tls?.cert), 'Non-loopback browser bridge requires TLS');
-  const bridge = createFleetBrowserBridgeHandler({ host, token, origins, basePath, maxBodyBytes, maxConcurrent });
+  const bridge = createFleetBrowserBridgeHandler({ host, token, origins, basePath, maxBodyBytes, maxConcurrent, maxSeenAttempts });
   const server = tls ? https.createServer(tls, bridge.handle) : http.createServer(bridge.handle);
   server.requestTimeout = 30000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, listenHost, resolve); });

@@ -31,11 +31,14 @@ export function bindPrivateComputers(root, session) {
         : row.activeRequests > 0 ? `Serving${queuedSuffix}` : row.preparing ? 'Loading'
         : row.preferences?.enabled === false ? 'Paused' : row.resident ? 'Ready' : row.requester ? 'Online · requester' : 'Online · no model loaded';
       const model = fleet.models?.find(model => model.identity === row.resident?.modelIdentity);
+      const residentUse = online && Number.isFinite(row.resident?.gpuBytes)
+        ? `<dt>Resident GPU use</dt><dd>${gb(row.resident.gpuBytes)}${Number.isSafeInteger(row.resident?.cachedContexts) && row.resident.cachedContexts > 0 ? ` · ${row.resident.cachedContexts} cached ${row.resident.cachedContexts === 1 ? 'thread' : 'threads'}` : ''}</dd>`
+        : '';
       return `<li><details class="pool-disclosure"><summary>${escape(row.name)} <span class="pool-muted">${status}</span></summary>
         <dl class="pool-facts"><dt>Model</dt><dd>${escape(online && row.resident ? model?.name || row.resident.modelIdentity : 'None reported')}</dd>
         <dt>Role</dt><dd>${online && row.resident ? row.resident.mode === 'partition' ? `Split model · stage ${row.resident.stageIndex + 1}` : 'Whole model' : row.requester ? 'Requester' : 'No active role'}</dd>
         <dt>Active work</dt><dd>${online ? row.queuedRequests > 0 ? `${row.activeRequests ?? 0} active · ${row.queuedRequests} queued` : row.activeRequests ?? 'Not reported' : 'Unknown'}</dd>
-        <dt>Available GPU budget</dt><dd>${online ? gb(row.freeGpuBytes) : 'Unknown'}</dd><dt>Available system memory</dt><dd>${online ? gb(row.freeHostBytes) : 'Unknown'}</dd></dl></details></li>`;
+        ${residentUse}<dt>Available GPU budget</dt><dd>${online ? gb(row.freeGpuBytes) : 'Unknown'}</dd><dt>Available system memory</dt><dd>${online ? gb(row.freeHostBytes) : 'Unknown'}</dd></dl></details></li>`;
     }).join('');
     if (list.dataset.markup !== markup) { const opened = [...list.querySelectorAll('details')].map((node, index) => node.open ? index : -1); list.innerHTML = markup; list.dataset.markup = markup;
       for (const index of opened) if (index >= 0 && list.querySelectorAll('details')[index]) list.querySelectorAll('details')[index].open = true; }

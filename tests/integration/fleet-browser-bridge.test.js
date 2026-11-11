@@ -152,3 +152,39 @@ it('pairs over authenticated HTTPS /bridge via the Cloudflare tunnel Worker with
     await api.close();
   }
 });
+
+it('rotates oldest settled attempt identifiers past maxSeenAttempts while rejecting recent and active duplicates', async () => {
+  const native = host();
+  native.generate = vi.fn(async request => ({
+    modelId: model.id, modelIdentity: identity, adapterIdentities: [], content: `ok:${request.attemptId}`,
+    execution: { placement: 'peer-whole-request', providerIdentity: provider },
+    serviceCredit: { charge: 1, settledAt: Date.now() }
+  }));
+  const bridge = await startFleetBrowserBridge({ host: native, token, origins: [origin], maxConcurrent: 2, maxSeenAttempts: 3 });
+  const client = createPrivateComputers({ storage: null, fetchImpl: (url, init = {}) =>
+    fetch(url, { ...init, headers: { ...(init.headers || {}), Origin: origin } }) });
+  try {
+    await client.connect(bridge.url, token);
+    const controls = () => ({ signal: new AbortController().signal, requestApproval: async () => true, onState: () => {}, onDelta: () => {} });
+    for (const attemptId of ['att-1', 'att-2', 'att-3']) {
+      const res = await client.execute(
+        { threadId: 't-rot', attemptId, model: client.models()[0], messages: [{ role: 'user', content: 'Hi' }], permissions: { sharingScope: 'mesh' } },
+        controls()
+      );
+      expect(res.content).toBe(`ok:${attemptId}`);
+    }
+    await expect(client.execute(
+      { threadId: 't-rot', attemptId: 'att-3', model: client.models()[0], messages: [{ role: 'user', content: 'Dup' }], permissions: { sharingScope: 'mesh' } },
+      controls()
+    )).rejects.toThrow('already used');
+
+    const fourth = await client.execute(
+      { threadId: 't-rot', attemptId: 'att-4', model: client.models()[0], messages: [{ role: 'user', content: 'Fourth' }], permissions: { sharingScope: 'mesh' } },
+      controls()
+    );
+    expect(fourth.content).toBe('ok:att-4');
+  } finally {
+    client.close();
+    await bridge.close();
+  }
+});

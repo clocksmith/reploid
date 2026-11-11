@@ -17,6 +17,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     modelId: model.id, modelIdentity: identity?.modelIdentity || null,
     adapterIdentities: [...adapterIdentities],
     hardware: adapter?.getHardware() || null,
+    contextCache: adapter?.getContextCacheStats?.() || null,
     ready: !closed && !!adapter && adapter.isReady() && ['ready', 'executing'].includes(phase) });
   const notify = () => {
     try { onChange(getState()); } catch (cause) { console.error('[Resident] state observer failed', cause); }
@@ -83,8 +84,8 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
         catch (cause) { console.error('[Resident] completion observer failed', cause); }
         return result;
       } catch (cause) {
-        // Cancellation may reuse a clean session; runtime or reset failures may not.
-        if (!combined.aborted || !current.isReady()) await fail(cause);
+        // Cancellation or pre-execution admission rejection may reuse a clean session; runtime or reset failures may not.
+        if ((!combined.aborted && cause?.recoverableSession !== true) || !current.isReady()) await fail(cause);
         throw cause;
       } finally {
         if (!closed && adapter) phase = 'ready';

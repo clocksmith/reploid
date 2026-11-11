@@ -451,3 +451,58 @@ it('migrates maxOutputTokens only when all reservations and holds are settled an
   credits = await openFleetCredits({ file, computers, policy: nextPolicy });
   expect(credits.policy.maxOutputTokens).toBe(512);
 });
+
+it('settles recoverable over-context whole-model rejections immediately and blocks oversized envelopes before credit reservation', async () => {
+  const cleanup = [];
+  const provider = createFleetClient({ url: service.url, identity: keys[1], outboxFile: path.join(root, 'provider-overctx.json') });
+  const admission = createFleetExecutionAdmission({ credits: provider, model: { ...model, generation: { maxTokens: 10 } } });
+  let wholeRequester;
+  const mesh = await createRecoveryMesh(cleanup, {
+    identities: keys.slice(0, 2),
+    modelId: model.id,
+    modelIdentity: model.identity,
+    authorize: async input => {
+      if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
+      return true;
+    },
+    execute: async messages => {
+      if (messages.some(row => row.content.includes('OVER_CONTEXT'))) {
+        throw Object.assign(new Error('Conversation exceeds model context limit (2100 >= 2048 tokens)'),
+          { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true });
+      }
+      return {
+        model: model.id, modelIdentity: model.identity, content: 'Still ready.',
+        completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 6, generatedTokenCount: 2, stopReason: 'stop-token' },
+        adapterIdentities: []
+      };
+    },
+    // Simulate delayed/dropped provider HTTP terminal post so requester settles from the signed WebRTC terminal itself.
+    onGenerationTerminal: async () => {}
+  });
+  wholeRequester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
+  const requester = createFleetRequester({ participant: wholeRequester, identity: keys[0], credits: client, maxOutputTokens: 10 });
+  try {
+    // 1. Oversized WebRTC payload (> 65536 bytes) rejects BEFORE reserving any credits.
+    const hugeMessages = [{ role: 'user', content: 'x'.repeat(70000) }];
+    await expect(requester.generate({ attemptId: 'oversized-1', threadId: 't-long', model, messages: hugeMessages },
+      { signal: new AbortController().signal, requestApproval: async () => true }))
+      .rejects.toThrow('transport payload limit');
+    expect(credits.snapshot().accounts.every(row => row.held === 0 && row.balance === 0)).toBe(true);
+
+    // 2. Over-context conversation signs a failed terminal proof and settles charge=0, held=0 immediately.
+    await expect(requester.generate({ attemptId: 'overctx-1', threadId: 't-long', model, messages: [{ role: 'user', content: 'OVER_CONTEXT' }] },
+      { signal: new AbortController().signal, requestApproval: async () => true }))
+      .rejects.toThrow('context limit');
+    expect(credits.snapshot().accounts.every(row => row.held === 0 && row.balance === 0)).toBe(true);
+
+    // 3. Follow-up ordinary turn succeeds cleanly on the same contributor.
+    const ok = await requester.generate({ attemptId: 'followup-1', threadId: 't-short', model, messages: [{ role: 'user', content: 'Short question.' }] },
+      { signal: new AbortController().signal, requestApproval: async () => true });
+    expect(ok.content).toBe('Still ready.');
+    expect(ok.serviceCredit.charge).toBe(2);
+    expect(credits.snapshot().accounts.every(row => row.held === 0)).toBe(true);
+  } finally {
+    for (const close of cleanup.reverse()) await close();
+  }
+});
