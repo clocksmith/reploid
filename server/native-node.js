@@ -46,18 +46,24 @@ export function nodeArguments(argv, { home }) {
   return { model, args: [...args, ...rest], chosen };
 }
 
+/** The process arguments the participant parses. The entry path stays this command's: the participant
+ * module starts itself when the entry path is its own file, so naming it here ran a second participant
+ * after the first one stopped on SIGINT or SIGTERM. */
+export function participantProcessArgv(processArgv, args) {
+  return [processArgv[0], processArgv[1], ...args];
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   if (argv.includes('--help') || argv.includes('-h')) { console.log(USAGE); return; }
   const node = nodeArguments(argv, { home: os.homedir() });
   if (!node) { console.error(USAGE); process.exitCode = 2; return; }
   console.log(JSON.stringify({ event: 'reploid-node', model: node.model, chosen: node.chosen }));
-  const participant = fileURLToPath(new URL('./native-participant.js', import.meta.url));
   const { mkdir } = await import('node:fs/promises');
   // The participant reads weights from an existing directory; it creates the identity's.
   const directory = node.args[node.args.indexOf('--model-directory') + 1];
   if (directory) await mkdir(directory, { recursive: true });
-  process.argv = [process.argv[0], participant, ...node.args];
+  process.argv = participantProcessArgv(process.argv, node.args);
   const { main: runParticipant } = await import('./native-participant.js');
   await runParticipant();
 }

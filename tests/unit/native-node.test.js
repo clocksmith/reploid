@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nodeArguments } from '../../server/native-node.js';
+import { nodeArguments, participantProcessArgv } from '../../server/native-node.js';
 import { homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 
 describe('reploid <model>: the short native command', () => {
@@ -19,6 +19,13 @@ describe('reploid <model>: the short native command', () => {
     expect(node.args.slice(-4)).toEqual(['--connect-only', '--identity-file', '/x/id.json', '--room=lab']);
     expect(nodeArguments(['m', '--share-files'], { home: '/h' }).args).not.toContain('--gpu-module');
     expect(nodeArguments(['m', '--share-files', '--contribute'], { home: '/h' }).args).toContain('--gpu-module');
+  });
+
+  it('runs one participant: the entry path stays the command, so the participant module does not start itself too', () => {
+    const command = '/pkg/reploid/server/native-node.js', participant = '/pkg/reploid/server/native-participant.js';
+    const argv = participantProcessArgv(['/usr/bin/node', command, 'm'], ['--model', 'm', '--connect-only']);
+    expect(argv).toEqual(['/usr/bin/node', command, '--model', 'm', '--connect-only']);
+    expect(argv[1]).not.toBe(participant);
   });
 
   it('needs a model first', () => {
