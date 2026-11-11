@@ -139,6 +139,7 @@ function renderPeerRows(list, state) {
   list.dataset.projection = key;
   const existing = new Map([...list.querySelectorAll('[data-computer-id]')].map(node => [node.dataset.computerId, node]));
   list.querySelector('.network-empty')?.remove();
+  const nodes = new Map();
   for (const peer of rows) {
     let row = existing.get(peer.id);
     if (!row) {
@@ -149,6 +150,7 @@ function renderPeerRows(list, state) {
         + renderComputerRename() + '</details></div>';
     }
     existing.delete(peer.id);
+    nodes.set(peer.id, row);
     const set = (selector, value) => { const node = row.querySelector(selector); if (node.textContent !== String(value || '')) node.textContent = value || ''; };
     row.dataset.peerPhase = peer.phase || 'connected'; row.dataset.computerState = peer.state;
     row.dataset.attemptId = peer.attemptId || '';
@@ -163,12 +165,40 @@ function renderPeerRows(list, state) {
     set('[data-computer-identity]', peer.modelIdentity || peer.id);
     const progress = row.querySelector('progress'); progress.hidden = !peer.progress;
     if (peer.progress) { progress.value = peer.progress.value; progress.max = peer.progress.max; progress.setAttribute('aria-label', peer.status); }
-    if (!row.parentElement) list.append(row);
+    // A computer that can answer, or is answering or loading, is what a reader came for. One still connecting,
+    // waiting, or offering no model is kept but folded away. A ready row needs no sentence repeating its badge,
+    // and an unreported GPU is not worth a line.
+    const serving = ['ready', 'executing', 'loading', 'preparing'].includes(peer.phase);
+    row.dataset.quiet = String(!serving);
+    if (serving && peer.phase === 'ready') set('[data-computer-detail]', peer.partitionIndex === null ? '' : peer.detail);
+    if (!hardwareText(peer.hardware)) set('[data-computer-hardware]', '');
   }
+  // Serving computers first; order within each group follows discovery. Rows move only when the order changes,
+  // so an open Details or a focused control is not disturbed by every update.
+  const ordered = ['false', 'true'].flatMap(quiet => rows.map(peer => nodes.get(peer.id)).filter(node => node.dataset.quiet === quiet));
+  const current = [...list.querySelectorAll(':scope > [data-computer-id]')].filter(node => nodes.has(node.dataset.computerId));
+  if (ordered.length !== current.length || ordered.some((node, index) => node !== current[index])) for (const node of ordered) list.append(node);
+  {
   for (const row of existing.values()) row.remove();
   if (!rows.length) list.innerHTML = '<li class="network-empty pool-small pool-muted">No computers connected yet</li>';
+  }
   const summary = list.parentElement.querySelector('[data-peer-readiness]');
-  if (summary) summary.textContent = `${rows.filter(peer => peer.connectionPhase === 'connected').length} connected · ${rows.filter(peer => peer.phase === 'ready').length} ready · ${rows.filter(peer => peer.phase === 'executing').length} working · ${rows.filter(peer => peer.phase === 'failed').length} unavailable`;
+  const count = phase => rows.filter(peer => peer.phase === phase).length, plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  // One line of totals: how many can answer now and on which models, then only the states that are not zero.
+  const answering = rows.filter(peer => ['ready', 'executing'].includes(peer.phase) && peer.partitionIndex === null);
+  const byModel = new Map(); for (const peer of answering) byModel.set(peer.model, (byModel.get(peer.model) || 0) + 1);
+  if (summary) summary.textContent = [`${plural(count('ready') + count('executing'), 'computer')} ready`,
+    ...[...byModel].map(([model, n]) => `${model} on ${n}`), count('executing') ? `${count('executing')} working` : '', count('failed') ? `${count('failed')} unavailable` : '']
+    .filter(Boolean).join(' · ');
+  const quiet = rows.filter(peer => !['ready', 'executing', 'loading', 'preparing'].includes(peer.phase)).length;
+  let toggle = list.parentElement.querySelector('[data-quiet-computers]');
+  if (!toggle) {
+    toggle = list.ownerDocument.createElement('button'); toggle.type = 'button'; toggle.className = 'pool-button btn-ghost'; toggle.dataset.quietComputers = '';
+    toggle.addEventListener('click', () => { list.dataset.showQuiet = String(list.dataset.showQuiet !== 'true'); toggle.setAttribute('aria-expanded', list.dataset.showQuiet); toggle.textContent = toggle.dataset[list.dataset.showQuiet === 'true' ? 'hideLabel' : 'showLabel']; });
+    list.after(toggle);
+  }
+  toggle.hidden = !quiet; toggle.dataset.showLabel = `Show ${plural(quiet, 'other')} (connecting or idle)`; toggle.dataset.hideLabel = `Hide ${plural(quiet, 'other')}`;
+  toggle.setAttribute('aria-expanded', String(list.dataset.showQuiet === 'true')); toggle.textContent = toggle.dataset[list.dataset.showQuiet === 'true' ? 'hideLabel' : 'showLabel'];
 
 }
 
@@ -213,7 +243,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
       ? 'Connection requested. Waiting for network discovery.'
       : discoveryState === 'awaiting-introduction' ? 'Open an invitation from another computer to continue.'
       : discoveryState === 'retrying' ? 'Discovery interrupted. Retrying; existing computer connections may still work.'
-      : activeDiscovery ? (peers.length ? 'Discovery is available. Each computer reports its connection and model readiness below.' : 'Discovery is available. Waiting for other computers to join.')
+      : activeDiscovery ? (peers.length ? '' : 'Waiting for other computers to join.')
       : 'Connect to discover computers. Model readiness is reported separately.';
     const message = find('[data-network-message]');
     message.textContent = network.error || actionError || ''; message.hidden = !message.textContent;

@@ -152,3 +152,8 @@
 [data-inspector-route] .execution-ribbon-wire { flex: none; width: var(--pool-size-16); height: var(--pool-size-16); align-self: start; }
 [data-inspector-route] .execution-ribbon-wire::before { display: none; }
 [data-inspector-route] .execution-ribbon-wire::after { transform: rotate(calc(var(--pool-angle-45) * 2)); }
+
+/* Computers list: computers that are connecting, waiting or offering no model are folded away until asked for;
+   a line with nothing to say takes no space. */
+ul:not([data-show-quiet="true"]) > .network-peer-row[data-quiet="true"] { display: none; }
+.network-peer-row [data-computer-hardware]:empty, .network-peer-row [data-computer-detail]:empty { display: none; }
