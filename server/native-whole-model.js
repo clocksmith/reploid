@@ -8,28 +8,30 @@ import { createWorkResidentProvider } from '../apps/poolday/providers/work-resid
 import { createWorkAdapterResolver, selectWorkAdapters } from '../apps/poolday/providers/work-adapter.js';
 import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
 
-export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner = null, onChange = () => {},
+/** `fill({signal})`, when given, completes the model directory from verified peer pieces before
+ * the manifest is read (server/native-model-files.js fillWholeModel); stop aborts it. */
+export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner = null, onChange = () => {}, fill = null,
   configureMemory = async maxBytes => (await import('doppler-gpu/partitions')).configureDeviceMemoryBudget({ maxBytes }),
   resolveAdapter = createWorkAdapterResolver({ models: [model] }),
   service = createReploidDopplerRuntimeService({ loadModule: () => import('doppler-gpu/compat') }),
   createResident = createWorkResidentProvider }) {
   model = structuredClone(model);
   model.adapters = selectWorkAdapters(model);
-  let resident = null, preparing = null, stopping = null, closed = false, enabled = false;
+  let resident = null, preparing = null, stopping = null, closed = false, enabled = false, filling = null;
   const ownerAllows = () => {
     const decision = owner?.decide();
     return !decision || decision.action === 'admit'
       || decision.action === 'reduce' && decision.limits.maxConcurrentAttempts > 0;
   };
   const getState = () => {
-    const state = resident?.getState() || { phase: 'idle', ready: false };
+    const state = resident?.getState() || { phase: filling ? 'acquiring-model' : 'idle', ready: false };
     return { ...state, mode: 'whole-model', offering: enabled,
       ready: enabled && !closed && ownerAllows() && state.ready,
       modelId: model.id, modelIdentity: state.modelIdentity ?? null };
   };
   const notify = () => onChange(getState());
   const stop = () => stopping ||= (async () => {
-    enabled = false; notify();
+    enabled = false; filling?.abort(new Error('Whole-model contribution stopped')); notify();
     await resident?.close();
     await preparing?.catch(() => {});
     resident = null; notify();
@@ -52,6 +54,12 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
       if (resident) return getState();
       enabled = true;
       preparing = (async () => {
+        if (fill) {
+          const controller = new AbortController(); filling = controller; notify();
+          try { await fill({ signal: controller.signal }); }
+          finally { if (filling === controller) filling = null; }
+          if (!enabled || closed) throw new Error('Whole-model contribution stopped');
+        }
         const root = await fs.realpath(modelDirectory);
         const manifestPath = await fs.realpath(path.join(root, 'manifest.json'));
         if (!manifestPath.startsWith(root + path.sep)) throw new Error('Native whole-model manifest escapes approved directory');

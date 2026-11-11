@@ -12,6 +12,7 @@ import { createPeerPackDataChannel } from '../apps/poolday/pool/peer-pack-data-c
 import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../shared/pool/executable-pack.js';
 import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
 import { resolveServedFile } from './browser-roots.js';
+import { fillWholeModelDirectory, wholeModelDirectoryComplete } from './native-whole-model-fill.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const key = file => { assert(file.hashAlgorithm === 'sha256' && /^[a-f0-9]{64}$/.test(file.hash), 'Pinned SHA-256 file required'); return 'sha256-' + file.hash; };
@@ -65,7 +66,13 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
     });
     writing = operation; return operation;
   };
-  return Object.freeze({ get, put, getState: () => ({ quarantined: structuredClone(quarantined) }), close: () => writing });
+  // Drops a verified copy once the same bytes are owned elsewhere (a filled model directory).
+  const remove = file => {
+    const operation = writing.catch(() => {}).then(() => fs.unlink(path.join(root, key(file)))
+      .catch(error => { if (error.code !== 'ENOENT') throw error; }));
+    writing = operation; return operation;
+  };
+  return Object.freeze({ get, put, remove, getState: () => ({ quarantined: structuredClone(quarantined) }), close: () => writing });
 }
 
 /** `owner` is the optional native owner gate (server/native-owner/controls.js). Without
@@ -253,6 +260,44 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
           } finally { sources.delete(source); }
         } }, getReceipt: () => ({ ...opened.getReceipt(), custody: acquisition.getReceipt() }) };
       sources.add(source); return source;
+    })()); },
+    /** Completes the model directory for whole-model execution from authorized peers. A complete
+     * directory is left untouched. Pieces come from the verified cache or authorized custody peers
+     * only; the fill verifies each piece and each assembled file. Until some supplier has
+     * delivered, it waits for one; afterwards a piece no connected supplier offers within one
+     * channel timeout fails the fill. */
+    fillWholeModel(model, { signal, onProgress = () => {} } = {}) { return own((async () => {
+      signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
+      if (await wholeModelDirectoryComplete(root, model)) return { complete: true, filled: false };
+      const data = await metadata(model, signal);
+      let supplied = false, waiting = false;
+      const offered = async (file, whole) => {
+        const deadline = supplied ? Date.now() + (owner ? owner.pieceTimeoutMs(policy.channel.timeoutMs, policy.maxArtifactBytes) : policy.channel.timeoutMs) : Infinity;
+        while (!exchange.has(file) && !(whole && exchange.has(whole))) {
+          signal.throwIfAborted();
+          assert(Date.now() < deadline, `No authorized peer offers piece ${file.hash} of ${whole?.path ?? file.path}`);
+          if (!waiting) { waiting = true; onProgress({ phase: 'waiting-for-supplier' }); }
+          exchange.announce(); await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        waiting = false;
+      };
+      const acquire = async (piece, controls) => {
+        const file = pieceFile(piece), cached = await cache.get(file);
+        if (cached) return cached;
+        const shard = data.manifest.shards.find(row => row.filename === piece.path);
+        const whole = shard ? { path: shard.filename, role: 'model-weights', sizeBytes: shard.size, hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm } : null;
+        await offered(file, whole);
+        const bytes = exchange.has(file) ? await exchange.acquire(file, controls)
+          : await exchange.acquire(whole, { ...controls, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+        supplied = true; return bytes;
+      };
+      const result = await fillWholeModelDirectory({ root, model, manifest: data.manifest, index: data.index, signal, onProgress, acquire,
+        // The same piece concurrency as partition acquisition: one peer channel admits few pending chunk requests.
+        concurrency: policy.maxPieceAcquisitions,
+        readMetadata: (file, current) => readMetadata(file, current),
+        release: async file => { for (const piece of file.pieces) await cache.remove(pieceFile(piece)); },
+        freeBytes: async directory => { const stat = await fs.statfs(directory); return stat.bavail * stat.bsize; } });
+      return { complete: true, filled: true, ...result };
     })()); },
     share(model, approved) { return own((async () => {
       assert(approved === true && !closed, 'Approve file contribution separately from compute');

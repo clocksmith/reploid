@@ -386,7 +386,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
-  generationJournalFile = null, executionAdmission = null }) {
+  generationJournalFile = null, executionAdmission = null, onModelFill = () => {} }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
   requireValue(executionAdmission === null || ['whole', 'partition', 'partitionReceipt', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
@@ -433,7 +433,9 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   let wholeEarningReady = !earning;
   const wholeVariants = () => [[], ...(whole?.getState().adapterIdentities || []).map(value => [value])]
     .map(adapterIdentities => ({ modelId: model.id, modelIdentity: model.identity, executionMode: 'whole-model', adapterIdentities }));
+  // A whole-model contributor completes its model directory from authorized peers before loading.
   const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
+    fill: cacheDirectory ? ({ signal }) => files.fillWholeModel(model, { signal, onProgress: onModelFill }) : null,
     resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createPeerGenerationMesh({ config, ports: {
@@ -685,7 +687,8 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
   [--adapter <catalog adapter id>] (prepare this exact adapter with its base model)
-  [--execution-mode partition|whole-model] (default: partition; never falls back)
+  [--execution-mode partition|whole-model] (default: partition; never falls back;
+     whole-model fills an incomplete --model-directory from verified peer pieces)
   [--partition-index 0|1] (explicit eligible stage for a two-stage route)
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--model-config <absolute JSON path>] (pinned operator model and partition request; private rooms only)
@@ -807,6 +810,14 @@ is separate from backend selection; --help opens no provider.`);
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     executionMode: values['execution-mode'] || 'partition',
+    onModelFill: (() => {
+      // Piece lines at most every 5 s; every other fill event is logged.
+      let last = 0;
+      return event => {
+        if (event.phase === 'piece' && Date.now() - last < 5000) return;
+        last = Date.now(); console.log(JSON.stringify({ event: 'model-fill', at: new Date(last).toISOString(), ...event }));
+      };
+    })(),
     generationJournalFile: path.join(path.dirname(identityFile), 'generation-journal.sqlite'),
     webWorker,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',

@@ -265,3 +265,19 @@ it('shares verified adapter bytes separately from compute and reuses them after 
   const cancelled = new AbortController(); cancelled.abort(new Error('stopped'));
   await expect(f.owners[0].acquireAdapter(artifact, { signal: cancelled.signal })).rejects.toThrow('stopped');
 });
+it('fills a whole-model directory from an authorized peer and drops the duplicate cached pieces', async () => {
+  const f = await fixture();
+  await fs.rm(path.join(f.directories[0], 'manifest.json')); await fs.rm(path.join(f.directories[0], 'pieces.json'));
+  await f.share();
+  const events = [];
+  const result = await f.owners[0].fillWholeModel(f.model, { onProgress: event => events.push(event.phase) });
+  expect(result).toMatchObject({ filled: true, fetchedPieces: 2, completedFiles: 2 });
+  expect(await fs.readFile(path.join(f.directories[0], 'weights.bin'))).toEqual(Buffer.concat(f.chunks));
+  expect(hash(await fs.readFile(path.join(f.directories[0], 'manifest.json')))).toBe(f.model.identity.slice(7));
+  const cached = await fs.readdir(f.cacheDirectories[0]);
+  for (const chunk of f.chunks) expect(cached).not.toContain('sha256-' + hash(chunk));
+  expect(events.at(-1)).toBe('complete');
+  // A complete directory is left alone and needs no supplier.
+  f.owners[1].stopSupply();
+  expect(await f.owners[0].fillWholeModel(f.model)).toEqual({ complete: true, filled: false });
+});

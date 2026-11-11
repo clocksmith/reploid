@@ -12,20 +12,27 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const MODES = ['--connect-only', '--share-files', '--contribute'];
+// Options that only exist for partition execution; giving one keeps the participant's own default.
+const PARTITION_ONLY = ['--partition-index', '--ordered-config', '--canonical', '--readiness-log'];
 const USAGE = `Reploid node (Node 22.13 or newer)
 Usage: reploid <catalog model id> [participant options]
 
   reploid qwen-3-5-2b-q4k-ehaf16
 
-Contributes this computer's GPU for that model. Nothing is downloaded up front:
-the pieces this computer is assigned are fetched from authenticated peers as
-they are needed, verified, and kept under ~/.reploid/weights.
+Contributes this computer's GPU for that model and runs the whole model here,
+so it serves requests on its own. A model not yet on this computer is fetched
+from authorized peers piece by piece, each piece and each file verified against
+the catalog, into ~/.reploid/weights/<model id>; an interrupted fetch resumes.
+Nothing arrives while no authorized supplier is online.
 
-Chosen for you unless given: --contribute, --model-directory ~/.reploid/weights,
---identity-file ~/.reploid/identity.json, --rtc-module @roamhq/wrtc,
---ws-module ws, --gpu-module webgpu. Pass --connect-only or --share-files to
-choose another mode. Every other option goes to the participant unchanged:
-run reploid-participant --help for the full list. Stop with Ctrl+C.`;
+Chosen for you unless given: --contribute, --execution-mode whole-model,
+--model-directory ~/.reploid/weights/<model id>, --identity-file
+~/.reploid/identity.json, --rtc-module @roamhq/wrtc, --ws-module ws,
+--gpu-module webgpu. --execution-mode partition (or a partition-only option
+such as --partition-index) shares the model with other contributors instead.
+Pass --connect-only or --share-files to choose another mode. Every other option
+goes to the participant unchanged: run reploid-participant --help for the full
+list. Stop with Ctrl+C.`;
 
 /** The participant arguments this command stands for. Pure, so it can be checked. */
 export function nodeArguments(argv, { home }) {
@@ -36,8 +43,11 @@ export function nodeArguments(argv, { home }) {
   const args = ['--model', model];
   const chosen = {};
   if (!MODES.some(given)) { args.push('--contribute'); chosen.mode = 'contribute'; }
+  const contributes = !MODES.some(given) || given('--contribute');
   const fill = (name, value) => { if (!given(name)) { args.push(name, value); chosen[name.slice(2)] = value; } };
-  fill('--model-directory', path.join(state, 'weights'));
+  if (contributes && !PARTITION_ONLY.some(given)) fill('--execution-mode', 'whole-model');
+  // One directory per model: catalog models share file names such as manifest.json.
+  fill('--model-directory', path.join(state, 'weights', model));
   fill('--identity-file', path.join(state, 'identity.json'));
   fill('--rtc-module', '@roamhq/wrtc');
   fill('--ws-module', 'ws');

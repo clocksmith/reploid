@@ -8,7 +8,7 @@ import { createNativeWholeModel } from '../../server/native-whole-model.js';
 
 const roots = [];
 afterEach(async () => { for (const root of roots.splice(0)) await fs.rm(root, { recursive: true, force: true }); });
-async function fixture({ prepare, owner, adapter = false, omitBudget = false } = {}) {
+async function fixture({ prepare, owner, adapter = false, omitBudget = false, fill = null } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-whole-')); roots.push(root);
   const bytes = JSON.stringify({ modelId: 'model' }); await fs.writeFile(path.join(root, 'manifest.json'), bytes);
   const model = { id: 'model', identity: 'sha256:' + createHash('sha256').update(bytes).digest('hex'),
@@ -23,7 +23,7 @@ async function fixture({ prepare, owner, adapter = false, omitBudget = false } =
     prepare: vi.fn(async () => { await prepare?.(); ready = true; }),
     close: vi.fn(async () => { ready = false; }), generate: vi.fn(async () => ({ content: 'answer' })) };
   const nativeGpu = vi.fn(), createResident = vi.fn(() => resident), configureMemory = vi.fn();
-  const participant = createNativeWholeModel({ model, modelDirectory: root, nativeGpu, createResident, configureMemory, owner });
+  const participant = createNativeWholeModel({ model, modelDirectory: root, nativeGpu, createResident, configureMemory, owner, fill });
   return { participant, model, nativeGpu, resident, createResident, configureMemory, root };
 }
 it('requires consent, validates identity before GPU work, and advertises only a prepared model', async () => {
@@ -106,4 +106,19 @@ it('advertises only probed adapters, serves base requests, and refuses unprepare
   expect(() => f.participant.generate([], () => {}, { adapterIdentities: ['sha256:' + 'c'.repeat(64)] })).toThrow('not prepared');
   expect(f.resident.generate).toHaveBeenCalledTimes(2);
   await f.participant.close();
+});
+it('fills the model directory before reading its manifest, and stop aborts the fill before any GPU work', async () => {
+  const order = [];
+  const f = await fixture({ fill: async () => { order.push('fill'); } });
+  f.nativeGpu.mockImplementation(() => { order.push('gpu'); });
+  await f.participant.contribute(true);
+  expect(order).toEqual(['fill', 'gpu']);
+  const began = Promise.withResolvers(); let aborted = null;
+  const g = await fixture({ fill: ({ signal }) => new Promise((_, reject) => {
+    began.resolve(); signal.addEventListener('abort', () => { aborted = signal.reason; reject(signal.reason); }, { once: true }); }) });
+  const opening = g.participant.contribute(true); await began.promise;
+  expect(g.participant.getState()).toMatchObject({ phase: 'acquiring-model', ready: false });
+  await g.participant.stop();
+  await expect(opening).rejects.toThrow('stopped');
+  expect(aborted?.message).toMatch('stopped'); expect(g.nativeGpu).not.toHaveBeenCalled();
 });

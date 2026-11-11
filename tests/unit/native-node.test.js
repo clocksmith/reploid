@@ -3,12 +3,26 @@ import { nodeArguments, participantProcessArgv } from '../../server/native-node.
 import { homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 
 describe('reploid <model>: the short native command', () => {
-  it('stands for an explicit contribute command with state under the home directory', () => {
+  it('stands for an explicit whole-model contribute command with state under the home directory', () => {
     const node = nodeArguments(['qwen-3-5-0-8b-q4k-ehaf16'], { home: '/home/someone' });
-    expect(node.args).toEqual(['--model', 'qwen-3-5-0-8b-q4k-ehaf16', '--contribute',
-      '--model-directory', '/home/someone/.reploid/weights', '--identity-file', '/home/someone/.reploid/identity.json',
+    expect(node.args).toEqual(['--model', 'qwen-3-5-0-8b-q4k-ehaf16', '--contribute', '--execution-mode', 'whole-model',
+      '--model-directory', '/home/someone/.reploid/weights/qwen-3-5-0-8b-q4k-ehaf16', '--identity-file', '/home/someone/.reploid/identity.json',
       '--rtc-module', '@roamhq/wrtc', '--ws-module', 'ws', '--gpu-module', 'webgpu']);
-    expect(node.chosen.mode).toBe('contribute');
+    expect(node.chosen).toMatchObject({ mode: 'contribute', 'execution-mode': 'whole-model' });
+  });
+
+  it('keeps an explicit execution mode, and partition-only options keep partition execution', () => {
+    for (const extra of [['--execution-mode', 'partition'], ['--execution-mode=partition']]) {
+      const args = nodeArguments(['m', ...extra], { home: '/h' }).args;
+      expect(args.filter(value => value.startsWith('--execution-mode'))).toHaveLength(1);
+      expect(args).not.toContain('whole-model');
+    }
+    for (const option of [['--partition-index', '1'], ['--ordered-config', '/x/o.json'], ['--canonical'], ['--readiness-log', '/x/r.jsonl']]) {
+      expect(nodeArguments(['m', ...option], { home: '/h' }).args).not.toContain('--execution-mode');
+    }
+    expect(nodeArguments(['m', '--contribute'], { home: '/h' }).args).toContain('whole-model');
+    expect(nodeArguments(['m', '--connect-only'], { home: '/h' }).args).not.toContain('--execution-mode');
+    expect(nodeArguments(['m', '--share-files'], { home: '/h' }).args).not.toContain('--execution-mode');
   });
 
   it('keeps what the operator chose and does not add compute to a mode that has none', () => {

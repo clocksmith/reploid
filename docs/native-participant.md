@@ -18,13 +18,29 @@ The delivered package has a short command that stands for the full one:
 reploid qwen-3-5-2b-q4k-ehaf16
 ```
 
-It runs `reploid-participant --contribute` for that catalog model with state
-under `~/.reploid` (`weights/` and `identity.json`) and the supported transport
-and GPU packages, and prints what it chose. Any participant option may follow
-and replaces the chosen value; `--connect-only` or `--share-files` choose
-another mode. No model is downloaded up front: the pieces this computer is
-assigned come from authenticated peers when needed, as with the full command,
-so nothing arrives while no authorized supplier is online.
+It runs `reploid-participant --contribute --execution-mode whole-model` for that
+catalog model with state under `~/.reploid` (`weights/<model id>/` and
+`identity.json`) and the supported transport and GPU packages, and prints what
+it chose. One machine then holds the whole model and serves requests alone. Any
+participant option may follow and replaces the chosen value:
+`--execution-mode partition` (or a partition-only option such as
+`--partition-index`, `--ordered-config`, `--canonical` or `--readiness-log`)
+keeps partition execution, which needs another contributor for the same model;
+`--connect-only` or `--share-files` choose another mode.
+
+Whole-model contribution with an incomplete model directory first fills it from
+authorized custody peers (`model-fill` status lines: `start`,
+`waiting-for-supplier`, `piece`, `file`, `complete`). Each piece is checked
+against the catalog's pinned piece index, each assembled shard against the
+manifest's SHA-256 and each other file against the catalog. A file is written as
+`<name>.partial` and renamed only after its whole hash matches; the manifest is
+written last. A restart reuses verified pieces already written. The fill needs
+free space for the missing files, follows the owner policy's admission and rates,
+and drops its cached piece copies once a shard is in place. It waits while no
+supplier is online; once one has delivered, a piece no connected supplier offers
+within one channel timeout stops contribution with that piece named. A directory
+holding another model's manifest is refused, never overwritten. A complete
+directory is used unchanged, as before.
 
 `npm run package:native -- --publishable` builds the same delivery with a
 manifest npm accepts. Published under the name `reploid`, the command above
@@ -37,8 +53,8 @@ directory and whose identity a live provider uses, so it cannot be re-issued
 in place. The package
 is not published; that is an owner decision. Checked: the built package
 installs, and its three commands start through npm's links (help text and
-argument expansion). A contribution through the short command has not been
-run against the fleet.
+argument expansion). A whole-model contribution through the short command has
+not been run against the fleet.
 
 ## Delivery archive
 
