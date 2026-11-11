@@ -69,8 +69,13 @@ directory and whose identity a live provider uses, so it cannot be re-issued
 in place. The package
 is not published; that is an owner decision. Checked: the built package
 installs, and its three commands start through npm's links (help text and
-argument expansion). A whole-model contribution through the short command has
-not been run against the fleet.
+argument expansion). On 2026-11-11 the package built from `65a2a7339`, run as
+`reploid qwen-3-5-2b-q4k-ehaf16` on one Linux x64 host (Intel integrated GPU,
+Vulkan) with an empty state directory, filled the 2B from a public custody
+supplier (919 verified pieces, 2,087,223,456 bytes, 504 s; no origin bytes),
+became ready and answered one Chat Completions request through a separate
+connect-only requester. That is a single-host functional check, not model
+quality or throughput qualification.
 
 ## Delivery archive
 
