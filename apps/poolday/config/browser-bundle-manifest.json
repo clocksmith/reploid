@@ -1216,7 +1216,7 @@
     {
       "path": "config/chat-models.json",
       "byteLength": 216298,
-      "sha256": "sha256:b341c3970cf0ebd62c1ea17acd67e5097e3dc06be5e416e6388ee15547956214"
+      "sha256": "sha256:5330fd1db195eb1584768864a73cf60c3b7439839349cbf9ad04033b3c96428a"
     },
     {
       "path": "config/chat-remote-permission.json",
@@ -1344,11 +1344,6 @@
       "sha256": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d"
     },
     {
-      "path": "config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
-      "byteLength": 213035,
-      "sha256": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e"
-    },
-    {
       "path": "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "byteLength": 183803,
       "sha256": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028"
@@ -1374,9 +1369,14 @@
       "sha256": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735"
     },
     {
+      "path": "config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "byteLength": 213026,
+      "sha256": "sha256:fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137"
+    },
+    {
       "path": "config/model-pieces/qwen-0-8b-pieces.json",
       "byteLength": 50016,
-      "sha256": "sha256:6f0b2ea5678a83124ca2f08b929f35334bc7b4ed7d58ee6f84bd03faf503f5a2"
+      "sha256": "sha256:ca9db591758af53748e804f38e243c3fbdb22e99411a375a236a085208a8af49"
     },
     {
       "path": "config/model-pieces/qwen-2b-pieces.json",
@@ -1401,7 +1401,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 640082,
-      "sha256": "sha256:cb75272b7c0b789929a80b5f766b39ae74de6675fb75cc872047126b5420ad5b"
+      "sha256": "sha256:86bafc77a220bf3d77faad36143089ca07149eacbf666166b38098520675d244"
     },
     {
       "path": "config/module-registry.json",
@@ -1481,7 +1481,7 @@
     {
       "path": "config/vfs-manifest.json",
       "byteLength": 138253,
-      "sha256": "sha256:499d0b137fc71d92ff79689d922d15150e4e3f6c55bdfeec1a539c29e98d3034"
+      "sha256": "sha256:08045666f2353d1f433216ad7d9e7dc43a3152ae69d2580f3257acca974f6119"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3651,7 +3651,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "byteLength": 2424804,
-      "sha256": "sha256:929d8fc2463e1975d75406a9bdc53816474ee826625b647e026cfcbf0d99cb66"
+      "sha256": "sha256:6cc60692f05e8f5115ecd3b8571bdf176cb4b7feb15491139e56ed4cfd11a682"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12034,5 +12034,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:fcf37dbb34fa4fb4500e61ab575be54c70f0ecd9835c38fef5b393d2de458a86"
+  "bundleHash": "sha256:db32cc5e96fc31cbd67040a36a8472c865e31b62864d430db5d21a37967a8f6d"
 }

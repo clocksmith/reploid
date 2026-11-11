@@ -368,7 +368,7 @@
       "redirects": [
         {
           "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
-          "destination": "/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
+          "destination": "/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
           "type": 302
         },
         {

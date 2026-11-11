@@ -1651,12 +1651,6 @@
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
-      "served": "config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
-      "source": "shared/config/model-manifests/6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e.json",
-      "owner": "shared",
-      "basis": "Reached from product and substrate entries."
-    },
-    {
       "served": "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "source": "shared/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "owner": "shared",
@@ -1685,6 +1679,12 @@
       "source": "shared/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json",
       "owner": "shared",
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
+    },
+    {
+      "served": "config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "source": "shared/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "owner": "shared",
+      "basis": "Reached from product and substrate entries."
     },
     {
       "served": "config/model-pieces/qwen-0-8b-pieces.json",
