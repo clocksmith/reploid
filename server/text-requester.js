@@ -11,7 +11,8 @@ export const object = value => value && typeof value === 'object' && !Array.isAr
 export const freeze = value => { if (object(value) || Array.isArray(value)) { for (const item of Object.values(value)) freeze(item); Object.freeze(value); } return value; };
 const json = (res, status, value) => { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(value)); };
 const errorBody = error => ({ error: { message: error.message, type: error.status < 500 ? 'invalid_request_error' : 'server_error',
-  param: error.param || null, code: error.status === 401 ? 'unauthorized' : error.status === 403 ? 'permission_denied' : null } });
+  param: error.param || null, code: error.status === 401 ? 'unauthorized' : error.status === 403 ? 'permission_denied'
+    : error.code === 'CONTEXT_LENGTH_EXCEEDED' ? 'context_length_exceeded' : null } });
 // Protocol adapters borrowing the same requester share its HTTP admission budget.
 // Each adapter still owns only its own request cancellation/settlement.
 const requesterAdmission = new WeakMap();

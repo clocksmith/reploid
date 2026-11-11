@@ -73,6 +73,9 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
           loadOptions.runtimeConfig.shared.bufferPool ??= {};
           loadOptions.runtimeConfig.shared.bufferPool.budget ??= {};
           loadOptions.runtimeConfig.shared.bufferPool.budget.maxTotalBytes = maximum;
+          loadOptions.runtimeConfig.inference ??= {};
+          loadOptions.runtimeConfig.inference.session ??= {};
+          loadOptions.runtimeConfig.inference.session.prefillChunkSubmitMode ??= 'sync';
         }
         resident = createResident({ service, model, resolveAdapter, generation: model.generation || profile.generation,
           maxOutcomeCharacters: profile.maxOutcomeCharacters, loadOptions,

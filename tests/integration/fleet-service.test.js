@@ -468,8 +468,8 @@ it('settles recoverable over-context whole-model rejections immediately and bloc
     },
     execute: async messages => {
       if (messages.some(row => row.content.includes('OVER_CONTEXT'))) {
-        throw Object.assign(new Error('Conversation exceeds model context limit (2100 >= 2048 tokens)'),
-          { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true });
+        throw Object.assign(new Error('Conversation plus output budget exceeds model context limit (1645 + 512 > 2048 tokens)'),
+          { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true, status: 400 });
       }
       return {
         model: model.id, modelIdentity: model.identity, content: 'Still ready.',

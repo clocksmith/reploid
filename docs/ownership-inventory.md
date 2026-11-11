@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | --- | ---: |
 | apps/poolday | 377 |
 | self | 448 |
-| shared | 2322 |
-| total | 3147 |
+| shared | 2323 |
+| total | 3148 |
 
 Every file lives in its owner's root.
 
@@ -31,7 +31,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 
 | Served tree | Files | Owner |
 | --- | ---: | --- |
-| `vendor/doppler/` | 1932 | shared |
+| `vendor/doppler/` | 1933 | shared |
 | `vendor/reploid/` | 309 | shared |
 
 ## Files

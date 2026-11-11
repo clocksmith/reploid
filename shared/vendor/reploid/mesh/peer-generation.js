@@ -340,6 +340,10 @@ export function createPeerGenerationMesh({ config, ports }) {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
     if (!pending || pending.processing) return;
     const error = new Error(String(payload.error || 'Remote generation failed'));
+    if (payload?.code === 'CONTEXT_LENGTH_EXCEEDED') {
+      error.code = 'CONTEXT_LENGTH_EXCEEDED';
+      error.status = 400;
+    }
     if (payload?.terminal && pending.providerIdentity && identityBundle) {
       try {
         const binding = {
@@ -602,7 +606,11 @@ export function createPeerGenerationMesh({ config, ports }) {
       completed.set(key, { type: 'reploid:generation-result', payload: result });
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-result', result);
     } catch (error) {
-      const payload = { requestId, error: error?.message || String(error) };
+      const payload = {
+        requestId,
+        error: error?.message || String(error),
+        ...(error?.code === 'CONTEXT_LENGTH_EXCEEDED' ? { code: 'CONTEXT_LENGTH_EXCEEDED' } : {})
+      };
       if (claimedRecovery && !retainedResult && typeof ports.settleGeneration === 'function') {
         try {
           // A rejected promise alone cannot prove GPU cleanup. The owning host

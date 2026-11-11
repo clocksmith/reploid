@@ -1,7 +1,7 @@
 {
   "name": "doppler-gpu",
-  "version": "0.7.0",
-  "spec": "0.7.0",
-  "resolved": "https://registry.npmjs.org/doppler-gpu/-/doppler-gpu-0.7.0.tgz",
-  "integrity": "sha512-sRaOuz/K6YOhyitFlauZ3u8mFZdOmAEbcRKEhnm4rs7/ajCB/y7xPiI8mF+lpdvg39C+RPH+HDlbAQAen+lTjQ=="
+  "version": "0.7.1",
+  "spec": "0.7.1",
+  "resolved": "https://registry.npmjs.org/doppler-gpu/-/doppler-gpu-0.7.1.tgz",
+  "integrity": "sha512-nsg0sPBzUaG1tSI3+GoPtV6PIf4iV9gFtHSI77H1WPMPyNWbJ3OyQde5URb8NlRP0asR7B39y/y1nAk2fqi28Q=="
 }

@@ -123,15 +123,13 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
           const maxSeqLen = advanced.getGenerationGeometry()?.maxSeqLen;
           if (Number.isSafeInteger(maxSeqLen) && maxSeqLen > 0) {
             const promptTokens = advanced.tokenizePrompt(messages, { useChatTemplate: requestGeneration.useChatTemplate !== false }).length;
-            const remainingContextTokens = maxSeqLen - promptTokens;
-            if (remainingContextTokens < 1) {
+            const requiredOutputTokens = Number.isSafeInteger(requestGeneration.maxTokens) && requestGeneration.maxTokens > 0
+              ? requestGeneration.maxTokens : 1;
+            if (promptTokens + requiredOutputTokens > maxSeqLen) {
               throw Object.assign(
-                new Error(`Conversation exceeds model context limit (${promptTokens} >= ${maxSeqLen} tokens)`),
-                { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true }
+                new Error(`Conversation plus output budget exceeds model context limit (${promptTokens} + ${requiredOutputTokens} > ${maxSeqLen} tokens)`),
+                { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true, status: 400 }
               );
-            }
-            if (Number.isSafeInteger(requestGeneration.maxTokens) && requestGeneration.maxTokens > remainingContextTokens) {
-              requestGeneration = { ...requestGeneration, maxTokens: remainingContextTokens };
             }
           }
         }

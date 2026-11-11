@@ -633,3 +633,67 @@ it('queues concurrent whole-model requests fairly before provider credit admissi
     for (const close of cleanup.reverse()) await close();
   }
 });
+
+it('returns HTTP 400 context_length_exceeded and releases credit holds when prompt plus output budget exceed maxSeqLen', async () => {
+  const cleanup = [];
+  const admission = createFleetExecutionAdmission({ credits: providerCredits, model });
+  let wholeRequester;
+  const mesh = await createRecoveryMesh(cleanup, {
+    identities: keys.slice(0, 2),
+    modelId: model.id,
+    modelIdentity: model.identity,
+    authorize: async input => {
+      if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
+      return true;
+    },
+    execute: async messages => {
+      if (messages.some(row => row.content.includes('FULL_ENVELOPE'))) {
+        throw Object.assign(new Error('Conversation plus output budget exceeds model context limit (1645 + 512 > 2048 tokens)'),
+          { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true, status: 400 });
+      }
+      return {
+        model: model.id, modelIdentity: model.identity, content: '{"candidate":"ok"}',
+        completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 12, generatedTokenCount: 4, stopReason: 'stop-token' },
+        adapterIdentities: []
+      };
+    },
+    onGenerationTerminal: proof => admission.terminal(proof)
+  });
+  wholeRequester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
+  const host = createHostAdapter(wholeRequester, mesh.requesterMesh);
+  const api = await startFleetTextApi({ host, token, allowedRecipients: [keys[1].peerId] });
+  cleanup.push(() => api.close());
+  try {
+    const rejected = await fetch(`${api.url}/responses`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: model.id, store: false, stream: false, input: 'FULL_ENVELOPE', max_output_tokens: 16 })
+    });
+    expect(rejected.status).toBe(400);
+    const rejectedBody = await rejected.json();
+    expect(rejectedBody).toEqual({
+      error: {
+        message: 'Conversation plus output budget exceeds model context limit (1645 + 512 > 2048 tokens)',
+        type: 'invalid_request_error',
+        param: null,
+        code: 'context_length_exceeded'
+      }
+    });
+    expect(credits.snapshot().accounts.map(row => ({ balance: row.balance, held: row.held }))).toEqual([
+      { balance: 0, held: 0 }, { balance: 0, held: 0 }
+    ]);
+
+    const accepted = await fetch(`${api.url}/responses`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: model.id, store: false, stream: false, input: 'PER_CANDIDATE', max_output_tokens: 16 })
+    });
+    expect(accepted.status).toBe(200);
+    expect(credits.snapshot().accounts.map(row => ({ balance: row.balance, held: row.held }))).toEqual([
+      { balance: -4, held: 0 }, { balance: 4, held: 0 }
+    ]);
+  } finally {
+    for (const close of cleanup.reverse()) await close();
+  }
+});

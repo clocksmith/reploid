@@ -1,0 +1,42 @@
+{
+  "schema": "doppler.activity-stages/v1",
+  "probes": {
+    "ffn_gate": "ffn-gate",
+    "ffn_up": "ffn-up",
+    "ffn_act": "ffn-product"
+  },
+  "weightRoles": {
+    "ffn_down": [
+      "ffnDown",
+      "down"
+    ]
+  },
+  "roles": [
+    "kv-key",
+    "kv-value",
+    "attention-query",
+    "ffn-gate",
+    "ffn-up",
+    "ffn-product",
+    "ffn-down-input",
+    "recurrent-memory",
+    "convolution-history",
+    "linear-a",
+    "linear-b",
+    "linear-a-log",
+    "linear-dt-bias",
+    "expert-scores",
+    "expert-indices",
+    "expert-weights",
+    "logits",
+    "weight-access"
+  ],
+  "constantRoles": [
+    "linear-a-log",
+    "linear-dt-bias"
+  ],
+  "prefixRoles": [
+    "kv-key",
+    "kv-value"
+  ]
+}

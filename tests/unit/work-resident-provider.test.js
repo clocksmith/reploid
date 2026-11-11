@@ -268,7 +268,7 @@ it('keeps the cache lease through failed GPU cleanup and releases it only after 
   }
 });
 
-it('clamps near-ceiling conversations to remaining context tokens and rejects over-ceiling turns without retiring the resident', async () => {
+it('rejects requests whose prompt plus output budget exceed maxSeqLen without clamping or retiring the resident', async () => {
   const seenMaxTokens = [];
   const f = fixture({
     supports: capability => capability === 'advanced' || capability === 'generationContext',
@@ -280,9 +280,9 @@ it('clamps near-ceiling conversations to remaining context tokens and rejects ov
     },
     async *stream(_messages, options) {
       seenMaxTokens.push(options.maxTokens);
-      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'bounded reply' };
-      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'bounded reply',
-        completion: { schema: 'doppler.generation-completion/v1', stopReason: 'max-tokens', promptTokenCount: 1800, generatedTokenCount: 248 } };
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'admitted reply' };
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'admitted reply',
+        completion: { schema: 'doppler.generation-completion/v1', stopReason: 'stop-token', promptTokenCount: 1070, generatedTokenCount: 48 } };
     }
   }, {
     generation: { maxTokens: 512, useChatTemplate: true },
@@ -291,19 +291,26 @@ it('clamps near-ceiling conversations to remaining context tokens and rejects ov
   await f.owner.prepare();
   expect(f.owner.getState().contextCache?.maxBytes).toBe(100000000);
 
-  const clamped = await f.owner.generate([{ role: 'user', content: 'near limit', tokenCount: 1800 }], () => {},
-    { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u1', contextId: 'thread-1' });
-  expect(clamped.content).toBe('bounded reply');
-  expect(seenMaxTokens).toEqual([248]);
+  // Full-envelope request (1645 + 512 = 2157 > 2048) is rejected outright rather than silently clamping maxTokens.
+  await expect(f.owner.generate([{ role: 'user', content: 'full envelope', tokenCount: 1645 }], () => {},
+    { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u1', contextId: 'thread-1' }))
+    .rejects.toMatchObject({ code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true, status: 400 });
+  expect(seenMaxTokens).toEqual([]);
 
+  // Over-ceiling prompt (2048 + 512 > 2048) is also rejected without retiring the resident.
   await expect(f.owner.generate([{ role: 'user', content: 'over limit', tokenCount: 2048 }], () => {},
     { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u1', contextId: 'thread-1' }))
-    .rejects.toMatchObject({ code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true });
+    .rejects.toMatchObject({ code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true, status: 400 });
 
   expect(f.owner.getState()).toMatchObject({ phase: 'ready', ready: true, error: null });
-  const after = await f.owner.generate([{ role: 'user', content: 'short follow-up', tokenCount: 64 }], () => {},
+  // Per-candidate prompt (1070 + 512 = 1582 <= 2048) fits and executes with the full 512-token budget.
+  const admitted = await f.owner.generate([{ role: 'user', content: 'per-candidate', tokenCount: 1070 }], () => {},
     { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u2', contextId: 'thread-2' });
-  expect(after.content).toBe('bounded reply');
-  expect(seenMaxTokens).toEqual([248, 512]);
+  expect(admitted.content).toBe('admitted reply');
+  expect(seenMaxTokens).toEqual([512]);
+  // Exact boundary (1536 + 512 = 2048) is also admitted with the full 512-token budget.
+  await f.owner.generate([{ role: 'user', content: 'exact fit', tokenCount: 1536 }], () => {},
+    { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u2', contextId: 'thread-3' });
+  expect(seenMaxTokens).toEqual([512, 512]);
   await f.owner.close();
 });
