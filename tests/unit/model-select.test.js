@@ -126,3 +126,21 @@ it('keeps identical public and private model choices distinct and labels absent 
   expect(modelExecutionState({ availability: 'unavailable' }).label).toBe('Unavailable');
   choices.dispose();
 });
+
+it('states how many computers serve a shared whole model, and nothing for a distributed route or an unknown count', () => {
+  const select = document.querySelector('select'), choices = bindModelChoices(select);
+  const served = [
+    { id: 'two', name: 'Two', networkAvailability: 'ready', providerIds: ['a', 'b', 'a'] },
+    { id: 'one', name: 'One', networkAvailability: 'busy', providerIds: ['a'] },
+    { id: 'split', name: 'Split', networkAvailability: 'ready', partition: { id: 'p' }, providerIds: ['a', 'b'] },
+    { id: 'unknown', name: 'Unknown', networkAvailability: 'ready' }
+  ];
+  updateModelSelect(select, served, { grouped: true, showAvailability: true }); choices.update(served, { grouped: true, showAvailability: true });
+  const text = id => [...select.options].find(option => option.value === id).textContent;
+  expect(text('two')).toContain('Ready · 2 computers');
+  expect(text('one')).toContain('Busy · waits for capacity · 1 computer');
+  expect(text('split')).not.toContain('computer');
+  expect(text('unknown')).not.toContain('computer');
+  expect(document.querySelector('input[value="two"]').closest('label').querySelector('[data-choice-status]').textContent).toContain('2 computers');
+  choices.dispose();
+});

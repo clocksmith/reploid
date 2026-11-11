@@ -199,8 +199,12 @@ export function bindModelChoices(select) {
 }
 
 const availabilityLabel = model => ({ ready: 'Ready', cached: 'On this device', busy: 'Busy', loading: 'Preparing', preparing: 'Preparing', unavailable: 'Unavailable' }[model.availability] || '');
+/** How many computers advertise this whole model now. A distributed route has no single serving computer, so it reports none. */
+export const modelServingComputers = model => model?.partition ? 0 : new Set(model?.providerIds || []).size;
+const withServingComputers = (status, model) => { const count = modelServingComputers(model);
+  return status && count ? `${status} · ${count} ${count === 1 ? 'computer' : 'computers'}` : status; };
 const choiceStatus = (model, group) => group === 'shared'
-  ? ({ ready: 'Ready', busy: 'Busy · waits for capacity', loading: 'Preparing', preparing: 'Preparing' }[model.networkAvailability])
+  ? withServingComputers({ ready: 'Ready', busy: 'Busy · waits for capacity', loading: 'Preparing', preparing: 'Preparing' }[model.networkAvailability], model)
   : group === 'download' ? 'Download required' : availabilityLabel(model);
 
 /** Options only: selection, availability policy and execution remain caller-owned. */
