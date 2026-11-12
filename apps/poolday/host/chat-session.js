@@ -52,6 +52,20 @@ export const SEARCH_ROUTE = 'search';
 export const DEVICE_SEARCH_ROUTE = 'device-search';
 export const CONTRIBUTOR_SEARCH_ROUTE = 'contributor-search';
 
+export const MAX_AUTOMATIC_FAILOVERS = 2;
+// Failures that mean the chosen computer went away, before or during the answer. Anything else
+// (a refusal, a limit, a model error) is not a reason to send the question to someone else.
+const PROVIDER_DROPPED = /Execution peer disconnected; retry requires a new attempt|Selected contributor is no longer ready; retry requires new placement|Failed to send swarm generation request/;
+/** Whether a thread's latest attempt should be retried on another computer without being asked. */
+export function shouldFailover(thread, runningIds = [], used = 0) {
+  const attempt = thread?.attempts?.at(-1);
+  return !!attempt && !thread.closed && attempt.status === 'failed' && PROVIDER_DROPPED.test(String(attempt.error || ''))
+    && thread.permissions?.sharingScope !== 'local'
+    // A search-backed answer discloses again on retry and needs fresh permission for it.
+    && !attempt.request?.retrieval
+    && !(runningIds || []).includes(thread.id) && used < MAX_AUTOMATIC_FAILOVERS;
+}
+
 export function createChatSession({
   storage = globalThis.localStorage,
   service = createReploidDopplerRuntimeService(),
@@ -288,8 +302,30 @@ export function createChatSession({
     });
   };
 
+  // Automatic failover. When the computer chosen for a shared answer drops out, the answer is tried again
+  // on another computer as a new attempt, the same thing the Retry control does, at most
+  // MAX_AUTOMATIC_FAILOVERS times per question. The failed attempt stays in the record. Each attempt has its
+  // own request identity, and this requester countersigns a receipt only for the attempt that completes, so
+  // a dropped attempt never receives its countersignature.
+  const failovers = new Map(), failedOver = new Set();
+  const considerFailover = () => {
+    if (closed) return;
+    const state = workspace.getState();
+    for (const thread of state.threads || []) {
+      const attempt = thread.attempts?.at(-1), key = `${thread.id}:${attempt?.userMessageId}`;
+      if (!attempt || failedOver.has(attempt.id) || !shouldFailover(thread, state.runningIds, failovers.get(key) || 0)) continue;
+      failedOver.add(attempt.id); failovers.set(key, (failovers.get(key) || 0) + 1);
+      queueMicrotask(() => {
+        if (closed) return;
+        try { allowConfiguredRemote(thread.id); Promise.resolve(workspace.retry(thread.id, attempt.id)).catch(() => {}); }
+        catch { /* The failed attempt stays as it is; Retry remains available to the reader. */ }
+      });
+    }
+  };
+
   // Re-emit workspace updates
   const unsubscribeWorkspace = workspace.subscribe(() => {
+    considerFailover();
     notifyAll();
   });
 
