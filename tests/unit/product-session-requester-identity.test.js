@@ -10,6 +10,7 @@ import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/parti
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
+import { memoryNetworkPort } from '../helpers/memory-peer-network.js';
 import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 
 const ports = vi.hoisted(() => ({ identity: null, partitions: null, bound: [] }));
@@ -181,15 +182,6 @@ const generation = { maxTokens: 4, maxSeqLen: 128, temperature: 0, topK: 0, topP
   repetitionPenalty: 1, repetitionPenaltyWindow: 0, presencePenalty: 0, useChatTemplate: false };
 const channelPolicy = { maxFrameBytes: 64, maxControlBytes: 8192, maxPayloadBytes: 4096, maxPendingBytes: 16384,
   maxPendingRequests: 8, maxRequestsPerChannel: 128, maxBufferedBytes: 16384, maxTransferBytes: 1048576, timeoutMs: 1000 };
-function channels() {
-  const pair = [new EventTarget(), new EventTarget()];
-  pair.forEach((channel, index) => Object.assign(channel, {
-    readyState: 'open', ordered: true, maxRetransmits: null, maxPacketLifeTime: null, bufferedAmount: 0,
-    send(data) { queueMicrotask(() => { if (pair[1 - index].readyState === 'open') pair[1 - index].dispatchEvent(new MessageEvent('message', { data: structuredClone(data) })); }); },
-    close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1 - index].close()); }
-  }));
-  return pair;
-}
 // Requester 0 and contributors 1 and 2, as partition-api.test.js "automatic cooperative placement".
 async function twoStageMesh() {
   const identities = await Promise.all([0, 1, 2].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
@@ -201,29 +193,10 @@ async function twoStageMesh() {
     inputChannel: channelPolicy, executionChannel: channelPolicy, controlChannel: channelPolicy, receiver: { maxAttempts: 32, maxSteps: 8 },
     inputLimits: { maxInputCharacters: 1000, maxOutputCharacters: 1024, maxAttempts: 16, maxConcurrentAttempts: 2, descriptorTtlMs: 1000 } };
   for (const [index, identity] of identities.entries()) {
-    const factory = createPartitionRuntimeFixture(), networks = new Map(); registry.set(String(index), networks);
+    const factory = createPartitionRuntimeFixture();
     meshes.push(createAutomaticPartitions({ identity, meshId: 'mesh', models: [model], policy: config,
       peers: () => identities.map((_, i) => ({ id: String(i), localTransportId: String(index) })).filter(peer => peer.id !== String(index)),
-      createNetwork(options) {
-        const endpoints = new Map();
-        const network = { options, endpoints,
-          async connect(remoteId) {
-            if (endpoints.has(remoteId)) return endpoints.get(remoteId);
-            const other = registry.get(remoteId)?.get(options.label);
-            if (!other) throw Error('not yet connected');
-            const [left, right] = channels();
-            const local = options.createEndpoint({ channel: left, remoteParticipantId: identities[Number(remoteId)].peerId });
-            const remote = other.options.createEndpoint({ channel: right, remoteParticipantId: identity.peerId });
-            endpoints.set(remoteId, local); other.endpoints.set(String(index), remote);
-            left.addEventListener('close', () => endpoints.delete(remoteId), { once: true });
-            right.addEventListener('close', () => other.endpoints.delete(String(index)), { once: true });
-            options.onPeer?.(remoteId, local); other.options.onPeer?.(String(index), remote);
-            return local;
-          },
-          async close() { networks.delete(options.label); await Promise.all([...endpoints.values()].map(endpoint => endpoint.close())); }
-        };
-        networks.set(options.label, network); return network;
-      },
+      createNetwork: memoryNetworkPort({ registry, identities, index, identity }),
       async loadProgram(selected, partition, controls) {
         const resident = createResidentPartition({ runtime: factory, model: selected, plan, planId, index: partition, participantId: identity.peerId, limits: policy });
         await resident.prepare({ approved: true, signal: controls.signal });

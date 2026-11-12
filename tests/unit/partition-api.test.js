@@ -8,6 +8,7 @@ import { createPartitionEntry, createPartitionRequester } from '../../packages/r
 import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
 import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
+import { channels, memoryNetworkPort } from '../helpers/memory-peer-network.js';
 
 // Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
 // checked in). These injected routes are approved per fixture so the host exercises the partition executor.
@@ -23,15 +24,6 @@ const channelPolicy = { maxFrameBytes: 64, maxControlBytes: 8192, maxPayloadByte
 const cleanup = [];
 afterEach(async () => { await Promise.allSettled(cleanup.splice(0).reverse().map(close => close())); releases.length = 0; });
 const gate = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
-function channels() {
-  const pair = [new EventTarget(), new EventTarget()];
-  pair.forEach((channel, index) => Object.assign(channel, {
-    readyState: 'open', ordered: true, maxRetransmits: null, maxPacketLifeTime: null, bufferedAmount: 0,
-    send(data) { queueMicrotask(() => { if (pair[1 - index].readyState === 'open') pair[1 - index].dispatchEvent(new MessageEvent('message', { data: structuredClone(data) })); }); },
-    close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1 - index].close()); },
-  }));
-  return pair;
-}
 async function fixture(options = {}) {
   const [a, b] = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
   const makeAuthority = identity => createPartitionGrantAuthority({ identity, meshId: 'mesh', maxGrants: 32, maxTtlMs: 10000 });
@@ -595,29 +587,9 @@ describe('automatic cooperative placement', () => {
         maxConcurrentAttempts: 2, descriptorTtlMs: 1000 } };
     for (const [index, identity] of identities.entries()) {
       const factory = createPartitionRuntimeFixture(); factories.push(factory);
-      const networks = new Map(); registry.set(String(index), networks);
       meshes.push(createAutomaticPartitions({ identity, meshId: 'mesh', models: [model], policy: config,
         peers: () => identities.map((_, i) => ({ id: String(i), localTransportId: String(index) })).filter(p => p.id !== String(index)),
-        createNetwork(options) {
-          const endpoints = new Map();
-          const network = { options, endpoints,
-            async connect(remoteId) {
-              if (endpoints.has(remoteId)) return endpoints.get(remoteId);
-              const other = registry.get(remoteId)?.get(options.label);
-              if (!other) throw Error('not yet connected');
-              const [left, right] = channels();
-              const local = options.createEndpoint({ channel: left, remoteParticipantId: identities[Number(remoteId)].peerId });
-              const remote = other.options.createEndpoint({ channel: right, remoteParticipantId: identity.peerId });
-              endpoints.set(remoteId, local); other.endpoints.set(String(index), remote);
-              left.addEventListener('close', () => endpoints.delete(remoteId), { once: true });
-              right.addEventListener('close', () => other.endpoints.delete(String(index)), { once: true });
-              options.onPeer?.(remoteId, local); other.options.onPeer?.(String(index), remote);
-              return local;
-            },
-            async close() { networks.delete(options.label); await Promise.all([...endpoints.values()].map(e => e.close())); }
-          };
-          networks.set(options.label, network); return network;
-        },
+        createNetwork: memoryNetworkPort({ registry, identities, index, identity }),
         async loadProgram(selected, partition, controls) {
           loaded.push({ device: index, partition });
           const resident = createResidentPartition({ runtime: factory, model: selected, plan, planId,
