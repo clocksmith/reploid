@@ -8,6 +8,7 @@ import { fingerprint } from './sdp-fingerprint.js';
 import { requireResolvedConfig } from '../config/index.js';
 import { bootstrapIntroductions } from './introduction-bootstrap.js';
 import { createPeerIntroductions, INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL } from './introductions.js';
+import { observeConnectionPath } from './connection-path.js';
 
 const AUXILIARY_CHANNELS = Object.freeze(['reploid-custody', 'reploid-partitions',
   'reploid-partitions-input', 'reploid-partitions-control', 'reploid-jobs', 'reploid-partitions-ordered', 'reploid-training']);
@@ -144,8 +145,20 @@ const WebRTCSwarm = {
       transport: peer.transport || 'webrtc', updatedAt: peer.updatedAt || peer.lastSeen,
       authenticated: peer.authenticated === true, failure: peer.failure || null,
       iceState: peer.connection?.iceConnectionState || null,
-      channelState: peer.dataChannel?.readyState || null
+      channelState: peer.dataChannel?.readyState || null,
+      // Observed from this browser's own statistics; null until they name the path in use.
+      path: peer.path || null
     });
+    // Re-read on every ICE change: a restart can move a connection onto or off a relay.
+    const refreshPeerPath = peer => {
+      const connection = peer.connection, check = peer.pathCheck = (peer.pathCheck || 0) + 1;
+      void observeConnectionPath(connection).then(path => {
+        if (_manualStop || _peers.get(peer.id) !== peer || peer.connection !== connection || peer.pathCheck !== check) return;
+        if (!['connected', 'completed'].includes(connection.iceConnectionState) && peer.dataChannel?.readyState !== 'open') path = null;
+        if ((peer.path || null) === path) return;
+        peer.path = path; reportPeerProgress(peer, peer.phase);
+      });
+    };
     // Retain bounded diagnostics only; these records never count as live peers.
     const getPeerStates = () => [...retiredPeerStates.values(), ...[..._peers.values()].map(peerState)];
     const preparePeer = async (remote, exchange) => {
@@ -169,6 +182,7 @@ const WebRTCSwarm = {
           const ice = peer.connection.iceConnectionState;
           reportPeerProgress(peer, ice === 'disconnected' ? 'interrupted'
             : peer.status === 'connected' ? 'connected' : 'negotiating');
+          refreshPeerPath(peer);
         };
         return peer;
       } catch (error) {
@@ -784,6 +798,7 @@ const WebRTCSwarm = {
         logger.info(`[WebRTCSwarm] Data channel opened with ${remotePeerId}`);
         peer.status = 'connected';
         reportPeerProgress(peer, 'connected');
+        refreshPeerPath(peer);
         clearTimeout(negotiationTimers.get(remotePeerId)); negotiationTimers.delete(remotePeerId);
         introductions?.settled(remotePeerId);
         startHeartbeat();
@@ -849,7 +864,7 @@ const WebRTCSwarm = {
         _peers.delete(remotePeerId);
         retiredPeerStates.delete(remotePeerId);
         retiredPeerStates.set(remotePeerId, { ...peerState(peer), phase: peer.phase === 'failed' ? 'failed' : 'disconnected',
-          channelState: 'closed', updatedAt: Date.now() });
+          channelState: 'closed', path: null, updatedAt: Date.now() });
         while (retiredPeerStates.size > 64) retiredPeerStates.delete(retiredPeerStates.keys().next().value);
         if (!preserveIntroduction) introductions?.retirePeer(remotePeerId, peer.exchange?.attemptId);
         try {

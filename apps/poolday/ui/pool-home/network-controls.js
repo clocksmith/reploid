@@ -60,6 +60,10 @@ export const renderSharingControls = ({ introductory = true } = {}) => `<div cla
 </div>`;
 
 
+/** Only what this browser's connection statistics established; anything else stays unlabelled. */
+const connectionPath = connection => ['relayed', 'direct'].includes(connection?.path) ? connection.path : null;
+const CONNECTION_PATH_LABELS = { relayed: 'Relayed connection', direct: 'Direct connection' };
+
 export function projectNetworkPeers(state) {
   const network = state.network || {};
   const own = new Set([network.consumer?.peerId, network.supplier?.peerId]);
@@ -87,7 +91,7 @@ export function projectNetworkPeers(state) {
     const [status, detail] = connectionLabels[peer.phase] || connectionLabels.connecting;
     peers.set(peer.id, { id: peer.id, model: 'Model status pending', phase: peer.phase, attemptId: peer.attemptId || null, authenticated: peer.authenticated === true,
       state: peer.phase === 'connected' ? 'awaiting-advertisement' : ['disconnected', 'failed'].includes(peer.phase) ? peer.phase : 'connecting',
-      connectionPhase: peer.phase, partitionIndex: null, status, detail: peer.failure || detail });
+      connectionPhase: peer.phase, connectionPath: peer.phase === 'connected' ? connectionPath(peer) : null, partitionIndex: null, status, detail: peer.failure || detail });
   }
   const advertisements = new Map();
   for (const snapshot of [network.consumer, network.supplier]) for (const peer of snapshot?.peers || []) advertisements.set(peer.peerId, peer);
@@ -129,7 +133,7 @@ export function projectNetworkPeers(state) {
     peers.set(peer.peerId, { id: peer.peerId, model, modelId, executionType: partition ? 'partition' : 'whole-model',
       adapterIdentities: peer.adapterIdentities || [], hardware: peer.hardware || null,
       phase, state: observedState, attemptId: connection?.attemptId || null,
-      authenticated: peer.identityVerified === true || connection?.authenticated === true || !!capability?.available, modelIdentity: offered?.identity || peer.modelIdentity || null, connectionPhase: 'connected', partitionIndex: index, status, detail, progress });
+      authenticated: peer.identityVerified === true || connection?.authenticated === true || !!capability?.available, modelIdentity: offered?.identity || peer.modelIdentity || null, connectionPhase: 'connected', connectionPath: connectionPath(connection), partitionIndex: index, status, detail, progress });
   }
   return [...peers.values()];
 }
@@ -147,7 +151,7 @@ function renderPeerRows(list, state) {
       row = list.ownerDocument.createElement('li'); row.className = 'network-peer-row'; row.dataset.computerId = peer.id;
       row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
         + '<span class="pool-small pool-muted" data-computer-model></span><p class="pool-caption pool-muted" data-computer-hardware></p><p class="pool-small pool-muted" data-computer-detail></p>'
-        + '<progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-auth></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code>'
+        + '<progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-auth></p><p data-computer-path hidden></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code>'
         + renderComputerRename() + '</details></div>';
     }
     existing.delete(peer.id);
@@ -161,6 +165,8 @@ function renderPeerRows(list, state) {
     set('[data-computer-model]', peer.model === 'Model status pending' && row.dataset.lastModel ? `Last model: ${row.dataset.lastModel}` : peer.model); set('[data-computer-detail]', peer.detail);
     set('[data-computer-hardware]', hardwareText(peer.hardware) ? `Reported GPU: ${hardwareText(peer.hardware)}` : 'GPU not reported');
     set('[data-computer-auth]', peer.authenticated ? 'Authenticated identity observed on this connection.' : 'Identity authentication has not been observed on this connection.');
+    set('[data-computer-path]', CONNECTION_PATH_LABELS[peer.connectionPath] || '');
+    row.querySelector('[data-computer-path]').hidden = !peer.connectionPath;
     set('[data-computer-stage]', peer.partitionIndex === null ? peer.status : `Model stage ${peer.partitionIndex + 1} · ${peer.status}`);
     set('[data-computer-attempt]', peer.attemptId ? `Connection attempt: ${peer.attemptId}` : 'Connection attempt identity unavailable');
     set('[data-computer-identity]', peer.modelIdentity || peer.id);

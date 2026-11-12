@@ -1508,6 +1508,11 @@
       "sha256": "059424cb0a89301b8357ee45fc1c8d901fe087a4611c968a399e10c5d07702da"
     },
     {
+      "path": "transport/connection-path.js",
+      "bytes": 1728,
+      "sha256": "495948626c84dea131c3ec9555af8322867716e8f11664481823f5001fe6a2d3"
+    },
+    {
       "path": "transport/index.d.ts",
       "bytes": 557,
       "sha256": "daacf058c677f54da39226fbc922e9894e62b42442f1d76b72a5909c2d675648"
@@ -1614,8 +1619,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 49007,
-      "sha256": "8a2569e693cc612702ca7c9155ca947360e18ff816f031a3f1fe7879e27b293a"
+      "bytes": 49944,
+      "sha256": "f319ba236face2f9e3924cdb77d828e7f338f4f4b50a4841161b980c14ad87a7"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",
