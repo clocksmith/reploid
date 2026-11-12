@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
+import { observeMeshProtocol, expectMeshDiscovery } from '../fixtures/mesh-discovery.js';
 import { readFile } from 'node:fs/promises';
 import { resolveServedFile } from '../../server/browser-roots.js';
 
@@ -27,8 +28,9 @@ test('three Chrome tabs supply files, execute Doppler and receive independent ad
     await allowRemoteOnce(a);
   };
   try {
+    for (const page of [a, b, c]) await observeMeshProtocol(page);
     await Promise.all([a.goto('/'), b.goto('/'), c.goto('/')]);
-    for (const page of [a, b, c]) await expect.poll(async () => parseInt(await page.locator('[data-mesh-peers]').textContent()), { timeout: 60000 }).toBeGreaterThanOrEqual(2);
+    for (const page of [a, b, c]) await expectMeshDiscovery(page, { minimum: 2 });
     expect(modelRequests).toEqual([]); expect(executorRequests).toEqual([]);
     await c.locator('[data-toggle-inspector]').click();
     await c.locator('[data-contribution-model]').selectOption(specialist);

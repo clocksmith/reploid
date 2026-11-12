@@ -1,5 +1,6 @@
 import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
+import { observeMeshProtocol, expectMeshDiscovery } from '../fixtures/mesh-discovery.js';
 import { comparisonInput, COMPARISON_CHECK } from '../../apps/poolday/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
@@ -201,6 +202,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
         quotaSize: (index === 2 ? seedQuotaMiB : executorQuotaMiB) * 1024 * 1024 });
     }
+    for (const page of [requester, contributor, seed, second]) await observeMeshProtocol(page);
     await Promise.all([requester, contributor, seed, second].map(page => page.goto(info.project.use.baseURL)));
     adapterInfo = await contributor.evaluate(async () => {
       const adapter = await navigator.gpu.requestAdapter();
@@ -211,7 +213,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     if (info.project.name === 'chromium') expect(adapterInfo.isFallbackAdapter).toBe(false);
     for (const page of [requester, contributor, seed, second]) {
       await page.locator('[data-chat-workspace]').waitFor();
-      await expect.poll(async () => parseInt(await page.locator('[data-toggle-inspector] [data-mesh-peers]').textContent()), { timeout: 60000 }).toBeGreaterThanOrEqual(2);
+      await expectMeshDiscovery(page, { minimum: 2 });
     }
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
     await expect(requester.locator('[data-mesh-invite]')).toBeHidden();

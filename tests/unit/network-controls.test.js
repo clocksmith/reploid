@@ -11,7 +11,7 @@ it('offers cleanup retry instead of enabling contribution while an owner remains
   const root = document.createElement('div');
   root.innerHTML = renderConnectionControl() + renderSharingControls()
     + '<ul data-insp-device-list></ul><span data-network-message></span>'
-    + '<button data-mesh-invite></button><span data-mesh-peers></span>';
+    + '<button data-mesh-invite></button>';
   const dispose = bindNetworkControls(root, session);
   try {
     expect(root.querySelector('[data-contrib-label]').textContent).toBe('Cleanup not confirmed');
@@ -38,7 +38,7 @@ describe('network connection action', () => {
     const root = document.createElement('div');
     root.innerHTML = renderConnectionControl() + renderSharingControls()
       + '<ul data-insp-device-list></ul><span data-network-message></span>'
-      + '<button data-mesh-invite></button><span data-mesh-peers></span>';
+      + '<button data-mesh-invite></button>';
     const dispose = bindNetworkControls(root, session);
     try {
       root.querySelector('[data-mesh-connect]').click();
@@ -78,7 +78,7 @@ it('requires a separate click to grant introduction assistance without granting 
   const root = document.createElement('div');
   root.innerHTML = renderConnectionControl() + renderSharingControls()
     + '<ul data-insp-device-list></ul><span data-network-message></span>'
-    + '<button data-mesh-invite></button><span data-mesh-peers></span>';
+    + '<button data-mesh-invite></button>';
   const dispose = bindNetworkControls(root, session);
   try {
     expect(session.setIntroductionAssistance).not.toHaveBeenCalled();
@@ -94,7 +94,7 @@ it('selects bounded file participation separately from compute and preserves the
   let update;
   const session={getState:()=>state,setSharing:vi.fn(),setFileSharing:vi.fn(),subscribe:listener=>{update=listener;listener(state);return()=>{};}};
   const root=document.createElement('div');root.innerHTML=renderConnectionControl()+renderSharingControls()
-    +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+    +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
   const dispose=bindNetworkControls(root,session);
   try {
     const mode=root.querySelector('[data-file-mode]'), input=root.querySelector('[data-file-download]');
@@ -116,7 +116,7 @@ it('states the whole-model download and storage before full-model seeding is swi
     seedingBytes:{fixture:1156250409}}}};
   const session={getState:()=>state,setSharing:vi.fn(),setFileSharing:vi.fn(),subscribe:listener=>{listener(state);return()=>{};}};
   const root=document.createElement('div');root.innerHTML=renderConnectionControl()+renderSharingControls()
-    +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+    +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
   const dispose=bindNetworkControls(root,session);
   try {
     const mode=root.querySelector('[data-file-mode]'), limits=()=>root.querySelector('[data-file-limits]').textContent;
@@ -176,7 +176,7 @@ it('preserves one DOM row, its details and attempt identity through delayed obse
   let update;
   const session = { getState: () => state, subscribe(listener) { update = listener; listener(state); return () => {}; } };
   const root = document.createElement('div'); root.innerHTML = renderConnectionControl() + renderSharingControls()
-    + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+    + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
   const dispose = bindNetworkControls(root, session);
   try {
     const row = root.querySelector('[data-computer-id]'), details = row.querySelector('details'); details.open = true;
@@ -202,7 +202,7 @@ it('shows reported peer hardware without leaking host metadata or inventing loca
   const session = { getState: () => state, subscribe(fn) { fn(state); return () => {}; } };
   const root = document.createElement('div');
   root.innerHTML = renderConnectionControl() + renderSharingControls() + '<ul data-insp-device-list></ul><span data-network-message></span>'
-    + '<button data-mesh-invite></button><span data-mesh-peers></span><p data-local-computer></p>';
+    + '<button data-mesh-invite></button><p data-local-computer></p>';
   const dispose = bindNetworkControls(root, session);
   expect(root.querySelector('[data-computer-hardware]').textContent).toBe('Reported GPU: AMD');
   expect(root.querySelector('[data-local-computer]').textContent).toBe('GPU not reported');

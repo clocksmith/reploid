@@ -1,5 +1,6 @@
 import { test, expect, chromium } from '@playwright/test';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
+import { observeMeshProtocol, expectMeshDiscovery } from '../fixtures/mesh-discovery.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveServedFile } from '../../server/browser-roots.js';
@@ -53,6 +54,7 @@ test('open chat discovers a real contributor, streams without requester weights,
       await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
         quotaSize: (index === 2 ? 1536 : 320) * 1024 * 1024 });
     }
+    for (const page of [requester, contributor, seed]) await observeMeshProtocol(page);
     await Promise.all([requester.goto('/'), contributor.goto('/'), seed.goto('/')]);
     adapterInfo = await contributor.evaluate(async () => {
       const adapter = await navigator.gpu.requestAdapter();
@@ -63,7 +65,7 @@ test('open chat discovers a real contributor, streams without requester weights,
     if (info.project.name === 'chromium') expect(adapterInfo.isFallbackAdapter).toBe(false);
     for (const page of [requester, contributor, seed]) {
       await page.locator('[data-chat-workspace]').waitFor();
-      await expect.poll(async () => parseInt(await page.locator('[data-mesh-peers]').textContent()), { timeout: 60000 }).toBeGreaterThanOrEqual(2);
+      await expectMeshDiscovery(page, { minimum: 2 });
     }
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
     await expect(requester.locator('[data-mesh-invite]')).toBeHidden();

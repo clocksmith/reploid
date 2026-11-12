@@ -116,7 +116,7 @@ describe('Computers panel', () => {
     const session = { getState: () => state, subscribe(listener) { session.update = listener; listener(state); return () => {}; } };
     const root = document.createElement('div');
     root.innerHTML = renderConnectionControl() + renderSharingControls()
-      + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+      + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
     return { root, session, dispose: bindNetworkControls(root, session) };
   };
 

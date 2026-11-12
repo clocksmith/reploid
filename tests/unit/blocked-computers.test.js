@@ -168,7 +168,7 @@ describe('Computers panel block control', () => {
     const store = storage(), preferences = createComputerPreferences({ storage: store, verifyPeer: async () => key });
     const root = document.createElement('div');
     root.innerHTML = renderConnectionControl() + renderSharingControls() + renderComputerDiagnostic()
-      + '<div><p data-peer-readiness></p><ul data-insp-device-list></ul></div><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+      + '<div><p data-peer-readiness></p><ul data-insp-device-list></ul></div><span data-network-message></span><button data-mesh-invite></button>';
     const dispose = bindNetworkControls(root, session, { computers: preferences });
     const settle = () => new Promise(resolve => setTimeout(resolve, 0));
     try {
@@ -194,7 +194,7 @@ describe('Computers panel block control', () => {
     const session = { getState: () => state, subscribe(listener) { listener(state); return () => {}; } };
     const root = document.createElement('div');
     root.innerHTML = renderConnectionControl() + renderSharingControls()
-      + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+      + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
     const dispose = bindNetworkControls(root, session);
     try { expect(root.querySelector('[data-computer-block]').hidden).toBe(true); } finally { dispose(); }
   });
