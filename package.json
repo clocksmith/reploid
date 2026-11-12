@@ -2,7 +2,7 @@
   "name": "reploid",
   "private": true,
   "version": "0.1.2",
-  "description": "Browser-Native AI Agent with Recursive Self-Improvement",
+  "description": "Shared AI inference across participating computers, with browser-native agents and governed improvement",
   "main": "server/proxy.js",
   "type": "module",
   "repository": {
@@ -24,6 +24,7 @@
     "deploy:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc",
     "smoke:swarm-bootstrap": "node scripts/verify-swarm-runtime.js",
     "sync:library": "node scripts/sync-reploid-library.js",
+    "verify:library": "node scripts/sync-reploid-library.js --check",
     "start": "npx tsx scripts/reploid-cli.ts start",
     "dev": "npm start",
     "deploy": "node scripts/deploy.js",

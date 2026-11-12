@@ -3,6 +3,22 @@
 Follow the [test-value rules](style-guide.md#test-value). Choose focused checks
 under `AGENTS.md`; full suites are not a prerequisite for ordinary commits.
 
+## Generated library delivery
+
+`packages/reploid/src/` owns the browser library; `shared/vendor/reploid/`
+is its served delivery, not a second implementation. Edit the source and run
+`npm run sync:library`. `npm run verify:library` checks every generated asset
+and package manifest without writing, and rejects missing, changed or unexpected
+files. Inspect unexpected files before removing them; the sync command does not
+delete files. CI checks this boundary before rebuilding browser delivery. Run
+`node --test tests/scripts/sync-reploid-library.test.js` when changing the sync tool.
+
+The application/native delivery version comes from the root package; the
+browser library version comes from `packages/reploid/package.json`. They describe
+different delivery artifacts and need not be bumped together. A version difference
+is not evidence of stale bytes; the mirror check compares the library source and
+its own metadata.
+
 ## Test Architecture
 
 ```

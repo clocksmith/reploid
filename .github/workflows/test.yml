@@ -1,7 +1,8 @@
 name: Smoke
 
 # Build the browser bundle and the hosting payload from this commit's source.
-# Bundle freshness, unit, browser and release checks stay manual.
+# Verify the source-to-vendor library mirror before building.
+# Browser bundle freshness, application unit, browser and release checks stay manual.
 on:
   push:
     branches: [ main ]
@@ -26,6 +27,8 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
+      - run: node --test tests/scripts/sync-reploid-library.test.js
+      - run: npm run verify:library
       - run: npm ci --omit=optional --no-audit --no-fund
       - run: npm run build:browser-bundle
       - run: npm run package:hosting
