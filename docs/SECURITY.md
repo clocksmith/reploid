@@ -17,21 +17,35 @@ Graduated operation with automated gates:
 | Level | Scope | Mode | Gate |
 |-------|-------|------|------|
 | **L0** | Basic Functions (CreateTool, Web APIs, new tools) | AUTONOMOUS | Verification Worker sandbox |
-| **L1** | Meta Tooling (modify tool-writer, improve CreateTool) | AUTONOMOUS | Arena consensus |
-| **L2** | Self-Modification (Substrate) (edit core modules, runtime patches) | AUTONOMOUS | Arena + GenesisSnapshot rollback |
+| **L1** | Meta Tooling (modify tool-writer, improve CreateTool) | AUTONOMOUS | Verification Worker sandbox (VFSSandbox + VerificationManager) |
+| **L2** | Self-Modification (Substrate) (edit core modules, runtime patches) | AUTONOMOUS | Verification Worker sandbox + GenesisSnapshot rollback |
 | **L3** | Weak RSI (Iterative) (bounded feedback loops, self-improvement) | GOVERNED | Signed improvement episode + protected evaluator + paired evaluation + generation rollback + explicit promotion |
 | **L4** | Weak AGI (broad autonomous planning, system-building, self-directed experimentation) | N/A | N/A |
 
 Gating is enforced via automated verification and rollback:
-- Arena consensus for L1 changes
-- Arena + GenesisSnapshot rollback for L2 changes
+- The Verification Worker sandbox for L1 changes: the candidate is applied to a
+  disposable `VFSSandbox` snapshot and checked by `VerificationManager` in an
+  isolated Worker
+- The same Verification Worker sandbox plus GenesisSnapshot rollback for L2
+  changes
 - Signed `rsi.improvement-episode/v1` evidence, protected evaluator authority,
   paired raw observations, explicit promotion, and generation rollback for L3
   claims
 - Circuit breakers prevent runaway failures
 
-Arena success, mutation logs, telemetry, saved reflection, or a rising fitness
-number does not establish L3 improvement. See
+The sandbox gate fails closed. A missing verifier or sandbox, a thrown error, a
+timeout, a skipped result, or any result other than an explicit pass blocks the
+write or load. A blocked core write is audited as `CORE_WRITE_BLOCKED`, and a
+core write is recorded as verified only after an explicit pass. `REPLOID_ARENA_GATING` is the switch that requires this
+sandbox gate for `/core/` and `/infrastructure/` writes and, with
+`REPLOID_SECURITY_MODE` on, for critical-path module loads.
+Despite its name it does not run Arena competitions. `WriteFile`'s VFS write
+policy currently refuses `/core/` and `/infrastructure/` paths before this gate.
+
+Arena scoring ([Arena Harness](../self/blueprints/0x000066-arena-harness.md)) ranks
+candidates and grants no activation or adoption permission. Arena success,
+mutation logs, telemetry, saved reflection, or a rising fitness number does not
+establish L3 improvement. See
 [RSI improvement episodes](./rsi-improvement-episodes.md).
 
 ---
@@ -50,7 +64,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 | 2 | [Application Orchestration (0x000002)](../self/blueprints/0x000002-application-orchestration.md) | ES module boot and VFS hydration |
 | 3 | [Genesis Snapshots (0x00003C)](../self/blueprints/0x00003C-genesis-snapshot-system.md) | Instant rollback to pristine state |
 | 4 | [Verification Manager (0x000040)](../self/blueprints/0x000040-verification-manager.md) | Pre-flight checks in isolated Web Worker |
-| 5 | [Arena Harness (0x000066)](../self/blueprints/0x000066-arena-harness.md) | Multi-model consensus for high-risk changes |
+| 5 | [Arena Harness (0x000066)](../self/blueprints/0x000066-arena-harness.md) | Multi-model comparison and scoring; grants no activation |
 | 6 | VFSSandbox | Test changes in a disposable clone before commit |
 | 7 | [Circuit Breakers (0x00005C)](../self/blueprints/0x00005C-circuit-breaker-pattern.md) | Prevent runaway failures |
 | 8 | [HITL Controller (0x000049)](../self/blueprints/0x000049-hitl-controller.md) | Optional approval gates |
@@ -188,14 +202,14 @@ The right product framing is sponsored serverless demo capacity, not a secure sh
 ### Recommended Settings for RSI Experiments
 
 ```javascript
-localStorage.REPLOID_ARENA_GATING = 'true';      // Require consensus
+localStorage.REPLOID_ARENA_GATING = 'true';      // Require the Verification Worker sandbox for core writes
 localStorage.REPLOID_MAX_ITERATIONS = '50';      // Cap iterations
 ```
 
 ### For Production Use
 
 ```javascript
-localStorage.REPLOID_ARENA_GATING = 'true';      // Multi-model consensus
+localStorage.REPLOID_ARENA_GATING = 'true';      // Require the Verification Worker sandbox for core writes
 localStorage.REPLOID_SECURITY_MODE = 'on';       // Enable security enforcement
 ```
 
@@ -223,4 +237,4 @@ For implementation details, see:
 
 ---
 
-*Last updated: March 2026*
+*Last updated: November 2026*

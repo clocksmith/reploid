@@ -94,8 +94,8 @@
     },
     {
       "path": "core/vfs-module-loader.js",
-      "bytes": 8654,
-      "sha256": "74b01e94cc2b14580d7904f88c3e2b6f098b92c8b494cee34d1e21ec431d039b"
+      "bytes": 8881,
+      "sha256": "41aca7fb1f7d8c0db900f22f2776f5d8e3350d3cf3542679b56164fb226d9cf0"
     },
     {
       "path": "host/sw-module-loader.js",

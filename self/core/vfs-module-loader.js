@@ -185,9 +185,13 @@ export async function loadVfsModule(options) {
         stats.cacheMisses++;
 
         // Verification
-        if (verify && VerificationManager && isSecurityEnabled()) {
+        if (verify && isSecurityEnabled()) {
+          if (typeof VerificationManager?.verifyProposal !== 'function') {
+            stats.verificationFailures++;
+            throw new Error(`Verification failed for ${path}: verifier unavailable`);
+          }
           const result = await VerificationManager.verifyProposal({ [path]: contents });
-          if (!result?.passed) {
+          if (result?.passed !== true || result.skipped === true) {
             stats.verificationFailures++;
             const errors = result?.errors?.length ? `: ${result.errors.join('; ')}` : '';
             const err = new Error(`Verification failed for ${path}${errors}`);

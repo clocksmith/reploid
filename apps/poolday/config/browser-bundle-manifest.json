@@ -1155,8 +1155,8 @@
     },
     {
       "path": "capabilities/system/substrate-loader.js",
-      "byteLength": 4347,
-      "sha256": "sha256:52d229a9e87995a7252a27b696ce6d2f42dd7ebf0cc6ded6bd7cfb2c495a7f2c"
+      "byteLength": 4794,
+      "sha256": "sha256:f14e8e9574b69adec787fd098266cd92d8e50e42f5d800bc71a50140d5c0a211"
     },
     {
       "path": "capsule/index.js",
@@ -1401,7 +1401,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 640971,
-      "sha256": "sha256:87d03a29aadd25c4619a26f0ab83e0f116453a28a8f69456f3649961e0fda408"
+      "sha256": "sha256:ce93ff7655ffe70cd2127900d58b768d11d1e6c353d9cbc61561ae2e1dc8d82a"
     },
     {
       "path": "config/module-registry.json",
@@ -1705,8 +1705,8 @@
     },
     {
       "path": "core/vfs-module-loader.js",
-      "byteLength": 8654,
-      "sha256": "sha256:74b01e94cc2b14580d7904f88c3e2b6f098b92c8b494cee34d1e21ec431d039b"
+      "byteLength": 8881,
+      "sha256": "sha256:41aca7fb1f7d8c0db900f22f2776f5d8e3350d3cf3542679b56164fb226d9cf0"
     },
     {
       "path": "core/vfs.js",
@@ -3460,8 +3460,8 @@
     },
     {
       "path": "tools/WriteFile.js",
-      "byteLength": 9366,
-      "sha256": "sha256:a3c171fdc7ea639aa662728d17f9a3000520c32648e3bc4e466a859adf9b3563"
+      "byteLength": 10676,
+      "sha256": "sha256:d0c88a1c246c8b7ac8315adf04a2f106318e5b79ad36b799cce787ca73beb543"
     },
     {
       "path": "ui/boot-home/index.js",
@@ -12026,7 +12026,7 @@
     {
       "path": "zero/source.json",
       "byteLength": 8064,
-      "sha256": "sha256:8f9883f8b3b3c764f828223d772db926e314e67959301cd9166b7049605c3ab8"
+      "sha256": "sha256:93ad23c261c7703ab5518deaff8a4eff1991251a9a34e1a7e837008a66e71275"
     },
     {
       "path": "zero/store.js",
@@ -12049,5 +12049,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:a67b312c196b11725e703da84bb546972538db8be762f9191d84752050795a61"
+  "bundleHash": "sha256:7016fd5ac7c1ad3958ad01535eca888da78bdb72cec597bdeec649b5f86eeb4b"
 }

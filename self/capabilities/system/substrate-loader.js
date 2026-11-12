@@ -58,17 +58,16 @@ const SubstrateLoader = {
       });
     };
 
+    // With the arena gate on, a critical path must pass the sandboxed Verification
+    // Worker. A missing verifier, thrown error, or skipped/non-pass result blocks.
     const verifyInSandbox = async (path, code) => {
-      if (!isSecurityEnabled()) {
-        return { passed: true, skipped: true, reason: 'security_disabled' };
-      }
-      if (!_arenaGatingEnabled || !VFSSandbox || !VerificationManager) {
-        return { passed: true, skipped: true };
+      if (!VFSSandbox || typeof VerificationManager?.verifyProposal !== 'function') {
+        return { passed: false, reason: 'verifier unavailable', errors: ['Verifier unavailable while arena gating is enabled'] };
       }
       const snapshot = await VFSSandbox.createSnapshot();
       try {
         await VFSSandbox.applyChanges({ [path]: code });
-        return await VerificationManager.verifyProposal({ [path]: code });
+        return await VerificationManager.verifyProposal({ [path]: code }, { requireVerification: true });
       } finally {
         await VFSSandbox.restoreSnapshot(snapshot);
       }
@@ -86,9 +85,11 @@ const SubstrateLoader = {
         }
       }
 
-      if (isCriticalPath(path)) {
+      // Security off is the documented permissive default: no gate runs.
+      const sandboxGate = isSecurityEnabled() && _arenaGatingEnabled && isCriticalPath(path);
+      if (sandboxGate) {
         const result = await verifyInSandbox(path, code);
-        if (!result?.passed) {
+        if (result?.passed !== true || result.skipped === true) {
           const errors = result?.errors?.length ? `: ${result.errors.join('; ')}` : '';
           throw new Error(`Arena verification failed for ${path}${errors}`);
         }
@@ -104,7 +105,8 @@ const SubstrateLoader = {
         path,
         code,
         expectedSha256: options.expectedSha256,
-        verify: !isCriticalPath(path)
+        // Every path not already sandbox-verified goes through the loader's verifier.
+        verify: !sandboxGate
       });
       logger.info(`[Substrate] Loaded module: ${path}`);
       return module;

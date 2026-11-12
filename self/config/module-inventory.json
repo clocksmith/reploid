@@ -266,7 +266,7 @@
     {
       "path": "capabilities/system/substrate-loader.js",
       "owner": "capabilities",
-      "sha256": "sha256:52d229a9e87995a7252a27b696ce6d2f42dd7ebf0cc6ded6bd7cfb2c495a7f2c",
+      "sha256": "sha256:f14e8e9574b69adec787fd098266cd92d8e50e42f5d800bc71a50140d5c0a211",
       "imports": [
         "../../core/security-config.js",
         "../../core/vfs-module-loader.js"
@@ -706,7 +706,7 @@
     {
       "path": "core/vfs-module-loader.js",
       "owner": "core",
-      "sha256": "sha256:74b01e94cc2b14580d7904f88c3e2b6f098b92c8b494cee34d1e21ec431d039b",
+      "sha256": "sha256:41aca7fb1f7d8c0db900f22f2776f5d8e3350d3cf3542679b56164fb226d9cf0",
       "imports": [
         "./import-rewrite.js",
         "./promotion-policy.js",
@@ -3689,7 +3689,7 @@
     {
       "path": "tools/WriteFile.js",
       "owner": "tools",
-      "sha256": "sha256:a3c171fdc7ea639aa662728d17f9a3000520c32648e3bc4e466a859adf9b3563",
+      "sha256": "sha256:d0c88a1c246c8b7ac8315adf04a2f106318e5b79ad36b799cce787ca73beb543",
       "imports": [
         "../config/file-tool-schemas.json",
         "../config/vfs-policy.js",

@@ -56,6 +56,58 @@ const computeSha256 = async (bytes) => {
     .join('');
 };
 
+const CORE_VERIFY_TIMEOUT_MS = 30000;
+
+const withTimeout = (promise, ms) => {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`verification timed out after ${ms} ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+};
+
+// Any missing verifier, thrown error, timeout, sandbox failure, skipped result or
+// non-pass result blocks the write and records the failure.
+const verifyCoreWrite = async ({ path, content, VFSSandbox, VerificationManager, AuditLogger, EventBus, timeoutMs = CORE_VERIFY_TIMEOUT_MS }) => {
+  let result = null;
+  let reason = null;
+  if (!VFSSandbox || typeof VerificationManager?.verifyProposal !== 'function') {
+    reason = 'verifier unavailable';
+  } else {
+    let snapshot;
+    try {
+      snapshot = await VFSSandbox.createSnapshot();
+      await VFSSandbox.applyChanges({ [path]: content });
+      result = await withTimeout(
+        Promise.resolve(VerificationManager.verifyProposal({ [path]: content }, { requireVerification: true, timeout: timeoutMs })),
+        timeoutMs
+      );
+    } catch (err) {
+      reason = `verification error: ${err?.message || String(err)}`;
+    } finally {
+      if (snapshot !== undefined) {
+        try {
+          await VFSSandbox.restoreSnapshot(snapshot);
+        } catch (err) {
+          reason = reason || `sandbox restore failed: ${err?.message || String(err)}`;
+        }
+      }
+    }
+    if (!reason && (result?.passed !== true || result.skipped === true)) {
+      reason = result?.errors?.length ? result.errors.join(', ') : (result?.reason || 'verification did not pass');
+    }
+  }
+  if (!reason) return result;
+  const errors = result?.errors?.length ? result.errors : [reason];
+  if (AuditLogger) {
+    try {
+      await AuditLogger.logEvent('CORE_WRITE_BLOCKED', { path, reason, errors, verified: false }, 'WARN');
+    } catch { /* the block stands even if the audit record fails */ }
+  }
+  if (EventBus) EventBus.emit('tool:core_blocked', { path, reason, errors });
+  throw new Error(`Core modification blocked: ${reason}`);
+};
+
 async function call(args = {}, deps = {}) {
   const { VFS, EventBus, AuditLogger, VFSSandbox, VerificationManager, SubstrateLoader, ToolRunner } = deps;
   if (!VFS) throw new Error('VFS not available');
@@ -192,36 +244,16 @@ async function call(args = {}, deps = {}) {
 
   const beforeContent = existed ? await VFS.read(path).catch(() => null) : null;
 
-  // Arena verification for core file changes (when enabled)
+  // Core-write verification gate (when enabled). Fails closed: only an explicit,
+  // non-skipped Verification Worker pass permits the write.
   let arenaGatingEnabled = false;
   try {
     arenaGatingEnabled = localStorage.getItem('REPLOID_ARENA_GATING') === 'true';
   } catch (e) { /* ignore */ }
-  if (isCore && arenaGatingEnabled && VFSSandbox && VerificationManager) {
-    try {
-      const snapshot = await VFSSandbox.createSnapshot();
-      try {
-        await VFSSandbox.applyChanges({ [path]: content });
-        const result = await VerificationManager.verifyProposal({ [path]: content });
-
-        if (!result.passed) {
-          const errorMsg = `Core modification blocked: ${result.errors?.join(', ') || 'verification failed'}`;
-          if (AuditLogger) {
-            await AuditLogger.logEvent('CORE_WRITE_BLOCKED', { path, errors: result.errors }, 'WARN');
-          }
-          if (EventBus) {
-            EventBus.emit('tool:core_blocked', { path, errors: result.errors });
-          }
-          throw new Error(errorMsg);
-        }
-      } finally {
-        await VFSSandbox.restoreSnapshot(snapshot);
-      }
-    } catch (err) {
-      if (err.message.startsWith('Core modification blocked')) throw err;
-      // Verification system error - log but proceed
-      console.warn('[WriteFile] Arena verification error:', err.message);
-    }
+  let verified = false;
+  if (isCore && arenaGatingEnabled) {
+    await verifyCoreWrite({ path, content, VFSSandbox, VerificationManager, AuditLogger, EventBus });
+    verified = true;
   }
 
   await VFS.write(path, content);
@@ -239,7 +271,7 @@ async function call(args = {}, deps = {}) {
         operation: 'WriteFile',
         existed,
         bytesWritten,
-        arenaVerified: arenaGatingEnabled
+        arenaVerified: verified
       });
     } else {
       await AuditLogger.logEvent('FILE_WRITE', {
