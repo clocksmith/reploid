@@ -194,6 +194,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     drafts.set(selectedId, structuredClone(value)); return session.saveDraft?.(selectedId, value);
   };
   let selectedId = session.getState().selectedId, submitting = false;
+  // A message sent before any computer has been found is kept and sent the moment a model can answer.
+  let queuedSend = false;
   // While another tab holds the history, the handover notice replaces its refusal.
   const history = session.getState().history;
   const refusal = history?.mode === 'refused' && historyHandover ? history.reason : null;
@@ -351,9 +353,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy', 'cached'].includes(model.availability))
         ? 'Choose an available model.'
       : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
-        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…' : 'Model unavailable.' : '';
+        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…'
+        : state.peerDiscoveryTimedOut === false ? 'Finding computers…' : 'Model unavailable.' : '';
+    if (queuedSend && (exhausted || thread?.closed)) queuedSend = false;
+    if (queuedSend && usable && !busy) { queuedSend = false; queueMicrotask(() => { if (!controller.signal.aborted) find('[data-composer-form]').requestSubmit(); }); }
     // A busy contributor still answers later; that notice takes the line only when nothing blocks Send.
-    modelStatus.textContent = statusText || (!busy && location === 'network' && selectedModel?.networkAvailability === 'busy'
+    modelStatus.textContent = queuedSend ? 'Finding a computer. Your message sends as soon as one is ready.' : statusText || (!busy && location === 'network' && selectedModel?.networkAvailability === 'busy'
       ? 'Contributors are busy. Sending waits for capacity.' : '');
     modelStatus.hidden = !modelStatus.textContent; modelStatus.title = modelStatus.textContent;
     const answerLimit = find('[data-answer-limit]');
@@ -462,6 +467,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const next = find('[data-next-model]');
     next.value = route.value; next.dispatchEvent(new Event('change', { bubbles: true }));
   });
+  // A pointer click on a model that can answer now is the whole choice: it is applied without a second
+  // confirming click. Keyboard movement between choices still only previews, and a model that needs a
+  // download keeps its explicit button.
+  find('[data-model-picker]').addEventListener('click', event => {
+    if (!event.detail || !event.target.closest?.('label[data-choice-key]')) return;
+    setTimeout(() => { const button = find('[data-change-model]');
+      if (!controller.signal.aborted && find('[data-model-picker]').open && !button.disabled && button.textContent === 'Use model') button.click(); }, 0);
+  }, { signal: controller.signal });
   on('[data-next-model]', 'change', () => {
     pickerTouched = true;
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
@@ -569,6 +582,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || submitting || (state.runningIds || []).includes(state.selectedId)) return;
+    {
+      const chosen = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
+      const where = state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : state.activeThread?.permissions?.executionLocation ?? executionLocation;
+      const waitingForDiscovery = state.peerDiscoveryTimedOut === false && !state.network?.paused && where !== 'local'
+        && !modelExecutionState(state.activeThread?.model && state.models.find(item => (item.selectionId || item.id) === (state.activeThread.model.selectionId || state.activeThread.model.id)) || chosen, where).usable;
+      if (waitingForDiscovery) { queuedSend = true; render(state); return; }
+    }
     if (find('[data-composer-send]').disabled) return;
     const searched = searching();
     if (searched && files.length) { error("Search-backed answers don't include files. Remove the files or turn off search for this answer."); return; }

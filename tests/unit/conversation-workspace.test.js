@@ -306,7 +306,8 @@ describe('Conversation workspace', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe(`${CANONICAL_CHAT_MODELS[1].name} · Download required`);
     expect(find('[data-model-status]').hidden).toBe(false);
-    expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
+    // Within the discovery window an unavailable model reads as still being looked for.
+    expect(find('[data-model-status]').textContent).toBe('Finding computers…');
     expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Unavailable');
     expect(find('[data-open-model]').textContent).toContain('Unavailable');
     expect(find('[data-model-control]').hidden).toBe(false);
@@ -526,7 +527,8 @@ describe('Conversation workspace', () => {
     expect(service.calls).toHaveLength(0);
     peer.available = false; session.refreshNetwork();
     expect(find('[data-model-status]').hidden).toBe(false);
-    expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
+    // Within the discovery window an unavailable model reads as still being looked for.
+    expect(find('[data-model-status]').textContent).toBe('Finding computers…');
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('Keep my question');
   });
