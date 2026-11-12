@@ -144,6 +144,38 @@ Physical receipts establish only the recorded devices, prompts, package and
 route. They do not establish general model quality, a speed advantage for
 sharding, Flash-Next readiness, or public-site deployment.
 
+## Event feed
+
+`server/fleet/notifier.js` publishes informational fleet events to a private
+GitHub repository that an assistant can poll. It runs as its own process, opens
+the credit database read-only, and keeps its cursor and outbox in a separate
+SQLite file, so it cannot change balances or slow the service.
+
+On first start it begins at the current end of the credit database; requests
+still in flight are followed. When a request reaches a terminal state it queues
+one event with a stable `event_id` (`fleet:<requestId>:<state>`):
+`request.settled`, `request.cancelled`, `request.failed` (settled with a signed
+terminal status) or `request.abandoned` (released before dispatch). Each batch is
+one fast-forward commit through the operator's `gh` login that appends lines to
+`events/YYYY-MM-DD.jsonl` and rewrites `latest.json`. Failed batches retry with
+backoff (at least one minute after a rate limit); lines already in the feed are
+skipped, so a lost delivery mark does not duplicate an event.
+
+Events carry the request and work identifiers, the model identifier, computer
+IDs from enrollment, token and credit counts, the evidence SHA-256 and journal
+sequence numbers, and the notice "Informational only. Does not authorize any
+action." They never carry prompts, outputs, evidence bodies, keys, network names
+or addresses. The service exposes no host-error stream, so the feed has no
+host-error events.
+
+```sh
+node server/fleet/notifier.js /absolute/operator/notifier.json --test-event  # one feed.test event
+node server/fleet/notifier.js /absolute/operator/notifier.json               # poll loop
+```
+
+The private configuration names `creditFile`, `stateFile`, `repository`,
+`branch`, `pidFile`, and optionally `ghCommand`, `pollMs` and `maxBatch`.
+
 ## Browser workspace
 
 The existing Computers panel can pair with a native requester on the same computer.

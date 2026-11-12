@@ -19,7 +19,7 @@ Subtree.
 Inputs: explicit enrollment, policies, preferences, measured envelopes and signed
 execution evidence.
 
-Outputs: durable balances, work records and placement decisions.
+Outputs: durable balances, work records, placement decisions.
 
 ## Invariants
 - Identity denotes enrollment, not hardware attestation.
@@ -40,6 +40,7 @@ Outputs: durable balances, work records and placement decisions.
 ## Acceptance
 Evidence: [credits](../../tests/unit/fleet-credits.test.js),
 [placement](../../tests/unit/fleet-placement.test.js),
+[feed](../../tests/unit/fleet-notifier.test.js),
 [requester/provider integration](../../tests/integration/fleet-service.test.js).
 Physical runs qualify only their exercised runtime and devices.
 
