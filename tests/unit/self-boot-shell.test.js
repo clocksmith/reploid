@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../../self/boot-spec.js';
 import { PROTO_RUNTIME_SELF_MIRROR_RULES, buildRuntimeSelfMirrors } from '../../self/lab/mirrors.js';
@@ -30,17 +30,95 @@ describe('self-first boot shell', () => {
     expect(selfKernelHtml).toMatch(/src="\/kernel\/boot\.js\?v=\d+"/);
     expect(sourceIndexHtml).toContain('href="/"');
     expect(sourceIndexHtml).toContain("import('/ui/pool-home/app.bundle.js')");
-    expect(sourceIndexHtml).toContain('REPLOID_PRODUCT_BOOT_RECOVERY');
-    expect(sourceIndexHtml).toContain('PRODUCT_BOOT_TIMEOUT_MS = 10000');
-    expect(sourceIndexHtml).toContain('Promise.race([');
-    expect(sourceIndexHtml).toContain("retryUrl.searchParams.set('reploidBootRetry'");
-    expect(sourceIndexHtml).toContain('window.location.replace(retryUrl.toString())');
-    expect(sourceIndexHtml).toContain("failure.setAttribute('role', 'alert')");
-    expect(poolEntryHtml).toContain('REPLOID_PRODUCT_BOOT_RECOVERY');
     expect(poolEntryHtml).toContain("import('/ui/pool-home/app.bundle.js')");
-    expect(poolEntryHtml).toContain('window.location.replace(retryUrl.toString())');
     expect(sourceIndexHtml).toContain('const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;');
     expect(sourceIndexHtml).toContain('await import(bootPath);');
+  });
+
+  describe.each([
+    ['index.html', 'http://reploid.test/'],
+    ['pool-entry.html', 'http://reploid.test/pool-entry.html']
+  ])('public-route boot recovery served at %s', (servedPath, pageUrl) => {
+    afterEach(() => { vi.useRealTimers(); });
+
+    // Runs the page's served module script against an injected page: the product bundle import,
+    // location, history, storage and timers are ports; the recovery logic is the shipped script.
+    const bootPage = ({ url = pageUrl, initPoolHome, importFails = false, storageDenied = false } = {}) => {
+      const html = readRepoFile(`self/${servedPath}`);
+      const buildVersion = html.match(/REPLOID_BUILD_VERSION = '([^']+)'/)[1];
+      const script = [...html.matchAll(/<script\s+type="module"\s*>([\s\S]*?)<\/script>/g)].at(-1)[1]
+        .replace(/^\s*import\s+\{[^}]*\}\s+from\s+'[^']+';\s*$/gm, '')
+        .replace(/\bimport\(/g, 'importModule(');
+      const values = new Map();
+      const sessionStorage = {
+        getItem: (key) => { if (storageDenied) throw new Error('Storage denied'); return values.get(key) ?? null; },
+        setItem: (key, value) => { if (storageDenied) throw new Error('Storage denied'); values.set(key, String(value)); },
+        removeItem: (key) => { if (storageDenied) throw new Error('Storage denied'); values.delete(key); }
+      };
+      const location = { href: url, get pathname() { return new URL(this.href).pathname; }, replace: vi.fn(), reload: vi.fn() };
+      const history = { state: null, replaceState: vi.fn((_, __, next) => { location.href = new URL(next, location.href).href; }) };
+      const win = { REPLOID_BUILD_VERSION: buildVersion, location, history,
+        setTimeout: (...args) => globalThis.setTimeout(...args), clearTimeout: (id) => globalThis.clearTimeout(id) };
+      const appRoot = document.createElement('div');
+      const doc = { title: '', head: { appendChild() {} }, getElementById: (id) => (id === 'app' ? appRoot : null),
+        createElement: (tag) => document.createElement(tag) };
+      const imports = [];
+      const importModule = async (specifier) => {
+        imports.push(specifier);
+        if (importFails) throw new TypeError('Failed to fetch dynamically imported module');
+        return { initPoolHome };
+      };
+      const run = new (Object.getPrototypeOf(async () => {}).constructor)(
+        'window', 'document', 'location', 'navigator', 'sessionStorage', 'localStorage', 'importModule', 'resolveDopplerBrowserAssets',
+        script
+      )(win, doc, location, {}, sessionStorage, sessionStorage, importModule, () => ({}));
+      return { run, appRoot, location, history, values, imports, buildVersion };
+    };
+    const retryUrlOf = (page) => new URL(page.location.replace.mock.calls[0][0]);
+
+    it('retries a failed product bundle once with the build-bound retry marker', async () => {
+      const page = bootPage({ importFails: true });
+      await page.run;
+      expect(page.imports).toEqual(['/ui/pool-home/app.bundle.js']);
+      expect(page.location.replace).toHaveBeenCalledTimes(1);
+      expect(retryUrlOf(page).searchParams.get('reploidBootRetry')).toBe(page.buildVersion);
+      expect(page.appRoot.querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('shows one alert instead of a second retry when the retried boot fails, even without storage', async () => {
+      const firstPage = bootPage({ importFails: true, storageDenied: true });
+      await firstPage.run;
+      const page = bootPage({ url: retryUrlOf(firstPage).href, importFails: true, storageDenied: true });
+      await expect(page.run).rejects.toThrow();
+      expect(page.location.replace).not.toHaveBeenCalled();
+      const alerts = page.appRoot.querySelectorAll('[role="alert"]');
+      expect(alerts).toHaveLength(1);
+      expect(alerts[0].classList.contains('pool-boot-failure')).toBe(true);
+      expect(alerts[0].textContent).toBe('Reploid could not load. Reload the page to try again.');
+    });
+
+    it('bounds a product initialization that never settles at 10 seconds and aborts it', async () => {
+      vi.useFakeTimers();
+      let signal;
+      const page = bootPage({ initPoolHome: (_root, options) => { signal = options.signal; return new Promise(() => {}); } });
+      await vi.advanceTimersByTimeAsync(9999);
+      expect(page.location.replace).not.toHaveBeenCalled();
+      expect(signal.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      await page.run;
+      expect(signal.aborted).toBe(true);
+      expect(retryUrlOf(page).searchParams.get('reploidBootRetry')).toBe(page.buildVersion);
+    });
+
+    it('clears the retry marker after a successful retried boot', async () => {
+      const firstPage = bootPage({ importFails: true });
+      await firstPage.run;
+      const page = bootPage({ url: retryUrlOf(firstPage).href, initPoolHome: async () => {} });
+      await page.run;
+      expect(new URL(page.location.href).searchParams.has('reploidBootRetry')).toBe(false);
+      expect([...page.values.keys()]).toEqual([]);
+      expect(page.appRoot.querySelector('[role="alert"]')).toBeNull();
+    });
   });
 
   it('keeps the public release and kernel fallback on one build version', () => {
