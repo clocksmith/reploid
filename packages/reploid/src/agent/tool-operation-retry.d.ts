@@ -18,6 +18,13 @@ export interface ToolOperationRetryOptions {
   onRetry?: (error: unknown, attempt: number, delayMs: number) => void;
 }
 
+export declare function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  operationName?: string,
+  controller?: AbortController | null
+): Promise<T>;
+
 export declare function withTimeoutAndRetry<T>(
   operation: (attempt: number, signal: AbortSignal) => Promise<T>,
   options?: ToolOperationRetryOptions

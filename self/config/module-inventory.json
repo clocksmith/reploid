@@ -3359,8 +3359,10 @@
     {
       "path": "self/key-unsealer.js",
       "owner": "self",
-      "sha256": "sha256:9ea2198c06f47321422b7c36af01bdc7c75afa49dc2f4683fcdc76d466da408e",
-      "imports": []
+      "sha256": "sha256:bd48951878a4e80c76ba39972b4c3adfa55dac79e0e3f31b5c7acb1776d16e3b",
+      "imports": [
+        "./vendor/reploid/artifacts/binary.js"
+      ]
     },
     {
       "path": "self/manifest.js",
@@ -3499,8 +3501,10 @@
     {
       "path": "tools/AwaitWorkers.js",
       "owner": "tools",
-      "sha256": "sha256:62c41e50318e166436424b073540c6cb2ff33fd405ab69c231c1b6643387a49a",
-      "imports": []
+      "sha256": "sha256:b66b12cba92cee4af918e0bd6e733e92b7d366f4eba6b5915e4749398c9c57b6",
+      "imports": [
+        "../vendor/reploid/agent/tool-operation-retry.js"
+      ]
     },
     {
       "path": "tools/CopyFile.js",
@@ -3561,8 +3565,10 @@
     {
       "path": "tools/git.js",
       "owner": "tools",
-      "sha256": "sha256:cd0658d0007323ade598c8acdf2dc9f41dc91823d829d60fefccbe75d8339a25",
-      "imports": []
+      "sha256": "sha256:1aa52b84ecbf8966d1ece71259213bb7ef938f7d8e6c821d3705e045f9099a3b",
+      "imports": [
+        "../vendor/reploid/agent/tool-operation-retry.js"
+      ]
     },
     {
       "path": "tools/Grep.js",
@@ -17595,7 +17601,7 @@
     {
       "path": "vendor/reploid/agent/tool-operation-retry.js",
       "owner": "vendor",
-      "sha256": "sha256:066cd158722e60ffac1f8169cd9dae8ff13e36edbd944680e39dcababca53982",
+      "sha256": "sha256:4d18fe25122a9d97c25c30807d1968be4de76b48a9e145448dbf5f1930f5233c",
       "imports": []
     },
     {

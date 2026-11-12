@@ -264,13 +264,13 @@
     },
     {
       "path": "agent/tool-operation-retry.d.ts",
-      "bytes": 728,
-      "sha256": "ca58b3f186314143b80dd8db4934974cbaf685b1ed5fee9f7ceb4154bc13f61a"
+      "bytes": 892,
+      "sha256": "b213fb700fef971993d87bb903b000b3bc00fdc56c62b004156005165198646d"
     },
     {
       "path": "agent/tool-operation-retry.js",
-      "bytes": 1988,
-      "sha256": "066cd158722e60ffac1f8169cd9dae8ff13e36edbd944680e39dcababca53982"
+      "bytes": 2165,
+      "sha256": "4d18fe25122a9d97c25c30807d1968be4de76b48a9e145448dbf5f1930f5233c"
     },
     {
       "path": "agent/tool-retry.js",

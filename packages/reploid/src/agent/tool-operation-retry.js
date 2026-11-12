@@ -8,11 +8,15 @@ export class RetryExhaustedError extends Error {
   }
 }
 
-function withTimeout(promise, controller, timeoutMs, operationName = 'Operation') {
+/**
+ * Stops waiting for `promise` after `timeoutMs` with a TimeoutError. The
+ * operation itself is not stopped unless `controller` is supplied and honored.
+ */
+export function withTimeout(promise, timeoutMs, operationName = 'Operation', controller = null) {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       const error = new TimeoutError(`${operationName} timed out after ${timeoutMs}ms`);
-      controller.abort(error);
+      controller?.abort(error);
       reject(error);
     }, timeoutMs);
     promise.then((r) => { clearTimeout(timeoutId); resolve(r); }).catch((e) => { clearTimeout(timeoutId); reject(e); });
@@ -26,7 +30,7 @@ export async function withTimeoutAndRetry(fn, options = {}) {
   let lastError, delayMs = initialDelayMs;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const controller = new AbortController();
-    try { return await withTimeout(Promise.resolve().then(() => fn(attempt, controller.signal)), controller, timeoutMs, `${operationName} (attempt ${attempt})`); }
+    try { return await withTimeout(Promise.resolve().then(() => fn(attempt, controller.signal)), timeoutMs, `${operationName} (attempt ${attempt})`, controller); }
     catch (error) {
       lastError = error;
       // A deadline does not prove the borrowed operation stopped. Never replay it.
