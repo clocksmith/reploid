@@ -169,7 +169,7 @@
     {
       "path": "capabilities/communication/library-adapter.js",
       "owner": "capabilities",
-      "sha256": "sha256:916de4b2b38621fe298a9ca7f8c1ba4f59736324a84f31accd87e28bdbb3ea76",
+      "sha256": "sha256:6776286ea94bd27c8190bcbcf0389bad1c6a400b56f3aee7d980141110d3f4b9",
       "imports": [
         "../../config/reploid-library.json",
         "../../config/swarm-bootstrap.json",
@@ -4018,7 +4018,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:aac1b498323607e97350e6543741a7dd0b0bb4209a5275ac075b8f8f626a19a0",
+      "sha256": "sha256:13a19a66fe8cf19d86b850381af9a6e87f1fc19a1805ed5bdf0ccbe9d7e2fdd9",
       "imports": []
     },
     {
@@ -4324,8 +4324,9 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:74ef807b2437cfa3911ee7af3784dadb7b4ffad45afc74a7182278609748c787",
+      "sha256": "sha256:136a9ce5e9310f79c44a9425689d21a8468cc424a0829d67d3c7177f83a92a96",
       "imports": [
+        "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",
         "../components/model-select.js",
         "./computer-labels.js",

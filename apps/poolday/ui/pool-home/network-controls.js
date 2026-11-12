@@ -1,3 +1,4 @@
+import { relayUnavailableReason } from '../../../../shared/capabilities/communication/library-adapter.js';
 import { hardwareText } from './execution-ribbon.js';
 import { preparationStatus } from './model-preparation.js';
 import { publicPreparationProgress } from '../../../../shared/vendor/reploid/mesh/preparation-progress.js';
@@ -246,7 +247,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
       : activeDiscovery ? (peers.length ? '' : 'Waiting for other computers to join.')
       : 'Connect to discover computers. Model readiness is reported separately.';
     const message = find('[data-network-message]');
-    message.textContent = network.error || actionError || ''; message.hidden = !message.textContent;
+    message.textContent = network.error || actionError || (relayUnavailableReason() ? 'The relay service is unreachable. New connections are direct only, so some computers may not be reachable.' : ''); message.hidden = !message.textContent;
     const cleanupPending = network.contribution?.unsettledOwners > 0;
     const local = find('[data-local-computer]');
     if (local) {
@@ -321,6 +322,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     computerPreferences?.update();
   };
   const unsubscribe = session.subscribe(render);
+  globalThis.addEventListener?.('reploid:relay-state', () => render(session.getState()), options);
   computerPreferences = bindComputerPreferences(container, computers, session, () => render(session.getState()));
   on('[data-mesh-connect]', 'click', () => {
     const disconnect = find('[data-mesh-connect]').dataset.disconnect === 'true';

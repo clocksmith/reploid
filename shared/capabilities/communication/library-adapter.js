@@ -6,6 +6,15 @@ import { resolveSwarmJoin, resolveSwarmSignalingUrl } from './swarm-join-policy.
 import { resolveRtcConfig } from '../../pool/p2p-transport.js';
 import { getPoolRtcConfig } from '../../pool/rtc-config.js';
 
+let relayUnavailable = null;
+/** Why new connections are direct-only right now, or null when relay credentials were issued. */
+export const relayUnavailableReason = () => relayUnavailable;
+function publishRelayState(reason) {
+  if (relayUnavailable === reason) return;
+  relayUnavailable = reason;
+  globalThis.dispatchEvent?.(new CustomEvent('reploid:relay-state', { detail: { directOnly: reason !== null, reason } }));
+}
+
 export function createLegacyNetworkOptions(deps = {}, { enabled } = {}) {
   const win = globalThis.window;
   const storage = getCurrentReploidStorage();
@@ -28,7 +37,13 @@ export function createLegacyNetworkOptions(deps = {}, { enabled } = {}) {
         || join.scope === 'private' && ['localhost', '127.0.0.1', '[::1]'].includes(new URL(signalingUrl).hostname)) {
         return deps.rtcConfig || resolveRtcConfig();
       }
-      return getPoolRtcConfig();
+      // The relay-credential service being unreachable must not stop every new connection. Direct connection
+      // was already permitted here, so the attempt continues with direct candidates only, and says so: the
+      // state is published for the interface, never hidden. A caller that requires relay does not use this path.
+      return getPoolRtcConfig().then(config => { publishRelayState(null); return config; }, error => {
+        publishRelayState(error?.message || 'Relay credentials are unavailable.');
+        return resolveRtcConfig();
+      });
     }),
     autoConnect: join.autoConnect && enabled !== false, discoveryScope: join.scope,
     getInviteUrl() {
