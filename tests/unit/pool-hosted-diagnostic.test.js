@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
+import { dispatchJson } from '../helpers/pool-route-dispatch.js';
 import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
 import { createRequesterClient } from '../../apps/poolday/pool/requester-client.js';
 import {
@@ -28,32 +29,6 @@ import {
   makePublicProteinJobFields,
   makeSequenceExecution
 } from '../helpers/pool-sequence-fixture.js';
-
-const dispatchJson = async (router, path, { method = 'GET', body = null } = {}) => {
-  const url = new URL(path, 'http://reploid.test');
-  return new Promise((resolve, reject) => {
-    const req = {
-      method,
-      url: `${url.pathname}${url.search}`,
-      originalUrl: `${url.pathname}${url.search}`,
-      path: url.pathname,
-      query: Object.fromEntries(url.searchParams.entries()),
-      headers: {},
-      body,
-      ip: '127.0.0.1'
-    };
-    const res = {
-      statusCode: 200,
-      headers: {},
-      setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
-      getHeader(name) { return this.headers[name.toLowerCase()]; },
-      status(code) { this.statusCode = code; return this; },
-      json(payload) { resolve({ status: this.statusCode, body: payload }); return this; },
-      end(payload) { resolve({ status: this.statusCode, body: payload || null }); return this; }
-    };
-    router.handle(req, res, (error) => error ? reject(error) : resolve({ status: 404, body: {} }));
-  });
-};
 
 const unwrap = async (responsePromise) => {
   const response = await responsePromise;

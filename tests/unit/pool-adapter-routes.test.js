@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
+import { dispatchJson } from '../helpers/pool-route-dispatch.js';
 import { DETERMINISTIC_GENERATION_CONFIG } from '../../server/pool/policy-router.js';
 import { adapterRequirementFromPublication, createAdapterUseApproval, createAdapterRevocation, createSignedAdapterPublication } from '../../apps/poolday/pool/adapter-publication.js';
 import { modelSupportsAdapterRequirement, sealAdapterPack } from '../../shared/pool/adapter-pack.js';
@@ -33,32 +34,6 @@ const identityClaims = async ({ role, roleId, rolePublicKey, mode }) => {
       participationProfileHash: participationProfile.profileHash
     })
   };
-};
-
-const dispatchJson = async (router, path, { method = 'GET', body = null } = {}) => {
-  const url = new URL(path, 'http://reploid.test');
-  return new Promise((resolve, reject) => {
-    const req = {
-      method,
-      url: `${url.pathname}${url.search}`,
-      originalUrl: `${url.pathname}${url.search}`,
-      path: url.pathname,
-      query: Object.fromEntries(url.searchParams.entries()),
-      headers: {},
-      body,
-      ip: '127.0.0.1'
-    };
-    const res = {
-      statusCode: 200,
-      headers: {},
-      setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
-      getHeader(name) { return this.headers[name.toLowerCase()]; },
-      status(code) { this.statusCode = code; return this; },
-      json(payload) { resolve({ status: this.statusCode, body: payload }); return this; },
-      end(payload) { resolve({ status: this.statusCode, body: payload || null }); return this; }
-    };
-    router.handle(req, res, (error) => error ? reject(error) : resolve({ status: 404, body: {} }));
-  });
 };
 
 const createFixture = async () => {
