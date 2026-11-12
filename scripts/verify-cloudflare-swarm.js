@@ -27,12 +27,16 @@ try {
     const context = await browser.newContext(); contexts.push(context);
     await context.addInitScript(({ forceRelay }) => {
       window.REPLOID_POOL_FORCE_RELAY = forceRelay;
-      window.__migrationConnections = []; window.__migrationSockets = []; window.__migrationIceErrors = [];
+      window.__migrationConnections = []; window.__migrationSockets = []; window.__migrationIceErrors = []; window.__migrationChannels = [];
       const Peer = window.RTCPeerConnection, Socket = window.WebSocket;
       window.RTCPeerConnection = class extends Peer {
         constructor(...args) {
           super(...args); window.__migrationConnections.push(this);
           this.addEventListener('icecandidateerror', event => window.__migrationIceErrors.push({ code: event.errorCode, url: event.url }));
+          this.addEventListener('datachannel', event => window.__migrationChannels.push(event.channel));
+        }
+        createDataChannel(...args) {
+          const channel = super.createDataChannel(...args); window.__migrationChannels.push(channel); return channel;
         }
       };
       window.WebSocket = class extends Socket {
@@ -74,11 +78,29 @@ try {
       });
     });
   }
-  const waitPeer = page => page.waitForFunction(() => Number.parseInt(document.querySelector('[data-mesh-peers]')?.textContent) >= 1, null, { timeout: 60000 });
+  // Protocol first: a signaling `joined` frame and an open RTCPeerConnection with an
+  // open data channel. The rail summary must then agree: "<n> connected" with n >= 1.
+  const digest = page => page.locator('[data-rail-digest="participants"]').textContent();
+  // `after` counts frames/connections seen before a reconnect so stale ones cannot satisfy the wait.
+  const waitPeer = async (i, after = { joins: 0, connections: 0 }) => {
+    const deadline = Date.now() + 60000;
+    while (joins[i].length <= after.joins && Date.now() < deadline) await pages[i].waitForTimeout(250);
+    assert.equal(joins[i].at(-1)?.roomId, policy.publicRoomId);
+    await pages[i].waitForFunction(from => window.__migrationConnections.slice(from).some(pc => pc.connectionState === 'connected')
+      && window.__migrationChannels.some(channel => channel.readyState === 'open'), after.connections, { timeout: 60000 });
+    await pages[i].waitForFunction(() => Number(/^(\d+) connected/.exec(document.querySelector('[data-rail-digest="participants"]')?.textContent || '')?.[1]) >= 1,
+      null, { timeout: 30000 });
+  };
   await Promise.all(pages.slice(0, 2).map(page => page.goto('https://replo.id/', { waitUntil: 'domcontentloaded' })));
-  for (const page of pages.slice(0, 2)) {
-    await waitPeer(page);
-    assert.equal(await page.locator('[data-contrib-label]').textContent(), 'Not sharing');
+  record.participantsDigest = [];
+  for (const i of [0, 1]) {
+    await waitPeer(i);
+    record.participantsDigest.push(await digest(pages[i]));
+    // Cached sharing is the default (dda9e4692): the toggle is on, and with no
+    // downloaded model in a fresh profile the label waits for one.
+    await pages[i].waitForFunction(() => document.querySelector('[data-contrib-label]')?.textContent === 'On · waiting for a downloaded model',
+      null, { timeout: 30000 });
+    assert.equal(await pages[i].locator('[data-toggle-contribution]').getAttribute('aria-checked'), 'true');
   }
   for (const joined of joins.slice(0, 2)) assert.equal(joined.at(-1).roomId, policy.publicRoomId);
   record.automaticDiscovery = true;
@@ -110,7 +132,9 @@ try {
   while (!joins[2].length && Date.now() < privateDeadline) await pages[2].waitForTimeout(250);
   assert.equal(joins[2].at(-1)?.roomId, 'reploid-swarm-' + room);
   assert.equal(joins[2].at(-1)?.peers.length, 0);
-  assert.equal(await pages[2].locator('[data-mesh-peers]').textContent(), '0 peers');
+  await pages[2].waitForFunction(() => /^0 connected/.test(document.querySelector('[data-rail-digest="participants"]')?.textContent || ''),
+    null, { timeout: 30000 });
+  assert.equal(await pages[2].evaluate(() => window.__migrationChannels.filter(channel => channel.readyState === 'open').length), 0);
   record.privateIsolation = true;
   await pages[0].locator('[data-toggle-inspector]').click();
   await pages[0].locator('[data-mesh-connect]').click();
@@ -121,14 +145,15 @@ try {
   await pages[0].waitForTimeout(1500); assert.equal(joins[0].length, before);
   record.disconnectPersists = true;
   if (!await pages[0].locator('[data-mesh-connect]').isVisible()) await pages[0].locator('[data-toggle-inspector]').click();
-  await pages[0].locator('[data-mesh-connect]').click(); await waitPeer(pages[0]);
+  const reconnectFrom = { joins: joins[0].length, connections: await pages[0].evaluate(() => window.__migrationConnections.length) };
+  await pages[0].locator('[data-mesh-connect]').click(); await waitPeer(0, reconnectFrom);
   const beforeInterruption = joins[0].length;
   await contexts[0].setOffline(true);
   await pages[0].evaluate(() => { for (const ws of window.__migrationSockets) ws.close(); });
   await pages[0].waitForTimeout(2000); await contexts[0].setOffline(false);
   const deadline = Date.now() + 60000;
   while (joins[0].length === beforeInterruption && Date.now() < deadline) await pages[0].waitForTimeout(250);
-  assert.ok(joins[0].length > beforeInterruption); await waitPeer(pages[0]);
+  assert.ok(joins[0].length > beforeInterruption); await waitPeer(0);
   record.networkRecovery = true;
   assert.deepEqual(unexpected, []); record.implicitModelDownloads = 0;
   await Promise.all(credentialChecks);

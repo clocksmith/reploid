@@ -204,7 +204,6 @@
 .pool-home[data-chat-compact] .chat-conversation-area { gap: var(--pool-size-8); padding: var(--pool-size-8); }
 /* While the keyboard holds the viewport short, the chooser yields to the transcript and composer. */
 .pool-home[data-chat-compact] .chat-thread-header { display: flex; }
-.pool-home[data-chat-compact] .chat-thread-header [data-mesh-peers] { display: none; }
 .pool-home[data-chat-compact] .chat-composer-area form { gap: var(--pool-size-8); }
 .pool-home[data-chat-compact] .chat-composer-area textarea { min-height: var(--pool-size-44); }
 .pool-home[data-chat-compact] .execution-ribbon-node small { display: none; }
@@ -330,7 +329,6 @@ label.chat-model-route-heading { cursor: pointer; }
   .pool-home .chat-rail-toolbar :is(.chat-rail-label, .pool-primary-wordmark) { display: none; }
   .chat-thread-header .chat-thread-info { flex: 1; min-width: 0; }
   .chat-thread-header :is([data-toggle-inspector], .chat-conversation-actions > summary) { padding-inline: var(--pool-size-8); }
-  .chat-thread-header [data-mesh-peers] { display: none; }
 }
 
 .pool-home[data-chat-compact]:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav { display: block; height: 0; min-height: 0; padding: 0; }

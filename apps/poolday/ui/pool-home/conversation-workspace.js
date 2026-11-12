@@ -6,7 +6,6 @@ import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
 import { updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelFacts, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
-import { projectNetworkPeers } from './network-controls.js';
 import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
 import { renderBrandLink } from './shell-view.js';
@@ -299,8 +298,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       || keyFor(models.find(selectable)) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true, grouped: true, preferNetwork: location !== 'local' });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
-    const peerCount = projectNetworkPeers(state).length;
-    for (const node of surface?.querySelectorAll('[data-mesh-peers]') || []) node.textContent = `${peerCount} ${peerCount === 1 ? 'computer' : 'computers'}`;
     const selectedModel = catalogModels.find(model => keyFor(model) === current);
     const execution = modelExecutionState(selectedModel, location);
     const prepareHere = location === 'local' && selectedModel?.localCached === true;

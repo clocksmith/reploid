@@ -238,7 +238,6 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     find('[data-toggle-introductions]')?.setAttribute('aria-checked', String(!!network.introductionAssistance));
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
     contributionSelect.disabled = !!network.files?.sharing || !!network.files?.preparing || !!network.files?.stopping;
-    for (const node of container.querySelectorAll('[data-mesh-peers]')) node.textContent = peers.length + (peers.length === 1 ? ' computer' : ' computers');
     renderPeerRows(find('[data-insp-device-list]'), state);
     const discoveryState = network.consumer?.connectionState;
     const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying', 'awaiting-introduction'].includes(discoveryState);

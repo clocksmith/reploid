@@ -4019,7 +4019,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f7876b38299fe58e8223f74fe33d8ff113c044ae3f713288ea6d0cb392416783",
+      "sha256": "sha256:9243cfaba11648514efa4aa9ce4d2031d416fea4b53877e9a48f59ea8a837a93",
       "imports": []
     },
     {
@@ -4139,7 +4139,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:a1d939d1cfabc1f47bd834df4935afce472f11d42de4260c55c7e414c7c43751",
+      "sha256": "sha256:d29f99cf8d68212f42e7536edd1ee3fcae5cdb3dc9a3a918fb95deee1bbd621c",
       "imports": [
         "../components/attachments.js",
         "../components/control-help.js",
@@ -4156,7 +4156,6 @@
         "./message-list.js",
         "./model-adapters.js",
         "./model-providers.js",
-        "./network-controls.js",
         "./network-inspector.js",
         "./shell-view.js",
         "./workspace-navigation.js"
@@ -4334,7 +4333,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:2262ee6058871639e0f4a8109631173d88a2044b023303633e76d02913b4294f",
+      "sha256": "sha256:711e91f195f97c6f570b15bfbb49b0a5d96a49239cf3fda9f083ff9e611bcb40",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",
