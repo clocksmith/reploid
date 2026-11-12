@@ -7,7 +7,10 @@ const participant = value => /^peer:[a-f0-9]{24}$/.test(value);
 
 /** Local display preferences and an explicitly requested diagnostic, never peer authentication. */
 export function createComputerPreferences({ storage = globalThis.localStorage, verifyPeer, capture = captureGpuSignature } = {}) {
-  let saved = { schema: policy.schema, names: {}, baseline: null };
+  let saved = { schema: policy.schema, names: {}, baseline: null, blocked: [] };
+  // A blocked entry is a verified signing identity, or a connection id when no identity was proven.
+  const computerId = value => typeof value === 'string' && value.length > 0 && value.length <= policy.maxComputerIdLength
+    && !/[\u0000-\u001f\u007f]/.test(value);
   let latest = null, error = '', operation = null, closed = false, baselineStored = false, baselineFromCurrent = false;
   const listeners = new Set();
   const validateBaseline = value => {
@@ -29,10 +32,13 @@ export function createComputerPreferences({ storage = globalThis.localStorage, v
         throw new Error('Saved computer names are invalid');
       }
       validateBaseline(value.baseline);
-      saved = { schema: policy.schema, names: value.names, baseline: value.baseline ?? null };
+      const blocked = value.blocked ?? [];
+      if (!Array.isArray(blocked) || blocked.length > policy.maxBlocked || !blocked.every(computerId)
+        || new Set(blocked).size !== blocked.length) throw new Error('Saved blocked computers are invalid');
+      saved = { schema: policy.schema, names: value.names, baseline: value.baseline ?? null, blocked: [...blocked] };
     }
   } catch (cause) { error = cause.message; }
-  const state = () => ({ names: clone(saved.names), baselineAt: saved.baseline?.collectedAt ?? null, baselineStored, baselineFromCurrent,
+  const state = () => ({ names: clone(saved.names), blocked: [...saved.blocked], baselineAt: saved.baseline?.collectedAt ?? null, baselineStored, baselineFromCurrent,
     latest: latest ? { status: latest.status, reason: latest.reason ?? null, collectedAt: latest.collectedAt ?? null,
       elapsedMs: latest.elapsedMs ?? null, hardware: clone(latest.hardware ?? null) } : null,
     comparison: compareGpuSignatures(saved.baseline, latest), busy: !!operation, operation: operation?.kind ?? null,
@@ -91,6 +97,30 @@ export function createComputerPreferences({ storage = globalThis.localStorage, v
         latest = measured;
       });
     },
+    /** Synchronous read for the requester's provider choice. */
+    getBlocked: () => [...saved.blocked],
+    /** A local preference. It changes only which computers this device sends its own requests to. */
+    block(connectionId, { participantId = null } = {}) {
+      return run('block', async signal => {
+        if (!computerId(connectionId)) throw new Error('This computer cannot be blocked');
+        // Prefer the signing identity, which survives a reconnect. Without a proof the block covers this connection only.
+        let identity = participant(participantId) ? participantId : null;
+        if (!identity && typeof verifyPeer === 'function') {
+          try { const proven = await verifyPeer(connectionId, signal); if (participant(proven)) identity = proven; }
+          catch (cause) { if (signal.aborted) throw cause; }
+        }
+        signal.throwIfAborted();
+        const id = identity || connectionId;
+        if (saved.blocked.includes(id)) return;
+        if (saved.blocked.length >= policy.maxBlocked) throw new Error('Blocked computer limit reached');
+        persist({ ...saved, blocked: [...saved.blocked, id] });
+      });
+    },
+    unblock(connectionId, { participantId = null } = {}) { save(() => {
+      const remove = new Set([connectionId, participantId].filter(Boolean));
+      const blocked = saved.blocked.filter(id => !remove.has(id));
+      if (blocked.length !== saved.blocked.length) persist({ ...saved, blocked });
+    }); },
     saveBaseline() { save(() => {
       if (latest?.status !== 'measured') throw new Error('Run a GPU check before saving a baseline');
       persist({ ...saved, baseline: clone(latest) });

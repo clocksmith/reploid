@@ -4,7 +4,7 @@
  * is host/computer-preferences.js, passed in through the product session.
  */
 import policy from '../../config/computer-preferences.json' with { type: 'json' };
-import { setComputerNames } from './computer-labels.js';
+import { setComputerNames, setBlockedComputers } from './computer-labels.js';
 import { hardwareText } from './execution-ribbon.js';
 
 export const renderComputerDiagnostic = () => `<details class="pool-disclosure" data-computer-diagnostic hidden>
@@ -23,6 +23,11 @@ export const renderComputerRename = () => `<form class="pool-stack pool-gap-xs" 
   <p class="pool-caption pool-muted">Leave blank to use the generated name. This name is saved only here.</p>
   <button class="pool-button btn-ghost" type="submit">Save name</button></form>`;
 
+/** A local choice about where this device sends its own requests. It is not a network-level ban. */
+export const renderComputerBlock = () => `<div class="pool-stack pool-gap-xs" data-computer-block hidden>
+  <button class="pool-button btn-ghost" type="button" data-computer-block-toggle>Block</button>
+  <p class="pool-caption pool-muted" data-computer-block-note></p></div>`;
+
 export function bindComputerPreferences(root, preferences, session, refresh) {
   const section = root.querySelector('[data-computer-diagnostic]');
   if (!preferences || !section) return { update() {}, dispose() {} };
@@ -35,7 +40,20 @@ export function bindComputerPreferences(root, preferences, session, refresh) {
   const update = () => {
     const view = preferences.getState();
     setComputerNames(session, view.names);
+    setBlockedComputers(session, view.blocked);
     section.hidden = false;
+    for (const block of root.querySelectorAll('[data-computer-block]')) {
+      const row = block.closest('[data-computer-id]'), blocked = row.dataset.blocked === 'true';
+      const identity = /^peer:[a-f0-9]{24}$/.test(row.dataset.computerParticipant || '') ? row.dataset.computerParticipant : '';
+      const button = block.querySelector('button');
+      block.hidden = false;
+      button.textContent = blocked ? 'Unblock' : 'Block';
+      button.disabled = view.busy;
+      block.querySelector('[data-computer-block-note]').textContent = !blocked
+        ? 'Your requests will not be sent to this computer. Saved only on this device; it can still see the network.'
+        : identity && view.blocked.includes(identity) ? 'Your requests are not sent to this computer. Saved only on this device; it can still see the network.'
+        : 'Your requests are not sent over this connection. Its identity was not verified, so the block may not apply after it reconnects.';
+    }
     for (const form of root.querySelectorAll('[data-computer-rename]')) {
       const identity = form.closest('[data-computer-id]').dataset.computerParticipant || '';
       const input = form.querySelector('input');
@@ -69,9 +87,20 @@ export function bindComputerPreferences(root, preferences, session, refresh) {
         : 'Measurement complete. Save a baseline to compare a later check. This is not proof of GPU identity.'
       : 'No measurement yet.';
   };
-  const unsubscribe = preferences.subscribe(() => { update(); refresh(); });
+  // The rows are redrawn from the new preferences, then the row controls from the redrawn rows.
+  const unsubscribe = preferences.subscribe(() => { update(); refresh(); update(); });
   root.addEventListener('input', event => {
     if (event.target.matches('[data-computer-name-input]')) event.target.dataset.edited = 'true';
+  }, options);
+  root.addEventListener('click', event => {
+    const button = event.target.closest?.('[data-computer-block-toggle]');
+    if (!button || !root.contains(button)) return;
+    const row = button.closest('[data-computer-id]'), id = row.dataset.computerId;
+    const participantId = /^peer:[a-f0-9]{24}$/.test(row.dataset.computerParticipant || '') ? row.dataset.computerParticipant : null;
+    void observe(async () => {
+      if (row.dataset.blocked === 'true') preferences.unblock(id, { participantId });
+      else await preferences.block(id, { participantId });
+    });
   }, options);
   root.addEventListener('submit', event => {
     const form = event.target.closest('[data-computer-rename]');

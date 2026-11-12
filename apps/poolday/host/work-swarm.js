@@ -32,7 +32,7 @@ export const READINESS_RECORDS_KEY = 'REPLOID_READINESS_RECORDS';
  * attempts then carry that registered participant. Without it, or when it resolves null, each
  * connection keeps its own identity as before. */
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null, webWorker = null }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [] }) {
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
   canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
@@ -78,13 +78,22 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   };
   let modelFiles = null, partitionMesh = null, consumerIdentity = null, partitionRequester = null;
   const partitionListeners = new Set();
+  // A route through a computer blocked on this device is neither offered nor used for this user's requests.
+  const routeBlocked = model => {
+    const blocked = new Set(getBlockedComputers() || []);
+    if (!blocked.size || !model?.partition) return false;
+    const stages = model.partition.route?.stages || [];
+    return [model.partition.participantA, model.partition.participantB,
+      ...stages.flatMap(stage => [stage.participantId, stage.transportId])].some(id => id && blocked.has(id));
+  };
   const partitions = Object.freeze({
-    getModels: () => partitionMesh?.getModels() || [],
+    getModels: () => (partitionMesh?.getModels() || []).filter(model => !routeBlocked(model)),
     // The authenticated swarm identity this connection's partition owner binds into requester disclosure.
     requesterIdentity: () => partitionMesh ? partitionRequester : null,
     subscribe(listener) { partitionListeners.add(listener); listener(this.getModels()); return () => partitionListeners.delete(listener); },
     generate(request, controls) {
       if (!partitionMesh) throw new Error('Partition discovery is unavailable');
+      if (routeBlocked(request?.model)) throw new Error('A computer on this route is blocked on this device. Nothing was sent.');
       return partitionMesh.generate(request, controls);
     }
   });
@@ -129,7 +138,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const config = resolveConfig({ overrides: { ...options.config.value, mesh: { ...options.config.value.mesh,
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
     return createPeerGenerationMesh({ config, ports: {
-      instanceId, modelConfig: model, utils, eventBus, events,
+      instanceId, modelConfig: model, utils, eventBus, events, getBlockedComputers,
       getExecutionState: () => {
         const state = execution?.getState();
         return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
@@ -247,7 +256,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
               if (state.error) error = state.error;
               else if (previousError && error === previousError) error = '';
             }
-            for (const listener of partitionListeners) listener(partitionMesh?.getModels() || []);
+            for (const listener of partitionListeners) listener(partitions.getModels());
             notify();
           }
         });

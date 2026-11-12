@@ -23,7 +23,7 @@ export function createResearchPlugins({ chat, swarm, storage }) {
   const models = () => chat.getState().models.filter(model => !model.partition && !model.adapters?.length && model.provider === 'doppler');
   const recipients = model => (swarm.getState().consumer?.peers || []).filter(peer => peer.model === model.id
     && peer.modelIdentity === model.identity && peer.role === 'provider' && peer.readiness === 'ready'
-    && peer.availableSlots > 0 && !peer.adapterIdentities?.length)
+    && peer.availableSlots > 0 && !peer.adapterIdentities?.length && peer.blocked !== true)
     .map(peer => peer.peerId);
   const open = async (sessionId, config) => {
     // The saved consent/configuration, not mutable UI controls, owns each capability invocation.

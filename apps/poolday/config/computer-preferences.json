@@ -3,5 +3,7 @@
   "storageKey": "REPLOID_COMPUTER_PREFERENCES_V1",
   "maxNames": 128,
   "maxLabelLength": 64,
+  "maxBlocked": 256,
+  "maxComputerIdLength": 128,
   "maxStoreBytes": 262144
 }

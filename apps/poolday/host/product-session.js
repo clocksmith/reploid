@@ -72,10 +72,18 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   // Bootstrap and ICE belong to the swarm host, independently of signed job routing.
   // A host with an earning account requests as its registered participant (credits/browser.js); canonical
   // participation keeps its own configured identity.
-  const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
+  let computers = null;
+  const swarm = createWorkSwarm({ storage, evolution, service, getBlockedComputers: () => computers?.getBlocked() || [], networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
     ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { chat?.refreshNetwork(); notifySearch(); } });
-  const computers = createComputerPreferences({ storage,
+  computers = createComputerPreferences({ storage,
     verifyPeer: (id, signal) => swarm.verifyPeerIdentity(id, signal) });
+  // A changed block list changes which models have a computer that can answer.
+  let blockedKey = JSON.stringify(computers.getBlocked());
+  computers.subscribe(() => {
+    const next = JSON.stringify(computers.getBlocked());
+    if (next === blockedKey) return;
+    blockedKey = next; chat?.refreshNetwork(); notifySearch();
+  });
   const getNetwork = () => {
     if (!operationNetwork) {
       operationNetwork = createOperationRoomNetwork({ ...networkOptions(),

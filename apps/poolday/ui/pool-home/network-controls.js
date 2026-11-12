@@ -4,7 +4,7 @@ import { preparationStatus } from './model-preparation.js';
 import { publicPreparationProgress } from '../../../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
-import { renderComputerRename, bindComputerPreferences } from './computer-preferences-view.js';
+import { renderComputerRename, renderComputerBlock, bindComputerPreferences } from './computer-preferences-view.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 
 export const renderConnectionControl = () => `<div class="network-sharing-row">
@@ -135,7 +135,11 @@ export function projectNetworkPeers(state) {
       phase, state: observedState, attemptId: connection?.attemptId || null,
       authenticated: peer.identityVerified === true || connection?.authenticated === true || !!capability?.available, modelIdentity: offered?.identity || peer.modelIdentity || null, connectionPhase: 'connected', connectionPath: connectionPath(connection), partitionIndex: index, status, detail, progress });
   }
-  return [...peers.values()];
+  // Blocked on this device: the requester never chooses it, so it counts as neither ready nor working.
+  const blocked = state.blockedComputers, identities = state.computerIdentities;
+  const isBlocked = id => advertisements.get(id)?.blocked === true || !!blocked?.size && (blocked.has(id) || blocked.has(identities?.get(id)));
+  return [...peers.values()].map(peer => isBlocked(peer.id) ? { ...peer, blocked: true, phase: 'blocked', state: 'blocked',
+    status: 'Blocked', detail: 'Blocked on this device. Your requests are not sent to it.', progress: null } : peer);
 }
 
 function renderPeerRows(list, state) {
@@ -152,13 +156,13 @@ function renderPeerRows(list, state) {
       row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
         + '<span class="pool-small pool-muted" data-computer-model></span><p class="pool-caption pool-muted" data-computer-hardware></p><p class="pool-small pool-muted" data-computer-detail></p>'
         + '<progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-auth></p><p data-computer-path hidden></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code>'
-        + renderComputerRename() + '</details></div>';
+        + renderComputerRename() + renderComputerBlock() + '</details></div>';
     }
     existing.delete(peer.id);
     nodes.set(peer.id, row);
     const set = (selector, value) => { const node = row.querySelector(selector); if (node.textContent !== String(value || '')) node.textContent = value || ''; };
     row.dataset.peerPhase = peer.phase || 'connected'; row.dataset.computerState = peer.state;
-    row.dataset.attemptId = peer.attemptId || '';
+    row.dataset.attemptId = peer.attemptId || ''; row.dataset.blocked = String(peer.blocked === true);
     row.dataset.computerParticipant = state.computerIdentities?.get(peer.id) || '';
     set('[data-computer-name]', computerLabel(state, peer.id)); set('[data-computer-status]', peer.status);
     if (peer.model !== 'Model status pending') row.dataset.lastModel = peer.model;

@@ -104,9 +104,15 @@ export function createPeerGenerationMesh({ config, ports }) {
     pending.then(settled, settled);
     return pending;
   };
+  // The host's local block list: connection ids, or signing identities this requester verified on the
+  // current channel. A requester-side choice only; nothing is sent to or withheld from the network.
+  const blockedComputers = () => new Set(ports.getBlockedComputers?.() || []);
+  const isBlockedProvider = (peerId, blocked = blockedComputers()) => blocked.size > 0
+    && (blocked.has(peerId) || blocked.has(peerIdentity?.getVerified(peerId)));
   const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null) => {
+    const blocked = blockedComputers();
     const eligible = rankProviderPeers(swarmController.listPeers())
-    .filter(peer => supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
+    .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract)));
     return eligible.find(peer => peer.peerId === preferred) || eligible[0] || null;
@@ -129,7 +135,8 @@ export function createPeerGenerationMesh({ config, ports }) {
     peers: snapshotJson(swarmController.listPeers().map(peer => {
       const participantId = peerIdentity?.getVerified(peer.peerId) || null;
       // Never promote identity fields supplied by an advertisement into verified labels.
-      return { ...(observedPeers.get(peer.peerId) || peer), participantId, identityVerified: !!participantId };
+      return { ...(observedPeers.get(peer.peerId) || peer), participantId, identityVerified: !!participantId,
+        ...(isBlockedProvider(peer.peerId) ? { blocked: true } : {}) };
     }))
   });
 
@@ -771,7 +778,19 @@ export function createPeerGenerationMesh({ config, ports }) {
 
     await initialize();
     const affinityKey = contextId ? JSON.stringify([contextId, modelId, modelIdentity, adapterIdentities]) : null;
-    const provider = await chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey));
+    const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey));
+    let provider = await pick();
+    // With a block list, a candidate whose identity is not yet known is asked to prove it before it is
+    // chosen; one that proves to be blocked is passed over for the next. Nothing is disclosed meanwhile.
+    for (let passes = 0; passes < 8 && provider?.peerId && peerIdentity && provider.identityProtocol === 1
+      && blockedComputers().size > 0 && !peerIdentity.getVerified(provider.peerId); passes++) {
+      let proven;
+      try { proven = await peerIdentity.verify(provider.peerId, signal); }
+      catch { break; } // Dispatch below repeats the proof and reports its failure.
+      if (!blockedComputers().has(proven)) break;
+      reservedProviders.delete(provider.peerId);
+      provider = await pick();
+    }
     if (!provider?.peerId || !swarmTransport || !identityBundle) {
       // An adapter request never falls back to the base model or another adapter.
       throw new Error(adapterIdentities.length ? 'No contributor serves the requested adapter. The base model was not used.'
@@ -785,6 +804,11 @@ export function createPeerGenerationMesh({ config, ports }) {
       if (remoteRequests.size >= policy.mesh.maxPendingJobs) throw new Error('Pending remote job limit exceeded');
       const connectionBinding = JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null);
       const recipientIdentity = provider.identityProtocol === 1 ? await peerIdentity.verify(provider.peerId, signal) : null;
+      // A blocked identity can return on a new connection before it is recognised. The proof above is
+      // the first moment it is known, and nothing has been disclosed yet.
+      if (isBlockedProvider(provider.peerId) || recipientIdentity && blockedComputers().has(recipientIdentity)) {
+        throw new Error('The available computer is blocked on this device. Nothing was sent. Retry to use another computer.');
+      }
       const requestId = utils.generateId('swarmreq');
       const requestPayload = {
         requestId, consumer: identityBundle.peerId, provider: provider.peerId,

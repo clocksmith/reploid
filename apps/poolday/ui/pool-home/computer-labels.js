@@ -1,12 +1,18 @@
 /** Stable UI pseudonyms, not authenticated owner names or hardware identity. */
 const sessions = new WeakMap();
-const createRegistry = () => ({ labels: new Map(), identities: new Map(), attempts: new Map(), names: new Map() });
+const createRegistry = () => ({ labels: new Map(), identities: new Map(), attempts: new Map(), names: new Map(), blocked: new Set() });
 import { participantLabel } from '../../../../shared/vendor/reploid/mesh/computer-identity.js';
 export { participantLabel };
 
 export function setComputerNames(session, names) {
   if (!sessions.has(session)) sessions.set(session, createRegistry());
   sessions.get(session).names = new Map(Object.entries(names));
+}
+
+/** The ids blocked on this device (computer preferences): verified signing identities or connection ids. */
+export function setBlockedComputers(session, ids) {
+  if (!sessions.has(session)) sessions.set(session, createRegistry());
+  sessions.get(session).blocked = new Set(ids);
 }
 
 function collect(state, registry) {
@@ -67,7 +73,7 @@ function collect(state, registry) {
 export function withComputerLabels(state, session) {
   if (!sessions.has(session)) sessions.set(session, createRegistry());
   const registry = sessions.get(session), computerLabels = collect(state, registry);
-  return { ...state, computerLabels, computerIdentities: new Map(registry.identities) };
+  return { ...state, computerLabels, computerIdentities: new Map(registry.identities), blockedComputers: new Set(registry.blocked) };
 }
 
 export function computerLabel(state, id) {
