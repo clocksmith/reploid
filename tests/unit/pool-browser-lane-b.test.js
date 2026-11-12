@@ -11,7 +11,7 @@ import {
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
-} from '../../shared/pool/p2p-payload.js';
+} from '../../apps/poolday/pool/p2p-payload.js';
 import {
   RUNTIME_PROFILE_VERSION,
   buildRuntimeProfile,

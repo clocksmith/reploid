@@ -34,7 +34,7 @@ import { isSequenceWorkload, normalizeSequenceInput } from '../../../shared/pool
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
-} from '../../../shared/pool/p2p-payload.js';
+} from './p2p-payload.js';
 import { createPackPeerProvider } from './peer-pack-provider.js';
 import { getRingPhaseProtocol } from '../../../shared/pool/config.js';
 

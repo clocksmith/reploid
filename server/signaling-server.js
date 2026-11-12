@@ -8,6 +8,10 @@ import { tokensEqual } from './token-auth.js';
 import { EventEmitter } from 'node:events';
 import { WebSocketServer, WebSocket } from 'ws';
 import { sha256Hex } from './hashing.js';
+import {
+  PEER_ID_PATTERN, boundIdentityError, forwardedNegotiation, frameError, joinIdentityError,
+  negotiationError, parseFrame
+} from './swarm-protocol.js';
 
 export const SIGNALING_MESSAGE_TYPES = new Set([
   'join',
@@ -38,8 +42,6 @@ const DEFAULT_MAX_PEERS_TOTAL = 8192;
 const DEFAULT_MAX_ROOMS = 4096;
 const DEFAULT_MAX_MESSAGES_PER_WINDOW = 512;
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 1000;
-const PEER_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{2,127}$/i;
-const ROOM_ID_PATTERN = /^reploid-swarm-[a-z0-9][a-z0-9_-]{0,127}$/i;
 
 const ensurePositiveInteger = (value, fallback) => {
   const next = Number.parseInt(String(value ?? ''), 10);
@@ -279,16 +281,11 @@ class SignalingServer extends EventEmitter {
     const meta = this.connectionMeta.get(ws);
     if (!meta) return;
 
-    if (isBinary) {
+    const raw = isBinary ? null : (typeof data === 'string' ? data : data.toString());
+    const bounded = frameError(raw, isBinary, this.options.maxMessageBytes);
+    if (bounded) {
       this.metrics.rejectedMessages += 1;
-      this.closeWithError(ws, 1003, 'Binary frames are not supported');
-      return;
-    }
-
-    const raw = typeof data === 'string' ? data : data.toString();
-    if (Buffer.byteLength(raw) > this.options.maxMessageBytes) {
-      this.metrics.rejectedMessages += 1;
-      this.closeWithError(ws, 1009, 'Message exceeds max size');
+      this.closeWithError(ws, bounded.code, bounded.error);
       return;
     }
 
@@ -304,14 +301,15 @@ class SignalingServer extends EventEmitter {
       return;
     }
 
-    let message;
-    try {
-      message = JSON.parse(raw);
-    } catch {
+    const parsed = parseFrame(raw);
+    if (parsed.error) {
       this.metrics.rejectedMessages += 1;
-      this.closeWithError(ws, 1003, 'Invalid JSON payload');
+      // Malformed JSON closes the connection; a well-formed non-object is a protocol error.
+      if (parsed.code === 1003) this.closeWithError(ws, parsed.code, parsed.error);
+      else this.sendError(ws, parsed.error);
       return;
     }
+    const { message } = parsed;
 
     const validation = this.validateMessage(message, meta);
     if (!validation.valid) {
@@ -364,27 +362,17 @@ class SignalingServer extends EventEmitter {
       return this.validateJoin(message, meta);
     }
 
-    if (!meta.peerId || !meta.roomId) {
-      return { valid: false, error: 'Join is required before signaling' };
-    }
-
-    if (message.peerId !== meta.peerId) {
-      return { valid: false, error: 'peerId does not match the current connection' };
-    }
-
-    if (message.roomId && message.roomId !== meta.roomId) {
-      return { valid: false, error: 'roomId does not match the current connection' };
-    }
+    const identityError = boundIdentityError(message, meta);
+    if (identityError) return { valid: false, error: identityError };
 
     if (type === 'leave' || type === 'heartbeat') {
       return { valid: true };
     }
 
-    if (!PEER_ID_PATTERN.test(String(message.targetPeer || ''))) {
-      return { valid: false, error: 'targetPeer is required' };
-    }
-
     if (type === 'relay-message') {
+      if (!PEER_ID_PATTERN.test(String(message.targetPeer || ''))) {
+        return { valid: false, error: 'targetPeer is required' };
+      }
       if (!message.envelope || typeof message.envelope !== 'object' || Array.isArray(message.envelope)) {
         return { valid: false, error: 'envelope payload is required' };
       }
@@ -394,39 +382,15 @@ class SignalingServer extends EventEmitter {
       return { valid: true };
     }
 
-    if (type === 'offer' && !message.offer) {
-      return { valid: false, error: 'offer payload is required' };
-    }
-
-    if (type === 'answer' && !message.answer) {
-      return { valid: false, error: 'answer payload is required' };
-    }
-
-    if (type === 'ice-candidate' && !message.candidate) {
-      return { valid: false, error: 'candidate payload is required' };
-    }
-
-    return { valid: true };
+    const error = negotiationError(message);
+    return error ? { valid: false, error } : { valid: true };
   }
 
   validateJoin(message, meta) {
     const { peerId, roomId, token, metadata } = message;
 
-    if (!peerId || !roomId) {
-      return { valid: false, error: 'Missing peerId or roomId' };
-    }
-
-    if (!PEER_ID_PATTERN.test(String(peerId))) {
-      return { valid: false, error: 'peerId is invalid' };
-    }
-
-    if (!ROOM_ID_PATTERN.test(String(roomId))) {
-      return { valid: false, error: 'roomId is invalid' };
-    }
-
-    if (!token || typeof token !== 'string' || token.length < 32) {
-      return { valid: false, error: 'A high-entropy room capability is required' };
-    }
+    const identityError = joinIdentityError(message);
+    if (identityError) return { valid: false, error: identityError };
 
     const existingRoom = this.rooms.get(roomId);
     const expectedCapability = this.roomCapabilities.get(roomId);
@@ -548,20 +512,7 @@ class SignalingServer extends EventEmitter {
       return;
     }
 
-    const forwarded = {
-      type: message.type,
-      peerId: meta.peerId,
-      targetPeer: message.targetPeer,
-      timestamp: Date.now()
-    };
-
-    if (message.type === 'offer') {
-      forwarded.offer = message.offer;
-    } else if (message.type === 'answer') {
-      forwarded.answer = message.answer;
-    } else if (message.type === 'ice-candidate') {
-      forwarded.candidate = message.candidate;
-    }
+    const forwarded = { ...forwardedNegotiation(message, meta.peerId), timestamp: Date.now() };
 
     sourcePeer.lastSeen = Date.now();
     targetPeer.lastSeen = Date.now();

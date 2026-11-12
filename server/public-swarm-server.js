@@ -1,4 +1,4 @@
-import { allowsSwarmOrigin } from './swarm-origin-policy.js';
+import { DISCOVERY_RELAY_ERROR, allowsSwarmOrigin, discoveryJoinError } from './swarm-protocol.js';
 import SignalingServer from './signaling-server.js';
 import policy from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
 
@@ -49,18 +49,12 @@ export class PublicSwarmServer extends SignalingServer {
   }
 
   validateJoin(message, meta) {
-    if (meta.scope === 'public' && (message.roomId !== this.bootstrap.publicRoomId || message.token !== this.bootstrap.publicJoinMarker)) {
-      return { valid: false, error: 'Public namespace required' };
-    }
-    if (meta.scope === 'private' && (message.roomId === this.bootstrap.publicRoomId || message.token === this.bootstrap.publicJoinMarker)) {
-      return { valid: false, error: 'Private invitation capability required' };
-    }
-    if (meta.roomId && meta.roomId !== message.roomId) return { valid: false, error: 'Connection namespace is fixed' };
-    return super.validateJoin(message, meta);
+    const error = discoveryJoinError({ scope: meta.scope, roomId: meta.roomId }, message, this.bootstrap);
+    return error ? { valid: false, error } : super.validateJoin(message, meta);
   }
 
   validateMessage(message, meta) {
-    if (message?.type === 'relay-message') return { valid: false, error: 'Discovery does not relay application data' };
+    if (message?.type === 'relay-message') return { valid: false, error: DISCOVERY_RELAY_ERROR };
     return super.validateMessage(message, meta);
   }
 

@@ -95,7 +95,6 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/pool/model-contract.js', vfsPath: '/self/pool/model-contract.js' },
   { webPath: '/pool/pool-config.json', vfsPath: '/self/pool/pool-config.json' },
   { webPath: '/pool/p2p-payload.js', vfsPath: '/self/pool/p2p-payload.js' },
-  { webPath: '/pool/p2p-signaling.js', vfsPath: '/self/pool/p2p-signaling.js' },
   { webPath: '/pool/p2p-transport.js', vfsPath: '/self/pool/p2p-transport.js' },
   { webPath: '/pool/policy-router.js', vfsPath: '/self/pool/policy-router.js' },
   { webPath: '/pool/policy-validation.js', vfsPath: '/self/pool/policy-validation.js' },

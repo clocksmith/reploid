@@ -23,7 +23,6 @@ export const POOL_STORE_OPERATIONS = Object.freeze([
   'saveAssignmentCommitment', 'getAssignmentCommitment', 'listCommitmentsForJob',
   'saveAssignmentReveal', 'getAssignmentReveal', 'listRevealsForJob',
   'appendPoolEvent', 'listPoolEventsForJob', 'listPoolEventsForProvider', 'appendReputationEvent',
-  'createSignalingSession', 'getSignalingSession', 'appendSignalMessage', 'listSignalMessages',
   'appendPeerRoomMessage', 'listPeerRoomMessages', 'listPeerRooms',
   'saveResearchRecord', 'getResearchRecord', 'listResearchRecords',
   'saveAdapterPublication', 'getAdapterPublication', 'listAdapterPublications', 'revokeAdapterPublication',

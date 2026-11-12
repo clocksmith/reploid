@@ -54,7 +54,7 @@ import {
 import {
   P2P_PAYLOAD_TYPES,
   validateP2PPayload
-} from '../../../shared/pool/p2p-payload.js';
+} from './p2p-payload.js';
 import {
   SEQUENCE_PUBLIC_SENSITIVITY,
   isSequenceWorkload,

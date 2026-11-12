@@ -295,43 +295,6 @@ describe('Firestore-backed peer-room relay', () => {
     ]);
   });
 
-  it('allocates a durable per-session signal sequence and preserves idempotent signal ids', async () => {
-    const fake = createQueryableFirestore();
-    const store = createFirestorePoolStore({ firestore: fake.firestore });
-    const session = await store.createSignalingSession({
-      sessionId: 'sequenced-session',
-      participantIds: ['requester_1', 'provider_1']
-    });
-    const first = await store.appendSignalMessage(session.sessionId, {
-      id: 'signal-one',
-      type: 'offer',
-      fromPeerId: 'requester_1',
-      idempotencyHash: 'sha256:signal-one',
-      createdAt: 1
-    });
-    const duplicate = await store.appendSignalMessage(session.sessionId, {
-      id: 'signal-one',
-      type: 'offer',
-      fromPeerId: 'requester_1',
-      idempotencyHash: 'sha256:signal-one',
-      createdAt: 999
-    });
-    const second = await store.appendSignalMessage(session.sessionId, {
-      id: 'signal-two',
-      type: 'answer',
-      fromPeerId: 'provider_1',
-      createdAt: 2
-    });
-
-    expect(first.relaySequence).toBe(1);
-    expect(duplicate).toEqual(first);
-    expect(second.relaySequence).toBe(2);
-
-    const page = await store.listSignalMessages(session.sessionId, { afterSequence: 1 });
-    expect(page.map((message) => message.id)).toEqual(['signal-two']);
-    expect(page.nextCursor).toMatchObject({ sequence: 2, messageId: 'signal-two' });
-  });
-
   it('allocates a durable per-room relay sequence and preserves idempotent relay ids', async () => {
     const fake = createQueryableFirestore();
     const store = createFirestorePoolStore({ firestore: fake.firestore });
@@ -375,31 +338,6 @@ describe('Firestore-backed peer-room relay', () => {
       relayId: 'reused-id',
       idempotencyHash: 'sha256:replacement'
     })).rejects.toMatchObject({ code: 'relay_id_conflict' });
-  });
-
-  it('paginates same-millisecond signal messages by message id without loss', async () => {
-    const fake = createQueryableFirestore();
-    const sessionId = 'same-millisecond-session';
-    for (const id of ['signal-a', 'signal-b', 'signal-c']) {
-      fake.seed('signaling_messages', id, {
-        id,
-        sessionId,
-        createdAt: 12345,
-        fromPeerId: 'requester_1',
-        type: 'ice-candidate'
-      });
-    }
-    const store = createFirestorePoolStore({ firestore: fake.firestore });
-
-    const firstPage = await store.listSignalMessages(sessionId, { limit: 2 });
-    const secondPage = await store.listSignalMessages(sessionId, {
-      after: firstPage.nextCursor.createdAt,
-      afterId: firstPage.nextCursor.messageId,
-      limit: 2
-    });
-
-    expect(firstPage.map((message) => message.id)).toEqual(['signal-a', 'signal-b']);
-    expect(secondPage.map((message) => message.id)).toEqual(['signal-c']);
   });
 
   it('paginates same-millisecond peer-room messages by relay id without loss', async () => {

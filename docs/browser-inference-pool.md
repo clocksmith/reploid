@@ -385,10 +385,6 @@ Receipts for ring assignments are accepted only after:
 | `POST` | `/pool/assignments/:assignmentId/failure` | Report provider execution failure and make the job retryable |
 | `POST` | `/pool/receipts/:receiptHash/accept` | Submit requester countersignature and accept or reject result |
 | `GET` | `/pool/receipts/:receiptHash` | Fetch receipt artifact for inspection |
-| `POST` | `/pool/signaling/sessions` | Create assignment-bound WebRTC signaling session |
-| `GET` | `/pool/signaling/sessions/:sessionId` | Fetch signaling session metadata |
-| `POST` | `/pool/signaling/sessions/:sessionId/messages` | Publish SDP/ICE signaling metadata |
-| `GET` | `/pool/signaling/sessions/:sessionId/messages` | Poll SDP/ICE signaling metadata |
 | `POST` | `/pool/audits/canary` | Create hidden deterministic canary assignment for a provider |
 | `POST` | `/pool/audits/challenge` | Create a delayed deterministic rerun from a prior receipt and its source job |
 | `GET` | `/pool/audits/:auditId` | Inspect canary or challenge audit state |
@@ -415,13 +411,13 @@ The primary browser-room path used by `/ask` and `/compute` does not create host
 | Receipt hash, agreement hash, requester acceptance, ledger mutation | Browser-room signed events; cloud coordinator for hosted compatibility |
 | Points and reputation | Deterministic browser-room reducer; cloud coordinator for hosted compatibility |
 
-Cloud signaling and peer-room relay messages are metadata only. Prompts, biological sequences, outputs, token streams, full receipts, model shards, and ring payloads should not be sent through signaling or relay endpoints. Direct peer connection uses STUN where possible. TURN is a fallback for restrictive NATs and should be treated as paid bandwidth risk.
+Peer-room relay messages are metadata only. Prompts, biological sequences, outputs, token streams, full receipts, model shards, and ring payloads should not be sent through discovery or relay endpoints. Direct peer connection uses STUN where possible. TURN is a fallback for restrictive NATs and should be treated as paid bandwidth risk.
 
 Browser modules:
 
 ```javascript
-import { createPoolSdkSignalingAdapter, createSignalingChannel } from './pool/p2p-signaling.js';
-import { createAssignmentP2PPayloadChannel, createP2PRequesterTransport, createP2PProviderTransport } from './pool/p2p-transport.js';
+import { createSignalingChannel } from './pool/p2p-signaling.js';
+import { createP2PRequesterTransport, createP2PProviderTransport } from './pool/p2p-transport.js';
 import { createPromptPayload, createExecutionResultPayload, createReceiptPayload } from './pool/p2p-payload.js';
 import { createPeerControlPlane, buildPeerAssignmentPlan } from './pool/peer-control-plane.js';
 import { createPeerProviderNode, runPeerJob } from './pool/peer-room.js';
@@ -430,7 +426,7 @@ import { createAdapterPublisherClient } from './pool/adapter-publisher-client.js
 import { createAdapterRegistry, acquireAdapterForAssignment } from './pool/adapter-registry.js';
 ```
 
-`createAssignmentP2PPayloadChannel()` creates or attaches to the cloud signaling session, builds the WebRTC signaling channel, and sends versioned prompt/output/receipt envelopes only through the DataChannel transport. The SDK signaling routes carry only offer, answer, ICE candidate, close, and ping messages. Ring payload sessions can be rejected until the coordinator opens the configured reveal gate; this keeps pre-reveal provider outputs from becoming copyable P2P data.
+WebRTC negotiation for room peers travels as `webrtc-signal` envelopes on the peer-room relay (or BroadcastChannel locally); versioned prompt/output/receipt envelopes go only through the DataChannel transport. Public and private discovery uses the single WebSocket signaling core (`server/swarm-protocol.js`). The former assignment-bound `/pool/signaling/sessions` HTTP routes had no browser or native caller and were removed in November 2026.
 
 In the current hosted mode, the cloud remains authoritative for abuse gates, policy admission, receipt anchoring, requester acceptance, points, reputation, and canary policy. It should not carry the main inference payload or decide model-result agreement by itself. WebRTC DataChannel is the main transit. For ring policies, browser providers exchange commit/reveal and receipt payloads over WebRTC, reach agreement on matching output and token hashes, then anchor the resulting receipt and agreement hashes through the coordinator.
 
@@ -489,9 +485,6 @@ await sdk.submitJob(request);
 await sdk.pollJob(jobId);
 await sdk.getReceipt(receiptHash);
 await sdk.acceptReceipt(receiptHash, acceptance);
-await sdk.createSignalingSession({ assignmentId });
-await sdk.publishSignal(sessionId, signal);
-await sdk.listSignals(sessionId, { peerId });
 await sdk.createCanaryAudit(payload);
 await sdk.reputation(providerId);
 
@@ -741,8 +734,6 @@ When `POOL_STORE=firestore` is set, the server must initialize Firebase Admin an
 - `commitment_events`
 - `reveal_events`
 - `pool_events`
-- `signaling_sessions`
-- `signaling_messages`
 - `adapter_publications`
 - `adapter_canary_publications`
 - `points_ledger`
@@ -777,9 +768,6 @@ POOL_VERIFY_FIREBASE_AUTH=true
 POOL_REQUIRE_FIREBASE_AUTH=true
 POOL_BACKEND_ONLY=true
 POOL_JSON_LIMIT=512kb
-POOL_SIGNAL_SESSION_TTL_MS=600000
-POOL_MAX_SIGNAL_PAYLOAD_BYTES=65536
-POOL_MAX_SIGNAL_MESSAGES_PER_POLL=100
 REPLOID_ADAPTER_GCS_SIGNED_URLS=true
 REPLOID_ADAPTER_SIGNED_URL_TTL_MS=300000
 ```
@@ -791,12 +779,10 @@ Hosted production requires:
 - Firebase Auth token verification configured.
 - Auth required for all non-discovery pool routes.
 - Firestore rules denying direct client access to pool collections.
-- Firebase Hosting rewrites for every `/pool/*` API route, including `/pool/signaling/**`.
+- Firebase Hosting rewrites for every `/pool/*` API route, including `/pool/peer/**`.
 - Firebase Hosting rewrites for `/pool/adapters` and `/pool/adapters/**` without capturing browser modules under `/pool/*.js`.
 - Commit-reveal store methods for `commitment_events` and `reveal_events`.
-- Signaling sessions capped by assignment expiry and `POOL_SIGNAL_SESSION_TTL_MS`.
 - Signaling messages restricted to WebRTC metadata types: `offer`, `answer`, `ice-candidate`, `close`, and `ping`.
-- Signaling payloads bounded by `POOL_MAX_SIGNAL_PAYLOAD_BYTES`.
 - Offloaded model artifact base configured in the browser as `window.REPLOID_POOL_MODEL_BASE_URL`.
 - Doppler module and WGSL kernel base configured in the browser as `window.REPLOID_DOPPLER_MODULE_URL` and `window.REPLOID_DOPPLER_KERNEL_BASE_URL`.
 - Model artifact URLs content-addressed by model id and manifest hash.

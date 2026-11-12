@@ -95,11 +95,6 @@ const createRouteSdk = (router) => ({
     `/assignments/${assignmentId}/failure`,
     { method: 'POST', body }
   )),
-  createSignalingSession: (body) => unwrap(dispatchJson(
-    router,
-    '/signaling/sessions',
-    { method: 'POST', body }
-  )),
   getReceipt: (receiptHash) => unwrap(dispatchJson(router, `/receipts/${receiptHash}`)),
   acceptReceipt: (receiptHash, body) => unwrap(dispatchJson(
     router,
@@ -279,14 +274,6 @@ describe('hosted diagnostic sequence episode', () => {
 
     const workerRuns = recovered.job.assignmentIds.map(async (assignmentId) => {
       const assignment = store.getAssignment(assignmentId);
-      const signaling = await sdk.createSignalingSession({
-        assignmentId,
-        createdBy: requesterId
-      });
-      expect(signaling.session).toMatchObject({
-        inputPayloadsAllowedFromPhase: 'private_compute',
-        resultEvidenceAdmissibleFromPhase: 'reveal_open'
-      });
       const inputPayload = await requester.createPeerSequencePayload({
         assignment,
         sequence: TEST_PUBLIC_PROTEIN_SEQUENCE

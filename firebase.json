@@ -267,13 +267,6 @@
           }
         },
         {
-          "source": "/pool/signaling/**",
-          "run": {
-            "serviceId": "reploid-pool",
-            "region": "us-central1"
-          }
-        },
-        {
           "source": "/pool/peer/**",
           "run": {
             "serviceId": "reploid-pool",

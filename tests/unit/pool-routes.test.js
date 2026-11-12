@@ -21,7 +21,7 @@ import {
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
-} from '../../shared/pool/p2p-payload.js';
+} from '../../apps/poolday/pool/p2p-payload.js';
 import {
   createSignedCandidateAction,
   createSignedResearchHypothesis,
@@ -384,15 +384,6 @@ describe('pool coordinator routes', () => {
       body: { providerId: 'provider_attacker' }
     });
     expect(heartbeat).toMatchObject({
-      status: 401,
-      body: { error: 'Firebase auth token required' }
-    });
-
-    const signaling = await dispatchJson(router, '/signaling/sessions', {
-      method: 'POST',
-      body: { participantIds: ['provider_attacker', 'requester_victim'] }
-    });
-    expect(signaling).toMatchObject({
       status: 401,
       body: { error: 'Firebase auth token required' }
     });
@@ -1087,7 +1078,7 @@ describe('pool ring quorum timeout and acceptance binding', () => {
   });
 });
 
-describe('pool hybrid p2p signaling routes', () => {
+describe('pool peer-room relay guards', () => {
   let store;
   let router;
 
@@ -1095,147 +1086,6 @@ describe('pool hybrid p2p signaling routes', () => {
     store = createPoolStore();
     store.kind = 'memory';
     router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
-  });
-
-  it('creates assignment-bound signaling sessions and exchanges metadata messages', async () => {
-    const { assignments } = await createRingJob({ store, providerCount: 1 });
-    const assignment = assignments[0];
-    const created = await dispatchJson(router, '/signaling/sessions', {
-      method: 'POST',
-      body: { assignmentId: assignment.assignmentId }
-    });
-    expect(created.status).toBe(201);
-    expect(created.body.session.assignmentId).toBe(assignment.assignmentId);
-    expect(created.body.session.participantIds).toContain(assignment.requesterId);
-    expect(created.body.session.participantIds).toContain(assignment.providerId);
-    expect(created.body.session).toMatchObject({
-      signalingAllowedFromPhase: 'private_compute',
-      inputPayloadsAllowedFromPhase: 'private_compute',
-      resultEvidenceAdmissibleFromPhase: 'reveal_open'
-    });
-
-    const sessionId = created.body.session.sessionId;
-    const published = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
-      method: 'POST',
-      body: {
-        type: 'offer',
-        fromPeerId: assignment.requesterId,
-        toPeerId: assignment.providerId,
-        payload: { type: 'offer', sdp: 'v=0' },
-        createdAt: 100
-      }
-    });
-    expect(published.status).toBe(201);
-
-    const listed = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages?peerId=${encodeURIComponent(assignment.providerId)}`);
-    expect(listed.status).toBe(200);
-    expect(listed.body.messages).toHaveLength(1);
-    expect(listed.body.messages[0].type).toBe('offer');
-  });
-
-  it('binds signaling message publishers to authenticated participants', async () => {
-    router = createPoolRouter({
-      store,
-      requireAuth: true,
-      verifyAuthToken: async (token) => ({ uid: token })
-    });
-    const { assignments } = await createRingJob({ store, providerCount: 1 });
-    const assignment = assignments[0];
-    await unlockRingP2pTransport(store, assignment);
-    const created = await dispatchJson(router, '/signaling/sessions', {
-      method: 'POST',
-      headers: { authorization: 'Bearer ring' },
-      body: { assignmentId: assignment.assignmentId }
-    });
-    expect(created.status).toBe(201);
-
-    const sessionId = created.body.session.sessionId;
-    const wrongPublisher = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
-      method: 'POST',
-      headers: { authorization: 'Bearer ring' },
-      body: {
-        type: 'offer',
-        fromPeerId: assignment.providerId,
-        toPeerId: assignment.requesterId,
-        payload: { type: 'offer', sdp: 'v=0' }
-      }
-    });
-    expect(wrongPublisher.status).toBe(403);
-    expect(wrongPublisher.body.error).toBe('authenticated identity does not match signal fromPeerId');
-
-    const providerPublisher = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
-      method: 'POST',
-      headers: { authorization: 'Bearer 0' },
-      body: {
-        type: 'answer',
-        fromPeerId: assignment.providerId,
-        toPeerId: assignment.requesterId,
-        payload: { type: 'answer', sdp: 'v=0' }
-      }
-    });
-    expect(providerPublisher.status).toBe(201);
-    expect(providerPublisher.body.message.fromPeerId).toBe(assignment.providerId);
-  });
-});
-
-describe('pool signaling production guards', () => {
-  let store;
-  let router;
-
-  beforeEach(() => {
-    store = createPoolStore();
-    store.kind = 'memory';
-    router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
-  });
-
-  it('rejects signaling sessions for expired assignments', async () => {
-    const { assignments } = await createRingJob({ store, providerCount: 1 });
-    store.updateAssignment(assignments[0].assignmentId, {
-      expiresAt: new Date(Date.now() - 1000).toISOString()
-    });
-
-    const response = await dispatchJson(router, '/signaling/sessions', {
-      method: 'POST',
-      body: { assignmentId: assignments[0].assignmentId }
-    });
-
-    expect(response.status).toBe(410);
-    expect(response.body.error).toBe('assignment expired');
-  });
-
-  it('rejects non-WebRTC signaling types and oversized metadata payloads', async () => {
-    const { assignments } = await createRingJob({ store, providerCount: 1 });
-    const assignment = assignments[0];
-    await unlockRingP2pTransport(store, assignment);
-    const created = await dispatchJson(router, '/signaling/sessions', {
-      method: 'POST',
-      body: { assignmentId: assignment.assignmentId }
-    });
-    const sessionId = created.body.session.sessionId;
-
-    const invalidType = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
-      method: 'POST',
-      body: {
-        type: 'prompt-payload',
-        fromPeerId: assignment.requesterId,
-        toPeerId: assignment.providerId,
-        payload: { prompt: 'should not ride signaling' }
-      }
-    });
-    expect(invalidType.status).toBe(400);
-    expect(invalidType.body.error).toBe('signal type is not allowed');
-
-    const oversized = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
-      method: 'POST',
-      body: {
-        type: 'offer',
-        fromPeerId: assignment.requesterId,
-        toPeerId: assignment.providerId,
-        payload: { sdp: 'x'.repeat(70 * 1024) }
-      }
-    });
-    expect(oversized.status).toBe(413);
-    expect(oversized.body.error).toBe('signal payload exceeds metadata size limit');
   });
 
   it('queries only the live peer-room relay window before applying the result limit', async () => {

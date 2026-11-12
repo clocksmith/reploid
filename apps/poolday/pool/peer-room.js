@@ -15,7 +15,7 @@ import {
   createP2PPayload,
   createReceiptPayload,
   validateP2PPayload
-} from '../../../shared/pool/p2p-payload.js';
+} from './p2p-payload.js';
 import {
   buildPeerAssignmentPlan,
   buildPeerReceiptAgreement,

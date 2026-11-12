@@ -111,7 +111,6 @@ try {
       "self/tool-runner.js",
       "self/core/response-parser.js",
       "shared/pool/p2p-transport.js",
-      "shared/pool/p2p-signaling.js",
       "apps/poolday/pool/retry-policy.js",
       "self/receipt.js",
       "shared/identity.js",

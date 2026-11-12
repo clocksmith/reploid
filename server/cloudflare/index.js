@@ -1,6 +1,5 @@
-import { allowsSwarmOrigin } from '../swarm-origin-policy.js';
+import { allowsSwarmOrigin, discoveryNamespace } from '../swarm-protocol.js';
 import bootstrap from '../../shared/config/swarm-bootstrap.json';
-import { namespace } from './room.js';
 import { handleTurn } from './turn.js';
 export { SwarmRoom } from './room.js';
 export { SwarmAdmission } from './admission.js';
@@ -20,7 +19,7 @@ export default {
     if (request.method !== 'GET') return new Response('Method not allowed', { status: 405, headers });
     try {
       if (url.pathname === bootstrap.path) {
-        const join = namespace(url);
+        const join = discoveryNamespace(url.searchParams, bootstrap);
         if (!join) return new Response('Invalid discovery namespace', { status: 400 });
         // WebSocket upgrade uses fetch; actor admission uses RPC. Tokens never enter URLs.
         return await env.ROOMS.getByName(`${join.scope}:${join.roomId}`).fetch(request);

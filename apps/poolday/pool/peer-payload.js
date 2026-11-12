@@ -9,7 +9,7 @@ import {
   createP2PPayload,
   hashP2PPayload,
   validateP2PPayload
-} from '../../../shared/pool/p2p-payload.js';
+} from './p2p-payload.js';
 import {
   isSequenceWorkload,
   normalizeSequenceInput,

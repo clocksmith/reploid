@@ -2,7 +2,7 @@
  * @fileoverview Versioned payload envelopes for hybrid P2P pool transport.
  */
 
-import { hashJson, sha256Hex } from './inference-receipt.js';
+import { hashJson, sha256Hex } from '../../../shared/pool/inference-receipt.js';
 
 export const P2P_PAYLOAD_VERSION = 'reploid_pool_p2p_payload/v1';
 

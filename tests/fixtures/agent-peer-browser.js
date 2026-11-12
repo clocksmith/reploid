@@ -16,7 +16,7 @@ import { createPackOperationRegistry } from '../../shared/pool/pack-operation-ad
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 import { exportPrivateKey, importPrivateKey } from '../../shared/pool/inference-receipt.js';
 import { createP2PTransport } from '../../shared/pool/p2p-transport.js';
-import { SIGNAL_TYPES } from '../../shared/pool/p2p-signaling.js';
+import { SIGNAL_TYPES } from 'reploid/webrtc';
 
 const registry = createPackOperationRegistry();
 const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 500000, maxEvents: 32, maxJobMs: 120000 };

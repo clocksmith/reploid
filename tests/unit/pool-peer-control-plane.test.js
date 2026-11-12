@@ -32,7 +32,7 @@ import {
   validatePeerAssignmentForIntentAndAdvert,
   verifyPeerMessage
 } from '../../apps/poolday/pool/peer-control-plane.js';
-import { createReceiptPayload } from '../../shared/pool/p2p-payload.js';
+import { createReceiptPayload } from '../../apps/poolday/pool/p2p-payload.js';
 import {
   buildRuntimeProfile,
   hashRuntimeProfile

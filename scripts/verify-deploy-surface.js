@@ -55,7 +55,6 @@ const POOLDAY_MODULE_FILES = [
     .map((name) => `ui/pool-home/${name}`),
   'pool/sdk.js',
   'pool/peer-rendezvous.js',
-  'pool/p2p-signaling.js',
   'pool/p2p-transport.js',
   'pool/peer-room.js',
   'pool/retry-policy.js'

@@ -3,13 +3,16 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   SIGNAL_TYPES,
   createCallbackSignalingAdapter,
-  createPollingSignalingAdapter,
-  createPoolSdkSignalingAdapter,
+  createPollingSignalingAdapter as createLibraryPollingAdapter,
   createSignalMessage,
   createSignalingChannel,
   isSignalForPeer,
   normalizeSignalMessage
-} from '../../shared/pool/p2p-signaling.js';
+} from '../../packages/reploid/src/transport/index.js';
+import { resolveConfig } from '../../packages/reploid/src/config/index.js';
+
+const config = resolveConfig();
+const createPollingSignalingAdapter = options => createLibraryPollingAdapter({ config, ...options });
 
 describe('pool p2p signaling helpers', () => {
   it('normalizes signal messages into immutable typed records', () => {
@@ -203,45 +206,6 @@ describe('pool p2p signaling helpers', () => {
 
     expect(calls[1]).toMatchObject({ after: 100, afterId: 'signal-b', afterSequence: 2 });
     expect(received).toEqual(['signal-a', 'signal-b', 'signal-c']);
-    unsubscribe();
-    vi.useRealTimers();
-  });
-
-  it('forwards the tuple cursor through the Pool SDK signaling adapter', async () => {
-    vi.useFakeTimers();
-    const calls = [];
-    const pages = [
-      {
-        messages: [
-          createSignalMessage({ id: 'signal-a', sessionId: 'session_1', type: SIGNAL_TYPES.OFFER, fromPeerId: 'requester_1', createdAt: 100 })
-        ],
-        nextCursor: { createdAt: 100, messageId: 'signal-a' }
-      },
-      { messages: [] }
-    ];
-    const adapter = createPoolSdkSignalingAdapter({
-      sdk: {
-        publishSignal: () => Promise.resolve(),
-        listSignals(sessionId, options) {
-          calls.push({ sessionId, ...options });
-          return Promise.resolve(pages.shift());
-        }
-      },
-      sessionId: 'session_1',
-      peerId: 'provider_1',
-      pollIntervalMs: 1
-    });
-    const unsubscribe = adapter.subscribe(() => {});
-
-    await vi.runOnlyPendingTimersAsync();
-    await Promise.resolve();
-
-    expect(calls[1]).toMatchObject({
-      sessionId: 'session_1',
-      after: 100,
-      afterId: 'signal-a',
-      peerId: 'provider_1'
-    });
     unsubscribe();
     vi.useRealTimers();
   });

@@ -246,27 +246,6 @@ export function createPoolSdk({
         body: payload
       });
     },
-    createSignalingSession(payload = {}) {
-      return request('/signaling/sessions', { method: 'POST', body: payload });
-    },
-    getSignalingSession(sessionId) {
-      return request(`/signaling/sessions/${encodeURIComponent(sessionId)}`);
-    },
-    publishSignal(sessionId, message = {}) {
-      return request(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages`, {
-        method: 'POST',
-        body: message
-      });
-    },
-    listSignals(sessionId, { after = 0, afterId = '', afterSequence = null, peerId = null } = {}) {
-      const query = new URLSearchParams();
-      if (after) query.set('after', String(after));
-      if (afterId) query.set('afterId', String(afterId));
-      if (Number.isSafeInteger(afterSequence) && afterSequence >= 0) query.set('afterSequence', String(afterSequence));
-      if (peerId) query.set('peerId', String(peerId));
-      const suffix = query.toString() ? `?${query.toString()}` : '';
-      return request(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages${suffix}`);
-    },
     publishPeerRoomMessage(roomId, message = {}) {
       return request(`/peer/rooms/${encodeURIComponent(roomId)}/messages`, {
         method: 'POST',

@@ -9,7 +9,7 @@ import { runPackOperation } from '../../apps/poolday/pool/pack-operation.js';
 import { createPackOperationRegistry } from '../../shared/pool/pack-operation-adapters.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 import { createP2PTransport } from '../../shared/pool/p2p-transport.js';
-import { SIGNAL_TYPES } from '../../shared/pool/p2p-signaling.js';
+import { SIGNAL_TYPES } from '../../shared/vendor/reploid/transport/index.js';
 
 let pc, channelBus, provider, requester, session, service, model, identity, ready, replacement;
 let transport, signal, descriptionReady;

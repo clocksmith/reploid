@@ -1937,23 +1937,12 @@
       ]
     },
     {
-      "path": "pool/p2p-signaling.js",
+      "path": "pool/p2p-transport.js",
       "owner": "pool",
-      "sha256": "sha256:bb6b9b621e29cab902deaad69a8f42d47893dd87c5e44f9ab81269b8e7e4de1b",
+      "sha256": "sha256:9c00b1698547ee0189d23cbb28386bd5f8799f07cb398db55af7c3bf5a08221a",
       "imports": [
         "../vendor/reploid/config/index.js",
         "../vendor/reploid/transport/index.js"
-      ]
-    },
-    {
-      "path": "pool/p2p-transport.js",
-      "owner": "pool",
-      "sha256": "sha256:c31ad614792479ed4cd7ef7dbb504910b9dcc6da41b0bd07fb55aa892e8ddda6",
-      "imports": [
-        "../vendor/reploid/config/index.js",
-        "../vendor/reploid/transport/index.js",
-        "./p2p-payload.js",
-        "./p2p-signaling.js"
       ]
     },
     {
@@ -2425,7 +2414,7 @@
     {
       "path": "pool/sdk.js",
       "owner": "pool",
-      "sha256": "sha256:016aef56737d20793e448fc4c73050ca952f3872b0a3ce2ffa8dcb397aeb6f56",
+      "sha256": "sha256:11939588b2262a7fc4d45dfb8dd52852717fdcf653b5505d2ef040574b0fad73",
       "imports": [
         "../config/swarm-bootstrap.json",
         "./identity.js",
@@ -3367,7 +3356,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:2b911c481287c4feb455e61f14bd8ea55137ed67ce4248c4f55929e9cc89f208",
+      "sha256": "sha256:ff2a0afd5b631b8714e28cd703f1654f0c997f310abf8dbc84749c2d111b961c",
       "imports": [
         "./boot-spec.js",
         "./config/tool-surfaces.js",
@@ -4030,7 +4019,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:c2b41b77daf27a4f18adbd119bd60a1923931a55d3026d2924a0e259d790c819",
+      "sha256": "sha256:f7876b38299fe58e8223f74fe33d8ff113c044ae3f713288ea6d0cb392416783",
       "imports": []
     },
     {

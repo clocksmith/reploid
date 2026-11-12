@@ -18,7 +18,7 @@ import {
   createPeerSequencePayload,
   validateSequencePayloadForAssignment
 } from '../../apps/poolday/pool/peer-control-plane.js';
-import { createReceiptPayload, hashP2PPayload } from '../../shared/pool/p2p-payload.js';
+import { createReceiptPayload, hashP2PPayload } from '../../apps/poolday/pool/p2p-payload.js';
 import { createProviderClient } from '../../apps/poolday/pool/provider-client.js';
 import {
   SEQUENCE_ALPHABETS,

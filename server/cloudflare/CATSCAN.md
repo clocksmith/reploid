@@ -6,7 +6,7 @@ Parent: [Hosted Services](../CATSCAN.md)
 Provide bounded public/private peer discovery and authenticated temporary TURN credentials.
 
 ## Authority
-Owns the Cloudflare adapter for signaling and credential issuance. Does not execute models or grant conversation, custody, compute, or improvement permission.
+Owns the Cloudflare adapter over the [shared signaling core](../swarm-protocol.js) and credential issuance. Does not execute models or grant conversation, custody, compute, or improvement permission.
 
 ## Scope
 This subtree; browser workspace and Firebase records remain with their existing owners.

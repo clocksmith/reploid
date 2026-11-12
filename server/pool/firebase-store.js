@@ -1,4 +1,3 @@
-import { createPeerRoomRelayRecord } from './relay-record.js';
 /**
  * @fileoverview Firestore-backed pool store for Firebase deployment.
  */
@@ -9,7 +8,6 @@ import { hashJson } from './hash.js';
 import { sha256Hex } from '../hashing.js';
 import poolStore from './store.js';
 import { assertPoolStoreContract } from './store-contract.js';
-import { resolveIdempotentRelay } from './relay-identity.js';
 import {
   assertSettledJobPatch,
   assertSettledReceiptPatch,
@@ -27,9 +25,11 @@ import {
 } from './reputation-projection.js';
 import {
   attachRelayPage,
+  createPeerRoomRelayRecord,
+  resolveIdempotentRelay,
   cursorForRelayRecord,
   normalizeRelayCursor
-} from './relay-cursor.js';
+} from './relay.js';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
@@ -49,9 +49,6 @@ const COLLECTIONS = Object.freeze({
   commitmentEvents: 'commitment_events',
   revealEvents: 'reveal_events',
   poolEvents: 'pool_events',
-  signalingSessions: 'signaling_sessions',
-  signalingMessages: 'signaling_messages',
-  signalingRelaySequences: 'signaling_relay_sequences',
   peerRoomMessages: 'peer_room_messages',
   peerRoomRelaySequences: 'peer_room_relay_sequences',
   pointsLedger: 'points_ledger',
@@ -582,76 +579,6 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       events = await api.listPoolEventsForProvider(providerId);
       return api.updateReputation(providerId, projectProviderReputation(providerId, events, latest),
         { expectedEvidenceRevision: Number(latest.evidenceRevision || 0) });
-    },
-    async createSignalingSession(input = {}) {
-      const sessionId = input.sessionId || makeId('signal_session');
-      const saved = {
-        ...input,
-        sessionId,
-        participantIds: Array.from(new Set((input.participantIds || []).filter(Boolean))),
-        createdAt: input.createdAt || nowIso(),
-        updatedAt: nowIso(),
-        expiresAt: input.expiresAt || new Date(Date.now() + 10 * 60 * 1000).toISOString()
-      };
-      return writeDoc(COLLECTIONS.signalingSessions, sessionId, saved, { merge: true });
-    },
-    async getSignalingSession(sessionId) {
-      return readDoc(COLLECTIONS.signalingSessions, sessionId);
-    },
-    async appendSignalMessage(sessionId, message = {}) {
-      const session = await api.getSignalingSession(sessionId);
-      if (!session) return null;
-      const signalId = message.id || makeId('signal');
-      if (typeof firestore.runTransaction !== 'function') {
-        throw new Error('Firestore transactions are required for durable signaling relay sequencing');
-      }
-      const messageRef = doc(COLLECTIONS.signalingMessages, `${sessionId}_${signalId}`);
-      const sequenceRef = doc(COLLECTIONS.signalingRelaySequences, sessionId);
-      const sessionRef = doc(COLLECTIONS.signalingSessions, sessionId);
-      return firestore.runTransaction(async (transaction) => {
-        const existing = await transaction.get(messageRef);
-        const prior = resolveIdempotentRelay(existing.exists ? existing.data() : null, message, 'signal');
-        if (prior) return prior;
-        const sequenceSnapshot = await transaction.get(sequenceRef);
-        const relaySequence = Number(sequenceSnapshot.data()?.nextSequence || 0) + 1;
-        const saved = {
-          ...message,
-          sessionId,
-          id: signalId,
-          relaySequence,
-          createdAt: message.createdAt || Date.now(),
-          receivedAt: nowIso()
-        };
-        transaction.set(messageRef, stripUndefined(saved));
-        transaction.set(sequenceRef, {
-          sessionId,
-          nextSequence: relaySequence,
-          updatedAt: nowIso()
-        });
-        transaction.set(sessionRef, { ...session, updatedAt: nowIso() }, { merge: true });
-        return saved;
-      });
-    },
-    async listSignalMessages(sessionId, { after = 0, afterId = '', afterSequence = null, peerId = null, limit = 100 } = {}) {
-      const cursor = normalizeRelayCursor({ after, afterId, afterSequence });
-      let query = collection(COLLECTIONS.signalingMessages).where('sessionId', '==', sessionId);
-      if (cursor.sequence !== null) {
-        query = query.where('relaySequence', '>', cursor.sequence).orderBy('relaySequence', 'asc');
-      } else {
-        query = query.orderBy('createdAt', 'asc').orderBy('id', 'asc');
-        if (cursor.createdAt > 0 || cursor.messageId) {
-          query = query.startAfter(cursor.createdAt, cursor.messageId);
-        }
-      }
-      const snapshot = await query.limit(Number(limit || 100)).get();
-      const scanned = snapshot.docs.map((entry) => entry.data());
-      const messages = scanned.filter((message) => {
-        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
-        if (peerId && message.fromPeerId === peerId) return false;
-        if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
-        return true;
-      });
-      return attachRelayPage(messages, scanned.length ? cursorForRelayRecord(scanned.at(-1), 'id') : null);
     },
     async appendPeerRoomMessage(roomId, message = {}) {
       const resolvedRoomId = String(roomId || '').trim();

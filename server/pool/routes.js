@@ -33,7 +33,7 @@ import {
   createTurnRtcConfiguration,
   getPublicTurnServiceStatus
 } from './turn-credentials.js';
-import { cursorForRelayRecord } from './relay-cursor.js';
+import { cursorForRelayRecord } from './relay.js';
 import { registerAdapterRoutes } from './routes/adapters.js';
 import { registerAuditRoutes } from './routes/audits.js';
 import { registerCommitRevealRoutes } from './routes/commit-reveal.js';
@@ -42,7 +42,6 @@ import { registerPeerRoomRoutes } from './routes/peer-rooms.js';
 import { registerProviderRoutes } from './routes/providers.js';
 import { registerReceiptRoutes } from './routes/receipts.js';
 import { registerResearchRoutes } from './routes/research.js';
-import { registerSignalingRoutes } from './routes/signaling.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -57,7 +56,7 @@ const relayPageResponse = (messages, idField) => {
 
 
 const isRealtimeRelayRequest = (req) => (
-  /\/(?:signal\/sessions|peer\/rooms)\/[^/]+\/messages(?:\/|$)/.test(String(req.path || req.url || ''))
+  /\/peer\/rooms\/[^/]+\/messages(?:\/|$)/.test(String(req.path || req.url || ''))
 );
 
 const createPoolRateLimiter = ({
@@ -221,45 +220,9 @@ const hasCoordinatorClaim = (auth) => auth?.decoded?.admin === true
   || auth?.decoded?.poolCoordinator === true
   || auth?.decoded?.coordinator === true;
 
-const signalingRoles = Object.freeze(['requester', 'agent', 'provider']);
-
-const signalingParticipantAllowed = (auth, participantIds = []) => {
-  if (auth?.localDevelopment === true) return true;
-  if (!auth?.verified || !auth.uid) return false;
-  if (hasCoordinatorClaim(auth)) return true;
-  return participantIds.some((participantId) => authMatchesAnyRoleId(auth, signalingRoles, participantId));
-};
-
-const requireSignalingParticipant = (req, res, session) => {
-  if (signalingParticipantAllowed(req.poolAuth, session?.participantIds || [])) return true;
-  res.status(403).json({ error: 'authenticated identity is not a signaling session participant' });
-  return false;
-};
-
-const requireSignalFromPeer = (req, res, session, fromPeerId) => {
-  const participantIds = session?.participantIds || [];
-  if (!participantIds.includes(fromPeerId)) {
-    res.status(400).json({ error: 'signal fromPeerId is not a session participant' });
-    return false;
-  }
-  if (req.poolAuth?.localDevelopment === true || hasCoordinatorClaim(req.poolAuth)) return true;
-  if (!req.poolAuth?.verified || !req.poolAuth.uid) {
-    res.status(403).json({ error: 'authenticated identity is required to publish signaling messages' });
-    return false;
-  }
-  if (authMatchesAnyRoleId(req.poolAuth, signalingRoles, fromPeerId)) return true;
-  res.status(403).json({ error: 'authenticated identity does not match signal fromPeerId' });
-  return false;
-};
-
 const activeAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
 const finalizedJobStatuses = new Set(['accepted', 'acceptance_processing', 'rejected_by_requester']);
-const activeTransportConfig = POOL_CONFIG.transportModes?.[POOL_CONFIG.activeTransportMode] || {};
 const deploymentSignalingConfig = POOL_CONFIG.deployment?.signaling || {};
-const SIGNAL_TYPES = new Set(activeTransportConfig.signalingAllowedTypes || []);
-const MAX_SIGNAL_PAYLOAD_BYTES = Number(process.env.POOL_MAX_SIGNAL_PAYLOAD_BYTES || deploymentSignalingConfig.maxPayloadBytes || 64 * 1024);
-const MAX_SIGNAL_MESSAGES_PER_POLL = Number(process.env.POOL_MAX_SIGNAL_MESSAGES_PER_POLL || deploymentSignalingConfig.maxMessagesPerPoll || 100);
-const MAX_SIGNAL_SESSION_TTL_MS = Number(process.env.POOL_SIGNAL_SESSION_TTL_MS || deploymentSignalingConfig.sessionTtlMs || 10 * 60 * 1000);
 const MAX_PEER_ROOM_PAYLOAD_BYTES = Number(process.env.POOL_MAX_PEER_ROOM_PAYLOAD_BYTES || deploymentSignalingConfig.maxPeerRoomPayloadBytes || 64 * 1024);
 const MAX_PEER_ROOM_MESSAGES_PER_POLL = Number(process.env.POOL_MAX_PEER_ROOM_MESSAGES_PER_POLL || deploymentSignalingConfig.maxPeerRoomMessagesPerPoll || 100);
 const MAX_PEER_ROOM_MESSAGE_TTL_MS = Number(process.env.POOL_PEER_ROOM_MESSAGE_TTL_MS || deploymentSignalingConfig.peerRoomMessageTtlMs || 2 * 60 * 1000);
@@ -274,12 +237,6 @@ const PEER_ROOM_MESSAGE_TYPES = new Set([
 
 const jsonByteLength = (value) => Buffer.byteLength(JSON.stringify(value ?? null), 'utf8');
 
-const toEpochMs = (value) => {
-  if (typeof value === 'number') return value;
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
 const configuredEnvValue = (...names) => names
   .map((name) => process.env[name])
   .find((value) => {
@@ -290,20 +247,6 @@ const configuredEnvValue = (...names) => names
 const configuredReleaseValue = (releaseEnv, name) => {
   const normalized = String(releaseEnv?.[name] || '').trim();
   return normalized && !normalized.startsWith('<required-') ? normalized : null;
-};
-
-const signalingSessionExpired = (session = {}) => (
-  session?.expiresAt && toEpochMs(session.expiresAt) < Date.now()
-);
-
-const boundedSignalSessionExpiry = ({ assignment, requestedExpiresAt = null } = {}) => {
-  const now = Date.now();
-  const candidates = [
-    now + MAX_SIGNAL_SESSION_TTL_MS,
-    requestedExpiresAt ? toEpochMs(requestedExpiresAt) : null,
-    assignment?.expiresAt ? toEpochMs(assignment.expiresAt) : null
-  ].filter((value) => Number.isFinite(value) && value > now);
-  return new Date(Math.min(...candidates)).toISOString();
 };
 
 export function createPoolRouter({
@@ -414,7 +357,7 @@ export function createPoolRouter({
       transport: {
         controlPlane: 'cloud_run_firestore',
         payloadMode: 'hybrid_p2p_anchor',
-        signaling: 'assignment_bound_metadata_only',
+        signaling: 'peer_room_relay',
         offloadedModelArtifacts: true,
         adapterRegistry: 'signed_metadata_only',
         adapterCanaryRegistry: 'signed_non_routable_evidence',
@@ -442,24 +385,6 @@ export function createPoolRouter({
     hasCoordinatorClaim,
     authMatchesRoleId,
     createAdapterDownloadUrl
-  });
-
-  registerSignalingRoutes(router, {
-    store,
-    asyncRoute,
-    signalTypes: SIGNAL_TYPES,
-    maxSignalPayloadBytes: MAX_SIGNAL_PAYLOAD_BYTES,
-    maxMessagesPerPoll: MAX_SIGNAL_MESSAGES_PER_POLL,
-    toEpochMs,
-    signalingSessionExpired,
-    signalingParticipantAllowed,
-    phaseProtocolForAssignment,
-    boundedSignalSessionExpiry,
-    requireSignalingParticipant,
-    requireSignalFromPeer,
-    jsonByteLength,
-    hashJson,
-    relayPageResponse
   });
 
   registerPeerRoomRoutes(router, {
@@ -565,14 +490,6 @@ export function createPoolRouter({
           provider: privateAdapterDeliveryConfigured ? 'gcs-v4-generation-pinned' : null
         },
         hybridP2PAnchor: true,
-        signaling: {
-          supported: typeof store.createSignalingSession === 'function'
-            && typeof store.appendSignalMessage === 'function'
-            && typeof store.listSignalMessages === 'function',
-          maxPayloadBytes: MAX_SIGNAL_PAYLOAD_BYTES,
-          maxMessagesPerPoll: MAX_SIGNAL_MESSAGES_PER_POLL,
-          sessionTtlMs: MAX_SIGNAL_SESSION_TTL_MS
-        },
         turn,
         commitReveal: {
           supported: commitRevealSupported,

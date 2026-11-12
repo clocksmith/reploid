@@ -53,7 +53,7 @@ const cleanedModules = [
   'packages/reploid/src/transport/sdp-fingerprint.js',
   'self/core/runtime-mode.js',
   'server/http-request-owner.js',
-  'server/pool/relay-record.js',
+  'server/pool/relay.js',
   'server/proxy*.js',
   'tests/fixtures/installed-package-identity.js',
   'tests/fixtures/qwen-partition-control.js',

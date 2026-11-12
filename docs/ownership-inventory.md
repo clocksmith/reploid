@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 379 |
+| apps/poolday | 380 |
 | self | 448 |
-| shared | 2326 |
-| total | 3153 |
+| shared | 2324 |
+| total | 3152 |
 
 Every file lives in its owner's root.
 
@@ -613,8 +613,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/operation-room-network.d.ts` | `apps/poolday/pool/operation-room-network.d.ts` | apps/poolday | Describes pool/operation-room-network.js. Reached only from product entries. |
 | `pool/operation-room-network.js` | `apps/poolday/pool/operation-room-network.js` | apps/poolday | Reached only from product entries. |
 | `pool/p2p-artifact-transfer.js` | `apps/poolday/pool/p2p-artifact-transfer.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `pool/p2p-payload.js` | `shared/pool/p2p-payload.js` | shared | Reached from product and substrate entries. |
-| `pool/p2p-signaling.js` | `shared/pool/p2p-signaling.js` | shared | Reached from product and substrate entries. |
+| `pool/p2p-payload.js` | `apps/poolday/pool/p2p-payload.js` | apps/poolday | Reached only from product entries. |
 | `pool/p2p-transport.js` | `shared/pool/p2p-transport.js` | shared | Reached from product and substrate entries. |
 | `pool/pack-operation-adapters.d.ts` | `shared/pool/pack-operation-adapters.d.ts` | shared | Describes pool/pack-operation-adapters.js. Reached from product and substrate entries. |
 | `pool/pack-operation-adapters.js` | `shared/pool/pack-operation-adapters.js` | shared | Reached from product and substrate entries. |

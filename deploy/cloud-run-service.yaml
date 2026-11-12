@@ -38,12 +38,6 @@ spec:
               value: 512kb
             - name: POOL_RESEARCH_JSON_LIMIT
               value: 1mb
-            - name: POOL_SIGNAL_SESSION_TTL_MS
-              value: "600000"
-            - name: POOL_MAX_SIGNAL_PAYLOAD_BYTES
-              value: "65536"
-            - name: POOL_MAX_SIGNAL_MESSAGES_PER_POLL
-              value: "100"
             - name: REPLOID_ADAPTER_GCS_SIGNED_URLS
               value: "true"
             - name: REPLOID_ADAPTER_SIGNED_URL_TTL_MS

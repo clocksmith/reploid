@@ -10,7 +10,7 @@ import {
   createP2PPayload,
   hashP2PPayload,
   validateP2PPayload
-} from '../../../shared/pool/p2p-payload.js';
+} from './p2p-payload.js';
 
 export const ADAPTER_TRANSFER_RECEIPT_SCHEMA = 'reploid.pool.adapter-transfer-receipt/v1';
 

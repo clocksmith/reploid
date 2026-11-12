@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 379,
+    "apps/poolday": 380,
     "self": 448,
-    "shared": 2326
+    "shared": 2324
   },
   "pendingMoves": 0,
   "violations": [],
@@ -3482,15 +3482,9 @@
     },
     {
       "served": "pool/p2p-payload.js",
-      "source": "shared/pool/p2p-payload.js",
-      "owner": "shared",
-      "basis": "Reached from product and substrate entries."
-    },
-    {
-      "served": "pool/p2p-signaling.js",
-      "source": "shared/pool/p2p-signaling.js",
-      "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "source": "apps/poolday/pool/p2p-payload.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "pool/p2p-transport.js",
