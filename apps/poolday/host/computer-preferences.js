@@ -13,6 +13,8 @@ export function createComputerPreferences({ storage = globalThis.localStorage, v
     && !/[\u0000-\u001f\u007f]/.test(value);
   let latest = null, error = '', operation = null, closed = false, baselineStored = false, baselineFromCurrent = false;
   const listeners = new Set();
+  const validName = ([id, name]) => participant(id) && typeof name === 'string'
+    && !!name.trim() && name.length <= policy.maxLabelLength && !/[\u0000-\u001f\u007f]/.test(name);
   const validateBaseline = value => {
     if (value === null || value === undefined) return;
     if (!value || typeof value !== 'object' || compareGpuSignatures(value, value).distance === null) {
@@ -27,8 +29,7 @@ export function createComputerPreferences({ storage = globalThis.localStorage, v
       baselineStored = !!value.baseline;
       if (value.schema !== policy.schema || !value.names || typeof value.names !== 'object' || Array.isArray(value.names)
         || Object.keys(value.names).length > policy.maxNames
-        || Object.entries(value.names).some(([id, name]) => !participant(id) || typeof name !== 'string'
-          || !name.trim() || name.length > policy.maxLabelLength || /[\u0000-\u001f\u007f]/.test(name))) {
+        || !Object.entries(value.names).every(validName)) {
         throw new Error('Saved computer names are invalid');
       }
       validateBaseline(value.baseline);
@@ -121,6 +122,23 @@ export function createComputerPreferences({ storage = globalThis.localStorage, v
       const blocked = saved.blocked.filter(id => !remove.has(id));
       if (blocked.length !== saved.blocked.length) persist({ ...saved, blocked });
     }); },
+    /** Adds names and blocks read from an export file. A name already saved here is kept, and nothing is
+     * removed. `dryRun` validates and counts without saving. Returns how many of each would be, or were, added. */
+    importPreferences({ names = {}, blocked = [] } = {}, { dryRun = false } = {}) {
+      if (!names || typeof names !== 'object' || Array.isArray(names) || !Object.entries(names).every(validName)) {
+        throw new Error('The file holds invalid computer names');
+      }
+      if (!Array.isArray(blocked) || !blocked.every(computerId)) throw new Error('The file holds invalid blocked computers');
+      const addNames = Object.entries(names).filter(([id]) => !Object.hasOwn(saved.names, id));
+      const addBlocked = [...new Set(blocked)].filter(id => !saved.blocked.includes(id));
+      const result = { names: addNames.length, namesSkipped: Object.keys(names).length - addNames.length,
+        blocked: addBlocked.length, blockedSkipped: new Set(blocked).size - addBlocked.length };
+      if (Object.keys(saved.names).length + addNames.length > policy.maxNames) throw new Error('Saved computer name limit reached');
+      if (saved.blocked.length + addBlocked.length > policy.maxBlocked) throw new Error('Blocked computer limit reached');
+      if (dryRun || !addNames.length && !addBlocked.length) return result;
+      save(() => persist({ ...saved, names: { ...saved.names, ...Object.fromEntries(addNames) }, blocked: [...saved.blocked, ...addBlocked] }));
+      return result;
+    },
     saveBaseline() { save(() => {
       if (latest?.status !== 'measured') throw new Error('Run a GPU check before saving a baseline');
       persist({ ...saved, baseline: clone(latest) });

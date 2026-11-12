@@ -199,6 +199,47 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       && value.adapters.every(adapter => /^sha256:[a-f0-9]{64}$/.test(adapter.identity)), 'Select identified adapters');
     return copy(value);
   };
+  // A conversation read from a host-supplied export file. It is checked like stored history, with two
+  // differences: disclosure grants do not travel in a file, and unfinished attempts arrive interrupted.
+  const importedThread = source => {
+    const bad = 'Invalid imported conversation';
+    assert(source && typeof source === 'object' && !Array.isArray(source), bad);
+    const thread = copy(source);
+    const short = value => typeof value === 'string' && value.length > 0 && value.length <= 128;
+    const characters = Math.max(limits.maxMessageCharacters, limits.maxResponseCharacters);
+    assert(short(thread.id) && Array.isArray(thread.messages) && Array.isArray(thread.attempts)
+      && thread.messages.length <= limits.maxMessagesPerThread && thread.attempts.length <= limits.maxMessagesPerThread, bad);
+    assert(thread.automaticModel === undefined || typeof thread.automaticModel === 'boolean', bad);
+    assert(typeof (thread.purpose ?? '') === 'string' && (thread.purpose ?? '').length <= limits.maxMessageCharacters
+      && (thread.title === undefined || typeof thread.title === 'string' && thread.title.trim() && thread.title.length <= limits.maxMessageCharacters), bad);
+    assert(thread.permissions && typeof thread.permissions === 'object' && !Array.isArray(thread.permissions)
+      && ['mesh', 'local'].includes(thread.permissions.sharingScope)
+      && [undefined, 'auto', 'local', 'network'].includes(thread.permissions.executionLocation), bad);
+    assert(thread.messages.every(message => message && short(message.id) && ['user', 'assistant', 'system'].includes(message.role)
+      && typeof message.content === 'string' && message.content.length <= characters)
+      && new Set(thread.messages.map(message => message.id)).size === thread.messages.length, bad);
+    assert(thread.attempts.every(attempt => attempt && short(attempt.id) && typeof attempt.status === 'string'
+      && (attempt.responseId == null || short(attempt.responseId)))
+      && new Set(thread.attempts.map(attempt => attempt.id)).size === thread.attempts.length, bad);
+    thread.model = modelIdentity(thread.model);
+    thread.purpose ??= '';
+    thread.systemContext = validateSystemContext(thread.systemContext);
+    thread.members = [...new Set([participantId, ...(Array.isArray(thread.members) ? thread.members.filter(short) : [])])];
+    thread.grants = [];
+    thread.closed = thread.closed === true;
+    thread.createdAt = Number.isSafeInteger(thread.createdAt) ? thread.createdAt : now();
+    for (const attempt of thread.attempts) {
+      attempt.threadId = thread.id;
+      if (attempt.provenance === undefined) attempt.provenance = answerProvenance(thread, attempt, { localIds: localIds() });
+      if (!activeStatuses.has(attempt.status)) continue;
+      attempt.status = 'interrupted'; attempt.error = 'Imported unfinished. Retry starts a new attempt.';
+      attempt.approval = null; attempt.finishedAt = now();
+      if (attempt.retrieval) attempt.retrieval = interruptRetrievalRecord(attempt.retrieval, attempt.finishedAt);
+      const message = thread.messages.find(item => item.id === attempt.responseId);
+      if (message) message.status = 'interrupted';
+    }
+    return thread;
+  };
   const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null, sourceHistory = []) => {
     current();
     assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
@@ -479,6 +520,26 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
       threads.push(thread); selectedId = thread.id; const saved = persist();
       return transactional ? saved.then(() => thread.id) : thread.id;
+    },
+    /** Adds conversations from an export file. A conversation whose id is already here is skipped, never
+     * overwritten or merged. Nothing is sent, selected or resumed, and no grant is restored. `dryRun`
+     * validates and reports the same result without adding anything. */
+    importThreads(input, { dryRun = false } = {}) {
+      current();
+      assert(!transactional, 'Conversations cannot be imported into a published history');
+      assert(Array.isArray(input) && input.length <= limits.maxThreads * 4, 'Invalid imported conversations');
+      const known = new Set(threads.map(thread => thread.id)), added = [], skipped = [];
+      for (const source of input) {
+        const thread = importedThread(source);
+        if (known.has(thread.id)) { skipped.push(thread.id); continue; }
+        known.add(thread.id); added.push(thread);
+      }
+      assert(threads.length + added.length <= limits.maxThreads,
+        `Conversation limit reached: ${threads.length} here, ${added.length} to add, ${limits.maxThreads} allowed`);
+      if (dryRun || !added.length) return { added: added.map(thread => thread.id), skipped };
+      threads.push(...added);
+      try { persist(); } catch (error) { threads.splice(threads.length - added.length, added.length); notify(); throw error; }
+      return { added: added.map(thread => thread.id), skipped };
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; const saved = persist(); if (transactional) notify(); return saved; },
     resolveAutomaticModel(threadId, model, systemContext, { keepAutomatic = false } = {}) {

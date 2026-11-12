@@ -170,6 +170,8 @@ export interface ChatWorkspace {
   schema?:string;threadId?:string;route?:PartitionRoute;stages?:readonly {participantId:string}[]} | null}):boolean;
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
+  /** Adds conversations from an export file; ids already present are skipped. Ordinary history only; grants are not restored. */
+  importThreads(threads: unknown[], options?: { dryRun?: boolean }): { added: string[]; skipped: string[] };
   createThread(options: { model: ChatModel; automaticModel?: boolean; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
   resolveAutomaticModel(threadId: string, model: ChatModel, systemContext: ChatSystemContext | null, options?: { keepAutomatic?: boolean }): void | Promise<void>;
   setExecutionLocation(threadId: string, location: 'auto' | 'local' | 'network'): void;

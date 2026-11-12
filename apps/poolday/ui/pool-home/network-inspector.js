@@ -17,6 +17,7 @@ import { renderRemotePermissionSettings, updateRemotePermissionSettings } from '
 import { renderWebSearchSettings, bindWebSearchSettings } from './web-search-settings.js';
 import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 import { renderModelStorage, bindModelStorage } from './model-storage-view.js';
+import { renderLocalData, bindLocalData } from './local-data-view.js';
 import { renderThemeSelector } from './theme.js';
 
 export function renderInspectorNavigation({ workspace = false } = {}) {
@@ -69,6 +70,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" ${mounted ? 'role="tabpanel" id="inspector-pane-settings" aria-labelledby="inspector-tab-settings"' : ''} aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
       <section data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-muted" data-settings-storage-summary>No downloaded models</p><div class="pool-stack pool-gap-md" data-settings-storage-controls>${renderFileSharingControls()}</div></section>
+      ${renderLocalData()}
       ${renderAccountPanel()}
       <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
         <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}</section>
@@ -147,6 +149,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const act = operation => Promise.resolve().then(operation).catch(error);
   const privateComputers = bindPrivateComputers(panel, session);
   const storagePanel = bindModelStorage(panel, modelStorage);
+  const localData = bindLocalData(panel, session, computers);
   if (modelStorage) find('[data-settings-storage-summary]').hidden = true;
   let creditRequest = null;
   let grantsKey = '', executionKey = '', metadataController, disposed = false, specialized;
@@ -337,6 +340,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { if (section === 'conversation') { inspected = null; render(session.getState()); } select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; storagePanel.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

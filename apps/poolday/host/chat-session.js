@@ -393,6 +393,23 @@ export function createChatSession({
       });
     },
     setExecutionLocation(threadId, location) { assertOpen(); return workspace.setExecutionLocation(threadId, location); },
+    /** The stored conversations, for a local data export. Reads only; nothing is sent or changed. */
+    exportThreads() { assertOpen(); return { meshId, participantId, threads: copy(workspace.getState().threads) }; },
+    /** Adds conversations from an export file, skipping ids already here. Ordinary browser history only. */
+    importThreads(threads, { dryRun = false } = {}) {
+      assertOpen();
+      assert(historyState.mode === 'ordinary' && !canonicalHistory, 'Conversations cannot be imported into this history');
+      assert(Array.isArray(threads), 'Invalid imported conversations');
+      // A failed history save stops every later save until reload, so the size is tried under a spare key first.
+      const known = new Set(workspace.getState().threads.map(thread => thread.id));
+      if (storage?.setItem && threads.some(thread => !known.has(thread?.id))) {
+        const probe = STORAGE_KEY + ':import-check';
+        try { storage.setItem(probe, JSON.stringify({ current: storage.getItem(STORAGE_KEY), threads })); }
+        catch { throw new Error('This browser does not have enough storage for these conversations. Nothing was imported.'); }
+        finally { try { storage.removeItem?.(probe); } catch { /* The spare key holds no state. */ } }
+      }
+      return workspace.importThreads(threads, { dryRun });
+    },
     select(threadId) {
       assertOpen();
       return workspace.select(threadId);
