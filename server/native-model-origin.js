@@ -19,7 +19,9 @@ export function resolvePinnedOrigin(model, table = origins, fetch = (...args) =>
     && /^[a-f0-9]{40}$/.test(pin.revision) && typeof pin.path === 'string'
     && pin.path.split('/').every(part => /^[A-Za-z0-9_.-]+$/.test(part) && !/^\.\.?$/.test(part)), 'Pinned origin must name a repository, an immutable revision and a plain path');
   const base = `https://huggingface.co/${pin.repoId}/resolve/${pin.revision}/${pin.path}/`;
-  return Object.freeze({ id: `${PINNED_ORIGIN_SOURCE}:huggingface`, label: `huggingface:${pin.repoId}@${pin.revision}/${pin.path}`, fetch,
+  // `supplier` names this origin in per-supplier totals beside peer participant ids.
+  return Object.freeze({ id: `${PINNED_ORIGIN_SOURCE}:huggingface`, label: `huggingface:${pin.repoId}@${pin.revision}/${pin.path}`,
+    supplier: `origin:${pin.repoId}@${pin.revision}`, fetch,
     url: name => { assert(/^[A-Za-z0-9_.-]+$/.test(name) && !/^\.\.?$/.test(name), 'Plain model filename required'); return base + name; } });
 }
 

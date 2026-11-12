@@ -310,6 +310,10 @@ it('fills from the pinned origin when no peer is online, by verified ranges and 
   const result = await host.fillWholeModel(f.model, { onProgress: event => events.push(event) });
   expect(await fs.readFile(path.join(directory, 'weights.bin'))).toEqual(whole);
   expect(result.sources).toEqual({ 'pinned-origin:huggingface': { pieces: 2, bytes: 8 } });
+  // Per-supplier attribution names the pinned repository and revision, never an address.
+  expect(result.suppliers).toEqual({ [`origin:owner/repo@${'a'.repeat(40)}`]: { pieces: 2, bytes: 8 } });
+  expect(events.filter(event => event.phase === 'piece').map(event => event.supplier)).toEqual(Array(2).fill(`origin:owner/repo@${'a'.repeat(40)}`));
+  expect(events.at(-1)).toMatchObject({ phase: 'complete', suppliers: result.suppliers });
   expect(events.find(event => event.phase === 'source')).toMatchObject({ source: 'pinned-origin:huggingface',
     origin: `huggingface:owner/repo@${'a'.repeat(40)}/models/native-fixture` });
   expect(origin.requests.map(request => [request.url, request.range, request.credentials])).toEqual([
@@ -332,5 +336,32 @@ it('prefers authorized peers over the pinned origin', async () => {
   await f.share();
   const result = await f.owners[0].fillWholeModel(f.model);
   expect(result.sources).toEqual({ 'authorized-custody-peers': { pieces: 2, bytes: 8 } });
+  // The supplying peer is named by its room participant id.
+  expect(result.suppliers).toEqual({ 1: { pieces: 2, bytes: 8 } });
   expect(origin.requests).toEqual([]);
+});
+it('attributes partition pieces to the custody peer that delivered them', async () => {
+  const f = await fixture(); await f.share(); const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    await source.storage.loadShardRange(0, 0, 8);
+    expect(source.getReceipt().custody.suppliers).toEqual({ 1: { pieces: 2, bytes: 8 } });
+  } finally { await source.storage.close(); }
+});
+it('ships origins only for catalog models whose identity the pin names', async () => {
+  const { resolvePinnedOrigin } = await import('../../server/native-model-origin.js');
+  const table = JSON.parse(await fs.readFile(new URL('../../server/native-model-origins.json', import.meta.url), 'utf8'));
+  const catalog = JSON.parse(await fs.readFile(new URL('../../shared/config/chat-models.json', import.meta.url), 'utf8'));
+  const models = new Map((Array.isArray(catalog) ? catalog : catalog.models).map(model => [model.id, model]));
+  expect(Object.keys(table.origins).sort()).toEqual(['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16']);
+  for (const id of Object.keys(table.origins)) {
+    const origin = resolvePinnedOrigin(models.get(id), table);
+    expect(origin.url('tokenizer.json')).toBe(`https://huggingface.co/${table.origins[id].repoId}/resolve/${table.origins[id].revision}/models/${id}/tokenizer.json`);
+    expect(origin.supplier).toBe(`origin:clocksmith/rdrr@${table.origins[id].revision}`);
+  }
+  expect(resolvePinnedOrigin(models.get('qwen-3-5-0-8b-q4k-ehaf16'), table).label)
+    .toBe('huggingface:clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293/models/qwen-3-5-0-8b-q4k-ehaf16');
+  // The 35B is not published at any origin; it has no pin.
+  expect(resolvePinnedOrigin(models.get('qwen-3-6-35b-a3b-text-source-q4_0-af32'), table)).toBeNull();
+  // A pin never serves another identity of the same model id.
+  expect(() => resolvePinnedOrigin({ ...models.get('qwen-3-5-0-8b-q4k-ehaf16'), identity: 'sha256:' + '0'.repeat(64) }, table)).toThrow('another model identity');
 });

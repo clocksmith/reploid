@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 377,
+    "apps/poolday": 379,
     "self": 448,
-    "shared": 2323
+    "shared": 2326
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2331,6 +2331,12 @@
     {
       "served": "host/history-handover.js",
       "source": "apps/poolday/host/history-handover.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/local-data.js",
+      "source": "apps/poolday/host/local-data.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4707,6 +4713,12 @@
     {
       "served": "ui/pool-home/ledger-store.js",
       "source": "apps/poolday/ui/pool-home/ledger-store.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/local-data-view.js",
+      "source": "apps/poolday/ui/pool-home/local-data-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -15330,6 +15342,16 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/artifacts/custody/supplier-summary.d.ts",
+      "source": "shared/vendor/reploid/artifacts/custody/supplier-summary.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/artifacts/custody/supplier-summary.js",
+      "source": "shared/vendor/reploid/artifacts/custody/supplier-summary.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/artifacts/custody/supply-budget.js",
       "source": "shared/vendor/reploid/artifacts/custody/supply-budget.js",
       "owner": "shared"
@@ -16482,6 +16504,11 @@
     {
       "served": "vendor/reploid/transport/bounded-channel-writer.js",
       "source": "shared/vendor/reploid/transport/bounded-channel-writer.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/connection-path.js",
+      "source": "shared/vendor/reploid/transport/connection-path.js",
       "owner": "shared"
     },
     {

@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 377 |
+| apps/poolday | 379 |
 | self | 448 |
-| shared | 2323 |
-| total | 3148 |
+| shared | 2326 |
+| total | 3153 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 1933 | shared |
-| `vendor/reploid/` | 309 | shared |
+| `vendor/reploid/` | 312 | shared |
 
 ## Files
 
@@ -422,6 +422,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/earning/contribution.js` | `apps/poolday/host/earning/contribution.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `host/file-access.js` | `self/host/file-access.js` | self | Reached only from substrate entries. |
 | `host/history-handover.js` | `apps/poolday/host/history-handover.js` | apps/poolday | Reached only from product entries. |
+| `host/local-data.js` | `apps/poolday/host/local-data.js` | apps/poolday | Reached only from product entries. |
 | `host/lora-training-executor.js` | `apps/poolday/host/lora-training-executor.js` | apps/poolday | Reached only from product entries. |
 | `host/lora-training-worker.js` | `apps/poolday/host/lora-training-worker.js` | apps/poolday | Reached only from product entries. |
 | `host/lora-training.js` | `apps/poolday/host/lora-training.js` | apps/poolday | Reached only from product entries. |
@@ -818,6 +819,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/home-ask-controls.js` | `apps/poolday/ui/pool-home/home-ask-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/index.js` | `apps/poolday/ui/pool-home/index.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/ledger-store.js` | `apps/poolday/ui/pool-home/ledger-store.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/local-data-view.js` | `apps/poolday/ui/pool-home/local-data-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/lora-training.js` | `apps/poolday/ui/pool-home/lora-training.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/message-list.js` | `apps/poolday/ui/pool-home/message-list.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/model-adapters.js` | `apps/poolday/ui/pool-home/model-adapters.js` | apps/poolday | Reached only from product entries. |

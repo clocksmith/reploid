@@ -2,6 +2,7 @@
  * exchanges can supply read(piece); storage and source credentials are host ports.
  */
 import { untilAborted } from '../../cancellation.js';
+import { countSupplier } from './supplier-summary.js';
 
 export function createPieceAcquisition({ sources, cache, authorize, verify, limits, foregroundIdle }) {
   if (typeof sources !== 'function' || typeof authorize !== 'function' || typeof verify !== 'function'
@@ -11,7 +12,7 @@ export function createPieceAcquisition({ sources, cache, authorize, verify, limi
   }
   const policy = structuredClone(limits), tasks = new Map(), queue = [];
   const lifetime = new AbortController();
-  const receipt = { transferredBytes: 0, reusedBytes: 0, completedPieces: 0, failedSources: [], active: 0 };
+  const receipt = { transferredBytes: 0, reusedBytes: 0, completedPieces: 0, failedSources: [], active: 0, suppliers: {} };
   const pump = () => {
     while (!lifetime.signal.aborted && queue.length && receipt.active < policy.maxConcurrent) {
       const task = queue.shift(); receipt.active++;
@@ -30,11 +31,13 @@ export function createPieceAcquisition({ sources, cache, authorize, verify, limi
       if (await authorize({ sourceId: source.id, piece }) !== true) continue;
       try {
         await foregroundIdle(signal); signal.throwIfAborted();
-        const data = await source.read(piece, { signal });
+        // A source may name the participant that delivered (a custody peer); otherwise its own id.
+        let supplier = source.supplier ?? source.id;
+        const data = await source.read(piece, { signal, onSupplier: id => { supplier = id; } });
         receipt.transferredBytes += data.byteLength;
         signal.throwIfAborted();
         if (data.byteLength !== piece.size || !await verify(piece, data)) throw new Error('Piece verification failed');
-        await cache.put(piece.identity, data); receipt.completedPieces++;
+        await cache.put(piece.identity, data); receipt.completedPieces++; countSupplier(receipt.suppliers, supplier, data.byteLength);
         return data;
       } catch (error) {
         signal.throwIfAborted(); failures.push(error);

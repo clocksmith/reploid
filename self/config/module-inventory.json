@@ -4024,7 +4024,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:84b3c3f738a845fa415190f580031b8f684a3c29781df5d55438edc4d71ba099",
+      "sha256": "sha256:c2b41b77daf27a4f18adbd119bd60a1923931a55d3026d2924a0e259d790c819",
       "imports": []
     },
     {
@@ -17649,7 +17649,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:acea18b4aa42298f31ba383ae271862635332e142c068165b6c21274fa990bdf",
+      "sha256": "sha256:a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8",
       "imports": [
         "../../cancellation.js",
         "../delivery-attestation.js"
@@ -17658,9 +17658,10 @@
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
       "owner": "vendor",
-      "sha256": "sha256:c4978c5afd6677ebbfd61e26860a3a2888ce7ae43afd464ef5a3d0c5a3e65084",
+      "sha256": "sha256:3e8d2b0ae551e6d584b1d232a1f06999149476402d02dd94a9de581d6f5ff5f1",
       "imports": [
-        "../../cancellation.js"
+        "../../cancellation.js",
+        "./supplier-summary.js"
       ]
     },
     {
@@ -17671,6 +17672,12 @@
         "./exchange.js",
         "./piece-acquisition.js"
       ]
+    },
+    {
+      "path": "vendor/reploid/artifacts/custody/supplier-summary.js",
+      "owner": "vendor",
+      "sha256": "sha256:a1ef2a2a9318a32db070a51aef2f9ed999fe47f2fd0e704fc600cb53bad17135",
+      "imports": []
     },
     {
       "path": "vendor/reploid/artifacts/custody/supply-budget.js",

@@ -348,9 +348,10 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       revokeSupply(); offered = replacement; supply = true; announce(); notify();
     },
     stopSupply,
-    async acquire(artifact, { signal, range = null, reserveDownload = null }) {
+    async acquire(artifact, { signal, range = null, reserveDownload = null, onSupplier = null }) {
       live();
       if (reserveDownload !== null && typeof reserveDownload !== 'function') throw new Error('Invalid acquisition accounting port');
+      if (onSupplier !== null && typeof onSupplier !== 'function') throw new Error('Invalid supplier attribution port');
       if (!valid(artifact)) throw new Error('Invalid file acquisition');
       range = range == null ? null : structuredClone(range);
       rangeDescriptor(artifact, range);
@@ -370,7 +371,11 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           combined.throwIfAborted();
           const peer = suppliers.reduce((best, id) => ((tries.get(id) || 0) < (tries.get(best) || 0) ? id : best));
           tries.set(peer, (tries.get(peer) || 0) + 1);
-          try { return await acquireFrom(peer, descriptor, combined, range, reserveDownload); }
+          try {
+            const bytes = await acquireFrom(peer, descriptor, combined, range, reserveDownload);
+            // Only the participant id that delivered verified bytes; never its address.
+            onSupplier?.(peer); return bytes;
+          }
           catch (error) {
             combined.throwIfAborted();
             if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED' || error.code?.startsWith('CUSTODY_BUDGET_')) throw error;

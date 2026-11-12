@@ -34,7 +34,14 @@ keeps partition execution, which needs another contributor for the same model;
 Whole-model contribution with an incomplete model directory first fills it
 (`model-fill` status lines: `start`, `waiting-for-supplier`, `source`,
 `source-failed`, `piece`, `file`, `complete`; piece lines and the per-source
-`sources` totals name where bytes came from). Sources are tried in order: the
+`sources` totals name where bytes came from). Every line, including the final
+`complete` receipt, also carries `suppliers`: verified pieces and bytes per
+supplier, keyed by the supplying peer's room participant id or
+`origin:<repo>@<revision>`, for example
+`{"peer_k3x9":{"pieces":412,"bytes":927449088},"origin:clocksmith/rdrr@3a05b346b1c86abf02c7620f2369a9a7b82cb62f":{"pieces":507,"bytes":1159774368}}`.
+Local reuse appears only under `sources`; at most 16 suppliers are named and the
+rest are summed under `other`; addresses are never recorded. A partition
+source's custody receipt carries the same `suppliers` summary. Sources are tried in order: the
 verified piece cache and pieces already written, authorized custody peers, then
 the model's pinned public origin when
 [`server/native-model-origins.json`](../server/native-model-origins.json) pins
@@ -45,10 +52,14 @@ pinned piece. The manifest always comes from the delivery's pinned copy, never
 an origin. With a pin, the fill gives peers a 15 s grace to announce and then
 uses the origin for pieces no peer offers or that peers fail to deliver, so it
 also completes with no peer online. Partition acquisition uses the same pinned
-origin as its last source. Only `qwen-3-5-2b-q4k-ehaf16` is pinned
-(`clocksmith/rdrr` at `3a05b346b1c86abf02c7620f2369a9a7b82cb62f`,
-`models/qwen-3-5-2b-q4k-ehaf16`); its 32 shard hashes there equal the pinned
-manifest's. Each piece is checked
+origin as its last source. Two models are pinned, both in `clocksmith/rdrr`:
+`qwen-3-5-2b-q4k-ehaf16` at `3a05b346b1c86abf02c7620f2369a9a7b82cb62f` (its 32
+shard hashes and sizes there equal manifest `a0dc69e9`) and
+`qwen-3-5-0-8b-q4k-ehaf16` at `ea7b211b72c4d43687fa72802dee7aba74eca293` (its 18
+shard hashes and sizes equal manifest `fa6eb7bb`); each `tokenizer.json` there
+equals the catalog's hash. The manifests stored at those revisions are older
+issues and are never read. `qwen-3-6-35b-a3b-text-source-q4_0-af32` is not
+published at any origin and has no pin. Each piece is checked
 against the catalog's pinned piece index, each assembled shard against the
 manifest's SHA-256 and each other file against the catalog. A file is written as
 `<name>.partial` and renamed only after its whole hash matches; the manifest is

@@ -82,8 +82,11 @@ export function createCustodyExchange(options: {
   stopSupply(): void;
   /** Uses at most `maxAcquisitionAttempts` fresh grants. A supplier that delivered nothing
    * (error code `CUSTODY_SUPPLIER_UNAVAILABLE`) may be asked again, after waiting at most one
-   * channel timeout for an offer if none is connected; one that sent invalid data or refused is not. */
+   * channel timeout for an offer if none is connected; one that sent invalid data or refused is not.
+   * `onSupplier` receives the room participant id of the peer that delivered the verified bytes. */
   acquire(file: FileDescriptor, controls: { signal: AbortSignal;
-    range?: { offset: number; size: number; identity: string } | null }): Promise<Uint8Array>;
+    range?: { offset: number; size: number; identity: string } | null;
+    reserveDownload?: ((bytes: number) => Promise<void>) | null;
+    onSupplier?: ((peerId: string) => void) | null }): Promise<Uint8Array>;
   close(): Promise<PromiseSettledResult<unknown>[]>;
 };

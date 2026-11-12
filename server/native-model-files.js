@@ -144,10 +144,10 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     }
     return bytes;
   };
-  const readMetadata = async (file, signal) => {
+  const readMetadata = async (file, signal, onSupplier = null) => {
     let bytes = await readAvailableMetadata(file, signal);
     if (!bytes) {
-      assert(exchange.has(file), 'No authorized peer offers required model metadata'); bytes = await exchange.acquire(file, { signal });
+      assert(exchange.has(file), 'No authorized peer offers required model metadata'); bytes = await exchange.acquire(file, { signal, onSupplier });
     }
     await verify(file, bytes); signal.throwIfAborted(); await cache.put(file, bytes, { signal }); retained.set(key(file), file); return bytes;
   };
@@ -224,7 +224,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
             assert(exchange.has(whole), 'No peer offers the assigned verified piece');
             return exchange.acquire(whole, { ...controls, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
           } },
-          ...(partitionOrigin ? [{ id: partitionOrigin.id, read: (_, controls) => readPinnedOrigin(partitionOrigin, piece.path,
+          ...(partitionOrigin ? [{ id: partitionOrigin.id, supplier: partitionOrigin.supplier, read: (_, controls) => readPinnedOrigin(partitionOrigin, piece.path,
             { offset: piece.offset, size: piece.size, signal: controls.signal }) }] : [])
         ] });
       const abort = () => { acquisition.close().catch(() => {}); };
@@ -301,7 +301,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       };
       const fromOrigin = async (name, range, reason) => {
         if (!originAnnounced) { originAnnounced = true; onProgress({ phase: 'source', source: origin.id, origin: origin.label, reason }); }
-        return { bytes: await readPinnedOrigin(origin, name, { ...range, signal }), source: origin.id };
+        return { bytes: await readPinnedOrigin(origin, name, { ...range, signal }), source: origin.id, supplier: origin.supplier };
       };
       const acquire = async (piece, controls) => {
         const file = pieceFile(piece), cached = await cache.get(file);
@@ -311,9 +311,10 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         let reason = 'no authorized peer offers the piece';
         if (await awaitPeers(file, whole)) {
           try {
-            const bytes = exchange.has(file) ? await exchange.acquire(file, controls)
-              : await exchange.acquire(whole, { ...controls, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
-            supplied = true; return { bytes, source: 'authorized-custody-peers' };
+            let supplier = null; const onSupplier = id => { supplier = id; };
+            const bytes = exchange.has(file) ? await exchange.acquire(file, { ...controls, onSupplier })
+              : await exchange.acquire(whole, { ...controls, onSupplier, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+            supplied = true; return { bytes, source: 'authorized-custody-peers', supplier };
           } catch (error) {
             if (!origin || signal.aborted) throw error;
             reason = 'authorized peers failed: ' + error.message;
@@ -323,7 +324,11 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         return fromOrigin(piece.path, { offset: piece.offset, size: piece.size }, reason);
       };
       const readPinned = async (file, current) => {
-        try { return await readMetadata(file, current); }
+        try {
+          let supplier = null;
+          const bytes = await readMetadata(file, current, id => { supplier = id; });
+          return supplier ? { bytes, source: 'authorized-custody-peers', supplier } : bytes;
+        }
         catch (error) {
           // The manifest is always the bundled pinned copy, never an origin's.
           if (!origin || file.path === 'manifest.json' || current.aborted) throw error;

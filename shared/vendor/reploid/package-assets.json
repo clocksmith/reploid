@@ -324,23 +324,23 @@
     },
     {
       "path": "artifacts/custody/exchange.d.ts",
-      "bytes": 5462,
-      "sha256": "4185d039a8b39698ad81d5e60d9d181e7eede3db1acce4392f1868976ed9ebcf"
+      "bytes": 5677,
+      "sha256": "a95feaa6da375ec6f229cac37e88c8e6165dd607c3e505113c6b806e2d9b0b83"
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 25965,
-      "sha256": "acea18b4aa42298f31ba383ae271862635332e142c068165b6c21274fa990bdf"
+      "bytes": 26269,
+      "sha256": "a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
-      "bytes": 909,
-      "sha256": "9d6a4ee39abdbd7d4fb35add893a6e0e5164eb7e92d4fa7ebec33296290070dc"
+      "bytes": 1007,
+      "sha256": "ec8b3fe0a1bd50d8a1940304909169666a86096123373bd5d06f6f28f2a5ca6f"
     },
     {
       "path": "artifacts/custody/piece-acquisition.js",
-      "bytes": 3857,
-      "sha256": "c4978c5afd6677ebbfd61e26860a3a2888ce7ae43afd464ef5a3d0c5a3e65084"
+      "bytes": 4179,
+      "sha256": "3e8d2b0ae551e6d584b1d232a1f06999149476402d02dd94a9de581d6f5ff5f1"
     },
     {
       "path": "artifacts/custody/runtime.d.ts",
@@ -351,6 +351,16 @@
       "path": "artifacts/custody/runtime.js",
       "bytes": 22399,
       "sha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e"
+    },
+    {
+      "path": "artifacts/custody/supplier-summary.d.ts",
+      "bytes": 339,
+      "sha256": "5dc44b4b47cc29462d930e740e650ea40418c468918810d7167ec4ba8d0de80e"
+    },
+    {
+      "path": "artifacts/custody/supplier-summary.js",
+      "bytes": 1089,
+      "sha256": "a1ef2a2a9318a32db070a51aef2f9ed999fe47f2fd0e704fc600cb53bad17135"
     },
     {
       "path": "artifacts/custody/supply-budget.js",
