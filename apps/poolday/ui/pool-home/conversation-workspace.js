@@ -236,6 +236,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     prompts.toggleAttribute('data-draft', prompts.inert);
   };
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
+  const downloadableHere = (model, state) => !!inspector.downloadModel && !!model.source && !model.partition && !model.adapters?.length
+    && !model.fleet && !model.localReady && !model.localCached && model.availability !== 'cached' && !state.localDownloadIssue;
   const updatePicker = snapshot => {
     const state = snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session);
     const keyFor = model => model?.selectionId || model?.id;
@@ -262,9 +264,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId)
         || location !== 'auto' && !modelExecutionState(selected, location).usable;
     }
-    find('[data-change-model]').disabled = changingModel || !available;
+    // A model nobody is sharing that this device could store is not a dead end: the same button downloads it.
+    const downloadable = !available && !!selected && downloadableHere(selected, state);
+    find('[data-change-model]').disabled = changingModel || !(available || downloadable);
+    find('[data-change-model]').textContent = downloadable ? 'Download model…' : 'Use model';
     const status = find('[data-next-model-status]');
     status.textContent = !pickerModel ? 'No model is available right now.'
+      : downloadable ? 'This model is not on this device yet. Download it to run it here.'
       : !available ? (pickerLocation === 'local' ? 'This model is not prepared on this device.' : 'No shared computer can answer with this model right now.') : '';
     status.hidden = !status.textContent;
   };
@@ -479,7 +485,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const next = find('[data-next-model]').value;
     const state = session.getState();
     const model = (state.models || []).find(model => (model.selectionId || model.id) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && !!model.source && !model.partition && !state.localDownloadIssue));
-    if (!model) { updatePicker(session.getState()); return; }
+    if (!model) {
+      const wanted = (state.models || []).find(item => (item.selectionId || item.id) === next);
+      if (wanted && downloadableHere(wanted, state)) { const opener = find('[data-model-control]'); picker.close(); inspector.downloadModel(next, opener); return; }
+      updatePicker(session.getState()); return;
+    }
     const location = pickerLocation;
     changingModel = true; updatePicker(state);
     void act(async () => {

@@ -278,7 +278,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     updateModelSelect(find('[data-download-model]'), models, { value: modelId });
     const chosen = models.find(model => (model.selectionId || model.id) === modelId);
     find('[data-download-model]').closest('label').hidden = !!chosen;
-    if (chosen && mode !== 'local') find('[data-download-title]').textContent = chosen.name || chosen.id;
+    if (chosen) find('[data-download-title]').textContent = mode === 'local' ? `Download ${chosen.name || chosen.id}` : chosen.name || chosen.id;
     find('[data-download-compute-limits]').textContent = find('[data-contribution-limits]').textContent;
     if (mode !== 'local' && chosen && (chosen.localCached || chosen.localReady)) {
       downloadInfo = { cached: true }; metadataController?.abort();
