@@ -28,8 +28,10 @@ async function initializeRuntime() {
   assert.equal(sha(manifestBytes), config.manifestSha256);
   manifest = JSON.parse(manifestBytes);
   generation = resolveGenerationOptions(config.generation);
-  plan = candidateRuntime.createOrderedLayerPartitionPlan({ modelId: manifest.modelId,
-    ...manifest.architecture, splitLayers: [1], activationDtype: 'f32' });
+  // Preserve manifest-declared residual streams at the transport boundary.
+  // Flash carries four streams, rather than one hidden-width activation.
+  plan = candidateRuntime.createOrderedLayerPartitionPlanFromManifest(manifest, {
+    splitLayers: config.splitLayers ?? [1], activationDtype: 'f32' });
   planId = candidateRuntime.hashLayerPartitionPlan(plan);
   model = { id: manifest.modelId, identity: 'sha256:' + config.manifestSha256, generation };
   runtime = candidateRuntime;
