@@ -27,6 +27,17 @@ export async function enrollComputers(computers) {
   return { byId, byPeer };
 }
 
+/** A per-attempt ceiling in the enrolled service's existing non-cash unit. */
+export function fleetCreditQuote(policy, maxOutputTokens, mode) {
+  assert(integer(maxOutputTokens) && maxOutputTokens > 0 && maxOutputTokens <= policy.maxOutputTokens,
+    'Output limit exceeds service-credit policy');
+  assert(['whole-model', 'partition'].includes(mode), 'Unknown credit execution mode');
+  return { schema: 'reploid.service-credit-quote/v1', unit: policy.unit,
+    policyVersion: policy.version, creditsPerOutputToken: policy.creditsPerOutputToken,
+    maxOutputTokens, maximum: maxOutputTokens * policy.creditsPerOutputToken,
+    terminalCharge: mode === 'whole-model' ? policy.wholeModelTerminalCharge ?? null : null };
+}
+
 export function creditPolicy(source) {
   const policy = structuredClone(source);
   assert(policy?.schema === 'reploid.service-credit-policy/v1' && policy.unit === 'noncash-service-credit'

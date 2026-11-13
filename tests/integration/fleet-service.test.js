@@ -50,10 +50,33 @@ it('meters a request through signed HTTP admission, disclosure and countersigned
     }
   };
   const requester = createFleetRequester({ participant, identity: keys[0], credits: client, maxOutputTokens: 10 });
+  const requestApproval = vi.fn(async disclosure => {
+    expect(disclosure.serviceCreditQuote).toEqual({ schema: 'reploid.service-credit-quote/v1',
+      unit: 'noncash-service-credit', policyVersion: 'test/1', creditsPerOutputToken: 1,
+      maxOutputTokens: 10, maximum: 10, terminalCharge: 0 });
+    expect(credits.snapshot().accounts[0].held).toBe(0);
+    return true;
+  });
   const result = await requester.generate({ model, messages: [{ role: 'user', content: 'Test.' }] },
-    { signal: new AbortController().signal, requestApproval: async () => true });
+    { signal: new AbortController().signal, requestApproval });
+  expect(requestApproval).toHaveBeenCalledTimes(1);
+  expect(credits.request(result.serviceCredit.id).binding.acceptedQuote.maximum).toBe(10);
   expect(dispatched).toBe(true); expect(result.serviceCredit.charge).toBe(3);
   expect((await client.call('snapshot', {})).accounts.map(row => row.balance)).toEqual([-3, 3, 0]);
+});
+
+it('rejects a changed accepted credit ceiling before reserving or dispatching', async () => {
+  const terms = await client.call('terms', model);
+  const binding = { id: 'stale-quote', executionId: 'stale-quote', consumer: keys[0].peerId,
+    mode: 'whole-model', model: { ...model, adapterIdentities: [] },
+    inputDigest: await hashJson([{ role: 'user', content: 'Test.' }]), maxOutputTokens: 10,
+    providers: [{ participantId: keys[1].peerId, weight: 1 }],
+    acceptedQuote: { schema: 'reploid.service-credit-quote/v1', unit: terms.policy.unit,
+      policyVersion: terms.policy.version, creditsPerOutputToken: 1, maxOutputTokens: 10,
+      maximum: 9, terminalCharge: 0 } };
+  await expect(client.reserve(binding)).rejects.toThrow('quote changed');
+  expect(credits.request(binding.id)).toBeNull();
+  expect(credits.snapshot().accounts.every(row => row.held === 0)).toBe(true);
 });
 
 it.each([false, true])('settles cancellation after cleanup, retaining lost HTTP replies for recovery (%s)', async loseReply => {
@@ -140,9 +163,33 @@ it('refuses execution without held credit, changed inputs, or another consumerâ€
   await expect(admission.whole({ ...execution, consumer: keys[2].peerId })).rejects.toThrow('authenticated peer');
   await expect(admission.whole({ ...execution, request: { ...request, messages: [{ role: 'user', content: 'different' }] } }))
     .rejects.toThrow('Input differs');
-  await provider.call('observe', { id: 'machine-1', participantId: keys[1].peerId, observedAt: Date.now(), activeRequests: 0,
+  await provider.call('observe', { id: 'machine-1', participantId: keys[1].peerId, observedAt: Date.now(), activeRequests: 1,
     preferences: { enabled: false, models: [model] }, measurements: [] });
-  await expect(admission.whole(execution)).rejects.toThrow('no longer allows');
+  const next = { ...request, requestId: 'after-withdrawal' };
+  const nextBinding = { ...binding, id: `service:${request.consumer}:${next.requestId}`, executionId: next.requestId };
+  await client.reserve(nextBinding); await client.dispatch(nextBinding.id);
+  await expect(admission.whole({ request: next, consumer: next.consumer })).rejects.toThrow('no longer allows');
+  // Withdrawal fences new admission; already admitted output can still settle.
+  const completion = { schema: 'doppler.generation-completion/v1', promptTokenCount: 3, generatedTokenCount: 1, stopReason: 'eos' };
+  const measured = await measureWholeModelReceipt(request.messages, { model: model.id, modelIdentity: model.identity,
+    adapterIdentities: [], content: 'OK', completion });
+  const receipt = await countersignReceipt(await signReceiptDraft(await createReceiptDraft({ ...measured,
+    provider: keys[1].peerId, consumer: keys[0].peerId, model: model.id, jobHash: 'request:guarded' }), keys[1]), keys[0]);
+  expect((await client.settle(binding.id, receipt)).charge).toBe(1);
+  await client.fence(nextBinding.id);
+  expect((await client.call('recover', { id: nextBinding.id })).charge).toBe(0);
+  expect(credits.snapshot().accounts.every(row => row.held === 0)).toBe(true);
+  await provider.call('observe', { id: 'machine-1', participantId: keys[1].peerId, observedAt: Date.now(), activeRequests: 0,
+    preferences: { enabled: true, models: [model] }, measurements: [] });
+  const returned = { ...request, requestId: 'after-return' };
+  const returnedBinding = { ...binding, id: `service:${request.consumer}:${returned.requestId}`, executionId: returned.requestId };
+  await client.reserve(returnedBinding); await client.dispatch(returnedBinding.id);
+  expect(await admission.whole({ request: returned, consumer: returned.consumer })).toBe(true);
+  const returnedReceipt = await countersignReceipt(await signReceiptDraft(await createReceiptDraft({ ...measured,
+    provider: keys[1].peerId, consumer: keys[0].peerId, model: model.id,
+    jobHash: `request:${returned.requestId}` }), keys[1]), keys[0]);
+  expect((await client.settle(returnedBinding.id, returnedReceipt)).charge).toBe(1);
+  expect(credits.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-2, 0], [2, 0], [0, 0]]);
 });
 
 it('charges the requester and credits every settled resident stage through the actual requester wrapper', async () => {

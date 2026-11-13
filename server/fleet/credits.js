@@ -4,7 +4,7 @@ import { constants } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { assert, creditPolicy, digest, enrollComputers, integer, same, text } from './contract.js';
+import { assert, creditPolicy, digest, enrollComputers, fleetCreditQuote, integer, same, text } from './contract.js';
 import { createCreditRecovery } from './credit-recovery.js';
 import { verifyCreditEvidence } from './credit-evidence.js';
 
@@ -82,6 +82,8 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       return transaction(() => {
         const prior = read(value.id);
         if (prior) { assert(prior.binding.requestHash === requestHash, 'Reservation identity reused with different terms'); return prior.binding; }
+        if (value.acceptedQuote !== undefined) assert(same(value.acceptedQuote, fleetCreditQuote(policy, value.maxOutputTokens, value.mode)),
+          'Accepted service-credit quote changed; review terms before retrying');
         const account = db.prepare('SELECT * FROM fleet_accounts WHERE id=?').get(consumer.computerId);
         const pending = db.prepare("SELECT COUNT(*) AS count FROM fleet_requests WHERE state IN ('reserved','dispatched','closing') AND json_extract(binding,'$.computerId')=?").get(consumer.computerId).count;
         const maximum = value.maxOutputTokens * policy.creditsPerOutputToken;
