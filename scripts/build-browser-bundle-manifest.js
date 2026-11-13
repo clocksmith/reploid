@@ -27,7 +27,6 @@ async function main() {
   const OUTPUT_PATH = tree.writable(BROWSER_BUNDLE_DESCRIPTOR_PATH);
   const entries = await Promise.all(files.filter(file => file !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
     .map(async file => ({ path: file, bytes: new Uint8Array(await tree.read(file)) })));
-  const manifest = await buildBrowserBundleManifest(entries);
   if (checkOnly) {
     let existing;
     try {
@@ -42,6 +41,7 @@ async function main() {
     console.log(`[browser-bundle] ${entries.length} served files match ${existing.bundleHash}`);
     return;
   }
+  const manifest = await buildBrowserBundleManifest(entries);
   await fs.writeFile(OUTPUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
   console.log(`[browser-bundle] Wrote ${OUTPUT_PATH} with ${entries.length} served files as ${manifest.bundleHash}`);
 }
