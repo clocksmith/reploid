@@ -7,6 +7,7 @@ import readline from 'node:readline';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { verifyInstalledPackage } from './installed-package-identity.js';
+import { openNativeModelSource } from '../../server/native-participant.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
 const mod = file => import(pathToFileURL(path.join(config.installedPackage, 'src', file)).href);
@@ -86,7 +87,11 @@ async function invoke(request) {
     } else {
       const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
         runtimeConfig: config.runtimeConfig,
-        createStorage: () => config.modelUrl.startsWith('file:')
+        createStorage: async () => config.pieceIndex ? (await openNativeModelSource({
+          model: { ...model, source: { files: [config.pieceIndex] } },
+          modelDirectory: path.dirname(config.manifestPath), runtime,
+          signal: AbortSignal.timeout(config.limits.maxPreparationMs),
+        })).storage : config.modelUrl.startsWith('file:')
           ? createNodeFileArtifactStorageContext(config.modelUrl, manifest)
           : createHttpArtifactStorageContext(config.modelUrl, manifest) });
       for (const index of request.indices) {
