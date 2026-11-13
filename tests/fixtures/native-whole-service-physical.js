@@ -16,6 +16,8 @@ const c=JSON.parse(await fs.readFile(process.argv[2],'utf8'));
 assert(c.roomId&&c.roomId!==bootstrap.publicRoomId,'Separate private room required');
 assert(ROOM_ID_PATTERN.test(c.roomId),'Invalid private discovery namespace');
 assert(['provider','requester'].includes(c.role));
+const executionMode=c.executionMode??(c.role==='provider'?'whole-model':'partition');
+assert(['whole-model','partition'].includes(executionMode));
 const identity=await createSigningIdentity({algorithm:'Ed25519'});
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 class WS extends Socket {constructor(url){super(url,{origin:'http://localhost:8000'})}}
@@ -49,10 +51,19 @@ try{
  }
  participant=await createNativeParticipant({model:c.model,modelDirectory:c.modelDirectory,identity,
   rtc:createNativeRtcAdapter(rtcModule),WebSocket:WS,signalingUrl:bootstrap.signalingUrl,
-  roomId:c.roomId,roomToken:await fs.readFile(c.roomTokenFile,'utf8'),nativeGpu,executionMode:c.role==='provider'?'whole-model':'partition',
+  roomId:c.roomId,roomToken:await fs.readFile(c.roomTokenFile,'utf8'),nativeGpu,executionMode,ordered:c.ordered??null,
   createWholeModel:factory,logger});
  if(c.role==='provider'){
   const t=performance.now();report.phase='loading';await save();await participant.contribute(true);
+  if(executionMode==='partition'){
+   const deadline=Date.now()+c.discoveryTimeoutMs;
+   while(!participant.getState().descriptor?.ready){
+    const state=participant.getState();assert(state.phase!=='failed',state.error);
+    assert(Date.now()<deadline,'Assigned partition did not become ready');
+    await new Promise(r=>setTimeout(r,500));
+   }
+   report.descriptor=participant.getState().descriptor;
+  }
   report.loadMs=performance.now()-t;report.phase='ready';await save();console.log(JSON.stringify({ready:true,participantId:identity.peerId,loadMs:report.loadMs}));
   await done;
  }else{
@@ -64,7 +75,17 @@ try{
    const result=await participant.generate({model:found,threadId:randomUUID(),attemptId:randomUUID(),messages:[{role:'user',content:prompt}]},
     {signal:AbortSignal.timeout(c.requestTimeoutMs),onDelta:v=>{first??=performance.now()-t;deltas.push(v);console.log(JSON.stringify({delta:v,elapsedMs:performance.now()-t}));},requestApproval:async d=>{
       const peer=typeof d.recipientIdentity==='string'?d.recipientIdentity:d.recipientIdentity?.participantId;
-      assert.equal(peer,c.expectedProvider);return true;}});
+      const allowed=c.expectedProviders??[c.expectedProvider];
+      assert(allowed.includes(peer),'Disclosure recipient differs from the approved providers');
+      if(c.ordered){
+       assert.deepEqual([...new Set(d.disclosure.tokenRecipients)].sort(),[...new Set(allowed)].sort());
+       for(const recipient of [...d.disclosure.activationPaths.flat(),...d.disclosure.outputRecipients]){
+        assert(recipient===identity.peerId||allowed.includes(recipient),'Unapproved partition disclosure recipient');
+       }
+       assert.equal(d.planId,c.model.partitionPlanId);
+       (report.disclosures??=[]).push(d.disclosure);
+      }
+      return true;}});
    assert.equal(result.modelIdentity,c.model.identity);
    const answerMatched=c.expectedAnswer===undefined?null:result.content.trim()===c.expectedAnswer;
    report.rows.push({prompt,wallMs:performance.now()-t,firstDeltaMs:first,deltas,result,answerMatched});await save();console.log(JSON.stringify(report.rows.at(-1)));
