@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const cfg = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const { createRoom, joinRoom } = await import(pathToFileURL(cfg.sdk));
@@ -97,6 +98,13 @@ try {
   out.split = room.split;
   out.flash = room.ai.roomFlash;
   out.loaded = snapshot();
+  if (cfg.coldFiles?.length) {
+    // Only this experiment's newly provisioned files; never drop global caches.
+    execFileSync('python3', ['-c',
+      'import os,sys\nfor p in sys.argv[1:]:\n f=os.open(p,os.O_RDONLY)\n try:\n  os.fsync(f)\n  os.posix_fadvise(f,0,0,os.POSIX_FADV_DONTNEED)\n finally: os.close(f)',
+      ...cfg.coldFiles], { stdio: 'pipe' });
+    out.fileCacheAdvice = { at: new Date().toISOString(), operation: 'POSIX_FADV_DONTNEED', files: cfg.coldFiles };
+  }
   write();
   log(`loaded in ${out.loadS.toFixed(2)}s: ${JSON.stringify(out.split)}`);
   const reference = cfg.reference ? JSON.parse(fs.readFileSync(cfg.reference, 'utf8')) : null;
