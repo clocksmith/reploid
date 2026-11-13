@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-22T02:43:38.716Z",
+  "generatedAt": "2026-11-13T18:17:09.582Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -506,6 +506,7 @@
       "entry": "core/functiongemma-orchestrator.js",
       "files": [
         "core/functiongemma-orchestrator.js",
+        "core/functiongemma-network.js",
         "core/tool-argument-validation.js"
       ],
       "introduced": "full",

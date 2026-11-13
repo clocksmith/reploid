@@ -308,6 +308,7 @@
     "core/create-tool.js",
     "core/cycle-artifacts.js",
     "core/doppler-runtime-service.js",
+    "core/functiongemma-network.js",
     "core/functiongemma-orchestrator.js",
     "core/import-rewrite.js",
     "core/improvement-episode.js",

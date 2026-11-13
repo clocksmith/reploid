@@ -4,11 +4,11 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/core/functiongemma-orchestrator.js`
+**Verified Artifacts:** `/self/core/functiongemma-orchestrator.js`, `/self/core/functiongemma-network.js`, `/tests/unit/functiongemma-orchestrator.test.js`
 
-**Planned Artifacts:** `/tests/unit/functiongemma-orchestrator.test.js`
+**Planned Artifacts:** None
 
-**Owned Source Files:** `core/functiongemma-orchestrator.js`
+**Owned Source Files:** `core/functiongemma-orchestrator.js`, `core/functiongemma-network.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x00007D-capabilities-intelligence-functiongemma-orchestrator.md`
 **Objective:** Orchestrate multi-expert code generation using FunctionGemma models with DOPPLER primitives.
@@ -38,9 +38,9 @@ DOPPLER provides only **primitives** (mechanism). The orchestrator makes all dec
 | Expert selection | `selectExpertUCB1()` | - |
 | Evolution | `evolveTopology()`, `runArenaEvolution()` | - |
 | Fitness scoring | `calculateFitness()` | - |
-| Inference execution | - | `executeExpert()` |
-| KV cache | - | `setSharedPrefix()` |
-| Logit merging | - | `mergeLogits()` |
+| Inference execution | Select the configured expert and adapter | Scoped session `generate()` |
+| KV cache | Request only supported prefix operations | Session `advanced` capability |
+| Logit merging | No raw-logit combination in this adapter | Model arithmetic remains in Doppler |
 
 ---
 
@@ -59,34 +59,38 @@ FunctionGemmaOrchestrator
                           ▼
               ┌─────────────────────┐
               │   DOPPLER Bridge    │
-              │ (MultiModelNetwork) │
+              │ (public session)    │
               └─────────────────────┘
                           │
                           ▼ Parameters only (no policy)
               ┌─────────────────────┐
               │   DOPPLER Engine    │
-              │ executeExpert()     │
-              │ setSharedPrefix()   │
-              │ mergeLogits()       │
+              │ generate()          │
+              │ loadLoRA()          │
+              │ close()             │
               └─────────────────────┘
 ```
 
 ### Key Methods
 
-| Method | Lines | Purpose |
-|--------|-------|---------|
-| `executeTemporalSelfRing()` | 958-1067 | Seed/Reflect/Refine loop |
-| `buildTemporalSelfRingPrompt()` | 1072-1085 | Prompt templates per role |
-| `evolveTopology()` | 458-503 | GA for network structure |
-| `runArenaEvolution()` | 744-879 | Tournament selection |
-| `selectExpertUCB1()` | 263-307 | Exploration/exploitation |
+| Method | Purpose |
+|--------|---------|
+| `executeTemporalSelfRing()` | Seed/Reflect/Refine loop |
+| `buildTemporalSelfRingPrompt()` | Prompt templates per role |
+| `evolveTopology()` | GA for network structure, with caller-supplied randomness |
+| `runArenaEvolution()` | Tournament selection |
+| `selectExpertUCB1()` | Exploration/exploitation |
 
 ### Dependencies
 
 **From DOPPLER (primitives only):**
-- `MultiModelNetwork.executeExpert()`
-- `MultiModelNetwork.executeGenome()`
-- `MultiModelNetwork.setSharedPrefix()`
+- `DopplerRuntimeService.open()` owns a public scoped session.
+- `session.generate()`, `loadLoRA()`, `unloadLoRA()` execute the selected model and adapter.
+- Shared KV prefix generation requires the session's advanced capability; unsupported requests fail explicitly before context initialization.
+
+`core/functiongemma-network.js` owns text combination, embedding ranking and topology evolution. One session serializes expert requests so adapter state cannot cross requests; it does not claim parallel GPU execution. Routing `topK` selects experts; sampling `topK` is supplied in `generation`.
+
+Loading accepts an explicit public `source`, an inline `{ manifest, baseUrl, storageContext }`, an explicit URL, or a registry ID. An arbitrary OPFS directory name is not a public source contract. The adapter does not import private storage, device, loader or pipeline classes.
 
 **Internal:**
 - `SemanticMemory` - Task embedding
@@ -123,10 +127,7 @@ const ucbScore = meanFitness + Math.sqrt(
 
 ### Evolution Safety
 
-Mutations are bounded to prevent runaway complexity:
-- Max topology depth: 5
-- Max branching factor: 3
-- Crossover preserves valid structure
+Evolution requires explicit randomness, bounded population and mutation settings, and finite fitness. Scores are host heuristics, not scientific improvement or activation authority.
 
 ### Deprecated DOPPLER APIs
 
@@ -139,22 +140,16 @@ The following were removed from DOPPLER and must be implemented here:
 
 ## 4. Verification requirements
 
-- [x] Behavior matches blueprint intent
-- [x] Dependencies are declared and available
-- [x] DOPPLER primitives used correctly (no policy in engine)
-- [x] UCB1 selection implemented
-- [x] Temporal ring implemented
-- [x] Evolution implemented
-- Tests for orchestrator logic
-- Integration test with real DOPPLER pipeline
+- Focused tests exercise scoped-session wiring, adapter isolation, cancellation settlement, model-switch cleanup, text combination and topology scoring.
+- These use test sessions. Real model loading, shared-prefix compatibility and physical inference remain unqualified here.
 
 ---
 
 ## 5. Cross-References
 
-- `/docs/architecture.md#engine-vs-driver-boundary`
-- `/docs/functiongemma.md`
+- [API overview](../../docs/API.md)
+- [FunctionGemma unit checks](../../tests/unit/functiongemma-orchestrator.test.js)
 
 ---
 
-*Last updated: January 2026*
+*Last updated: November 2026*

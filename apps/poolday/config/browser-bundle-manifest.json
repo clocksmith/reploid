@@ -645,8 +645,8 @@
     },
     {
       "path": "blueprints/0x00007D-capabilities-intelligence-functiongemma-orchestrator.md",
-      "byteLength": 5548,
-      "sha256": "sha256:323de2553ff08432bc2cc74879deb801641288eeadbb6e3979288081b96395fa"
+      "byteLength": 6544,
+      "sha256": "sha256:f6840231775d1d234cbdd5839223f7a9ebdeebe37ce2b53ab4485dc60170cd1f"
     },
     {
       "path": "blueprints/0x00007E-sponsor-peer-protocol.md",
@@ -906,7 +906,7 @@
     {
       "path": "blueprints/canonical-inventory.md",
       "byteLength": 18943,
-      "sha256": "sha256:ad16df9b2f4aae73bef1bdba7800d86cfe965a3c987e540097c0d663f1ea6aca"
+      "sha256": "sha256:5e5fcbdcca184ca317c518321deebd85921f57e9398bf65f920ef70b2bf44611"
     },
     {
       "path": "blueprints/deduplication-audit.md",
@@ -1190,8 +1190,8 @@
     },
     {
       "path": "config/blueprint-registry.json",
-      "byteLength": 34083,
-      "sha256": "sha256:d394198be62a29f1d660eaa2a53143681db268e0fe4096411fdad47dce114979"
+      "byteLength": 34124,
+      "sha256": "sha256:af623f298094b8df450134c95774aedec67dabdf8bb5b4c1f457d78fca62d254"
     },
     {
       "path": "config/boot-modes.js",
@@ -1290,8 +1290,8 @@
     },
     {
       "path": "config/genesis-levels.json",
-      "byteLength": 14040,
-      "sha256": "sha256:309c78ec254b237a96cb40174909ec96398f97d7660df0a5ebf4c37c6aa4bbae"
+      "byteLength": 14079,
+      "sha256": "sha256:090adb9fe25483644ac489a569095918dceba32e8cea6c60ee921462dd04d7df"
     },
     {
       "path": "config/genesis-template.json",
@@ -1400,13 +1400,13 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 640938,
-      "sha256": "sha256:8613fdceb45b3ae74d7f8b1a9bd9d0d27676400dbccd5a9b62511ff5e113284f"
+      "byteLength": 641320,
+      "sha256": "sha256:dc2caeca8c1b837c5ed5fac871f2b4a44e705878e776d894aec2c237e68eb069"
     },
     {
       "path": "config/module-registry.json",
-      "byteLength": 42466,
-      "sha256": "sha256:3173c53c8660db7e33fb48ceab2ddf5cc3a1a6c0c0a08452f9233ba606c87981"
+      "byteLength": 42507,
+      "sha256": "sha256:50a670bcaee64afc3bd3a870610aec243ab12998e012a9f1521cdb740c946e15"
     },
     {
       "path": "config/module-resolution.js",
@@ -1445,8 +1445,8 @@
     },
     {
       "path": "config/self-source-catalog.json",
-      "byteLength": 106755,
-      "sha256": "sha256:4ee9f373fc02b348fdfebe1dd122eb77b4176790c29a88fc4799c699499fc2b7"
+      "byteLength": 106905,
+      "sha256": "sha256:793e765cca66d64e3b3df69c69e3222d0886ab21c8edff3ef46c92489199ede7"
     },
     {
       "path": "config/self-source-manifest.json",
@@ -1480,8 +1480,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 138405,
-      "sha256": "sha256:9091a6f70cedcaa3a75be1f0b0dbb1909de8c48fcb6138b0d5a43b77ec341cf0"
+      "byteLength": 138442,
+      "sha256": "sha256:1e8ef2cfd81e2a0f64a714f4baa398bcccbcf4cdc5da8bd3290242a138e4bf4e"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1564,9 +1564,14 @@
       "sha256": "sha256:d6f2f6a0aa315e77c1cc752383ad4bcae6cc6843c63b5c2e5064b0695fc33666"
     },
     {
+      "path": "core/functiongemma-network.js",
+      "byteLength": 7911,
+      "sha256": "sha256:7777b26e558366de8ba28ea815c06150cea6a632ced124ba099ce2dfb963d9ce"
+    },
+    {
       "path": "core/functiongemma-orchestrator.js",
-      "byteLength": 39458,
-      "sha256": "sha256:787ac5a158255c4f4adc44fdaf6b55d22abe85ff2926086426c86716eeb7bea4"
+      "byteLength": 37707,
+      "sha256": "sha256:8bc2932d13ea61efd851206fbd075e3021695db0502bd93ee866e703f349e91c"
     },
     {
       "path": "core/import-rewrite.js",
@@ -3650,8 +3655,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2444721,
-      "sha256": "sha256:f5c91761aa535801ae72a3f50bcb24ce31bbc36b276a4b3e4eebfcbe016d9b1c"
+      "byteLength": 2444853,
+      "sha256": "sha256:3cf26e43a398d8cf121d90ab963e4333a7dc5364a47b6853341de4265b8175b7"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11115,8 +11120,8 @@
     },
     {
       "path": "vendor/reploid/agent/lab-strategy-function-gemma.js",
-      "byteLength": 11628,
-      "sha256": "sha256:5549ae1f360c2abf10e80ccb37853418ec31debd3dfff1cf7617d9ca01c25f1f"
+      "byteLength": 13094,
+      "sha256": "sha256:be1fe2af3fd68c7d05e5a6d7d846d2189b1b2ba313ccf57204215965c38cc2cf"
     },
     {
       "path": "vendor/reploid/agent/lab-strategy-generation.js",
@@ -11140,8 +11145,8 @@
     },
     {
       "path": "vendor/reploid/agent/lab-strategy.js",
-      "byteLength": 20400,
-      "sha256": "sha256:cf47400bdb1f0ff96c2891fd1352e110325009863ad0729ddbe71c92e9154e2a"
+      "byteLength": 20441,
+      "sha256": "sha256:1d21e3649d5b96fa1c3cb6fed66da158e51fae9ffb33b2f471cb6f36c65b80fe"
     },
     {
       "path": "vendor/reploid/agent/legacy-loop.js",
@@ -11786,7 +11791,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 53891,
-      "sha256": "sha256:4be357d35fc55fe7f040420978de1e426037f1e752602607ea284cb724a2391e"
+      "sha256": "sha256:52ccc044003e2f21b5b6f2cec74ec53841fe28466654cc154ae5eea2ba8dc5c7"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12049,5 +12054,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:ed6fc72cc228efa0f3bfd7c81305c16b3b3eff703d824527dc36e6558e59613c"
+  "bundleHash": "sha256:8d5c26a64efe09cec091488cab268a1558b731f23a7c48a52e685f1ca0d7e3c1"
 }

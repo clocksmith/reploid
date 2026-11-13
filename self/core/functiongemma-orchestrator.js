@@ -1,3 +1,4 @@
+import { createFunctionGemmaNetwork, evolveFunctionGemmaNetwork } from './functiongemma-network.js';
 import { validateAgainstSchema } from './tool-argument-validation.js';
 /**
  * @fileoverview FunctionGemma Orchestrator
@@ -9,7 +10,7 @@ const FunctionGemmaOrchestrator = {
     id: 'FunctionGemmaOrchestrator',
     version: '1.0.0',
     genesis: { introduced: 'full' },
-    files: ['core/functiongemma-orchestrator.js', 'core/tool-argument-validation.js'],
+    files: ['core/functiongemma-orchestrator.js', 'core/functiongemma-network.js', 'core/tool-argument-validation.js'],
     dependencies: [
       'Utils',
       'EventBus?',
@@ -28,12 +29,7 @@ const FunctionGemmaOrchestrator = {
     const { Utils, EventBus, SemanticMemory, ArenaHarness, ContextManager, SchemaRegistry, ReflectionStore, VFS } = deps;
     const { logger, Errors } = Utils;
 
-    let _imports = null;
-    let _loader = null;
     let _network = null;
-    let _pool = null;
-    let _baseModelId = null;
-    let _baseManifest = null;
     let _sharedPrefix = null;
     const _routingStats = { samples: [], lastMs: null, maxSamples: 100 };
     const _errorStats = { failures: 0, lastError: null };
@@ -126,75 +122,16 @@ const FunctionGemmaOrchestrator = {
       return `${expertPrompt}\n\n${prompt}`;
     };
 
-    const _ensureImports = async () => {
-      if (_imports) return _imports;
-      _imports = await import('@simulatte/doppler');
-      return _imports;
-    };
-
-    const _loadManifestFromOpfs = async (modelId) => {
-      const { initStorage, openModelStore, loadManifestFromStore } = await import('@simulatte/doppler/storage/shard-manager.js');
-      await initStorage();
-      await openModelStore(modelId);
-      const manifestText = await loadManifestFromStore();
-      return JSON.parse(manifestText);
-    };
-
-    const _createStorageContext = async (modelId) => {
-      const { openModelStore, loadShard } = await import('@simulatte/doppler/storage/shard-manager.js');
-      if (modelId) {
-        await openModelStore(modelId);
-      }
-      return {
-        loadShard: async (index) => {
-          const data = await loadShard(index);
-          return new Uint8Array(data);
-        }
-      };
-    };
-
-    const _initPipelineNetwork = async (manifest, options = {}) => {
-      const { initDevice, getDevice, getKernelCapabilities } = await _ensureImports();
-      const { getMemoryCapabilities } = await _ensureImports();
-      const { getHeapManager } = await _ensureImports();
-      const { MultiModelLoader, MultiModelNetwork, MultiPipelinePool } = await _ensureImports();
-
-      await initDevice();
-      const gpuCaps = getKernelCapabilities();
-      const memCaps = await getMemoryCapabilities();
-      const device = getDevice();
-
-      const storageContext = options.storageContext || await _createStorageContext(_baseModelId);
-      _loader = new MultiModelLoader();
-      await _loader.loadBase(manifest, { storageContext });
-
-      const contexts = {
-        gpu: { capabilities: gpuCaps, device },
-        memory: { capabilities: memCaps, heapManager: getHeapManager() },
-        storage: storageContext,
-        baseUrl: options.baseUrl || null
-      };
-
-      const pipeline = await _loader.createSharedPipeline(contexts);
-      _pool = options.usePool ? new MultiPipelinePool(_loader) : null;
-      _network = new MultiModelNetwork(pipeline, _loader, _pool);
-    };
-
     const initBase = async (options = {}) => {
-      const { modelId, manifest, baseUrl, usePool = true, storageContext } = options;
-      if (!modelId && !manifest) {
-        throw new Errors.ValidationError('FunctionGemmaOrchestrator requires modelId or manifest');
-      }
-
-      _baseModelId = modelId || _baseModelId;
-      _baseManifest = manifest || _baseManifest;
-
-      if (!_baseManifest) {
-        _baseManifest = await _loadManifestFromOpfs(_baseModelId);
-      }
-
-      await _initPipelineNetwork(_baseManifest, { baseUrl, usePool, storageContext });
-      logger.info('[FunctionGemma] Base model initialized');
+      const source = options.source || (options.manifest
+        ? { manifest: options.manifest, baseUrl: options.baseUrl, storageContext: options.storageContext }
+        : options.baseUrl ? { url: options.baseUrl, logicalModelId: options.modelId, storageContext: options.storageContext } : options.modelId);
+      if (!source) throw new Errors.ValidationError('FunctionGemmaOrchestrator requires modelId or manifest');
+      await _network?.close();
+      _network = null;
+      _sharedPrefix = null;
+      _network = await createFunctionGemmaNetwork(source, { generation: options.generation || {}, ...options.loadOptions });
+      logger.info('[FunctionGemma] Base model initialized through its public Doppler session');
       return true;
     };
 
@@ -202,12 +139,10 @@ const FunctionGemmaOrchestrator = {
       if (!_network) throw new Errors.StateError('FunctionGemmaOrchestrator not initialized');
       for (const expert of experts) {
         const adapterName = expert.adapterName || expert.adapter || null;
-        if (adapterName && expert.adapterSource) {
-          await _loader.loadAdapter(adapterName, expert.adapterSource);
-        }
         _network.registerExpert({
           id: expert.id,
           adapterName,
+          adapterSource: expert.adapterSource,
           embedding: expert.embedding,
           metadata: expert.metadata || {}
         });
@@ -232,12 +167,13 @@ const FunctionGemmaOrchestrator = {
 
     const setSharedPrefix = (snapshot) => {
       if (!_network) return;
-      _sharedPrefix = snapshot;
       _network.setSharedPrefixSnapshot(snapshot);
+      _sharedPrefix = snapshot;
     };
 
     const setSharedPrefixFromContext = async (context, modelConfig, options = {}) => {
       if (!ContextManager?.createSharedPrefix) return null;
+      _network?.requireSharedPrefix();
       const { snapshot } = await ContextManager.createSharedPrefix(context, modelConfig, options);
       setSharedPrefix(snapshot);
       return snapshot;
@@ -246,6 +182,7 @@ const FunctionGemmaOrchestrator = {
     const initExpertContext = async (systemPrompt, modelConfig, experts = []) => {
       if (!ContextManager?.initSharedPrefix) return null;
       if (!systemPrompt || !modelConfig) return null;
+      _network?.requireSharedPrefix();
 
       const { snapshot, prompt } = await ContextManager.initSharedPrefix(systemPrompt, modelConfig);
       if (snapshot) {
@@ -423,12 +360,11 @@ const FunctionGemmaOrchestrator = {
       return ArenaHarness.runExpertPool(task, experts, { executeExpert }, options);
     };
 
-    const evolveTopology = async (tasks = [], options = {}) => {
+    const evolveTopologyPopulation = async (tasks = [], options = {}) => {
       if (!Array.isArray(tasks) || tasks.length === 0) {
         throw new Errors.ValidationError('Task set required for topology evolution');
       }
 
-      const { evolveNetwork } = await _ensureImports();
       const experts = _network?.listExperts() || [];
       if (experts.length === 0) {
         throw new Errors.StateError('No experts registered');
@@ -451,24 +387,27 @@ const FunctionGemmaOrchestrator = {
         return total / tasks.length;
       });
 
-      const result = await evolveNetwork({
+      const result = await evolveFunctionGemmaNetwork({
         populationSize: options.populationSize,
         generations: options.generations,
         eliteCount: options.eliteCount,
         mutationRate: options.mutationRate,
+        random: options.random,
         evaluate,
         randomGenome
       });
 
       // Persist best genome after evolution
-      if (result?.best && options.persistWinner !== false) {
+      if (result?.genome && options.persistWinner !== false) {
         const taskType = options.taskType || tasks[0]?.type || 'evolved';
-        await storeGenome(taskType, result.best.genome, result.best.fitness);
-        logger.info(`[FunctionGemma] Persisted evolved genome for ${taskType} (fitness: ${result.best.fitness.toFixed(3)})`);
+        await storeGenome(taskType, result.genome, result.score);
+        logger.info(`[FunctionGemma] Persisted evolved genome for ${taskType} (fitness: ${result.score.toFixed(3)})`);
       }
 
       return result;
     };
+
+    const evolveTopology = async (tasks, options) => (await evolveTopologyPopulation(tasks, options)).genome;
 
     // -------------------------------------------------------------------------
     // Genome Caching via ReflectionStore
@@ -775,7 +714,7 @@ const FunctionGemmaOrchestrator = {
       };
 
       // Run evolution
-      const evolutionResult = await evolveTopology(tasks, {
+      const evolutionResult = await evolveTopologyPopulation(tasks, {
         ...options,
         populationSize,
         generations,
@@ -1104,6 +1043,7 @@ const FunctionGemmaOrchestrator = {
     };
 
     return {
+      close: async () => { await _network?.close(); _network = null; _sharedPrefix = null; },
       initBase,
       registerExperts,
       selectExperts,

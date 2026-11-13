@@ -504,10 +504,21 @@
       ]
     },
     {
+      "path": "core/functiongemma-network.js",
+      "owner": "core",
+      "sha256": "sha256:7777b26e558366de8ba28ea815c06150cea6a632ced124ba099ce2dfb963d9ce",
+      "imports": [
+        "../capabilities/cognition/vector-math.js",
+        "../config/doppler-generation-contract.js",
+        "./doppler-runtime-service.js"
+      ]
+    },
+    {
       "path": "core/functiongemma-orchestrator.js",
       "owner": "core",
-      "sha256": "sha256:787ac5a158255c4f4adc44fdaf6b55d22abe85ff2926086426c86716eeb7bea4",
+      "sha256": "sha256:8bc2932d13ea61efd851206fbd075e3021695db0502bd93ee866e703f349e91c",
       "imports": [
+        "./functiongemma-network.js",
         "./tool-argument-validation.js"
       ]
     },
@@ -4019,7 +4030,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f5c91761aa535801ae72a3f50bcb24ce31bbc36b276a4b3e4eebfcbe016d9b1c",
+      "sha256": "sha256:3cf26e43a398d8cf121d90ab963e4333a7dc5364a47b6853341de4265b8175b7",
       "imports": []
     },
     {
@@ -17481,7 +17492,7 @@
     {
       "path": "vendor/reploid/agent/lab-strategy-function-gemma.js",
       "owner": "vendor",
-      "sha256": "sha256:5549ae1f360c2abf10e80ccb37853418ec31debd3dfff1cf7617d9ca01c25f1f",
+      "sha256": "sha256:be1fe2af3fd68c7d05e5a6d7d846d2189b1b2ba313ccf57204215965c38cc2cf",
       "imports": []
     },
     {
@@ -17519,7 +17530,7 @@
     {
       "path": "vendor/reploid/agent/lab-strategy.js",
       "owner": "vendor",
-      "sha256": "sha256:cf47400bdb1f0ff96c2891fd1352e110325009863ad0729ddbe71c92e9154e2a",
+      "sha256": "sha256:1d21e3649d5b96fa1c3cb6fed66da158e51fae9ffb33b2f471cb6f36c65b80fe",
       "imports": [
         "../config/index.js",
         "./cycle-artifacts.js",

@@ -19,9 +19,9 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | Owner | Files |
 | --- | ---: |
 | apps/poolday | 380 |
-| self | 448 |
+| self | 449 |
 | shared | 2324 |
-| total | 3152 |
+| total | 3153 |
 
 Every file lives in its owner's root.
 
@@ -353,6 +353,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `core/create-tool.js` | `self/core/create-tool.js` | self | Reached only from substrate entries. |
 | `core/cycle-artifacts.js` | `self/core/cycle-artifacts.js` | self | Reached only from substrate entries. |
 | `core/doppler-runtime-service.js` | `self/core/doppler-runtime-service.js` | self | Reached only from substrate entries. |
+| `core/functiongemma-network.js` | `self/core/functiongemma-network.js` | self | Reached only from substrate entries. |
 | `core/functiongemma-orchestrator.js` | `self/core/functiongemma-orchestrator.js` | self | Reached only from substrate entries. |
 | `core/import-rewrite.js` | `self/core/import-rewrite.js` | self | Reached only from substrate entries. |
 | `core/improvement-episode.js` | `self/core/improvement-episode.js` | self | Reached only from substrate entries. |

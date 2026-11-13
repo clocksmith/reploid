@@ -429,6 +429,7 @@ const AgentLoop = {
         loop.isRunning = false;
         for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
         await engine.close();
+        await resetFunctionGemmaState();
       },
       stop: () => {
         clearProviderResumeTimer();

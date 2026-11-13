@@ -175,6 +175,7 @@
     ],
     "FunctionGemmaOrchestrator": [
       "core/functiongemma-orchestrator.js",
+      "core/functiongemma-network.js",
       "core/tool-argument-validation.js"
     ],
     "GEPAOptimizer": [

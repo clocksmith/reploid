@@ -105,14 +105,12 @@ const buildPromptFromContext = (context, options = {}) => {
 };
 
 const buildFunctionGemmaKey = (config, modelId) => {
-  const expertIds = Array.isArray(config?.experts)
-    ? config.experts.map((expert) => expert.id || expert.adapterName || expert.adapter).filter(Boolean)
-    : [];
   return JSON.stringify({
     modelId: modelId || null,
-    baseUrl: config?.baseUrl || null,
-    usePool: config?.usePool !== false,
-    expertIds
+    source: config.source, manifest: config.manifest, baseUrl: config.baseUrl,
+    experts: config.experts, generation: config.generation, loadOptions: config.loadOptions,
+    modelConfig: config.modelConfig, baseModelConfig: config.baseModelConfig,
+    systemPrompt: config.systemPrompt, useSharedPrefix: config.useSharedPrefix, combiner: config.combiner
   });
 };
 
@@ -123,6 +121,9 @@ export function createLabFunctionGemma({ deps, engine, loop }) {
   let _functionGemmaHasPrefix = false;
   let _functionGemmaInitPromise = null;
   let _functionGemmaKey = null;
+  let _functionGemmaClosing = Promise.resolve();
+  let _functionGemmaEpoch = 0;
+  let _functionGemmaStorage = null;
 
   const resolveFunctionGemmaConfig = () => {
     if (!FunctionGemmaOrchestrator) return null;
@@ -160,7 +161,7 @@ export function createLabFunctionGemma({ deps, engine, loop }) {
     if (!FunctionGemmaOrchestrator || !config) return false;
 
     const modelId = getFunctionGemmaModelId(config);
-    if (!modelId && !config.manifest) {
+    if (!modelId && !config.manifest && !config.source) {
       logger.warn('[Agent] FunctionGemma config missing modelId/manifest; skipping.');
       return false;
     }
@@ -171,8 +172,9 @@ export function createLabFunctionGemma({ deps, engine, loop }) {
       return false;
     }
 
-    const nextKey = buildFunctionGemmaKey(config, modelId);
-    if (_functionGemmaReady && _functionGemmaKey === nextKey) {
+    const nextKey = buildFunctionGemmaKey({ ...config,
+      modelConfig: getFunctionGemmaModelConfig(config), systemPrompt: config.systemPrompt || loop.currentSystemPrompt }, modelId);
+    if (_functionGemmaReady && _functionGemmaKey === nextKey && _functionGemmaStorage === config.storageContext) {
       return true;
     }
 
@@ -181,7 +183,12 @@ export function createLabFunctionGemma({ deps, engine, loop }) {
     }
 
     _functionGemmaKey = nextKey;
-    _functionGemmaInitPromise = (async () => {
+    _functionGemmaStorage = config.storageContext;
+    const epoch = _functionGemmaEpoch;
+    const closing = _functionGemmaClosing;
+    const initialization = (async () => {
+      await closing;
+      if (epoch !== _functionGemmaEpoch) return false;
       _functionGemmaReady = false;
       _functionGemmaHasPrefix = false;
 
@@ -191,11 +198,14 @@ export function createLabFunctionGemma({ deps, engine, loop }) {
 
       await FunctionGemmaOrchestrator.initBase({
         modelId,
+        source: config.source,
         manifest: config.manifest,
         baseUrl: config.baseUrl || null,
-        usePool: config.usePool !== false,
-        storageContext: config.storageContext
+        storageContext: config.storageContext,
+        loadOptions: config.loadOptions,
+        generation: { ...getFunctionGemmaModelConfig(config), ...config.generation }
       });
+      if (epoch !== _functionGemmaEpoch) return false;
 
       await FunctionGemmaOrchestrator.registerExperts(experts);
 
@@ -227,27 +237,40 @@ export function createLabFunctionGemma({ deps, engine, loop }) {
         }
       }
 
+      if (epoch !== _functionGemmaEpoch) return false;
       _functionGemmaReady = true;
       return true;
     })();
+    _functionGemmaInitPromise = initialization;
 
     try {
-      return await _functionGemmaInitPromise;
+      return await initialization;
     } catch (err) {
       logger.error('[Agent] FunctionGemma init failed:', err);
-      _functionGemmaReady = false;
-      _functionGemmaHasPrefix = false;
+      if (epoch === _functionGemmaEpoch) {
+        _functionGemmaReady = false;
+        _functionGemmaHasPrefix = false;
+      }
       return false;
     } finally {
-      _functionGemmaInitPromise = null;
+      if (_functionGemmaInitPromise === initialization) _functionGemmaInitPromise = null;
     }
   };
 
   const resetFunctionGemmaState = () => {
+    _functionGemmaEpoch++;
+    const pending = _functionGemmaInitPromise;
     _functionGemmaReady = false;
     _functionGemmaHasPrefix = false;
     _functionGemmaInitPromise = null;
     _functionGemmaKey = null;
+    // Retain ownership until preparation settles. Repeated close can retry failed cleanup.
+    _functionGemmaClosing = _functionGemmaClosing.catch(() => {}).then(async () => {
+      await pending?.catch(() => {});
+      await FunctionGemmaOrchestrator?.close?.();
+    });
+    _functionGemmaClosing.catch(error => logger.error('[Agent] FunctionGemma cleanup failed:', error));
+    return _functionGemmaClosing;
   };
 
   // Runs one cycle through FunctionGemma; on failure the caller asks the selected model.

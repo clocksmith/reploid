@@ -179,8 +179,8 @@
     },
     {
       "path": "agent/lab-strategy-function-gemma.js",
-      "bytes": 11628,
-      "sha256": "5549ae1f360c2abf10e80ccb37853418ec31debd3dfff1cf7617d9ca01c25f1f"
+      "bytes": 13094,
+      "sha256": "be1fe2af3fd68c7d05e5a6d7d846d2189b1b2ba313ccf57204215965c38cc2cf"
     },
     {
       "path": "agent/lab-strategy-generation.js",
@@ -204,8 +204,8 @@
     },
     {
       "path": "agent/lab-strategy.js",
-      "bytes": 20400,
-      "sha256": "cf47400bdb1f0ff96c2891fd1352e110325009863ad0729ddbe71c92e9154e2a"
+      "bytes": 20441,
+      "sha256": "1d21e3649d5b96fa1c3cb6fed66da158e51fae9ffb33b2f471cb6f36c65b80fe"
     },
     {
       "path": "agent/legacy-loop.d.ts",

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-10T16:57:36.683Z",
+  "generatedAt": "2026-11-13T18:16:44.693Z",
   "features": [
     {
       "id": "0x000002",
@@ -720,6 +720,7 @@
         }
       ],
       "files": [
+        "core/functiongemma-network.js",
         "core/functiongemma-orchestrator.js"
       ]
     },

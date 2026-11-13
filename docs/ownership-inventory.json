@@ -19,7 +19,7 @@
   ],
   "counts": {
     "apps/poolday": 380,
-    "self": 448,
+    "self": 449,
     "shared": 2324
   },
   "pendingMoves": 0,
@@ -1917,6 +1917,12 @@
     {
       "served": "core/doppler-runtime-service.js",
       "source": "self/core/doppler-runtime-service.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "core/functiongemma-network.js",
+      "source": "self/core/functiongemma-network.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
     },
