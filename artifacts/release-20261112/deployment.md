@@ -80,3 +80,54 @@ Blocking findings (product behavior, not test drift):
 3. Browsers can start only whole-model or adapter contributions
    (`contribution-models.js` `eligible`, `network-inspector.js` `openModelSetup`);
    no control starts the layer-partition contribution the cooperative journey needs.
+
+## Hotfix deployed: browser-contributor answer limit (2026-11-13T01:11Z)
+
+Owner-approved hotfix (November 12, 2026): only the answer-limit fix from
+`314c209a1`, on top of the live `e7ea7aa6c`. The blocking findings above are
+unchanged and the release gate still holds everything else on `main`.
+
+- Fix: `apps/poolday/providers/work-provider.js` (lines 125-136). Without a
+  request budget the configured default (4096, the whole context) is a ceiling
+  that shrinks to the room left in the context; an explicit budget that does not
+  fit, or a prompt that leaves no room, is still rejected. Before it, every
+  request to a browser contributor failed with "52 + 4096 > 4096 tokens".
+  The code runs only in the browser bundle, so only Hosting was deployed.
+- Build: detached commit `083d8fb92bb8e053786a45db2064e3955ce17d91` (tree
+  `ebbf1ff93d1bb597ade8d7557406202eab7e7931`, local tag
+  `hotfix-20261112-answer-limit`, not pushed, not on `main`), parent `e7ea7aa6c`.
+  Diff: the fix, its unit assertions, and the regenerated `app.bundle.js`,
+  `browser-bundle-manifest.json` and `self/config/module-inventory.json`.
+  Browser bundle `sha256:1443b45b53ebf6ed7e69d7967de43f0aa4936a5b3d4b2a8c20fa4b9ee83ae716`
+  (was `sha256:5a85d29d1e709cf06dcf51f7d90ac1d5f6d40de3627a32546daeb8bb32b4457c`).
+- Hosting: release `sites/reploid/channels/live/releases/1794532296404000`,
+  version `sites/reploid/versions/2cf418d9bb157ed5` (2,411 files), deployed with
+  `firebase deploy --project reploid --only hosting:reploid` from the clean
+  hotfix tree.
+- Unchanged: Cloud Run `reploid-pool-00147-52n` (100% traffic, image and
+  `/pool/deployment/check` at `e7ea7aa6c`, `ok: true`), functions, Firestore
+  rules and indexes, and the Cloudflare worker (`04b3a5255`). The coordinator
+  runtime identity covers `self/`, so `verify:pool:release` from the hotfix tree
+  would report that `self/config/module-inventory.json` differs from the
+  backend image; that file only lists browser module hashes.
+
+Checks:
+
+| Check | Result |
+| --- | --- |
+| `tests/unit/work-resident-provider.test.js` | 18/18; the new assertions fail at `e7ea7aa6c` (1800 + 512 > 2048) |
+| `verify:browser-bundle:local` | 2,408 served files match `sha256:1443b45b…` |
+| Local smoke: private room, Chromium 145 with WebGPU (Apple metal-3), contributor serving Qwen 3.5 0.8B from exact catalog bytes | answered "Hello", 52 prompt tokens, `peer-whole-request`, 53 s run |
+| `verify:browser-bundle -- --url https://replo.id` | 2,408 deployed files match `sha256:1443b45b…` |
+| `scripts/verify-cloudflare-swarm.js --deployed`, `e7ea7aa6c` copy | fails waiting for `[data-mesh-peers]`, which the current UI no longer renders (same at the earlier live bundle) |
+| same, `main` copy (protocol-based check from `9de19ac09`) | passed: relay/relay pair, private isolation, disconnect persists, network recovery |
+| Live journey on https://replo.id, private room through the deployed worker; contributor's model bytes served from the same local catalog copy | answered "Hello", 52 prompt tokens, `peer-whole-request` by a browser contributor, bundle `sha256:1443b45b…` |
+
+The live journey used a private room, so no public computer answered or saw
+the prompt.
+
+Rollback of this hotfix, re-release the previous Hosting version:
+
+```sh
+firebase hosting:clone reploid@ca243ad75bfb1b66 reploid:live --project reploid
+```
