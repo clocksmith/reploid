@@ -386,7 +386,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
-  generationJournalFile = null, executionAdmission = null, onModelFill = () => {} }) {
+  generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
   requireValue(executionAdmission === null || ['whole', 'partition', 'partitionReceipt', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
@@ -434,7 +434,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const wholeVariants = () => [[], ...(whole?.getState().adapterIdentities || []).map(value => [value])]
     .map(adapterIdentities => ({ modelId: model.id, modelIdentity: model.identity, executionMode: 'whole-model', adapterIdentities }));
   // A whole-model contributor completes its model directory from authorized peers before loading.
-  const whole = wholeMode ? createNativeWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
+  const whole = wholeMode ? createWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
     fill: cacheDirectory ? ({ signal }) => files.fillWholeModel(model, { signal, onProgress: onModelFill }) : null,
     resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;

@@ -49,6 +49,23 @@ async function open(options) {
   return participant;
 }
 
+it('owns the explicitly supplied whole-model runtime through contribution, dispatch and cleanup', async () => {
+  const whole = { getState: () => ({ ready: true, adapterIdentities: [] }), getExecutionState: () => ({ phase: 'ready' }),
+    contribute: vi.fn(async () => {}), generate: vi.fn(async () => ({ content: 'pinned runtime' })),
+    stop: vi.fn(async () => {}), close: vi.fn(async () => {}) };
+  const createWholeModel = vi.fn(() => whole);
+  const participant = await open({ executionMode: 'whole-model', createWholeModel });
+  expect(createWholeModel).toHaveBeenCalledOnce();
+  expect(createWholeModel.mock.calls[0][0]).toMatchObject({ model: { id: 'fixture' }, modelDirectory: '/unused',
+    nativeGpu: expect.any(Function), fill: expect.any(Function), onChange: expect.any(Function) });
+  await participant.contribute(true);
+  expect(whole.contribute).toHaveBeenCalledWith(true);
+  const controls = { requestId: 'job', consumer: 'requester', adapterIdentities: [], signal: new AbortController().signal };
+  expect(await ports.mesh.generate([], () => {}, controls)).toEqual({ content: 'pinned runtime' });
+  await participant.stop(); expect(whole.stop).toHaveBeenCalledOnce();
+  await participant.close(); expect(whole.close).toHaveBeenCalledOnce();
+});
+
 it('opens the whole-model journal from resolved policy and recovers results after participant restart', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'native-generation-restart-')); roots.push(directory);
   const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
