@@ -125,7 +125,11 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
             const promptTokens = advanced.tokenizePrompt(messages, { useChatTemplate: requestGeneration.useChatTemplate !== false }).length;
             const requiredOutputTokens = Number.isSafeInteger(requestGeneration.maxTokens) && requestGeneration.maxTokens > 0
               ? requestGeneration.maxTokens : 1;
-            if (promptTokens + requiredOutputTokens > maxSeqLen) {
+            // A request's own output budget must fit whole. The configured default is only a ceiling
+            // (contributor profiles set it to the full context): it shrinks to the remaining context.
+            if (promptTokens + requiredOutputTokens > maxSeqLen && maxOutputTokens === undefined && promptTokens < maxSeqLen) {
+              requestGeneration = { ...requestGeneration, maxTokens: maxSeqLen - promptTokens };
+            } else if (promptTokens + requiredOutputTokens > maxSeqLen) {
               throw Object.assign(
                 new Error(`Conversation plus output budget exceeds model context limit (${promptTokens} + ${requiredOutputTokens} > ${maxSeqLen} tokens)`),
                 { code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true, status: 400 }

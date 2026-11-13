@@ -2488,7 +2488,7 @@
     {
       "path": "providers/work-provider.js",
       "owner": "providers",
-      "sha256": "sha256:1f6032d51a8a0beec670efc870bc3efef6036e1c2f0718082665f60df78cc854",
+      "sha256": "sha256:aa67c6612f3fa393344022773c48397a458a3069d75fb2484fe32bf347cd78f5",
       "imports": [
         "../config/work-profile.json",
         "../vendor/reploid/mesh/generation-context-cache.js",
@@ -4019,7 +4019,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9243cfaba11648514efa4aa9ce4d2031d416fea4b53877e9a48f59ea8a837a93",
+      "sha256": "sha256:f5c91761aa535801ae72a3f50bcb24ce31bbc36b276a4b3e4eebfcbe016d9b1c",
       "imports": []
     },
     {
@@ -18839,7 +18839,7 @@
     {
       "path": "vendor/reploid/transport/swarm.js",
       "owner": "vendor",
-      "sha256": "sha256:f319ba236face2f9e3924cdb77d828e7f338f4f4b50a4841161b980c14ad87a7",
+      "sha256": "sha256:71ca8f44bf37547295a84d8467d475257232c05cc355948be0bf6c7aea10ba35",
       "imports": [
         "../config/index.js",
         "./connection-path.js",

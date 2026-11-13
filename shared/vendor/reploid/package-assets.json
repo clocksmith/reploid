@@ -1629,8 +1629,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 49944,
-      "sha256": "f319ba236face2f9e3924cdb77d828e7f338f4f4b50a4841161b980c14ad87a7"
+      "bytes": 50066,
+      "sha256": "71ca8f44bf37547295a84d8467d475257232c05cc355948be0bf6c7aea10ba35"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

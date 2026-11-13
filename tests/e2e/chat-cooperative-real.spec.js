@@ -1,6 +1,7 @@
 import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
-import { allowRemoteOnce } from '../fixtures/remote-permission.js';
+import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
 import { observeMeshProtocol, expectMeshDiscovery } from '../fixtures/mesh-discovery.js';
+import { privateRoom, expectCachedSharingDefault, openComputers, openStorage, networkProblem, stopAnswer } from '../fixtures/current-contribution.js';
 import { comparisonInput, COMPARISON_CHECK } from '../../apps/poolday/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
@@ -72,6 +73,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
   };
   [requester, contributor, seed, second].forEach((page, index) =>
     observePageLifecycle(page, ['requester', 'contributor-a', 'seed', 'contributor-b'][index]));
+  // A private room on the page's signaling server keeps public computers out of the journey.
+  const room = new URL(privateRoom('cooperative'), info.project.use.baseURL).href;
   const signalingOnly = process.env.REPLOID_E2E_SIGNALING === '1';
   const signaling = signalingOnly ? await Promise.all(contexts.map(controlSignaling)) : null;
   const signalingEvidence = { acquisition: null, generation: null, explicitDisconnect: null };
@@ -96,7 +99,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const allPages = [requester, contributor, seed, second];
   const errors = [], requesterWeights = [], contributorOrigins = [], seedFiles = [];
   let adapterInfo = null, replicaObservation = null, seedObserver = null;
-  const history = page => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
+  const history = page => readChatWorkspace(page);
   const inventory = page => page.evaluate(async () => {
     const directory = await (await navigator.storage.getDirectory()).getDirectoryHandle('reploid-chat-artifacts-v1');
     const result = [];
@@ -129,18 +132,44 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await route.fulfill({ body: await readFile(path.join(directory, filename)),
       contentType: filename.endsWith('.json') ? 'application/json' : 'application/octet-stream' });
   });
+  // Current controls: the model to seed is chosen under Settings → Storage → Download options;
+  // compute contribution lives under Computers → Contribute this computer. Both switches are
+  // on by default (cached sharing), so a switch is turned off before a model is chosen.
   const openContribution = async page => {
-    const toggle = page.locator('[data-toggle-inspector]');
-    if (!await page.locator('[data-contextual-inspector]').isVisible()) await toggle.click({ timeout: 30000 });
-    const deviceSection = page.locator('[data-inspector-section="device"]');
-    if (await deviceSection.count()) await deviceSection.click();
+    await openStorage(page);
     const selection = page.locator('[data-contribution-model]');
     await expect(selection).toBeVisible({ timeout: 30000 });
+    const fileSwitch = page.locator('[data-toggle-file-contribution]');
+    if (await fileSwitch.getAttribute('aria-checked') === 'true'
+      && await page.locator('[data-file-contribution-label]').textContent() !== 'Sharing') {
+      await fileSwitch.click();
+      await expect(page.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
+    }
     await selection.selectOption(model.id, { timeout: 30000 });
   };
+  const startFiles = async page => {
+    await page.locator('[data-file-mode]').selectOption('full-model');
+    await page.locator('[data-file-download]').fill(String(seedQuotaMiB));
+    await page.locator('[data-toggle-file-contribution]').click();
+  };
+  const startCompute = async page => {
+    await openComputers(page);
+    const compute = page.locator('[data-toggle-contribution]');
+    if (await compute.getAttribute('aria-checked') === 'true') {
+      await compute.click();
+      await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
+    }
+    await compute.click();
+    if (await page.locator('[data-model-dialog]').isVisible()) {
+      await expect(page.locator('[data-download-confirm]')).toBeEnabled({ timeout: 60000 });
+      await page.locator('[data-download-confirm]').click();
+    }
+  };
   const approve = async page => {
-    await allowRemoteOnce(page);
+    // Current default network permission may already admit the request; older profiles ask once.
     await expect.poll(async () => {
+      const allow = page.locator('[data-remote-permission] [data-remote-permission-allow]');
+      if (await allow.isVisible()) await allow.click();
       const data = await history(page);
       const activeId = await page.locator('[data-thread-item-id][aria-current="true"]').getAttribute('data-thread-item-id').catch(() => null);
       const attempt = data?.threads.find(thread => thread.id === activeId)?.attempts.at(-1);
@@ -203,7 +232,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         quotaSize: (index === 2 ? seedQuotaMiB : executorQuotaMiB) * 1024 * 1024 });
     }
     for (const page of [requester, contributor, seed, second]) await observeMeshProtocol(page);
-    await Promise.all([requester, contributor, seed, second].map(page => page.goto(info.project.use.baseURL)));
+    await Promise.all([requester, contributor, seed, second].map(page => page.goto(room)));
     adapterInfo = await contributor.evaluate(async () => {
       const adapter = await navigator.gpu.requestAdapter();
       if (!adapter) throw new Error('WebGPU adapter unavailable');
@@ -214,9 +243,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
     for (const page of [requester, contributor, seed, second]) {
       await page.locator('[data-chat-workspace]').waitFor();
       await expectMeshDiscovery(page, { minimum: 2 });
+      await expectCachedSharingDefault(page);
     }
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
-    await expect(requester.locator('[data-mesh-invite]')).toBeHidden();
     if (remote) {
       // Exercise the requested physical placement with normally generated signed
       // identities. Reconnect before contribution until the first host sorts as
@@ -237,20 +266,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(observations[0].participantId.localeCompare(observations[1].participantId), 'Requested physical placement must be covered').toBeLessThan(0);
     }
     await openContribution(seed);
-    await seed.locator('[data-toggle-file-contribution]').click();
+    await startFiles(seed);
     await expect.poll(async () => {
-      const state = await seed.evaluate(() => ({
-        phase: document.querySelector('[data-file-contribution-label]').textContent,
-        error: document.querySelector('[data-network-message]').textContent
-      }));
+      const state = { phase: await seed.locator('[data-file-contribution-label]').textContent(), error: await networkProblem(seed) };
       if (state.error || state.phase === 'Failed') throw Error('Seed preparation failed: ' + state.error);
       return state.phase;
     }, { timeout: 1800000 }).toBe('Sharing');
     console.log('Exact catalog files cached by the consenting seed', seedFiles.length);
-    for (const executor of [contributor, second]) {
-    await openContribution(executor);
-    await executor.locator('[data-toggle-contribution]').click();
-    }
+    for (const executor of [contributor, second]) await startCompute(executor);
     await Promise.all([contributor, second].map(async (page, index) => {
       let lastProgress = '';
       await expect.poll(async () => {
@@ -434,7 +457,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         await save();
         expect(receipt.beforeCancellation.survivor.status).toBe('executing');
         expect(receipt.beforeCancellation.cancelled.status).toBe('executing');
-        await requester.locator('[data-composer-stop]').click();
+        await stopAnswer(requester);
         await expect.poll(async () => (await lastAttempt(cancelledId)).status).toBe('cancelled');
         await waitCompleted(survivorId, 600000);
         receipt.afterCancellation = { survivor: await lastAttempt(survivorId), cancelled: await lastAttempt(cancelledId) };
@@ -491,9 +514,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
           ?.messages[0]?.content.includes('chooseQuote') }));
       await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
         quotaSize: executorQuotaMiB * 1024 * 1024 });
-      await page.goto(info.project.use.baseURL); await page.locator('[data-chat-workspace]').waitFor();
-      await openContribution(page);
-      await page.locator('[data-toggle-contribution]').click();
+      await page.goto(room); await page.locator('[data-chat-workspace]').waitFor();
+      await startCompute(page);
       await expect(page.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 1800000 });
       expect(observation.loads[0].descriptor.index).toBe(1);
       const pinnedId = await sendNew('Reply with only the word Hello.'); await waitCompleted(pinnedId);

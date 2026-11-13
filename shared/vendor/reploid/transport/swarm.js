@@ -187,7 +187,7 @@ const WebRTCSwarm = {
         return peer;
       } catch (error) {
         if (_peers.get(remote) === peer) {
-          recoverPeer(remote, peer, 'failed', 'Could not prepare the peer connection.');
+          recoverPeer(remote, peer, 'failed', 'Could not prepare the peer connection.', error?.retryAfterMs);
           EventBus.emit('swarm:connection-failed', { peerId: remote, attemptId: peer.attemptId, message: peer.failure });
         }
         throw error;
@@ -883,11 +883,12 @@ const WebRTCSwarm = {
     // connection fails. Rejoin through its existing bounded backoff to obtain a
     // fresh admitted peer list; connectToPeer preserves still-open channels.
     // This restores transport only. Retired requests are never replayed here.
-    const recoverPeer = (remotePeerId, peer, phase = 'disconnected', failure = null) => {
+    const recoverPeer = (remotePeerId, peer, phase = 'disconnected', failure = null, retryAfterMs = 0) => {
       if (_peers.get(remotePeerId) !== peer) return;
       peer.phase = phase; peer.failure = failure;
       removePeer(remotePeerId);
-      if (!peer.exchange && peer.transport !== 'signaling-relay') scheduleReconnect();
+      // A credential issuer's retry deadline still bounds the rejoin.
+      if (!peer.exchange && peer.transport !== 'signaling-relay') scheduleReconnect(retryAfterMs);
     };
 
     /**

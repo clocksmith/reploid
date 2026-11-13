@@ -312,5 +312,14 @@ it('rejects requests whose prompt plus output budget exceed maxSeqLen without cl
   await f.owner.generate([{ role: 'user', content: 'exact fit', tokenCount: 1536 }], () => {},
     { signal: signal(), maxOutputTokens: 512, contextOwner: 'peer:u2', contextId: 'thread-3' });
   expect(seenMaxTokens).toEqual([512, 512]);
+  // Without a request budget the configured default is a ceiling: it shrinks to the remaining context,
+  // and only a prompt that leaves no room is rejected.
+  await f.owner.generate([{ role: 'user', content: 'default ceiling', tokenCount: 1800 }], () => {},
+    { signal: signal(), contextOwner: 'peer:u3', contextId: 'thread-4' });
+  expect(seenMaxTokens).toEqual([512, 512, 248]);
+  await expect(f.owner.generate([{ role: 'user', content: 'no room', tokenCount: 2048 }], () => {},
+    { signal: signal(), contextOwner: 'peer:u3', contextId: 'thread-5' }))
+    .rejects.toMatchObject({ code: 'CONTEXT_LENGTH_EXCEEDED', recoverableSession: true, status: 400 });
+  expect(f.owner.getState()).toMatchObject({ phase: 'ready', ready: true, error: null });
   await f.owner.close();
 });
