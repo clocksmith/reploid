@@ -8,7 +8,7 @@ import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { collectModuleClosure, buildHostingFileSet, walkFiles } from '../../scripts/hosting-file-set.js';
-import { packageHosting, verifyHostingSource } from '../../scripts/package-hosting.js';
+import { packageHosting, verifyHostingSource, verifyPreparedHosting } from '../../scripts/package-hosting.js';
 import { buildBrowserBundleManifest, BROWSER_BUNDLE_DESCRIPTOR_PATH } from '../../apps/poolday/pool/browser-release-identity.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 
@@ -80,6 +80,15 @@ describe('Hosting dependency projection', () => {
     expect(verified.files).toEqual(files);
     expect(verified.entries).toEqual(entries);
     const outputDir = path.join(root, 'output');
+    await packageHosting({ selfDir, outputDir });
+    await expect(verifyPreparedHosting({ selfDir, outputDir })).resolves.toEqual({ files, bundleHash: verified.manifest.bundleHash });
+    const asset = prefix + 'src/index.js';
+    await put(outputDir, asset, 'corrupt payload');
+    await expect(verifyPreparedHosting({ selfDir, outputDir })).rejects.toThrow('Prepared Hosting asset differs');
+    await put(outputDir, asset, 'export const ready = true;');
+    await put(outputDir, 'extra.js', 'unexpected');
+    await expect(verifyPreparedHosting({ selfDir, outputDir })).rejects.toThrow('Prepared Hosting output file set differs');
+    await rm(path.join(outputDir, 'extra.js'));
     await put(outputDir, 'retired.js', 'stale');
     const originalRemove = fs.rm.bind(fs);
     const remove = vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
@@ -97,6 +106,7 @@ describe('Hosting dependency projection', () => {
       .toEqual(await buildBrowserBundleManifest(entries));
     await expect(packageHosting({ selfDir, outputDir })).rejects.toThrow('Doppler asset differs from its archive');
     await expect(verifyHostingSource(selfDir)).rejects.toThrow('Doppler asset differs from its archive');
+    await expect(verifyPreparedHosting({ selfDir, outputDir })).rejects.toThrow('Doppler asset differs from its archive');
     await put(selfDir, 'pool/pool-config.json', JSON.stringify({ browserRuntime: {
       dopplerModuleUrl: '/vendor/doppler/0.0.2/src/index.js',
       dopplerStorageModuleUrl: '/vendor/doppler/0.0.1/src/tooling-exports/storage.js'

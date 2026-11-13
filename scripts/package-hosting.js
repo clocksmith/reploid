@@ -71,6 +71,21 @@ export async function packageHosting({ selfDir, tree, outputDir = path.join(root
   console.log(`[hosting] packaged ${files.length} files as ${manifest.bundleHash}`);
   return { files, bundleHash: manifest.bundleHash };
 }
+/** Check an already prepared payload without copying or rebuilding it. */
+export async function verifyPreparedHosting({ selfDir, tree, outputDir = path.join(root, '.firebase-hosting/reploid') } = {}) {
+  const { files, manifest, entries, descriptor } = await verifyHostingSource({ selfDir, tree });
+  if (JSON.stringify(await walkFiles(outputDir)) !== JSON.stringify(files)) {
+    throw new Error('Prepared Hosting output file set differs');
+  }
+  for (const { path: name, bytes } of [...entries, { path: BROWSER_BUNDLE_DESCRIPTOR_PATH, bytes: descriptor }]) {
+    if (!Buffer.from(bytes).equals(await fs.readFile(path.join(outputDir, name)))) {
+      throw new Error(`Prepared Hosting asset differs: ${name}`);
+    }
+  }
+  console.log(`[hosting] verified prepared ${files.length} files as ${manifest.bundleHash}`);
+  return { files, bundleHash: manifest.bundleHash };
+}
+
 /**
  * A temporary directory holding the served tree exactly as Hosting packages it,
  * for harnesses whose static servers mount one directory. Removed at exit.
@@ -82,5 +97,6 @@ export async function servedTreeSnapshot() {
   return outputDir;
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  packageHosting().catch(error => { console.error('[hosting]', error.message); process.exitCode = 1; });
+  const operation = process.argv.includes('--check') ? verifyPreparedHosting : packageHosting;
+  operation().catch(error => { console.error('[hosting]', error.message); process.exitCode = 1; });
 }

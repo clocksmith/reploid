@@ -3,7 +3,7 @@
 import { spawn } from 'node:child_process';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
@@ -28,9 +28,18 @@ try {
   await run('npm', ['ci', '--ignore-scripts'], resolve(checkout, 'packages/functions'));
   await run('npm', ['run', 'verify:pool'], checkout);
   await run('npm', ['run', 'prepare:hosting'], checkout);
+  // The isolated flow has already prepared this payload before Cloud Build.
+  // Its predeploy checks source/archive identity and exact output bytes instead
+  // of copying everything again. Direct Firebase deploys keep firebase.json.
+  const firebase = JSON.parse(await readFile(resolve(checkout, 'firebase.json'), 'utf8'));
+  const hosting = firebase.hosting.filter(item => item.target === 'reploid');
+  if (hosting.length !== 1) throw new Error('Expected one reploid Hosting target');
+  hosting[0].predeploy = 'npm run verify:browser-bundle:local && node scripts/package-hosting.js --check';
+  const preparedConfig = 'firebase.prepared.json';
+  await writeFile(resolve(checkout, preparedConfig), JSON.stringify(firebase, null, 2) + '\n');
   await run('gcloud', ['builds', 'submit', '--project=reploid', '--config=deploy/cloudbuild.yaml',
     `--substitutions=COMMIT_SHA=${revision}`, '.'], checkout);
-  await run('firebase', ['deploy', '--project', 'reploid', '--only',
+  await run('firebase', ['deploy', '--config', preparedConfig, '--project', 'reploid', '--only',
     'functions,firestore:indexes,firestore:rules,hosting:reploid', '--non-interactive'], checkout);
   await run('npm', ['run', 'verify:pool:release', '--', '--url', 'https://replo.id', '--channel=chrome'], checkout);
   console.log(`[deploy] verified https://replo.id at ${revision}`);
