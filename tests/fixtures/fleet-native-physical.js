@@ -27,7 +27,10 @@ const common={schema:'reploid.fleet-native/v1',roomId:room,signalingUrl:config.s
 const remoteConfig={...common,serviceUrl:config.coordinator.url,computerId:config.remote.computerId,name:config.remote.name,identityFile:remoteRoot+'/state/identity.json',roomTokenFile:remoteRoot+'/room.token',ownerPolicyFile:config.remote.ownerPolicyFile,observationFile:remoteRoot+'/observation.json',models:[{model,mode:config.mode,ordered:config.mode==='partition'?ordered(1):null,directory:config.remote.modelDirectory}]};
 await remoteWrite([[remoteRoot+'/host.json',JSON.stringify(remoteConfig)],[remoteRoot+'/room.token',token],[remoteRoot+'/tls/cert.pem',await fs.readFile(config.coordinator.certFile,'utf8')]]);
 const integrity="const fs=require('fs');if(require('crypto').createHash('sha256').update(fs.readFileSync("+JSON.stringify(remoteRoot+'/reploid/native-delivery.json')+")).digest('hex')!=="+JSON.stringify(pkg.manifestSha256)+")throw Error('Remote package identity differs');";
-const launch=integrity+"const p=require('child_process').spawn("+JSON.stringify(config.remote.node)+",["+JSON.stringify(remoteRoot+'/reploid/server/fleet/native-host.js')+","+JSON.stringify(remoteRoot+'/host.json')+"],{stdio:'inherit',env:{...process.env,NODE_EXTRA_CA_CERTS:"+JSON.stringify(remoteRoot+'/tls/cert.pem')+"}});p.on('exit',c=>process.exit(c??1));";
+const remoteArgs=[remoteRoot+'/reploid/server/fleet/native-host.js',remoteRoot+'/host.json'];
+const launchCommand=config.remote.gpuLockFile?'/usr/bin/flock':config.remote.node;
+const launchArgs=config.remote.gpuLockFile?['--shared','--nonblock',config.remote.gpuLockFile,config.remote.node,...remoteArgs]:remoteArgs;
+const launch=integrity+"const p=require('child_process').spawn("+JSON.stringify(launchCommand)+","+JSON.stringify(launchArgs)+",{stdio:'inherit',env:{...process.env,NODE_EXTRA_CA_CERTS:"+JSON.stringify(remoteRoot+'/tls/cert.pem')+"}});p.on('exit',c=>process.exit(c??1));";
 const remote=spawn('ssh',ssh(launch),{stdio:['pipe','pipe','pipe']});
 const stderr=await fs.open(root+'/'+config.mode+'-remote.log','w');remote.stderr.on('data',b=>stderr.write(b));
 const pending=new Map();let readyResolve,readyReject;const ready=new Promise((r,j)=>{readyResolve=r;readyReject=j});const rl=createInterface({input:remote.stdout});
@@ -51,8 +54,14 @@ try{
  while(Date.now()-start<90000){selected=local.state().execution?.models?.find(m=>m.id===model.id&&m.identity===model.identity&&m.availability==='ready'&&(config.mode==='partition'?!!m.partition:!m.partition));if(selected)break;const ls=local.state().execution;if(ls?.phase==='failed')throw Error('Local stage: '+ls.error);const rs=await command('state');if(rs.execution?.phase==='failed')throw Error('Remote stage: '+rs.execution.error);await new Promise(r=>setTimeout(r,1000));}
  if(!selected){report.discovery=local.state();report.remote=await command('state');throw Error('No exact ready provider discovered')}
  for(const prompt of config.prompts){
+  if(report.rows.length===1&&config.readyFile&&config.startFile){
+   await fs.writeFile(config.readyFile,new Date().toISOString());
+   const deadline=Date.now()+300000;
+   while(true){try{await fs.access(config.startFile);break}catch{}if(Date.now()>deadline)throw Error('Measurement start barrier timed out');await new Promise(r=>setTimeout(r,50));}
+  }
   const request={threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:prompt}]};const start=performance.now(),deltas=[];
-  const result=await local.generate(request,d=>deltas.push(d));report.rows.push({prompt,wallMs:performance.now()-start,deltas,result});log('answer',{content:result.content,usage:result.usage,credit:result.serviceCredit});await save();
+  let firstUpdateMs=null;
+  const result=await local.generate(request,d=>{if(firstUpdateMs===null)firstUpdateMs=performance.now()-start;deltas.push(d)});report.rows.push({prompt,startedAtMs:performance.timeOrigin+start,endedAtMs:performance.timeOrigin+performance.now(),firstUpdateMs,wallMs:performance.now()-start,deltas,result});log('answer',{content:result.content,usage:result.usage,credit:result.serviceCredit});await save();
   if(result.serviceCredit?.status==='pending')throw Error(result.serviceCredit.error);
  }
  if(config.exerciseCancellation){

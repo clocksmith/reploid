@@ -15,9 +15,19 @@ const config = JSON.parse(await fs.readFile(process.argv[2]));
 for (const key of ['baseUrl', 'modelId', 'output', 'prompt']) assert.equal(typeof config[key], 'string', key);
 for (const key of ['warmupRuns', 'measuredRuns', 'maxOutputTokens']) assert(Number.isSafeInteger(config[key]) && config[key] > 0, key);
 const sha = value => createHash('sha256').update(value).digest('hex');
+const correct = content => {
+  if (config.expectedJson !== undefined) {
+    try { return JSON.stringify(JSON.parse(content)) === JSON.stringify(config.expectedJson); }
+    catch { return false; }
+  }
+  return config.expectedAnswer === undefined ? null : content.trim() === config.expectedAnswer;
+};
 const catalog = JSON.parse(await fs.readFile(new URL('../../shared/config/chat-models.json', import.meta.url)));
 const model = catalog.find(row => row.id === config.modelId);
 assert(model, 'Use an exact catalog model');
+if (config.generation) model.generation = config.generation;
+if (config.loadOptions) model.loadOptions = config.loadOptions;
+assert(model.generation, 'Explicit matched generation settings required');
 const pin = JSON.parse(await fs.readFile(new URL('../../shared/config/doppler-package.json', import.meta.url)));
 const response = await fetch(new URL('manifest.json', config.baseUrl), { signal: AbortSignal.timeout(30000) });
 assert(response.ok, 'Manifest request failed');
@@ -54,15 +64,33 @@ try {
   assert(!/swiftshader|llvmpipe|software/i.test(JSON.stringify(report.adapter)), 'Physical GPU required');
   report.phase = 'generation'; await save();
   for (let i = 0; i < config.warmupRuns + config.measuredRuns; i++) {
+    if (i === config.warmupRuns && config.readyFile && config.startFile) {
+      await fs.writeFile(config.readyFile, new Date().toISOString());
+      const deadline = Date.now() + 300000;
+      while (true) {
+        try { await fs.access(config.startFile); break; } catch {}
+        assert(Date.now() < deadline, 'Measurement start barrier timed out');
+        await new Promise(resolve => setTimeout(resolve, 50));
+        abort.signal.throwIfAborted();
+      }
+    }
     const start = performance.now();
-    const result = await provider.generate([{ role: 'user', content: config.prompt }], () => {},
+    let firstUpdateMs = null;
+    const memoryBefore = process.memoryUsage();
+    const result = await provider.generate([{ role: 'user', content: config.prompt }], update => {
+      if (firstUpdateMs === null && update) firstUpdateMs = performance.now() - start;
+    },
       { signal: abort.signal, maxOutputTokens: config.maxOutputTokens });
     const wallMs = performance.now() - start;
     assert.equal(result.modelIdentity, model.identity);
     const t = result.timing, count = t.generatedTokenCount;
     assert(count > 1 && t.decodeMs > 0 && t.prefillMs > 0);
     assert.equal(t.reusedPrefixTokens, 0, 'Fresh-prefix measurements must not reuse a context');
-    const row = { run: i, warmup: i < config.warmupRuns, wallMs, timing: t, completion: result.completion,
+    const row = { run: i, warmup: i < config.warmupRuns, startedAtMs: performance.timeOrigin + start,
+      endedAtMs: performance.timeOrigin + performance.now(), wallMs, timing: t, completion: result.completion,
+      firstUpdateMs, memoryBefore, memoryAfter: process.memoryUsage(), resourceUsage: process.resourceUsage(),
+      hardware: provider.getState().hardware,
+      expectedAnswerMatched: correct(result.content),
       answer: result.content, answerSha256: sha(result.content),
       decodeTokensPerSecond: (count - 1) * 1000 / t.decodeMs,
       prefillTokensPerSecond: t.prefillComputedTokens * 1000 / t.prefillMs,
