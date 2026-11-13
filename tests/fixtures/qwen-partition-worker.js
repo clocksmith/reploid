@@ -31,7 +31,7 @@ async function initializeRuntime() {
   // Preserve manifest-declared residual streams at the transport boundary.
   // Flash carries four streams, rather than one hidden-width activation.
   plan = candidateRuntime.createOrderedLayerPartitionPlanFromManifest(manifest, {
-    splitLayers: config.splitLayers ?? [1], activationDtype: 'f32' });
+    splitLayers: config.splitLayers ?? [1], activationDtype: 'f32', activationPrecision: 'f32' });
   planId = candidateRuntime.hashLayerPartitionPlan(plan);
   model = { id: manifest.modelId, identity: 'sha256:' + config.manifestSha256, generation };
   runtime = candidateRuntime;
@@ -107,6 +107,21 @@ async function invoke(request) {
     const special = whole.advanced.getSpecialTokens();
     const tokenContract = { eosTokenId: special.eos, padTokenId: special.pad, stopTokenIds: whole.advanced.getStopTokenIds() };
     const started = performance.now();
+    if (config.wholeLogitsMode === 'generation-observer') {
+      // Observe the ordinary generation path without exporting a partial cache.
+      // Hyper-connection models own more state than the legacy logits API exports.
+      assert.equal(generation.repetitionPenalty, 1, 'Raw-logit comparison requires neutral penalties');
+      let previous = started;
+      for await (const delta of whole.generate(request.prompt, { ...generation,
+        onLogits(logits, { tokenId }) {
+          assert(logits.every(Number.isFinite));
+          const now = performance.now();
+          rows.push({ tokenId, logits: encode(logits), elapsedMs: now - previous });
+          output.push(tokenId); previous = now;
+        } })) { /* Drain normal generation; retain the raw sampled tokens below. */ }
+      assert(rows.length > 0, 'Normal generation must expose sampled logits');
+      return { ids, rows, text: whole.advanced.decodeTokenIds(output), elapsedMs: performance.now() - started, memory: memory() };
+    }
     for (let step = 0; step < generation.maxTokens; step++) {
       const start = performance.now();
       const result = step === 0 ? await whole.advanced.prefillWithLogits(request.prompt, generation)
