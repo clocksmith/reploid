@@ -5,6 +5,38 @@ const valid = row => row && typeof row.id === 'string' && typeof row.modelId ===
   && typeof row.modelIdentity === 'string' && Number.isSafeInteger(row.completedAt) && row.completedAt > 0
   && (row.outputTokens === null || Number.isSafeInteger(row.outputTokens) && row.outputTokens >= 0);
 
+/** Project retained device records, not lifetime usage or financial settlement.
+ * Count output tokens once per execution; never estimate tokens from text length.
+ */
+export function projectComputerUsage({ threads = [], network = {} } = {}) {
+  const summary = rows => rows.reduce((total, row) => {
+    total.requests++;
+    if (Number.isSafeInteger(row.outputTokens) && row.outputTokens >= 0) total.outputTokens += row.outputTokens;
+    else total.unmeasured++;
+    return total;
+  }, { outputTokens: 0, requests: 0, unmeasured: 0 });
+  const attempts = new Map();
+  for (const thread of threads) {
+    const outputAttempts = new Set((thread.messages || []).filter(message => message.role === 'assistant' && message.content).map(message => message.attemptId));
+    for (const attempt of thread.attempts || []) {
+      if (!['completed', 'failed', 'cancelled', 'interrupted'].includes(attempt.status)) continue;
+      const execution = attempt.execution;
+      const count = execution?.completion?.generatedTokenCount ?? execution?.timing?.generatedTokenCount
+        ?? execution?.usage?.outputTokens
+        ?? (Number.isFinite(execution?.serviceCredit?.settledAt) ? execution.serviceCredit.outputTokens : undefined);
+      // An interrupted stream without a count is unknown; an attempt rejected before output is not usage.
+      if (count === undefined && attempt.status !== 'completed' && !outputAttempts.has(attempt.id)) continue;
+      attempts.set(`${thread.id}:${attempt.id}`, { outputTokens: count });
+    }
+  }
+  const history = network.contributionHistory;
+  return {
+    supplied: { ...summary(history?.records || []), limit: history?.limit ?? LIMIT, available: !!history },
+    consumed: summary([...attempts.values()]),
+    error: history?.error || null
+  };
+}
+
 export function createContributionHistory({ storage, now = Date.now, id = () => crypto.randomUUID() } = {}) {
   let records = [], error = null;
   const read = () => {

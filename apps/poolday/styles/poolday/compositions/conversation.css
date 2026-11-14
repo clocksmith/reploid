@@ -262,8 +262,9 @@
 .chat-inspector-slot { display: flex; right: var(--pool-param-chat-gutter); width: min(var(--pool-layout-inspector), calc(100vw - var(--pool-size-32))); }
 .chat-threads-dialog { left: var(--pool-param-chat-gutter); width: min(var(--pool-layout-threads), calc(100vw - var(--pool-size-32))); }
 [data-drawer-mark] { display: inline-flex; flex: none; }
-.chat-inspector-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-block: var(--pool-size-16); }
+.pool-home .chat-inspector-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-block: var(--pool-size-16); }
 .chat-inspector-tabs .pool-segment { min-width: 0; padding-inline: var(--pool-size-4); }
+.computer-usage { --pool-param-column: var(--pool-size-128); }
 
 /* The conversation list: threads scroll, conversation actions stay at the foot. */
 .chat-threads-dialog:not([hidden]) { display: flex; flex-direction: column; gap: var(--pool-size-16); }

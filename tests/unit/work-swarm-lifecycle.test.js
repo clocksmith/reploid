@@ -341,9 +341,13 @@ it('defaults to cached sharing, prepares without downloads, and persists separat
   expect(prepareSource.mock.calls[0][1].cacheOnly).toBe(true);
   expect(share.mock.calls[0][2]).toEqual({ mode: 'cached-only' });
   expect(swarm.getState().sharing).toBe(true);
+  await swarm.stop();
+  await swarm.allowCachedCompute(true);
+  expect(swarm.getState().sharing).toBe(true);
+  expect(prepareSource.mock.calls[1][1].cacheOnly).toBe(true);
   await swarm.stop(); await swarm.stopFiles(); swarm.allowIntroductions(false);
   await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
-  expect(service.open).toHaveBeenCalledOnce(); expect(share).toHaveBeenCalledOnce();
+  expect(service.open).toHaveBeenCalledTimes(2); expect(share).toHaveBeenCalledTimes(2);
   await swarm.close();
   const restored = fixture();
   expect(restored.getState()).toMatchObject({ introductionAssistance: false, computeEnabled: false, filesEnabled: false });

@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { createContributionHistory, CONTRIBUTION_HISTORY_KEY } from '../../apps/poolday/host/contribution-history.js';
+import { createContributionHistory, CONTRIBUTION_HISTORY_KEY, projectComputerUsage } from '../../apps/poolday/host/contribution-history.js';
 
 const completion = { modelId: 'model', modelIdentity: 'sha256:fixture', outputTokens: 7 };
 const memory = () => {
@@ -40,4 +40,20 @@ it('exposes unreadable or unwritable storage instead of fabricating durable hist
   history.record(completion);
   expect(history.getState().error).toBe('Contribution history could not be saved');
   expect(history.getState().records).toHaveLength(1);
+});
+
+it('counts measured supply and saved consumption once, retaining unknown interrupted output', () => {
+  const attempt = { id: 'a', status: 'completed', execution: { completion: { generatedTokenCount: 7 }, timing: { generatedTokenCount: 7 } } };
+  const thread = { id: 't', attempts: [attempt, attempt,
+    { id: 'partial', status: 'interrupted' },
+    { id: 'rejected', status: 'failed' },
+    { id: 'live', status: 'executing', execution: { completion: { generatedTokenCount: 100 } } },
+    { id: 'private', status: 'completed', execution: { serviceCredit: { outputTokens: 3, settledAt: 123 } } }],
+    messages: [{ role: 'assistant', attemptId: 'partial', content: 'Partial output' }] };
+  const usage = projectComputerUsage({ threads: [thread], network: { contributionHistory: {
+    records: [{ outputTokens: 11 }, { outputTokens: null }], limit: 200, error: 'Storage unavailable' } } });
+  expect(usage.supplied).toMatchObject({ outputTokens: 11, unmeasured: 1, requests: 2, available: true });
+  expect(usage.consumed).toEqual({ outputTokens: 10, requests: 3, unmeasured: 1 });
+  expect(usage.error).toBe('Storage unavailable');
+  expect(projectComputerUsage().supplied.available).toBe(false);
 });

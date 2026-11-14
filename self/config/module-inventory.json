@@ -2653,7 +2653,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:d97c3aa33a3e64c5d0cd095dd6d4e3232c8b260c46bc5331b05615ec8447fd95",
+      "sha256": "sha256:d928670d29681d94422668a171527719282c348443847019fec06611812608df",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2667,6 +2667,7 @@
         "./chat-history.js",
         "./chat-remote-permission.js",
         "./chat-view.js",
+        "./contribution-history.js",
         "./document-comparison.js",
         "./model-acquisition.js",
         "./partition-release.js",
@@ -2693,7 +2694,7 @@
     {
       "path": "self/host/contribution-history.js",
       "owner": "self",
-      "sha256": "sha256:8405d1cde67645f69600aa72400e1e5d5b0778e269790bc241deac798e51193e",
+      "sha256": "sha256:e69fd0d8f3df712c1c8f5178813de01215f0cce36bbc742852e83eb19e675bbb",
       "imports": []
     },
     {
@@ -3269,7 +3270,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:9a7d3989c564fe1e0c365d53b29472a0dcdbb957c62f38ede770837722bf4e1a",
+      "sha256": "sha256:62f53998446110e0d845b18bebee05044daff0a95a43c1d190c971d93d75e091",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4030,7 +4031,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:3cf26e43a398d8cf121d90ab963e4333a7dc5364a47b6853341de4265b8175b7",
+      "sha256": "sha256:f92455911db2f02437d52a5c1206ab178b2226e1d6f5da2b0672294cb2699356",
       "imports": []
     },
     {
@@ -4344,7 +4345,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:711e91f195f97c6f570b15bfbb49b0a5d96a49239cf3fda9f083ff9e611bcb40",
+      "sha256": "sha256:f9752d6079f5ac981b338123d42387859230797a92cc73783dcdfb3db728d156",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",
@@ -4358,7 +4359,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:f169c372446d1da36a28d109d2b68198e25cfaa6ea805afc5643cdfcf5de450b",
+      "sha256": "sha256:5ad98c307dd4935174b4998e1d57eafaff8b58d641e1d07a1e76522b2864c132",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

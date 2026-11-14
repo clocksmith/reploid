@@ -9,6 +9,41 @@ const storage = () => {
 };
 
 describe('Chat host with injected execution, not actual inference', () => {
+  it('restores consumed output tokens from saved attempts without executing or billing again', async () => {
+    const saved = storage(), service = createChatTestService();
+    const scheduler = { getState: () => ({}), schedule: vi.fn(async request => ({ content: 'Measured answer',
+      model: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [],
+      completion: { schema: 'doppler.generation-completion/v1', stopReason: 'eos-token', promptTokenCount: 12, generatedTokenCount: 4 } })) };
+    const session = createChatSession({ storage: saved, service, scheduler });
+    const threadId = session.createThread({ sharingScope: 'local' });
+    expect((await session.send(threadId, 'Hello')).status).toBe('completed');
+    expect(session.getState().computerUsage.consumed).toEqual({ outputTokens: 4, requests: 1, unmeasured: 0 });
+    await session.close();
+    const restored = createChatSession({ storage: saved, service, scheduler });
+    expect(restored.getState().computerUsage.consumed.outputTokens).toBe(4);
+    expect(scheduler.schedule).toHaveBeenCalledOnce();
+    await restored.close();
+  });
+  it('retains native provider usage in saved execution metadata without inventing credits', async () => {
+    const model = { ...CANONICAL_CHAT_MODELS[0], selectionId: 'private:fixture:model',
+      fleet: { poolIdentity: 'fixture' }, availability: 'ready' };
+    const saved = storage(), fleet = { state: () => ({ connected: true }), models: () => [model], close() {},
+      execute: vi.fn(async request => ({ threadId: request.threadId, attemptId: request.attemptId,
+        modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'Native answer',
+        usage: { outputTokens: 5 }, execution: { provider: 'peer', peerId: 'native-fixture', placement: 'peer-whole-request' } })) };
+    const session = createChatSession({ storage: saved, service: createChatTestService(), privateComputers: fleet });
+    const threadId = session.createThread({ model });
+    const result = await session.send(threadId, 'Hello');
+    expect(result.error).toBeFalsy();
+    expect(result.status).toBe('completed');
+    expect(session.getState().computerUsage.consumed.outputTokens).toBe(5);
+    expect(session.getState().activeThread.attempts[0].execution.serviceCredit).toBeUndefined();
+    await session.close();
+    const restored = createChatSession({ storage: saved, service: createChatTestService(), privateComputers: fleet });
+    expect(restored.getState().computerUsage.consumed.outputTokens).toBe(5);
+    expect(fleet.execute).toHaveBeenCalledOnce();
+    await restored.close();
+  });
   it('accepts structured Doppler loader progress without losing local execution state', async () => {
     const session = createChatSession({ storage: null, service: createChatTestService() });
     const id = session.createThread({ sharingScope: 'local' }), states = [];

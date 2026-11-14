@@ -51,21 +51,30 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" ${mounted ? 'role="tabpanel" id="inspector-pane-participants" aria-labelledby="inspector-tab-participants"' : ''} aria-label="Computers" hidden>
+      <section class="pool-stack pool-gap-sm" data-this-computer aria-label="This computer">
+        <h3 class="pool-subheading">This computer <span class="pool-muted" data-device-state-summary></span></h3>
+        <p class="pool-caption pool-muted" data-local-computer></p>
+        <dl class="pool-stats pool-columns computer-usage" aria-label="Recorded output tokens">
+          <div><dt>Tokens supplied</dt><dd data-device-supplied>—</dd></div>
+          <div><dt>Tokens consumed</dt><dd data-device-consumed>—</dd></div>
+        </dl>
+        <p class="pool-caption pool-muted" data-device-usage-scope></p>
+        <p class="pool-small pool-muted" data-device-usage-error role="status" hidden></p>
+        ${renderComputeSharingControls()}
+        <details class="pool-disclosure" data-production-device><summary>Contribution settings</summary><div class="pool-stack pool-gap-md">
+          ${renderComputerDiagnostic()}
+          ${contribution}
+          <p class="pool-caption pool-muted" data-file-sharing-summary></p>
+          ${renderContributionLimits()}
+          <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
+        </div></details>
+      </section>
       <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Public network</h3>
         ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
         <ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
       </section>
       ${renderPrivateComputers()}
-      <details class="pool-disclosure" data-production-device><summary>Contribute this computer <span class="pool-muted" data-device-state-summary></span></summary><div class="pool-stack pool-gap-md">
-        <p class="pool-caption pool-muted" data-local-computer></p>
-        ${renderComputerDiagnostic()}
-        ${renderComputeSharingControls()}
-        ${contribution}
-        <p class="pool-caption pool-muted" data-file-sharing-summary></p>
-        ${renderContributionLimits()}
-        <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
-      </div></details>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" ${mounted ? 'role="tabpanel" id="inspector-pane-settings" aria-labelledby="inspector-tab-settings"' : ''} aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
@@ -158,7 +167,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (section === 'settings') void storagePanel.refresh();
     if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
-    for (const tab of panel.querySelectorAll('[data-inspector-tab]')) { const active = tab.dataset.inspectorTab === section; tab.setAttribute('aria-selected', String(active)); tab.setAttribute('aria-pressed', String(active)); tab.tabIndex = active ? 0 : -1; }
+    for (const tab of panel.querySelectorAll('[data-inspector-tab]')) { const active = tab.dataset.inspectorTab === section; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; }
     find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
     for (const button of navigation.querySelectorAll('[data-inspector-section]')) buttonState(button, 'aria-pressed', button.dataset.inspectorSection === section);
   };

@@ -42,7 +42,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let connection = null, introductionAssistance = storage?.getItem('REPLOID_INTRODUCTIONS_ENABLED') !== 'false';
   let computeEnabled = storage?.getItem('REPLOID_CACHED_COMPUTE_ENABLED') !== 'false';
   let filesEnabled = storage?.getItem('REPLOID_CACHED_FILES_ENABLED') !== 'false';
-  let cachedSharing = null;
+  let cachedSharing = null, cachedModels = [];
 
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
@@ -495,7 +495,15 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       await sharingConnection;
     },
     stop: () => { computeEnabled = false; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'false'); return stopContribution(); },
-    shareCachedModels(cachedModels) {
+    async allowCachedCompute(enabled) {
+      if (closed) throw new Error('Network is closed');
+      if (!enabled) return api.stop();
+      computeEnabled = true; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'true'); notify();
+      if (paused || !automaticAllowed) return;
+      return api.shareCachedModels(cachedModels);
+    },
+    shareCachedModels(models) {
+      cachedModels = models.map(({ id, identity }) => ({ id, identity }));
       if (cachedSharing) return cachedSharing;
       if (closed || paused || !automaticAllowed || ordered || canonical) return Promise.resolve();
       const model = LOCAL_DOPPLER_MODELS.find(item => cachedModels.some(cached => cached.id === item.id && cached.identity === item.identity));

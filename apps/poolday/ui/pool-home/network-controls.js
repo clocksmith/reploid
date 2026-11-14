@@ -17,7 +17,7 @@ export const renderComputeSharingControls = () => `<div class="pool-stack pool-g
   <p class="pool-small" data-tab-sharing-summary role="status" hidden></p>
   <div class="network-sharing-row" data-compute-sharing-row>
     <div class="pool-stack pool-gap-xs"><strong>Answer requests</strong>
-      <p class="pool-muted">Download a model and run others’ public prompts.</p>
+      <p class="pool-muted">Share a downloaded model while this page is open. Downloads need your approval.</p>
       <span class="pool-small pool-muted" data-contrib-label>Not sharing</span>
       <p data-contribution-progress role="status" hidden></p>
       <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
@@ -258,6 +258,15 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     const message = find('[data-network-message]');
     message.textContent = network.error || actionError || (relayUnavailableReason() ? 'The relay service is unreachable. New connections are direct only, so some computers may not be reachable.' : ''); message.hidden = !message.textContent;
     const cleanupPending = network.contribution?.unsettledOwners > 0;
+    const usage = state.computerUsage;
+    const tokenText = value => value ? `${value.outputTokens.toLocaleString()}${value.unmeasured ? ' + unmeasured' : ''}` : '—';
+    const supplied = find('[data-device-supplied]'), consumed = find('[data-device-consumed]');
+    if (supplied) supplied.textContent = usage?.supplied?.available ? tokenText(usage.supplied) : '—';
+    if (consumed) consumed.textContent = tokenText(usage?.consumed);
+    const usageScope = find('[data-device-usage-scope]');
+    if (usageScope) usageScope.textContent = `Output tokens in this browser. Supplied: last ${usage?.supplied?.limit ?? 200} contributions. Consumed: saved conversations, including local answers. Credits are separate.`;
+    const usageError = find('[data-device-usage-error]');
+    if (usageError) { usageError.textContent = usage?.error || ''; usageError.hidden = !usageError.textContent; }
     const local = find('[data-local-computer]');
     if (local) {
       const hardware = network.contribution?.hardware || state.localModel?.hardware;
@@ -272,7 +281,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     const deviceSummary = find('[data-device-state-summary]');
     if (deviceSummary) deviceSummary.textContent = cleanupPending ? '· Cleanup not confirmed'
       : network.stopping ? '· Stopping' : network.contribution?.phase === 'loading' ? '· ' + preparationStatus(network.contribution.progress).status
-      : network.contribution?.phase === 'executing' ? '· Working' : network.sharing ? '· ' + (network.contribution?.phase === 'ready' ? 'Ready' : 'Sharing') : ''; 
+      : network.contribution?.phase === 'executing' ? '· Working' : network.sharing ? '· ' + (network.contribution?.phase === 'ready' ? 'Ready' : 'Sharing') : network.computeEnabled ? '· Contribution on' : '· Paused';
     find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
       ? (network.contribution?.phase === 'loading' ? preparationStatus(network.contribution.progress).status
         : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing')) : network.computeEnabled ? 'On · waiting for a downloaded model' : 'Not sharing';
@@ -346,6 +355,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     session.setIntroductionAssistance(!session.getState().network?.introductionAssistance)));
   on('[data-toggle-contribution]', 'click', () => act(async () => {
     const state = session.getState(), network = state.network, enable = !(network?.computeEnabled ?? network?.sharing);
+    if (session.setComputeContribution) return session.setComputeContribution(enable);
     const contribution = network?.contribution;
     const configured = state.models?.find(model => model.id === contribution?.modelId
       && JSON.stringify((model.adapters || []).map(adapter => adapter.identity)) === JSON.stringify(contribution?.adapterIdentities || []));

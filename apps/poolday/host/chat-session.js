@@ -1,4 +1,5 @@
 import { createPrivateComputers } from './private-computers.js';
+import { projectComputerUsage } from './contribution-history.js';
 import { availablePartitionRoute } from './partition-release.js';
 /**
  * @fileoverview Host chat session connecting createChatWorkspace to Doppler WebGPU
@@ -165,7 +166,12 @@ export function createChatSession({
     networkId: currentNetwork,
     retrieval,
     store,
-    execute: execution.execute,
+    execute: async (request, controls) => {
+      const result = await execution.execute(request, controls);
+      // The workspace persists execution metadata. Preserve measured partition/native
+      // usage there as well as the provider's result envelope.
+      return result.usage ? { ...result, execution: { ...result.execution, usage: result.usage } } : result;
+    },
     now,
     id
   });
@@ -266,6 +272,7 @@ export function createChatSession({
 
   const getSessionState = () => {
     const wsState = workspace.getState();
+    const network = copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null });
     // Only active execution metadata is ephemeral. Text and terminal states
     // remain the committed workspace projection supplied above.
     for (const view of wsState.ephemeralExecutions || []) {
@@ -293,7 +300,8 @@ export function createChatSession({
       defaultModel: defaultModels.auto || preferred(catalog) || null,
       discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: acquisition.supportError(),
       localModel: execution.getLocalState(),
-      network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
+      network,
+      computerUsage: projectComputerUsage({ threads: wsState.threads, network }),
       scheduler: execution.getState(),
       placements: projectChatPlacements(wsState.threads),
       history: historyState,
@@ -613,6 +621,11 @@ export function createChatSession({
     setIntroductionAssistance(enabled) {
       if (!swarm) throw new Error('Network unavailable');
       swarm.allowIntroductions(enabled);
+    },
+    async setComputeContribution(enabled) {
+      assertOpen();
+      assert(swarm?.allowCachedCompute, 'Contribution is unavailable');
+      try { await swarm.allowCachedCompute(enabled); } finally { notifyAll(); }
     },
     async setSharing(enabled, selectionId, approved) {
       assertOpen();

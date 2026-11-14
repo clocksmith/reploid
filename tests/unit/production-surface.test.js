@@ -116,7 +116,7 @@ it('keeps one composer picker and contribution in Computers, preserving drafts o
   expect(document.querySelector('[data-conversation-area] [data-production-surface]')).toBeNull();
   expect(document.querySelectorAll('[data-production-surface]')).toHaveLength(1);
   expect(device.open).toBe(false);
-  expect(document.querySelector('[data-device-state-summary]').textContent).toBe('');
+  expect(document.querySelector('[data-device-state-summary]').textContent).toBe('· Paused');
   // Technical facts, providers and execution location stay in one collapsed disclosure, outside the choice list.
   const details = document.querySelector('[data-model-picker] [data-model-details]');
   expect(details.open).toBe(false);
@@ -141,6 +141,52 @@ it('keeps one composer picker and contribution in Computers, preserving drafts o
   expect(session.downloadLocalModel).not.toHaveBeenCalled();
   expect(session.prepareLocalModel).not.toHaveBeenCalled();
   expect(session.setSharing).not.toHaveBeenCalled(); detach();
+});
+
+it('puts this computer first, shows recorded usage, and toggles contribution without a download gate', async () => {
+  const snapshot = { ...state(), computerUsage: { supplied: { available: true, outputTokens: 14, unmeasured: 1, limit: 200 },
+    consumed: { outputTokens: 9, unmeasured: 0 }, error: null } };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    setComputeContribution: vi.fn(), setSharing: vi.fn() };
+  const detach = bindProductionSurface(document.body, session);
+  const pane = document.querySelector('[data-inspector-pane="participants"]');
+  expect(pane.firstElementChild.dataset.thisComputer).toBeDefined();
+  expect(document.querySelector('[data-device-supplied]').textContent).toBe('14 + unmeasured');
+  expect(document.querySelector('[data-device-consumed]').textContent).toBe('9');
+  expect(document.querySelector('[data-toggle-contribution]').getAttribute('aria-checked')).toBe('true');
+  document.querySelector('[data-toggle-contribution]').click();
+  await vi.waitFor(() => expect(session.setComputeContribution).toHaveBeenCalledWith(false));
+  expect(session.setSharing).not.toHaveBeenCalled();
+  detach();
+});
+
+it('keeps native service-credit debt and pending holds separate from browser token counts', async () => {
+  const fleet = { connected: true, requester: { name: 'Native requester' }, computers: [], models: [] };
+  const snapshot = { ...state(), privateComputers: fleet };
+  const accounts = vi.fn(async () => ({ accounts: [{ name: 'Mac', balance: -6, held: 2 }] }));
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    privateComputers: { state: () => fleet, accounts } };
+  const detach = bindProductionSurface(document.body, session);
+  const details = document.querySelector('[data-private-account]');
+  details.open = true; details.dispatchEvent(new Event('toggle'));
+  await vi.waitFor(() => expect(document.querySelector('[data-private-balances]').textContent).toContain('Mac · -6 credits · 2 held, pending'));
+  expect(document.querySelector('[data-device-supplied]').textContent).toBe('—');
+  detach();
+});
+
+it('switches inspector segments by keyboard with one selected tab and matching pane', () => {
+  const snapshot = state();
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session);
+  document.querySelector('[data-inspector-section="participants"]').click();
+  const tab = document.querySelector('[data-inspector-tab="participants"]');
+  tab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  expect(document.querySelectorAll('[data-inspector-tab][aria-selected="true"]')).toHaveLength(1);
+  expect(document.querySelector('[data-inspector-tab="settings"]').getAttribute('aria-selected')).toBe('true');
+  expect(document.querySelector('[data-inspector-tab="settings"]').hasAttribute('aria-pressed')).toBe(false);
+  expect(document.querySelector('[data-inspector-pane="settings"]').hidden).toBe(false);
+  expect(document.querySelector('[data-inspector-pane="participants"]').hidden).toBe(true);
+  detach();
 });
 
 it('retains one picker when capacity disappears or a thread opens', () => {
