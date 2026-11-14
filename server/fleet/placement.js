@@ -83,7 +83,12 @@ export function planFleetPlacement({ computers, demand, models, links, policy, n
     if (whole.length) {
       let count = 0;
       const wanted = Math.ceil(workload.queued / policy.queuedRequestsPerReplica);
+      const considered = new Set();
       for (const candidate of whole) {
+        // Several qualified envelopes describe one computer, not additional replicas.
+        // Sorted order retains that computer's lowest estimated cost.
+        if (considered.has(candidate.computer.id)) continue;
+        considered.add(candidate.computer.id);
         if (occupied.has(candidate.computer.id)) {
           if (candidate.sameResident && count < wanted) {
             count++;

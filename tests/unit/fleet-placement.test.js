@@ -34,6 +34,19 @@ describe('fleet placement', () => {
     expect(run([computer('a'), computer('b')]).routes).toHaveLength(1);
     expect(run([computer('a'), computer('b')], { demand: [{ ...demand[0], queued: 4 }] }).routes).toHaveLength(2);
   });
+  it.each([0, 1])('counts each warm computer once across repeated envelopes (active requests: %s)', activeRequests => {
+    const a = computer('a'), b = computer('b');
+    for (const row of [a, b]) row.resident = { modelIdentity: hash, mode: 'whole-model', preparedAt: 100, gpuBytes: 80, hostBytes: 20 };
+    a.activeRequests = activeRequests;
+    a.measurements = [{ ...measurement(), decodeTokensPerSecond: 5, receipt: 'slower' },
+      { ...measurement(), decodeTokensPerSecond: 20, receipt: 'faster' }, measurement()];
+    const result = run([a, b], { demand: [{ ...demand[0], queued: 4 }] });
+    expect(result.routes.map(route => route.computers)).toEqual([['a'], ['b']]);
+    expect(result.routes.map(route => route.estimatedMs)).toEqual([1500, 2000]);
+    expect(result.decisions).toHaveLength(2);
+    if (!activeRequests) expect(result.decisions[0].evidence).toBe('faster');
+    expect(run([a], { demand: [{ ...demand[0], queued: 4 }] }).routes).toHaveLength(1);
+  });
   it('does not move a busy provider or bypass minimum residency', () => {
     const a = computer('a'); a.activeRequests = 1;
     expect(run([a]).decisions).toEqual([expect.objectContaining({ action: 'retain', reason: 'active-requests' })]);
