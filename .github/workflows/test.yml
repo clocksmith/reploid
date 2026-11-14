@@ -32,6 +32,13 @@ jobs:
       - run: node --test tests/scripts/sync-reploid-library.test.js
       - run: npm run verify:library
       - run: npm ci --omit=optional --no-audit --no-fund
+      # Vitest needs Rollup's native parser. Keep unrelated GPU/provider optional
+      # packages omitted and install only this runner's lockfile-pinned package.
+      - name: Install test parser
+        run: |
+          ROLLUP_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@rollup/rollup-linux-x64-gnu'].version")
+          npm install --no-save --ignore-scripts --omit=optional --no-audit --no-fund "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
+          git diff --exit-code -- package.json package-lock.json
       - name: Check changed code and source boundaries
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
