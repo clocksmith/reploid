@@ -26,10 +26,11 @@ report.fixtureSha256=sha(await fs.readFile(new URL(import.meta.url)));
 report.nativeParticipantSha256=sha(await fs.readFile(new URL('../../server/native-participant.js',import.meta.url)));
 const save=()=>fs.writeFile(c.output,JSON.stringify(report,null,2)+'\n');
 const logger={log(){},info(){},debug(){},warn(...v){console.error(...v)},error(...v){console.error(...v)}};
-let participant,service,device,provider,parts;
+let participant,service,device,provider,parts,resolvePartitionSource;
 let finish;const done=new Promise(r=>{finish=r});
 const keep=setInterval(()=>{},1000);
-process.once('SIGTERM',finish);process.once('SIGINT',finish);
+const stop=async()=>{finish();try{await participant?.stop();}catch(error){console.error(error);}};
+process.once('SIGTERM',stop);process.once('SIGINT',stop);
 try{
  let nativeGpu=async()=>{throw Error('Requester must not open a GPU')};
  let factory=createNativeWholeModel;
@@ -42,6 +43,39 @@ try{
   report.runtimeVersion=runtime.DOPPLER_VERSION;report.runtimeRevision=c.runtimeRevision;
   assert.equal(runtime.DOPPLER_VERSION,c.runtimeVersion,'Pinned runtime version required');
   report.runtimeEntrySha256=sha(await fs.readFile(new URL('src/index.js',base)));
+  if(c.directSource){
+   assert.equal(executionMode,'partition','Direct source fixture is partition-only');
+   const {createVerifiedPieceReader}=await from('src/storage/verified-piece-reader.js');
+   const {createArtifactStorageContext}=await from('src/storage/artifact-storage-context.js');
+   resolvePartitionSource=async({signal})=>{
+    const manifestBytes=await fs.readFile(c.modelDirectory+'/manifest.json'),m=JSON.parse(manifestBytes);
+    const indexBytes=await fs.readFile(c.modelDirectory+'/pieces.json');
+    assert.equal('sha256:'+sha(indexBytes),c.directSource.indexIdentity);
+    const sources=m.metadata.sourceRuntime.sourceFiles;
+    const handles=new Map();
+    const closeHandles=async()=>{await Promise.allSettled([...handles.values()].map(async pending=>(await pending).close()));handles.clear();};
+    const aliases=new Map(sources.map(source=>[source.path,source.filename]));
+    aliases.set(m.metadata.sourceRuntime.tokenizer.jsonPath,'tokenizer.json');
+    const reader=await createVerifiedPieceReader({manifestBytes,indexBytes,indexIdentity:c.directSource.indexIdentity,signal,
+     acquire:async piece=>{
+      if(c.directSource.originalFiles&&piece.path!=='tokenizer.json'){
+       const source=sources.find(value=>value.filename===piece.path);assert(source,'Unknown original source');
+       if(!handles.has(source.path))handles.set(source.path,fs.open(source.path,'r'));
+       const file=await handles.get(source.path),bytes=new Uint8Array(piece.size);let offset=0;
+       while(offset<bytes.length){signal.throwIfAborted();const read=await file.read(bytes,offset,bytes.length-offset,piece.offset+offset);assert(read.bytesRead>0,'Truncated source piece');offset+=read.bytesRead;}
+       return bytes;
+      }
+      return new Uint8Array(await fs.readFile(c.modelDirectory+'/'+piece.path+'.'+piece.offset));
+     }});
+    const alias=path=>{const name=aliases.get(path);assert(name,'Unknown direct-source path');return name;};
+    try{return {manifestBytes,getReceipt:reader.getReceipt,storage:createArtifactStorageContext({manifest:m,
+     readRange:(path,offset,length)=>reader.readRange(alias(path),offset,length),
+     readBinary:path=>reader.readBinary(alias(path)),readText:async path=>new TextDecoder().decode(await reader.readBinary(alias(path))),
+     verifyHashes:true,sourceHashesTrusted:true,close:async()=>{try{await reader.close();}finally{await closeHandles();}}})};}
+    catch(error){try{await reader.close();}finally{await closeHandles();}throw error;}
+   };
+  }
+
   service=createReploidDopplerRuntimeService({loadModule:async()=>runtime,expectedVersion:c.runtimeVersion});
   nativeGpu=async()=>{const r=await provider.bootstrapNodeWebGPU();assert(r.ok,r.detail);};
   factory=options=>{
@@ -52,7 +86,7 @@ try{
  participant=await createNativeParticipant({model:c.model,modelDirectory:c.modelDirectory,identity,
   rtc:createNativeRtcAdapter(rtcModule),WebSocket:WS,signalingUrl:bootstrap.signalingUrl,
   roomId:c.roomId,roomToken:await fs.readFile(c.roomTokenFile,'utf8'),nativeGpu,executionMode,ordered:c.ordered??null,
-  createWholeModel:factory,logger});
+  createWholeModel:factory,resolvePartitionSource,logger});
  if(c.role==='provider'){
   const t=performance.now();report.phase='loading';await save();await participant.contribute(true);
   if(executionMode==='partition'){
@@ -66,6 +100,8 @@ try{
   }
   report.loadMs=performance.now()-t;report.phase='ready';await save();console.log(JSON.stringify({ready:true,participantId:identity.peerId,loadMs:report.loadMs}));
   await done;
+  report.acquisition=participant.getState().acquisition??null;
+  report.memory=process.memoryUsage();report.gpuBuffers=parts?.inspectDeviceMemory?.()??null;
  }else{
   const deadline=Date.now()+c.discoveryTimeoutMs;let found;
   while(Date.now()<deadline){found=participant.getState().models?.find(m=>m.id===c.model.id&&m.identity===c.model.identity&&m.availability==='ready');if(found)break;await new Promise(r=>setTimeout(r,500));}
