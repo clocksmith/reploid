@@ -14,17 +14,8 @@ Use the mesh for availability, independent verification and recovery. Preserve
 the existing credit service as the admission and settlement authority for its
 enrolled accounts. Replicating evidence does not authorize another spend.
 
-```mermaid
-flowchart LR
-  R[Requester: durable receipt copy] <-->|Signed receipt and acknowledgment| P[Supplier: durable receipt copy]
-  R -->|Authorized encrypted evidence| M[Mesh archive peers]
-  P -->|Authorized encrypted evidence| M
-  R --> A[Existing credit admission and settlement]
-  P --> A
-  A -->|Signed ordered settlement records| M
-  M --> V[Independent verification and replay]
-  V --> S[Computer and model summaries]
-```
+See [view 3: record keeping](glossary.md#3-record-keeping) for the diagram,
+with existing paths separated from proposed archive replication and replay.
 
 ## Existing foundation and gaps
 

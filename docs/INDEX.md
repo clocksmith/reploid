@@ -4,6 +4,9 @@ Guide to all documentation in the REPLOID project.
 
 Start with [concepts, glossary and code map](glossary.md) to distinguish Reploid,
 Doppler, WebRTC, WebGPU and the internal Poolday name.
+Its three diagrams cover [the overview](glossary.md#1-overview),
+[one request](glossary.md#2-one-request), and
+[record keeping](glossary.md#3-record-keeping).
 
 Keep [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) as durable direction.
 The public product documents are:

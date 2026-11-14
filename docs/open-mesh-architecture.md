@@ -4,6 +4,9 @@ Mechanisms and ownership live here. The [product contract](product-specification
 
 ## Technical diagrams
 
+Start with the [three plain-language views](glossary.md#1-overview): overview,
+one request, and record keeping. The diagrams below expand the execution details.
+
 The README overview retains its two-contributor example. Its technical diagram
 shows the intended N-stage mesh: a route selected per attempt, a coordinator on
 the first contributor, final-stage sampling, and separate request state on shared
