@@ -107,3 +107,36 @@ describe('fleet placement', () => {
     expect(run([a]).routes).toEqual([]);
   });
 });
+
+it('ranks whole-model service by observed serial queue proxy without moving busy work', () => {
+  const busy = computer('a'), idle = computer('b');
+  for (const row of [busy, idle]) row.resident = { modelIdentity: hash, mode: 'whole-model', preparedAt: 100, gpuBytes: 80, hostBytes: 20 };
+  busy.activeRequests = 1;
+  busy.measurements[0].decodeTokensPerSecond = 20; // 1.5s execution, but a full same-workload wait proxy.
+  busy.deviceQueue = { capacity: 1, active: 1, queued: 0 };
+  idle.deviceQueue = { capacity: 1, active: 0, queued: 0 };
+  const result = run([busy, idle]);
+  expect(result.routes[0]).toMatchObject({ computers: ['b'], estimatedMs: 2000,
+    serviceEstimate: { preparationMs: 0, executionMs: 2000, queueMs: 0, queueBasis: 'serial-count-workload-proxy' } });
+  expect(result.decisions.find(row => row.computerId === 'a')).toMatchObject({ action: 'retain', reason: 'active-requests' });
+  expect(run([busy]).routes[0]).toMatchObject({ estimatedMs: 3000, busy: true,
+    serviceEstimate: { queueMs: 1500 } });
+});
+it('does not invent compute wait from outbound activity, old observations or parallel slots', () => {
+  for (const queue of [undefined, null, { capacity: 2, active: 1, queued: 0 }, { capacity: 1, active: 1, queued: -1 }]) {
+    const row = computer('a');
+    row.resident = { modelIdentity: hash, mode: 'whole-model', preparedAt: 100, gpuBytes: 80, hostBytes: 20 };
+    row.activeRequests = 20; row.deviceQueue = queue;
+    expect(run([row]).routes[0]).toMatchObject({ estimatedMs: 2000,
+      serviceEstimate: { queueMs: null, queueBasis: 'unknown' } });
+  }
+});
+it('keeps feasible whole execution ahead of slower qualified partition capacity', () => {
+  const solo = computer('solo'), a = computer('a'), b = computer('b');
+  a.measurements = [measurement('partition', 0)]; b.measurements = [measurement('partition', 1)];
+  const result = run([solo, a, b], { links: [{ from: 'a', to: 'b', bytesPerSecond: 1e7, latencyMs: 3, observedAt: 9990 }] });
+  expect(result.routes).toHaveLength(1);
+  expect(result.routes[0]).toMatchObject({ mode: 'whole-model', computers: ['solo'] });
+  solo.measurements[0].observedAt = -60000;
+  expect(run([solo, a, b], { links: [{ from: 'a', to: 'b', bytesPerSecond: 1e7, latencyMs: 3, observedAt: 9990 }] }).routes[0].mode).toBe('partition');
+});

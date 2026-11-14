@@ -323,3 +323,15 @@ it('rejects requests whose prompt plus output budget exceed maxSeqLen without cl
   expect(f.owner.getState()).toMatchObject({ phase: 'ready', ready: true, error: null });
   await f.owner.close();
 });
+
+it('projects the shared device queue rather than counting only this provider calls', async () => {
+  const f = fixture(); await f.owner.prepare();
+  const hold = deferred(), entered = deferred();
+  const otherWork = withWorkDevice(f.service, signal(), async () => { entered.resolve(); await hold.promise; });
+  await entered.promise;
+  const pending = f.owner.generate([{ content: 'hello' }], () => {}, { signal: signal() });
+  expect(f.owner.getState().deviceQueue).toEqual({ capacity: 1, active: 1, queued: 1 });
+  hold.resolve(); await Promise.all([otherWork, pending]);
+  expect(f.owner.getState().deviceQueue).toEqual({ capacity: 1, active: 0, queued: 0 });
+  await f.owner.close();
+});

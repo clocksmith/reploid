@@ -2,7 +2,7 @@
 import { createPreparationProgressObserver } from '../../../shared/vendor/reploid/mesh/preparation-progress.js';
 import { openWorkProvider } from './work-provider.js';
 import { retainModelStorage } from '../infrastructure/model-storage-lock.js';
-import { withWorkDevice } from './work-device.js';
+import { withWorkDevice, getWorkDeviceQueue } from './work-device.js';
 
 export function createWorkResidentProvider({ service, model, generation, maxOutcomeCharacters,
   onChange = () => {}, onComplete = () => {}, scope = 'work-resident:' + crypto.randomUUID(), resolveAdapter, resolveSource, source, loadOptions }) {
@@ -17,6 +17,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     modelId: model.id, modelIdentity: identity?.modelIdentity || null,
     adapterIdentities: [...adapterIdentities],
     hardware: adapter?.getHardware() || null,
+    deviceQueue: getWorkDeviceQueue(service),
     contextCache: adapter?.getContextCacheStats?.() || null,
     ready: !closed && !!adapter && adapter.isReady() && ['ready', 'executing'].includes(phase) });
   const notify = () => {

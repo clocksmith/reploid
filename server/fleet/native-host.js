@@ -479,6 +479,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     observation.id = config.computerId; observation.participantId = identity.peerId; observation.observedAt = Date.now();
     observation.preparing = preparing;
     observation.activeRequests = requests.size + activeProviderRequests(activity);
+    // Requester work and unsettled receipts are ownership, not compute queue occupancy.
+    observation.deviceQueue = selected?.mode === 'whole-model' && activity?.deviceQueue
+      ? structuredClone(activity.deviceQueue) : null;
     const residentActive = Boolean(selected && (activity?.ready || ['ready', 'executing', 'draining'].includes(activity?.phase)));
     const residentHostBytes = residentActive ? (hardware.processResidentBytes ?? 0) : 0;
     const ownedHostBudget = Math.min(observation.preferences.maxHostBytes,

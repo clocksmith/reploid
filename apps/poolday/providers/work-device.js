@@ -2,6 +2,12 @@
 // One borrowed GPU operation per runtime service, shared by threads and suppliers.
 // Cancellation removes a waiter; a running operation keeps its slot until settlement.
 const queues = new WeakMap();
+/** Snapshot the actual serial device lane, not network requests or settlement work. */
+export function getWorkDeviceQueue(service) {
+  const queue = queues.get(service);
+  return { capacity: 1, active: queue?.busy ? 1 : 0, queued: queue?.waiting.length ?? 0 };
+}
+
 export async function withWorkDevice(service, signal, operation, onProgress = () => {}) {
   signal.throwIfAborted();
   let queue = queues.get(service);

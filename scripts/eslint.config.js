@@ -9,6 +9,9 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'apps/poolday/providers/work-device.js',
+  'apps/poolday/providers/work-resident-provider.js',
+  'server/fleet/placement.js',
   'packages/reploid/src/mesh/generation-context-cache.js',
   'server/native-model-config.js',
   'packages/reploid/src/mesh/computer-identity.js',

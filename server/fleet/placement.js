@@ -66,7 +66,7 @@ export function planFleetPlacement({ computers, demand, models, links, policy, n
     occupied.add(candidate.computer.id);
     decisions.push({ computerId: candidate.computer.id, action: candidate.sameResident ? 'retain' : 'prepare', reason,
       modelId: model.id, modelIdentity: model.identity, mode: candidate.mode, planId: candidate.planId,
-      stageIndex: candidate.stageIndex, evidence: candidate.measurement.receipt, estimatedMs: candidate.costMs });
+      stageIndex: candidate.stageIndex, evidence: candidate.measurement.receipt, estimatedMs: candidate.costMs, serviceEstimate: candidate.serviceEstimate });
   }
   const workloads = structuredClone(demand).sort((a, b) => b.queued - a.queued || a.since - b.since || a.id.localeCompare(b.id));
   for (const workload of workloads) {
@@ -75,9 +75,22 @@ export function planFleetPlacement({ computers, demand, models, links, policy, n
     if (workload.queued === 0) continue;
     const model = catalog.find(value => key(value) === key(workload));
     if (!model) { unavailable.push({ modelId: workload.id, reason: 'unknown-exact-model' }); continue; }
-    const cost = candidate => ({ ...candidate, costMs: (candidate.sameResident ? 0 : candidate.measurement.loadMs)
-      + 1000 * (workload.promptTokens / candidate.measurement.prefillTokensPerSecond
-      + workload.outputTokens / candidate.measurement.decodeTokensPerSecond) });
+    const cost = candidate => {
+      const executionMs = 1000 * (workload.promptTokens / candidate.measurement.prefillTokensPerSecond
+        + workload.outputTokens / candidate.measurement.decodeTokensPerSecond);
+      const preparationMs = candidate.sameResident ? 0 : candidate.measurement.loadMs;
+      const queue = candidate.computer.deviceQueue;
+      // Only the actual serial device lane supplies a wait proxy. activeRequests
+      // includes outbound work/cleanup and cannot establish GPU queue length.
+      // This assumes each occupied slot costs another current-workload execution:
+      // not measured remaining time, and never an execution deadline guarantee.
+      const observedQueue = candidate.sameResident && candidate.mode === 'whole-model'
+        && queue?.capacity === 1 && integer(queue.active) && queue.active <= 1 && integer(queue.queued);
+      const queueMs = observedQueue ? (queue.active + queue.queued) * executionMs : null;
+      return { ...candidate, costMs: preparationMs + executionMs + (queueMs ?? 0),
+        serviceEstimate: { preparationMs, executionMs, queueMs,
+          queueBasis: observedQueue ? 'serial-count-workload-proxy' : 'unknown' } };
+    };
     const whole = candidates(model, workload, 'whole-model').map(cost).sort(compare);
     // The product contract prefers feasible whole-model service, including a busy provider's next slot.
     if (whole.length) {
@@ -93,13 +106,13 @@ export function planFleetPlacement({ computers, demand, models, links, policy, n
           if (candidate.sameResident && count < wanted) {
             count++;
             routes.push({ modelId: model.id, modelIdentity: model.identity, mode: 'whole-model', computers: [candidate.computer.id],
-              estimatedMs: candidate.costMs, busy: candidate.computer.activeRequests > 0 });
+              estimatedMs: candidate.costMs, serviceEstimate: candidate.serviceEstimate, busy: candidate.computer.activeRequests > 0 });
           }
           continue;
         }
         if (count >= wanted) break;
         assign(candidate, model, count ? 'queued-demand-replica' : 'fastest-feasible-whole-model'); count++;
-        routes.push({ modelId: model.id, modelIdentity: model.identity, mode: 'whole-model', computers: [candidate.computer.id], estimatedMs: candidate.costMs });
+        routes.push({ modelId: model.id, modelIdentity: model.identity, mode: 'whole-model', computers: [candidate.computer.id], estimatedMs: candidate.costMs, serviceEstimate: candidate.serviceEstimate });
       }
       if (!count) unavailable.push({ modelId: model.id, reason: 'eligible-computer-busy' });
       continue;
