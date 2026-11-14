@@ -4,6 +4,7 @@ import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partit
 // sampling). Contributors report them; only finite non-negative numbers count.
 const STAGE_RUNTIME_KEYS = Object.freeze(['executionMs', 'inputUploadMs', 'encodeMs', 'submitWaitMs',
   'activationReadbackMs', 'logitsMs', 'gpuKernelsMs', 'logitsReadbackMs', 'samplingMs']);
+const TRANSPORT_KEYS = Object.freeze(['authorizationMs', 'readyWaitMs', 'payloadUploadMs', 'responseWaitMs', 'acceptanceMs', 'totalMs']);
 const measuredMs = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
 
 /** Step 0 carries the whole prompt (prefill and the first sampled token); later
@@ -19,13 +20,18 @@ function summarizeOrderedPhases(steps) {
   const first = steps[0];
   const prompt = first ? { inputTokens: Number.isSafeInteger(first.inputTokenCount) ? first.inputTokenCount : null,
     stages: (first.stages || []).map(stage => ({ partitionIndex: stage.partitionIndex, elapsedMs: measuredMs(stage.elapsedMs),
-      runtime: Object.fromEntries(STAGE_RUNTIME_KEYS.map(key => [key, measuredMs(stage.metrics?.[key])])) })) } : null;
+      runtime: Object.fromEntries(STAGE_RUNTIME_KEYS.map(key => [key, measuredMs(stage.metrics?.[key])])),
+      ...(stage.transportTiming ? { transport: Object.fromEntries(TRANSPORT_KEYS.map(key => [key, measuredMs(stage.transportTiming[key])])) } : {}) })) } : null;
   const decodeStages = new Map();
   for (const step of steps.slice(1)) for (const stage of step.stages || []) {
     const row = decodeStages.get(stage.partitionIndex) || { partitionIndex: stage.partitionIndex, elapsedMs: aggregate(),
       runtime: Object.fromEntries(STAGE_RUNTIME_KEYS.map(key => [key, aggregate()])) };
     add(row.elapsedMs, measuredMs(stage.elapsedMs));
     for (const key of STAGE_RUNTIME_KEYS) add(row.runtime[key], measuredMs(stage.metrics?.[key]));
+    if (stage.transportTiming) {
+      row.transport ??= Object.fromEntries(TRANSPORT_KEYS.map(key => [key, aggregate()]));
+      for (const key of TRANSPORT_KEYS) add(row.transport[key], measuredMs(stage.transportTiming[key]));
+    }
     decodeStages.set(stage.partitionIndex, row);
   }
   return { prompt, decode: { steps: Math.max(steps.length - 1, 0), stages: [...decodeStages.values()] } };
@@ -76,7 +82,7 @@ export function summarizePartitionExecution(execution) {
         add(`${owner}.${key}`, step[owner]?.[key]);
       }
     }
-    for (const key of ['authorizationMs', 'readyWaitMs', 'payloadUploadMs', 'responseWaitMs', 'acceptanceMs', 'totalMs']) {
+    for (const key of TRANSPORT_KEYS) {
       add(`transportTiming.${key}`, step.transportTiming?.[key]);
     }
   }

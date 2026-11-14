@@ -297,7 +297,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
             assert(sameRouteAttemptIdentity(result?.identity, binding) && result.partitionIndex === stage
               && result.step === index && result.tokenPosition === position, 'Ordered stage result binding mismatch');
             continuations[stage] = result.continuation;
-            stageMetrics.push({ partitionIndex: stage, elapsedMs, metrics: result.metrics ?? null });
+            stageMetrics.push({ partitionIndex: stage, elapsedMs, metrics: result.metrics ?? null, transportTiming: result.transportTiming ?? null });
             if (stage === devices.length - 1) { final = result; break; }
             assert(!('tokenId' in result) && !('delta' in result), 'Only final stage may sample or publish tokens');
             const tensor = result.activationTensor;

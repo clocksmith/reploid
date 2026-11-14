@@ -48,6 +48,11 @@ it('bounds N-stage receipts while retaining complete and missing timing coverage
     result: { content: '字'.repeat(policy.inputLimits.maxOutputCharacters), execution: summary } };
   expect(new TextEncoder().encode(JSON.stringify(frame)).byteLength).toBeLessThan(policy.inputChannel.maxControlBytes);
   expect(execution.steps).toHaveLength(count);
+  // Full transport coverage remains within the existing final control frame budget.
+  for (const step of execution.steps) for (const stage of step.stages) stage.transportTiming = {
+    authorizationMs: 1, readyWaitMs: 1, payloadUploadMs: 1, responseWaitMs: 5, acceptanceMs: 1, totalMs: 9 };
+  frame.result.execution = summarizePartitionExecution(execution);
+  expect(new TextEncoder().encode(JSON.stringify(frame)).byteLength).toBeLessThan(policy.inputChannel.maxControlBytes);
 });
 
 it('separates prompt prefill from decode per stage and keeps contributor runtime metrics', () => {
@@ -78,4 +83,18 @@ it('ignores contributor timing values that are not finite non-negative numbers',
   expect(phases.prompt.inputTokens).toBeNull();
   expect(phases.prompt.stages[0].runtime).toMatchObject({ executionMs: null, encodeMs: null, submitWaitMs: null, logitsMs: 3 });
   expect(phases.decode).toEqual({ steps: 0, stages: [] });
+});
+
+it('retains bounded coordinator transport timing by phase without calling response wait network time', () => {
+  const stage = transportTiming => ({ partitionIndex: 1, elapsedMs: 10, transportTiming });
+  const execution = { schema: 'reploid.mesh.partition-execution/v3', steps: [
+    { inputTokenCount: 3, stages: [stage({ totalMs: 9, responseWaitMs: 8 })] },
+    { stages: [stage({ totalMs: 7, responseWaitMs: 6 })] },
+    { stages: [stage({ totalMs: 8, responseWaitMs: NaN, payloadUploadMs: -1 })] }
+  ] };
+  const { phases } = summarizePartitionExecution(execution).stepSummary;
+  expect(phases.prompt.stages[0].transport).toMatchObject({ totalMs: 9, responseWaitMs: 8, payloadUploadMs: null });
+  expect(phases.decode.stages[0].transport.totalMs).toEqual({ count: 2, total: 15, min: 7, max: 8 });
+  expect(phases.decode.stages[0].transport.responseWaitMs).toEqual({ count: 1, total: 6, min: 6, max: 6 });
+  expect(phases.decode.stages[0].transport.payloadUploadMs.count).toBe(0);
 });

@@ -1,3 +1,4 @@
+import type { PartitionRequestTiming } from '../../transport/partition-data-channel.js';
 import type { PartitionActivity } from './partition-summary.js';
 import type { OrderedPartitionPlan, OrderedPartitionRuntime, PartitionRoute, RouteAttemptBinding } from './partition-contract.js';
 import type { ActivationTensor, ActivationFrame } from './partition-runner.js';
@@ -19,6 +20,8 @@ export interface OrderedStageResult extends OrderedStageBinding {
   step: number; tokenPosition: number; continuation: unknown;
   activationTensor?: ActivationTensor; tokenId?: number; delta?: string; done?: boolean; stopReason?: string;
   logits?: Float32Array | number[]; metrics?: Record<string, unknown>;
+  /** Coordinator-side channel timing, not contributor compute or pure network latency. */
+  transportTiming?: PartitionRequestTiming | null;
   /** A stage's signed cumulative receipt of a charged attempt. */
   receipt?: StageReceipt;
 }
@@ -67,7 +70,7 @@ export interface OrderedRouteReceipt {
 export interface OrderedRouteResult {
   content: string; tokenIds: number[]; logits: Float32Array | number[] | null; stopReason: string;
   execution: { schema: 'reploid.mesh.partition-execution/v3'; identity: RouteAttemptBinding; activationBytes: number; stopReason: string;
-    steps: Array<OrderedStep & { tokenId: number; stages: Array<{ partitionIndex: number; elapsedMs: number; metrics: Record<string, unknown> | null }> }>;
+    steps: Array<OrderedStep & { tokenId: number; stages: Array<{ partitionIndex: number; elapsedMs: number; metrics: Record<string, unknown> | null; transportTiming?: PartitionRequestTiming | null }> }>;
     settlement: OrderedRouteReceipt };
 }
 export interface OrderedRouteRunner {

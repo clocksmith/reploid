@@ -395,20 +395,22 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
           else sent.push(digest);
         }
         if (active.has(attemptId)) verifiedGrants.set(attemptId, own);
+        let transportTiming = null;
         const reply = await endpoint.request(wire, new Uint8Array(buffer), { signal: request.signal,
+          onTiming: value => { transportTiming = value; },
           ...(final ? {} : { maxResponseBytes: activationBytes(metadata) }) });
         const response = final ? reply : reply.result;
         assert(sameRouteAttemptIdentity(response.identity, metadata.identity) && response.partitionIndex === index
           && response.step === metadata.step && response.tokenPosition === metadata.tokenPosition, 'Ordered response binding mismatch');
         for (const digest of sent) known.add(digest);
         if (active.has(attemptId)) delivered.set(attemptId, known);
-        if (final) return response;
+        if (final) return { ...response, transportTiming };
         const { frame: output, outputDigest, ...rest } = response;
         assert(validFrame(metadata, reply.bytes.byteLength, output)
           && await partitionFingerprint(output, reply.bytes) === outputDigest, 'Ordered binary output missing or altered');
         const decoded = runtime.validateActivationFrameForPlan({ ...output, buffer: reply.bytes.slice().buffer }, plan);
         const { tensorData: data, ...geometry } = decoded;
-        return { ...rest, outputDigest, activationTensor: { ...geometry, data } };
+        return { ...rest, outputDigest, transportTiming, activationTensor: { ...geometry, data } };
       } finally { inflight.delete(attemptId); }
     }
   });

@@ -45,6 +45,13 @@ describe('ordered authenticated peer (in-process channels, injected computation)
     const f = await fixture();
     try {
       const result = await f.runner.execute(f.request);
+      for (const step of result.execution.steps) {
+        expect(step.stages[0].transportTiming).toBeNull();
+        for (const stage of step.stages.slice(1)) {
+          expect(stage.transportTiming.totalMs).toBeGreaterThanOrEqual(0);
+          expect(stage.transportTiming.responseWaitMs).toBeGreaterThanOrEqual(0);
+        }
+      }
       expect(result.content).toBe('012'); expect(f.f.stages[1].executeStage).toHaveBeenCalledTimes(3);
       expect(f.f.stages[2].executeStage).toHaveBeenCalledTimes(3);
       expect(f.peers.every(p=>p.client.getState().unsettled === 0 && p.server.getState().unsettled === 0)).toBe(true);
