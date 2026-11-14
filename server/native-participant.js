@@ -172,7 +172,29 @@ export function createNativeRtcAdapter(rtc) {
 }
 
 /** Read only complete authenticated pieces requested by Doppler's public reader. */
-export async function openNativeModelSource({ model, modelDirectory, signal, runtime, files }) {
+export async function openNativeModelSource({ model, modelDirectory, signal, runtime, files, resolveSource = null }) {
+  // Trusted native composition only: the resolver owns authenticated range reads and lifetime.
+  // Bind the parsed manifest to the approved bytes; never accept a separate mutable manifest.
+  if (resolveSource !== null) {
+    requireValue(typeof resolveSource === 'function' && model.capsule === undefined,
+      'Explicit source resolver requires an unsigned native manifest model');
+    signal?.throwIfAborted();
+    const source = await resolveSource({ model: structuredClone(model), modelDirectory, signal });
+    try {
+      signal?.throwIfAborted();
+      requireValue(source?.manifestBytes instanceof Uint8Array && hash(source.manifestBytes) === model.identity,
+        'Native resolved manifest differs from the approved catalog');
+      const manifest = JSON.parse(new TextDecoder().decode(source.manifestBytes));
+      requireValue(manifest.modelId === model.id && source.storage && typeof source.storage.close === 'function'
+        && typeof source.getReceipt === 'function',
+        'Native resolved source requires the selected model, owned storage and acquisition receipt');
+      return { manifest, storage: source.storage, getReceipt: () => source.getReceipt() };
+    } catch (error) {
+      try { await source?.storage?.close?.(); }
+      catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Native resolved source admission and cleanup failed'); }
+      throw error;
+    }
+  }
   if (files) return files.preparePartitionSource(model, { signal });
   const root = await fs.realpath(modelDirectory);
   const read = async (name, offset, size) => {
@@ -280,7 +302,7 @@ export function createNativeGpuHost(loadProvider, { backend = process.platform =
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
-  gpuBufferBytes, evidenceSigner = null, onEvidence = null, shaderCache = null }) {
+  gpuBufferBytes, evidenceSigner = null, onEvidence = null, shaderCache = null, resolveSource = null }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
@@ -296,7 +318,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   }
   await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes ?? selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes });
-  const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files });
+  const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files, resolveSource });
   let resident, release = null, capsuleVerification = null, commitAuthority = null;
   const ownerId = canonical ? crypto.randomUUID().replaceAll('-', '') : null;
   let ownershipRecorded = false;
@@ -386,7 +408,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
-  generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel }) {
+  generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel, resolvePartitionSource = null }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
   requireValue(executionAdmission === null || ['whole', 'partition', 'partitionReceipt', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
@@ -563,7 +585,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         networks.add(network); return network;
       },
       loadProgram: async (selected, index, controls) => {
-        const program = await openNativePartition({ model: selected, index, modelDirectory,
+        const program = await openNativePartition({ model: selected, index, modelDirectory, resolveSource: resolvePartitionSource,
           releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
           nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
           onEvidence: executionAdmission ? bundle => executionAdmission.partitionReceipt(bundle) : null,

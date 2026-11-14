@@ -91,6 +91,34 @@ describe('native host boundary', () => {
     normalizeNativeDataChannel(unreliable);
     expect(unreliable).toEqual({ maxRetransmits: 0, maxPacketLifeTime: 100, ordered: false });
   });
+  it('binds an explicit native source to exact manifest bytes and owns failed admission cleanup', async () => {
+    const manifestBytes = new TextEncoder().encode(JSON.stringify({ modelId: 'direct-source', shards: [] }));
+    const model = { id: 'direct-source', identity: hash(manifestBytes) };
+    const storage = { close: vi.fn(), loadShardRange: vi.fn() };
+    const resolveSource = vi.fn(async () => ({ manifestBytes, manifest: { modelId: 'untrusted-extra' }, storage, getReceipt: () => ({ sourceKind: 'fixture' }) }));
+    const source = await openNativeModelSource({ model, resolveSource });
+    expect(source.manifest).toEqual({ modelId: 'direct-source', shards: [] });
+    expect(source.storage).toBe(storage);
+    expect(source.getReceipt()).toEqual({ sourceKind: 'fixture' });
+    expect(storage.close).not.toHaveBeenCalled();
+    await expect(openNativeModelSource({ model: { ...model, identity: 'sha256:' + '0'.repeat(64) }, resolveSource }))
+      .rejects.toThrow('differs');
+    expect(storage.close).toHaveBeenCalledOnce();
+    await expect(openNativeModelSource({ model: { ...model, id: 'other' }, resolveSource }))
+      .rejects.toThrow('selected model');
+    expect(storage.close).toHaveBeenCalledTimes(2);
+    await expect(openNativeModelSource({ model: { ...model, capsule: {} }, resolveSource }))
+      .rejects.toThrow('unsigned native');
+    expect(resolveSource).toHaveBeenCalledTimes(3);
+  });
+  it('closes an acquired native source when cancelled during opening', async () => {
+    const controller = new AbortController(), close = vi.fn();
+    await expect(openNativeModelSource({ model: { id: 'test' }, signal: controller.signal,
+      resolveSource: async () => { controller.abort(new Error('cancelled')); return { storage: { close } }; } }))
+      .rejects.toThrow('cancelled');
+    expect(close).toHaveBeenCalledOnce();
+  });
+
   it('reads the required verified piece and never opens an unrelated corrupt piece', async () => {
     const { directory, model } = await fixture();
     await fs.writeFile(path.join(directory, 'weights.bin'), Buffer.from([1, 2, 3, 4, 99, 99, 99, 99]));
