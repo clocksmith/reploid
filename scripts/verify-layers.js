@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
+import { browserModuleReferences } from '../server/browser-module-references.js';
 import { SURFACE_INTENTS } from '../shared/config/surface-intents.js';
 import { BROWSER_ROOTS, resolveServedFile, servedPathOf } from '../server/browser-roots.js';
 
@@ -27,16 +28,8 @@ const walk = (node, visit) => {
   }
 };
 export function moduleEdges(source) {
-  const edges = [];
-  walk(parse(source, { ecmaVersion: 'latest', sourceType: 'module' }), node => {
-    if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration', 'ImportExpression'].includes(node.type) && node.source) {
-      const value = node.source;
-      const specifier = value.type === 'Literal' && typeof value.value === 'string' ? value.value
-        : value.type === 'TemplateLiteral' && !value.expressions.length ? value.quasis[0].value.cooked : null;
-      edges.push({ specifier, expression: source.slice(value.start, value.end), dynamic: node.type === 'ImportExpression' });
-    }
-  });
-  return edges;
+  return browserModuleReferences(source).map(reference => ({ specifier: reference.value,
+    expression: reference.expression, dynamic: reference.dynamic }));
 }
 export const extractModuleSpecifiers = source => [...new Set(moduleEdges(source).map(edge => edge.specifier).filter(Boolean))];
 const resolveEdge = (root, file, specifier) => {
@@ -53,15 +46,18 @@ export const toLayerPath = value => {
   const served = servedPathOf(normalized);
   return served === null || normalized.startsWith('self/') ? normalized : `self/${served}`;
 };
-export function findLayerViolations({ repoRoot, sourcePath, source }) {
+export function findLayerViolations({ repoRoot, sourcePath, source, edges = moduleEdges(source) }) {
   const relative = toLayerPath(path.relative(repoRoot, sourcePath)), sourceLayer = classifyLayer(relative);
   if (!sourceLayer) return [];
-  return moduleEdges(source).flatMap(({ specifier }) => {
+  return edges.flatMap(({ specifier }) => {
     if (!specifier) return [];
     const resolved = resolveEdge(repoRoot, sourcePath, specifier);
     const target = resolved ? toLayerPath(path.relative(repoRoot, resolved)) : specifier;
     const targetLayer = classifyLayer(target);
     let reason = null;
+    if (sourceLayer === 'server' && resolved && posix(path.relative(repoRoot, resolved)).startsWith('apps/poolday/providers/')) {
+      reason = 'native hosts must use shared execution ports, not product provider implementations';
+    }
     if (sourceLayer === 'packages/reploid/src' &&
       (resolved ? !target.startsWith('packages/reploid/src/') : !(relative === 'packages/reploid/src/adapters/doppler.js' && specifier === 'doppler-gpu'))) reason = 'library must remain independent of host and Node services';
     if (forbidden[sourceLayer]?.includes(targetLayer)) reason = 'forbidden layer dependency';
@@ -139,19 +135,55 @@ export function findExecutionOwnerViolations(relative, source) {
   });
   return errors;
 }
-export function verifyRepositoryLayers(repoRoot) {
+export function validateArchitectureExceptions(exceptions, repoRoot) {
+  const violations = [];
+  for (const kind of ['loaders', 'cycles']) {
+    if (!Array.isArray(exceptions[kind])) {
+      violations.push({ source: 'scripts/architecture-exceptions.json', reason: `${kind} must be an array` });
+      continue;
+    }
+    for (const entry of exceptions[kind]) {
+      if (!entry || typeof entry !== 'object') {
+        violations.push({ source: 'scripts/architecture-exceptions.json', reason: 'exception must be an object' });
+        continue;
+      }
+      const fields = kind === 'loaders' ? ['source', 'expression', 'owner', 'contract', 'removalCondition'] : ['owner', 'contract', 'removalCondition'];
+      const missing = fields.filter(field => typeof entry[field] !== 'string' || !entry[field].trim());
+      if (missing.length) violations.push({ source: entry.source || 'scripts/architecture-exceptions.json', reason: `exception requires ${missing.join(', ')}` });
+      if (typeof entry.owner === 'string' && entry.owner.trim()) {
+        const owner = path.resolve(repoRoot, entry.owner.split('#')[0]);
+        if (!owner.startsWith(path.resolve(repoRoot) + path.sep) || !fs.existsSync(owner) || !fs.statSync(owner).isFile()) {
+          violations.push({ source: entry.source, reason: `exception owner does not exist inside repository: ${entry.owner}` });
+        }
+      }
+      if (kind === 'cycles' && (!Array.isArray(entry.path) || entry.path.length < 2)) {
+        violations.push({ source: 'scripts/architecture-exceptions.json', reason: 'cycle exception requires a dependency path' });
+      }
+    }
+  }
+  return violations;
+}
+
+export function verifyRepositoryLayers(repoRoot, { checkDelivery: verifyDelivery = true } = {}) {
   const violations = [], graph = new Map();
   const exceptionsFile = path.join(repoRoot, 'scripts/architecture-exceptions.json');
   const exceptions = fs.existsSync(exceptionsFile) ? JSON.parse(fs.readFileSync(exceptionsFile, 'utf8')) : { loaders: [], cycles: [] };
+  violations.push(...validateArchitectureExceptions(exceptions, repoRoot));
   for (const sourceRoot of ['packages/reploid/src', ...BROWSER_ROOTS, 'packages/functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
     const relative = toLayerPath(path.relative(repoRoot, file));
     // Inspect canonical inputs, not minified copies of their loader expressions.
     // The CLI separately rebuilds this exact output in memory and checks its bytes.
     if (relative === 'self/ui/pool-home/app.bundle.js') continue;
     const source = fs.readFileSync(file, 'utf8');
-    violations.push(...findExecutionOwnerViolations(relative, source));
-    violations.push(...findLayerViolations({ repoRoot, sourcePath: file, source }));
-    const edges = moduleEdges(source);
+    let edges;
+    try {
+      edges = moduleEdges(source);
+      violations.push(...findExecutionOwnerViolations(relative, source));
+      violations.push(...findLayerViolations({ repoRoot, sourcePath: file, source, edges }));
+    } catch (error) {
+      violations.push({ source: relative, reason: `dependency references could not be parsed: ${error.message}` });
+      continue;
+    }
     graph.set(relative, edges.filter(edge => edge.specifier).map(edge => resolveEdge(repoRoot, file, edge.specifier))
       .filter(Boolean).map(target => toLayerPath(path.relative(repoRoot, target))));
     for (const edge of edges.filter(edge => !edge.specifier)) {
@@ -179,7 +211,7 @@ export function verifyRepositoryLayers(repoRoot) {
       }
     }
   };
-  checkDelivery(sourceRoot);
+  if (verifyDelivery) checkDelivery(sourceRoot);
   const checkOrphans = (directory, relative = '') => {
     if (!fs.existsSync(directory)) return;
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
@@ -191,15 +223,20 @@ export function verifyRepositoryLayers(repoRoot) {
       }
     }
   };
-  checkOrphans(deliveryRoot);
+  if (verifyDelivery) checkOrphans(deliveryRoot);
   return violations;
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const args = process.argv.slice(2);
+  if (args.some(arg => arg !== '--source-only')) throw Error('Usage: verify-layers.js [--source-only]');
+  const sourceOnly = args.includes('--source-only');
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const violations = verifyRepositoryLayers(root);
+  const violations = verifyRepositoryLayers(root, { checkDelivery: !sourceOnly });
   try {
-    const { buildProductEntry } = await import('./build-product-entry.js');
-    await buildProductEntry({ checkOnly: true });
+    if (!sourceOnly) {
+      const { buildProductEntry } = await import('./build-product-entry.js');
+      await buildProductEntry({ checkOnly: true });
+    }
   }
   catch (error) { violations.push({ source: 'self/ui/pool-home/app.bundle.js', reason: error.message }); }
   const { findBoundaryViolations } = await import('./verify-browser-boundaries.js');
@@ -209,5 +246,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     violations.push({ source: 'self/config/module-registry.json', reason: 'optional X capability is required by Zero', chain });
   }
   if (violations.length) { console.error(JSON.stringify(violations, null, 2)); process.exitCode = 1; }
-  else console.log('Layer, ownership boundary, loader, cycle and canonical delivery verification passed.');
+  else console.log(sourceOnly ? 'Source layer, ownership boundary, loader and cycle verification passed.'
+    : 'Layer, ownership boundary, loader, cycle and canonical delivery verification passed.');
 }

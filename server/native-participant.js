@@ -34,7 +34,7 @@ import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/re
 import { signGenerationTerminal } from '../packages/reploid/src/artifacts/generation-terminal.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { resolveConfig, requireResolvedConfig } from '../packages/reploid/src/config/index.js';
-import { createWorkAdapterResolver } from '../apps/poolday/providers/work-adapter.js';
+import { createModelAdapterResolver } from '../packages/reploid/src/adapters/model-adapter.js';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
 import custodyPolicy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
@@ -360,7 +360,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession, canonical: !!canonical,
         onVerification: value => { capsuleVerification = value; }, onLoadProgress });
-    } else factory = runtime.createManifestResidentPartitionFactory({ resolveAdapter: createWorkAdapterResolver({ models: [selected], acquire: files?.acquireAdapter }), manifest, manifestIdentity: selected.identity, onLoadProgress,
+    } else factory = runtime.createManifestResidentPartitionFactory({ resolveAdapter: createModelAdapterResolver({ models: [selected], acquire: files?.acquireAdapter }), manifest, manifestIdentity: selected.identity, onLoadProgress,
       runtimeConfig: selected.partitionRuntime?.runtimeConfig ?? { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
@@ -458,7 +458,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   // A whole-model contributor completes its model directory from authorized peers before loading.
   const whole = wholeMode ? createWholeModel({ model, modelDirectory, nativeGpu, owner: ownerGate,
     fill: cacheDirectory ? ({ signal }) => files.fillWholeModel(model, { signal, onProgress: onModelFill }) : null,
-    resolveAdapter: createWorkAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
+    resolveAdapter: createModelAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
   const mesh = createPeerGenerationMesh({ config, ports: {
     generationJournal,

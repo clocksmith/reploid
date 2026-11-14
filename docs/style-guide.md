@@ -39,10 +39,22 @@ rules. This guide adds no backend support or public service promise.
 | Standard | Evidence |
 | --- | --- |
 | Locate the existing owner before adding a validator, serializer, lifecycle helper or UI primitive. Share only equivalent contracts; preserve permissions, signed bytes, failure handling and resource ownership. Name a responsibility, not a generic utility bucket. | Layer checks plus focused consumer and failure tests; equivalence requires review. |
-| Keep browser, Node and worker dependencies distinct. Add cleaned helpers to the scoped unused-variable gate. | `scripts/eslint.config.js` scopes globals and lists covered modules; unrelated legacy debt remains visible. |
+| Keep browser, Node and worker dependencies distinct. New modules must have no unused variables or nested ternaries; extend cleaned scopes when editing lifecycle code. | `scripts/lint-changed-code.js --base <commit>` automatically applies cleaned rules to new modules. `scripts/eslint.config.js` scopes globals and existing cleaned modules; CI lints changed source. |
 | Give extracted modules explicit inputs and ownership. Prefer existing components and tokens to copied markup/styles. | Nearest CATSCAN, consumer tests, CSS layer checker and relevant browser checks. |
-| New or changed exceptions identify paths, reason and removal condition. Generated SDK/source mirrors are generated artifacts, not independent implementations. | Owning policy/provenance checks and review; unverified exceptions remain debt. |
+| New or changed exceptions identify paths, reason and removal condition. Generated SDK/source mirrors are generated artifacts, not independent implementations. | `node scripts/verify-layers.js --source-only` validates source boundaries, parsing, cycles and exception owner files/removal conditions in CI. Delivery checks remain with the existing mirror and bundle steps. |
 | Verify affected behavior, then stop. A passing scoped check does not establish whole-tree compliance, GPU qualification or production deployment. | `AGENTS.md` development verification; no new full-suite or campaign gate. |
+
+Source checking and browser-tree rewriting share
+[`browserModuleReferences`](../server/browser-module-references.js). It recognizes
+imports and `new URL(path, import.meta.url)` assets; ordinary data strings stay
+unchanged and syntax failures are errors. Source checks do not rebuild bundles.
+
+Resident execution lives in `packages/reploid/src/adapters/resident-execution.js`.
+Hosts supply provider construction, storage lifetime, catalog configuration and
+observers. Browser storage leases and native filesystem policy stay with their
+hosts. The UI calls `setComputeContribution(enabled)` and renders host network
+state; explicit model setup is a separate action. Compatibility re-exports preserve
+existing imports without maintaining another implementation.
 
 ## Test value
 

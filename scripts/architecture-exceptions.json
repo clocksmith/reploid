@@ -11,193 +11,225 @@
       "source": "self/host/work-model-files.js",
       "expression": "DOPPLER_PARTITIONS_MODULE_URL",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Pinned public Doppler partition storage API verifies selectively acquired pieces against the catalog index. Peers cannot select runtime code or module URLs."
+      "contract": "Pinned public Doppler partition storage API verifies selectively acquired pieces against the catalog index. Peers cannot select runtime code or module URLs.",
+      "removalCondition": "Remove when self/host/work-model-files.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/work-partitions.js",
       "expression": "DOPPLER_PARTITIONS_MODULE_URL",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Pinned public Doppler partition API owns plan and computation semantics. The host loads it only for approved compute contribution; peers cannot select runtime code or module URLs."
+      "contract": "Pinned public Doppler partition API owns plan and computation semantics. The host loads it only for approved compute contribution; peers cannot select runtime code or module URLs.",
+      "removalCondition": "Remove when self/host/work-partitions.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/work-partitions.js",
       "expression": "DOPPLER_MODULE_URL",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Pinned public Doppler Capsule API opens only the host-selected signed resident artifact after partition admission. Peers cannot select runtime code or module URLs; signature, release, target and piece verification remain required."
+      "contract": "Pinned public Doppler Capsule API opens only the host-selected signed resident artifact after partition admission. Peers cannot select runtime code or module URLs; signature, release, target and piece verification remain required.",
+      "removalCondition": "Remove when self/host/work-partitions.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/work-model-files.js",
       "expression": "globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Pinned host-selected Doppler storage tooling verifies canonical catalog bytes. Peer inventories cannot select runtime code or URLs."
+      "contract": "Pinned host-selected Doppler storage tooling verifies canonical catalog bytes. Peer inventories cannot select runtime code or URLs.",
+      "removalCondition": "Remove when self/host/work-model-files.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/work-model-files.js",
       "expression": "new URL('./storage/artifact-storage-context.js', new URL(globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL, location.href)).href",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Pinned Doppler artifact storage context receives verified file callbacks. The path is fixed relative to the configured runtime; no peer-controlled specifier or substitute inference implementation."
+      "contract": "Pinned Doppler artifact storage context receives verified file callbacks. The path is fixed relative to the configured runtime; no peer-controlled specifier or substitute inference implementation.",
+      "removalCondition": "Remove when self/host/work-model-files.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/product-session.js",
       "expression": "DOPPLER_PARTITIONS_MODULE_URL",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Pinned public Doppler partition API supplies only metadataDigest for requester-owned ordered history records. The host loads it when the installed catalog declares an ordered plan; peers cannot select runtime code or module URLs."
+      "contract": "Pinned public Doppler partition API supplies only metadataDigest for requester-owned ordered history records. The host loads it when the installed catalog declares an ordered plan; peers cannot select runtime code or module URLs.",
+      "removalCondition": "Remove when self/host/product-session.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/boot-helpers/modules.js",
       "expression": "resolveModulePath(entryFile)",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/boot-helpers/modules.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/config/zero-inference.js",
       "expression": "urls.app",
       "owner": "self/config/CATSCAN.md",
-      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input.",
+      "removalCondition": "Remove when self/config/zero-inference.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/config/zero-inference.js",
       "expression": "urls.auth",
       "owner": "self/config/CATSCAN.md",
-      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input.",
+      "removalCondition": "Remove when self/config/zero-inference.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/config/zero-inference.js",
       "expression": "urls.appCheck",
       "owner": "self/config/CATSCAN.md",
-      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input.",
+      "removalCondition": "Remove when self/config/zero-inference.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/core/vfs-module-loader.js",
       "expression": "importUrl.url",
       "owner": "self/core/CATSCAN.md",
-      "contract": "Host-authorized VFS module loader creates and revokes its blob/data URL; rewrites imports through the declared VFS resolver."
+      "contract": "Host-authorized VFS module loader creates and revokes its blob/data URL; rewrites imports through the declared VFS resolver.",
+      "removalCondition": "Remove when self/core/vfs-module-loader.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/experimental/openclaw-audit/audit-mesh.js",
       "expression": "TRYSTERO_MODULE_URL",
       "owner": "self/CATSCAN.md",
-      "contract": "Fixed TRYSTERO_MODULE_URL experiment dependency; no candidate supplied specifier."
+      "contract": "Fixed TRYSTERO_MODULE_URL experiment dependency; no candidate supplied specifier.",
+      "removalCondition": "Remove when self/experimental/openclaw-audit/audit-mesh.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/seed-vfs.js",
       "expression": "buildCandidateUrl(path)",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/seed-vfs.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-app.js",
       "expression": "vfsUrl",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-app.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-app.js",
       "expression": "withQuery(spec.sourceModulePath, { v: version, ...peerQuery })",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-app.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-app.js",
       "expression": "withQuery('/ui/pool-home/index.js', getCurrentReploidPeerQuery())",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-app.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-app.js",
       "expression": "withQuery('/ui/reploid-home/index.js', getCurrentReploidPeerQuery())",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-app.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-app.js",
       "expression": "withQuery('/ui/zero-home/index.js', getCurrentReploidPeerQuery())",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-app.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-app.js",
       "expression": "withQuery('/ui/boot-home/index.js', getCurrentReploidPeerQuery())",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-app.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-app.js",
       "expression": "withQuery('/ui/boot-wizard/index.js', getCurrentReploidPeerQuery())",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-app.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-reploid.js",
       "expression": "withSourceQuery('/ui/pool-home/index.js', {\n    ...getCurrentReploidPeerQuery()\n  })",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-reploid.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/start-reploid.js",
       "expression": "withSourceQuery('/ui/reploid-home/index.js', {\n    ...getCurrentReploidPeerQuery()\n  })",
       "owner": "self/host/CATSCAN.md",
-      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile.",
+      "removalCondition": "Remove when self/host/start-reploid.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/infrastructure/doppler-runtime-service.js",
       "expression": "moduleUrl",
       "owner": "self/infrastructure/CATSCAN.md",
-      "contract": "Explicit host Doppler URL or pinned same-origin package; scoped runtime loading checks the expected Doppler version and session schema. No implicit alternate runtime fallback."
+      "contract": "Explicit host Doppler URL or pinned same-origin package; scoped runtime loading checks the expected Doppler version and session schema. No implicit alternate runtime fallback.",
+      "removalCondition": "Remove when self/infrastructure/doppler-runtime-service.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/kernel/boot.js",
       "expression": "seedEntry",
       "owner": "self/kernel/CATSCAN.md",
-      "contract": "Immutable boot seed entry from the protected boot specification."
+      "contract": "Immutable boot seed entry from the protected boot specification.",
+      "removalCondition": "Remove when self/kernel/boot.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/pool/doppler-runtime.js",
       "expression": "specifier",
       "owner": "self/providers/CATSCAN.md",
-      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter.",
+      "removalCondition": "Remove when self/pool/doppler-runtime.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/pool/firebase-auth.js",
       "expression": "urls.app",
-      "owner": "self/pool/CATSCAN.md",
-      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+      "owner": "shared/CATSCAN.md",
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input.",
+      "removalCondition": "Remove when self/pool/firebase-auth.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/pool/firebase-auth.js",
       "expression": "urls.auth",
-      "owner": "self/pool/CATSCAN.md",
-      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+      "owner": "shared/CATSCAN.md",
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input.",
+      "removalCondition": "Remove when self/pool/firebase-auth.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/providers/doppler-reploid.js",
       "expression": "toolingUrl",
       "owner": "self/providers/CATSCAN.md",
-      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter.",
+      "removalCondition": "Remove when self/providers/doppler-reploid.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/providers/doppler-reploid.js",
       "expression": "url",
       "owner": "self/providers/CATSCAN.md",
-      "contract": "Resolved host Doppler URL passed to the public provider adapter; defaults to the pinned same-origin package without implicit fallback. No agent-selected specifier."
+      "contract": "Resolved host Doppler URL passed to the public provider adapter; defaults to the pinned same-origin package without implicit fallback. No agent-selected specifier.",
+      "removalCondition": "Remove when self/providers/doppler-reploid.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/ui/proto/index.js",
       "expression": "spec",
       "owner": "self/ui/proto/CATSCAN.md",
-      "contract": "Only ./template.js with the current VFS revision query."
+      "contract": "Only ./template.js with the current VFS revision query.",
+      "removalCondition": "Remove when self/ui/proto/index.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "server/native-participant.js",
       "expression": "path.isAbsolute(value) ? pathToFileURL(value).href : value",
       "owner": "server/CATSCAN.md",
-      "contract": "Explicit operator-selected local WebRTC, WebSocket and WebGPU modules; absolute filesystem paths or the named native packages only. No peer-supplied code or network module URLs. See artifacts/native-participant-20261012/README.md#run."
+      "contract": "Explicit operator-selected local WebRTC, WebSocket and WebGPU modules; absolute filesystem paths or the named native packages only. No peer-supplied code or network module URLs. See artifacts/native-participant-20261012/README.md#run.",
+      "removalCondition": "Remove when server/native-participant.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "server/earning-routes/mount.js",
       "expression": "pathToFileURL(path.resolve(specifier)).href",
       "owner": "server/earning-routes/CATSCAN.md",
-      "contract": "The operator-selected earning composition module named by REPLOID_EARNING_COMPOSITION, resolved from the local filesystem at startup and only when REPLOID_EARNING_ROUTES=enabled. No request-supplied code or network module URLs."
+      "contract": "The operator-selected earning composition module named by REPLOID_EARNING_COMPOSITION, resolved from the local filesystem at startup and only when REPLOID_EARNING_ROUTES=enabled. No request-supplied code or network module URLs.",
+      "removalCondition": "Remove when server/earning-routes/mount.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
       "source": "self/host/reploid-launch.js",

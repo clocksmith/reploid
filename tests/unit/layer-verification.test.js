@@ -7,12 +7,33 @@ import {
   findExecutionOwnerViolations,
   moduleEdges,
   findCycles,
-  findRequiredModuleLeaks
+  findRequiredModuleLeaks,
+  validateArchitectureExceptions
 } from '../../scripts/verify-layers.js';
 
 const repoRoot = path.resolve('/workspace/reploid');
 
 describe('layer verification', () => {
+  it('requires a real exception owner and a concrete removal condition', () => {
+    const exceptions = { loaders: [{ source: 'probe.js', expression: 'loader', owner: 'missing/CATSCAN.md', contract: 'A scoped loader' }], cycles: [] };
+    const violations = validateArchitectureExceptions(exceptions, repoRoot);
+    expect(violations.map(row => row.reason)).toEqual([
+      'exception requires removalCondition', 'exception owner does not exist inside repository: missing/CATSCAN.md'
+    ]);
+  });
+  it('retains computed URL assets for the owned-loader check', () => {
+    expect(moduleEdges('new URL(assetPath, import.meta.url)')).toEqual([
+      { specifier: null, expression: 'assetPath', dynamic: true }
+    ]);
+  });
+  it('keeps native execution independent from product provider implementations', () => {
+    const sourcePath = path.join(repoRoot, 'server/native-whole-model.js');
+    expect(findLayerViolations({ repoRoot, sourcePath,
+      source: "import { createWorkResidentProvider } from '../apps/poolday/providers/work-resident-provider.js'" }))
+      .toEqual([expect.objectContaining({ reason: 'native hosts must use shared execution ports, not product provider implementations' })]);
+    expect(findLayerViolations({ repoRoot, sourcePath,
+      source: "import policy from '../apps/poolday/config/work-profile.json' with { type: 'json' }" })).toEqual([]);
+  });
   it.each([
     ['partition-discovery.js', './partition-placement.js'],
     ['partition-placement.js', '../../transport/partition-data-channel.js'],
@@ -44,6 +65,13 @@ describe('layer verification', () => {
       './side-effect.js',
       './lazy.js'
     ]);
+  });
+
+  it('applies dependency ownership to assets addressed through import.meta.url', () => {
+    expect(findLayerViolations({ repoRoot,
+      sourcePath: path.join(repoRoot, 'packages/reploid/src/transport/probe.js'),
+      source: "new URL('../chat/workspace.js', import.meta.url);" }))
+      .toEqual([expect.objectContaining({ reason: 'transport cannot own execution or application policy' })]);
   });
 
   it('rejects domain imports that reach into presentation', () => {

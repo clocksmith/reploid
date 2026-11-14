@@ -4,7 +4,7 @@ Parent: [Reploid](../CATSCAN.md)
 
 ## Target
 
-Serve, from one owner, the browser files that both the Poolday product and the agent substrate load.
+Serve, from one owner, browser files shared by Poolday and the agent substrate, and environment-neutral bridges used by browser and native hosts.
 
 ## Authority
 - Owns files referenced from both the product and the substrate, as the [ownership inventory](../docs/ownership-inventory.md) assigns them from references.
@@ -24,6 +24,7 @@ Outputs:
 
 ## Invariants
 - Shared files load only shared files.
+- Host bridges accept runtime and policy ports; reusable execution lifecycle and device admission belong to `packages/reploid/src`, while browser storage and native filesystem decisions stay with their hosts.
 - A file keeps its served path and bytes when it moves between source roots.
 - A file used by only one side belongs to that side.
 - Modules under `pool/` keep the [Poolday Evidence Runtime](../apps/poolday/pool/CATSCAN.md) contracts.

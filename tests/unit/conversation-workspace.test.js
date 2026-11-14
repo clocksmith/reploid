@@ -21,6 +21,8 @@ describe('Conversation workspace', () => {
     session = createChatSession({ storage: null, service, models: [CANONICAL_CHAT_MODELS[1]] });
     root.innerHTML = renderConversationWorkspace();
     dispose = bindConversationWorkspace(root, { ...session,
+      getState: () => ({ ...session.getState(), localDownloadIssue: null }),
+      subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
@@ -320,9 +322,10 @@ describe('Conversation workspace', () => {
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
-  it('offers downloads only after contribution opt-in and does nothing on cancel', async () => {
+  it('offers a reviewed model download and does nothing on cancel', async () => {
     expect(find('[data-composer-model-setup]')).toBeNull();
-    find('[data-toggle-contribution]').click();
+    await vi.waitFor(() => expect(find('[data-production-model]').disabled).toBe(false));
+    find('[data-production-model]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     expect(find('[data-model-dialog]').open).toBe(true);
     expect(find('[data-download-size]').textContent).toBe('123 MB download');
@@ -564,9 +567,12 @@ describe('Conversation workspace', () => {
     dispose();
     const setSharing = vi.fn();
     dispose = bindConversationWorkspace(root, { ...session, setSharing,
+      getState: () => ({ ...session.getState(), localDownloadIssue: null }),
+      subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     find('[data-composer-input]').value = 'Keep this question';
-    find('[data-toggle-contribution]').click();
+    await vi.waitFor(() => expect(find('[data-production-model]').disabled).toBe(false));
+    find('[data-production-model]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     expect(setSharing).not.toHaveBeenCalled();
     expect(service.calls).toHaveLength(0);
@@ -789,6 +795,8 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, scheduler });
     dispose = bindConversationWorkspace(root, { ...session,
+      getState: () => ({ ...session.getState(), localDownloadIssue: null }),
+      subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     const thread = session.createThread({ sharingScope: 'local' });
     const completion = session.send(thread, 'Hello');
@@ -820,6 +828,8 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, scheduler });
     dispose = bindConversationWorkspace(root, { ...session,
+      getState: () => ({ ...session.getState(), localDownloadIssue: null }),
+      subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     session.setCachedModels([CANONICAL_CHAT_MODELS[1]]);
     const thread = session.createThread({ sharingScope: 'local' });
@@ -853,6 +863,8 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ discoveryScope: 'public', consumer: { peers } }) } });
     dispose = bindConversationWorkspace(root, { ...session,
+      getState: () => ({ ...session.getState(), localDownloadIssue: null }),
+      subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-open-model]').dataset.activity).toBe('idle');

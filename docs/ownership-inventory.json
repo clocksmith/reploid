@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 380,
     "self": 449,
-    "shared": 2324
+    "shared": 2334
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1486,7 +1486,7 @@
       "served": "config/chat-models.json",
       "source": "shared/config/chat-models.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/chat-remote-permission.json",
@@ -1516,43 +1516,43 @@
       "served": "config/doppler-execution-contracts.d.ts",
       "source": "shared/config/doppler-execution-contracts.d.ts",
       "owner": "shared",
-      "basis": "Describes config/doppler-execution-contracts.js. Reached from product and substrate entries."
+      "basis": "Describes config/doppler-execution-contracts.js. Reached from native hosts and browser entries."
     },
     {
       "served": "config/doppler-execution-contracts.js",
       "source": "shared/config/doppler-execution-contracts.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/doppler-execution-contracts.json",
       "source": "shared/config/doppler-execution-contracts.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/doppler-generation-contract.d.ts",
       "source": "shared/config/doppler-generation-contract.d.ts",
       "owner": "shared",
-      "basis": "Describes config/doppler-generation-contract.js. Reached from product and substrate entries."
+      "basis": "Describes config/doppler-generation-contract.js. Reached from native hosts and browser entries."
     },
     {
       "served": "config/doppler-generation-contract.js",
       "source": "shared/config/doppler-generation-contract.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/doppler-generation-contract.provenance.json",
       "source": "shared/config/doppler-generation-contract.provenance.json",
       "owner": "shared",
-      "basis": "Describes config/doppler-generation-contract.js. Reached from product and substrate entries."
+      "basis": "Describes config/doppler-generation-contract.js. Reached from native hosts and browser entries."
     },
     {
       "served": "config/doppler-local-models.js",
       "source": "shared/config/doppler-local-models.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/doppler-metadata-contract.js",
@@ -1570,7 +1570,7 @@
       "served": "config/doppler-package.json",
       "source": "shared/config/doppler-package.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/file-tool-schemas.json",
@@ -1660,19 +1660,19 @@
       "served": "config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
       "source": "shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
       "source": "shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
       "source": "shared/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json",
@@ -1684,19 +1684,19 @@
       "served": "config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
       "source": "shared/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-pieces/qwen-0-8b-pieces.json",
       "source": "shared/config/model-pieces/qwen-0-8b-pieces.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-pieces/qwen-2b-pieces.json",
       "source": "shared/config/model-pieces/qwen-2b-pieces.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-pieces/qwen-3-8-27b-pieces.json",
@@ -1708,13 +1708,13 @@
       "served": "config/model-pieces/qwen27b-q4-pieces.json",
       "source": "shared/config/model-pieces/qwen27b-q4-pieces.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-pieces/qwen35b-q4_0-pieces.json",
       "source": "shared/config/model-pieces/qwen35b-q4_0-pieces.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/module-inventory.json",
@@ -1768,7 +1768,7 @@
       "served": "config/reploid-library.json",
       "source": "shared/config/reploid-library.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/self-source-catalog.json",
@@ -1804,7 +1804,7 @@
       "served": "config/swarm-bootstrap.json",
       "source": "shared/config/swarm-bootstrap.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/tool-surfaces.js",
@@ -2626,7 +2626,7 @@
       "served": "identity.js",
       "source": "shared/identity.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "image/export.js",
@@ -2698,13 +2698,13 @@
       "served": "infrastructure/doppler-runtime-service.d.ts",
       "source": "shared/infrastructure/doppler-runtime-service.d.ts",
       "owner": "shared",
-      "basis": "Describes infrastructure/doppler-runtime-service.js. Reached from product and substrate entries."
+      "basis": "Describes infrastructure/doppler-runtime-service.js. Reached from native hosts and browser entries."
     },
     {
       "served": "infrastructure/doppler-runtime-service.js",
       "source": "shared/infrastructure/doppler-runtime-service.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "infrastructure/error-store.js",
@@ -2717,6 +2717,12 @@
       "source": "shared/infrastructure/event-bus.js",
       "owner": "shared",
       "basis": "Reached from product and substrate entries."
+    },
+    {
+      "served": "infrastructure/generation-completion.js",
+      "source": "shared/infrastructure/generation-completion.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "infrastructure/genesis-snapshot.js",
@@ -2791,6 +2797,12 @@
       "basis": "Reached only from substrate entries."
     },
     {
+      "served": "infrastructure/scoped-model-provider.js",
+      "source": "shared/infrastructure/scoped-model-provider.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
       "served": "infrastructure/stream-parser.js",
       "source": "self/infrastructure/stream-parser.js",
       "owner": "self",
@@ -2818,7 +2830,7 @@
       "served": "instance.js",
       "source": "shared/instance.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "kernel/boot.js",
@@ -2920,13 +2932,13 @@
       "served": "pool/adapter-execution-policy.d.ts",
       "source": "shared/pool/adapter-execution-policy.d.ts",
       "owner": "shared",
-      "basis": "Describes pool/adapter-execution-policy.js. Reached from product and substrate entries."
+      "basis": "Describes pool/adapter-execution-policy.js. Reached from native hosts and browser entries."
     },
     {
       "served": "pool/adapter-execution-policy.js",
       "source": "shared/pool/adapter-execution-policy.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/adapter-execution.d.ts",
@@ -2950,7 +2962,7 @@
       "served": "pool/adapter-pack.js",
       "source": "shared/pool/adapter-pack.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/adapter-publication.js",
@@ -2986,7 +2998,7 @@
       "served": "pool/artifact-origin.js",
       "source": "shared/pool/artifact-origin.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/artifact-router.js",
@@ -3010,7 +3022,7 @@
       "served": "pool/canonical-json.js",
       "source": "shared/pool/canonical-json.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/capsule-artifact-cache.js",
@@ -3028,13 +3040,13 @@
       "served": "pool/config-contract.js",
       "source": "shared/pool/config-contract.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/config.js",
       "source": "shared/pool/config.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/device-identity.js",
@@ -3352,13 +3364,13 @@
       "served": "pool/executable-pack.d.ts",
       "source": "shared/pool/executable-pack.d.ts",
       "owner": "shared",
-      "basis": "Describes pool/executable-pack.js. Reached from product and substrate entries."
+      "basis": "Describes pool/executable-pack.js. Reached from native hosts and browser entries."
     },
     {
       "served": "pool/executable-pack.js",
       "source": "shared/pool/executable-pack.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/firebase-auth.js",
@@ -3370,7 +3382,7 @@
       "served": "pool/forecast-workload.js",
       "source": "shared/pool/forecast-workload.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/identity-claims.js",
@@ -3388,7 +3400,7 @@
       "served": "pool/inference-receipt.js",
       "source": "shared/pool/inference-receipt.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/local-pack-executor.d.ts",
@@ -3412,7 +3424,7 @@
       "served": "pool/model-artifacts.js",
       "source": "shared/pool/model-artifacts.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/model-cache-integrity.js",
@@ -3424,7 +3436,7 @@
       "served": "pool/model-contract.js",
       "source": "shared/pool/model-contract.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/model-evidence-view.js",
@@ -3454,7 +3466,7 @@
       "served": "pool/operation-model.js",
       "source": "shared/pool/operation-model.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/operation-participation.d.ts",
@@ -3502,25 +3514,25 @@
       "served": "pool/pack-operation-adapters.d.ts",
       "source": "shared/pool/pack-operation-adapters.d.ts",
       "owner": "shared",
-      "basis": "Describes pool/pack-operation-adapters.js. Reached from product and substrate entries."
+      "basis": "Describes pool/pack-operation-adapters.js. Reached from native hosts and browser entries."
     },
     {
       "served": "pool/pack-operation-adapters.js",
       "source": "shared/pool/pack-operation-adapters.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/pack-operation-policy.d.ts",
       "source": "shared/pool/pack-operation-policy.d.ts",
       "owner": "shared",
-      "basis": "Describes pool/pack-operation-policy.js. Reached from product and substrate entries."
+      "basis": "Describes pool/pack-operation-policy.js. Reached from native hosts and browser entries."
     },
     {
       "served": "pool/pack-operation-policy.js",
       "source": "shared/pool/pack-operation-policy.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/pack-operation.d.ts",
@@ -3544,7 +3556,7 @@
       "served": "pool/participation-profile.js",
       "source": "shared/pool/participation-profile.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/peer-adapter-execution.d.ts",
@@ -3574,13 +3586,13 @@
       "served": "pool/peer-capabilities.d.ts",
       "source": "shared/pool/peer-capabilities.d.ts",
       "owner": "shared",
-      "basis": "Describes pool/peer-capabilities.js. Reached from product and substrate entries."
+      "basis": "Describes pool/peer-capabilities.js. Reached from native hosts and browser entries."
     },
     {
       "served": "pool/peer-capabilities.js",
       "source": "shared/pool/peer-capabilities.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/peer-control-plane.js",
@@ -3628,13 +3640,13 @@
       "served": "pool/peer-pack-job-policy.d.ts",
       "source": "shared/pool/peer-pack-job-policy.d.ts",
       "owner": "shared",
-      "basis": "Describes pool/peer-pack-job-policy.js. Reached from product and substrate entries."
+      "basis": "Describes pool/peer-pack-job-policy.js. Reached from native hosts and browser entries."
     },
     {
       "served": "pool/peer-pack-job-policy.js",
       "source": "shared/pool/peer-pack-job-policy.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/peer-pack-job.d.ts",
@@ -3748,7 +3760,7 @@
       "served": "pool/pool-config.json",
       "source": "shared/pool/pool-config.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "pool/protein-investigation.js",
@@ -3844,7 +3856,7 @@
       "served": "pool/sequence-workload.js",
       "source": "shared/pool/sequence-workload.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "poolday-design.html",
@@ -3928,7 +3940,7 @@
       "served": "reward-policy.js",
       "source": "shared/reward-policy.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "runtime.js",
@@ -4138,7 +4150,7 @@
       "served": "swarm.js",
       "source": "shared/swarm.js",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "testing/arena/README.md",
@@ -15082,6 +15094,16 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/adapters/device-lane.d.ts",
+      "source": "shared/vendor/reploid/adapters/device-lane.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/adapters/device-lane.js",
+      "source": "shared/vendor/reploid/adapters/device-lane.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/adapters/doppler-choice.json",
       "source": "shared/vendor/reploid/adapters/doppler-choice.json",
       "owner": "shared"
@@ -15109,6 +15131,36 @@
     {
       "served": "vendor/reploid/adapters/doppler.js",
       "source": "shared/vendor/reploid/adapters/doppler.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/adapters/model-adapter.d.ts",
+      "source": "shared/vendor/reploid/adapters/model-adapter.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/adapters/model-adapter.js",
+      "source": "shared/vendor/reploid/adapters/model-adapter.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/adapters/resident-execution.d.ts",
+      "source": "shared/vendor/reploid/adapters/resident-execution.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/adapters/resident-execution.js",
+      "source": "shared/vendor/reploid/adapters/resident-execution.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/adapters/resident.d.ts",
+      "source": "shared/vendor/reploid/adapters/resident.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/adapters/resident.js",
+      "source": "shared/vendor/reploid/adapters/resident.js",
       "owner": "shared"
     },
     {

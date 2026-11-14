@@ -2,7 +2,7 @@
  * Completion counts are provider reports, not independently validated billing evidence. */
 import { randomUUID } from 'node:crypto';
 import { projectChatCatalog } from '../apps/poolday/host/chat-view.js';
-import { readWorkGenerationCompletion } from '../apps/poolday/providers/work-generation-completion.js';
+import { readWorkGenerationCompletion } from '../shared/infrastructure/generation-completion.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, generationRequest, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 

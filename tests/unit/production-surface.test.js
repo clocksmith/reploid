@@ -278,26 +278,28 @@ it('keeps storage-only sharing controls in Settings', () => {
 it('stops compute independently, keeps cleanup errors visible, and leaves file sharing controllable', async () => {
   const snapshot = state();
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
-    setSharing: vi.fn(async () => { throw new Error('Unsettled GPU owner'); }), setFileSharing: vi.fn(async () => {}) };
+    setComputeContribution: vi.fn(async () => { throw new Error('Unsettled GPU owner'); }), setFileSharing: vi.fn(async () => {}) };
   const detach = bindProductionSurface(document.body, session);
   document.querySelector('[data-toggle-contribution]').click();
   await vi.waitFor(() => expect(document.querySelector('[data-network-message]').textContent).toContain('Unsettled GPU owner'));
-  expect(session.setSharing).toHaveBeenCalledWith(false, 'm', false);
+  expect(session.setComputeContribution).toHaveBeenCalledWith(false);
   expect(session.setFileSharing).not.toHaveBeenCalled();
   document.querySelector('[data-toggle-file-contribution]').click();
   await vi.waitFor(() => expect(session.setFileSharing).toHaveBeenCalledWith(false, 'm', false, { mode: 'cached-only' }));
   expect(document.querySelector('[data-production-tokens]').textContent).toBe('14'); detach();
 });
 
-it('reviews the configured adapter when enabling compute, independently of the file selection', async () => {
+it('enables compute through its host port independently of adapter setup and file selection', async () => {
   const adapted = { ...model, selectionId: 'm-adapted', adapters: [{ identity: 'adapter' }] };
   const snapshot = { models: [model, adapted], network: { computeEnabled: false,
     contribution: { modelId: 'm', adapterIdentities: ['adapter'] }, files: { enabled: true, sharing: true } } };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
-    getModelDownload: vi.fn(async () => ({ sizeBytes: 100 })), setSharing: vi.fn(), setFileSharing: vi.fn() };
+    getModelDownload: vi.fn(async () => ({ sizeBytes: 100 })), setComputeContribution: vi.fn(), setSharing: vi.fn(), setFileSharing: vi.fn() };
   const detach = bindProductionSurface(document.body, session);
+  await vi.waitFor(() => expect(session.getModelDownload).toHaveBeenCalledTimes(2));
   document.querySelector('[data-toggle-contribution]').click();
-  await vi.waitFor(() => expect(session.getModelDownload).toHaveBeenCalledWith('m-adapted', expect.objectContaining({ signal: expect.any(AbortSignal) })));
+  await vi.waitFor(() => expect(session.setComputeContribution).toHaveBeenCalledWith(true));
+  expect(session.getModelDownload).toHaveBeenCalledTimes(2);
   expect(session.setSharing).not.toHaveBeenCalled();
   expect(session.setFileSharing).not.toHaveBeenCalled(); detach();
 });

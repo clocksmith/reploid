@@ -213,7 +213,7 @@ function renderPeerRows(list, state) {
 
 }
 
-export function bindNetworkControls(container, session, { getInviteUrl, requestContribution, computers } = {}) {
+export function bindNetworkControls(container, session, { getInviteUrl, computers } = {}) {
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const contributionSelect = find('[data-contribution-model]');
@@ -353,23 +353,13 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
   }));
   on('[data-toggle-introductions]', 'click', () => act(() =>
     session.setIntroductionAssistance(!session.getState().network?.introductionAssistance)));
-  on('[data-toggle-contribution]', 'click', () => act(async () => {
-    const state = session.getState(), network = state.network, enable = !(network?.computeEnabled ?? network?.sharing);
-    if (session.setComputeContribution) return session.setComputeContribution(enable);
-    const contribution = network?.contribution;
-    const configured = state.models?.find(model => model.id === contribution?.modelId
-      && JSON.stringify((model.adapters || []).map(adapter => adapter.identity)) === JSON.stringify(contribution?.adapterIdentities || []));
-    if (enable && contribution?.adapterIdentities?.length && !configured) throw new Error('The configured adapter is unavailable. Choose a model to review its setup.');
-    const selected = configured || state.models?.find(model => !model.partition && model.source && model.provider === 'doppler');
-    const modelId = contribution?.selectionId || (enable ? selected?.selectionId || selected?.id : contribution?.modelId);
-    if (enable) {
-      if (!requestContribution) throw new Error('Review the model download before contributing');
-      return requestContribution(modelId, find('[data-toggle-contribution]'));
-    }
-    return session.setSharing(false, modelId, false);
+  // Compute toggles use the session's contribution port. Model setup remains
+  // the inspector's separate, explicitly reviewed download action.
+  on('[data-toggle-contribution]', 'click', () => act(() => {
+    const network = session.getState().network;
+    return session.setComputeContribution(!(network?.computeEnabled ?? network?.sharing));
   }));
-  on('[data-retry-contribution-stop]', 'click', () => act(() =>
-    session.setSharing(false, session.getState().network?.contribution?.modelId, false)));
+  on('[data-retry-contribution-stop]', 'click', () => act(() => session.setComputeContribution(false)));
   on('[data-file-mode]', 'change', () => render(session.getState()));
   on('[data-toggle-file-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, files = network?.files;

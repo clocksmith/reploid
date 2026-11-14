@@ -9,6 +9,14 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
   'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
+  'apps/poolday/host/private-computers.js',
+  'apps/poolday/ui/pool-home/network-controls.js',
+  'apps/poolday/ui/pool-home/network-inspector.js',
+  'apps/poolday/providers/work-{adapter,provider,generation-completion}.js',
+  'packages/reploid/src/adapters/{resident-execution,device-lane,model-adapter}.js',
+  'server/{browser-module-references,native-resident-provider,native-whole-model}.js',
+  'shared/infrastructure/{scoped-model-provider,generation-completion}.js',
+  'scripts/{lint-changed-code,verify-layers,verify-browser-boundaries}.js',
   'apps/poolday/providers/work-device.js',
   'apps/poolday/providers/work-resident-provider.js',
   'server/fleet/placement.js',
@@ -172,5 +180,9 @@ export default [
     languageOptions: { globals: { Buffer: 'readonly' } } },
   // Vitest uses happy-dom; Node globals are intentional only in the test host.
   { files: ['tests/**/*.js', 'tests/**/*.mjs'], languageOptions: { globals: { ...globals.vitest, ...globals.browser, ...globals.node } } },
+  { files: ['apps/poolday/host/private-computers.js',
+    'packages/reploid/src/adapters/{resident-execution,device-lane,model-adapter}.js',
+    'server/{native-resident-provider,native-whole-model}.js',
+    'shared/infrastructure/scoped-model-provider.js'], rules: { 'no-nested-ternary': 'error' } },
   { files: cleanedModules, rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] } }
 ];

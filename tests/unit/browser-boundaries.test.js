@@ -20,6 +20,25 @@ async function repository(files) {
 const reasons = violations => violations.map(item => `${item.source} ${item.reason}`);
 
 describe('browser ownership boundaries', () => {
+  it('checks URL assets and reports invalid modules instead of skipping their dependencies', async () => {
+    const repoRoot = await repository({
+      'apps/poolday/product.js': 'export default 1;',
+      'shared/asset.js': "new URL('../apps/poolday/product.js', import.meta.url);",
+      'shared/broken.js': "import '../apps/poolday/product.js'; const invalid = ;"
+    });
+    const violations = await findBoundaryViolations({ repoRoot });
+    expect(violations).toContainEqual(expect.objectContaining({ source: 'shared/asset.js', reason: 'shared may not load apps/poolday' }));
+    expect(violations).toContainEqual(expect.objectContaining({ source: 'shared/broken.js', reason: expect.stringContaining('could not be parsed') }));
+  });
+
+  it('rewrites dependency references without changing identical data strings', () => {
+    const data = "export const cacheKey = '../../../../shared/identity.js';";
+    expect(toServedModuleSource(data, 'apps/poolday/ui/pool-home/probe.js')).toBe(data);
+    const source = data + "\nnew URL('../../../../shared/identity.js', import.meta.url);";
+    expect(toServedModuleSource(source, 'apps/poolday/ui/pool-home/probe.js'))
+      .toBe(data + "\nnew URL('../../identity.js', import.meta.url);");
+    expect(() => toServedModuleSource("import '../../../../shared/identity.js'; const invalid = ;", 'apps/poolday/ui/pool-home/probe.js')).toThrow();
+  });
   it('lets the product load shared code and the documented substrate entry points', async () => {
     const repoRoot = await repository({
       'shared/core/utils.js': 'export const id = 1;',

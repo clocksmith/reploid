@@ -16,6 +16,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
+import { browserModuleReferences } from '../server/browser-module-references.js';
 import { openBrowserTree, servedPathOf, rootOf, BROWSER_ROOTS } from '../server/browser-tree.js';
 import { SELF_ENTRY_POINTS } from './verify-browser-boundaries.js';
 
@@ -186,6 +187,21 @@ export async function buildOwnershipInventory({ repoRoot = ROOT, why = false } =
     }
     return seen;
   };
+  // Native hosts use these same environment-neutral bridges. Count real shared
+  // imports from server source rather than assigning them to the product merely
+  // because server entry points are outside the served browser tree.
+  const nativeEntries = new Set();
+  const serverRoot = path.join(repoRoot, 'server');
+  for (const name of await fs.readdir(serverRoot, { recursive: true })) {
+    if (!/\.m?js$/.test(name)) continue;
+    const file = path.join(serverRoot, name);
+    for (const { value } of browserModuleReferences(await fs.readFile(file, 'utf8'))) {
+      if (!value?.startsWith('.')) continue;
+      const target = path.relative(repoRoot, path.resolve(path.dirname(file), stripSuffix(value))).split(path.sep).join('/');
+      if (target.startsWith('shared/')) nativeEntries.add(servedPathOf(target));
+    }
+  }
+  const native = reach([...nativeEntries].filter(has));
   const product = reach(PRODUCT_ENTRIES.filter(has), new Set(SELF_ENTRY_POINTS));
   const substrate = reach(substrateEntries);
   if (why) return { edges, productEntries: PRODUCT_ENTRIES.filter(has), substrateEntries: [...substrateEntries] };
@@ -199,6 +215,7 @@ export async function buildOwnershipInventory({ repoRoot = ROOT, why = false } =
     const subject = /\.d\.ts$|\.provenance\.json$|-LICENSE\.txt$/.test(served) && has(declarationSibling(served)) ? declarationSibling(served) : served;
     const inProduct = product.has(subject), inSubstrate = substrate.has(subject);
     if (served.startsWith('vendor/')) { owner = 'shared'; basis = RULES[0].reason; }
+    else if (native.has(subject) && (inProduct || inSubstrate)) { owner = 'shared'; basis = 'Reached from native hosts and browser entries.'; }
     else if (inProduct && inSubstrate) { owner = 'shared'; basis = 'Reached from product and substrate entries.'; }
     else if (inProduct) { owner = 'apps/poolday'; basis = 'Reached only from product entries.'; }
     else if (inSubstrate) { owner = 'self'; basis = 'Reached only from substrate entries.'; }

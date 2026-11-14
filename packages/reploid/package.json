@@ -92,6 +92,10 @@
     "./custody": {
       "types": "./src/artifacts/custody/runtime.d.ts",
       "import": "./src/artifacts/custody/runtime.js"
+    },
+    "./resident": {
+      "types": "./src/adapters/resident.d.ts",
+      "import": "./src/adapters/resident.js"
     }
   },
   "files": [

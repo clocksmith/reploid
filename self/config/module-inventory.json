@@ -887,6 +887,14 @@
       "imports": []
     },
     {
+      "path": "infrastructure/generation-completion.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:9bc9c1d4ec4b7f507cfff79e16d90c1e44498f3033428aa5d85bb6a634ea23ab",
+      "imports": [
+        "../config/doppler-generation-contract.js"
+      ]
+    },
+    {
       "path": "infrastructure/genesis-snapshot.js",
       "owner": "infrastructure",
       "sha256": "sha256:a8251374fbbb98222f23cbb57374fd76451822d036c5b0c86d1d9dea3c9229b7",
@@ -963,6 +971,16 @@
       "sha256": "sha256:35f1f94055d1071e4401ffe5fcc1697ea54786a62e436421e40d074debf352ab",
       "imports": [
         "../core/run-replay-bundle.js"
+      ]
+    },
+    {
+      "path": "infrastructure/scoped-model-provider.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:76d1b4a6e50111d6bf5c0cd4635999ceb322b39611dbfb4b66c4a8b64eb22f73",
+      "imports": [
+        "../vendor/reploid/mesh/generation-context-cache.js",
+        "../vendor/reploid/mesh/provider-hardware.js",
+        "./generation-completion.js"
       ]
     },
     {
@@ -2469,21 +2487,25 @@
     {
       "path": "providers/work-adapter.js",
       "owner": "providers",
-      "sha256": "sha256:36b09fedbab647fe7695b5d893c329556c44a9dc91cd5d35ed268410a66f938b",
-      "imports": []
+      "sha256": "sha256:4b7b4d34c5350e540bcaacdcef466ffd70bd303385a71932ba1cb6df14f49f33",
+      "imports": [
+        "../vendor/reploid/adapters/resident.js"
+      ]
     },
     {
       "path": "providers/work-device.js",
       "owner": "providers",
-      "sha256": "sha256:6c4a4ee40c7e20877d301e731d81695baeb93ff47a9f50b0d99fb290b8a3d5f8",
-      "imports": []
+      "sha256": "sha256:93370441cad3b9d590ea4edec8ac3daaedd46d660b2295c56bcafa826cd7bc64",
+      "imports": [
+        "../vendor/reploid/adapters/resident.js"
+      ]
     },
     {
       "path": "providers/work-generation-completion.js",
       "owner": "providers",
-      "sha256": "sha256:9bc9c1d4ec4b7f507cfff79e16d90c1e44498f3033428aa5d85bb6a634ea23ab",
+      "sha256": "sha256:2594bda1c737558de1378295d65a3256e7da9697df4d8ed4352fd37e5df61029",
       "imports": [
-        "../config/doppler-generation-contract.js"
+        "../infrastructure/generation-completion.js"
       ]
     },
     {
@@ -2499,22 +2521,19 @@
     {
       "path": "providers/work-provider.js",
       "owner": "providers",
-      "sha256": "sha256:aa67c6612f3fa393344022773c48397a458a3069d75fb2484fe32bf347cd78f5",
+      "sha256": "sha256:6690d941b9b3fde94df981fdcf4ddf099dcdd92b0e1f9d83cba9adb4a6564b8d",
       "imports": [
         "../config/work-profile.json",
-        "../vendor/reploid/mesh/generation-context-cache.js",
-        "../vendor/reploid/mesh/provider-hardware.js",
-        "./work-generation-completion.js"
+        "../infrastructure/scoped-model-provider.js"
       ]
     },
     {
       "path": "providers/work-resident-provider.js",
       "owner": "providers",
-      "sha256": "sha256:0290949cc914d8aa530b3bd3b9ad475fd173e4eecc6fe11c3804979eac5746f3",
+      "sha256": "sha256:43fb5e2b62900c5dd95f1beca05f584efb6e776663153660a16a71a1bdbc95c6",
       "imports": [
         "../infrastructure/model-storage-lock.js",
-        "../vendor/reploid/mesh/preparation-progress.js",
-        "./work-device.js",
+        "../vendor/reploid/adapters/resident.js",
         "./work-provider.js"
       ]
     },
@@ -2908,8 +2927,10 @@
     {
       "path": "self/host/private-computers.js",
       "owner": "self",
-      "sha256": "sha256:0f8159535b13c735ed668f1f283b654946145d43c6aae9491b78c210296bb35e",
-      "imports": []
+      "sha256": "sha256:9031fda9b567b521c12e082cb8cd9be91ff1117982f2c881bef7c825ec4a7833",
+      "imports": [
+        "../vendor/reploid/cancellation.js"
+      ]
     },
     {
       "path": "self/host/product-context.js",
@@ -4031,7 +4052,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:907771076ee8ccadac99be3d43dcd67e1a501896171ec48a13dc048809caf76f",
+      "sha256": "sha256:1398353c3a9f9e160af52c5d3459090c94d14bb99be9aa417105d291a9376eaa",
       "imports": []
     },
     {
@@ -4345,7 +4366,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:17b9e0b7d84a916da447f6633195b21c52f5fc5144ad15f81b487598354d8bde",
+      "sha256": "sha256:2a4a9fbe0ca588ca6f36867ab008e0c399eb5ed9667ad375c1d930e3936ef103",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",
@@ -4359,7 +4380,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:5ad98c307dd4935174b4998e1d57eafaff8b58d641e1d07a1e76522b2864c132",
+      "sha256": "sha256:5c641f1e6e6843b0f67d002da522ebd7288a2e67f750ac1e002c39b5f4fbe305",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -17404,6 +17425,12 @@
       ]
     },
     {
+      "path": "vendor/reploid/adapters/device-lane.js",
+      "owner": "vendor",
+      "sha256": "sha256:258c7fd91d6c9632e21e6ad4e00db6b74a50389f2c1070fa42932931c7bd404b",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/adapters/doppler-session.js",
       "owner": "vendor",
       "sha256": "sha256:991183c0297000f42f90a88dc583912d61d0f2bc19f968ee4e1903482ad88109",
@@ -17432,6 +17459,31 @@
         "./doppler-choice.json",
         "./doppler-session.js",
         "./doppler-stream.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/adapters/model-adapter.js",
+      "owner": "vendor",
+      "sha256": "sha256:93948662c87d78e21590992a7f88ba87f36232b2e8f5238151c1ba65c9197cb8",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/adapters/resident-execution.js",
+      "owner": "vendor",
+      "sha256": "sha256:ba0477b6a3a9920e91acd4a6db0d0f50f7319883493ae809f6ca5520e4d377e3",
+      "imports": [
+        "../mesh/preparation-progress.js",
+        "./device-lane.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/adapters/resident.js",
+      "owner": "vendor",
+      "sha256": "sha256:659b1b1fe3f6e8990898910a04368d2c9c87009cc907b74d3f5702e5e8f2e1b6",
+      "imports": [
+        "./device-lane.js",
+        "./model-adapter.js",
+        "./resident-execution.js"
       ]
     },
     {

@@ -15,6 +15,52 @@ const host = () => ({ browserState: vi.fn(async () => structuredClone(snapshot))
     return { modelId: model.id, modelIdentity: identity, adapterIdentities: [], content: 'Hello',
       execution: { placement: 'peer-whole-request', providerIdentity: provider }, serviceCredit: { charge: 1, settledAt: Date.now() } }; }) });
 const fetchImpl = (url, init) => fetch(url, { ...init, headers: { ...init.headers, Origin: origin } });
+
+it.each(['disconnect', 'close'])('does not disclose after %s during pending authorization', async action => {
+  const calls = [], gate = Promise.withResolvers(), entered = Promise.withResolvers();
+  const client = createPrivateComputers({ storage: null, fetchImpl: async (url, init) => {
+    calls.push({ path: new URL(url).pathname, body: JSON.parse(init.body) });
+    return Response.json(snapshot);
+  } });
+  try {
+    await client.connect('http://127.0.0.1:18784', token);
+    const pending = client.execute({ threadId: 't', attemptId: 'pending', model: client.models()[0],
+      messages: [{ role: 'user', content: 'Fixture prompt' }], permissions: { sharingScope: 'mesh' } }, {
+      signal: new AbortController().signal, requestApproval: () => { entered.resolve(); return gate.promise; }, onState() {}, onDelta() {}
+    });
+    const rejected = expect(pending).rejects.toThrow();
+    await entered.promise;
+    await expect(client.connect('http://127.0.0.1:18785', token)).rejects.toThrow();
+    await client[action]();
+    // Cancellation releases the attempt even if its approval never settles.
+    await rejected;
+    if (action === 'disconnect') await client.connect('http://127.0.0.1:18785', token);
+    else await expect(client.connect('http://127.0.0.1:18785', token)).rejects.toThrow();
+    gate.resolve(true);
+    await Promise.resolve();
+    expect(calls.filter(call => call.path === '/generate')).toEqual([]);
+  } finally { client.close(); }
+});
+
+it('snapshots request and disclosure bindings before a callback can mutate them', async () => {
+  const calls = [];
+  const client = createPrivateComputers({ storage: null, fetchImpl: async (url, init) => {
+    if (url.endsWith('/state')) return Response.json(snapshot);
+    calls.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ result: { modelId: model.id, modelIdentity: identity,
+      adapterIdentities: [], content: 'Fixture answer', execution: {} } }) + '\n');
+  } });
+  try {
+    await client.connect('http://127.0.0.1:18784', token);
+    const request = { threadId: 't', attemptId: 'snapshot', model: client.models()[0],
+      messages: [{ role: 'user', content: 'Original fixture' }], permissions: { sharingScope: 'mesh' } };
+    await client.execute(request, { signal: new AbortController().signal, onState() {}, onDelta() {}, requestApproval: async preview => {
+      request.messages[0].content = 'Changed'; preview.input.messages[0].content = 'Changed again';
+      preview.privateDelegation.poolIdentity = 'changed'; return true;
+    } });
+    expect(calls[0]).toMatchObject({ poolIdentity: snapshot.poolIdentity, messages: [{ content: 'Original fixture' }] });
+  } finally { client.close(); }
+});
 it('requires exact origin and pairing, streams the real host result and retains credit evidence', async () => {
   const native = host(), bridge = await startFleetBrowserBridge({ host: native, origins: [origin], token });
   const client = createPrivateComputers({ storage: null, fetchImpl });

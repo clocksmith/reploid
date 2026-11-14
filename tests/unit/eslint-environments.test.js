@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { ESLint } from 'eslint';
+import { createChangedCodeLinter } from '../../scripts/lint-changed-code.js';
 
 const eslint = new ESLint({ overrideConfigFile: 'scripts/eslint.config.js' });
 async function errors(filePath, source) {
@@ -9,6 +10,14 @@ async function errors(filePath, source) {
 }
 
 describe('execution environment lint boundaries', () => {
+  it('checks unused locals and nested choices in new modules without a manual registration', async () => {
+    const linter = createChangedCodeLinter(['apps/poolday/host/new-module.js']);
+    const [result] = await linter.lintText('export function value(a, b) { const unused = 1; return a ? b ? 1 : 2 : 3; }',
+      { filePath: 'apps/poolday/host/new-module.js' });
+    expect(result.messages.map(message => message.ruleId).sort()).toEqual(['no-nested-ternary', 'no-unused-vars']);
+    const [old] = await linter.lintText('export function value() { const unused = 1; return 1; }', { filePath: 'self/ui/legacy-example.js' });
+    expect(old.errorCount).toBe(0);
+  });
   it.each(['.tmp', '.claude/worktrees/review', '.deployment-checkouts/release'])(
     'excludes local scratch or checkout copies under %s', async directory => {
       expect(await eslint.isPathIgnored(`${directory}/server/example.js`)).toBe(true);

@@ -11,7 +11,7 @@
  */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { parse } from 'acorn';
+import { browserModuleReferences } from './browser-module-references.js';
 import { BROWSER_ROOTS, REPOSITORY_ROOT, rootOf } from './browser-roots.js';
 
 export { BROWSER_ROOTS, REPOSITORY_ROOT, rootOf, servedPathOf, resolveServedFile } from './browser-roots.js';
@@ -42,31 +42,10 @@ const relativeUrl = (fromServed, toServed) => {
   return relative.startsWith('../') ? relative : `./${relative}`;
 };
 
-function references(tree) {
-  const found = new Map();
-  const visit = node => {
-    if (!node || typeof node !== 'object') return;
-    if (node.type === 'Literal' && typeof node.value === 'string' && /^\.\.?\//.test(node.value)) {
-      found.set(node.start, { start: node.start + 1, end: node.end - 1, value: node.value });
-    }
-    if (node.type === 'ImportExpression' && node.source?.type === 'TemplateLiteral'
-      && node.source.expressions.length === 0 && /^\.\.?\//.test(node.source.quasis[0].value.cooked)) {
-      const quasi = node.source.quasis[0];
-      found.set(quasi.start, { start: quasi.start, end: quasi.end, value: quasi.value.cooked });
-    }
-    for (const value of Object.values(node)) {
-      if (Array.isArray(value)) value.forEach(visit);
-      else if (value && typeof value === 'object' && value.type) visit(value);
-    }
-  };
-  visit(tree);
-  return [...found.values()].sort((a, b) => a.start - b.start);
-}
-
 /**
  * Rewrites relative specifiers and literal asset paths that resolve into another
  * root to their served-relative form. Returns the input unchanged when nothing
- * crosses a root, including scripts that do not parse as modules.
+ * crosses a root. An invalid module is reported instead of silently served.
  */
 export function toServedModuleSource(code, sourcePath, roots = BROWSER_ROOTS) {
   const source = toPosix(sourcePath);
@@ -75,11 +54,10 @@ export function toServedModuleSource(code, sourcePath, roots = BROWSER_ROOTS) {
   const served = source.slice(ownRoot.length + 1);
   // A specifier must climb above the file's own root to reach another one.
   if (!code.includes('../'.repeat(served.split('/').length))) return code;
-  let tree;
-  try { tree = parse(code, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true }); }
-  catch { return code; }
   let output = '', cursor = 0;
-  for (const reference of references(tree)) {
+  const references = browserModuleReferences(code).filter(reference => reference.value && /^\.\.?\//.test(reference.value))
+    .sort((a, b) => a.start - b.start);
+  for (const reference of references) {
     const suffix = reference.value.match(SPECIFIER_SUFFIX)?.[0] || '';
     const target = posix.normalize(posix.join(posix.dirname(source), reference.value.slice(0, reference.value.length - suffix.length)));
     const targetRoot = rootOf(target, roots);

@@ -84,6 +84,10 @@
     "./custody": {
       "types": "./src/artifacts/custody/runtime.d.ts",
       "import": "./src/artifacts/custody/runtime.js"
+    },
+    "./resident": {
+      "types": "./src/adapters/resident.d.ts",
+      "import": "./src/adapters/resident.js"
     }
   },
   "files": [
@@ -96,6 +100,16 @@
       "path": "adapters/browser.js",
       "bytes": 6554,
       "sha256": "84b27408dc84eafd97153b78969f76eecfedd82682c051cb07c6f6ce52c096bc"
+    },
+    {
+      "path": "adapters/device-lane.d.ts",
+      "bytes": 391,
+      "sha256": "841a7e00b5010735e04b48afbd4d157533cb3365f5bd145535800772ed4ab916"
+    },
+    {
+      "path": "adapters/device-lane.js",
+      "bytes": 1557,
+      "sha256": "258c7fd91d6c9632e21e6ad4e00db6b74a50389f2c1070fa42932931c7bd404b"
     },
     {
       "path": "adapters/doppler-choice.json",
@@ -126,6 +140,36 @@
       "path": "adapters/doppler.js",
       "bytes": 12633,
       "sha256": "badb0e6ec85ad5be1328ec401fa7292745a2ce09d01e989aca68ea344fee0477"
+    },
+    {
+      "path": "adapters/model-adapter.d.ts",
+      "bytes": 1336,
+      "sha256": "2d76263a0bead86146f6ba9453f4795de37271598239280d0225c87af43112e5"
+    },
+    {
+      "path": "adapters/model-adapter.js",
+      "bytes": 3456,
+      "sha256": "93948662c87d78e21590992a7f88ba87f36232b2e8f5238151c1ba65c9197cb8"
+    },
+    {
+      "path": "adapters/resident-execution.d.ts",
+      "bytes": 3019,
+      "sha256": "7211a4aed9d7f89f49ea2fa9aa6e28c1311d88c75ba8cb85b4b17b4816473063"
+    },
+    {
+      "path": "adapters/resident-execution.js",
+      "bytes": 6599,
+      "sha256": "ba0477b6a3a9920e91acd4a6db0d0f50f7319883493ae809f6ca5520e4d377e3"
+    },
+    {
+      "path": "adapters/resident.d.ts",
+      "bytes": 111,
+      "sha256": "a8216914624a4536c65b1a05c0fe27389bb3c7b72039f24447446acf97bdc60c"
+    },
+    {
+      "path": "adapters/resident.js",
+      "bytes": 322,
+      "sha256": "659b1b1fe3f6e8990898910a04368d2c9c87009cc907b74d3f5702e5e8f2e1b6"
     },
     {
       "path": "agent/belief-planner.js",

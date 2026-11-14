@@ -150,8 +150,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     dispose() { hide(); drawer?.dispose(); surface?.removeAttribute('data-network-panel-open'); }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
-  const network = bindNetworkControls(panel, session, { getInviteUrl,
-    computers, requestContribution: (modelId, opener) => openModelSetup(opener, modelId) });
+  const network = bindNetworkControls(panel, session, { getInviteUrl, computers });
   const modelDialog = bindDialog(find('[data-model-dialog]'));
   const on = (selector, event, fn) => find(selector)?.addEventListener(event, fn, options);
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };

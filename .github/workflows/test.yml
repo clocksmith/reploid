@@ -2,7 +2,7 @@ name: Smoke
 
 # Build the browser bundle and the hosting payload from this commit's source.
 # Verify the source-to-vendor library mirror before building.
-# Browser bundle freshness, application unit, browser and release checks stay manual.
+# Focused boundary/lifecycle regressions run here; broad application, browser and release checks stay manual.
 on:
   push:
     branches: [ main ]
@@ -23,6 +23,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
@@ -30,5 +32,15 @@ jobs:
       - run: node --test tests/scripts/sync-reploid-library.test.js
       - run: npm run verify:library
       - run: npm ci --omit=optional --no-audit --no-fund
+      - name: Check changed code and source boundaries
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] && ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          fi
+          node scripts/lint-changed-code.js --base "$BASE_SHA"
+          node scripts/verify-layers.js --source-only
+          npx vitest run --config tests/vitest.config.js tests/unit/browser-boundaries.test.js tests/unit/layer-verification.test.js tests/unit/eslint-environments.test.js tests/integration/fleet-browser-bridge.test.js tests/unit/work-resident-provider.test.js tests/unit/network-controls.test.js
       - run: npm run build:browser-bundle
       - run: npm run package:hosting

@@ -6,7 +6,7 @@ it('offers cleanup retry instead of enabling contribution while an owner remains
   const state = { models: [], network: { sharing: false, stopping: false,
     contribution: { modelId: 'resident', phase: 'failed', unsettledOwners: 1 } } };
   let update;
-  const session = { getState: () => state, setSharing: vi.fn(),
+  const session = { getState: () => state, setComputeContribution: vi.fn(),
     subscribe: listener => { update = listener; listener(state); return () => {}; } };
   const root = document.createElement('div');
   root.innerHTML = renderConnectionControl() + renderSharingControls()
@@ -18,7 +18,7 @@ it('offers cleanup retry instead of enabling contribution while an owner remains
     expect(root.querySelector('[data-toggle-contribution]').disabled).toBe(true);
     const retry = root.querySelector('[data-retry-contribution-stop]');
     expect(retry.hidden).toBe(false); retry.click(); await Promise.resolve();
-    expect(session.setSharing).toHaveBeenCalledWith(false, 'resident', false);
+    expect(session.setComputeContribution).toHaveBeenCalledWith(false);
     state.network.stopping = true; update(state); expect(retry.disabled).toBe(true);
     state.network.stopping = false; state.network.contribution = { phase: 'idle', unsettledOwners: 0 }; update(state);
     expect(retry.hidden).toBe(true);

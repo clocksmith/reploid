@@ -1,4 +1,4 @@
-import { fetchAdapterFile } from '../apps/poolday/providers/work-adapter.js';
+import { fetchAdapterFile } from '../packages/reploid/src/adapters/model-adapter.js';
 import { resolvePartitionArtifactSource } from '../apps/poolday/host/work-partition-artifact-source.js';
 /** Filesystem host ports for the existing signed custody protocol. Model weights come from the approved local
  * directory, then authorized custody peers, then the model's pinned origin (native-model-origin.js) when one is

@@ -16,7 +16,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse } from 'acorn';
+import { browserModuleReferences } from '../server/browser-module-references.js';
 import { openBrowserTree, rootOf } from '../server/browser-tree.js';
 
 /** Substrate modules the product may load: index.html boots /zero and the other substrate routes through them. */
@@ -26,29 +26,7 @@ const posix = path.posix;
 const stripSuffix = value => value.replace(/[?#].*$/, '');
 
 function moduleReferences(code) {
-  const references = [];
-  let tree;
-  try { tree = parse(code, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true }); }
-  catch { return null; }
-  const literal = node => (node?.type === 'Literal' && typeof node.value === 'string' ? node.value
-    : node?.type === 'TemplateLiteral' && !node.expressions.length ? node.quasis[0].value.cooked : null);
-  const visit = node => {
-    if (!node || typeof node !== 'object') return;
-    if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration', 'ImportExpression'].includes(node.type) && node.source) {
-      const value = literal(node.source);
-      if (value) references.push(value);
-    }
-    if (node.type === 'NewExpression' && node.callee?.name === 'URL' && node.arguments[1]?.type === 'MetaProperty') {
-      const value = literal(node.arguments[0]);
-      if (value) references.push(value);
-    }
-    for (const value of Object.values(node)) {
-      if (Array.isArray(value)) value.forEach(visit);
-      else if (value && typeof value === 'object' && value.type) visit(value);
-    }
-  };
-  visit(tree);
-  return references;
+  return browserModuleReferences(code).map(reference => reference.value).filter(Boolean);
 }
 
 function documentReferences(html) {
@@ -56,7 +34,7 @@ function documentReferences(html) {
   for (const match of html.matchAll(/<script\b[^>]*\bsrc=["']([^"'#]+)["']/g)) references.push({ value: match[1], served: true });
   for (const match of html.matchAll(/<link\b[^>]*\brel=["']?(?:stylesheet|modulepreload)["']?[^>]*\bhref=["']([^"'#]+)["']/g)) references.push({ value: match[1], served: true });
   for (const block of html.matchAll(/<script\b[^>]*type=["']module["'][^>]*>([\s\S]*?)<\/script>/g)) {
-    for (const value of moduleReferences(block[1]) || []) references.push({ value, served: true });
+    for (const value of moduleReferences(block[1])) references.push({ value, served: true });
   }
   return references;
 }
@@ -71,8 +49,14 @@ export async function findBoundaryViolations({ repoRoot } = {}) {
     if (!['.js', '.mjs', '.html'].includes(ext) || served === 'ui/pool-home/app.bundle.js') continue;
     const source = tree.source(served), owner = rootOf(source);
     const text = await fs.readFile(tree.absolute(served), 'utf8');
-    const references = ext === '.html' ? documentReferences(text)
-      : (moduleReferences(text) || []).map(value => ({ value, served: false }));
+    let references;
+    try {
+      references = ext === '.html' ? documentReferences(text)
+        : moduleReferences(text).map(value => ({ value, served: false }));
+    } catch (error) {
+      violations.push({ source, reason: `dependency references could not be parsed: ${error.message}` });
+      continue;
+    }
     for (const { value, served: documentRelative } of references) {
       if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith('//')) continue;
       const bare = stripSuffix(value);

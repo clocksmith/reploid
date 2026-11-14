@@ -1,6 +1,14 @@
-import { expect, it, vi } from 'vitest';
-import { createWorkResidentProvider } from '../../apps/poolday/providers/work-resident-provider.js';
-import { withWorkDevice } from '../../apps/poolday/providers/work-device.js';
+import { describe, expect, it, vi } from 'vitest';
+import { createWorkResidentProvider as createBrowserResidentProvider } from '../../apps/poolday/providers/work-resident-provider.js';
+import { withWorkDevice as withBrowserDevice } from '../../apps/poolday/providers/work-device.js';
+import { createNativeResidentProvider } from '../../server/native-resident-provider.js';
+import { withDevice } from '../../packages/reploid/src/adapters/device-lane.js';
+import providerPolicy from '../../apps/poolday/config/work-profile.json' with { type: 'json' };
+
+describe.each([
+  ['browser', createBrowserResidentProvider, withBrowserDevice],
+  ['native', options => createNativeResidentProvider({ ...options, providerPolicy }), withDevice]
+])('%s resident host', (host, createWorkResidentProvider, withWorkDevice) => {
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const signal = () => new AbortController().signal;
 const fixture = (overrides = {}, options = {}) => {
@@ -243,7 +251,7 @@ it('rejects loader callbacks after preparation settles without altering ready ex
   await f.owner.close();
 });
 
-it('keeps the cache lease through failed GPU cleanup and releases it only after successful retirement', async () => {
+it.skipIf(host === 'native')('keeps the cache lease through failed GPU cleanup and releases it only after successful retirement', async () => {
   const { withUnusedModelStorage, MODEL_STORAGE_LOCK } = await import('../../apps/poolday/infrastructure/model-storage-lock.js');
   let held = false;
   const locks = { async request(name, options, operation) {
@@ -334,4 +342,6 @@ it('projects the shared device queue rather than counting only this provider cal
   hold.resolve(); await Promise.all([otherWork, pending]);
   expect(f.owner.getState().deviceQueue).toEqual({ capacity: 1, active: 0, queued: 0 });
   await f.owner.close();
+});
+
 });

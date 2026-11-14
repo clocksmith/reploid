@@ -1,5 +1,7 @@
 /** A paired native host owns the private room, keys, placement and credit ledger.
  * Browser history remains here. Pairing is explicit and limited to this tab. */
+import { abortable } from '../../../shared/vendor/reploid/cancellation.js';
+
 const KEY = 'reploid.private-computers:v1';
 const assert = (ok, message) => { if (!ok) throw Error(message); };
 export function createPrivateComputers({ storage = globalThis.sessionStorage, fetchImpl = globalThis.fetch, onChange = () => {} } = {}) {
@@ -45,58 +47,87 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
   const timer = setInterval(() => void refresh(), 5000); timer.unref?.();
   try { const saved = JSON.parse(storage?.getItem(KEY) || 'null'); if (saved) { connection = validate(saved.url, saved.token); void refresh(); } } catch { /* An invalid saved pairing grants nothing. */ }
   return { state, models, refresh,
-    async connect(url, token) { assert(!active.size, 'Stop active private requests before reconnecting'); epoch++; connection = validate(url, token); snapshot = null; error = ''; busy = false;
-      await refresh(); if (error) { connection = null; throw Error(error); }
-      storage?.setItem(KEY, JSON.stringify({ url: connection.url, token: connection.token })); onChange(); },
+    async connect(url, token) {
+      assert(!closed, 'Private computers are closed');
+      assert(!active.size, 'Stop active private requests before reconnecting');
+      const version = ++epoch, target = validate(url, token);
+      connection = target; snapshot = null; error = ''; busy = false;
+      await refresh();
+      assert(!closed && version === epoch && connection === target, 'Private pairing changed while connecting');
+      if (error) { connection = null; throw Error(error); }
+      storage?.setItem(KEY, JSON.stringify({ url: target.url, token: target.token })); onChange();
+    },
     async disconnect() { epoch++; for (const controller of active.values()) controller.abort(); connection = null; snapshot = null; busy = false; error = '';
       storage?.removeItem(KEY); onChange(); },
     async receipt(id) { return (await call('/receipt', { id })).json(); },
     async accounts() { return (await call('/accounts')).json(); },
     async recover(input, signal = AbortSignal.timeout(30000)) { return (await call('/recover', input, signal)).json(); },
     async execute(request, controls) {
-      const target = connection, selected = models().find(model => model.selectionId === request.model.selectionId && model.identity === request.model.identity);
-      assert(state().connected && selected && request.model.fleet.poolIdentity === snapshot.poolIdentity, 'This private pool is unavailable or has changed');
-      assert(request.permissions?.sharingScope !== 'local' && request.permissions?.executionLocation !== 'local', 'This request permits only local execution');
-      const { threadId, attemptId, model } = request;
+      assert(!closed, 'Private computers are closed');
+      const input = structuredClone(request), target = connection, version = epoch;
+      const selected = models().find(model => model.selectionId === input.model.selectionId && model.identity === input.model.identity);
+      assert(state().connected && selected && input.model.fleet.poolIdentity === snapshot.poolIdentity, 'This private pool is unavailable or has changed');
+      assert(input.permissions?.sharingScope !== 'local' && input.permissions?.executionLocation !== 'local', 'This request permits only local execution');
+      const binding = structuredClone(snapshot), { threadId, attemptId, model, messages } = input;
+      assert(!active.has(attemptId), 'Private attempt is already active');
       const controller = new AbortController(), signal = AbortSignal.any([controls.signal, controller.signal]);
-      const publicNames = Object.fromEntries(snapshot.computers.flatMap(row => row.participantIds.map(id => [id, row.name])));
-      // The user pairs their own requester and delegates exact-model service to its
-      // reviewed private enrollment. Native per-stage disclosure and credit admission
-      // remain mandatory; the saved result names actual executors separately.
-      const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId, attemptId,
-        peerId: snapshot.requester.participantId, recipientIdentity: snapshot.requester.participantId,
-        operation: 'generate', disclosure: 'public', modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
-        expiresAt: Date.now() + 30000, input: { messages: request.messages },
-        privateDelegation: { poolIdentity: snapshot.poolIdentity, computers: publicNames } });
-      assert(approved === true, 'Private execution was not allowed'); signal.throwIfAborted();
+      const assertCurrent = () => {
+        signal.throwIfAborted();
+        assert(!closed && version === epoch && connection === target
+          && snapshot?.poolIdentity === binding.poolIdentity
+          && snapshot?.requester?.participantId === binding.requester.participantId,
+        'Private pairing changed. Retry starts a new authorized attempt.');
+      };
+      const publicNames = Object.fromEntries(binding.computers.flatMap(row => row.participantIds.map(id => [id, row.name])));
+      let placement = { privateDelegation: { poolIdentity: binding.poolIdentity, computers: publicNames }, serviceCredit: { status: 'pending' } };
+      let reader, dispatched = false;
+      const cancel = () => {
+        if (dispatched) void call('/cancel', { attemptId }, AbortSignal.timeout(10000), target).catch(() => {});
+      };
+      // Pending authorization belongs to this pairing too. Stop/close must cancel it
+      // before a late approval can disclose anything to the captured host.
       active.set(attemptId, controller);
-      let placement = {
-        privateDelegation: { poolIdentity: snapshot.poolIdentity, computers: publicNames }, serviceCredit: { status: 'pending' } };
-      controls.onState({ threadId, attemptId, status: 'queued', execution: placement });
-      const cancel = () => { void call('/cancel', { attemptId }, AbortSignal.timeout(10000), target).catch(() => {}); };
       signal.addEventListener('abort', cancel, { once: true });
-      let reader;
       try {
-        const response = await call('/generate', { model: { id: model.id, identity: model.identity }, poolIdentity: snapshot.poolIdentity, threadId, attemptId, messages: request.messages }, signal, target);
+        const approved = await abortable(() => controls.requestApproval({ id: crypto.randomUUID(), threadId, attemptId,
+          peerId: binding.requester.participantId, recipientIdentity: binding.requester.participantId,
+          operation: 'generate', disclosure: 'public', modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
+          expiresAt: Date.now() + 30000, input: { messages: structuredClone(messages) },
+          privateDelegation: structuredClone(placement.privateDelegation) }), signal);
+        assert(approved === true, 'Private execution was not allowed');
+        assertCurrent();
+        controls.onState({ threadId, attemptId, status: 'queued', execution: structuredClone(placement) });
+        assertCurrent();
+        dispatched = true;
+        const response = await call('/generate', { model: { id: model.id, identity: model.identity }, poolIdentity: binding.poolIdentity, threadId, attemptId, messages }, signal, target);
+        assertCurrent();
         reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = '', sequence = 0, result = null;
         for (;;) {
-          const chunk = await reader.read(); buffer += decoder.decode(chunk.value, { stream: !chunk.done });
+          const chunk = await reader.read();
+          assertCurrent();
+          buffer += decoder.decode(chunk.value, { stream: !chunk.done });
           assert(buffer.length <= 8 * 1024 * 1024, 'Private response record exceeds limit');
           let end;
           while ((end = buffer.indexOf('\n')) >= 0) {
+            assertCurrent();
             const line = buffer.slice(0, end); buffer = buffer.slice(end + 1); if (!line) continue;
             const event = JSON.parse(line);
             if (event.execution) {
               placement = { ...placement, ...event.execution };
-              controls.onState({ threadId, attemptId, status: event.status || 'queued', execution: placement });
+              controls.onState({ threadId, attemptId, status: event.status || 'queued', execution: structuredClone(placement) });
             }
             if (event.error) { const error = Error(event.error); error.serviceCredit = event.serviceCredit; throw error; }
-            if (event.delta !== undefined) { const text = typeof event.delta === 'string' ? event.delta : event.delta.text;
-              assert(typeof text === 'string', 'Invalid private output'); controls.onDelta({ threadId, attemptId, sequence: sequence++, text }); }
+            if (event.delta !== undefined) {
+              assertCurrent();
+              const text = typeof event.delta === 'string' ? event.delta : event.delta.text;
+              assert(typeof text === 'string', 'Invalid private output');
+              controls.onDelta({ threadId, attemptId, sequence: sequence++, text });
+            }
             if (event.result) { assert(!result, 'Duplicate private completion'); result = event.result; }
           }
           if (chunk.done) break;
         }
+        assertCurrent();
         assert(result && !buffer.trim(), 'Connection interrupted; outcome unknown. Check service credits before retrying.');
         assert(result.modelIdentity === model.identity && (result.modelId ?? result.model) === model.id, 'Private response model changed');
         return { ...result, threadId, attemptId, modelId: model.id, adapterIdentities: result.adapterIdentities || [],
@@ -105,9 +136,12 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
             ...(result.execution?.admission || placement.admission ? { admission: result.execution?.admission ?? placement.admission } : {}),
             privateDelegation: placement.privateDelegation, serviceCredit: result.serviceCredit } };
       } catch (error) {
-        controls.onState({ threadId, attemptId, status: 'executing', execution: { ...placement, serviceCredit: error.serviceCredit || placement.serviceCredit } });
+        if (dispatched && !closed && version === epoch) controls.onState({ threadId, attemptId, status: 'executing', execution: {
+          ...placement, serviceCredit: error.serviceCredit || placement.serviceCredit } });
         throw error;
-      } finally { reader?.releaseLock(); signal.removeEventListener('abort', cancel); active.delete(attemptId); void refresh(); }
+      } finally {
+        reader?.releaseLock(); signal.removeEventListener('abort', cancel); active.delete(attemptId); void refresh();
+      }
     },
     close() { closed = true; epoch++; clearInterval(timer); for (const controller of active.values()) controller.abort(); }
   };
