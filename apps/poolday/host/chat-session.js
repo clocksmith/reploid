@@ -168,9 +168,11 @@ export function createChatSession({
     store,
     execute: async (request, controls) => {
       const result = await execution.execute(request, controls);
-      // The workspace persists execution metadata. Preserve measured partition/native
-      // usage there as well as the provider's result envelope.
-      return result.usage ? { ...result, execution: { ...result.execution, usage: result.usage } } : result;
+      // Retain the execution port's evidence with the saved attempt. Archiving it
+      // neither verifies it again nor establishes a credit settlement.
+      return result.usage || result.executionReceipt ? { ...result, execution: { ...result.execution,
+        ...(result.usage ? { usage: result.usage } : {}),
+        ...(result.executionReceipt ? { executionReceipt: structuredClone(result.executionReceipt) } : {}) } } : result;
     },
     now,
     id

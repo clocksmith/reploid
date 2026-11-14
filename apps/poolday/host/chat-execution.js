@@ -16,6 +16,7 @@ function chatResult({ threadId, attemptId }, result, placement) {
     adapterIdentities: result.adapterIdentities, content: result.content,
     execution: { ...placement, modelId: result.model, modelIdentity: result.modelIdentity,
       adapterIdentities: result.adapterIdentities, completion, stopReason: completion?.stopReason ?? null,
+      ...(result.executionReceipt ? { executionReceipt: structuredClone(result.executionReceipt) } : {}),
       timing: result.timing ?? null, hardware: publicProviderHardware(result.hardware) } };
 }
 

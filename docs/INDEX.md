@@ -23,6 +23,9 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 
 Native computer identity, non-cash credits and placement: [Fleet service](fleet-service.md).
 
+Proposed receipt retention, authorized peer replication and verifiable usage views:
+[Mesh record keeping](mesh-records.md). Design only; current credit authority remains unchanged.
+
 ---
 
 ## Getting Started

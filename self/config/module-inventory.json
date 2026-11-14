@@ -2621,7 +2621,7 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:b7980fb9ad3619882bf8e0b86483206f822e124cc2c099fd9998de2fa60e6c4d",
+      "sha256": "sha256:8bac324228651072e4ecc16fd3954ca11e3494d9d9d7e470812c705720a34156",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
@@ -2653,7 +2653,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:9f4d5952e4dc230575cbdc0fb011745fee01f00896ca577fc15611b2f28267f7",
+      "sha256": "sha256:5eb42890f5cff22fd148bde1cf0f71b1471245cb3d7093808830e7c182ce5979",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -4031,7 +4031,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:c84c2ec6e7247097051f4c12ac4182430b67d62d696cae2c8f91b1f206c1f410",
+      "sha256": "sha256:907771076ee8ccadac99be3d43dcd67e1a501896171ec48a13dc048809caf76f",
       "imports": []
     },
     {
@@ -18318,7 +18318,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-peer.js",
       "owner": "vendor",
-      "sha256": "sha256:ade621f6b86ff4d1d1ce30a1f8156cf84cd244b0f2674ff00e7e1f86df528cc6",
+      "sha256": "sha256:2c21e1be9a4f2a4d225048b15a1d3ac28b0a308029cd3e88f07fb1b8df34c9a3",
       "imports": [
         "../../transport/partition-data-channel.js",
         "./partition-contract.js",
@@ -18380,7 +18380,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-execution.js",
       "owner": "vendor",
-      "sha256": "sha256:f3c439a3634399a0d4b6eb321d853355523b0be03512da395fbbfceabac0c5c1",
+      "sha256": "sha256:c0b18c12bff42f56074b185305a5d90716a93bf4b3271be192089baf390beaad",
       "imports": [
         "../../transport/partition-errors.json",
         "./partition-attempt-evidence.js",
@@ -18443,7 +18443,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-summary.js",
       "owner": "vendor",
-      "sha256": "sha256:c5a5375aa292845fd22539f00dad29344f08e00eecde76b2220a57eed9ba8c9a",
+      "sha256": "sha256:5e99a98e22fad86f8df51838cf82a3f43872a2d64a04fdb3fbc506cbc81314d2",
       "imports": [
         "./partition-contract.js"
       ]
