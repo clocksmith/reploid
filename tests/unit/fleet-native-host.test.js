@@ -59,6 +59,34 @@ it('closes and rejects immediately when daemon startup fails instead of hanging 
   expect(closed).toBe(true); expect(signals.listenerCount('SIGTERM')).toBe(0);
 });
 
+it('admits two independent conversations within capacity and cancels a third before dispatch', async () => {
+  // Scheduler diagnostic only: capacity is supplied by its host; this does not qualify a two-slot GPU provider.
+  const route = { id: 'fixture', identity: 'sha256:fixture', availability: 'ready' };
+  const scheduler = createFairLaneScheduler({ findRoute: () => route,
+    freeSlots: (_chosen, active, starting) => Math.max(0, 2 - active.size - starting) });
+  const firstController = new AbortController(), secondController = new AbortController(), queuedController = new AbortController();
+  let first, second, replacement;
+  try {
+    first = await scheduler.acquire({ attemptId: 'first', threadId: 'one', requestedModel: route, signal: firstController.signal });
+    second = await scheduler.acquire({ attemptId: 'second', threadId: 'two', requestedModel: route, signal: secondController.signal });
+    expect(scheduler.queuedCount()).toBe(0);
+    const queued = scheduler.acquire({ attemptId: 'third', threadId: 'three', requestedModel: route, signal: queuedController.signal });
+    const cancelled = expect(queued).rejects.toThrow('Cancelled before disclosure');
+    expect(scheduler.queuedCount()).toBe(1);
+    first.markDisclosed('supplier-a'); second.markDisclosed('supplier-b');
+    expect(scheduler.queuedCount()).toBe(1);
+    queuedController.abort(Error('Cancelled before disclosure'));
+    await cancelled;
+    expect(scheduler.queuedCount()).toBe(0);
+    first.release(); first = null;
+    replacement = await scheduler.acquire({ attemptId: 'next-turn', threadId: 'one', requestedModel: route, signal: new AbortController().signal });
+    replacement.markDisclosed('supplier-a');
+    expect(scheduler.queuedCount()).toBe(0);
+  } finally {
+    queuedController.abort(); first?.release(); second?.release(); replacement?.release(); scheduler.close();
+  }
+});
+
 it('serves other conversations before a second turn from a fast-path conversation and updates queue positions', async () => {
   const route = { id: 'qwen-3-5-2b-q4k-ehaf16', identity: 'sha256:test', availability: 'ready' };
   const scheduler = createFairLaneScheduler({
