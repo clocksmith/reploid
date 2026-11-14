@@ -716,21 +716,12 @@ transfer, upload and failures in benefit comparisons.
 
 ### Ownership
 
-Doppler owns model/artifact verification, dependencies, valid partitions, tensor
-interfaces, tokenization, model mathematics, generation/scoring state, sampling,
-stopping and cleanup. Reploid owns discovery, placement, grants, conversations,
-agent coordination and improvement. Poolday is the internal peer infrastructure
-for authenticated connections and authorized, bounded delivery.
-
-The package implements these mechanics; hosts supply credentials, catalog,
-policy, storage and runtime ports; views render state and request actions.
-No UI controller, transport adapter or Reploid coordinator duplicates model math.
-See the [technical diagrams](#technical-diagrams).
-
-Use current Doppler terminology for current executable artifacts. Existing
-serialized `Pack`, `AdapterPack` and signed job protocols retain their actual
-compatibility names and specific verification rules. A manifest-backed resident
-is not automatically a qualified signed Capsule.
+Doppler owns model computation and its runtime state. Reploid owns authorization,
+placement and coordination. Hosts supply policy, credentials, storage and runtime
+ports; views request actions. WebRTC carries peer messages and WebGPU executes
+local GPU commands. See the [glossary and source map](glossary.md) for ownership,
+artifact terminology and the internal Poolday name, and the
+[technical diagrams](#technical-diagrams) for execution flows.
 
 ### Contribution and disclosure
 

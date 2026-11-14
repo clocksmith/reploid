@@ -4,6 +4,8 @@ Use an available prepared model through the ordinary conversation workspace.
 Discovery, contribution and disclosure are separate actions. This guide describes
 that workflow; it is not a claim that full physical-device acceptance passes.
 
+For the names and code boundaries, see [concepts and glossary](glossary.md).
+
 ## Open Reploid
 
 Open [replo.id](https://replo.id/), or run the current checkout locally:
@@ -46,13 +48,12 @@ Keep completed and partial answers after a failure. Explicit retry creates a new
 attempt with fresh permissions and admission checks. Interrupted GPU state is
 not assumed to survive contributor disconnection, reload or replacement.
 
-## Contribute optionally
+## Your computer
 
-Use the network controls to offer storage or compute and choose limits. Model
-pieces are verified and acquired for the assigned contribution. Discovery alone
-grants neither contribution nor input disclosure. Stop or drain the contribution
-through its owner; unrelated conversations and other contributors retain their
-resources.
+Open **Computers**. **This computer** appears first. Answer requests is enabled
+by default for downloaded models; an explicit off choice persists. Review a
+model's download separately before acquiring it. Cached sharing does not approve
+new downloads. Pause contribution here; unrelated conversations keep running.
 
 ## What the evidence establishes
 

@@ -15,21 +15,22 @@ remain separate experimental agent workspaces.
 cited web search exist in source and are tested locally only. Per-surface status is in the
 [claim index](docs/status/surface-claim-index.json).
 
-[Try it](https://replo.id/) · [Quick start](docs/QUICK-START.md) · [Documentation](docs/INDEX.md) · [Product contract](docs/product-specification.md)
+[Try it](https://replo.id/) · [Quick start](docs/QUICK-START.md) · [Concepts and code](docs/glossary.md) · [Documentation](docs/INDEX.md) · [Product contract](docs/product-specification.md)
 
 ## Components
 
 | Component | What it is | Where |
 | --- | --- | --- |
-| **Reploid library** | Conversations, discovery, placement, admission, partition coordination, transport, piece custody, retrieval, accounting clients | [`packages/reploid/src/`](packages/reploid/src) (`chat/`, `mesh/partitions/`, `transport/`, `artifacts/custody/`, `retrieval/`, `measurement/`) |
-| **Poolday** | The network application and peer layer built on the library: the browser app at `/` (conversations, contribution settings, network inspector), rooms, signaling, WebRTC data channels, relays and authorized piece transfer | [`self/pool/`](self/pool), [`self/ui/pool-home/`](self/ui/pool-home), [`self/host/`](self/host) |
-| **Doppler** | Separate repository. Loads signed model packages (Capsules), opens whole models or layer ranges as residents, runs WebGPU kernels, samples tokens | [clocksmith/doppler](https://github.com/clocksmith/doppler), pinned in [`shared/config/doppler-package.json`](shared/config/doppler-package.json) |
-| **Native participant** | Node host that contributes storage and computation from a desktop GPU (Linux/Vulkan is the qualified path) | [`server/native-participant.js`](server/native-participant.js), [guide](docs/native-participant.md) |
-| **Server** | `npm start` serves the app, proxies cloud model APIs for Zero/X, and optionally mounts search and earning routes | [`server/proxy.js`](server/proxy.js), [`server/`](server) |
-| **Zero and X** | Agent workspaces at `/zero` and `/x` on a separate agent/VFS substrate (below) | [`self/zero/`](self/zero), [`self/core/`](self/core), [`self/tools/`](self/tools) |
+| **Reploid product** | Asking, contributing and inspecting computers. Internal folder name: Poolday. | [`apps/poolday/`](apps/poolday) |
+| **Reploid library** | Reusable conversation, coordination and peer protocols | [`packages/reploid/src/`](packages/reploid/src) |
+| **Doppler** | Model loading and computation through WebGPU | [clocksmith/doppler](https://github.com/clocksmith/doppler), [package pin](shared/config/doppler-package.json) |
+| **Native participant** | Desktop host for storage and model execution | [`server/native-participant.js`](server/native-participant.js), [guide](docs/native-participant.md) |
+| **Server** | App hosting and configured service APIs | [`server/`](server) |
+| **Zero and X** | Separate agent workspaces | [`self/`](self), [agent architecture](docs/system-architecture.md) |
 
-Reploid coordinates, Doppler computes, Poolday carries the bytes. Reploid never implements
-model mathematics; Doppler never decides who may run what.
+Reploid coordinates work; Doppler computes. WebRTC carries peer messages; WebGPU
+runs local GPU commands. The [glossary and source map](docs/glossary.md) explain
+the layers and where each responsibility lives.
 
 ### Component ownership
 
@@ -41,8 +42,8 @@ qualification.
 
 ## How a model is stored and split
 
-A model is a signed Doppler **Capsule**: a manifest, the kernels it is allowed to run, and its
-weights as content-addressed **pieces**.
+A deployed model has an exact artifact identity and verified files. Its storage
+**pieces** and computational **partitions** have different jobs:
 
 - **Storage (pieces).** Custody acquires the pieces a participant is assigned from authorized
   suppliers, verifies each against its pinned hash, and keeps it in OPFS (browser) or on disk

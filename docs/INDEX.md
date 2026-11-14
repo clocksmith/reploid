@@ -2,6 +2,9 @@
 
 Guide to all documentation in the REPLOID project.
 
+Start with [concepts, glossary and code map](glossary.md) to distinguish Reploid,
+Doppler, WebRTC, WebGPU and the internal Poolday name.
+
 Keep [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) as durable direction.
 The public product documents are:
 
@@ -49,7 +52,7 @@ Proposed receipt retention, authorized peer replication and verifiable usage vie
 ### Architecture
 - **[Research and game plugins](./plugin-architecture.md)** - Versioned activity rules, capability ports, persisted sessions, and the model-imitation pilot.
 - **[Open mesh architecture](./open-mesh-architecture.md)** - Requested chat experience, discovery, authenticated pieces, automatic placement, Doppler execution, recovery, resource bounds and acceptance requirements; design, not release evidence
-- **[docs/system-architecture.md](./system-architecture.md)** - Agent and VFS substrate architecture
+- **[Agent and VFS architecture](./system-architecture.md)** - The separate Zero/X substrate
 - **[Reploid, Doppler, and Doe diagram](./diagrams/reploid-diagram/README.md)** - Editable interactive views of intended relationships, operations, improvement and recovery; not implementation evidence
 - **[Blueprint inventory](../self/blueprints/canonical-inventory.md)** - Generated sitemap of maintained architectural decisions; file enumeration belongs to the [source inventory](../self/config/module-inventory.json)
 
