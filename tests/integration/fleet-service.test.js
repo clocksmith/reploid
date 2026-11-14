@@ -553,3 +553,85 @@ it('settles recoverable over-context whole-model rejections immediately and bloc
     for (const close of cleanup.reverse()) await close();
   }
 });
+
+it('retains interrupted native output and requires fresh disclosure before retrying with another supplier', async () => {
+  // Real native requester, signed mesh and credit service; generation is deterministic test output, not GPU inference.
+  const cleanup = [], release = Promise.withResolvers(), firstDelta = Promise.withResolvers();
+  const attempts = new Map([['interrupted', []], ['replacement', []]]), outcomes = [];
+  const controllers = [new AbortController(), new AbortController()];
+  const messages = [{ role: 'user', content: 'Keep the same request across suppliers.' }];
+  async function supplier(index, execute) {
+    const provider = createFleetClient({ url: service.url, identity: keys[index] });
+    const admission = createFleetExecutionAdmission({ credits: provider, model: { ...model, generation: { maxTokens: 10 } } });
+    let whole;
+    const mesh = await createRecoveryMesh(cleanup, {
+      identities: [keys[0], keys[index]], modelId: model.id, modelIdentity: model.identity, messages,
+      authorize: async input => input.action === 'mesh.dispatch' ? whole.authorize(input)
+        : input.action === 'mesh.execute' ? admission.whole({ request: input.request, consumer: keys[0].peerId }) : true,
+      execute, onGenerationTerminal: proof => admission.terminal(proof)
+    });
+    whole = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
+    return { mesh, requester: createFleetRequester({ participant: whole, identity: keys[0], credits: client,
+      maxOutputTokens: 10, onOutcome: outcome => outcomes.push(outcome) }) };
+  }
+  const first = await supplier(1, async (_messages, update, controls) => {
+    update('Preserved partial answer');
+    await release.promise;
+    controls.signal.throwIfAborted();
+  });
+  const second = await supplier(2);
+  const request = attemptId => ({ model, messages, threadId: 'same-conversation', attemptId });
+  const approvals = [];
+  const approve = allowed => async disclosure => {
+    approvals.push(disclosure);
+    expect(disclosure.input.messages).toEqual(messages);
+    expect(disclosure.modelIdentity).toBe(model.identity);
+    expect(disclosure.serviceCreditQuote.maximum).toBe(10);
+    return allowed;
+  };
+  try {
+    const running = first.requester.generate(request('interrupted'), {
+      signal: controllers[0].signal, requestApproval: approve(true), onDelta: delta => {
+        attempts.get(delta.attemptId).push(delta.text); firstDelta.resolve();
+      }
+    });
+    const stopped = expect(running).rejects.toThrow('Supplier interrupted');
+    await firstDelta.promise;
+    controllers[0].abort(Error('Supplier interrupted'));
+    await stopped;
+    expect(attempts.get('interrupted').join('')).toBe('Preserved partial answer');
+    expect(credits.snapshot().accounts[0].held).toBe(10);
+    expect(second.mesh.executions).toBe(0);
+
+    await expect(second.requester.generate(request('denied-replacement'), {
+      signal: controllers[1].signal, requestApproval: approve(false)
+    })).rejects.toThrow();
+    expect(second.mesh.executions).toBe(0);
+    expect(credits.snapshot().accounts[0].held).toBe(10);
+
+    release.resolve();
+    await vi.waitFor(() => expect(credits.snapshot().accounts[0].held).toBe(0));
+    const oldId = `service:${keys[0].peerId}:${first.mesh.reference.requestId}`;
+    expect(credits.request(oldId).outcome).toMatchObject({ status: 'cancelled', charge: 0 });
+    const result = await second.requester.generate(request('replacement'), {
+      signal: controllers[1].signal, requestApproval: approve(true),
+      onDelta: delta => attempts.get(delta.attemptId).push(delta.text)
+    });
+    expect(result.content).toBe('actual answer');
+    expect(result.serviceCredit.charge).toBe(3);
+    expect(approvals.map(value => value.recipientIdentity)).toEqual([keys[1].peerId, keys[2].peerId, keys[2].peerId]);
+    expect(new Set(approvals.map(value => value.requestId)).size).toBe(3);
+    expect(first.mesh.executions).toBe(1);
+    expect(second.mesh.executions).toBe(1);
+    expect(attempts.get('interrupted').join('')).toBe('Preserved partial answer');
+    expect(outcomes.find(value => value.attemptId === 'interrupted').acknowledged.outputCharacters).toBe(24);
+    expect(credits.request(oldId).outcome).toMatchObject({ status: 'cancelled', charge: 0 });
+    expect(credits.snapshot().accounts.map(row => row.balance)).toEqual([-3, 0, 3]);
+    expect(credits.snapshot().accounts.every(row => row.held === 0)).toBe(true);
+    expect([...first.mesh.errors, ...second.mesh.errors]).toEqual([]);
+  } finally {
+    release.resolve();
+    controllers.forEach(controller => controller.abort());
+    for (const close of cleanup.reverse()) await close();
+  }
+});
