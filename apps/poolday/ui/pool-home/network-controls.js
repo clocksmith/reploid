@@ -259,7 +259,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, requestC
     message.textContent = network.error || actionError || (relayUnavailableReason() ? 'The relay service is unreachable. New connections are direct only, so some computers may not be reachable.' : ''); message.hidden = !message.textContent;
     const cleanupPending = network.contribution?.unsettledOwners > 0;
     const usage = state.computerUsage;
-    const tokenText = value => value ? `${value.outputTokens.toLocaleString()}${value.unmeasured ? ' + unmeasured' : ''}` : '—';
+    const tokenText = value => value && value.available !== false ? `${value.outputTokens.toLocaleString()}${value.unmeasured ? ' + unmeasured' : ''}` : '—';
     const supplied = find('[data-device-supplied]'), consumed = find('[data-device-consumed]');
     if (supplied) supplied.textContent = usage?.supplied?.available ? tokenText(usage.supplied) : '—';
     if (consumed) consumed.textContent = tokenText(usage?.consumed);

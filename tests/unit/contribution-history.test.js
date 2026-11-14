@@ -53,7 +53,9 @@ it('counts measured supply and saved consumption once, retaining unknown interru
   const usage = projectComputerUsage({ threads: [thread], network: { contributionHistory: {
     records: [{ outputTokens: 11 }, { outputTokens: null }], limit: 200, error: 'Storage unavailable' } } });
   expect(usage.supplied).toMatchObject({ outputTokens: 11, unmeasured: 1, requests: 2, available: true });
-  expect(usage.consumed).toEqual({ outputTokens: 10, requests: 3, unmeasured: 1 });
+  expect(usage.consumed).toEqual({ outputTokens: 10, requests: 3, unmeasured: 1, available: true });
   expect(usage.error).toBe('Storage unavailable');
   expect(projectComputerUsage().supplied.available).toBe(false);
+  expect(projectComputerUsage({ historyUnavailable: 'History owned by another tab' })).toMatchObject({
+    consumed: { available: false }, error: 'History owned by another tab' });
 });

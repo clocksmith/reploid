@@ -174,6 +174,16 @@ it('keeps native service-credit debt and pending holds separate from browser tok
   detach();
 });
 
+it('does not display zero consumption when another tab owns the conversation history', () => {
+  const snapshot = { ...state(), computerUsage: { consumed: { outputTokens: 0, available: false },
+    error: 'Conversation usage is unavailable while another tab owns its history' } };
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
+  const detach = bindProductionSurface(document.body, session);
+  expect(document.querySelector('[data-device-consumed]').textContent).toBe('—');
+  expect(document.querySelector('[data-device-usage-error]').hidden).toBe(false);
+  detach();
+});
+
 it('switches inspector segments by keyboard with one selected tab and matching pane', () => {
   const snapshot = state();
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };

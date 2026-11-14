@@ -17,7 +17,7 @@ describe('Chat host with injected execution, not actual inference', () => {
     const session = createChatSession({ storage: saved, service, scheduler });
     const threadId = session.createThread({ sharingScope: 'local' });
     expect((await session.send(threadId, 'Hello')).status).toBe('completed');
-    expect(session.getState().computerUsage.consumed).toEqual({ outputTokens: 4, requests: 1, unmeasured: 0 });
+    expect(session.getState().computerUsage.consumed).toEqual({ outputTokens: 4, requests: 1, unmeasured: 0, available: true });
     await session.close();
     const restored = createChatSession({ storage: saved, service, scheduler });
     expect(restored.getState().computerUsage.consumed.outputTokens).toBe(4);

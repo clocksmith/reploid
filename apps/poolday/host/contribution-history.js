@@ -8,7 +8,7 @@ const valid = row => row && typeof row.id === 'string' && typeof row.modelId ===
 /** Project retained device records, not lifetime usage or financial settlement.
  * Count output tokens once per execution; never estimate tokens from text length.
  */
-export function projectComputerUsage({ threads = [], network = {} } = {}) {
+export function projectComputerUsage({ threads = [], network = {}, historyUnavailable = null } = {}) {
   const summary = rows => rows.reduce((total, row) => {
     total.requests++;
     if (Number.isSafeInteger(row.outputTokens) && row.outputTokens >= 0) total.outputTokens += row.outputTokens;
@@ -32,8 +32,8 @@ export function projectComputerUsage({ threads = [], network = {} } = {}) {
   const history = network.contributionHistory;
   return {
     supplied: { ...summary(history?.records || []), limit: history?.limit ?? LIMIT, available: !!history },
-    consumed: summary([...attempts.values()]),
-    error: history?.error || null
+    consumed: { ...summary([...attempts.values()]), available: !historyUnavailable },
+    error: [history?.error, historyUnavailable].filter(Boolean).join('. ') || null
   };
 }
 

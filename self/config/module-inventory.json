@@ -2653,7 +2653,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:d928670d29681d94422668a171527719282c348443847019fec06611812608df",
+      "sha256": "sha256:9f4d5952e4dc230575cbdc0fb011745fee01f00896ca577fc15611b2f28267f7",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2694,7 +2694,7 @@
     {
       "path": "self/host/contribution-history.js",
       "owner": "self",
-      "sha256": "sha256:e69fd0d8f3df712c1c8f5178813de01215f0cce36bbc742852e83eb19e675bbb",
+      "sha256": "sha256:165917121052f757f1073a9ad36726a9150aa735cd8b1b3ca111bfb12636a9bc",
       "imports": []
     },
     {
@@ -4031,7 +4031,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f92455911db2f02437d52a5c1206ab178b2226e1d6f5da2b0672294cb2699356",
+      "sha256": "sha256:c84c2ec6e7247097051f4c12ac4182430b67d62d696cae2c8f91b1f206c1f410",
       "imports": []
     },
     {
@@ -4345,7 +4345,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:f9752d6079f5ac981b338123d42387859230797a92cc73783dcdfb3db728d156",
+      "sha256": "sha256:17b9e0b7d84a916da447f6633195b21c52f5fc5144ad15f81b487598354d8bde",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",
