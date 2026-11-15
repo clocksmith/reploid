@@ -98,8 +98,7 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
           privacyBinding = await bindExecutionRoute({ model: selectedModel, privacy: body.privacy }, selected.route);
           assert(sameExecutionBinding(privacyBinding, body.privacyBinding), 'Paired privacy binding mismatch');
         } else {
-          assert(body.privacy.profile === 'provider-visible' && !body.privacy.allowedRecipients.length,
-            'Legacy paired bridge supports provider-visible delegation only');
+          throw new Error('Policy-bound paired execution requires exact route preflight; legacy delegation is unavailable');
         }
       }
       // Sources, adapters and generation settings remain native-owner decisions.

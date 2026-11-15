@@ -265,13 +265,13 @@ it('validates every paired v2 route recipient before transmitting prompt message
   } finally { client.close(); await bridge.close(); }
 });
 
-it('does not send restricted requests to legacy paired bridges', async () => {
+it.each(['restricted', 'provider-visible'])('does not send %s policy-bound requests to legacy paired bridges', async profile => {
   const seen = [];
   const client = createPrivateComputers({ storage: null, fetchImpl: async (url, init) => { seen.push(url); return Response.json(snapshot); } });
   try {
     await client.connect('http://127.0.0.1:18784', token);
     await expect(client.execute({ threadId: 't', attemptId: 'legacy', model: client.models()[0], messages: [{ content: 'secret' }],
-      permissions: { sharingScope: 'mesh' }, privacy: createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [requester, provider] }) },
+      permissions: { sharingScope: 'mesh' }, privacy: profile === 'restricted' ? createExecutionPolicy(profile, { placement: 'network-allowed', allowedRecipients: [requester, provider] }) : createExecutionPolicy(profile) },
       { signal: new AbortController().signal, requestApproval: async () => true, onState() {}, onDelta() {} })).rejects.toThrow('preflight');
     expect(seen.some(url => url.endsWith('/generate'))).toBe(false);
   } finally { client.close(); }
