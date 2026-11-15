@@ -1,3 +1,4 @@
+import { createSearchDisclosure } from './disclosure.js';
 /**
  * @fileoverview /api/retrieval routes. Search runs the configured provider under the daily budget and returns
  * results with fetch tokens; extraction fetches only URLs that a search on this server returned (an HMAC token
@@ -33,7 +34,7 @@ export function verifyFetchToken(secret, url, token, now = Date.now()) {
 const STATUS = { 'invalid-request': 400, 'invalid-url': 400, 'provider-unauthorized': 502, 'rate-limited': 429, 'quota-exhausted': 429,
   'budget-exhausted': 429, 'json-disabled': 502, 'provider-unavailable': 502, 'invalid-response': 502, timeout: 504, cancelled: 504,
   'blocked-address': 403, 'unsupported-content-type': 415, 'too-large': 413, 'http-error': 502, 'fetch-failed': 502,
-  'too-many-redirects': 502, 'no-text': 422, 'invalid-fetch-token': 403, 'provider-mismatch': 409 };
+  'privacy-rejected': 403, 'too-many-redirects': 502, 'no-text': 422, 'invalid-fetch-token': 403, 'provider-mismatch': 409 };
 const MESSAGES = { 'provider-unauthorized': 'The search provider refused the server credentials',
   'invalid-fetch-token': 'This URL was not returned by a search on this server, or its token expired',
   'provider-mismatch': 'The server is configured for a different search provider', 'no-text': 'The page has no extractable text' };
@@ -64,7 +65,7 @@ const plainObject = value => value && typeof value === 'object' && !Array.isArra
 const answerKey = value => value === undefined ? null : typeof value === 'string' && /^[\x21-\x7e]{1,128}$/.test(value) ? value : false;
 
 export function createSearchRouter({ search, fetcher, extract = extractDocumentText, usage, fetchSecret, now = Date.now,
-  tokenTtlMs = 15 * 60 * 1000, searchDeadlineMs = SEARCH_DEADLINE_MS, fetchMicroUsdPerGb = null }) {
+  publicOrigin = null, tokenTtlMs = 15 * 60 * 1000, searchDeadlineMs = SEARCH_DEADLINE_MS, fetchMicroUsdPerGb = null }) {
   if (!search?.kind || typeof search.search !== 'function') throw new Error('Search router needs a search provider');
   if (typeof fetcher?.fetchPage !== 'function') throw new Error('Search router needs a page fetcher');
   if (!usage || typeof fetchSecret !== 'string' || fetchSecret.length < 16) throw new Error('Search router needs usage counters and a fetch secret');
@@ -73,12 +74,13 @@ export function createSearchRouter({ search, fetcher, extract = extractDocumentT
   }
   // Decimal gigabytes, rounded to the nearest micro-USD per fetch; null when the deployment has not priced fetches.
   const fetchCost = bytes => fetchMicroUsdPerGb === null ? null : Math.round(bytes * fetchMicroUsdPerGb / 1e9);
+  const disclosure = createSearchDisclosure({ search, fetcher, publicOrigin });
   const router = express.Router();
   router.use(express.json({ limit: '16kb' }));
   const provider = { kind: search.kind, id: `reploid.server-search/${search.kind}`, version: '1' };
 
   router.get('/status', (req, res) => res.json({ schema: SERVER_SEARCH_STATUS_SCHEMA, enabled: true, provider: search.kind,
-    providerId: provider.id, unsupportedContentTypes: [...pageFetchPolicy.unsupportedContentTypes] }));
+    ...(disclosure.description ? { disclosure: disclosure.description } : {}), providerId: provider.id, unsupportedContentTypes: [...pageFetchPolicy.unsupportedContentTypes] }));
   router.get('/usage', (req, res) => res.json(usage.snapshot()));
 
   router.post('/search', async (req, res) => {
@@ -90,8 +92,9 @@ export function createSearchRouter({ search, fetcher, extract = extractDocumentT
     }
     // The person allowed one named provider; a different configuration sends nothing.
     if (body.expectProvider !== undefined && body.expectProvider !== search.kind) return send(res, 'provider-mismatch');
-    try { usage.admit(); } catch (error) { return failure(res, error); }
     const { signal, done } = routeSignal(res, searchDeadlineMs);
+    try { await disclosure.verify(body, 'search', signal); signal.throwIfAborted(); usage.admit(); }
+    catch (error) { done(); return failure(res, error); }
     let found;
     try { found = await search.search({ query, count, signal }); }
     catch (error) {
@@ -127,7 +130,11 @@ export function createSearchRouter({ search, fetcher, extract = extractDocumentT
     const { signal, done } = routeSignal(res, (fetcher.timeoutMs ?? SEARCH_DEADLINE_MS) + 1000);
     let page;
     // A failed fetch may have transferred bytes the fetcher did not report, so its cost is unknown.
-    try { page = await fetcher.fetchPage(body.url, { signal }); }
+    try {
+      const allowedOrigins = await disclosure.verify(body, 'extract', signal);
+      signal.throwIfAborted();
+      page = await fetcher.fetchPage(body.url, { signal, ...(allowedOrigins ? { allowedOrigins } : {}) });
+    }
     catch (error) { usage.recordFetch({ ok: false, answer, costMicroUsd: null }); done(); return failure(res, error); }
     done();
     const costMicroUsd = fetchCost(page.bytes);

@@ -60,6 +60,9 @@ export function createBraveSearch({ apiKey, fetch = globalThis.fetch, now = Date
   if (typeof apiKey !== 'string' || !apiKey.trim()) throw new Error('Brave search needs an API key');
   if (typeof fetch !== 'function') throw new Error('Brave search needs fetch');
   if (costMicroUsdPerQuery !== null && !(Number.isSafeInteger(costMicroUsdPerQuery) && costMicroUsdPerQuery >= 0)) throw new Error('Invalid Brave query cost');
+  const configuredEndpoint = new URL(endpoint);
+  if (configuredEndpoint.username || configuredEndpoint.password) throw new Error('Search endpoint cannot contain credentials');
+  const endpointUrl = configuredEndpoint.href;
   const interval = 1000 / qps;
   let nextAt = 0, blockedUntil = 0, blockedQuota = false;
 
@@ -82,7 +85,7 @@ export function createBraveSearch({ apiKey, fetch = globalThis.fetch, now = Date
   }
 
   return Object.freeze({
-    kind: 'brave',
+    kind: 'brave', privacyProtocol: 'reploid.search-disclosure/v1', disclosureOrigin: new URL(endpointUrl).origin,
     async search({ query, count = 10, signal = null }) {
       if (typeof query !== 'string' || !query.trim()) throw new SearchProviderError('invalid-request', { detail: 'Query is empty' });
       if (!Number.isSafeInteger(count) || count < 1 || count > BRAVE_MAX_COUNT) {
@@ -91,12 +94,12 @@ export function createBraveSearch({ apiKey, fetch = globalThis.fetch, now = Date
       const wait = reserve();
       try { if (wait > 0) await sleep(wait, signal); }
       catch { throw new SearchProviderError(abortCode(signal)); }
-      const url = new URL(endpoint);
+      const url = new URL(endpointUrl);
       url.searchParams.set('q', query.trim());
       url.searchParams.set('count', String(count));
       let response;
       try {
-        response = await fetch(url, { method: 'GET', signal: signal ?? undefined,
+        response = await fetch(url, { method: 'GET', signal: signal ?? undefined, redirect: 'error',
           headers: { Accept: 'application/json', 'Accept-Encoding': 'gzip', 'X-Subscription-Token': apiKey } });
       } catch (error) {
         throw new SearchProviderError(signal?.aborted ? abortCode(signal) : 'provider-unavailable',

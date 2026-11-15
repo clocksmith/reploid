@@ -285,19 +285,20 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     run.completion = (async () => {
       let publication = null, dispatched = request;
       const auxiliary = new Map(), auxiliaryOperations = new Map();
-      const beforeRetrievalDisclosure = detail => {
+      const beforeRetrievalDisclosure = (detail, installedPath = null) => {
         controller.signal.throwIfAborted();
-        const key = canonicalPartitionJson(detail);
+        const key = canonicalPartitionJson([detail, installedPath]);
+        const implementation = canonicalPartitionJson([detail.id, detail.version]);
         const prior = auxiliaryOperations.get(detail.operation);
-        assert(!prior || prior === key, 'Retrieval implementation changed; retry requires a new attempt');
+        assert(!prior || prior === implementation, 'Retrieval implementation changed; retry requires a new attempt');
         if (auxiliary.has(key)) return auxiliary.get(key);
-        auxiliaryOperations.set(detail.operation, key);
+        auxiliaryOperations.set(detail.operation, implementation);
         const pending = (async () => {
-          const declared = routeFor(request.retrieval).disclosures[detail.operation] ?? null;
-          const binding = await bindAuxiliaryDisclosure(request.privacy, detail, declared, { allowUnqualifiedLegacy: legacyPrivacy });
+          const declared = installedPath ?? routeFor(request.retrieval).disclosures[detail.operation] ?? null;
+          const binding = await bindAuxiliaryDisclosure(request.privacy, { ...detail, requestId: attempt.id }, declared, { allowUnqualifiedLegacy: legacyPrivacy });
           controller.signal.throwIfAborted();
           attempt.auxiliaryBindings = [...(attempt.auxiliaryBindings || []), copy(binding)];
-          await persist(); controller.signal.throwIfAborted(); return true;
+          await persist(); controller.signal.throwIfAborted(); return binding;
         })();
         auxiliary.set(key, pending); return pending;
       };

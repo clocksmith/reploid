@@ -140,7 +140,10 @@ export async function bindAuxiliaryDisclosure(policy, detail, declared = null, {
       'auxiliary path is unqualified for restricted execution');
     hops = validatePlaintextHops(policy, [{ recipient: detail.id, placement: 'remote', disclosure: 'plaintext' }]);
   }
-  const path = { schema: 'reploid.auxiliary-path/v1', operation: detail.operation, id: detail.id, version: detail.version,
+  if (detail.resourceOrigin !== undefined) assert(id(detail.resourceOrigin), 'resource origin required');
+  if (detail.requestId !== undefined) assert(id(detail.requestId), 'auxiliary request identity required');
+  const path = { ...(detail.resourceOrigin !== undefined ? { resourceOrigin: detail.resourceOrigin } : {}),
+    ...(detail.requestId !== undefined ? { requestId: detail.requestId } : {}), schema: 'reploid.auxiliary-path/v1', operation: detail.operation, id: detail.id, version: detail.version,
     complete: declared !== null, hops };
-  return freeze({ schema: 'reploid.auxiliary-binding/v1', policyId: await hashJson(policy), pathId: await hashJson(path), path });
+  return freeze({ schema: 'reploid.auxiliary-binding/v1', policy, policyId: await hashJson(policy), pathId: await hashJson(path), path });
 }

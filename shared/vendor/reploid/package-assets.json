@@ -543,13 +543,13 @@
     },
     {
       "path": "chat/execution-policy.d.ts",
-      "bytes": 3073,
-      "sha256": "7e370c90dc7e3b239384363018be729fd305a829ed2028aa999902bd7c8ad8bb"
+      "bytes": 3143,
+      "sha256": "be1f7325c07efced41801a71705ad8bf84b5e04b1450677bf03cea268a075a72"
     },
     {
       "path": "chat/execution-policy.js",
-      "bytes": 10375,
-      "sha256": "57f7920152caec5fee4d738620d60ab838627f58ff9e4e86d5c5389f2a10c1cb"
+      "bytes": 10767,
+      "sha256": "56e8b12cf10e80f22e7366dc3c2b4a9c76bf5f2ba23ffa46986b708172af24dd"
     },
     {
       "path": "chat/execution-policy.json",
@@ -643,8 +643,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 56012,
-      "sha256": "7e8a39111832bf2c352d319534c22ba41d3580543f36e06513336a82dc93a573"
+      "bytes": 56209,
+      "sha256": "9c66549c53e3687fb9fb0e58902dcd31ee98deda503b9526a35d9c2546ec64a4"
     },
     {
       "path": "config/defaults.json",
@@ -1477,14 +1477,24 @@
       "sha256": "e0a07fdabddb86f68cf417c0b72b0856b7f2933998d0a647a231f59158d19395"
     },
     {
+      "path": "retrieval/disclosure-path.d.ts",
+      "bytes": 440,
+      "sha256": "0c76998f75d0f395edd64a034d1a344d4715f956c963e309f41c793c90af1087"
+    },
+    {
+      "path": "retrieval/disclosure-path.js",
+      "bytes": 1446,
+      "sha256": "40a3eec2be69ede75ee3669d23f3a4ef87ebe9e2b0e79c0ae86a88f4cf0ea42a"
+    },
+    {
       "path": "retrieval/disclosure-ports.d.ts",
-      "bytes": 461,
-      "sha256": "23d1d5a716331dce7127d9df70c1fcdd190f55105b8f1ae3ff2390896382d16b"
+      "bytes": 568,
+      "sha256": "c7c53ead027d52fa0c84c0a6dfb8140fb1291ccf1b86394e56aa0ae426794e0c"
     },
     {
       "path": "retrieval/disclosure-ports.js",
-      "bytes": 826,
-      "sha256": "571b94557e8708116839ad869db78052c79da539cab590eb2727e7ce56ffbf4e"
+      "bytes": 1559,
+      "sha256": "28f71eaff4f580716032efbe8f96a9563bfbc307d63cd8e915201315f0c401dc"
     },
     {
       "path": "retrieval/fixed-provider.js",
@@ -1493,8 +1503,8 @@
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 22531,
-      "sha256": "1c08d50fb46f4cab8ef7350fd1ca3d2a2576259544272e54db08bad2c2024243"
+      "bytes": 23046,
+      "sha256": "3d3d497cd267e5df7db9c452b09b3e268f99e7895341dd384135f460d3109518"
     },
     {
       "path": "retrieval/index.js",

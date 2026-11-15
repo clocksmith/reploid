@@ -1,3 +1,4 @@
+import { BRAVE_SEARCH_ORIGIN, SEARCH_DISCLOSURE_PROTOCOL, disclosureOrigin, serverSearchPath } from '../../../shared/vendor/reploid/retrieval/disclosure-path.js';
 /** Search-backed answers through Reploid's server search route (server/search). The server holds the search
  * service's key and fetches cited pages; this port only sends the query and asks for passages. Its route is
  * Brave only, because the approved per-answer permission names Brave: the server refuses the query rather than
@@ -7,16 +8,29 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const ROUTE = '/api/retrieval';
 
 export function createServerSearch({ fetch = (...input) => globalThis.fetch(...input), baseUrl = '', authorization = () => null,
-  searchProvider = 'brave' } = {}) {
+  searchProvider = 'brave', upstreamOrigin = BRAVE_SEARCH_ORIGIN } = {}) {
+  baseUrl = String(baseUrl); upstreamOrigin = String(upstreamOrigin);
+  let disclosure = null;
+  const origins = () => ({ serverOrigin: disclosureOrigin(baseUrl || globalThis.location?.origin), searchOrigin: disclosureOrigin(upstreamOrigin) });
+  const describeDisclosure = detail => {
+    let selected;
+    try { selected = origins(); } catch { return null; }
+    if (!(searchProvider === 'brave' && disclosure?.schema === SEARCH_DISCLOSURE_PROTOCOL
+      && disclosure.serverOrigin === selected.serverOrigin && disclosure.searchOrigin === selected.searchOrigin
+      && disclosure.redirectPolicy === 'same-origin-only')) return null;
+    try { return serverSearchPath(detail, selected); } catch { return null; }
+  };
   let status = { state: 'unknown', provider: null, message: '' }, checking = null;
   const listeners = new Set();
   const notify = () => { for (const listener of listeners) listener({ ...status }); };
   const request = async (path, body, signal) => {
+    body = body ? structuredClone(body) : null;
     const headers = { Accept: 'application/json' }, token = await authorization();
+    signal?.throwIfAborted();
     if (body) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
     const response = await fetch(`${baseUrl}${ROUTE}${path}`, { method: body ? 'POST' : 'GET', headers,
-      ...(body ? { body: JSON.stringify(body) } : {}), signal, credentials: 'same-origin' });
+      ...(body ? { body: JSON.stringify(body) } : {}), signal, credentials: 'same-origin', redirect: 'error' });
     let payload = null;
     try { payload = await response.json(); } catch { /* reported below */ }
     if (!response.ok) {
@@ -28,10 +42,10 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
   };
 
   const answerKey = answer => typeof answer === 'string' ? { answer } : {};
-  const provider = Object.freeze({ id: `reploid.server-search/${searchProvider}`, version: '1', searchProvider, costBearer: 'operator', supply: 'server',
-    async search(query, limits, signal, { answer } = {}) {
+  const provider = Object.freeze({ id: `reploid.server-search/${searchProvider}`, version: '1', searchProvider, costBearer: 'operator', supply: 'server', privacyProtocol: SEARCH_DISCLOSURE_PROTOCOL, describeDisclosure,
+    async search(query, limits, signal, { answer, disclosure: authorized } = {}) {
       const payload = await request('/search', { query, count: Math.min(limits.maxResults, 20), expectProvider: searchProvider,
-        ...answerKey(answer) }, signal);
+        ...answerKey(answer), ...(authorized ? { auxiliaryBinding: authorized } : {}) }, signal);
       assert(payload?.schema === 'reploid.server-search-results/v1' && payload.provider?.kind === searchProvider && Array.isArray(payload.results),
         'The search route returned an unexpected response');
       const usage = payload.usage;
@@ -41,10 +55,10 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
     } });
 
   // Fetches the source page on the server, bound to the search that returned it, and keeps the passage's offsets.
-  const extractor = Object.freeze({ id: 'reploid.server-page-extract', version: '1',
-    async extract({ source, query, limits, signal, answer }) {
+  const extractor = Object.freeze({ id: 'reploid.server-page-extract', version: '1', privacyProtocol: SEARCH_DISCLOSURE_PROTOCOL, describeDisclosure,
+    async extract({ source, query, limits, signal, answer, disclosure: authorized }) {
       const payload = await request('/extract', { url: source.url, fetchToken: source.fetchToken, query,
-        maxCharacters: limits.maxSourceCharacters, ...answerKey(answer) }, signal);
+        maxCharacters: limits.maxSourceCharacters, ...answerKey(answer), ...(authorized ? { auxiliaryBinding: authorized } : {}) }, signal);
       assert(payload?.schema === 'reploid.server-passage/v1' && typeof payload.text === 'string' && payload.document,
         'The extraction route returned an unexpected response');
       const { url, contentType, characters, sha256, start, end, bytes, status: code } = payload.document;
@@ -64,9 +78,10 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
     subscribe(listener) { listeners.add(listener); listener({ ...status }); return () => listeners.delete(listener); },
     refresh(signal) {
       checking ??= request('/status', null, signal).then(payload => {
+        disclosure = payload?.disclosure ? structuredClone(payload.disclosure) : null;
         status = payload?.enabled && payload.provider === searchProvider ? { state: 'ready', provider: payload.provider, message: '' }
           : { state: 'unavailable', provider: payload?.provider ?? null, message: payload?.message || `Server search uses ${payload?.provider ?? 'no service'}` };
-      }, error => { status = { state: 'unavailable', provider: null, message: error.message }; })
+      }, error => { disclosure = null; status = { state: 'unavailable', provider: null, message: error.message }; })
         .finally(() => { checking = null; notify(); });
       return checking.then(() => ({ ...status }));
     }

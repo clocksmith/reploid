@@ -1,3 +1,4 @@
+import { disclosureOrigin } from '../../packages/reploid/src/retrieval/disclosure-path.js';
 /**
  * @fileoverview Server search configuration. The Brave key comes from
  * REPLOID_BRAVE_SEARCH_API_KEY or a key file outside the repository named by
@@ -37,9 +38,14 @@ function searxngUrl(value) {
 
 /** Returns { enabled, reason, provider, brave, searxng, fetchMicroUsdPerGb, maxQueriesPerDay, fetchSecret, usageLog }; never throws for absence, only for unsafe values. */
 export function readSearchConfig(env = {}, { repoRoot = null, readFileSync = fs.readFileSync, randomBytes = crypto.randomBytes } = {}) {
-  let apiKey, baseUrl;
+  let apiKey, baseUrl, publicOrigin = null;
   try { apiKey = readKey(env, { repoRoot, readFileSync }); baseUrl = searxngUrl(env.REPLOID_SEARXNG_BASE_URL); }
   catch (error) { return off(error.message); }
+  if (env.REPLOID_SEARCH_PUBLIC_ORIGIN) {
+    try { publicOrigin = disclosureOrigin(env.REPLOID_SEARCH_PUBLIC_ORIGIN);
+      if (publicOrigin !== env.REPLOID_SEARCH_PUBLIC_ORIGIN) throw Error('not an exact origin');
+    } catch { return off('REPLOID_SEARCH_PUBLIC_ORIGIN must be an exact HTTPS origin (loopback HTTP is local/test only)'); }
+  }
   const requested = String(env.REPLOID_SEARCH_PROVIDER || '').trim().toLowerCase();
   if (requested && !SEARCH_PROVIDERS.includes(requested)) return off('REPLOID_SEARCH_PROVIDER must be brave or searxng');
   const provider = requested || (apiKey ? 'brave' : baseUrl ? 'searxng' : null);
@@ -59,7 +65,7 @@ export function readSearchConfig(env = {}, { repoRoot = null, readFileSync = fs.
   if (!(Number.isFinite(qps) && qps > 0 && qps <= 1000)) return off('REPLOID_BRAVE_SEARCH_QPS must be a positive number', provider);
   const secret = String(env.REPLOID_SEARCH_FETCH_SECRET || '').trim();
   return {
-    enabled: true, reason: null, provider,
+    enabled: true, reason: null, provider, publicOrigin,
     // Micro-USD per query: $5 per 1,000 is 5000. Null means the deployment has not priced queries.
     brave: provider === 'brave' ? { apiKey, qps, costMicroUsdPerQuery: usd ? Math.round(Number(usd) * 1000) : null } : null,
     searxng: provider === 'searxng' ? { baseUrl } : null,

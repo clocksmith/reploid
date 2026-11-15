@@ -24,7 +24,11 @@ export interface SearchUsage { provider: string; requests: number; costMicroUsd:
 export type CostBearer = 'operator' | 'requester';
 export type RetrievalSupplyKind = 'server' | 'device' | 'contributor';
 /** A search provider. The host owns its credentials, terms and any disclosure of the query to it. */
-export interface SearchProvider {
+export interface AuxiliaryDisclosurePort {
+  privacyProtocol?: 'reploid.search-disclosure/v1';
+  describeDisclosure?(detail: import('../chat/execution-policy.js').AuxiliaryDetail): import('../chat/execution-policy.js').AuxiliaryPath | null | Promise<import('../chat/execution-policy.js').AuxiliaryPath | null>;
+}
+export interface SearchProvider extends AuxiliaryDisclosurePort {
   id: string; version: string;
   /** Names the search service a search-answer permission discloses the query to. */
   searchProvider?: string;
@@ -33,7 +37,7 @@ export interface SearchProvider {
   /** Where the query is sent from and pages are fetched: an operator's server route, or this device. Recorded in the retrieval record. */
   supply?: RetrievalSupplyKind;
   /** `context.answer` is an opaque per-answer key a provider may record in its own usage log; it is not part of the query. */
-  search(query: string, limits: RetrievalLimits, signal: AbortSignal, context?: { answer?: string; providerId?: string }):
+  search(query: string, limits: RetrievalLimits, signal: AbortSignal, context?: { answer?: string; providerId?: string; disclosure?: import('../chat/execution-policy.js').AuxiliaryBinding }):
     Promise<SearchResult[] | { results: SearchResult[]; usage?: SearchUsage }>;
 }
 /** Where an extracted passage sits in the fetched document's extracted text, which `sha256` identifies. end - start is the passage length. */
@@ -44,9 +48,9 @@ export interface ExtractedPassage {
   costMicroUsd?: number | null;
 }
 /** Fetches a source and extracts the passage text relevant to the query. */
-export interface PassageExtractor {
+export interface PassageExtractor extends AuxiliaryDisclosurePort {
   id: string; version: string;
-  extract(input: { source: SearchResult; query: string; limits: RetrievalLimits; signal: AbortSignal; answer?: string }): Promise<ExtractedPassage>;
+  extract(input: { source: SearchResult; query: string; limits: RetrievalLimits; signal: AbortSignal; answer?: string; disclosure?: import('../chat/execution-policy.js').AuxiliaryBinding }): Promise<ExtractedPassage>;
 }
 export type SupportVerdict = 'supported' | 'unsupported' | 'unverified';
 /** A checker may report the check's cost; unreported costs are unknown. */

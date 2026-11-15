@@ -1,3 +1,4 @@
+import { disclosureOrigin } from '../../packages/reploid/src/retrieval/disclosure-path.js';
 /**
  * @fileoverview Bounded server-side page fetch for cited search results. Only http(s) to public addresses:
  * every hop's addresses are checked inside the socket's own DNS lookup, so a rebinding answer cannot reach a
@@ -145,7 +146,10 @@ export function createPageFetcher({ maxBytes = policy.maxBytes, timeoutMs = poli
     });
   }
 
-  async function fetchPage(value, { signal = null } = {}) {
+  async function fetchPage(value, { signal = null, allowedOrigins = null } = {}) {
+    if (allowedOrigins !== null && (!Array.isArray(allowedOrigins) || !allowedOrigins.length
+      || allowedOrigins.some(origin => disclosureOrigin(origin) !== origin))) throw new PageFetchError('privacy-rejected');
+    allowedOrigins = allowedOrigins === null ? null : Object.freeze([...allowedOrigins]);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(new PageFetchError('timeout', { detail: `${timeoutMs} ms` })), timeoutMs);
     const forward = () => controller.abort(new PageFetchError('cancelled'));
@@ -153,6 +157,12 @@ export function createPageFetcher({ maxBytes = policy.maxBytes, timeoutMs = poli
     try {
       let url = target(value);
       for (let hop = 0; ; hop++) {
+        if (allowedOrigins !== null) {
+          let permitted = false;
+          try { permitted = allowedOrigins.includes(disclosureOrigin(url.href)); } catch { /* Unsafe transport is not a qualified recipient. */ }
+          if (!permitted) throw new PageFetchError('privacy-rejected');
+        }
+        controller.signal.throwIfAborted();
         let response;
         try { response = await request(url, controller.signal); }
         catch (error) {
@@ -181,5 +191,5 @@ export function createPageFetcher({ maxBytes = policy.maxBytes, timeoutMs = poli
       clearTimeout(timer); signal?.removeEventListener('abort', forward);
     }
   }
-  return Object.freeze({ fetchPage, maxBytes, timeoutMs });
+  return Object.freeze({ fetchPage, maxBytes, timeoutMs, privacyProtocol: 'reploid.page-fetch/v1' });
 }

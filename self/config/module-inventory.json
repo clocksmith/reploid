@@ -3059,8 +3059,10 @@
     {
       "path": "self/host/server-search.js",
       "owner": "self",
-      "sha256": "sha256:381c7ce1f202d8e3eb0fba3fb34f95d97188dab138b47f3fbd021215e7d6ab3d",
-      "imports": []
+      "sha256": "sha256:3160870d927c13594fa8d9e332da4b69cd2068608552cb95c15cdbea72c285a7",
+      "imports": [
+        "../vendor/reploid/retrieval/disclosure-path.js"
+      ]
     },
     {
       "path": "self/host/start-app.js",
@@ -4071,7 +4073,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:da441b5b85b0f11aad415e6639b6b5eefc367e3bf5322e4c2e0f9587df85d3e2",
+      "sha256": "sha256:1fbcb8dfa6ccdf4b4a38e521110844cbe9207558c04af58a0d2bd4806e43ea8e",
       "imports": []
     },
     {
@@ -17896,7 +17898,7 @@
     {
       "path": "vendor/reploid/chat/execution-policy.js",
       "owner": "vendor",
-      "sha256": "sha256:57f7920152caec5fee4d738620d60ab838627f58ff9e4e86d5c5389f2a10c1cb",
+      "sha256": "sha256:56e8b12cf10e80f22e7366dc3c2b4a9c76bf5f2ba23ffa46986b708172af24dd",
       "imports": [
         "../artifacts/signatures.js",
         "../mesh/partitions/partition-contract.js",
@@ -17977,7 +17979,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:7e8a39111832bf2c352d319534c22ba41d3580543f36e06513336a82dc93a573",
+      "sha256": "sha256:9c66549c53e3687fb9fb0e58902dcd31ee98deda503b9526a35d9c2546ec64a4",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",
@@ -18718,10 +18720,18 @@
       "imports": []
     },
     {
+      "path": "vendor/reploid/retrieval/disclosure-path.js",
+      "owner": "vendor",
+      "sha256": "sha256:40a3eec2be69ede75ee3669d23f3a4ef87ebe9e2b0e79c0ae86a88f4cf0ea42a",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/retrieval/disclosure-ports.js",
       "owner": "vendor",
-      "sha256": "sha256:571b94557e8708116839ad869db78052c79da539cab590eb2727e7ce56ffbf4e",
-      "imports": []
+      "sha256": "sha256:28f71eaff4f580716032efbe8f96a9563bfbc307d63cd8e915201315f0c401dc",
+      "imports": [
+        "./disclosure-path.js"
+      ]
     },
     {
       "path": "vendor/reploid/retrieval/fixed-provider.js",
