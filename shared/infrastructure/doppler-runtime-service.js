@@ -58,10 +58,12 @@ const legacyTestSession = (handle) => ({
     const iterable = typeof handle.chat === 'function'
       ? handle.chat(input, options)
       : handle.generate(input, options);
+    let outputText = '';
     for await (const chunk of iterable) {
       if (typeof chunk !== 'string') {
         throw new Error('Doppler chat stream emitted a non-text chunk');
       }
+      outputText += chunk;
       yield {
         schema: 'doppler.generation-event/v1',
         type: 'text-delta',
@@ -72,7 +74,7 @@ const legacyTestSession = (handle) => ({
     yield {
       schema: 'doppler.generation-event/v1',
       type: 'complete',
-      outputText: '',
+      outputText,
       observationPolicyId: 'demo/always-on'
     };
   },
@@ -83,7 +85,7 @@ const legacyTestSession = (handle) => ({
 });
 
 const resolveLegacyTestRuntime = (module) => {
-  if (!isVitestRuntime()) return null;
+  if (!isVitestRuntime() || typeof resolveDopplerRuntime(module)?.open === 'function') return null;
   const load = module?.load || module?.doppler?.load;
   if (typeof load !== 'function') return null;
   return {

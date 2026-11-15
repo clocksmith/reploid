@@ -1401,7 +1401,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 645951,
-      "sha256": "sha256:c94b9b128235cd7df047456224dc15bc2bb125a0331c526ef23b8eec32ca96a3"
+      "sha256": "sha256:8efd2d9ed7c4c187069fec5e61acbcd494300fbe470bb15119db4cfb6baa65f7"
     },
     {
       "path": "config/module-registry.json",
@@ -1820,8 +1820,8 @@
     },
     {
       "path": "host/chat-execution.js",
-      "byteLength": 10655,
-      "sha256": "sha256:c608dfefffe6664999a3bdf342d7c0f4e9b72102fee6bb42cf8201cdbf9a4742"
+      "byteLength": 10900,
+      "sha256": "sha256:b0c6d80815bd8caac0c67aa08ab6e74683f0d0ba82d27db8bc2bd7f548f3961b"
     },
     {
       "path": "host/chat-history.js",
@@ -2205,8 +2205,8 @@
     },
     {
       "path": "infrastructure/doppler-runtime-service.js",
-      "byteLength": 10484,
-      "sha256": "sha256:dad7a9522ed017f9d87ce3efebbd80350af7108d18a489e5259bddf71b7a0673"
+      "byteLength": 10593,
+      "sha256": "sha256:185b22e17670baad70ecac8157b896d3568a0ab1dddb680c3c155902fe2039e0"
     },
     {
       "path": "infrastructure/error-store.js",
@@ -3670,8 +3670,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2479590,
-      "sha256": "sha256:1fbcb8dfa6ccdf4b4a38e521110844cbe9207558c04af58a0d2bd4806e43ea8e"
+      "byteLength": 2479721,
+      "sha256": "sha256:5b031b234fe70679628a536e51d52e233f794af9864d9261145ef22218feca09"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12124,5 +12124,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:cf375a14956d4e4e97e6e5f97cea2ddad8927cb5aa1098fd0669af0736e96e68"
+  "bundleHash": "sha256:40df13a88bb99fa39d5dd7baabd2fd6e9b0a8689f51266d96e1c4783f97726a0"
 }

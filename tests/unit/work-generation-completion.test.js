@@ -20,7 +20,11 @@ describe('Doppler termination through ordinary chat owners (injected execution)'
       controls.onDelta('Visible answer'); return response();
     } };
     const swarm = { connect: async () => {}, hasProvider: () => true, async generate(_messages, controls) {
-      controls.onPartial('Visible answer'); return { ...response(), peerId: 'provider' };
+      const peer = 'peer:' + 'b'.repeat(24);
+      if (!await controls.approve({ id: crypto.randomUUID(), operation: 'generate', modelId: model.id, modelIdentity: model.identity,
+        adapterIdentities: [], providerId: peer, recipientIdentity: peer, disclosure: 'public', input: _messages, expiresAt: Date.now() + 30000 })) throw Error('Declined');
+      await controls.record({ schema: 'reploid.operation-observer/v1', stage: 'approved', providerId: peer });
+      controls.onPartial('Visible answer'); return { ...response(), peerId: peer };
     } };
     const execution = createChatExecution({ service: {}, models: [model], getModels: () => [model],
       profile: { generation: {}, maxOutcomeCharacters: 100 }, scheduler, swarm });
@@ -28,14 +32,14 @@ describe('Doppler termination through ordinary chat owners (injected execution)'
       store: { load: () => saved, save: value => { saved = structuredClone(value); } } };
     const workspace = createChatWorkspace(options);
     const thread = workspace.createThread({ model, permissions: { sharingScope: placement === 'local' ? 'local' : 'mesh' } });
-    const truncated = await workspace.send(thread, 'Question');
+    const truncated = await workspace.send(thread, 'Question', { authorizeDisclosure: () => true });
     expect(truncated.status).toBe('failed');
     expect(truncated.error).toContain('generation limit');
     expect(truncated.execution).toMatchObject({ stopReason: 'max-tokens', completion: complete('max-tokens') });
     expect(truncated.execution.timing).toEqual({ totalMs: 150, generatedTokenCount: 9 });
     expect(workspace.getState().threads[0].messages.at(-1)).toMatchObject({ content: 'Visible answer', status: 'failed' });
     stopReason = 'eos-token';
-    const retried = await workspace.retry(thread, truncated.id);
+    const retried = await workspace.retry(thread, truncated.id, { authorizeDisclosure: () => true });
     expect(retried.status).toBe('completed');
     expect(retried.id).not.toBe(truncated.id);
     expect(retried.execution.stopReason).toBe('eos-token');

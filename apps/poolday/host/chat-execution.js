@@ -116,18 +116,22 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     }
 
     assert(swarm?.generate, 'No connected participant can execute this model');
+    let approvedProviderId = null;
     const provider = createWorkNetworkProvider({
       model, privacy: request.privacy, service, scope: 'chat:' + attemptId, signal: controls.signal,
       swarm,
       generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters,
       controls: {
         async approve(preview) {
-          return controls.requestApproval({ ...preview, peerId: preview.providerId, threadId, attemptId });
+          const approved = await controls.requestApproval({ ...preview, peerId: preview.providerId, threadId, attemptId });
+          if (approved === true) approvedProviderId = preview.providerId;
+          return approved;
         },
         async record(record) {
-          if (record.stage === 'approved') state('executing', {
-            provider: 'peer', placement: 'peer-whole-request', peerId: record.preview.providerId
-          });
+          if (record.stage === 'approved') {
+            assert(approvedProviderId, 'Peer execution metadata preceded disclosure approval');
+            state('executing', { provider: 'peer', placement: 'peer-whole-request', peerId: approvedProviderId });
+          }
         }
       },
       onProgress(progress) {

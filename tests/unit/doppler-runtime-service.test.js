@@ -26,6 +26,21 @@ const makeModule = () => {
 };
 
 describe('Reploid DopplerRuntimeService', () => {
+  it('prefers the explicit scoped API over a legacy loader even under Vitest', async () => {
+    const fixture = makeModule(); fixture.module.load = vi.fn(() => { throw Error('Legacy API must not run'); });
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1', loadModule: async () => fixture.module });
+    const result = await service.open({ source: 'model' });
+    expect(result).toBe(fixture.sessions[0]); expect(fixture.module.dr.open).toHaveBeenCalledOnce();
+    expect(fixture.module.load).not.toHaveBeenCalled(); await service.closeAll();
+  });
+  it('retains exactly the emitted text in an explicitly legacy test stream completion', async () => {
+    const load = vi.fn(async () => ({ async *generate() { yield 'legacy '; yield 'text'; }, unload: vi.fn() }));
+    const service = createReploidDopplerRuntimeService({ loadModule: async () => ({ load }) });
+    const session = await service.open({ source: 'legacy-fixture' }), events = [];
+    for await (const event of session.stream('fixture')) events.push(event);
+    expect(events.at(-1).outputText).toBe(events.filter(event => event.type === 'text-delta').map(event => event.text).join(''));
+    expect(events.at(-1).outputText).toBe('legacy text'); await service.closeAll();
+  });
   it('retains failed cleanup ownership and blocks reuse or replacement until release succeeds', async () => {
     const fixture = makeModule();
     const service = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1', loadModule: async () => fixture.module });

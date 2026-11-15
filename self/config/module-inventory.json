@@ -866,7 +866,7 @@
     {
       "path": "infrastructure/doppler-runtime-service.js",
       "owner": "infrastructure",
-      "sha256": "sha256:dad7a9522ed017f9d87ce3efebbd80350af7108d18a489e5259bddf71b7a0673",
+      "sha256": "sha256:185b22e17670baad70ecac8157b896d3568a0ab1dddb680c3c155902fe2039e0",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../config/doppler-generation-contract.js",
@@ -2654,7 +2654,7 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:c608dfefffe6664999a3bdf342d7c0f4e9b72102fee6bb42cf8201cdbf9a4742",
+      "sha256": "sha256:b0c6d80815bd8caac0c67aa08ab6e74683f0d0ba82d27db8bc2bd7f548f3961b",
       "imports": [
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
@@ -4073,7 +4073,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:1fbcb8dfa6ccdf4b4a38e521110844cbe9207558c04af58a0d2bd4806e43ea8e",
+      "sha256": "sha256:5b031b234fe70679628a536e51d52e233f794af9864d9261145ef22218feca09",
       "imports": []
     },
     {
