@@ -18,10 +18,14 @@ function channels() {
     close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1-index].close()); } }));
   return pair;
 }
-async function fixture(count = 2, { certify = null, hostOptions = () => ({}) } = {}) {
+async function fixture(count = 2, { certify = null, hostOptions = () => ({}), directSource = false } = {}) {
   const stores = [], callbacks = [], owners = [], directories = [], cacheDirectories = [], writes = [];
   const chunks = [Buffer.from([1,2,3,4]), Buffer.from([5,6,7,8])], whole = Buffer.concat(chunks);
-  const manifest = Buffer.from(JSON.stringify({ modelId: 'native-fixture', hashAlgorithm: 'sha256', shards: [{ filename: 'weights.bin', size: 8, hash: hash(whole) }] }));
+  const metadata = directSource ? { sourceRuntime: { mode: 'direct-source', sourceKind: 'gguf',
+    sourceFiles: [{ index: 0, path: '/unavailable/original.gguf', filename: 'weights.bin',
+      size: whole.length, hash: hash(whole), hashAlgorithm: 'sha256' }] } } : undefined;
+  const manifest = Buffer.from(JSON.stringify({ modelId: 'native-fixture', hashAlgorithm: 'sha256', metadata,
+    shards: [{ filename: 'weights.bin', size: 8, hash: hash(whole) }] }));
   const index = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', manifestIdentity: 'sha256:' + hash(manifest), maxPieceBytes: 4,
     files: [{ path: 'weights.bin', size: 8, pieces: chunks.map((bytes, i) => ({ offset: i * 4, size: 4, identity: 'sha256:' + hash(bytes) })) }] }));
   const model = { id: 'native-fixture', identity: 'sha256:' + hash(manifest), source: { files: [
@@ -44,6 +48,17 @@ async function fixture(count = 2, { certify = null, hostOptions = () => ({}) } =
   return { owners, model, chunks, directories, cacheDirectories, writes, network,
     async share() { for (const host of owners.slice(1)) await host.share(model, true); await new Promise(resolve => setTimeout(resolve, 10)); } };
 }
+it('serves direct-source ranges through canonical authenticated custody, not original machine paths', async () => {
+  const f = await fixture(2, { directSource: true });
+  await f.share();
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    expect(new Uint8Array(await source.storage.loadShardRange(0, 1, 2))).toEqual(new Uint8Array([2, 3]));
+    expect(source.getReceipt().verifiedBytes).toBe(4);
+    expect(source.getReceipt().ranges).toHaveLength(1);
+    expect(source.getReceipt().ranges[0].path).toBe('weights.bin');
+  } finally { await source.storage.close(); }
+});
 it('persists only requested verified pieces and reopens them without a supplier', async () => {
   const f = await fixture(); await f.share(); const source = await f.owners[0].preparePartitionSource(f.model);
   try {

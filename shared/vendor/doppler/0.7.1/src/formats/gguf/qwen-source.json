@@ -1,8 +1,0 @@
-{
-  "qwen35moe": {
-    "modelType": "qwen3_5_moe"
-  },
-  "qwen35": {
-    "modelType": "qwen3_5"
-  }
-}

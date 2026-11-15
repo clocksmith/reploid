@@ -86,6 +86,8 @@ export type AnyLayerPartitionPlan = LayerPartitionPlan | OrderedLayerPartitionPl
 
 export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'schema' | 'splitLayer'> {
   readonly schema: typeof ORDERED_LAYER_PARTITION_SCHEMA;
+  /** Optional explicit f32 execution with f16 wire boundaries; absence preserves existing precision semantics. */
+  readonly executionPrecision?: 'f32';
   readonly stageCount: number;
   readonly splitLayers: readonly number[];
   readonly activationPrecision: ActivationPrecision;

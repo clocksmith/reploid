@@ -703,13 +703,13 @@
     },
     {
       "path": "contracts/doppler-partitions.d.ts",
-      "bytes": 12946,
-      "sha256": "db950cf6a47e4cd08f0968a50253830bdcee1514e50867ce7100aba5a5ad609f"
+      "bytes": 13100,
+      "sha256": "0df9acc735ba66db8cb191c8a26c7f13b5da6a89187d7bb1405b9dc1eeb91912"
     },
     {
       "path": "contracts/doppler-partitions.provenance.json",
       "bytes": 1665,
-      "sha256": "7b17e3477dee18c20a6feefc7bf81a7597a7555e7958ef02aca93a44a53cc530"
+      "sha256": "e062857e9984dddf229f0f36944104c51987c31d5f06c3c42e23654216f8b2d4"
     },
     {
       "path": "contracts/host-ports.d.ts",
