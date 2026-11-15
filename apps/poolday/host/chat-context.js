@@ -7,7 +7,7 @@ export function createChatContext(selection = {}, model = null, catalog = []) {
   const enabled = selection.enabled ?? policy.defaultEnabled;
   const maxWords = selection.maxWords ?? policy.defaultMaxWords;
   if (typeof enabled !== 'boolean' || !policy.wordLimits.includes(maxWords)) {
-    throw new Error('Context must use an on/off choice and a 16, 32, or 64 word cap.');
+    throw new Error(`Context must use an on/off choice and a ${policy.wordLimits.join(', ')} word cap.`);
   }
   const known = catalog.find(item => item.id === model?.id && item.identity === model?.identity);
   let content = enabled ? policy.base : '';

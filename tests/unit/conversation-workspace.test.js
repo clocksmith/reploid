@@ -794,7 +794,9 @@ describe('Conversation workspace', () => {
       } };
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, scheduler });
+    const cancel = vi.fn(session.cancel);
     dispose = bindConversationWorkspace(root, { ...session,
+      cancel,
       getState: () => ({ ...session.getState(), localDownloadIssue: null }),
       subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
@@ -809,7 +811,8 @@ describe('Conversation workspace', () => {
       expect(find('[data-composer-field]').dataset.activity).toBe('idle');
       session.select(thread);
       expect(find('.is-assistant [data-execution-activity]').hasAttribute('data-active')).toBe(true);
-      session.cancel(thread);
+      find('.is-assistant [data-answer-stop]').click();
+      await vi.waitFor(() => expect(cancel).toHaveBeenCalledExactlyOnceWith(thread));
       expect(find('[data-composer-field]').dataset.activity).toBe('idle');
     } finally { release(); await completion; }
     expect(find('[data-composer-field]').dataset.activity).toBe('idle');

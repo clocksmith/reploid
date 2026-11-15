@@ -4,6 +4,7 @@
  * The root pool implementation namespace is internal.
  * Reploid is the public name. Poolday remains an internal implementation name.
  */
+import chatPrompts from '../../config/chat-prompts.json' with { type: 'json' };
 
 export const PUBLIC_PRODUCT_NAME = 'Reploid';
 export const POOLDAY_NAME = PUBLIC_PRODUCT_NAME;
@@ -144,9 +145,7 @@ export const POOLDAY_SEQUENCE_ASK_PLACEHOLDERS = Object.freeze(
     .map((prompt) => prompt.replace(/^Sequence:\s*/, ''))
 );
 
-export const POOLDAY_TEXT_ASK_PLACEHOLDERS = Object.freeze(
-  POOLDAY_ASK_PLACEHOLDERS.filter((prompt) => !prompt.startsWith('Sequence:'))
-);
+export const POOLDAY_TEXT_ASK_PLACEHOLDERS = Object.freeze([...chatPrompts]);
 
 const choosePlaceholder = (placeholders, random = Math.random) => {
   const index = Math.floor(

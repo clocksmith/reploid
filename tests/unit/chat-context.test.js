@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createChatContext } from '../../apps/poolday/host/chat-context.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
@@ -50,6 +50,7 @@ describe('optional application context', () => {
     expect(attempt.request.messages).toEqual(preview.input);
     expect(attempt.systemContext).toEqual(context);
     expect(() => app.setSystemContext(thread, null)).toThrow(/idle/);
+    await vi.waitFor(() => expect(app.getState().threads[0].attempts[0].approval?.id).toBe('preview'));
     app.approve(thread, attempt.id, 'preview', true);
     expect((await pending).status).toBe('completed');
     expect(app.getState().threads[1].systemContext).toBeNull();

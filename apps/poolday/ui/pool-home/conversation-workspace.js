@@ -1,4 +1,7 @@
 import { renderPrivacyControls, readPrivacyControls, updatePrivacyControls } from './privacy-controls.js';
+import chatPrompts from '../../config/chat-prompts.json' with { type: 'json' };
+import contextPolicy from '../../config/chat-context-policy.json' with { type: 'json' };
+import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp, renderControlHelp, renderHelpButton } from '../components/control-help.js';
 import { workspaceHref, bindWorkspaceNavigation } from './workspace-navigation.js';
 import { renderContextIndicator, updateContextIndicator } from './context-indicator.js';
@@ -21,13 +24,8 @@ import { renderAdapterDetails, updateAdapterDetails, describeModelChoice } from 
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
-const startingPrompts = [
-  'Suggest 3 clever sci-fi movies under two hours.',
-  'Pick 3 light comedy shows with 30-minute episodes.',
-  'Recommend 3 terrible ’80s movies.'
-];
 const promptChoices = () => {
-  const choices = [...startingPrompts];
+  const choices = [...chatPrompts];
   for (let i = choices.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [choices[i], choices[j]] = [choices[j], choices[i]];
@@ -63,7 +61,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           <button class="pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
           <fieldset data-context-controls><legend>Context prompt</legend>
             <label><input type="checkbox" data-context-enabled> Include app context</label>
-            <label>Word cap <select class="pool-input" data-context-cap aria-label="Context prompt word cap"><option value="16">16</option><option value="32">32</option><option value="64">64</option></select></label>
+            <label>Word cap <select class="pool-input" data-context-cap aria-label="Context prompt word cap">${contextPolicy.wordLimits.map(limit => `<option value="${limit}">${limit}</option>`).join('')}</select></label>
             <p class="chat-setup-hint pool-small pool-muted" data-context-count></p><p class="chat-setup-hint pool-small pool-muted" data-context-preview></p>
           </fieldset>
         </div></details>
@@ -677,7 +675,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const revision = fileRevision; reading = true; render(session.getState());
     act(async () => {
       try {
-        const loaded = await readTextAttachments(chosen, files, { maxFiles: 8, maxFileBytes: 65536, maxTotalBytes: 131072,
+        const loaded = await readTextAttachments(chosen, files, { maxFiles: workProfile.files.maxInputs,
+          maxFileBytes: workProfile.files.maxFileBytes, maxTotalBytes: workProfile.files.maxInputBytes,
           extensions: ['txt', 'md', 'json', 'js', 'ts', 'html', 'css'] });
         if (controller.signal.aborted || revision !== fileRevision) return;
         files.push(...loaded); composerRevision++; await saveDraft(); showFiles();
@@ -692,7 +691,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     link.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   }));
   on('[data-message-stream]', 'click', event => {
-    if (event.target.closest('[data-answer-stop]')) { act(() => session.cancel(session.getState().selectedId)); return; }
     const link = event.target.closest('[data-source-reference]');
     if (!link) return;
     const target = document.getElementById(link.getAttribute('href').slice(1));

@@ -149,8 +149,8 @@ describe('poolday home navigation', () => {
     expect(choosePooldayAskPlaceholder(() => 0)).toBe(POOLDAY_ASK_PLACEHOLDERS[0]);
     expect(choosePooldayAskPlaceholder(() => 0.999)).toBe(POOLDAY_ASK_PLACEHOLDERS.at(-1));
     expect(POOLDAY_SEQUENCE_ASK_PLACEHOLDERS).toHaveLength(13);
-    expect(POOLDAY_TEXT_ASK_PLACEHOLDERS).toHaveLength(0);
-    expect(choosePooldayAskPlaceholderForLane('text', () => 0)).toBe('');
+    expect(POOLDAY_TEXT_ASK_PLACEHOLDERS.length).toBeGreaterThan(0);
+    expect(choosePooldayAskPlaceholderForLane('text', () => 0).trim()).not.toBe('');
     expect(choosePooldayAskPlaceholderForLane('sequence', () => 0)).toBe('MRLGCSLAWLLLFLLLSVAA');
   });
 
