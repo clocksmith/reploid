@@ -70,9 +70,11 @@ async function command(input) {
   if (!['disappeared', 'unsupported'].includes(input.mode)) await waitForProvider();
   const peer = mesh.getSwarmSnapshot().peers.find(peer => peer.identityVerified), recipient = peer?.participantId;
   if (input.mode !== 'unsupported' && !recipient) throw Error('Verified recipient required');
-  const privacy = input.mode === 'unsupported' ? createExecutionPolicy('cryptographic', { protocol: 'unqualified', keyContext: 'client-key' })
-    : input.mode === 'visible' ? createExecutionPolicy() : createExecutionPolicy('restricted', { placement: 'network-allowed',
-      allowedRecipients: input.mode === 'denied' ? ['sha256:' + 'f'.repeat(64)] : [recipient] });
+  let privacy;
+  if (input.mode === 'unsupported') privacy = createExecutionPolicy('cryptographic', { protocol: 'unqualified', keyContext: 'client-key' });
+  else if (input.mode === 'visible') privacy = createExecutionPolicy();
+  else privacy = createExecutionPolicy('restricted', { placement: 'network-allowed',
+    allowedRecipients: input.mode === 'denied' ? ['sha256:' + 'f'.repeat(64)] : [recipient] });
   currentController = new AbortController(); revokeDuringApproval = input.mode === 'revoked';
   const before = requestFrames;
   try {
