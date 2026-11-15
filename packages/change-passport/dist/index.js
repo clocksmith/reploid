@@ -108,6 +108,19 @@ async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
   }
 }
 
+// shared/vendor/reploid/mesh/partitions/partition-contract.js
+var partitionIdentityKeys = Object.freeze(["modelId", "modelIdentity", "planId", "threadId", "attemptId", "participantA", "participantB"]);
+var partitionActions = Object.freeze([
+  "mesh.execute_partition_a",
+  "mesh.execute_partition_b",
+  "mesh.transfer_intermediate_activation",
+  "mesh.transfer_token_context",
+  "mesh.transfer_partition_output"
+]);
+var assertPartition = (value, message) => {
+  if (!value) throw new Error(message);
+};
+
 // shared/vendor/reploid/rules/contribution.rules.json
 var contribution_rules_default = {
   outputPointsPer1k: 1,
@@ -166,19 +179,6 @@ fn main(@builtin(workgroup_id) group: vec3u, @builtin(local_invocation_index) la
     atomicStore(&result[1u + ${gpu_signature_policy_default.workgroups}u + group.x], checksum);
   }
 }`;
-
-// shared/vendor/reploid/mesh/partitions/partition-contract.js
-var partitionIdentityKeys = Object.freeze(["modelId", "modelIdentity", "planId", "threadId", "attemptId", "participantA", "participantB"]);
-var partitionActions = Object.freeze([
-  "mesh.execute_partition_a",
-  "mesh.execute_partition_b",
-  "mesh.transfer_intermediate_activation",
-  "mesh.transfer_token_context",
-  "mesh.transfer_partition_output"
-]);
-var assertPartition = (value, message) => {
-  if (!value) throw new Error(message);
-};
 
 // shared/vendor/reploid/artifacts/participant-proofs.js
 var DEVICE_HOSTS = Object.freeze(["browser", "native"]);
@@ -302,6 +302,7 @@ var STAGE_RUNTIME_KEYS = Object.freeze([
   "logitsReadbackMs",
   "samplingMs"
 ]);
+var TRANSPORT_KEYS = Object.freeze(["authorizationMs", "readyWaitMs", "payloadUploadMs", "responseWaitMs", "acceptanceMs", "totalMs"]);
 
 // shared/vendor/reploid/mesh/partitions/partition-entry.js
 var ATTEMPT_STATES = Object.freeze(["queued", "executing"]);

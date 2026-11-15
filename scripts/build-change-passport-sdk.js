@@ -17,6 +17,7 @@ const checkOnly = process.argv.includes('--check');
 
 const source = await fs.readFile(sourcePath, 'utf8');
 const bundle = await build({
+  absWorkingDir: repoRoot,
   entryPoints: [sourcePath],
   bundle: true,
   format: 'esm',
