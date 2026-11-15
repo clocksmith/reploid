@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+import { loadProxyConfig } from '../server/proxy-config.js';
+
+const args = process.argv.slice(2).filter(value => value !== '--check');
+if (args.length > 1 || args.some(value => value.startsWith('-'))) {
+  console.error('Usage: reploid-config [--check] [path]');
+  process.exitCode = 1;
+} else {
+  try {
+    const result = await loadProxyConfig({ filePath: args[0] });
+    console.log(`Configuration valid: ${result.path ?? 'environment only'}`);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}

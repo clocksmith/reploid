@@ -4,6 +4,7 @@ import { createProxyRuntimeServices } from './proxy-runtime-services.js';
 import { mountProviderProxyRoutes } from './proxy-providers.js';
 import { mountProxyStorageRoutes } from './proxy-storage.js';
 import { mountProxyStaticRoutes } from './proxy-static.js';
+import { loadProxyConfig } from './proxy-config.js';
 
 import express from 'express';
 import { resolveServedFile, serveBrowserTree } from './browser-tree.js';
@@ -115,24 +116,14 @@ dotenv.config();
 const staticRootDir = process.env.REPLOID_STATIC_ROOT ? path.resolve(process.env.REPLOID_STATIC_ROOT) : null;
 const browserFile = (servedPath) => (staticRootDir ? path.join(staticRootDir, servedPath) : resolveServedFile(servedPath));
 
-// Load unified configuration
-let appConfig = null;
-try {
-  const { getConfig } = await import('../utils/config-loader.js');
-  const configLoader = getConfig();
-  configLoader.load();
-  appConfig = configLoader.getAll();
-  console.log('[Proxy] Loaded configuration from:', configLoader.getConfigPath() || 'defaults');
-} catch (err) {
-  console.warn('[Proxy] Config loader not available, using environment variables');
-}
+const { config: appConfig } = await loadProxyConfig();
 
 const app = express();
 const TRUST_PROXY_HOPS = Number(process.env.REPLOID_TRUST_PROXY_HOPS || 0);
 if (Number.isInteger(TRUST_PROXY_HOPS) && TRUST_PROXY_HOPS > 0) {
   app.set('trust proxy', TRUST_PROXY_HOPS);
 }
-const PORT = appConfig?.server?.port || process.env.PORT || 8000;
+const PORT = appConfig.server?.port ?? process.env.PORT ?? 8000;
 const DECO_VISUAL_FEEDBACK = process.env.DECO_VISUAL_FEEDBACK === '1';
 const decoFeedback = DECO_VISUAL_FEEDBACK
   ? await import('../../ouroboros/deco/packages/visual-feedback-bridge/dist/node/dev-server.js')
@@ -159,7 +150,7 @@ const ENV_CORS_ORIGINS = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
   : null;
 const CORS_ORIGINS = appConfig?.server?.corsOrigins || ENV_CORS_ORIGINS || DEFAULT_CORS_ORIGINS;
-const AUTO_START_OLLAMA = appConfig?.ollama?.autoStart || process.env.AUTO_START_OLLAMA === 'true';
+const AUTO_START_OLLAMA = appConfig.ollama?.autoStart ?? (process.env.AUTO_START_OLLAMA === 'true');
 const POOL_BACKEND_ONLY = process.env.POOL_BACKEND_ONLY === 'true';
 const SERVER_ACCESS_TOKEN = process.env.REPLOID_SERVER_ACCESS_TOKEN || null;
 const ALLOW_UNAUTHENTICATED_LOOPBACK = process.env.REPLOID_ALLOW_UNAUTHENTICATED_LOOPBACK !== 'false';
