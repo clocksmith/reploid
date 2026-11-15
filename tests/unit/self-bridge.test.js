@@ -110,6 +110,8 @@ describe('Self Bridge', () => {
     });
 
     const host = createSelfBridge({
+      authorize: request => request.action === 'tool.execute'
+        && ['LoadModule', 'orchestrator', 'evaluatePrompt', 'ReadFile', 'WriteFile'].includes(request.name),
       modelConfig: {
         id: 'test-model',
         provider: 'webllm'
@@ -346,7 +348,7 @@ export const tool = {
   call: async ({ text = "hello" }) => ({ rendered: true, text })
 };
 `
-    })).rejects.toThrow('Unknown tool: CreateTool');
+    })).rejects.toThrow('Host denied tool: CreateTool');
 
     await expect(host.executeTool('WriteFile', {
       path: '/self/tools/ShowBanner.js',

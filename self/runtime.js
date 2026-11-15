@@ -10,6 +10,7 @@ import ResponseParser from './core/response-parser.js';
 import { createSelfBridge } from './bridge.js';
 import { getCurrentReploidInstanceId } from '../shared/instance.js';
 import { SELF_BLUEPRINT_PATHS, SELF_PROMPT_PATHS } from './manifest.js';
+import { resolveSelfAuthorization } from './tool-authorization.js';
 
 export function createSelfRuntime(options = {}) {
   const goal = String(options.goal || '').trim();
@@ -24,7 +25,7 @@ export function createSelfRuntime(options = {}) {
   const instance = createReploid({
     config, ports: {
       instanceId, responseParser, owned: [bridge],
-      authorize: () => true,
+      authorize: resolveSelfAuthorization(options.authorize, { instanceId, goal }),
       agent: {
         ...bridge,
         async initialContext() {

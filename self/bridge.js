@@ -412,6 +412,7 @@ export function createSelfBridge(options = {}) {
   });
 
   toolRunner = createSelfToolRunner({
+    authorize: options.authorize,
     Utils: utils,
     logger: utils.logger,
     VFS: vfs,
