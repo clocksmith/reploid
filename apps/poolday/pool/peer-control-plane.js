@@ -21,7 +21,7 @@ import {
   getPolicy
 } from '../../../shared/pool/config.js';
 import { validatePooldayPolicyClasses } from './policy-router.js';
-import { executablePacksMatch, assertPackReceipt } from '../../../shared/pool/executable-pack.js';
+import { assertPackReceipt } from '../../../shared/pool/executable-pack.js';
 import { sealPeerAssignmentIdentity } from './peer-assignment.js';
 import {
   LAUNCH_MODEL,
@@ -36,7 +36,7 @@ import {
   validateLaunchModelRequirement,
   validateProviderModelContract
 } from '../../../shared/pool/model-contract.js';
-import { modelSupportsAdapterRequirement } from '../../../shared/pool/adapter-pack.js';
+import { advertSupportsModel } from './peer-model-match.js';
 import {
   compareProviderRouteCandidates,
   evaluateProviderRouteCandidate,
@@ -329,18 +329,8 @@ const advertSupportsIntent = (advert = {}, intent = {}, policy = {}) => {
   const body = advert.body || {};
   const acceptedPolicies = body.availability?.acceptedPolicies || [];
   const acceptsPolicy = acceptedPolicies.length === 0 || acceptedPolicies.includes(intent.body?.policyId);
-  const models = body.models || [];
   return acceptsPolicy
-    && models.some((model) => (
-      model.modelId === intent.body?.modelRequirements?.modelId
-      && model.modelHash === intent.body?.modelRequirements?.modelHash
-      && model.manifestHash === intent.body?.modelRequirements?.manifestHash
-      && model.runtime === intent.body?.modelRequirements?.runtime
-      && model.backend === intent.body?.modelRequirements?.backend
-      && executablePacksMatch(model.executablePack, intent.body?.modelRequirements?.executablePack)
-      && modelSupportsPoolWorkload(model, intentWorkload(intent))
-      && modelSupportsAdapterRequirement(model, intent.body?.modelRequirements?.adapter || null)
-    ))
+    && advertSupportsModel(advert, intent.body?.modelRequirements, intentWorkload(intent))
     && (!policy.requireRuntimeProfileHash || !!body.runtimeProfileHash);
 };
 
@@ -684,15 +674,8 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   } else if (assignment.adapter) {
     reasons.push('assignment declares an adapter absent from the intent');
   }
-  const advertModels = providerAdvert?.body?.models || [];
-  const advertHasModel = advertModels.some((model) => (
-    model.modelId === requiredModel.modelId
-    && model.modelHash === requiredModel.modelHash
-    && model.manifestHash === requiredModel.manifestHash
-    && (model.runtime || LAUNCH_MODEL.runtime) === (requiredModel.runtime || LAUNCH_MODEL.runtime)
-    && (model.backend || LAUNCH_MODEL.backend) === (requiredModel.backend || LAUNCH_MODEL.backend)
-    && modelSupportsPoolWorkload(model, requiredModel.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)
-  ));
+  const advertHasModel = advertSupportsModel(providerAdvert, requiredModel,
+    requiredModel.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding);
   if (!advertHasModel) reasons.push('provider advert does not support assignment model');
   const acceptedPolicies = providerAdvert?.body?.availability?.acceptedPolicies || [];
   if (acceptedPolicies.length > 0 && !acceptedPolicies.includes(assignment.policyId)) {

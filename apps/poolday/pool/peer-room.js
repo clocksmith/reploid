@@ -23,8 +23,7 @@ import {
   validateInputPayloadForAssignment
 } from './peer-control-plane.js';
 import { getPolicy } from '../../../shared/pool/config.js';
-import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from '../../../shared/pool/model-contract.js';
-import { executablePacksMatch } from '../../../shared/pool/executable-pack.js';
+import { advertSupportsModel } from './peer-model-match.js';
 import { snapshotPackOperationData } from './pack-operation.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from '../../../shared/pool/peer-pack-job-policy.js';
 import { verifyPackPeerJob } from './peer-pack-job.js';
@@ -603,16 +602,7 @@ export async function runPeerJob({
     const minAdverts = policy?.adaptiveRing
       ? Math.max(1, Number(policy.minRingSize || 1))
       : Math.max(1, Number(policy?.redundancy || 1));
-    const advertMatchesRequest = (advert) => advert?.body?.models?.some((model) => (
-      model.modelId === requiredModel.modelId
-      && model.modelHash === requiredModel.modelHash
-      && model.manifestHash === requiredModel.manifestHash
-      && executablePacksMatch(model.executablePack, requiredModel.executablePack)
-      && (model.runtime || 'doppler') === (requiredModel.runtime || 'doppler')
-      && (model.backend || 'browser-webgpu') === (requiredModel.backend || 'browser-webgpu')
-      && modelSupportsPoolWorkload(model, requiredModel.workload || 'sequence.embedding.v1')
-      && modelSupportsAdapterRequirement(model, requiredModel.adapter || null)
-    ));
+    const advertMatchesRequest = advert => advertSupportsModel(advert, requiredModel);
     const compatibleKnownAdverts = (Array.isArray(knownProviderAdverts) ? knownProviderAdverts : [])
       .filter(advertMatchesRequest)
       .filter((advert, index, adverts) => adverts.findIndex((candidate) => (
