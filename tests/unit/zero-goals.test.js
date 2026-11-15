@@ -4,6 +4,7 @@ import {
   DEFAULT_ZERO_GOAL,
   ZERO_GOAL_CHOICES,
   getGoalCategories,
+  findGoalMeta,
   getRandomZeroGoal
 } from '../../self/ui/boot-wizard/goals.js';
 import {
@@ -13,6 +14,13 @@ import {
 } from '../../self/config/zero-goals.js';
 
 describe('Zero goal presets', () => {
+  it('resolves every offered goal by its view and text, including case variations', () => {
+    for (const goal of ZERO_GOAL_CHOICES) {
+      expect(findGoalMeta(goal.view.toLowerCase())).toMatchObject(goal);
+      expect(findGoalMeta(` ${goal.text.toUpperCase()} `)).toMatchObject(goal);
+    }
+    expect(findGoalMeta('unknown goal')).toBeNull();
+  });
   it('keeps a 343-prompt quality-filtered RSI shuffle pool across levels 1 through 8', () => {
     expect(ZERO_GOAL_CHOICES).toHaveLength(343);
     expect(DEFAULT_ZERO_GOAL).toBe(ZERO_GOAL_CHOICES[0].text);

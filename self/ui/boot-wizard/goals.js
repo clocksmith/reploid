@@ -727,7 +727,6 @@ const ZERO_GOAL_RAW_LIBRARY = Object.freeze([
   { view: 'L8 Promotion Recursive Anchor', level: 8, text: 'Anchor every future promotion to parent evidence, independent verification, and visible user halt.' }
 ]);
 
-const ZERO_GOAL_QUALITY_TARGET = 343;
 const ZERO_GOAL_LEVEL_QUOTAS = Object.freeze({
   1: 43,
   2: 43,
@@ -738,6 +737,8 @@ const ZERO_GOAL_LEVEL_QUOTAS = Object.freeze({
   7: 43,
   8: 42
 });
+const ZERO_GOAL_QUALITY_TARGET = Object.values(ZERO_GOAL_LEVEL_QUOTAS)
+  .reduce((total, quota) => total + quota, 0);
 
 const ZERO_GOAL_SURFACE_WEIGHTS = Object.freeze({
   DOM: 18,
@@ -858,10 +859,10 @@ const ZERO_GOAL_NEGATIVE_PATTERNS = Object.freeze([
 ]);
 
 const getZeroGoalSurface = (goal) => {
-  const view = normalizeText(goal.view);
+  const view = ` ${normalizeText(goal.view).toLowerCase()} `;
   const surfaces = Object.keys(ZERO_GOAL_SURFACE_WEIGHTS)
     .sort((left, right) => right.length - left.length);
-  return surfaces.find((surface) => view.includes(` ${surface} `)) || '';
+  return surfaces.find((surface) => view.includes(` ${surface.toLowerCase()} `)) || '';
 };
 
 const scoreZeroGoalQuality = (goal, index) => {
@@ -1016,7 +1017,7 @@ export function findGoalMeta(goalValue) {
   const normalized = normalizeText(goalValue).toLowerCase();
   if (!normalized) return null;
 
-  for (const [category, goals] of Object.entries(GOAL_CATEGORIES)) {
+  for (const [category, goals] of Object.entries(getGoalCategories())) {
     for (const goal of goals) {
       const view = normalizeText(goal.view).toLowerCase();
       const text = normalizeText(goal.text).toLowerCase();
