@@ -19,6 +19,7 @@ export interface ProviderArtifactObservation {
   readonly availability: ArtifactAvailability;
 }
 export interface ProviderCapabilities {
+  executionOffers?: import('../../chat/execution-offers.js').ExecutionOffer[];
   readonly schema: 'reploid.peer.capabilities/v1';
   readonly observedAt: number;
   readonly gpuIdentity: Readonly<Record<'vendor' | 'architecture' | 'device' | 'description', string>> | null;

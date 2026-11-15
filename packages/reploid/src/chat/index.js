@@ -8,3 +8,7 @@ export { SEARCH_PERMISSION_KIND, SEARCH_RECIPIENTS_CHANGED, searchPermissionWord
   validateSearchPermission } from './search-permission.js';
 export { ANSWER_PROVENANCE_SCHEMA, SUPPLY_CLASSES, HOSTED_EXECUTION_REFUSED, UNRECOGNIZED_EXECUTION_REFUSED, supplyOf,
   classifyExecutionSupply, executionRefusal, retrievalSupply, attemptExecutionSupply, answerProvenance } from './supply-provenance.js';
+
+export { createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from './execution-policy.js';
+
+export { validateExecutionOffers, eligibleExecutionOffers } from './execution-offers.js';

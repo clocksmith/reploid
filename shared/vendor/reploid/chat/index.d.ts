@@ -55,7 +55,10 @@ export interface ChatMessage {
   status: string;
   attemptId?: string;
 }
+import type { ExecutionPolicy, ExecutionBinding } from './execution-policy.js';
+export type { ExecutionPolicy, ExecutionBinding, ExecutionRoute } from './execution-policy.js';
 export interface ChatRequest {
+  privacy?: ExecutionPolicy;
   generationRequest?:PartitionGenerationRequest;
   model: ChatModel;
   messages: Array<{ role: string; content: string }>;
@@ -74,6 +77,7 @@ export interface ChatApproval extends ChatEnvelope {
   [key: string]: unknown;
 }
 export interface ChatThreadGrant {
+  policyId?: string; routeId?: string;
   id: string; meshId: string; threadId: string; recipientIdentity: string;
   modelId: string; modelIdentity: string; adapterIdentities: string[];
   sharingScope: string; disclosure: 'public' | 'partition-activations' | 'partition-activations-and-tokens' | 'ordered-partition-activations-and-tokens';
@@ -84,6 +88,7 @@ export interface ChatResult extends ChatEnvelope {
   content: string; usage?:PartitionTokenUsage; execution?: Record<string, unknown>;
 }
 export interface ChatAttempt {
+  privacyBinding?: ExecutionBinding; privacyReceipt?: Record<string, unknown>;
   /** Text is authoritative only in requester-owned publication records (canonical or ordinary ordered). */
   publicationMode?: 'canonical' | 'whole-model';
   id: string;
@@ -98,7 +103,7 @@ export interface ChatAttempt {
   approval: ChatApproval | null;
   /** kind 'permission' cites the stored remote permission (permissionId). recipients are the verified executors this
    * attempt was dispatched to, in order: route stages, the split pair, or the one recipient. */
-  authorization: { kind: 'once' | 'thread-grant' | 'permission'; grantId: string | null; permissionId?: string; peerId: string; recipientIdentity?: string | null;
+  authorization: { policyId?: string; routeId?: string; kind: 'once' | 'thread-grant' | 'permission'; grantId: string | null; permissionId?: string; peerId: string; recipientIdentity?: string | null;
     source?: 'send' | 'approval' | 'permission'; recipients?: string[]; expiresAt?: number; modelId?: string; modelIdentity?: string; adapterIdentities?: string[];
     participantA?: string; planId?: string; route?: PartitionRoute; requesterIdentity?: string; sharingScope?: string; disclosure?: string } | null;
   execution: Record<string, unknown> | null;
@@ -115,7 +120,7 @@ export interface ChatAttempt {
 export interface ChatThread {
   automaticModel?: boolean;
   id: string; model: ChatModel; purpose: string; title?: string; members: string[];
-  permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
+  privacy?: ExecutionPolicy; permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
   attempts: ChatAttempt[]; closed: boolean; createdAt: number;
   systemContext?: ChatSystemContext | null;
 }
@@ -156,6 +161,7 @@ export interface ChatWorkspaceOptions {
   requesterIdentity?: () => string | null;
   /** The host's stored remote contributor permissions. When supplied, every remote disclosure needs one that covers it. */
   remotePermissions?: (() => readonly RemotePermission[]) | null;
+  prepareRemotePermission?: ((need: RemotePermissionNeed) => void) | null;
   /** The network (room) a remote request is sent on; permissions cover only the network they were granted on. Defaults to meshId. */
   networkId?: () => string;
   /** Search provider, optional passage extractor and support checker, or named routes of them. Without them, retrieval requests are refused. */
@@ -172,9 +178,10 @@ export interface ChatWorkspace {
   subscribe(listener: (state: ChatState) => void): () => void;
   /** Adds conversations from an export file; ids already present are skipped. Ordinary history only; grants are not restored. */
   importThreads(threads: unknown[], options?: { dryRun?: boolean }): { added: string[]; skipped: string[] };
-  createThread(options: { model: ChatModel; automaticModel?: boolean; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
+  createThread(options: { model: ChatModel; automaticModel?: boolean; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; privacy?: ExecutionPolicy | null; systemContext?: ChatSystemContext | null }): string;
   resolveAutomaticModel(threadId: string, model: ChatModel, systemContext: ChatSystemContext | null, options?: { keepAutomatic?: boolean }): void | Promise<void>;
   setExecutionLocation(threadId: string, location: 'auto' | 'local' | 'network'): void;
+  setExecutionPrivacy(threadId: string, privacy: ExecutionPolicy): void | Promise<void>;
   setSystemContext(threadId: string, value: ChatSystemContext | null): void;
   select(threadId: string | null): void | Promise<void>;
   renameThread(threadId: string, title: string): void;
@@ -230,3 +237,7 @@ export function createChatScheduler(options: {
   unload(): Promise<void>;
   close(): Promise<void>;
 };
+
+export { createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from './execution-policy.js';
+
+export { validateExecutionOffers, eligibleExecutionOffers } from './execution-offers.js';

@@ -1,4 +1,5 @@
 /** Capability observations and assignment policy. No discovery, execution or model-family rules. */
+import { validateExecutionOffers } from '../vendor/reploid/chat/execution-offers.js';
 import { freezeOperationPolicy as snapshot } from './pack-operation-policy.js';
 import { resolvePlacementBeliefPolicy } from '../vendor/reploid/mesh/placement-beliefs.js';
 const assert = (ok, message) => { if (!ok) throw new Error(`Peer capabilities: ${message}`); };
@@ -62,6 +63,7 @@ export function validateProviderCapabilities(input, { schema: schemaInput, now }
     && value.inputClasses.every(name => typeof name === 'string' && name.length > 0 && name.length <= schema.maxIdentityCharacters), 'input classes required');
   assert(value.gpuIdentity === null || (value.gpuIdentity && ['vendor', 'architecture', 'device', 'description'].every(key =>
     typeof value.gpuIdentity[key] === 'string' && value.gpuIdentity[key].length <= schema.maxIdentityCharacters)), 'GPU identity or explicit unknown required');
+  if (value.executionOffers !== undefined) value.executionOffers = validateExecutionOffers(value.executionOffers);
   const resources = value.resources;
   for (const field of ['gpuBudgetBytes', 'storageBudgetBytes', 'bandwidthBytesPerSecond', 'concurrency', 'activeJobs', 'queuedJobs']) {
     assert(integer(resources?.[field]), `resources.${field} required`);

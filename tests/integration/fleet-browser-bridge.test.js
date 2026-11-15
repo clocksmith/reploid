@@ -1,3 +1,4 @@
+import { createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 // @vitest-environment node
 import { it, expect, vi } from 'vitest';
 import { startFleetBrowserBridge } from '../../server/fleet/browser-bridge.js';
@@ -233,4 +234,60 @@ it('rotates oldest settled attempt identifiers past maxSeenAttempts while reject
     client.close();
     await bridge.close();
   }
+});
+
+it('validates every paired v2 route recipient before transmitting prompt messages', async () => {
+  const native = host();
+  const route = plaintextExecutionRoute({ model }, { recipients: [requester, provider],
+    route: { schema: 'reploid.paired-whole-route/v1', requester, providerIdentity: provider } });
+  const current = { ...structuredClone(snapshot), privacyProtocol: 'reploid.paired-route/v2',
+    models: [{ ...model, executionRoutes: [{ selection: { id: model.id, identity: model.identity }, route }] }] };
+  native.browserState.mockImplementation(async () => structuredClone(current));
+  const bridge = await startFleetBrowserBridge({ host: native, token, origins: [origin] });
+  const calls = [];
+  const client = createPrivateComputers({ storage: null, fetchImpl: async (url, init) => {
+    calls.push({ path: new URL(url).pathname, body: JSON.parse(init.body) }); return fetchImpl(url, init);
+  } });
+  try {
+    await client.connect(bridge.url, token);
+    const input = { threadId: 'thread', attemptId: 'blocked', model: client.models()[0], messages: [{ role: 'user', content: 'secret' }],
+      permissions: { sharingScope: 'mesh' }, privacy: createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [requester] }) };
+    const controls = { signal: new AbortController().signal, requestApproval: async () => true, onState() {}, onDelta() {} };
+    await expect(client.execute(input, controls)).rejects.toThrow('No paired route');
+    expect(calls.filter(call => call.path.endsWith('/generate'))).toEqual([]);
+    expect(native.generate).not.toHaveBeenCalled();
+    input.attemptId = 'allowed';
+    input.privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [requester, provider] });
+    const result = await client.execute(input, controls);
+    expect(result.content).toBe('Hello');
+    expect(native.generate.mock.calls[0][0].privacyBinding.route.hops.map(hop => hop.recipient)).toEqual([requester, provider]);
+    expect(result.execution.privacy.cryptographic).toBe('unavailable');
+  } finally { client.close(); await bridge.close(); }
+});
+
+it('does not send restricted requests to legacy paired bridges', async () => {
+  const seen = [];
+  const client = createPrivateComputers({ storage: null, fetchImpl: async (url, init) => { seen.push(url); return Response.json(snapshot); } });
+  try {
+    await client.connect('http://127.0.0.1:18784', token);
+    await expect(client.execute({ threadId: 't', attemptId: 'legacy', model: client.models()[0], messages: [{ content: 'secret' }],
+      permissions: { sharingScope: 'mesh' }, privacy: createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [requester, provider] }) },
+      { signal: new AbortController().signal, requestApproval: async () => true, onState() {}, onDelta() {} })).rejects.toThrow('preflight');
+    expect(seen.some(url => url.endsWith('/generate'))).toBe(false);
+  } finally { client.close(); }
+});
+
+it('refuses a paired advertisement that labels its remote coordinator as local', async () => {
+  const route = plaintextExecutionRoute({ model }, { local: true, recipients: [requester] });
+  const state = { ...structuredClone(snapshot), privacyProtocol: 'reploid.paired-route/v2',
+    models: [{ ...model, executionRoutes: [{ selection: model, route }] }] };
+  const sent = [];
+  const client = createPrivateComputers({ storage: null, fetchImpl: async (url, init) => { sent.push(url); return Response.json(state); } });
+  try {
+    await client.connect('http://127.0.0.1:18784', token);
+    await expect(client.execute({ threadId: 't', attemptId: 'forged', model: client.models()[0], messages: [{ content: 'secret' }],
+      permissions: { sharingScope: 'mesh' }, privacy: createExecutionPolicy('restricted') },
+      { signal: new AbortController().signal, requestApproval: async () => true, onState() {}, onDelta() {} })).rejects.toThrow('No paired route');
+    expect(sent.some(url => url.endsWith('/generate'))).toBe(false);
+  } finally { client.close(); }
 });

@@ -1,3 +1,4 @@
+import { createExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
@@ -120,4 +121,20 @@ describe('verified grant binding cache', () => {
       expect(await stage.verify(f.grant, f.request)).toBe(false);
     } finally { verify.mockRestore(); }
   });
+});
+
+it('signs the privacy binding and rejects policy or recipient substitutions', async () => {
+  const f = await fixture();
+  const model = { id: f.identity.route.modelId, identity: f.identity.route.modelIdentity, partition: { route: f.identity.route } };
+  const recipients = f.identity.route.stages.map(stage => stage.participantId);
+  const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: recipients });
+  const privacyBinding = await bindExecutionRoute({ model, privacy }, plaintextExecutionRoute({ model }, { recipients, route: f.identity.route }));
+  const grant = await f.authority.issueOrdered(f.identity, f.limits, { ...f.controls, privacyBinding });
+  expect(await f.authority.verify(grant, f.request)).toBe(true);
+  const changedPolicy = structuredClone(grant); changedPolicy.claim.privacyBinding.policy.allowedRecipients.pop();
+  expect(await f.authority.verify(changedPolicy, f.request)).toBe(false);
+  const omittedHop = structuredClone(privacyBinding); omittedHop.route.hops.pop();
+  await expect(f.authority.issueOrdered(f.identity, f.limits, { ...f.controls, privacyBinding: omittedHop })).rejects.toThrow('omitted');
+  const changedDigest = structuredClone(grant); changedDigest.claim.privacyBinding.policyId = 'sha256:' + 'b'.repeat(64);
+  expect(await f.authority.verify(changedDigest, f.request)).toBe(false);
 });

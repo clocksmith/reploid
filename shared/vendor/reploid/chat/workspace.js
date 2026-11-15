@@ -3,6 +3,7 @@ import { partitionActivity } from '../mesh/partitions/partition-summary.js';
 import { canonicalPartitionJson } from '../mesh/partitions/partition-contract.js';
 import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../mesh/partitions/partition-ordered-publication.js';
 import defaults from './policy.json' with { type: 'json' };
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from './execution-policy.js';
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
@@ -31,7 +32,7 @@ const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model a
 // retry, its provider declares `searchProvider`, its request carries only the current question and the retrieved
 // passages, and its passages reach only the contributors that permission lists.
 export function createChatWorkspace({ meshId, participantId, store, execute, requesterIdentity = () => participantId,
-  remotePermissions = null, networkId = () => meshId, retrieval = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
+  remotePermissions = null, prepareRemotePermission = null, networkId = () => meshId, retrieval = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
   assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function'
     && typeof requesterIdentity === 'function' && (remotePermissions === null || typeof remotePermissions === 'function')
@@ -242,6 +243,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   };
   const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null, sourceHistory = []) => {
     current();
+    request = copy({ ...request, privacy: requestExecutionPolicy(request) });
+    assertAvailableExecutionPolicy(request.privacy);
     assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
     assert(!runs.has(thread.id), 'This conversation already has an active response');
     assert(runs.size < limits.maxConcurrentAttempts, 'Concurrent conversation limit reached');
@@ -281,6 +284,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     run.completion = (async () => {
       let publication = null, dispatched = request;
       try {
+        if (request.retrieval && request.privacy.placement === 'local-only') throw new Error('Local-only privacy excludes remote retrieval');
+        if (request.retrieval && request.privacy.allowedRecipients.length) throw new Error('Restricted retrieval requires a qualified complete search route');
         if (transactional) await admitted;
         controller.signal.throwIfAborted();
         // Ordinary follow-ups retain the evidence supplied with their earlier turns. Validate the
@@ -358,6 +363,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             notify();
           },
           async requestApproval(preview) {
+            preview = copy(preview);
             controller.signal.throwIfAborted();
             assert(matches(preview) && typeof preview.id === 'string' && preview.id
               && typeof preview.peerId === 'string' && preview.peerId && Number.isFinite(preview.expiresAt)
@@ -366,7 +372,22 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               && preview.executionTimeoutMs > 0 && preview.executionTimeoutMs <= limits.attemptTimeoutMs,
             'Invalid execution authorization window');
             assert(!run.approval, 'An approval is already pending');
-            const scope = disclosureScope(request, preview, requester()), grant = matchingThreadGrant(thread.grants, scope);
+            const scope = disclosureScope(request, preview, requester());
+            assert(scope || request.privacy.profile === 'provider-visible' && !request.privacy.allowedRecipients.length,
+              'Privacy requires verified execution recipients');
+            const recipients = scope ? disclosureRecipients(scope, preview) : [preview.peerId];
+            if (preview.privacyBinding) assert(preview.privateDelegation
+              && preview.privacyBinding.route.hops.some(hop => hop.placement === 'remote' && hop.recipient === preview.recipientIdentity),
+              'Paired route omitted its plaintext requester');
+            const binding = await bindExecutionRoute(request, preview.privacyBinding?.route ?? plaintextExecutionRoute(request, {
+              recipients: [...new Set(preview.inputRecipients ?? recipients)], route: scope?.route ?? request.model.partition ?? null }));
+            controller.signal.throwIfAborted();
+            assert(!attempt.privacyBinding || attempt.privacyBinding.policyId === binding.policyId
+              && attempt.privacyBinding.routeId === binding.routeId, 'Execution recipients changed. Retry starts a new authorized attempt.');
+            attempt.privacyBinding = copy(binding);
+            attempt.privacyReceipt = executionPrivacyReceipt(binding);
+            if (scope) { scope.policyId = binding.policyId; scope.routeId = binding.routeId; }
+            const grant = matchingThreadGrant(thread.grants, scope);
             if (published) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
             // Retrieved passages go only to verified recipients the per-answer search permission listed.
             if (attempt.searchPermission) assert(scope && disclosureRecipients(scope, preview)
@@ -387,7 +408,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               }
               // The host authorizes exactly what is sent, including any retrieved sources.
               const accepted = authorizeDisclosure({ request: copy({ ...dispatched, threadId: thread.id, attemptId: attempt.id,
-                ...(attempt.retrieval ? { retrieval: attempt.retrieval } : {}) }), preview: copy(preview) });
+                ...(attempt.retrieval ? { retrieval: attempt.retrieval } : {}) }), preview: copy({ ...preview, privacyBinding: binding }) });
               if (accepted !== true || !live() || preview.expiresAt <= now()) return false;
               attempt.authorization = { kind: 'once', grantId: null, peerId: preview.peerId,
                 ...copy(scope), source: 'send', expiresAt: preview.expiresAt };
@@ -402,7 +423,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             // Unverified partition recipients are never offered; with a permission port, no unverified recipient is.
             assert(scope || !request.model.partition && !remotePermissions, DISCLOSURE_MISMATCH);
             const need = remotePermissions ? remotePermissionNeed({ networkId: networkId(), sharingScope: request.permissions.sharingScope,
-              disclosure: scope.disclosure, model: request.model }) : null, permission = covering(need);
+              disclosure: scope.disclosure, model: request.model, policyId: scope.policyId, routeId: scope.routeId }) : null;
+            if (need && prepareRemotePermission) prepareRemotePermission(copy(need));
+            const permission = covering(need);
             if (permission) {
               attempt.authorization = permitted(scope, preview, permission);
               await persist(); controller.signal.throwIfAborted();
@@ -511,13 +534,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       return ['once', 'permission'].includes(auth.kind) && auth.expiresAt > now();
     },
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
-    createThread({ model, purpose = '', members = [], permissions = {}, systemContext = null, automaticModel = false }) {
+    createThread({ model, purpose = '', members = [], permissions = {}, privacy = null, systemContext = null, automaticModel = false }) {
       current(); assert(threads.length < limits.maxThreads, 'Conversation limit reached');
       assert(typeof automaticModel === 'boolean', 'Invalid automatic model selection');
       assert(typeof purpose === 'string' && purpose.length <= limits.maxMessageCharacters, 'Invalid conversation purpose');
       assert(Array.isArray(members) && members.every(member => typeof member === 'string' && member), 'Invalid conversation members');
       const thread = { id: id(), ...(automaticModel ? { automaticModel: true } : {}), model: modelIdentity(model), purpose, systemContext: validateSystemContext(systemContext), members: [...new Set([participantId, ...members])],
-        permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
+        ...(privacy === null ? {} : { privacy: requestExecutionPolicy({ model, permissions, privacy }) }), permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
       threads.push(thread); selectedId = thread.id; const saved = persist();
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
@@ -563,6 +586,15 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       thread.permissions = { ...previous, executionLocation: location, sharingScope: location === 'local' ? 'local' : 'mesh' };
       try { return persist(); } catch (error) { thread.permissions = previous; thread.automaticModel = automaticModel; notify(); throw error; }
     },
+    setExecutionPrivacy(threadId, value) {
+      current(); const thread = find(threadId);
+      assert(!thread.closed && !runs.has(threadId), 'Change privacy only in an open idle conversation');
+      const privacy = requestExecutionPolicy({ model: thread.model, permissions: thread.permissions, privacy: value });
+      assertAvailableExecutionPolicy(privacy);
+      const previous = thread.privacy;
+      thread.privacy = copy(privacy);
+      try { return persist(); } catch (error) { thread.privacy = previous; notify(); throw error; }
+    },
     setSystemContext(threadId, value) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Change context only in an open idle conversation');
@@ -600,7 +632,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         messages.unshift({ role: 'system', content: system });
         sourceHistory.forEach(item => item.index++);
       }
-      try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages,
+      try { return start(thread, { model: thread.model, permissions: thread.permissions, ...(thread.privacy ? { privacy: thread.privacy } : {}), members: thread.members, messages,
         ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure, permission, sourceHistory); }
       catch (error) { thread.messages.pop(); throw error; }
     },
@@ -627,6 +659,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       const allowed = accepted === true && attempt.approval.expiresAt > now() && !run.controller.signal.aborted;
       if (allowed) {
         const scope = disclosureScope(attempt.request, attempt.approval, requester());
+        if (scope && attempt.privacyBinding) Object.assign(scope, { policyId: attempt.privacyBinding.policyId, routeId: attempt.privacyBinding.routeId });
         let grant = null;
         if (remember) {
           assert(scope, 'Reusable disclosure requires a verified recipient and exact execution identity');
@@ -658,6 +691,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         const attempt = thread.attempts.at(-1), run = runs.get(thread.id), permission = covering(attempt?.approval?.permissionNeed);
         if (!permission || !run?.approval || run.deciding || run.controller.signal.aborted || attempt.approval.expiresAt <= now()) continue;
         const scope = disclosureScope(attempt.request, attempt.approval, requester());
+        if (scope && attempt.privacyBinding) Object.assign(scope, { policyId: attempt.privacyBinding.policyId, routeId: attempt.privacyBinding.routeId });
         if (!scope) continue;
         attempt.authorization = permitted(scope, attempt.approval, permission); run.deciding = true;
         const settle = () => { run.deciding = false; run.approval?.(!run.controller.signal.aborted && attempt.approval?.expiresAt > now()); };

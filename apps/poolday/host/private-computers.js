@@ -1,5 +1,6 @@
 /** A paired native host owns the private room, keys, placement and credit ledger.
  * Browser history remains here. Pairing is explicit and limited to this tab. */
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from '../../../shared/vendor/reploid/chat/index.js';
 import { abortable } from '../../../shared/vendor/reploid/cancellation.js';
 
 const KEY = 'reploid.private-computers:v1';
@@ -68,6 +69,7 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
       const selected = models().find(model => model.selectionId === input.model.selectionId && model.identity === input.model.identity);
       assert(state().connected && selected && input.model.fleet.poolIdentity === snapshot.poolIdentity, 'This private pool is unavailable or has changed');
       assert(input.permissions?.sharingScope !== 'local' && input.permissions?.executionLocation !== 'local', 'This request permits only local execution');
+      input.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(input));
       const binding = structuredClone(snapshot), { threadId, attemptId, model, messages } = input;
       assert(!active.has(attemptId), 'Private attempt is already active');
       const controller = new AbortController(), signal = AbortSignal.any([controls.signal, controller.signal]);
@@ -78,6 +80,33 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
           && snapshot?.requester?.participantId === binding.requester.participantId,
         'Private pairing changed. Retry starts a new authorized attempt.');
       };
+      // v2 advertises exact native routes before receiving messages; v1 has only a delegation envelope.
+      let privacyBinding;
+      if (binding.privacyProtocol === 'reploid.paired-route/v2') {
+        for (const candidate of selected.executionRoutes || []) {
+          try {
+            const route = candidate.route, selection = candidate.selection;
+            const enrolled = new Set([binding.requester.participantId, ...binding.computers.flatMap(row => row.participantIds)]);
+            const required = selection.partition?.schema === 'reploid.partition-selection/v2'
+              ? [binding.requester.participantId, ...selection.partition.route.stages.map(stage => stage.participantId)]
+              : [binding.requester.participantId, route.route?.providerIdentity];
+            assert(required.every(id => typeof id === 'string' && enrolled.has(id))
+              && route.hops.every(hop => hop.placement === 'remote' && enrolled.has(hop.recipient))
+              && required.every(id => route.hops.some(hop => hop.recipient === id)), 'Paired route omitted a remote recipient');
+            assert(selection.id === model.id && selection.identity === model.identity, 'Paired route substituted the selected model');
+            const checked = await bindExecutionRoute({ ...input, model: candidate.selection }, candidate.route);
+            privacyBinding = checked; break;
+          } catch { /* This candidate exceeds the request requirements; consider other independent paths. */ }
+        }
+        assert(privacyBinding, 'No paired route satisfies this privacy policy; nothing was sent');
+      } else {
+        assert(input.privacy.profile === 'provider-visible' && !input.privacy.allowedRecipients.length,
+          'Restricted paired execution requires exact route preflight; this bridge is provider-visible');
+        const envelope = [...new Set([binding.requester.participantId, ...binding.computers.flatMap(row => row.participantIds)])];
+        privacyBinding = await bindExecutionRoute(input, plaintextExecutionRoute(input, { recipients: envelope,
+          route: { schema: 'reploid.paired-delegation/v1', poolIdentity: binding.poolIdentity, recipients: envelope } }));
+      }
+      const recipients = privacyBinding.route.hops.map(hop => hop.recipient);
       const publicNames = Object.fromEntries(binding.computers.flatMap(row => row.participantIds.map(id => [id, row.name])));
       let placement = { privateDelegation: { poolIdentity: binding.poolIdentity, computers: publicNames }, serviceCredit: { status: 'pending' } };
       let reader, dispatched = false;
@@ -93,13 +122,14 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
           peerId: binding.requester.participantId, recipientIdentity: binding.requester.participantId,
           operation: 'generate', disclosure: 'public', modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
           expiresAt: Date.now() + 30000, input: { messages: structuredClone(messages) },
-          privateDelegation: structuredClone(placement.privateDelegation) }), signal);
+          privateDelegation: structuredClone(placement.privateDelegation), privacyBinding,
+          inputRecipients: recipients }), signal);
         assert(approved === true, 'Private execution was not allowed');
         assertCurrent();
         controls.onState({ threadId, attemptId, status: 'queued', execution: structuredClone(placement) });
         assertCurrent();
         dispatched = true;
-        const response = await call('/generate', { model: { id: model.id, identity: model.identity }, poolIdentity: binding.poolIdentity, threadId, attemptId, messages }, signal, target);
+        const response = await call('/generate', { privacy: input.privacy, privacyBinding, model: { id: model.id, identity: model.identity }, poolIdentity: binding.poolIdentity, threadId, attemptId, messages }, signal, target);
         assertCurrent();
         reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = '', sequence = 0, result = null;
         for (;;) {
@@ -134,7 +164,7 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
           execution: { ...result.execution, provider: 'peer', peerId: result.execution?.providerIdentity || result.execution?.peerId,
             stopReason: result.execution?.stopReason ?? result.execution?.completion?.stopReason,
             ...(result.execution?.admission || placement.admission ? { admission: result.execution?.admission ?? placement.admission } : {}),
-            privateDelegation: placement.privateDelegation, serviceCredit: result.serviceCredit } };
+            privacy: executionPrivacyReceipt(privacyBinding), privateDelegation: placement.privateDelegation, serviceCredit: result.serviceCredit } };
       } catch (error) {
         if (dispatched && !closed && version === epoch) controls.onState({ threadId, attemptId, status: 'executing', execution: {
           ...placement, serviceCredit: error.serviceCredit || placement.serviceCredit } });

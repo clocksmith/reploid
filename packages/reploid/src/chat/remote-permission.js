@@ -27,10 +27,11 @@ const network = value => typeof value === 'string' && value.length > 0 && value.
 
 /** What one remote request needs from a permission: the network it is sent on, its sharing scope,
  * disclosure kind and exact model identity. */
-export function remotePermissionNeed({ networkId, sharingScope, disclosure, model }) {
+export function remotePermissionNeed({ networkId, sharingScope, disclosure, model, policyId, routeId }) {
   if (!network(networkId)) throw new Error('Remote permission requires the network the request is sent on');
   return { networkId, sharingScope, disclosure, modelId: model.id, modelIdentity: model.identity,
-    adapterIdentities: unique((model.adapters || []).map(adapter => adapter.identity)) };
+    adapterIdentities: unique((model.adapters || []).map(adapter => adapter.identity)),
+    ...(policyId === undefined && routeId === undefined ? {} : { policyId, routeId }) };
 }
 
 /** A request is inside a permission exactly when the permission is an unrevoked remote-contributors record granted
@@ -41,6 +42,7 @@ export function remotePermissionCovers(permission, need) {
   return permission?.schema === REMOTE_PERMISSION_SCHEMA && permission.kind === 'remote-contributors' && permission.revokedAt === null
     && network(need?.networkId) && permission.networkId === need.networkId
     && typeof need?.sharingScope === 'string' && need.sharingScope !== 'local' && permission.sharingScope === need.sharingScope
+    && permission.policyId === need.policyId && permission.routeId === need.routeId
     && permission.disclosure === need.disclosure && permission.modelIdentities.includes(need.modelIdentity)
     && need.adapterIdentities.every(identity => permission.adapterIdentities.includes(identity));
 }
@@ -51,15 +53,18 @@ export function createRemotePermission({ id, need, catalog = [], wording, grante
     sharingScope: need.sharingScope, disclosure: need.disclosure,
     modelIdentities: unique([need.modelIdentity, ...catalog.map(model => model.identity)]),
     adapterIdentities: unique([...need.adapterIdentities, ...catalog.flatMap(model => (model.availableAdapters || []).map(adapter => adapter.identity))]),
+    ...(need.policyId === undefined ? {} : { policyId: need.policyId, routeId: need.routeId }),
     wording: wording && { id: wording.id, version: wording.version, text: wording.text }, grantedAt, revokedAt: null });
 }
 
 export function validateRemotePermission(permission) {
   const keys = ['schema', 'kind', 'id', 'networkId', 'sharingScope', 'disclosure', 'modelIdentities', 'adapterIdentities', 'wording', 'grantedAt', 'revokedAt'];
+  if (permission?.policyId !== undefined || permission?.routeId !== undefined) keys.push('policyId', 'routeId');
   if (!permission || typeof permission !== 'object' || Object.keys(permission).length !== keys.length || !keys.every(key => Object.hasOwn(permission, key))
     || permission.schema !== REMOTE_PERMISSION_SCHEMA || permission.kind !== 'remote-contributors'
     || typeof permission.id !== 'string' || !permission.id || !network(permission.networkId)
     || typeof permission.sharingScope !== 'string' || !permission.sharingScope || permission.sharingScope === 'local'
+    || keys.includes('policyId') && (!hash(permission.policyId) || !hash(permission.routeId))
     || !REMOTE_DISCLOSURES.includes(permission.disclosure)
     || !Array.isArray(permission.modelIdentities) || !permission.modelIdentities.length || !permission.modelIdentities.every(hash)
     || !Array.isArray(permission.adapterIdentities) || !permission.adapterIdentities.every(hash) || !validPermissionWording(permission.wording)

@@ -22,7 +22,8 @@ function fixture() {
     } };
   const app = createChatWorkspace(options);
   const create = target => target.createThread({ model, permissions: { sharingScope: 'invited-mesh' } });
-  const approve = (target, threadId, remember = false) => {
+  const approve = async (target, threadId, remember = false) => {
+    await vi.waitFor(() => expect(target.getState().threads.find(t => t.id === threadId).attempts.at(-1).approval).not.toBeNull());
     const attempt = target.getState().threads.find(t => t.id === threadId).attempts.at(-1);
     target.approve(threadId, attempt.id, attempt.approval.id, true, { remember });
   };
@@ -32,7 +33,7 @@ function fixture() {
 
 it('persists explicit thread grants, reuses them after refresh, and requires approval for new recipients and threads', async () => {
   const f = fixture(), a = f.create(f.app);
-  const first = f.app.send(a, 'First'); f.approve(f.app, a, true);
+  const first = f.app.send(a, 'First'); await f.approve(f.app, a, true);
   expect((await first).status).toBe('completed');
   expect((await f.app.send(a, 'Follow-up')).authorization.kind).toBe('thread-grant');
   await f.app.close();
@@ -40,31 +41,31 @@ it('persists explicit thread grants, reuses them after refresh, and requires app
   expect((await restored.send(a, 'After refresh')).status).toBe('completed');
   f.recipient(carol);
   const next = restored.send(a, 'Different recipient');
-  expect(restored.getState().threads[0].attempts.at(-1).status).toBe('approval');
-  f.approve(restored, a); await next;
+  await vi.waitFor(() => expect(restored.getState().threads[0].attempts.at(-1).status).toBe('approval'));
+  await f.approve(restored, a); await next;
   f.recipient(bob);
   const b = f.create(restored), other = restored.send(b, 'Another thread');
-  expect(restored.getState().threads[1].attempts.at(-1).status).toBe('approval');
-  f.approve(restored, b); await other; await restored.close();
+  await vi.waitFor(() => expect(restored.getState().threads[1].attempts.at(-1).status).toBe('approval'));
+  await f.approve(restored, b); await other; await restored.close();
 });
 
 it('does not remember one-time approval or accept an unverified recipient for a reusable grant', async () => {
   const f = fixture(), a = f.create(f.app);
-  const first = f.app.send(a, 'Once'); f.approve(f.app, a); await first;
+  const first = f.app.send(a, 'Once'); await f.approve(f.app, a); await first;
   expect(f.app.getState().threads[0].grants).toEqual([]);
   f.recipient(null);
   const second = f.app.send(a, 'Unverified');
-  expect(f.app.getState().threads[0].attempts.at(-1).approval.reusable).toBe(false);
-  expect(() => f.approve(f.app, a, true)).toThrow('verified recipient');
-  f.approve(f.app, a); await second; await f.app.close();
+  await vi.waitFor(() => expect(f.app.getState().threads[0].attempts.at(-1).approval?.reusable).toBe(false));
+  await expect(f.approve(f.app, a, true)).rejects.toThrow('verified recipient');
+  await f.approve(f.app, a); await second; await f.app.close();
 });
 
 it('revokes active and future use without cancelling another conversation', async () => {
   const f = fixture(), a = f.create(f.app), b = f.create(f.app);
-  const first = f.app.send(a, 'Permit'); f.approve(f.app, a, true); await first;
+  const first = f.app.send(a, 'Permit'); await f.approve(f.app, a, true); await first;
   f.afterApproval(controls => new Promise(resolve => controls.signal.addEventListener('abort', resolve, { once: true })));
   const active = f.app.send(a, 'Running');
-  await vi.waitFor(() => expect(f.calls).toHaveLength(2));
+  await vi.waitFor(() => expect(f.app.getState().threads[0].attempts.at(-1).authorization?.kind).toBe('thread-grant'));
   const other = f.app.send(b, 'Pending approval');
   const grant = f.app.getState().threads[0].grants[0];
   f.app.revokeGrant(a, grant.id);
@@ -72,8 +73,8 @@ it('revokes active and future use without cancelling another conversation', asyn
   expect(f.calls.at(-1).controls.signal.aborted).toBe(false);
   f.afterApproval(async () => {});
   const next = f.app.send(a, 'Requires approval again');
-  expect(f.app.getState().threads[0].attempts.at(-1).status).toBe('approval');
-  f.approve(f.app, a); await next; await f.app.cancel(b); await other; await f.app.close();
+  await vi.waitFor(() => expect(f.app.getState().threads[0].attempts.at(-1).status).toBe('approval'));
+  await f.approve(f.app, a); await next; await f.app.cancel(b); await other; await f.app.close();
 });
 
 it('does not authorize when persisting a new grant fails', async () => {
@@ -81,7 +82,7 @@ it('does not authorize when persisting a new grant fails', async () => {
   const sent = f.app.send(a, 'Private');
   f.options.store.save = () => { throw new Error('Storage full'); };
   const rejected = expect(sent).rejects.toThrow('Storage full');
-  expect(() => f.approve(f.app, a, true)).toThrow('Storage full');
+  await expect(f.approve(f.app, a, true)).rejects.toThrow('Storage full');
   await rejected;
   expect(f.app.getState().threads[0].grants).toEqual([]);
   // Even the failure disposition could not be saved. Project the last durable
@@ -93,7 +94,7 @@ it('does not authorize when persisting a new grant fails', async () => {
 
 it('rechecks cancellation after notifying observers of automatic grant use', async () => {
   const f = fixture(), a = f.create(f.app);
-  const first = f.app.send(a, 'Permit'); f.approve(f.app, a, true); await first;
+  const first = f.app.send(a, 'Permit'); await f.approve(f.app, a, true); await first;
   const grant = f.app.getState().threads[0].grants[0];
   const unsubscribe = f.app.subscribe(state => {
     const attempt = state.threads[0].attempts.at(-1);
@@ -107,7 +108,7 @@ it('rechecks cancellation after notifying observers of automatic grant use', asy
 
 it('rejects a stored grant moved into another thread', async () => {
   const f = fixture(), a = f.create(f.app);
-  const first = f.app.send(a, 'Permit'); f.approve(f.app, a, true); await first;
+  const first = f.app.send(a, 'Permit'); await f.approve(f.app, a, true); await first;
   const saved = f.options.store.load(); saved.threads[0].grants[0].threadId = 'someone-else';
   expect(() => createChatWorkspace({ ...f.options, store: { load: () => saved, save() {} } })).toThrow('Invalid stored conversation grants');
   await f.app.close();
@@ -128,16 +129,20 @@ it('remembers the ordinary partition entry preview and revokes its active follow
       return { threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'Answer' };
     } });
   const id = app.createThread({ model: partitionModel, permissions: { sharingScope: 'mesh' } });
-  const first = app.send(id, 'Approved question'), approval = app.getState().threads[0].attempts.at(-1);
+  const first = app.send(id, 'Approved question');
+  await vi.waitFor(() => expect(app.getState().threads[0].attempts.at(-1).approval).not.toBeNull());
+  const approval = app.getState().threads[0].attempts.at(-1);
   expect(approval.approval.reusable).toBe(true);
   app.approve(id, approval.id, approval.approval.id, true, { remember: true }); await first;
   const grant = app.getState().threads[0].grants[0];
   expect(grant).toMatchObject({ participantA: input, recipientIdentity: output });
   pending = true; const active = app.send(id, 'Follow-up');
-  expect(app.getState().threads[0].attempts.at(-1).authorization.kind).toBe('thread-grant');
+  await vi.waitFor(() => expect(app.getState().threads[0].attempts.at(-1).authorization?.kind).toBe('thread-grant'));
   app.revokeGrant(id, grant.id); expect((await active).status).toBe('cancelled');
   pending = false; nextOutput = 'peer:' + 'd'.repeat(24);
-  const changed = app.send(id, 'Replacement'), next = app.getState().threads[0].attempts.at(-1);
+  const changed = app.send(id, 'Replacement');
+  await vi.waitFor(() => expect(app.getState().threads[0].attempts.at(-1).approval).not.toBeNull());
+  const next = app.getState().threads[0].attempts.at(-1);
   expect(next.status).toBe('approval'); expect(next.approval.reusable).toBe(true);
   app.approve(id, next.id, next.approval.id, false); await changed; await app.close();
 });

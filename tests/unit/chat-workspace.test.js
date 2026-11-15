@@ -161,6 +161,7 @@ describe('conversation workspace', () => {
     });
     const a = app.createThread({ model }), b = app.createThread({ model });
     const first = app.send(a, 'Private A'), second = app.send(b, 'Private B');
+    await vi.waitFor(() => expect(app.getState().threads.every(thread => thread.attempts[0].approval)).toBe(true));
     const attempts = app.getState().threads.map(thread => thread.attempts[0]);
     expect(() => app.approve(a, attempts[1].id, 'preview-' + b, true)).toThrow('Approval no longer matches');
     app.approve(a, attempts[0].id, 'preview-' + a, false);

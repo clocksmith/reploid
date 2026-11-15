@@ -1,4 +1,6 @@
 /** Prepared execution owner shared by browser and native hosts. */
+import { requestExecutionPolicy, assertAvailableExecutionPolicy } from '../chat/execution-policy.js';
+import { hashJson } from '../artifacts/signatures.js';
 import { createPreparationProgressObserver } from '../mesh/preparation-progress.js';
 import { withDevice, getDeviceQueue } from './device-lane.js';
 
@@ -62,18 +64,23 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     notify();
     return preparing;
   };
-  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId }) => {
+  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
+    const policy = assertAvailableExecutionPolicy(requestExecutionPolicy({ model, privacy }));
+    // Namespace retained KV state by the complete policy and authenticated tenant. Ordinary weights remain shared.
+    const contextNamespace = contextId ? hashJson([contextId, model.identity, contextOwner ?? null, policy]) : null;
     const input = structuredClone(messages);
     const selectedAdapters = structuredClone(adapters);
     const current = adapter, combined = AbortSignal.any([lifetime.signal, signal]);
     const operation = withDevice(service, combined, async () => {
       combined.throwIfAborted();
       if (adapter !== current || error) throw new Error('Resident session was retired before execution');
+      const scopedContextId = contextNamespace ? await contextNamespace : null;
+      combined.throwIfAborted();
       phase = 'executing'; notify();
       try {
         const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters,
-          maxOutputTokens, contextOwner, contextId });
+          maxOutputTokens, contextOwner, contextId: scopedContextId });
         combined.throwIfAborted(); completed++;
         // Count runtime-reported tokens, never text deltas or estimated words.
         const tokens = result.completion?.generatedTokenCount ?? result.timing?.generatedTokenCount;

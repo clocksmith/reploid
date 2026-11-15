@@ -162,6 +162,15 @@ export function createChatSession({
     requesterIdentity,
     // Every remote disclosure needs a stored permission that covers it; see remote-permission.js.
     remotePermissions: () => remoteAccess.enabled() ? remotePermissions : [],
+    prepareRemotePermission(need) {
+      assert(remoteAccess.enabled(), 'Network answers are off. Turn them on in Settings or choose this device.');
+      if (!remotePermissions.some(permission => remotePermissionCovers(permission, need))) {
+        const retained = remotePermissions.filter(permission => !remotePermissionCovers(permission,
+          { ...need, policyId: undefined, routeId: undefined }));
+        savePermissions([...retained, createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
+          wording: remoteAccess.wording, grantedAt: now() })].slice(-MAX_PERMISSIONS));
+      }
+    },
     // Permissions are bound to the network (room) they were granted on.
     networkId: currentNetwork,
     retrieval,
@@ -188,7 +197,7 @@ export function createChatSession({
     const known = getCatalogModels().find(item => item.id === model.id && item.identity === model.identity);
     assert(known, 'Choose a catalog model before allowing remote contributors');
     const need = remotePermissionNeed({ networkId: currentNetwork(), sharingScope: permissions.sharingScope, disclosure, model });
-    if (remotePermissions.some(permission => remotePermissionCovers(permission, need))) return;
+    if (remotePermissions.some(permission => remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, need))) return;
     const permission = createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
       wording: remoteAccess.wording, grantedAt: now() });
     savePermissions([...remotePermissions, permission].slice(-MAX_PERMISSIONS));
@@ -424,7 +433,7 @@ export function createChatSession({
         return await workspace.send(threadId, COMPARISON_CHECK, { select: false });
       } finally { comparisons.delete(threadId); notifyAll(); } })();
     },
-    createThread({ model, purpose = '', sharingScope = 'mesh', executionLocation = 'auto', contextPrompt } = {}) {
+    createThread({ model, purpose = '', sharingScope = 'mesh', executionLocation = 'auto', privacy = null, contextPrompt } = {}) {
       assertOpen();
       const state = getSessionState(), location = executionLocation === 'auto' && sharingScope === 'local' ? 'local' : executionLocation;
       const automaticModel = model === undefined;
@@ -433,12 +442,13 @@ export function createChatSession({
       assert(['auto', 'local', 'network'].includes(executionLocation), 'Invalid execution location');
       assert(executionLocation !== 'local' || !model.partition, 'This model requires network execution');
       return workspace.createThread({
-        model, automaticModel,
+        model, automaticModel, privacy,
         purpose,
         systemContext: createChatContext(contextPrompt, model, models),
         permissions: { sharingScope: executionLocation === 'local' ? 'local' : executionLocation === 'network' ? 'mesh' : sharingScope, executionLocation }
       });
     },
+    setExecutionPrivacy(threadId, privacy) { assertOpen(); return workspace.setExecutionPrivacy(threadId, privacy); },
     setExecutionLocation(threadId, location) { assertOpen(); return workspace.setExecutionLocation(threadId, location); },
     /** The stored conversations, for a local data export. Reads only; nothing is sent or changed. */
     exportThreads() { assertOpen(); return { meshId, participantId, threads: copy(workspace.getState().threads) }; },

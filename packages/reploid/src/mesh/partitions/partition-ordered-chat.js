@@ -1,3 +1,4 @@
+import { partitionPrivacyBinding } from '../../chat/execution-policy.js';
 import { partitionAdapterIdentities, samePartitionAdapters } from './partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createLayerPartitionRunner } from './partition-runner.js';
@@ -183,6 +184,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       signal.throwIfAborted();
       const disclosure = orderedPartitionDisclosure(identity), expiresAt = Math.min(now() + grantTtlMs, request.disclosureExpiresAt ?? Infinity);
       assert(expiresAt > now(), 'Requester disclosure expired during preparation');
+      const privacyBinding = await partitionPrivacyBinding(request, route.stages.map(stage => stage.participantId), route);
+      signal.throwIfAborted();
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: identity.threadId,
         attemptId: identity.attemptId, peerId: coordinatorId, recipientIdentity: coordinatorId,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: partitionAdapterIdentities(selection),
@@ -210,7 +213,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       const generationDigest = await runtime.hashPartitionGeneration(generation);
       const remainingMs = Math.floor(expiresAt - now());
       assert(remainingMs > 0, 'Ordered disclosure expired during preparation');
-      grant = await authority.issueOrdered(identity, policy, { approved: true, ttlMs: Math.min(grantTtlMs, remainingMs), disclosure, generationDigest, expiresAt });
+      grant = await authority.issueOrdered(identity, policy, { approved: true, ttlMs: Math.min(grantTtlMs, remainingMs), disclosure, generationDigest, expiresAt, privacyBinding });
       signal.throwIfAborted();
       assert(now() < expiresAt && grant.claim.expiresAt <= expiresAt, 'Ordered disclosure expired during grant signing');
       if (published) {

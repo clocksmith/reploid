@@ -48,6 +48,6 @@ jobs:
           fi
           node scripts/lint-changed-code.js --base "$BASE_SHA"
           node scripts/verify-layers.js --source-only
-          npx vitest run --config tests/vitest.config.js tests/unit/browser-boundaries.test.js tests/unit/layer-verification.test.js tests/unit/eslint-environments.test.js tests/integration/fleet-browser-bridge.test.js tests/unit/work-resident-provider.test.js tests/unit/network-controls.test.js
+          npx vitest run --config tests/vitest.config.js tests/unit/browser-boundaries.test.js tests/unit/layer-verification.test.js tests/unit/eslint-environments.test.js tests/integration/fleet-browser-bridge.test.js tests/unit/work-resident-provider.test.js tests/unit/network-controls.test.js tests/unit/execution-privacy.test.js tests/unit/privacy-controls.test.js tests/unit/peer-generation-threads.test.js tests/unit/chat-workspace.test.js tests/unit/chat-thread-grants.test.js tests/unit/conversation-remote-permission.test.js tests/unit/ordered-partition-grants.test.js tests/unit/ordered-partition-chat-entry.test.js
       - run: npm run build:browser-bundle
       - run: npm run package:hosting

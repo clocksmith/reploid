@@ -26,6 +26,9 @@ export function createWholeModelRequester({ mesh, models }) {
   models = structuredClone(models);
   const pending = new Map();
   const getModels = () => projectChatCatalog({ models, peers: mesh.getSwarmSnapshot().peers || [], partitionModels: [] })
+    .map(model => ({ ...model, verifiedProviderIdentities: Object.fromEntries((mesh.getSwarmSnapshot().peers || [])
+      .filter(peer => model.providerIds.includes(peer.peerId) && peer.identityVerified && peer.participantId)
+      .map(peer => [peer.peerId, peer.participantId])) }))
     .filter(model => !model.partition && ['ready', 'busy'].includes(model.availability) && model.providerIds?.length)
     // The mesh's current protocol enforces only the model's prepared generation ceiling.
     .map(model => structuredClone({ ...model, textGeneration: supportsModelCeiling(model) ? TEXT_GENERATION_CAPABILITY : undefined }));
@@ -70,7 +73,7 @@ export function createWholeModelRequester({ mesh, models }) {
           requireValue(item.providerId, 'Whole-model output preceded disclosure');
           controls.onDelta?.({ threadId, attemptId, sequence: sequence++, text });
         }, { signal: controls.signal, modelId: model.id, modelIdentity: model.identity,
-          adapterIdentities: partitionAdapterIdentities(model),
+          adapterIdentities: partitionAdapterIdentities(model), privacy: request.privacy ?? null,
           requestContext: {
             id,
             recoverable: true,

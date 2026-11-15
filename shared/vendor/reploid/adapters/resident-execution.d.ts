@@ -6,7 +6,7 @@ export interface ResidentResult {
   completion?: { generatedTokenCount?: number }; timing?: { generatedTokenCount?: number }; [key: string]: unknown;
 }
 export interface ResidentGenerationControl {
-  signal: AbortSignal; adapters?: ModelAdapterSelection[]; maxOutputTokens?: number; contextOwner?: string; contextId?: string;
+  privacy?: import('../chat/execution-policy.js').ExecutionPolicy; signal: AbortSignal; adapters?: ModelAdapterSelection[]; maxOutputTokens?: number; contextOwner?: string; contextId?: string;
 }
 export interface ResidentProviderPort {
   getIdentity(): ResidentIdentity; getHardware(): unknown; getContextCacheStats?(): unknown; isReady(): boolean;

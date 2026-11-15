@@ -1,3 +1,4 @@
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from '../../../shared/vendor/reploid/chat/index.js';
 import { currentPartitionRoute } from './partition-release.js';
 /** Adapt identified chat attempts to existing execution ports; own only the scheduler we create. */
 import { createChatScheduler, remoteDisclosureKind } from '../../../shared/vendor/reploid/chat/index.js';
@@ -36,7 +37,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       return {
         run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta,
           { signal: runSignal, adapters: req.model.adapters || [], maxOutputTokens: req.maxOutputTokens,
-            contextOwner: 'local', contextId: req.threadId }),
+            contextOwner: req.participantId || 'local', contextId: req.threadId, privacy: req.privacy }),
         reset: async () => assert(resident.getState().ready, 'Resident session requires replacement'),
         // The resident applies and removes adapters inside the same device lease as generation.
         setAdapters: async () => {},
@@ -48,7 +49,23 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
 
   // Reuse the existing network provider. No simulated production responses.
   const execute = async (request, controls) => {
+    request = structuredClone(request);
+    request.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(request));
+    controls.signal?.throwIfAborted();
     const { threadId, attemptId, model } = request;
+    const originalApproval = controls.requestApproval;
+    let privacyBinding = null;
+    const validatePreview = async preview => {
+      const recipients = preview.inputRecipients ?? preview.route?.stages?.map(stage => stage.participantId)
+        ?? (model.partition ? [preview.participantA, preview.participantB] : [preview.recipientIdentity]);
+      const binding = await bindExecutionRoute(request, preview.privacyBinding?.route ?? plaintextExecutionRoute(request, {
+        recipients: [...new Set(recipients)], route: preview.route ?? model.partition ?? null }));
+      controls.signal?.throwIfAborted();
+      assert(!privacyBinding || privacyBinding.routeId === binding.routeId, 'Execution route changed; retry requires a new attempt');
+      privacyBinding = binding;
+      return originalApproval(preview);
+    };
+    controls = { ...controls, requestApproval: validatePreview };
     assert(['auto', 'local', 'network'].includes(request.permissions?.executionLocation ?? 'auto'), 'Invalid execution location');
     assert(!(model.partition && (request.permissions?.executionLocation === 'local' || request.permissions?.sharingScope === 'local')), 'This model requires network execution');
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
@@ -68,6 +85,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       'Canonical history requires a prepared canonical or ordered partition route');
 
     if (model.partition) {
+      assert(request.privacy.placement !== 'local-only', 'Local-only privacy excludes partition execution');
       assert(currentPartitionRoute(model, getModels()), 'Selected distributed route is unavailable or not qualified for public use');
       assert(partitions?.generate, 'Partition execution service is unavailable');
       // A configured earning client runs each partition attempt under an accepted quote and reports its route records.
@@ -78,7 +96,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       return earning ? earning.run(request, controls, generate) : generate(request, controls);
     }
 
-    if (runsHere(model, request.permissions?.sharingScope, request.permissions?.executionLocation)) {
+    if (request.privacy.placement === 'local-only' || runsHere(model, request.permissions?.sharingScope, request.permissions?.executionLocation)) {
+      const binding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { local: true }));
       const maxOutputTokens = Math.min(
         request.maxOutputTokens || profile.generation?.maxTokens || 1024,
         4096
@@ -92,12 +111,12 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
         onDelta: text => controls.onDelta({ threadId, attemptId, sequence: sequence++, text }),
         onState: status => state(status, { provider: 'doppler', placement: 'local-webgpu' })
       });
-      return chatResult(request, result, { provider: 'doppler', placement: 'local-webgpu' });
+      return chatResult(request, result, { provider: 'doppler', placement: 'local-webgpu', privacy: executionPrivacyReceipt(binding) });
     }
 
     assert(swarm?.generate, 'No connected participant can execute this model');
     const provider = createWorkNetworkProvider({
-      model, service, scope: 'chat:' + attemptId, signal: controls.signal,
+      model, privacy: request.privacy, service, scope: 'chat:' + attemptId, signal: controls.signal,
       swarm,
       generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters,
       controls: {
@@ -124,7 +143,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     const execution = result.peerId
       ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
       : { provider: 'doppler', placement: 'local-webgpu' };
-    return chatResult(request, result, execution);
+    assert(privacyBinding, 'Remote execution has no validated privacy binding');
+    return chatResult(request, result, { ...execution, privacy: executionPrivacyReceipt(privacyBinding) });
   };
 
   let closing = null;

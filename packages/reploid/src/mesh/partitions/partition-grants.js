@@ -1,3 +1,4 @@
+import { bindExecutionRoute, sameExecutionBinding } from '../../chat/execution-policy.js';
 import { createPeerIdFromPublicJwk, importSigningKey, importVerificationKey, getIdentitySignAlgorithm,
   toBase64Url, fromBase64Url } from '../../artifacts/identity.js';
 import { assertPartition as assert, canonicalPartitionJson, validatePartitionIdentity,
@@ -8,6 +9,19 @@ const CANONICAL_SCHEMA = 'reploid.partition-grant/v3';
 const ORDERED_SCHEMA = 'reploid.partition-grant/v4';
 const bytes = value => new TextEncoder().encode(canonicalPartitionJson(value));
 const bounds = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters'];
+
+async function verifyPrivacyClaim(claim) {
+  if (!claim.privacyBinding) return;
+  const supplied = claim.privacyBinding, identity = claim.identity;
+  const route = identity.route ?? { planId: identity.planId, participantA: identity.participantA, participantB: identity.participantB };
+  const recipients = identity.route ? identity.route.stages.map(stage => stage.participantId) : [identity.participantA, identity.participantB];
+  assert(canonicalPartitionJson(supplied.route.route) === canonicalPartitionJson(route)
+    && recipients.every(recipient => supplied.route.hops.some(hop => hop.recipient === recipient)), 'Grant privacy route omitted or changed recipients');
+  const model = { id: identity.route?.modelId ?? identity.modelId, identity: identity.route?.modelIdentity ?? identity.modelIdentity,
+    adapters: supplied.route.adapterIdentities.map(identity => ({ identity })) };
+  const checked = await bindExecutionRoute({ model, privacy: supplied.policy }, supplied.route);
+  assert(sameExecutionBinding(checked, supplied), 'Grant privacy policy binding mismatch');
+}
 
 /** Explicit disclosure closure for the ordinary stage-zero coordinator path. */
 export function orderedPartitionDisclosure(identity) {
@@ -70,7 +84,7 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
     canonicalCapability();
     canonicalDigest(claim);
     exact(claim, ['schema', 'id', 'meshId', 'identity', 'canonicalAttempt', 'generation', 'vocabSize',
-      'disclosure', 'issuedAt', 'expiresAt', 'limits']);
+      'disclosure', 'issuedAt', 'expiresAt', 'limits', ...(claim.privacyBinding ? ['privacyBinding'] : [])]);
     exact(claim.limits, bounds); exact(claim.generation, ['policy', 'executionIdentity', 'generationId']);
     assert(claim.schema === CANONICAL_SCHEMA && claim.meshId === meshId, 'Canonical grant scope mismatch');
     const generation = canonicalRuntime.canonicalGenerationIdentity(claim.generation.policy,
@@ -120,7 +134,7 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
     } catch { return DECLINED; }
   }
   const orderedClaim = claim => {
-    exact(claim, ['schema', 'id', 'meshId', 'identity', 'coordinatorId', 'disclosure', 'generationDigest', 'issuedAt', 'expiresAt', 'limits']);
+    exact(claim, ['schema', 'id', 'meshId', 'identity', 'coordinatorId', 'disclosure', 'generationDigest', 'issuedAt', 'expiresAt', 'limits', ...(claim.privacyBinding ? ['privacyBinding'] : [])]);
     const binding = canonicalRouteAttemptBinding(claim.identity);
     exact(claim.limits, bounds);
     assert(claim.schema === ORDERED_SCHEMA && claim.meshId === meshId
@@ -177,6 +191,8 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
   }
   /** `{ ok, reason }`: reason is 'expired', 'revoked' or 'declined' (any other mismatch) when refused. */
   async function check(grant, request, { settlement = false } = {}) {
+    try { if (grant?.claim?.privacyBinding) await verifyPrivacyClaim(structuredClone(grant.claim)); }
+    catch { return DECLINED; }
     if (grant?.claim?.schema === ORDERED_SCHEMA) return checkOrdered(grant, request, settlement);
     if (grant?.claim?.schema === CANONICAL_SCHEMA) return checkCanonical(grant, request, settlement);
     try {
@@ -208,7 +224,7 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
     /** The declared clock allowance between participants that check this authority's grants. */
     maxClockSkewMs,
     canonicalScope,
-    async issueOrdered(identity, limits, { approved, ttlMs, disclosure, generationDigest, expiresAt }) {
+    async issueOrdered(identity, limits, { approved, ttlMs, disclosure, generationDigest, expiresAt, privacyBinding = null }) {
       assert(!closed && approved === true, 'Explicit ordered partition disclosure approval required');
       assert(Number.isSafeInteger(ttlMs) && ttlMs > 0 && ttlMs <= maxTtlMs, 'Invalid ordered grant lifetime');
       const binding = canonicalRouteAttemptBinding(identity), issuedAt = now();
@@ -216,6 +232,8 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
       const claim = structuredClone({ schema: ORDERED_SCHEMA, id: crypto.randomUUID(), meshId, identity: binding,
         coordinatorId: binding.route.stages[0].participantId, disclosure, generationDigest, issuedAt,
         expiresAt: Math.min(issuedAt + ttlMs, expiresAt ?? Infinity), limits: Object.fromEntries(bounds.map(key => [key, limits[key]])) });
+      if (privacyBinding) claim.privacyBinding = structuredClone(privacyBinding);
+      await verifyPrivacyClaim(claim);
       orderedClaim(claim);
       assert(claim.coordinatorId === signer.peerId && await createPeerIdFromPublicJwk(signer.publicJwk) === signer.peerId,
         'Only the authenticated stage-zero coordinator grants ordered execution');
@@ -228,7 +246,7 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
         return { claim, publicJwk: structuredClone(signer.publicJwk), signature: toBase64Url(signature) };
       } catch (error) { entry.revoked = true; throw error; }
     },
-    async issueCanonical(binding, limits, { approved, ttlMs, disclosure, generation, canonicalAttempt, vocabSize }) {
+    async issueCanonical(binding, limits, { approved, ttlMs, disclosure, generation, canonicalAttempt, vocabSize, privacyBinding = null }) {
       canonicalCapability();
       assert(!closed && approved === true, 'Explicit canonical partition disclosure approval required');
       assert(Number.isSafeInteger(ttlMs) && ttlMs > 0 && ttlMs <= maxTtlMs, 'Invalid canonical grant lifetime');
@@ -236,6 +254,8 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
       const claim = structuredClone({ schema: CANONICAL_SCHEMA, id: crypto.randomUUID(), meshId, identity: binding,
         canonicalAttempt, generation, vocabSize, disclosure, issuedAt, expiresAt: issuedAt + ttlMs,
         limits: Object.fromEntries(bounds.map(key => [key, limits[key]])) });
+      if (privacyBinding) claim.privacyBinding = structuredClone(privacyBinding);
+      await verifyPrivacyClaim(claim);
       canonicalClaim(claim);
       assert(claim.identity.participantA === signer.peerId && await createPeerIdFromPublicJwk(signer.publicJwk) === signer.peerId,
         'Only the authenticated input owner grants canonical execution');
@@ -248,7 +268,7 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
         return { claim, publicJwk: structuredClone(signer.publicJwk), signature: toBase64Url(signature) };
       } catch (error) { entry.revoked = true; throw error; }
     },
-    async issue(binding, limits, { approved, ttlMs, disclosure, generationDigest }) {
+    async issue(binding, limits, { approved, ttlMs, disclosure, generationDigest, privacyBinding = null }) {
       binding = structuredClone(binding); limits = structuredClone(limits);
       assert(!closed && approved === true, 'Explicit partition disclosure approval required');
       validatePartitionIdentity(binding);
@@ -263,6 +283,8 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
       const claim = { schema: SCHEMA, id: crypto.randomUUID(), meshId, identity: binding,
         disclosure, generationDigest, issuedAt, expiresAt: issuedAt + ttlMs,
         limits: Object.fromEntries(bounds.map(key => [key, limits[key]])) };
+      if (privacyBinding) claim.privacyBinding = structuredClone(privacyBinding);
+      await verifyPrivacyClaim(claim);
       const entry = { revoked: false }; issued.set(claim.id, entry);
       try {
         const key = await importSigningKey(signer);

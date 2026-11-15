@@ -1,3 +1,4 @@
+import { renderPrivacyControls, readPrivacyControls, updatePrivacyControls } from './privacy-controls.js';
 import { bindControlHelp, renderControlHelp, renderHelpButton } from '../components/control-help.js';
 import { workspaceHref, bindWorkspaceNavigation } from './workspace-navigation.js';
 import { renderContextIndicator, updateContextIndicator } from './context-indicator.js';
@@ -39,7 +40,7 @@ const renderModelControl = () => '<span data-model-control><select class="pool-i
 
 /** The highlighted variant's adapter facts, routes and providers, its answer limit and where the answer runs. One place: the picker.
  * Declared weights, context and availability are read once, on the variant's own choice. */
-const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Public network</button></div></div></details>`;
+const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Public network</button></div>${renderPrivacyControls()}</div></details>`;
 
 export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
@@ -248,6 +249,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
       models.push(selected || unavailableModelChoice(pickerModel));
     }
+    updatePrivacyControls(find('[data-privacy-controls]'), state.activeThread?.privacy ?? viewState.privacy,
+      changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId));
     const preferNetwork = pickerLocation !== 'local';
     find('[data-next-model]').disabled = changingModel;
     updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });
@@ -568,7 +571,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
   on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
-  on('[data-execution-location]', 'click', event => {
+  on('[data-privacy-profile]', 'change', event => {
+    find('[data-privacy-recipients-label]').hidden = event.target.value !== 'restricted';
+  });
+  on('[data-privacy-apply]', 'click', () => {
+    void act(async () => {
+      const privacy = readPrivacyControls(find('[data-privacy-controls]'));
+      const state = session.getState();
+      if (state.activeThread) await session.setExecutionPrivacy(state.activeThread.id, privacy);
+      else viewState.privacy = privacy;
+      updatePrivacyControls(find('[data-privacy-controls]'), privacy, false);
+    });
+  });
+  on('[data-execution-location]', 'click' , event => {
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
     pickerTouched = true;
@@ -599,7 +614,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         const target = state.activeThread || { model, permissions: { sharingScope, executionLocation: location } };
         const personalSearch = searched && webSearch?.enabled() && !!webSearch.state().url;
         const allowed = searched && !personalSearch ? await prepareSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content) : null;
-        const threadId = state.selectedId || await session.createThread({ model, sharingScope, executionLocation: location, contextPrompt: contextPrompt || undefined });
+        const threadId = state.selectedId || await session.createThread({ model, sharingScope, executionLocation: location, privacy: viewState.privacy ?? null, contextPrompt: contextPrompt || undefined });
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
           if (current) { input.value = current.text; files = current.files; showFiles(); }

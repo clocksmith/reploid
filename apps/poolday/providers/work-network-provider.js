@@ -23,7 +23,7 @@ export function createWorkNetworkProvider(options) {
         // Once a peer is selected, refusal or failure cannot trigger an undisclosed retry.
         const result = await swarm.generate(messages, { ...controls, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: (model.adapters || []).map(adapter => adapter.identity),
-          signal: combined, onPartial: onUpdate, contextId });
+          signal: combined, onPartial: onUpdate, contextId, privacy: options.privacy });
         if (result.model !== model.id || result.provider !== 'doppler') throw new Error('Peer returned an incompatible model identity');
         if (JSON.stringify(result.adapterIdentities || []) !== JSON.stringify((model.adapters || []).map(adapter => adapter.identity))) {
           throw new Error('Peer returned an incompatible adapter identity');

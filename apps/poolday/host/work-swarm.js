@@ -304,7 +304,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (!consumer) throw new Error('Peer discovery is stopped');
       const result = await consumer.generate(messages, controls.onPartial, {
         signal: controls.signal, modelId: controls.modelId, modelIdentity: controls.modelIdentity,
-        adapterIdentities: controls.adapterIdentities || [], requestContext: { id, contextId: controls.contextId || null }
+        adapterIdentities: controls.adapterIdentities || [], privacy: controls.privacy ?? null, requestContext: { id, contextId: controls.contextId || null }
       });
       controls.signal.throwIfAborted();
       if (typeof result.content !== 'string' || !result.content.trim() || result.content.length > profile.maxOutcomeCharacters) {

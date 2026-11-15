@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { it, expect, vi } from 'vitest';
 import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
@@ -435,4 +436,24 @@ it('fails visibly when no peer serves the requested adapter instead of dispatchi
       .rejects.toThrow('No contributor serves the requested adapter. The base model was not used.');
     expect(f.sent).toEqual([]);
   } finally { await f.mesh.close(); }
+});
+
+it('filters unsupported advertised paths before ranking and never falls back from cryptographic requirements', async () => {
+  const f = fixture(); await f.mesh.connect();
+  const modelIdentity = 'sha256:' + 'a'.repeat(64);
+  const advertised = { schema: 'reploid.execution-offer/v1', id: 'fhe', kind: 'cryptographic', backend: 'fhe/v1',
+    modelIdentities: [modelIdentity], operation: 'generate', protocol: 'fhe/v1', evidence: null };
+  f.advertise('unsupported', 'qwen', { modelIdentity, executionOffers: [advertised], availableSlots: 100 });
+  f.advertise('ordinary', 'qwen', { modelIdentity });
+  const pending = f.mesh.generate([], null, { modelId: 'qwen', modelIdentity, privacy: createExecutionPolicy() });
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(f.sent[0].peer).toBe('ordinary');
+  await f.handlers.get('reploid:generation-result')('ordinary', { requestId: f.sent[0].payload.requestId,
+    response: { model: 'qwen', modelIdentity, content: 'response' } });
+  await pending;
+  const prior = f.sent.length;
+  await expect(f.mesh.generate([{ content: 'secret' }], null, { modelId: 'qwen', modelIdentity,
+    privacy: createExecutionPolicy('cryptographic', { protocol: 'fhe/v1', keyContext: 'client-key' }) })).rejects.toThrow('unavailable');
+  expect(f.sent).toHaveLength(prior);
+  await f.mesh.close();
 });

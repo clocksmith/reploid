@@ -9,6 +9,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'doppler-gpu/partitions';
 import { getDevice, getKernelCapabilities } from 'doppler-gpu/tooling/device';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
 import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
@@ -682,9 +683,21 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         const status = routes.some(row => row.availability === 'ready') ? 'ready'
           : routes.some(row => row.availability === 'busy') ? 'busy' : routes.some(row => ['loading', 'preparing'].includes(row.availability)) ? 'loading' : 'unavailable';
         return { id: model.id, identity: model.identity, name: model.name || model.id, provider: 'doppler',
-          contextLength: model.contextLength, generation: model.generation, availability: status };
+          contextLength: model.contextLength, generation: model.generation, availability: status,
+          executionRoutes: routes.flatMap(selected => {
+            if (selected.partition?.schema === 'reploid.partition-selection/v2') {
+              const selection = { id: model.id, identity: model.identity, partition: selected.partition };
+              return [{ selection, route: plaintextExecutionRoute({ model: selection }, {
+                recipients: [...new Set([identity.peerId, ...selected.partition.route.stages.map(stage => stage.participantId)])],
+                route: selected.partition.route }) }];
+            }
+            return Object.values(selected.verifiedProviderIdentities || {}).map(providerIdentity => ({
+              selection: { id: model.id, identity: model.identity }, route: plaintextExecutionRoute({ model }, {
+                recipients: [...new Set([identity.peerId, providerIdentity])],
+                route: { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity } }) }));
+          }) };
       });
-      return { schema: 'reploid.fleet-browser/v1', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
+      return { schema: 'reploid.fleet-browser/v1', privacyProtocol: 'reploid.paired-route/v2', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
         models, computers: includeRequesterPresence(network.computers, state(), network.at), at: network.at };
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
@@ -692,6 +705,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
+      if (request.privacy) assertAvailableExecutionPolicy(requestExecutionPolicy(request));
       const configured = config.models.find(entry => entry.model.id === request.model.id && entry.model.identity === request.model.identity);
       assert(configured, 'Model is outside owner preferences');
       request.model = { ...structuredClone(configured.model), ...(request.model.partition ? { partition: request.model.partition } : {}) };
@@ -704,7 +718,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
             attemptId: request.attemptId,
             threadId: request.threadId,
             requestedModel: request.model,
-            allowPartitionFallback: true,
+            allowPartitionFallback: request.privacyBinding ? false : true,
             signal: controller.signal,
             onAdmission
           });
@@ -716,6 +730,15 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         const controls = { signal: controller.signal, onDelta,
           requestApproval: async disclosure => {
             assert(same(disclosure.input?.messages, request.messages), 'Changed prompt disclosure');
+            if (request.privacyBinding) {
+              const recipients = [...new Set([identity.peerId, ...(disclosure.route
+                ? disclosure.route.stages.map(stage => stage.participantId) : [disclosure.recipientIdentity])])];
+              const route = plaintextExecutionRoute(request, { recipients, route: disclosure.route
+                ?? { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity: disclosure.recipientIdentity } });
+              const checked = await bindExecutionRoute(request, route);
+              assert(sameExecutionBinding(checked, request.privacyBinding), 'Paired execution route changed; no prompt was sent to the replacement');
+              controller.signal.throwIfAborted();
+            }
             slot?.markDisclosed?.([disclosure?.providerId, typeof disclosure?.recipientIdentity === 'string' ? disclosure.recipientIdentity : null].filter(Boolean));
             onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.

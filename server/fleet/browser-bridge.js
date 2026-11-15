@@ -1,5 +1,6 @@
 import http from 'node:http';
 import https from 'node:https';
+import { bindExecutionRoute, requestExecutionPolicy, assertAvailableExecutionPolicy, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
 import { timingSafeEqual } from 'node:crypto';
 
 const assert = (ok, message) => { if (!ok) throw Error(message); };
@@ -86,13 +87,29 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       const model = state.models.find(row => row.id === body.model?.id && row.identity === body.model?.identity);
       assert(model && ['ready', 'busy'].includes(model.availability), 'No private computer is ready for this model');
       assert(body.poolIdentity === state.poolIdentity, 'Private computer enrollment changed; reconnect before sending');
-      // Never accept a browser-supplied route, source, adapter, generation policy or provider.
+      let privacyBinding = null, selectedModel = { id: model.id, identity: model.identity };
+      if (body.privacy) {
+        assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: body.privacy }));
+        assert(body.privacyBinding, 'Paired privacy binding required');
+        if (state.privacyProtocol === 'reploid.paired-route/v2') {
+          const selected = model.executionRoutes?.find(item => sameExecutionBinding(item.route, body.privacyBinding.route));
+          assert(selected, 'Paired route changed; refresh before sending');
+          selectedModel = structuredClone(selected.selection);
+          privacyBinding = await bindExecutionRoute({ model: selectedModel, privacy: body.privacy }, selected.route);
+          assert(sameExecutionBinding(privacyBinding, body.privacyBinding), 'Paired privacy binding mismatch');
+        } else {
+          assert(body.privacy.profile === 'provider-visible' && !body.privacy.allowedRecipients.length,
+            'Legacy paired bridge supports provider-visible delegation only');
+        }
+      }
+      // Sources, adapters and generation settings remain native-owner decisions.
       response.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'X-Accel-Buffering': 'no' });
       const emit = event => { if (!response.destroyed) response.write(JSON.stringify(event) + '\n'); };
       response.on('close', () => { if (pending.has(attemptId)) host.cancel(attemptId); });
       let lastAdmission = null;
       const operation = host.generate(
-        { threadId: body.threadId, attemptId, model: { id: model.id, identity: model.identity }, messages: body.messages },
+        { threadId: body.threadId, attemptId, model: selectedModel, messages: body.messages,
+          ...(body.privacy ? { privacy: body.privacy, ...(privacyBinding ? { privacyBinding } : {}) } : {}) },
         delta => emit({ delta }),
         disclosure => {
           const route = disclosure.route;

@@ -67,7 +67,8 @@ export function matchingThreadGrant(grants, scope) {
     && ['recipientIdentity', 'modelId', 'modelIdentity', 'sharingScope', 'disclosure'].every(key => grant[key] === scope[key])
     && JSON.stringify(grant.adapterIdentities) === JSON.stringify(scope.adapterIdentities)
     && grant.planId === scope.planId && grant.participantA === scope.participantA
-    && grant.requesterIdentity === scope.requesterIdentity && sameJson(grant.route, scope.route));
+    && grant.requesterIdentity === scope.requesterIdentity && sameJson(grant.route, scope.route)
+    && grant.policyId === scope.policyId && grant.routeId === scope.routeId);
 }
 
 // requesterIdentity null: the host has not authenticated its requester yet. The stored grant
@@ -92,6 +93,7 @@ export function validateThreadGrants(grants, threadId, meshId, limit, requesterI
       || (grant.disclosure === orderedDisclosure ? !validOrderedGrant(grant, requesterIdentity)
         : grant.route !== undefined || grant.requesterIdentity !== undefined
           || grant.disclosure !== 'public' && (typeof grant.planId !== 'string' || !grant.planId || !recipient(grant.participantA)))
+      || (grant.policyId !== undefined || grant.routeId !== undefined) && (!hash(grant.policyId) || !hash(grant.routeId))
       || !Number.isFinite(grant.createdAt) || grant.revokedAt !== null && !Number.isFinite(grant.revokedAt))) {
     throw new Error('Invalid stored conversation grants');
   }

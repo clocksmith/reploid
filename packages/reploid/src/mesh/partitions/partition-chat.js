@@ -1,3 +1,4 @@
+import { partitionPrivacyBinding } from '../../chat/execution-policy.js';
 import { partitionAdapterIdentities, samePartitionAdapters } from './partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createOrderedPartitionChat } from './partition-ordered-chat.js';
@@ -70,6 +71,8 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
         threadId: request.threadId, attemptId: request.attemptId,
         ...(delegated || canonicalBinding ? { requesterId: request.participantId, placementGeneration: request.placementGeneration ?? 0 } : {}) };
       const context = canonicalBinding?.check(request.canonical, identity, controls.publication);
+      const privacyBinding = await partitionPrivacyBinding(request, [selection.partition.participantA, selection.partition.participantB], selection.partition);
+      controls.signal.throwIfAborted();
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, peerId: remote.id, recipientIdentity: remote.id,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: partitionAdapterIdentities(selection),
@@ -98,9 +101,9 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
         const attempt = canonicalBinding?.attempt({ context, binding: identity, publication: controls.publication, tokenIds: input.tokenIds });
         grant = canonicalBinding
           ? await authority.issueCanonical(identity, canonicalBinding.grantLimits, { approved: true, ttlMs: grantTtlMs,
-            disclosure: 'partition-activations-and-tokens', generation: context.generation, canonicalAttempt: attempt, vocabSize: plan.vocabSize })
+            disclosure: 'partition-activations-and-tokens', privacyBinding, generation: context.generation, canonicalAttempt: attempt, vocabSize: plan.vocabSize })
           : await authority.issue(identity, policy, { approved: true, ttlMs: grantTtlMs,
-            disclosure: 'partition-activations-and-tokens', generationDigest: await partitionFingerprint(generation) });
+            disclosure: 'partition-activations-and-tokens', privacyBinding, generationDigest: await partitionFingerprint(generation) });
         controls.onState({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing',
           execution: { placement: 'two-device-layer-partition', ...selection.partition } });
         const run = { tokenIds: input.tokenIds, identity,

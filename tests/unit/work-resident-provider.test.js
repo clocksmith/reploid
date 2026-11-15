@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { describe, expect, it, vi } from 'vitest';
 import { createWorkResidentProvider as createBrowserResidentProvider } from '../../apps/poolday/providers/work-resident-provider.js';
 import { withWorkDevice as withBrowserDevice } from '../../apps/poolday/providers/work-device.js';
@@ -46,6 +47,23 @@ it('passes a bounded isolated context to each conversation and releases every co
   expect(seen[0]).toBe(seen[2]); expect(seen[0]).not.toBe(seen[1]);
   await f.owner.close();
   expect(contexts.every(context => context.close.mock.calls.length === 1)).toBe(true);
+});
+
+it('isolates retained generation context across policies for the same tenant and conversation', async () => {
+  const seen = [];
+  const f = fixture({ supports: capability => capability === 'generationContext',
+    createGenerationContext: () => ({ close() {}, getStats: () => ({ reusedTokens: 0 }) }),
+    async *stream(messages, options) {
+      seen.push(options.generationContext);
+      yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: 'answer' };
+      yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'answer' };
+    } });
+  await f.owner.prepare();
+  for (const privacy of [createExecutionPolicy(), createExecutionPolicy('restricted'), createExecutionPolicy()]) {
+    await f.owner.generate([{ content: 'private prompt' }], () => {}, { signal: signal(), contextOwner: 'alice', contextId: 'thread', privacy });
+  }
+  expect(seen[0]).toBe(seen[2]); expect(seen[0]).not.toBe(seen[1]);
+  await f.owner.close();
 });
 
 it('reports the loaded session GPU without opening another device and clears it on retirement', async () => {

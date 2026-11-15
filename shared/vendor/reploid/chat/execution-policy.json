@@ -1,0 +1,44 @@
+{
+  "schema": "reploid.execution-policy-presets/v1",
+  "presets": {
+    "provider-visible": {
+      "placement": "network-allowed",
+      "collusion": "none",
+      "leakage": [
+        "model-id",
+        "timing",
+        "length",
+        "access-patterns",
+        "plaintext"
+      ]
+    },
+    "restricted": {
+      "placement": "local-only",
+      "collusion": "none",
+      "leakage": [
+        "model-id",
+        "timing",
+        "length",
+        "access-patterns",
+        "plaintext"
+      ]
+    },
+    "cryptographic": {
+      "placement": "network-allowed",
+      "collusion": "all-remote",
+      "leakage": [
+        "model-id",
+        "timing",
+        "length"
+      ]
+    }
+  },
+  "plaintextBackends": [
+    "doppler-plaintext/v1",
+    "doppler-partition-plaintext/v1"
+  ],
+  "unavailable": [
+    "attested",
+    "cryptographic"
+  ]
+}
