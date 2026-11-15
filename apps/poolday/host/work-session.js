@@ -3,6 +3,7 @@
  * objective grants, network placement, local records and per-thread lifetime.
  * Whole-request compatibility execution does not imply signed Pack admission.
  */
+import { assertAvailableExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
 import { createReploid } from '../../../shared/vendor/reploid/agent/index.js';
 import { resolveConfig } from '../../../shared/vendor/reploid/config/index.js';
 import protocol from '../../../shared/vendor/reploid/agent/protocol.json' with { type: 'json' };
@@ -91,7 +92,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     finally { discovering = false; notify(); }
   };
   const start = async ({ goal, modelId, parentId = null, criteria = '', feedback = '',
-    inputs = [], allowPeers = true, recallAccepted = false, allowHelpers = true, allowImprovement = false }) => {
+    inputs = [], allowPeers = true, recallAccepted = false, allowHelpers = true, allowImprovement = false, privacy = null }) => {
     requireValue(!closed, 'Work is closed');
     requireValue(runs.size < policy.maxConcurrentThreads, 'Concurrent thread limit reached');
     requireValue(!storageError, storageError);
@@ -100,11 +101,14 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     const parentRecord = taskContract.parent;
     const model = selectWorkModel({ models, modelId, defaultModelId: policy.defaultModelId });
     const isDopplerModel = model.provider === 'doppler';
+    privacy = privacy === null ? null : assertAvailableExecutionPolicy(privacy);
+    requireValue(!privacy || isDopplerModel, 'This provider has no qualified complete privacy route');
     const row = {
       id: crypto.randomUUID(), parentId, goal: goal.trim(), modelId: model.id, modelName: model.name,
       createdAt: new Date().toISOString(), runtimeVersion: DOPPLER_BROWSER_RUNTIME_VERSION,
       status: 'loading', output: '', review: null, error: null, revision: 0, checkpoint: null,
       criteria: taskContract.criteria, feedback: taskContract.feedback, inputs: taskContract.inputs,
+      ...(privacy ? { privacy: copy(privacy) } : {}),
       artifacts: [], events: [], peerJobs: [], helpers: [], improvements: [], allowPeers, recallAccepted, allowHelpers, allowImprovement
     };
     const controller = new AbortController();
@@ -127,7 +131,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
       try {
         await save(row);
         controller.signal.throwIfAborted();
-        const adapter = createWorkNetworkProvider({ model, service, scope, credentials, fetchImpl, swarm,
+        const adapter = createWorkNetworkProvider({ model, service, scope, credentials, fetchImpl, swarm, privacy,
           controls: { approve: preview => approve(preview), record: event => recordPeer(event) },
           signal: controller.signal, generation: policy.generation,
           maxOutcomeCharacters: policy.maxOutcomeCharacters,
@@ -228,7 +232,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
           },
           AskPeer(args) {
             requireValue(!run.peerDeclined, 'Peer assistance was withdrawn for this attempt');
-            return swarm.execute(args, { signal: controller.signal, approve, record: recordPeer,
+            return swarm.execute(args, { signal: controller.signal, approve, record: recordPeer, privacy, modelId: model.id, modelIdentity: model.identity,
               onPartial: () => { run.activity = 'Receiving a peer response.'; notify(); } });
           },
           RecallWork({ query }) {
@@ -246,10 +250,11 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
             requireValue(!run.peerDeclined, 'Peer assistance was withdrawn for this attempt');
             return peers.execute({
               modelId: args.modelId,
+              ...(privacy ? { privacy } : {}),
               input: typeof args.input === 'string' ? JSON.parse(args.input) : args.input,
               options: typeof args.options === 'string' ? JSON.parse(args.options) : args.options
             }, {
-              signal: controller.signal, approve, record: recordPeer,
+              signal: controller.signal, approve, record: recordPeer, isCurrent: () => !closed && !run.peerDeclined,
               onPartial: () => { run.activity = 'Receiving the approved peer operation.'; notify(); }
             });
           },
@@ -372,7 +377,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
       const row = records.find(item => item.id === id);
       requireValue(row && !runs.has(id), 'Stop this thread before revising it');
       revisionDraft = copy({ parentId: row.id, goal: row.goal, criteria: row.criteria || '', modelId: row.modelId,
-        inputs: row.inputs || [], feedback: '', allowPeers: false, recallAccepted: false });
+        inputs: row.inputs || [], feedback: '', allowPeers: false, recallAccepted: false, privacy: row.privacy ?? null });
       return copy(revisionDraft);
     },
     subscribe(listener) { listeners.add(listener); listener(getState()); return () => listeners.delete(listener); },

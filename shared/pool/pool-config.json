@@ -1838,7 +1838,8 @@
           "private_text"
         ],
         "remote": [
-          "public_text"
+          "public_text",
+          "private_text"
         ],
         "defaultRemote": "public_text"
       }
@@ -1892,7 +1893,8 @@
           "private_text"
         ],
         "remote": [
-          "public_text"
+          "public_text",
+          "private_text"
         ],
         "defaultRemote": "public_text"
       }
@@ -1948,7 +1950,8 @@
           "private_text"
         ],
         "remote": [
-          "public_text"
+          "public_text",
+          "private_text"
         ],
         "defaultRemote": "public_text"
       }
@@ -2266,7 +2269,8 @@
     "maxModelArtifactBytes": 4294967296,
     "inputClasses": [
       "public_text",
-      "public_biological_sequence"
+      "public_biological_sequence",
+      "private_text"
     ],
     "resources": {
       "gpuBudgetBytes": 2147483648,

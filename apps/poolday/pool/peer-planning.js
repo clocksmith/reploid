@@ -2,6 +2,7 @@
  * @fileoverview Deterministic provider selection and ring planning for Poolday peers.
  */
 
+import { assessExecutionOffers } from './peer-execution-offers.js';
 import { hashJson } from '../../../shared/pool/inference-receipt.js';
 import {
   effectiveTrustTierForRingSize,
@@ -37,7 +38,7 @@ export async function planOperationProviders({ requirements: workInput, candidat
     if (!prior || capability.observedAt > prior.capabilities.observedAt
       || (capability.observedAt === prior.capabilities.observedAt && lexical(candidate.advertHash, prior.advertHash) < 0)) latest.set(candidate.providerId, candidate);
   }
-  const rows = [...latest.values()].map(candidate => {
+  const providerRows = [...latest.values()].map(candidate => {
     const { capabilities: capability, providerId, advertHash } = candidate, reasons = [];
     const resource = capability.resources;
     const model = capability.models.find(row => row.identity === requirements.modelIdentity);
@@ -70,28 +71,38 @@ export async function planOperationProviders({ requirements: workInput, candidat
         queuedJobs: resource.queuedJobs, gpuBudgetBytes: freeGpu, bandwidthBytesPerSecond: resource.bandwidthBytesPerSecond, providerId },
       unknownMemory: { gpu: resource.gpuFreeBytes === null, storage: resource.storageFreeBytes === null } };
   }).sort((a, b) => lexical(a.providerId, b.providerId));
+  const rows = await assessExecutionOffers(providerRows, latest, requirements);
   let beliefs = null;
   if (policy.history.enabled) {
-    const contexts = await Promise.all(rows.filter(row => row.eligible).map(async row => ({ providerId: row.providerId,
-      contextId: await operationPlacementContext(requirements, latest.get(row.providerId).capabilities, policy.history.beliefPolicy.cohortId) })));
-    beliefs = projectPlacementBeliefs({ policy: policy.history.beliefPolicy, observations: history, candidates: contexts, now });
+    const contexts = await Promise.all(rows.filter(row => row.eligible).map(async row => ({ providerId: row.selectionId ?? row.providerId,
+      contextId: await operationPlacementContext(row.offerId ? { ...requirements, selectedOfferId: row.offerId } : requirements,
+        latest.get(row.providerId).capabilities, policy.history.beliefPolicy.cohortId) })));
+    const scopedHistory = history.map(observation => {
+      const match = rows.find(row => row.providerId === observation.providerId && row.selectionId
+        && contexts.some(context => context.providerId === row.selectionId && context.contextId === observation.contextId));
+      return match ? { ...observation, providerId: match.selectionId } : observation;
+    });
+    beliefs = projectPlacementBeliefs({ policy: policy.history.beliefPolicy, observations: scopedHistory, candidates: contexts, now });
   }
   const scores = new Map(beliefs?.candidates.map(row => [row.providerId, row.expectedUtility]) ?? []);
   const ordered = rows.filter(row => row.eligible).sort((a, b) => {
     if (beliefs) {
-      const difference = scores.get(b.providerId) - scores.get(a.providerId);
+      const difference = scores.get(b.selectionId ?? b.providerId) - scores.get(a.selectionId ?? a.providerId);
       if (difference) return difference;
     }
     for (const { metric, order } of policy.ranking) {
       const difference = lexical(a.metrics[metric], b.metrics[metric]);
       if (difference) return order === 'asc' ? difference : -difference;
     }
-    return 0;
+    return lexical(a.offerId ?? '', b.offerId ?? '');
   });
   return snapshot({ schema: 'reploid.pool.operation-assignment-plan/v1', policyId: policy.policyId,
     policyDigest: await hashJson(policy), requirementsDigest: await hashJson(requirements), selectedAt: now,
     historyProjectionDigest: beliefs ? await hashJson(beliefs) : null, ...(beliefs ? { beliefs } : {}),
-    candidates: rows, orderedProviderIds: ordered.map(row => row.providerId),
+    candidates: rows, orderedProviderIds: [...new Set(ordered.map(row => row.providerId))],
+    ...(rows.some(row => row.offerId) ? { orderedOffers: ordered.map(({ providerId, offerId, advertHash, capacityId }) => ({ providerId, offerId, advertHash, capacityId })),
+      selectedOfferId: ordered[0]?.offerId ?? null } : {}),
+    ...(requirements.privacy !== undefined ? { privacyBinding: ordered[0]?.privacyBinding ?? null } : {}),
     selectedProviderId: ordered[0]?.providerId ?? null });
 }
 

@@ -1,3 +1,4 @@
+import { operationConsentRequirements, verifyOperationConsent } from './operation-privacy.js';
 /** Reusable complete-job behavior. The host supplies policy, protocol and execution ports. */
 export function createPackJobContracts(ports) {
   const { resolveOperationAcceptance, resolveDopplerExecutionContract, normalizeExecutionAdapterSet, dopplerExecutionAdapterSet, PACK_JOB_POLICY, resolvePackJobPolicy, assertOperationLimits, hashJson, sha256Hex, createSignedPeerMessage, verifyPeerMessage, PEER_MESSAGE_TYPES, sealPeerAssignmentIdentity, validateOperationModel, createPackOperationRegistry, assertPackOperationRequest, snapshot, hashDopplerEvidence, validateProviderCapabilities, validateWorkRequirements, planOperationProviders } = ports;
@@ -107,12 +108,12 @@ async function planPackPeerProviders({ adverts, requirements, now, observations 
 }
 
 async function workRequirements(intent, operation) {
-  requirePackJob(intent.consent?.schema === 'reploid.peer.public_operation_consent/v1' && intent.consent.publicInput === true
-    && Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0, 'explicit public input and provider consent required');
+  const privacy = operationConsentRequirements(intent.consent);
+  requirePackJob(Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0, 'explicit provider consent required');
   const { deadlineAt: _deadline, ...limits } = intent.limits;
   return validateWorkRequirements({ schema: 'reploid.pool.work-requirements/v1', modelIdentity: await hashDopplerEvidence(intent.model),
     operation, inputClass: intent.inputClass, adapterIdentities: intent.adapterSet.map(entry => typeof entry === 'string' ? entry : entry.identity), expertIdentities: [],
-    providerIds: intent.consent.providerIds, resources: intent.resources, limits });
+    providerIds: intent.consent.providerIds, resources: intent.resources, limits, ...privacy });
 }
 
 async function jobParts({ requesterId, advert, intent, input, options, registry, legacy = false, policy = PACK_JOB_POLICY }) {
@@ -123,8 +124,9 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
   requirePackJob(Array.isArray(advert.body.models) && (await Promise.all(advert.body.models.map(pin => equal(pin, model)))).some(Boolean), 'provider does not advertise the exact model');
   requirePackJob(typeof intent.jobId === 'string' && intent.jobId.length > 0 && intent.jobId.length <= policy.limits.maxIdentityCharacters
     && typeof intent.attemptId === 'string' && intent.attemptId.length > 0 && intent.attemptId.length <= policy.limits.maxIdentityCharacters, 'job and attempt identities required');
-  requirePackJob(intent.consent?.schema === 'reploid.peer.public_operation_consent/v1' && intent.consent.publicInput === true
-    && Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0 && intent.consent.providerIds.length <= policy.limits.maxConsentProviders
+  const privacy = operationConsentRequirements(intent.consent);
+  requirePackJob(!legacy || !privacy.privacy, 'legacy jobs cannot gain private execution privileges');
+  requirePackJob(Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0 && intent.consent.providerIds.length <= policy.limits.maxConsentProviders
     && intent.consent.providerIds.every(digest) && intent.consent.providerIds.includes(advert.fromPeerId), 'explicit public input and selected-provider consent required');
   const { deadlineAt, ...limits } = intent.limits;
   validatePackPeerLimits(limits, policy);
@@ -135,6 +137,10 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
   const operation = { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version };
   if (!legacy) {
     const definition = registry[operation.name].definition;
+    requirePackJob(intent.inputClass === (privacy.privacy ? 'private_text' : definition.inputClasses.defaultRemote), 'input class differs from disclosure authority');
+    const binding = await verifyOperationConsent(intent.consent, { modelId: model.modelId, modelIdentity: await hashDopplerEvidence(model),
+      adapterIdentities: intent.adapterSet.map(entry => typeof entry === 'string' ? entry : entry.identity), operation, providerId: advert.fromPeerId });
+    if (binding) requirePackJob(binding.policy.retention === 'execution-and-recovery', 'unqualified retention mode');
     requirePackJob(Number.isSafeInteger(intent.attemptNumber) && intent.attemptNumber > 0
       && intent.attemptNumber <= policy.attempts.maximumNumber, 'explicit bounded attempt number required');
     requirePackJob(definition.inputClasses.remote.includes(intent.inputClass), 'operation does not permit this remote input class');
@@ -149,6 +155,7 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
       const plan = await planPackPeerProviders({ adverts: intent.planning.adverts, requirements, now: intent.selectedAt,
         observations: intent.planning.observations ?? null, registry, policy });
       requirePackJob(await equal(plan, intent.planning.plan) && plan.selectedProviderId === advert.fromPeerId
+        && (!privacy.privacy || plan.selectedOfferId === intent.consent.offerId && await equal(plan.privacyBinding, intent.consent.privacyBinding))
         && plan.candidates.some(row => row.providerId === advert.fromPeerId && row.advertHash === advert.messageHash), 'assignment differs from deterministic provider plan');
     }
   }
@@ -167,6 +174,7 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
     providerAdvertHash: advert.messageHash, providerParticipationProfileHash: null, providerLimits: limits,
     assignmentAttemptId: intent.attemptId, comparisonPolicyDigest: await hashDopplerEvidence(intent.comparisonPolicy),
     inputHash: intent.inputHash, model, expiresAt: new Date(deadlineAt).toISOString() };
+  if (privacy.privacy) Object.assign(assignment, { privacyBinding: intent.consent.privacyBinding, offerId: intent.consent.offerId });
   if (!legacy && policy.version === 3) assignment.acceptancePolicyDigest = await hashDopplerEvidence(intent.acceptance);
   if (!legacy) Object.assign(assignment, { attemptNumber: intent.attemptNumber, inputClass: intent.inputClass,
     operationPolicyDigest: intent.operationPolicyDigest, jobPolicyDigest: intent.jobPolicyDigest, adapterSet: intent.adapterSet });
@@ -189,7 +197,7 @@ async function createPackPeerJob({ identity, advert, adverts, model, input, opti
   const data = snapshot({ adverts: adverts === undefined ? [advert] : adverts, model: packPeerModel(model, registry), input, options, limits, consent,
     comparisonPolicy, acceptanceMode, requestSchema, resources, jobId, attemptId, attemptNumber, adapterSet, observations });
   const intent = { ...(data.requestSchema === null ? {} : { requestSchema: data.requestSchema }), model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
-    jobId, attemptId, attemptNumber, adapterSet: data.adapterSet, inputClass: registry[data.model.executablePack.requiredOperation].definition.inputClasses.defaultRemote,
+    jobId, attemptId, attemptNumber, adapterSet: data.adapterSet, inputClass: operationConsentRequirements(data.consent).privacy ? 'private_text' : registry[data.model.executablePack.requiredOperation].definition.inputClasses.defaultRemote,
     operationPolicy: registry[data.model.executablePack.requiredOperation].policy, jobPolicy: policy,
     operationPolicyDigest: await hashDopplerEvidence(registry[data.model.executablePack.requiredOperation].policy),
     jobPolicyDigest: await hashDopplerEvidence(policy), resources: data.resources,

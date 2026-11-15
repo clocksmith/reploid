@@ -1,4 +1,5 @@
 /** Place whole text requests without changing model identity or disclosure grants. */
+import { assertAvailableExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
 import { retainModelStorage } from '../infrastructure/model-storage-lock.js';
 import { openWorkProvider } from './work-provider.js';
 
@@ -7,6 +8,8 @@ export { withWorkDevice } from './work-device.js';
 
 export function createWorkNetworkProvider(options) {
   const { model, service, scope, signal, swarm, controls, onProgress } = options;
+  const privacy = options.privacy ? assertAvailableExecutionPolicy(options.privacy) : null;
+  if (privacy && model.provider !== 'doppler') throw Error('This provider has no qualified complete privacy route');
   return Object.freeze({
     async generate(messages, onUpdate, { signal: stepSignal, contextId } = {}) {
       const combined = AbortSignal.any([signal, ...(stepSignal ? [stepSignal] : [])]);
@@ -16,14 +19,14 @@ export function createWorkNetworkProvider(options) {
         const provider = await openWorkProvider({ ...options, signal: combined });
         return provider.generate(messages, onUpdate, { signal: combined });
       }
-      if (swarm?.generate) {
+      if (swarm?.generate && privacy?.placement !== 'local-only') {
         await swarm.connect({ automatic: true });
         combined.throwIfAborted();
         onProgress?.(swarm.hasProvider(model.id) ? 'Awaiting peer approval' : 'Waiting for a ready contributor');
         // Once a peer is selected, refusal or failure cannot trigger an undisclosed retry.
         const result = await swarm.generate(messages, { ...controls, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: (model.adapters || []).map(adapter => adapter.identity),
-          signal: combined, onPartial: onUpdate, contextId, privacy: options.privacy });
+          signal: combined, onPartial: onUpdate, contextId, privacy });
         if (result.model !== model.id || result.provider !== 'doppler') throw new Error('Peer returned an incompatible model identity');
         if (JSON.stringify(result.adapterIdentities || []) !== JSON.stringify((model.adapters || []).map(adapter => adapter.identity))) {
           throw new Error('Peer returned an incompatible adapter identity');

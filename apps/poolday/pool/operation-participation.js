@@ -91,6 +91,8 @@ export function createOperationParticipation({ networkOptions, onChange = () => 
             models: [{ identity: modelIdentity, availability: executor.getState().retainedModelId === model.modelId ? 'resident' : 'fetchable' }],
             adapters: (await observeAdapters()).filter(row => approvedAdapters.some(entry => entry.identity === row.identity)),
             experts: [], operations: [registry[model.executablePack.requiredOperation].definition.dopplerOperation],
+            executionOffers: [{ schema: 'reploid.execution-offer/v1', id: 'direct-plaintext', backend: 'doppler-plaintext/v1', kind: 'plaintext',
+              modelIdentities: [modelIdentity], operation: definition.dopplerOperation.name, protocol: null, evidence: null }],
             inputClasses, resources: { ...policy.resources, activeJobs: execution.active ? 1 : 0, queuedJobs: execution.queued } }),
           onError: error => { if (token === epoch) notify({ error: error.message }); } });
         await provider.start(); current(); notify({ phase: 'sharing' });

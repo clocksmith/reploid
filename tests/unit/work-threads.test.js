@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createWorkSession, DEFAULT_WORK_MODELS } from '../../apps/poolday/host/work-session.js';
 import { createWorkNetworkProvider, withWorkDevice } from '../../apps/poolday/providers/work-network-provider.js';
@@ -91,4 +92,36 @@ describe('independent work threads', () => {
     expect(swarm.generate).not.toHaveBeenCalled();
     expect(service.close).not.toHaveBeenCalled();
   });
+});
+
+it('snapshots work policy and propagates it to the network without fallback', async () => {
+  const privacy = structuredClone(createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: ['approved-provider'] }));
+  const service = { open: vi.fn() }, swarm = { connect: vi.fn(), hasProvider: () => true, generate: vi.fn().mockRejectedValue(Error('Declined')) };
+  const provider = createWorkNetworkProvider({ model: DEFAULT_WORK_MODELS[0], service, swarm, privacy,
+    signal: new AbortController().signal, controls: {} });
+  privacy.allowedRecipients.push('injected-provider');
+  await expect(provider.generate([{ role: 'user', content: 'private workload' }])).rejects.toThrow('Declined');
+  expect(swarm.generate.mock.calls[0][1].privacy.allowedRecipients).toEqual(['approved-provider']);
+  expect(service.open).not.toHaveBeenCalled();
+});
+it('enforces local-only and unavailable work backends before any remote data port', async () => {
+  const service = { isSupported: () => false, open: vi.fn() }, swarm = { connect: vi.fn(), generate: vi.fn() };
+  const options = { model: DEFAULT_WORK_MODELS[0], service, swarm, controls: {}, signal: new AbortController().signal };
+  await expect(createWorkNetworkProvider({ ...options, privacy: createExecutionPolicy('restricted') }).generate([{ content: 'secret' }])).rejects.toThrow('cannot execute');
+  expect(swarm.connect).not.toHaveBeenCalled(); expect(swarm.generate).not.toHaveBeenCalled();
+  expect(() => createWorkNetworkProvider({ ...options, privacy: createExecutionPolicy('cryptographic', { protocol: 'unsupported', keyContext: 'key' }) })).toThrow('unavailable');
+  expect(() => createWorkNetworkProvider({ ...options, model: { provider: 'gemini', id: 'unqualified-cloud' }, privacy: createExecutionPolicy() })).toThrow('qualified complete');
+  expect(service.open).not.toHaveBeenCalled();
+});
+it('retains a host-owned work policy in local records and revision drafts', async () => {
+  const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: ['approved-provider'] });
+  const swarm = { connect: vi.fn(), hasProvider: () => true, generate: vi.fn(async (_messages, controls) => ({
+    content: 'IDLE: Done', model: controls.modelId, provider: 'doppler', adapterIdentities: [] })) };
+  const app = createWorkSession({ ...store(), service: { isSupported: () => false }, swarm });
+  try {
+    await app.start({ goal: 'Keep the policy fixed', privacy });
+    const row = app.getState().records[0]; expect(row.privacy).toEqual(privacy);
+    expect(swarm.generate.mock.calls[0][1].privacy).toEqual(privacy);
+    expect(app.prepareRevision(row.id).privacy).toEqual(privacy);
+  } finally { await app.close(); }
 });

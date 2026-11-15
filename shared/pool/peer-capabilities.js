@@ -1,4 +1,5 @@
 /** Capability observations and assignment policy. No discovery, execution or model-family rules. */
+import { validateExecutionPolicy, assertAvailableExecutionPolicy } from '../vendor/reploid/chat/execution-policy.js';
 import { validateExecutionOffers } from '../vendor/reploid/chat/execution-offers.js';
 import { freezeOperationPolicy as snapshot } from './pack-operation-policy.js';
 import { resolvePlacementBeliefPolicy } from '../vendor/reploid/mesh/placement-beliefs.js';
@@ -63,7 +64,7 @@ export function validateProviderCapabilities(input, { schema: schemaInput, now }
     && value.inputClasses.every(name => typeof name === 'string' && name.length > 0 && name.length <= schema.maxIdentityCharacters), 'input classes required');
   assert(value.gpuIdentity === null || (value.gpuIdentity && ['vendor', 'architecture', 'device', 'description'].every(key =>
     typeof value.gpuIdentity[key] === 'string' && value.gpuIdentity[key].length <= schema.maxIdentityCharacters)), 'GPU identity or explicit unknown required');
-  if (value.executionOffers !== undefined) value.executionOffers = validateExecutionOffers(value.executionOffers);
+  if (value.executionOffers !== undefined) validateExecutionOffers(value.executionOffers);
   const resources = value.resources;
   for (const field of ['gpuBudgetBytes', 'storageBudgetBytes', 'bandwidthBytesPerSecond', 'concurrency', 'activeJobs', 'queuedJobs']) {
     assert(integer(resources?.[field]), `resources.${field} required`);
@@ -79,6 +80,11 @@ export function validateWorkRequirements(input) {
   assert(typeof value.operation?.name === 'string' && value.operation.name.length > 0
     && integer(value.operation.version) && value.operation.version > 0, 'exact operation required');
   for (const field of ['adapterIdentities', 'expertIdentities', 'providerIds']) assert(unique(value[field]) && value[field].every(digest), `exact ${field} required`);
+  if (value.privacy !== undefined) {
+    assertAvailableExecutionPolicy(validateExecutionPolicy(value.privacy));
+    assert(typeof value.modelId === 'string' && value.modelId.length > 0, 'privacy-bound work requires exact model id');
+  }
+  assert(value.offerId === undefined || typeof value.offerId === 'string' && value.offerId.length > 0 && value.offerId.length <= 256, 'invalid selected offer');
   assert(value.providerIds.length > 0 && typeof value.inputClass === 'string' && value.inputClass.length > 0, 'permission boundary required');
   for (const field of ['gpuBytes', 'storageBytes', 'bandwidthBytesPerSecond']) assert(integer(value.resources?.[field]), `resources.${field} required`);
   for (const field of ['maxInputBytes', 'maxOutputBytes', 'maxStreamBytes', 'maxEvents', 'maxJobMs']) assert(integer(value.limits?.[field]) && value.limits[field] > 0, `limits.${field} required`);

@@ -1,4 +1,5 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
+import { operationObserverEvidence } from '../../../shared/vendor/reploid/mesh/jobs/operation-privacy.js';
 import { createWebAccessNetwork } from '../../../shared/vendor/reploid/mesh/web-access-network.js';
 import { createPeerGenerationMesh, createAutomaticPartitions } from '../../../shared/vendor/reploid/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../../../shared/vendor/reploid/transport/index.js';
@@ -186,16 +187,22 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         if (!peer) return false;
         const preview = { id: crypto.randomUUID(), operation: 'generate', modelId: peer.model || 'advertised text model',
           modelIdentity: peer.modelIdentity, adapterIdentities: request.adapterIdentities || [], providerId: peer.peerId,
-          recipientIdentity: request.recipientIdentity || null, disclosure: 'public',
+          recipientIdentity: request.recipientIdentity || null, disclosure: request.privacyBinding ? 'provider-visible' : 'public',
+          ...(request.privacyBinding ? { privacyBinding: request.privacyBinding, offerId: request.offerId } : {}),
           input: request.messages, options: {}, limits: { maxJobMs: config.value.mesh.generationTimeoutMs },
           expiresAt: Date.now() + profile.peers.maxPreviewMs };
         pending.signal.throwIfAborted();
-        await pending.record({ stage: 'proposed', preview, protocol: 'swarm/v1' });
+        const observe = stage => pending.record(request.privacyBinding ? operationObserverEvidence({ stage, operation: 'generate',
+          modelId: preview.modelId, providerId: request.recipientIdentity || request.peerId, offerId: request.offerId,
+          binding: request.privacyBinding, attemptId: preview.id }) : { stage, preview, protocol: 'swarm/v1' });
+        pending.observePrivacy = request.privacyBinding ? observe : null;
+        await observe('proposed');
         if (await pending.approve(preview) !== true) return false;
         pending.signal.throwIfAborted();
         if (Date.now() >= preview.expiresAt) throw new Error('Peer approval expired');
         pending.preview = preview;
-        await pending.record({ stage: 'approved', preview, protocol: 'swarm/v1' });
+        await observe('approved');
+        pending.signal.throwIfAborted();
         return true;
       },
       generate: (messages, onUpdate, controls) => {
@@ -310,12 +317,14 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (typeof result.content !== 'string' || !result.content.trim() || result.content.length > profile.maxOutcomeCharacters) {
         throw new Error('Peer response exceeds the text result contract');
       }
-      await controls.record({ stage: 'completed', preview: pending.preview, protocol: 'swarm/v1',
+      if (pending.observePrivacy) await pending.observePrivacy('completed');
+      else await controls.record({ stage: 'completed', preview: pending.preview, protocol: 'swarm/v1',
         result: { model: result.model, provider: result.provider, content: result.content }, claim: 'legacy-compatibility-result' });
       return { ...result, requestedModel: controls.modelId || pending.preview?.modelId,
         peerId: pending.preview?.providerId, execution: 'peer-whole-request' };
     } catch (cause) {
-      await controls.record({ stage: controls.signal.aborted ? 'cancelled' : 'failed', preview: pending.preview || null,
+      if (pending.observePrivacy) await pending.observePrivacy(controls.signal.aborted ? 'cancelled' : 'failed');
+      else await controls.record({ stage: controls.signal.aborted ? 'cancelled' : 'failed', preview: pending.preview || null,
         protocol: 'swarm/v1', error: cause.message });
       throw cause;
     } finally { requests.delete(id); }

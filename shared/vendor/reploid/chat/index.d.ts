@@ -88,7 +88,7 @@ export interface ChatResult extends ChatEnvelope {
   content: string; usage?:PartitionTokenUsage; execution?: Record<string, unknown>;
 }
 export interface ChatAttempt {
-  privacyBinding?: ExecutionBinding; privacyReceipt?: Record<string, unknown>;
+  auxiliaryBindings?: import('./execution-policy.js').AuxiliaryBinding[]; privacyBinding?: ExecutionBinding; privacyReceipt?: Record<string, unknown>;
   /** Text is authoritative only in requester-owned publication records (canonical or ordinary ordered). */
   publicationMode?: 'canonical' | 'whole-model';
   id: string;

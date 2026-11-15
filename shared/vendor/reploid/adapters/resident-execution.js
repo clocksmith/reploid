@@ -1,5 +1,5 @@
 /** Prepared execution owner shared by browser and native hosts. */
-import { requestExecutionPolicy, assertAvailableExecutionPolicy } from '../chat/execution-policy.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, sameExecutionBinding } from '../chat/execution-policy.js';
 import { hashJson } from '../artifacts/signatures.js';
 import { createPreparationProgressObserver } from '../mesh/preparation-progress.js';
 import { withDevice, getDeviceQueue } from './device-lane.js';
@@ -64,17 +64,22 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     notify();
     return preparing;
   };
-  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy }) => {
+  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy, privacyBinding }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
     const policy = assertAvailableExecutionPolicy(requestExecutionPolicy({ model, privacy }));
+    const boundPrivacy = privacyBinding ? structuredClone(privacyBinding) : null;
     // Namespace retained KV state by the complete policy and authenticated tenant. Ordinary weights remain shared.
-    const contextNamespace = contextId ? hashJson([contextId, model.identity, contextOwner ?? null, policy]) : null;
+    const contextNamespace = contextId ? hashJson([contextId, model.identity, contextOwner ?? null, policy, boundPrivacy?.route ?? null]) : null;
     const input = structuredClone(messages);
     const selectedAdapters = structuredClone(adapters);
     const current = adapter, combined = AbortSignal.any([lifetime.signal, signal]);
     const operation = withDevice(service, combined, async () => {
       combined.throwIfAborted();
       if (adapter !== current || error) throw new Error('Resident session was retired before execution');
+      if (boundPrivacy) {
+        const checked = await bindExecutionRoute({ privacy: policy, model: { ...model, adapters: selectedAdapters } }, boundPrivacy.route);
+        if (!sameExecutionBinding(checked, boundPrivacy)) throw Error('Resident privacy binding changed');
+      }
       const scopedContextId = contextNamespace ? await contextNamespace : null;
       combined.throwIfAborted();
       phase = 'executing'; notify();

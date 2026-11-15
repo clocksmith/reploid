@@ -41,6 +41,7 @@ export function deriveOutcomeTags(row) {
 
 export const projectWorkRecord = row => readonlyView({
     revision: row.revision, persistence: row.persistence, execution: row.execution,
+    ...(row.privacy ? { privacy: row.privacy } : {}),
     id: row.id, parentId: row.parentId, goal: row.goal, modelId: row.modelId,
     modelName: row.modelName, createdAt: row.createdAt, status: row.status,
     output: row.output, review: row.review, error: row.error,

@@ -22,3 +22,9 @@ export declare function executionPrivacyReceipt(binding: ExecutionBinding): Reco
 export declare function sameExecutionBinding(a: unknown, b: unknown): boolean;
 
 export declare function partitionPrivacyBinding(request: PrivacyRequest & {privacyBinding?: ExecutionBinding}, recipients: string[], route: unknown): Promise<ExecutionBinding | null>;
+
+export interface AuxiliaryPath {schema: 'reploid.auxiliary-path/v1'; id: string; version: string; hops: ExecutionRoute['hops']}
+export interface AuxiliaryDetail {operation: 'search' | 'extract' | 'check'; id: string; version: string}
+export interface AuxiliaryBinding {schema: 'reploid.auxiliary-binding/v1'; policyId: string; pathId: string; path: AuxiliaryDetail & {schema: 'reploid.auxiliary-path/v1'; complete: boolean; hops: ExecutionRoute['hops']}}
+export declare function validatePlaintextHops(policy: ExecutionPolicy, hops: ExecutionRoute['hops']): ExecutionRoute['hops'];
+export declare function bindAuxiliaryDisclosure(policy: ExecutionPolicy, detail: AuxiliaryDetail, declared?: AuxiliaryPath | null, options?: {allowUnqualifiedLegacy?: boolean}): Promise<AuxiliaryBinding>;

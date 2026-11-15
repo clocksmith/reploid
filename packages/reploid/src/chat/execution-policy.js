@@ -73,14 +73,7 @@ export function validateExecutionRoute(policy, route) {
   policy = assertAvailableExecutionPolicy(policy);
   assert(route?.schema === 'reploid.execution-route/v1' && presets.plaintextBackends.includes(route.backend)
     && route.protocol === null && Array.isArray(route.hops) && route.hops.length <= 128, 'unsupported execution route');
-  for (const hop of route.hops) {
-    assert(id(hop.recipient) && ['local', 'remote'].includes(hop.placement) && hop.disclosure === 'plaintext', 'unqualified route hop');
-    if (hop.placement === 'local') continue;
-    assert(policy.placement !== 'local-only', 'local-only policy excludes remote hops');
-    assert(!policy.allowedRecipients.length || policy.allowedRecipients.includes(hop.recipient), 'route contains an unauthorized recipient');
-    assert(policy.leakage.includes('plaintext') && ['model-id', 'timing', 'length', 'access-patterns'].every(item => policy.leakage.includes(item)),
-      'plaintext backend exceeds permitted leakage');
-  }
+  validatePlaintextHops(policy, route.hops);
   return freeze(structuredClone(route));
 }
 
@@ -116,4 +109,38 @@ export async function partitionPrivacyBinding(request, recipients, route) {
   const binding = await bindExecutionRoute(request, selected);
   assert(!request.privacyBinding || sameExecutionBinding(binding, request.privacyBinding), 'partition privacy binding changed');
   return binding;
+}
+
+/** Shared plaintext disclosure requirements for inference and auxiliary operations. */
+export function validatePlaintextHops(policy, hops) {
+  policy = assertAvailableExecutionPolicy(policy);
+  assert(Array.isArray(hops) && hops.length <= 128, 'bounded disclosure hops required');
+  for (const hop of hops) {
+    assert(id(hop.recipient) && ['local', 'remote'].includes(hop.placement) && hop.disclosure === 'plaintext', 'unqualified route hop');
+    if (hop.placement === 'local') continue;
+    assert(policy.placement !== 'local-only', 'local-only policy excludes remote hops');
+    assert(!policy.allowedRecipients.length || policy.allowedRecipients.includes(hop.recipient), 'route contains an unauthorized recipient');
+    assert(policy.leakage.includes('plaintext') && ['model-id', 'timing', 'length', 'access-patterns'].every(item => policy.leakage.includes(item)),
+      'plaintext backend exceeds permitted leakage');
+  }
+  return freeze(structuredClone(hops));
+}
+
+/** Host-installed retrieval paths are distinct from untrusted network advertisements. */
+export async function bindAuxiliaryDisclosure(policy, detail, declared = null, { allowUnqualifiedLegacy = false } = {}) {
+  policy = assertAvailableExecutionPolicy(policy);
+  assert(['search', 'extract', 'check'].includes(detail.operation) && id(detail.id) && id(detail.version), 'identified auxiliary operation required');
+  let hops;
+  if (declared !== null) {
+    assert(declared.schema === 'reploid.auxiliary-path/v1' && declared.id === detail.id && declared.version === detail.version,
+      'auxiliary path does not cover the selected implementation');
+    hops = validatePlaintextHops(policy, declared.hops);
+  } else {
+    assert(allowUnqualifiedLegacy && policy.profile === 'provider-visible' && !policy.allowedRecipients.length && policy.placement !== 'local-only',
+      'auxiliary path is unqualified for restricted execution');
+    hops = validatePlaintextHops(policy, [{ recipient: detail.id, placement: 'remote', disclosure: 'plaintext' }]);
+  }
+  const path = { schema: 'reploid.auxiliary-path/v1', operation: detail.operation, id: detail.id, version: detail.version,
+    complete: declared !== null, hops };
+  return freeze({ schema: 'reploid.auxiliary-binding/v1', policyId: await hashJson(policy), pathId: await hashJson(path), path });
 }

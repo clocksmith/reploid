@@ -13,7 +13,7 @@ export function validateExecutionOffers(input) {
       && ['plaintext', 'attested', 'cryptographic'].includes(value.kind), 'versioned backend offer required');
     assert(Array.isArray(value.modelIdentities) && value.modelIdentities.length > 0 && value.modelIdentities.length <= 128
       && value.modelIdentities.every(digest), 'explicit supported models required');
-    assert(value.operation === 'generate' && (value.protocol === null || label(value.protocol)), 'operation and protocol required');
+    assert(['generate', 'embed', 'rerank', 'encodeSequence', 'scoreChoices'].includes(value.operation) && (value.protocol === null || label(value.protocol)), 'operation and protocol required');
     assert(value.evidence === null || digest(value.evidence), 'evidence reference must be a digest; it grants no qualification');
     return value;
   });
@@ -23,7 +23,7 @@ export function validateExecutionOffers(input) {
 export function eligibleExecutionOffers(request, offers, recipients) {
   const policy = assertAvailableExecutionPolicy(validateExecutionPolicy(request.privacy));
   return validateExecutionOffers(offers).filter(offer => {
-    if (!offer.modelIdentities.includes(request.model.identity) || offer.kind !== 'plaintext' || offer.protocol !== null) return false;
+    if (offer.operation !== (request.operation ?? 'generate') || !offer.modelIdentities.includes(request.model.identity) || offer.kind !== 'plaintext' || offer.protocol !== null) return false;
     const route = plaintextExecutionRoute(request, { recipients });
     if (offer.backend !== route.backend) return false;
     try { validateExecutionRoute(policy, route); return true; } catch { return false; }

@@ -1400,8 +1400,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 644379,
-      "sha256": "sha256:779ad70f37fd5688bde5bde57efea3e75c18673518f5e318e244f278a7f7108d"
+      "byteLength": 645639,
+      "sha256": "sha256:9bb324026d932d7758fadd9a6f774ef025146a926282815912d4b0e42cac8394"
     },
     {
       "path": "config/module-registry.json",
@@ -1820,8 +1820,8 @@
     },
     {
       "path": "host/chat-execution.js",
-      "byteLength": 10586,
-      "sha256": "sha256:569977953f57304fb148e3f288fcfe540d38f7f5374c51fbfe733be639c18709"
+      "byteLength": 10655,
+      "sha256": "sha256:c608dfefffe6664999a3bdf342d7c0f4e9b72102fee6bb42cf8201cdbf9a4742"
     },
     {
       "path": "host/chat-history.js",
@@ -2115,8 +2115,8 @@
     },
     {
       "path": "host/work-peer-jobs.js",
-      "byteLength": 7029,
-      "sha256": "sha256:f508544823c6c0e6b5f38e8b9c0c3f7765fd5cac3a7708f19124128ee69e6d12"
+      "byteLength": 9389,
+      "sha256": "sha256:f326ace0324f5c2bcefd28b31ff3b8b193c19e247d280890890492e7c3607508"
     },
     {
       "path": "host/work-peer-offers.js",
@@ -2130,13 +2130,13 @@
     },
     {
       "path": "host/work-session.js",
-      "byteLength": 22218,
-      "sha256": "sha256:40d7d0d28e79cdc876d9e1caf5e501e001b4e67cfcf846eb55083f40e0879d44"
+      "byteLength": 22757,
+      "sha256": "sha256:a01985110c792c315d676ca73e2440d484f92f83b3e70de32af08e21b11298bc"
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 35995,
-      "sha256": "sha256:94d48c373252ca573881674182568064c5f22429c228cb60fd98265d27f524e9"
+      "byteLength": 36831,
+      "sha256": "sha256:49707a73bbd3b7dcbd34e7db1e85796eb7fa3bea79ce65ad249e64e6cbfe0668"
     },
     {
       "path": "host/work-task.js",
@@ -2145,8 +2145,8 @@
     },
     {
       "path": "host/work-view.js",
-      "byteLength": 2227,
-      "sha256": "sha256:75c11e9fa7798e2e6b33703fc28c473fbcf0772f378f75c97f59b4eb4e3d0313"
+      "byteLength": 2281,
+      "sha256": "sha256:bd26e8e82c06b5b34f942aab567f56f2f8cf3cfafc611d504a580c7af1513d59"
     },
     {
       "path": "identity.js",
@@ -2805,8 +2805,8 @@
     },
     {
       "path": "pool/operation-participation.js",
-      "byteLength": 7469,
-      "sha256": "sha256:56c542f0ba38376bfcdc6a01cb896edffea55f816338477e9ce3201f25af0aad"
+      "byteLength": 7743,
+      "sha256": "sha256:09c56d82d50d59fd4cb678d984ed175374c55f1929fd280a06f22640a1c0c0e9"
     },
     {
       "path": "pool/operation-room-network.js",
@@ -2870,13 +2870,18 @@
     },
     {
       "path": "pool/peer-capabilities.js",
-      "byteLength": 7765,
-      "sha256": "sha256:5014d0bbe93194ff6675edddc560d1180a417e305f609742106bb287658c419e"
+      "byteLength": 8258,
+      "sha256": "sha256:b902426aa2948dcbaec27d521713978d0bf846accd4ba2fe18d7a47a21f56375"
     },
     {
       "path": "pool/peer-control-plane.js",
       "byteLength": 41586,
       "sha256": "sha256:73d0bd01bdae7b6da936c6f53c2f444c43b2477a22f1c8da78236d42d2519c7b"
+    },
+    {
+      "path": "pool/peer-execution-offers.js",
+      "byteLength": 2274,
+      "sha256": "sha256:4252ccf1c84f7576b8b4fdfbcb48349140eb69d29ffca8d835415c3ca688f0f4"
     },
     {
       "path": "pool/peer-ledger.js",
@@ -2935,8 +2940,8 @@
     },
     {
       "path": "pool/peer-planning.js",
-      "byteLength": 12166,
-      "sha256": "sha256:4ba29729528463682df0d81b6832c339faa123068887fe86d14b6593a5141b2a"
+      "byteLength": 13222,
+      "sha256": "sha256:0920db810e6de4b604f90551aeeac9b7b9386e3747253a4dc0ac18a3a545ccc4"
     },
     {
       "path": "pool/peer-protocol.js",
@@ -2970,8 +2975,8 @@
     },
     {
       "path": "pool/pool-config.json",
-      "byteLength": 79895,
-      "sha256": "sha256:d0c22fec72924e63099f0c28728f47cd29c61e2a30c34908a074dcde9d22b0a4"
+      "byteLength": 79995,
+      "sha256": "sha256:a7afb63489a6f0035dd4891d0ffeb2ff56b0d578483f2d81665c1dd967c00771"
     },
     {
       "path": "pool/protein-investigation.js",
@@ -3090,8 +3095,8 @@
     },
     {
       "path": "providers/work-network-provider.js",
-      "byteLength": 2681,
-      "sha256": "sha256:5be0a8157dc9f5c1151e3f649fb9d8c291973b09bfc8440b5e2d9febd3cca54a"
+      "byteLength": 3005,
+      "sha256": "sha256:c40408b664860ba2bcb463c83aa505d8e0ad9ae2b99ed90f84c431d8e26d7f41"
     },
     {
       "path": "providers/work-provider.js",
@@ -3665,8 +3670,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2466930,
-      "sha256": "sha256:5f1fdf47018433be9861b219c512fe0bbd0a3fabbe83d6cee4966b246acfde10"
+      "byteLength": 2477396,
+      "sha256": "sha256:da441b5b85b0f11aad415e6639b6b5eefc367e3bf5322e4c2e0f9587df85d3e2"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11115,8 +11120,8 @@
     },
     {
       "path": "vendor/reploid/adapters/resident-execution.js",
-      "byteLength": 7223,
-      "sha256": "sha256:9535b5a501e5bf753a6eeb374206f0258109ee8f365735a2db165e6ca4d5c220"
+      "byteLength": 7673,
+      "sha256": "sha256:f58b563399fe9d3f1fc234ad2cfe2c9b779f84543bcd93aaf68adad922ff781f"
     },
     {
       "path": "vendor/reploid/adapters/resident.js",
@@ -11355,13 +11360,13 @@
     },
     {
       "path": "vendor/reploid/chat/execution-offers.js",
-      "byteLength": 2200,
-      "sha256": "sha256:5c80eabb7b2cdfce8537a12970c854369a5f7eecc1358412d56e02cf5023463c"
+      "byteLength": 2318,
+      "sha256": "sha256:8895d7616bbde412c54c654d339a708bc10f93bc6222926556b49de6247830bd"
     },
     {
       "path": "vendor/reploid/chat/execution-policy.js",
-      "byteLength": 8662,
-      "sha256": "sha256:92da211f663d586c80aaf84c419cf4c284cbb1297ec5c500efa65fd65b1b1f7b"
+      "byteLength": 10375,
+      "sha256": "sha256:57f7920152caec5fee4d738620d60ab838627f58ff9e4e86d5c5389f2a10c1cb"
     },
     {
       "path": "vendor/reploid/chat/execution-policy.json",
@@ -11425,8 +11430,8 @@
     },
     {
       "path": "vendor/reploid/chat/workspace.js",
-      "byteLength": 54950,
-      "sha256": "sha256:daab6373b92fb7b8cdf3190cc48bbe348e743cece364f33c03781f13b6868cab"
+      "byteLength": 56012,
+      "sha256": "sha256:7e8a39111832bf2c352d319534c22ba41d3580543f36e06513336a82dc93a573"
     },
     {
       "path": "vendor/reploid/config/defaults.json",
@@ -11560,8 +11565,8 @@
     },
     {
       "path": "vendor/reploid/mesh/jobs/contracts.js",
-      "byteLength": 20870,
-      "sha256": "sha256:63b6679e9601d48a6baefb1c559c16b2a88896a08194bc0055b6a0e1f284336b"
+      "byteLength": 21890,
+      "sha256": "sha256:a392d79f43bfb82e8637d2877a6564f8f84e963e0b66d9bd32ee53514824e567"
     },
     {
       "path": "vendor/reploid/mesh/jobs/episode.js",
@@ -11577,6 +11582,11 @@
       "path": "vendor/reploid/mesh/jobs/index.js",
       "byteLength": 469,
       "sha256": "sha256:1778f5791655a02f8e287901eb3cceb0b8f38e11a202fd6e59238efe15f65295"
+    },
+    {
+      "path": "vendor/reploid/mesh/jobs/operation-privacy.js",
+      "byteLength": 2659,
+      "sha256": "sha256:143411a8325c01a64b118c779e3f1daebc0747af8add1ff9f8831dc7456ccdb6"
     },
     {
       "path": "vendor/reploid/mesh/jobs/provider.js",
@@ -11795,8 +11805,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 50770,
-      "sha256": "sha256:bb103d6dd5153cd63132692ac7f7a8ea1c1228969bcc1af668b6fcfccab3c327"
+      "byteLength": 53911,
+      "sha256": "sha256:0421f8c1fd22b21226154daf9218f2b54a2e431bc4e1363ce8268cf08958136f"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -11840,8 +11850,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 56091,
-      "sha256": "sha256:19f2318f549b01100953f5e5cd8df3cf13a8536e4679d284014e43bcd6ec9552"
+      "byteLength": 56751,
+      "sha256": "sha256:f588e94b59bb2480664ca4da5236ec12800f8f6de31695b117e021a58d7d08fb"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -11867,6 +11877,11 @@
       "path": "vendor/reploid/retrieval/costs.js",
       "byteLength": 7721,
       "sha256": "sha256:e0a07fdabddb86f68cf417c0b72b0856b7f2933998d0a647a231f59158d19395"
+    },
+    {
+      "path": "vendor/reploid/retrieval/disclosure-ports.js",
+      "byteLength": 826,
+      "sha256": "sha256:571b94557e8708116839ad869db78052c79da539cab590eb2727e7ce56ffbf4e"
     },
     {
       "path": "vendor/reploid/retrieval/fixed-provider.js",
@@ -11910,8 +11925,8 @@
     },
     {
       "path": "vendor/reploid/retrieval/retrieval.js",
-      "byteLength": 1832,
-      "sha256": "sha256:3958dbe2a93b5df5baca38e032843de45076d0c575701d27e1944af1362db008"
+      "byteLength": 2149,
+      "sha256": "sha256:eec2719c22d2eb66cbcad318ab28e297b30dff47675a78f3437a041c351b1779"
     },
     {
       "path": "vendor/reploid/retrieval/review-queue.js",
@@ -12104,5 +12119,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:53c171b45ed3c0e1c1d6d09d001232bbe87e1187d6f9bdc4ca7b9e1dd53ef029"
+  "bundleHash": "sha256:36a70f86ec7cc965b9c12312cd1e9bdb47779f562188fbc06938a948245626aa"
 }

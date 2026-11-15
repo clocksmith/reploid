@@ -46,7 +46,7 @@ export function createWholeModelRequester({ mesh, models }) {
       const recipient = typeof dispatch.recipientIdentity === 'string' && dispatch.recipientIdentity ? dispatch.recipientIdentity : dispatch.peerId;
       const approved = await controls.requestApproval(structuredClone({ threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
         adapterIdentities: partitionAdapterIdentities(model), providerId: dispatch.peerId, recipients: [recipient],
-        requestId: dispatch.requestId, recipientIdentity: dispatch.recipientIdentity,
+        privacyBinding: dispatch.privacyBinding, offerId: dispatch.offerId, requestId: dispatch.requestId, recipientIdentity: dispatch.recipientIdentity,
         input: { messages: request.messages, ...(requested ? { generationRequest: requested } : {}) } }));
       controls.signal.throwIfAborted();
       if (approved === true) { item.providerId = dispatch.peerId; item.providerIdentity = dispatch.recipientIdentity; }

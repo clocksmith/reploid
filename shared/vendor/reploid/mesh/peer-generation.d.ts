@@ -13,7 +13,7 @@ export interface PeerGenerationMesh extends GenerationProvider {
     messages: Message[], signal?: AbortSignal): Promise<{ status: string; response?: GenerationResult; terminal?: Record<string, unknown> }>;
   refreshAdvertisement(): Record<string, unknown>;
   generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null,
-    control?: { privacy?: import('../chat/execution-policy.js').ExecutionPolicy | null; signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; adapterIdentities?: string[]; requestContext?: import('../config/index.js').Json }): Promise<GenerationResult>;
+    control?: { offerId?: string | null; privacy?: import('../chat/execution-policy.js').ExecutionPolicy | null; signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; adapterIdentities?: string[]; requestContext?: import('../config/index.js').Json }): Promise<GenerationResult>;
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;
 }
@@ -22,7 +22,7 @@ export interface PeerGenerationMeshPorts {
   getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown; hardware?: import('./provider-hardware.js').ProviderHardware | null };
   authorize: Authorize; createTransport(): SwarmTransport;
   generate(messages: Message[], onUpdate: ((chunk: string) => void) | null | undefined,
-    controls: { privacy?: import('../chat/execution-policy.js').ExecutionPolicy; signal?: AbortSignal; adapterIdentities?: string[]; requestId?: string; consumer?: string;
+    controls: { privacyBinding?: import('../chat/execution-policy.js').ExecutionBinding; privacy?: import('../chat/execution-policy.js').ExecutionPolicy; signal?: AbortSignal; adapterIdentities?: string[]; requestId?: string; consumer?: string;
       contextId?: string | null; contextOwner?: string | null }): Promise<GenerationResult>;
   transport?: SwarmTransport | null; forceFreshIdentity?: boolean;
   onReceipt?(receipt: import('../artifacts/receipt.js').Receipt): void | Promise<void>;

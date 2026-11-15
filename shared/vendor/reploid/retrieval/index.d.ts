@@ -197,7 +197,7 @@ export interface RetrievalPolicy {
   id: string; version: string; defaults: RetrievalLimits; maxima: RetrievalLimits; maxQueryCharacters: number; maxSupportChecks: number;
   context: { schema: string; instructions: string; sourcesHeading: string; questionLabel: string };
 }
-export interface RetrievalPorts { provider: SearchProvider; extractor?: PassageExtractor | null; supportChecker?: SupportChecker | null }
+export interface RetrievalPorts { disclosures?: Partial<Record<'search' | 'extract' | 'check', import('../chat/execution-policy.js').AuxiliaryPath>>; provider: SearchProvider; extractor?: PassageExtractor | null; supportChecker?: SupportChecker | null }
 export const RETRIEVAL_RECORD_SCHEMA: 'reploid.retrieval-record/v1';
 export const RETRIEVAL_SUPPLIES: readonly RetrievalSupplyKind[];
 export const RETRIEVAL_OUTCOMES: readonly RetrievalOutcome[];
@@ -206,9 +206,9 @@ export const SUPPORT_VERDICTS: readonly SupportVerdict[];
 export function createRetrieval(options: RetrievalPorts & { policy?: RetrievalPolicy; now?: () => number }): {
   request(input: RetrievalRequestInput, content: string): RetrievalRequest;
   pending(request: RetrievalRequest, startedAt: number): RetrievalRecord;
-  retrieve(record: RetrievalRecord, signal: AbortSignal | null, options?: { answer?: string | null; onProgress?: (progress: RetrievalProgress) => void }): Promise<RetrievalRecord>;
+  retrieve(record: RetrievalRecord, signal: AbortSignal | null, options?: { beforeDisclosure?: import('./disclosure-ports.js').BeforeRetrievalDisclosure | null; answer?: string | null; onProgress?: (progress: RetrievalProgress) => void }): Promise<RetrievalRecord>;
   dispatch<T extends { messages: Array<{ role: string; content: string }> }>(request: T, record: RetrievalRecord): Promise<Omit<T, 'retrieval'>>;
-  verify(answer: string, record: RetrievalRecord, signal: AbortSignal | null): Promise<CitationVerification>;
+  verify(answer: string, record: RetrievalRecord, signal: AbortSignal | null, beforeDisclosure?: import('./disclosure-ports.js').BeforeRetrievalDisclosure | null): Promise<CitationVerification>;
 };
 export function normalizeRetrievalLimits(requested?: Partial<RetrievalLimits>, policy?: RetrievalPolicy): RetrievalLimits;
 export function normalizeRetrievalRequest(input: RetrievalRequestInput, content: string, policy?: RetrievalPolicy): RetrievalRequest;

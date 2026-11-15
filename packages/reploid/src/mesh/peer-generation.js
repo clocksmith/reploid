@@ -1,5 +1,5 @@
 import { validateExecutionOffers, eligibleExecutionOffers } from '../chat/execution-offers.js';
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute } from '../chat/execution-policy.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../chat/execution-policy.js';
 import { publicPreparationProgress } from './preparation-progress.js';
 import { publicProviderHardware } from './provider-hardware.js';
 import { identifyComputer } from './computer-identity.js';
@@ -111,17 +111,17 @@ export function createPeerGenerationMesh({ config, ports }) {
   const blockedComputers = () => new Set(ports.getBlockedComputers?.() || []);
   const isBlockedProvider = (peerId, blocked = blockedComputers()) => blocked.size > 0
     && (blocked.has(peerId) || blocked.has(peerIdentity?.getVerified(peerId)));
-  const privacyEligible = (peer, privacy) => {
+  const privacyEligible = (peer, privacy, offerId = null) => {
     if (!privacy || !/^sha256:[a-f0-9]{64}$/.test(peer.modelIdentity || '')) return !privacy?.allowedRecipients.length;
     const offers = peer.executionOffers ?? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation',
       backend: 'doppler-plaintext/v1', kind: 'plaintext', modelIdentities: [peer.modelIdentity],
       operation: 'generate', protocol: null, evidence: null }];
     try { return eligibleExecutionOffers({ model: { id: peer.model, identity: peer.modelIdentity }, privacy },
-      offers, [peerIdentity?.getVerified(peer.peerId) || peer.peerId]).length > 0; } catch { return false; }
+      offers, [peerIdentity?.getVerified(peer.peerId) || peer.peerId]).some(offer => !offerId || offer.id === offerId); } catch { return false; }
   };
-  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null) => {
+  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null) => {
     const blocked = blockedComputers();
-    const eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy)
+    const eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)
       && (!privacy?.allowedRecipients.length || privacy.allowedRecipients.includes(peerIdentity?.getVerified(peer.peerId)))))
     .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
       && (policy.models.contract === null
@@ -182,7 +182,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       failure: activity.error ? { phase: activity.phase, message: 'Model preparation or execution failed on this computer.' } : null } : null;
     advertisement.preparation = advertisement.readiness === 'loading' ? publicPreparationProgress(executionState().progress) : null;
     advertisement.modelIdentity = executionState().modelIdentity;
-    advertisement.executionOffers = /^sha256:[a-f0-9]{64}$/.test(advertisement.modelIdentity || '')
+    advertisement.executionOffers = executionState().executionOffers ? validateExecutionOffers(executionState().executionOffers) : /^sha256:[a-f0-9]{64}$/.test(advertisement.modelIdentity || '')
       ? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation', backend: 'doppler-plaintext/v1', kind: 'plaintext',
         modelIdentities: [advertisement.modelIdentity], operation: 'generate', protocol: null, evidence: null }] : [];
     advertisement.hardware = publicProviderHardware(executionState().hardware);
@@ -222,8 +222,8 @@ export function createPeerGenerationMesh({ config, ports }) {
     await syncIdentityDocument();
   };
 
-  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null, adapters = [], privacy = null) => {
-    if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy)) return Promise.resolve(true);
+  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null, adapters = [], privacy = null, offerId = null) => {
+    if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId)) return Promise.resolve(true);
     return new Promise(resolve => {
       let unsubscribe = () => {};
       const finish = available => {
@@ -233,19 +233,19 @@ export function createPeerGenerationMesh({ config, ports }) {
       const abort = () => finish(false);
       const timer = setTimeout(() => finish(false), timeoutMs);
       providerWaiters.add(finish);
-      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy)) finish(true); });
+      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId)) finish(true); });
       signal?.addEventListener('abort', abort, { once: true });
       if (signal?.aborted) finish(false);
     });
   };
 
-  const chooseProvider = async (modelId, signal, modelIdentity, adapters, preferred = null, privacy = null) => {
+  const chooseProvider = async (modelId, signal, modelIdentity, adapters, preferred = null, privacy = null, offerId = null) => {
     const deadline = Date.now() + REMOTE_GENERATION_TIMEOUT_MS;
     while (!closed && Date.now() < deadline) {
       signal?.throwIfAborted();
-      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred, privacy);
+      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred, privacy, offerId);
       if (provider) { reservedProviders.add(provider.peerId); return snapshotJson(provider); }
-      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters, privacy)) break;
+      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters, privacy, offerId)) break;
     }
     signal?.throwIfAborted();
     return null;
@@ -274,6 +274,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.preparation = next.readiness === 'loading' ? publicPreparationProgress(payload.preparation) : null;
       next.modelIdentity = payload.modelIdentity || null;
       if (payload.executionOffers !== undefined) next.executionOffers = payload.executionOffers;
+      else delete next.executionOffers;
       next.hardware = publicProviderHardware(payload.hardware);
       next.adapterIdentities = payload.adapterIdentities || [];
       next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots > 0 ? payload.availableSlots : 0;
@@ -518,6 +519,24 @@ export function createPeerGenerationMesh({ config, ports }) {
       return;
     }
     if (policy.models.contract !== null && JSON.stringify(snapshotJson(payload.modelContract ?? null)) !== JSON.stringify(policy.models.contract)) return;
+    const checkPrivacy = async () => {
+      if (!payload.privacy) return null;
+      const request = { privacy: payload.privacy, model: { id: binding.model, identity: binding.modelIdentity,
+        adapters: adapters.map(identity => ({ identity })) } };
+      const recipient = identityBundle.peerId;
+      const currentOffers = executionState().executionOffers ?? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation',
+        backend: 'doppler-plaintext/v1', kind: 'plaintext', modelIdentities: [binding.modelIdentity], operation: 'generate', protocol: null, evidence: null }];
+      const offer = eligibleExecutionOffers(request, currentOffers, [recipient]).find(item => item.id === payload.offerId);
+      if (!offer) throw Error('Requested execution offer is unavailable');
+      const expected = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [recipient], route: {
+        schema: 'reploid.mesh-route/v1', providerId: recipient, offerId: offer.id, backend: offer.backend } }));
+      if (!sameExecutionBinding(expected, payload.privacyBinding)) throw Error('Execution privacy binding changed');
+      return expected;
+    };
+    let privacyBinding;
+    try { privacyBinding = await checkPrivacy(); } catch {
+      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Execution privacy binding rejected' }); return;
+    }
     const key = `${remotePeerId}:${requestId}`;
     if (inbound.has(key) || inboundQueued.has(key)) return;
     // A replay cannot evade the durable fence by downgrading its protocol flag.
@@ -582,6 +601,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       controller.signal.throwIfAborted();
       if (await ports.authorize({ action: 'mesh.execute', peerId: remotePeerId, request: snapshotJson(payload) }) !== true) return;
+      if (!sameExecutionBinding(privacyBinding, await checkPrivacy())) throw Error('Execution privacy binding changed during authorization');
       if (recoveryBinding) {
         claimedRecovery = await generationJournal.claim(recoveryBinding);
         if (!claimedRecovery) {
@@ -604,7 +624,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           requestId,
           chunk
         });
-      }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer, contextOwner, contextId, privacy: assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: payload.privacy })) }, binding);
+      }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer, contextOwner, contextId, privacyBinding, privacy: assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: payload.privacy })) }, binding);
       controller.signal.throwIfAborted();
 
       const receipt = await signReceiptDraft(
@@ -773,7 +793,7 @@ export function createPeerGenerationMesh({ config, ports }) {
   };
 
 
-  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null } = {}) => {
+  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null } = {}) => {
     if (closed) throw new Error('Mesh is closed');
     const explicitPrivacy = privacy !== null;
     privacy = assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy }));
@@ -799,7 +819,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (privacy.placement === 'local-only') throw new Error('Local-only privacy excludes mesh execution');
     await initialize();
     const affinityKey = contextId ? JSON.stringify([contextId, modelId, modelIdentity, adapterIdentities]) : null;
-    const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey), privacy);
+    const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey), privacy, offerId);
     let provider = await pick();
     // With a block list, a candidate whose identity is not yet known is asked to prove it before it is
     // chosen; one that proves to be blocked is passed over for the next. Nothing is disclosed meanwhile.
@@ -831,19 +851,28 @@ export function createPeerGenerationMesh({ config, ports }) {
         throw new Error('The available computer is blocked on this device. Nothing was sent. Retry to use another computer.');
       }
       if (explicitPrivacy || modelIdentity) validateExecutionRoute(privacy, plaintextExecutionRoute({ model: { id: modelId, identity: modelIdentity }, privacy }, { recipients: [recipientIdentity || provider.peerId] }));
+      const privacyRequest = { model: { id: modelId, identity: modelIdentity, adapters: adapterIdentities.map(identity => ({ identity })) }, privacy };
+      const offers = provider.executionOffers ?? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation', backend: 'doppler-plaintext/v1',
+        kind: 'plaintext', modelIdentities: [modelIdentity], operation: 'generate', protocol: null, evidence: null }];
+      const selectedOffer = explicitPrivacy ? eligibleExecutionOffers(privacyRequest, offers, [recipientIdentity || provider.peerId])
+        .filter(offer => !offerId || offer.id === offerId).sort((a, b) => a.id.localeCompare(b.id))[0] : null;
+      if (explicitPrivacy && !selectedOffer) throw Error('Selected execution offer is unavailable');
+      const privacyBinding = selectedOffer ? await bindExecutionRoute(privacyRequest, plaintextExecutionRoute(privacyRequest, {
+        recipients: [recipientIdentity || provider.peerId], route: { schema: 'reploid.mesh-route/v1', providerId: recipientIdentity || provider.peerId,
+          offerId: selectedOffer.id, backend: selectedOffer.backend } })) : null;
       const requestId = utils.generateId('swarmreq');
       const requestPayload = {
         requestId, consumer: identityBundle.peerId, provider: provider.peerId,
         ...(contextId && provider.identityProtocol === 1 ? { contextId } : {}),
         model: modelId || provider.model || null, modelIdentity, adapterIdentities,
-        modelContract: policy.models.contract, ...(explicitPrivacy ? { privacy } : {}), messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {})
+        modelContract: policy.models.contract, ...(explicitPrivacy ? { privacy, privacyBinding, offerId: selectedOffer.id } : {}), messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {})
       };
       if (Number.isSafeInteger(policy.webrtc?.maxMessageBytes) && policy.webrtc.maxMessageBytes > 0
         && new TextEncoder().encode(JSON.stringify(requestPayload)).byteLength > policy.webrtc.maxMessageBytes) {
         throw new Error(`Conversation exceeds transport payload limit (${policy.webrtc.maxMessageBytes} bytes)`);
       }
       if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, modelId, modelIdentity, messages: snapshotJson(messages),
-        requestId, recipientIdentity, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext) }) !== true) {
+        requestId, recipientIdentity, privacyBinding, offerId: selectedOffer?.id ?? null, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext) }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
       }
       signal?.throwIfAborted();

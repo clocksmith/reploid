@@ -3,7 +3,7 @@ import { partitionActivity } from '../mesh/partitions/partition-summary.js';
 import { canonicalPartitionJson } from '../mesh/partitions/partition-contract.js';
 import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../mesh/partitions/partition-ordered-publication.js';
 import defaults from './policy.json' with { type: 'json' };
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from './execution-policy.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt, bindAuxiliaryDisclosure } from './execution-policy.js';
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
@@ -41,7 +41,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(/^[a-z][a-z0-9-]{0,31}$/.test(name) && ports && typeof ports === 'object'
       && [undefined, 'search-answer'].includes(ports.permission), 'Invalid retrieval route');
     if (ports.permission) assert(typeof ports.provider?.searchProvider === 'string' && ports.provider.searchProvider, 'A search-answer route names its search service');
-    return [name, { retriever: createRetrieval({ ...ports, now }), permission: ports.permission ?? null, provider: ports.provider }];
+    return [name, { retriever: createRetrieval({ ...ports, now }), permission: ports.permission ?? null, provider: ports.provider, disclosures: copy(ports.disclosures ?? {}) }];
   }));
   const routeFor = input => { const route = routes.get(input?.route ?? 'default'); assert(route, 'Retrieval is not configured'); return route; };
   // A search-answer route's permission covers this thread, network, query and service, once.
@@ -243,6 +243,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   };
   const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null, sourceHistory = []) => {
     current();
+    const legacyPrivacy = !thread.privacy && (!request.privacy || request.privacy.profile === 'provider-visible' && !request.privacy.allowedRecipients.length);
     request = copy({ ...request, privacy: requestExecutionPolicy(request) });
     assertAvailableExecutionPolicy(request.privacy);
     assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
@@ -283,9 +284,24 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     controller.signal.addEventListener('abort', aborted, { once: true });
     run.completion = (async () => {
       let publication = null, dispatched = request;
+      const auxiliary = new Map(), auxiliaryOperations = new Map();
+      const beforeRetrievalDisclosure = detail => {
+        controller.signal.throwIfAborted();
+        const key = canonicalPartitionJson(detail);
+        const prior = auxiliaryOperations.get(detail.operation);
+        assert(!prior || prior === key, 'Retrieval implementation changed; retry requires a new attempt');
+        if (auxiliary.has(key)) return auxiliary.get(key);
+        auxiliaryOperations.set(detail.operation, key);
+        const pending = (async () => {
+          const declared = routeFor(request.retrieval).disclosures[detail.operation] ?? null;
+          const binding = await bindAuxiliaryDisclosure(request.privacy, detail, declared, { allowUnqualifiedLegacy: legacyPrivacy });
+          controller.signal.throwIfAborted();
+          attempt.auxiliaryBindings = [...(attempt.auxiliaryBindings || []), copy(binding)];
+          await persist(); controller.signal.throwIfAborted(); return true;
+        })();
+        auxiliary.set(key, pending); return pending;
+      };
       try {
-        if (request.retrieval && request.privacy.placement === 'local-only') throw new Error('Local-only privacy excludes remote retrieval');
-        if (request.retrieval && request.privacy.allowedRecipients.length) throw new Error('Restricted retrieval requires a qualified complete search route');
         if (transactional) await admitted;
         controller.signal.throwIfAborted();
         // Ordinary follow-ups retain the evidence supplied with their earlier turns. Validate the
@@ -304,7 +320,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         if (request.retrieval) {
           // Provenance is durable before any source text can be disclosed; failure dispatches nothing.
           // The attempt id keys this answer's costs in provider usage logs; it is never part of the query.
-          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal, { answer: attempt.id,
+          attempt.retrieval = await retriever.retrieve(attempt.retrieval, controller.signal, { answer: attempt.id, beforeDisclosure: beforeRetrievalDisclosure,
             onProgress(progress) {
               if (!live() || attempt.retrieval.outcome !== 'pending') return;
               attempt.retrieval.progress = copy(progress); notify();
@@ -467,7 +483,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         // Mechanical citation evidence for the finished answer, with its verification cost entry. A stop during
         // checking leaves the rest unverified. Costs stay in the record, never in the conversation text.
         if (attempt.retrieval) attempt.retrieval = withVerification(attempt.retrieval,
-          await retriever.verify(result.content, attempt.retrieval, controller.signal));
+          await retriever.verify(result.content, attempt.retrieval, controller.signal, beforeRetrievalDisclosure));
         controller.signal.throwIfAborted();
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {

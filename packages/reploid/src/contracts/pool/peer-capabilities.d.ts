@@ -62,6 +62,7 @@ export interface PeerAssignmentPolicy {
   readonly ranking: readonly { readonly metric: AssignmentMetric; readonly order: 'asc' | 'desc' }[];
 }
 export interface WorkRequirements {
+  readonly modelId?: string; readonly offerId?: string; readonly privacy?: import('../../chat/execution-policy.js').ExecutionPolicy;
   readonly schema: 'reploid.pool.work-requirements/v1';
   readonly modelIdentity: string;
   readonly operation: { readonly name: string; readonly version: number };

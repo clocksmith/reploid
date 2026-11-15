@@ -41,11 +41,17 @@ export interface PackProviderAdvertBody {
   readonly limits: PackPeerLimits;
   readonly capabilities: ProviderCapabilities;
 }
-export interface PackPeerConsent {
+export interface PublicPackPeerConsent {
   readonly schema: 'reploid.peer.public_operation_consent/v1';
   readonly publicInput: true;
   readonly providerIds: readonly string[];
 }
+export interface PrivatePackPeerConsent {
+  readonly schema: 'reploid.peer.execution_consent/v2'; readonly publicInput: false;
+  readonly providerIds: readonly string[]; readonly offerId: string;
+  readonly privacyBinding: import('../../chat/execution-policy.js').ExecutionBinding;
+}
+export type PackPeerConsent = PublicPackPeerConsent | PrivatePackPeerConsent;
 export interface PackPeerJobIntent {
   readonly requestSchema?: PackOperationRequest['schema'];
   readonly model: PackPeerModel;

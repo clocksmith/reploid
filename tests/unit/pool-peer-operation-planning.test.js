@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { planOperationProviders, operationPlacementContext } from '../../apps/poolday/pool/peer-planning.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { placementBeliefPolicy } from '../fixtures/placement-beliefs.js';
 import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities } from '../../shared/pool/peer-capabilities.js';
 import { PACK_JOB_POLICY } from '../../shared/pool/peer-pack-job-policy.js';
@@ -137,4 +138,41 @@ describe('operation-independent deterministic provider planning', () => {
     expect(plan.selectedProviderId).toBe(hash('a'));
     expect(plan.candidates[0].metrics.activeJobs).toBe(0);
   });
+});
+
+function offers(args) {
+  args.requirements.modelId = 'synthetic-operation';
+  for (const candidate of args.candidates) candidate.capabilities.executionOffers = ['standard', 'restricted'].map(id => ({
+    schema: 'reploid.execution-offer/v1', id, backend: 'doppler-plaintext/v1', kind: 'plaintext',
+    modelIdentities: [args.requirements.modelIdentity], operation: args.requirements.operation.name, protocol: null, evidence: null }));
+}
+it('keeps provider offers distinct while sharing its real capacity observation', async () => {
+  const args = await fixture(); offers(args);
+  const plan = await planOperationProviders(args);
+  expect(plan.orderedOffers).toHaveLength(4); expect(plan.orderedProviderIds).toHaveLength(2);
+  expect(plan.candidates.filter(row => row.providerId === hash('a')).map(row => row.capacityId)).toEqual([hash('a'), hash('a')]);
+  args.candidates[0].capabilities.resources.activeJobs = 1;
+  const busy = await planOperationProviders(args);
+  expect(busy.orderedOffers).toHaveLength(2); expect(busy.selectedProviderId).toBe(hash('b'));
+  expect(busy.candidates.filter(row => row.providerId === hash('a')).every(row => row.reasons.includes('busy'))).toBe(true);
+});
+it('filters the fastest unauthorized provider before ranking and binds the chosen offer', async () => {
+  const args = await fixture(); offers(args);
+  args.candidates[1].capabilities.resources.queuedJobs = 5;
+  args.requirements.privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [hash('b')] });
+  args.requirements.offerId = 'restricted';
+  const plan = await planOperationProviders(args);
+  expect(plan.selectedProviderId).toBe(hash('b')); expect(plan.selectedOfferId).toBe('restricted');
+  expect(plan.privacyBinding.route.route).toMatchObject({ providerId: hash('b'), offerId: 'restricted' });
+  expect(plan.privacyBinding.policy).toEqual(args.requirements.privacy);
+  args.candidates = args.candidates.filter(row => row.providerId !== hash('b'));
+  expect((await planOperationProviders(args)).selectedProviderId).toBeNull();
+});
+it('rejects unsupported privacy before planning and does not qualify advertised secure flags', async () => {
+  const args = await fixture(); offers(args);
+  args.requirements.privacy = createExecutionPolicy('cryptographic', { protocol: 'unqualified', keyContext: 'key' });
+  await expect(planOperationProviders(args)).rejects.toThrow('unavailable');
+  args.requirements.privacy = createExecutionPolicy();
+  args.candidates.forEach(candidate => candidate.capabilities.executionOffers.forEach(offer => { offer.kind = 'attested'; }));
+  expect((await planOperationProviders(args)).selectedProviderId).toBeNull();
 });

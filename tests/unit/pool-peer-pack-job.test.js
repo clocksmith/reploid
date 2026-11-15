@@ -1,3 +1,6 @@
+import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
+import { createWorkPeerJobs } from '../../apps/poolday/host/work-peer-jobs.js';
 import { peerAdapterFixture } from '../fixtures/peer-adapter.js';
 import { createAdapterRegistry } from '../../apps/poolday/pool/adapter-registry.js';
 import { createAdapterRevocation } from '../../apps/poolday/pool/adapter-publication.js';
@@ -77,6 +80,11 @@ async function setup(name, registry, tweaks = {}) {
     maxDeliveries: tweaks.maxDeliveries ?? 3, retryMs: 100, onError: error => errors.push(error.message) });
   const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 200000, maxEvents: 32, maxJobMs: 30000 };
   const capabilities = await operationCapabilities(f.model);
+  if (tweaks.private) {
+    capabilities.inputClasses.push('private_text');
+    capabilities.executionOffers = ['ordinary', 'restricted'].map(id => ({ schema: 'reploid.execution-offer/v1', id, kind: 'plaintext',
+      backend: 'doppler-plaintext/v1', modelIdentities: capabilities.models.map(row => row.identity), operation: name, protocol: null, evidence: null }));
+  }
   if (tweaks.adapted) capabilities.adapters = [{ identity: f.entry.identity, availability: 'cached' }];
   const advert = await provider.createAdvert({ limits, capabilities, expiresAt: Date.now() + 30000 });
   const args = { advert, model: f.model, input: f.input, options: f.options, limits: { ...limits, deadlineAt: Date.now() + 30000 },
@@ -174,6 +182,76 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
       expect((await verifyPackPeerEpisode({ job: result.job, updates: result.updates,
         acceptance: result.acceptance, reference: null, models: [f.model] })).accepted).toBe(true);
     } finally { await f.close(); vi.useRealTimers(); }
+  });
+
+  it('executes restricted text with an exact signed offer and never expands legacy public consent', async () => {
+    const f = await setup('generate', undefined, { private: true });
+    try {
+      const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.providerIdentity.keyId] });
+      const request = { privacy, model: { id: f.model.modelId, identity: await hashDopplerEvidence(f.model) } };
+      const route = plaintextExecutionRoute(request, { recipients: [f.providerIdentity.keyId], route: {
+        schema: 'reploid.operation-route/v1', operation: { name: 'generate', version: 1 }, providerId: f.providerIdentity.keyId,
+        offerId: 'restricted', backend: 'doppler-plaintext/v1' } });
+      const consent = { schema: 'reploid.peer.execution_consent/v2', publicInput: false, providerIds: [f.providerIdentity.keyId],
+        offerId: 'restricted', privacyBinding: await bindExecutionRoute(request, route) };
+      const result = await f.requester.run({ ...f.args, consent, acceptanceMode: 'execution', comparisonPolicy: null, reference: null });
+      expect(result.job.body.intent.inputClass).toBe('private_text');
+      expect(result.execution.request.assignment.privacyBinding).toEqual(consent.privacyBinding);
+      expect(result.job.body.intent.planning.plan.selectedOfferId).toBe('restricted');
+      for (const change of [body => { body.intent.consent.offerId = 'ordinary'; }, body => { body.intent.inputClass = 'public_text'; },
+        body => { body.intent.consent.privacyBinding.policy.allowedRecipients = []; }, body => { delete body.assignment.privacyBinding; },
+        body => { body.intent.consent.schema = 'reploid.peer.public_operation_consent/v1'; body.intent.consent.publicInput = true; }]) {
+        const body = structuredClone(result.job.body); change(body);
+        const altered = await signPackPeerMessage({ identity: f.requesterIdentity, type: result.job.type,
+          recipient: result.job.toPeerId, body, expiresAt: Date.parse(result.job.expiresAt) });
+        await expect(verifyPackPeerJob(altered, { providerId: f.providerIdentity.keyId, models: [f.model] })).rejects.toThrow();
+      }
+      expect(f.calls()).toBe(1);
+    } finally { await f.close(); }
+  });
+
+  it('propagates selected privacy through host jobs and constructs safe observer events directly', async () => {
+    const f = await setup('generate', undefined, { private: true });
+    try {
+      let descriptions = 0;
+      const { deadlineAt: _deadline, ...limits } = f.args.limits;
+      const network = { async describe(request) { expect(Object.keys(request)).toEqual(['model']); descriptions++;
+        return { adverts: [f.args.advert], resources: f.args.resources, limits }; },
+        run: ({ request, providerAdverts, ...controls }) => f.requester.run({ ...request, adverts: providerAdverts, ...controls }) };
+      const jobs = createWorkPeerJobs({ getNetwork: () => network, models: [f.model] });
+      const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.providerIdentity.keyId] });
+      const events = [], partials = [], signal = new AbortController().signal;
+      const payload = { modelId: f.model.modelId, input: { prompt: 'private host canary' }, options: f.options, privacy, offerId: 'restricted' };
+      const pending = jobs.execute(payload, { signal, approve: async preview => {
+        expect(preview.input.prompt).toBe('private host canary'); expect(preview.offerId).toBe('restricted'); return true;
+      }, record: event => { events.push(event); }, onPartial: event => partials.push(event) });
+      payload.input.prompt = 'mutated after asynchronous discovery';
+      expect(await pending).toMatchObject({ claim: 'execution-identity-only', providerId: f.providerIdentity.keyId });
+      expect(descriptions).toBe(2); expect(events.map(row => row.stage)).toEqual(['proposed', 'approved', 'completed']);
+      const serialized = JSON.stringify([...events, ...partials]);
+      for (const key of ['private host canary', 'mutated after', 'inputHash', 'outputHash', 'requestHash', 'preview', 'question', 'tokenIds']) expect(serialized).not.toContain(key);
+      expect(events[2].privacy.publicationAuthorized).toBe(false);
+    } finally { await f.close(); }
+  });
+  it('stops host disclosure after revocation or disappearing selected providers without choosing another offer', async () => {
+    for (const mode of ['revoked', 'disappeared', 'unsupported', 'local-only']) {
+      const f = await setup('generate', undefined, { private: true });
+      try {
+        let current = true, descriptions = 0, transmissions = 0;
+        const { deadlineAt: _deadline, ...limits } = f.args.limits;
+        const network = { async describe() { descriptions++; return { adverts: mode === 'disappeared' && descriptions > 1 ? [] : [f.args.advert],
+          resources: f.args.resources, limits }; }, async run() { transmissions++; throw new Error('unexpected payload'); } };
+        const jobs = createWorkPeerJobs({ getNetwork: () => network, models: [f.model] });
+        const privacy = mode === 'unsupported' ? createExecutionPolicy('cryptographic', { protocol: 'unqualified', keyContext: 'key' })
+          : mode === 'local-only' ? createExecutionPolicy('restricted')
+            : createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.providerIdentity.keyId] });
+        await expect(jobs.execute({ modelId: f.model.modelId, input: f.input, options: f.options, privacy }, {
+          signal: new AbortController().signal, approve: async () => true,
+          async record(event) { if (mode === 'revoked' && event.stage === 'approved') { await Promise.resolve(); current = false; } }, isCurrent: () => current
+        })).rejects.toThrow();
+        expect(transmissions).toBe(0); if (['unsupported', 'local-only'].includes(mode)) expect(descriptions).toBe(0);
+      } finally { await f.close(); }
+    }
   });
 
   it('accepts ordinary generation without a reference and retains its weaker claim', async () => {

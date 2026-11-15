@@ -153,13 +153,13 @@
     },
     {
       "path": "adapters/resident-execution.d.ts",
-      "bytes": 3084,
-      "sha256": "259616eb7b3088c664c7a05ffd680cce3404668f3ef8937b315694acd8fd2a4b"
+      "bytes": 3157,
+      "sha256": "d7f95d709a4eff5b5e0bec79a1f53b467b4f7418ddf619b5ecafaaa1cc46b18b"
     },
     {
       "path": "adapters/resident-execution.js",
-      "bytes": 7223,
-      "sha256": "9535b5a501e5bf753a6eeb374206f0258109ee8f365735a2db165e6ca4d5c220"
+      "bytes": 7673,
+      "sha256": "f58b563399fe9d3f1fc234ad2cfe2c9b779f84543bcd93aaf68adad922ff781f"
     },
     {
       "path": "adapters/resident.d.ts",
@@ -533,23 +533,23 @@
     },
     {
       "path": "chat/execution-offers.d.ts",
-      "bytes": 578,
-      "sha256": "038a0edd443243afe66ae189b5300cd5246289fc26b5c440ea3cd29e963e75c4"
+      "bytes": 676,
+      "sha256": "ff914213b03a3b7ae865ef33515c184525a0c4e3828e0da4e1813ec18a17de02"
     },
     {
       "path": "chat/execution-offers.js",
-      "bytes": 2200,
-      "sha256": "5c80eabb7b2cdfce8537a12970c854369a5f7eecc1358412d56e02cf5023463c"
+      "bytes": 2318,
+      "sha256": "8895d7616bbde412c54c654d339a708bc10f93bc6222926556b49de6247830bd"
     },
     {
       "path": "chat/execution-policy.d.ts",
-      "bytes": 2286,
-      "sha256": "e2335636ff988dad9b89e20899d47d59071b316b45dd930227f3087a9e4b0882"
+      "bytes": 3073,
+      "sha256": "7e370c90dc7e3b239384363018be729fd305a829ed2028aa999902bd7c8ad8bb"
     },
     {
       "path": "chat/execution-policy.js",
-      "bytes": 8662,
-      "sha256": "92da211f663d586c80aaf84c419cf4c284cbb1297ec5c500efa65fd65b1b1f7b"
+      "bytes": 10375,
+      "sha256": "57f7920152caec5fee4d738620d60ab838627f58ff9e4e86d5c5389f2a10c1cb"
     },
     {
       "path": "chat/execution-policy.json",
@@ -558,8 +558,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 16205,
-      "sha256": "7a899a8765a81b24e3d70bd0955d885a2a0e93bfc838adaedacae53c784d6aa1"
+      "bytes": 16277,
+      "sha256": "baabb967978c40202426b5cc5bc3da8d7274a725e8346b4232b0e0d9e0575edf"
     },
     {
       "path": "chat/index.js",
@@ -643,8 +643,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 54950,
-      "sha256": "daab6373b92fb7b8cdf3190cc48bbe348e743cece364f33c03781f13b6868cab"
+      "bytes": 56012,
+      "sha256": "7e8a39111832bf2c352d319534c22ba41d3580543f36e06513336a82dc93a573"
     },
     {
       "path": "config/defaults.json",
@@ -758,8 +758,8 @@
     },
     {
       "path": "contracts/pool/peer-capabilities.d.ts",
-      "bytes": 4091,
-      "sha256": "8bc43348f8eca96565fb67212663437faf300f80e24b08da74bac7dd87934ba2"
+      "bytes": 4224,
+      "sha256": "b90f460b86d795e355a9880b0941f8d306e16f86c92476b99ff593debf060ab6"
     },
     {
       "path": "contracts/pool/peer-pack-custody.d.ts",
@@ -773,8 +773,8 @@
     },
     {
       "path": "contracts/pool/peer-pack-job.d.ts",
-      "bytes": 6565,
-      "sha256": "12c47092c333efc6c176ee7db0b3bb02b1a59048e125385aa0c8a066760549b8"
+      "bytes": 6933,
+      "sha256": "acabf72c7fc8ebe8009ec1c4726e667d1649998c54e6393f12b96bdd97694fa6"
     },
     {
       "path": "contracts/pool/peer-pack-provider.d.ts",
@@ -788,8 +788,8 @@
     },
     {
       "path": "contracts/pool/peer-planning.d.ts",
-      "bytes": 2474,
-      "sha256": "0264f2b72073b15898e5ce2c2cca190cc62940c8ff9fbe426fb5f03bae504068"
+      "bytes": 2909,
+      "sha256": "548260af49f0508c6dc1cd0d57342bc9267393f57287bf59bb1b4b701e140c81"
     },
     {
       "path": "hashing.d.ts",
@@ -943,8 +943,8 @@
     },
     {
       "path": "mesh/jobs/contracts.js",
-      "bytes": 20870,
-      "sha256": "63b6679e9601d48a6baefb1c559c16b2a88896a08194bc0055b6a0e1f284336b"
+      "bytes": 21890,
+      "sha256": "a392d79f43bfb82e8637d2877a6564f8f84e963e0b66d9bd32ee53514824e567"
     },
     {
       "path": "mesh/jobs/episode.d.ts",
@@ -975,6 +975,16 @@
       "path": "mesh/jobs/index.js",
       "bytes": 469,
       "sha256": "1778f5791655a02f8e287901eb3cceb0b8f38e11a202fd6e59238efe15f65295"
+    },
+    {
+      "path": "mesh/jobs/operation-privacy.d.ts",
+      "bytes": 861,
+      "sha256": "24a02191d7d7b140dae7ef7e7713058da8f1ec6cf7671ebdc56aa46ce1c86e57"
+    },
+    {
+      "path": "mesh/jobs/operation-privacy.js",
+      "bytes": 2659,
+      "sha256": "143411a8325c01a64b118c779e3f1daebc0747af8add1ff9f8831dc7456ccdb6"
     },
     {
       "path": "mesh/jobs/provider.d.ts",
@@ -1373,13 +1383,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 3730,
-      "sha256": "f4f7550dae7e4f56a0c0c3854863f819659fd27972fc3c1dc2a4e256c2397a7a"
+      "bytes": 3828,
+      "sha256": "0a19e76d90eeb765501e913d1a936e99a8afdd4ddb0666fee6892d3f99b46dfe"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 50770,
-      "sha256": "bb103d6dd5153cd63132692ac7f7a8ea1c1228969bcc1af668b6fcfccab3c327"
+      "bytes": 53911,
+      "sha256": "0421f8c1fd22b21226154daf9218f2b54a2e431bc4e1363ce8268cf08958136f"
     },
     {
       "path": "mesh/peer-identity.js",
@@ -1467,14 +1477,24 @@
       "sha256": "e0a07fdabddb86f68cf417c0b72b0856b7f2933998d0a647a231f59158d19395"
     },
     {
+      "path": "retrieval/disclosure-ports.d.ts",
+      "bytes": 461,
+      "sha256": "23d1d5a716331dce7127d9df70c1fcdd190f55105b8f1ae3ff2390896382d16b"
+    },
+    {
+      "path": "retrieval/disclosure-ports.js",
+      "bytes": 826,
+      "sha256": "571b94557e8708116839ad869db78052c79da539cab590eb2727e7ce56ffbf4e"
+    },
+    {
       "path": "retrieval/fixed-provider.js",
       "bytes": 2335,
       "sha256": "4c0f26d3047fa5625d551f564b751a7a0455a522810077d4167e21f2c56b2bb2"
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 22245,
-      "sha256": "4426d85bcd1ea97c82b7fd625f9408d7b71b5dfb631ec981b776dad7bf87c713"
+      "bytes": 22531,
+      "sha256": "1c08d50fb46f4cab8ef7350fd1ca3d2a2576259544272e54db08bad2c2024243"
     },
     {
       "path": "retrieval/index.js",
@@ -1513,8 +1533,8 @@
     },
     {
       "path": "retrieval/retrieval.js",
-      "bytes": 1832,
-      "sha256": "3958dbe2a93b5df5baca38e032843de45076d0c575701d27e1944af1362db008"
+      "bytes": 2149,
+      "sha256": "eec2719c22d2eb66cbcad318ab28e297b30dff47675a78f3437a041c351b1779"
     },
     {
       "path": "retrieval/review-queue.js",

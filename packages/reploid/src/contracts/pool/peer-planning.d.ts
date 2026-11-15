@@ -7,6 +7,7 @@ export interface OperationProviderCandidate {
   readonly limits: WorkRequirements['limits'];
 }
 export interface OperationCandidateAssessment {
+  readonly offerId?: string; readonly capacityId?: string; readonly selectionId?: string; readonly privacyBinding?: import('../../chat/execution-policy.js').ExecutionBinding | null;
   readonly providerId: string;
   readonly advertHash: string;
   readonly eligible: boolean;
@@ -15,6 +16,8 @@ export interface OperationCandidateAssessment {
   readonly unknownMemory: { readonly gpu: boolean; readonly storage: boolean };
 }
 export interface OperationAssignmentPlan {
+  readonly selectedOfferId?: string | null; readonly privacyBinding?: import('../../chat/execution-policy.js').ExecutionBinding | null;
+  readonly orderedOffers?: readonly {providerId: string; offerId: string; advertHash: string; capacityId: string}[];
   readonly schema: 'reploid.pool.operation-assignment-plan/v1';
   readonly policyId: string;
   readonly policyDigest: string;
