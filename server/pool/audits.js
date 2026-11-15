@@ -2,7 +2,7 @@
  * @fileoverview Canary audit helpers for policy-controlled browser inference.
  */
 
-import { hashJson, sha256Hex } from './hash.js';
+import { hashJson, sha256Digest } from './hash.js';
 import { REPUTATION_EVENT_TYPES } from '../../apps/poolday/pool/reputation.js';
 
 export const CANARY_AUDIT_KIND = 'deterministic_canary';
@@ -31,11 +31,11 @@ export async function createCanaryChallenge({
     providerId,
     policyId,
     prompt,
-    inputHash: sha256Hex(prompt),
+    inputHash: sha256Digest(prompt),
     generationConfig,
     generationConfigHash: hashJson(generationConfig),
     modelRequirements,
-    expectedOutputHash: sha256Hex(expectedOutputText),
+    expectedOutputHash: sha256Digest(expectedOutputText),
     expectedTokenIdsHash: hasExpectedTokenIds ? hashJson(tokenIds) : null,
     expectedTranscriptHash: hasExpectedTokenIds ? hashJson({ outputText: expectedOutputText, tokenIds }) : null,
     status: 'pending',
@@ -91,12 +91,12 @@ export async function verifyCanaryResult({ store, auditId, providerId = null, ou
   const reasons = [];
   const label = audit.kind === CHALLENGE_AUDIT_KIND ? 'challenge' : 'canary';
   if (providerId && audit.providerId && providerId !== audit.providerId) reasons.push('audit provider mismatch');
-  if (audit.expectedOutputHash && audit.expectedOutputHash !== sha256Hex(outputText)) reasons.push(`${label} output hash mismatch`);
+  if (audit.expectedOutputHash && audit.expectedOutputHash !== sha256Digest(outputText)) reasons.push(`${label} output hash mismatch`);
   if (audit.expectedTokenIdsHash && audit.expectedTokenIdsHash !== hashJson(Array.isArray(tokenIds) ? tokenIds : [])) reasons.push(`${label} token ids hash mismatch`);
   const accepted = reasons.length === 0;
   const updated = await store.updateAuditChallenge(auditId, {
     status: accepted ? 'passed' : 'failed',
-    outputHash: sha256Hex(outputText),
+    outputHash: sha256Digest(outputText),
     tokenIdsHash: hashJson(Array.isArray(tokenIds) ? tokenIds : []),
     reasons,
     completedAt: nowIso()
