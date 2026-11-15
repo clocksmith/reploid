@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Typed client for the Reploid Change Passport service",
   "type": "module",
+  "scripts": {
+    "build": "node ../../scripts/build-change-passport-sdk.js",
+    "check": "node ../../scripts/build-change-passport-sdk.js --check",
+    "prepack": "npm run build"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

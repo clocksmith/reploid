@@ -10,6 +10,11 @@
     "directory": "packages/reploid"
   },
   "sideEffects": false,
+  "scripts": {
+    "test": "npm --prefix ../.. run test:library",
+    "typecheck": "npm --prefix ../.. run verify:library-types",
+    "lint": "npm --prefix ../.. run lint:library"
+  },
   "exports": {
     "./training": {
       "types": "./src/training/index.d.ts",

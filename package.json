@@ -101,7 +101,13 @@
     "verify:showcase-privacy": "node scripts/curate-showcase.js --check",
     "verify:retained-artifacts": "node scripts/restore-doppler-evidence.js --check",
     "package:native": "node scripts/package-native.js",
-    "start:native": "node server/native-participant.js"
+    "start:native": "node server/native-participant.js",
+    "test:library": "vitest run --config tests/vitest.config.js tests/unit/agent-lifecycle.test.js tests/unit/chat-workspace.test.js tests/unit/partition-placement.test.js",
+    "lint:library": "eslint --config scripts/eslint.config.js packages/reploid/src",
+    "verify:poolday-types": "tsc -p tests/tsconfig.poolday.json",
+    "build:poolday-forecast-sdk": "node scripts/build-poolday-forecast-sdk.js",
+    "verify:poolday-forecast-sdk": "node scripts/build-poolday-forecast-sdk.js --check",
+    "build": "npm run build:browser-bundle && npm run build:change-passport-sdk && npm run build:poolday-forecast-sdk"
   },
   "keywords": [
     "reploid",
