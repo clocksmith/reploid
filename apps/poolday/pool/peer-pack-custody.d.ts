@@ -1,1 +1,1 @@
-export * from '../vendor/reploid/contracts/pool/peer-pack-custody.js';
+export * from '../../../shared/vendor/reploid/contracts/pool/peer-pack-custody.js';

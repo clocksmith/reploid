@@ -1,8 +1,8 @@
 import type { DocumentOperationNetwork } from './document-delegation.js';
-import type { CurrentPackJobPolicy } from './peer-pack-job-policy.js';
+import type { CurrentPackJobPolicy } from '../../../shared/pool/peer-pack-job-policy.js';
 import type { PeerOperationRequesterClient } from './peer-room.js';
 import type { PackPeerProviderOptions, PackPeerProviderState } from './peer-pack-provider.js';
-import type { ProviderCapabilities, WorkRequirements } from './peer-capabilities.js';
+import type { ProviderCapabilities, WorkRequirements } from '../../../shared/pool/peer-capabilities.js';
 import type { PackPeerLimits, createPackPeerConnection } from './peer-pack-job.js';
 export interface OperationNetworkPolicy {
   schema: 'reploid.pool.operation-network-policy/v1'; discoveryMs: number; advertMs: number;

@@ -1,1 +1,1 @@
-export * from '../vendor/reploid/contracts/pool/pack-operation.js';
+export * from '../../../shared/vendor/reploid/contracts/pool/pack-operation.js';

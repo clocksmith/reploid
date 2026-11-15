@@ -1218,8 +1218,8 @@
     },
     {
       "path": "mesh/partitions/partition-placement.d.ts",
-      "bytes": 2481,
-      "sha256": "d7bed861c102448f27db2d954538af931c94e500abf8355349c250198a101bfb"
+      "bytes": 4020,
+      "sha256": "7cfb7162f6b05deabb856890c7ca999dee8859b4d83506f47ad7fd5961c1b384"
     },
     {
       "path": "mesh/partitions/partition-placement.js",

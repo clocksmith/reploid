@@ -1,1 +1,1 @@
-export * from '../vendor/reploid/contracts/pool/adapter-execution.js';
+export * from '../../../shared/vendor/reploid/contracts/pool/adapter-execution.js';

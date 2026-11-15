@@ -1,1 +1,1 @@
-export * from '../vendor/reploid/contracts/pool/local-pack-executor.js';
+export * from '../../../shared/vendor/reploid/contracts/pool/local-pack-executor.js';

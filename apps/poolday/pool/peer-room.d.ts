@@ -1,5 +1,5 @@
-import type { JsonValue, PackOperationRegistry } from './pack-operation-adapters.js';
-import type { CurrentPackJobPolicy } from './peer-pack-job-policy.js';
+import type { JsonValue, PackOperationRegistry } from '../../../shared/pool/pack-operation-adapters.js';
+import type { CurrentPackJobPolicy } from '../../../shared/pool/peer-pack-job-policy.js';
 import type { PackPeerJobBody, PackProviderAdvertBody, SignedPackPeerMessage, createPackPeerJob } from './peer-pack-job.js';
 import type { PackPeerBus, PackPeerJobResult, PackPeerRequester, PackPeerRequesterOptions, PackPeerRunCallbacks, PackPeerRunInput } from './peer-pack-requester.js';
 export interface PeerOperationRequesterClient {

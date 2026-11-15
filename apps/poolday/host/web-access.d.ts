@@ -1,4 +1,4 @@
-import type { SearchProvider, RetrievalLimits, SearchResult, SearchUsage } from '../vendor/reploid/retrieval/index.js';
+import type { SearchProvider, RetrievalLimits, SearchResult, SearchUsage } from '../../../shared/vendor/reploid/retrieval/index.js';
 
 /** Search discovers URLs; fetch reads a known URL. A host may implement either through an API,
  * MCP service, extension or automation bridge. Binding this port does not grant disclosure. */

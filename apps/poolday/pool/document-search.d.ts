@@ -1,4 +1,4 @@
-import type { JsonValue } from './pack-operation-adapters.js';
+import type { JsonValue } from '../../../shared/pool/pack-operation-adapters.js';
 import type { LocalPackExecutor } from './local-pack-executor.js';
 import type { PackPeerModel } from './peer-pack-job.js';
 type JsonObject = Readonly<Record<string, JsonValue>>;

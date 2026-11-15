@@ -11,6 +11,34 @@ export interface OrderedPartitionCapability {
     capacity: { active: number; availableSlots: number; closed: boolean } };
 }
 export interface PartitionRouteSelectionLimits { maxStages: number; maxPeers: number; maxOffersPerPeer: number; maxSelectionSteps: number }
+export interface PlacementModel {
+  id: string; identity: string; adapters?: readonly { identity: string; baseModelIdentity: string }[];
+  partitionContributionIndexes?: number[];
+  availability?: string; partition?: { schema?: string };
+}
+export interface ObservedPartitionCapability {
+  participantId: string; transportId: string; observedAt: number; expiresAt: number;
+  available: boolean; reason?: string;
+  description: {
+    schema?: string; phase?: string; offer?: PlacementModel; models?: PlacementModel[];
+    index?: number | null; eligibleIndexes?: number[]; placement?: string[];
+    capacity?: { active?: number; availableSlots?: number; closed?: boolean;
+      attemptQueue?: { queued: number; maxQueued: number } };
+  };
+}
+export function selectPartitionPlacement(options: {
+  participantId: string; offer: PlacementModel; localIndex: number | null;
+  previous?: readonly string[] | null; capabilities: ObservedPartitionCapability[];
+}): { participants: string[]; reason: string; eligibility: {
+  participantId: string; transportId: string; observedAt: number; expiresAt: number;
+  reason: string | undefined; index: number | null; indexes: number[];
+}[] };
+export function selectPartitionExecution(options: {
+  model: PlacementModel; capabilities: ObservedPartitionCapability[]; ordered?: boolean;
+}): { transportId: string | null; eligibility: {
+  participantId: string; transportId: string; reason: string | undefined; eligible: boolean;
+  capacity: ObservedPartitionCapability['description']['capacity'] | null;
+}[] };
 export { validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 export type PartitionRouteStageCandidate = import('./partition-contract.js').PartitionRouteStage;
 /** Eligible offers per stage index, sorted by participant; shared by matching and opt-in ranking. */

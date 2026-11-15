@@ -1,8 +1,8 @@
 import type { DocumentSearchState, DocumentModels, DocumentSearchResult, DocumentCorpus } from './document-search.js';
 import type { LocalPackExecutor } from './local-pack-executor.js';
 import type { PackPeerLimits, PackProviderAdvertBody, SignedPackPeerMessage } from './peer-pack-job.js';
-import type { WorkRequirements } from './peer-capabilities.js';
-import type { JsonValue } from './pack-operation-adapters.js';
+import type { WorkRequirements } from '../../../shared/pool/peer-capabilities.js';
+import type { JsonValue } from '../../../shared/pool/pack-operation-adapters.js';
 import type { PackPeerModel } from './peer-pack-job.js';
 import type { PackPeerJobResult } from './peer-pack-requester.js';
 import type { runPeerOperationJob } from './peer-room.js';

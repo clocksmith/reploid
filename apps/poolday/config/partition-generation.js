@@ -6,7 +6,7 @@ import policy from './partition-policy.json' with { type: 'json' };
 export function resolvePartitionGeneration(model) {
   const explicit = Object.hasOwn(model, 'generation');
   const options = explicit ? model.generation
-    : { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen };
+    : { ...profile.generation, maxSeqLen: policy.maxSeqLen };
   if (!options || typeof options !== 'object' || Array.isArray(options)
     || Object.values(options).some(value => value === undefined)) {
     throw new Error('Partition generation requires an explicit valid options object');

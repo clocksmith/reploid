@@ -1,7 +1,7 @@
 import type { CustodyPorts, CustodyCheckpoints } from './peer-pack-custody.js';
 import type { PackOperationEvent, PackOperationRequest, PackOperationResult, PackOperationSession } from './pack-operation.js';
-import type { ReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
-import type { JsonValue } from './pack-operation-adapters.js';
+import type { ReploidDopplerRuntimeService } from '../../../shared/infrastructure/doppler-runtime-service.js';
+import type { JsonValue } from '../../../shared/pool/pack-operation-adapters.js';
 type JsonObject = Readonly<Record<string, JsonValue>>;
 export interface PeerPackSession {
   readonly session: PackOperationSession;
