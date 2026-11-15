@@ -131,6 +131,9 @@ it('signs the privacy binding and rejects policy or recipient substitutions', as
   const privacyBinding = await bindExecutionRoute({ model, privacy }, plaintextExecutionRoute({ model }, { recipients, route: f.identity.route }));
   const grant = await f.authority.issueOrdered(f.identity, f.limits, { ...f.controls, privacyBinding });
   expect(await f.authority.verify(grant, f.request)).toBe(true);
+  const digest = vi.spyOn(crypto.subtle, 'digest');
+  try { expect(await f.authority.verify(grant, f.request)).toBe(true); expect(digest).not.toHaveBeenCalled(); }
+  finally { digest.mockRestore(); }
   const changedPolicy = structuredClone(grant); changedPolicy.claim.privacyBinding.policy.allowedRecipients.pop();
   expect(await f.authority.verify(changedPolicy, f.request)).toBe(false);
   const omittedHop = structuredClone(privacyBinding); omittedHop.route.hops.pop();

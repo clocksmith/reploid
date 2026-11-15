@@ -1143,8 +1143,8 @@
     },
     {
       "path": "mesh/partitions/partition-grants.js",
-      "bytes": 22854,
-      "sha256": "b725c55ed47817b5f4b7302b11cd49286472746d3a2dbc60ad873e57bd2f8905"
+      "bytes": 23068,
+      "sha256": "1f3a4fa007c2a451c351eb5f69959220905328e91c80e5005f707ff6a30c135e"
     },
     {
       "path": "mesh/partitions/partition-link.d.ts",

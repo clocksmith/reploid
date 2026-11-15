@@ -191,7 +191,12 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
   }
   /** `{ ok, reason }`: reason is 'expired', 'revoked' or 'declined' (any other mismatch) when refused. */
   async function check(grant, request, { settlement = false } = {}) {
-    try { if (grant?.claim?.privacyBinding) await verifyPrivacyClaim(structuredClone(grant.claim)); }
+    // Reuse only a signature-verified exact record. Scope, expiry and revocation still run below on every step.
+    try {
+      if (grant?.claim?.privacyBinding && verified.get(grant.signature)?.json !== canonicalPartitionJson(grant)) {
+        await verifyPrivacyClaim(structuredClone(grant.claim));
+      }
+    }
     catch { return DECLINED; }
     if (grant?.claim?.schema === ORDERED_SCHEMA) return checkOrdered(grant, request, settlement);
     if (grant?.claim?.schema === CANONICAL_SCHEMA) return checkCanonical(grant, request, settlement);

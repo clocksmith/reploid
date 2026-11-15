@@ -4054,7 +4054,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:240fc6c3b2f83cdbfc1b80bc96668465283397c30cccd007ebf35e07ce6a5126",
+      "sha256": "sha256:5f1fdf47018433be9861b219c512fe0bbd0a3fabbe83d6cee4966b246acfde10",
       "imports": []
     },
     {
@@ -18363,7 +18363,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-grants.js",
       "owner": "vendor",
-      "sha256": "sha256:b725c55ed47817b5f4b7302b11cd49286472746d3a2dbc60ad873e57bd2f8905",
+      "sha256": "sha256:1f3a4fa007c2a451c351eb5f69959220905328e91c80e5005f707ff6a30c135e",
       "imports": [
         "../../artifacts/identity.js",
         "../../chat/execution-policy.js",
