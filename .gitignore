@@ -12,6 +12,10 @@ node_modules/
 !/artifacts/library-acceptance/2026-10-05T02-12-38-345Z/report.json
 
 # Build outputs
+# Forecast packages are built from live sources by prepack, with a source-hash
+# inventory. Never retain a second, independently importable source snapshot.
+/packages/poolday-forecast/provenance.json
+/packages/poolday-forecast/source/
 dist/
 !packages/change-passport/dist/
 !packages/change-passport/dist/index.js

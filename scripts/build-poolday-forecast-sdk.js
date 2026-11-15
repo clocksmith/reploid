@@ -18,7 +18,6 @@ for (const name of [...Object.keys(bundle.metafile.inputs), 'packages/poolday-fo
   'packages/poolday-forecast/package.json', 'scripts/build-poolday-forecast-sdk.js', 'LICENSE', 'package-lock.json'].sort()) {
   const bytes = await fs.readFile(path.join(root, name));
   sources.push({ path: name, hash: sha(bytes), sizeBytes: bytes.length });
-  files.set('source/' + name, bytes);
 }
 files.set('provenance.json', Buffer.from(JSON.stringify({ schema: 'reploid.sdk-provenance/v1',
   sourceHash: sha(Buffer.from(JSON.stringify(sources))), toolchain: { esbuild: esbuildVersion, node: process.version },

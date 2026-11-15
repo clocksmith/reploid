@@ -1,9 +1,0 @@
-{
-  "schema": "reploid.request-overrides/v1",
-  "paths": [
-    "agent.maxCycles",
-    "agent.maxBatchTools",
-    "agent.timeoutMs",
-    "agent.maxContextChars"
-  ]
-}

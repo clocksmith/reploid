@@ -4,7 +4,12 @@
   "description": "Bounded complete-forecast contracts over the original Poolday signed records",
   "type": "module",
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist", "source", "provenance.json", "LICENSE"],
+  "files": ["dist", "provenance.json", "LICENSE"],
+  "scripts": {
+    "build": "node ../../scripts/build-poolday-forecast-sdk.js",
+    "check": "node ../../scripts/build-poolday-forecast-sdk.js --check",
+    "prepack": "npm run build"
+  },
   "license": "MIT",
   "engines": { "node": ">=20" }
 }
