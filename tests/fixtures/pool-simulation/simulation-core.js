@@ -55,13 +55,10 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   const time = state.motionTime;
   const networkVisual = state.networkVisual;
   const runVisual = state.runVisual;
-  const runEnergyTarget = runVisual.state === 'running'
-    ? 1
-    : runVisual.state === 'submitting' || runVisual.state === 'complete'
-      ? 0.72
-      : runVisual.state === 'error'
-        ? 0.38
-        : 0.22;
+  let runEnergyTarget = 0.22;
+  if (runVisual.state === 'running') runEnergyTarget = 1;
+  else if (runVisual.state === 'submitting' || runVisual.state === 'complete') runEnergyTarget = 0.72;
+  else if (runVisual.state === 'error') runEnergyTarget = 0.38;
   runVisual.energy = lerpTowardSnapped(runVisual.energy, runEnergyTarget, 0.09, safeDelta);
   networkVisual.simulationMix = lerpTowardSnapped(
     networkVisual.simulationMix,

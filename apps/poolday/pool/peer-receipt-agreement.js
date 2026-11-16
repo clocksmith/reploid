@@ -165,10 +165,13 @@ export async function buildPeerReceiptAgreement({
   const rejectionReasons = spendLimitExceeded
     ? [`point spend ${pointSpend} exceeds maxPointSpend ${Number(maxPointSpend)}`]
     : [];
+  let agreementMode = 'single';
+  if (plan.ring) agreementMode = 'ring_quorum';
+  else if (plan.assignment?.redundancyGroupSize > 1) agreementMode = 'redundant';
   const baseAgreement = {
     schema: 'reploid.peer.receipt_agreement/v1',
     status: acceptedWithSpend ? 'accepted' : 'rejected',
-    mode: plan.ring ? 'ring_quorum' : (plan.assignment?.redundancyGroupSize > 1 ? 'redundant' : 'single'),
+    mode: agreementMode,
     jobId: plan.jobId || plan.assignment?.jobId || null,
     intentHash: plan.intentHash || plan.assignment?.intentHash || null,
     policyId: plan.assignment?.policyId || acceptedSlice[0]?.assignment?.policyId || null,

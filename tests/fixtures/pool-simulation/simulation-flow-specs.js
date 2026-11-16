@@ -70,9 +70,9 @@ const expandEdgeSpec = (spec, specIndex) => {
   return Array.from({ length: lanes }, (_, laneIndex) => {
     const flowFamily = spec.flowFamily || inferFlowFamily(spec.fromId, spec.toId);
     const laneOffset = spec.laneOffset ?? (laneIndex - (lanes - 1) / 2);
-    const laneCurveSign = Number.isFinite(spec.curveSign)
-      ? Number(spec.curveSign)
-      : (signedCurve < 0 ? -1 : laneIndex % 2 === 0 ? 1 : -1);
+    let laneCurveSign = laneIndex % 2 === 0 ? 1 : -1;
+    if (Number.isFinite(spec.curveSign)) laneCurveSign = Number(spec.curveSign);
+    else if (signedCurve < 0) laneCurveSign = -1;
     const curve = Math.abs(signedCurve);
     const routeBase = spec.routeId || `${flowFamily}:${spec.fromId}>${spec.toId}`;
     return Object.freeze({
@@ -135,11 +135,26 @@ const buildPresetEdges = (preset) => {
   const isReduce = preset === 'runner_reduce';
   const isStar = preset === 'star_rendezvous';
 
+  let requesterCurve = 0.02;
+  if (isBraid) requesterCurve = 0.035;
+  else if (isTri) requesterCurve = 0.025;
+  let assignmentCurve = 0.024;
+  if (isHourglass || isBowtie || isBraid) assignmentCurve = 0.054;
+  else if (isReduce) assignmentCurve = 0.03;
+  else if (isStar) assignmentCurve = 0.04;
+  let runnerCurve = 0.024;
+  if (isHourglass) runnerCurve = 0.048;
+  else if (isBraid) runnerCurve = 0.045;
+  else if (isReduce) runnerCurve = 0.03;
+  let agreementCurve = 0.024;
+  if (isBraid) agreementCurve = 0.04;
+  else if (isReduce) agreementCurve = 0.03;
+
   return [
     edge('requester', 'policy', 'core', {
       pulsePhase: 0,
       speed: 0.98,
-      curve: isBraid ? 0.035 : isTri ? 0.025 : 0.02,
+      curve: requesterCurve,
       lanes: isReduce || isStar || isBowtie ? 2 : 1
     }),
     edge('policy', 'assignment', 'core', {
@@ -151,61 +166,61 @@ const buildPresetEdges = (preset) => {
       alpha: 0.12,
       tone: 'pipe',
       speed: 0.86,
-      curve: isHourglass || isBowtie || isBraid ? 0.054 : isReduce ? 0.03 : isStar ? 0.04 : 0.024
+      curve: assignmentCurve
     }),
     edge('assignment', 'runner1', 'peer', {
       alpha: 0.12,
       tone: 'pipe',
       speed: 0.86,
-      curve: isHourglass || isBowtie || isBraid ? -0.054 : isReduce ? -0.03 : isStar ? -0.04 : -0.024
+      curve: -assignmentCurve
     }),
     edge('assignment', 'runner2', 'peer', {
       alpha: 0.12,
       tone: 'pipe',
       speed: 0.86,
-      curve: isHourglass || isBowtie || isBraid ? 0.054 : isReduce ? 0.03 : isStar ? 0.04 : 0.024
+      curve: assignmentCurve
     }),
     edge('assignment', 'runner3', 'peer', {
       alpha: 0.12,
       tone: 'pipe',
       speed: 0.86,
-      curve: isHourglass || isBowtie || isBraid ? -0.054 : isReduce ? -0.03 : isStar ? -0.04 : -0.024
+      curve: -assignmentCurve
     }),
     edge('runner0', 'verifier0', 'peer', {
       alpha: 0.11,
       tone: 'accent',
       speed: 0.90,
-      curve: isHourglass ? 0.048 : isBraid ? 0.045 : isReduce ? 0.03 : 0.024
+      curve: runnerCurve
     }),
     edge('runner1', 'verifier1', 'peer', {
       alpha: 0.11,
       tone: 'accent',
       speed: 0.90,
-      curve: isHourglass ? -0.048 : isBraid ? -0.045 : isReduce ? -0.03 : -0.024
+      curve: -runnerCurve
     }),
     edge('runner2', 'verifier0', 'peer', {
       alpha: 0.11,
       tone: 'pipe',
       speed: 0.90,
-      curve: isHourglass ? 0.048 : isBraid ? 0.045 : isReduce ? 0.03 : 0.024
+      curve: runnerCurve
     }),
     edge('runner3', 'verifier1', 'peer', {
       alpha: 0.11,
       tone: 'pipe',
       speed: 0.90,
-      curve: isHourglass ? -0.048 : isBraid ? -0.045 : isReduce ? -0.03 : -0.024
+      curve: -runnerCurve
     }),
     edge('verifier0', 'agreement', 'peer', {
       alpha: 0.14,
       tone: 'evidence',
       speed: 0.88,
-      curve: isBraid ? -0.04 : isReduce ? -0.03 : -0.024
+      curve: -agreementCurve
     }),
     edge('verifier1', 'agreement', 'peer', {
       alpha: 0.14,
       tone: 'evidence',
       speed: 0.88,
-      curve: isBraid ? 0.04 : isReduce ? 0.03 : 0.024
+      curve: agreementCurve
     }),
     edge('agreement', 'settlement', 'core', {
       tone: 'evidence',

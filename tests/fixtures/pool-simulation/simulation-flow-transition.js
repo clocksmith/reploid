@@ -22,12 +22,18 @@ const lineValue = (line, key, fallback) => (
   Number.isFinite(Number(line?.[key])) ? Number(line[key]) : fallback
 );
 
+const endpointScore = (from, to) => {
+  if (from === to) return -12;
+  if (endpointGroup(from) === endpointGroup(to)) return -4;
+  return 7;
+};
+
 const semanticScore = (fromLine, toLine) => {
   if (fromLine.routeId === toLine.routeId) return -100;
   let score = 0;
   score += fromLine.flowFamily === toLine.flowFamily ? -32 : 22;
-  score += fromLine.fromId === toLine.fromId ? -12 : endpointGroup(fromLine.fromId) === endpointGroup(toLine.fromId) ? -4 : 7;
-  score += fromLine.toId === toLine.toId ? -12 : endpointGroup(fromLine.toId) === endpointGroup(toLine.toId) ? -4 : 7;
+  score += endpointScore(fromLine.fromId, toLine.fromId);
+  score += endpointScore(fromLine.toId, toLine.toId);
   score += Math.abs(lineValue(fromLine, 'laneOffset', 0) - lineValue(toLine, 'laneOffset', 0)) * 1.5;
   score += Math.abs(lineValue(fromLine, 'speed', 1) - lineValue(toLine, 'speed', 1)) * 3;
   score += Math.abs(lineValue(fromLine, 'width', 1) - lineValue(toLine, 'width', 1)) * 2;

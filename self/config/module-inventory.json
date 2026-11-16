@@ -2358,7 +2358,7 @@
     {
       "path": "pool/peer-receipt-agreement.js",
       "owner": "pool",
-      "sha256": "sha256:acd324b2b75cb339f6e27b8c5ec294ea1f2c1a175655b6d2b8be7d9d6a4dbd92",
+      "sha256": "sha256:8ebe0a95300730b66cbceef02ef5cc65a72f0d0d345a55686e0a1b95aaf2d185",
       "imports": [
         "./config.js",
         "./executable-pack.js",
@@ -4227,7 +4227,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:db86e10e575835c3aea655b4c4dad044dd24d994796981749dc22ee0405afbcb",
+      "sha256": "sha256:5e4046329a43c246f4b3fb4b8b616a36543ee26f33151ac613bc7f9a11faadd5",
       "imports": []
     },
     {

@@ -1,5 +1,5 @@
 /** Archived animation reference, used only by regression fixtures. */
-import { POOLDAY_RUNNER_NODE_IDS, POOLDAY_VERIFIER_NODE_IDS, POOLDAY_PARTICIPANT_NODE_IDS } from '../../../apps/poolday/ui/pool-home/constants.js';
+import { POOLDAY_RUNNER_NODE_IDS, POOLDAY_VERIFIER_NODE_IDS } from '../../../apps/poolday/ui/pool-home/constants.js';
 export { POOLDAY_NETWORK_VISUAL_EVENT, POOLDAY_RUN_VISUAL_EVENT, POOLDAY_RUNNER_NODE_IDS, POOLDAY_VERIFIER_NODE_IDS, POOLDAY_PARTICIPANT_NODE_IDS } from '../../../apps/poolday/ui/pool-home/constants.js';
 export const SIMULATION_TARGET_STEP_MS = 1000 / 60;
 export const SIMULATION_MAX_STEP_MS = 1000 / 16;

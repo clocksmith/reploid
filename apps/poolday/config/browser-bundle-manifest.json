@@ -1431,7 +1431,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 655578,
-      "sha256": "sha256:df6f99b8100d249e5ac6a57c060f7b4d9dcd268199613cb31de1a8905bd0d801"
+      "sha256": "sha256:197b010a73e6a00d9eabd9eb0a1815c5d33d43b1e9f959d716075e1466647827"
     },
     {
       "path": "config/module-registry.json",
@@ -3020,8 +3020,8 @@
     },
     {
       "path": "pool/peer-receipt-agreement.js",
-      "byteLength": 9485,
-      "sha256": "sha256:acd324b2b75cb339f6e27b8c5ec294ea1f2c1a175655b6d2b8be7d9d6a4dbd92"
+      "byteLength": 9565,
+      "sha256": "sha256:8ebe0a95300730b66cbceef02ef5cc65a72f0d0d345a55686e0a1b95aaf2d185"
     },
     {
       "path": "pool/peer-rendezvous.js",
@@ -3760,8 +3760,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2484300,
-      "sha256": "sha256:db86e10e575835c3aea655b4c4dad044dd24d994796981749dc22ee0405afbcb"
+      "byteLength": 2484315,
+      "sha256": "sha256:5e4046329a43c246f4b3fb4b8b616a36543ee26f33151ac613bc7f9a11faadd5"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12294,5 +12294,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:14c11cadf20a17cc0cf81f54e4daf8f54c6ee91a1578ddf47fe8dd67d79701ec"
+  "bundleHash": "sha256:8172eb2f54c114018ffa5a89ef1b4f640ee269aa2adb14b38a482a6309292437"
 }

@@ -150,13 +150,11 @@ const LINE_POINT_GEOMETRY = {};
 export const resolveLinePointInto = (target, line, amount, width, height) => {
   const geometry = resolveLineGeometryScalarsInto(LINE_POINT_GEOMETRY, line, width, height);
   const ease = line.flowEase || 'sine';
-  const t = ease === 'out'
-    ? easeOutCubic(amount)
-    : ease === 'quart'
-      ? easeOutQuart(amount)
-      : ease === 'cubic'
-        ? easeInOutCubic(amount)
-        : easeInOutSine(amount);
+  let t;
+  if (ease === 'out') t = easeOutCubic(amount);
+  else if (ease === 'quart') t = easeOutQuart(amount);
+  else if (ease === 'cubic') t = easeInOutCubic(amount);
+  else t = easeInOutSine(amount);
   const inv = 1 - t;
   target.x = inv * inv * geometry.startX + 2 * inv * t * geometry.controlX + t * t * geometry.endX;
   target.y = inv * inv * geometry.startY + 2 * inv * t * geometry.controlY + t * t * geometry.endY;

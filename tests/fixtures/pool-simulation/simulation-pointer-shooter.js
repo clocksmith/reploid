@@ -73,11 +73,9 @@ const spawnPointerShot = (state, lines, width, height) => {
   const random = state.random;
   const jitter = (random() - 0.5) * 0.12;
   const start = clampRange(nearest.bestAmount + jitter, 0.035, 0.965);
-  const direction = start > 0.76
-    ? -1
-    : start < 0.24
-      ? 1
-      : (serial % 2 === 0 ? 1 : -1);
+  let direction = serial % 2 === 0 ? 1 : -1;
+  if (start > 0.76) direction = -1;
+  else if (start < 0.24) direction = 1;
   shot.active = true;
   shot.lineIndex = nearest.bestIndex;
   shot.start = start;
