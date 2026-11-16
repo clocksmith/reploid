@@ -1,4 +1,5 @@
-import { SHA256_PATTERN } from '../pool/evidence/primitives.js';
+// Projections remain import-free; this syntax check does not verify an artifact.
+const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 /** Pure projections. Discovery describes availability; accepted attempts own history. */
 export function selectAvailableChatModel(models, preference, location = 'auto') {
   // Application preference, not a quality claim or a priority advertised by peers.

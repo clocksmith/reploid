@@ -93,6 +93,7 @@ Proposed receipt retention, authorized peer replication and verifiable usage vie
 - [Security audit policy](SECURITY_AUDIT.md) — cooperative self-audit scope and sanitized findings.
 - [Approved symbols](EMOJI.md) — presentation and documentation conventions.
 - [Primes example](../examples/primes.html) — standalone HTML example.
+- [2026-11-15 review dispositions](review-resolution-2026-11-15.md) — all 92 finding IDs, implementation evidence, corrections and retained contracts.
 - [Historical scoped repair](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/scripts/repair_reploid.py) — commit-specific recovery source, retained in history rather than the current tool set.
 
 ### Reference
