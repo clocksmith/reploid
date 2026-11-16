@@ -88,7 +88,14 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
 export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null,
-  modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined }) {
+  modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined, artifactRuntime = null }) {
+  assert(artifactRuntime === null || typeof artifactRuntime?.createVerifiedPieceStorage === 'function',
+    'Native artifact runtime requires the verified piece storage factory');
+  // Trusted host composition only. Snapshot the factory before asynchronous
+  // admission; model metadata cannot select a verifier or bypass custody.
+  const suppliedRuntime = artifactRuntime === null ? null : Object.freeze({
+    createVerifiedPieceStorage: artifactRuntime.createVerifiedPieceStorage.bind(artifactRuntime)
+  });
   const readMappedSource = await createNativeSourceFileReader(sourceFilePaths);
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
   let budget = null, budgetError = null;
@@ -162,7 +169,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     const indexFile = model.source.files.find(file => file.role === 'model-piece-index');
     assert(manifestFile && 'sha256:' + manifestFile.hash === model.identity && indexFile, 'Pinned manifest and piece index required');
     const manifestBytes = await readMetadata(manifestFile, signal), indexBytes = await readMetadata(indexFile, signal);
-    const runtime = await import('doppler-gpu/partitions');
+    const runtime = suppliedRuntime ?? await import('doppler-gpu/partitions');
     // Doppler validates the index closure before any piece is offered or read.
     const checked = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + indexFile.hash,
       signal, acquire: () => { throw new Error('Metadata validation cannot acquire weights'); } });
@@ -381,13 +388,20 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       } finally { if (shareController === controller) shareController = null; }
     })()); },
     stopSupply() { suppliedModel = null; offeredFiles.clear(); localPieces.clear(); shareController?.abort(new Error('Native file contribution stopped')); exchange.stopSupply(); },
-    close() { return closing ||= (async () => {
-      closed = true; suppliedModel = null; offeredFiles.clear(); localPieces.clear(); lifetime.abort(new Error('Native file host closed')); exchange.stopSupply();
-      await Promise.allSettled([...operations]);
-      const settled = await Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.storage.close()))
-        .concat([Promise.resolve().then(() => exchange.close()), Promise.resolve().then(() => cache.close()), Promise.resolve().then(() => budget?.close())]));
-      const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
-      if (failures.length) throw new AggregateError(failures, 'Native artifact source cleanup failed');
-    })(); }
+    close() {
+      if (closing) return closing;
+      const operation = (async () => {
+        closed = true; suppliedModel = null; offeredFiles.clear(); localPieces.clear(); lifetime.abort(new Error('Native file host closed')); exchange.stopSupply();
+        await Promise.allSettled([...operations]);
+        const settled = await Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.storage.close()))
+          .concat([Promise.resolve().then(() => readMappedSource.close()), Promise.resolve().then(() => exchange.close()),
+            Promise.resolve().then(() => cache.close()), Promise.resolve().then(() => budget?.close())]));
+        const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
+        if (failures.length) throw new AggregateError(failures, 'Native artifact source cleanup failed');
+      })();
+      closing = operation;
+      operation.catch(() => { if (closing === operation) closing = null; });
+      return operation;
+    }
   });
 }

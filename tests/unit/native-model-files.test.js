@@ -392,3 +392,21 @@ it('uses exact host-approved external sources while retaining pinned piece verif
     await expect(source.storage.loadShardRange(0, 4, 4)).rejects.toThrow();
   } finally { await source.storage.close(); }
 });
+
+it('uses a snapshotted trusted storage runtime without changing custody or pinned source checks', async () => {
+  const runtime = await import('doppler-gpu/partitions');
+  const factory = vi.fn(options => runtime.createVerifiedPieceStorage(options));
+  const injected = { createVerifiedPieceStorage: factory };
+  const f = await fixture(1, { hostOptions: () => ({ artifactRuntime: injected }) });
+  injected.createVerifiedPieceStorage = () => { throw new Error('Mutated runtime must not run'); };
+  await fs.writeFile(path.join(f.directories[0], 'weights.bin'), Buffer.concat(f.chunks));
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    expect(factory).toHaveBeenCalledTimes(2);
+    expect(new Uint8Array(await source.storage.loadShardRange(0, 0, 4))).toEqual(new Uint8Array([1, 2, 3, 4]));
+    expect(source.getReceipt().custody.reusedBytes).toBe(4);
+    await fs.writeFile(path.join(f.directories[0], 'weights.bin'), new Uint8Array([1, 2, 3, 4, 8, 7, 6, 5]));
+    await expect(source.storage.loadShardRange(0, 4, 4)).rejects.toThrow();
+  } finally { await source.storage.close(); }
+  await expect(createNativeModelFiles({ artifactRuntime: {} })).rejects.toThrow('verified piece storage factory');
+});
