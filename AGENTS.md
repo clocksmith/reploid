@@ -1,12 +1,12 @@
 # Reploid Code Agent
 
-**Prime Directive:** Follow [GOALS.md](GOALS.md), [INTENT.md](INTENT.md), and every `CATSCAN.md` from the root to the changed files, parent first ([component index](docs/component-index.md), [workspace CATSCAN protocol](https://github.com/clocksmith/ouroboros/blob/main/deco/docs/catscan.md)). Keep implementation authority inside those charters. See [DOPPLER](https://github.com/clocksmith/doppler) for the WebGPU inference engine.
+**Prime Directive:** Build what the request needs. [GOALS.md](GOALS.md), [INTENT.md](INTENT.md) and `CATSCAN.md` files ([component index](docs/component-index.md)) are references for ownership and contracts: look up the one for the surface you touch when it helps, not as a reading list before editing. See [DOPPLER](https://github.com/clocksmith/doppler) for the WebGPU inference engine.
 
 ## Start with the owner
 
 Follow `../ouroboros/docs/projects/reploid/roadmap.md` in the deco workspace for capped validation and acceptance; never copy private roadmap, pricing, or business-plan content into this repository. Public product authority lives in [product-specification.md](docs/product-specification.md) and [open-mesh-architecture.md](docs/open-mesh-architecture.md).
 
-Read only the owner documents for the surface you touch:
+Where each surface keeps its owner docs (a lookup, not a reading list):
 
 | Change | Read at the owner |
 | --- | --- |
@@ -31,21 +31,30 @@ Read only the owner documents for the surface you touch:
 
 ## Build boldly
 
-- Build the ambitious version. Implement the bold idea end to end, run it, then
-  fix what breaks. A working rough cut beats a careful plan.
-- Act without asking on reversible work in your lane: new features, rewrites,
-  large refactors, deleting dead code, wild experiments. Ask only before
-  irreversible or outward-facing steps: force-push, deleting data, spending
-  money, publishing, or touching another session's uncommitted work.
-- Reading is lookup, not a gate. Read the code you change; consult GOALS,
-  CATSCAN, charters and contracts when a question needs them, never as a
-  checklist before editing.
-- Qualification, receipts and frozen comparisons govern what we claim, not
-  whether code may be written, merged or tried. Measure once something is in use.
-- Breaking an experiment is fine. Fix breakage you cause before you stop, and
-  leave `main` runnable.
-- Report what you built and what it did. Never claim faster, better or qualified
-  without a measurement.
+Understand → inspect → build → run → diagnose → improve → deliver.
+
+- Start from the requested outcome and the existing implementation. Read the
+  relevant code, and compare with working alternatives, before guessing.
+- Make the most direct substantive change. Large refactors, replacement
+  implementations, aggressive prototypes and speculative ideas are allowed when
+  they serve the goal.
+- Run the changed system early. Fix the failures you cause; don't stop at a
+  plan, scaffold or failing test.
+- If the result misses the goal, find the reason in the code and behavior,
+  change it and repeat. Sweep parameters only to answer a real question. When a
+  strategy is clearly failing, try a materially different one.
+- Make routine design and implementation choices yourself. Ask only for a
+  consequential product choice, access you lack, or a blocker you can't
+  resolve safely.
+- Commit coherent, tested progress often, and keep going while the requested
+  outcome is unfinished.
+- Done means the requested behavior works and was exercised against a
+  real-world or competitive baseline. A passing unit test, receipt, report,
+  scaffold or milestone is not completion.
+- GOALS, INTENT, CATSCAN and charters are references to look up, not reading
+  required before editing.
+- Report results: what changed, the evidence, what remains, and blockers only
+  when they need the owner or unavailable access. No completion percentages.
 
 ## Development verification
 
