@@ -181,6 +181,78 @@ describe('autonomous cold stage assignment (opt-in, injected discovery)', () => 
     expect(c.mesh.getState()).toMatchObject({ phase: 'idle', offering: false });
   });
 
+  it('settles an allocation failure before choosing a different useful stage', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor({ dwellMs: 0 }), close = vi.fn(async () => {});
+    const prepare = c.loadProgram.getMockImplementation();
+    c.loadProgram.mockImplementationOnce(async (_model, index, controls) => {
+      expect(index).toBe(1);
+      controls.registerCleanup({ close });
+      throw Object.assign(Error('stage exceeds device budget'), { code: 'RESOURCE_EXHAUSTED' });
+    }).mockImplementation(prepare);
+    const joiner = offer('~joiner', 1);
+    joiner.description.phase = 'waiting'; joiner.description.models = [];
+    joiner.description.assignment = { schema: 'reploid.stage-assignment/v1', modelId: model.id,
+      modelIdentity: model.identity, planId: model.partitionPlanId, index: null };
+    c.discovery.observe = () => [offer('coordinator', 0), joiner];
+    await c.mesh.contribute('model', true);
+    expect(close).toHaveBeenCalledOnce();
+    expect(c.mesh.getState()).toMatchObject({ phase: 'waiting', stagePreparationFailures: [{ index: 1, code: 'RESOURCE_EXHAUSTED' }] });
+    expect(c.discovery.options.describe().assignment).toMatchObject({ index: null, eligibleIndexes: [0, 2] });
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(c.loadProgram.mock.calls.map(call => call[1])).toEqual([1, 2]);
+    expect(c.mesh.getState()).toMatchObject({ phase: 'ready', error: null, assignment: { index: 2 } });
+    await c.mesh.stop();
+    expect(c.mesh.getState().stagePreparationFailures).toEqual([]);
+  });
+
+  it('keeps preparation serialized while failed allocation cleanup is still pending', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor({ dwellMs: 0 }), entered = Promise.withResolvers(), settled = Promise.withResolvers();
+    c.loadProgram.mockImplementation(async (_model, _index, controls) => {
+      controls.registerCleanup({ close() { entered.resolve(); return settled.promise; } });
+      throw Object.assign(Error('device full'), { code: 'RESOURCE_EXHAUSTED' });
+    });
+    c.discovery.observe = () => [offer('coordinator', 0), offer('b', 1)];
+    const contribution = c.mesh.contribute('model', true);
+    try {
+      await entered.promise;
+      await vi.advanceTimersByTimeAsync(120000);
+      expect(c.loadProgram).toHaveBeenCalledOnce();
+      expect(c.mesh.getState().unsettledOwners).toBe(1);
+    } finally { settled.resolve(); await contribution; }
+    expect(c.mesh.getState()).toMatchObject({ phase: 'waiting', unsettledOwners: 0 });
+  });
+
+  it('never retries resource preparation while cleanup remains unknown', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor({ dwellMs: 0 });
+    const close = vi.fn().mockRejectedValueOnce(Error('buffer settlement unknown')).mockResolvedValue();
+    c.loadProgram.mockImplementation(async (_model, _index, controls) => {
+      controls.registerCleanup({ close });
+      throw Object.assign(Error('device full'), { code: 'RESOURCE_EXHAUSTED' });
+    });
+    c.discovery.observe = () => [offer('coordinator', 0), offer('b', 1)];
+    await c.mesh.contribute('model', true);
+    expect(c.mesh.getState()).toMatchObject({ phase: 'failed', error: 'Ordered capacity recovery cleanup failed', unsettledOwners: 1 });
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(c.loadProgram).toHaveBeenCalledOnce();
+    await c.mesh.stop();
+    expect(close).toHaveBeenCalledTimes(2);
+    expect(c.mesh.getState()).toMatchObject({ phase: 'idle', unsettledOwners: 0 });
+  });
+
+  it('does not reinterpret integrity or authorization failure as another-stage capacity', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor({ dwellMs: 0 });
+    c.loadProgram.mockRejectedValue(Object.assign(Error('model integrity mismatch'), { code: 'INTEGRITY_MISMATCH' }));
+    c.discovery.observe = () => [offer('coordinator', 0), offer('b', 1)];
+    await c.mesh.contribute('model', true);
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(c.loadProgram).toHaveBeenCalledOnce();
+    expect(c.mesh.getState()).toMatchObject({ phase: 'failed', error: 'model integrity mismatch', stagePreparationFailures: [] });
+  });
+
   it('keeps its stage when only the lower id shares it or the gap is within hysteresis', async () => {
     vi.useFakeTimers({ now: 1_000_000 });
     const c = await contributor({ dwellMs: 0 });

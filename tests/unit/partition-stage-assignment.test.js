@@ -23,6 +23,30 @@ describe('autonomous cold stage assignment policy', () => {
     expect(plan('m', [peer('c', { ready: [0] }), peer('d', { ready: [1], expiresAt: now }), other])).toMatchObject({ index: null, reason: 'waiting-for-route' });
   });
 
+  it('matches constrained joiners to a complete route rather than assigning an excluded stage', () => {
+    const coordinator = peer('coordinator', { ready: [0] });
+    const constrained = peer('a', { claim: null });
+    constrained.description.assignment.eligibleIndexes = [2];
+    const choose = (participantId, eligibleIndexes, capabilities) => planStageAssignment({ participantId, model, stageCount: 3,
+      capabilities, now, current: null, maxOffersPerPeer: 4, eligibleIndexes });
+    expect(choose('a', [2], [coordinator, peer('b', { claim: null })])).toMatchObject({ index: 2 });
+    expect(choose('b', [0, 1, 2], [coordinator, constrained])).toMatchObject({ index: 1 });
+    expect(choose('b', [2], [coordinator, constrained])).toMatchObject({ index: null, reason: 'waiting-for-route' });
+    expect(choose('b', [], [coordinator, constrained])).toMatchObject({ index: null, reason: 'no-eligible-stage' });
+    for (const eligibleIndexes of [[3], [1, 1], [NaN]]) {
+      expect(() => choose('b', eligibleIndexes, [coordinator, constrained])).toThrow('eligible stage');
+    }
+  });
+
+  it('does not rebalance onto an excluded stage or count malformed joiner constraints', () => {
+    const bad = peer('a', { claim: null }); bad.description.assignment.eligibleIndexes = [3];
+    expect(planStageAssignment({ participantId: 'z', model, stageCount: 3, capabilities: [peer('c', { ready: [0] }), bad],
+      now, current: null, maxOffersPerPeer: 4, eligibleIndexes: [1, 2] })).toMatchObject({ index: null, reason: 'waiting-for-route' });
+    expect(planStageAssignment({ participantId: 'z', model, stageCount: 3,
+      capabilities: [peer('c', { ready: [0] }), peer('b', { ready: [1] })],
+      now, current: 1, maxOffersPerPeer: 4, eligibleIndexes: [0, 1] })).toMatchObject({ index: 1, reason: 'retain' });
+  });
+
   it('counts a peer still preparing its claimed stage as supply', () => {
     expect(plan('m', [peer('c', { ready: [0] }), peer('b', { claim: 1, phase: 'loading' })])).toMatchObject({ index: 2, supply: [1, 1, 0] });
   });

@@ -54,6 +54,25 @@ not at admission. Slots are counted per resident (`createPartitionReservations` 
 `resident-partition.js`) and per route runner (`partition-route-execution.js`). Nothing charges
 bytes at admission or shares slots across residents.
 
+### Preparation capacity recovery
+
+For an approved automatic contribution, a loader's explicit `RESOURCE_EXHAUSTED`
+preparation failure excludes that stage for the rest of this contribution.
+Every registered preparation owner must settle before another stage can load.
+A cleanup failure stays terminal until explicit stop retries cleanup; integrity,
+authorization and model-identity failures never become capacity retries.
+
+The contributor advertises remaining `assignment.eligibleIndexes` as a discovery
+hint. Cold joiners use complete matching over missing stages and these constraints,
+so a constrained contributor need not take a stage it already failed to allocate.
+Each stage is tried at most once per approved contribution. Explicit stop clears
+this local failure history. State exposes `stagePreparationFailures`; this is
+observed allocation failure, not measured free memory or hardware attestation.
+Loaded attempts and their model/plan/recipient identities remain unchanged.
+
+Idle rebalancing also waits for the old resident's `drain()` to settle before
+retiring its allocation. A failed drain cannot silently start another resident.
+
 ## Source acceptance
 
 Each mechanism has unit tests with injected Doppler stages. The tests exercise the new behavior

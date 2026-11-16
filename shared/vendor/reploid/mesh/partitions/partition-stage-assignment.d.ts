@@ -13,10 +13,12 @@ export function stageDemand(options: {
 /** Advertised only by a contributor whose operator chose `auto`; a hint, never an assignment. */
 export interface StageAssignmentClaim {
   schema: typeof STAGE_ASSIGNMENT_SCHEMA; modelId: string; modelIdentity: string; planId: string; index: number | null;
+  /** Optional local preparation constraints. A discovery hint, never an execution grant. */
+  eligibleIndexes?: number[];
 }
 export interface StageAssignmentDecision {
   index: number | null; reason: 'cold-least-supplied' | 'retain' | 'rebalance' | 'replicate-queue' | 'replicate-bottleneck'
-    | 'waiting-for-route' | 'no-useful-assignment'; move: boolean;
+    | 'waiting-for-route' | 'no-useful-assignment' | 'no-eligible-stage'; move: boolean;
   /** Distinct other participants per stage index: ready offers plus claims still preparing. */
   supply: readonly number[]; joiners: number;
 }
@@ -24,4 +26,5 @@ export function planStageAssignment(options: {
   participantId: string; model: { id: string; identity: string; partitionPlanId: string }; stageCount: number;
   capabilities: readonly { participantId: string; available: boolean; expiresAt: number; description?: unknown }[];
   now: number; current?: number | null; maxOffersPerPeer: number; demand?: StageDemand | null;
+  eligibleIndexes?: readonly number[] | null;
 }): StageAssignmentDecision;

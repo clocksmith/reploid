@@ -75,6 +75,11 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   let offer = null, program = null, execution = null, controller = null, loading = null, ticking = null;
   let phase = 'idle', error = null, progress = null, decision = null, currentKey = null, closed = false, stopping = null, closing = null;
   let moving = null, readyAt = 0, assignment = null;
+  // Observed local allocation failures, scoped to this approved contribution.
+  // Never turn an identity/integrity failure into a different preparation.
+  const unavailableStages = new Set();
+  const eligibleIndexes = () => Array.from({ length: offer.partitionPlan.stageCount }, (_, index) => index)
+    .filter(index => !unavailableStages.has(index));
   let discovery, entries;
   // Receipts whose cleanup stayed unknown outlive their retired route, bounded
   // by the attempt budget; retiring a route never turns them into settlement.
@@ -88,7 +93,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     reservations: program?.resident.getState().reservations ?? null, acquisition: program?.getReceipt?.() ?? null,
     models: getModels(), attempts: [...routes.values()].flatMap(row => row.chat.getState().attempts), unsettledOwners: debt.size,
     unknownAttempts: structuredClone(unknownAttempts), queue: attemptQueue.getState(),
-    ...(auto ? { assignment: structuredClone(assignment) } : {}),
+    ...(auto ? { assignment: structuredClone(assignment), stagePreparationFailures: [...unavailableStages]
+      .map(index => ({ index, code: 'RESOURCE_EXHAUSTED' })) } : {}),
     ...(ranking ? { routeObservations: observations.snapshot(), routeOutcomes: observations.snapshotRoutes() } : {}) });
   const notify = () => { onChange(getState()); for (const listener of listeners) listener(getModels()); };
   // A bounded device queue is advertised with capacity; it is present only when configured.
@@ -113,7 +119,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       phase, preparation: phase === 'loading' ? publicPreparationProgress(progress) : null, models: inventory, capacity: { ...residentCapacity(),
         ...(coordinating ? { attemptQueue: { queued: waitingLine.queued, maxQueued: waitingLine.maxQueuedAttempts } } : {}) },
       ...(auto && offer ? { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: offer.id, modelIdentity: offer.identity, planId: offer.partitionPlanId,
-        index: stage?.index ?? null } } : {}),
+        index: stage?.index ?? null,
+        ...(unavailableStages.size ? { eligibleIndexes: eligibleIndexes() } : {}) } } : {}),
       // A ranking coordinator shares its measured per-stage decode cost so automatic contributors can see bottlenecks.
       ...(route ? { stageCosts: { schema: STAGE_COSTS_SCHEMA, modelId: offer.id, modelIdentity: offer.identity, planId: route.planId,
         decodeMs: route.stages.map(row => observations.get(route.planId, row.participantId, row.index)?.decodeMs ?? null) } } : {}) };
@@ -191,7 +198,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     const selected = offer, preparationOwners = new Set(), observeProgress = createPreparationProgressObserver();
     let observingPreparation = true;
     let candidate = null;
-    phase = 'loading'; notify();
+    phase = 'loading'; error = null; notify();
     loading = Promise.resolve().then(() => loadProgram(selected, stage.index, {
       signal: AbortSignal.any([lifetime.signal, controller.signal]), participantId: identity.peerId, ordered: { stage: structuredClone(stage) },
       ...(device ? { device, attemptBytes: admission.attemptBytes } : {}),
@@ -233,6 +240,18 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       for (const owner of preparationOwners) debt.add(owner);
       if (typeof candidate?.resident?.close === 'function') debt.add(candidate.resident);
       phase = 'failed'; error = cause.message;
+      if (auto && candidate === null && cause.code === 'RESOURCE_EXHAUSTED'
+        && !closed && offer === selected && !stopping) {
+        const failedIndex = stage.index;
+        try {
+          // A loader may already have allocated buffers or opened storage.
+          // Settle every registered owner before trying another stage.
+          await retire();
+          if (!closed && offer === selected && !stopping) {
+            unavailableStages.add(failedIndex); stage = null; phase = 'waiting'; progress = null;
+          }
+        } catch (cleanup) { error = new AggregateError([cause, cleanup], 'Ordered capacity recovery cleanup failed').message; }
+      }
     } finally { observingPreparation = false; loading = null; notify(); }
   }
   const healthy = owner => owner.ports.every(port => port.getState().ready);
@@ -337,7 +356,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     const demand = replicas ? stageDemand({ model: offer, stageCount, capabilities, now, maxOffersPerPeer: config.maxStageOffersPerPeer,
       queueBound: replicas.queueBound, bottleneckRatio: replicas.bottleneckRatio }) : null;
     const decision = planStageAssignment({ participantId: identity.peerId, model: offer, stageCount, capabilities, now, current,
-      maxOffersPerPeer: config.maxStageOffersPerPeer, demand });
+      maxOffersPerPeer: config.maxStageOffersPerPeer, demand,
+      eligibleIndexes: unavailableStages.size ? eligibleIndexes() : null });
     return { ...decision, decidedAt: now, ...(demand ? { demand } : {}) };
   }
   // Idle: no admitted, queued, pending or unsettled attempt on this resident or any of its routes.
@@ -433,6 +453,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       assert(approved === true && (stage || auto) && !closed, 'Approve an explicitly assigned stage before contributing');
       assert(!offer && !stopping && !debt.size && !program, 'Previous ordered contribution must settle before replacement');
       const selected = catalog.find(model => model.id === modelId); assert(selected, 'No pinned ordered model');
+      unavailableStages.clear();
       offer = selectPartitionContribution(selected, adapters);
       if (auto) {
         const count = offer.partitionPlan?.stageCount;
@@ -456,7 +477,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       const wait = [loading, ticking];
       stopping = Promise.resolve().then(async () => {
         await Promise.allSettled(wait);
-        try { await retire(); phase = 'idle'; error = null; progress = null; if (auto) { stage = null; assignment = null; } }
+        try { await retire(); phase = 'idle'; error = null; progress = null; if (auto) { stage = null; assignment = null; unavailableStages.clear(); } }
         catch (cause) { phase = 'failed'; error = cause.message; throw cause; }
         finally { notify(); }
       }).finally(() => { stopping = null; });

@@ -85,7 +85,8 @@ export interface OrderedAutomaticPartitionOptions extends Omit<AutomaticPartitio
 }
 export interface OrderedOrchestration {
   /** The operator chose `auto`: this contributor's own policy picks its stage (stage must be null).
-   * It re-evaluates only while idle and at least `dwellMs` after becoming ready. */
+   * It re-evaluates only while idle and at least `dwellMs` after becoming ready.
+   * RESOURCE_EXHAUSTED preparation failures exclude that stage until explicit stop, after confirmed cleanup. */
   autoStage?: { transportId: string; dwellMs: number };
   /** A coordinator ranks complete routes for new attempts by expected cost under `costs`; another
    * route must be cheaper by `margin` while the current one is admissible and idle. */
@@ -114,6 +115,8 @@ export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionS
   /** This coordinator's admission queue: attempts waiting, admitted tickets and the component's bounds. */
   queue: ReturnType<import('./partition-attempt-queue.js').AttemptQueue['getState']>;
   /** Present only with `orchestration.autoStage`: the latest own-stage decision. */
+  /** Allocation failures retained only for this approved contribution; explicit stop clears them. */
+  stagePreparationFailures?: { index: number; code: 'RESOURCE_EXHAUSTED' }[];
   assignment?: (import('./partition-stage-assignment.js').StageAssignmentDecision & { decidedAt: number;
     demand?: import('./partition-stage-assignment.js').StageDemand }) | null;
   /** Present only with `orchestration.routeRanking`. */
