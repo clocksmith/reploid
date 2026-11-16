@@ -198,7 +198,10 @@ export function resolveConfig({ chain = [], profile = null, overrides = {}, requ
   const paths = {};
   recordSources(requestLayer, paths);
   for (const field of Object.keys(paths)) {
-    if (!requestPolicy.paths.includes(field)) throw new ConfigurationError(field, 'request override is not allowlisted');
+    // Empty allowed sections are harmless no-ops; empty replacement values on
+    // host-owned paths still need an explicit allowlist entry.
+    const allowed = requestPolicy.paths.includes(field) || requestPolicy.paths.some(path => path.startsWith(`${field}.`));
+    if (!allowed) throw new ConfigurationError(field, 'request override is not allowlisted');
   }
   merge(value, requestLayer, 'request-overrides', provenance);
   validate(value);

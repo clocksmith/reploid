@@ -109,3 +109,5 @@ resolveConfig({ request: { agent: { maxCycles: 2, maxBatchTools: 1, timeoutMs: 1
 resolveConfig({ request: { models: { contract: {} } } });
 // @ts-expect-error retry policy is not a per-request grant
 resolveConfig({ request: { agent: { retryDelayMs: 1 } } });
+
+resolveConfig({ request: { agent: {} } });

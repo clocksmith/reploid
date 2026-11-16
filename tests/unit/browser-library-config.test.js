@@ -38,6 +38,7 @@ describe('browser library configuration import and credential boundaries', () =>
     expect(config.provenance['models.contract']).toBe('application-overrides');
     expect(config.provenance['agent.maxCycles']).toBe('request-overrides');
     expect(resolveConfig({ request: {} }).value.schema).toBe('reploid.config/v1');
+    expect(resolveConfig({ request: { agent: {} } }).identity).toBe(resolveConfig().identity);
   });
   it('rejects missing array elements instead of giving them the identity of explicit nulls', () => {
     const missing = new Array(1);

@@ -4227,7 +4227,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:153fafadc301917bb5efee3d16e5da5087c0c091e4dc81782a9790ade3fe8340",
+      "sha256": "sha256:c2f473681d6f72a4d5da59b60fc1694e24a3da52cc830c7181af32dc679721cc",
       "imports": []
     },
     {
@@ -18241,7 +18241,7 @@
     {
       "path": "vendor/reploid/config/index.js",
       "owner": "vendor",
-      "sha256": "sha256:df25e483b4e7618082471f7e97d74a16f3d81961c636cc2d1118e2aabe53cf7a",
+      "sha256": "sha256:565aa3557f30d7f98f5a142754b535b029359bbe7a2b18a73d3445749a53b7e2",
       "imports": [
         "../hashing.js",
         "../rules/routing.rules.json",

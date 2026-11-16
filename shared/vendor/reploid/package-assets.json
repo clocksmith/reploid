@@ -673,8 +673,8 @@
     },
     {
       "path": "config/index.js",
-      "bytes": 12031,
-      "sha256": "df25e483b4e7618082471f7e97d74a16f3d81961c636cc2d1118e2aabe53cf7a"
+      "bytes": 12269,
+      "sha256": "565aa3557f30d7f98f5a142754b535b029359bbe7a2b18a73d3445749a53b7e2"
     },
     {
       "path": "config/profiles/local.json",

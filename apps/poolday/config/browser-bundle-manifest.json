@@ -1431,7 +1431,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 656582,
-      "sha256": "sha256:5068557ddc039ce969a974b88b2fd441651bd711ef99397ff8c96d4d8b5b5a3f"
+      "sha256": "sha256:467e9123be40460e78d11b5f8fd38667b577862bf31d40ccdf1bbc53b60b0439"
     },
     {
       "path": "config/module-registry.json",
@@ -3760,8 +3760,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2485572,
-      "sha256": "sha256:153fafadc301917bb5efee3d16e5da5087c0c091e4dc81782a9790ade3fe8340"
+      "byteLength": 2485615,
+      "sha256": "sha256:c2f473681d6f72a4d5da59b60fc1694e24a3da52cc830c7181af32dc679721cc"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11585,8 +11585,8 @@
     },
     {
       "path": "vendor/reploid/config/index.js",
-      "byteLength": 12031,
-      "sha256": "sha256:df25e483b4e7618082471f7e97d74a16f3d81961c636cc2d1118e2aabe53cf7a"
+      "byteLength": 12269,
+      "sha256": "sha256:565aa3557f30d7f98f5a142754b535b029359bbe7a2b18a73d3445749a53b7e2"
     },
     {
       "path": "vendor/reploid/config/profiles/local.json",
@@ -12026,7 +12026,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 59486,
-      "sha256": "sha256:bad211ee59d1c9c62beb5b8e53e08d9d60c52ca5e46a1764b20ad346e6712866"
+      "sha256": "sha256:fd522774f1f735f85998065b8b6a228933bcf9da41077d5526b9a25c2de3b480"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12281,7 +12281,7 @@
     {
       "path": "zero/source.json",
       "byteLength": 8408,
-      "sha256": "sha256:4a03a6076fb01abd16fb6a13375ca6850e4612349d3fe54e887d5b248aa71089"
+      "sha256": "sha256:d58a5be81528713ad60fc24b38fa085adcf2a77f086a6bc191ba61dc32ed3e39"
     },
     {
       "path": "zero/store.js",
@@ -12304,5 +12304,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:caa9f8bbbf09bb1ede80b584c9264017de732d0cf5314fe49bad0b4e6603f5ca"
+  "bundleHash": "sha256:9e8982a75decf9c6169d77289073a2ed5b330b478102461cab73cf4c4efed031"
 }
