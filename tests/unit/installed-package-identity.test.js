@@ -173,3 +173,34 @@ describe('installed package bytes before diagnostic model opening', () => {
     await expect(fs.stat(marker)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });
+
+it('preflights whole authenticated gathering and rejects missing weights before runtime import or GPU opening', async () => {
+  const f = await fixture();
+  const packageArchive = await pack(f, "throw new Error('Missing-data preflight must not import runtime code');\n");
+  const bytes = Buffer.from([1, 2, 3, 4]);
+  const manifest = Buffer.from(JSON.stringify({ modelId: 'preflight-whole', shards: [{ filename: 'weights.bin', size: 4 }] }));
+  const index = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', manifestIdentity: 'sha256:' + hash(manifest),
+    files: [{ path: 'weights.bin', size: 4 }] }));
+  const manifestPath = path.join(f.directory, 'manifest.json');
+  await fs.writeFile(manifestPath, manifest); await fs.writeFile(path.join(f.directory, 'pieces.json'), index);
+  const config = { installedPackage: f.installedPackage, packageArchive, manifestPath, manifestSha256: hash(manifest),
+    pieceIndex: { role: 'model-piece-index', path: 'pieces.json', hashAlgorithm: 'sha256', hash: hash(index) },
+    workerGather: { concurrency: 2, maxPartBytes: 8, memoryBudgetBytes: 32 } };
+  await withWorker(config, f.directory, async rpc => {
+    const result = await rpc({ op: 'preflight' });
+    expect(result.error).toBeUndefined();
+    expect(result.value).toMatchObject({ gpuOpened: false, model: { readyForWholeModel: false, weightContentsVerified: false,
+      files: [{ path: 'weights.bin', available: false, reason: 'missing' }] } });
+    const opening = await rpc({ op: 'open', indices: null });
+    expect(opening.error.message).toContain('source files are unavailable');
+    expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false, sourceReceipts: [] });
+  });
+  // Availability is distinct from byte authentication; the actual reader still hashes pieces.
+  await fs.writeFile(path.join(f.directory, 'weights.bin'), bytes);
+  await withWorker(config, f.directory, async rpc => {
+    const result = await rpc({ op: 'preflight' });
+    expect(result.value.model).toMatchObject({ readyForWholeModel: true, weightContentsVerified: false });
+    expect(result.value.gpuOpened).toBe(false);
+    await rpc({ op: 'close' });
+  });
+});

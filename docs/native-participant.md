@@ -654,3 +654,22 @@ program's optional asynchronous `getGatherReceipt()` reports worker evidence
 while no lease is outstanding and before closing. Neither receipt establishes
 model correctness or a performance win. Model, transport and physical lifecycle
 qualification must exercise this exact selected source separately.
+
+The separate offline `tests/fixtures/qwen-partition-worker.js` diagnostic supports
+whole-model authenticated gathering with `indices: null` and a pinned
+`pieceIndex`. This does not enable whole-model source mode in the participant
+CLI. Whole diagnostic loads pass the captured manifest text/hash and owned
+storage through Doppler's existing inline source API with an isolated loader;
+URL loading cannot replace those bytes. All retained sources close after model
+owners unload, including failed-load cleanup retries.
+
+The diagnostic `preflight` operation verifies the selected runtime identity and
+model/index metadata bindings without importing that runtime or opening a GPU.
+It reports canonical whole-source file availability and explicitly leaves weight
+contents unverified. Missing files block whole opening before runtime import or
+provider startup. Existing piece-oriented caches are not silently interpreted as
+full source files. Qualified preparation must supply an approved compatible
+source layout. `openWallMs` includes all opening/preflight work;
+`modelPreflightMs` and `packageRecheckMs` identify metadata/identity overhead,
+while `elapsedMs` retains its narrower pipeline-opening scope. These are load
+metrics, separate from complete generation-request and decode timings.

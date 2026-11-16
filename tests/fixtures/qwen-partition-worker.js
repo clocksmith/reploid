@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 import { collectNativeSourceReceipts } from './native-source-receipts.js';
 import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 import { openNativeModelSource } from '../../server/native-participant.js';
+import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
 const mod = file => import(pathToFileURL(path.join(config.installedPackage, 'src', file)).href);
@@ -16,7 +17,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 let runtime, bootstrapNodeWebGPU, releaseNodeWebGPU, installNodeFileFetchShim;
 let getDevice, destroyDevice, getBufferPool, destroyBufferPool;
 let createNodeFileArtifactStorageContext, createHttpArtifactStorageContext, load;
-let manifest, generation, plan, planId, model, verifiedIdentity;
+let manifest, manifestBytes, generation, plan, planId, model, verifiedIdentity;
 async function initializeRuntime() {
   const candidateRuntime = await mod('partitions.js');
   const { resolveGenerationOptions } = await mod('config/generation-contract.js');
@@ -26,7 +27,7 @@ async function initializeRuntime() {
   ({ getBufferPool, destroyBufferPool } = await mod('memory/buffer-pool.js'));
   ({ createNodeFileArtifactStorageContext, createHttpArtifactStorageContext } = await mod('storage/artifact-storage-context.js'));
   ({ load } = await mod('index.js'));
-  const manifestBytes = await fs.readFile(config.manifestPath);
+  manifestBytes = await fs.readFile(config.manifestPath);
   assert.equal(sha(manifestBytes), config.manifestSha256);
   manifest = JSON.parse(manifestBytes);
   generation = resolveGenerationOptions(config.generation);
@@ -53,6 +54,7 @@ async function close() {
   for (const resident of residents.values()) await resident.close();
   residents.clear();
   await whole?.unload(); whole = null;
+  await closeDiagnosticSources(sources);
   if (!getDevice?.()) {
     await releaseNodeWebGPU?.();
     return { gpuOpened: false, sourceReceipts, receiptFailure };
@@ -70,14 +72,27 @@ async function invoke(request) {
     verifiedIdentity = await verifyDiagnosticRuntime(config);
     return verifiedIdentity;
   }
+  if (request.op === 'preflight') {
+    verifiedIdentity = await verifyDiagnosticRuntime(config);
+    return { runtime: verifiedIdentity, model: await inspectDiagnosticModel(config), gpuOpened: false };
+  }
   if (request.op === 'open') {
-    assert(!config.workerGather || (config.pieceIndex && Array.isArray(request.indices) && request.indices.length > 0),
-      'workerGather requires pinned pieceIndex and partition indices; whole-model gather is unsupported');
+    const openStarted = performance.now();
+    assert(!config.workerGather || (config.pieceIndex && (request.indices === null
+      || Array.isArray(request.indices) && request.indices.length > 0)),
+    'workerGather requires pinned pieceIndex and explicit whole-model or partition selection');
     assert(!whole && residents.size === 0);
     assert(verifiedIdentity, 'Runtime identity preflight is required before model opening');
     const packageCheckStarted = performance.now();
     assert.deepEqual(await verifyDiagnosticRuntime(config), verifiedIdentity, 'Runtime changed after preflight');
     const packageRecheckMs = performance.now() - packageCheckStarted;
+    const modelPreflightStarted = performance.now();
+    if (request.indices === null && config.pieceIndex) {
+      const readiness = await inspectDiagnosticModel(config);
+      assert(readiness.readyForWholeModel, 'Whole diagnostic source files are unavailable: '
+        + readiness.files.filter(file => !file.available).map(file => file.path).join(', '));
+    }
+    const modelPreflightMs = performance.now() - modelPreflightStarted;
     if (!runtime) await initializeRuntime();
     if (process.platform === 'linux') {
       const available = Number((await fs.readFile('/proc/meminfo', 'utf8')).match(/^MemAvailable:\s+(\d+)/m)[1]) * 1024;
@@ -90,7 +105,11 @@ async function invoke(request) {
     await runtime.configureDeviceMemoryBudget({ maxBytes: config.runtimeConfig.shared.bufferPool.budget.maxTotalBytes });
     const start = performance.now();
     if (request.indices === null) {
-      whole = await load({ url: config.modelUrl }, { runtimeConfig: config.runtimeConfig });
+      if (config.pieceIndex) {
+        const opened = await openDiagnosticWholeModel({ config, manifestBytes, model, runtime, load,
+          signal: AbortSignal.timeout(config.limits.maxPreparationMs), onSource: source => sources.push(source) });
+        whole = opened.model;
+      } else whole = await load({ url: config.modelUrl }, { runtimeConfig: config.runtimeConfig });
     } else {
       const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
         runtimeConfig: config.runtimeConfig,
@@ -111,7 +130,8 @@ async function invoke(request) {
           participantId: 'q4-stage-' + index, limits: config.limits, signal: AbortSignal.timeout(config.limits.maxPreparationMs) }));
       }
     }
-    return { plan, planId, generation, model, packageRecheckMs, generationDigest: runtime.hashPartitionGeneration(generation),
+    return { plan, planId, generation, model, packageRecheckMs, modelPreflightMs, openWallMs: performance.now() - openStarted,
+      generationDigest: runtime.hashPartitionGeneration(generation),
       provider: bootstrap.receipt, elapsedMs: performance.now() - start, memory: memory(),
       descriptors: [...residents].map(([index, resident]) => ({ index, descriptor: resident.getDescriptor() })) };
   }
