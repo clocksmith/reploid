@@ -15,6 +15,7 @@ import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } fro
 import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
 import { resolveServedFile } from './browser-roots.js';
 import { fillWholeModelDirectory, wholeModelDirectoryComplete } from './native-whole-model-fill.js';
+import { createNativeSourceFileReader } from './native-source-files.js';
 import { resolvePinnedOrigin, readPinnedOrigin } from './native-model-origin.js';
 
 // How long a whole-model fill with a pinned origin waits for peers to announce before using the origin.
@@ -87,7 +88,8 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
 export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null,
-  modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS }) {
+  modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined }) {
+  const readMappedSource = await createNativeSourceFileReader(sourceFilePaths);
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
   let budget = null, budgetError = null;
   try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: policy.maxSupplyBytes }); }
@@ -103,6 +105,10 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const own = operation => { operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation; };
   const readLocal = async (name, { offset, size, signal } = {}) => {
     signal?.throwIfAborted(); assert(/^[\w.-]+$/.test(name), 'Plain model filename required');
+    if (offset !== undefined) {
+      const mapped = await readMappedSource(name, { offset, size, signal, maxBytes: policy.maxArtifactBytes });
+      if (mapped) return mapped;
+    }
     let handle;
     try {
       const filename = await fs.realpath(path.join(root, name));

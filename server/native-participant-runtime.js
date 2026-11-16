@@ -15,6 +15,7 @@ import { signGenerationTerminal } from '../packages/reploid/src/artifacts/genera
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
 import { createWebAccessNetwork } from '../packages/reploid/src/mesh/web-access-network.js';
 import { createNativeModelFiles } from './native-model-files.js';
+import { snapshotNativeSourceFiles } from './native-source-files.js';
 import { createCustodyKeyCertifier } from '../packages/reploid/src/artifacts/custody-certificate.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import path from 'node:path';
@@ -33,7 +34,7 @@ import { openNativePartition } from './native-partition.js';
  * `readiness` (createReadinessRecorder from reploid/measurement, off by default) observes every
  * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel, resolvePartitionSource = null }) {
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
@@ -53,6 +54,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     'Native participant requires its own valid signing identity');
   const evidenceSigner = createAttemptEvidenceSigner({ identity });
   requireValue(typeof rtc?.RTCPeerConnection === 'function' && typeof WebSocket === 'function', 'Native WebRTC and WebSocket required');
+  const approvedSourceFilePaths = snapshotNativeSourceFiles(sourceFilePaths);
   requireValue(model && modelDirectory && typeof nativeGpu === 'function', 'Explicit native model, directory and GPU provider required');
   let canonicalRuntime = null, epochs = null;
   if (canonical !== null) {
@@ -196,7 +198,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
-      files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange, owner: ownerGate,
+      files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, sourceFilePaths: approvedSourceFilePaths, onChange: onFileChange, owner: ownerGate,
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }

@@ -380,3 +380,15 @@ it('ships origins only for catalog models whose identity the pin names', async (
   // A pin never serves another identity of the same model id.
   expect(() => resolvePinnedOrigin({ ...models.get('qwen-3-5-0-8b-q4k-ehaf16'), identity: 'sha256:' + '0'.repeat(64) }, table)).toThrow('another model identity');
 });
+
+it('uses exact host-approved external sources while retaining pinned piece verification', async () => {
+  const external = path.join(await folder(), 'source.gguf');
+  await fs.writeFile(external, new Uint8Array([1,2,3,4,5,6,7,8]));
+  const f = await fixture(1, { directSource: true, hostOptions: () => ({ sourceFilePaths: { 'weights.bin': external } }) });
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    expect(new Uint8Array(await source.storage.loadShardRange(0, 1, 2))).toEqual(new Uint8Array([2,3]));
+    await fs.writeFile(external, new Uint8Array([8,7,6,5,4,3,2,1]));
+    await expect(source.storage.loadShardRange(0, 4, 4)).rejects.toThrow();
+  } finally { await source.storage.close(); }
+});
