@@ -56,6 +56,8 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
   };
   const manifestBytes = await read('manifest.json');
   requireValue(hash(manifestBytes) === model.identity, 'Native manifest differs from the approved catalog');
+  requireValue(JSON.parse(new TextDecoder().decode(manifestBytes)).modelId === model.id,
+    'Native manifest differs from the selected model id');
   const descriptor = model.source.files.find(row => row.role === 'model-piece-index');
   requireValue(descriptor?.hashAlgorithm === 'sha256', 'Native model requires a pinned piece index');
   // Catalog metadata is bundled with the application; the weight directory need

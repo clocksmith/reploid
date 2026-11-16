@@ -151,6 +151,14 @@ describe('native host boundary', () => {
     await fs.writeFile(path.join(directory, 'pieces.json'), '{}');
     await expect(openNativeModelSource({ model, modelDirectory: directory, runtime })).rejects.toThrow(/index/);
   });
+  it('rejects a mismatched model label before admitting worker storage for pinned manifest bytes', async () => {
+    const { directory, model } = await fixture();
+    const createVerifiedPieceStorage = vi.fn();
+    await expect(openNativeModelSource({ model: { ...model, id: 'different-label' }, modelDirectory: directory,
+      runtime: { createVerifiedPieceStorage }, gather: { maxPartBytes: 4, memoryBudgetBytes: 12, concurrency: 1 } }))
+      .rejects.toThrow('selected model id');
+    expect(createVerifiedPieceStorage).not.toHaveBeenCalled();
+  });
   it('rejects a weight symlink escaping the approved model directory', async () => {
     const { directory, model } = await fixture();
     const external = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-native-external-')); roots.push(external);
