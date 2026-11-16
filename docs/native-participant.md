@@ -676,3 +676,23 @@ source layout. `openWallMs` includes all opening/preflight work;
 `modelPreflightMs` and `packageRecheckMs` identify metadata/identity overhead,
 while `elapsedMs` retains its narrower pipeline-opening scope. These are load
 metrics, separate from complete generation-request and decode timings.
+
+An offline worker config may explicitly select an existing source layout with
+`sourceMap: { schema: "reploid.diagnostic-source-map/v1", manifestIdentity,
+indexIdentity, files, tokenizerPiecesDirectory }`. Both identities must match the
+captured manifest and piece index. `files` maps every indexed weight filename to
+an operator-selected absolute local file; physical paths embedded in the model
+never authorize access. An indexed `tokenizer.json` may instead use its existing
+`tokenizer.json.<offset>` pieces in the selected absolute cache directory. Omit
+`tokenizerPiecesDirectory` when mapping a complete tokenizer file.
+
+Approved weight symlinks resolve once to canonical regular-file targets of the
+declared sizes. Device/inode/size snapshots bind generic readers and, with
+gathering, the worker's no-follow descriptor admission and reads. Replacing the
+original alias does not retarget that snapshot; replacing the canonical file
+rejects reads. Complete-piece SHA verification remains mandatory, including
+in-place mutations. Cache-piece symlinks are rejected. Failed cleanup remains
+owned and retryable, and close settles actual mapped-file I/O and worker reads.
+Gathering fails explicitly if the selected Doppler lacks file-identity support.
+These options do not modify participant CLI modes, custody, package pins or
+provider configuration. Metadata preflight establishes layout availability only.

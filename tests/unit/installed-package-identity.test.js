@@ -203,4 +203,17 @@ it('preflights whole authenticated gathering and rejects missing weights before 
     expect(result.value.gpuOpened).toBe(false);
     await rpc({ op: 'close' });
   });
+  // Explicit mapped-source availability also stays outside runtime import/GPU.
+  const selected = path.join(f.directory, 'selected-link'), target = path.join(f.directory, 'approved-external.bin');
+  await fs.unlink(path.join(f.directory, 'weights.bin'));
+  await fs.writeFile(target, bytes); await fs.symlink(target, selected);
+  await withWorker({ ...config, sourceMap: { schema: 'reploid.diagnostic-source-map/v1',
+    manifestIdentity: 'sha256:' + hash(manifest), indexIdentity: 'sha256:' + hash(index), files: { 'weights.bin': selected } } },
+  f.directory, async rpc => {
+    const result = await rpc({ op: 'preflight' });
+    expect(result.error).toBeUndefined();
+    expect(result.value).toMatchObject({ gpuOpened: false, model: { readyForWholeModel: true, sourceLayout: 'explicit-mapped-source',
+      weightContentsVerified: false, files: [{ canonicalPath: await fs.realpath(target), available: true }] } });
+    expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false, sourceReceipts: [] });
+  });
 });

@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { collectNativeSourceReceipts } from './native-source-receipts.js';
 import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
-import { openNativeModelSource } from '../../server/native-participant.js';
+import { openDiagnosticModelSource } from './native-diagnostic-source.js';
 import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
@@ -78,6 +78,7 @@ async function invoke(request) {
   }
   if (request.op === 'open') {
     const openStarted = performance.now();
+    assert(!config.sourceMap || config.pieceIndex, 'Explicit diagnostic source map requires pinned pieceIndex');
     assert(!config.workerGather || (config.pieceIndex && (request.indices === null
       || Array.isArray(request.indices) && request.indices.length > 0)),
     'workerGather requires pinned pieceIndex and explicit whole-model or partition selection');
@@ -117,12 +118,10 @@ async function invoke(request) {
           if (!config.pieceIndex) return config.modelUrl.startsWith('file:')
             ? createNodeFileArtifactStorageContext(config.modelUrl, manifest)
             : createHttpArtifactStorageContext(config.modelUrl, manifest);
-          const source = await openNativeModelSource({
-            model: { ...model, source: { files: [config.pieceIndex] } },
-            modelDirectory: path.dirname(config.manifestPath), runtime, gather: config.workerGather ?? null,
+          const source = await openDiagnosticModelSource({ config, model, runtime,
             signal: AbortSignal.timeout(config.limits.maxPreparationMs),
+            onSource: source => sources.push(source),
           });
-          sources.push(source);
           return source.storage;
         } });
       for (const index of request.indices) {
