@@ -29,6 +29,24 @@ Read only the owner documents for the surface you touch:
 - **Zero / X operational discipline:** Zero answers require process parentage, provider status, VFS state, tool logs, and resume state first. All agent-generated changes must pass the Verification Worker sandbox and preserve Genesis Kernel rollback. Governed self-improvement (L0–L4) follows [INTENT.md](INTENT.md) and [rsi-improvement-episodes.md](docs/rsi-improvement-episodes.md); model or Arena scoring never grants activation permission.
 - **Symbols:** Enforce [`docs/EMOJI.md`](docs/EMOJI.md); use only approved Unicode symbols, no emojis.
 
+## Build boldly
+
+- Build the ambitious version. Implement the bold idea end to end, run it, then
+  fix what breaks. A working rough cut beats a careful plan.
+- Act without asking on reversible work in your lane: new features, rewrites,
+  large refactors, deleting dead code, wild experiments. Ask only before
+  irreversible or outward-facing steps: force-push, deleting data, spending
+  money, publishing, or touching another session's uncommitted work.
+- Reading is lookup, not a gate. Read the code you change; consult GOALS,
+  CATSCAN, charters and contracts when a question needs them, never as a
+  checklist before editing.
+- Qualification, receipts and frozen comparisons govern what we claim, not
+  whether code may be written, merged or tried. Measure once something is in use.
+- Breaking an experiment is fine. Fix breakage you cause before you stop, and
+  leave `main` runnable.
+- Report what you built and what it did. Never claim faster, better or qualified
+  without a measurement.
+
 ## Development verification
 
 Use focused checks for the changed behavior (e.g., `npx vitest run --config tests/vitest.config.js <file>`, syntax/type checks, or a local visual check), following the [workspace verification rules](https://github.com/clocksmith/ouroboros/blob/main/deco/AGENTS.md#development-verification) and [test-value guide](docs/style-guide.md#test-value). Do not automatically run full repository suites, browser/device matrices, GPU campaigns, or release qualification unless requested or required by a named correctness question. Run config/mirror/bundle checks only when editing their inputs. For documentation-only edits, inspect the diff and links. Report exactly what was checked.
