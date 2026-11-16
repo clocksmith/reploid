@@ -582,3 +582,28 @@ teardown and reports a receipt failure separately if collection was unavailable.
 Counts describe authentication work, including verified prefixes or work whose
 publication was cancelled, not successful request bytes. No throughput or model
 correctness claim follows from this wiring or the CPU contract tests.
+
+For an **offline source diagnostic** without repacking a release, keep
+`installedPackage` as an absolute path to a frozen Doppler checkout, omit
+`packageArchive`, and set `sourceTree: { treeSha256 }`. Capture the expected hash
+before starting workers with
+`inspectDiagnosticSource(directory)` from
+`tests/fixtures/diagnostic-runtime-identity.js`. Keep the diagnostic config and
+outputs outside that directory. The hash inventories every file except root
+`.git` and `node_modules`. Internal links are recorded and their targets must
+remain within the inventoried checkout; escaping links, links to excluded bytes
+and special entries are refused.
+Dependencies retain their separate locked/provider identity. Source mode never
+falls back to archive mode or updates an installed deployment.
+
+Run the existing worker `identity` operation before `open`. Its distinct
+`reploid.diagnostic-source-identity/v1` receipt reports source bytes, not a
+published npm archive or a Git commit. All stages must report the expected
+source receipt. Opening rechecks the same pin before importing Doppler or
+acquiring the GPU. Keep the checkout unchanged through teardown: this preflight
+is not an immutable snapshot, runtime attestation, or protection against edits
+after the check. Archive-only runners must not relabel source evidence as
+installed-package qualification. Model/piece authentication and provider
+identity remain separate and unchanged. Use the existing worker gather limits
+and receipt collection above; this source activation path does not qualify
+physical correctness, speed, or production deployment.

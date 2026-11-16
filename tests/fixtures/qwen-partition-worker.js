@@ -7,7 +7,7 @@ import readline from 'node:readline';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { collectNativeSourceReceipts } from './native-source-receipts.js';
-import { verifyInstalledPackage } from './installed-package-identity.js';
+import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 import { openNativeModelSource } from '../../server/native-participant.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
@@ -67,16 +67,16 @@ async function close() {
 }
 async function invoke(request) {
   if (request.op === 'identity') {
-    verifiedIdentity = await verifyInstalledPackage(config);
+    verifiedIdentity = await verifyDiagnosticRuntime(config);
     return verifiedIdentity;
   }
   if (request.op === 'open') {
     assert(!config.workerGather || (config.pieceIndex && Array.isArray(request.indices) && request.indices.length > 0),
       'workerGather requires pinned pieceIndex and partition indices; whole-model gather is unsupported');
     assert(!whole && residents.size === 0);
-    assert(verifiedIdentity, 'Installed package preflight is required before model opening');
+    assert(verifiedIdentity, 'Runtime identity preflight is required before model opening');
     const packageCheckStarted = performance.now();
-    assert.deepEqual(await verifyInstalledPackage(config), verifiedIdentity, 'Package changed after preflight');
+    assert.deepEqual(await verifyDiagnosticRuntime(config), verifiedIdentity, 'Runtime changed after preflight');
     const packageRecheckMs = performance.now() - packageCheckStarted;
     if (!runtime) await initializeRuntime();
     if (process.platform === 'linux') {
