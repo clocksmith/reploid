@@ -297,9 +297,24 @@
       "sha256": "d27249cef2ee26efed736bb0531043b9246d484ada9945662564ad0a8785402d"
     },
     {
+      "path": "agent/task-archive.js",
+      "bytes": 9311,
+      "sha256": "a4ed06ddae3335b33451e8efebd085e617fbc9c2a4540f46587f49d537799a48"
+    },
+    {
+      "path": "agent/task-protocol.js",
+      "bytes": 3575,
+      "sha256": "051b352fa7cde6aca541a86b2a9a1bc0e54afcea89205219fa5496cb3e33f796"
+    },
+    {
       "path": "agent/task-strategy.js",
-      "bytes": 48086,
-      "sha256": "49b4345bf10e8220ea2ce43a6c00afc54b3bf87ab34011521c798b47f6e2a3c8"
+      "bytes": 29668,
+      "sha256": "6902fc02018917b1f4d051dafac8c847bb7fb8c7076861fc78c9fb206807fdd9"
+    },
+    {
+      "path": "agent/task-tools.js",
+      "bytes": 8360,
+      "sha256": "abc11c5af2bbb66a841116b638eb576cfa05da2c891f2331f09d03542ad4f03c"
     },
     {
       "path": "agent/tool-dispatch.js",

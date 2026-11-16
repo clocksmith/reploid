@@ -1,646 +1,50 @@
+import { createTaskToolPolicy } from './task-tools.js';
+import { createTaskArchivePolicy } from './task-archive.js';
+import { createTaskProtocol } from './task-protocol.js';
 import { isTransientProviderFailure, providerRetryDelay } from './provider-recovery.js';
 import { createExecutionEngine } from './engine.js';
-import { TURN_NEXT, TURN_STOP, TURN_RETURN } from './engine.js';
+import { TURN_NEXT, TURN_RETURN } from './engine.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
-import { canonicalize as stableStringify } from '../artifacts/canonical-json.js';
 
 export function createTaskStrategy(options) {
   const policy = requireResolvedConfig(options.config);
-const MAX_CYCLES = policy.agent.maxCycles;
-const MAX_BATCH_TOOLS = policy.agent.maxBatchTools;
-const SINGLE_TOOL_NUDGE_THRESHOLD = policy.agent.singleToolNudgeThreshold;
-const MILESTONE_AUTOPARK_THRESHOLD = policy.agent.milestoneAutoparkThreshold;
-const RGR_ARCHIVE_LIMIT = policy.agent.rgrArchiveLimit;
-const PARALLEL_SAFE_TOOLS = new Set(policy.tools.parallelSafe);
-const ORDERED_TOOLS = new Set(policy.tools.ordered);
-const EXCLUSIVE_TOOLS = new Set(policy.tools.exclusive);
-const RGR_SLOT_ROLES = Object.freeze([
-  'elite',
-  'performance',
-  'robustness',
-  'repair',
-  'low-cost',
-  'safety',
-  'fallback'
-]);
-const REQUIRED_ANCHOR_OBSERVATIONS = policy.agent.requiredAnchorObservations;
-const RGR_SCORE_KEYS = Object.freeze([
-  'usefulness',
-  'safety',
-  'reversibility',
-  'evidence',
-  'qAnchor',
-  'efficiency'
-]);
-const TOOL_STRING_PREVIEW_CHARS = policy.agent.toolStringPreviewChars;
-const TOOL_RESULT_PAYLOAD_CHARS = policy.agent.toolResultPayloadChars;
-const TOOL_BATCH_BODY_CHARS = policy.agent.toolBatchBodyChars;
-const TOOL_SANITIZE_MAX_DEPTH = policy.agent.toolSanitizeMaxDepth;
-const TOOL_SANITIZE_ARRAY_LIMIT = policy.agent.toolSanitizeArrayLimit;
-const DEFAULT_GENERATION_RETRY_DELAY_MS = policy.agent.retryDelayMs;
-const MAX_GENERATION_RETRY_DELAY_MS = policy.agent.maxRetryDelayMs;
+  const taskTools = createTaskToolPolicy(policy);
+  const { formatToolResult, formatToolCallParseError, normalizeToolName, buildToolExecutionGroups, formatToolBatchResult } = taskTools;
+  const { MAX_BATCH_TOOLS, REQUIRED_ANCHOR_OBSERVATIONS, RGR_SCORE_KEYS, clamp01, summarizeToolEntries, normalizeAnchorObservations, buildRgrCandidateIdentity, isDominatedBy, evaluatePromotionGate, buildRgrArchiveEntry } = createTaskArchivePolicy(policy, taskTools);
+  const { formatContextMessage, parseSelfDirective, buildSystemNotice, buildMilestoneNotice, buildParkNotice } = createTaskProtocol(taskTools);
+  const MAX_CYCLES = policy.agent.maxCycles;
 
-const estimateTokens = (text) => {
-  const value = String(text || '');
-  return Math.max(0, Math.ceil(value.length / 4));
-};
+  const SINGLE_TOOL_NUDGE_THRESHOLD = policy.agent.singleToolNudgeThreshold;
+  const MILESTONE_AUTOPARK_THRESHOLD = policy.agent.milestoneAutoparkThreshold;
+  const RGR_ARCHIVE_LIMIT = policy.agent.rgrArchiveLimit;
 
-const truncateString = (value, limit) => {
-  const text = String(value || '');
-  if (text.length <= limit) return text;
-  const omitted = text.length - limit;
-  return `${text.slice(0, limit)}\n[truncated ${omitted} chars; use targeted reads or smaller ranges for full content]`;
-};
+  const RGR_SLOT_ROLES = Object.freeze([
+    'elite',
+    'performance',
+    'robustness',
+    'repair',
+    'low-cost',
+    'safety',
+    'fallback'
+  ]);
 
-const getErrorMessage = (error) => String(error?.message || error || '').trim();
+  const DEFAULT_GENERATION_RETRY_DELAY_MS = policy.agent.retryDelayMs;
+  const MAX_GENERATION_RETRY_DELAY_MS = policy.agent.maxRetryDelayMs;
 
-const getRetryableGenerationError = error => isTransientProviderFailure(error) ? {
-  message: getErrorMessage(error),
-  retryDelayMs: providerRetryDelay(error, { baseMs: DEFAULT_GENERATION_RETRY_DELAY_MS,
-    maxMs: MAX_GENERATION_RETRY_DELAY_MS })
-} : null;
-
-const sanitizeToolValue = (value, depth = 0, seen = new WeakSet()) => {
-  if (typeof value === 'string') {
-    return truncateString(value, TOOL_STRING_PREVIEW_CHARS);
-  }
-  if (
-    value === null ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'undefined'
-  ) {
-    return value;
-  }
-  if (typeof value === 'bigint') return String(value);
-  if (typeof value === 'symbol') return String(value);
-  if (typeof value === 'function') return `[function ${value.name || 'anonymous'}]`;
-  if (typeof value !== 'object') return String(value);
-  if (seen.has(value)) return '[circular]';
-  if (depth >= TOOL_SANITIZE_MAX_DEPTH) {
-    return Array.isArray(value)
-      ? `[truncated nested array: ${value.length} items]`
-      : '[truncated nested object]';
-  }
-
-  seen.add(value);
-  if (Array.isArray(value)) {
-    const next = value
-      .slice(0, TOOL_SANITIZE_ARRAY_LIMIT)
-      .map((item) => sanitizeToolValue(item, depth + 1, seen));
-    if (value.length > TOOL_SANITIZE_ARRAY_LIMIT) {
-      next.push(`[truncated ${value.length - TOOL_SANITIZE_ARRAY_LIMIT} array items]`);
-    }
-    seen.delete(value);
-    return next;
-  }
-
-  const next = {};
-  Object.entries(value).forEach(([key, item]) => {
-    next[key] = sanitizeToolValue(item, depth + 1, seen);
-  });
-  seen.delete(value);
-  return next;
-};
-
-const formatToolResult = (name, result, kind = 'RESULT') => {
-  const sanitized = sanitizeToolValue(result);
-  const rawPayload = typeof sanitized === 'string'
-    ? sanitized
-    : JSON.stringify(sanitized, null, 2);
-  const payload = truncateString(rawPayload, TOOL_RESULT_PAYLOAD_CHARS);
-  return `[TOOL ${name} ${kind}]\n${payload}`.trim();
-};
-
-const formatToolCallParseError = (call = {}) => {
-  return formatToolResult(call.name || 'Tool', {
-    error: call.error || 'Invalid tool call',
-    parsedArgs: call.args || {},
-    hint: 'Use key: value lines or key <<MARKER literal blocks.'
-  }, 'ERROR');
-};
-
-const normalizeToolName = (name) => String(name || '').trim();
-
-const normalizePlanId = (id) => String(id || '').trim();
-
-const normalizePlanDeps = (after) => {
-  if (after === undefined || after === null || after === '') return [];
-  if (Array.isArray(after)) {
-    return after.map((item) => normalizePlanId(item)).filter(Boolean);
-  }
-  return String(after)
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-};
-
-const getToolExecutionMode = (call = {}) => {
-  const name = normalizeToolName(call.name);
-  if (!name || call.error) return 'ordered';
-  if (PARALLEL_SAFE_TOOLS.has(name)) return 'parallel';
-  if (EXCLUSIVE_TOOLS.has(name)) return 'exclusive';
-  if (ORDERED_TOOLS.has(name)) return 'ordered';
-  return 'ordered';
-};
-
-const groupToolCallsInOrder = (calls = []) => {
-  const groups = [];
-  let parallelCalls = [];
-
-  const flushParallel = () => {
-    if (parallelCalls.length === 0) return;
-    groups.push({
-      mode: 'parallel',
-      calls: parallelCalls
-    });
-    parallelCalls = [];
+  const estimateTokens = (text) => {
+    const value = String(text || '');
+    return Math.max(0, Math.ceil(value.length / 4));
   };
 
-  for (const call of calls) {
-    const mode = getToolExecutionMode(call);
-    if (mode === 'parallel') {
-      parallelCalls.push(call);
-      continue;
-    }
+  const getErrorMessage = (error) => String(error?.message || error || '').trim();
 
-    flushParallel();
-    groups.push({
-      mode,
-      calls: [call]
-    });
-  }
+  const getRetryableGenerationError = error => isTransientProviderFailure(error) ? {
+    message: getErrorMessage(error),
+    retryDelayMs: providerRetryDelay(error, { baseMs: DEFAULT_GENERATION_RETRY_DELAY_MS,
+      maxMs: MAX_GENERATION_RETRY_DELAY_MS })
+  } : null;
 
-  flushParallel();
-  return groups;
-};
-
-const buildDependencyExecutionGroups = (calls = []) => {
-  const prepared = calls.map((call, index) => ({
-    ...call,
-    id: normalizePlanId(call.id),
-    after: normalizePlanDeps(call.after),
-    index
-  }));
-  const idCounts = new Map();
-
-  for (const call of prepared) {
-    if (!call.id) continue;
-    idCounts.set(call.id, (idCounts.get(call.id) || 0) + 1);
-  }
-
-  const knownIds = new Set(
-    [...idCounts.entries()]
-      .filter(([, count]) => count === 1)
-      .map(([id]) => id)
-  );
-  let pending = prepared.map((call) => {
-    if (call.id && idCounts.get(call.id) > 1) {
-      return {
-        ...call,
-        error: call.error || `Duplicate PLAN step id: ${call.id}`
-      };
-    }
-    return call;
-  });
-  const completed = new Set();
-  const groups = [];
-
-  while (pending.length > 0) {
-    const ready = [];
-    const blocked = [];
-
-    for (const call of pending) {
-      const missingDeps = call.after.filter((id) => !knownIds.has(id));
-      if (missingDeps.length > 0) {
-        ready.push({
-          ...call,
-          error: call.error || `Unknown PLAN dependency: ${missingDeps.join(', ')}`
-        });
-        continue;
-      }
-
-      const unresolvedDeps = call.after.filter((id) => !completed.has(id));
-      if (unresolvedDeps.length === 0) {
-        ready.push(call);
-      } else {
-        blocked.push(call);
-      }
-    }
-
-    if (ready.length === 0) {
-      groups.push(...groupToolCallsInOrder(
-        blocked.map((call) => ({
-          ...call,
-          error: call.error || `Unresolved PLAN dependency cycle: ${call.after.join(', ')}`
-        }))
-      ));
-      break;
-    }
-
-    groups.push(...groupToolCallsInOrder(ready));
-    for (const call of ready) {
-      if (call.id) completed.add(call.id);
-    }
-    pending = blocked;
-  }
-
-  return groups;
-};
-
-const buildToolExecutionGroups = (calls = []) => {
-  const hasPlanScheduling = calls.some((call) =>
-    normalizePlanId(call.id) || normalizePlanDeps(call.after).length > 0
-  );
-  if (hasPlanScheduling) return buildDependencyExecutionGroups(calls);
-  return groupToolCallsInOrder(calls);
-};
-
-const getToolBatchMode = (groups = []) => {
-  const parallelGroups = groups.filter((group) => group.mode === 'parallel').length;
-  if (parallelGroups === groups.length) return 'parallel-read';
-  if (parallelGroups > 0) return 'scheduled';
-  return 'ordered';
-};
-
-const formatToolBatchResult = (entries = [], groups = []) => {
-  const errors = entries.filter((entry) => entry.kind === 'ERROR').length;
-  const tools = entries
-    .map((entry) => {
-      const name = normalizeToolName(entry.call?.name) || 'unknown';
-      const id = normalizePlanId(entry.call?.id);
-      return id ? `${id}:${name}` : name;
-    })
-    .join(', ');
-  const parallelGroups = groups.filter((group) => group.mode === 'parallel').length;
-  const body = truncateString(
-    entries
-      .map((entry) => entry.message)
-      .filter(Boolean)
-      .join('\n\n'),
-    TOOL_BATCH_BODY_CHARS
-  );
-
-  return [
-    '[TOOL BATCH RESULT]',
-    `mode: ${getToolBatchMode(groups)}`,
-    `groups: ${groups.length}`,
-    `parallelGroups: ${parallelGroups}`,
-    `count: ${entries.length}`,
-    `errors: ${errors}`,
-    `tools: ${tools}`,
-    '',
-    body
-  ].join('\n').trim();
-};
-
-const clamp01 = (value) => Math.max(0, Math.min(1, Number(value) || 0));
-
-const hashString = (value) => {
-  const text = String(value || '');
-  let hash = 2166136261;
-  for (let index = 0; index < text.length; index += 1) {
-    hash ^= text.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(16).padStart(8, '0');
-};
-
-const getToolPath = (call = {}) => {
-  const args = call.args && typeof call.args === 'object' ? call.args : {};
-  const rawPath = args.path || args.target || args.file || args.outputPath || '';
-  return typeof rawPath === 'string' ? rawPath.trim() : '';
-};
-
-const getCandidateKind = (entries = []) => {
-  const paths = entries.map((entry) => getToolPath(entry.call)).filter(Boolean);
-  const mutationPaths = entries
-    .filter((entry) => getToolExecutionMode(entry.call) !== 'parallel')
-    .map((entry) => getToolPath(entry.call))
-    .filter(Boolean);
-  if (mutationPaths.some((path) => path.startsWith('/artifacts/rgr/') || path.startsWith('opfs:/artifacts/rgr/'))) return 'rgr-artifact';
-  if (mutationPaths.some((path) => path.startsWith('/self/prompts/'))) return 'prompt-candidate';
-  if (mutationPaths.some((path) => path.startsWith('/self/blueprints/'))) return 'blueprint-candidate';
-  if (mutationPaths.some((path) => path.startsWith('/self/tools/'))) return 'tool-candidate';
-  if (mutationPaths.some((path) => path.startsWith('/self/'))) return 'self-candidate';
-  if (entries.some((entry) => getToolExecutionMode(entry.call) === 'parallel')) return 'read-evidence';
-  if (paths.some((path) => path.startsWith('/artifacts/rgr/') || path.startsWith('opfs:/artifacts/rgr/'))) return 'rgr-artifact';
-  return 'shadow-candidate';
-};
-
-const summarizeToolEntries = (entries = []) => {
-  const tools = entries.map((entry) => normalizeToolName(entry.call?.name) || 'unknown');
-  const paths = entries.map((entry) => getToolPath(entry.call)).filter(Boolean);
-  const errors = entries.filter((entry) => entry.kind === 'ERROR').length;
-  const successful = Math.max(0, entries.length - errors);
-  const readOnly = entries.filter((entry) => getToolExecutionMode(entry.call) === 'parallel').length;
-  const ordered = entries.filter((entry) => getToolExecutionMode(entry.call) === 'ordered').length;
-  const exclusive = entries.filter((entry) => getToolExecutionMode(entry.call) === 'exclusive').length;
-  return {
-    tools,
-    paths,
-    count: entries.length,
-    successful,
-    errors,
-    readOnly,
-    ordered,
-    exclusive,
-    kind: getCandidateKind(entries)
-  };
-};
-
-const scoreRgrCandidate = ({ entries = [], groups = [], anchorObservations = 0 }) => {
-  const summary = summarizeToolEntries(entries);
-  const total = Math.max(1, summary.count);
-  const mutationCount = summary.ordered + summary.exclusive;
-  const selfPathWrites = entries.filter((entry) => {
-    const name = normalizeToolName(entry.call?.name);
-    const path = getToolPath(entry.call);
-    return ['WriteFile', 'LoadModule'].includes(name) && path.startsWith('/self/');
-  }).length;
-  const artifactWrites = entries.filter((entry) => {
-    const name = normalizeToolName(entry.call?.name);
-    const path = getToolPath(entry.call);
-    return name === 'WriteFile' && (
-      path.startsWith('/artifacts/') ||
-      path.startsWith('opfs:/artifacts/')
-    );
-  }).length;
-  const parallelGroups = groups.filter((group) => group.mode === 'parallel').length;
-  const score = {
-    usefulness: clamp01((summary.successful + artifactWrites + parallelGroups) / (total + 2)),
-    safety: clamp01(1 - ((summary.errors * 0.35) + (summary.exclusive * 0.45) + (selfPathWrites * 0.18))),
-    reversibility: clamp01(1 - ((selfPathWrites * 0.22) + (summary.exclusive * 0.35)) + (artifactWrites * 0.12)),
-    evidence: clamp01((summary.readOnly + artifactWrites) / (total + 1)),
-    qAnchor: clamp01(anchorObservations / REQUIRED_ANCHOR_OBSERVATIONS),
-    efficiency: clamp01(1 - ((total - 1) / (MAX_BATCH_TOOLS * 2)))
-  };
-  return Object.fromEntries(
-    Object.entries(score).map(([key, value]) => [key, Number(value.toFixed(3))])
-  );
-};
-
-const normalizeAnchorObservation = (observation = {}) => {
-  if (!observation || typeof observation !== 'object' || Array.isArray(observation)) {
-    return null;
-  }
-  const verified = observation.verified === true || observation.valid === true;
-  if (!verified) return null;
-  const id = String(
-    observation.id ||
-    observation.receiptId ||
-    observation.path ||
-    observation.provider ||
-    ''
-  ).trim();
-  if (!id) return null;
-  return Object.freeze({
-    id,
-    receiptId: observation.receiptId || id,
-    provider: observation.provider || null,
-    consumer: observation.consumer || null,
-    jobHash: observation.jobHash || null,
-    model: observation.model || null,
-    timestamp: Number(observation.timestamp || 0) || null,
-    path: observation.path || null,
-    verified: true
-  });
-};
-
-const normalizeAnchorObservations = (observations = []) => {
-  const seen = new Set();
-  const normalized = [];
-  for (const observation of Array.isArray(observations) ? observations : []) {
-    const next = normalizeAnchorObservation(observation);
-    if (!next || seen.has(next.id)) continue;
-    seen.add(next.id);
-    normalized.push(next);
-  }
-  return normalized;
-};
-
-const buildRgrCandidateIdentity = ({
-  cycle,
-  instanceId,
-  candidateText,
-  summary,
-  parentId
-}) => {
-  const digest = hashString(stableStringify({
-    cycle,
-    instanceId,
-    candidateText,
-    summary,
-    parentId
-  }));
-  return {
-    digest,
-    id: `rgr-shadow-${cycle}-${digest}`
-  };
-};
-
-const isDominatedBy = (candidateScore = {}, archiveEntry = {}) => {
-  const otherScore = archiveEntry.score || {};
-  const noWorse = RGR_SCORE_KEYS.every((key) => (
-    Number(otherScore[key] || 0) >= Number(candidateScore[key] || 0)
-  ));
-  const betterSomewhere = RGR_SCORE_KEYS.some((key) => (
-    Number(otherScore[key] || 0) > Number(candidateScore[key] || 0)
-  ));
-  return noWorse && betterSomewhere;
-};
-
-const evaluatePromotionGate = ({ score, summary, pareto }) => {
-  const reasons = [];
-  if (summary.errors > 0) {
-    reasons.push(`${summary.errors} tool error${summary.errors === 1 ? '' : 's'} present`);
-  }
-  if (summary.exclusive > 0) {
-    reasons.push('exclusive gate/tool request requires independent governance');
-  }
-  if (score.qAnchor < 1) {
-    reasons.push(`missing independent anchor observations (${Math.round(score.qAnchor * REQUIRED_ANCHOR_OBSERVATIONS)}/${REQUIRED_ANCHOR_OBSERVATIONS})`);
-  }
-  if (!pareto.survives) {
-    reasons.push('candidate is Pareto-dominated by the Shadow archive');
-  }
-
-  const hardReject = summary.errors > 0 || summary.exclusive > 0 || !pareto.survives;
-  return {
-    state: hardReject ? 'rejected' : (reasons.length > 0 ? 'pending-anchors' : 'passed'),
-    reasons
-  };
-};
-
-const buildRgrArchiveEntry = ({
-  cycle,
-  instanceId,
-  candidateText,
-  entries,
-  groups,
-  parentId,
-  archive,
-  anchorObservations = []
-}) => {
-  const summary = summarizeToolEntries(entries);
-  const verifiedAnchorObservations = normalizeAnchorObservations(anchorObservations);
-  const score = scoreRgrCandidate({
-    entries,
-    groups,
-    anchorObservations: verifiedAnchorObservations.length
-  });
-  const { digest, id } = buildRgrCandidateIdentity({
-    cycle,
-    instanceId,
-    candidateText,
-    summary,
-    parentId
-  });
-  const pareto = {
-    survives: !archive.some((entry) => isDominatedBy(score, entry)),
-    comparedAgainst: archive.length,
-    keys: [...RGR_SCORE_KEYS]
-  };
-  const gate = evaluatePromotionGate({ score, summary, pareto });
-
-  return {
-    version: 1,
-    id,
-    state: 'shadow',
-    phase: 'candidate-ring',
-    cycle,
-    instanceId,
-    parentId: parentId || 'seed',
-    kind: summary.kind,
-    scheduler: {
-      mode: getToolBatchMode(groups),
-      groups: groups.length,
-      parallelGroups: groups.filter((group) => group.mode === 'parallel').length
-    },
-    summary,
-    score,
-    pareto,
-    gate,
-    anchor: {
-      required: REQUIRED_ANCHOR_OBSERVATIONS,
-      observations: verifiedAnchorObservations,
-      qAnchor: score.qAnchor
-    },
-    validator: {
-      state: 'quarantined',
-      selfApprovalAllowed: false
-    },
-    promotion: {
-      allowed: gate.state === 'passed',
-      boundary: 'Promote is disabled until anchored replay evidence passes.'
-    },
-    digest
-  };
-};
-
-const extractPrefixedLine = (text, prefixes) => {
-  const lines = String(text || '')
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  for (const line of lines) {
-    for (const prefix of prefixes) {
-      const marker = `${prefix.toUpperCase()}:`;
-      if (line.toUpperCase().startsWith(marker)) {
-        return line.slice(marker.length).trim();
-      }
-    }
-  }
-
-  return null;
-};
-
-const getMessageLabel = (message = {}) => {
-  const origin = String(message.origin || '').toLowerCase();
-  if (origin === 'bootstrap') return 'BOOT';
-  if (origin === 'model') return 'MODEL';
-  if (origin === 'tool') return 'TOOL';
-  if (origin === 'system') return 'SYSTEM';
-  return String(message.role || 'unknown').toUpperCase();
-};
-
-const formatContextMessage = (message = {}) => {
-  const content = String(message.content || '').trim();
-  const label = getMessageLabel(message);
-  if (!content) {
-    return `[${label}]`;
-  }
-
-  // Tool and system observations already carry a structured prefix that is useful
-  // both to the model and to the human transcript.
-  if (content.startsWith('[TOOL ') || content.startsWith('[SYSTEM')) {
-    return content;
-  }
-
-  return `[${label}]\n${content}`.trim();
-};
-
-const parseSelfDirective = (callsFromResponse, text) => {
-  const cleaned = String(text || '').trim();
-  if (!cleaned && !callsFromResponse.length) return null;
-
-  const calls = callsFromResponse.map((call) => ({
-    name: String(call?.name || '').trim(),
-    args: call?.args && typeof call.args === 'object' ? call.args : {},
-    id: normalizePlanId(call?.id),
-    after: normalizePlanDeps(call?.after),
-    error: call?.error || null
-  })).filter((call) => call.name);
-
-  const milestoneReason = extractPrefixedLine(cleaned, ['MILESTONE', 'DONE']);
-  const idleReason = extractPrefixedLine(cleaned, ['IDLE', 'PARK']);
-
-  if (calls.length > 0) {
-    return {
-      type: 'tools',
-      calls,
-      milestoneReason,
-      idleReason
-    };
-  }
-
-  if (idleReason !== null) {
-    return {
-      type: 'idle',
-      reason: idleReason,
-      wakeOn: 'manual'
-    };
-  }
-
-  if (milestoneReason !== null) {
-    return {
-      type: 'done',
-      reason: milestoneReason
-    };
-  }
-
-  return null;
-};
-
-const buildSystemNotice = (message) => `[SYSTEM]\n${String(message || '').trim()}`.trim();
-const withTerminalPunctuation = (value) => {
-  const text = String(value || '').trim();
-  if (!text) return '';
-  return /[.!?]$/.test(text) ? text : `${text}.`;
-};
-const buildMilestoneNotice = (reason) => buildSystemNotice(
-  reason
-    ? `Milestone recorded: ${withTerminalPunctuation(reason)} Policy unchanged: execution remains resumable until you stop it or the cycle limit is reached.`
-    : 'Milestone recorded. Policy unchanged: execution remains resumable until you stop it or the cycle limit is reached.'
-);
-const buildParkNotice = (reason, wakeOn = 'manual') => buildSystemNotice(
-  reason
-    ? `Waiting: ${withTerminalPunctuation(reason)} Resume when new work is available. Wake condition: ${wakeOn}.`
-    : `Waiting. Resume when new work is available. Wake condition: ${wakeOn}.`
-);
-
-const goal = String(options.goal || '').trim();
+  const goal = String(options.goal || '').trim();
   const environment = String(options.environment || '').trim();
   const swarmEnabled = policy.mesh.enabled;
   const instanceId = options.instanceId;
@@ -959,31 +363,22 @@ const goal = String(options.goal || '').trim();
     const mode = getRgrMode();
     const latestArchive = rgrArchive[0] || null;
     const anchorObservations = latestArchive?.anchor?.observations?.length || 0;
-    const gateState = parked && wakeOn === 'provider-ready'
-      ? 'blocked'
-      : status === 'ERROR'
-        ? 'rejected'
-        : latestArchive?.gate?.state || (
-            anchorObservations >= REQUIRED_ANCHOR_OBSERVATIONS
-              ? 'passed'
-              : 'pending-anchors'
-          );
+    let gateState = latestArchive?.gate?.state
+      || (anchorObservations >= REQUIRED_ANCHOR_OBSERVATIONS ? 'passed' : 'pending-anchors');
+    if (status === 'ERROR') gateState = 'rejected';
+    if (parked && wakeOn === 'provider-ready') gateState = 'blocked';
     const gateReasons = parked && wakeOn === 'provider-ready'
       ? ['waiting for remote host slot']
       : latestArchive?.gate?.reasons || [];
-    const role = effectiveSwarmEnabled
-      ? (hasLocalHost ? 'provider' : 'consumer')
-      : (hasLocalHost ? 'solo' : 'dead');
-    const slotMode = hasLocalHost && effectiveSwarmEnabled
-      ? 'local/remote'
-      : hasLocalHost
-        ? 'local'
-        : effectiveSwarmEnabled
-          ? 'remote'
-          : 'empty';
-    const hostStatus = hasLocalHost
-      ? (effectiveSwarmEnabled ? 'hosting local slots' : 'local only')
-      : (effectiveSwarmEnabled ? 'waiting for host' : 'none');
+    let role = 'dead', slotMode = 'empty', hostStatus = 'none';
+    if (hasLocalHost) {
+      role = 'solo'; slotMode = 'local'; hostStatus = 'local only';
+      if (effectiveSwarmEnabled) {
+        role = 'provider'; slotMode = 'local/remote'; hostStatus = 'hosting local slots';
+      }
+    } else if (effectiveSwarmEnabled) {
+      role = 'consumer'; slotMode = 'remote'; hostStatus = 'waiting for host';
+    }
 
     return {
       name: 'Recursive GEPA Ring',
