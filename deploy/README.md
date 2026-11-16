@@ -126,3 +126,11 @@ Edit shared cache headers and common route destinations in
 `npm run verify:hosting-config` checks them in CI. Template references preserve
 each target's existing route order and its distinct functions, Firestore and
 hosting configuration.
+
+## Process logs
+
+Hosted and native processes write operational events to stdout and errors to stderr.
+Cloud Run captures these streams in Cloud Logging; local operators can redirect them
+to a chosen file outside the source tree. Log files are ignored and are not durable
+execution or accounting receipts. Do not put credentials or private request payloads
+in operational events.

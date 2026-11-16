@@ -4,6 +4,7 @@ import { publicProviderHardware } from './provider-hardware.js';
 /** Stable display names identify a key, never a unique physical computer. */
 export function participantLabel(id) {
   if (typeof id !== 'string' || !id) return 'Remote device';
+  // FNV-1a, used only as a non-cryptographic device-description fingerprint.
   let hash = 0x811c9dc5;
   const input = policy.labelVersion + id;
   for (let i = 0; i < input.length; i++) hash = Math.imul(hash ^ input.charCodeAt(i), 0x01000193) >>> 0;

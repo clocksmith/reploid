@@ -55,7 +55,6 @@ server/logs/
 # Test coverage
 coverage/
 .nyc_output/
-html/
 
 # Playwright
 playwright-report/

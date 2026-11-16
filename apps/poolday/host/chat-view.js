@@ -1,3 +1,4 @@
+import { SHA256_PATTERN } from '../pool/evidence/primitives.js';
 /** Pure projections. Discovery describes availability; accepted attempts own history. */
 export function selectAvailableChatModel(models, preference, location = 'auto') {
   // Application preference, not a quality claim or a priority advertised by peers.
@@ -22,7 +23,7 @@ export function selectAvailableChatModel(models, preference, location = 'auto') 
 
 /** A base model's compatible adapters: those declaring its exact artifact identity. Names never decide compatibility. */
 export const compatibleAdapters = model => (model.availableAdapters || []).filter(adapter => typeof adapter?.id === 'string' && adapter.id
-  && /^sha256:[a-f0-9]{64}$/.test(adapter.identity) && /^sha256:[a-f0-9]{64}$/.test(model.identity || '') && adapter.baseModelIdentity === model.identity);
+  && SHA256_PATTERN.test(adapter.identity) && SHA256_PATTERN.test(model.identity || '') && adapter.baseModelIdentity === model.identity);
 
 export function projectChatCatalog({ models, peers, releasedPartitionModels = [] }) {
   const selections = models.filter(model => !model.partition).flatMap(model => [model, ...compatibleAdapters(model).map(adapter => ({
