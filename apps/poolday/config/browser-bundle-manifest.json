@@ -1525,8 +1525,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 141315,
-      "sha256": "sha256:81ed511836c11817695c0e362ac6846af552f430fe83df9c21ee52e27913d783"
+      "byteLength": 141205,
+      "sha256": "sha256:0f0a3616626161f5ff24bc8b21456d2b048e4398db75b5ef050318a2e3f0fa4e"
     },
     {
       "path": "config/vfs-policy.js",
@@ -4805,8 +4805,8 @@
     },
     {
       "path": "vendor/doppler/0.7.4/src/config/kernels/registry.json",
-      "byteLength": 791463,
-      "sha256": "sha256:f0818cbb22023bb5c408c108bb6045d67708a5edfac74c9633bdf4dc17e72465"
+      "byteLength": 788651,
+      "sha256": "sha256:d75923134508f3fba72a3134d9004a2046d503655dc3e4d99bf23c795d23da99"
     },
     {
       "path": "vendor/doppler/0.7.4/src/config/layer-partition-plan.js",
@@ -5122,11 +5122,6 @@
       "path": "vendor/doppler/0.7.4/src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
       "byteLength": 183117,
       "sha256": "sha256:20ec98d363407b973fa7badab9419086b8a4f0ab0663c2f50a8238f86dcd324b"
-    },
-    {
-      "path": "vendor/doppler/0.7.4/src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
-      "byteLength": 180113,
-      "sha256": "sha256:de27a1fd23f676039b06111b7abd1085b36dd682dcb7baa49fedfe882decf297"
     },
     {
       "path": "vendor/doppler/0.7.4/src/config/runtime/profiles/qwen3-6-35b-a3b-route-f32-candidate.json",
@@ -12314,5 +12309,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:b692be146efa7c2543c515eb31cdc2c70d8cedbbf4a547728545389273f7f3e1"
+  "bundleHash": "sha256:2ee9cb4b88e3ee28ffab3d719d592e3840f5f8ed5b6a13236887c16c3f6c1137"
 }
