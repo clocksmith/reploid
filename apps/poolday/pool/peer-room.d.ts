@@ -30,12 +30,46 @@ export function resumePeerOperationJob(options: Omit<Parameters<typeof runPeerOp
 }): Promise<PackPeerJobResult>;
 export const PEER_ROOM_VERSION: string;
 export const DEFAULT_PEER_ROOM_ID: string;
-export function runPeerJob(options: Record<string, unknown>): Promise<Record<string, unknown>>;
-export function createPeerProviderNode(options: Record<string, unknown>): {
-  start(options?: Record<string, unknown>): Promise<Record<string, unknown>>;
-  stop(): Promise<Record<string, unknown>>;
-  getAdvert(): Record<string, unknown> | null;
-};
+export interface PeerRoomActivity { status: string; phase: string; roomId: string; [detail: string]: unknown }
+export interface PeerRoomOptions {
+  roomId?: string;
+  roomBusFactory?: typeof import('./peer-rendezvous.js').createBroadcastPeerRoomBus;
+  relayAckSigner?: ((message: unknown) => unknown | Promise<unknown>) | null;
+  onActivity?: ((event: PeerRoomActivity) => void) | null;
+  rtcConfigProvider?: ((...args: unknown[]) => RTCConfiguration | Promise<RTCConfiguration>) | null;
+}
+export interface PeerJobOptions extends PeerRoomOptions {
+  requesterClient: Pick<ReturnType<typeof import('./requester-client.js').createRequesterClient>,
+    'createPeerJobIntent' | 'createPeerSequencePayload' | 'createPeerPromptPayload'> & Partial<Pick<
+      ReturnType<typeof import('./requester-client.js').createRequesterClient>, 'createPeerReceiptAcceptance' | 'createPeerLedgerEvents'>>;
+  prompt?: string; sequence?: string; sequenceRequest?: Readonly<Record<string, JsonValue>> | null;
+  policyId?: string; modelRequirements?: Readonly<Record<string, JsonValue>>;
+  generationConfig?: Readonly<Record<string, JsonValue>>; maxPointSpend?: number | null;
+  discoveryWindowMs?: number; sessionAcceptWindowMs?: number; receiptWindowMs?: number;
+  queueWindowMs?: number; transportConnectWindowMs?: number; promptDispatchConcurrency?: number | null;
+  knownProviderAdverts?: readonly Readonly<Record<string, unknown>>[];
+  requesterTransportFactory?: typeof import('../../../shared/pool/p2p-transport.js').createP2PRequesterTransport;
+}
+export interface PeerJobResult {
+  transport: 'webrtc_peer_room'; roomId: string; intentHash: string; outputText: string; tokenIds: number[];
+  receiptHash: string | null; receiptHashes: string[]; acceptedSessionCount: number; receiptErrors: string[];
+  plan: Awaited<ReturnType<typeof import('./peer-control-plane.js').buildPeerAssignmentPlan>>;
+  deliveryPolicy: { queueWindowMs: number; receiptWindowMs: number;
+    queueDeadlineStartsOn: 'provider_queued_status'; receiptDeadlineStartsOn: 'input_dispatch_or_provider_execution_started' };
+  [evidence: string]: unknown;
+}
+export function runPeerJob(options: PeerJobOptions): Promise<PeerJobResult>;
+export interface PeerProviderNodeOptions extends PeerRoomOptions {
+  providerClient: Pick<ReturnType<typeof import('./provider-client.js').createProviderClient>, 'createPeerProviderAdvert' | 'executePeerAssignment'>;
+  providerTransportFactory?: typeof import('../../../shared/pool/p2p-transport.js').createP2PProviderTransport;
+  advertIntervalMs?: number; maxActiveSessions?: number; maxQueuedSessions?: number;
+}
+export interface PeerProviderNode {
+  start(options?: Parameters<PeerProviderNodeOptions['providerClient']['createPeerProviderAdvert']>[0]): Promise<Readonly<Record<string, unknown>>>;
+  stop(): Promise<{ roomId: string; status: 'peer_provider_stopped' }>;
+  getAdvert(): Awaited<ReturnType<PeerProviderNodeOptions['providerClient']['createPeerProviderAdvert']>> | null;
+}
+export function createPeerProviderNode(options: PeerProviderNodeOptions): PeerProviderNode;
 declare const api: { DEFAULT_PEER_ROOM_ID: typeof DEFAULT_PEER_ROOM_ID; PEER_ROOM_VERSION: typeof PEER_ROOM_VERSION;
   createPeerProviderNode: typeof createPeerProviderNode; runPeerJob: typeof runPeerJob; runPeerOperationJob: typeof runPeerOperationJob;
   resumePeerOperationJob: typeof resumePeerOperationJob };
