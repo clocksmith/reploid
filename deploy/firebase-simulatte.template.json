@@ -1,0 +1,98 @@
+{
+  "hosting": [
+    {
+      "site": "simulatte-world",
+      "public": "self",
+      "ignore": [
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "**/*.html",
+          "headers": "uncached"
+        },
+        {
+          "source": "/",
+          "headers": "uncached"
+        },
+        {
+          "source": "/zero",
+          "headers": "uncached"
+        },
+        {
+          "source": "/x",
+          "headers": "uncached"
+        },
+        {
+          "source": "**/*.js",
+          "headers": "uncached"
+        },
+        {
+          "source": "**/*.css",
+          "headers": "uncached"
+        },
+        {
+          "source": "**/*.json",
+          "headers": "uncached"
+        }
+      ],
+      "rewrites": [
+        {
+          "sharedRewrite": "/styles/rd-tokens.css"
+        },
+        {
+          "sharedRewrite": "/styles/rd-primitives.css"
+        },
+        {
+          "sharedRewrite": "/styles/rd-components.css"
+        },
+        {
+          "sharedRewrite": "/rd-tokens.css"
+        },
+        {
+          "sharedRewrite": "/rd-primitives.css"
+        },
+        {
+          "sharedRewrite": "/rd-components.css"
+        },
+        {
+          "sharedRewrite": "/design"
+        },
+        {
+          "sharedRewrite": "/audit"
+        },
+        {
+          "sharedRewrite": "/reset"
+        },
+        {
+          "sharedRewrite": "/ask"
+        },
+        {
+          "sharedRewrite": "/compute"
+        },
+        {
+          "sharedRewrite": "/records"
+        },
+        {
+          "sharedRewrite": "/room-1"
+        },
+        {
+          "sharedRewrite": "/history"
+        },
+        {
+          "sharedRewrite": "/network"
+        },
+        {
+          "sharedRewrite": "/zero"
+        },
+        {
+          "sharedRewrite": "/x"
+        },
+        {
+          "sharedRewrite": "/"
+        }
+      ]
+    }
+  ]
+}

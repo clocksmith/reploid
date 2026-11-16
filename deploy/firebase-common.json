@@ -1,0 +1,66 @@
+{
+  "headers": {
+    "uncached": [
+      {
+        "key": "Cache-Control",
+        "value": "no-cache, no-store, must-revalidate"
+      }
+    ]
+  },
+  "rewrites": {
+    "/styles/rd-tokens.css": {
+      "destination": "/styles/rd.css"
+    },
+    "/styles/rd-primitives.css": {
+      "destination": "/styles/rd.css"
+    },
+    "/styles/rd-components.css": {
+      "destination": "/styles/rd.css"
+    },
+    "/rd-tokens.css": {
+      "destination": "/styles/rd.css"
+    },
+    "/rd-primitives.css": {
+      "destination": "/styles/rd.css"
+    },
+    "/rd-components.css": {
+      "destination": "/styles/rd.css"
+    },
+    "/design": {
+      "destination": "/design.html"
+    },
+    "/audit": {
+      "destination": "/audit.html"
+    },
+    "/reset": {
+      "destination": "/reset.html"
+    },
+    "/": {
+      "destination": "/index.html"
+    },
+    "/ask": {
+      "destination": "/index.html"
+    },
+    "/compute": {
+      "destination": "/index.html"
+    },
+    "/records": {
+      "destination": "/index.html"
+    },
+    "/room-1": {
+      "destination": "/index.html"
+    },
+    "/history": {
+      "destination": "/index.html"
+    },
+    "/network": {
+      "destination": "/index.html"
+    },
+    "/zero": {
+      "destination": "/index.html"
+    },
+    "/x": {
+      "destination": "/index.html"
+    }
+  }
+}

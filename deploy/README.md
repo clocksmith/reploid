@@ -116,3 +116,13 @@ old objects. Historical evidence always uses its recorded runtime. New package
 upgrades retire the previous archive through the catalog instead of accumulating
 binary files in the current tree. CI enforces the current archive's integrity and
 the deployment archive byte budget.
+
+## Firebase configuration ownership
+
+Edit shared cache headers and common route destinations in
+`firebase-common.json`. Target-specific configuration and route order belong to
+`firebase-reploid.template.json` and `firebase-simulatte.template.json`. Run
+`npm run build:hosting-config` to regenerate the two root Firebase files;
+`npm run verify:hosting-config` checks them in CI. Template references preserve
+each target's existing route order and its distinct functions, Firestore and
+hosting configuration.

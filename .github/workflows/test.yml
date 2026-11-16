@@ -64,6 +64,7 @@ jobs:
           npm run verify:doppler-generation
           npm run verify:ownership-inventory
           npm run verify:runtime-config
+          npm run verify:hosting-config
           npm run verify:module-system
           npm run verify:change-passport:sdk
           npm run verify:browser-bundle:local

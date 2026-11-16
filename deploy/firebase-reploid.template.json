@@ -1,0 +1,327 @@
+{
+  "functions": {
+    "source": "packages/functions"
+  },
+  "firestore": {
+    "rules": "deploy/firestore.rules",
+    "indexes": "deploy/firestore.indexes.json"
+  },
+  "hosting": [
+    {
+      "target": "reploid",
+      "public": ".firebase-hosting/reploid",
+      "predeploy": "npm run prepare:hosting",
+      "ignore": [
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "**/*.html",
+          "headers": "uncached"
+        },
+        {
+          "source": "/",
+          "headers": "uncached"
+        },
+        {
+          "source": "/zero",
+          "headers": "uncached"
+        },
+        {
+          "source": "/x",
+          "headers": "uncached"
+        },
+        {
+          "source": "/passports",
+          "headers": "uncached"
+        },
+        {
+          "source": "**/*.js",
+          "headers": "uncached"
+        },
+        {
+          "source": "**/*.css",
+          "headers": "uncached"
+        },
+        {
+          "source": "**/*.json",
+          "headers": "uncached"
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/api/retrieval/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "sharedRewrite": "/styles/rd-tokens.css"
+        },
+        {
+          "sharedRewrite": "/styles/rd-primitives.css"
+        },
+        {
+          "sharedRewrite": "/styles/rd-components.css"
+        },
+        {
+          "sharedRewrite": "/rd-tokens.css"
+        },
+        {
+          "sharedRewrite": "/rd-primitives.css"
+        },
+        {
+          "sharedRewrite": "/rd-components.css"
+        },
+        {
+          "sharedRewrite": "/design"
+        },
+        {
+          "sharedRewrite": "/audit"
+        },
+        {
+          "sharedRewrite": "/reset"
+        },
+        {
+          "source": "/pool/policies",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/config",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/rtc-config",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/metrics",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/deployment/check",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/providers/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/adapters",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/adapters/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/adapter-canaries",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/adapter-canaries/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/jobs",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/jobs/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/assignments/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/receipts/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/research/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/audits/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/points/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/reputation/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/status",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/peer/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/zero/gemini",
+          "function": {
+            "functionId": "zeroGemini",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/zero/gemini/**",
+          "function": {
+            "functionId": "zeroGemini",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/api/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/change-control/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "sharedRewrite": "/"
+        },
+        {
+          "source": "/work",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/improve",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/examples",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/experiments",
+          "destination": "/index.html"
+        },
+        {
+          "sharedRewrite": "/ask"
+        },
+        {
+          "sharedRewrite": "/compute"
+        },
+        {
+          "sharedRewrite": "/records"
+        },
+        {
+          "sharedRewrite": "/room-1"
+        },
+        {
+          "sharedRewrite": "/history"
+        },
+        {
+          "sharedRewrite": "/network"
+        },
+        {
+          "source": "/passports",
+          "destination": "/change-passport-entry.html"
+        },
+        {
+          "sharedRewrite": "/zero"
+        },
+        {
+          "sharedRewrite": "/x"
+        }
+      ],
+      "redirects": [
+        {
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+          "destination": "/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+          "type": 302
+        },
+        {
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/:file",
+          "destination": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/:file",
+          "type": 302
+        },
+        {
+          "source": "/model-files/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+          "destination": "/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
+          "type": 302
+        },
+        {
+          "source": "/model-files/qwen-3-5-2b-q4k-ehaf16/:file",
+          "destination": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/:file",
+          "type": 302
+        }
+      ]
+    }
+  ]
+}
