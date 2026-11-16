@@ -50,6 +50,9 @@ export async function inventory(directory, { installed = false, source = false }
     }
   }
   await walk('');
-  files.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+  files.sort((a, b) => {
+    if (a.path === b.path) return 0;
+    return a.path < b.path ? -1 : 1;
+  });
   return files;
 }
