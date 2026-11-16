@@ -19,7 +19,7 @@
   ],
   "counts": {
     "apps/poolday": 385,
-    "self": 450,
+    "self": 455,
     "shared": 2388
   },
   "pendingMoves": 0,
@@ -1249,8 +1249,26 @@
       "basis": "Reached only from substrate entries."
     },
     {
+      "served": "capabilities/cognition/gepa-evaluation.js",
+      "source": "self/capabilities/cognition/gepa-evaluation.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
       "served": "capabilities/cognition/gepa-optimizer.js",
       "source": "self/capabilities/cognition/gepa-optimizer.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "capabilities/cognition/gepa-reflection.js",
+      "source": "self/capabilities/cognition/gepa-reflection.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "capabilities/cognition/gepa-selection.js",
+      "source": "self/capabilities/cognition/gepa-selection.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
     },
@@ -1297,8 +1315,20 @@
       "basis": "Reached only from substrate entries."
     },
     {
+      "served": "capabilities/cognition/symbolic/rule-context.js",
+      "source": "self/capabilities/cognition/symbolic/rule-context.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
       "served": "capabilities/cognition/symbolic/rule-engine.js",
       "source": "self/capabilities/cognition/symbolic/rule-engine.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "capabilities/cognition/symbolic/rule-unification.js",
+      "source": "self/capabilities/cognition/symbolic/rule-unification.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
     },

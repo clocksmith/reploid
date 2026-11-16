@@ -1014,9 +1014,24 @@
       "sha256": "sha256:aa52cbaf7162dbd8941279fb2af8ebd76518683742a02ddf07000679d6537635"
     },
     {
+      "path": "capabilities/cognition/gepa-evaluation.js",
+      "byteLength": 7884,
+      "sha256": "sha256:451993d7fd3e6b7614f7267690f1e4d08552718900325600c736c15326090215"
+    },
+    {
       "path": "capabilities/cognition/gepa-optimizer.js",
-      "byteLength": 56674,
-      "sha256": "sha256:7786c1f79cdc3a3b390fcb4ac416dff7c080fbb206eeb38047feb0c7dc66723a"
+      "byteLength": 32432,
+      "sha256": "sha256:3c37c1465c6320b9b90fcd10bb1ffc93acceed2b6ae786499e16ea91e8dcc108"
+    },
+    {
+      "path": "capabilities/cognition/gepa-reflection.js",
+      "byteLength": 9162,
+      "sha256": "sha256:f22708a48a6a3b72e8cd803dd98e23a51f5b48f358cce94a7034f7ec43b3754d"
+    },
+    {
+      "path": "capabilities/cognition/gepa-selection.js",
+      "byteLength": 6212,
+      "sha256": "sha256:3e6abc305ddba469fd1071eced95132aaa5198a937e6a0bcbbe48eb454cae2f1"
     },
     {
       "path": "capabilities/cognition/hybrid-retrieval.js",
@@ -1059,9 +1074,19 @@
       "sha256": "sha256:1c97452beb97c92837c71fc6bc837cb57e2ea6ac437d7ff4c50abaae4ed74a26"
     },
     {
+      "path": "capabilities/cognition/symbolic/rule-context.js",
+      "byteLength": 7631,
+      "sha256": "sha256:260de2b29ef371bd65d93dc802a29a46f486ee4e0fa7c0f9241d3708ef2f272c"
+    },
+    {
       "path": "capabilities/cognition/symbolic/rule-engine.js",
-      "byteLength": 68267,
-      "sha256": "sha256:747f90fbe1d5d90bba34d8756aced1cb5c887b194050b76cc9ccc96797b7b424"
+      "byteLength": 54596,
+      "sha256": "sha256:fcbeebf51ebb814084d71dd8b88d8cd1d773b04c45fa07e6f7b96bf1dedc1cc8"
+    },
+    {
+      "path": "capabilities/cognition/symbolic/rule-unification.js",
+      "byteLength": 5547,
+      "sha256": "sha256:fb27d2bd76de32c39bc8259e94899f5d048a36b383c6ef06f905399fe25e3819"
     },
     {
       "path": "capabilities/cognition/symbolic/symbol-grounder.js",
@@ -1405,8 +1430,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 655154,
-      "sha256": "sha256:affeba686eb7b8638e8fab88abd6e1a92792fb64c9b77b00b2d0e54cee3481a5"
+      "byteLength": 656452,
+      "sha256": "sha256:a7ba9889130df87324711915d54dee65f4cd95fc0998f6ffe3365ab6f4f926dc"
     },
     {
       "path": "config/module-registry.json",
@@ -1485,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 141119,
-      "sha256": "sha256:380a5d2326b067cb1c6c450cffc67bd2a62c005d380856ff77d04049018659f4"
+      "byteLength": 141379,
+      "sha256": "sha256:c9f7fe622ee613af05b8260138fc2d0fa8e075b37034e3f4117ed4c1fcaf5070"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1710,8 +1735,8 @@
     },
     {
       "path": "core/verification-worker.js",
-      "byteLength": 32140,
-      "sha256": "sha256:0a9f13929ce6ef0f2d5db230f10abdbc0ca234ea744a5012b8b4f852e78fa900"
+      "byteLength": 35086,
+      "sha256": "sha256:c2d3fabe785865dc2577349f7a5fe99c2ef795d1889b198e2486bacca50cd5ea"
     },
     {
       "path": "core/vfs-module-loader.js",
@@ -2660,8 +2685,8 @@
     },
     {
       "path": "pool/evidence/graph.js",
-      "byteLength": 9249,
-      "sha256": "sha256:8e92dbe5f9816110ae6f7b66e5aecc5b9397d33ae0eebdb3c9106a54c9afb024"
+      "byteLength": 8982,
+      "sha256": "sha256:84768cd3eff7a26757117b1bdf2e716ee64eead8aaf6a9dde9dfe42b526981e2"
     },
     {
       "path": "pool/evidence/laboratory-normalization.js",
@@ -3685,8 +3710,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2485720,
-      "sha256": "sha256:8e6ac89d8fe70f25aadc4fba0ee52d9aaf246680317692e3f23be26d1032ec31"
+      "byteLength": 2483953,
+      "sha256": "sha256:5644540312d054edb9dd5cd0d49d82cfbdedaaa3d5579411410224345a13071d"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3960,8 +3985,8 @@
     },
     {
       "path": "ui/pool-home/research-lifecycle-panel.js",
-      "byteLength": 53791,
-      "sha256": "sha256:868664bc0ec22bd16a4da53fcab5221d172e55343a7919958358c3747292c617"
+      "byteLength": 52860,
+      "sha256": "sha256:2c9024cc6c46aa8e19cb942f3eef33ed0e413d3938987a9abd83c8112869deaa"
     },
     {
       "path": "ui/pool-home/research-lifecycle-records.js",
@@ -12261,7 +12286,7 @@
     {
       "path": "zero/source.json",
       "byteLength": 8408,
-      "sha256": "sha256:468e1e9102dfafd5c7e3024ade9893df7959e4169eee9205949c55115afd8ba5"
+      "sha256": "sha256:c6ed979a419c48b4fef64aadc7c32c8f19c729f1f89881ad1c9711d6c61aefee"
     },
     {
       "path": "zero/store.js",
@@ -12284,5 +12309,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:af013dfabd992a05dfee310c5519633226893481f42aae9c7fb28310c0ba0b48"
+  "bundleHash": "sha256:64efecc3397f1753dd58367f36514317691a6a90cbca56d6c1112a6fc3bec708"
 }

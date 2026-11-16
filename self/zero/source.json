@@ -89,8 +89,8 @@
     },
     {
       "path": "core/verification-worker.js",
-      "bytes": 32140,
-      "sha256": "0a9f13929ce6ef0f2d5db230f10abdbc0ca234ea744a5012b8b4f852e78fa900"
+      "bytes": 35086,
+      "sha256": "c2d3fabe785865dc2577349f7a5fe99c2ef795d1889b198e2486bacca50cd5ea"
     },
     {
       "path": "core/vfs-module-loader.js",

@@ -19,9 +19,9 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | Owner | Files |
 | --- | ---: |
 | apps/poolday | 385 |
-| self | 450 |
+| self | 455 |
 | shared | 2388 |
-| total | 3223 |
+| total | 3228 |
 
 Every file lives in its owner's root.
 
@@ -241,7 +241,10 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `capabilities/cognition/README.md` | `self/capabilities/cognition/README.md` | self | Note of a directory with one owner. |
 | `capabilities/cognition/cognition-api.js` | `self/capabilities/cognition/cognition-api.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/episodic-memory.js` | `self/capabilities/cognition/episodic-memory.js` | self | Reached only from substrate entries. |
+| `capabilities/cognition/gepa-evaluation.js` | `self/capabilities/cognition/gepa-evaluation.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/gepa-optimizer.js` | `self/capabilities/cognition/gepa-optimizer.js` | self | Reached only from substrate entries. |
+| `capabilities/cognition/gepa-reflection.js` | `self/capabilities/cognition/gepa-reflection.js` | self | Reached only from substrate entries. |
+| `capabilities/cognition/gepa-selection.js` | `self/capabilities/cognition/gepa-selection.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/hybrid-retrieval.js` | `self/capabilities/cognition/hybrid-retrieval.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/jsonl.js` | `self/capabilities/cognition/jsonl.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/knowledge-tree.js` | `self/capabilities/cognition/knowledge-tree.js` | self | Reached only from substrate entries. |
@@ -249,7 +252,9 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `capabilities/cognition/semantic/embedding-store.js` | `self/capabilities/cognition/semantic/embedding-store.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/semantic/semantic-memory-llm.js` | `self/capabilities/cognition/semantic/semantic-memory-llm.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/symbolic/knowledge-graph.js` | `self/capabilities/cognition/symbolic/knowledge-graph.js` | self | Reached only from substrate entries. |
+| `capabilities/cognition/symbolic/rule-context.js` | `self/capabilities/cognition/symbolic/rule-context.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/symbolic/rule-engine.js` | `self/capabilities/cognition/symbolic/rule-engine.js` | self | Reached only from substrate entries. |
+| `capabilities/cognition/symbolic/rule-unification.js` | `self/capabilities/cognition/symbolic/rule-unification.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/symbolic/symbol-grounder.js` | `self/capabilities/cognition/symbolic/symbol-grounder.js` | self | Reached only from substrate entries. |
 | `capabilities/cognition/vector-math.js` | `self/capabilities/cognition/vector-math.js` | self | Reached only from substrate entries. |
 | `capabilities/communication/consensus.js` | `self/capabilities/communication/consensus.js` | self | Reached only from substrate entries. |

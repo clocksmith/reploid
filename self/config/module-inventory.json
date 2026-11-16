@@ -84,9 +84,31 @@
       ]
     },
     {
+      "path": "capabilities/cognition/gepa-evaluation.js",
+      "owner": "capabilities",
+      "sha256": "sha256:451993d7fd3e6b7614f7267690f1e4d08552718900325600c736c15326090215",
+      "imports": []
+    },
+    {
       "path": "capabilities/cognition/gepa-optimizer.js",
       "owner": "capabilities",
-      "sha256": "sha256:7786c1f79cdc3a3b390fcb4ac416dff7c080fbb206eeb38047feb0c7dc66723a",
+      "sha256": "sha256:3c37c1465c6320b9b90fcd10bb1ffc93acceed2b6ae786499e16ea91e8dcc108",
+      "imports": [
+        "./gepa-evaluation.js",
+        "./gepa-reflection.js",
+        "./gepa-selection.js"
+      ]
+    },
+    {
+      "path": "capabilities/cognition/gepa-reflection.js",
+      "owner": "capabilities",
+      "sha256": "sha256:f22708a48a6a3b72e8cd803dd98e23a51f5b48f358cce94a7034f7ec43b3754d",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/gepa-selection.js",
+      "owner": "capabilities",
+      "sha256": "sha256:3e6abc305ddba469fd1071eced95132aaa5198a937e6a0bcbbe48eb454cae2f1",
       "imports": []
     },
     {
@@ -141,12 +163,26 @@
       ]
     },
     {
+      "path": "capabilities/cognition/symbolic/rule-context.js",
+      "owner": "capabilities",
+      "sha256": "sha256:260de2b29ef371bd65d93dc802a29a46f486ee4e0fa7c0f9241d3708ef2f272c",
+      "imports": []
+    },
+    {
       "path": "capabilities/cognition/symbolic/rule-engine.js",
       "owner": "capabilities",
-      "sha256": "sha256:747f90fbe1d5d90bba34d8756aced1cb5c887b194050b76cc9ccc96797b7b424",
+      "sha256": "sha256:fcbeebf51ebb814084d71dd8b88d8cd1d773b04c45fa07e6f7b96bf1dedc1cc8",
       "imports": [
-        "../../../core/security-config.js"
+        "../../../core/security-config.js",
+        "./rule-context.js",
+        "./rule-unification.js"
       ]
+    },
+    {
+      "path": "capabilities/cognition/symbolic/rule-unification.js",
+      "owner": "capabilities",
+      "sha256": "sha256:fb27d2bd76de32c39bc8259e94899f5d048a36b383c6ef06f905399fe25e3819",
+      "imports": []
     },
     {
       "path": "capabilities/cognition/symbolic/symbol-grounder.js",
@@ -711,7 +747,7 @@
     {
       "path": "core/verification-worker.js",
       "owner": "core",
-      "sha256": "sha256:0a9f13929ce6ef0f2d5db230f10abdbc0ca234ea744a5012b8b4f852e78fa900",
+      "sha256": "sha256:c2d3fabe785865dc2577349f7a5fe99c2ef795d1889b198e2486bacca50cd5ea",
       "imports": []
     },
     {
@@ -1616,7 +1652,7 @@
     {
       "path": "pool/evidence/graph.js",
       "owner": "pool",
-      "sha256": "sha256:8e92dbe5f9816110ae6f7b66e5aecc5b9397d33ae0eebdb3c9106a54c9afb024",
+      "sha256": "sha256:84768cd3eff7a26757117b1bdf2e716ee64eead8aaf6a9dde9dfe42b526981e2",
       "imports": [
         "../evidence-record-contract.js",
         "../model-contract.js",
@@ -4092,7 +4128,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:8e6ac89d8fe70f25aadc4fba0ee52d9aaf246680317692e3f23be26d1032ec31",
+      "sha256": "sha256:5644540312d054edb9dd5cd0d49d82cfbdedaaa3d5579411410224345a13071d",
       "imports": []
     },
     {
@@ -4678,8 +4714,9 @@
     {
       "path": "ui/pool-home/research-lifecycle-panel.js",
       "owner": "ui",
-      "sha256": "sha256:868664bc0ec22bd16a4da53fcab5221d172e55343a7919958358c3747292c617",
+      "sha256": "sha256:2c9024cc6c46aa8e19cb942f3eef33ed0e413d3938987a9abd83c8112869deaa",
       "imports": [
+        "../../pool/evidence-record-contract.js",
         "./research-adjudication-panel.js",
         "./research-panels.js"
       ]
