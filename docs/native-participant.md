@@ -560,6 +560,12 @@ and explicit partition indices. Whole-model mode and an absent piece index fail
 before GPU initialization. The installed Doppler must support `nodeGather`, the
 owned-range storage port and `getGatherReceipt`; older packages fail explicitly.
 This does not update the pinned deployment package automatically.
+Delivery activation is a separate versioned dependency update: assign a new
+ordinary Doppler package version, then run `scripts/sync-doppler.js` so the npm
+archive, lockfile, browser vendor tree and delivery manifests agree. The sync
+refuses changed bytes under an existing version; never overwrite the retained
+`0.7.4` archive to activate this path. Source-only contract evidence does not
+qualify the currently pinned deployment package.
 
 The native adapter resolves available indexed files inside the approved model
 directory, rejecting escapes and non-regular files. Missing unassigned files do
