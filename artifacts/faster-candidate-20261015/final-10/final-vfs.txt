@@ -1,1 +1,0 @@
-[vfs-manifest] Wrote /private/var/tmp/reploid-signed-completion-app-10-20261015-3/app/self/config/vfs-manifest.json

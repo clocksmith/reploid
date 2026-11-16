@@ -17,6 +17,10 @@ cited web search exist in source and are tested locally only. Per-surface status
 
 [Try it](https://replo.id/) · [Quick start](docs/QUICK-START.md) · [Concepts and code](docs/glossary.md) · [Documentation](docs/INDEX.md) · [Product contract](docs/product-specification.md)
 
+Historical run output and previous runtime packages are recoverable through the
+[hash-verified evidence catalog](docs/evidence-catalog/README.md); they do not ship
+in the current source tree. New runs remain local or in expiring CI artifacts.
+
 ## Components
 
 | Component | What it is | Where |
@@ -75,10 +79,10 @@ profile. On one AMD GPU with no network, the current paired kernels decode at ab
 token against about 28 ms for ordinary F32, which fails the check. The cheapest passing mixed
 configuration measured so far (paired layers 0–19, ordinary layers 20–23 and the output head)
 decodes at about 205 ms per token and is not yet packaged
-([precision evidence](artifacts/precision-recovery-20261015/README.md)). Recovering ordinary
+([precision evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/precision-recovery-20261015/README.md)). Recovering ordinary
 speed under the same tolerance is open work. On a quiet link
 the route above averages about 1.05 s per token; the
-[measured breakdown](artifacts/placement-c-envelope-20261015/README.md) attributes each part
+[measured breakdown](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/placement-c-envelope-20261015/README.md) attributes each part
 (GPU execution in the paired profile, network transfer, authorization, history writes).
 
 ## Lifecycle of one request
@@ -121,7 +125,7 @@ Community Access, quotes that bind model, disclosure, quality policy, deadline a
 limit, and settlement with one economic effect per billable event. The ledger, rewards,
 Community Access queue, receipts-based settlement, Supabase sign-in, Stripe Checkout and a
 scheduler exist under [`server/`](server) and have run end to end only in a
-[local demonstration](artifacts/earning-ui-demo-20261015/README.md) with test providers and a
+[local demonstration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/earning-ui-demo-20261015/README.md) with test providers and a
 fixture model.
 
 ## Zero and X

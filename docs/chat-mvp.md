@@ -155,7 +155,7 @@ WebRTC certificates before reuse. Changed recipients require approval; peers
 without this proof retain exact-payload approval. Grants authorize neither
 contribution nor artifact supply.
 
-The [same-device acceptance records](../artifacts/chat-grants-2026-09-23/README.md)
+The [same-device acceptance records](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/chat-grants-2026-09-23/README.md)
 separate actual GPU conversation/grant recovery from injected browser tests and
 actual adapter custody/application. Real adapter transfer uses the existing
 custody APIs with explicit artifact grants; it is not yet selectable adapted

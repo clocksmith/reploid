@@ -242,7 +242,7 @@ the invitation flow, evaluate and choose adoption on their own computer, run a
 subsequent task, and retain that device's evidence. Neither two contexts nor a
 receipt establishes that independent operation.
 
-The [September 20 evidence report](../artifacts/continuing-improvement-2026-09-20/report.json)
+The [September 20 evidence report](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/continuing-improvement-2026-09-20/report.json)
 records the continuing-objective and retry regressions separately from six local
 Qwen runs. Those runs produced 18 candidates and no qualifying repair. A
 successful model-generated transfer, independent-recipient adoption and recursive

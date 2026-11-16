@@ -96,19 +96,23 @@ Prompt, output, token, and full receipt payload envelopes can move over P2P Data
 ## Historical Doppler packages
 
 The current browser pin remains in `package-lock.json` and
-`shared/config/doppler-package.json`. Expanded 0.6.2 and split.1 also remain because
-checked-in deployment settings and regression fixtures reference them.
+`shared/config/doppler-package.json`; only its integrity-pinned archive remains
+in the current tree. Historical packages and run output are indexed in the
+[evidence catalog](../docs/evidence-catalog/README.md), backed by immutable
+published Git revisions. Local bytes are preserved when they are untracked.
 
-Obsolete expanded copies are consolidated into their byte-identical archives in
-[artifacts/](artifacts/). [retention.json](artifacts/retention.json) records their
-SHA-512 integrity, original file counts and byte counts. No archive or physical
-qualification receipt was removed. Verify and restore a historical version into
-an empty directory without changing the active pin:
+[retention.json](artifacts/retention.json) preserves each historical package's
+SHA-512 integrity and qualification identity. Restore on demand without changing
+the active pin:
 
 ```sh
-npm run verify:retained-artifacts
+node scripts/restore-evidence.js deploy/artifacts/doppler-gpu-0.6.3-dev.split.10.tgz
 node scripts/restore-doppler-evidence.js --restore 0.6.3-dev.split.10 /tmp/reploid-split-10
+npm run verify:retained-artifacts
 ```
 
-Historical evidence must use its recorded package identity, not the current
-runtime. The retained archives are repository-relative durable references.
+A shallow clone needs the catalog's explicit `--fetch` option before recovering
+old objects. Historical evidence always uses its recorded runtime. New package
+upgrades retire the previous archive through the catalog instead of accumulating
+binary files in the current tree. CI enforces the current archive's integrity and
+the deployment archive byte budget.

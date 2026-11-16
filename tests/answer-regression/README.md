@@ -4,7 +4,7 @@
 
 This harness catches engineering regressions in Reploid's answers. It runs a fixed item set on one target, applies automated checks, and compares the run with a stored baseline run of the same target.
 
-It does not establish answer quality, acceptance or a release decision, and it is not independent review. Human reviewers assess the working experience separately, under the [review packet](../../artifacts/independent-answer-review-20261014/README.md) and its protocol. Every file the harness writes carries the label above. Automated judge output also carries the label "automated judge, not independent review".
+It does not establish answer quality, acceptance or a release decision, and it is not independent review. Human reviewers assess the working experience separately, under the [review packet](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/independent-answer-review-20261014/README.md) and its protocol. Every file the harness writes carries the label above. Automated judge output also carries the label "automated judge, not independent review".
 
 ## Layout
 

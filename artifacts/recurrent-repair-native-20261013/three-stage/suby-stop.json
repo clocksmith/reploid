@@ -1,7 +1,0 @@
-[
-  {
-    "pid": 972625,
-    "signal": "SIGTERM",
-    "reason": "Numerical operation and resident/provider cleanup deadlines expired; ownership unknown"
-  }
-]

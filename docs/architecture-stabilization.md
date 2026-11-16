@@ -106,7 +106,7 @@ These checks do not establish physical GPU results, honest remote hardware,
 scientific correctness, a deployed release, or a complete autonomous improvement
 process. Existing integration GPU artifacts retain their original provenance.
 
-Retained stabilization evidence: [report](../artifacts/architecture-stabilization-2026-09-19/report.json).
+Retained stabilization evidence: [report](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/architecture-stabilization-2026-09-19/report.json).
 
 Execution convergence evidence additionally runs
 `tests/integration/agent-surface-contract.test.js` against the Zero and X host
@@ -117,7 +117,7 @@ semantics: lab DONE completes its goal; Work IDLE parks for review. Dynamic tool
 growth and provider fixtures are deterministic contract evidence; browser boot,
 Verification Worker, IndexedDB and installed Work journeys are separate checks.
 
-Retained execution-convergence evidence: [report](../artifacts/architecture-convergence-2026-09-19/report.json).
+Retained execution-convergence evidence: [report](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/architecture-convergence-2026-09-19/report.json).
 
 The peer replay regression checks bounded redelivery of the identical signed job,
 including loss of both a request and a completion. It asserts one executor call

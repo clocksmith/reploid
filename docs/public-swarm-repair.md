@@ -1,7 +1,7 @@
 # Public discovery and pinned runtime repair
 
 The [Cloudflare migration](cloudflare-migration.md) adds an alternative discovery
-and TURN backend. Its [release record](../artifacts/cloudflare-2026-09-26/README.md)
+and TURN backend. Its [release record](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/cloudflare-2026-09-26/README.md)
 distinguishes the deployed Worker from the browser cutover; the historical Cloud
 Run deployment below remains the rollback reference.
 
@@ -65,12 +65,12 @@ Asset delivery and discovery evidence does not qualify model generation, LoRA
 application or distributed layer execution. Server-side asset verifiers must use an
 explicit public application origin to resolve origin-relative configuration.
 
-Follow-up [physical-device evidence](../artifacts/physical-swarm-2026-09-23.md)
+Follow-up [physical-device evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/physical-swarm-2026-09-23.md)
 records a TURN-relayed connection with local patched modules, persistent opt-out,
 private isolation, and a **failed** real chat attempt during cold model loading.
 It does not qualify the patched modules as deployed or chat as working.
 
-The [September 25 chat/file integration record](../artifacts/chat-files-2026-09-25/README.md)
+The [September 25 chat/file integration record](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/chat-files-2026-09-25/README.md)
 separately records real adapted peer chat, verified file-exchange integration,
 and the disk-quota-blocked three-tab model journey. Discovery, compute contribution,
 file distribution, and thread disclosure remain distinct grants; these local

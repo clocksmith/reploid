@@ -160,7 +160,7 @@ decision. These results demonstrate that distinction and verify this software
 contract. They do not establish general superiority, empirical calibration,
 physical GPU diagnosis, peer independence or recursive improvement.
 
-The [retained report](../artifacts/diagnostic-planning/comparison.json) includes
+The [retained report](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/diagnostic-planning/comparison.json) includes
 the model, budgets, mapping, source hashes and every episode. Real diagnostic
 adoption requires measured outcomes, frozen evaluation cases and independent
 authorization under the existing improvement contracts.

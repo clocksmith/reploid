@@ -608,7 +608,7 @@ resource or disclosure constraints and is introduced after this baseline works.
 
 [Chat acceptance](chat-mvp.md), the [surface claim index](status/surface-claim-index.json),
 and the owner's private roadmap own current qualification and selected work. The
-[storage checkpoint](../artifacts/open-mesh/20261001/README.md) retains the original
+[storage checkpoint](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/open-mesh/20261001/README.md) retains the original
 loading repair and subsequent generation failure; its scope is historical.
 Architecture diagrams and specifications do not establish current deployment.
 

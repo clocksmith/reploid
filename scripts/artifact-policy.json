@@ -1,8 +1,12 @@
 {
   "schema": "reploid.repository-artifacts/v1",
-  "generatedRoots": ["artifacts/", "reports/local/", "docs/status/"],
+  "generatedRoots": [
+    "artifacts/",
+    "reports/local/",
+    "docs/status/"
+  ],
   "maxNewBlobBytes": 1048576,
   "maxArchiveBytes": 8388608,
-  "maxDeployArchiveBytes": 140000000,
+  "maxDeployArchiveBytes": 8388608,
   "exceptions": []
 }

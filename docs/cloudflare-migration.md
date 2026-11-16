@@ -74,7 +74,7 @@ Worker code rollback does not undo Durable Object data or migration bindings.
 
 ## Current release evidence
 
-See [the migration handoff](../artifacts/cloudflare-2026-09-26/README.md) for the
+See [the migration handoff](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/cloudflare-2026-09-26/README.md) for the
 deployed Worker, completed browser qualification, retained failures and rollback.
 Configuration alone is not a deployment or end-to-end capability claim.
 

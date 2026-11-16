@@ -25,7 +25,7 @@ A base model with no adapters says so. Both link this page.
 
 The catalog's only adapter, Qwen 3.5 0.8B NER JSON LoRA, has publisher-reported
 scores and runtime lifecycle observations
-([artifacts/lora-first-class-20261016](../artifacts/lora-first-class-20261016/README.md)).
+([artifacts/lora-first-class-20261016](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/lora-first-class-20261016/README.md)).
 Neither is held-out evaluation, so it shows "No evaluation evidence".
 
 ## Identity through an answer
@@ -52,7 +52,7 @@ Neither is held-out evaluation, so it shows "No evaluation evidence".
    `down_proj`; it applies none inside mixture-of-experts expert layers.
    The in-product Changes route trains only a bounded fixture-scale adapter
    (Qwen 3.5 0.8B, one `down_proj` layer); see
-   [community LoRA](../artifacts/community-lora-20261017/README.md).
+   [community LoRA](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/community-lora-20261017/README.md).
 2. Publish `adapter_model.safetensors` at an immutable URL pinned to a commit.
 3. Compute the catalog entry. The tool hashes the bytes and computes the Doppler
    execution identity with the pinned Doppler loader; it needs no GPU:

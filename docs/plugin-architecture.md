@@ -91,7 +91,7 @@ follow-up, followed by whether application bugs transfer to an imitation.
    from injected capability tests.
 
 Development evidence and reproduction commands are retained in the
-[local plugin check](../artifacts/plugin-imitation-20261016/README.md).
+[local plugin check](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/plugin-imitation-20261016/README.md).
 The real-provider study has not completed; injected browser responses establish
 the interaction contract only.
 

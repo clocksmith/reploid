@@ -48,7 +48,7 @@ try {
     filename = `doppler-gpu-${version}.tgz`;
     await exec(process.execPath, ['scripts/vendor-doppler.js'], { cwd: root });
   }
-  for (const name of ['deploy/Dockerfile', '.gcloudignore', '.dockerignore']) {
+  for (const name of ['deploy/Dockerfile', '.gcloudignore', '.dockerignore', '.gitignore']) {
     const file = resolve(root, name);
     const text = await readFile(file, 'utf8');
     await writeFile(file, text.replaceAll(oldFilename, filename));

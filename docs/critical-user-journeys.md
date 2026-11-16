@@ -87,7 +87,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** A useful, complete answer addresses the question accurately, or explicitly identifies insufficient knowledge instead of inventing facts. It remains in history; the requester acquires no weights. Prepared contributors reuse resident weights without downloading them again per request. Basic-chat acceptance does not depend on attachment qualification.
 - **Interruption and recovery:** Unavailable capacity is explicit. Interrupted published output remains; retry is a new authorized attempt.
 - **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; prepared service or waiting for cold acquisition through MESH-04; unfamiliar first use without coaching. Record the separate readiness and service phases above.
-- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md). These cover different scopes/packages; signed N-stage release and transactional publication milestones (DR-5) remain open.
+- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/live-conversation-20261012/README.md). These cover different scopes/packages; signed N-stage release and transactional publication milestones (DR-5) remain open.
 
 ### CHAT-02 — Continue my conversation
 
@@ -97,7 +97,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** The answer uses the authorized context, is saved once, and leaves concurrent conversations isolated. Reused weights avoid reacquisition; retained conversation state and reconstruction from saved history are measured separately.
 - **Interruption and recovery:** Only published output survives. Explicit retry creates a new attempt; history does not restore lost GPU state.
 - **Variants:** Phone/browser requester; browser/native hosts; 1/2/N stages; reused/new residents; overlapping routes.
-- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [conversation isolation/history tests](../tests/unit/chat-workspace.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); exact-package durable release: transactional publication milestones (DR-5).
+- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [conversation isolation/history tests](../tests/unit/chat-workspace.test.js); [retained short physical conversation/recovery](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/live-conversation-20261012/README.md); exact-package durable release: transactional publication milestones (DR-5).
 
 ### CHAT-03 — Ask about an attachment
 
@@ -127,7 +127,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Copied content matches the visible accepted response; assigned contributors and unknown metrics are distinguishable.
 - **Interruption and recovery:** Copy and history inspection remain available after contributors depart.
 - **Variants:** Themes, phone widths, code, citations, 1/2/N stages, absent timing.
-- **Acceptance evidence:** [activity/browser evidence](../artifacts/ordered-chat-activity-20261013/README.md); [presentation tests](../tests/e2e/chat-material.spec.js). No fresh physical-phone acceptance is implied.
+- **Acceptance evidence:** [activity/browser evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-chat-activity-20261013/README.md); [presentation tests](../tests/e2e/chat-material.spec.js). No fresh physical-phone acceptance is implied.
 
 ## Keep and recover work
 
@@ -139,7 +139,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** The same committed messages and drafts return without redispatching old requests.
 - **Interruption and recovery:** Storage failure is explicit; unreadable history is not overwritten with an empty success state.
 - **Variants:** Fresh/returning installation; upgrade; browser restart; interrupted prior attempt.
-- **Acceptance evidence:** [draft transaction tests](../tests/unit/chat-draft-transactions.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); frozen upgrade acceptance: transactional publication milestones (DR-5).
+- **Acceptance evidence:** [draft transaction tests](../tests/unit/chat-draft-transactions.test.js); [retained short physical conversation/recovery](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/live-conversation-20261012/README.md); frozen upgrade acceptance: transactional publication milestones (DR-5).
 
 ### KEEP-02 — Reconnect during a request
 
@@ -149,7 +149,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Healthy authorized execution survives signaling loss; lost execution state is reported honestly.
 - **Interruption and recovery:** Preserve published output and keep unknown remote allocations charged until settlement.
 - **Variants:** Bootstrap loss; healthy data channel; contributor departure at any stage; independent networks.
-- **Acceptance evidence:** [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); independent-network and signed N-stage acceptance remain open in combined-capacity acceptance (DR-6).
+- **Acceptance evidence:** [automatic network source integration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/automatic-ordered-participation-20261013/README.md); [retained short physical conversation/recovery](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/live-conversation-20261012/README.md); independent-network and signed N-stage acceptance remain open in combined-capacity acceptance (DR-6).
 
 ### KEEP-03 — Stop one response
 
@@ -159,7 +159,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** No further output is published for the stopped attempt; unrelated conversations and weights survive.
 - **Interruption and recovery:** Unknown or failed cleanup remains visible and charged; offer Retry stopping when supported.
 - **Variants:** Queued/acquiring/prefilling/decoding attempts; overlapping stops; shared contributors.
-- **Acceptance evidence:** [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md); [scoped physical cleanup/retry](../artifacts/cleanup-failure-20261012/README.md); concurrent long exact-package acceptance: transactional publication milestones (DR-5).
+- **Acceptance evidence:** [ordered runner controls](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-route-runner-20261013/README.md); [scoped physical cleanup/retry](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/cleanup-failure-20261012/README.md); concurrent long exact-package acceptance: transactional publication milestones (DR-5).
 
 ### KEEP-04 — Retry an interrupted answer
 
@@ -169,7 +169,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** The old response remains distinct; retry uses a fresh attempt and only authorized context.
 - **Interruption and recovery:** Repeated failure leaves both attempts inspectable; no silent continuation from lost model state. Warm weights do not establish state readiness. Cold replacement can remain unavailable; acquisition or reconstruction failure preserves the original published answer.
 - **Variants:** Any failed stage; warm replacement with weights but missing conversation state; cold replacement missing both; native/browser replacement; revoked prior grant. Measure acquisition, preparation and authorized reconstruction separately.
-- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); signed N-stage replacement and durable publication remain open in transactional publication milestones (DR-5).
+- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/live-conversation-20261012/README.md); signed N-stage replacement and durable publication remain open in transactional publication milestones (DR-5).
 
 ### KEEP-05 — Manage retained conversations
 
@@ -191,7 +191,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** The device serves admitted work within its permissions and limits.
 - **Interruption and recovery:** Show missing supply and failed preparation; retain cleanup ownership rather than advertising false readiness.
 - **Variants:** Browser/native; assigned entry/middle/final stage; resident/cold model.
-- **Acceptance evidence:** [host preparation](../artifacts/ordered-host-preparation-20261013/README.md); [host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js). Physical N-stage host qualification remains open.
+- **Acceptance evidence:** [host preparation](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-host-preparation-20261013/README.md); [host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js). Physical N-stage host qualification remains open.
 
 ### CONTRIB-02 — Offer verified model files
 
@@ -211,7 +211,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** The personal conversation receives service without sharing unrelated histories or exceeding admitted capacity.
 - **Interruption and recovery:** Stopping the personal answer does not withdraw all contribution; withdrawing compute settles affected work explicitly.
 - **Variants:** Requester on entry/middle/final host; shared resident weights; concurrent remote requests.
-- **Acceptance evidence:** [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md); [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md). Injected numerical source controls are not physical combined-capacity acceptance.
+- **Acceptance evidence:** [automatic network source integration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/automatic-ordered-participation-20261013/README.md); [ordered runner controls](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-route-runner-20261013/README.md). Injected numerical source controls are not physical combined-capacity acceptance.
 
 ### CONTRIB-04 — Set contribution limits
 
@@ -231,7 +231,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Unrelated conversations survive and a new contribution cannot be closed by an older stop.
 - **Interruption and recovery:** Failed cleanup remains retryable; file supply remains governed by its separate permission.
 - **Variants:** Acquisition/execution/idle; overlapping stops; replacement sessions; native shutdown.
-- **Acceptance evidence:** [host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js); [scoped physical cleanup/retry](../artifacts/cleanup-failure-20261012/README.md). Demanding signed N-stage and native-provider teardown acceptance remains configuration-specific.
+- **Acceptance evidence:** [host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js); [scoped physical cleanup/retry](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/cleanup-failure-20261012/README.md). Demanding signed N-stage and native-provider teardown acceptance remains configuration-specific.
 
 ## Share network capacity
 
@@ -243,7 +243,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Conversations make bounded progress and cannot read or cancel each other’s state.
 - **Interruption and recovery:** Cancel or fail one attempt while survivors continue; unknown ownership remains reserved.
 - **Variants:** Shared/disjoint routes; replicas; multiple requester roles; uneven stage speeds.
-- **Acceptance evidence:** [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md); [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md); physical fairness and long concurrency acceptance: combined-capacity acceptance (DR-6).
+- **Acceptance evidence:** [automatic network source integration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/automatic-ordered-participation-20261013/README.md); [ordered runner controls](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-route-runner-20261013/README.md); physical fairness and long concurrency acceptance: combined-capacity acceptance (DR-6).
 
 ### MESH-02 — Access a model my device cannot run
 
@@ -253,7 +253,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** The workload succeeds collaboratively under limits that prevent each executor running it alone.
 - **Interruption and recovery:** Missing stages are explicit; replacement requires a new authorized attempt when state was lost.
 - **Variants:** 2/N stages; uneven layer ranges; three stages with four replicas each on twelve computers.
-- **Acceptance evidence:** [runtime/source composition](../artifacts/ordered-route-integration-20261013/README.md); combined-capacity acceptance (DR-6). The twelve-computer deployment and capacity advantage remain acceptance targets.
+- **Acceptance evidence:** [runtime/source composition](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-route-integration-20261013/README.md); combined-capacity acceptance (DR-6). The twelve-computer deployment and capacity advantage remain acceptance targets.
 
 ### MESH-03 — Join a busy network
 
@@ -263,7 +263,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Peer count does not promise available compute; the user can distinguish busy, preparing and unavailable.
 - **Interruption and recovery:** Stale advertisements cannot turn into silent dispatch or replacement without approval.
 - **Variants:** Fresh requester; expired offers; all replicas busy; bootstrap alternative.
-- **Acceptance evidence:** [discovery controls](../artifacts/ordered-discovery-20261013/README.md); [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md). Sustained independent-network acceptance remains open.
+- **Acceptance evidence:** [discovery controls](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-discovery-20261013/README.md); [automatic network source integration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/automatic-ordered-participation-20261013/README.md). Sustained independent-network acceptance remains open.
 
 ### MESH-04 — Help make a missing model available
 
@@ -273,7 +273,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Readiness reflects complete eligible coverage, not merely connected nodes or downloaded pieces. Useful retained pieces reduce future missing bytes and repeated acquisition; measured route readiness includes supplier throughput and preparation.
 - **Interruption and recovery:** Missing file consent or supplier departure is visible. Resume authorized transfers and preserve verified pieces across restarts; unverified partial data never becomes executable merely because a transfer resumed.
 - **Variants:** Cold acquisition; complementary stages; replacement supplier; cold replacement; demand-driven replicas; contributor departure before preparation completes. Record time and bytes to a runnable route, and unsuccessful preparation as well as completed service.
-- **Acceptance evidence:** [stage preparation](../artifacts/ordered-host-preparation-20261013/README.md); [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md). Automatic cold complementary-stage assignment and demand-driven replication remain open in combined-capacity acceptance (DR-6).
+- **Acceptance evidence:** [stage preparation](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-host-preparation-20261013/README.md); [automatic network source integration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/automatic-ordered-participation-20261013/README.md). Automatic cold complementary-stage assignment and demand-driven replication remain open in combined-capacity acceptance (DR-6).
 
 ### MESH-05 — Wait for capacity without losing my request
 
@@ -283,7 +283,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Waiting is bounded and visible; admitted state stays within limits and competing requests do not starve.
 - **Interruption and recovery:** Expired authorization is renewed explicitly before disclosure; cancellation cannot later dispatch the queued request.
 - **Variants:** Queue saturation; slow stage; many requesters; freed/replaced capacity.
-- **Acceptance evidence:** [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md); [request scheduling tests](../tests/unit/chat-scheduler.test.js). Per-stage FIFO controls do not qualify cross-route fairness or the twenty-conversation deployment.
+- **Acceptance evidence:** [ordered runner controls](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-route-runner-20261013/README.md); [request scheduling tests](../tests/unit/chat-scheduler.test.js). Per-stage FIFO controls do not qualify cross-route fairness or the twenty-conversation deployment.
 
 ## Delegate work
 
@@ -357,7 +357,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Execution uses exactly the authorized recipients, model and inputs; changed placement cannot inherit broader consent.
 - **Interruption and recovery:** Expired or changed grants require renewed approval before disclosure.
 - **Variants:** All stage recipients and coordinator relays; reuse; an optional speculative drafter adds a recipient.
-- **Acceptance evidence:** [ordered grant tests](../tests/unit/ordered-partition-grants.test.js); [deadline controls](../artifacts/ordered-disclosure-deadline-20261013/README.md). Exact physical signed journey remains separately gated.
+- **Acceptance evidence:** [ordered grant tests](../tests/unit/ordered-partition-grants.test.js); [deadline controls](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-disclosure-deadline-20261013/README.md). Exact physical signed journey remains separately gated.
 
 ### TRUST-02 — Revoke a reusable grant
 
@@ -377,7 +377,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 - **Successful outcome:** Measurements identify their scope; connected peers, allocated bytes, physical RAM, GPU time and token rate are not conflated.
 - **Interruption and recovery:** Missing measurements stay unknown; lost remote contact does not prove freed resources.
 - **Variants:** N-stage timing; native/browser hosts; stored history; co-hosted processes.
-- **Acceptance evidence:** [activity evidence](../artifacts/ordered-chat-activity-20261013/README.md); [memory observation tests](../tests/unit/partition-memory-observation.test.js). Live requester timing, energy and device-wide accounting require their own evidence.
+- **Acceptance evidence:** [activity evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-chat-activity-20261013/README.md); [memory observation tests](../tests/unit/partition-memory-observation.test.js). Live requester timing, energy and device-wide accounting require their own evidence.
 
 ### TRUST-04 — Evaluate a proposed improvement
 
@@ -453,7 +453,7 @@ IDs, frozen identities, matrix values, injections and observed outcome.
 | Ordinary conversation | CHAT-01, CHAT-02, CHAT-05, KEEP-01, KEEP-03, KEEP-04 | Current two-stage browser/native baseline | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
 | Acquire once, serve repeatedly | CONTRIB-01, CONTRIB-02, MESH-04, CHAT-01, CHAT-02 | Cold route acquisition, interrupted supply, contributor restart, then prepared repeated requests | Verify piece retention and resumed transfer; measure acquisition, GPU preparation, route readiness and generation separately. Prepared requests must avoid repeated weight downloads. This acceptance remains open. |
 | Replace with warm or cold capacity | KEEP-04, MESH-03, MESH-04, TRUST-01 | Weights present/state absent versus both absent; long contexts and overlapping conversations | Explicit authorized retry, separate reconstruction cost and honest unavailable capacity; warm weights never imply transferred GPU state. Preserve prior output and unaffected conversations. Physical acceptance remains open. |
-| Ordered network | CHAT-01, CHAT-02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](../artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |
+| Ordered network | CHAT-01, CHAT-02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |
 | Replicated larger model | MESH-01, MESH-02, MESH-03, MESH-05 | Twelve computers, three stages, four prepared replicas per stage | Intended capacity scenario; full-route admission, useful answers and independent failure domains need evidence. |
 | Sustained concurrent demand | MESH-01, MESH-05, CONTRIB-04, CONTRIB-05, KEEP-03, KEEP-04 | Twenty conversations, sixty stage states, five states per computer on twelve computers | Intended scenario, not a supported setting. Prove memory, fair progress and settlement before increasing admission limits. Active states do not mean simultaneous GPU operations. |
 | Mixed large mesh | CHAT-04, CONTRIB-01, CONTRIB-02, MESH-03, MESH-04 | One hundred computers, several models, mixed file supply and compute | Intended scenario. Prove bounded discovery, compatible routing, preparation and replication within grants; do not broadcast every request to everyone. |

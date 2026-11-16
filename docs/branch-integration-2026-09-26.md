@@ -41,7 +41,7 @@ are not branches to merge and were left alone.
 
 ## Acceptance and limits
 
-Evidence: [retained test reports](../artifacts/branch-merge-2026-09-26/README.md).
+Evidence: [retained test reports](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/branch-merge-2026-09-26/README.md).
 Commands include the full Vitest suite; Chromium chat persistence, native journal
 recovery, real WebRTC between local browser contexts, Zero refresh, and merged-module
 Verification Worker checks; library types, layers, charters, runtime configuration,

@@ -16,6 +16,10 @@ node_modules/
 /artifacts/library-acceptance/2026-10-05T02-12-38-345Z/*
 !/artifacts/library-acceptance/2026-10-05T02-12-38-345Z/report.json
 
+# Only the current integrity-pinned runtime is ordinary source input.
+/deploy/artifacts/*.tgz
+!/deploy/artifacts/doppler-gpu-0.7.4.tgz
+
 # Build outputs
 # Forecast packages are built from live sources by prepack, with a source-hash
 # inventory. Never retain a second, independently importable source snapshot.

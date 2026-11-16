@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/Library/Frameworks/Python.framework/Versions/3.13/bin/sample", line 5, in <module>
-    from sample import main
-ModuleNotFoundError: No module named 'sample'

@@ -62,7 +62,7 @@ with the tested installed runtime. This does not silently upgrade deployed chat.
 
 ## Evidence and limits
 
-The [physical acceptance record](../artifacts/doppler-choice/README.md) uses a
+The [physical acceptance record](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/doppler-choice/README.md) uses a
 purpose-trained relevance model, an independent CPU implementation, installed
 libraries, real browser WebGPU and actual WebRTC between isolated contexts.
 The requester loads no model session or artifacts. Node and browser qualifications
