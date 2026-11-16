@@ -1229,7 +1229,7 @@
     {
       "path": "pool/canonical-json.js",
       "owner": "pool",
-      "sha256": "sha256:aacac3d657c428d0f1922e0c1092e7fca204aa0d3360612b3f26070131e032c5",
+      "sha256": "sha256:c3c776e1321c2eaa8e5f826a6daada7a8f9150fbff2eae899617d30158e60e0c",
       "imports": [
         "../vendor/reploid/artifacts/canonical-json.js"
       ]
@@ -4227,7 +4227,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:07bcc146e79bf32f0fb0dd6ad0e6aec9c116bdf7025a84d8046c006d50a26246",
+      "sha256": "sha256:62a7ba02dfdf1d3afccaebf0fa5b734171a2538c123a19a5dfea213a7dcfe5d8",
       "imports": []
     },
     {
@@ -17956,7 +17956,7 @@
     {
       "path": "vendor/reploid/artifacts/canonical-json.js",
       "owner": "vendor",
-      "sha256": "sha256:f3400db617e514a3e0e352725bc499bf8707594d0b52aaf5202b097f96af4524",
+      "sha256": "sha256:7bd723a93ce7e9e8ab03169e844f31aa5a90ad1b0be66589133fd091bcb9ad5f",
       "imports": []
     },
     {

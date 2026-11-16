@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 381,
     "self": 457,
-    "shared": 2390
+    "shared": 2391
   },
   "pendingMoves": 0,
   "violations": [],
@@ -15560,6 +15560,11 @@
     {
       "served": "vendor/reploid/artifacts/binary.js",
       "source": "shared/vendor/reploid/artifacts/binary.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/artifacts/canonical-json.d.ts",
+      "source": "shared/vendor/reploid/artifacts/canonical-json.d.ts",
       "owner": "shared"
     },
     {

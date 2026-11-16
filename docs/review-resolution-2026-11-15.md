@@ -153,3 +153,18 @@ Late reads from a replaced draft cannot publish into it or block the new draft.
 `tests/unit/conversation-attachments.test.js` reproduces these boundaries through
 the real conversation binder with controlled file reads and configured limits.
 Both it and the existing conversation suite are now in the focused CI set.
+
+### Canonical JSON consolidation, 2026-11-16
+
+Server hashing now uses the library serializer through the shared canonical-JSON
+port. Signed records retain their sorted-key bytes for JSON values and reject
+undefined/sparse inputs instead of hashing invalid JSON. The server explicitly
+selects its existing undefined normalization: omit object members and use null
+in arrays or at the top level. Sparse server arrays now preserve their length as
+valid JSON, cycles fail explicitly, and getters are evaluated once per member.
+
+Focused checks cover browser/server hash compatibility, custom key ordering,
+sparse and unsupported values, repeated references, cycles, signed evidence,
+receipts, runtime adapters, conversations and ordered publication. Generated
+library mirrors, SDK and browser delivery are rebuilt; these are source and
+contract checks, not new physical inference or security qualification.

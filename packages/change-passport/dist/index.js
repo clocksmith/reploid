@@ -10,14 +10,36 @@ function fromBase64Url(value) {
 }
 
 // shared/vendor/reploid/artifacts/canonical-json.js
-function canonicalizeWith(compare) {
+function canonicalizeWith(compare, { undefinedValues = "reject" } = {}) {
+  if (!["reject", "json"].includes(undefinedValues)) throw new TypeError("Unknown canonical JSON undefined policy");
+  const active = /* @__PURE__ */ new Set();
   const serialize = (value) => {
-    if (value === null || typeof value !== "object") return JSON.stringify(value);
-    if (Array.isArray(value)) {
-      return `[${value.map((item) => serialize(item)).join(",")}]`;
+    if (value === void 0 && undefinedValues === "json") return "null";
+    if (value === null || typeof value !== "object") {
+      const encoded = JSON.stringify(value);
+      if (encoded === void 0) throw new TypeError("Canonical JSON requires JSON values");
+      return encoded;
     }
-    const keys = Object.keys(value).sort(compare);
-    return `{${keys.map((key) => `${JSON.stringify(key)}:${serialize(value[key])}`).join(",")}}`;
+    if (active.has(value)) throw new TypeError("Canonical JSON cannot encode cycles");
+    active.add(value);
+    try {
+      if (Array.isArray(value)) {
+        const items = [];
+        for (let index = 0; index < value.length; index++) {
+          items.push(serialize(Object.hasOwn(value, index) ? value[index] : void 0));
+        }
+        return `[${items.join(",")}]`;
+      }
+      const entries = [];
+      for (const key of Object.keys(value).sort(compare)) {
+        const item = value[key];
+        if (item === void 0 && undefinedValues === "json") continue;
+        entries.push(`${JSON.stringify(key)}:${serialize(item)}`);
+      }
+      return `{${entries.join(",")}}`;
+    } finally {
+      active.delete(value);
+    }
   };
   return serialize;
 }

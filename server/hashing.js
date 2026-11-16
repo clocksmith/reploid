@@ -6,6 +6,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { canonicalizeWith } from '../shared/pool/canonical-json.js';
 
 /** Lowercase hex SHA-256 with no prefix: bytes as given, any other value as the UTF-8 of String(value). */
 export const sha256Hex = (value) => createHash('sha256')
@@ -20,16 +21,7 @@ export const sha256Digest = (value) => `sha256:${sha256Hex(value)}`;
  * other undefined (array items, the top-level value) serializes as null, as
  * JSON.stringify would.
  */
-export const canonicalJson = (value) => {
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort()
-      .filter((key) => value[key] !== undefined)
-      .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
-      .join(',')}}`;
-  }
-  return JSON.stringify(value ?? null);
-};
+export const canonicalJson = canonicalizeWith(undefined, { undefinedValues: 'json' });
 
 /** `sha256:` digest of canonicalJson(value). */
 export const hashCanonical = (value) => sha256Digest(canonicalJson(value));

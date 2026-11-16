@@ -367,9 +367,14 @@
       "sha256": "133382a28ae22d5ed02d9215d381a2b76efae40684d9e19aea7c06e0b603975a"
     },
     {
+      "path": "artifacts/canonical-json.d.ts",
+      "bytes": 416,
+      "sha256": "cb8863f88a55d530d7b85471102e2fd00d7b413eccee7b9b5d8ae009481f2ee7"
+    },
+    {
       "path": "artifacts/canonical-json.js",
-      "bytes": 748,
-      "sha256": "f3400db617e514a3e0e352725bc499bf8707594d0b52aaf5202b097f96af4524"
+      "bytes": 1817,
+      "sha256": "7bd723a93ce7e9e8ab03169e844f31aa5a90ad1b0be66589133fd091bcb9ad5f"
     },
     {
       "path": "artifacts/checkpoint.d.ts",
