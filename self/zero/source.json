@@ -89,8 +89,8 @@
     },
     {
       "path": "core/verification-worker.js",
-      "bytes": 32155,
-      "sha256": "f3385dce7954eeb248a99847ffbd383e7fec4be0ed1a1cc72fd4beaef82dc935"
+      "bytes": 32140,
+      "sha256": "0a9f13929ce6ef0f2d5db230f10abdbc0ca234ea744a5012b8b4f852e78fa900"
     },
     {
       "path": "core/vfs-module-loader.js",
@@ -159,13 +159,23 @@
     },
     {
       "path": "vendor/reploid/config/index.js",
-      "bytes": 11519,
-      "sha256": "b516347ee56b3ecee9ed57b2b5f3608d2359d9109af44ea304a1a4b8b94b4887"
+      "bytes": 11735,
+      "sha256": "ddadde658a6e7f24e2522742e88c95d63cb4be95311d6af2b81f1a0672118a0f"
     },
     {
       "path": "vendor/reploid/config/request-overrides.json",
       "bytes": 166,
       "sha256": "6e80c26a4c07d317eae530199e86634356b8cb94e2d140087ed2e4e6be12306a"
+    },
+    {
+      "path": "vendor/reploid/config/schema.json",
+      "bytes": 11367,
+      "sha256": "03a1ba983579670c60a8a3bfa70e02b130f475f4b2f2e705ee148627da351e6c"
+    },
+    {
+      "path": "vendor/reploid/config/validate-schema.js",
+      "bytes": 2206,
+      "sha256": "474ca9592eb3a81534a0bd9148106cc27114f9a6d3c2edfa6205072e2028efcd"
     },
     {
       "path": "vendor/reploid/hashing.js",

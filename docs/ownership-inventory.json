@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 380,
-    "self": 449,
-    "shared": 2364
+    "apps/poolday": 385,
+    "self": 450,
+    "shared": 2388
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1487,6 +1487,12 @@
       "source": "shared/config/chat-models.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
+    },
+    {
+      "served": "config/chat-prompts.json",
+      "source": "apps/poolday/config/chat-prompts.json",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "config/chat-remote-permission.json",
@@ -3601,8 +3607,26 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "pool/peer-execution-offers.d.ts",
+      "source": "apps/poolday/pool/peer-execution-offers.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes pool/peer-execution-offers.js. Reached only from product entries."
+    },
+    {
+      "served": "pool/peer-execution-offers.js",
+      "source": "apps/poolday/pool/peer-execution-offers.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "pool/peer-ledger.js",
       "source": "apps/poolday/pool/peer-ledger.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "pool/peer-model-match.js",
+      "source": "apps/poolday/pool/peer-model-match.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4179,6 +4203,12 @@
     {
       "served": "testing/arena/vfs-sandbox.js",
       "source": "self/testing/arena/vfs-sandbox.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "tool-authorization.js",
+      "source": "self/tool-authorization.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
     },
@@ -4839,6 +4869,12 @@
     {
       "served": "ui/pool-home/prism.js",
       "source": "apps/poolday/ui/pool-home/prism.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/privacy-controls.js",
+      "source": "apps/poolday/ui/pool-home/privacy-controls.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -15439,8 +15475,23 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/agent/task-archive.js",
+      "source": "shared/vendor/reploid/agent/task-archive.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/agent/task-protocol.js",
+      "source": "shared/vendor/reploid/agent/task-protocol.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/agent/task-strategy.js",
       "source": "shared/vendor/reploid/agent/task-strategy.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/agent/task-tools.js",
+      "source": "shared/vendor/reploid/agent/task-tools.js",
       "owner": "shared"
     },
     {
@@ -15674,6 +15725,31 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/chat/execution-offers.d.ts",
+      "source": "shared/vendor/reploid/chat/execution-offers.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/chat/execution-offers.js",
+      "source": "shared/vendor/reploid/chat/execution-offers.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/chat/execution-policy.d.ts",
+      "source": "shared/vendor/reploid/chat/execution-policy.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/chat/execution-policy.js",
+      "source": "shared/vendor/reploid/chat/execution-policy.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/chat/execution-policy.json",
+      "source": "shared/vendor/reploid/chat/execution-policy.json",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/chat/index.d.ts",
       "source": "shared/vendor/reploid/chat/index.d.ts",
       "owner": "shared"
@@ -15799,6 +15875,11 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/config/validate-schema.js",
+      "source": "shared/vendor/reploid/config/validate-schema.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/contracts/attempt-report.d.ts",
       "source": "shared/vendor/reploid/contracts/attempt-report.d.ts",
       "owner": "shared"
@@ -15841,6 +15922,46 @@
     {
       "served": "vendor/reploid/contracts/infrastructure/pack-job-storage.d.ts",
       "source": "shared/vendor/reploid/contracts/infrastructure/pack-job-storage.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition-activity.d.ts",
+      "source": "shared/vendor/reploid/contracts/partition-activity.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition-activity.js",
+      "source": "shared/vendor/reploid/contracts/partition-activity.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition-disclosure.d.ts",
+      "source": "shared/vendor/reploid/contracts/partition-disclosure.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition-disclosure.js",
+      "source": "shared/vendor/reploid/contracts/partition-disclosure.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition-publication.d.ts",
+      "source": "shared/vendor/reploid/contracts/partition-publication.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition-publication.js",
+      "source": "shared/vendor/reploid/contracts/partition-publication.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition.d.ts",
+      "source": "shared/vendor/reploid/contracts/partition.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/partition.js",
+      "source": "shared/vendor/reploid/contracts/partition.js",
       "owner": "shared"
     },
     {
@@ -16091,6 +16212,16 @@
     {
       "served": "vendor/reploid/mesh/jobs/index.js",
       "source": "shared/vendor/reploid/mesh/jobs/index.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/jobs/operation-privacy.d.ts",
+      "source": "shared/vendor/reploid/mesh/jobs/operation-privacy.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/jobs/operation-privacy.js",
+      "source": "shared/vendor/reploid/mesh/jobs/operation-privacy.js",
       "owner": "shared"
     },
     {
@@ -16589,6 +16720,26 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/retrieval/disclosure-path.d.ts",
+      "source": "shared/vendor/reploid/retrieval/disclosure-path.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/retrieval/disclosure-path.js",
+      "source": "shared/vendor/reploid/retrieval/disclosure-path.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/retrieval/disclosure-ports.d.ts",
+      "source": "shared/vendor/reploid/retrieval/disclosure-ports.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/retrieval/disclosure-ports.js",
+      "source": "shared/vendor/reploid/retrieval/disclosure-ports.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/retrieval/fixed-provider.js",
       "source": "shared/vendor/reploid/retrieval/fixed-provider.js",
       "owner": "shared"
@@ -16761,6 +16912,11 @@
     {
       "served": "vendor/reploid/transport/introductions.js",
       "source": "shared/vendor/reploid/transport/introductions.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/message-types.js",
+      "source": "shared/vendor/reploid/transport/message-types.js",
       "owner": "shared"
     },
     {

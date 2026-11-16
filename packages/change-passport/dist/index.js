@@ -108,7 +108,7 @@ async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
   }
 }
 
-// shared/vendor/reploid/mesh/partitions/partition-contract.js
+// shared/vendor/reploid/contracts/partition.js
 var partitionIdentityKeys = Object.freeze(["modelId", "modelIdentity", "planId", "threadId", "attemptId", "participantA", "participantB"]);
 var partitionActions = Object.freeze([
   "mesh.execute_partition_a",

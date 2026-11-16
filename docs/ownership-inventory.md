@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 380 |
-| self | 449 |
-| shared | 2364 |
-| total | 3193 |
+| apps/poolday | 385 |
+| self | 450 |
+| shared | 2388 |
+| total | 3223 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 1963 | shared |
-| `vendor/reploid/` | 320 | shared |
+| `vendor/reploid/` | 344 | shared |
 
 ## Files
 
@@ -281,6 +281,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/chat-context-policy.json` | `apps/poolday/config/chat-context-policy.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-files.json` | `apps/poolday/config/chat-files.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-models.json` | `shared/config/chat-models.json` | shared | Reached from native hosts and browser entries. |
+| `config/chat-prompts.json` | `apps/poolday/config/chat-prompts.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-remote-permission.json` | `apps/poolday/config/chat-remote-permission.json` | apps/poolday | Reached only from product entries. |
 | `config/clockwork-gamma-receipts.js` | `self/config/clockwork-gamma-receipts.js` | self | Reached only from substrate entries. |
 | `config/computer-preferences.json` | `apps/poolday/config/computer-preferences.json` | apps/poolday | Reached only from product entries. |
@@ -633,7 +634,10 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/peer-capabilities.d.ts` | `shared/pool/peer-capabilities.d.ts` | shared | Describes pool/peer-capabilities.js. Reached from native hosts and browser entries. |
 | `pool/peer-capabilities.js` | `shared/pool/peer-capabilities.js` | shared | Reached from native hosts and browser entries. |
 | `pool/peer-control-plane.js` | `apps/poolday/pool/peer-control-plane.js` | apps/poolday | Reached only from product entries. |
+| `pool/peer-execution-offers.d.ts` | `apps/poolday/pool/peer-execution-offers.d.ts` | apps/poolday | Describes pool/peer-execution-offers.js. Reached only from product entries. |
+| `pool/peer-execution-offers.js` | `apps/poolday/pool/peer-execution-offers.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-ledger.js` | `apps/poolday/pool/peer-ledger.js` | apps/poolday | Reached only from product entries. |
+| `pool/peer-model-match.js` | `apps/poolday/pool/peer-model-match.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-pack-custody.d.ts` | `apps/poolday/pool/peer-pack-custody.d.ts` | apps/poolday | Describes pool/peer-pack-custody.js. Reached only from product entries. |
 | `pool/peer-pack-custody.js` | `apps/poolday/pool/peer-pack-custody.js` | apps/poolday | Reached only from product entries. |
 | `pool/peer-pack-data-channel.js` | `apps/poolday/pool/peer-pack-data-channel.js` | apps/poolday | Reached only from product entries. |
@@ -730,6 +734,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `testing/arena/arena-metrics.js` | `self/testing/arena/arena-metrics.js` | self | Reached only from substrate entries. |
 | `testing/arena/competitor.js` | `self/testing/arena/competitor.js` | self | Reached only from substrate entries. |
 | `testing/arena/vfs-sandbox.js` | `self/testing/arena/vfs-sandbox.js` | self | Reached only from substrate entries. |
+| `tool-authorization.js` | `self/tool-authorization.js` | self | Reached only from substrate entries. |
 | `tool-runner.js` | `self/tool-runner.js` | self | Reached only from substrate entries. |
 | `tools/AwaitWorkers.js` | `self/tools/AwaitWorkers.js` | self | Reached only from substrate entries. |
 | `tools/CopyFile.js` | `self/tools/CopyFile.js` | self | Reached only from substrate entries. |
@@ -840,6 +845,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/peer-run-surface.js` | `apps/poolday/ui/pool-home/peer-run-surface.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/pending-request-recovery.js` | `apps/poolday/ui/pool-home/pending-request-recovery.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/prism.js` | `apps/poolday/ui/pool-home/prism.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/privacy-controls.js` | `apps/poolday/ui/pool-home/privacy-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/private-computers-view.js` | `apps/poolday/ui/pool-home/private-computers-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/production.js` | `apps/poolday/ui/pool-home/production.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/provider-controls.js` | `apps/poolday/ui/pool-home/provider-controls.js` | apps/poolday | Reached only from product entries. |
