@@ -5,6 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { verifyPeerRuntime } from './runtime-identity.js';
 import { runPooledCompleteRequest } from './complete-request.js';
+import { closeOwnedPeerRoom } from './close-owned-room.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
 assert(config.sdk && config.source && config.models && config.webgpuModule && config.memoryObserver
@@ -31,6 +32,7 @@ async function memoryGuard() {
   }
 }
 let room;
+const ownedGpus = new Set();
 const timer = setInterval(() => { memoryGuard().catch(error => abort.abort(error)); }, 1000);
 timer.unref();
 try {
@@ -42,6 +44,7 @@ try {
       const module = await import(pathToFileURL(config.webgpuModule));
       return { ...module, create(flags) {
         const gpu = module.create(flags), requestAdapter = gpu.requestAdapter.bind(gpu);
+        ownedGpus.add(gpu);
         gpu.requestAdapter = async options => {
           const adapter = await requestAdapter(options);
           if (!adapter) return adapter;
@@ -79,7 +82,7 @@ try {
 finally {
   clearInterval(timer);
   try {
-    await room?.close();
+    await closeOwnedPeerRoom(room, ownedGpus); room = null;
     result.provenanceAfterClose = await verifyPeerRuntime(config.provenance);
     result.cleanup = 'settled';
   } catch (error) { result.cleanupError = String(error.stack ?? error); process.exitCode = 1; }
