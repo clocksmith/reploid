@@ -1,3 +1,4 @@
+import { notifyObservers } from '../../observation.js';
 import { partitionPrivacyBinding } from '../../chat/execution-policy.js';
 import { partitionAdapterIdentities, samePartitionAdapters } from './partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
@@ -63,7 +64,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
     availability: !closed && validated && stages.every(stage => stage.getState().ready) ? 'ready' : 'unavailable',
     providerIds: stages.map(stage => stage.id), placement: 'ordered-layer-partition' }];
   // Stage state changes (a settled reservation, a lost stage) may admit or refuse waiting attempts.
-  const notify = () => { for (const listener of listeners) { try { listener(models()); } catch {} } queue.pump(); };
+  const notify = () => { notifyObservers(listeners, models); queue.pump(); };
   const unsubscribers = stages.map(stage => stage.subscribe(notify));
   // The route's occupied slots: live admission tickets plus finished attempts whose cleanup has
   // not settled (the runner still counts them). The coordinator's own stage is shared by its

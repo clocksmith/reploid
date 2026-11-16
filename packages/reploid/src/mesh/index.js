@@ -9,12 +9,14 @@ export * from './contribution.js';
 export { default as contributionPolicy } from './contribution.js';
 export { default as swarmCoordination } from './swarm-coordination.js';
 import routing from '../rules/routing.rules.json' with { type: 'json' };
-import { requireResolvedConfig, snapshotJson } from '../config/index.js';
+import { requireResolvedConfig, snapshotJson, ConfigurationError } from '../config/index.js';
 
 export function createIntelligenceMesh({ config, ports }) {
   const policy = requireResolvedConfig(config);
   if (typeof ports?.authorize !== 'function') throw new TypeError('Mesh host authorization is required');
-  const order = routing.rules.find(rule => rule.id === policy.mesh.routing).order;
+  const rule = routing.rules.find(rule => rule.id === policy.mesh.routing);
+  if (!rule) throw new ConfigurationError('mesh.routing', 'unknown routing rule');
+  const order = rule.order;
   let closed = false;
   return Object.freeze({
     async connect() {

@@ -155,6 +155,7 @@ export interface ChatSendOptions {
 /** One retrieval route. A search-answer route needs a per-answer search permission and sends only the question and passages. */
 export type ChatRetrievalRoute = RetrievalPorts & { permission?: 'search-answer'; provider: RetrievalPorts['provider'] & { searchProvider?: string } };
 export interface ChatWorkspaceOptions {
+  onListenerError?(error: unknown): unknown;
   meshId: string; participantId: string;
   /** Host-authenticated peer identity that execution binds into ordered requester disclosure; null until
    * authenticated. Defaults to participantId for hosts whose history participant is that peer. */

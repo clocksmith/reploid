@@ -1,3 +1,4 @@
+import { notifyObservers } from '../../observation.js';
 import { createPartitionDataChannel, partitionBinaryResult } from '../../transport/partition-data-channel.js';
 import { createPartitionStepReceiver } from './partition-step-receiver.js';
 import { assertPartition as assert, assertCapacity, partitionFailure, canonicalPartitionJson, canonicalRouteAttemptBinding,
@@ -264,7 +265,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     participantId: remoteParticipantId, descriptor: structuredClone(descriptor), receipt: endpoint.getReceipt(),
     unsettled: serving ? new Set([...reservations.keys(), ...retirementReceipts.keys()]).size : active.size,
     ...(serving ? { undeliveredRetirements } : {}) });
-  const notify = () => { for (const listener of listeners) { try { listener(getState()); } catch {} } };
+  const notify = () => { notifyObservers(listeners, getState); };
   const closeAttempt = async ({ identity, acknowledged = null }) => {
     identity = canonicalRouteAttemptBinding(identity);
     await ready;

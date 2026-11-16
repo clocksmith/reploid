@@ -1,3 +1,4 @@
+import { notifyObservers } from '../../observation.js';
 import { createResidentRouteBinding } from './resident-route.js';
 import residentErrorCodes from './resident-error-codes.json' with { type: 'json' };
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
@@ -89,7 +90,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     activeAttempts: attempts.size, reservations: reservationState(),
     error, descriptor: structuredClone(descriptor), recovery: structuredClone(recovery), index, participantId,
     modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId });
-  const notify = () => { for (const listener of listeners) { try { listener(state()); } catch {} } };
+  const notify = () => { notifyObservers(listeners, state); };
   const dispose = () => disposal ||= Promise.resolve().then(() => session?.close()).then(async () => {
     reservations.close(); reservations.settleAll(); attempts.clear(); device?.releaseResident(deviceOwner); finishDrain?.();
     // Device/session cleanup also closes proofs for attempts whose coordinator disappeared.
