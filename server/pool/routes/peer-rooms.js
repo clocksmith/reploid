@@ -1,3 +1,12 @@
+import { cursorForRelayRecord } from '../relay.js';
+
+export const relayPageResponse = (messages, idField) => {
+  const nextCursor = messages?.nextCursor || (messages?.length
+    ? cursorForRelayRecord(messages.at(-1), idField)
+    : null);
+  return nextCursor ? { messages, nextCursor } : { messages };
+};
+
 /**
  * @fileoverview Bounded at-least-once peer-room relay route registration.
  *
