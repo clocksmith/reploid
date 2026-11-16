@@ -53,3 +53,9 @@ export function isOrderedPartitionEntryModel(model: unknown, peer: { participant
 export function partitionAdapterIdentities(model: {identity: string; adapters?: readonly {identity:string;baseModelIdentity:string}[]}): string[];
 export function samePartitionAdapters(left: Parameters<typeof partitionAdapterIdentities>[0], right: Parameters<typeof partitionAdapterIdentities>[0]): boolean;
 export function selectPartitionContribution<T extends import('../chat/index.js').ChatModel>(model: T, adapters?: T['adapters']): T;
+
+export function partitionActivationContract(runtime: Partial<OrderedPartitionRuntime> & {
+  LAYER_PARTITION_SCHEMA?: string; ACTIVATION_TENSOR_SCHEMA?: string;
+}, plan: OrderedPartitionPlan | { schema: string; activationDtype: 'f16' | 'f32'; hiddenSize: number }): Readonly<PartitionActivationContract>;
+export function matchingPartitionActivation(value: unknown, contract: PartitionActivationContract, frame?: boolean): boolean;
+export function canonicalPartitionBinding(identity: PartitionBinding): Readonly<PartitionBinding>;

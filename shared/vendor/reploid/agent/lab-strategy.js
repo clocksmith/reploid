@@ -65,6 +65,9 @@ const AgentLoop = {
       Utils, EventBus, VFS, ResponseParser, StateManager, PersonaManager, SchemaRegistry, TraceStore, MemoryManager
     } = deps;
 
+    if (!Utils?.logger || typeof Utils.Errors?.StateError !== 'function' || typeof Utils.Errors?.ConfigError !== 'function') {
+      throw new TypeError('Legacy agent requires logger and StateError/ConfigError constructor ports');
+    }
     const { logger, Errors } = Utils;
     const BUILD_READ_ONLY_DISCOVERY_LIMIT = loop.policy.legacyAgent.discoveryLimit;
 

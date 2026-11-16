@@ -1,3 +1,4 @@
+import { notifyObservers } from '../observation.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
 import { createAgentRuntime } from '../agent/runtime.js';
 import ResponseParser from '../agent/response-parser.js';
@@ -20,9 +21,15 @@ export function createReploid({ config, ports }) {
   for (const resource of owned) {
     if (typeof resource?.close !== 'function') throw new TypeError('Owned resources must implement close()');
   }
-  const quiet = () => {};
+  if (ports.logger !== undefined && (!ports.logger || typeof ports.logger !== 'object')) throw new TypeError('Logger port must be an object');
+  const logger = Object.fromEntries(['warn', 'error', 'info', 'debug'].map(level => {
+    if (ports.logger?.[level] !== undefined && typeof ports.logger[level] !== 'function') throw new TypeError(`Logger ${level} must be a function`);
+    // Defaults expose the diagnostic message only; model arguments remain private.
+    return [level, (...values) => ports.logger?.[level] ? ports.logger[level](...values)
+      : ['warn', 'error'].includes(level) ? console[level](String(values[0])) : undefined];
+  }));
   const parser = ports.responseParser || ResponseParser.factory({
-    Utils: { logger: { warn: quiet, error: quiet, info: quiet, debug: quiet },
+    Utils: { logger,
       sanitizeLlmJsonRespPure: text => ({ json: String(text).trim().replace(/^\`\`\`(?:json)?\s*|\s*\`\`\`$/g, '') }) }
   });
   let runtime = null, runtimeSubscription = null, prepared = null, closing = null, closed = false;
@@ -34,7 +41,7 @@ export function createReploid({ config, ports }) {
   const check = () => { if (closed) throw new Error('Reploid instance is closed'); };
   const notify = snapshot => {
     if (!policy.observation.enabled) return;
-    for (const listener of listeners) { try { listener(snapshotJson(snapshot)); } catch {} }
+    notifyObservers(listeners, () => snapshotJson(snapshot), ports.onListenerError);
   };
   const getSnapshot = () => runtime?.getSnapshot() || {
     instanceId, status: closed ? 'CLOSED' : 'IDLE', running: false, goal: null, context: []

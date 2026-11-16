@@ -52,6 +52,9 @@ export interface AgentSnapshot {
   [field: string]: unknown;
 }
 export interface ReploidPorts {
+  /** Opt in to full parser diagnostics; defaults print warning/error messages without model arguments. */
+  logger?: Partial<import('./response-parser.js').ParserUtils['logger']>;
+  onListenerError?(error: unknown): unknown;
   instanceId: string; authorize: Authorize; onExecutionEvent?(event: ExecutionEvent): void; agent?: AgentPorts; responseParser?: ResponseParserInstance;
   providers?: Record<string, GenerationProvider>; mesh?: GenerationProvider & { connect(): Promise<unknown>; describe?(): unknown };
   tools?: Record<string, (args: Record<string, unknown>, control?: Control) => unknown | Promise<unknown>>;

@@ -4,6 +4,8 @@ import { abortable } from '../cancellation.js';
 import choiceDefinition from './doppler-choice.json' with { type: 'json' };
 import { createDopplerStreamAccumulator, dopplerOperationEvents } from './doppler-session.js';
 
+const loadDopplerRuntime = runtime => runtime ?? import('doppler-gpu');
+
 // Public session calls applications share; importable alone without the lazy runtime import below.
 export * from './doppler-session.js';
 
@@ -26,7 +28,7 @@ export function createDopplerProvider({ config, session, ownership, toGeneration
   let closed = false;
   let closePromise;
   const active = new Map();
-  const runtimeModule = () => runtime ?? import('doppler-gpu');
+  const runtimeModule = () => loadDopplerRuntime(runtime);
   return Object.freeze({
     contract,
     async generate(messages, onUpdate, { signal, adapterArtifactStore } = {}) {
@@ -104,7 +106,7 @@ export function createDopplerProvider({ config, session, ownership, toGeneration
 }
 
 export async function openDopplerProvider({ config, capsule, runtimePorts, sessionOptions, toGenerationRequest, toOperationRequest }) {
-  const runtime = await import('doppler-gpu');
+  const runtime = await loadDopplerRuntime();
   const session = await runtime.openCapsule(capsule, { ...runtimePorts, session: sessionOptions });
   try { return createDopplerProvider({ config, session, ownership: 'owned', toGenerationRequest, toOperationRequest, runtime }); }
   catch (error) { await session.close(); throw error; }
@@ -176,7 +178,7 @@ export function createDopplerOperationProvider({ config, session, ownership, run
       let settled;
       active.set(controller, new Promise(resolve => { settled = resolve; }));
       try {
-        const api = await (runtime ?? import('doppler-gpu'));
+        const api = await loadDopplerRuntime(runtime);
         controller.signal.throwIfAborted();
         if (contract.runtimeVersion !== undefined && api.DOPPLER_VERSION !== contract.runtimeVersion) {
           throw new Error('Doppler runtime does not match the configured version');

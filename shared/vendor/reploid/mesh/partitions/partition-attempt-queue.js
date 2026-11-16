@@ -1,3 +1,4 @@
+import { notifyObservers } from '../../observation.js';
 import queuePolicy from './partition-attempt-queue-policy.json' with { type: 'json' };
 import { assertPartition as assert, partitionFailure } from './partition-contract.js';
 
@@ -102,7 +103,7 @@ export function createPartitionAttemptQueue({ policy, now = Date.now }) {
       entry.onAbort = () => settle(entry, signal.reason ?? new Error('Queued attempt cancelled'));
       signal?.addEventListener('abort', entry.onAbort, { once: true });
       waiting.push(entry);
-      try { onQueued({ position: waiting.length, queuedAt: at, waitUntil: limit }); } catch {}
+      notifyObservers([onQueued], () => ({ position: waiting.length, queuedAt: at, waitUntil: limit }));
       return promise;
     },
     /** Re-evaluate waiting entries after capacity may have changed. */

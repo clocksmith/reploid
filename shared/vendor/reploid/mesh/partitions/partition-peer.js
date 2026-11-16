@@ -1,3 +1,4 @@
+import { notifyObservers } from '../../observation.js';
 import { createOrderedPartitionPeer } from './partition-ordered-peer.js';
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
@@ -123,7 +124,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       finally { outputCharacters.delete(identity.attemptId); }
     },
   });
-  const notify = () => { for (const listener of listeners) { try { listener(getState()); } catch {} } };
+  const notify = () => { notifyObservers(listeners, getState); };
   const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits,
     async authorize({ action, metadata, byteLength }) {
       if (metadata.operation === 'describe') return byteLength === 0;

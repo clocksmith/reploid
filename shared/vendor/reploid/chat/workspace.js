@@ -1,3 +1,4 @@
+import { notifyObservers } from '../observation.js';
 /** Conversation state only. Execution, trust and transport are explicit host ports. */
 import { partitionActivity } from '../contracts/partition-activity.js';
 import { canonicalPartitionJson } from '../contracts/partition.js';
@@ -32,7 +33,7 @@ const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model a
 // retry, its provider declares `searchProvider`, its request carries only the current question and the retrieved
 // passages, and its passages reach only the contributors that permission lists.
 export function createChatWorkspace({ meshId, participantId, store, execute, requesterIdentity = () => participantId,
-  remotePermissions = null, prepareRemotePermission = null, networkId = () => meshId, retrieval = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
+  remotePermissions = null, prepareRemotePermission = null, onListenerError = undefined, networkId = () => meshId, retrieval = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
   assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function'
     && typeof requesterIdentity === 'function' && (remotePermissions === null || typeof remotePermissions === 'function')
@@ -152,9 +153,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         approval: attempt.approval, execution: attempt.execution }] : [];
     }) } : {}),
     limits: { maxThreads: limits.maxThreads, maxMessageCharacters: limits.maxMessageCharacters } });
-  const notify = () => { for (const listener of listeners) {
-    try { listener(snapshot()); } catch (error) { console.error('[ChatWorkspace] listener failed', error); }
-  } };
+  const notify = () => { notifyObservers(listeners, snapshot, onListenerError); };
   const persist = () => {
     assert(!storageError, `History storage failed: ${storageError}`);
     try {

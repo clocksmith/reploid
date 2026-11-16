@@ -70,3 +70,20 @@ export interface OutputAcknowledgments {
 }
 export function openOutputAcknowledgments(options: { signer: AttemptEvidenceSigner; identity: RouteAttemptBinding; reservationId: string;
   now?: () => number; restore?: Record<string, unknown> | null }): Promise<OutputAcknowledgments>;
+
+declare const api: {
+  STAGE_RECEIPT_SCHEMA: typeof STAGE_RECEIPT_SCHEMA;
+  OUTPUT_ACKNOWLEDGMENT_SCHEMA: typeof OUTPUT_ACKNOWLEDGMENT_SCHEMA;
+  OUTPUT_CHAIN_SCHEMA: typeof OUTPUT_CHAIN_SCHEMA;
+  ATTEMPT_EVIDENCE_SCHEMA: typeof ATTEMPT_EVIDENCE_SCHEMA;
+  attemptRouteHash: typeof attemptRouteHash;
+  outputChainGenesis: typeof outputChainGenesis;
+  extendOutputChain: typeof extendOutputChain;
+  createAttemptEvidenceSigner: typeof createAttemptEvidenceSigner;
+  verifyStageReceipt: typeof verifyStageReceipt;
+  verifyOutputAcknowledgment: typeof verifyOutputAcknowledgment;
+  checkAttemptEvidenceBundle: typeof checkAttemptEvidenceBundle;
+  openStageReceipts: typeof openStageReceipts;
+  openOutputAcknowledgments: typeof openOutputAcknowledgments;
+};
+export default api;

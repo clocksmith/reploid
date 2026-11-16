@@ -1,3 +1,4 @@
+import { notifyObservers } from '../../observation.js';
 import { partitionPrivacyBinding } from '../../chat/execution-policy.js';
 import { partitionAdapterIdentities, samePartitionAdapters } from './partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
@@ -37,7 +38,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
       : local.getState().phase === 'loading' ? 'loading' : 'unavailable',
     providerIds: [local.id, remote.id], placement: 'two-device-layer-partition' }];
   };
-  const notify = () => { for (const listener of listeners) { try { listener(models()); } catch {} } };
+  const notify = () => { notifyObservers(listeners, models); };
   const unsubscribers = [local.subscribe(notify), remote.subscribe(notify)];
   const runner = createLayerPartitionRunner({ runtime, plan, deviceA: local, deviceB: remote, limits: policy, canonical: canonicalBinding !== null,
     authorize: request => (local.canAccept ? local.canAccept(request) : local.getState().ready)

@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 385,
-    "self": 455,
-    "shared": 2388
+    "apps/poolday": 379,
+    "self": 457,
+    "shared": 2390
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1795,6 +1795,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "config/peer-timing.json",
+      "source": "apps/poolday/config/peer-timing.json",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "config/reploid-environments.js",
       "source": "self/config/reploid-environments.js",
       "owner": "self",
@@ -1805,6 +1811,12 @@
       "source": "shared/config/reploid-library.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
+    },
+    {
+      "served": "config/route-boot.js",
+      "source": "self/config/route-boot.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
     },
     {
       "served": "config/self-source-catalog.json",
@@ -2243,6 +2255,12 @@
       "source": "apps/poolday/host/adapter-evidence.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/bridge-files.js",
+      "source": "self/host/bridge-files.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
     },
     {
       "served": "host/chat-context.js",
@@ -3487,6 +3505,12 @@
       "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
+      "served": "pool/observation-timeout.js",
+      "source": "apps/poolday/pool/observation-timeout.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "pool/operation-acceptance.d.ts",
       "source": "apps/poolday/pool/operation-acceptance.d.ts",
       "owner": "apps/poolday",
@@ -3613,6 +3637,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "pool/peer-assignment-planning.js",
+      "source": "apps/poolday/pool/peer-assignment-planning.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "pool/peer-assignment.js",
       "source": "apps/poolday/pool/peer-assignment.js",
       "owner": "apps/poolday",
@@ -3657,6 +3687,12 @@
     {
       "served": "pool/peer-model-match.js",
       "source": "apps/poolday/pool/peer-model-match.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "pool/peer-operation-room.js",
+      "source": "apps/poolday/pool/peer-operation-room.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -3775,8 +3811,26 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "pool/peer-provider-node.js",
+      "source": "apps/poolday/pool/peer-provider-node.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "pool/peer-receipt-agreement.js",
+      "source": "apps/poolday/pool/peer-receipt-agreement.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "pool/peer-rendezvous.js",
       "source": "apps/poolday/pool/peer-rendezvous.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "pool/peer-room-support.js",
+      "source": "apps/poolday/pool/peer-room-support.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -3789,6 +3843,12 @@
     {
       "served": "pool/peer-room.js",
       "source": "apps/poolday/pool/peer-room.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "pool/peer-signed-claims.js",
+      "source": "apps/poolday/pool/peer-signed-claims.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -5189,90 +5249,6 @@
       "source": "apps/poolday/ui/pool-home/shell-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/simulation-batches.js",
-      "source": "apps/poolday/ui/pool-home/simulation-batches.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-bind.js",
-      "source": "apps/poolday/ui/pool-home/simulation-bind.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-core.js",
-      "source": "apps/poolday/ui/pool-home/simulation-core.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-easing.js",
-      "source": "apps/poolday/ui/pool-home/simulation-easing.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-flow-specs.js",
-      "source": "apps/poolday/ui/pool-home/simulation-flow-specs.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-flow-transition.js",
-      "source": "apps/poolday/ui/pool-home/simulation-flow-transition.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-frame-state.js",
-      "source": "apps/poolday/ui/pool-home/simulation-frame-state.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-graph-layout.js",
-      "source": "apps/poolday/ui/pool-home/simulation-graph-layout.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-graph-plan.js",
-      "source": "apps/poolday/ui/pool-home/simulation-graph-plan.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-lines.js",
-      "source": "apps/poolday/ui/pool-home/simulation-lines.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-pointer-shooter.js",
-      "source": "apps/poolday/ui/pool-home/simulation-pointer-shooter.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-renderer.js",
-      "source": "apps/poolday/ui/pool-home/simulation-renderer.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-state.js",
-      "source": "apps/poolday/ui/pool-home/simulation-state.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/simulation-visual-state.js",
-      "source": "apps/poolday/ui/pool-home/simulation-visual-state.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/specialist-routes.js",
@@ -16712,6 +16688,16 @@
     {
       "served": "vendor/reploid/mesh/web-access-policy.json",
       "source": "shared/vendor/reploid/mesh/web-access-policy.json",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/observation.d.ts",
+      "source": "shared/vendor/reploid/observation.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/observation.js",
+      "source": "shared/vendor/reploid/observation.js",
       "owner": "shared"
     },
     {
