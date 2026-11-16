@@ -143,6 +143,7 @@ The [browser ownership inventory](./ownership-inventory.md) assigns every served
 reploid/
 ├── apps/poolday/               # Poolday product, served at the same URLs (index.html, ui/pool-home/, pool/, host/)
 ├── shared/                     # Browser code both surfaces load (vendor/, config/, identity.js, ...)
+│   └── infrastructure/event-bus.js # Shared pub/sub event system
 ├── self/                       # Agent/VFS substrate; with the two roots above, one served tree
 │   ├── kernel/index.html       # Substrate boot entry
 │   ├── entry/seed-vfs.js       # VFS hydration compatibility shim
@@ -161,7 +162,6 @@ reploid/
 │   │   └── verification-manager.js  # Pre-flight safety checks
 │   │
 │   ├── infrastructure/         # Support services
-│   │   ├── event-bus.js        # Pub/sub event system
 │   │   ├── di-container.js     # Dependency injection
 │   │   ├── hitl-controller.js  # Human-in-the-loop oversight
 │   │   └── audit-logger.js     # Execution logging
@@ -236,10 +236,10 @@ does not create Markdown blueprints unless a module introduces an architectural 
 - `./self/config/genesis-levels.json` - Module registry and worker types
 - `./self/entry/seed-vfs.js` - VFS hydration compatibility shim
 - `./self/entry/start-app.js` - Application bootstrap compatibility shim
-- `./self/index.html` - Entry point
+- `./self/kernel/index.html` - Substrate boot entry
 
 **Key Directories:**
-- `./self/` - Agent substrate modules and public web root
+- `./self/` - Agent substrate modules; one served tree overlays this with `shared/` and `apps/poolday/`
 - `./self/tools/` - Dynamic agent tools
 - `./self/infrastructure/` - Support services
 - `./self/ui/` - Proto UI

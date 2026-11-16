@@ -19,10 +19,13 @@ these software contract checks.
 | reploid/jobs | Complete-job contracts, requester, provider, verification, durable journals and independent embedding units |
 | reploid/custody | Authorized artifact transfer and reconstruction |
 | reploid/config | Immutable configuration resolution and provenance |
+| reploid/config/schema.json | Executed structural configuration schema |
+| reploid/config/profiles/local.json | Explicit local-only profile asset |
 | reploid/webrtc | Assignment signaling/WebRTC and separate legacy swarm transport |
 | reploid/mesh | Placement policy and whole-request peer generation coordination |
 | reploid/browser | Explicit IndexedDB, memory stores and VFS adapters |
 | reploid/doppler | Optional public Doppler Capsule-session integration |
+| reploid/resident | Scoped resident model execution adapter |
 | reploid/improve | Existing signed improvement episode ledger and promotion-readiness checks |
 | reploid/retrieval | Search provider, passage extractor and support checker interfaces; bounded provenance records, numbered source context and mechanical citation checks |
 | reploid/chat | Concurrent authorized conversations, threads, attempts and grants; no global objective |
