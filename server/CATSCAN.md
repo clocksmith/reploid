@@ -3,34 +3,32 @@
 Parent: [Reploid](../CATSCAN.md)
 
 ## Target
-Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims.
+Bounded authenticated services and native participation without authority over browser claims.
 
 ## Authority
-- Owns validation, signaling/relay, external adapters, native composition, accounts, accounting, purchases, Community Access, rewards and durable scheduling.
-- Excludes browser execution claims, exactly-once delivery, scientific validity and Research Room decisions.
+Owns HTTP, discovery, relay, native composition and durable services. Ledger owns credits/settlements; rewards owns issuance; payments owns purchases; Community Access owns funding pools; scheduler owns obligations. Earning composition connects them without changing domain authority.
 
 ## Scope
 This directory.
 
 ## Contracts
-Inputs: [proxy.js](proxy.js), [reploid-signaling.js](reploid-signaling.js), [public-inference-guard.js](public-inference-guard.js).
-Outputs: authenticated, bounded responses and delivery records.
+Inputs: [proxy.js](proxy.js), [signaling](reploid-signaling.js), [admission](public-inference-guard.js), library contracts, shared browser contracts and Poolday host/pool/config adapters. Product presentation and substrate execution implementations are forbidden dependencies.
+Outputs: bounded responses, accounting and delivery records.
 
 ## Invariants
-- Relay acknowledgement proves receipt, not acceptance; auth/transport never prove model/scientific validity; failures stay explicit.
-- HTTP inference requires auth, exact disclosure and accounting (unbilled is test-only). Trial admission retains unsettled reservations across restarts without pricing/issuance.
-- Enrolled fleets may exchange non-cash credits: bounded debt, explicit same-owner permission, signed completed work and requester acknowledgment. Purchased balances and payouts remain separate.
-- Recovery binds account/device, input digest and signing identities without replacement inference. Journals bound results/fences, omit prompts and preserve uncertainty; unmetered signed cleanup permits only fixed terminal formulas.
-- Native hosts reuse participant contracts: Doppler computes; adapters own provider lifetime, authorized files and settlement; receipts retain opening/runtime/provider identities.
-- File supply needs separate consent; custody/Doppler verify requested pieces, cache verified files, quarantine corruption and restart partials.
-- Model bytes come from the approved directory, authorized custody peers, then only an origin pinned per exact model identity at an immutable revision (`native-model-origins.json`); every byte is verified against pinned piece or file hashes, and manifests never come from an origin.
-- `/swarm` is bounded discovery only (hosted/loopback origins, namespace/destination admission, heartbeat/expiry; no relay/virtual peers; origin is not auth).
+- Auth/transport never prove model/scientific validity. Relay acknowledgement proves receipt, not acceptance.
+- Inference requires auth, exact disclosure and accounting; unbilled execution is test-only. Trial reservations survive restarts without issuance.
+- Non-cash fleet credits require bounded debt, same-owner consent, signed work and requester acknowledgement. Purchases/payouts remain separate.
+- Recovery binds account/device, input digest and signing identities without replacement inference. Journals omit prompts and preserve uncertainty; signed unmetered cleanup permits fixed terminal formulas only.
+- Doppler computes; native adapters own lifetime, files and settlement. Receipts retain opening/runtime/provider identities.
+- File supply requires separate consent. Verify every piece/file hash; quarantine corruption and restart partials. Only pinned immutable model origins may supply missing bytes; never origin manifests.
+- `/swarm` is bounded discovery, without relay/virtual peers. Origin is not authentication.
 
 ## Acceptance
-Evidence: [native](../tests/unit/native-participant.test.js), [custody](../tests/unit/native-model-files.test.js), [requester](../tests/unit/whole-model-requester.test.js), [HTTP](../tests/integration/text-api.test.js), [trial](../tests/unit/trial-admission.test.js), [accounting](../tests/integration/text-accounting.test.js), [receipts](../tests/unit/whole-model-mesh-receipt.test.js), [recovery](../tests/unit/generation-recovery.test.js), [discovery](../tests/integration/public-swarm-server.test.js), [signaling](../tests/integration/signaling-server.test.js), [admission](../tests/integration/public-inference-admission.test.js). Live providers/GPUs qualify separately.
+Evidence: [native](../tests/unit/native-participant.test.js), [custody](../tests/unit/native-model-files.test.js), [HTTP](../tests/integration/text-api.test.js), [accounting](../tests/integration/text-accounting.test.js), [recovery](../tests/unit/generation-recovery.test.js), [discovery](../tests/integration/public-swarm-server.test.js), [boundaries](../tests/unit/layer-verification.test.js). Live providers/GPUs qualify separately.
 
 ## Non-goals
-Trustless compute marketplaces or centralized browser evidence authority.
+Trustless compute or centralized browser evidence authority.
 
 ## Freedom
 Preserve boundaries; pass acceptance.

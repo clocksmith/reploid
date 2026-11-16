@@ -117,13 +117,15 @@ async function invoke(request) {
       // Hyper-connection models own more state than the legacy logits API exports.
       assert.equal(generation.repetitionPenalty, 1, 'Raw-logit comparison requires neutral penalties');
       let previous = started;
-      for await (const delta of whole.generate(request.prompt, { ...generation,
+      const generated = whole.generate(request.prompt, { ...generation,
         onLogits(logits, { tokenId }) {
           assert(logits.every(Number.isFinite));
           const now = performance.now();
           rows.push({ tokenId, logits: encode(logits), elapsedMs: now - previous });
           output.push(tokenId); previous = now;
-        } })) { /* Drain normal generation; retain the raw sampled tokens below. */ }
+        } });
+      // Drain normal generation; retain the raw sampled tokens below.
+      while (!(await generated.next()).done) { /* Sampling is observed through onLogits. */ }
       assert(rows.length > 0, 'Normal generation must expose sampled logits');
       return { ids, rows, text: whole.advanced.decodeTokenIds(output), elapsedMs: performance.now() - started, memory: memory() };
     }

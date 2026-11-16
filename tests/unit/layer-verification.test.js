@@ -92,7 +92,7 @@ describe('layer verification', () => {
     const violations = findLayerViolations({
       repoRoot,
       sourcePath: path.join(repoRoot, 'server/pool/config.js'),
-      source: "import { createContract } from '../../self/pool/config-contract.js';"
+      source: "import { createContract } from '../../apps/poolday/pool/config-contract.js';"
     });
 
     expect(violations).toEqual([]);
@@ -106,6 +106,8 @@ describe('layer verification', () => {
   });
 
   it.each([
+    ['server/entry.js', '../self/tools/Promote.js'],
+    ['server/entry.js', '../apps/poolday/ui/pool-home/work.js'],
     ['packages/reploid/src/agent/turn.js', '../../../../self/config/models.js'],
     ['packages/reploid/src/agent/turn.js', 'firebase-admin'],
     ['packages/reploid/src/transport/peer.js', '../adapters/doppler.js'],

@@ -55,6 +55,16 @@ export function findLayerViolations({ repoRoot, sourcePath, source, edges = modu
     const target = resolved ? toLayerPath(path.relative(repoRoot, resolved)) : specifier;
     const targetLayer = classifyLayer(target);
     let reason = null;
+    if (sourceLayer === 'server' && resolved) {
+      const physical = posix(path.relative(repoRoot, resolved));
+      if (physical.startsWith('self/') && !physical.startsWith('self/shared/')) {
+        reason = 'hosted services consume substrate contracts only through self/shared';
+      }
+      if (physical.startsWith('apps/poolday/')
+        && !/^apps\/poolday\/(config|host|pool|infrastructure)\//.test(physical)) {
+        reason = 'hosted services compose Poolday contracts and host adapters, never product presentation';
+      }
+    }
     if (sourceLayer === 'server' && resolved && posix(path.relative(repoRoot, resolved)).startsWith('apps/poolday/providers/')) {
       reason = 'native hosts must use shared execution ports, not product provider implementations';
     }

@@ -157,6 +157,10 @@ export default [
     { group: ['**/self/**', '**/apps/**'], message: 'Shared browser code loads only shared code.' }] }] } },
   { files: ['apps/poolday/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
     { group: ['**/self/**'], message: 'Poolday loads the substrate only through its documented entry points (scripts/verify-browser-boundaries.js).' }] }] } },
+  { files: ['server/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['**/apps/poolday/ui/**', '**/apps/poolday/styles/**', '**/apps/poolday/providers/**',
+      '**/self/core/**', '**/self/ui/**', '**/self/tools/**', '**/self/capabilities/**'],
+      message: 'Hosted services compose contracts and host adapters; presentation and substrate execution stay with their owners.' }] }] } },
   { files: workerFiles, languageOptions: { globals: { ...globals.worker, ...globals.serviceworker } } },
   { files: ['server/**/*.js', 'scripts/**/*.{js,mjs}', 'packages/reploid/src/**/*.js', 'apps/poolday/**/*.js'],
     ignores: ['apps/poolday/config/doppler-metadata-contract.js'], rules: {
