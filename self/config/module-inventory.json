@@ -4095,7 +4095,7 @@
     {
       "path": "ui/components/attachments.js",
       "owner": "ui",
-      "sha256": "sha256:ebb49cb6f56c8ae16946ce60126c806ef139a4ed47f37d015fd46f8ce0cb6b0a",
+      "sha256": "sha256:dca30604ddac9396e51937908c64ef584c99c8bf34b8a78ad45e7695775ad5db",
       "imports": [
         "./html.js"
       ]
@@ -4227,7 +4227,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:5e4046329a43c246f4b3fb4b8b616a36543ee26f33151ac613bc7f9a11faadd5",
+      "sha256": "sha256:073fdac522e5ccd1f71b5c84f5149fb2d10f5421c6325665a68f7f2723a2a42f",
       "imports": []
     },
     {
@@ -4347,12 +4347,43 @@
       ]
     },
     {
-      "path": "ui/pool-home/conversation-workspace.js",
+      "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:29b1917c7cb4ba3d3687710d3928e4f172e75ee354dcfe73c45859d801d36d0b",
+      "sha256": "sha256:26a362353b49cdf820a572881683a0c744c22a7855f7478de05b1133a6fbf206",
+      "imports": [
+        "../components/model-select.js",
+        "./model-adapters.js",
+        "./model-providers.js",
+        "./privacy-controls.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/conversation-view.js",
+      "owner": "ui",
+      "sha256": "sha256:5e2390f5e84ffa8421d48f0ea376486dbf0b50ca0dde75dcf92e4b014345c9f5",
       "imports": [
         "../../config/chat-context-policy.json",
         "../../config/chat-prompts.json",
+        "../../config/work-profile.json",
+        "../components/attachments.js",
+        "../components/control-help.js",
+        "../components/interface-icons.js",
+        "./context-indicator.js",
+        "./contribution-models.js",
+        "./history-handover-view.js",
+        "./model-adapters.js",
+        "./model-providers.js",
+        "./network-inspector.js",
+        "./privacy-controls.js",
+        "./shell-view.js",
+        "./workspace-navigation.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/conversation-workspace.js",
+      "owner": "ui",
+      "sha256": "sha256:d3a7967500aa11ae430f9b02504e0cdcc659e56d815032037a91e3427b840a51",
+      "imports": [
         "../../config/work-profile.json",
         "../components/attachments.js",
         "../components/control-help.js",
@@ -4365,13 +4396,12 @@
         "./context-indicator.js",
         "./contribution-models.js",
         "./conversation-list.js",
+        "./conversation-model-picker.js",
+        "./conversation-view.js",
         "./history-handover-view.js",
         "./message-list.js",
-        "./model-adapters.js",
-        "./model-providers.js",
         "./network-inspector.js",
         "./privacy-controls.js",
-        "./shell-view.js",
         "./workspace-navigation.js"
       ]
     },

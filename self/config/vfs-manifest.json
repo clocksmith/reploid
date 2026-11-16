@@ -765,6 +765,8 @@
     "ui/pool-home/control-display-text.js",
     "ui/pool-home/controls.js",
     "ui/pool-home/conversation-list.js",
+    "ui/pool-home/conversation-model-picker.js",
+    "ui/pool-home/conversation-view.js",
     "ui/pool-home/conversation-workspace.js",
     "ui/pool-home/dashboard-controls.js",
     "ui/pool-home/document-search.js",
