@@ -9,9 +9,9 @@ import {
   resizePoolCanvas,
   setPoolSimulationNetworkVisualState,
   setPoolSimulationRunVisualState
-} from '../../apps/poolday/ui/pool-home/simulation-core.js';
-import { resolvePoolFrameDeltaMs } from '../../apps/poolday/ui/pool-home/simulation-bind.js';
-import { createPoolRenderBatchBuilder } from '../../apps/poolday/ui/pool-home/simulation-batches.js';
+} from '../fixtures/pool-simulation/simulation-core.js';
+import { resolvePoolFrameDeltaMs } from '../fixtures/pool-simulation/simulation-bind.js';
+import { createPoolRenderBatchBuilder } from '../fixtures/pool-simulation/simulation-batches.js';
 import {
   SIMULATION_MAX_STEP_MS,
   SIMULATION_MAX_CANVAS_PIXELS,
@@ -26,17 +26,17 @@ import {
   POOLDAY_HOT_PATH_STEPS,
   POOLDAY_RENDERER_LINE_SEGMENTS,
   SIMULATION_TARGET_STEP_MS
-} from '../../apps/poolday/ui/pool-home/constants.js';
-import { buildSimulationLineSpecs } from '../../apps/poolday/ui/pool-home/simulation-flow-specs.js';
+} from '../fixtures/pool-simulation/constants.js';
+import { buildSimulationLineSpecs } from '../fixtures/pool-simulation/simulation-flow-specs.js';
 import {
   parsePoolRendererCssColor,
   resolvePoolRendererClearColor
-} from '../../apps/poolday/ui/pool-home/simulation-renderer.js';
+} from '../fixtures/pool-simulation/simulation-renderer.js';
 import {
   rgbToHsl,
   hslToRgb,
   lerpHue
-} from '../../apps/poolday/ui/pool-home/simulation-frame-state.js';
+} from '../fixtures/pool-simulation/simulation-frame-state.js';
 
 const withSimulationSearch = (search, callback) => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'location');

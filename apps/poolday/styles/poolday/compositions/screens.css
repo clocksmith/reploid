@@ -12,14 +12,11 @@
    scripts/verify-poolday-css-layers.js enforces all of this.
 
    JS CONTRACT - runtime inputs set by self/ui/pool-home scripts:
-   - --tooltip-x, --tooltip-y        simulation-bind.js (tooltip position)
-   - --pool-label-x, --pool-label-y  simulation-bind.js (flow label position)
    - --pool-param-ask-dock-height    controls.js (measured composer height)
    - --pool-param-workspace-height   conversation-workspace.js (visible height)
    - --pool-param-composer-height    conversation-workspace.js (text area height)
    - --pool-param-share              execution-activity.js (step time share)
    - --pool-param-capability-score   controls.js (capability meter fill)
-   - data-run-state, data-run-phase  simulation-bind.js (run styling states)
    These names are load-bearing; do not rename without updating the JS.
    ============================================ */
 
@@ -1020,34 +1017,7 @@ body[data-pool-route-id='home'] #app {
   margin: 0;
 }
 
-.pool-simulation-shell {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  transition: opacity var(--pool-motion-time-180) ease, visibility var(--pool-motion-time-180) ease;
-}
 
-.pool-home-stage[data-run-state="complete"] .pool-simulation-shell,
-.pool-home-stage[data-run-state="error"] .pool-simulation-shell,
-.pool-home-stage[data-run-state="inspecting"] .pool-simulation-shell {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.pool-home-toolbar {
-  --pool-param-toolbar-side-padding: calc(var(--pool-metric-nav-rail) + clamp(var(--pool-size-12), 2vw, var(--pool-size-24)));
-  position: relative;
-  z-index: var(--pool-z-5);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: center;
-  column-gap: clamp(var(--pool-size-12), 2vw, var(--pool-size-24));
-  min-height: calc(var(--pool-metric-menu-square) + var(--pool-size-16) * 2);
-  padding: var(--pool-size-16) var(--pool-param-toolbar-side-padding) var(--pool-size-8);
-}
 
 .pool-home-overlay {
   position: relative;
@@ -1277,15 +1247,6 @@ body[data-pool-route-id='home'] #app {
     left: var(--pool-size-4);
     width: var(--pool-size-2);
     height: auto;
-  }
-
-  .pool-simulation-shell {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
   }
 
   .pool-home-stage {
