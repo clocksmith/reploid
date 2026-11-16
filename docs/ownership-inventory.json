@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 382,
     "self": 457,
-    "shared": 2393
+    "shared": 2392
   },
   "pendingMoves": 0,
   "violations": [],
@@ -6986,11 +6986,6 @@
     {
       "served": "vendor/doppler/0.7.4/src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
       "source": "shared/vendor/doppler/0.7.4/src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
-      "owner": "shared"
-    },
-    {
-      "served": "vendor/doppler/0.7.4/src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
-      "source": "shared/vendor/doppler/0.7.4/src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
       "owner": "shared"
     },
     {
