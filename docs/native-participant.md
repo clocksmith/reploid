@@ -551,3 +551,25 @@ it does not automatically fall back to the unreliable legacy Bing RSS service. E
 there is no silent mid-request switch. A new Send or Retry authorizes the query
 under the existing settings without adding a popup. Search quality and continued
 availability still depend on the external search engine and source sites.
+
+## Bounded local worker gathering diagnostic
+
+The offline `tests/fixtures/qwen-partition-worker.js` diagnostic accepts
+`workerGather: { maxPartBytes, memoryBudgetBytes }` only with a pinned `pieceIndex`
+and explicit partition indices. Whole-model mode and an absent piece index fail
+before GPU initialization. The installed Doppler must support `nodeGather`, the
+owned-range storage port and `getGatherReceipt`; older packages fail explicitly.
+This does not update the pinned deployment package automatically.
+
+The native adapter resolves available indexed files inside the approved model
+directory, rejecting escapes and non-regular files. Missing unassigned files do
+not prevent opening a partition. Requesting a missing file still fails; the worker
+does not download it or replace authorized custody/peer acquisition. Local worker
+gathering is rejected for custody-backed sources and custom source resolvers.
+
+The diagnostic's `receipts` operation captures generic and worker authentication
+evidence separately while idle. `close` collects the same evidence before
+teardown and reports a receipt failure separately if collection was unavailable.
+Counts describe authentication work, including verified prefixes or work whose
+publication was cancelled, not successful request bytes. No throughput or model
+correctness claim follows from this wiring or the CPU contract tests.

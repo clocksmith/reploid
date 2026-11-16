@@ -38,6 +38,9 @@ async function initializeRuntime() {
   runtime = candidateRuntime;
 }
 const residents = new Map();
+const sources = [];
+const receipts = () => Promise.all(sources.map(async source => ({ generic: source.getReceipt(),
+  gather: source.getGatherReceipt ? await source.getGatherReceipt() : null })));
 let whole;
 const memory = () => ({ process: process.memoryUsage(), pool: getBufferPool().getStats(), device: runtime.inspectDeviceMemory() });
 const encode = value => {
@@ -45,12 +48,14 @@ const encode = value => {
   return Buffer.from(bytes).toString('base64');
 };
 async function close() {
+  let sourceReceipts, receiptFailure;
+  try { sourceReceipts = await receipts(); } catch (error) { receiptFailure = String(error); }
   for (const resident of residents.values()) await resident.close();
   residents.clear();
   await whole?.unload(); whole = null;
   if (!getDevice?.()) {
     await releaseNodeWebGPU?.();
-    return { gpuOpened: false };
+    return { gpuOpened: false, sourceReceipts, receiptFailure };
   }
   await getDevice().queue.onSubmittedWorkDone();
   const settled = memory();
@@ -58,7 +63,7 @@ async function close() {
   assert.equal(settled.pool.resources.retainedModel.bytes, 0);
   assert.equal(settled.pool.resources.deferredCleanup.bytes, 0);
   destroyBufferPool(); destroyDevice(); await releaseNodeWebGPU();
-  return settled;
+  return { ...settled, sourceReceipts, receiptFailure };
 }
 async function invoke(request) {
   if (request.op === 'identity') {
@@ -66,6 +71,8 @@ async function invoke(request) {
     return verifiedIdentity;
   }
   if (request.op === 'open') {
+    assert(!config.workerGather || (config.pieceIndex && Array.isArray(request.indices) && request.indices.length > 0),
+      'workerGather requires pinned pieceIndex and partition indices; whole-model gather is unsupported');
     assert(!whole && residents.size === 0);
     assert(verifiedIdentity, 'Installed package preflight is required before model opening');
     const packageCheckStarted = performance.now();
@@ -87,13 +94,18 @@ async function invoke(request) {
     } else {
       const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
         runtimeConfig: config.runtimeConfig,
-        createStorage: async () => config.pieceIndex ? (await openNativeModelSource({
-          model: { ...model, source: { files: [config.pieceIndex] } },
-          modelDirectory: path.dirname(config.manifestPath), runtime,
-          signal: AbortSignal.timeout(config.limits.maxPreparationMs),
-        })).storage : config.modelUrl.startsWith('file:')
-          ? createNodeFileArtifactStorageContext(config.modelUrl, manifest)
-          : createHttpArtifactStorageContext(config.modelUrl, manifest) });
+        createStorage: async () => {
+          if (!config.pieceIndex) return config.modelUrl.startsWith('file:')
+            ? createNodeFileArtifactStorageContext(config.modelUrl, manifest)
+            : createHttpArtifactStorageContext(config.modelUrl, manifest);
+          const source = await openNativeModelSource({
+            model: { ...model, source: { files: [config.pieceIndex] } },
+            modelDirectory: path.dirname(config.manifestPath), runtime, gather: config.workerGather ?? null,
+            signal: AbortSignal.timeout(config.limits.maxPreparationMs),
+          });
+          sources.push(source);
+          return source.storage;
+        } });
       for (const index of request.indices) {
         residents.set(index, await factory.openResidentPartition({ model, plan, planId, index,
           participantId: 'q4-stage-' + index, limits: config.limits, signal: AbortSignal.timeout(config.limits.maxPreparationMs) }));
@@ -158,6 +170,7 @@ async function invoke(request) {
       activation: frame ? { ...frame, buffer: encode(frame.buffer) } : null,
       logits: result.logits ? encode(result.logits) : null };
   }
+  if (request.op === 'receipts') return receipts();
   if (request.op === 'retire') {
     for (const [index, resident] of residents) await resident.closeAttempt({ identity: request.identity, partitionIndex: index });
     return memory();

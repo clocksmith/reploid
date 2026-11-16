@@ -5,7 +5,9 @@ import { resolveServedFile } from './browser-roots.js';
 import { requireValue } from './native-host-utils.js';
 
 /** Read only complete authenticated pieces requested by Doppler's public reader. */
-export async function openNativeModelSource({ model, modelDirectory, signal, runtime, files, resolveSource = null }) {
+export async function openNativeModelSource({ model, modelDirectory, signal, runtime, files, resolveSource = null, gather = null }) {
+  requireValue(gather === null || (!files && resolveSource === null),
+    'Local worker gather cannot replace custody or an explicit source resolver');
   // Trusted native composition only: the resolver owns authenticated range reads and lifetime.
   // Bind the parsed manifest to the approved bytes; never accept a separate mutable manifest.
   if (resolveSource !== null) {
@@ -62,6 +64,28 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
     ? new Uint8Array(await fs.readFile(resolveServedFile(descriptor.url)))
     : await read(descriptor.path);
   requireValue(hash(indexBytes) === 'sha256:' + descriptor.hash, 'Native piece index differs from the approved catalog');
-  return runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,
-    signal, acquire: piece => read(piece.path, piece.offset, piece.size) });
+  let nodeGather;
+  if (gather !== null) {
+    requireValue(Number.isSafeInteger(gather.maxPartBytes) && gather.maxPartBytes > 0
+      && Number.isSafeInteger(gather.memoryBudgetBytes) && gather.memoryBudgetBytes > 0,
+    'Local worker gather requires explicit part and memory bounds');
+    const approvedFiles = {};
+    for (const file of JSON.parse(new TextDecoder().decode(indexBytes)).files) {
+      requireValue(/^[a-zA-Z0-9_.-]+$/.test(file.path), 'Gather file must be a plain filename');
+      let filename;
+      try { filename = await fs.realpath(path.join(root, file.path)); }
+      catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+      requireValue(path.dirname(filename) === root && (await fs.stat(filename)).isFile(),
+        'Gather file escapes its approved directory or is not regular');
+      approvedFiles[file.path] = filename;
+    }
+    nodeGather = { files: approvedFiles, maxPartBytes: gather.maxPartBytes, memoryBudgetBytes: gather.memoryBudgetBytes };
+  }
+  const opened = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,
+    signal, nodeGather, acquire: piece => read(piece.path, piece.offset, piece.size) });
+  if (nodeGather && (typeof opened.storage?.rangeLease?.read !== 'function' || typeof opened.getGatherReceipt !== 'function')) {
+    await opened.storage?.close?.();
+    throw new Error('Installed Doppler does not support the requested authenticated worker gather');
+  }
+  return opened;
 }
