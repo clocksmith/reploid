@@ -6,6 +6,15 @@
  * research-view.js and the evidence network.
  */
 
+import { RESEARCH_FAILURE_CATEGORIES, RESOLUTION_UNCERTAINTY_TRIGGERS, RESOLUTION_REOPEN_TRIGGERS,
+  REPLICATION_INDEPENDENCE_DIMENSIONS, LABORATORY_PROTOCOL_CUSTODY_ROLES, METRIC_DIRECTIONS }
+  from '../../pool/evidence-record-contract.js';
+
+const enumOptions = values => values.map(value => {
+  const words = value.replaceAll('_', ' ');
+  return `<option value="${value}">${words[0].toUpperCase() + words.slice(1)}</option>`;
+}).join('');
+
 import { optionList } from './research-panels.js';
 import { renderAdjudicationExperimentForms } from './research-adjudication-panel.js';
 
@@ -199,7 +208,7 @@ export const renderLifecycleForms = ({
         <fieldset class="pool-research-annotation-fields" data-public-evidence-failure hidden>
           <legend>Failed attempt</legend>
           <p class="pool-caption">A failed attempt claims no scientific observation. Its failure remains retrievable and does not satisfy a replica target.</p>
-          <label class="pool-field"><span class="pool-small pool-muted">Failure category</span><select name="failureCategory" disabled><option value="expression_failure">Expression failure</option><option value="folding_failure">Folding failure</option><option value="solubility_failure">Solubility failure</option><option value="binding_failure">Binding failure</option><option value="selectivity_failure">Selectivity failure</option><option value="environment_failure">Environment failure</option><option value="protocol_failure">Protocol failure</option><option value="analysis_failure">Analysis failure</option><option value="inconclusive">Inconclusive</option></select></label>
+          <label class="pool-field"><span class="pool-small pool-muted">Failure category</span><select name="failureCategory" disabled>${enumOptions(RESEARCH_FAILURE_CATEGORIES.filter(value => value !== 'none'))}</select></label>
         </fieldset>
         <label class="pool-field"><span class="pool-small pool-muted">Evidence summary</span><textarea name="summary" rows="3" required></textarea></label>
         <label class="pool-field"><span class="pool-small pool-muted">Condition-specific context</span><input name="conditions" required placeholder="organism, partners, ligands, modification, environment, time, or explicit not-applicable rationale"></label>
@@ -259,8 +268,8 @@ export const renderLifecycleForms = ({
         ${resolutionRuleFields('rejection', 'Rejection eligibility', 'negative')}
         <fieldset>
           <legend>Continued uncertainty and reopening</legend>
-          <label class="pool-field"><span class="pool-small pool-muted">Continued-uncertainty triggers, comma separated</span><input name="uncertaintyTriggers" value="insufficient_accepted_outcomes, insufficient_independent_replications, ambiguous_outcome, failed_attempt, disputed_review, active_contradiction, uncertainty_above_threshold, control_failure" required></label>
-          <label class="pool-field"><span class="pool-small pool-muted">Mandatory reopening triggers, comma separated</span><input name="reopeningTriggers" value="contradiction, correction, revocation, failed_replication, policy_invalidation" required></label>
+          <label class="pool-field"><span class="pool-small pool-muted">Continued-uncertainty triggers, comma separated</span><input name="uncertaintyTriggers" value="${RESOLUTION_UNCERTAINTY_TRIGGERS.join(', ')}" required></label>
+          <label class="pool-field"><span class="pool-small pool-muted">Mandatory reopening triggers, comma separated</span><input name="reopeningTriggers" value="${RESOLUTION_REOPEN_TRIGGERS.join(', ')}" required></label>
         </fieldset>
         <fieldset>
           <legend>Closure eligibility—not closure authority</legend>
@@ -327,7 +336,7 @@ export const renderLifecycleForms = ({
             <label class="pool-field"><span class="pool-small pool-muted">Custody artifact hash</span><input name="custodyArtifactHash" required placeholder="sha256:..."></label>
           </div>
           <label class="pool-field"><span class="pool-small pool-muted">Permitted protocol-custody roles, comma separated</span><input name="custodyRequiredRoles" value="operator" required></label>
-          <label class="pool-field"><span class="pool-small pool-muted">Required independent replication dimensions, comma separated</span><input name="replicationIndependentDimensions" value="operator_identity, institution, instrument, sample_batch, preparation_batch, analysis_execution" required></label>
+          <label class="pool-field"><span class="pool-small pool-muted">Required independent replication dimensions, comma separated</span><input name="replicationIndependentDimensions" value="${REPLICATION_INDEPENDENCE_DIMENSIONS.join(', ')}" required></label>
           <div class="pool-research-form-row">
             <label class="pool-field"><span class="pool-small pool-muted">Materials custody policy</span><input name="materialsPolicy" required></label>
             <label class="pool-field"><span class="pool-small pool-muted">Sample custody policy</span><input name="samplesPolicy" required></label>
@@ -378,7 +387,7 @@ export const renderLifecycleForms = ({
         </div>
         <label class="pool-field"><span class="pool-small pool-muted">Capability description</span><textarea name="capabilityDescription" rows="2" required></textarea></label>
         <div class="pool-research-form-row">
-          <label class="pool-field"><span class="pool-small pool-muted">Protocol-custody role</span><select name="protocolCustodyRole"><option value="operator">Operator</option><option value="owner">Owner</option><option value="licensed_user">Licensed user</option><option value="contracted_executor">Contracted executor</option></select></label>
+          <label class="pool-field"><span class="pool-small pool-muted">Protocol-custody role</span><select name="protocolCustodyRole">${enumOptions(['operator', ...LABORATORY_PROTOCOL_CUSTODY_ROLES.filter(value => value !== 'operator')])}</select></label>
           <label class="pool-field"><span class="pool-small pool-muted">Protocol-custody evidence hash</span><input name="protocolCustodyEvidenceHash" required placeholder="sha256:..."></label>
         </div>
         <div class="pool-research-form-row">
@@ -408,7 +417,7 @@ export const renderLifecycleForms = ({
       <div class="pool-research-form-row">
         <label class="pool-field"><span class="pool-small pool-muted">Outcome</span><select name="classification"><option value="positive">Positive</option><option value="negative">Negative</option><option value="ambiguous">Ambiguous</option></select></label>
         <label class="pool-field"><span class="pool-small pool-muted">Attempt status</span><select name="attemptStatus"><option value="completed">Completed</option><option value="failed">Failed</option></select></label>
-        <label class="pool-field"><span class="pool-small pool-muted">Failure category</span><select name="failureCategory"><option value="none">None</option><option value="expression_failure">Expression failure</option><option value="folding_failure">Folding failure</option><option value="solubility_failure">Solubility failure</option><option value="binding_failure">Binding failure</option><option value="selectivity_failure">Selectivity failure</option><option value="environment_failure">Environment failure</option><option value="protocol_failure">Protocol failure</option><option value="analysis_failure">Analysis failure</option><option value="inconclusive">Inconclusive</option></select></label>
+        <label class="pool-field"><span class="pool-small pool-muted">Failure category</span><select name="failureCategory">${enumOptions(RESEARCH_FAILURE_CATEGORIES)}</select></label>
       </div>
       <label class="pool-field"><span class="pool-small pool-muted">Outcome summary</span><textarea name="summary" rows="3" required></textarea></label>
       <label class="pool-field"><span class="pool-small pool-muted">Failure detail, if any</span><input name="failureDetail"></label>
@@ -454,7 +463,7 @@ export const renderLifecycleForms = ({
         <div class="pool-research-form-row">
           <label class="pool-field"><span class="pool-small pool-muted">Metric id</span><input name="metricId" required></label>
           <label class="pool-field"><span class="pool-small pool-muted">Metric label</span><input name="metricLabel" required></label>
-          <label class="pool-field"><span class="pool-small pool-muted">Direction</span><select name="direction"><option value="higher_is_better">Higher is better</option><option value="lower_is_better">Lower is better</option></select></label>
+          <label class="pool-field"><span class="pool-small pool-muted">Direction</span><select name="direction">${enumOptions(METRIC_DIRECTIONS)}</select></label>
           <label class="pool-field"><span class="pool-small pool-muted">Unit</span><input name="unit"></label>
         </div>
         <button class="btn btn-primary" type="submit"${predictions.length && workOrders.length ? '' : ' disabled'}>Sign and freeze cohort</button>

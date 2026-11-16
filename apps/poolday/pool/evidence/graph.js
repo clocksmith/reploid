@@ -172,21 +172,8 @@ export function buildEvidenceGraph(records = []) {
 export function searchEvidence(records = [], query = '') {
   const needle = compactText(query).toLowerCase();
   if (!needle) return records.slice();
-  return records.filter((record) => JSON.stringify({
-    sequence: record.sequence?.value,
-    intent: record.requesterIntent,
-    model: record.modelContract?.id,
-    claim: record.claim,
-    hypothesis: record.hypothesis,
-    evidence: record.evidence,
-    prediction: record.prediction,
-    work: record.work,
-    workClaim: record.workClaim,
-    outcome: record.outcome,
-    cohort: record.cohort,
-    evaluation: record.evaluation,
-    action: record.action,
-    revocation: record.revocation,
-    author: record.author?.roleId
-  }).toLowerCase().includes(needle));
+  // Index every signed record payload, including future kinds. Cryptographic
+  // envelope bytes are not research text and should not create search hits.
+  return records.filter(({ signature: _signature, publicJwk: _publicJwk, ...record }) =>
+    JSON.stringify(record).toLowerCase().includes(needle));
 }

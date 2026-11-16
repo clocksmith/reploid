@@ -202,3 +202,16 @@ describe('qualified public protein evidence', () => {
     expect(task.basisHashes).toEqual(expect.arrayContaining(evidenceRecords.map((record) => record.recordHash)));
   });
 });
+
+it('searches checkpoint, experiment, realized-value and resolution payloads without matching signatures', () => {
+  const records = [
+    { kind: 'research_discovery_checkpoint', checkpoint: { state: { status: 'checkpointneedle' } } },
+    { kind: 'research_adjudication_experiment', experiment: { target: { catalogId: 'experimentneedle' } } },
+    { kind: 'research_realized_action_value', realizedValue: { assessment: { status: 'valueneedle' } } },
+    { kind: 'research_resolution_policy', policy: { conclusionLabel: 'resolutionneedle' } }
+  ].map(record => ({ ...record, signature: 'signatureonlyneedle' }));
+  for (const [index, needle] of ['checkpointneedle', 'experimentneedle', 'valueneedle', 'resolutionneedle'].entries()) {
+    expect(searchEvidence(records, needle.toUpperCase())).toEqual([records[index]]);
+  }
+  expect(searchEvidence(records, 'signatureonlyneedle')).toEqual([]);
+});
