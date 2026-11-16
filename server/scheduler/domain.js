@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure durable-scheduler rules: explicit schedule configuration,
@@ -20,7 +21,7 @@ export const PASS_STATUSES = Object.freeze(['running', 'completed', 'failed', 'l
 
 const RETRYABLE_CODES = new Set(['storage_conflict']);
 
-export class SchedulerError extends Error {
+export class SchedulerError extends ReploidError {
   constructor(code, message = code, details = {}) {
     super(message);
     this.name = 'SchedulerError';

@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Pure account rules: explicit account policy, record schemas,
@@ -40,7 +41,7 @@ export const LINK_KINDS = Object.freeze({
 
 const RETRYABLE_CODES = new Set(['storage_conflict']);
 
-export class AccountError extends Error {
+export class AccountError extends ReploidError {
   constructor(code, message = code, details = {}) {
     super(message);
     this.name = 'AccountError';

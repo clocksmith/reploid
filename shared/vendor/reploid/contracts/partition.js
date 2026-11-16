@@ -1,3 +1,4 @@
+import { ReploidError } from './error.js';
 import failureMessages from '../transport/partition-errors.json' with { type: 'json' };
 import { canonicalize } from '../artifacts/canonical-json.js';
 import { sha256Hex } from '../artifacts/signatures.js';
@@ -11,7 +12,7 @@ export const assertPartition = (value, message) => { if (!value) throw new Error
  * becomes EXECUTION_FAILED at the next hop. `detail` adds non-message fields, such as a bound. */
 export function partitionFailure(code, detail = {}) {
   assertPartition(Object.hasOwn(failureMessages, code), 'Undeclared partition failure code');
-  return Object.assign(new Error(failureMessages[code]), detail, { code });
+  return Object.assign(new ReploidError(failureMessages[code]), detail, { code });
 }
 /** Throw CAPACITY_UNAVAILABLE unless `value` holds: an exhausted or closed admission slot, never a defect. */
 export const assertCapacity = value => { if (!value) throw partitionFailure('CAPACITY_UNAVAILABLE'); };

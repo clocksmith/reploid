@@ -2325,6 +2325,7 @@
     "vendor/reploid/config/validate-schema.js",
     "vendor/reploid/contracts/attempt-report.js",
     "vendor/reploid/contracts/doppler-partitions.provenance.json",
+    "vendor/reploid/contracts/error.js",
     "vendor/reploid/contracts/partition-activity.js",
     "vendor/reploid/contracts/partition-disclosure.js",
     "vendor/reploid/contracts/partition-publication.js",

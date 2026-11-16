@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Contribution reward rules: categories, explicit reward and
@@ -89,7 +90,7 @@ export const MAX_OFFER_CHUNKS = 4096;
 
 const RETRYABLE_CODES = new Set(['storage_conflict']);
 
-export class RewardError extends Error {
+export class RewardError extends ReploidError {
   constructor(code, message = code, details = {}) {
     super(message);
     this.name = 'RewardError';

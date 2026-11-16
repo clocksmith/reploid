@@ -1,3 +1,12 @@
+import { ReploidError } from '../contracts/error.js';
+export type RetrievalFailureCode = 'no-results' | 'timeout' | 'provider-error' | 'invalid-provider-result'
+  | 'extraction-failed' | 'context-limit' | 'cancelled' | 'interrupted';
+export declare class RetrievalError extends ReploidError {
+  code: RetrievalFailureCode;
+  detail: unknown;
+  constructor(code: RetrievalFailureCode, detail?: unknown);
+}
+
 export interface RetrievalLimits {
   /** Sources kept from the provider's results, in provider order. */
   maxResults: number;

@@ -18,6 +18,7 @@ these software contract checks.
 | reploid/cycle-artifacts | Recursive GEPA Ring cycle artifact writer |
 | reploid/jobs | Complete-job contracts, requester, provider, verification, durable journals and independent embedding units |
 | reploid/custody | Authorized artifact transfer and reconstruction |
+| reploid/errors | Shared local operational error identity; domain codes and wire validation remain owned by their components |
 | reploid/config | Immutable configuration resolution and provenance |
 | reploid/config/schema.json | Executed structural configuration schema |
 | reploid/config/profiles/local.json | Explicit local-only profile asset |

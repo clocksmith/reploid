@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure credit-ledger rules: accounting policy, issuance sources,
@@ -66,7 +67,7 @@ export const SETTLEMENT_TERM_KEYS = Object.freeze([
 
 const RETRYABLE_CODES = new Set(['attempt_not_bound', 'attempt_active', 'storage_conflict']);
 
-export class LedgerError extends Error {
+export class LedgerError extends ReploidError {
   constructor(code, message = code, details = {}) {
     super(message);
     this.name = 'LedgerError';

@@ -1,9 +1,10 @@
-export declare class TimeoutError extends Error {
+import { ReploidError } from '../contracts/error.js';
+export declare class TimeoutError extends ReploidError {
   isTimeout: boolean;
   constructor(message: string);
 }
 
-export declare class RetryExhaustedError extends Error {
+export declare class RetryExhaustedError extends ReploidError {
   attempts: number;
   lastError: unknown;
   constructor(message: string, attempts: number, lastError: unknown);

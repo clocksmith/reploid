@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 381,
     "self": 457,
-    "shared": 2391
+    "shared": 2393
   },
   "pendingMoves": 0,
   "violations": [],
@@ -15930,6 +15930,16 @@
     {
       "served": "vendor/reploid/contracts/doppler-partitions.provenance.json",
       "source": "shared/vendor/reploid/contracts/doppler-partitions.provenance.json",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/error.d.ts",
+      "source": "shared/vendor/reploid/contracts/error.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/error.js",
+      "source": "shared/vendor/reploid/contracts/error.js",
       "owner": "shared"
     },
     {

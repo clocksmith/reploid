@@ -101,6 +101,10 @@
     "./resident": {
       "types": "./src/adapters/resident.d.ts",
       "import": "./src/adapters/resident.js"
+    },
+    "./errors": {
+      "types": "./src/contracts/error.d.ts",
+      "import": "./src/contracts/error.js"
     }
   },
   "files": [

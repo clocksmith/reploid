@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 /**
  * @fileoverview Provider configuration from the environment or a secret store
  * mounted as environment variables. Nothing here has a key; the repository
@@ -31,7 +32,7 @@
 import { createStripePaymentProcessor, STRIPE_MODES } from './stripe-processor.js';
 import { createSupabaseSignInProvider, DEFAULT_ALGORITHMS, SUPPORTED_ALGORITHMS } from './supabase-sign-in.js';
 
-export class ProviderConfigError extends Error {
+export class ProviderConfigError extends ReploidError {
   constructor(code, message) {
     super(message);
     this.name = 'ProviderConfigError';

@@ -1,8 +1,9 @@
-export class TimeoutError extends Error {
+import { ReploidError } from '../contracts/error.js';
+export class TimeoutError extends ReploidError {
   constructor(message) { super(message); this.name = 'TimeoutError'; this.isTimeout = true; }
 }
 
-export class RetryExhaustedError extends Error {
+export class RetryExhaustedError extends ReploidError {
   constructor(message, attempts, lastError) {
     super(message); this.name = 'RetryExhaustedError'; this.attempts = attempts; this.lastError = lastError;
   }

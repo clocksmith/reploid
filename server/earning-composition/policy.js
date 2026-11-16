@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 /**
  * @fileoverview The operator's earning policy file: every price, rate, budget,
  * deadline and limit the composed earning routes use. The file lives outside
@@ -42,7 +43,7 @@ const SERVICE_KEYS = Object.freeze(['request', 'service', 'deadlines', 'pricing'
 const OFFER_KEYS = Object.freeze(['category', 'model', 'hosts', 'reward', 'resourceBounds', 'durationMs', 'validForMs', 'paymentTiming', 'failureCompensation']);
 const HOSTS = Object.freeze(['browser', 'native']);
 
-export class EarningPolicyError extends Error {
+export class EarningPolicyError extends ReploidError {
   constructor(code, message, errors = []) {
     super(errors.length ? `${message}: ${errors.join('; ')}` : message);
     this.name = 'EarningPolicyError';

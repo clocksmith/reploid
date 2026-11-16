@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure purchase-reconciliation rules: payment policy, the
@@ -27,7 +28,7 @@ export const PAYMENT_PHASES = Object.freeze([
 
 const RETRYABLE_CODES = new Set(['storage_conflict', 'processor_unavailable']);
 
-export class PaymentError extends Error {
+export class PaymentError extends ReploidError {
   constructor(code, message = code, details = {}) {
     super(message);
     this.name = 'PaymentError';

@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 /**
  * @fileoverview Configuration switch and mount for the earning-loop routes.
  *
@@ -29,7 +30,7 @@ export const EARNING_ROUTES_SWITCH = 'REPLOID_EARNING_ROUTES';
 export const EARNING_COMPOSITION_MODULE = 'REPLOID_EARNING_COMPOSITION';
 export const EARNING_ROUTES_PREFIX = '/v1';
 
-export class EarningRoutesConfigError extends Error {
+export class EarningRoutesConfigError extends ReploidError {
   constructor(code, message) {
     super(message);
     this.name = 'EarningRoutesConfigError';

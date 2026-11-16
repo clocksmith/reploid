@@ -4227,7 +4227,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:62a7ba02dfdf1d3afccaebf0fa5b734171a2538c123a19a5dfea213a7dcfe5d8",
+      "sha256": "sha256:e83fd68892fbbf6291f9e17cebadc080836e64eda6d9358039ba702f7af85da7",
       "imports": []
     },
     {
@@ -17926,8 +17926,10 @@
     {
       "path": "vendor/reploid/agent/tool-operation-retry.js",
       "owner": "vendor",
-      "sha256": "sha256:4d18fe25122a9d97c25c30807d1968be4de76b48a9e145448dbf5f1930f5233c",
-      "imports": []
+      "sha256": "sha256:c0be220d132b2b7260a905f5c4197c4fe820499191bc2014f09d6ee066feb5c6",
+      "imports": [
+        "../contracts/error.js"
+      ]
     },
     {
       "path": "vendor/reploid/agent/tool-retry.js",
@@ -18266,6 +18268,12 @@
       ]
     },
     {
+      "path": "vendor/reploid/contracts/error.js",
+      "owner": "vendor",
+      "sha256": "sha256:fd2bcc384ca3e87fa111dc99e347ca3c25698cf7afd33f0fc20299ee207325dc",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/contracts/partition-activity.js",
       "owner": "vendor",
       "sha256": "sha256:786186fc19fc337fcb80d3f0800b51041c7aa2651c7bac33337cf3e7138fa48f",
@@ -18292,11 +18300,12 @@
     {
       "path": "vendor/reploid/contracts/partition.js",
       "owner": "vendor",
-      "sha256": "sha256:20a248a62bd34755eb1919ddb4a51a4422247145bba7cf2a2b6a111218f14140",
+      "sha256": "sha256:f336b3beb897caf3586ceda5ef8a1f67ad77dee1ca436817101243391cae007b",
       "imports": [
         "../artifacts/canonical-json.js",
         "../artifacts/signatures.js",
-        "../transport/partition-errors.json"
+        "../transport/partition-errors.json",
+        "./error.js"
       ]
     },
     {
@@ -19039,7 +19048,7 @@
     {
       "path": "vendor/reploid/retrieval/index.js",
       "owner": "vendor",
-      "sha256": "sha256:f34fddd2a5ff0dbb6e664e89dbbc442a84e6c7e3348ed31da65a739c12076f7f",
+      "sha256": "sha256:eb83ff5d8d8f6b7b17f993d1aa971e28e0a5c85b3bcff345e83aa6b12e05251a",
       "imports": [
         "./citations.js",
         "./claim-support.js",
@@ -19111,9 +19120,10 @@
     {
       "path": "vendor/reploid/retrieval/sources.js",
       "owner": "vendor",
-      "sha256": "sha256:3a647da701d332715c291070486ed170a8eb29ed57588025ecce24a0bc3ad9bc",
+      "sha256": "sha256:ce2158dd428dba1462a2f534fb0d75a57cdf6c919697aed42c084421e4946124",
       "imports": [
         "../cancellation.js",
+        "../contracts/error.js",
         "./costs.js",
         "./policy.json",
         "./text.js"

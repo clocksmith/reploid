@@ -88,6 +88,10 @@
     "./resident": {
       "types": "./src/adapters/resident.d.ts",
       "import": "./src/adapters/resident.js"
+    },
+    "./errors": {
+      "types": "./src/contracts/error.d.ts",
+      "import": "./src/contracts/error.js"
     }
   },
   "files": [
@@ -323,13 +327,13 @@
     },
     {
       "path": "agent/tool-operation-retry.d.ts",
-      "bytes": 892,
-      "sha256": "b213fb700fef971993d87bb903b000b3bc00fdc56c62b004156005165198646d"
+      "bytes": 960,
+      "sha256": "fcc0b40401af9dea34a16100e2e189002555425a47266b4da4790141012b5eb8"
     },
     {
       "path": "agent/tool-operation-retry.js",
-      "bytes": 2165,
-      "sha256": "4d18fe25122a9d97c25c30807d1968be4de76b48a9e145448dbf5f1930f5233c"
+      "bytes": 2233,
+      "sha256": "c0be220d132b2b7260a905f5c4197c4fe820499191bc2014f09d6ee066feb5c6"
     },
     {
       "path": "agent/tool-retry.js",
@@ -737,6 +741,16 @@
       "sha256": "e062857e9984dddf229f0f36944104c51987c31d5f06c3c42e23654216f8b2d4"
     },
     {
+      "path": "contracts/error.d.ts",
+      "bytes": 255,
+      "sha256": "501451150124d5b3bef6d5c5baefb8d8d05105c03937401f12d92af0b4451dd4"
+    },
+    {
+      "path": "contracts/error.js",
+      "bytes": 280,
+      "sha256": "fd2bcc384ca3e87fa111dc99e347ca3c25698cf7afd33f0fc20299ee207325dc"
+    },
+    {
       "path": "contracts/host-ports.d.ts",
       "bytes": 1547,
       "sha256": "eec6cf8ff1e5a7065931dae47eb09974f66ca6281c047e0835575244a420504b"
@@ -788,8 +802,8 @@
     },
     {
       "path": "contracts/partition.js",
-      "bytes": 13639,
-      "sha256": "20a248a62bd34755eb1919ddb4a51a4422247145bba7cf2a2b6a111218f14140"
+      "bytes": 13689,
+      "sha256": "f336b3beb897caf3586ceda5ef8a1f67ad77dee1ca436817101243391cae007b"
     },
     {
       "path": "contracts/pool/adapter-execution.d.ts",
@@ -1578,13 +1592,13 @@
     },
     {
       "path": "retrieval/index.d.ts",
-      "bytes": 23046,
-      "sha256": "3d3d497cd267e5df7db9c452b09b3e268f99e7895341dd384135f460d3109518"
+      "bytes": 23452,
+      "sha256": "d1be6837a5683100860ac1c52c0ea669e16c87320bc690d81cb597fb12003c8a"
     },
     {
       "path": "retrieval/index.js",
-      "bytes": 1859,
-      "sha256": "f34fddd2a5ff0dbb6e664e89dbbc442a84e6c7e3348ed31da65a739c12076f7f"
+      "bytes": 1875,
+      "sha256": "eb83ff5d8d8f6b7b17f993d1aa971e28e0a5c85b3bcff345e83aa6b12e05251a"
     },
     {
       "path": "retrieval/lexical-support.js",
@@ -1628,8 +1642,8 @@
     },
     {
       "path": "retrieval/sources.js",
-      "bytes": 18376,
-      "sha256": "3a647da701d332715c291070486ed170a8eb29ed57588025ecce24a0bc3ad9bc"
+      "bytes": 18545,
+      "sha256": "ce2158dd428dba1462a2f534fb0d75a57cdf6c919697aed42c084421e4946124"
     },
     {
       "path": "retrieval/support-review.js",

@@ -1,3 +1,4 @@
+import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
 /**
  * @fileoverview HTTP plumbing for the earning-loop routes: explicit limits,
  * per-key rate limiting, bearer credentials, idempotency keys and the
@@ -13,7 +14,7 @@ const COMPONENT_ERRORS = new Set(['AccountError', 'LedgerError', 'RewardError', 
 const RATE_KEYS = Object.freeze(['address', 'signIn', 'account', 'device', 'operator']);
 const IDEMPOTENCY_KEY = /^[\x21-\x7e]{1,256}$/;
 
-export class RouteError extends Error {
+export class RouteError extends ReploidError {
   constructor(status, code, message = code, details = null) {
     super(message);
     this.name = 'RouteError';

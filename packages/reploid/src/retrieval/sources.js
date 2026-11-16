@@ -1,3 +1,4 @@
+import { ReploidError } from '../contracts/error.js';
 /** Retrieval for one request: provider search, optional passage extraction, bounded numbered context
  * and the provenance record kept with the conversation. Providers and extractors are host ports. */
 import defaults from './policy.json' with { type: 'json' };
@@ -21,8 +22,11 @@ const FAILURES = Object.freeze({
   interrupted: 'the connection was interrupted during retrieval'
 });
 
-class RetrievalError extends Error {
-  constructor(code, detail = null) { super(FAILURES[code]); this.code = code; this.detail = detail; }
+export class RetrievalError extends ReploidError {
+  constructor(code, detail = null) {
+    if (!Object.hasOwn(FAILURES, code)) throw new TypeError('Unknown retrieval failure code');
+    super(FAILURES[code]); this.code = code; this.detail = detail;
+  }
 }
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 /** Where a provider's retrieval runs: an operator's server route, or this device. Recorded with the provider. */
