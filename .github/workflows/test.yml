@@ -31,6 +31,7 @@ jobs:
           cache: npm
       - run: node --test tests/scripts/sync-reploid-library.test.js tests/scripts/retained-evidence.test.js
       - run: npm run verify:library
+      - run: node scripts/restore-evidence.js --validate
       - run: npm ci --omit=optional --no-audit --no-fund
       # Vitest needs Rollup's native parser. Keep unrelated GPU/provider optional
       # packages omitted and install only this runner's lockfile-pinned package.

@@ -7,7 +7,9 @@ const fetchIndex = args.indexOf('--fetch');
 if (fetchIndex >= 0) args.splice(fetchIndex, 1);
 const catalog = await readEvidenceCatalog();
 if (fetchIndex >= 0) fetchEvidenceObjects(catalog);
-if (args.length === 1 && args[0] === '--check') {
+if (args.length === 1 && args[0] === '--validate') {
+  console.log(`Validated ${catalog.fileCount} retained evidence entries and their hash-pinned catalog parts.`);
+} else if (args.length === 1 && args[0] === '--check') {
   const missing = checkEvidenceObjects(catalog);
   if (missing.length) throw new Error(`${missing.length} evidence blobs are absent; run node scripts/restore-evidence.js --fetch --check`);
   console.log(`Verified Git availability and sizes for ${catalog.fileCount} retained evidence files (${catalog.bytes} bytes).`);
@@ -17,4 +19,4 @@ if (args.length === 1 && args[0] === '--check') {
   if (!rows.length) throw new Error('No retained evidence matches that repository-relative path');
   for (const row of rows) await restoreEvidenceFile(row, { destination: args[1] ? path.resolve(args[1]) : undefined });
   console.log(`Restored and hash-verified ${rows.length} retained evidence files.`);
-} else throw new Error('Usage: restore-evidence.js [--fetch] --check | REPOSITORY_PATH [DESTINATION_ROOT]');
+} else throw new Error('Usage: restore-evidence.js [--fetch] --validate | --check | REPOSITORY_PATH [DESTINATION_ROOT]');

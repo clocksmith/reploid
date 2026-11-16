@@ -127,3 +127,24 @@ docs/diagrams/reploid-diagram/test/*-preview.png
 
 # Local deployment checkouts and their archives; machine-specific, never source
 /.deployment-checkouts/
+
+# Frozen qualification bundles remain directly readable by offline integrity tests.
+# New run output still requires the CI artifact-policy exception and byte budget.
+!/docs/status/
+/docs/status/*
+!/docs/status/esm2-peer-pack-2026-09-05/
+!/docs/status/esm2-peer-pack-2026-09-05/**
+!/docs/status/esm2-pack-operation-2026-09-05/
+!/docs/status/esm2-pack-operation-2026-09-05/**
+!/docs/status/esm2-durable-peer-2026-09-06/
+!/docs/status/esm2-durable-peer-2026-09-06/**
+!/docs/status/esm2-process-restart-2026-09-06/
+!/docs/status/esm2-process-restart-2026-09-06/**
+!/docs/status/esm2-remote-operation-2026-09-06/
+!/docs/status/esm2-remote-operation-2026-09-06/**
+!/docs/status/esm2-durable-job-2026-09-06/
+!/docs/status/esm2-durable-job-2026-09-06/**
+!/docs/status/esm2-attempt-v2-2026-09-06/
+!/docs/status/esm2-attempt-v2-2026-09-06/**
+!/docs/status/esm2-capability-plan-2026-09-06/
+!/docs/status/esm2-capability-plan-2026-09-06/**
