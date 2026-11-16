@@ -123,6 +123,23 @@ describe('Poolday artifact router', () => {
     expect(rejected.rejectionReasons).toContain('adapter_storage_budget_exceeded');
   });
 
+  it('rejects a provider whose declared GPU memory is below the declared requirement', () => {
+    const GiB = 1024 ** 3;
+    const needs = (gpuBytes) => {
+      const value = intent(null);
+      value.body.modelRequirements.resources = { gpuBytes };
+      return value;
+    };
+    const declares = (hardware) => ({ ...advert('provider_a', null), body: { ...advert('provider_a', null).body, hardware } });
+    const reasons = (candidate, request) => evaluateProviderRouteCandidate({ advert: candidate, intent: request }).rejectionReasons;
+    expect(reasons(declares({ gpuIdentity: null, gpuBudgetBytes: 8 * GiB, gpuFreeBytes: 1 * GiB }), needs(2 * GiB))).toContain('gpu_memory_insufficient');
+    expect(reasons(declares({ gpuIdentity: null, gpuBudgetBytes: 1 * GiB, gpuFreeBytes: null }), needs(2 * GiB))).toContain('gpu_memory_insufficient');
+    expect(reasons(declares({ gpuIdentity: null, gpuBudgetBytes: 8 * GiB, gpuFreeBytes: null }), needs(2 * GiB))).not.toContain('gpu_memory_insufficient');
+    // Undeclared on either side is unknown, not a rejection.
+    expect(reasons(advert('provider_a', null), needs(2 * GiB))).not.toContain('gpu_memory_insufficient');
+    expect(reasons(declares({ gpuIdentity: null, gpuBudgetBytes: 0, gpuFreeBytes: 0 }), intent(null))).not.toContain('gpu_memory_insufficient');
+  });
+
   it('seals a deterministic route decision independent of candidate arrival order', async () => {
     const left = evaluateProviderRouteCandidate({ advert: advert('provider_a', 'cached'), intent: intent() });
     const right = evaluateProviderRouteCandidate({ advert: advert('provider_b', 'fetchable'), intent: intent() });

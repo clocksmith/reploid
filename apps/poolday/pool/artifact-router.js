@@ -162,6 +162,13 @@ export function evaluateProviderRouteCandidate({
     finite(signedLimits.maxTokensPerJob, Number.MAX_SAFE_INTEGER)
   ));
   if (requestedTokenCount(intent) > maxTokensPerJob) rejectionReasons.push('job_token_limit_exceeded');
+  // Memory gates only when both sides declare it: an advert without hardware stays eligible as unknown.
+  const requiredGpuBytes = Math.max(0, finite(intent?.body?.modelRequirements?.resources?.gpuBytes, 0));
+  const hardware = advert?.body?.hardware || null;
+  if (requiredGpuBytes > 0 && hardware && Math.min(
+    finite(hardware.gpuBudgetBytes, Number.MAX_SAFE_INTEGER),
+    finite(hardware.gpuFreeBytes, Number.MAX_SAFE_INTEGER)
+  ) < requiredGpuBytes) rejectionReasons.push('gpu_memory_insufficient');
   const match = matchingModel(advert || {}, intent || {});
   rejectionReasons.push(...match.reasons);
   const adapterRequirement = intent?.body?.modelRequirements?.adapter || null;

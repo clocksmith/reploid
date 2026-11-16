@@ -148,6 +148,26 @@ export async function createSignedJobIntent({
   };
 }
 
+const bytes = value => Number.isSafeInteger(value) && value >= 0;
+
+/**
+ * Optional provider-reported hardware, in the field names of the capability observation
+ * (shared/pool/peer-capabilities.js). A routing hint the provider signs, not measured proof:
+ * null means the provider declares nothing and routing treats its memory as unknown.
+ */
+export function resolveAdvertHardware(hardware) {
+  if (hardware === null || hardware === undefined) return null;
+  const { gpuIdentity = null, gpuBudgetBytes, gpuFreeBytes = null } = hardware;
+  if (Object.keys(hardware).some(key => !['gpuIdentity', 'gpuBudgetBytes', 'gpuFreeBytes'].includes(key))
+    || !bytes(gpuBudgetBytes) || !(gpuFreeBytes === null || bytes(gpuFreeBytes))
+    || !(gpuIdentity === null || ['vendor', 'architecture', 'device', 'description'].every(key =>
+      typeof gpuIdentity?.[key] === 'string' && gpuIdentity[key].length <= 256)
+      && Object.keys(gpuIdentity).length === 4)) {
+    throw new Error('provider advert hardware requires gpuBudgetBytes and optional gpuIdentity and gpuFreeBytes');
+  }
+  return { gpuIdentity: gpuIdentity ? { ...gpuIdentity } : null, gpuBudgetBytes, gpuFreeBytes };
+}
+
 export async function createSignedProviderAdvert({
   providerId,
   providerPublicKey,
@@ -158,11 +178,13 @@ export async function createSignedProviderAdvert({
   runtimeProfile = null,
   runtimeProfileHash = null,
   availability = {},
+  hardware = null,
   reputationEvidence = {},
   createdAt,
   expiresAt = null
 } = {}) {
   const resolvedProviderId = requireString(providerId, 'providerId');
+  const resolvedHardware = resolveAdvertHardware(hardware);
   const resolvedModels = Array.isArray(models) && models.length > 0
     ? models
     : [buildLaunchProviderModel()];
@@ -198,6 +220,7 @@ export async function createSignedProviderAdvert({
         acceptedPolicyClasses: ['public_text', 'code_help', 'benchmark_eval', 'public_biological_sequence'],
         ...availability
       },
+      ...(resolvedHardware ? { hardware: resolvedHardware } : {}),
       reputationEvidence
     },
     createdAt,

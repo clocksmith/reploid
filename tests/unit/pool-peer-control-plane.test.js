@@ -169,6 +169,20 @@ describe('pool peer control plane', () => {
     expect(advert.body.availability.acceptedPolicyClasses).toContain('public_biological_sequence');
   });
 
+  it('signs declared hardware into the advert and omits it when undeclared', async () => {
+    const keyPair = await createSigningKeyPair();
+    const base = { providerId: 'provider_hardware', providerPublicKey: await exportPublicKey(keyPair.publicKey),
+      privateKey: keyPair.privateKey, models: [sequenceModelAdvert()] };
+    const hardware = { gpuIdentity: { vendor: 'amd', architecture: 'rdna-3', device: '', description: '' },
+      gpuBudgetBytes: 8 * 1024 ** 3, gpuFreeBytes: null };
+    const declared = await createSignedProviderAdvert({ ...base, hardware });
+    expect(await verifyPeerMessage(declared)).toMatchObject({ ok: true });
+    expect(declared.body.hardware).toEqual(hardware);
+    expect(await createSignedProviderAdvert(base)).not.toHaveProperty('body.hardware');
+    await expect(createSignedProviderAdvert({ ...base, hardware: { gpuBudgetBytes: -1 } })).rejects.toThrow('provider advert hardware');
+    await expect(createSignedProviderAdvert({ ...base, hardware: { gpuBudgetBytes: 1, vramGuess: 2 } })).rejects.toThrow('provider advert hardware');
+  });
+
   it('builds deterministic peer assignment plans from signed provider adverts', async () => {
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);

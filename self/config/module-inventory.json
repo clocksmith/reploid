@@ -1202,7 +1202,7 @@
     {
       "path": "pool/artifact-router.js",
       "owner": "pool",
-      "sha256": "sha256:fdfb35a0fbcbae7206f37b9d7cf635558ea95e4b7575e18f37f6a8fe19a25d5c",
+      "sha256": "sha256:3a513f4f2a7b0e577ba16f3d108f74d6db4250d763c602317815a631ab64627f",
       "imports": [
         "./adapter-pack.js",
         "./inference-receipt.js",
@@ -2408,7 +2408,7 @@
     {
       "path": "pool/peer-signed-claims.js",
       "owner": "pool",
-      "sha256": "sha256:79a52213ac95dff14214f0db820ae43fd9417edac0402c7c70ca50a6a08fb2f4",
+      "sha256": "sha256:8756e903c7a2f4b45f077883b8fb33a69fc6b2bd3fe38268a773996ce1453f72",
       "imports": [
         "./adapter-publication.js",
         "./config.js",
@@ -4227,7 +4227,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:c2f473681d6f72a4d5da59b60fc1694e24a3da52cc830c7181af32dc679721cc",
+      "sha256": "sha256:b1ce173a632051a069e26c904420f8f24fb8142d0fcb1a151f4fe61e82b0a837",
       "imports": []
     },
     {

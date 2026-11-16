@@ -1431,7 +1431,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 656582,
-      "sha256": "sha256:467e9123be40460e78d11b5f8fd38667b577862bf31d40ccdf1bbc53b60b0439"
+      "sha256": "sha256:1c9be1d378084148dc6e28532e7dfaadc534b1699bb15b5a9ed7e797735ddecf"
     },
     {
       "path": "config/module-registry.json",
@@ -2490,8 +2490,8 @@
     },
     {
       "path": "pool/artifact-router.js",
-      "byteLength": 11653,
-      "sha256": "sha256:fdfb35a0fbcbae7206f37b9d7cf635558ea95e4b7575e18f37f6a8fe19a25d5c"
+      "byteLength": 12161,
+      "sha256": "sha256:3a513f4f2a7b0e577ba16f3d108f74d6db4250d763c602317815a631ab64627f"
     },
     {
       "path": "pool/browser-qualification.js",
@@ -3040,8 +3040,8 @@
     },
     {
       "path": "pool/peer-signed-claims.js",
-      "byteLength": 7630,
-      "sha256": "sha256:79a52213ac95dff14214f0db820ae43fd9417edac0402c7c70ca50a6a08fb2f4"
+      "byteLength": 8949,
+      "sha256": "sha256:8756e903c7a2f4b45f077883b8fb33a69fc6b2bd3fe38268a773996ce1453f72"
     },
     {
       "path": "pool/peer-transport.js",
@@ -3760,8 +3760,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2485615,
-      "sha256": "sha256:c2f473681d6f72a4d5da59b60fc1694e24a3da52cc830c7181af32dc679721cc"
+      "byteLength": 2486475,
+      "sha256": "sha256:b1ce173a632051a069e26c904420f8f24fb8142d0fcb1a151f4fe61e82b0a837"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12304,5 +12304,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:9e8982a75decf9c6169d77289073a2ed5b330b478102461cab73cf4c4efed031"
+  "bundleHash": "sha256:7cb97d52cb788a23842f0d3644e4af194f0a39fee14a6bf7ba8df796d2241776"
 }
