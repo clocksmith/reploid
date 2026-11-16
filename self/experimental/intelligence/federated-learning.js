@@ -1,6 +1,7 @@
 /**
  * @fileoverview Federated Learning Coordinator
- * Local updates with secure aggregation, differential privacy, and versioned rollback.
+ * Versioned aggregation of explicitly disclosed updates. The coordinator sees every
+ * update; this module provides neither secure aggregation nor a differential privacy guarantee.
  */
 
 const FederatedLearning = {
@@ -20,9 +21,9 @@ const FederatedLearning = {
     const DEFAULTS = {
       roundTimeoutMs: 20000,
       clipNorm: 1.0,
-      noiseStdDev: 0.01,
-      secureAggregation: true,
-      maskScale: 0.05,
+      noiseStdDev: 0,
+      secureAggregation: false,
+      allowPlaintextUpdates: false,
       minParticipants: 1,
       historyLimit: 10
     };
@@ -33,9 +34,6 @@ const FederatedLearning = {
     let _history = [];
     let _rounds = new Map();
     let _localUpdateProvider = null;
-
-    const _localNonce = Math.floor(Math.random() * 1e9).toString(36);
-    const _peerNonces = new Map();
 
     const getLocalPeerId = () => SwarmTransport?._getPeerId?.() || 'local';
 
@@ -149,8 +147,12 @@ const FederatedLearning = {
     const gaussian = () => {
       let u = 0;
       let v = 0;
-      while (u === 0) u = Math.random();
-      while (v === 0) v = Math.random();
+      const cryptoApi = deps.crypto || globalThis.crypto;
+      if (typeof cryptoApi?.getRandomValues !== 'function') throw new Error('Cryptographic randomness is required for update noise');
+      const values = new Uint32Array(2);
+      cryptoApi.getRandomValues(values);
+      u = (values[0] + 1) / 4294967297;
+      v = (values[1] + 1) / 4294967297;
       return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
     };
 
@@ -163,65 +165,24 @@ const FederatedLearning = {
       return out;
     };
 
-    const hashString = (input) => {
-      let hash = 0;
-      for (let i = 0; i < input.length; i++) {
-        hash = ((hash << 5) - hash) + input.charCodeAt(i);
-        hash |= 0;
+    const validateConfig = config => {
+      if (config.secureAggregation !== false) throw new Error('Secure aggregation is not implemented; refusing to disclose updates');
+      if (config.allowPlaintextUpdates !== true) throw new Error('Explicit plaintext update disclosure is required');
+      if (!Number.isFinite(config.clipNorm) || config.clipNorm <= 0
+        || !Number.isFinite(config.noiseStdDev) || config.noiseStdDev < 0
+        || !Number.isSafeInteger(config.minParticipants) || config.minParticipants < 1
+        || !Number.isSafeInteger(config.roundTimeoutMs) || config.roundTimeoutMs < 1) {
+        throw new Error('Invalid federated update limits');
       }
-      return hash >>> 0;
-    };
-
-    const createRng = (seed) => {
-      let state = seed || 1;
-      return () => {
-        state ^= state << 13;
-        state ^= state >>> 17;
-        state ^= state << 5;
-        return (state >>> 0) / 4294967296;
-      };
-    };
-
-    const pairwiseSeed = (peerId, roundId) => {
-      const localId = getLocalPeerId();
-      const peerNonce = _peerNonces.get(peerId);
-      if (!peerNonce) return null;
-
-      const [aId, bId] = localId < peerId ? [localId, peerId] : [peerId, localId];
-      const [aNonce, bNonce] = localId < peerId ? [_localNonce, peerNonce] : [peerNonce, _localNonce];
-      return hashString(`${aId}|${bId}|${aNonce}|${bNonce}|${roundId}`);
-    };
-
-    const applyMask = (update, roundId, config) => {
-      if (!config.secureAggregation) return update;
-
-      const localId = getLocalPeerId();
-      let masked = cloneModel(update);
-
-      for (const peerId of _peerNonces.keys()) {
-        const seed = pairwiseSeed(peerId, roundId);
-        if (seed == null) continue;
-        const rng = createRng(seed);
-        const sign = localId < peerId ? 1 : -1;
-
-        const nextMasked = {};
-        for (const key of modelKeys(masked)) {
-          nextMasked[key] = masked[key].map((value) => {
-            const mask = (rng() * 2 - 1) * config.maskScale;
-            return value + sign * mask;
-          });
-        }
-        masked = nextMasked;
+      if (config.epsilon !== undefined || config.delta !== undefined || config.differentialPrivacy) {
+        throw new Error('Differential privacy accounting is not implemented');
       }
-
-      return masked;
+      return config;
     };
 
-    const prepareUpdate = (update, config, roundId) => {
-      const aligned = alignUpdate(update);
-      const clipped = clipUpdate(aligned, config.clipNorm);
-      const noised = addNoise(clipped, config.noiseStdDev);
-      return applyMask(noised, roundId, config);
+    const prepareUpdate = (update, config) => {
+      validateConfig(config);
+      return addNoise(clipUpdate(alignUpdate(update), config.clipNorm), config.noiseStdDev);
     };
 
     const aggregateUpdates = (updates) => {
@@ -263,35 +224,13 @@ const FederatedLearning = {
       return { model: cloneModel(_model), version: _version };
     };
 
-    const sendHello = (peerId, reply = false) => {
-      if (!SwarmTransport?.sendToPeer) return;
-      SwarmTransport.sendToPeer(peerId, 'fl:hello', {
-        nonce: _localNonce,
-        reply
-      });
-    };
-
-    const broadcastHello = () => {
-      if (!SwarmTransport?.broadcast) return;
-      SwarmTransport.broadcast('fl:hello', { nonce: _localNonce, reply: false });
-    };
-
-    const handleHello = (peerId, payload, envelope) => {
-      if (!isTargetedAtUs(envelope)) return;
-      if (!payload?.nonce) return;
-
-      _peerNonces.set(peerId, payload.nonce);
-      if (!payload.reply) {
-        sendHello(peerId, true);
-      }
-    };
-
     const handleRoundStart = async (peerId, payload, envelope) => {
       if (!isTargetedAtUs(envelope)) return;
 
       const { roundId, coordinatorId, config, modelVersion } = payload || {};
       if (!roundId || !coordinatorId) return;
-      const resolvedConfig = { ..._config, ...(config || {}) };
+      const resolvedConfig = validateConfig({ ..._config, ...(config || {}),
+        allowPlaintextUpdates: _config.allowPlaintextUpdates });
 
       EventBus?.emit('fl:round-start', {
         roundId,
@@ -324,7 +263,7 @@ const FederatedLearning = {
       if (coordinatorId && coordinatorId !== getLocalPeerId()) return;
 
       const round = _rounds.get(roundId);
-      if (!round) return;
+      if (!round || round.status !== 'collecting' || !round.peers.includes(peerId)) return;
 
       round.updates.set(peerId, update);
       EventBus?.emit('fl:round-progress', {
@@ -369,7 +308,6 @@ const FederatedLearning = {
 
     const registerHandlers = () => {
       if (!SwarmTransport?.onMessage) return;
-      SwarmTransport.onMessage('fl:hello', handleHello);
       SwarmTransport.onMessage('fl:round-start', handleRoundStart);
       SwarmTransport.onMessage('fl:update', handleUpdate);
       SwarmTransport.onMessage('fl:round-commit', handleRoundCommit);
@@ -378,9 +316,6 @@ const FederatedLearning = {
 
     const shouldFinalizeRound = (round) => {
       const expected = round.peers.length;
-      if (round.config.secureAggregation) {
-        return round.updates.size >= expected;
-      }
       const majority = Math.floor(expected / 2) + 1;
       const required = Math.max(round.config.minParticipants, majority);
       return round.updates.size >= required;
@@ -393,7 +328,7 @@ const FederatedLearning = {
       clearTimeout(round.timeoutId);
       round.status = 'committing';
 
-      if (round.config.secureAggregation && round.updates.size < round.peers.length) {
+      if (!shouldFinalizeRound(round)) {
         round.status = 'failed';
         SwarmTransport?.broadcast?.('fl:round-failed', {
           roundId,
@@ -428,7 +363,7 @@ const FederatedLearning = {
       const roundId = generateId('fl_round');
       const localId = getLocalPeerId();
       const peers = Array.from(new Set([localId, ...getConnectedPeers()]));
-      const config = { ..._config, ...options };
+      const config = validateConfig({ ..._config, ...options, allowPlaintextUpdates: _config.allowPlaintextUpdates });
 
       const round = {
         id: roundId,
@@ -456,7 +391,6 @@ const FederatedLearning = {
           clipNorm: config.clipNorm,
           noiseStdDev: config.noiseStdDev,
           secureAggregation: config.secureAggregation,
-          maskScale: config.maskScale,
           minParticipants: config.minParticipants
         }
       });
@@ -482,7 +416,8 @@ const FederatedLearning = {
 
     const submitLocalUpdate = async (roundId, update, options = {}) => {
       const round = _rounds.get(roundId);
-      const config = { ..._config, ...(options.config || round?.config || {}) };
+      const config = validateConfig({ ..._config, ...(options.config || round?.config || {}),
+        allowPlaintextUpdates: _config.allowPlaintextUpdates });
       const coordinatorId = options.coordinatorId || round?.coordinatorId;
       if (!update) return false;
 
@@ -526,14 +461,12 @@ const FederatedLearning = {
     }));
 
     const init = async (config = {}) => {
-      _config = { ...DEFAULTS, ...config };
+      _config = validateConfig({ ...DEFAULTS, ...config });
       registerHandlers();
-      broadcastHello();
 
       EventBus?.on('swarm:state-change', () => {
         registerHandlers();
-        broadcastHello();
-      }, 'FederatedLearning');
+        }, 'FederatedLearning');
 
       return true;
     };
