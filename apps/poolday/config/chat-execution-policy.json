@@ -1,0 +1,4 @@
+{
+  "defaultOutputTokens": 1024,
+  "maxOutputTokens": 4096
+}

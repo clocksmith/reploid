@@ -6,6 +6,7 @@ import { createWorkResidentProvider } from '../providers/work-resident-provider.
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
 import { readWorkGenerationCompletion } from '../providers/work-generation-completion.js';
+import executionPolicy from '../config/chat-execution-policy.json' with { type: 'json' };
 import { publicProviderHardware } from '../../../shared/vendor/reploid/mesh/provider-hardware.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -21,7 +22,13 @@ function chatResult({ threadId, attemptId }, result, placement) {
       timing: result.timing ?? null, hardware: publicProviderHardware(result.hardware) } };
 }
 
-export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, fleet = null, resolveLocalSource, isCached = () => false, onChange = () => {} }) {
+export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, fleet = null, resolveLocalSource, isCached = () => false, onChange = () => {}, policy = executionPolicy }) {
+  const limits = structuredClone(policy);
+  assert(limits && Object.keys(limits).length === 2
+    && Number.isSafeInteger(limits.defaultOutputTokens) && limits.defaultOutputTokens > 0
+    && Number.isSafeInteger(limits.maxOutputTokens) && limits.maxOutputTokens >= limits.defaultOutputTokens,
+  'Invalid chat execution token policy');
+  Object.freeze(limits);
   let local = null;
   // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
   const runsHere = (model, sharingScope, location = 'auto') => !model.partition && location !== 'network'
@@ -98,10 +105,9 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
 
     if (request.privacy.placement === 'local-only' || runsHere(model, request.permissions?.sharingScope, request.permissions?.executionLocation)) {
       const binding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { local: true }));
-      const maxOutputTokens = Math.min(
-        request.maxOutputTokens || profile.generation?.maxTokens || 1024,
-        4096
-      );
+      const requestedTokens = request.maxOutputTokens ?? profile.generation?.maxTokens ?? limits.defaultOutputTokens;
+      assert(Number.isSafeInteger(requestedTokens) && requestedTokens > 0, 'Invalid chat output token count');
+      const maxOutputTokens = Math.min(requestedTokens, limits.maxOutputTokens);
       state('queued', { provider: 'doppler', placement: 'local-webgpu' });
       const result = await sessionScheduler.schedule({
         ...request,

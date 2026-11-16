@@ -241,6 +241,7 @@
     "config/boot-seed.js",
     "config/browser-bundle-manifest.json",
     "config/chat-context-policy.json",
+    "config/chat-execution-policy.json",
     "config/chat-files.json",
     "config/chat-models.json",
     "config/chat-prompts.json",

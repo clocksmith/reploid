@@ -2795,8 +2795,9 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:b0c6d80815bd8caac0c67aa08ab6e74683f0d0ba82d27db8bc2bd7f548f3961b",
+      "sha256": "sha256:e209593783a16d5368fd8aa6c3e978f8fc142b96734082122139ee4d9c20873d",
       "imports": [
+        "../config/chat-execution-policy.json",
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
         "../providers/work-network-provider.js",
@@ -4227,7 +4228,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:e83fd68892fbbf6291f9e17cebadc080836e64eda6d9358039ba702f7af85da7",
+      "sha256": "sha256:41c0b243915071089ff5303098a5dd735e4ddbe2618796bc192ed86aaa5f04ef",
       "imports": []
     },
     {

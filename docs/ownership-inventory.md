@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 381 |
+| apps/poolday | 382 |
 | self | 457 |
 | shared | 2393 |
-| total | 3231 |
+| total | 3232 |
 
 Every file lives in its owner's root.
 
@@ -284,6 +284,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/boot-seed.js` | `self/config/boot-seed.js` | self | Reached only from substrate entries. |
 | `config/browser-bundle-manifest.json` | `apps/poolday/config/browser-bundle-manifest.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-context-policy.json` | `apps/poolday/config/chat-context-policy.json` | apps/poolday | Reached only from product entries. |
+| `config/chat-execution-policy.json` | `apps/poolday/config/chat-execution-policy.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-files.json` | `apps/poolday/config/chat-files.json` | apps/poolday | Reached only from product entries. |
 | `config/chat-models.json` | `shared/config/chat-models.json` | shared | Reached from native hosts and browser entries. |
 | `config/chat-prompts.json` | `apps/poolday/config/chat-prompts.json` | apps/poolday | Reached only from product entries. |

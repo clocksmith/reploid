@@ -168,3 +168,22 @@ sparse and unsupported values, repeated references, cycles, signed evidence,
 receipts, runtime adapters, conversations and ordered publication. Generated
 library mirrors, SDK and browser delivery are rebuilt; these are source and
 contract checks, not new physical inference or security qualification.
+
+
+### Local chat token policy (2026-11-16)
+
+The remaining local-chat fallback (1024 tokens) and ceiling (4096 tokens) now
+come from `apps/poolday/config/chat-execution-policy.json`. The host snapshots
+and validates this policy before constructing a scheduler. A selected profile's
+`generation.maxTokens` remains its default, not the chat admission ceiling;
+explicit requests can exceed that default up to the chat ceiling. Invalid local
+counts fail before scheduling rather than silently selecting a fallback.
+
+Limit ownership audit: partition input admission, receiver retention, output
+accounting, file-transfer channels and chat defaults have different enforcement
+boundaries. Equal numeric values across those policies are not sufficient grounds
+for merging them. Peer timing already has a shared table with explicit relay
+mode overrides; attachment and context controls already read their owned policy.
+The new scheduler-boundary regressions cover custom policy, source mutation,
+profile/default/explicit precedence, shipped values and invalid counts. They do
+not establish physical model throughput or cancellation.

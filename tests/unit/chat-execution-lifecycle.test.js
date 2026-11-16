@@ -31,3 +31,52 @@ it('never closes a borrowed scheduler', async () => {
   expect(createScheduler).not.toHaveBeenCalled();
   expect(close).not.toHaveBeenCalled();
 });
+
+// Exercise the local scheduler boundary; no numerical inference is simulated here.
+function localFixture({ policy, profile = {} } = {}) {
+  const model = { id: 'test-model', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler', adapters: [] };
+  const schedule = vi.fn(async request => ({ model: model.id, modelIdentity: model.identity,
+    adapterIdentities: [], content: String(request.maxOutputTokens) }));
+  const execution = createChatExecution({ ...options(), policy, profile, models: [model],
+    getModels: () => [model], scheduler: { schedule } });
+  const run = maxOutputTokens => execution.execute({ threadId: 'thread', attemptId: 'attempt', model,
+    messages: [{ role: 'user', content: 'Hello' }], permissions: { executionLocation: 'local' },
+    ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) },
+  { signal: new AbortController().signal, onState() {}, onDelta() {} });
+  return { schedule, run };
+}
+
+it('uses the owned fallback and ceiling without confusing the profile default with admission', async () => {
+  const policy = { defaultOutputTokens: 16, maxOutputTokens: 32 };
+  const f = localFixture({ policy });
+  policy.defaultOutputTokens = 500;
+  policy.maxOutputTokens = 500;
+  await f.run();
+  await f.run(64);
+  expect(f.schedule.mock.calls.map(([request]) => request.maxOutputTokens)).toEqual([16, 32]);
+  const withProfile = localFixture({ policy: { defaultOutputTokens: 16, maxOutputTokens: 32 },
+    profile: { generation: { maxTokens: 20 } } });
+  await withProfile.run();
+  await withProfile.run(30);
+  expect(withProfile.schedule.mock.calls.map(([request]) => request.maxOutputTokens)).toEqual([20, 30]);
+});
+
+it('preserves the shipped local fallback and ceiling', async () => {
+  const f = localFixture();
+  await f.run();
+  await f.run(8192);
+  expect(f.schedule.mock.calls.map(([request]) => request.maxOutputTokens)).toEqual([1024, 4096]);
+});
+
+it.each([0, -1, 1.5, NaN, Infinity, '32'])('rejects invalid local token count %s before scheduling', async count => {
+  const f = localFixture();
+  await expect(f.run(count)).rejects.toThrow('Invalid chat output token count');
+  expect(f.schedule).not.toHaveBeenCalled();
+});
+
+it.each([null, {}, { defaultOutputTokens: 0, maxOutputTokens: 32 },
+  { defaultOutputTokens: 32, maxOutputTokens: 16 }, { defaultOutputTokens: 16, maxOutputTokens: 32, extra: true }])(
+  'rejects an invalid token policy before constructing a scheduler', policy => {
+    expect(() => createChatExecution({ ...options(), policy })).toThrow('Invalid chat execution token policy');
+    expect(createScheduler).not.toHaveBeenCalled();
+  });
