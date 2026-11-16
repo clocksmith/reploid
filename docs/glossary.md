@@ -141,7 +141,9 @@ The product lives in `apps/poolday/`; the reusable library lives in
 `packages/reploid/`. `shared/vendor/` contains generated dependency copies, not an
 additional implementation to edit. Hosted paths such as `/host/` and `/pool/`
 can map to product files through the [served-tree ownership map](ownership-inventory.md).
-Read the source owner's nearest `AGENTS.md` and CATSCAN before editing.
+Use the source owner's nearest `AGENTS.md` for local instructions. CATSCAN maps
+are optional references for ownership and known traps; update them when the
+architecture changes.
 
 For complete execution flows, use the [architecture diagrams](open-mesh-architecture.md#technical-diagrams).
 For proposed receipt replication, use [mesh record keeping](mesh-records.md);
