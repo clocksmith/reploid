@@ -14,7 +14,6 @@
  *    certainty.
  */
 
-import { canonicalize } from '../../../shared/pool/canonical-json.js';
 import { hashJson, sha256Hex } from '../../../shared/pool/inference-receipt.js';
 import { PROTEIN_UNCERTAINTY_CAMPAIGN_POLICY } from './protein-uncertainty-campaign.js';
 

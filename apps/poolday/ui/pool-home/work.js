@@ -26,13 +26,6 @@ export {
   renderTaskHistory
 };
 
-const route = (path, label) => '<a href="' + path + '" data-pool-route-link="' + path + '">' + label + '</a>';
-const links = () => '<details class="pool-work-more pool-small pool-muted"><summary>More</summary>'
-  + '<nav class="pool-work-links pool-small pool-muted pool-edge-top" aria-label="More in Reploid">'
-  + route('/network', 'Network settings') + route('/improve', 'Improvement history') + route('/examples', 'Model examples') + route('/records', 'Peer job records')
-  + '<span class="pool-work-experiment-links">Experiments: <a href="/zero" data-pool-substrate-route="zero">Zero</a>'
-  + ' <a href="/x" data-pool-substrate-route="x">X</a></span></nav></details>';
-
 export function renderWorkSurface() {
   return [
     '<section class="pool-work-shell pool-connected-shell" data-work-surface aria-label="Agent network">',

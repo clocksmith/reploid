@@ -1,5 +1,5 @@
 import { samePartitionAdapters } from './partition-contract.js';
-import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRoute, partitionActivationContract, validatePartitionRoute, PARTITION_ROUTE_SCHEMA, validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
+import { assertPartition as assert, canonicalPartitionJson, partitionActivationContract, validatePartitionRoute, PARTITION_ROUTE_SCHEMA, validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 export { validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 
 /** Pure selection over observed capabilities. No transport or resource ownership. */

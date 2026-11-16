@@ -721,8 +721,7 @@ const ImprovementEpisodeLedger = {
   },
 
   factory: (deps) => {
-    const { Utils, VFS, EventBus, AuditLogger } = deps;
-    const logger = Utils?.logger;
+    const { VFS, EventBus, AuditLogger } = deps;
     const cryptoApi = deps.cryptoApi || globalThis.crypto;
     let writeQueue = Promise.resolve();
     let identityPromise = null;

@@ -12,7 +12,7 @@ import { LOCAL_DOPPLER_MODELS, DOPPLER_BROWSER_RUNTIME_VERSION } from '../../../
 import { createReploidDopplerRuntimeService } from '../../../shared/infrastructure/doppler-runtime-service.js';
 import { createWorkFileTools } from './work-inputs.js';
 import { resolveWorkTask } from './work-task.js';
-import { deriveOutcomeTags, readonlyView, projectWorkRecord } from './work-view.js';
+import { readonlyView, projectWorkRecord } from './work-view.js';
 import { createWorkRepository } from './work-repository.js';
 import { selectWorkModel } from '../providers/work-provider.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';

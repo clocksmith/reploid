@@ -158,7 +158,8 @@ export default [
   { files: ['apps/poolday/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
     { group: ['**/self/**'], message: 'Poolday loads the substrate only through its documented entry points (scripts/verify-browser-boundaries.js).' }] }] } },
   { files: workerFiles, languageOptions: { globals: { ...globals.worker, ...globals.serviceworker } } },
-  { files: ['server/**/*.js', 'scripts/**/*.{js,mjs}'], rules: {
+  { files: ['server/**/*.js', 'scripts/**/*.{js,mjs}', 'packages/reploid/src/**/*.js', 'apps/poolday/**/*.js'],
+    ignores: ['apps/poolday/config/doppler-metadata-contract.js'], rules: {
     'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }]
   } },
   { files: ['server/**/*.js', 'scripts/**/*.js', 'scripts/**/*.mjs', 'tools/**/*.js', 'bin/**/*.js',

@@ -833,8 +833,8 @@
     },
     {
       "path": "improvement/episodes.js",
-      "bytes": 48958,
-      "sha256": "f06c2c460e71302f1ee9fb163c3f7df5df03718858f7ee89784e516e628b818f"
+      "bytes": 48917,
+      "sha256": "ebd263a231a8a3b5559e95ac452f242b3e26aaa93effc547b53fd7cd0a2073b1"
     },
     {
       "path": "improvement/index.d.ts",
@@ -1238,8 +1238,8 @@
     },
     {
       "path": "mesh/partitions/partition-placement.js",
-      "bytes": 10827,
-      "sha256": "80fadd92b7f6c7013858bbe2438a352047fe1e50aee6bfdf65254e3e128efe61"
+      "bytes": 10802,
+      "sha256": "29ef6a1e28e6323a3dbcd0585d6d3f167470684742c30797d6349ed503827677"
     },
     {
       "path": "mesh/partitions/partition-preparation-progress.d.ts",

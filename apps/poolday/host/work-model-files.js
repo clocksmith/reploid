@@ -54,8 +54,10 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
     reserve(bytes) { if (!budget) throw budgetError || new Error('Persistent file contribution budget unavailable'); return budget.reserve(bytes); } };
   const prepareBudget = folder => budgetOpening ||= (async () => {
     try {
-      let empty = true;
-      for await (const entry of folder.entries()) { empty = false; break; }
+      const entries = folder.entries();
+      let empty;
+      try { empty = (await entries.next()).done; }
+      finally { await entries.return?.(); }
       budget = await openBrowserSupplyBudget({ maxBytes: policy.maxSupplyBytes, allowInitialize: empty });
       if (closed) budget.close();
     } catch (cause) { budgetError = cause; }

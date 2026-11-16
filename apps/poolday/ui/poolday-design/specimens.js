@@ -20,7 +20,6 @@ const loaders = {
 };
 const from = (file, name, ...args) => async () => (await loaders[file]())[name](...args);
 
-const strip = (items) => `<div class="pool-row pool-gap-md">${items.join('')}</div>`;
 // Every specimen names its class the same way: lowercase, monospace, as written in markup.
 const name = (text) => `<code class="pool-mono pool-caption pool-muted">${text}</code>`;
 const PRIMITIVES = [
