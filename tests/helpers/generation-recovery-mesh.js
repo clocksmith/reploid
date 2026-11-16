@@ -40,7 +40,7 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
       identity: { ensure: async () => identities[i], sync: async () => {}, save: async () => {} },
       generationJournal: i ? journal : null, settleGeneration: settle, onGenerationTerminal,
       generate: async (...args) => { executions++; return execute ? execute(...args) : response; },
-      createTransport: () => ({ init: async () => true, disconnect() {}, _getPeerId: () => channels[i],
+      createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => channels[i],
         getPeerBinding: () => ({ local: 'cert-' + channels[i], remote: 'cert-' + channels[1-i] }),
         onMessage: (type, fn) => handlers[i].set(type, fn), broadcast: (type, payload) => deliver(i, type, payload),
         sendToPeer: (_peer, type, payload) => deliver(i, type, payload) })

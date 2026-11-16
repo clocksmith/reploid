@@ -357,7 +357,7 @@ it('defaults to cached sharing, prepares without downloads, and persists separat
 it('lets a requester-only ordered browser share a whole model, while partition sharing still needs an assigned stage', async () => {
   vi.stubGlobal('navigator', { gpu: {} });
   const identity = deferred(); ports.ensure.mockReturnValue(identity.promise);
-  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn(), _getPeerId: () => 'rtc-fixture' });
+  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn(), getPeerId: () => 'rtc-fixture' });
   const limits = { maxStages: 7, maxStageOffersPerPeer: 4, maxRouteBytes: 8192, maxSelectionSteps: 2000, maxRoutes: 4 };
   const service = { open: vi.fn(), close: vi.fn() };
   const swarm = createWorkSwarm({ service, ordered: { stage: null, ...limits },

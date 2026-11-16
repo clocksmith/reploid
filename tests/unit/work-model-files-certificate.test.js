@@ -22,7 +22,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
-const transport = { onDataChannel() {}, _getPeerId: () => 'browser-transport' };
+const transport = { onDataChannel() {}, getPeerId: () => 'browser-transport' };
 const check = (certificate, identity) => checkCustodyKeyCertificate(certificate, {
   publicJwk: identity.publicJwk, atMs: Date.now(), maxLifetimeMs: CUSTODY_CERTIFICATE_LIFETIME_MS, maxClockSkewMs: 0
 });

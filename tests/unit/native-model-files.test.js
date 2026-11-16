@@ -37,7 +37,7 @@ async function fixture(count = 2, { certify = null, hostOptions = () => ({}), di
     stores.push(new Map()); const directory = await folder(), cacheDirectory = await folder(); directories.push(directory); cacheDirectories.push(cacheDirectory);
     await fs.writeFile(path.join(directory, 'manifest.json'), manifest); await fs.writeFile(path.join(directory, 'pieces.json'), index);
     if (i > 0) await fs.writeFile(path.join(directory, 'weights.bin'), whole);
-    const transport = { _getPeerId: () => String(i), getConnectedPeers: () => stores.map((_, id) => ({ id: String(id) })).filter(p => p.id !== String(i)),
+    const transport = { getPeerId: () => String(i), getConnectedPeers: () => stores.map((_, id) => ({ id: String(id) })).filter(p => p.id !== String(i)),
       onMessage: (type, fn) => stores[i].set(type, fn), onDataChannel: (_, fn) => { callbacks[i] = fn; return () => { if (network.failClose) throw new Error('custody close failed'); }; },
       sendToPeer(peer, type, payload) { const message = structuredClone(payload); writes.push({ from: i, peer, type, message }); network.intercept({ from: i, peer, type, message }); queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), message)); return true; },
       broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
@@ -314,7 +314,7 @@ async function soloHost(f, origin) {
   const directory = await folder(), cacheDirectory = await folder();
   // Bundled pinned metadata (the delivery's served config) stands in as local files here.
   for (const name of ['manifest.json', 'pieces.json']) await fs.copyFile(path.join(f.directories[0], name), path.join(directory, name));
-  const transport = { _getPeerId: () => 'solo', getConnectedPeers: () => [], onMessage() {}, onDataChannel: () => () => {}, sendToPeer: () => true, broadcast() {} };
+  const transport = { getPeerId: () => 'solo', getConnectedPeers: () => [], onMessage() {}, onDataChannel: () => () => {}, sendToPeer: () => true, broadcast() {} };
   const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, modelOrigins: originTable(f.model),
     originFetch: origin.fetch, peerGraceMs: 20 });
   hosts.push(host); return { host, directory };

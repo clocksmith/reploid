@@ -29,7 +29,7 @@ export function createMeshPeerIdentity({ transport, getIdentity, roomId, timeout
     if (closed || signing.size >= maxPending + policy.maxBackgroundProofs) return;
     const channel = binding(peerId), challenge = structuredClone(input);
     if (!channel || !challenge || challenge.roomId !== roomId || challenge.requester !== peerId
-      || challenge.provider !== transport._getPeerId() || typeof challenge.nonce !== 'string'
+      || challenge.provider !== transport.getPeerId() || typeof challenge.nonce !== 'string'
       || !/^[a-f0-9-]{36}$/.test(challenge.nonce)
       || challenge.local !== channel.remote || challenge.remote !== channel.local) return;
     // Discovery and generation can verify the same connection concurrently.
@@ -70,7 +70,7 @@ export function createMeshPeerIdentity({ transport, getIdentity, roomId, timeout
   const verify = async (owner, peerId, signal) => {
     const channel = binding(peerId);
     if (!channel) return null;
-    const challenge = { roomId, nonce: crypto.randomUUID(), requester: transport._getPeerId(), provider: peerId, ...channel };
+    const challenge = { roomId, nonce: crypto.randomUUID(), requester: transport.getPeerId(), provider: peerId, ...channel };
     const attemptId = attempt(peerId);
     const participantId = await owner.start({ requestId: challenge.nonce, providerPeerId: peerId, signal, channel, challenge, attemptId },
       () => transport.sendToPeer(peerId, challengeType, challenge));

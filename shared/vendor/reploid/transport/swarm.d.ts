@@ -11,6 +11,8 @@ export interface SwarmTransport {
   init(): Promise<boolean>; disconnect(): void; sendToPeer(peerId: string, type: string, payload: unknown): boolean;
   broadcast(type: string, payload: unknown): number; onMessage(type: string, handler: (peerId: string, payload: Record<string, unknown>, envelope?: object) => void): void;
   getConnectionState(): string; getConnectedPeers(): object[]; getStats(): Record<string, unknown>; getClock(): number; tick(): number;
+  getPeerId(): string | null;
+  /** Compatibility alias; use getPeerId for new consumers. */
   _getPeerId(): string | null; _getSessionId(): string | null;
   getPeerBinding?(peerId: string): { local: string; remote: string } | null;
   onDataChannel(label: SwarmDataChannelLabel, handler: (peerId: string, channel: RTCDataChannel) => void): () => void;

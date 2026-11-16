@@ -37,7 +37,7 @@ async function fixture({ providers = 2, blocked = () => [] } = {}) {
       identity: { ensure: async () => identity, sync: async () => {}, save: async () => {} },
       generate: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'answer from ' + i,
         completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 1, generatedTokenCount: 1, stopReason: 'eos-token' } }),
-      createTransport: () => ({ init: async () => true, disconnect() {}, _getPeerId: () => 'connection-' + i,
+      createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => 'connection-' + i,
         getPeerBinding: peer => ({ local: 'certificate-' + i, remote: 'certificate-' + String(peer).split('-')[1] }),
         onMessage: (type, fn) => handlers[i].set(type, fn),
         broadcast: (type, payload) => { for (let to = 0; to < count; to++) if (to !== i) send(i, to, type, payload); return true; },

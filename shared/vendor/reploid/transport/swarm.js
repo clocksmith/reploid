@@ -7,7 +7,7 @@ import { fingerprint } from './sdp-fingerprint.js';
 
 import { requireResolvedConfig } from '../config/index.js';
 import { bootstrapIntroductions } from './introduction-bootstrap.js';
-import { createPeerIntroductions, INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL } from './introductions.js';
+import { createPeerIntroductions } from './introductions.js';
 import { observeConnectionPath } from './connection-path.js';
 
 const AUXILIARY_CHANNELS = Object.freeze(['reploid-custody', 'reploid-partitions',
@@ -15,29 +15,10 @@ const AUXILIARY_CHANNELS = Object.freeze(['reploid-custody', 'reploid-partitions
 /** Labels this transport admits; consumers that open auxiliary channels must use one of these. */
 export const SWARM_AUXILIARY_CHANNELS = AUXILIARY_CHANNELS;
 
-const PROTOCOL_VERSION = 1;
+import { PROTOCOL_VERSION, RTC_MESSAGE_TYPES } from './message-types.js';
 
 // Valid message types
-const MESSAGE_TYPES = new Set([
-  INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL,
-  'sync-request', 'sync-response',
-  'goal-update', 'reflection-share',
-  'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
-  'reploid:peer-advertisement',
-  'reploid:identity-challenge', 'reploid:identity-proof',
-  'reploid:generation-request', 'reploid:generation-update',
-  'reploid:generation-result', 'reploid:generation-error',
-  'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',
-  'reploid:receipt',
-  'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel',
-  'reploid:tool-offer', 'reploid:tool-offer-ack',
-  'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',
-  'ping', 'pong',
-  'raft:request-vote', 'raft:request-vote-response',
-  'raft:append-entries', 'raft:append-entries-response',
-  'raft:client-request', 'raft:client-response',
-  'fl:hello', 'fl:round-start', 'fl:update', 'fl:round-commit', 'fl:round-failed'
-]);
+const MESSAGE_TYPES = new Set(RTC_MESSAGE_TYPES);
 
 const WebRTCSwarm = {
   metadata: {
@@ -1200,6 +1181,7 @@ const WebRTCSwarm = {
     });
 
     const introductionTransport = {
+      getPeerId: () => _peerId,
       _getPeerId: () => _peerId, getConnectedPeers, onMessage, sendToPeer,
       connectIntroducedPeer: connectToPeer,
       cancelIntroduction(remote, attemptId) {
@@ -1252,6 +1234,7 @@ const WebRTCSwarm = {
       getClock,
       tick, // Expose for SwarmSync to increment clock on local writes
       // Expose for SwarmSync
+      getPeerId: () => _peerId,
       _getPeerId: () => _peerId,
       _getSessionId: () => _sessionId
     };

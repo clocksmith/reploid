@@ -28,7 +28,7 @@ async function fixture(tamper = false, measured = true, onReceipt) {
       onReceipt: i ? onReceipt : undefined,
       generate: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'actual output',
         ...(measured ? { completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } } : {}) }),
-      createTransport: () => ({ init: async () => true, disconnect() {}, _getPeerId: () => 'connection-' + i,
+      createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => 'connection-' + i,
         getPeerBinding: () => ({ local: 'certificate-' + i, remote: 'certificate-' + (1 - i) }),
         onMessage: (type, fn) => handlers[i].set(type, fn), broadcast: (type, payload) => deliver(i, type, payload),
         sendToPeer: (_peer, type, payload) => deliver(i, type, payload) })

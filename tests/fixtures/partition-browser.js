@@ -32,7 +32,7 @@ export async function start(index, { model: suppliedModel, plan: suppliedPlan,
   const handlers = new Map(), auxiliary = new Map();
   const fingerprint = description => description.sdp.split(/\r?\n/).find(line => line.startsWith('a=fingerprint:sha-256 ')).slice(14);
   const transport = {
-    _getPeerId: () => identity.peerId,
+    getPeerId: () => identity.peerId,
     getPeerBinding: () => main.readyState === 'open' ? { local: fingerprint(pc.localDescription), remote: fingerprint(pc.remoteDescription) } : null,
     sendToPeer: (_peerId, type, payload) => { if (main.readyState !== 'open') return false; main.send(JSON.stringify({ type, payload })); return true; },
     onMessage: (type, handler) => handlers.set(type, handler),

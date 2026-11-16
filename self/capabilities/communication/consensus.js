@@ -46,7 +46,7 @@ const Consensus = {
     let _clusterSizeHint = 1;
     let _localPeerId = generateId('peer');
 
-    const getLocalPeerId = () => SwarmTransport?._getPeerId?.() || _localPeerId;
+    const getLocalPeerId = () => SwarmTransport?.getPeerId?.() || _localPeerId;
 
     const getPeerIds = () => {
       const peers = SwarmTransport?.getConnectedPeers?.() || [];

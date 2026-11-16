@@ -512,7 +512,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (!requestId || requestId.length > 512 || !messages.length) return;
     let adapters;
     try { adapters = adapterSet(payload.adapterIdentities || []); } catch { return; }
-    if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport._getPeerId?.()) return;
+    if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport.getPeerId?.()) return;
     const binding = currentModelBinding();
     if (!matchesRequestedModel(binding, payload) || !supportsAdapters(executionState(), adapters)) {
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Requested model is unavailable' });

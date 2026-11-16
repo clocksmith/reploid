@@ -244,8 +244,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         const mesh = partitionMesh = createPartitions({ canonical: canonical ? { runtime: canonical.runtime,
           coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch } : null, identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
           models: LOCAL_DOPPLER_MODELS.filter(model => model.source?.files.some(file => file.role === 'model-piece-index')),
-          ...bindWorkOrderedParticipation(ordered, consumerIdentity.peerId, ordered ? consumerTransport._getPeerId() : null, partitionPolicy),
-          peers: () => (consumerTransport?.getConnectedPeers() || []).map(peer => ({ ...peer, localTransportId: consumerTransport._getPeerId() })),
+          ...bindWorkOrderedParticipation(ordered, consumerIdentity.peerId, ordered ? consumerTransport.getPeerId() : null, partitionPolicy),
+          peers: () => (consumerTransport?.getConnectedPeers() || []).map(peer => ({ ...peer, localTransportId: consumerTransport.getPeerId() })),
           createNetwork: openPartitionNetwork,
           loadProgram: (model, index, controls) => {
             if (ordered && model.id !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');

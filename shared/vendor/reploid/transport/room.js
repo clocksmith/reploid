@@ -7,28 +7,11 @@
 import { requireResolvedConfig } from '../config/index.js';
 import { createWebRTCSwarm } from './swarm.js';
 
-const PROTOCOL_VERSION = 1;
+import { PROTOCOL_VERSION, ROOM_MESSAGE_TYPES } from './message-types.js';
 
 
 // Valid message types
-const MESSAGE_TYPES = new Set([
-  'sync-request', 'sync-response',
-  'goal-update', 'reflection-share',
-  'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
-  'reploid:peer-advertisement',
-  'reploid:identity-challenge', 'reploid:identity-proof',
-  'reploid:generation-request', 'reploid:generation-update',
-  'reploid:generation-result', 'reploid:generation-error',
-  'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',
-  'reploid:receipt',
-  'reploid:tool-offer', 'reploid:tool-offer-ack',
-  'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',
-  'ping', 'pong', 'peer-announce', 'peer-leave',
-  'raft:request-vote', 'raft:request-vote-response',
-  'raft:append-entries', 'raft:append-entries-response',
-  'raft:client-request', 'raft:client-response',
-  'fl:hello', 'fl:round-start', 'fl:update', 'fl:round-commit', 'fl:round-failed'
-]);
+const MESSAGE_TYPES = new Set(ROOM_MESSAGE_TYPES);
 
 const SwarmTransport = {
   metadata: {
@@ -285,7 +268,7 @@ const SwarmTransport = {
         if (!initialized && policy.webrtc.transportOrder.length !== 1) { transport.disconnect(); _webrtcSwarm = null; return false; }
 
         if (_webrtcSwarm) {
-          _peerId = _webrtcSwarm._getPeerId();
+          _peerId = _webrtcSwarm.getPeerId();
           _connectionState = _webrtcSwarm.getConnectionState();
           for (const [type, handler] of _messageHandlers.entries()) {
             _webrtcSwarm.onMessage(type, handler);
@@ -491,6 +474,7 @@ const SwarmTransport = {
       getStats,
       getClock,
       tick,
+      getPeerId: () => _peerId,
       _getPeerId: () => _peerId,
       _getSessionId: () => _roomId
     };

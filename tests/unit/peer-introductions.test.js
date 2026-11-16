@@ -30,7 +30,7 @@ it('authenticates encrypted endpoint negotiation and rejects mutation, wrong rec
 
 async function endpoint(id, options = {}) {
   const signer = await identity(), received = [], published = [], errors = [];
-  const transport = { _getPeerId: () => id, getConnectedPeers: () => [], onMessage() {},
+  const transport = { getPeerId: () => id, getConnectedPeers: () => [], onMessage() {},
     sendToPeer: (...args) => { published.push(args); return true; },
     connectIntroducedPeer: vi.fn(async (remote, exchange) => exchange.publish({ type: 'offer', offer: sdp })),
     acceptIntroductionSignal: vi.fn(async (...args) => { received.push(args); }), cancelIntroduction: vi.fn(), ...options.transport };

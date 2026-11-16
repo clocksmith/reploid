@@ -39,7 +39,7 @@ export async function transferPiece(identities) {
     const certifier = identities[i] && createCustodyKeyCertifier({ identity: identities[i], now: () => fx.nowMs });
     let reserved = 0;
     const transport = {
-      _getPeerId: () => keys[i].peerId,
+      getPeerId: () => keys[i].peerId,
       getConnectedPeers: () => [{ id: `transport-${1 - i}` }],
       onMessage: (type, handler) => handlers[i].set(type, handler),
       sendToPeer: (peer, type, payload) => { queueMicrotask(() => handlers[1 - i].get(type)?.(keys[i].peerId, structuredClone(payload))); return true; },

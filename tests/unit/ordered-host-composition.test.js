@@ -28,7 +28,7 @@ const orderedConfig = stage => ({stage, maxStages:7,maxStageOffersPerPeer:4,maxR
 const stage = () => ({modelId:'ordered',index:1,residentId:'resident',executionId:'execution'});
 async function setup() {
   ports.identity = await createSigningIdentity({algorithm:'Ed25519'});
-  ports.transport = { disconnect:vi.fn(), onMessage() {}, offMessage() {}, sendToPeer() {}, _getPeerId: () => 'actual-rtc', getConnectedPeers: () => [] };
+  ports.transport = { disconnect:vi.fn(), onMessage() {}, offMessage() {}, sendToPeer() {}, getPeerId: () => 'actual-rtc', getConnectedPeers: () => [] };
   ports.automatic = { getModels: () => [], getState: () => ({phase:'idle'}), close:vi.fn(async()=>{}), stop:vi.fn(async()=>{}) };
   ports.options = null; ports.networkOptions = null; ports.networkOwner = {close:vi.fn(async()=>{})};
 }

@@ -57,7 +57,7 @@ const SwarmSync = {
         id,
         value,
         clock: SwarmTransport.tick(), // Increment clock on local write
-        peerId: SwarmTransport._getPeerId(),
+        peerId: SwarmTransport.getPeerId(),
         updatedAt: Date.now(),
         sharedFrom: null
       };

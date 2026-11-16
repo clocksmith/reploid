@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import FederatedLearning from '../../self/experimental/intelligence/federated-learning.js';
 
 const fixture = () => {
-  const transport = { _getPeerId: () => 'local', getConnectedPeers: () => [],
+  const transport = { getPeerId: () => 'local', getConnectedPeers: () => [],
     broadcast: vi.fn(), onMessage: vi.fn() };
   const instance = FederatedLearning.factory({ SwarmTransport: transport,
     Utils: { logger: { warn: vi.fn() }, generateId: () => 'round' } });

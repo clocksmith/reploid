@@ -16,7 +16,7 @@ export async function createPeerIntroductions({ transport, identity, roomId, aut
     || Number.isSafeInteger(policy[key]) && policy[key] > 0), 'Invalid introduction policy');
   assert(typeof authorize === 'function', 'Introduction authorization is required');
   identity = structuredClone(identity);
-  const peerId = transport._getPeerId();
+  const peerId = transport.getPeerId();
   const contacts = new Map(), attempts = new Map(), seen = new Map();
   let closed = false, contact = await createContact({ identity, peerId, roomId, sequence: now(), policy, createAdmission, now: now() });
   let inFlight = 0, windowStart = now(), windowCount = 0;

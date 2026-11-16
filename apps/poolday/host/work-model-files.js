@@ -263,7 +263,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       const transport = getTransport(); assert(transport?.onDataChannel, 'WebRTC custody transport unavailable');
       const pair = await createSigningKeyPair();
       checkpoints = await openPeerPackFileCheckpoints({ maxBytes: policy.maxCheckpointBytes });
-      const identity = { peerId: transport._getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
+      const identity = { peerId: transport.getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
       const participant = getIdentity(), certifier = participant ? createCustodyKeyCertifier({ identity: participant }) : null;
       custodyCertificate = async () => certifier ? certifier.certify({ custodyPeerId: identity.peerId, custodyPublicKey: identity.publicKey }) : null;
       lifetime.signal.throwIfAborted();

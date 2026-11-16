@@ -117,7 +117,7 @@ it.skipIf(!process.env.DOPPLER_SIGNED_READER_PACKAGE)('uses actual signed-reader
   cache.delete('sha256-' + hash(weight.slice(0, 2)));
   const acquire = vi.fn(async () => weight.slice(0, 2));
   ports.exchange.mockReturnValue({ announce() {}, has: () => true, acquire, getState: () => ({}), close: async () => {} });
-  files = createWorkModelFiles({ getTransport: () => ({ onDataChannel() {}, _getPeerId: () => 'synthetic-peer' }),
+  files = createWorkModelFiles({ getTransport: () => ({ onDataChannel() {}, getPeerId: () => 'synthetic-peer' }),
     fetchImpl: vi.fn(() => { throw Error('Origin must not be used'); }) });
   await files.attach();
   const source = await files.preparePartitionSource(model, {});
@@ -150,7 +150,7 @@ it('offers only the bounded verified subset when cached pieces exceed the invent
   cache.set('sha256-' + hash(weight.slice(2)), weight.slice(2));
   const offer = vi.fn();
   ports.exchange.mockReturnValue({ announce() {}, has: () => false, offer, stopSupply() {}, getState: () => ({}), close: async () => {} });
-  files = createWorkModelFiles({ getTransport: () => ({ onDataChannel() {}, _getPeerId: () => 'synthetic-peer' }),
+  files = createWorkModelFiles({ getTransport: () => ({ onDataChannel() {}, getPeerId: () => 'synthetic-peer' }),
     fetchImpl: vi.fn(() => { throw Error('Cached-only sharing cannot download'); }) });
   try {
     await files.share(model, true, { mode: 'cached-only' });

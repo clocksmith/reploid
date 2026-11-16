@@ -382,7 +382,7 @@ async function files({ supplier }) {
     const directory = await folder(), cacheDirectory = await folder();
     await fs.writeFile(path.join(directory, 'manifest.json'), manifest); await fs.writeFile(path.join(directory, 'pieces.json'), index);
     if (i === 1) await fs.writeFile(path.join(directory, 'weights.bin'), whole);
-    const transport = { _getPeerId: () => String(i), getConnectedPeers: () => stores[1 - i] ? [{ id: String(1 - i) }] : [],
+    const transport = { getPeerId: () => String(i), getConnectedPeers: () => stores[1 - i] ? [{ id: String(1 - i) }] : [],
       onMessage: (type, fn) => stores[i].set(type, fn), onDataChannel: (_, fn) => { callbacks[i] = fn; return () => {}; },
       sendToPeer(peer, type, payload) { const message = structuredClone(payload); writes.push({ from: i, type, message }); network.intercept({ from: i, type, message });
         queueMicrotask(() => stores[Number(peer)]?.get(type)?.(String(i), message)); return true; },

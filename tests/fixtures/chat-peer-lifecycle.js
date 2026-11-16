@@ -56,7 +56,7 @@ export async function createChatPeerLifecycle() {
           adapterIdentities: [...endpoint.state.adapterIdentities], content,
           completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } };
       },
-      createTransport: () => ({ init: async () => true, disconnect() {}, _getPeerId: () => endpoint.id,
+      createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => endpoint.id,
         getPeerBinding: peer => ({ local: 'certificate-' + i, remote: 'certificate-' + endpoints.findIndex(item => item.id === peer) }),
         onMessage: (type, fn) => endpoint.handlers.set(type, fn),
         broadcast: (type, payload) => endpoints.forEach((_, to) => { if (to !== i) deliver(i, to, type, payload); }),

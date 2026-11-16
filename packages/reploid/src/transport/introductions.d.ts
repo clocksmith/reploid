@@ -24,7 +24,7 @@ export interface PeerIntroductions {
 }
 export interface IntroductionExchange { attemptId: string; isActive(): boolean; publish(message: Record<string, unknown>): Promise<void> }
 export interface IntroductionTransport {
-  _getPeerId(): string; getConnectedPeers(): { id: string }[];
+  getPeerId(): string; getConnectedPeers(): { id: string }[];
   onMessage(type: string, listener: (via: string, value: unknown) => void): void;
   sendToPeer(peerId: string, type: string, payload: unknown): boolean;
   connectIntroducedPeer(peerId: string, exchange: IntroductionExchange): Promise<void>;

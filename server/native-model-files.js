@@ -95,7 +95,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const supplyBudget = { getState: () => budget?.getState() || null,
     reserve: bytes => { if (!budget) throw budgetError; return budget.reserve(bytes); } };
   const pair = await createSigningKeyPair(), lifetime = new AbortController(), sources = new Set();
-  const custodyKey = { peerId: transport._getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
+  const custodyKey = { peerId: transport.getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
   const custodyCertificate = async () => certifyCustodyKey
     ? certifyCustodyKey({ custodyPeerId: custodyKey.peerId, custodyPublicKey: custodyKey.publicKey }) : null;
   const receipts = [], retained = new Map(), operations = new Set(), offeredFiles = new Map(), localPieces = new Map();

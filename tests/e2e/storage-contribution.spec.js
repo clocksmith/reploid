@@ -25,7 +25,7 @@ async function open(page, { fail = false, ignoreRange = false, hold = false, cor
   await page.goto('/config/chat-files.json');
   await page.evaluate(async ({ payloads, fail, ignoreRange, hold, corrupt }) => {
     window.requests = []; window.offers = []; window.handlers = new Map();
-    const transport = { _getPeerId: () => 'storage-fixture', onDataChannel: () => () => {},
+    const transport = { getPeerId: () => 'storage-fixture', onDataChannel: () => () => {},
       getConnectedPeers: () => [{ id: 'requester' }], onMessage: (type, fn) => window.handlers.set(type, fn),
       broadcast: (type, payload) => { if (type === 'reploid:custody-offer') window.offers.push(payload.artifacts); },
       sendToPeer: () => true };
@@ -228,7 +228,7 @@ test('actual pinned model origin supplies one bounded verified piece without com
   const metadata=model.source.files.filter(f=>['model-manifest','model-piece-index'].includes(f.role));
   const allowance=metadata.reduce((n,f)=>n+f.sizeBytes,0)+4194304;
   const requests=[], offers=[];
-  const transport={_getPeerId:()=> 'storage-origin-check',onDataChannel:()=>()=>{},getConnectedPeers:()=>[],onMessage:()=>{},
+  const transport={getPeerId:()=> 'storage-origin-check',onDataChannel:()=>()=>{},getConnectedPeers:()=>[],onMessage:()=>{},
    broadcast:(type,value)=>{if(type==='reploid:custody-offer')offers.push(value.artifacts);},sendToPeer:()=>true};
   let files;
   files=createWorkModelFiles({getTransport:()=>transport,fetchImpl:async(url,controls)=>{

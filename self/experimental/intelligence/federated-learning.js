@@ -35,7 +35,7 @@ const FederatedLearning = {
     let _rounds = new Map();
     let _localUpdateProvider = null;
 
-    const getLocalPeerId = () => SwarmTransport?._getPeerId?.() || 'local';
+    const getLocalPeerId = () => SwarmTransport?.getPeerId?.() || 'local';
 
     const isTargetedAtUs = (envelope) => {
       if (!envelope || !envelope.targetPeer) return true;

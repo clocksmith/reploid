@@ -200,9 +200,9 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }
-    if (!wholeMode) partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport._getPeerId() : null, policy),
+    if (!wholeMode) partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport.getPeerId() : null, policy),
       canonical: epochs ? { runtime: canonicalRuntime, participantEpoch: epochs.participantEpoch, coordinatorEpoch: epochs.coordinatorEpoch } : null,
-      peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
+      peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport.getPeerId() })),
       createNetwork(options) {
         const network = createPartitionNetwork({ ...options, transport,
           verifyPeer: async (peerId, signal) => {

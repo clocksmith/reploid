@@ -1163,8 +1163,8 @@
     },
     {
       "path": "mesh/partitions/partition-link.js",
-      "bytes": 6134,
-      "sha256": "4e0c6f5998d60c0bfd5c33ff407e0edf71050a7359c8552b0ead52ad6a39702b"
+      "bytes": 6133,
+      "sha256": "a713a4898eafbc449f9f49ca0cc30af3da6e4d6d2ddd14acc63ddffc35585011"
     },
     {
       "path": "mesh/partitions/partition-network.d.ts",
@@ -1388,13 +1388,13 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 53911,
-      "sha256": "0421f8c1fd22b21226154daf9218f2b54a2e431bc4e1363ce8268cf08958136f"
+      "bytes": 53910,
+      "sha256": "6700c1fd8c103655d8e1d8a486fed43ed78261cb06193c6b9b6b19f74fdad244"
     },
     {
       "path": "mesh/peer-identity.js",
-      "bytes": 5788,
-      "sha256": "9edfe930d23eb38076075d833119c41c11f7dcb392825aec4ce2022d16fbc5d2"
+      "bytes": 5786,
+      "sha256": "1de6bd715d6347fb276e2f9100885d4b7628101db7ee1ba6afd0e1bd8e4ec2d6"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",
@@ -1663,13 +1663,18 @@
     },
     {
       "path": "transport/introductions.d.ts",
-      "bytes": 3118,
-      "sha256": "31ad3c554fc44717c5fb0e4abf613f56587ac756ed43657b706cfa4d711d6523"
+      "bytes": 3117,
+      "sha256": "dad5893c7e81eee4a928c1c1d6640e898c76fbed9af679a4d7c98b9cbb0f4fe0"
     },
     {
       "path": "transport/introductions.js",
-      "bytes": 12069,
-      "sha256": "9b36fc770991d0c1ab121e41b3dc8a7472387ed942851d5a457810ebff007c40"
+      "bytes": 12068,
+      "sha256": "835f114ab440468aba023b95c1aa84025f5dbfc646db7219931927f624d118c6"
+    },
+    {
+      "path": "transport/message-types.js",
+      "bytes": 1604,
+      "sha256": "a591020c97eac9dda9db313760c9017abdfcbd07c453432f375ae727093eb03c"
     },
     {
       "path": "transport/partition-data-channel.d.ts",
@@ -1703,8 +1708,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 16131,
-      "sha256": "a01ef06f4a0a5b90f70fb58ff9a76fa9f569cf806af62ff453a7e5c37bbc4940"
+      "bytes": 15330,
+      "sha256": "39098e6404c9df753a549b13cec127d6f108a72465899e16ffbad06b06b23155"
     },
     {
       "path": "transport/sdp-fingerprint.js",
@@ -1723,13 +1728,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 2765,
-      "sha256": "647f81bb931875818b60255db01f50eeb519bac77d29e877c415a1d87ffaa31a"
+      "bytes": 2858,
+      "sha256": "296550aa9270b1382c2e2f0ab27e6400ac23585f2d37835ab246551d5f579a8d"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 50066,
-      "sha256": "71ca8f44bf37547295a84d8467d475257232c05cc355948be0bf6c7aea10ba35"
+      "bytes": 49147,
+      "sha256": "9b1a330ad7419b68d29a5427df4bf6c1d9683ecb24964674f8a09545554befda"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

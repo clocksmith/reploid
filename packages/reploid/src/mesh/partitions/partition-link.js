@@ -36,7 +36,7 @@ export function createPartitionLink({ identity, roomId, kind, initiator, config,
     },
   });
   const peerIdentity = createMeshPeerIdentity({ transport: {
-    _getPeerId: () => identity.peerId,
+    getPeerId: () => identity.peerId,
     getPeerBinding: () => {
       const pc = transport.getPeerConnection();
       return transport.getState() === 'connected' ? { local: fingerprint(pc.localDescription), remote: fingerprint(pc.remoteDescription) } : null;

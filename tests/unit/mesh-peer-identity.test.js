@@ -8,7 +8,7 @@ async function fixture() {
   let hold = false;
   const bindings = [{ local: 'certificate-a', remote: 'certificate-b' }, { local: 'certificate-b', remote: 'certificate-a' }];
   const transports = [0, 1].map(i => ({
-    getPeerBinding: () => structuredClone(bindings[i]), _getPeerId: () => 'connection-' + i,
+    getPeerBinding: () => structuredClone(bindings[i]), getPeerId: () => 'connection-' + i,
     onMessage: (type, fn) => handlers[i].set(type, fn),
     sendToPeer(peerId, type, payload) {
       messages.push({ i, peerId, type, payload });
