@@ -183,6 +183,65 @@ const hasDynamicImport = (syntax) => {
   return false;
 };
 
+// Inspect uses of the prototype mutator, rather than rejecting the same text
+// inside a defensive key blacklist or a comment. This never executes a candidate.
+const hasPrototypeAccess = (syntax) => {
+  const constants = new Map(), initializers = [];
+  const constantText = node => {
+    if (node?.type === 'Literal' && typeof node.value === 'string') return node.value;
+    if (node?.type === 'Identifier') return constants.get(node.name) ?? null;
+    if (node?.type === 'TemplateLiteral' && !node.expressions.length) return node.quasis[0].value.cooked;
+    if (node?.type === 'BinaryExpression' && node.operator === '+') {
+      const left = constantText(node.left), right = constantText(node.right);
+      return left === null || right === null ? null : left + right;
+    }
+    return null;
+  };
+  const collect = [syntax];
+  while (collect.length) {
+    const node = collect.pop();
+    if (node?.type === 'VariableDeclarator' && node.id?.type === 'Identifier') initializers.push([node.id.name, node.init]);
+    if (node?.type === 'AssignmentExpression' && node.left?.type === 'Identifier') initializers.push([node.left.name, node.right]);
+    for (const value of Object.values(node || {})) {
+      if (Array.isArray(value)) collect.push(...value.filter(item => item?.type));
+      else if (value?.type) collect.push(value);
+    }
+  }
+  // Conservatively retain a possible mutator alias, including forward aliases.
+  // This is a heuristic, not a claim to solve arbitrary runtime dataflow.
+  for (let pass = 0; pass < initializers.length; pass++) {
+    let changed = false;
+    for (const [name, init] of initializers) {
+      const value = constantText(init);
+      if (value !== null && constants.get(name) !== '__proto__' && constants.get(name) !== value) {
+        constants.set(name, value); changed = true;
+      }
+    }
+    if (!changed) break;
+  }
+  const pending = [syntax];
+  while (pending.length) {
+    const node = pending.pop();
+    if (node?.type === 'MemberExpression') {
+      const key = node.computed ? constantText(node.property) : node.property.name;
+      if (key === '__proto__') return true;
+    }
+    if (node?.type === 'Property') {
+      const key = node.computed ? constantText(node.key) : node.key.name ?? node.key.value;
+      if (key === '__proto__') return true;
+    }
+    if (node?.type === 'CallExpression' && node.callee?.type === 'MemberExpression') {
+      const method = node.callee.computed ? constantText(node.callee.property) : node.callee.property.name;
+      if (['set', 'defineProperty'].includes(method) && constantText(node.arguments[1]) === '__proto__') return true;
+    }
+    for (const value of Object.values(node || {})) {
+      if (Array.isArray(value)) pending.push(...value.filter(item => item?.type));
+      else if (value?.type) pending.push(value);
+    }
+  }
+  return false;
+};
+
 // ============================================================================
 // DANGEROUS PATTERNS (25+ categorized)
 // ============================================================================
@@ -863,7 +922,9 @@ self.onmessage = async (e) => {
         // B. DANGEROUS PATTERN DETECTION (regex-based)
         // ----------------------------------------------------------------
         for (const pattern of DANGEROUS_PATTERNS) {
-          if (pattern.id === 'dynamic_import' ? !hasDynamicImport(syntax) : !pattern.regex.test(code)) continue;
+          const matches = pattern.id === 'dynamic_import' ? hasDynamicImport(syntax)
+            : pattern.id === 'proto_access' ? hasPrototypeAccess(syntax) : pattern.regex.test(code);
+          if (!matches) continue;
 
           // Check if this pattern requires a capability that the path has
           if (pattern.requiresCap && caps[pattern.requiresCap]) continue;
