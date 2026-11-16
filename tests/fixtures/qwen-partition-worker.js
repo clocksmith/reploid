@@ -10,6 +10,7 @@ import { collectNativeSourceReceipts } from './native-source-receipts.js';
 import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 import { openDiagnosticModelSource } from './native-diagnostic-source.js';
 import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
+import { runNativeCompleteRequest } from './native-complete-request.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
 const mod = file => import(pathToFileURL(path.join(config.installedPackage, 'src', file)).href);
@@ -133,6 +134,12 @@ async function invoke(request) {
       generationDigest: runtime.hashPartitionGeneration(generation),
       provider: bootstrap.receipt, elapsedMs: performance.now() - start, memory: memory(),
       descriptors: [...residents].map(([index, resident]) => ({ index, descriptor: resident.getDescriptor() })) };
+  }
+  if (request.op === 'request') {
+    assert(whole, 'Whole model must be opened before a complete request');
+    const result = await runNativeCompleteRequest({ model: whole, prompt: request.prompt, promptIds: request.promptIds,
+      generation, timeoutMs: config.requestTimeoutMs });
+    return { ...result, memory: memory() };
   }
   if (request.op === 'whole') {
     assert(whole);

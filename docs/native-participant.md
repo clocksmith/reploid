@@ -696,3 +696,14 @@ owned and retryable, and close settles actual mapped-file I/O and worker reads.
 Gathering fails explicitly if the selected Doppler lacks file-identity support.
 These options do not modify participant CLI modes, custody, package pins or
 provider configuration. Metadata preflight establishes layout availability only.
+
+The offline worker's `request` operation takes `prompt` and exact `promptIds`
+after a whole model has opened. It uses the public `inspect.generate` path with
+`demo/always-on`, checks the actual prefilled IDs and sampled-token observations,
+and exports token timing rather than raw logit vectors. `requestTimeoutMs` is
+required in the worker config; the deadline covers reset and generation and
+prevents publication after cancellation. The model's next independent request
+starts with reset. A deadline does not promise immediate GPU termination.
+`generationWallMs`, reset-inclusive `requestWallMs`, first-token time and
+first-to-last observed token time have distinct scopes. Neither loader timings
+nor these diagnostics establish a performance win without matched full requests.
