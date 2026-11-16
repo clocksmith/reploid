@@ -6,7 +6,7 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { collectNativeSourceReceipts } from './native-source-receipts.js';
+import { collectNativeSourceReceipts, collectClosedNativeSourceReceipts } from './native-source-receipts.js';
 import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 import { openDiagnosticModelSource } from './native-diagnostic-source.js';
 import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
@@ -56,9 +56,11 @@ async function close() {
   residents.clear();
   await whole?.unload(); whole = null;
   await closeDiagnosticSources(sources);
+  const closedSourceReceipts = collectClosedNativeSourceReceipts(sources);
+  const sourceCleanup = 'settled';
   if (!getDevice?.()) {
     await releaseNodeWebGPU?.();
-    return { gpuOpened: false, sourceReceipts, receiptFailure };
+    return { gpuOpened: false, sourceReceipts, receiptFailure, closedSourceReceipts, sourceCleanup };
   }
   await getDevice().queue.onSubmittedWorkDone();
   const settled = memory();
@@ -66,7 +68,7 @@ async function close() {
   assert.equal(settled.pool.resources.retainedModel.bytes, 0);
   assert.equal(settled.pool.resources.deferredCleanup.bytes, 0);
   destroyBufferPool(); destroyDevice(); await releaseNodeWebGPU();
-  return { ...settled, sourceReceipts, receiptFailure };
+  return { ...settled, sourceReceipts, receiptFailure, closedSourceReceipts, sourceCleanup };
 }
 async function invoke(request) {
   if (request.op === 'identity') {

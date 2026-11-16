@@ -7,3 +7,9 @@ export const collectNativeSourceReceipts = sources => Promise.all(sources.map(as
     return { sourceIndex, receiptFailure: String(error) };
   }
 }));
+
+// Gather receipts require open workers and belong to the pre-close snapshot.
+// Generic counters remain readable after close; failures here must propagate.
+export const collectClosedNativeSourceReceipts = sources => sources.map((source, sourceIndex) => ({
+  sourceIndex, generic: source.getReceipt(),
+}));
