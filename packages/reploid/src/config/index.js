@@ -1,3 +1,5 @@
+import schema from './schema.json' with { type: 'json' };
+import { validateSchema } from './validate-schema.js';
 import defaults from './defaults.json' with { type: 'json' };
 import requestPolicy from './request-overrides.json' with { type: 'json' };
 import routing from '../rules/routing.rules.json' with { type: 'json' };
@@ -166,6 +168,7 @@ function validate(config) {
       throw new ConfigurationError('webrtc.signalingUrl', 'use a credential-free WebSocket URL and host credential ports');
     }
   }
+  validateSchema(config, schema, (path, message) => { throw new ConfigurationError(path, message); });
   return config;
 }
 
