@@ -1,3 +1,4 @@
+import { observeWithTimeout as withTimeout } from '../pool/observation-timeout.js';
 import { createDopplerRuntime } from '../pool/doppler-runtime.js';
 import { createProviderClient } from '../pool/provider-client.js';
 import { createPeerProviderNode } from '../pool/peer-room.js';
@@ -16,10 +17,7 @@ import { readContributionResumeIntent, writeContributionResumeIntent, clearContr
 const POOL_ADAPTER_DISCOVERY_TIMEOUT_MS = 5000;
 const POOL_PROVIDER_ACTIVITY_HISTORY_LIMIT = 64;
 const errorString = error => String(error?.message || error?.error || error || 'Unknown error');
-const withTimeout = (promise, timeoutMs, message) => new Promise((resolve, reject) => {
-  const timer = setTimeout(() => reject(Error(message)), timeoutMs);
-  promise.then(resolve, reject).finally(() => clearTimeout(timer));
-});
+
 
 export const createProviderContributionSession = (ports) => {
   const { getProviderIdentityNamespace, refreshContributionStatusBar, updateProviderHealth,

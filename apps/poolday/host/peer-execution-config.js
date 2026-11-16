@@ -1,38 +1,22 @@
+import timing from '../config/peer-timing.json' with { type: 'json' };
 import { DETERMINISTIC_GENERATION_CONFIG } from '../pool/policy-router.js';
 import { getPeerRelayMode } from './product-context.js';
 
-export const getPeerDiscoveryWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_DISCOVERY_WINDOW_MS || 0);
+// Generic SDK budgets and product relay profiles are deliberately distinct. Resolve
+// a profile once at dispatch; neither URL selection nor longer waits grant authority.
+const timingValue = (key, globalKey) => {
+  const explicit = Number(window[globalKey] || 0);
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  if (getPeerRelayMode() === 'server') return 8000;
-  return 1200;
+  return timing.relayOverrides[getPeerRelayMode()]?.[key] ?? timing.generic[key];
 };
-
-export const getPeerReceiptWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_RECEIPT_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  return 60000;
-};
-
+export const getPeerDiscoveryWindowMs = () => timingValue('discoveryWindowMs', 'REPLOID_POOL_DISCOVERY_WINDOW_MS');
+export const getPeerReceiptWindowMs = () => timingValue('receiptWindowMs', 'REPLOID_POOL_RECEIPT_WINDOW_MS');
 export const getPeerQueueWindowMs = () => {
   const explicit = Number(window.REPLOID_POOL_QUEUE_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  return getPeerReceiptWindowMs();
+  return Number.isFinite(explicit) && explicit > 0 ? explicit : getPeerReceiptWindowMs();
 };
-
-export const getPeerSessionAcceptWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  if (getPeerRelayMode() === 'server') return 15000;
-  return 5000;
-};
-
-export const getPeerTransportConnectWindowMs = () => {
-  const explicit = Number(window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS || 0);
-  if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  if (getPeerRelayMode() === 'server') return 20000;
-  return 5000;
-};
+export const getPeerSessionAcceptWindowMs = () => timingValue('sessionAcceptWindowMs', 'REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS');
+export const getPeerTransportConnectWindowMs = () => timingValue('transportConnectWindowMs', 'REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS');
 
 export const getPeerGenerationConfig = () => {
   const override = window.REPLOID_POOL_GENERATION_CONFIG && typeof window.REPLOID_POOL_GENERATION_CONFIG === 'object'
@@ -51,8 +35,6 @@ export const getPeerGenerationConfig = () => {
       : DETERMINISTIC_GENERATION_CONFIG.maxOutputTokens
   };
 };
-
-
 
 /** Freeze one dispatch's settings before any asynchronous authorization or discovery. */
 export const getPeerExecutionConfig = () => Object.freeze({

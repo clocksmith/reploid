@@ -1,0 +1,26 @@
+{
+  "generic": {
+    "discoveryWindowMs": 3500,
+    "receiptWindowMs": 60000,
+    "queueWindowMs": 60000,
+    "sessionAcceptWindowMs": 5000,
+    "transportConnectWindowMs": 5000
+  },
+  "relayOverrides": {
+    "local": {
+      "discoveryWindowMs": 1200
+    },
+    "server": {
+      "discoveryWindowMs": 8000,
+      "sessionAcceptWindowMs": 15000,
+      "transportConnectWindowMs": 20000
+    }
+  },
+  "provider": {
+    "advertIntervalMs": 30000,
+    "sessionSettleMs": 5000,
+    "advertSettleMs": 250,
+    "adaptiveRingAdvertSettleMs": 2500,
+    "minimumExecutionMarginMs": 500
+  }
+}

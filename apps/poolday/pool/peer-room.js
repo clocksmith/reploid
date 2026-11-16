@@ -1,3 +1,5 @@
+import timing from '../config/peer-timing.json' with { type: 'json' };
+import { observeWithTimeout as withTimeout } from './observation-timeout.js';
 /**
  * @fileoverview Browser peer room for no-server Reploid job flow.
  */
@@ -101,18 +103,15 @@ export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
 // A server relay requires a requester poll, provider poll, provider write, and
 // requester poll. Keep the default above that round trip with room for network
 // scheduling; callers may choose a longer budget for higher-latency relays.
-const DEFAULT_DISCOVERY_WINDOW_MS = 3500;
-const DEFAULT_RECEIPT_WINDOW_MS = 60000;
-const DEFAULT_QUEUE_WINDOW_MS = 60000;
-const DEFAULT_PROVIDER_ADVERT_INTERVAL_MS = 30000;
-const DEFAULT_PROVIDER_SESSION_SETTLE_MS = 5000;
-const DEFAULT_PROVIDER_ADVERT_SETTLE_MS = 250;
-// A server relay needs requester poll -> provider poll -> provider publish ->
-// requester poll before every live advert is visible.  The normal short
-// settle window is appropriate for a one-provider job, but it silently
-// collapsed an adaptive ring to whichever provider responded first.
-const DEFAULT_ADAPTIVE_RING_ADVERT_SETTLE_MS = 2500;
-const MIN_DISCOVERY_EXECUTION_MARGIN_MS = 500;
+const {
+  discoveryWindowMs: DEFAULT_DISCOVERY_WINDOW_MS, receiptWindowMs: DEFAULT_RECEIPT_WINDOW_MS,
+  queueWindowMs: DEFAULT_QUEUE_WINDOW_MS, sessionAcceptWindowMs: DEFAULT_PROVIDER_SESSION_SETTLE_MS
+} = timing.generic;
+const {
+  advertIntervalMs: DEFAULT_PROVIDER_ADVERT_INTERVAL_MS, advertSettleMs: DEFAULT_PROVIDER_ADVERT_SETTLE_MS,
+  adaptiveRingAdvertSettleMs: DEFAULT_ADAPTIVE_RING_ADVERT_SETTLE_MS,
+  minimumExecutionMarginMs: MIN_DISCOVERY_EXECUTION_MARGIN_MS
+} = timing.provider;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -129,21 +128,6 @@ const positiveInteger = (value, fallback = 1) => {
   return Number.isInteger(number) && number > 0 ? number : fallback;
 };
 
-const withTimeout = (promise, timeoutMs, message) => new Promise((resolve, reject) => {
-  const timer = globalThis.setTimeout(() => {
-    reject(new Error(message));
-  }, Math.max(1, Number(timeoutMs || 1)));
-  Promise.resolve(promise).then(
-    (value) => {
-      globalThis.clearTimeout(timer);
-      resolve(value);
-    },
-    (error) => {
-      globalThis.clearTimeout(timer);
-      reject(error);
-    }
-  );
-});
 
 const connectPeerTransport = async ({ session, timeoutMs } = {}) => {
   try {
@@ -547,7 +531,7 @@ export async function runPeerJob({
   sessionAcceptWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   receiptWindowMs = DEFAULT_RECEIPT_WINDOW_MS,
   queueWindowMs = DEFAULT_QUEUE_WINDOW_MS,
-  transportConnectWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
+  transportConnectWindowMs = timing.generic.transportConnectWindowMs,
   promptDispatchConcurrency = null,
   knownProviderAdverts = [],
   requesterTransportFactory = createP2PRequesterTransport,
@@ -1214,7 +1198,7 @@ export function createPeerProviderNode({
       if (activeEntry && !activeEntry.settleTimer) {
         activeEntry.settleTimer = globalThis.setTimeout(() => {
           void removeActiveEntry(activeEntry, transport, signaling, 'receipt_sent');
-        }, DEFAULT_PROVIDER_SESSION_SETTLE_MS);
+        }, timing.provider.sessionSettleMs);
       }
     } catch (error) {
       releaseExecutionSlot(activeEntry?.sessionId);
