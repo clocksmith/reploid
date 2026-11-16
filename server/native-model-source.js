@@ -67,7 +67,8 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
   let nodeGather;
   if (gather !== null) {
     requireValue(Number.isSafeInteger(gather.maxPartBytes) && gather.maxPartBytes > 0
-      && Number.isSafeInteger(gather.memoryBudgetBytes) && gather.memoryBudgetBytes > 0,
+      && Number.isSafeInteger(gather.memoryBudgetBytes) && gather.memoryBudgetBytes > 0
+      && Number.isSafeInteger(gather.concurrency ?? 1) && (gather.concurrency ?? 1) > 0,
     'Local worker gather requires explicit part and memory bounds');
     const approvedFiles = {};
     for (const file of JSON.parse(new TextDecoder().decode(indexBytes)).files) {
@@ -79,11 +80,13 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
         'Gather file escapes its approved directory or is not regular');
       approvedFiles[file.path] = filename;
     }
-    nodeGather = { files: approvedFiles, maxPartBytes: gather.maxPartBytes, memoryBudgetBytes: gather.memoryBudgetBytes };
+    nodeGather = { files: approvedFiles, maxPartBytes: gather.maxPartBytes, memoryBudgetBytes: gather.memoryBudgetBytes,
+      ...(gather.concurrency === undefined ? {} : { concurrency: gather.concurrency }) };
   }
   const opened = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,
     signal, nodeGather, acquire: piece => read(piece.path, piece.offset, piece.size) });
-  if (nodeGather && (typeof opened.storage?.rangeLease?.read !== 'function' || typeof opened.getGatherReceipt !== 'function')) {
+  if (nodeGather && (typeof opened.storage?.rangeLease?.read !== 'function' || typeof opened.getGatherReceipt !== 'function'
+    || (opened.storage.rangeLease.concurrency ?? 1) !== (gather.concurrency ?? 1))) {
     await opened.storage?.close?.();
     throw new Error('Installed Doppler does not support the requested authenticated worker gather');
   }

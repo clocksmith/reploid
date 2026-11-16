@@ -555,8 +555,11 @@ availability still depend on the external search engine and source sites.
 ## Bounded local worker gathering diagnostic
 
 The offline `tests/fixtures/qwen-partition-worker.js` diagnostic accepts
-`workerGather: { maxPartBytes, memoryBudgetBytes }` only with a pinned `pieceIndex`
-and explicit partition indices. Whole-model mode and an absent piece index fail
+`workerGather: { maxPartBytes, memoryBudgetBytes, concurrency }` only with a pinned `pieceIndex`
+and explicit partition indices. Optional `concurrency` selects independently owned
+worker lanes; omission keeps one. The memory bound must cover all lanes, and the
+native host rejects an older reader that silently ignores a requested lane count.
+Whole-model mode and an absent piece index fail
 before GPU initialization. The installed Doppler must support `nodeGather`, the
 owned-range storage port and `getGatherReceipt`; older packages fail explicitly.
 This does not update the pinned deployment package automatically.

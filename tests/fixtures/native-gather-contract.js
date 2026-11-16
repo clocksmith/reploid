@@ -27,15 +27,21 @@ try {
     { role: 'model-piece-index', path: 'pieces.json', hashAlgorithm: 'sha256', hash: hash(index).slice(7) }] } };
   let supplied;
   const runtime = { async createVerifiedPieceStorage(options) { supplied = options;
-    return { storage: { rangeLease: { async read() {} }, async close() {} }, async getGatherReceipt() {} }; } };
-  const gather = { maxPartBytes: 4, memoryBudgetBytes: 12 };
+    return { storage: { rangeLease: { concurrency: options.nodeGather.concurrency ?? 1, async read() {} }, async close() {} }, async getGatherReceipt() {} }; } };
+  const gather = { maxPartBytes: 4, memoryBudgetBytes: 24, concurrency: 2 };
   await openNativeModelSource({ model, modelDirectory: root, runtime, gather });
   assert.deepEqual(supplied.nodeGather, { files: { 'weights.bin': path.join(await fs.realpath(root), 'weights.bin') }, ...gather });
   assert.equal(supplied.indexIdentity, hash(index));
+  await assert.rejects(openNativeModelSource({ model, modelDirectory: root, runtime,
+    gather: { ...gather, concurrency: 0 } }), /explicit part and memory bounds/);
   let closed = false;
   const oldRuntime = { async createVerifiedPieceStorage() { return { storage: { async close() { closed = true; } } }; } };
   await assert.rejects(openNativeModelSource({ model, modelDirectory: root, runtime: oldRuntime, gather }), /does not support/);
   assert(closed, 'Unsupported runtime is closed, never silently downgraded');
+  const serializedRuntime = { async createVerifiedPieceStorage() {
+    return { storage: { rangeLease: { async read() {} }, async close() {} }, async getGatherReceipt() {} };
+  } };
+  await assert.rejects(openNativeModelSource({ model, modelDirectory: root, runtime: serializedRuntime, gather }), /does not support/);
   await assert.rejects(openNativeModelSource({ model, gather, files: {} }), /cannot replace custody/);
   await assert.rejects(openNativeModelSource({ model, gather, resolveSource() {} }), /cannot replace custody/);
   for (const [pieceIndex, indices] of [[null, [0]], [{ path: 'pieces.json' }, null]]) {
@@ -51,8 +57,11 @@ try {
     const actualRuntime = await import(new URL('src/partitions.js', process.env.DOPPLER_SOURCE_URL));
     const source = await openNativeModelSource({ model, modelDirectory: root, runtime: actualRuntime, gather });
     try {
-      const lease = await source.storage.rangeLease.read(0, 0, 4, new AbortController().signal);
+      assert.equal(source.storage.rangeLease.concurrency, 2);
+      const [lease, second] = await Promise.all([source.storage.rangeLease.read(0, 0, 4, new AbortController().signal),
+        source.storage.rangeLease.read(0, 0, 4, new AbortController().signal)]);
       assert.deepEqual([...lease.bytes], [...weights]); lease.release();
+      assert.deepEqual([...second.bytes], [...weights]); second.release();
       const receipt = await source.getGatherReceipt();
       assert.equal(receipt.manifestIdentity, model.identity);
       assert.equal(receipt.verifiedBytes, 4);
