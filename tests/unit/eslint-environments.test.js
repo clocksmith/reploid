@@ -16,7 +16,7 @@ describe('execution environment lint boundaries', () => {
       { filePath: 'apps/poolday/host/new-module.js' });
     expect(result.messages.map(message => message.ruleId).sort()).toEqual(['no-nested-ternary', 'no-unused-vars']);
     const [old] = await linter.lintText('export function value() { const unused = 1; return 1; }', { filePath: 'self/ui/legacy-example.js' });
-    expect(old.errorCount).toBe(0);
+    expect(old.messages).toEqual([expect.objectContaining({ ruleId: 'no-unused-vars' })]);
   });
   it.each(['.tmp', '.claude/worktrees/review', '.deployment-checkouts/release'])(
     'excludes local scratch or checkout copies under %s', async directory => {
@@ -34,11 +34,13 @@ describe('execution environment lint boundaries', () => {
     expect(await errors(file, source)).toEqual([expect.objectContaining({ ruleId: 'no-undef', message: `'${forbidden}' is not defined.` })]);
   });
 
-  it('checks unused locals in cleaned modules without claiming legacy coverage', async () => {
-    expect(await errors('shared/ui/components/html.js', 'export function encode() { const unused = 1; return ""; }'))
-      .toEqual([expect.objectContaining({ ruleId: 'no-unused-vars' })]);
-    expect(await errors('self/ui/example.js', 'export function encode() { const unused = 1; return ""; }')).toEqual([]);
-  });
+  it.each(['shared/ui/components/html.js', 'self/ui/example.js', 'server/example.js',
+    'scripts/example.js', 'packages/reploid/src/agent/example.js', 'apps/poolday/host/example.js'])(
+    'checks unused locals throughout authored code: %s', async file => {
+      expect(await errors(file, 'export function encode() { const unused = 1; return ""; }'))
+        .toEqual([expect.objectContaining({ ruleId: 'no-unused-vars' })]);
+    }
+  );
 
   it('allows the explicit optional Node codec port without enabling Node ambient APIs', async () => {
     expect(await errors('packages/reploid/src/artifacts/identity.js', 'Buffer.from("test"); process.cwd();'))
