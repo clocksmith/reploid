@@ -668,13 +668,13 @@
     },
     {
       "path": "config/index.d.ts",
-      "bytes": 3582,
-      "sha256": "b73daa4d4152f46215cfc6a8ed0c2175a26673b357448d1e1de692161ef5a676"
+      "bytes": 3801,
+      "sha256": "e612e5d89135d931a0008aa1022f1214060823bd60cfd74f75e8da16b26ec693"
     },
     {
       "path": "config/index.js",
-      "bytes": 11735,
-      "sha256": "ddadde658a6e7f24e2522742e88c95d63cb4be95311d6af2b81f1a0672118a0f"
+      "bytes": 12031,
+      "sha256": "df25e483b4e7618082471f7e97d74a16f3d81961c636cc2d1118e2aabe53cf7a"
     },
     {
       "path": "config/profiles/local.json",

@@ -26,9 +26,9 @@ describe('browser library configuration import and credential boundaries', () =>
     expect(resolveConfig({ overrides: { webrtc: { signalingUrl: 'wss://example.invalid/room' } } })
       .value.webrtc.signalingUrl).toBe('wss://example.invalid/room');
   });
-  it.each([{}, { metadata: {} }])('rejects empty-object model overrides at the request boundary', contract => {
+  it.each([[{}, 'models.contract'], [{ metadata: {} }, 'models.contract.metadata']])('rejects empty-object model overrides at the request boundary', (contract, path) => {
     expect(() => resolveConfig({ request: { models: { contract } } }))
-      .toThrow('models.contract' + (Object.keys(contract).length ? '.metadata' : '') + ': request override is not allowlisted');
+      .toThrow(path + ': request override is not allowlisted');
   });
   it('preserves host-owned model metadata while applying an allowed request budget', () => {
     const contract = { modelId: 'exact-model', metadata: {} };
@@ -44,7 +44,8 @@ describe('browser library configuration import and credential boundaries', () =>
     expect(() => snapshotJson({ values: missing })).toThrow(ConfigurationError);
     expect(() => resolveConfig({ overrides: { tools: { allowed: missing } } }))
       .toThrow('array entries must be explicit JSON values');
-    expect(() => resolveConfig({ overrides: { webrtc: { transportOrder: ['webrtc', ...missing] } } }))
+    const order = ['webrtc']; order.length = 2;
+    expect(() => resolveConfig({ overrides: { webrtc: { transportOrder: order } } }))
       .toThrow(ConfigurationError);
     expect(snapshotJson({ values: [null, 'allowed'] })).toEqual({ values: [null, 'allowed'] });
   });

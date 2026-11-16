@@ -29,10 +29,14 @@ export interface Configuration {
 }
 export type DeepPartial<T> = T extends unknown[] ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 export type DeepReadonly<T> = T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> } : T;
+/** Per-request tuning cannot select models, peers, tool grants or host credentials. */
+export interface RequestOverrides {
+  agent?: Partial<Pick<AgentPolicy, 'maxCycles' | 'maxBatchTools' | 'timeoutMs' | 'maxContextChars'>>;
+}
 export interface ResolvedConfig { readonly value: DeepReadonly<Configuration>; readonly identity: string; readonly provenance: Readonly<Record<string, string>> }
 export interface Profile { schema: 'reploid.profile/v1'; id: string; config: DeepPartial<Configuration> }
 export class ConfigurationError extends TypeError { readonly path: string; constructor(path: string, message: string); }
-export function resolveConfig(input?: { chain?: DeepPartial<Configuration>[]; profile?: Profile | null; overrides?: DeepPartial<Configuration>; request?: DeepPartial<Configuration> }): ResolvedConfig;
+export function resolveConfig(input?: { chain?: DeepPartial<Configuration>[]; profile?: Profile | null; overrides?: DeepPartial<Configuration>; request?: RequestOverrides }): ResolvedConfig;
 export function requireResolvedConfig(config: ResolvedConfig): DeepReadonly<Configuration>;
 export function snapshotJson<T extends Json>(value: T, path?: string): T;
 export function freezeJson<T>(value: T): DeepReadonly<T>;

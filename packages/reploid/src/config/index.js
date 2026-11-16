@@ -19,7 +19,15 @@ export class ConfigurationError extends TypeError {
 export function snapshotJson(value, path = '$') {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
   if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (Array.isArray(value)) return value.map((entry, index) => snapshotJson(entry, `${path}[${index}]`));
+  if (Array.isArray(value)) {
+    const copy = new Array(value.length);
+    for (let index = 0; index < copy.length; index++) {
+      const field = `${path}[${index}]`;
+      if (!Object.hasOwn(value, index)) throw new ConfigurationError(field, 'array entries must be explicit JSON values');
+      copy[index] = snapshotJson(value[index], field);
+    }
+    return copy;
+  }
   if (value && Object.getPrototypeOf(value) === Object.prototype) {
     return Object.fromEntries(Object.keys(value).sort().map(key => {
       if (forbiddenKeys.has(key)) throw new ConfigurationError(path, 'unsafe object key');
@@ -54,7 +62,7 @@ function merge(target, patch, source, provenance, path = '') {
 function recordSources(value, sources, path = '') {
   for (const [key, item] of Object.entries(value)) {
     const field = path ? `${path}.${key}` : key;
-    if (item && typeof item === 'object' && !Array.isArray(item)) recordSources(item, sources, field);
+    if (item && typeof item === 'object' && !Array.isArray(item) && Object.keys(item).length) recordSources(item, sources, field);
     else sources[field] = 'schema-defaults';
   }
 }

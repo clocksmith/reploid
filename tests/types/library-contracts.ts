@@ -102,3 +102,10 @@ export function introducedJobChannel(transport: SwarmTransport, peerId: string):
   transport.onDataChannel('arbitrary-work', () => {});
   return transport.openDataChannel(peerId, auxiliaryLabels[4]);
 }
+
+// The public request type describes only runtime policy's per-request tuning paths.
+resolveConfig({ request: { agent: { maxCycles: 2, maxBatchTools: 1, timeoutMs: 1000, maxContextChars: 4096 } } });
+// @ts-expect-error model selection belongs to host configuration, even for empty metadata
+resolveConfig({ request: { models: { contract: {} } } });
+// @ts-expect-error retry policy is not a per-request grant
+resolveConfig({ request: { agent: { retryDelayMs: 1 } } });

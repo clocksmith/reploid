@@ -159,8 +159,8 @@
     },
     {
       "path": "vendor/reploid/config/index.js",
-      "bytes": 11735,
-      "sha256": "ddadde658a6e7f24e2522742e88c95d63cb4be95311d6af2b81f1a0672118a0f"
+      "bytes": 12031,
+      "sha256": "df25e483b4e7618082471f7e97d74a16f3d81961c636cc2d1118e2aabe53cf7a"
     },
     {
       "path": "vendor/reploid/config/request-overrides.json",
