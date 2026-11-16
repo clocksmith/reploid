@@ -13,7 +13,7 @@ import { updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutio
 import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
 import { renderBrandLink } from './shell-view.js';
-import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
+import { escapeHtml as escape, renderAttachments, createTextAttachmentReader } from '../components/attachments.js';
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
@@ -84,7 +84,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <div class="chat-composer-notices"><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>${renderControlHelp()}
         </div>
         <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
-        <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
+        <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to ${workProfile.files.maxInputs}, ${workProfile.files.maxFileBytes / 1024} KB each, ${workProfile.files.maxInputBytes / 1024} KB total.</p>
         </div>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
@@ -131,7 +131,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
   let changingModel = false, pickerTouched = false;
-  let files = [], fileRevision = 0, composerRevision = 0, reading = false;
+  let files = [], composerRevision = 0;
+  const attachmentReader = createTextAttachmentReader({
+    getFiles: () => files,
+    onLoaded: async loaded => { files.push(...loaded); composerRevision++; await saveDraft(); showFiles(); },
+    onPending: () => { if (!controller.signal.aborted) render(session.getState()); },
+    limits: { maxFiles: workProfile.files.maxInputs, maxFileBytes: workProfile.files.maxFileBytes,
+      maxTotalBytes: workProfile.files.maxInputBytes, extensions: ['txt', 'md', 'json', 'js', 'ts', 'html', 'css'] }
+  });
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
@@ -280,7 +287,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
-      drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; fileRevision++;
+      drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
     const thread = state.activeThread, catalogModels = state.models || [], runningIds = state.runningIds || [];
@@ -399,7 +406,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
-    find('[data-retry-connection]').hidden = busy || usable || location === 'local' || !state.network?.paused && !state.network?.error && !['failed', 'disconnected'].includes(networkState) && !(exhausted && (state.network?.connecting || ['connecting', 'retrying'].includes(networkState))); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
+    find('[data-retry-connection]').hidden = busy || usable || location === 'local' || !state.network?.paused && !state.network?.error && !['failed', 'disconnected'].includes(networkState) && !(exhausted && (state.network?.connecting || ['connecting', 'retrying'].includes(networkState))); find('[data-composer-send]').disabled = attachmentReader.pending || !usable || !!thread?.closed || !!state.storageError;
     // Once a model can answer, the waiting message sends as if Send were pressed again.
 
     find('[data-conversation-download]').hidden = !thread?.messages.length;
@@ -591,7 +598,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
-    if (!content || reading || submitting || (state.runningIds || []).includes(state.selectedId)) return;
+    if (!content || attachmentReader.pending || submitting || (state.runningIds || []).includes(state.selectedId)) return;
     {
       const chosen = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
       const where = state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : state.activeThread?.permissions?.executionLocation ?? executionLocation;
@@ -672,16 +679,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-composer-files]', 'focus', () => { find('[data-attachment-help]').hidden = false; });
   on('[data-composer-files]', 'change', event => {
     const chosen = [...event.target.files]; event.target.value = '';
-    const revision = fileRevision; reading = true; render(session.getState());
-    act(async () => {
-      try {
-        const loaded = await readTextAttachments(chosen, files, { maxFiles: workProfile.files.maxInputs,
-          maxFileBytes: workProfile.files.maxFileBytes, maxTotalBytes: workProfile.files.maxInputBytes,
-          extensions: ['txt', 'md', 'json', 'js', 'ts', 'html', 'css'] });
-        if (controller.signal.aborted || revision !== fileRevision) return;
-        files.push(...loaded); composerRevision++; await saveDraft(); showFiles();
-      } finally { reading = false; if (!controller.signal.aborted) render(session.getState()); }
-    });
+    observe(attachmentReader.enqueue(chosen));
   });
   on('[data-attachments-preview]', 'click', event => { const button = event.target.closest('[data-remove-file]'); if (button) { files.splice(Number(button.dataset.removeFile), 1); composerRevision++; void act(async () => { await saveDraft(); showFiles(); }); } });
   on('[data-conversation-download]', 'click', () => act(() => {
@@ -720,7 +718,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');
-    controller.abort(); detachHandover(); fileRevision++; unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
+    controller.abort(); detachHandover(); attachmentReader.close(); unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-open-model]').dataset.activity = 'idle';
   };
