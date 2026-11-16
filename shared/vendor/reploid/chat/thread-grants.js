@@ -1,5 +1,5 @@
-import { canonicalPartitionRoute, canonicalPartitionJson } from '../mesh/partitions/partition-contract.js';
-import { orderedPartitionDisclosure } from '../mesh/partitions/partition-grants.js';
+import { canonicalPartitionRoute, canonicalPartitionJson } from '../contracts/partition.js';
+import { orderedPartitionDisclosure } from '../contracts/partition-disclosure.js';
 
 /** Conversation disclosure only. The host supplies the verified recipient identity. */
 const hash = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);

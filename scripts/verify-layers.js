@@ -74,6 +74,9 @@ export function findLayerViolations({ repoRoot, sourcePath, source, edges = modu
     if (/packages\/reploid\/src\/agent\/(task-strategy|lab-strategy(?:-[a-z-]+)?)\.js$/.test(relative)
       && /\/(lifecycle|cancellation|tool-dispatch)\.js$/.test(target)) reason = 'strategies must use the execution engine';
     if (relative.startsWith('packages/reploid/src/transport/') && /\/(adapters|agent|chat|mesh|improvement)\//.test(target)) reason = 'transport cannot own execution or application policy';
+    if (relative.startsWith('packages/reploid/src/chat/') && target.startsWith('packages/reploid/src/mesh/')) {
+      reason = 'chat consumes shared wire contracts, not mesh execution implementations';
+    }
     const partitionRoot = 'packages/reploid/src/mesh/partitions/';
     const partitionDependencies = {
       'partition-discovery.js': [partitionRoot + 'partition-contract.js', 'packages/reploid/src/transport/partition-data-channel.js'],

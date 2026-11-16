@@ -3,15 +3,13 @@
  * Canonical records need Doppler's validators; ordinary ordered records need only
  * its metadataDigest. */
 import type { OrderedPublicationAttempt, OrderedGenerationBounds, OrderedCursor, OrderedPublication }
-  from '../mesh/partitions/partition-ordered-publication.js';
+  from '../contracts/partition-publication.js';
 export interface PublicationAttempt {
   attemptId: string; coordinatorEpoch: string; publisherEpoch: string; generationId: string;
   stages: readonly { stageId: string }[];
 }
-export interface PublicationReceipt {
-  schema: 'reploid.publication-receipt/v1'; conversationId: string; writerEpoch: string; index: number;
-  coordinatorEpoch: string; attemptId: string; sequence: number; publicationDigest: string; receiptDigest: string;
-}
+export { type PublicationReceipt } from '../contracts/partition-publication.js';
+import type { PublicationReceipt } from '../contracts/partition-publication.js';
 export interface TransactionalChatStore {
   schema: 'reploid.transactional-chat-store/v1';
   read(key: string): Promise<unknown>;

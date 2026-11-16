@@ -1,3 +1,5 @@
+import { orderedPartitionDisclosure } from '../../contracts/partition-disclosure.js';
+export { orderedPartitionDisclosure } from '../../contracts/partition-disclosure.js';
 import { bindExecutionRoute, sameExecutionBinding } from '../../chat/execution-policy.js';
 import { createPeerIdFromPublicJwk, importSigningKey, importVerificationKey, getIdentitySignAlgorithm,
   toBase64Url, fromBase64Url } from '../../artifacts/identity.js';
@@ -21,16 +23,6 @@ async function verifyPrivacyClaim(claim) {
     adapters: supplied.route.adapterIdentities.map(identity => ({ identity })) };
   const checked = await bindExecutionRoute({ model, privacy: supplied.policy }, supplied.route);
   assert(sameExecutionBinding(checked, supplied), 'Grant privacy policy binding mismatch');
-}
-
-/** Explicit disclosure closure for the ordinary stage-zero coordinator path. */
-export function orderedPartitionDisclosure(identity) {
-  const binding = canonicalRouteAttemptBinding(identity), stages = binding.route.stages;
-  const coordinator = stages[0].participantId, unique = values => [...new Set(values)];
-  return { kind: 'coordinator-mediated-activations-and-tokens',
-    activationPaths: stages.slice(1).map((stage, index) => unique([stages[index].participantId, coordinator, stage.participantId])),
-    tokenRecipients: stages.map(stage => stage.participantId),
-    outputRecipients: unique([stages.at(-1).participantId, coordinator, binding.requesterId]) };
 }
 
 /** The host calls issue only after disclosure approval. B separately consents by preparing its resident. */

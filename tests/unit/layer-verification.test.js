@@ -106,6 +106,7 @@ describe('layer verification', () => {
   });
 
   it.each([
+    ['packages/reploid/src/chat/probe.js', '../mesh/partitions/partition-contract.js'],
     ['server/entry.js', '../self/tools/Promote.js'],
     ['server/entry.js', '../apps/poolday/ui/pool-home/work.js'],
     ['packages/reploid/src/agent/turn.js', '../../../../self/config/models.js'],

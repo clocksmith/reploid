@@ -1,6 +1,6 @@
 /** Requester-owned requirements. Advertisements and signed receipts confer no privacy qualification. */
 import presets from './execution-policy.json' with { type: 'json' };
-import { canonicalPartitionJson } from '../mesh/partitions/partition-contract.js';
+import { canonicalPartitionJson } from '../contracts/partition.js';
 import { hashJson } from '../artifacts/signatures.js';
 
 const assert = (ok, message) => { if (!ok) throw Object.assign(new Error(`Execution privacy: ${message}`), { code: 'PRIVACY_POLICY_REJECTED' }); };

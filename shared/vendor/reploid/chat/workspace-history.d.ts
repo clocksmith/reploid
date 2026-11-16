@@ -2,7 +2,7 @@ import type { ChatThread } from './index.js';
 import type { TransactionalChatStore, createConversationPublication } from './workspace-publication.js';
 import type { CanonicalPublicationPort } from '../mesh/partitions/partition-canonical-execution.js';
 import type { EntryPublicationRecord } from '../mesh/partitions/partition-entry-publication.js';
-import type { OrderedPublicationPort } from '../mesh/partitions/partition-ordered-publication.js';
+import type { OrderedPublicationPort } from '../contracts/partition-publication.js';
 export interface PersistedWorkspace {
  schema:'reploid.chat-workspace/v1';meshId:string;participantId:string;selectedId?:string|null;threads:ChatThread[];
 }

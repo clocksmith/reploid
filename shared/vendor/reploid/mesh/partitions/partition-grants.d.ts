@@ -51,10 +51,8 @@ export function createPartitionGrantAuthority(options: { identity: SigningIdenti
   /** Issuance-time clock tolerance only; expiration never receives a grace period. Defaults to zero. */
   maxClockSkewMs?: number; now?: () => number }): PartitionGrantAuthority;
 
-export interface OrderedPartitionDisclosure {
-  kind: 'coordinator-mediated-activations-and-tokens'; activationPaths: string[][];
-  tokenRecipients: string[]; outputRecipients: string[];
-}
+export { orderedPartitionDisclosure, type OrderedPartitionDisclosure } from '../../contracts/partition-disclosure.js';
+import type { OrderedPartitionDisclosure } from '../../contracts/partition-disclosure.js';
 export interface OrderedPartitionGrant {
   claim: { privacyBinding?: import('../../chat/execution-policy.js').ExecutionBinding; schema: 'reploid.partition-grant/v4'; id: string; meshId: string; identity: RouteAttemptBinding;
     coordinatorId: string; disclosure: OrderedPartitionDisclosure; generationDigest: string;
@@ -66,4 +64,3 @@ export interface OrderedPartitionGrantRequest {
   fromStage?: number; toStage?: number; recipients?: string[]; step?: number;
   inputTokenCount?: number; activationBytes?: number; generationDigest?: string;
 }
-export function orderedPartitionDisclosure(identity: RouteAttemptBinding): OrderedPartitionDisclosure;

@@ -4,7 +4,7 @@
  * genuinely transactional store. */
 import defaults from './publication-policy.json' with { type: 'json' };
 import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA, ORDERED_PUBLICATION_SCHEMA, PUBLICATION_RECEIPT_SCHEMA, validateOrderedPublicationAttempt,
-  validateOrderedGenerationBounds, validateOrderedPublication } from '../mesh/partitions/partition-ordered-publication.js';
+  validateOrderedGenerationBounds, validateOrderedPublication } from '../contracts/partition-publication.js';
 
 const reject = message => { throw Object.assign(new Error(message), { code: 'PUBLICATION_REJECTED' }); };
 const assert = (ok, message) => { if (!ok) reject(message); };

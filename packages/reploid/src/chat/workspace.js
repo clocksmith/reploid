@@ -1,7 +1,7 @@
 /** Conversation state only. Execution, trust and transport are explicit host ports. */
-import { partitionActivity } from '../mesh/partitions/partition-summary.js';
-import { canonicalPartitionJson } from '../mesh/partitions/partition-contract.js';
-import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../mesh/partitions/partition-ordered-publication.js';
+import { partitionActivity } from '../contracts/partition-activity.js';
+import { canonicalPartitionJson } from '../contracts/partition.js';
+import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../contracts/partition-publication.js';
 import defaults from './policy.json' with { type: 'json' };
 import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt, bindAuxiliaryDisclosure } from './execution-policy.js';
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';

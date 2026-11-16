@@ -1,11 +1,11 @@
-import type { PartitionRoute } from '../mesh/partitions/partition-contract.js';
-import type { PartitionActivity } from '../mesh/partitions/partition-summary.js';
+import type { PartitionRoute } from '../contracts/partition.js';
+import type { PartitionActivity } from '../contracts/partition-activity.js';
 import type { PartitionGenerationRequest, PartitionTokenUsage } from '../mesh/partitions/partition-generation-request.js';
 export { openCanonicalWorkspaceHistory } from './workspace-history.js';
 import type { CanonicalWorkspaceHistory } from './workspace-history.js';
 import type { CanonicalPublicationPort } from '../mesh/partitions/partition-canonical-execution.js';
 import type { EntryPublicationRecord } from '../mesh/partitions/partition-entry-publication.js';
-import type { OrderedPublicationPort } from '../mesh/partitions/partition-ordered-publication.js';
+import type { OrderedPublicationPort } from '../contracts/partition-publication.js';
 export { createConversationPublication } from './workspace-publication.js';
 export { REMOTE_PERMISSION_SCHEMA, PERMISSION_KINDS, REMOTE_DISCLOSURES, remoteDisclosureKind, remotePermissionNeed, remotePermissionCovers,
   createRemotePermission, validateRemotePermission, validPermissionWording } from './remote-permission.js';
