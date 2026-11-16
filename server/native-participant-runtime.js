@@ -22,6 +22,7 @@ import path from 'node:path';
 import { NO_OWNER_POLICY } from './native-owner/controls.js';
 import { requireValue, events } from './native-host-utils.js';
 import { openNativePartition } from './native-partition.js';
+import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 
 /** `owner` is the optional owner gate from openNativeOwnerControls. It defers or reduces
  * new contribution, stage attempts and piece supply; it never cancels admitted work.
@@ -36,7 +37,10 @@ import { openNativePartition } from './native-partition.js';
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
-  generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel, resolvePartitionSource = null }) {
+  generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
+  resolvePartitionSource = null, sourceRuntime = null }) {
+  if (sourceRuntime !== null) assertNativeRuntimeSourceMode({ roomId, publicRoomId: bootstrap.publicRoomId,
+    executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
   requireValue(executionAdmission === null || ['whole', 'partition', 'partitionReceipt', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
@@ -214,7 +218,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         networks.add(network); return network;
       },
       loadProgram: async (selected, index, controls) => {
-        const program = await openNativePartition({ model: selected, index, modelDirectory, resolveSource: resolvePartitionSource,
+        const program = await openNativePartition({ model: selected, index, modelDirectory, resolveSource: resolvePartitionSource, sourceRuntime,
           releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
           nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
           onEvidence: executionAdmission ? bundle => executionAdmission.partitionReceipt(bundle) : null,

@@ -24,11 +24,12 @@ import { createNativeGpuHost } from './native-gpu-host.js';
 import { createNativeParticipant } from './native-participant-runtime.js';
 import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
+import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 
 export async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
-    'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile'].map(key => [key, { type: 'string' }]).concat([
+    'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile', 'runtime-source-config'].map(key => [key, { type: 'string' }]).concat([
       ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -46,6 +47,8 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--partition-index 0|1] (explicit eligible stage for a two-stage route)
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--model-config <absolute JSON path>] (pinned operator model and partition request; private rooms only)
+  [--runtime-source-config <absolute JSON path>] (hash-pinned local Doppler source and bounded gather;
+     private unsigned partition compute only; no file sharing, peer acquisition, adapters or earning)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
   [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
   [--earning-config <absolute JSON path>] (reploid.native-earning/v1: earning service, sign-in and contribution offers; needs --owner-policy)
@@ -76,22 +79,34 @@ is separate from backend selection; --help opens no provider.`);
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
   requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['readiness-log'],
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
+  // Before source-runtime, identity, provider or connection side effects; read once.
+  const roomToken = await resolveNativeRoomToken(values);
+  let sourceRuntime = null;
+  if (values['runtime-source-config'] !== undefined) {
+    assertNativeRuntimeSourceMode({ roomId: values.room, publicRoomId: bootstrap.publicRoomId,
+      executionMode: values['execution-mode'], canonical: values.canonical, earning: values['earning-config'], model: {} });
+    requireValue(values.contribute && !values['share-files'] && !values['cache-directory'] && !values.adapter,
+      'Runtime source config requires compute without file sharing, cache directory or adapter selection');
+    sourceRuntime = await openNativeRuntimeSource(values['runtime-source-config']);
+  }
   let configuredModels = models;
   if (values['model-config'] !== undefined) {
     requireValue(values.room && values.room !== bootstrap.publicRoomId,
       'Operator model configuration requires an explicit private room; public routes require reviewed catalog/release approval');
     configuredModels = [await readNativeModelConfiguration(values['model-config'], {
       modelId: values.model, modelDirectory: values['model-directory'], models,
+      ...(sourceRuntime ? { loadRuntime: async () => sourceRuntime.runtime } : {}),
     })];
   }
-  // Before identity, module or connection side effects; read once.
-  const roomToken = await resolveNativeRoomToken(values);
+  if (sourceRuntime) assertNativeRuntimeSourceMode({ roomId: values.room, publicRoomId: bootstrap.publicRoomId,
+    model: configuredModels.find(row => row.id === values.model) });
   let logNetwork = () => {}, observeReadiness = () => {};
   const owner = values['owner-policy'] === undefined ? null : await openNativeOwnerControls({ file: values['owner-policy'],
     // An owner decision changes admitted capacity without a partition notification.
     custody: custodyPolicy, onChange: () => { logNetwork(); observeReadiness(); },
     // Doppler's application GPU buffer accounting; null until compute opens a device.
-    readGpuBuffers: values.contribute ? async () => (await import('doppler-gpu/partitions')).inspectDeviceMemory() : null });
+    readGpuBuffers: values.contribute ? async () => (sourceRuntime === null
+      ? await import('doppler-gpu/partitions') : sourceRuntime.runtime).inspectDeviceMemory() : null });
   let ordered = null;
   if (values['ordered-config']) {
     requireValue(!values.canonical && path.isAbsolute(values['ordered-config']), 'Ordered config requires an absolute file path and ordinary execution');
@@ -109,6 +124,7 @@ is separate from backend selection; --help opens no provider.`);
     model = { ...model, adapters: [structuredClone(adapter)] };
   }
   if (values['partition-index'] !== undefined) model = { ...model, partitionContributionIndexes: [Number(values['partition-index'])] };
+  if (sourceRuntime) assertNativeRuntimeSourceMode({ roomId: values.room, publicRoomId: bootstrap.publicRoomId, model });
   const moduleSpecifier = value => {
     requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),
       'Native modules require an operator-selected absolute local path or supported package name');
@@ -120,8 +136,9 @@ is separate from backend selection; --help opens no provider.`);
   if (values.contribute && (process.platform === 'linux' || values['shader-cache-root'] !== undefined)) {
     const gpuModule = values['gpu-module'];
     const { key, identity: cacheIdentity } = await nativeShaderCacheIdentity({
-      runtime: { directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve('doppler-gpu/partitions')), 'doppler-gpu'),
-        archiveIntegrity: dopplerPin.integrity },
+      runtime: sourceRuntime ? { directory: sourceRuntime.directory, sourceIdentity: sourceRuntime.receipt }
+        : { directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve('doppler-gpu/partitions')), 'doppler-gpu'),
+          archiveIntegrity: dopplerPin.integrity },
       provider: { module: gpuModule, directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve(moduleSpecifier(gpuModule))),
         path.isAbsolute(gpuModule) ? null : gpuModule) },
       program: { model, policy, stage: Number.isSafeInteger(ordered?.stage?.index) ? ordered.stage.index : null, canonical: values.canonical } });
@@ -139,7 +156,8 @@ is separate from backend selection; --help opens no provider.`);
   const rtc = createNativeRtcAdapter(rtcModule.default || rtcModule);
   const Socket = wsModule.default || wsModule.WebSocket;
   class HostWebSocket extends Socket { constructor(url) { super(url, { origin: values.origin || 'http://localhost:8000' }); } }
-  const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']));
+  const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']),
+    sourceRuntime ? { loadTooling: async () => sourceRuntime.tooling } : {});
   // Optional readiness records (reploid.readiness-span/v1, reploid.stage-admission/v1) for the utilization CLI;
   // identities, times and slot counts only. The session starts here, before any stage is prepared.
   const readinessLog = values['readiness-log'] === undefined ? null : await openNativeReadinessLog({ file: values['readiness-log'],
@@ -163,7 +181,8 @@ is separate from backend selection; --help opens no provider.`);
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
-    cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
+    cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
+    sourceRuntime,
     executionMode: values['execution-mode'] || 'partition',
     onModelFill: (() => {
       // Piece lines at most every 5 s; every other fill event is logged.
@@ -201,6 +220,7 @@ is separate from backend selection; --help opens no provider.`);
   });
   const defaultCacheStatus = values.contribute ? { status: 'not-applicable', platform: process.platform } : null;
   console.log(JSON.stringify({ event: 'native-initialized', participantId: identity.peerId, modelId: model.id,
+    ...(sourceRuntime ? { runtimeSource: sourceRuntime.receipt, workerGather: sourceRuntime.gather } : {}),
     owner: owner ? owner.declaration() : NO_OWNER_POLICY,
     shaderCache: shaderCache ? shaderCache.status() : defaultCacheStatus }));
   try {

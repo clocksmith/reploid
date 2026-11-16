@@ -1,25 +1,8 @@
 // Offline diagnostics only. This is byte identity, not deployment qualification.
 import assert from 'node:assert/strict';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { createHash } from 'node:crypto';
-import { inventory, verifyInstalledPackage } from './installed-package-identity.js';
-
-/** Capture all checkout files except Git metadata and separately owned dependencies. */
-export async function inspectDiagnosticSource(directory) {
-  const files = await inventory(directory, { installed: true, source: true });
-  const manifest = JSON.parse(await fs.readFile(path.join(directory, 'package.json'), 'utf8'));
-  assert.equal(manifest.name, 'doppler-gpu', 'Expected Doppler source');
-  assert(files.some(file => file.path === 'src/partitions.js'), 'Missing source partition entry');
-  return {
-    schema: 'reploid.diagnostic-source-identity/v1',
-    treeSha256: createHash('sha256').update(JSON.stringify(files)).digest('hex'),
-    fileCount: files.length,
-    sourceBytes: files.reduce((sum, file) => sum + file.sizeBytes, 0),
-    package: { name: manifest.name, version: manifest.version },
-    exclusions: ['.git', 'node_modules'],
-  };
-}
+import { verifyInstalledPackage } from './installed-package-identity.js';
+import { inspectNativeRuntimeSource as inspectDiagnosticSource } from '../../server/native-runtime-source.js';
+export { inspectNativeRuntimeSource as inspectDiagnosticSource } from '../../server/native-runtime-source.js';
 
 export async function verifyDiagnosticRuntime(config) {
   if (config.sourceTree === undefined) return verifyInstalledPackage(config);

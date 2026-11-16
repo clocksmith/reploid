@@ -52,6 +52,19 @@ describe('native host boundary', () => {
     expect(() => createNativeGpuHost(load, { backend: 'fallback' })).toThrow('backend');
     expect(load).not.toHaveBeenCalled();
   });
+  it('settles the selected source runtime device and pool rather than the installed runtime', async () => {
+    const order = [];
+    const sourceDevice = { lost: Promise.resolve({ reason: 'destroyed' }),
+      queue: { onSubmittedWorkDone: async () => { order.push('source queue'); } },
+      destroy: () => order.push('source device') };
+    const loadTooling = vi.fn(async () => ({ getDevice: () => sourceDevice,
+      destroyBufferPool: device => { expect(device).toBe(sourceDevice); order.push('source pool'); } }));
+    const host = createNativeGpuHost(async () => ({ globals: {}, create: () => ({}) }), { loadTooling });
+    await host.open();
+    try { await host.close(); } finally { await host.close(); }
+    expect(loadTooling).toHaveBeenCalledOnce();
+    expect(order).toEqual(['source queue', 'source pool', 'source device']);
+  });
   it('does not substitute manifest opening for an explicitly requested signed Capsule', async () => {
     const nativeGpu = vi.fn(async () => {});
     const files = { preparePartitionSource: vi.fn() };

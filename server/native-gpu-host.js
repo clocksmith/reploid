@@ -3,14 +3,15 @@ import { requireValue } from './native-host-utils.js';
 /** The standalone host owns the Node provider and the only device in this
  * process. Final close follows resident settlement; stopping contribution alone
  * keeps the provider reusable. No private Doppler imports are needed. */
-export function createNativeGpuHost(loadProvider, { backend = process.platform === 'darwin' ? 'metal' : 'vulkan' } = {}) {
+export function createNativeGpuHost(loadProvider, { backend = process.platform === 'darwin' ? 'metal' : 'vulkan',
+  loadTooling = () => import('doppler-gpu/tooling') } = {}) {
   requireValue(['metal', 'vulkan'].includes(backend), 'Native GPU backend must be metal or vulkan');
   let opening = null, closing = null, restore = null, retirement = null, stopped = false;
   let ownedDevice = null, lost = null, queueSettled = false, queueRejected = false, lossResolved = false, poolDestroyed = false, deviceDestroyed = false;
   const retire = () => retirement ||= (async () => {
     await opening?.catch(() => {});
     if (!restore) return;
-    const { getDevice, destroyBufferPool } = await import('doppler-gpu/tooling');
+    const { getDevice, destroyBufferPool } = await loadTooling();
     ownedDevice ||= getDevice();
     if (!ownedDevice) return;
     // Capture this device's loss completion before destruction can clear the runtime handle.

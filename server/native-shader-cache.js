@@ -6,8 +6,8 @@
  * (artifacts/native-crash-20261014). This protocol never lets a process inherit what an unfinished
  * preparation wrote:
  *
- * - The cache is keyed by everything that determines the compiled pipelines: the installed Doppler runtime
- *   and its archive pin, the WebGPU provider, the Vulkan driver files, render devices and driver environment,
+ * - The cache is keyed by everything that determines the compiled pipelines: the selected Doppler runtime
+ *   and its archive pin or explicit source identity, the WebGPU provider, the Vulkan driver files, render devices and driver environment,
  *   and the model, Capsule, catalog entry, policy and stage.
  * - Without a sealed cache for its key, a process compiles into its own new staging directory.
  * - After the stage reports complete pipeline preparation, and once Mesa's cache writer threads are idle and
@@ -122,8 +122,12 @@ async function renderDevices(drmRoot) {
 /** The cache key: runtime, provider, driver and program identity. Any change selects a different sealed cache. */
 export async function nativeShaderCacheIdentity({ runtime, provider, program, env = process.env, home = os.homedir(),
   drmRoot = '/sys/class/drm' }) {
-  requireValue(typeof runtime?.directory === 'string' && typeof runtime.archiveIntegrity === 'string' && runtime.archiveIntegrity,
-    'Shader cache identity requires the installed Doppler runtime directory and its pinned archive integrity');
+  const sourceIdentity = runtime?.sourceIdentity;
+  requireValue(typeof runtime?.directory === 'string' && (sourceIdentity
+    ? sourceIdentity.schema === 'reploid.diagnostic-source-identity/v1' && /^[a-f0-9]{64}$/.test(sourceIdentity.treeSha256)
+      && runtime.archiveIntegrity === undefined
+    : typeof runtime.archiveIntegrity === 'string' && runtime.archiveIntegrity),
+  'Shader cache identity requires pinned archive integrity or explicit source identity, never both');
   requireValue(typeof provider?.directory === 'string' && typeof provider.module === 'string',
     'Shader cache identity requires the selected WebGPU provider module and its installed directory');
   const { model, policy, stage = null, canonical = false } = program || {};
@@ -135,8 +139,9 @@ export async function nativeShaderCacheIdentity({ runtime, provider, program, en
   const environment = Object.fromEntries(Object.keys(env).filter(name => DRIVER_ENVIRONMENT.test(name) && name !== MANAGED)
     .sort().map(name => [name, env[name]]));
   const identity = { schema: NATIVE_SHADER_CACHE_SCHEMA,
-    runtime: { name: runtimePackage.name, version: runtimePackage.version, archiveIntegrity: runtime.archiveIntegrity,
-      installedSha256: await digestTree(runtime.directory) },
+    runtime: { name: runtimePackage.name, version: runtimePackage.version,
+      ...(sourceIdentity ? { sourceIdentity, installedSha256: sourceIdentity.treeSha256 }
+        : { archiveIntegrity: runtime.archiveIntegrity, installedSha256: await digestTree(runtime.directory) }) },
     provider: { module: provider.module, name: providerPackage.name, version: providerPackage.version,
       installedSha256: await digestTree(provider.directory) },
     driver: { icds: await vulkanDrivers(env, home), devices: await renderDevices(drmRoot), environment },

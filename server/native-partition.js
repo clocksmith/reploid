@@ -14,13 +14,22 @@ import { openNativeModelSource } from './native-model-source.js';
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
-  gpuBufferBytes, evidenceSigner = null, onEvidence = null, shaderCache = null, resolveSource = null }) {
+  gpuBufferBytes, evidenceSigner = null, onEvidence = null, shaderCache = null, resolveSource = null, sourceRuntime = null }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
     'Signed native resident requires release policy, checkpoint directory and pinned artifact source');
   const configured = { ...selected, generation: resolvePartitionGeneration(selected) };
-  const runtime = await import('doppler-gpu/partitions');
+  if (sourceRuntime !== null) {
+    requireValue(selected.capsule === undefined && !files && resolveSource === null && !canonical,
+      'Explicit source runtime cannot replace signed, canonical or custody-backed partition loading');
+    requireValue(sourceRuntime.runtime && sourceRuntime.gather && typeof sourceRuntime.assertCurrent === 'function',
+      'Explicit source runtime requires its selected runtime, gather policy and identity recheck');
+    signal.throwIfAborted();
+    await sourceRuntime.assertCurrent();
+    signal.throwIfAborted();
+  }
+  const runtime = sourceRuntime === null ? await import('doppler-gpu/partitions') : sourceRuntime.runtime;
   const orderedOptions = workOrderedResidentOptions(runtime, stageBinding);
   if (canonical) {
     requireValue(typeof runtime.canonicalGenerationIdentity === 'function' && selected.canonicalGeneration
@@ -30,7 +39,8 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   }
   await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes ?? selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes });
-  const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files, resolveSource });
+  const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files, resolveSource,
+    gather: sourceRuntime?.gather ?? null });
   let resident, release = null, capsuleVerification = null, commitAuthority = null;
   const ownerId = canonical ? randomUUID().replaceAll('-', '') : null;
   let ownershipRecorded = false;
@@ -100,7 +110,9 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     };
     return { runtime, model: configured, plan, planId, resident: canonical ? Object.freeze(Object.fromEntries(
       Object.entries(resident).map(([name, value]) => [name, bindCanonicalMethod(name, value)]))) : resident,
+      getGatherReceipt: source.getGatherReceipt ?? null,
       getReceipt: () => ({ ...(selected.capsule === undefined ? source.getReceipt() : { sourceAcquisition: source.getReceipt() }),
+        ...(sourceRuntime ? { runtimeSource: sourceRuntime.receipt, workerGather: sourceRuntime.gather } : {}),
         host: 'node', openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule',
         capsuleVerification, memory: runtime.inspectDeviceMemory() }) };
   } catch (error) {

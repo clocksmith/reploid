@@ -136,7 +136,7 @@ describe('installed package bytes before diagnostic model opening', () => {
       expect((await rpc({ op: 'identity' })).value.archiveSha256).toBe(packageArchive.sha256);
       await fs.appendFile(path.join(f.installedPackage, 'src/partitions.js'), '// mutation');
       expect((await rpc({ op: 'open', indices: [0] })).error.message).toMatch(/Installed package size mismatch/);
-      expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false });
+      expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false, sourceReceipts: [] });
     });
   });
 
@@ -169,7 +169,7 @@ describe('installed package bytes before diagnostic model opening', () => {
     expect(report.error.message).toMatch(/Installed package size mismatch/);
     expect(report.packages).toHaveLength(1);
     expect(report.opens).toEqual([]);
-    expect(report.cleanup).toEqual([{ gpuOpened: false }, { gpuOpened: false }]);
+    expect(report.cleanup).toEqual([{ gpuOpened: false, sourceReceipts: [] }, { gpuOpened: false, sourceReceipts: [] }]);
     await expect(fs.stat(marker)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });

@@ -305,4 +305,20 @@ describe('identity', () => {
     await expect(nativeShaderCacheIdentity({ ...options(), runtime: { directory: '/x' } })).rejects.toThrow(/archive integrity/);
     await expect(nativeShaderCacheIdentity({ ...options(), program: { ...options().program, stage: -1 } })).rejects.toThrow(/stage index/);
   });
+
+  it('keys an explicit source separately from the installed archive and rejects competing identities', async () => {
+    const { options } = await inputs();
+    const archive = await nativeShaderCacheIdentity(options());
+    const sourceIdentity = { schema: 'reploid.diagnostic-source-identity/v1', treeSha256: 'a'.repeat(64) };
+    const selected = { ...options(), runtime: { directory: options().runtime.directory, sourceIdentity } };
+    const source = await nativeShaderCacheIdentity(selected);
+    expect(source.key).not.toBe(archive.key);
+    expect(source.identity.runtime).toMatchObject({ sourceIdentity, installedSha256: sourceIdentity.treeSha256 });
+    expect(source.identity.runtime).not.toHaveProperty('archiveIntegrity');
+    const changed = await nativeShaderCacheIdentity({ ...selected,
+      runtime: { ...selected.runtime, sourceIdentity: { ...sourceIdentity, treeSha256: 'b'.repeat(64) } } });
+    expect(changed.key).not.toBe(source.key);
+    await expect(nativeShaderCacheIdentity({ ...selected, runtime: { ...selected.runtime, archiveIntegrity: 'sha512-archive' } }))
+      .rejects.toThrow('never both');
+  });
 });

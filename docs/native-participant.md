@@ -607,3 +607,50 @@ installed-package qualification. Model/piece authentication and provider
 identity remain separate and unchanged. Use the existing worker gather limits
 and receipt collection above; this source activation path does not qualify
 physical correctness, speed, or production deployment.
+
+### Explicit local source runtime
+
+`--runtime-source-config /absolute/runtime.json` activates an operator-selected
+Doppler checkout for native partition computation. It leaves the installed
+package, browser delivery, archive pin and ordinary startup unchanged. This mode
+requires `--contribute` and an explicit private `--room`. It rejects signed
+Capsules, canonical execution, adapters, earning, whole-model execution,
+`--share-files`, and `--cache-directory`. All required model files must be local;
+there is no custody or peer-acquisition fallback in this mode.
+
+```json
+{
+  "schema": "reploid.native-runtime-source/v1",
+  "directory": "/absolute/doppler-checkout",
+  "treeSha256": "<64 lowercase SHA-256 hex digits>",
+  "gather": {
+    "maxPartBytes": 2097152,
+    "memoryBudgetBytes": 67108864,
+    "concurrency": 4
+  }
+}
+```
+
+Compute the expected tree hash with `inspectNativeRuntimeSource(directory)` from
+`server/native-runtime-source.js`, review the selected checkout, then record that
+hash in the config outside the checkout. The inventory covers the complete tree
+except `.git` and `node_modules`; internal links must target inventoried bytes.
+Dependency, provider and model identities remain separate. Changing a source file
+requires a new explicit expected hash and a new process; Node's cached modules
+cannot be relabeled with a new disk-tree identity. The source is checked before import,
+after import and before each partition preparation; this is local byte identity,
+not protection against a concurrent privileged writer or release qualification.
+
+Preparation, owner memory inspection and GPU shutdown use the same selected
+runtime. Gather bounds are charged by Doppler's existing admission rules; they do
+not increase the configured GPU budget. Generic loads retain complete-piece
+verification, while exact-piece worker loads hash the complete owned output
+before transfer. Startup and partition receipts identify the source tree and
+worker policy separately from installed archive identity. Shader caches use that
+source identity, so they cannot reuse an installed-archive cache key.
+
+The synchronous partition acquisition receipt covers generic reads only. The
+program's optional asynchronous `getGatherReceipt()` reports worker evidence
+while no lease is outstanding and before closing. Neither receipt establishes
+model correctness or a performance win. Model, transport and physical lifecycle
+qualification must exercise this exact selected source separately.
