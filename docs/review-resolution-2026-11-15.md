@@ -136,3 +136,20 @@ published package does not mean its behavior has no tests.
 - Historical recovery was tested against exact bytes and against a compact source archive; no Git history was rewritten.
 - The declaration check proves exported value names and resolution, not equality of every runtime behavior and hand-written type.
 - The supplied audit's content-level coverage gaps remain coverage gaps. There is no claim that every unread file was independently audited.
+
+## Continuation, 2026-11-16
+
+H21/M23 received additional implementation work after the initial disposition:
+conversation markup and model-picker projection are separate modules, while
+`conversation-workspace.js` retains session/event ownership and its public entry.
+Attachment help now reads the same configured limits as admission.
+
+A focused concurrency check found another defect at this boundary: overlapping
+file selections validated against the same pre-read draft, then combined too many
+attachments and failed during draft persistence. The existing attachment component
+now serializes admission per draft. It holds Send until queued admission settles,
+continues after a failed read, and starts an independent queue on thread selection.
+Late reads from a replaced draft cannot publish into it or block the new draft.
+`tests/unit/conversation-attachments.test.js` reproduces these boundaries through
+the real conversation binder with controlled file reads and configured limits.
+Both it and the existing conversation suite are now in the focused CI set.
