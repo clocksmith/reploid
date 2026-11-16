@@ -3,7 +3,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import readline from 'node:readline';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { collectNativeSourceReceipts, collectClosedNativeSourceReceipts } from './native-source-receipts.js';
@@ -11,6 +10,7 @@ import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 import { openDiagnosticModelSource } from './native-diagnostic-source.js';
 import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
 import { runNativeCompleteRequest } from './native-complete-request.js';
+import { serveCompleteRequestProtocol } from './complete-request-protocol.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
 const mod = file => import(pathToFileURL(path.join(config.installedPackage, 'src', file)).href);
@@ -206,17 +206,4 @@ async function invoke(request) {
   if (request.op === 'close') return close();
   throw new Error('Unknown private diagnostic operation');
 }
-let closed = false;
-try {
-  for await (const line of readline.createInterface({ input: process.stdin })) {
-    const request = JSON.parse(line);
-    try {
-      const value = await invoke(request);
-      process.stdout.write('@q4-response ' + JSON.stringify({ id: request.id, value }) + '\n');
-      if (request.op === 'close') { closed = true; break; }
-    } catch (error) {
-      process.stdout.write('@q4-response ' + JSON.stringify({ id: request.id,
-        error: { name: error.name, message: error.message, stack: error.stack } }) + '\n');
-    }
-  }
-} finally { if (!closed) await close(); }
+await serveCompleteRequestProtocol({ invoke, onClose: close });

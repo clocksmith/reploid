@@ -8,29 +8,40 @@ from pathlib import Path
 import socket
 import signal
 import subprocess
+import sys
 import time
-
-
-def read_json(path):
-    return json.loads(Path(path).read_bytes())
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from complete_request_client import CompleteRequestClient
 
 
 def native(config, requests, output, deadline):
     args = [config["node"], config["nativeWorker"], config["nativeConfigPath"]]
-    body = "".join(json.dumps(dict(row, id=i + 1)) + "\n" for i, row in enumerate(requests))
-    with open(output, "x") as log:
-        # Supply protocol input through an owned regular file so the child deadline
-        # also covers initialization before it starts consuming stdin.
-        input_path = Path(str(output) + ".input")
-        input_path.write_text(body)
-        with open(input_path) as protocol:
-            owned_run(args, stdin=protocol, text=True, stdout=log, stderr=subprocess.STDOUT,
-                      env=clean_environment(config["environment"]), timeout=deadline)
-    rows = [json.loads(line[13:]) for line in Path(output).read_text().splitlines()
-            if line.startswith("@q4-response ")]
-    assert len(rows) == len(requests), "Missing native protocol responses"
-    assert all("error" not in row for row in rows), rows
-    return [row["value"] for row in rows]
+    return protocol_run(args, requests, output, deadline, config["environment"])
+
+
+def protocol_run(command, requests, output, deadline, environment=None):
+    rows = []
+    with CompleteRequestClient(command, output, env=clean_environment(environment),
+                               max_response_bytes=16 * 1024 * 1024, arm_timeout_seconds=deadline) as client:
+        for request in requests:
+            limit = {"open": 310, "request": 130}.get(request["op"], 45)
+            response = client.request(request, timeout_seconds=min(deadline, limit))
+            assert response.get("requestOp") == request["op"], "Worker response operation differs"
+            assert "error" not in response, response.get("error")
+            value = response["value"]
+            if request["op"] == "request":
+                assert isinstance(value, dict), "Complete request must return an object"
+                value = dict(value, clientRequestWallMs=response["clientRequestWallMs"],
+                             clientTimingScope="owned-local-stdio-jsonl/v1",
+                             clientRequestBytes=response["clientRequestBytes"], clientResponseBytes=response["clientResponseBytes"],
+                             clientRequestPayload=response["clientRequestPayload"])
+                value["clientOverheadMs"] = value["clientRequestWallMs"] - value["requestWallMs"]
+                assert value["clientOverheadMs"] >= -.01, "Client duration does not contain the core interval"
+            rows.append(value)
+        exit_receipt = client.finish(timeout_seconds=5)
+    assert requests[-1]["op"] == "close", "Owned protocol must close explicitly"
+    rows[-1] = dict(rows[-1], ownedProcessExit=exit_receipt)
+    return rows
 
 
 def check_tokens(rows, workload, kind, freeze, out):
@@ -47,23 +58,6 @@ def clean_environment(extra=None):
         env.pop(key, None)
     env.update(extra or {})
     return env
-
-
-def owned_run(args, *, timeout, **options):
-    child = subprocess.Popen(args, start_new_session=True, **options)
-    try:
-        stdout, stderr = child.communicate(timeout=timeout)
-    except BaseException:
-        # Target only this runner's owned process group, including its workers.
-        os.killpg(child.pid, signal.SIGTERM)
-        try:
-            child.communicate(timeout=5)
-        except subprocess.TimeoutExpired:
-            os.killpg(child.pid, signal.SIGKILL)
-            child.communicate(timeout=5)
-        raise
-    assert child.returncode == 0, "Owned process failed: " + str(child.returncode)
-    return stdout, stderr
 
 
 def provider_state(unit):
@@ -124,10 +118,13 @@ def main():
             assert rows[0]["model"]["readyForWholeModel"] and not rows[0]["gpuOpened"]
             assert rows[1]["gpuOpened"] is False
         report["metadataPreflightPassed"] = True
+        report["sourceIntegrityReady"] = report["controlPreflight"]["sourceIntegrity"]["ready"]
         save()
         if not args.execute:
-            print(json.dumps({"metadataPreflightPassed": True, "modelRunsStarted": False}))
+            print(json.dumps({"metadataPreflightPassed": True, "sourceIntegrityReady": report["sourceIntegrityReady"],
+                              "modelRunsStarted": False}))
             return
+        assert report["sourceIntegrityReady"], "A pinned complete content proof is required before comparison execution"
         with open(freeze["locks"][0], "a") as exclusive, open(freeze["locks"][1], "a") as shared:
             fcntl.flock(exclusive, fcntl.LOCK_EX | fcntl.LOCK_NB)
             fcntl.flock(shared, fcntl.LOCK_SH | fcntl.LOCK_NB)
@@ -165,24 +162,27 @@ def main():
                         if kind == "pooled":
                             config = dict(freeze["pooledConfig"])
                             config["out"] = str(arm / "result.json")
-                            config["cases"] = [dict(workload, repeat=i) for i in range(3)]
+                            config["protocol"] = True
+                            config["cases"] = []
                             config_path = arm / "config.json"
                             config_path.write_text(json.dumps(config))
-                            with open(arm / "process.log", "x") as log:
-                                owned_run([freeze["node"], freeze["pooledAdapter"], str(config_path)],
-                                          stdout=log, stderr=subprocess.STDOUT, timeout=freeze["armTimeoutSeconds"],
-                                          env=clean_environment())
-                            result = read_json(config["out"])
+                            requests = [{"op": "open"}]
+                            requests += [dict(workload, op="request", repeat=i) for i in range(3)]
+                            requests += [{"op": "receipts"}, {"op": "close"}]
+                            responses = protocol_run([freeze["node"], freeze["pooledAdapter"], str(config_path)],
+                                                     requests, arm / "process.log", freeze["armTimeoutSeconds"])
+                            result = responses[-1]
+                            (arm / "protocol-results.json").write_text(json.dumps(responses, indent=2))
                             assert result.get("cleanup") == "settled" and not result.get("error")
                             assert result["split"]["ranges"] == [[0, 48]]
                             gpu = result["gpuMemory"]
                             assert not gpu["errors"] and not gpu["overCapAllocations"] and gpu["peakBytes"] <= freeze["gpuCapBytes"]
                             assert gpu["liveBytes"] == 0, "Peer GPU allocations did not retire after room close"
-                            rows = [dict(case, inputIds=case["promptIds"]) for case in result["cases"]]
+                            rows = responses[1:4]
                             assert all(case["reused"] == 0 for case in rows), "Pooled reused a prefix"
                         else:
                             requests = [{"op": "preflight"}, {"op": "open", "indices": None}]
-                            requests += [dict(op="request", prompt=workload["prompt"], promptIds=workload["promptIds"]) for _ in range(3)]
+                            requests += [dict(workload, op="request", repeat=i) for i in range(3)]
                             requests += [{"op": "receipts"}, {"op": "close"}]
                             responses = native(freeze["native"][kind], requests, arm / "process.log", freeze["armTimeoutSeconds"])
                             rows = responses[2:5]
