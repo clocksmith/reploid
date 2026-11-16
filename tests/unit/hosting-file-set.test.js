@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { collectModuleClosure, buildHostingFileSet, walkFiles } from '../../scripts/hosting-file-set.js';
 import { packageHosting, verifyHostingSource, verifyPreparedHosting } from '../../scripts/package-hosting.js';
 import { buildBrowserBundleManifest, BROWSER_BUNDLE_DESCRIPTOR_PATH } from '../../apps/poolday/pool/browser-release-identity.js';
+import browserAssets from '../../scripts/doppler-browser-assets.json' with { type: 'json' };
 import { resolveServedFile } from '../../server/browser-roots.js';
 
 const fixtures = [];
@@ -72,6 +73,10 @@ describe('Hosting dependency projection', () => {
       dopplerStorageModuleUrl: '/vendor/doppler/0.0.1/src/tooling-exports/storage.js'
     } }));
     await put(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH, '{}');
+    const excluded = prefix + 'src/config/runtime/profiles/' + browserAssets.excludedRuntimeProfiles[0].file;
+    await put(selfDir, excluded, '{}');
+    await expect(buildHostingFileSet({ selfDir })).rejects.toThrow('Non-shipping Doppler profile remains in browser assets');
+    await rm(path.join(selfDir, excluded));
     const files = await buildHostingFileSet({ selfDir });
     const entries = await Promise.all(files.filter(name => name !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
       .map(async name => ({ path: name, bytes: new Uint8Array(await readFile(path.join(selfDir, name))) })));

@@ -13,7 +13,7 @@ The current package directory in this tree.
 
 ## Contracts
 Inputs: exact archive and SHA-512 from package-lock.json, verified by scripts/vendor-doppler.js.
-Outputs: complete source package contents with only the enclosing package directory stripped; a byte-preserving Hosting projection selected by `scripts/hosting-file-set.js`.
+Outputs: source package contents with the enclosing directory stripped and hash-reviewed diagnostic profiles excluded by `scripts/doppler-browser-assets.json`; a byte-preserving Hosting projection selected by `scripts/hosting-file-set.js`.
 
 ## Invariants
 - Never edit package contents, substitute a checkout, or change the declared integrity.
