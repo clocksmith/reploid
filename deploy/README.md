@@ -32,7 +32,8 @@ TURN_HOST="$(./deploy/turn/provision.sh)"
 ```
 
 Write the returned public IP to `REPLOID_TURN_HOST` in
-`deploy/env.production.json` and `deploy/cloud-run-service.yaml`. Cloud Build
+`deploy/env.production.json`, then run `npm run sync:runtime-config` to regenerate
+`deploy/cloud-run-service.yaml`. CI verifies this projection. Cloud Build
 binds `REPLOID_TURN_SHARED_SECRET` from Secret Manager. Browsers receive only
 short-lived TURN REST credentials from the authenticated `/pool/rtc-config`
 endpoint. The shared secret never enters source control or Firebase Hosting.

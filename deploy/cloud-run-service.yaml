@@ -25,19 +25,19 @@ spec:
               containerPort: 8080
           env:
             - name: NODE_ENV
-              value: production
+              value: "production"
             - name: POOL_BACKEND_ONLY
               value: "true"
             - name: POOL_STORE
-              value: firestore
+              value: "firestore"
             - name: POOL_VERIFY_FIREBASE_AUTH
               value: "true"
             - name: POOL_REQUIRE_FIREBASE_AUTH
               value: "true"
             - name: POOL_JSON_LIMIT
-              value: 512kb
+              value: "512kb"
             - name: POOL_RESEARCH_JSON_LIMIT
-              value: 1mb
+              value: "1mb"
             - name: REPLOID_ADAPTER_GCS_SIGNED_URLS
               value: "true"
             - name: REPLOID_ADAPTER_SIGNED_URL_TTL_MS

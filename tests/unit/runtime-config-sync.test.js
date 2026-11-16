@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   replaceCloudRunEnvValue,
+  projectCloudRunRuntimeEnv,
   synchronizeRuntimeConfig
 } from '../../scripts/sync-runtime-config.js';
 import {
@@ -140,4 +141,29 @@ it('removes a previous prerelease suffix without consuming the configuration suf
   const result = synchronizeRuntimeConfig(fixture);
   expect(result.poolConfig.configVersion).toBe(`release.doppler-${DOPPLER_BROWSER_RUNTIME_VERSION}.esm2-capsule-v2`);
   expect(result.poolConfig.launchModel.runtimeCompatibility.capabilityAction).toBe(`Use doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION} or newer.`);
+});
+
+it('projects changed and removed environment values while retaining secret and release ownership', () => {
+  const source = `service:
+  env:
+    - name: OLD
+      value: obsolete
+    - name: REPLOID_TURN_SHARED_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: private-reference
+          key: latest
+    - name: REPLOID_RELEASE_SOURCE_REVISION
+      value: '<required-source-revision>'
+  resources:
+    cpu: 1
+`;
+  const rendered = projectCloudRunRuntimeEnv(source, { REPLOID_TURN_HOST: 'new.example.test', LIMIT: '512kb' });
+  expect(rendered).not.toContain('name: OLD');
+  expect(rendered).toContain('value: "new.example.test"');
+  expect(rendered).toContain('name: private-reference');
+  expect(rendered).toContain("value: '<required-source-revision>'");
+  expect(rendered).toContain('  resources:\n    cpu: 1');
+  expect(projectCloudRunRuntimeEnv(rendered, { REPLOID_TURN_HOST: 'new.example.test', LIMIT: '512kb' })).toBe(rendered);
+  expect(() => projectCloudRunRuntimeEnv(source, { REPLOID_TURN_SHARED_SECRET: 'override' })).toThrow('collision');
 });

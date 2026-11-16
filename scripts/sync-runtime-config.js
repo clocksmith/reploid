@@ -59,6 +59,32 @@ export function replaceCloudRunEnvValue(source, key, value) {
   return source.replace(pattern, `$1 ${JSON.stringify(value)}`);
 }
 
+/** Project ordinary environment values from env.production.json. Secret
+ * references and release identities remain deployment-owned manifest entries. */
+export function projectCloudRunRuntimeEnv(source, runtimeEnv) {
+  const lines = source.split('\n');
+  const start = lines.findIndex(line => /^\s*env:\s*$/.test(line));
+  if (start < 0) throw new Error('Cloud Run manifest is missing env block');
+  const indent = lines[start].match(/^\s*/)[0];
+  let end = start + 1;
+  while (end < lines.length && (!lines[end].trim() || lines[end].match(/^\s*/)[0].length > indent.length)) end++;
+  const retained = [];
+  const entries = lines.slice(start + 1, end).join('\n').split(new RegExp(`(?=^${indent}  - name:)`, 'm'));
+  for (const entry of entries) {
+    const name = entry.match(/- name: ([A-Z_][A-Z0-9_]*)/);
+    if (name && (/\bvalueFrom:/.test(entry) || name[1].startsWith('REPLOID_RELEASE_'))) {
+      if (Object.hasOwn(runtimeEnv, name[1])) throw new Error(`Deployment-owned environment collision: ${name[1]}`);
+      retained.push(entry.trimEnd());
+    }
+  }
+  const generated = Object.entries(runtimeEnv).map(([key, value]) => {
+    if (!/^[A-Z_][A-Z0-9_]*$/.test(key) || typeof value !== 'string') throw new Error('Runtime environment must contain named string values');
+    return `${indent}  - name: ${key}\n${indent}    value: ${JSON.stringify(value)}`;
+  });
+  lines.splice(start + 1, end - start - 1, ...[...generated, ...retained].join('\n').split('\n'));
+  return lines.join('\n').replace(/\n*$/, '\n');
+}
+
 export function synchronizeRuntimeConfig({
   poolConfig,
   deploymentConfig,
@@ -133,14 +159,7 @@ export function synchronizeRuntimeConfig({
     };
   }
 
-  let synchronizedCloudRunYaml = cloudRunYaml;
-  for (const [envKey, runtimeKey] of Object.entries(RUNTIME_ENV_KEYS)) {
-    synchronizedCloudRunYaml = replaceCloudRunEnvValue(
-      synchronizedCloudRunYaml,
-      envKey,
-      synchronizedPoolConfig.browserRuntime[runtimeKey]
-    );
-  }
+  const synchronizedCloudRunYaml = projectCloudRunRuntimeEnv(cloudRunYaml, synchronizedDeploymentConfig.runtimeEnv);
 
   return {
     poolConfig: synchronizedPoolConfig,
