@@ -1,6 +1,7 @@
+import { createBridgeFileTools } from './host/bridge-files.js';
 import { getTextBytes as measureTextBytes } from './host/file-access.js';
-import { normalizeFilePath, getOpfsFileHandle, OPFS_PREFIX } from './host/file-access.js';
-import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES, FILE_BINARY_LIMIT_BYTES as BINARY_LIMIT_BYTES } from './config/vfs-policy.js';
+import { normalizeFilePath } from './host/file-access.js';
+import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES } from './config/vfs-policy.js';
 /**
  * @fileoverview Bridge between the live self and the browser substrate.
  */
@@ -73,33 +74,6 @@ const fetchSourceText = async (webPath) => {
   }
   return response.text();
 };
-
-const toBase64 = (buffer) => {
-  if (typeof Buffer !== 'undefined') {
-    return Buffer.from(buffer).toString('base64');
-  }
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-  }
-  return btoa(binary);
-};
-
-const fromBase64 = (data) => {
-  if (typeof Buffer !== 'undefined') {
-    return new Uint8Array(Buffer.from(String(data), 'base64'));
-  }
-  const binary = atob(String(data));
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-};
-
-
 
 const createVfsAdapter = ({
   canWritePath,
@@ -187,8 +161,6 @@ const normalizeModelConfig = (modelConfig = null) => {
   return next;
 };
 
-
-
 const createBridgeEmitter = () => {
   const listeners = new Map();
   return {
@@ -275,132 +247,7 @@ export function createSelfBridge(options = {}) {
     }
   });
   let toolRunner = null;
-
-  const readFile = async (args = {}) => {
-    const { backend, path } = normalizePath(args.path || args.file, args.backend);
-    const mode = String(args.mode || 'text').toLowerCase();
-    if (mode !== 'text' && mode !== 'binary') {
-      throw new Error('Invalid mode. Use "text" or "binary".');
-    }
-
-    if (backend === 'vfs') {
-      if (mode !== 'text') {
-        throw new Error('VFS supports text mode only');
-      }
-      const content = await vfs.read(path);
-      return {
-        path,
-        backend,
-        encoding: 'utf-8',
-        content,
-        bytes: getTextBytes(content)
-      };
-    }
-
-    const handle = await getOpfsFileHandle(path, { createDirs: false, createFile: false });
-    const file = await handle.getFile();
-
-    if (mode === 'text') {
-      if (file.size > TEXT_LIMIT_BYTES) {
-        throw new Error(`File too large (${file.size} bytes)`);
-      }
-      const content = await file.text();
-      return {
-        path,
-        backend,
-        encoding: 'utf-8',
-        content,
-        bytes: getTextBytes(content)
-      };
-    }
-
-    const offset = Math.max(0, Number(args.offset || 0));
-    const length = args.length === undefined ? file.size - offset : Number(args.length);
-    if (!Number.isFinite(length) || length <= 0) {
-      throw new Error('Invalid length');
-    }
-    if (length > BINARY_LIMIT_BYTES) {
-      throw new Error(`Read length exceeds limit (${BINARY_LIMIT_BYTES} bytes)`);
-    }
-    const buffer = await file.slice(offset, offset + length).arrayBuffer();
-    return {
-      path,
-      backend,
-      encoding: 'base64',
-      data: toBase64(buffer),
-      bytes: buffer.byteLength
-    };
-  };
-
-  const writeFile = async (args = {}) => {
-    const { backend, path } = normalizePath(args.path || args.file, args.backend);
-    const mode = String(args.mode || 'text').toLowerCase();
-    if (mode !== 'text' && mode !== 'binary') {
-      throw new Error('Invalid mode. Use "text" or "binary".');
-    }
-
-    if (backend === 'vfs') {
-      if (mode !== 'text') {
-        throw new Error('VFS supports text mode only');
-      }
-      if (!isModelWritableVfsPath(path)) {
-        throw new Error(`Path is not writable: ${path}`);
-      }
-      if (args.content === undefined) {
-        throw new Error('Missing content argument');
-      }
-      if (args.autoLoad === true) {
-        throw new Error('autoLoad is not available on direct writes. Use CreateTool for new Zero runtime tools, or LoadModule for an installed /self tool on broader surfaces.');
-      }
-      const content = String(args.content);
-      if (getTextBytes(content) > TEXT_LIMIT_BYTES) {
-        throw new Error(`Content exceeds limit (${TEXT_LIMIT_BYTES} bytes)`);
-      }
-      await vfs.write(path, content);
-      return {
-        path,
-        backend,
-        bytesWritten: getTextBytes(content)
-      };
-    }
-
-    if (!isWritableOpfsPath(path)) {
-      throw new Error(`Path is not writable: ${OPFS_PREFIX}${path}`);
-    }
-    const handle = await getOpfsFileHandle(path, { createDirs: true, createFile: true });
-    const writable = await handle.createWritable();
-    if (mode === 'text') {
-      if (args.content === undefined) {
-        throw new Error('Missing content argument');
-      }
-      const content = String(args.content);
-      if (getTextBytes(content) > TEXT_LIMIT_BYTES) {
-        throw new Error(`Content exceeds limit (${TEXT_LIMIT_BYTES} bytes)`);
-      }
-      await writable.write(content);
-      await writable.close();
-      return {
-        path,
-        backend,
-        bytesWritten: getTextBytes(content)
-      };
-    }
-
-    if (args.data === undefined) {
-      throw new Error('Missing data argument');
-    }
-    const bytes = fromBase64(args.data);
-    if (bytes.byteLength > BINARY_LIMIT_BYTES) {
-      throw new Error(`Data exceeds limit (${BINARY_LIMIT_BYTES} bytes)`);
-    }
-    await writable.write(bytes);
-    await writable.close();
-    return {
-      path,
-      backend,
-      bytesWritten: bytes.byteLength
-    };
-  };
+  const { readFile, writeFile } = createBridgeFileTools({ vfs, normalizePath, isModelWritableVfsPath, isWritableOpfsPath });
 
   const promote = async (args = {}) => promoteShadowCandidate(args, {
     VFS: vfs,
