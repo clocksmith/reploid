@@ -4,17 +4,12 @@ import fs from 'node:fs/promises';
 import { verifyPeerRuntime } from './runtime-identity.js';
 import { requirePeerRepresentation } from './representation.js';
 import { inspectCompleteOutput } from './complete-output.js';
-import { verifySourceIntegrityProof, requiredSourceIntegrityFiles } from './source-integrity.js';
+import { verifySourceIntegrityProof, requiredSourceIntegrityFiles, verifySourceAliases } from './source-integrity.js';
 import { readDiagnosticMetadata, inspectDiagnosticSourceMap } from '../../native-diagnostic-source.js';
 const freeze = JSON.parse(await fs.readFile(process.argv[2]));
-const stamp = stat => [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].map(String).join(':');
 const provenance = await verifyPeerRuntime(freeze.pooledConfig.provenance);
 const integrityConfig = freeze.sourceIntegrity;
-for (const item of freeze.sourceFiles) {
-  assert.equal(await fs.realpath(item.path), item.canonicalPath, 'Frozen source alias changed');
-  const stat = await fs.lstat(item.canonicalPath, { bigint: true });
-  assert(stat.isFile() && stamp(stat) === item.stamp, 'Frozen source file changed');
-}
+const sourceContinuity = await verifySourceAliases(freeze.sourceFiles, AbortSignal.timeout(5000));
 const representation = [];
 let requiredFiles;
 for (const spec of Object.values(freeze.native)) {
@@ -38,4 +33,4 @@ if (process.argv[3]) {
   assert(outputs.length === 3, 'One fresh and two repeated requests required');
   for (const row of outputs) assert.deepEqual(row, outputs[0], 'Repeated complete output differs');
   console.log(JSON.stringify({ outputs }));
-} else console.log(JSON.stringify({ provenance, representation, sourceIntegrity, gpuOpened: false, modelImported: false }));
+} else console.log(JSON.stringify({ provenance, representation, sourceContinuity, sourceIntegrity, gpuOpened: false, modelImported: false }));

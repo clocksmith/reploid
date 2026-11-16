@@ -8,6 +8,25 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const stamp = stat => [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].map(String).join(':');
 const sha = value => typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value);
 
+/** Endpoint continuity only; this never claims authenticated peer reads. */
+export async function verifySourceAliases(files, signal) {
+  assert(Array.isArray(files) && files.length > 0, 'Explicit frozen source aliases required');
+  const selected = structuredClone(files);
+  for (const file of selected) {
+    signal?.throwIfAborted();
+    assert(path.isAbsolute(file.path) && path.isAbsolute(file.canonicalPath)
+      && typeof file.stamp === 'string' && typeof file.aliasStamp === 'string', 'Frozen source alias identity missing');
+    const before = await fs.lstat(file.path, { bigint: true });
+    assert.equal(stamp(before), file.aliasStamp, 'Frozen source alias changed');
+    assert.equal(await fs.realpath(file.path), file.canonicalPath, 'Frozen source alias target changed');
+    const target = await fs.lstat(file.canonicalPath, { bigint: true });
+    assert(target.isFile() && stamp(target) === file.stamp, 'Frozen source file changed');
+    assert.equal(stamp(await fs.lstat(file.path, { bigint: true })), file.aliasStamp, 'Frozen source alias changed during verification');
+  }
+  signal?.throwIfAborted();
+  return { filesChecked: selected.length, scope: 'Frozen source alias and target continuity at verification; not per-read authentication' };
+}
+
 function admit(config) {
   assert(Array.isArray(config.files) && config.files.length > 0 && new Set(config.files.map(file => file.path)).size === config.files.length,
     'Explicit unique source proof files required');

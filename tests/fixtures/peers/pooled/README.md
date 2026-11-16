@@ -55,6 +55,9 @@ and conversion remain unchanged. Proof plus later filesystem continuity is not
 per-read authentication of the peer's descriptors. Native inference retains its
 authenticated-piece path. Runtime inventories bind selected filesystem code and
 native dependencies; they do not attest loaded drivers or physical hardware.
+Frozen source aliases bind their own identity and timestamps as well as the
+canonical target. Replacing an alias and restoring it to the same target
+invalidates that freeze; a matching target path alone does not satisfy continuity.
 
 ## Timing scopes
 

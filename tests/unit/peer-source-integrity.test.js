@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
-import { proveSourceIntegrity, verifySourceIntegrityProof, requiredSourceIntegrityFiles, readSourceProofMetadata } from '../fixtures/peers/pooled/source-integrity.js';
+import { proveSourceIntegrity, verifySourceIntegrityProof, requiredSourceIntegrityFiles, readSourceProofMetadata, verifySourceAliases } from '../fixtures/peers/pooled/source-integrity.js';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const stamp = stat => [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].map(String).join(':');
 async function setup() {
@@ -17,6 +17,19 @@ async function setup() {
     stamp: stamp(await fs.lstat(canonicalPath, { bigint: true })), aliasStamp: stamp(await fs.lstat(filename, { bigint: true })) };
   return { root, config: { files: [file], timeoutMs: 1000, maxBytes: 257, maxReadBytes: 64 } };
 }
+it('invalidates frozen aliases replaced and restored to the same unchanged target', async () => {
+  const { root, config } = await setup();
+  try {
+    expect(await verifySourceAliases(config.files)).toMatchObject({ filesChecked: 1 });
+    await expect(verifySourceAliases([{ ...config.files[0], aliasStamp: undefined }])).rejects.toThrow('alias identity missing');
+    await fs.unlink(config.files[0].path);
+    await fs.symlink(config.files[0].canonicalPath, config.files[0].path);
+    expect(await fs.realpath(config.files[0].path)).toBe(config.files[0].canonicalPath);
+    expect(stamp(await fs.lstat(config.files[0].canonicalPath, { bigint: true }))).toBe(config.files[0].stamp);
+    await expect(verifySourceAliases(config.files)).rejects.toThrow('alias changed');
+  } finally { await fs.rm(root, { recursive: true, force: true }); }
+});
+
 it('proves all selected bytes outside timing and rejects partial coverage or replaced source aliases', async () => {
   const { root, config } = await setup();
   try {
