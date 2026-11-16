@@ -16,14 +16,13 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import {
   ADAPTER_EVALUATION_RECEIPT_SCHEMA, computeAdapterEvaluation, itemListDigest, seededRandom,
   validateAdapterEvaluationSpec, verifyAdapterEvaluationReceipt
 } from '../apps/poolday/pool/adapter-evaluation.js';
 import { resolveServedFile } from '../server/browser-roots.js';
 
-const root = () => path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const sha256 = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
 const lines = text => text.split('\n').map(line => line.trim()).filter(Boolean).map(line => JSON.parse(line));
 export const normalizeText = value => String(value).normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();

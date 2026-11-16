@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Freeze only compact Zero's reachable source and its explicit browser support. */
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

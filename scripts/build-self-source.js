@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Build the exact source closure for the minimal lab and its opt-in upgrades. */
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
@@ -9,7 +9,6 @@ import { getToolNamesForMode } from '../shared/config/tool-surfaces.js';
 import { toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { openBrowserTree } from '../server/browser-tree.js';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 let treeOpening;
 const tree = () => (treeOpening ||= openBrowserTree());
 const levels = ['spark', 'reflection', 'cognition', 'substrate', 'full'];

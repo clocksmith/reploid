@@ -173,7 +173,6 @@ const publicDetails = (details) => {
 
 /** Express error handler for the earning router. */
 export function earningErrorHandler(log = console) {
-  // eslint-disable-next-line no-unused-vars
   return (error, req, res, next) => {
     let status = 500;
     let code = 'internal_error';

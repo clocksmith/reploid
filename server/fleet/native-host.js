@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
-import { pathToFileURL, fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'doppler-gpu/partitions';
 import { getDevice, getKernelCapabilities } from 'doppler-gpu/tooling/device';

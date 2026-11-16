@@ -43,7 +43,7 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   assert(acknowledgment, 'Matching requester acknowledgment required');
   const workIds = [];
   for (let index = 0; index < request.providers.length; index++) {
-    const receipt = receipts.find(row => row.partitionIndex === index), provider = request.providers[index];
+    const receipt = receipts.find(row => row.partitionIndex === index);
     if (!receipt && unadmitted.includes(index) && acknowledgment.count === 0) continue;
     assert(receipt && ['settled', 'failed'].includes(receipt.status) && receipt.timing.closedAt !== null
       && receipt.steps >= acknowledgment.count, 'Settled stage receipt does not match the acknowledged work');

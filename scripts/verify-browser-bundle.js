@@ -4,8 +4,6 @@
  */
 
 import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 import {
   BROWSER_BUNDLE_DESCRIPTOR_PATH,
@@ -14,9 +12,6 @@ import {
 } from '../apps/poolday/pool/browser-release-identity.js';
 import { resolveServedFile } from '../server/browser-roots.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT = path.resolve(__dirname, '..');
 const MANIFEST_PATH = resolveServedFile(BROWSER_BUNDLE_DESCRIPTOR_PATH);
 const args = process.argv.slice(2);
 

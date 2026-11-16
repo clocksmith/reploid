@@ -9,7 +9,6 @@ import { validateOperationModel } from '../shared/pool/operation-model.js';
 import { servedTreeSnapshot } from './package-hosting.js';
 import { portableEvidence } from './evidence-paths.js';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 

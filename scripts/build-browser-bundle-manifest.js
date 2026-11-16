@@ -4,8 +4,6 @@
  */
 
 import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { buildProductEntry } from './build-product-entry.js';
 import { synchronizeInventory } from './build-module-inventory.js';
 import { buildHostingFileSet, resolveBrowserTree } from './hosting-file-set.js';

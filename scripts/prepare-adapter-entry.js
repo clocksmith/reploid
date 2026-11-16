@@ -14,10 +14,9 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { resolveServedFile } from '../server/browser-roots.js';
 
-const root = () => path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const fail = message => { throw new Error(message); };
 
 /** Target modules named by PEFT tensor keys such as `...layers.3.self_attn.q_proj.lora_A.weight`. */

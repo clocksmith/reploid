@@ -24,7 +24,6 @@ const GENESIS_PATH = path.join(SELF_DIR, 'config', 'genesis-levels.json');
 const MANIFEST_PATH = path.join(SELF_DIR, 'config', 'vfs-manifest.json');
 const BLUEPRINT_REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
 const MODULE_INVENTORY_PATH = path.join(SELF_DIR, 'config', 'module-inventory.json');
-const BLUEPRINT_DIR = path.join(SELF_DIR, 'blueprints');
 
 function extractMetadataId(content) {
   const match = content.match(/\bmetadata\b\s*[:=]\s*\{/);
