@@ -35,17 +35,6 @@ const ZERO_FORBIDDEN_TOOLS = Object.freeze(
   X_TOOL_NAMES.filter((toolName) => !ZERO_TOOL_NAMES.includes(toolName))
 );
 
-const makeBootSpec = (profile) => Object.freeze({
-  title: profile.title,
-  extends: profile.extends || null,
-  mode: profile.mode,
-  bootProfile: profile.bootProfile,
-  genesisLevel: profile.genesisLevel,
-  uiMode: profile.uiMode,
-  surface: profile.surface,
-  productFacing: false
-});
-
 const resolvedProfile = intent => defineLabProfile({
   ...intent,
   ...intentProfileFields(intent),
@@ -59,9 +48,7 @@ export const LAB_ROUTE_PROFILES = Object.freeze({
   x: X_LAB_PROFILE
 });
 
-export const LAB_ROUTE_BOOT_SPECS = Object.freeze(Object.fromEntries(
-  Object.values(LAB_ROUTE_PROFILES).map((profile) => [profile.route, makeBootSpec(profile)])
-));
+export { ROUTE_BOOT_SPECS as LAB_ROUTE_BOOT_SPECS } from '../config/route-boot.js';
 
 export function getLabRouteProfileByPath(pathname = '/') {
   const normalized = String(pathname || '/').trim().replace(/\/+$/, '') || '/';

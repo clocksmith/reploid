@@ -60,6 +60,7 @@ jobs:
           npm run verify:registry
           npm run verify:catscan
           npm run verify:zero-source
+          npm run verify:self-source
           npm run verify:doppler-generation
           npm run verify:ownership-inventory
           npm run verify:runtime-config

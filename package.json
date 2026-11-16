@@ -107,7 +107,9 @@
     "verify:poolday-types": "tsc -p tests/tsconfig.poolday.json",
     "build:poolday-forecast-sdk": "node scripts/build-poolday-forecast-sdk.js",
     "verify:poolday-forecast-sdk": "node scripts/build-poolday-forecast-sdk.js --check",
-    "build": "npm run build:browser-bundle && npm run build:change-passport-sdk && npm run build:poolday-forecast-sdk"
+    "build": "npm run build:browser-bundle && npm run build:change-passport-sdk && npm run build:poolday-forecast-sdk",
+    "build:self-source": "node scripts/build-self-source.js",
+    "verify:self-source": "node scripts/build-self-source.js --check"
   },
   "keywords": [
     "reploid",

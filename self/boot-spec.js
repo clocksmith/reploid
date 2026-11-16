@@ -2,7 +2,7 @@
  * @fileoverview Strict boot contract for the self-owned runtime, host, and kernel.
  */
 
-import { LAB_ROUTE_BOOT_SPECS } from './lab/profiles.js';
+import { ROUTE_BOOT_SPECS } from './config/route-boot.js';
 import { OPFS_ARTIFACT_ROOTS, WRITABLE_VFS_ROOTS } from './config/vfs-policy.js';
 import { SERVICE_WORKER_ENTRY } from './config/service-worker.js';
 
@@ -21,6 +21,8 @@ export const SELF_BOOT_SPEC = Object.freeze({
   version: 1,
   title: 'Reploid',
   baseHref: '/',
+  // Generated VFS records: buildSelfFiles() in manifest.js writes these
+  // identities at seeding; they are not missing repository source files.
   bootSpecPath: '/self/boot.json',
   selfPath: '/self/self.json',
   blueprintIndexPath: '/self/blueprint-index.json',
@@ -49,6 +51,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
   },
   instances: {
     root: '/self/instances',
+    // dream-instance.js defines this runtime-generated instance record.
     defaultManifests: [
       '/self/instances/dream/default.instance.json'
     ],
@@ -87,7 +90,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
       mode: 'wrapper'
     }
   ],
-  routes: LAB_ROUTE_BOOT_SPECS
+  routes: ROUTE_BOOT_SPECS
 });
 
 export function cloneSelfBootSpec() {
