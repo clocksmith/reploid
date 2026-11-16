@@ -2,6 +2,11 @@
 node_modules/
 
 # Raw physical decision observations are retained locally and hash-inventoried.
+/artifacts/
+/reports/local/
+# Existing status contracts remain tracked; new run output requires an explicit
+# reviewed retention exception and a byte budget (scripts/artifact-policy.json).
+/docs/status/
 /artifacts/**/*.json.gz
 /artifacts/doppler-choice/*.json
 /artifacts/doppler-choice/package-difference/

@@ -47,6 +47,7 @@ jobs:
             git fetch --no-tags --depth=1 origin "$BASE_SHA"
           fi
           node scripts/lint-changed-code.js --base "$BASE_SHA"
+          node scripts/check-artifact-additions.js --base "$BASE_SHA"
           node scripts/verify-layers.js --source-only
           npm run verify:library-types
           npm run verify:poolday-types
