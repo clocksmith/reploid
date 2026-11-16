@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
-import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';
+import { createRemotePermission } from '../../packages/reploid/src/chat/remote-permission.js';
 import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { fixture as stagesFixture } from '../fixtures/ordered-partition-ports.js';
 import { createHash } from 'node:crypto';
@@ -213,7 +213,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
       { requestApproval: async () => true })).rejects.toThrow('route changed');
     expect(f.entry.generate).not.toHaveBeenCalled();
   });
-  it('never moves a permitted request to a changed route; a retry records the route it is sent to', async () => {
+  it('never moves a permitted request to a changed route; a retry requires permission for its new route', async () => {
     const f = await fixture(null);
     f.route.stages.forEach((stage, index) => { stage.participantId = 'peer:' + String(index).repeat(24); });
     f.discovery.capabilities = f.capabilities(true);
@@ -223,10 +223,13 @@ describe('explicit ordered automatic participation (injected discovery and numer
     f.entry.refresh.mockResolvedValueOnce({ ready: true, descriptor: { models: [planned] } })
       .mockResolvedValueOnce({ ready: true, descriptor: { models: [replaced] } })
       .mockResolvedValue({ ready: true, descriptor: { models: [replaced] } });
-    const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: planned });
-    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need, wording: remotePermissionWording(need) });
+    const permissions = [], needs = [];
     let saved;
-    const app = createChatWorkspace({ meshId: 'mesh', participantId: f.identity.peerId, remotePermissions: () => [permission],
+    const app = createChatWorkspace({ meshId: 'mesh', participantId: f.identity.peerId, remotePermissions: () => permissions,
+      prepareRemotePermission(need) {
+        needs.push(need);
+        if (!permissions.length) permissions.push(createRemotePermission({ id: 'remote', grantedAt: 1, need, wording: remotePermissionWording(need) }));
+      },
       store: { load: () => structuredClone(saved), save: value => { saved = structuredClone(value); } },
       execute: (request, controls) => f.mesh.generate(request, controls) });
     cleanups.push(() => app.close());
@@ -235,9 +238,15 @@ describe('explicit ordered automatic participation (injected discovery and numer
     expect(attempt.status).toBe('failed'); expect(attempt.error).toContain('route changed');
     expect(attempt.authorization).toMatchObject({ kind: 'permission', permissionId: 'remote', recipients: ids(planned) });
     expect(f.entry.generate).not.toHaveBeenCalled();
-    // An explicit Retry is a new attempt; the same permission covers it and its record names the new route.
-    const retried = await app.retry(thread, attempt.id);
-    expect(retried).toMatchObject({ status: 'completed', retryOf: attempt.id, authorization: { permissionId: 'remote', recipients: ids(replaced) } });
+    // Retry may discover a replacement, but cannot reuse the old route's permission.
+    const retry = app.retry(thread, attempt.id);
+    await vi.waitFor(() => expect(needs).toHaveLength(2));
+    expect(needs[1].routeId).not.toBe(needs[0].routeId);
+    expect(f.entry.generate).not.toHaveBeenCalled();
+    permissions.push(createRemotePermission({ id: 'replacement', grantedAt: 2, need: needs[1], wording: remotePermissionWording(needs[1]) }));
+    app.resumePermitted();
+    const retried = await retry;
+    expect(retried).toMatchObject({ status: 'completed', retryOf: attempt.id, authorization: { permissionId: 'replacement', recipients: ids(replaced) } });
     expect(f.entry.generate).toHaveBeenCalledOnce();
     expect(f.entry.generate.mock.calls[0][0].route.stages.map(stage => stage.participantId)).toEqual(ids(replaced));
   });

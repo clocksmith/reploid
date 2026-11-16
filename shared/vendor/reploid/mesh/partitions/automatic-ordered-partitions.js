@@ -361,9 +361,12 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     assignment = next;
     if (!next.move) return;
     // Synchronously refuse new admissions before any await; nothing is active to move.
-    moving = (async () => program.resident.drain?.())().catch(() => {});
+    moving = Promise.resolve().then(() => program.resident.drain?.());
     phase = 'stopping'; notify();
     try {
+      // Drain owns pending device work. Keep its resident and allocation until
+      // settlement succeeds; a failed drain remains owned for explicit stop.
+      await moving;
       await retire();
       if (!offer || stopping || closed) return;
       stage = autoIdentity(next.index); await prepare();

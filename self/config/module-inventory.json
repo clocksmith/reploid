@@ -4227,7 +4227,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b1ce173a632051a069e26c904420f8f24fb8142d0fcb1a151f4fe61e82b0a837",
+      "sha256": "sha256:c150a19ca150854580eddd436e157339cadf79989f85f681262f206d1ae9f599",
       "imports": []
     },
     {
@@ -18513,7 +18513,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:4221660db55a49a8ad6ed982c07e5a7e3c619a6fcea6aaa4aa6f1e12b1fdc675",
+      "sha256": "sha256:515ba23a5b3aa5c28340cf7ee2884070759c352140ecf98d88a1d8d731a31526",
       "imports": [
         "../preparation-progress.js",
         "./partition-attempt-queue.js",

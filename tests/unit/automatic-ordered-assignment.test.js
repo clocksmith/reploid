@@ -142,6 +142,45 @@ describe('autonomous cold stage assignment (opt-in, injected discovery)', () => 
     expect(c.loadProgram.mock.calls[1][2].ordered.stage.residentId).not.toBe(c.loadProgram.mock.calls[0][2].ordered.stage.residentId);
   });
 
+  it('waits for resident drain settlement before retiring weights or preparing a new stage', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor({ dwellMs: 0 });
+    c.discovery.observe = () => [offer('coordinator', 0), offer('~late', 2)];
+    await c.mesh.contribute('model', true);
+    const resident = c.residents[0], drain = Promise.withResolvers();
+    resident.drain.mockReturnValue(drain.promise);
+    c.discovery.observe = () => [offer('coordinator', 0), offer('!early', 1)];
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(resident.drain).toHaveBeenCalledOnce();
+    expect(c.mesh.getState().phase).toBe('stopping');
+    expect(resident.close).not.toHaveBeenCalled();
+    expect(c.loadProgram).toHaveBeenCalledOnce();
+    drain.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(resident.close).toHaveBeenCalledOnce();
+    expect(c.loadProgram).toHaveBeenCalledTimes(2);
+    expect(c.loadProgram.mock.calls[1][1]).toBe(2);
+  });
+
+  it('keeps failed drain owned and refuses replacement until explicit cleanup settles', async () => {
+    vi.useFakeTimers({ now: 1_000_000 });
+    const c = await contributor({ dwellMs: 0 });
+    c.discovery.observe = () => [offer('coordinator', 0), offer('~late', 2)];
+    await c.mesh.contribute('model', true);
+    const resident = c.residents[0];
+    resident.drain.mockRejectedValue(Error('drain settlement unknown'));
+    c.discovery.observe = () => [offer('coordinator', 0), offer('!early', 1)];
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(c.mesh.getState()).toMatchObject({ phase: 'failed', error: 'drain settlement unknown' });
+    expect(resident.close).not.toHaveBeenCalled();
+    expect(c.loadProgram).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(c.loadProgram).toHaveBeenCalledOnce();
+    await c.mesh.stop();
+    expect(resident.close).toHaveBeenCalledOnce();
+    expect(c.mesh.getState()).toMatchObject({ phase: 'idle', offering: false });
+  });
+
   it('keeps its stage when only the lower id shares it or the gap is within hysteresis', async () => {
     vi.useFakeTimers({ now: 1_000_000 });
     const c = await contributor({ dwellMs: 0 });
