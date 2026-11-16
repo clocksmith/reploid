@@ -6,6 +6,7 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { collectNativeSourceReceipts } from './native-source-receipts.js';
 import { verifyInstalledPackage } from './installed-package-identity.js';
 import { openNativeModelSource } from '../../server/native-participant.js';
 
@@ -39,8 +40,7 @@ async function initializeRuntime() {
 }
 const residents = new Map();
 const sources = [];
-const receipts = () => Promise.all(sources.map(async source => ({ generic: source.getReceipt(),
-  gather: source.getGatherReceipt ? await source.getGatherReceipt() : null })));
+const receipts = () => collectNativeSourceReceipts(sources);
 let whole;
 const memory = () => ({ process: process.memoryUsage(), pool: getBufferPool().getStats(), device: runtime.inspectDeviceMemory() });
 const encode = value => {

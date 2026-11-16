@@ -4,10 +4,17 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { collectNativeSourceReceipts } from './native-source-receipts.js';
 import { openNativeModelSource } from '../../server/native-model-source.js';
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-gather-'));
 try {
+  const evidence = await collectNativeSourceReceipts([
+    { getReceipt: () => ({}), getGatherReceipt: async () => { throw new Error('Failed owner already closed'); } },
+    { getReceipt: () => ({ requestedBytes: 0 }), getGatherReceipt: async () => ({ verifiedBytes: 4 }) },
+  ]);
+  assert.match(evidence[0].receiptFailure, /already closed/);
+  assert.deepEqual(evidence[1].gather, { verifiedBytes: 4 }, 'Failed owner cannot suppress successful retry evidence');
   const manifest = Buffer.from(JSON.stringify({ modelId: 'gather-test', shards: [{ filename: 'weights.bin', size: 4 }, { filename: 'unassigned.bin', size: 4 }] }));
   const weights = Buffer.from([1, 2, 3, 4]);
   const index = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', manifestIdentity: hash(manifest),
