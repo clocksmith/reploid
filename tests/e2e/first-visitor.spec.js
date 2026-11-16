@@ -12,12 +12,14 @@ async function localOnly(page) {
 
 test('fresh public route offers recovery after a bounded search with no peers', async ({ page }, info) => {
   await localOnly(page);
-  await expect(page.locator('[data-acquisition-status]')).toBeVisible({ timeout: 12000 });
-  const message = page.locator('[data-acquisition-status]');
+  // Discovery owns the composer status; acquisition status starts only after a download.
+  const message = page.locator('[data-model-status]');
+  await expect(message).toContainText(/unavailable|WebGPU|storage|Web Locks/, { timeout: 12000 });
   const download = page.locator('[data-download-local]');
   if (await page.evaluate(() => !!navigator.gpu && !!navigator.storage?.getDirectory && !!navigator.locks)) {
-    await expect(download).toBeVisible(); await expect(message).toContainText('No usable network capacity');
+    await expect(download).toBeVisible(); await expect(message).toContainText('unavailable');
     await download.click();
+    // The catalog's local, verified manifest supplies size without weight downloads.
     await expect(page.locator('[data-download-confirm]')).toBeEnabled();
     await expect(page.locator('[data-download-size]')).toContainText('MB download');
     await expect(page.locator('[data-download-confirm]')).toHaveText('Download model');

@@ -63,7 +63,7 @@ it('offers explicit local download after no usable peers and reuses the existing
   f.find('[data-download-local]').click();
   await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
-  expect(f.find('[data-download-title]').textContent).toBe('Download model');
+  expect(f.find('[data-download-title]').textContent).toBe('Download ' + CANONICAL_CHAT_MODELS[0].name);
   expect(f.find('[data-download-size]').textContent).toBe('123 MB download');
   f.find('[data-download-confirm]').click(); f.find('[data-download-confirm]').click();
   await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledOnce());
