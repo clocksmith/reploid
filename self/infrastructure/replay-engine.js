@@ -86,7 +86,7 @@ const ReplayEngine = {
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, VFS, AuditLogger, VFSSandbox, ToolRunner, LLMClient } = deps;
+    const { Utils, EventBus, AuditLogger, VFSSandbox, ToolRunner, LLMClient } = deps;
     const { logger, generateId } = Utils;
 
     let _events = [];

@@ -101,7 +101,7 @@ const SwarmSync = {
       }
 
       // Merge with existing
-      const { winner, value } = merge(local, remoteEntry);
+      const { winner } = merge(local, remoteEntry);
 
       if (winner === 'remote') {
         const entry = {
@@ -277,7 +277,7 @@ const SwarmSync = {
 
         // Read content from VFS
         const content = await VFS.read(path);
-        const stat = await VFS.stat(path);
+        await VFS.stat(path);
         const size = content?.length || 0;
 
         if (size > MAX_ARTIFACT_SIZE) {

@@ -1,3 +1,4 @@
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 /**
  * @fileoverview RunGEPA - Trigger GEPA prompt evolution
  */
@@ -7,7 +8,7 @@ const resolveModelConfig = (modelRef) => {
   if (typeof modelRef === 'object') return modelRef;
   if (typeof modelRef === 'string') {
     try {
-      const stored = localStorage.getItem('SELECTED_MODELS');
+      const stored = getCurrentReploidStorage().getItem('SELECTED_MODELS');
       const models = stored ? JSON.parse(stored) : [];
       return models.find(m => m.id === modelRef) || null;
     } catch {
@@ -19,7 +20,7 @@ const resolveModelConfig = (modelRef) => {
 
 const getDefaultModelConfig = () => {
   try {
-    const stored = localStorage.getItem('SELECTED_MODELS');
+    const stored = getCurrentReploidStorage().getItem('SELECTED_MODELS');
     const models = stored ? JSON.parse(stored) : [];
     return models[0] || null;
   } catch {
@@ -28,7 +29,7 @@ const getDefaultModelConfig = () => {
 };
 
 async function call(args = {}, deps = {}) {
-  const { GEPAOptimizer, PersonaManager, PromptMemory } = deps;
+  const { GEPAOptimizer, PersonaManager } = deps;
   if (!GEPAOptimizer?.api?.evolve) {
     throw new Error('GEPAOptimizer not available (requires FULL SUBSTRATE genesis level)');
   }

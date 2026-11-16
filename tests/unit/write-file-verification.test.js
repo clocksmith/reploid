@@ -48,7 +48,7 @@ function expectBlocked({ files, deps }, error) {
 
 describe('WriteFile core-write verification gate', () => {
   beforeEach(() => {
-    vi.stubGlobal('localStorage', { getItem: (key) => (key === 'REPLOID_ARENA_GATING' ? 'true' : null) });
+    vi.stubGlobal('localStorage', { setItem: vi.fn(), getItem: (key) => (key === 'REPLOID_ARENA_GATING' ? 'true' : null) });
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -106,7 +106,7 @@ describe('WriteFile core-write verification gate', () => {
   });
 
   it('does not record verification when the gate is off', async () => {
-    vi.stubGlobal('localStorage', { getItem: () => null });
+    vi.stubGlobal('localStorage', { setItem: vi.fn(), getItem: () => null });
     const ctx = setup(async () => ({ passed: true, skipped: false }));
     await write(ctx.deps);
     expect(ctx.deps.VerificationManager.verifyProposal).not.toHaveBeenCalled();
@@ -143,14 +143,14 @@ describe('module loaders fail closed with security on', () => {
   });
 
   it('SubstrateLoader refuses a critical path when arena gating is on and the verifier is missing', async () => {
-    vi.stubGlobal('localStorage', { getItem: (key) => (key === 'REPLOID_ARENA_GATING' ? 'true' : null) });
+    vi.stubGlobal('localStorage', { setItem: vi.fn(), getItem: (key) => (key === 'REPLOID_ARENA_GATING' ? 'true' : null) });
     const path = '/core/gated.js';
     const loader = SubstrateLoaderModule.factory({ Utils: { logger }, VFS: vfsWith(path, 'export default 1;') });
     await expect(loader.loadModule(path)).rejects.toThrow(/Arena verification failed/);
   });
 
   it('SubstrateLoader verifies a critical path through the loader when arena gating is off', async () => {
-    vi.stubGlobal('localStorage', { getItem: () => null });
+    vi.stubGlobal('localStorage', { setItem: vi.fn(), getItem: () => null });
     const path = '/core/ungated.js';
     const verifyProposal = vi.fn(async () => ({ passed: false, errors: ['refused'] }));
     const loader = SubstrateLoaderModule.factory({ Utils: { logger }, VFS: vfsWith(path, 'export default 1;'), VerificationManager: { verifyProposal } });

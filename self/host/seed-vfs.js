@@ -14,7 +14,6 @@ import {
 import {
   loadVfsManifest,
   seedVfsFromManifest,
-  clearVfsStore,
   readVfsFile,
   writeVfsFile,
   ensureVfsFileMirrors,

@@ -679,7 +679,7 @@ const SimpleAST = {
    */
   detectStructuralPatterns(code, path) {
     const issues = [];
-    const tokens = this.tokenize(code);
+    this.tokenize(code);
 
     // Check for dynamic property access patterns that could be prototype pollution
     const dynamicPropPattern = /\[([^\]]+)\]\s*=/g;

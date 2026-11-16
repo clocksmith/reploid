@@ -16,8 +16,7 @@ const IntentBundleGate = {
   },
 
   factory: (deps) => {
-    const { Utils, VFS, HITLController, AuditLogger, EventBus } = deps;
-    const { logger } = Utils;
+    const { VFS, HITLController, AuditLogger, EventBus } = deps;
 
     const MODULE_ID = 'IntentBundleGate';
     const CAPABILITY = 'approve_intent_bundle';

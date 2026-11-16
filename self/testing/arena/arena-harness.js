@@ -178,7 +178,7 @@ const ArenaHarness = {
      * @returns {Promise<Object>} Verification result
      */
     const verifySolution = async (config) => {
-      const { solution, parseChanges, name = 'self' } = config;
+      const { solution, parseChanges } = config;
 
       logger.info('[Arena] Running single solution verification');
 

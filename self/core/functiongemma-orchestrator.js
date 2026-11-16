@@ -26,7 +26,7 @@ const FunctionGemmaOrchestrator = {
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, SemanticMemory, ArenaHarness, ContextManager, SchemaRegistry, ReflectionStore, VFS } = deps;
+    const { Utils, EventBus, SemanticMemory, ArenaHarness, ContextManager, SchemaRegistry, ReflectionStore } = deps;
     const { logger, Errors } = Utils;
 
     let _network = null;

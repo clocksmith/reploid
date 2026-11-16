@@ -187,10 +187,7 @@ const normalizeModelConfig = (modelConfig = null) => {
   return next;
 };
 
-const estimateTokens = (text) => {
-  const value = typeof text === 'string' ? text : JSON.stringify(text || '');
-  return Math.max(0, Math.ceil(value.length / 4));
-};
+
 
 const createBridgeEmitter = () => {
   const listeners = new Map();

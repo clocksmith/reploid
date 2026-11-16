@@ -856,7 +856,7 @@ const RuleEngine = {
       }
 
       // For each predicate with enough examples, try to find common patterns
-      for (const [predicate, examples] of byPredicate) {
+      for (const examples of byPredicate.values()) {
         if (examples.length >= 3) {
           const pattern = findCommonPattern(examples);
           if (pattern && pattern.body.length > 0) {
@@ -961,7 +961,7 @@ const RuleEngine = {
       }
 
       // Induce rules for predicates with enough support
-      for (const [predicate, exs] of byPredicate) {
+      for (const exs of byPredicate.values()) {
         if (exs.length >= minSupport) {
           const pattern = findCommonPattern(exs);
           if (pattern) {

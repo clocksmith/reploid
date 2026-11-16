@@ -14,7 +14,6 @@ const ArenaMetrics = {
   },
 
   factory: (deps) => {
-    const { Utils } = deps;
 
     /** Result status constants */
     const Status = {

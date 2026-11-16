@@ -21,8 +21,6 @@ const LLMClient = {
 
     // Fallback rate limiter if not provided
     const _limiter = RateLimiter ? RateLimiter.createLimiter(60) : { waitForToken: async () => {} };
-    // Streaming requires StreamParser - disable if not available
-    const _canStream = !!StreamParser;
     const _activeRequests = new Map();
     const _activeProviders = new Map();
     // WebLLM State

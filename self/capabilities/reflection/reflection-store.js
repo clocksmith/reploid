@@ -247,7 +247,7 @@ const ReflectionStore = {
       const now = Date.now();
       let pruned = 0;
 
-      for (const [taskType, data] of Object.entries(_genomes)) {
+      for (const data of Object.values(_genomes)) {
         if (!data.generations) continue;
 
         const original = data.generations.length;

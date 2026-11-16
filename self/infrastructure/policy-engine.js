@@ -25,7 +25,6 @@ const PolicyEngine = {
   factory: (deps) => {
     const { Utils, VFS, EventBus } = deps;
     const AuditLogger = deps.AuditLogger || null;
-    const RuleEngine = deps.RuleEngine || null;
     const { logger, generateId } = Utils;
 
     const POLICIES_DIR = '/policies';

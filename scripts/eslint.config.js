@@ -162,7 +162,7 @@ export default [
       '**/self/core/**', '**/self/ui/**', '**/self/tools/**', '**/self/capabilities/**'],
       message: 'Hosted services compose contracts and host adapters; presentation and substrate execution stay with their owners.' }] }] } },
   { files: workerFiles, languageOptions: { globals: { ...globals.worker, ...globals.serviceworker } } },
-  { files: ['server/**/*.js', 'scripts/**/*.{js,mjs}', 'packages/reploid/src/**/*.js', 'apps/poolday/**/*.js'],
+  { files: ['server/**/*.js', 'scripts/**/*.{js,mjs}', 'packages/reploid/src/**/*.js', 'apps/poolday/**/*.js', 'self/**/*.js', 'shared/**/*.js'],
     ignores: ['apps/poolday/config/doppler-metadata-contract.js'], rules: {
     'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }]
   } },

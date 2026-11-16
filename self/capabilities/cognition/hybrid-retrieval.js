@@ -37,7 +37,7 @@ const HybridRetrieval = {
       EpisodicMemory,
       EmbeddingStore
     } = deps;
-    const { logger, Errors } = Utils;
+    const { logger } = Utils;
 
     // --- Configuration ---
     const CONFIG = {

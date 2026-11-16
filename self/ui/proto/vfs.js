@@ -19,7 +19,6 @@ export const createVFSManager = (deps) => {
   // Track EXPANDED folders (inverted: default is collapsed)
   // Only root-level folders start expanded
   const _expandedFolders = new Set();
-  let _initialized = false;
 
   // Initialize EventBus listeners for auto-refresh
   const initEventBusListeners = () => {
@@ -123,7 +122,6 @@ export const createVFSManager = (deps) => {
 
     // On first load, everything starts collapsed (empty _expandedFolders)
     // User clicks to expand what they need
-    _initialized = true;
 
     // Get aggregate status for a folder's descendants
     const getAggregateStatus = (node) => {

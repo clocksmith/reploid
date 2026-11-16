@@ -15,8 +15,8 @@ const SymbolGrounder = {
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, KnowledgeGraph, SemanticMemory } = deps;
-    const { logger, generateId } = Utils;
+    const { Utils, KnowledgeGraph, SemanticMemory } = deps;
+    const { logger } = Utils;
 
     // Patterns for extracting structured information
     const PATTERNS = {

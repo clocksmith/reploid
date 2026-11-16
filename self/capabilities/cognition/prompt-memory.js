@@ -16,7 +16,7 @@ const PromptMemory = {
 
   factory: (deps) => {
     const { Utils, EventBus, SemanticMemory, EmbeddingStore, KnowledgeTree, VFS } = deps;
-    const { logger, generateId, Errors } = Utils;
+    const { logger, Errors } = Utils;
 
     // --- Configuration ---
     const CONFIG = {
@@ -566,7 +566,7 @@ const PromptMemory = {
     // --- Maintenance ---
 
     const getStats = async () => {
-      const memoryStats = await SemanticMemory.getStats();
+      await SemanticMemory.getStats();
 
       // Count prompt memories
       let promptCount = 0;

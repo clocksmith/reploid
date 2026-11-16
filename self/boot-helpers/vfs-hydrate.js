@@ -1,10 +1,10 @@
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 /**
  * @fileoverview VFS Hydration
  * Fetches source files from network and writes to VFS for self-hosting.
  */
 
 import { buildCoreToolSet } from './config.js';
-import { toSourceWebPath } from '../boot-spec.js';
 import '../config/boot-seed.js';
 
 /**
@@ -18,20 +18,6 @@ const toVfsPath = (file) => {
 };
 
 /**
- * Resolve a URL relative to the current document base.
- * @param {string} file - File path from self/
- * @returns {string} Resolved URL for fetch
- */
-const toWebPath = (file) => {
-  const base = (typeof document !== 'undefined' && document.baseURI)
-    ? document.baseURI
-    : (typeof window !== 'undefined' && window.location ? window.location.href : 'http://localhost/');
-  const normalized = String(file || '').startsWith('/') ? String(file) : `/${String(file || '')}`;
-  return new URL(toSourceWebPath(normalized), base).toString();
-};
-
-
-/**
  * Reset session artifacts from VFS.
  * @param {Object} vfs - VFS instance
  * @param {Object} genesisConfig - Genesis configuration
@@ -39,7 +25,7 @@ const toWebPath = (file) => {
  * @param {Object} logger - Logger instance
  */
 export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
-  const resetSetting = localStorage.getItem('REPLOID_RESET_VFS');
+  const resetSetting = getCurrentReploidStorage().getItem('REPLOID_RESET_VFS');
   const shouldReset = resetSetting === 'true';
 
   if (!shouldReset) return;
@@ -125,8 +111,8 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     }
 
     logger.info('[Boot] Session reset complete');
-    if (localStorage.getItem('REPLOID_RESET_VFS') !== 'false') {
-      localStorage.setItem('REPLOID_RESET_VFS', 'false');
+    if (getCurrentReploidStorage().getItem('REPLOID_RESET_VFS') !== 'false') {
+      getCurrentReploidStorage().setItem('REPLOID_RESET_VFS', 'false');
     }
   } catch (e) {
     logger.warn('[Boot] Session reset failed:', e.message);

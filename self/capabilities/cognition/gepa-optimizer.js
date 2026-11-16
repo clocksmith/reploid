@@ -10,7 +10,7 @@
  * - VFS Checkpoints: Save/resume population state
  * - Transfer Learning: Seed population from historical prompts via PromptMemory
  *
- * @see Blueprint 0x000001: Genetic Evolution of Prompt Architectures
+ * @see Blueprint 0x000067: Genetic Evolution of Prompt Architectures
  */
 
 const GEPAOptimizer = {
@@ -1084,13 +1084,6 @@ ${promptPreview}
       }
     };
 
-    // Backward compatibility wrappers
-    const checkDominance = (a, b, objectives) =>
-      NSGAEngine.checkDominance(a, b, objectives, DEFAULTS.objectiveWeights);
-
-    const calculateCrowdingDistance = (front, objectives) =>
-      NSGAEngine.calculateCrowdingDistance(front, objectives);
-
     const paretoSelect = (candidates, objectives, targetSize, config = {}) =>
       NSGAEngine.select(candidates, objectives, targetSize, config);
 
@@ -1576,8 +1569,6 @@ ${promptPreview}
      * @returns {Object} Statistics object
      */
     const getStatistics = () => {
-      const frontierScores = _paretoFrontier.map(c => c.scores);
-      const populationScores = _population.map(c => c.scores);
 
       return {
         generation: _generation,

@@ -62,7 +62,7 @@ const DopplerOptimizer = {
       AuditLogger,
       ReflectionStore
     } = deps;
-    const { Errors, generateId, logger } = Utils;
+    const { Errors, generateId } = Utils;
     let activeRun = null;
 
     const asJson = (value) => `${JSON.stringify(value, null, 2)}\n`;

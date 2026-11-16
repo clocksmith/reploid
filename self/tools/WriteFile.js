@@ -1,3 +1,4 @@
+import { getCurrentReploidStorage } from '../../shared/instance.js';
 import { getTextBytes } from '../host/file-access.js';
 import fileToolSchemas from '../config/file-tool-schemas.json' with { type: 'json' };
 import { normalizeFilePath as normalizePath, resolveMode, resolveMaxBytes, getOpfsFileHandle } from '../host/file-access.js';
@@ -109,7 +110,7 @@ const verifyCoreWrite = async ({ path, content, VFSSandbox, VerificationManager,
 };
 
 async function call(args = {}, deps = {}) {
-  const { VFS, EventBus, AuditLogger, VFSSandbox, VerificationManager, SubstrateLoader, ToolRunner } = deps;
+  const { VFS, EventBus, AuditLogger, VFSSandbox, VerificationManager, ToolRunner } = deps;
   if (!VFS) throw new Error('VFS not available');
 
   const rawPath = args.path || args.file;
@@ -248,7 +249,7 @@ async function call(args = {}, deps = {}) {
   // non-skipped Verification Worker pass permits the write.
   let arenaGatingEnabled = false;
   try {
-    arenaGatingEnabled = localStorage.getItem('REPLOID_ARENA_GATING') === 'true';
+    arenaGatingEnabled = getCurrentReploidStorage().getItem('REPLOID_ARENA_GATING') === 'true';
   } catch (e) { /* ignore */ }
   let verified = false;
   if (isCore && arenaGatingEnabled) {
