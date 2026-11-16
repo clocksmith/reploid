@@ -85,10 +85,35 @@ export function projectCloudRunRuntimeEnv(source, runtimeEnv) {
   return lines.join('\n').replace(/\n*$/, '\n');
 }
 
+/** Render the two service declarations from one bounded scaling policy. */
+export function projectServicePolicy(cloudRunYaml, cloudBuildYaml, service) {
+  if (!service || !['minInstances', 'maxInstances', 'concurrency', 'timeoutSeconds'].every(key => Number.isSafeInteger(service[key]))
+    || service.minInstances < 0 || service.maxInstances < Math.max(1, service.minInstances)
+    || service.concurrency < 1 || service.concurrency > 1000 || service.timeoutSeconds < 1 || service.timeoutSeconds > 3600) {
+    throw new Error('Invalid bounded Cloud Run service policy');
+  }
+  const replace = (source, pattern, value) => {
+    if (!pattern.test(source)) throw new Error('Missing generated Cloud Run service declaration');
+    return source.replace(pattern, `$1${value}`);
+  };
+  for (const [key, yamlKey, flag, quoted] of [
+    ['minInstances', 'autoscaling.knative.dev/minScale', 'min-instances', true],
+    ['maxInstances', 'autoscaling.knative.dev/maxScale', 'max-instances', true],
+    ['concurrency', 'containerConcurrency', 'concurrency', false],
+    ['timeoutSeconds', 'timeoutSeconds', 'timeout', false]
+  ]) {
+    cloudRunYaml = replace(cloudRunYaml, new RegExp(`(^\\s*${escapeRegExp(yamlKey)}: )[^\\n]+`, 'm'),
+      quoted ? JSON.stringify(String(service[key])) : service[key]);
+    cloudBuildYaml = replace(cloudBuildYaml, new RegExp(`(--${flag} )[^\\s]+`), service[key]);
+  }
+  return { cloudRunYaml, cloudBuildYaml };
+}
+
 export function synchronizeRuntimeConfig({
   poolConfig,
   deploymentConfig,
   cloudRunYaml,
+  cloudBuildYaml,
   packageManifest,
   packageLock,
   packageVersion = DOPPLER_PACKAGE_VERSION,
@@ -159,9 +184,15 @@ export function synchronizeRuntimeConfig({
     };
   }
 
-  const synchronizedCloudRunYaml = projectCloudRunRuntimeEnv(cloudRunYaml, synchronizedDeploymentConfig.runtimeEnv);
+  let synchronizedCloudRunYaml = projectCloudRunRuntimeEnv(cloudRunYaml, synchronizedDeploymentConfig.runtimeEnv);
 
+  if (cloudBuildYaml !== undefined) {
+    const projected = projectServicePolicy(synchronizedCloudRunYaml, cloudBuildYaml, synchronizedDeploymentConfig.service);
+    synchronizedCloudRunYaml = projected.cloudRunYaml;
+    cloudBuildYaml = projected.cloudBuildYaml;
+  }
   return {
+    ...(cloudBuildYaml !== undefined ? { cloudBuildYaml } : {}),
     poolConfig: synchronizedPoolConfig,
     deploymentConfig: synchronizedDeploymentConfig,
     cloudRunYaml: synchronizedCloudRunYaml
@@ -176,13 +207,15 @@ if (isMain) {
     poolConfig: resolveServedFile('pool/pool-config.json', { repoRoot }),
     deploymentConfig: path.join(repoRoot, 'deploy', 'env.production.json'),
     cloudRunYaml: path.join(repoRoot, 'deploy', 'cloud-run-service.yaml'),
+    cloudBuildYaml: path.join(repoRoot, 'deploy', 'cloudbuild.yaml'),
     packageManifest: path.join(repoRoot, 'package.json'),
     packageLock: path.join(repoRoot, 'package-lock.json')
   };
   const current = {
     poolConfig: fs.readFileSync(filePaths.poolConfig, 'utf8'),
     deploymentConfig: fs.readFileSync(filePaths.deploymentConfig, 'utf8'),
-    cloudRunYaml: fs.readFileSync(filePaths.cloudRunYaml, 'utf8')
+    cloudRunYaml: fs.readFileSync(filePaths.cloudRunYaml, 'utf8'),
+    cloudBuildYaml: fs.readFileSync(filePaths.cloudBuildYaml, 'utf8')
   };
   const poolConfig = JSON.parse(current.poolConfig);
   const browserRuntimeVersion = DOPPLER_BROWSER_RUNTIME_VERSION;
@@ -195,13 +228,15 @@ if (isMain) {
     kernelBaseUrl: `${runtimeBase}/src/gpu/kernels`,
     deploymentConfig: JSON.parse(current.deploymentConfig),
     cloudRunYaml: current.cloudRunYaml,
+    cloudBuildYaml: current.cloudBuildYaml,
     packageManifest: JSON.parse(fs.readFileSync(filePaths.packageManifest, 'utf8')),
     packageLock: JSON.parse(fs.readFileSync(filePaths.packageLock, 'utf8'))
   });
   const expected = {
     poolConfig: formatJson(synchronized.poolConfig),
     deploymentConfig: formatJson(synchronized.deploymentConfig),
-    cloudRunYaml: synchronized.cloudRunYaml
+    cloudRunYaml: synchronized.cloudRunYaml,
+    cloudBuildYaml: synchronized.cloudBuildYaml
   };
   const changed = Object.keys(expected).filter((key) => current[key] !== expected[key]);
 

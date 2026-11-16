@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   replaceCloudRunEnvValue,
   projectCloudRunRuntimeEnv,
+  projectServicePolicy,
   synchronizeRuntimeConfig
 } from '../../scripts/sync-runtime-config.js';
 import {
@@ -166,4 +167,16 @@ it('projects changed and removed environment values while retaining secret and r
   expect(rendered).toContain('  resources:\n    cpu: 1');
   expect(projectCloudRunRuntimeEnv(rendered, { REPLOID_TURN_HOST: 'new.example.test', LIMIT: '512kb' })).toBe(rendered);
   expect(() => projectCloudRunRuntimeEnv(source, { REPLOID_TURN_SHARED_SECRET: 'override' })).toThrow('collision');
+});
+
+it('projects one service policy into both deployment paths and refuses an absent bound', () => {
+  const run = 'autoscaling.knative.dev/minScale: "9"\nautoscaling.knative.dev/maxScale: "9"\ncontainerConcurrency: 9\ntimeoutSeconds: 9\n';
+  const build = '--min-instances 9 --max-instances 9 --concurrency 9 --timeout 9';
+  const policy = { minInstances: 0, maxInstances: 1, concurrency: 80, timeoutSeconds: 300 };
+  const result = projectServicePolicy(run, build, policy);
+  expect(result.cloudRunYaml).toContain('maxScale: "1"');
+  expect(result.cloudRunYaml).toContain('timeoutSeconds: 300');
+  expect(result.cloudBuildYaml).toBe('--min-instances 0 --max-instances 1 --concurrency 80 --timeout 300');
+  expect(() => projectServicePolicy(run, build, { ...policy, maxInstances: 0 })).toThrow('Invalid bounded');
+  expect(() => projectServicePolicy(run, '--concurrency 9', policy)).toThrow('Missing generated');
 });
