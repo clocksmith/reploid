@@ -93,7 +93,7 @@ Proposed receipt retention, authorized peer replication and verifiable usage vie
 - [Security audit policy](SECURITY_AUDIT.md) — cooperative self-audit scope and sanitized findings.
 - [Approved symbols](EMOJI.md) — presentation and documentation conventions.
 - [Primes example](../examples/primes.html) — standalone HTML example.
-- [Scoped repair utility](../scripts/repair_reploid.py) — historical guarded repair; inspect `--help` before use.
+- [Historical scoped repair](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/scripts/repair_reploid.py) — commit-specific recovery source, retained in history rather than the current tool set.
 
 ### Reference
 - **[Distributed conversation diagrams](./open-mesh-architecture.md#technical-diagrams)** - Component ownership, two-partition generation, and attempt recovery, linked to implementation.
