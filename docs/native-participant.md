@@ -661,7 +661,10 @@ whole-model authenticated gathering with `indices: null` and a pinned
 CLI. Whole diagnostic loads pass the captured manifest text/hash and owned
 storage through Doppler's existing inline source API with an isolated loader;
 URL loading cannot replace those bytes. All retained sources close after model
-owners unload, including failed-load cleanup retries.
+owners unload, including failed-load cleanup retries. The preparation signal
+bounds admission and loading; after successful loading its deadline no longer
+aborts storage reads. Storage keeps its own close lifetime, and leased generation
+reads still honor their individual operation signals.
 
 The diagnostic `preflight` operation verifies the selected runtime identity and
 model/index metadata bindings without importing that runtime or opening a GPU.

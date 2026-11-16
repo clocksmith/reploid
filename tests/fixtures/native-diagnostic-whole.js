@@ -50,11 +50,19 @@ export async function openDiagnosticWholeModel({ config, manifestBytes, model, r
   const digest = createHash('sha256').update(manifestBytes).digest('hex');
   assert.equal(digest, config.manifestSha256, 'Whole diagnostic manifest bytes changed');
   assert.equal(JSON.parse(manifestText).modelId, model.id, 'Whole diagnostic model id mismatch');
-  const source = await openNativeModelSource({
-    model: { ...model, source: { files: [config.pieceIndex] } },
-    modelDirectory: path.dirname(config.manifestPath), runtime, gather: config.workerGather ?? null, signal,
-  });
+  // The caller's signal bounds preparation. A successful model retains storage
+  // until unload, so that deadline must not abort its later generation reads.
+  const preparing = new AbortController();
+  const cancelPreparation = () => preparing.abort(signal.reason);
+  if (signal?.aborted) cancelPreparation();
+  else signal?.addEventListener('abort', cancelPreparation, { once: true });
+  let source;
   try {
+    source = await openNativeModelSource({
+      model: { ...model, source: { files: [config.pieceIndex] } },
+      modelDirectory: path.dirname(config.manifestPath), runtime, gather: config.workerGather ?? null,
+      signal: preparing.signal,
+    });
     // Retain failed sources too, so a later close can retry failed cleanup and
     // diagnostics cannot mistake their evidence for a subsequent successful owner.
     onSource(source);
@@ -63,9 +71,11 @@ export async function openDiagnosticWholeModel({ config, manifestBytes, model, r
       { runtimeConfig: config.runtimeConfig, isolatedLoader: true, signal });
     return { model: loaded, source };
   } catch (error) {
-    try { await source.storage.close(); }
+    try { await source?.storage.close(); }
     catch (cleanup) { throw new AggregateError([error, cleanup], 'Whole diagnostic loading and source cleanup failed'); }
     throw error;
+  } finally {
+    signal?.removeEventListener('abort', cancelPreparation);
   }
 }
 

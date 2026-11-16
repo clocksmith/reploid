@@ -93,6 +93,18 @@ it('stops after cancellation between source admission and model loading', async 
   await expect(f.sources[0].storage.loadShardRange(0, 0, 4)).rejects.toThrow('whole admission cancelled');
 });
 
+it('ends the preparation deadline after successful loading without ending source ownership', async () => {
+  const f = await fixture(), preparation = new AbortController();
+  const opened = await openDiagnosticWholeModel({ ...f, signal: preparation.signal,
+    load: async () => ({ unload: vi.fn() }) });
+  preparation.abort(new Error('preparation deadline expired after loading'));
+  expect([...new Uint8Array(await opened.source.storage.loadShardRange(0, 0, 4))]).toEqual([1, 2, 3, 4]);
+  const lease = await opened.source.storage.rangeLease.read(0, 4, 4, new AbortController().signal);
+  expect([...lease.bytes]).toEqual([5, 6, 7, 8]); lease.release();
+  await opened.model.unload(); await closeDiagnosticSources(f.sources);
+  await expect(opened.source.storage.loadShardRange(0, 0, 4)).rejects.toThrow(/closed|outside/);
+});
+
 it('preserves load and cleanup errors and retries the retained owner', async () => {
   const f = await fixture(), loadFailure = new Error('load failed'), cleanupFailure = new Error('close failed');
   let attempts = 0;
