@@ -1,0 +1,109 @@
+{
+  "schema": "reploid.retained-evidence/v1",
+  "sourceCommit": "e543183bed54dfdf2b6e6139dd4c31c8686f47bd",
+  "sourceCommits": [
+    "e543183bed54dfdf2b6e6139dd4c31c8686f47bd"
+  ],
+  "retention": "immutable Git history; no expiry for existing qualification evidence",
+  "fileCount": 7150,
+  "bytes": 1210393618,
+  "retainedInputs": [
+    "artifacts/cleanup-failure-20261012/signed-preflight.js",
+    "artifacts/concurrent-memory-observation-20261012/bounded-result/accounting-control.json",
+    "artifacts/partition-resident/20260927/signed-opening-fixture.json",
+    "artifacts/partition-resident/20260927/installed-physical.json",
+    "artifacts/first-use-preparation-20261013/conversation-workspace-before.js"
+  ],
+  "parts": [
+    {
+      "path": "part-0000.json",
+      "count": 400,
+      "sha256": "bc47c7661bd7c3e8c82b831160e9467c0a538e9f9e22d5809e1ff3475113af76"
+    },
+    {
+      "path": "part-0001.json",
+      "count": 400,
+      "sha256": "e4d9756358d4bf415c1545e8399e782757b1884500e2e7687f8995c28246cab4"
+    },
+    {
+      "path": "part-0002.json",
+      "count": 400,
+      "sha256": "1725ea69fdccd8338ddf8e388a2eaf1e770eea981a43d8bb57ead253150ef627"
+    },
+    {
+      "path": "part-0003.json",
+      "count": 400,
+      "sha256": "10988b9dc583812ed70a170a86133552641b16a9b5af6fad32a3d2cc4d154541"
+    },
+    {
+      "path": "part-0004.json",
+      "count": 400,
+      "sha256": "93bb16da70d566d7b05c65aa67aabc1c4827ce48c821ca0edd00b59d98cb5aa2"
+    },
+    {
+      "path": "part-0005.json",
+      "count": 400,
+      "sha256": "03cc32254b4870770af5621b7e3b3ad7dbe5be80730f87e8a036b6ad7f17e5b1"
+    },
+    {
+      "path": "part-0006.json",
+      "count": 400,
+      "sha256": "477e04735687e502ad8c778881340ede8940c675812cdd7ec83d9bac3123b7d1"
+    },
+    {
+      "path": "part-0007.json",
+      "count": 400,
+      "sha256": "73e70bc59990aab2fedb5fe54564d7a99dab12f80b3ca7fd948b1542a5b74678"
+    },
+    {
+      "path": "part-0008.json",
+      "count": 400,
+      "sha256": "3cf09eed4e5731fd5bfd12e66ffeb69d9316d18d13f671ff28a2cc155dbcfaa9"
+    },
+    {
+      "path": "part-0009.json",
+      "count": 400,
+      "sha256": "3bff02c79437eb9776d5f55c45e0825dae115fc3d1fae9d40a8f40ce954b895b"
+    },
+    {
+      "path": "part-0010.json",
+      "count": 400,
+      "sha256": "5526e347a1f0261860764f44d98bd2773f864f339d5302cecc4ebcdabe3c7d78"
+    },
+    {
+      "path": "part-0011.json",
+      "count": 400,
+      "sha256": "7ef7ea4303900f0824a7cd19fac766c8268b931f328b66fed4ea2dfdbbcc1079"
+    },
+    {
+      "path": "part-0012.json",
+      "count": 400,
+      "sha256": "f16c5d82dd2d6499fab755d2ff383c70222b1e1b1dc52994d1889d78e7c6eb5d"
+    },
+    {
+      "path": "part-0013.json",
+      "count": 400,
+      "sha256": "0d4938fb626cad39447ffa41fe15e1715809dc95c794370dcb996d4484ab82aa"
+    },
+    {
+      "path": "part-0014.json",
+      "count": 400,
+      "sha256": "56ac340885215e89a40c685b1341e283a758dfe308d8f0993218a00c18d52196"
+    },
+    {
+      "path": "part-0015.json",
+      "count": 400,
+      "sha256": "c798702e2e0f4fb97c4c2b944f2890a8ca14e4f4faab73123d7ed12b72221b85"
+    },
+    {
+      "path": "part-0016.json",
+      "count": 400,
+      "sha256": "9717ce1c659f2725f2c72984b7cdc9cc6790cb0adb5e7a1420cdc568401c1b88"
+    },
+    {
+      "path": "part-0017.json",
+      "count": 350,
+      "sha256": "7292151ca66c38ff3c621837afa926cf17f4771fff402e92ec20beb3963e3f9d"
+    }
+  ]
+}

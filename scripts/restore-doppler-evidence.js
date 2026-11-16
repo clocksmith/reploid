@@ -4,25 +4,33 @@ import { readFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { readEvidenceCatalog, restoreEvidenceFile } from './retained-evidence.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const retained = JSON.parse(readFileSync(path.join(root, 'deploy/artifacts/retention.json')));
 const [mode, version, destination] = process.argv.slice(2);
 if (!['--check', '--restore'].includes(mode)) throw new Error('Use --check or --restore VERSION EMPTY_DESTINATION');
-const verify = row => {
+let catalog;
+const verify = async row => {
   const archive = path.resolve(root, row.archive);
   if (!archive.startsWith(path.join(root, 'deploy/artifacts') + path.sep)) throw new Error('Archive must be a retained deployment artifact');
+  if (!existsSync(archive)) {
+    catalog ||= await readEvidenceCatalog(root);
+    const retained = catalog.files.get(row.archive);
+    if (!retained) throw new Error('Historical archive is not in the retained evidence catalog');
+    await restoreEvidenceFile(retained, { root });
+  }
   const bytes = readFileSync(archive);
   if ('sha512-' + createHash('sha512').update(bytes).digest('base64') !== row.integrity) throw new Error('Historical archive integrity mismatch');
   return archive;
 };
 if (mode === '--check') {
-  for (const row of retained.archivedVersions) verify(row);
+  for (const row of retained.archivedVersions) await verify(row);
   console.log(`Verified ${retained.archivedVersions.length} historical Doppler archives`);
 } else {
   const row = retained.archivedVersions.find(item => item.version === version);
   if (!row || !destination) throw new Error('Choose a retained version and an empty destination');
-  const archive = verify(row), target = path.resolve(destination);
+  const archive = await verify(row), target = path.resolve(destination);
   if (existsSync(target)) throw new Error('Destination must not already exist');
   const entries = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' }).trim().split('\n');
   if (entries.some(entry => !entry.startsWith('package/') || entry.split('/').includes('..'))) throw new Error('Unsafe archive path');
