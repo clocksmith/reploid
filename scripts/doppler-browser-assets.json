@@ -1,0 +1,10 @@
+{
+  "schema": "reploid.doppler-browser-assets/v1",
+  "excludedRuntimeProfiles": [
+    {
+      "file": "qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
+      "sha256": "de27a1fd23f676039b06111b7abd1085b36dd682dcb7baa49fedfe882decf297",
+      "reason": "Explicit peer comparison fixture; not a browser runtime profile."
+    }
+  ]
+}

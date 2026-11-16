@@ -4805,8 +4805,8 @@
     },
     {
       "path": "vendor/doppler/0.7.4/src/config/kernels/registry.json",
-      "byteLength": 788651,
-      "sha256": "sha256:d75923134508f3fba72a3134d9004a2046d503655dc3e4d99bf23c795d23da99"
+      "byteLength": 791463,
+      "sha256": "sha256:f0818cbb22023bb5c408c108bb6045d67708a5edfac74c9633bdf4dc17e72465"
     },
     {
       "path": "vendor/doppler/0.7.4/src/config/layer-partition-plan.js",
@@ -12309,5 +12309,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:2ee9cb4b88e3ee28ffab3d719d592e3840f5f8ed5b6a13236887c16c3f6c1137"
+  "bundleHash": "sha256:a18d6dd90eb2160fb7b360fffe095e187ede2c49427a915ea257245877c1d6dc"
 }

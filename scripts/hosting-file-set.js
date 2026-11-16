@@ -2,6 +2,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'acorn';
+import browserAssets from './doppler-browser-assets.json' with { type: 'json' };
 import { openBrowserTree, openDirectoryTree, REPOSITORY_ROOT } from '../server/browser-tree.js';
 
 export async function walkFiles(root, relative = '') {
@@ -94,6 +95,11 @@ export async function buildHostingFileSet(options = {}) {
     if (!sample) throw new Error(`Missing Doppler package assets: ${prefix}`);
     const root = tree.absolute(sample).slice(0, -(sample.length - prefix.length));
     const files = await walkFiles(root);
+    for (const profile of browserAssets.excludedRuntimeProfiles) {
+      if (files.includes(`src/config/runtime/profiles/${profile.file}`)) {
+        throw new Error(`Non-shipping Doppler profile remains in browser assets: ${profile.file}`);
+      }
+    }
     // Kernel and policy selection is dynamic and hardware-dependent. Retain its
     // complete data and implementation family, rather than one machine's trace.
     for (const name of files) {

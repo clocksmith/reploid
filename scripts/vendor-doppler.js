@@ -5,6 +5,10 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
+const browserAssets = JSON.parse(readFileSync(path.join(root, 'scripts/doppler-browser-assets.json')));
+if (browserAssets.schema !== 'reploid.doppler-browser-assets/v1' || !Array.isArray(browserAssets.excludedRuntimeProfiles)) {
+  throw new Error('Invalid Doppler browser asset policy');
+}
 const pin = JSON.parse(readFileSync(path.join(root, 'package-lock.json'))).packages['node_modules/doppler-gpu'];
 const hex = Buffer.from(pin.integrity.split('-')[1], 'base64').toString('hex');
 const cache = execFileSync('npm', ['config', 'get', 'cache'], { encoding: 'utf8' }).trim();
@@ -31,6 +35,19 @@ const backup = `${staging}-previous`;
 let replaced = false;
 try {
   execFileSync('tar', ['-xzf', archive, '--strip-components=1', '-C', staging]);
+  // Select browser assets without rewriting any retained package bytes. Historical
+  // kernel reachability labels remain exactly as authenticated by the archive.
+  for (const profile of browserAssets.excludedRuntimeProfiles) {
+    if (!/^[a-zA-Z0-9_.-]+\.json$/.test(profile.file) || !/^[a-f0-9]{64}$/.test(profile.sha256)) {
+      throw new Error('Invalid excluded Doppler profile identity');
+    }
+    const file = path.join(staging, 'src/config/runtime/profiles', profile.file);
+    if (!existsSync(file)) continue;
+    if (createHash('sha256').update(readFileSync(file)).digest('hex') !== profile.sha256) {
+      throw new Error(`Excluded Doppler profile differs from its reviewed identity: ${profile.file}`);
+    }
+    rmSync(file);
+  }
   if (existsSync(target)) renameSync(target, backup);
   try { renameSync(staging, target); replaced = true; }
   catch (error) {
