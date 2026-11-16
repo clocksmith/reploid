@@ -9,7 +9,7 @@ Recursive authority charters discovered from the repository root.
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible deployment inputs and service boundaries. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Browser Runtime | [`self/CATSCAN.md`](../self/CATSCAN.md) | Reploid | Boot the selected Reploid surface in a browser with explicit configuration, recoverable state, and inspectable authority boundaries. |
-| Hosted Services | [`server/CATSCAN.md`](../server/CATSCAN.md) | Reploid | Bounded authenticated services and native participation without authority over browser claims. |
+| Hosted Services | [`server/CATSCAN.md`](../server/CATSCAN.md) | Reploid | Bounded authenticated services and native participation, without browser authority. |
 | Shared Browser Code | [`shared/CATSCAN.md`](../shared/CATSCAN.md) | Reploid | Serve, from one owner, browser files shared by Poolday and the agent substrate, and environment-neutral bridges used by browser and native hosts. |
 | Verification Evidence | [`tests/CATSCAN.md`](../tests/CATSCAN.md) | Reploid | Produce reproducible evidence about declared behavior, boundaries, regressions, and failure handling. |
 | Poolday Product | [`apps/poolday/CATSCAN.md`](../apps/poolday/CATSCAN.md) | Reploid | Serve replo.id: shared models first, independent conversations, and secondary device contribution and production. |

@@ -10,6 +10,17 @@ async function errors(filePath, source) {
 }
 
 describe('execution environment lint boundaries', () => {
+  it.each([
+    "import '../packages/reploid/src/chat/workspace.js';",
+    "export * from '../packages/reploid/src/chat/workspace.js';",
+    "export const open = () => import('../packages/reploid/src/chat/workspace.js');",
+    "export const open = () => import(`../packages/reploid/src/chat/workspace.js`);"
+  ])('rejects private hosted-library imports in lint: %s', async source => {
+    const messages = await errors('server/boundary-probe.js', source);
+    expect(messages).toEqual([expect.objectContaining({ ruleId: 'architecture/server-library-imports' })]);
+    expect(await errors('server/boundary-probe.js', "export * from '../packages/reploid/src/chat/index.js';")).toEqual([]);
+  });
+
   it('checks unused locals and nested choices in new modules without a manual registration', async () => {
     const linter = createChangedCodeLinter(['apps/poolday/host/new-module.js']);
     const [result] = await linter.lintText('export function value(a, b) { const unused = 1; return a ? b ? 1 : 2 : 3; }',

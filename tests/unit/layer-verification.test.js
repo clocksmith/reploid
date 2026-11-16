@@ -98,6 +98,14 @@ describe('layer verification', () => {
     expect(violations).toEqual([]);
   });
 
+  it.each(['../packages/reploid/src/chat/index.js', '../packages/reploid/src/mesh/index.js',
+    '../packages/reploid/src/contracts/partition.js', '../packages/reploid/src/artifacts/signatures.js',
+    '../packages/reploid/src/chat/execution-policy.js'])(
+    'allows the hosted library contract %s', target => {
+      expect(findLayerViolations({ repoRoot, sourcePath: path.join(repoRoot, 'server/entry.js'),
+        source: `export * from '${target}';` })).toEqual([]);
+    });
+
   it('parses real edges without interpreting comments or strings as imports', () => {
     expect(moduleEdges("// import './fake.js'\nconst text = \"import('./fake.js')\"; import(`./real.js`); import(loader);")).toEqual([
       { specifier: './real.js', expression: '`./real.js`', dynamic: true },
@@ -108,6 +116,8 @@ describe('layer verification', () => {
   it.each([
     ['packages/reploid/src/chat/probe.js', '../mesh/partitions/partition-contract.js'],
     ['server/entry.js', '../self/tools/Promote.js'],
+    ['server/entry.js', '../packages/reploid/src/chat/workspace.js'],
+    ['server/entry.js', '../packages/reploid/src/mesh/partitions/partition-route-execution.js'],
     ['server/entry.js', '../apps/poolday/ui/pool-home/work.js'],
     ['packages/reploid/src/agent/turn.js', '../../../../self/config/models.js'],
     ['packages/reploid/src/agent/turn.js', 'firebase-admin'],

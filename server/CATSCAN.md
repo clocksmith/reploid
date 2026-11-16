@@ -3,16 +3,16 @@
 Parent: [Reploid](../CATSCAN.md)
 
 ## Target
-Bounded authenticated services and native participation without authority over browser claims.
+Bounded authenticated services and native participation, without browser authority.
 
 ## Authority
-Owns HTTP, discovery, relay, native composition and durable services. Ledger owns credits/settlements; rewards owns issuance; payments owns purchases; Community Access owns funding pools; scheduler owns obligations. Earning composition connects them without changing domain authority.
+Owns HTTP, discovery, relay, composition and durable services. Ledger owns credits/settlements; rewards owns issuance; payments owns purchases; Community Access owns funding pools; scheduler owns obligations. Earning composition connects them without changing domain authority.
 
 ## Scope
 This directory.
 
 ## Contracts
-Inputs: [proxy.js](proxy.js), [signaling](reploid-signaling.js), [admission](public-inference-guard.js), library contracts, shared browser contracts and Poolday host/pool/config adapters. Product presentation and substrate execution implementations are forbidden dependencies.
+Inputs: [proxy.js](proxy.js), [signaling](reploid-signaling.js), [admission](public-inference-guard.js), library public entries and [declared wire/host contracts](../scripts/server-library-imports.json), shared browser contracts and Poolday host/pool/config adapters. Product presentation and substrate execution implementations are forbidden dependencies.
 Outputs: bounded responses, accounting and delivery records.
 
 ## Invariants

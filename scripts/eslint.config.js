@@ -1,4 +1,25 @@
 import globals from 'globals';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { findLayerViolations } from './verify-layers.js';
+import { SERVER_LIBRARY_BOUNDARY } from './server-library-imports.js';
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const serverLibraryRule = {
+  meta: { type: 'problem', schema: [] },
+  create(context) {
+    const check = node => {
+      const target = node.source;
+      const specifier = target?.value ?? (target?.type === 'TemplateLiteral' && !target.expressions.length ? target.quasis[0].value.cooked : null);
+      if (typeof specifier !== 'string') return;
+      const violations = findLayerViolations({ repoRoot, sourcePath: context.filename, source: '', edges: [{ specifier }] });
+      for (const row of violations.filter(value => value.reason === SERVER_LIBRARY_BOUNDARY)) {
+        context.report({ node: target, message: row.reason + ': ' + specifier });
+      }
+    };
+    return { ImportDeclaration: check, ExportNamedDeclaration: check, ExportAllDeclaration: check, ImportExpression: check };
+  }
+};
 
 const workerFiles = ['shared/core/verification-worker.js', 'self/sw.js',
   'self/sw-module-loader.js', 'self/host/sw-module-loader.js', 'apps/poolday/host/lora-training-worker.js'];
@@ -157,7 +178,8 @@ export default [
     { group: ['**/self/**', '**/apps/**'], message: 'Shared browser code loads only shared code.' }] }] } },
   { files: ['apps/poolday/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
     { group: ['**/self/**'], message: 'Poolday loads the substrate only through its documented entry points (scripts/verify-browser-boundaries.js).' }] }] } },
-  { files: ['server/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
+  { files: ['server/**/*.js'], plugins: { architecture: { rules: { 'server-library-imports': serverLibraryRule } } },
+    rules: { 'architecture/server-library-imports': 'error', 'no-restricted-imports': ['error', { patterns: [
     { group: ['**/apps/poolday/ui/**', '**/apps/poolday/styles/**', '**/apps/poolday/providers/**',
       '**/self/core/**', '**/self/ui/**', '**/self/tools/**', '**/self/capabilities/**'],
       message: 'Hosted services compose contracts and host adapters; presentation and substrate execution stay with their owners.' }] }] } },
