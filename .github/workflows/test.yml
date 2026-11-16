@@ -40,6 +40,7 @@ jobs:
           ROLLUP_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@rollup/rollup-linux-x64-gnu'].version")
           npm install --no-save --ignore-scripts --omit=optional --no-audit --no-fund "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
           git diff --exit-code -- package.json package-lock.json
+      - run: npm run verify:fleet-receipts
       - name: Check changed code and source boundaries
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}

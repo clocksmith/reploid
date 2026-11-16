@@ -44,12 +44,15 @@ const assertConserved = rows => {
   for (const row of rows) assert.equal(row.held, 0, `Account ${row.id} retained non-zero credit hold`);
 };
 
+const files = process.argv.slice(2);
+assert.ok(files.length > 0, 'At least one retained receipt file is required');
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'fleet-receipt-replay-'));
 try {
-  for (const file of process.argv.slice(2)) {
+  for (const file of files) {
     const report = JSON.parse(await fs.readFile(file, 'utf8'));
     assert.equal(report.passed, true);
     assert.equal(report.cleanup, 'settled');
+    assert.ok(Array.isArray(report.requests) && report.requests.length > 0, 'Signed requests are required');
     let now = 0;
     const ledger = await openFleetCredits({ file: path.join(root, crypto.randomUUID() + '.sqlite'),
       computers: report.computers, policy: report.policy, now: () => now });

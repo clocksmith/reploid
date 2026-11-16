@@ -140,6 +140,13 @@ WebRTC requests and retains settlement and cleanup results.
 REPLOID_FLEET_PHYSICAL=1 node tests/fixtures/fleet-native-physical.js /absolute/operator/physical.json
 ```
 
+`npm run verify:fleet-receipts` replays 50 signed requests from the November 10–11
+native and browser receipts in fresh databases. Automatic CI verifies their
+signatures, admission fences, conservation, conflicting proofs and idempotent
+settlement against the current verifier. Empty input and empty request sets fail.
+This CPU check preserves historical wire compatibility; it is not new inference,
+new physical-loss testing or qualification of Launch 3 orchestration switches.
+
 Physical receipts establish only the recorded devices, prompts, package and
 route. They do not establish general model quality, a speed advantage for
 sharding, Flash-Next readiness, or public-site deployment.
