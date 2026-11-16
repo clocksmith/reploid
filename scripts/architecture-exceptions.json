@@ -225,6 +225,13 @@
       "removalCondition": "Remove when server/native-participant-cli.js no longer loads this expression dynamically, or replaces it with a statically resolvable dependency."
     },
     {
+      "source": "server/native-runtime-source.js",
+      "expression": "pathToFileURL(path.join(directory, entry)).href",
+      "owner": "server/CATSCAN.md",
+      "contract": "Explicit operator-selected absolute Doppler checkout, verified against its full source-tree SHA-256 before and after import. Only fixed src/partitions.js and src/tooling-exports.js entries; private unsigned local-file partition mode only. Peers and model metadata cannot select runtime code, paths or URLs. Installed package delivery remains unchanged.",
+      "removalCondition": "Remove when the explicit native source-runtime mode is removed or these fixed source entries no longer require an operator-selected checkout directory."
+    },
+    {
       "source": "server/earning-routes/mount.js",
       "expression": "pathToFileURL(path.resolve(specifier)).href",
       "owner": "server/earning-routes/CATSCAN.md",
