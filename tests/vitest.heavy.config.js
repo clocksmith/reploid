@@ -1,7 +1,8 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 import base, { heavyTests } from './vitest.config.js';
 
-// Runs only the files excluded from the default config. CI runs this after `npm test`.
+// Runs the named retained-artifact and process checks excluded from the default suite.
+// The Smoke workflow runs focused contracts; this suite is explicit opt-in.
 export default defineConfig({
   ...base,
   test: {

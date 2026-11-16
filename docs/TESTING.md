@@ -53,7 +53,7 @@ its own metadata.
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `npm test` | All Vitest tests | Explicit full-suite validation |
+| `npm test` | Default Vitest suite (excludes heavy/process evidence and Node runner tests) | Explicit full-suite validation |
 | `npx vitest run --config tests/vitest.config.js <file>` | Focused tests | Changed behavior |
 | `npm run test:integration` | Integration suite | Explicit integration-wide validation |
 | `npm run test:e2e` | Browser E2E suite | Explicit browser-wide validation |
@@ -61,6 +61,33 @@ its own metadata.
 | `npm run test:coverage` | Coverage report | A named coverage question |
 
 ---
+
+## Runner ownership
+
+| Scope | Entry | Boundary |
+| --- | --- | --- |
+| Default unit/integration checks | `tests/vitest.config.js` | happy-dom and explicit per-file Node environments |
+| Retained-artifact/process checks | `tests/vitest.heavy.config.js` | Extends the default config; explicit `npm run test:heavy` |
+| Tooling checks using `node:test` | `npm run test:scripts` | Native Node runner; excluded from Vitest |
+| Cloudflare Worker contracts | `tests/cloudflare/vitest.config.js` | Worker runtime and bindings, separately opted in |
+| Browser journeys | `tests/playwright.config.js` | Controlled browser/server fixture |
+| External mailbox | `tests/playwright.external-brain.config.js` | Default-off local mailbox and loopback server fixture |
+| Fresh visitor | `tests/first-visitor.playwright.config.js` | Separate clean visitor fixture |
+
+Bare `.js` files under `tests/`, `tests/e2e/` and `tests/contracts/` are
+standalone controllers or exported qualification harnesses. For example,
+`tests/e2e/research-plugin-smoke.js` launches its own browser, while
+`tests/contracts/doppler-partition-sessions.js` exports a caller-configured
+qualification function. They are not Playwright specs to rename mechanically.
+Physical controllers require their explicit model/device/environment inputs;
+default software tests do not select or run them. The Python answer reference
+and JavaScript runtime controller retain independent arithmetic/orchestration
+roles rather than pretending to be interchangeable regression runners.
+
+Tests live under `tests/` and import the library, application or substrate owners.
+A source directory without colocated tests does not imply that its code is
+untested. Unit/integration files with the same stem protect different boundaries;
+choose by the behavior being changed, not the basename alone.
 
 ## Test Layers
 
@@ -89,7 +116,7 @@ npm run test:unit
 
 Multi-module workflow tests with realistic state management.
 
-**18 test files covering:**
+Representative integration areas:
 - Core cognitive loop: `agent-loop.test.js`, `fsm.test.js`, `rsi-loop.test.js`
 - LLM & inference: `llm-client.test.js`, `neural-compiler-lora.test.js`, `gepa-optimizer.test.js`
 - Memory & state: `prompt-memory.test.js`, `reflection-system.test.js`, `replay-engine.test.js`, `vfs.test.js`
@@ -108,7 +135,7 @@ npm run test:integration
 
 Full browser automation with Playwright.
 
-**7 spec files:**
+Representative browser specs:
 - `boot.spec.js` - Agent boot sequence
 - `dashboard.spec.js` - Dashboard functionality
 - `workers.spec.js` - Web worker integration

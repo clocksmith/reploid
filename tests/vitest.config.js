@@ -47,7 +47,7 @@ export default defineConfig({
   test: {
     reporters: process.env.CI ? ['default', 'github-actions', ['json', { outputFile: 'test-results/vitest-results.json' }]] : ['default'],
     include: ['tests/**/*.test.js'],
-    exclude: [...configDefaults.exclude, ...heavyTests],
+    exclude: [...configDefaults.exclude, 'tests/scripts/**', ...heavyTests],
     environment: 'happy-dom',
     globals: true,
     // Hosted runners run the parallel suite slower; signed multi-peer tests need room there.

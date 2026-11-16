@@ -111,7 +111,8 @@
     "build:self-source": "node scripts/build-self-source.js",
     "verify:self-source": "node scripts/build-self-source.js --check",
     "build:hosting-config": "node scripts/sync-firebase-config.js",
-    "verify:hosting-config": "node scripts/sync-firebase-config.js --check"
+    "verify:hosting-config": "node scripts/sync-firebase-config.js --check",
+    "test:scripts": "node --test tests/scripts/*.test.js"
   },
   "keywords": [
     "reploid",
