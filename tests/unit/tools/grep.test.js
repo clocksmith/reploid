@@ -72,6 +72,18 @@ describe('Grep', () => {
     });
   });
 
+  it('limits non-recursive searches to immediate files, including root and trailing slash paths', async () => {
+    mockVFS.list.mockResolvedValue(['/dir/a.txt', '/dir/nested/b.txt', '/other/c.txt']);
+    mockVFS.read.mockResolvedValue('match');
+    expect(await call({ pattern: 'match', path: '/dir/', recursive: false }, { VFS: mockVFS }))
+      .toBe('/dir/a.txt:1:match');
+    expect(mockVFS.read).toHaveBeenCalledTimes(1);
+    mockVFS.list.mockResolvedValue(['/a.txt', '/nested/b.txt']);
+    expect(await call({ pattern: 'match', recursive: false }, { VFS: mockVFS }))
+      .toBe('/a.txt:1:match');
+    expect(await call({ pattern: 'match' }, { VFS: mockVFS })).toContain('/nested/b.txt:1:match');
+  });
+
   describe('regex patterns', () => {
     it('should support regex patterns', async () => {
       mockVFS.list.mockResolvedValue(['/file.txt']);

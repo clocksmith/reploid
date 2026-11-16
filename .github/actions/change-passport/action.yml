@@ -25,7 +25,7 @@ outputs:
   effect-state:
     description: Current effect state.
 runs:
-  using: node20
+  using: node24
   main: index.js
 branding:
   icon: shield

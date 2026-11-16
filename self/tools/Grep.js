@@ -17,7 +17,10 @@ async function call(args = {}, deps = {}) {
   // Get files to search
   const files = await VFS.list(path);
 
+  const prefix = path === '/' ? '/' : path.replace(/\/+$/, '') + '/';
   for (const filePath of files) {
+    if (!recursive && filePath !== path
+      && (!filePath.startsWith(prefix) || filePath.slice(prefix.length).includes('/'))) continue;
     try {
       const content = await VFS.read(filePath);
       const lines = content.split('\n');
