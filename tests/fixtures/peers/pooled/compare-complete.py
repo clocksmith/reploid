@@ -23,6 +23,7 @@ def native(config, requests, output, deadline):
 
 def protocol_run(command, requests, output, deadline, environment=None):
     rows = []
+    setup_started = time.perf_counter()
     with CompleteRequestClient(command, output, env=clean_environment(environment),
                                max_response_bytes=16 * 1024 * 1024, arm_timeout_seconds=deadline) as client:
         for request in requests:
@@ -31,6 +32,10 @@ def protocol_run(command, requests, output, deadline, environment=None):
             assert response.get("requestOp") == request["op"], "Worker response operation differs"
             assert "error" not in response, response.get("error")
             value = response["value"]
+            if request["op"] == "open":
+                value = dict(value, clientSetupWallMs=(time.perf_counter() - setup_started) * 1000,
+                             clientSetupScope="owned-worker-startup-preflight-open/v1",
+                             clientOpenWallMs=response["clientRequestWallMs"])
             if request["op"] == "request":
                 assert isinstance(value, dict), "Complete request must return an object"
                 value = dict(value, clientRequestWallMs=response["clientRequestWallMs"],
@@ -260,7 +265,10 @@ def main():
                             reference = normalized
                         assert normalized == reference, "Exact complete IDs, stop reason/token or public text differs"
                         assert_provider_unchanged(before, provider_state(freeze["protectedProviderUnit"]))
+                        opened = responses[0] if kind == "pooled" else responses[1]
+                        setup = {key: opened[key] for key in ["clientSetupWallMs", "clientSetupScope", "clientOpenWallMs"]}
                         report["arms"].append({"workload": workload["name"], "kind": kind, "exactCompletion": True,
+                                               "setup": setup,
                                                "normalized": normalized, "rows": rows, "lifecycle": lifecycle})
                         save()
                 report["completed"] = True

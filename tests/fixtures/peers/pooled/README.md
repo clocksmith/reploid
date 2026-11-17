@@ -34,6 +34,13 @@ stop, and fails explicitly if that source lacks the capability. Ordinary runs
 omit the flag and perform no snapshot work. Profiler phase counters and wait sums
 are diagnostic attribution, not GPU time or matched speed qualification.
 
+`clientSetupWallMs` uses the same owned-client clock for both engines: process
+startup, any protocol preflight, and the complete open response. Its scope is
+`owned-worker-startup-preflight-open/v1`. Engine-local `loadMs` and `openWallMs`
+remain separately labeled because they cover different setup boundaries; do not
+compare those fields as matched setup or silently apply the new clock to an old
+receipt that did not record it.
+
 ```sh
 python3 compare-complete.py /absolute/freeze.json \
   --sha256 FREEZE_SHA256 --output /absolute/new-preflight-directory

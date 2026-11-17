@@ -13,6 +13,26 @@ spec.loader.exec_module(comparison)
 
 
 class NativeLifecycleRunnerTest(unittest.TestCase):
+    def test_setup_clock_includes_owned_startup_and_preflight_before_open(self):
+        import sys
+        script = """import sys,time,json
+time.sleep(.05)
+for line in sys.stdin:
+ request=json.loads(line)
+ if request['op']=='preflight':time.sleep(.02)
+ if request['op']=='open':time.sleep(.01)
+ print('@q4-response '+json.dumps({'id':request['id'],'requestOp':request['op'],'value':{}}),flush=True)
+ if request['op']=='close':break
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            rows = comparison.protocol_run([sys.executable, "-u", "-c", script],
+                                           [{"op": op} for op in ["preflight", "open", "close"]],
+                                           Path(directory) / "worker.log", 5)
+        self.assertEqual(rows[1]["clientSetupScope"], "owned-worker-startup-preflight-open/v1")
+        self.assertGreaterEqual(rows[1]["clientSetupWallMs"], 70)
+        self.assertGreater(rows[1]["clientSetupWallMs"], rows[1]["clientOpenWallMs"])
+        self.assertNotIn("clientSetupWallMs", rows[0])
+
     def test_engine_environment_is_explicit_not_inherited(self):
         with patch.dict(os.environ, {"POOLED_FLASH_KV": "f32", "DOPPLER_DEBUG": "1", "NODE_OPTIONS": "ambient",
                                    "DAWN_OPTS": "ambient", "UV_THREADPOOL_SIZE": "99", "RN_DEBUG": "1"}):
