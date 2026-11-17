@@ -16,15 +16,18 @@ afterEach(async () => {
   vi.restoreAllMocks();
   await Promise.all(roots.splice(0).map(root => fs.rm(root, { recursive: true, force: true })));
 });
-async function fixture() {
+async function fixture({ secondFile = false } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'diagnostic-source-')); roots.push(root);
   const metadata = path.join(root, 'metadata'), cache = path.join(root, 'pieces');
   await fs.mkdir(metadata); await fs.mkdir(cache);
   const filename = path.join(root, 'approved.bin'), alias = path.join(root, 'selected.gguf');
   const bytes = Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8), tokenizer = encode({ model: { type: 'BPE', vocab: {} } });
+  const secondFilename = path.join(root, 'other.bin'), secondBytes = Uint8Array.of(9, 10, 11, 12, 13, 14, 15, 16);
   await fs.writeFile(filename, bytes); await fs.symlink(filename, alias);
+  if (secondFile) await fs.writeFile(secondFilename, secondBytes);
   const manifestBytes = encode({ modelId: 'mapped-fixture', hashAlgorithm: 'sha256',
-    shards: [{ filename: 'weights.bin', size: bytes.length, hash: sha(bytes).slice(7) }] });
+    shards: [{ filename: 'weights.bin', size: bytes.length, hash: sha(bytes).slice(7) },
+      ...(secondFile ? [{ filename: 'other.bin', size: secondBytes.length, hash: sha(secondBytes).slice(7) }] : [])] });
   const pieces = (value, chunk) => Array.from({ length: Math.ceil(value.length / chunk) }, (_, i) => {
     const offset = i * chunk, part = value.subarray(offset, offset + chunk);
     return { offset, size: part.length, identity: sha(part) };
@@ -32,6 +35,7 @@ async function fixture() {
   const tokenizerPieces = pieces(tokenizer, 16);
   const indexBytes = encode({ schema: 'doppler.verified-pieces/v1', manifestIdentity: sha(manifestBytes), maxPieceBytes: 16,
     files: [{ path: 'weights.bin', size: bytes.length, pieces: pieces(bytes, 4) },
+      ...(secondFile ? [{ path: 'other.bin', size: secondBytes.length, pieces: pieces(secondBytes, 4) }] : []),
       { path: 'tokenizer.json', size: tokenizer.length, pieces: tokenizerPieces }] });
   await fs.writeFile(path.join(metadata, 'manifest.json'), manifestBytes);
   await fs.writeFile(path.join(metadata, 'pieces.json'), indexBytes);
@@ -40,14 +44,42 @@ async function fixture() {
   const config = { manifestPath: path.join(metadata, 'manifest.json'), manifestSha256: sha(manifestBytes).slice(7),
     pieceIndex: { role: 'model-piece-index', path: 'pieces.json', hashAlgorithm: 'sha256', hash: sha(indexBytes).slice(7) },
     sourceMap: { schema: 'reploid.diagnostic-source-map/v1', manifestIdentity: sha(manifestBytes), indexIdentity: sha(indexBytes),
-      files: { 'weights.bin': alias }, tokenizerPiecesDirectory: cache } };
+      files: { 'weights.bin': alias, ...(secondFile ? { 'other.bin': secondFilename } : {}) }, tokenizerPiecesDirectory: cache } };
   const admissions = [], runtime = { async createVerifiedPieceStorage(options) {
     admissions.push(options); return installed.createVerifiedPieceStorage({ ...options, nodeGather: undefined });
   } };
   return { root, metadata, cache, filename, alias, bytes, tokenizer, manifestBytes, config, runtime, admissions,
+    secondFilename, secondBytes,
     model: { id: 'mapped-fixture', identity: sha(manifestBytes) } };
 }
 async function own(f) { const source = await openDiagnosticModelSource(f); owners.push(source); return source; }
+
+async function gatheredFixture(hooks = {}) {
+  const f = await fixture({ secondFile: true }), create = f.runtime.createVerifiedPieceStorage;
+  const leases = [];
+  f.config.workerGather = { concurrency: 2, maxPartBytes: 16, memoryBudgetBytes: 96 };
+  f.runtime.createVerifiedPieceStorage = async options => {
+    const source = await create(options);
+    const load = async (ranges, active) => {
+      active?.throwIfAborted();
+      const arrays = await Promise.all(ranges.map(range => source.storage.loadShardRange(range.shard, range.offset, range.length)));
+      const bytes = new Uint8Array(arrays.reduce((total, array) => total + array.byteLength, 0));
+      let offset = 0;
+      for (const array of arrays) { bytes.set(new Uint8Array(array), offset); offset += array.byteLength; }
+      const lease = { bytes, release: vi.fn(() => { if (bytes.byteLength) structuredClone(bytes.buffer, { transfer: [bytes.buffer] }); }) };
+      leases.push(lease);
+      await hooks.afterRead?.(lease, ranges, active);
+      return lease;
+    };
+    f.readMany = vi.fn(load);
+    source.storage.rangeLease = { fileIdentitiesBound: true, concurrency: 2, maxPartBytes: 16, memoryBytes: 96,
+      read: (shard, offset, length, active) => load([{ shard, offset, length }], active),
+      readMany: hooks.legacy ? undefined : f.readMany };
+    source.getGatherReceipt = async () => source.getReceipt();
+    return source;
+  };
+  return { ...f, leases, get readMany() { return f.readMany; } };
+}
 
 it('pins approved symlink targets and uses authenticated tokenizer pieces without canonical copies', async () => {
   const f = await fixture(), selected = f.config.sourceMap.files;
@@ -155,4 +187,77 @@ it('uses mapped storage through the whole loader and retains normal unload/close
   expect(opened.source).toBe(sources[0]); expect(unload).not.toHaveBeenCalled();
   await opened.model.unload(); await opened.source.storage.close();
   expect(unload).toHaveBeenCalledOnce();
+});
+
+it('guards optional batch leases, snapshots caller ranges and preserves legacy absence', async () => {
+  const f = await gatheredFixture();
+  const source = await own({ ...f, onSource(retained) {
+    expect(retained.storage.rangeLease).toBeUndefined();
+  } });
+  const ranges = [{ shard: 1, offset: 1, length: 2 }, { shard: 0, offset: 0, length: 3 }];
+  const pending = source.storage.rangeLease.readMany(ranges, new AbortController().signal);
+  ranges[0].offset = 7;
+  const lease = await pending;
+  expect([...lease.bytes]).toEqual([10, 11, 1, 2, 3]);
+  expect(f.readMany.mock.calls[0][0][0]).toEqual({ shard: 1, offset: 1, length: 2 });
+  lease.release();
+  const legacy = await own(await gatheredFixture({ legacy: true }));
+  expect(Object.hasOwn(legacy.storage.rangeLease, 'readMany')).toBe(false);
+  const single = await legacy.storage.rangeLease.read(0, 0, 2, new AbortController().signal);
+  expect([...single.bytes]).toEqual([1, 2]); single.release();
+  const empty = await legacy.storage.rangeLease.read(0, 0, 0, new AbortController().signal);
+  expect(empty.bytes.byteLength).toBe(0); empty.release();
+  for (const invalid of [[], Array(4).fill({ shard: 0, offset: 0, length: 1 }),
+    [{ shard: 0, offset: 0, length: 17 }], [{ shard: 0, offset: 0, length: 0 }]]) {
+    await expect(source.storage.rangeLease.readMany(invalid, new AbortController().signal)).rejects.toThrow(/batch|bound|range/);
+  }
+  expect(f.readMany).toHaveBeenCalledOnce();
+});
+
+it('checks every batched source before and after reads and releases rejected output', async () => {
+  const retained = [], f = await gatheredFixture({ async afterRead() {
+    if (!retained.length) return;
+    await fs.rename(f.secondFilename, retained[0]); await fs.writeFile(f.secondFilename, f.secondBytes);
+  } });
+  const source = await own(f), ranges = [{ shard: 0, offset: 0, length: 2 }, { shard: 1, offset: 0, length: 2 }];
+  const original = path.join(f.root, 'original-other');
+  await fs.rename(f.secondFilename, original); await fs.writeFile(f.secondFilename, f.secondBytes);
+  await expect(source.storage.rangeLease.readMany(ranges, new AbortController().signal)).rejects.toThrow('identity changed');
+  expect(f.readMany).not.toHaveBeenCalled();
+  await fs.unlink(f.secondFilename); await fs.rename(original, f.secondFilename);
+  retained.push(original);
+  await expect(source.storage.rangeLease.readMany(ranges, new AbortController().signal)).rejects.toThrow('identity changed');
+  expect(f.leases[0].release).toHaveBeenCalledOnce(); expect(f.leases[0].bytes.byteLength).toBe(0);
+  await fs.unlink(f.secondFilename); await fs.rename(original, f.secondFilename); retained.length = 0;
+  const recovered = await source.storage.rangeLease.readMany(ranges, new AbortController().signal);
+  expect([...recovered.bytes]).toEqual([1, 2, 9, 10]); recovered.release();
+});
+
+it('combines source lifetime and caller cancellation before publishing batch output', async () => {
+  for (const target of ['source', 'caller']) {
+    const lifetime = new AbortController(), caller = new AbortController();
+    const f = await gatheredFixture({ afterRead() {
+      (target === 'source' ? lifetime : caller).abort(new Error(target + ' cancelled batch'));
+    } });
+    const source = await own({ ...f, signal: lifetime.signal });
+    await expect(source.storage.rangeLease.readMany([{ shard: 0, offset: 0, length: 2 }], caller.signal))
+      .rejects.toThrow(target + ' cancelled batch');
+    expect(f.leases[0].release).toHaveBeenCalledOnce(); expect(f.leases[0].bytes.byteLength).toBe(0);
+  }
+});
+
+it('close waits for an in-flight batch guard and rejects its output before publication', async () => {
+  let entered, release;
+  const started = new Promise(resolve => { entered = resolve; }), gate = new Promise(resolve => { release = resolve; });
+  const f = await gatheredFixture({ async afterRead() { entered(); await gate; } }), source = await own(f);
+  const pending = expect(source.storage.rangeLease.readMany([{ shard: 0, offset: 0, length: 2 }], new AbortController().signal))
+    .rejects.toThrow('closed');
+  await started;
+  let settled = false;
+  const closing = source.storage.close().then(() => { settled = true; });
+  await new Promise(resolve => setImmediate(resolve)); expect(settled).toBe(false);
+  release(); await pending; await closing;
+  expect(f.leases[0].release).toHaveBeenCalledOnce();
+  await expect(source.storage.rangeLease.readMany([{ shard: 0, offset: 0, length: 2 }], new AbortController().signal))
+    .rejects.toThrow('closed');
 });

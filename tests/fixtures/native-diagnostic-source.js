@@ -145,6 +145,7 @@ export async function openDiagnosticModelSource({ config, model, runtime, signal
     // Capture the original owner: close must never recurse through the facade.
     opened = { ...opened, storage: { ...opened.storage, close: storageClose } };
     const storage = { ...opened.storage, close };
+    if (nodeGather) delete storage.rangeLease;
     // Register before capability/cancellation checks so failed close has an owner
     // that the enclosing diagnostic can explicitly retry.
     retained = { ...opened, storage };
@@ -153,21 +154,43 @@ export async function openDiagnosticModelSource({ config, model, runtime, signal
       const port = opened.storage.rangeLease;
       assert(port?.fileIdentitiesBound === true && port.concurrency === (nodeGather.concurrency ?? 1)
         && typeof opened.getGatherReceipt === 'function', 'Selected Doppler lacks identity-bound worker gathering');
-      storage.rangeLease = { ...port, read(shard, offset, length, readSignal) {
+      const guardLease = (ranges, readSignal, load, batch = false) => {
         const operation = (async () => {
+          const active = signal && readSignal ? AbortSignal.any([signal, readSignal]) : signal ?? readSignal;
+          active?.throwIfAborted();
           if (closed) throw new Error('Diagnostic mapped source closed');
-          const name = metadata.manifest.shards[shard]?.filename;
-          await assertFileCurrent(layout, name);
-          const lease = await port.read(shard, offset, length, readSignal);
+          assert(Array.isArray(ranges) && ranges.length > 0 && ranges.length <= 3, 'Diagnostic batch requires one to three ranges');
+          const selected = ranges.map(range => {
+            assert(Number.isSafeInteger(range?.shard) && range.shard >= 0 && Number.isSafeInteger(range.offset)
+              && range.offset >= 0 && Number.isSafeInteger(range.length) && range.length >= (batch ? 1 : 0), 'Invalid diagnostic lease range');
+            return { shard: range.shard, offset: range.offset, length: range.length };
+          });
+          const total = selected.reduce((sum, range) => sum + range.length, 0);
+          assert(Number.isSafeInteger(total) && total <= port.maxPartBytes, 'Diagnostic lease exceeds part bound');
+          const names = [...new Set(selected.map(range => metadata.manifest.shards[range.shard]?.filename))];
+          for (const name of names) await assertFileCurrent(layout, name);
+          active?.throwIfAborted();
+          if (closed) throw new Error('Diagnostic mapped source closed');
+          const lease = await load(selected, active);
           try {
-            await assertFileCurrent(layout, name); readSignal.throwIfAborted();
+            for (const name of names) await assertFileCurrent(layout, name);
+            active?.throwIfAborted();
             if (closed) throw new Error('Diagnostic mapped source closed');
             return lease;
           } catch (error) { lease.release(); throw error; }
         })();
         operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {});
         return operation;
-      } };
+      };
+      const { readMany, ...basePort } = port;
+      storage.rangeLease = { ...basePort,
+        read: (shard, offset, length, readSignal) => guardLease([{ shard, offset, length }], readSignal,
+          ([range], active) => port.read(range.shard, range.offset, range.length, active)),
+        ...(typeof readMany === 'function' ? {
+          readMany: (ranges, readSignal) => guardLease(ranges, readSignal,
+            (selected, active) => readMany.call(port, selected, active), true),
+        } : {}),
+      };
     }
     signal?.throwIfAborted();
     assert(!closed, 'Diagnostic mapped source closed during admission');
