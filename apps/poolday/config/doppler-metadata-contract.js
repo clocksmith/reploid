@@ -200,9 +200,9 @@ var init_layer_partition_plan = __esm({
   }
 });
 
-// node_modules/doppler-gpu/src/inference/pipelines/text/layer-partition-contract.js
+// node_modules/doppler-gpu/src/inference/pipelines/text/execution/layer-partition-contract.js
 var init_layer_partition_contract = __esm({
-  "node_modules/doppler-gpu/src/inference/pipelines/text/layer-partition-contract.js"() {
+  "node_modules/doppler-gpu/src/inference/pipelines/text/execution/layer-partition-contract.js"() {
     init_layer_partition_plan();
   }
 });

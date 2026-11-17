@@ -1,9 +1,9 @@
 {
   "schema": "reploid.doppler-metadata-contract/v1",
-  "packageVersion": "0.7.4",
+  "packageVersion": "0.7.5",
   "publicExport": "./partitions",
   "exports": [
     "metadataDigest"
   ],
-  "sha256": "34538372c12b0d612dd94f356e1e3af6654a6bfa5b4d9a0333243ead5685ad42"
+  "sha256": "1a306c948772f41cc8785685d1c8bb16d1a92830fa4b9406c00e2af7ccc31871"
 }

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.doppler-partition-types/v1",
-  "packageVersion": "0.7.4",
+  "packageVersion": "0.7.5",
   "publicExport": "./partitions",
   "exportedTypes": [
     "LAYER_PARTITION_SCHEMA",
@@ -40,6 +40,11 @@
     "ResidentLazyPipelineScope",
     "ResidentExecutionIdentity",
     "ResidentOrderedPartitionIdentity",
+    "DeviceMemorySnapshot",
+    "ExpertLoadingStats",
+    "RoutedExpertCacheStats",
+    "CompactLayerStats",
+    "RoutedExpertPhaseProfile",
     "ResidentCanonicalGeneration",
     "AdmissionOnlyResult",
     "ResidentCanonicalARequest",
@@ -51,5 +56,5 @@
     "ResidentStageRequest",
     "ResidentStageResult"
   ],
-  "sha256": "0df9acc735ba66db8cb191c8a26c7f13b5da6a89187d7bb1405b9dc1eeb91912"
+  "sha256": "74abdee4fdd95cbf4baacc1fffc4d30eefe4a6a22d739d50c178e84496cb4bcd"
 }

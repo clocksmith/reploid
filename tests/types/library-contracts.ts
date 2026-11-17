@@ -83,7 +83,22 @@ export function composePartitionChat(factory: DopplerPartitionSessionFactory, ru
 
 // Installed Doppler declarations own computation; Reploid adds coordination only.
 import type { ResidentPartitionSession, ResidentPartitionDescriptor, ResidentPartitionFactory } from 'doppler-gpu/partitions';
+import type { ResidentPartitionSession as ProjectedResidentPartitionSession } from '../../packages/reploid/src/contracts/doppler-partitions.js';
 import type { DopplerResidentPartitionSession } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
+
+type InstalledExpertLoadingStats = ReturnType<NonNullable<ResidentPartitionSession['getExpertLoadingStats']>>;
+type ProjectedExpertLoadingStats = ReturnType<NonNullable<ProjectedResidentPartitionSession['getExpertLoadingStats']>>;
+
+export function expertLoadingStatsContract(
+  installed: InstalledExpertLoadingStats,
+  projected: ProjectedExpertLoadingStats,
+): [ProjectedExpertLoadingStats, InstalledExpertLoadingStats] {
+  // @ts-expect-error projected readback counters must preserve the public numeric type
+  const calls: string = projected.routedReadback.phases.prefill.calls;
+  void calls;
+  return [installed, projected];
+}
+
 export function publicResidentContract(session: ResidentPartitionSession, factory: ResidentPartitionFactory) {
   const adapted: DopplerResidentPartitionSession = session;
   const opening: DopplerPartitionSessionFactory = factory;

@@ -1,0 +1,189 @@
+/**
+ * DopplerLoader - Core Model Loader
+ * Phase 1: Foundation
+ *
+ * Orchestrates the complete model loading pipeline:
+ * - Storage: Load shards from OPFS
+ * - Memory: Stage in heap (Memory64 or segmented)
+ * - GPU: Transfer to VRAM for compute
+ *
+ * @module loader/doppler-loader
+ */
+
+import type { MemoryCapabilities } from '../memory/capability.js';
+import type { HeapManager } from '../memory/heap-manager.js';
+import type { RDRRManifest } from '../formats/rdrr/index.js';
+import type { RuntimeModelContract } from '../inference/runtime-model.js';
+import type { WeightBuffer, WeightLayout, CpuWeightBuffer } from '../gpu/weight-buffer.js';
+import type { Tensor } from '../gpu/tensor.js';
+import type { ExpertCache, CacheStats } from './experts/expert-cache.js';
+import type { ExpertWeights } from './weights.js';
+import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
+import type { LoadedEmbeddingPostprocessor } from './final-weights-loader.js';
+import type {
+  TensorLocation,
+  LayerWeights,
+  DiffusionGemmaSelfConditioningWeights,
+  PerLayerInputWeights,
+  LoadProgress,
+  LoadOptions,
+  CustomShardLoader,
+  CustomShardLoaderOptions,
+  LoaderStats,
+  LoaderLoadTiming,
+  KernelCapabilities,
+  Q4KConfig,
+  ModelConfig,
+} from './loader-types.js';
+import type { ShardCache } from './shard-cache.js';
+import type { LoadingConfigSchema } from "../config/schema/runtime/loading.schema.js";
+import type { LoaderDebugConfigSchema } from "../config/schema/runtime/debug.schema.js";
+import type { ExecutionV1PerLayerInputsSessionSchema } from "../config/schema/execution/execution-v1.schema.js";
+
+// Re-export types for backward compatibility
+export type {
+  TensorLocation,
+  LayerWeights,
+  LoadProgress,
+  LoadOptions,
+  CustomShardLoader,
+  CustomShardLoaderOptions,
+  LoaderStats,
+  LoaderLoadTiming,
+} from './loader-types.js';
+
+// ============================================================================
+// DopplerLoader Class
+// ============================================================================
+
+/**
+ * DopplerLoader class
+ */
+export declare class DopplerLoader {
+  // Capabilities
+  memoryCapabilities: MemoryCapabilities | null;
+  gpuCapabilities: KernelCapabilities | null;
+  isUnifiedMemory: boolean;
+
+  // Manifest and model info
+  manifest: (RDRRManifest | RuntimeModelContract) | null;
+  modelId: string | null;
+  isMoE: boolean;
+
+  // Loaded state
+  isLoaded: boolean;
+  embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  layers: Map<number, LayerWeights>;
+  experts: Map<string, ExpertWeights>;
+  routedExpertCache: import('./experts/routed-expert-cache.js').RoutedExpertCache | import('./experts/tiered-expert-cache.js').TieredExpertCache | null;
+  prepareExpertLayer(layerIdx: number, consumerExperts: Map<string, unknown>,
+    recorder?: import('../gpu/command-recorder.js').CommandRecorder | null, signal?: AbortSignal, activeSelection?: string
+  ): Promise<import('./experts/qwen-paging.js').QwenPagingReceipt | null>;
+  getRoutedExpertCapacity(layer: number, phase?: 'prefill' | 'decode'): number;
+  prepareRoutedExpertResidency(signal?: AbortSignal): Promise<void>;
+  getResidentRoutedExpertWeights(layer: number): import('./experts/routed-expert-cache.js').RoutedExpertWeights | null;
+  getRoutedExpertPolicy(): import("../config/schema/runtime/loading.schema.js").Qwen35RoutedConfig;
+  prepareRoutedExperts(layer: number, expertIds: number[], signal?: AbortSignal, phase?: 'prefill' | 'decode'): Promise<import('./experts/routed-expert-cache.js').RoutedExpertWeights>;
+  routedReadbackStats: Partial<Record<'prefill' | 'decode' | 'unspecified', { calls: number; bytes: number; wallMs: number }>>;
+  recordRoutedReadback(phase: 'prefill' | 'decode' | undefined, elapsedMs: number, bytes: number): void;
+  getRoutedReadbackStats(): { scope: string; phases: Record<string, { calls: number; bytes: number; wallMs: number }> };
+  getRoutedExpertCacheStats(): import('./experts/routed-expert-cache.js').RoutedExpertCacheStats | null;
+  _getExpertLoaderContext(): import('./experts/expert-loader.js').ExpertLoaderContext;
+  lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  lmHeadBias: Float32Array | null;
+  finalNorm: GPUBuffer | Float32Array | null;
+  hyperConnectionMixer: import('../inference/pipelines/text/hyper-connection/decoder-layer.js').GatedResidualWeights | null;
+  finalNormBias: Float32Array | null;
+  embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
+  diffusionGemmaSelfConditioning: DiffusionGemmaSelfConditioningWeights | null;
+  perLayerInputWeights: PerLayerInputWeights | null;
+
+  // Memory management
+  heapManager: HeapManager | null;
+  gpuBuffers: Set<GPUBuffer>;
+
+  // Expert cache for MoE models (LRU eviction)
+  expertCache: ExpertCache | null;
+  /** Dequantized MXFP4 experts of this model only; cleared by unload(). */
+  expertDequantCache: import('./experts/expert-dequant-cache.js').ExpertDequantCache;
+
+  // Loading state
+  loadedShards: Set<number>;
+  tensorLocations: Map<string, TensorLocation>;
+  loadTiming: LoaderLoadTiming | null;
+
+  // Shard cache (LRU with request deduplication)
+  shardCache: ShardCache;
+
+  // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
+  useFusedQ4K: boolean;
+
+  // Q4K layout: 'row' = fused kernel compatible (fast), 'col' = dequant fallback
+  q4kLayout: 'row' | 'col' | null;
+  keepF32Weights: boolean;
+  keepBF16Weights: boolean;
+  q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
+  q4kFusedRoles: string[];
+  /** Roles with only packed consumers across all selected phases and layers. */
+  q4kPackedOnlyRoles: string[];
+  representationPaths: import("../config/schema/execution/kernel-path.schema.js").KernelPathSchema[];
+  weightRepresentationPlan: import('./weight-representation-plan.js').WeightRepresentationPlan | null;
+
+  constructor(loadingConfig?: LoadingConfigSchema);
+
+  setLoadingConfig(config: LoadingConfigSchema): void;
+
+  setQ4KConfig(config: Q4KConfig): void;
+
+  setLoaderDebugConfig(loaderDebug: LoaderDebugConfigSchema | null): void;
+
+  setPerLayerInputSession(sessionConfig: ExecutionV1PerLayerInputsSessionSchema | null): void;
+
+  setCustomShardLoader(loadShardFn: CustomShardLoader, options?: CustomShardLoaderOptions): void;
+
+  setAuxiliaryFileLoader(
+    loadAuxiliaryFile: ((path: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>) | null
+  ): void;
+
+  setTensorsJsonUrl(url: string | null): void;
+
+  setTensorsJsonLoader(loadTensorsJson: (() => Promise<string | Record<string, unknown> | null | undefined>) | null): void;
+
+  init(): Promise<void>;
+
+  setManifest(manifest: RDRRManifest | RuntimeModelContract): void;
+
+  loadLoRAWeights(manifest: RDRRManifest | RuntimeModelContract): Promise<LoRAAdapter>;
+
+  load(modelId: string, options?: LoadOptions): Promise<ModelConfig>;
+
+  prefetchExperts(nextLayerIdx: number, expertIndices: number[]): void;
+
+  predictNextLayerExperts(currentExperts: number[]): number[];
+
+  loadExpert(layerIdx: number, expertIdx: number): Promise<ExpertWeights>;
+  /** False once the LRU expert cache evicted (and released) `weights`; reload before dispatch. */
+  isExpertResident(layerIdx: number, expertIdx: number, weights: unknown): boolean;
+
+  getLayerWeights(layerIdx: number): LayerWeights | null;
+
+  loadGpuTensor(name: string, silent?: boolean): Promise<Tensor | null>;
+
+  getConfig(): ModelConfig;
+
+  canRunDense(): boolean;
+
+  getStats(): LoaderStats;
+
+  getLoadTiming(): LoaderLoadTiming | null;
+
+  getExpertCacheStats(): CacheStats | null;
+
+  unload(): Promise<void>;
+}
+
+export declare function getDopplerLoader(loadingConfig?: LoadingConfigSchema): DopplerLoader;
+
+export declare function createDopplerLoader(loadingConfig?: LoadingConfigSchema): DopplerLoader;
+
+export default DopplerLoader;

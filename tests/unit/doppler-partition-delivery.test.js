@@ -38,6 +38,7 @@ describe('partition candidate delivery', () => {
       mkdirSync(path.join(fixture, 'scripts'));
       mkdirSync(path.join(fixture, 'package/src'), { recursive: true });
       cpSync('scripts/vendor-doppler.js', path.join(fixture, 'scripts/vendor-doppler.js'));
+      cpSync('scripts/doppler-browser-assets.json', path.join(fixture, 'scripts/doppler-browser-assets.json'));
       writeFileSync(path.join(fixture, 'package/package.json'), JSON.stringify({ name: pin.name, version: pin.version }));
       writeFileSync(path.join(fixture, 'package/src/version.js'), "export const DOPPLER_VERSION = '0.0.0';\n");
       const invalid = path.join(fixture, 'invalid.tgz');
@@ -58,6 +59,7 @@ describe('partition candidate delivery', () => {
       mkdirSync(path.join(fixture, 'scripts'));
       mkdirSync(path.join(fixture, 'shared/config'), { recursive: true });
       cpSync('scripts/vendor-doppler.js', path.join(fixture, 'scripts/vendor-doppler.js'));
+      cpSync('scripts/doppler-browser-assets.json', path.join(fixture, 'scripts/doppler-browser-assets.json'));
       writeFileSync(path.join(fixture, 'package.json'), JSON.stringify({ type: 'module',
         dependencies: { 'doppler-gpu': pin.spec } }));
       writeFileSync(path.join(fixture, 'package-lock.json'), JSON.stringify({ packages: {
