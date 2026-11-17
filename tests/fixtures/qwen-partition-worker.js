@@ -10,6 +10,8 @@ import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 import { openDiagnosticModelSource } from './native-diagnostic-source.js';
 import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
 import { runNativeCompleteRequest } from './native-complete-request.js';
+import { runNativeProfileRequest } from './native-profile-request.js';
+import { runNativeNumericalRequest } from './native-numerical-request.js';
 import { runNativeCompleteLifecycle } from './native-complete-lifecycle.js';
 import { observeNativeExpertLoading } from './native-expert-observation.js';
 import { serveCompleteRequestProtocol } from './complete-request-protocol.js';
@@ -147,6 +149,19 @@ async function invoke(request) {
     const result = await runNativeCompleteRequest({ model: whole, prompt: request.prompt, promptIds: request.promptIds,
       generation, timeoutMs: config.requestTimeoutMs });
     return { ...result, memory: memory(), expertLoading: observeNativeExpertLoading(config, whole, 'request') };
+  }
+  if (request.op === 'numerical-request') {
+    assert(whole, 'Whole model must be opened before numerical diagnostics');
+    const result = await runNativeNumericalRequest({ model: whole, prompt: request.prompt, promptIds: request.promptIds,
+      generation, timeoutMs: config.requestTimeoutMs });
+    return { ...result, memory: memory() };
+  }
+  if (request.op === 'profile-request') {
+    assert(whole, 'Whole model must be opened before diagnostic profiling');
+    assert(getDevice().features.has('timestamp-query'), 'Diagnostic profiling requires physical GPU timestamp queries');
+    const result = await runNativeProfileRequest({ model: whole, prompt: request.prompt, promptIds: request.promptIds,
+      generation, timeoutMs: config.requestTimeoutMs });
+    return { ...result, memory: memory() };
   }
   if (request.op === 'lifecycle') {
     assert(whole, 'Whole model must be opened before lifecycle qualification');

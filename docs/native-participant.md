@@ -707,3 +707,24 @@ starts with reset. A deadline does not promise immediate GPU termination.
 `generationWallMs`, reset-inclusive `requestWallMs`, first-token time and
 first-to-last observed token time have distinct scopes. Neither loader timings
 nor these diagnostics establish a performance win without matched full requests.
+
+Two additional whole-model operations provide explicit, nonrepresentative
+diagnostics. `profile-request` uses `demo/deep-xray`, requires physical GPU
+timestamp queries and exports only complete decode compute-pass timings and
+selected scalar clocks alongside exact tokens and text. This inspection policy
+collects quality evidence and changes command batching; its wall time is not a
+benchmark result. Partial timestamp coverage is an error.
+
+`numerical-request` requires exactly one input token and generates two tokens.
+It captures every decode layer output through `demo/activation-grid`, then resets
+and captures both full logits vectors through the public generation API. It
+requires matching model identity, tokens and text between passes, finite F32
+values and complete layer coverage. Encoded vectors have a 32 MiB payload bound;
+keep them in private diagnostic artifacts. The caller declares the comparison
+tolerance. Activation capture disables command batching, so numerical-only
+configs must explicitly set `usePreparedDecodeWorkspace: false` and
+`decodeLoop.layerSubmitInterval: null` in `runtimeConfig.inference.session` when
+the timed configuration requires recorded execution. Both numerical arms must
+use the same declared observation settings. The worker does not silently change
+those settings. Neither operation replaces ordinary complete-request correctness,
+timing, allocation or lifecycle qualification, and both honor the request deadline.
