@@ -111,6 +111,13 @@ export async function readSourceProofMetadata(filename, signal, maxBytes = 1024 
   return bytes;
 }
 
+/** Never publish a successful receipt that the bounded verifier cannot read. */
+export async function writeSourceIntegrityProof(filename, proof) {
+  const bytes = JSON.stringify(proof, null, 2);
+  assert(Buffer.byteLength(bytes) <= 1024 ** 2, 'Source proof output exceeds its metadata budget');
+  await fs.writeFile(filename, bytes, { flag: 'wx', mode: 0o600 });
+}
+
 async function verifyReceipt(receipt, files, active) {
   assert(receipt.schema === 'reploid.peer-source-integrity/v1' && receipt.completed === true, 'Incomplete source proof');
   assert.deepEqual(receipt.files, files, 'Source proof does not bind the complete selected file set');

@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
-import { proveSourceIntegrity, verifySourceIntegrityProof, composeSourceIntegrityProof, requiredSourceIntegrityFiles, readSourceProofMetadata, verifySourceAliases } from '../fixtures/peers/pooled/source-integrity.js';
+import { proveSourceIntegrity, verifySourceIntegrityProof, composeSourceIntegrityProof, requiredSourceIntegrityFiles, readSourceProofMetadata, writeSourceIntegrityProof, verifySourceAliases } from '../fixtures/peers/pooled/source-integrity.js';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const stamp = stat => [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].map(String).join(':');
 async function setup() {
@@ -148,4 +148,19 @@ it('rejects composed stale identities and cancellation before publishing coverag
     await fs.writeFile(config.files[0].canonicalPath, new Uint8Array(257));
     await expect(composeSourceIntegrityProof(input)).rejects.toThrow('file changed');
   } finally { vi.restoreAllMocks(); await fs.rm(root, { recursive: true, force: true }); }
+});
+
+it('caps the final encoded proof before publication and preserves an existing receipt', async () => {
+  const { root, config } = await setup();
+  try {
+    const filename = path.join(root, 'published.json'), proof = await proveSourceIntegrity(config);
+    await expect(writeSourceIntegrityProof(filename, { ...proof, scope: '\u00e9'.repeat(1024 ** 2) })).rejects.toThrow('output exceeds');
+    await expect(fs.stat(filename)).rejects.toMatchObject({ code: 'ENOENT' });
+    await writeSourceIntegrityProof(filename, proof);
+    const bytes = await readSourceProofMetadata(filename);
+    expect(await verifySourceIntegrityProof({ ...config, proof: { path: filename, sha256: hash(bytes) } }))
+      .toMatchObject({ ready: true, verifiedBytes: 257 });
+    await expect(writeSourceIntegrityProof(filename, proof)).rejects.toMatchObject({ code: 'EEXIST' });
+    expect(await fs.readFile(filename, 'utf8')).toBe(new TextDecoder().decode(bytes));
+  } finally { await fs.rm(root, { recursive: true, force: true }); }
 });
