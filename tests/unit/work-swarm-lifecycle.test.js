@@ -2,6 +2,9 @@ import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const ports = vi.hoisted(() => ({ ensure: vi.fn(), createTransport: vi.fn() }));
+vi.mock('../../apps/poolday/host/contributor-identity.js', () => ({ createContributorIdentity: () => ({
+  ensure: (...args) => ports.ensure(...args), save: vi.fn(), close: vi.fn(async () => {})
+}) }));
 vi.mock('../../shared/identity.js', () => ({ ensureIdentityBundle: ports.ensure,
   saveIdentityBundle: vi.fn(), rotateIdentityBundle: vi.fn() }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', () => ({
@@ -372,4 +375,17 @@ it('lets a requester-only ordered browser share a whole model, while partition s
   expect(swarm.getState().contribution).toMatchObject({ phase: 'connecting', modelId: 'qwen-3-5-2b-q4k-ef16-af32' });
   const stop = swarm.stop(); identity.resolve({ peerId: 'fixture', contribution: {} });
   await stop; await stopped; await swarm.close();
+});
+
+it('keeps the signing participant separate from fresh contribution observation sessions', async () => {
+  const f = await supplierFixture();
+  f.load.resolve(f.session); await f.share;
+  const first = f.swarm.getState().supplier;
+  await f.swarm.stop();
+  await f.swarm.share(f.session.modelId, true);
+  const next = f.swarm.getState().supplier;
+  expect(next.peerId).toBe(first.peerId);
+  expect(next.instanceId).not.toBe(first.instanceId);
+  expect(f.ads.at(-1).observationSession).toBe(next.instanceId);
+  await f.swarm.close();
 });
