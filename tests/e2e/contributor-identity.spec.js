@@ -13,7 +13,9 @@ const serve = context => context.route(origin + '/**', async route => {
 });
 const acquire = page => page.evaluate(async () => {
   const { createContributorIdentity } = await import('/host/contributor-identity.js');
-  window.owner = createContributorIdentity({ storage: localStorage });
+  const { ensureReploidWindowInstance, getCurrentReploidStorage } = await import('/instance.js');
+  ensureReploidWindowInstance(window);
+  window.owner = createContributorIdentity({ storage: getCurrentReploidStorage() });
   const identity = await window.owner.ensure();
   // Return public information only. Private keys remain in the test profile.
   return { peerId: identity.peerId, publicJwk: identity.publicJwk };
@@ -22,11 +24,13 @@ const acquire = page => page.evaluate(async () => {
 test('real Web Locks preserve signing identity across reload and separate concurrent tabs', async ({ context, page }) => {
   await serve(context); await page.goto(origin);
   const first = await acquire(page);
+  const firstScope = await page.evaluate(() => window.REPLOID_INSTANCE_ID);
   await page.reload();
   expect(await acquire(page)).toEqual(first);
   const other = await context.newPage(); await other.goto(origin);
   await other.evaluate(() => sessionStorage.setItem('REPLOID_CONTRIBUTOR_SLOT_V1', '0'));
   const second = await acquire(other);
+  expect(await other.evaluate(() => window.REPLOID_INSTANCE_ID)).not.toBe(firstScope);
   expect(second.peerId).not.toBe(first.peerId);
   await other.reload();
   expect(await acquire(other)).toEqual(second);
@@ -47,9 +51,11 @@ test('a fresh browser process reuses the profile signing identity', async () => 
     context = await launch(); await serve(context);
     const page = await context.newPage(); await page.goto(origin);
     const first = await acquire(page);
+    const firstScope = await page.evaluate(() => window.REPLOID_INSTANCE_ID);
     await context.close();
     context = await launch(); await serve(context);
     const restarted = await context.newPage(); await restarted.goto(origin);
     expect(await acquire(restarted)).toEqual(first);
+    expect(await restarted.evaluate(() => window.REPLOID_INSTANCE_ID)).not.toBe(firstScope);
   } finally { await context?.close(); await rm(profile, { recursive: true, force: true }); }
 });

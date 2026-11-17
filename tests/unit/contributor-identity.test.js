@@ -1,3 +1,4 @@
+import { createScopedReploidStorage } from '../../shared/instance.js';
 import { expect, it } from 'vitest';
 import { createContributorIdentity } from '../../apps/poolday/host/contributor-identity.js';
 import { getIdentityStorageKey } from '../../shared/identity.js';
@@ -108,4 +109,38 @@ it('refuses an invalid saved slot rather than abandoning its identity', async ()
   const owner = createContributorIdentity(ports);
   await expect(owner.ensure()).rejects.toThrow('invalid'); await owner.close();
   expect(ports.values.size).toBe(0);
+});
+
+
+it('uses profile signing slots across real scoped page adapters without unscoping account data', async () => {
+  const ports = fixture();
+  const a = createScopedReploidStorage(ports.storage, 'page-a');
+  const b = createScopedReploidStorage(ports.storage, 'page-b');
+  a.setItem('ACCOUNT_SENTINEL', 'account-a'); b.setItem('ACCOUNT_SENTINEL', 'account-b');
+  const first = createContributorIdentity({ ...ports, storage: a });
+  const identity = await first.ensure(); await first.close();
+  // A new browser window has both a new page scope and new session storage.
+  const second = createContributorIdentity({ ...ports, storage: b, tabStorage: fixture().tabStorage });
+  expect((await second.ensure()).peerId).toBe(identity.peerId);
+  expect(ports.values.has(key)).toBe(true);
+  expect(ports.values.has(a.getNamespacedKey(key))).toBe(false);
+  expect(ports.values.has(b.getNamespacedKey(key))).toBe(false);
+  expect(a.getItem('ACCOUNT_SENTINEL')).toBe('account-a');
+  expect(b.getItem('ACCOUNT_SENTINEL')).toBe('account-b');
+  expect(ports.storage.getItem('ACCOUNT_SENTINEL')).toBe(null);
+  await second.close();
+});
+
+it('keeps concurrent real page scopes distinct and restores the copied-tab slot after scope changes', async () => {
+  const ports = fixture(), secondTab = fixture().tabStorage;
+  const first = createContributorIdentity({ ...ports, storage: createScopedReploidStorage(ports.storage, 'page-a') });
+  const identity = await first.ensure();
+  secondTab.setItem('REPLOID_CONTRIBUTOR_SLOT_V1', '0');
+  const second = createContributorIdentity({ ...ports, storage: createScopedReploidStorage(ports.storage, 'page-b'), tabStorage: secondTab });
+  const otherIdentity = await second.ensure();
+  expect(otherIdentity.peerId).not.toBe(identity.peerId);
+  await second.close();
+  const rebuilt = createContributorIdentity({ ...ports, storage: createScopedReploidStorage(ports.storage, 'page-c'), tabStorage: secondTab });
+  expect((await rebuilt.ensure()).peerId).toBe(otherIdentity.peerId);
+  await rebuilt.close(); await first.close();
 });
