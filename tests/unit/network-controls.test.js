@@ -208,3 +208,41 @@ it('shows reported peer hardware without leaking host metadata or inventing loca
   expect(root.querySelector('[data-local-computer]').textContent).toBe('GPU not reported');
   expect(root.textContent).not.toContain('private-machine'); dispose();
 });
+
+it('projects only explicitly reported nonnegative integer contribution counts', () => {
+  const peers = [
+    { peerId: 'reported', contribution: { providedInputTokens: 128, providedOutputTokens: 0, receiptsServed: 2, receiptsConsumed: 3 } },
+    { peerId: 'missing' },
+    { peerId: 'invalid', contribution: { providedInputTokens: '128', providedOutputTokens: -1, receiptsServed: 1.5, receiptsConsumed: Infinity } }
+  ];
+  const rows = projectNetworkPeers({ network: { consumer: { peers } } });
+  expect(rows[0].contribution).toEqual({ inputTokens: 128, outputTokens: 0, served: 2, consumed: 3 });
+  for (const row of rows.slice(1)) expect(row.contribution).toEqual({ inputTokens: null, outputTokens: null, served: null, consumed: null });
+});
+
+it('renders reported contribution scope and clears counts when the connection loses its advertisement', () => {
+  const state = { models: [], network: { consumer: { peers: [{ peerId: 'remote', readiness: 'ready',
+    contribution: { providedInputTokens: 128, providedOutputTokens: 0, receiptsServed: 1, receiptsConsumed: 2 } }] } } };
+  let update;
+  const session = { getState: () => state, subscribe: listener => { update = listener; listener(state); return () => {}; } };
+  const root = document.createElement('div');
+  root.innerHTML = renderConnectionControl() + renderSharingControls()
+    + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
+  const dispose = bindNetworkControls(root, session);
+  try {
+    const row = root.querySelector('[data-computer-id="remote"]');
+    expect(row.querySelector('[data-computer-usage]').textContent).toBe('Peer-reported eligible tokens provided: 128 input · 0 output');
+    expect(row.querySelector('[data-computer-usage-scope]').textContent).toContain('Peer-reported reward-eligible');
+    expect(row.querySelector('[data-computer-usage-scope]').textContent).toContain('Consumed token counts are not reported');
+    expect(row.querySelector('[data-computer-receipts]').textContent).toContain('Eligible served receipts: 1 · Consumed receipts: 2');
+    row.querySelector('details').open = true;
+    state.network.consumer.peers[0].contribution.providedOutputTokens = 4; update(state);
+    expect(root.querySelector('[data-computer-id="remote"]')).toBe(row);
+    expect(row.querySelector('details').open).toBe(true);
+    expect(row.querySelector('[data-computer-usage]').textContent).toContain('4 output');
+    state.network.consumer.peers = [];
+    state.network.consumer.connections = [{ id: 'remote', phase: 'disconnected' }]; update(state);
+    expect(row.querySelector('[data-computer-usage]').textContent).toBe('Peer-reported eligible tokens provided: Unknown input · Unknown output');
+    expect(row.querySelector('[data-computer-receipts]').textContent).toContain('Eligible served receipts: Unknown');
+  } finally { dispose(); }
+});

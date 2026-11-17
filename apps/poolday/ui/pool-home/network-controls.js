@@ -64,6 +64,16 @@ export const renderSharingControls = ({ introductory = true } = {}) => `<div cla
 const connectionPath = connection => ['relayed', 'direct'].includes(connection?.path) ? connection.path : null;
 const CONNECTION_PATH_LABELS = { relayed: 'Relayed connection', direct: 'Direct connection' };
 
+/** Peer-advertised scoring counters, not device-wide traffic or independently verified work. */
+function reportedContribution(peer) {
+  const count = value => Number.isSafeInteger(value) && value >= 0 ? value : null;
+  const source = peer.contribution;
+  return {
+    inputTokens: count(source?.providedInputTokens), outputTokens: count(source?.providedOutputTokens),
+    served: count(source?.receiptsServed), consumed: count(source?.receiptsConsumed)
+  };
+}
+
 export function projectNetworkPeers(state) {
   const network = state.network || {};
   const own = new Set([network.consumer?.peerId, network.supplier?.peerId]);
@@ -131,7 +141,7 @@ export function projectNetworkPeers(state) {
     const observedState = phase === 'loading' ? (['receiving', 'downloading', 'cached'].includes(prep?.kind) ? 'acquiring-files' : 'preparing-model')
       : phase || 'awaiting-advertisement';
     peers.set(peer.peerId, { id: peer.peerId, model, modelId, executionType: partition ? 'partition' : 'whole-model',
-      adapterIdentities: peer.adapterIdentities || [], hardware: peer.hardware || null,
+      adapterIdentities: peer.adapterIdentities || [], hardware: peer.hardware || null, contribution: reportedContribution(peer),
       phase, state: observedState, attemptId: connection?.attemptId || null,
       authenticated: peer.identityVerified === true || connection?.authenticated === true || !!capability?.available, modelIdentity: offered?.identity || peer.modelIdentity || null, connectionPhase: 'connected', connectionPath: connectionPath(connection), partitionIndex: index, status, detail, progress });
   }
@@ -155,7 +165,7 @@ function renderPeerRows(list, state) {
       row = list.ownerDocument.createElement('li'); row.className = 'network-peer-row'; row.dataset.computerId = peer.id;
       row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
         + '<span class="pool-small pool-muted" data-computer-model></span><p class="pool-caption pool-muted" data-computer-hardware></p><p class="pool-small pool-muted" data-computer-detail></p>'
-        + '<progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-auth></p><p data-computer-path hidden></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code>'
+        + '<p class="pool-caption pool-muted" data-computer-usage></p><progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-usage-scope></p><p data-computer-receipts></p><p data-computer-auth></p><p data-computer-path hidden></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code>'
         + renderComputerRename() + renderComputerBlock() + '</details></div>';
     }
     existing.delete(peer.id);
@@ -168,6 +178,11 @@ function renderPeerRows(list, state) {
     if (peer.model !== 'Model status pending') row.dataset.lastModel = peer.model;
     set('[data-computer-model]', peer.model === 'Model status pending' && row.dataset.lastModel ? `Last model: ${row.dataset.lastModel}` : peer.model); set('[data-computer-detail]', peer.detail);
     set('[data-computer-hardware]', hardwareText(peer.hardware) ? `Reported GPU: ${hardwareText(peer.hardware)}` : 'GPU not reported');
+    const contribution = peer.contribution;
+    const count = value => Number.isSafeInteger(value) && value >= 0 ? value.toLocaleString() : 'Unknown';
+    set('[data-computer-usage]', `Peer-reported eligible tokens provided: ${count(contribution?.inputTokens)} input · ${count(contribution?.outputTokens)} output`);
+    set('[data-computer-usage-scope]', 'Peer-reported reward-eligible contribution, not total traffic or lifetime usage. Small requests and repeated pairs may be excluded. Consumed token counts are not reported.');
+    set('[data-computer-receipts]', `Eligible served receipts: ${count(contribution?.served)} · Consumed receipts: ${count(contribution?.consumed)}. Receipts are not token counts or proof of correctness.`);
     set('[data-computer-auth]', peer.authenticated ? 'Authenticated identity observed on this connection.' : 'Identity authentication has not been observed on this connection.');
     set('[data-computer-path]', CONNECTION_PATH_LABELS[peer.connectionPath] || '');
     row.querySelector('[data-computer-path]').hidden = !peer.connectionPath;
