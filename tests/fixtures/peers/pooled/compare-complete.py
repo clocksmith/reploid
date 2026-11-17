@@ -25,7 +25,7 @@ def protocol_run(command, requests, output, deadline, environment=None):
     with CompleteRequestClient(command, output, env=clean_environment(environment),
                                max_response_bytes=16 * 1024 * 1024, arm_timeout_seconds=deadline) as client:
         for request in requests:
-            limit = {"open": 310, "request": 130}.get(request["op"], 45)
+            limit = {"open": 310, "request": 130, "lifecycle": 520}.get(request["op"], 45)
             response = client.request(request, timeout_seconds=min(deadline, limit))
             assert response.get("requestOp") == request["op"], "Worker response operation differs"
             assert "error" not in response, response.get("error")
@@ -61,6 +61,24 @@ def clean_environment(extra=None):
     return env
 
 
+def native_requests(workload, require_lifecycle):
+    requests = [{"op": "preflight"}, {"op": "open", "indices": None}]
+    requests += [dict(workload, op="request", repeat=i) for i in range(3)]
+    if require_lifecycle:
+        assert workload["maxNew"] >= 2, "Full-model lifecycle requires a multi-token workload"
+        requests.append(dict(workload, op="lifecycle"))
+    return requests + [{"op": "receipts"}, {"op": "close"}]
+
+
+def lifecycle_outputs(value):
+    assert value.get("schema") == "reploid.native-complete-lifecycle/v1", "Missing full-model lifecycle receipt"
+    assert value.get("observedTokens") == 1, "Cancellation did not follow the first observed token"
+    assert [phase["name"] for phase in value["phases"]] == [
+        "first-complete-request", "repeated-complete-request", "pre-aborted-request",
+        "active-cancellation-settled", "recovered-complete-request"], "Incomplete full-model lifecycle"
+    return [value[key] for key in ("first", "repeat", "recovered")]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("freeze")
@@ -72,11 +90,21 @@ def main():
     assert hashlib.sha256(frozen_bytes).hexdigest() == args.sha256, "Frozen comparison changed"
     freeze = json.loads(frozen_bytes)
     assert freeze["schema"] == "a1.complete-request-comparison/v2", "Obsolete comparison freeze"
+    require_lifecycle = freeze.get("requireNativeLifecycle", False)
+    assert isinstance(require_lifecycle, bool), "requireNativeLifecycle must be an explicit boolean"
+    if require_lifecycle:
+        pins = {Path(pin["path"]).resolve() for pin in freeze["filePins"]}
+        for config in freeze["native"].values():
+            helper = Path(config["nativeWorker"]).resolve().parent / "native-complete-lifecycle.js"
+            assert helper in pins, "Full-model lifecycle helper must be pinned in the comparison freeze"
+        for workload in freeze["workloads"]:
+            assert workload["maxNew"] >= 2, "Full-model lifecycle requires a multi-token workload"
     freeze["freezePath"] = str(Path(args.freeze).resolve())
     out = Path(args.output)
     out.mkdir()
     report = {"scope": freeze["scope"], "freezeSha256": args.sha256, "started": time.time(),
-              "modelRunsStarted": False, "completed": False, "arms": []}
+              "modelRunsStarted": False, "completed": False,
+              "nativeLifecycleRequired": require_lifecycle, "nativeLifecycleQualified": False, "arms": []}
 
     def save():
         (out / "report.json").write_text(json.dumps(report, indent=2))
@@ -133,6 +161,7 @@ def main():
                 for workload in freeze["workloads"]:
                     reference = None
                     for index, kind in enumerate(freeze["pattern"]):
+                        lifecycle = None
                         arm = out / (workload["name"] + "-" + str(index) + "-" + kind)
                         arm.mkdir()
                         assert_provider_unchanged(before, provider_state(freeze["protectedProviderUnit"]))
@@ -162,9 +191,7 @@ def main():
                             rows = responses[1:4]
                             assert all(case["reused"] == 0 for case in rows), "Pooled reused a prefix"
                         else:
-                            requests = [{"op": "preflight"}, {"op": "open", "indices": None}]
-                            requests += [dict(workload, op="request", repeat=i) for i in range(3)]
-                            requests += [{"op": "receipts"}, {"op": "close"}]
+                            requests = native_requests(workload, require_lifecycle)
                             responses = native(freeze["native"][kind], requests, arm / "process.log", freeze["armTimeoutSeconds"])
                             rows = responses[2:5]
                             assert all(row["generationEvidence"]["stats"]["reusedPrefixTokens"] == 0 for row in rows)
@@ -182,6 +209,12 @@ def main():
                                         assert source["gather"]["activeReadBytes"] == 0, "Gather ownership did not settle"
                             assert all(close["pool"]["resources"][owner]["bytes"] == 0
                                        for owner in ["active", "retainedModel", "deferredCleanup"])
+                            if require_lifecycle:
+                                lifecycle = responses[5]
+                                recovered_rows = lifecycle_outputs(lifecycle)
+                                normalized_recovery = check_tokens(recovered_rows, workload, kind, freeze, arm)
+                                assert normalized_recovery == check_tokens(rows, workload, kind, freeze, arm), \
+                                    "Lifecycle recovery differs from timed full-model requests"
                             (arm / "result.json").write_text(json.dumps(responses, indent=2))
                         report["modelRunsStarted"] = True
                         report["stage"]["state"] = "complete request outputs observed"
@@ -191,9 +224,12 @@ def main():
                         assert normalized == reference, "Exact complete IDs, stop reason/token or public text differs"
                         assert_provider_unchanged(before, provider_state(freeze["protectedProviderUnit"]))
                         report["arms"].append({"workload": workload["name"], "kind": kind, "exactCompletion": True,
-                                               "normalized": normalized, "rows": rows})
+                                               "normalized": normalized, "rows": rows, "lifecycle": lifecycle})
                         save()
                 report["completed"] = True
+                native_arms = [arm for arm in report["arms"] if arm["kind"] != "pooled"]
+                report["nativeLifecycleQualified"] = require_lifecycle and bool(native_arms) \
+                    and all(arm["lifecycle"] is not None for arm in native_arms)
             finally:
                 try:
                     os.killpg(server.pid, signal.SIGTERM)
@@ -205,6 +241,8 @@ def main():
                 report["providerAfter"] = provider_state(freeze["protectedProviderUnit"])
                 assert_provider_unchanged(before, report["providerAfter"])
     except BaseException as error:
+        report["completed"] = False
+        report["nativeLifecycleQualified"] = False
         report["failure"] = str(error)
         raise
     finally:

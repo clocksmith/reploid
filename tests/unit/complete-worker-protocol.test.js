@@ -25,6 +25,12 @@ it('keeps protected service cgroup and GPU-owner observations in the focused sui
   expect(result.stderr).toContain('Ran 6 tests');
   expect(result.stderr).toContain('OK');
 }, 10000);
+it('keeps full-model lifecycle execution separate from timed requests and requires complete cancellation receipts', async () => {
+  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'native_lifecycle_runner_test.py'],
+    { cwd: repo, timeout: 8000, maxBuffer: 1024 ** 2 });
+  expect(result.stderr).toContain('Ran 3 tests');
+  expect(result.stderr).toContain('OK');
+}, 10000);
 async function protocol(command, requests, root) {
   const script = `import sys,json,importlib.util,pathlib
 p=pathlib.Path(sys.argv[1])/'tests/fixtures/peers/pooled/compare-complete.py'

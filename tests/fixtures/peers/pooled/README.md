@@ -112,3 +112,12 @@ Exact input/output, stop-token semantics, prefix reuse, recovery, placement,
 allocation, receipt and lifecycle checks remain mandatory. Metadata dtype
 compatibility alone does not establish physical materialization, token parity,
 full-model isolation or competitive speed.
+
+An operator can bind `requireNativeLifecycle: true` in a new comparison freeze,
+including `native-complete-lifecycle.js` in `filePins`. Each native arm then runs
+its full-model lifecycle check after the three timed requests: repeatability,
+pre-aborted request, cancellation after the first token, settled GPU work and
+source reads, observed buffer reuse and identical recovery. Final unload and
+natural process exit remain mandatory. This adds real model work and must not
+be enabled by editing an already frozen campaign. Historical freezes without
+this field keep their original request sequence and do not qualify lifecycle.
