@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { resolveServedFile } from '../../server/browser-roots.js';
 import { openNativeModelSource } from '../../server/native-model-source.js';
 import { snapshotNativeSourceFiles, createNativeSourceFileReader } from '../../server/native-source-files.js';
+import { openDiagnosticPieceCache } from './native-piece-cache-source.js';
 
 const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const plain = name => typeof name === 'string' && /^[a-zA-Z0-9_.-]+$/u.test(name) && !['.', '..'].includes(name);
@@ -85,7 +86,13 @@ async function assertFileCurrent(layout, name) {
 
 export async function openDiagnosticModelSource({ config, model, runtime, signal, onSource = () => {} }) {
   config = { ...config, pieceIndex: { ...config.pieceIndex }, workerGather: config.workerGather && { ...config.workerGather },
+    ...(config.pieceCache === undefined ? {} : { pieceCache: structuredClone(config.pieceCache) }),
     ...(config.sourceMap === undefined ? {} : { sourceMap: structuredClone(config.sourceMap) }) };
+  if (config.pieceCache !== undefined) {
+    assert(config.sourceMap === undefined && !config.workerGather, 'Partial piece cache cannot claim full mapped sources or worker gather');
+    return openDiagnosticPieceCache({ metadata: await readDiagnosticMetadata(config), model, runtime,
+      policy: config.pieceCache, signal, onSource });
+  }
   if (config.sourceMap === undefined) {
     const source = await openNativeModelSource({ model: { ...model, source: { files: [config.pieceIndex] } },
       modelDirectory: path.dirname(config.manifestPath), runtime, gather: config.workerGather ?? null, signal });
