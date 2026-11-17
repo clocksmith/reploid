@@ -2,17 +2,23 @@
 import assert from 'node:assert/strict';
 import { timeCompleteRequest } from './complete-request-timing.js';
 
-export async function runNativeCompleteRequest({ model, prompt, promptIds, generation, timeoutMs, signal, clock }) {
+export async function runNativeCompleteRequest({ model, prompt, promptIds, generation, timeoutMs, signal, clock, onToken }) {
   assert(typeof prompt === 'string' && prompt.length > 0 && Array.isArray(promptIds) && promptIds.length > 0
     && promptIds.every(id => Number.isSafeInteger(id) && id >= 0), 'Complete request requires text and exact prompt IDs');
   assert(Number.isSafeInteger(timeoutMs) && timeoutMs > 0 && Number.isSafeInteger(generation.maxTokens)
     && generation.maxTokens > 0, 'Complete request requires finite request and token limits');
+  assert(onToken === undefined || typeof onToken === 'function', 'Token observer must be a function');
   const ids = [...promptIds], settings = structuredClone(generation);
   const measured = await timeCompleteRequest({
     reset: () => model.resetGenerationState(), timeoutMs, signal, clock,
     generate: (observe, active) => model.inspect.generate(prompt, {
       policyId: 'demo/always-on', inputTokenIds: ids, generation: { ...settings, signal: active },
-      onEvent(event) { if (event.type === 'token') observe(event.tokenId); },
+      onEvent(event) {
+        if (event.type === 'token') {
+          observe(event.tokenId);
+          onToken?.(event.tokenId);
+        }
+      },
     }),
     decode: receipt => receipt.outputText,
   });

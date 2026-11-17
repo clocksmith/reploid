@@ -10,6 +10,7 @@ import { verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 import { openDiagnosticModelSource } from './native-diagnostic-source.js';
 import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
 import { runNativeCompleteRequest } from './native-complete-request.js';
+import { runNativeCompleteLifecycle } from './native-complete-lifecycle.js';
 import { serveCompleteRequestProtocol } from './complete-request-protocol.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
@@ -142,6 +143,15 @@ async function invoke(request) {
     const result = await runNativeCompleteRequest({ model: whole, prompt: request.prompt, promptIds: request.promptIds,
       generation, timeoutMs: config.requestTimeoutMs });
     return { ...result, memory: memory() };
+  }
+  if (request.op === 'lifecycle') {
+    assert(whole, 'Whole model must be opened before lifecycle qualification');
+    return runNativeCompleteLifecycle({ model: whole, workload: request, generation,
+      timeoutMs: config.requestTimeoutMs, gpuCapBytes: config.runtimeConfig.shared.bufferPool.budget.maxTotalBytes,
+      async settle() {
+        await getDevice().queue.onSubmittedWorkDone();
+        await getBufferPool().settleDeferredDestruction();
+      }, memory, sourceReceipts: receipts });
   }
   if (request.op === 'whole') {
     assert(whole);
