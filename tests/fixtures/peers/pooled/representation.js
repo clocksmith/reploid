@@ -7,6 +7,12 @@ export function inspectPeerRepresentation(manifest, runtimeConfig) {
   const compute = runtimeConfig?.inference?.session?.compute?.defaults;
   assert(compute && ['activationDtype', 'mathDtype', 'accumDtype', 'outputDtype'].every(key => compute[key] === 'f32'),
     'Peer weight representation comparison requires the explicit F32 execution profile');
+  const kernelPath = runtimeConfig.inference.kernelPath;
+  const nativeKVDtype = runtimeConfig.inference.session.kvcache?.kvDtype ?? null;
+  if (kernelPath && typeof kernelPath === 'object' && kernelPath.kvDtype != null) {
+    assert.equal(nativeKVDtype, kernelPath.kvDtype,
+      'Explicit native KV dtype must match the selected kernel path before model comparison');
+  }
   const mismatches = [], counts = {};
   for (const [name, tensor] of Object.entries(manifest.tensors)) {
     const dtype = tensor.dtype?.toUpperCase();
@@ -20,6 +26,8 @@ export function inspectPeerRepresentation(manifest, runtimeConfig) {
     }
   }
   return { schema: 'reploid.peer-effective-weights/v1', modelId: manifest.modelId, ready: mismatches.length === 0, counts, mismatches,
+    cachePrecision: { native: nativeKVDtype, peer: 'f16', identical: nativeKVDtype === 'f16',
+      exactTokenParityRequired: true, scope: 'Declared runtime cache precision; physical layout and numerical parity remain execution gates' },
     scope: 'Metadata conversion contract: Q4/Q8 values preserved, F16/BF16 expanded to F32, other packed quants require explicit peer-derived replacement. Runtime/kernel/token and all-source-byte checks remain separate.' };
 }
 

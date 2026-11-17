@@ -68,6 +68,10 @@ native dependencies; they do not attest loaded drivers or physical hardware.
 Frozen source aliases bind their own identity and timestamps as well as the
 canonical target. Replacing an alias and restoring it to the same target
 invalidates that freeze; a matching target path alone does not satisfy continuity.
+The metadata comparison also rejects an explicit native KV-cache dtype that
+contradicts its selected kernel path. Receipts expose native and peer cache
+precision separately; common effective weights do not imply identical cache
+precision. Exact full-model token parity remains mandatory across those paths.
 
 ## Timing scopes
 

@@ -15,6 +15,21 @@ it('refuses raw Q5 shared matrices despite a Q8 profile label and admits explici
   expect(requirePeerRepresentation(manifest, config).ready).toBe(true);
 });
 
+it('rejects a KV runtime/kernel contract mismatch before GPU loading and exposes cache precision differences', () => {
+  const manifest = { modelId: 'kv-contract', metadata: { sourceRuntime: { sourceKind: 'gguf' } },
+    tensors: { weight: { dtype: 'Q8_0', shape: [32, 32] } } };
+  const selected = structuredClone(config);
+  selected.inference.kernelPath = { id: 'explicit-f32', kvDtype: 'f32' };
+  selected.inference.session.kvcache = { kvDtype: 'f16' };
+  expect(() => requirePeerRepresentation(manifest, selected)).toThrow('native KV dtype must match');
+  selected.inference.session.kvcache.kvDtype = 'f32';
+  expect(requirePeerRepresentation(manifest, selected).cachePrecision).toMatchObject({
+    native: 'f32', peer: 'f16', identical: false, exactTokenParityRequired: true });
+  selected.inference.kernelPath.kvDtype = 'f16';
+  selected.inference.session.kvcache.kvDtype = 'f16';
+  expect(requirePeerRepresentation(manifest, selected).cachePrecision.identical).toBe(true);
+});
+
 it('rejects wrong worker pins and incomplete responses, then closes its actual worker', async () => {
   const source = "import {parentPort} from 'node:worker_threads';parentPort.on('message',({id})=>parentPort.postMessage({id,qs:new Uint8Array(1),scales:new Uint32Array(1)}));";
   const sha256 = createHash('sha256').update(source).digest('hex');
