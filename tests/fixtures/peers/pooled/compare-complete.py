@@ -56,8 +56,15 @@ def check_tokens(rows, workload, kind, freeze, out):
 
 def clean_environment(extra=None):
     env = dict(os.environ)
-    for key in ["NODE_OPTIONS", "NODE_PATH", "LD_PRELOAD", "LD_LIBRARY_PATH"]:
+    for key in list(env):
+        if key not in ["NODE_OPTIONS", "NODE_PATH", "LD_PRELOAD", "LD_LIBRARY_PATH",
+                       "DAWN_OPTS", "UV_THREADPOOL_SIZE", "RN_DEBUG"] \
+                and not key.startswith(("POOLED_", "DOPPLER_")):
+            continue
         env.pop(key, None)
+    assert extra is None or isinstance(extra, dict) and all(
+        isinstance(key, str) and isinstance(value, str) and "\x00" not in key + value and "=" not in key
+        for key, value in extra.items()), "Explicit environment must map valid strings to strings"
     env.update(extra or {})
     return env
 
@@ -131,6 +138,7 @@ def main():
     out.mkdir()
     report = {"scope": freeze["scope"], "freezeSha256": args.sha256, "started": time.time(),
               "modelRunsStarted": False, "completed": False,
+              "environmentPolicy": "Unset ambient POOLED_*, DOPPLER_*, DAWN_OPTS, UV_THREADPOOL_SIZE and RN_DEBUG; apply only frozen arm overrides; unset is distinct from empty",
               "nativeLifecycleRequired": require_lifecycle, "nativeLifecycleQualified": False, "arms": []}
 
     def save():
@@ -138,6 +146,7 @@ def main():
 
     server = None
     try:
+        clean_environment(freeze["pooledConfig"].get("environment", {}))
         for pin in freeze["filePins"]:
             assert Path(pin["path"]).stat().st_size == pin["bytes"], pin["path"]
             digest = hashlib.sha256()
@@ -207,7 +216,8 @@ def main():
                             requests += [dict(workload, op="request", repeat=i) for i in range(3)]
                             requests += [{"op": "receipts"}, {"op": "close"}]
                             responses = protocol_run([freeze["node"], freeze["pooledAdapter"], str(config_path)],
-                                                     requests, arm / "process.log", freeze["armTimeoutSeconds"])
+                                                     requests, arm / "process.log", freeze["armTimeoutSeconds"],
+                                                     config.get("environment", {}))
                             result = responses[-1]
                             (arm / "protocol-results.json").write_text(json.dumps(responses, indent=2))
                             assert result.get("cleanup") == "settled" and not result.get("error")

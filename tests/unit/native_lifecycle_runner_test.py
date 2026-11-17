@@ -1,7 +1,10 @@
 """No model/GPU imports: verify the frozen comparison's lifecycle request contract."""
 import importlib.util
+import os
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
 path = Path(__file__).resolve().parents[1] / "fixtures/peers/pooled/compare-complete.py"
 spec = importlib.util.spec_from_file_location("native_lifecycle_comparison", path)
@@ -10,6 +13,38 @@ spec.loader.exec_module(comparison)
 
 
 class NativeLifecycleRunnerTest(unittest.TestCase):
+    def test_engine_environment_is_explicit_not_inherited(self):
+        with patch.dict(os.environ, {"POOLED_FLASH_KV": "f32", "DOPPLER_DEBUG": "1", "NODE_OPTIONS": "ambient",
+                                   "DAWN_OPTS": "ambient", "UV_THREADPOOL_SIZE": "99", "RN_DEBUG": "1"}):
+            clean = comparison.clean_environment()
+            self.assertNotIn("POOLED_FLASH_KV", clean)
+            self.assertNotIn("DOPPLER_DEBUG", clean)
+            self.assertNotIn("NODE_OPTIONS", clean)
+            for key in ["DAWN_OPTS", "UV_THREADPOOL_SIZE", "RN_DEBUG"]:
+                self.assertNotIn(key, clean)
+            self.assertEqual(clean.get("PATH"), os.environ.get("PATH"))
+            explicit = comparison.clean_environment({"POOLED_FLASH_KV": "f16"})
+            self.assertEqual(explicit["POOLED_FLASH_KV"], "f16")
+            self.assertEqual(comparison.clean_environment({"POOLED_WIRE_DUP": ""})["POOLED_WIRE_DUP"], "")
+            with self.assertRaises(AssertionError):
+                comparison.clean_environment({"POOLED_FLASH_KV": 16})
+
+    def test_owned_worker_receives_only_declared_engine_overrides(self):
+        import sys
+        script = """import sys,os,json
+for line in sys.stdin:
+ request=json.loads(line)
+ print('@q4-response '+json.dumps({'id':request['id'],'requestOp':request['op'],'value':{
+  'peer':os.environ.get('POOLED_FLASH_KV'),'native':os.environ.get('DOPPLER_DEBUG')}}),flush=True)
+ if request['op']=='close':break
+"""
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"POOLED_FLASH_KV": "ambient", "DOPPLER_DEBUG": "ambient"}):
+            rows = comparison.protocol_run([sys.executable, "-u", "-c", script], [{"op": "close"}],
+                                           Path(directory) / "worker.log", 5, {"POOLED_FLASH_KV": "f16"})
+        self.assertEqual(rows[0]["peer"], "f16")
+        self.assertIsNone(rows[0]["native"])
+        self.assertTrue(rows[0]["ownedProcessExit"]["graceful"])
+
     def test_heldout_inputs_cannot_repeat_frozen_cases_or_collide_on_disk(self):
         frozen = {"name": "first", "classification": "frozen", "prompt": "first", "promptIds": [1],
                   "maxNew": 2, "stopIds": [9]}

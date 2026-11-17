@@ -21,6 +21,12 @@ Hosting rejects a reintroduced profile, and archive verification remains mandato
 
 The runner defaults to metadata checks:
 
+Owned model processes clear ambient `POOLED_*`, `DOPPLER_*`, `DAWN_OPTS`,
+`UV_THREADPOOL_SIZE`, and `RN_DEBUG` settings, then apply only that arm's frozen
+`environment` map. Omitting an SDK override retains its ordinary default;
+an explicit empty string remains distinct from an unset variable. Both native
+and peer processes follow this policy, recorded in the comparison report.
+
 ```sh
 python3 compare-complete.py /absolute/freeze.json \
   --sha256 FREEZE_SHA256 --output /absolute/new-preflight-directory
