@@ -27,6 +27,13 @@ Owned model processes clear ambient `POOLED_*`, `DOPPLER_*`, `DAWN_OPTS`,
 an explicit empty string remains distinct from an unset variable. Both native
 and peer processes follow this policy, recorded in the comparison report.
 
+The native worker optionally accepts `expertLoadingObservation: true` for a
+separately pinned diagnostic. It calls the selected source's declared
+`model.advanced.getExpertLoadingStats()` after open and complete-request clocks
+stop, and fails explicitly if that source lacks the capability. Ordinary runs
+omit the flag and perform no snapshot work. Profiler phase counters and wait sums
+are diagnostic attribution, not GPU time or matched speed qualification.
+
 ```sh
 python3 compare-complete.py /absolute/freeze.json \
   --sha256 FREEZE_SHA256 --output /absolute/new-preflight-directory

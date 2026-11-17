@@ -11,9 +11,12 @@ import { openDiagnosticModelSource } from './native-diagnostic-source.js';
 import { openDiagnosticWholeModel, closeDiagnosticSources, inspectDiagnosticModel } from './native-diagnostic-whole.js';
 import { runNativeCompleteRequest } from './native-complete-request.js';
 import { runNativeCompleteLifecycle } from './native-complete-lifecycle.js';
+import { observeNativeExpertLoading } from './native-expert-observation.js';
 import { serveCompleteRequestProtocol } from './complete-request-protocol.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
+assert(config.expertLoadingObservation === undefined || typeof config.expertLoadingObservation === 'boolean',
+  'expertLoadingObservation must be an explicit boolean');
 const mod = file => import(pathToFileURL(path.join(config.installedPackage, 'src', file)).href);
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 let runtime, bootstrapNodeWebGPU, releaseNodeWebGPU, installNodeFileFetchShim;
@@ -136,13 +139,14 @@ async function invoke(request) {
     return { plan, planId, generation, model, packageRecheckMs, modelPreflightMs, openWallMs: performance.now() - openStarted,
       generationDigest: runtime.hashPartitionGeneration(generation),
       provider: bootstrap.receipt, elapsedMs: performance.now() - start, memory: memory(),
+      expertLoading: whole ? observeNativeExpertLoading(config, whole, 'open') : undefined,
       descriptors: [...residents].map(([index, resident]) => ({ index, descriptor: resident.getDescriptor() })) };
   }
   if (request.op === 'request') {
     assert(whole, 'Whole model must be opened before a complete request');
     const result = await runNativeCompleteRequest({ model: whole, prompt: request.prompt, promptIds: request.promptIds,
       generation, timeoutMs: config.requestTimeoutMs });
-    return { ...result, memory: memory() };
+    return { ...result, memory: memory(), expertLoading: observeNativeExpertLoading(config, whole, 'request') };
   }
   if (request.op === 'lifecycle') {
     assert(whole, 'Whole model must be opened before lifecycle qualification');
