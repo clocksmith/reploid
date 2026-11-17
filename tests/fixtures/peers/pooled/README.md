@@ -50,6 +50,16 @@ provider or model import. Its regular-file deadline is cooperative; an owned
 process deadline is also needed if the caller requires a hard execution bound.
 The operator pins the completed receipt hash in a new freeze before execution.
 
+Separately completed proofs can be combined without rereading large source
+files. `compose-source-integrity.js` takes the same three command arguments;
+its configuration contains the complete `files` selection, `timeoutMs`, a
+`maxProofBytes` total metadata budget (at most 1 MiB), and `proofs` entries with
+absolute receipt `path` and `sha256`. Each component must bind unchanged files
+from that selection. Missing, overlapping, unknown or differently identified
+files fail. The combined receipt is usable only for its exact selected coverage;
+a subset still cannot satisfy the comparison's full-model gate. Composition
+does not replace content hashing with historical declarations or attestations.
+
 Proof hashing happens outside timed requests. The peer's original disk reader
 and conversion remain unchanged. Proof plus later filesystem continuity is not
 per-read authentication of the peer's descriptors. Native inference retains its

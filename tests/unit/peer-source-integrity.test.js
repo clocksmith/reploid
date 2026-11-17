@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
-import { proveSourceIntegrity, verifySourceIntegrityProof, requiredSourceIntegrityFiles, readSourceProofMetadata, verifySourceAliases } from '../fixtures/peers/pooled/source-integrity.js';
+import { proveSourceIntegrity, verifySourceIntegrityProof, composeSourceIntegrityProof, requiredSourceIntegrityFiles, readSourceProofMetadata, verifySourceAliases } from '../fixtures/peers/pooled/source-integrity.js';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const stamp = stat => [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].map(String).join(':');
 async function setup() {
@@ -98,5 +98,54 @@ it('rejects pre-aborted proof admission before opening descriptors and caps meta
     expect(open).not.toHaveBeenCalled();
     const filename = path.join(root, 'oversized.json'); await fs.writeFile(filename, new Uint8Array(1024 ** 2 + 1));
     await expect(readSourceProofMetadata(filename, AbortSignal.timeout(1000))).rejects.toThrow('metadata budget');
+  } finally { vi.restoreAllMocks(); await fs.rm(root, { recursive: true, force: true }); }
+});
+
+it('composes pinned disjoint content proofs without rereading source bytes and preserves full coverage admission', async () => {
+  const first = await setup(), second = await setup();
+  try {
+    const proofs = [];
+    for (const [index, item] of [first, second].entries()) {
+      const receipt = JSON.stringify(await proveSourceIntegrity(item.config));
+      const filename = path.join(first.root, `part-${index}.json`);
+      await fs.writeFile(filename, receipt); proofs.push({ path: filename, sha256: hash(receipt) });
+    }
+    const config = { files: [...first.config.files, ...second.config.files], timeoutMs: 1000, maxProofBytes: 4096, proofs };
+    const open = vi.spyOn(fs, 'open');
+    const combined = await composeSourceIntegrityProof(config);
+    expect(combined).toMatchObject({ completed: true, verifiedBytes: 514, componentProofs: proofs });
+    expect(open.mock.calls.map(args => args[0])).toEqual(proofs.map(proof => proof.path));
+    const filename = path.join(first.root, 'combined.json'), bytes = JSON.stringify(combined);
+    await fs.writeFile(filename, bytes);
+    expect(await verifySourceIntegrityProof({ ...config, proof: { path: filename, sha256: hash(bytes) } }))
+      .toMatchObject({ ready: true, verifiedBytes: 514 });
+    await expect(composeSourceIntegrityProof({ ...config, proofs: [proofs[0]] })).rejects.toThrow('omit selected');
+    await expect(composeSourceIntegrityProof({ ...config, proofs: [proofs[0], proofs[0]] })).rejects.toThrow('overlap');
+    await expect(composeSourceIntegrityProof({ ...config, files: first.config.files, proofs: [proofs[1]] })).rejects.toThrow('unselected');
+    await expect(composeSourceIntegrityProof({ ...config, maxProofBytes: 1 })).rejects.toThrow('metadata budget');
+    await expect(composeSourceIntegrityProof({ ...config, proofs: [{ ...proofs[0], sha256: '0'.repeat(64) }] })).rejects.toThrow('identity differs');
+    open.mockRestore();
+    const original = fs.open.bind(fs);
+    vi.spyOn(fs, 'open').mockImplementation(async (...args) => {
+      const handle = await original(...args);
+      if (args[0] === proofs[1].path) await fs.writeFile(first.config.files[0].canonicalPath, new Uint8Array(257));
+      return handle;
+    });
+    await expect(composeSourceIntegrityProof(config)).rejects.toThrow('file changed');
+  } finally { vi.restoreAllMocks(); await fs.rm(first.root, { recursive: true, force: true }); await fs.rm(second.root, { recursive: true, force: true }); }
+});
+
+it('rejects composed stale identities and cancellation before publishing coverage', async () => {
+  const { root, config } = await setup();
+  try {
+    const filename = path.join(root, 'part.json'), bytes = JSON.stringify(await proveSourceIntegrity(config));
+    await fs.writeFile(filename, bytes);
+    const input = { ...config, maxProofBytes: 4096, proofs: [{ path: filename, sha256: hash(bytes) }] };
+    const controller = new AbortController(); controller.abort(new Error('stop composition'));
+    const open = vi.spyOn(fs, 'open');
+    await expect(composeSourceIntegrityProof({ ...input, signal: controller.signal })).rejects.toThrow('stop composition');
+    expect(open).not.toHaveBeenCalled();
+    await fs.writeFile(config.files[0].canonicalPath, new Uint8Array(257));
+    await expect(composeSourceIntegrityProof(input)).rejects.toThrow('file changed');
   } finally { vi.restoreAllMocks(); await fs.rm(root, { recursive: true, force: true }); }
 });

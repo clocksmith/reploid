@@ -88,15 +88,16 @@ export async function proveSourceIntegrity(config) {
     scope: 'Complete declared file hashes verified through identity-bound descriptors before timing; later continuity checks are not per-read authentication of the unmodified peer' };
 }
 
-export async function readSourceProofMetadata(filename, signal) {
+export async function readSourceProofMetadata(filename, signal, maxBytes = 1024 ** 2) {
   signal?.throwIfAborted();
   assert(path.isAbsolute(filename) && Number.isInteger(constants.O_NOFOLLOW) && Number.isInteger(constants.O_NONBLOCK),
     'Explicit no-follow source proof metadata path required');
+  assert(Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= 1024 ** 2, 'Finite source proof metadata budget required');
   const handle = await fs.open(filename, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   let bytes;
   try {
     const before = await handle.stat({ bigint: true });
-    assert(before.isFile() && before.size <= 1024n ** 2n, 'Source proof receipt exceeds its metadata budget');
+    assert(before.isFile() && before.size <= BigInt(maxBytes), 'Source proof receipt exceeds its metadata budget');
     bytes = new Uint8Array(Number(before.size)); let offset = 0;
     while (offset < bytes.length) {
       signal?.throwIfAborted();
@@ -110,18 +111,57 @@ export async function readSourceProofMetadata(filename, signal) {
   return bytes;
 }
 
+async function verifyReceipt(receipt, files, active) {
+  assert(receipt.schema === 'reploid.peer-source-integrity/v1' && receipt.completed === true, 'Incomplete source proof');
+  assert.deepEqual(receipt.files, files, 'Source proof does not bind the complete selected file set');
+  assert.equal(receipt.verifiedBytes, files.reduce((sum, file) => sum + file.bytes, 0), 'Source proof coverage differs');
+  for (const file of files) await current(file, active);
+}
+
 export async function verifySourceIntegrityProof(config) {
   const { files, active } = admit(config);
   assert(config.proof && path.isAbsolute(config.proof.path) && sha(config.proof.sha256), 'Pinned complete source proof required');
   const bytes = await readSourceProofMetadata(config.proof.path, active);
   assert.equal(digest(bytes), config.proof.sha256, 'Source proof receipt identity differs');
   const receipt = JSON.parse(new TextDecoder().decode(bytes));
-  assert(receipt.schema === 'reploid.peer-source-integrity/v1' && receipt.completed === true, 'Incomplete source proof');
-  assert.deepEqual(receipt.files, files, 'Source proof does not bind the complete selected file set');
-  assert.equal(receipt.verifiedBytes, files.reduce((sum, file) => sum + file.bytes, 0), 'Source proof coverage differs');
-  for (const file of files) await current(file, active);
+  await verifyReceipt(receipt, files, active);
   return { ready: true, receiptSha256: config.proof.sha256, verifiedBytes: receipt.verifiedBytes,
     scope: receipt.scope, timedPeerReaderModified: false };
+}
+
+/** Compose completed descriptor-bound proofs without rereading source contents. */
+export async function composeSourceIntegrityProof(config) {
+  const { files, active } = admit(config);
+  const proofs = structuredClone(config.proofs);
+  assert(Array.isArray(proofs) && proofs.length > 0 && proofs.length <= files.length,
+    'Explicit bounded source proof components required');
+  assert(Number.isSafeInteger(config.maxProofBytes) && config.maxProofBytes > 0 && config.maxProofBytes <= 1024 ** 2,
+    'Finite total source proof metadata budget required');
+  const expected = new Map(files.map(file => [file.path, file]));
+  const covered = new Set();
+  let metadataBytes = 0;
+  for (const proof of proofs) {
+    active.throwIfAborted();
+    assert(proof && path.isAbsolute(proof.path) && sha(proof.sha256), 'Pinned source proof component required');
+    const bytes = await readSourceProofMetadata(proof.path, active, config.maxProofBytes - metadataBytes);
+    metadataBytes += bytes.length;
+    assert.equal(digest(bytes), proof.sha256, 'Source proof component identity differs');
+    const receipt = JSON.parse(new TextDecoder().decode(bytes));
+    assert(Array.isArray(receipt.files) && receipt.files.length > 0, 'Source proof component has no files');
+    const selected = receipt.files.map(file => {
+      assert(expected.has(file.path), 'Source proof component contains an unselected file');
+      assert(!covered.has(file.path), 'Source proof components overlap');
+      covered.add(file.path);
+      return expected.get(file.path);
+    });
+    await verifyReceipt(receipt, selected, active);
+  }
+  assert.equal(covered.size, files.length, 'Source proof components omit selected files');
+  // Recheck all members after the last component, including the earliest proof.
+  for (const file of files) await current(file, active);
+  return { schema: 'reploid.peer-source-integrity/v1', completed: true, files,
+    verifiedBytes: files.reduce((sum, file) => sum + file.bytes, 0), componentProofs: proofs, metadataBytes,
+    scope: 'Complete selected coverage composed from pinned descriptor-bound content proofs with current file continuity; not per-read authentication of the unmodified peer' };
 }
 
 /** Build coverage from the admitted manifest/index, never from a caller's subset. */
