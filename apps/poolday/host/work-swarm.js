@@ -1,4 +1,5 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
+import { createContributorIdentity } from './contributor-identity.js';
 import { operationObserverEvidence } from '../../../shared/vendor/reploid/mesh/jobs/operation-privacy.js';
 import { createWebAccessNetwork } from '../../../shared/vendor/reploid/mesh/web-access-network.js';
 import { createPeerGenerationMesh, createAutomaticPartitions } from '../../../shared/vendor/reploid/mesh/index.js';
@@ -132,13 +133,14 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   });
   const build = (model, peerId, execution = null) => {
     const version = generation;
-    let signingIdentity = null, registeredBuild = false;
+    let signingIdentity = null, registeredBuild = false, contributorClosing = false;
     const instanceId = 'work-swarm:' + crypto.randomUUID();
+    const contributorIdentity = model ? createContributorIdentity({ storage }) : null;
     const events = EventBus.factory({ Utils: utils });
     events.on('swarm-state', notify);
     const config = resolveConfig({ overrides: { ...options.config.value, mesh: { ...options.config.value.mesh,
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
-    return createPeerGenerationMesh({ config, ports: {
+    const mesh = createPeerGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events, getBlockedComputers,
       getExecutionState: () => {
         const state = execution?.getState();
@@ -168,12 +170,16 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         // The registered participant is a copy: connection counters never change the stored identity.
         const registered = !model && participantIdentity ? await participantIdentity() : null;
         if (registered) registeredBuild = true;
-        const bundle = registered ? structuredClone(registered) : await ensureIdentityBundle({ ...input, storage });
+        const bundle = registered ? structuredClone(registered) : contributorIdentity
+          ? await contributorIdentity.ensure() : await ensureIdentityBundle({ ...input, storage });
+        if (contributorClosing) throw new Error('Contributor connection stopped');
         signingIdentity = bundle;
         if (!model) consumerIdentity = bundle; return bundle;
       },
-        save: bundle => registeredBuild ? undefined : saveIdentityBundle(bundle, storage, { instanceId }),
+        save: bundle => registeredBuild ? undefined : contributorIdentity
+          ? contributorIdentity.save(bundle) : saveIdentityBundle(bundle, storage, { instanceId }),
         rotate: input => {
+          if (contributorIdentity) throw new Error('Persistent contributor identity does not rotate with its connection');
           if (registeredBuild) throw new Error('The participant identity registered for credits does not rotate here');
           return rotateIdentityBundle({ ...input, storage });
         }, sync: async () => {} },
@@ -215,6 +221,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         return execution.generate(messages, onUpdate, { ...controls, adapters });
       }
     } });
+    return contributorIdentity ? { ...mesh, async close() {
+      // Keep exclusive ownership until admitted work and transport cleanup settle.
+      contributorClosing = true;
+      await mesh.close();
+      await contributorIdentity.close();
+    } } : mesh;
   };
   const connectOnce = async () => {
     if (closed) throw new Error('Text swarm is closed');

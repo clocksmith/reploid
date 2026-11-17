@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 382 |
+| apps/poolday | 383 |
 | self | 457 |
 | shared | 2392 |
-| total | 3231 |
+| total | 3232 |
 
 Every file lives in its owner's root.
 
@@ -421,6 +421,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/computer-preferences.js` | `apps/poolday/host/computer-preferences.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `apps/poolday/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-resume.js` | `apps/poolday/host/contribution-resume.js` | apps/poolday | Reached only from product entries. |
+| `host/contributor-identity.js` | `apps/poolday/host/contributor-identity.js` | apps/poolday | Reached only from product entries. |
 | `host/contributor-search.js` | `apps/poolday/host/contributor-search.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/browser.js` | `apps/poolday/host/credits/browser.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/local-sign-in.js` | `apps/poolday/host/credits/local-sign-in.js` | apps/poolday | Reached only from product entries. |
