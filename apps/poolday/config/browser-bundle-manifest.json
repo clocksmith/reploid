@@ -1435,8 +1435,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 656924,
-      "sha256": "sha256:730bfbc08b7e6298a89978dd674814f6932c2f632793161383c68d5b795a0f63"
+      "byteLength": 657191,
+      "sha256": "sha256:df8fe31123e3496f36d755b25e32e8d888cd08adaed6379d09f30d78b4bd975a"
     },
     {
       "path": "config/module-registry.json",
@@ -1909,6 +1909,11 @@
       "sha256": "sha256:f04fcaec0adcce51cbefb4d88e6fc3a1208bcdbf22b1783aa7363d09fcaff243"
     },
     {
+      "path": "host/contributor-identity.js",
+      "byteLength": 4066,
+      "sha256": "sha256:54f798cd2158c660583125476b0fea88602550621c1ed19a1953715c2d4f7e8c"
+    },
+    {
       "path": "host/contributor-search.js",
       "byteLength": 2138,
       "sha256": "sha256:38b90d2add018276581e0b4eedd027a77ea2dd4e74d9dd0d3a19aa0c0b000832"
@@ -2185,8 +2190,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 36829,
-      "sha256": "sha256:436123dcf4dcd683d056679adc30ef898c59780648e7fa6ccac158985cf2b6af"
+      "byteLength": 37623,
+      "sha256": "sha256:ea179487e38f4e2738a2123c3ce34b8fb4839174da7dfdfd3653dfe1bb4a67c1"
     },
     {
       "path": "host/work-task.js",
@@ -3765,8 +3770,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2492303,
-      "sha256": "sha256:52a3f96282e406871efde9a5437311366a45f9ef5dd90bb5848c99994ee6fec2"
+      "byteLength": 2494444,
+      "sha256": "sha256:c7fca242ea30411c7f4eba573d837f1c5a48f47a0fc78ee8eb5d9663a340879f"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12309,5 +12314,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:b3522f94aa67cdf50872166bae04ee15d38d41cd605a0c91c92ce231eba57864"
+  "bundleHash": "sha256:3c026ba7ac06e1a9bea8de3656cf4d7aee478519d59f31c9157b52e3c169ab24"
 }

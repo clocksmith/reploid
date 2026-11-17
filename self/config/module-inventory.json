@@ -2882,6 +2882,14 @@
       ]
     },
     {
+      "path": "self/host/contributor-identity.js",
+      "owner": "self",
+      "sha256": "sha256:54f798cd2158c660583125476b0fea88602550621c1ed19a1953715c2d4f7e8c",
+      "imports": [
+        "../identity.js"
+      ]
+    },
+    {
       "path": "self/host/contributor-search.js",
       "owner": "self",
       "sha256": "sha256:38b90d2add018276581e0b4eedd027a77ea2dd4e74d9dd0d3a19aa0c0b000832",
@@ -3455,7 +3463,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:436123dcf4dcd683d056679adc30ef898c59780648e7fa6ccac158985cf2b6af",
+      "sha256": "sha256:ea179487e38f4e2738a2123c3ce34b8fb4839174da7dfdfd3653dfe1bb4a67c1",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3475,6 +3483,7 @@
         "../vendor/reploid/mesh/web-access-network.js",
         "../vendor/reploid/transport/index.js",
         "./contribution-history.js",
+        "./contributor-identity.js",
         "./work-model-files.js",
         "./work-partition-networks.js",
         "./work-partition-plan.js",
@@ -4228,7 +4237,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:52a3f96282e406871efde9a5437311366a45f9ef5dd90bb5848c99994ee6fec2",
+      "sha256": "sha256:c7fca242ea30411c7f4eba573d837f1c5a48f47a0fc78ee8eb5d9663a340879f",
       "imports": []
     },
     {

@@ -36,10 +36,6 @@ Outputs: [product session](product-session.js), [conversations](chat-session.js)
   metadataDigest catalogs open single-tab transactional history, otherwise ordinary.
 - A paired native requester delegates private service under its enrolled identities
   and credit policy. A private choice cannot fall back to public or local execution.
-- Whole-model browser contributors retain profile-local signing slots across rebuilds.
-  Web Locks exclude concurrent reuse; copied tabs get distinct slots. Session IDs
-  stay fresh. Old random identities are retained, not guessed or migrated.
-  This does not change requester/partition identities or prove hardware uniqueness.
 - Connection, introductions, cached compute/file sharing default on;
   Separate off controls; downloads require approval.
   Discovery never downloads weights.
