@@ -140,9 +140,10 @@ export async function verifySourceIntegrityProof(config) {
 export async function composeSourceIntegrityProof(config) {
   const { files, active } = admit(config);
   const proofs = structuredClone(config.proofs);
+  const maxProofBytes = config.maxProofBytes;
   assert(Array.isArray(proofs) && proofs.length > 0 && proofs.length <= files.length,
     'Explicit bounded source proof components required');
-  assert(Number.isSafeInteger(config.maxProofBytes) && config.maxProofBytes > 0 && config.maxProofBytes <= 1024 ** 2,
+  assert(Number.isSafeInteger(maxProofBytes) && maxProofBytes > 0 && maxProofBytes <= 1024 ** 2,
     'Finite total source proof metadata budget required');
   const expected = new Map(files.map(file => [file.path, file]));
   const covered = new Set();
@@ -150,7 +151,7 @@ export async function composeSourceIntegrityProof(config) {
   for (const proof of proofs) {
     active.throwIfAborted();
     assert(proof && path.isAbsolute(proof.path) && sha(proof.sha256), 'Pinned source proof component required');
-    const bytes = await readSourceProofMetadata(proof.path, active, config.maxProofBytes - metadataBytes);
+    const bytes = await readSourceProofMetadata(proof.path, active, maxProofBytes - metadataBytes);
     metadataBytes += bytes.length;
     assert.equal(digest(bytes), proof.sha256, 'Source proof component identity differs');
     const receipt = JSON.parse(new TextDecoder().decode(bytes));

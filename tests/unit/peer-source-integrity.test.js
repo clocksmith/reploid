@@ -126,6 +126,14 @@ it('composes pinned disjoint content proofs without rereading source bytes and p
     await expect(composeSourceIntegrityProof({ ...config, proofs: [{ ...proofs[0], sha256: '0'.repeat(64) }] })).rejects.toThrow('identity differs');
     open.mockRestore();
     const original = fs.open.bind(fs);
+    const mutableBudget = { ...config, maxProofBytes: (await Promise.all(proofs.map(proof => fs.stat(proof.path))))
+      .reduce((sum, stat) => sum + stat.size, 0) - 1 };
+    const budgetOpen = vi.spyOn(fs, 'open').mockImplementation(async (...args) => {
+      mutableBudget.maxProofBytes = 4096;
+      return original(...args);
+    });
+    await expect(composeSourceIntegrityProof(mutableBudget)).rejects.toThrow('metadata budget');
+    budgetOpen.mockRestore();
     vi.spyOn(fs, 'open').mockImplementation(async (...args) => {
       const handle = await original(...args);
       if (args[0] === proofs[1].path) await fs.writeFile(first.config.files[0].canonicalPath, new Uint8Array(257));
