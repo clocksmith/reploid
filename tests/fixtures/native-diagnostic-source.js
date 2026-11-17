@@ -84,6 +84,14 @@ async function assertFileCurrent(layout, name) {
   assert(stat.isFile() && JSON.stringify(identityOf(stat)) === JSON.stringify(expected), 'Diagnostic mapped source identity changed');
 }
 
+// A batch has at most three distinct sources. Dispatch their independent
+// metadata checks together, and retain every check until it actually settles.
+async function assertFilesCurrent(layout, names) {
+  const checks = await Promise.allSettled(names.map(name => assertFileCurrent(layout, name)));
+  const failed = checks.find(check => check.status === 'rejected');
+  if (failed) throw failed.reason;
+}
+
 export async function openDiagnosticModelSource({ config, model, runtime, signal, onSource = () => {} }) {
   config = { ...config, pieceIndex: { ...config.pieceIndex }, workerGather: config.workerGather && { ...config.workerGather },
     ...(config.pieceCache === undefined ? {} : { pieceCache: structuredClone(config.pieceCache) }),
@@ -168,12 +176,12 @@ export async function openDiagnosticModelSource({ config, model, runtime, signal
           const total = selected.reduce((sum, range) => sum + range.length, 0);
           assert(Number.isSafeInteger(total) && total <= port.maxPartBytes, 'Diagnostic lease exceeds part bound');
           const names = [...new Set(selected.map(range => metadata.manifest.shards[range.shard]?.filename))];
-          for (const name of names) await assertFileCurrent(layout, name);
+          await assertFilesCurrent(layout, names);
           active?.throwIfAborted();
           if (closed) throw new Error('Diagnostic mapped source closed');
           const lease = await load(selected, active);
           try {
-            for (const name of names) await assertFileCurrent(layout, name);
+            await assertFilesCurrent(layout, names);
             active?.throwIfAborted();
             if (closed) throw new Error('Diagnostic mapped source closed');
             return lease;

@@ -233,6 +233,41 @@ it('checks every batched source before and after reads and releases rejected out
   expect([...recovered.bytes]).toEqual([1, 2, 9, 10]); recovered.release();
 });
 
+it('settles every concurrent source guard before rejecting a batch or completing close', async () => {
+  const f = await gatheredFixture(), source = await own(f);
+  const selected = await Promise.all([f.filename, f.secondFilename].map(filename => fs.realpath(filename)));
+  const original = fs.lstat.bind(fs);
+  let start, release, fail;
+  const started = new Promise(resolve => { start = resolve; });
+  const delayed = new Promise(resolve => { release = resolve; });
+  const rejected = new Promise((_, reject) => { fail = reject; });
+  const names = new Set();
+  vi.spyOn(fs, 'lstat').mockImplementation(async (filename, options) => {
+    if (!selected.includes(filename)) return original(filename, options);
+    names.add(filename);
+    if (names.size === 2) start();
+    if (filename === selected[0]) return rejected;
+    await delayed;
+    return original(filename, options);
+  });
+  let settled = false, closed = false;
+  const reading = source.storage.rangeLease.readMany(
+    [{ shard: 0, offset: 0, length: 2 }, { shard: 1, offset: 0, length: 2 }], new AbortController().signal)
+    .catch(error => { settled = true; return error; });
+  await started;
+  fail(new Error('Guard failed'));
+  await new Promise(resolve => setImmediate(resolve));
+  const closing = source.storage.close().then(() => { closed = true; });
+  await new Promise(resolve => setImmediate(resolve));
+  expect(settled).toBe(false);
+  expect(closed).toBe(false);
+  expect(f.readMany).not.toHaveBeenCalled();
+  release();
+  expect((await reading).message).toBe('Guard failed');
+  await closing;
+  expect(closed).toBe(true);
+});
+
 it('combines source lifetime and caller cancellation before publishing batch output', async () => {
   for (const target of ['source', 'caller']) {
     const lifetime = new AbortController(), caller = new AbortController();
