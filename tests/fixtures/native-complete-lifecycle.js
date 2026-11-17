@@ -1,7 +1,23 @@
 // Exercise the loaded model's ordinary path; the caller retains unload ownership.
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { runNativeCompleteRequest } from './native-complete-request.js';
 import { inspectCompleteOutput } from './peers/pooled/complete-output.js';
+
+// Range witnesses are cumulative megabyte-sized lists. Keep their exact identity
+// per phase, while the worker's explicit receipts operation retains the full lists.
+function summarizeSource(receipt) {
+  if (receipt == null) return receipt;
+  const { pieces, ranges, ...counters } = receipt;
+  const witness = entries => {
+    assert(Array.isArray(entries), 'Source witness must be an array');
+    return { count: entries.length, sha256: createHash('sha256').update(JSON.stringify(entries)).digest('hex'),
+      encoding: 'ordered-json-array/v1' };
+  };
+  return { ...structuredClone(counters),
+    ...(pieces === undefined ? {} : { pieceWitness: witness(pieces) }),
+    ...(ranges === undefined ? {} : { rangeWitness: witness(ranges) }) };
+}
 
 export async function runNativeCompleteLifecycle({ model, workload, generation, timeoutMs,
   gpuCapBytes, settle, memory, sourceReceipts }) {
@@ -16,7 +32,7 @@ export async function runNativeCompleteLifecycle({ model, workload, generation, 
   async function capture(name) {
     await settle();
     const snapshot = structuredClone(memory());
-    const sources = structuredClone(await sourceReceipts());
+    const sources = await sourceReceipts();
     const device = snapshot.device, pool = snapshot.pool;
     assert(device.maxBytes === gpuCapBytes && device.peakBytes <= gpuCapBytes && device.rejected === 0,
       'Full-model lifecycle exceeded its frozen GPU allocation cap');
@@ -32,7 +48,8 @@ export async function runNativeCompleteLifecycle({ model, workload, generation, 
       assert.equal(source.generic.activeReadBytes, 0, 'Authenticated source reads did not settle');
       if (source.gather) assert.equal(source.gather.activeReadBytes, 0, 'Gather reads did not settle');
     }
-    const phase = { name, memory: snapshot, sources };
+    const phase = { name, memory: snapshot, sources: sources.map(source => ({ sourceIndex: source.sourceIndex,
+      generic: summarizeSource(source.generic), gather: summarizeSource(source.gather) })) };
     phases.push(phase);
     return phase;
   }
@@ -63,5 +80,6 @@ export async function runNativeCompleteLifecycle({ model, workload, generation, 
   const final = await capture('recovered-complete-request');
   assert(final.memory.pool.reuses > baseline.memory.pool.reuses, 'No buffer reuse observed on repeated model requests');
   return { schema: 'reploid.native-complete-lifecycle/v1', phases, first, repeat, recovered, observedTokens,
+    sourceEvidenceFormat: 'Counters and ordered-list SHA-256 per phase; full lists retained by the explicit worker receipts operation',
     scope: 'Loaded-model repeatability, cancellation, reuse and settled reads; caller must separately verify reference correctness and final unload/process exit' };
 }

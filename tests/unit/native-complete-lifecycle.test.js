@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { expect, it, vi } from 'vitest';
+import { createHash } from 'node:crypto';
 import { runNativeCompleteLifecycle } from '../fixtures/native-complete-lifecycle.js';
 
 function fixture() {
@@ -74,4 +75,27 @@ it('does not qualify cancellation using an already terminated one-token answer',
   const f = fixture(); f.ports.workload.maxNew = f.ports.generation.maxTokens = 1;
   await expect(runNativeCompleteLifecycle(f.ports)).rejects.toThrow('multi-token lifecycle workload');
   expect(f.ports.model.inspect.generate).not.toHaveBeenCalled();
+});
+
+it('bounds repeated lifecycle witnesses while retaining exact list hashes and all settlement observations', async () => {
+  const f = fixture();
+  const pieces = Array.from({ length: 40000 }, (_, i) => 'sha256:' + i.toString(16).padStart(64, '0'));
+  const ranges = pieces.map((identity, i) => ({ path: 'source.bin', offset: i * 1048576, size: 1048576, identity }));
+  const receipt = { indexIdentity: 'sha256:index', manifestIdentity: 'sha256:model', activeReadBytes: 0,
+    verifiedBytes: pieces.length * 1048576, pieces, ranges };
+  f.ports.sourceReceipts = async () => [{ sourceIndex: 0, generic: receipt, gather: receipt }];
+  expect(Buffer.byteLength(JSON.stringify(receipt)) * 5).toBeGreaterThan(16 * 1024 ** 2);
+  const report = await runNativeCompleteLifecycle(f.ports);
+  expect(Buffer.byteLength(JSON.stringify(report))).toBeLessThan(65536);
+  expect(report.phases).toHaveLength(5);
+  for (const phase of report.phases) {
+    expect(phase.sources[0].generic).toMatchObject({ activeReadBytes: 0, verifiedBytes: receipt.verifiedBytes,
+      indexIdentity: receipt.indexIdentity, manifestIdentity: receipt.manifestIdentity,
+      rangeWitness: { count: ranges.length,
+        sha256: createHash('sha256').update(JSON.stringify(ranges)).digest('hex'), encoding: 'ordered-json-array/v1' } });
+    expect(phase.sources[0].generic.pieces).toBeUndefined();
+    expect(phase.sources[0].gather.activeReadBytes).toBe(0);
+  }
+  expect(receipt.pieces).toBe(pieces); expect(receipt.ranges).toBe(ranges);
+  expect(report.recovered.sampledIds).toEqual(report.first.sampledIds);
 });
