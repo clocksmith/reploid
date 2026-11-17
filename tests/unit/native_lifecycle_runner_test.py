@@ -10,6 +10,16 @@ spec.loader.exec_module(comparison)
 
 
 class NativeLifecycleRunnerTest(unittest.TestCase):
+    def test_heldout_inputs_cannot_repeat_frozen_cases_or_collide_on_disk(self):
+        frozen = {"name": "first", "classification": "frozen", "prompt": "first", "promptIds": [1],
+                  "maxNew": 2, "stopIds": [9]}
+        heldout = dict(frozen, name="second", classification="heldout", prompt="second", promptIds=[2])
+        comparison.validate_workloads([frozen, heldout])
+        for changed in [dict(heldout, name="first"), dict(heldout, promptIds=[1]),
+                        dict(heldout, name="../outside"), dict(heldout, classification="frozen")]:
+            with self.assertRaises(AssertionError):
+                comparison.validate_workloads([frozen, changed])
+
     def test_lifecycle_runs_after_timing_and_before_receipts_and_close(self):
         workload = {"prompt": "held-out", "promptIds": [1], "maxNew": 3, "stopIds": [9]}
         requests = comparison.native_requests(workload, True)

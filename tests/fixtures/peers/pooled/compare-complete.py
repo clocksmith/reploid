@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import socket
 import signal
 import subprocess
@@ -70,6 +71,31 @@ def native_requests(workload, require_lifecycle):
     return requests + [{"op": "receipts"}, {"op": "close"}]
 
 
+def validate_workloads(workloads):
+    assert isinstance(workloads, list) and workloads, "Frozen comparison workloads required"
+    names, inputs, classifications = set(), set(), set()
+    for workload in workloads:
+        name = workload.get("name")
+        assert isinstance(name, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", name), \
+            "Workload name must be a safe output-directory component"
+        assert name not in names, "Duplicate workload name would reuse an arm output directory: " + name
+        names.add(name)
+        classification = workload.get("classification")
+        assert classification in ("frozen", "heldout"), "Workload must declare frozen or heldout scope"
+        classifications.add(classification)
+        ids = workload.get("promptIds")
+        assert isinstance(ids, list) and ids and all(type(token) is int and token >= 0 for token in ids), \
+            "Exact nonempty prompt IDs required"
+        key = tuple(ids)
+        assert key not in inputs, "Frozen and held-out workloads must use distinct prompt IDs"
+        inputs.add(key)
+        assert isinstance(workload.get("prompt"), str) and workload["prompt"].strip(), "Prompt text required"
+        assert type(workload.get("maxNew")) is int and workload["maxNew"] > 0, "Positive token bound required"
+        assert isinstance(workload.get("stopIds"), list) and all(
+            type(token) is int and token >= 0 for token in workload["stopIds"]), "Explicit stop IDs required"
+    assert classifications == {"frozen", "heldout"}, "Both frozen and held-out workloads required"
+
+
 def lifecycle_outputs(value):
     assert value.get("schema") == "reploid.native-complete-lifecycle/v1", "Missing full-model lifecycle receipt"
     assert value.get("observedTokens") == 1, "Cancellation did not follow the first observed token"
@@ -90,6 +116,7 @@ def main():
     assert hashlib.sha256(frozen_bytes).hexdigest() == args.sha256, "Frozen comparison changed"
     freeze = json.loads(frozen_bytes)
     assert freeze["schema"] == "a1.complete-request-comparison/v2", "Obsolete comparison freeze"
+    validate_workloads(freeze["workloads"])
     require_lifecycle = freeze.get("requireNativeLifecycle", False)
     assert isinstance(require_lifecycle, bool), "requireNativeLifecycle must be an explicit boolean"
     if require_lifecycle:

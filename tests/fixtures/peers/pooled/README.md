@@ -30,6 +30,10 @@ python3 compare-complete.py /absolute/freeze.json \
 `sourceIntegrityReady` is separate. Model execution requires `--execute`, a
 complete pinned content proof and the freeze's resource/ownership checks. An
 existing output directory is never reused.
+Preflight rejects duplicate or unsafe workload names and repeated prompt-ID
+sequences, and requires both frozen and held-out cases. Relabeling a frozen
+input as held-out is not new correctness coverage. Each admitted workload owns
+distinct arm output directories.
 
 ## Content and identity
 
