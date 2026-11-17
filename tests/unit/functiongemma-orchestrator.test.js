@@ -4,7 +4,7 @@ import { createFunctionGemmaNetwork, evolveFunctionGemmaNetwork } from '../../se
 import Orchestrator from '../../self/core/functiongemma-orchestrator.js';
 import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
 import { createLabFunctionGemma } from '../../packages/reploid/src/agent/lab-strategy-function-gemma.js';
-import { createScopedModelSession } from '../../shared/vendor/doppler/0.7.1/src/client/runtime/scoped-session.js';
+import { createScopedModelSession } from '../../shared/vendor/doppler/0.7.4/src/client/runtime/scoped-session.js';
 
 vi.mock('../../self/core/doppler-runtime-service.js', async importOriginal => ({
   ...await importOriginal(), DopplerRuntimeService: { open: vi.fn(), close: vi.fn() }

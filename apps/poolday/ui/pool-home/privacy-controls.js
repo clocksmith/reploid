@@ -7,7 +7,7 @@ export const renderPrivacyControls = () => `<fieldset class="pool-stack pool-gap
   <label class="pool-small" data-privacy-recipients-label hidden>Allowed computer identities (comma-separated; empty means this device only)
     <input class="pool-input" data-privacy-recipients autocomplete="off" spellcheck="false"></label>
   <p class="pool-small pool-muted" data-privacy-explanation>Executors can see the data needed for inference. Publication and reuse are not authorized.</p>
-  <p class="pool-small pool-muted">Hardware-attested execution is unavailable.</p>
+  <p class="pool-small pool-muted">Attested hardware execution is unavailable.</p>
   <button type="button" class="pool-button btn-ghost" data-privacy-apply>Apply privacy</button></fieldset>`;
 
 export function readPrivacyControls(root) {

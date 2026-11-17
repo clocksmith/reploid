@@ -2,6 +2,7 @@
 // workspace applies it before every remote disclosure. Injected execution; no inference.
 import { describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import { bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import policy from '../../packages/reploid/src/chat/policy.json';
 import { createRemotePermission, remoteDisclosureKind, remotePermissionCovers, remotePermissionNeed,
   validateRemotePermission } from '../../packages/reploid/src/chat/remote-permission.js';
@@ -12,6 +13,16 @@ const adapter = { id: 'adapter', identity: digest('c') };
 const need = (overrides = {}) => ({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'public', modelId: modelA.id, modelIdentity: modelA.identity, adapterIdentities: [], ...overrides });
 const WORDING = { id: 'reploid.remote-contributor-permission', version: '1', text: 'Shown text' };
 const granted = (overrides = {}) => createRemotePermission({ id: 'permission-1', need: need(), catalog: [modelA], wording: WORDING, grantedAt: 1, ...overrides });
+async function boundNeed({ model = modelA, sharingScope = 'mesh', recipients = [PEER], ...overrides } = {}) {
+  const req = { model, permissions: { sharingScope } };
+  const binding = await bindExecutionRoute(req, plaintextExecutionRoute(req, { recipients }));
+  return need({ sharingScope, modelId: model.id, modelIdentity: model.identity,
+    adapterIdentities: (model.adapters || []).map(item => item.identity),
+    policyId: binding.policyId, routeId: binding.routeId, ...overrides });
+}
+const boundGranted = async (overrides = {}, needOptions = {}) => createRemotePermission({
+  id: 'permission-1', need: await boundNeed(needOptions), catalog: [modelA], wording: WORDING, grantedAt: 1, ...overrides
+});
 
 describe('remote permission scope', () => {
   it('defines inside exactly: unrevoked, same sharing scope and disclosure kind, listed model and every adapter', () => {
@@ -82,19 +93,24 @@ describe('workspace under a remote permission', () => {
     const f = fixture(), thread = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
     const completion = f.app.send(thread, 'First');
     const attempt = await held(f, thread);
-    expect(attempt.approval.permissionNeed).toEqual(need());
+    expect(attempt.approval.permissionNeed).toEqual(await boundNeed());
     expect(attempt.authorization).toBeNull(); expect(f.disclosed).toEqual([]);
     expect(f.app.resumePermitted()).toBe(0); // nothing stored yet: still held
-    f.stored.push(granted());
+    f.stored.push(await boundGranted());
     expect(f.app.resumePermitted()).toBe(1);
     expect((await completion).authorization).toMatchObject({ kind: 'permission', source: 'permission', permissionId: 'permission-1',
       recipients: [PEER], recipientIdentity: PEER, disclosure: 'public', modelIdentity: modelA.identity, sharingScope: 'mesh' });
     expect(f.disclosed).toEqual(['First']);
   });
   it('pins the recipients within an admitted attempt even when permission covers both computers', async () => {
-    const app = createChatWorkspace({ meshId: 'mesh', participantId: 'requester', remotePermissions: () => [granted()],
+    const otherPeer = 'peer:' + 'c'.repeat(24);
+    const permissions = [
+      await boundGranted({ id: 'permission-1' }, { recipients: [PEER] }),
+      await boundGranted({ id: 'permission-2' }, { recipients: [otherPeer] })
+    ];
+    const app = createChatWorkspace({ meshId: 'mesh', participantId: 'requester', remotePermissions: () => permissions,
       store: { load: () => null, save() {} }, execute: async (request, controls) => {
-        for (const peer of [PEER, 'peer:' + 'c'.repeat(24)]) {
+        for (const peer of [PEER, otherPeer]) {
           await controls.requestApproval({ id: peer, threadId: request.threadId, attemptId: request.attemptId,
             peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
             modelId: modelA.id, modelIdentity: modelA.identity, adapterIdentities: [], expiresAt: Date.now() + 10000 });
@@ -108,6 +124,7 @@ describe('workspace under a remote permission', () => {
   });
 
   it('gives a dispatch-held first-use permission a fresh bounded execution window', async () => {
+    const permitted = await boundGranted();
     vi.useFakeTimers();
     const stored = []; let signal, deadline, release;
     const gate = new Promise(resolve => { release = resolve; });
@@ -122,7 +139,8 @@ describe('workspace under a remote permission', () => {
       }});
     try {
       const thread=app.createThread({model:modelA,permissions:{sharingScope:'mesh'}}), pending=app.send(thread,'Hello');
-      await vi.advanceTimersByTimeAsync(900); stored.push(granted()); app.resumePermitted();
+      await vi.waitFor(() => expect(app.getState().threads.find(item => item.id === thread).attempts.at(-1).status).toBe('approval'));
+      await vi.advanceTimersByTimeAsync(900); stored.push(permitted); expect(app.resumePermitted()).toBe(1);
       await vi.advanceTimersByTimeAsync(900); expect(signal.aborted).toBe(false); expect(deadline).toBeGreaterThan(Date.now());
       await vi.advanceTimersByTimeAsync(101); expect(signal.aborted).toBe(true); release();
       // Reaching the answer deadline fails the attempt; it is not the person's stop.
@@ -132,7 +150,7 @@ describe('workspace under a remote permission', () => {
 
   it('a covered request is sent with no approval state; the record names its recipients', async () => {
     const f = fixture(), thread = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
-    f.stored.push(granted());
+    f.stored.push(await boundGranted());
     const first = await f.app.send(thread, 'Question'), follow = await f.app.send(thread, 'Follow-up');
     expect(f.statuses).not.toContain('approval');
     expect([first, follow].map(row => [row.status, row.authorization.permissionId, row.authorization.recipients]))
@@ -140,7 +158,7 @@ describe('workspace under a remote permission', () => {
     expect(f.disclosed).toEqual(['Question', 'Follow-up']);
   });
   it('asks again for a request outside the permission and sends nothing until a covering one exists', async () => {
-    const f = fixture(); f.stored.push(granted());
+    const f = fixture(); f.stored.push(await boundGranted());
     const cases = [['another model', modelB, 'mesh'], ['another sharing scope', modelA, 'thread-members'],
       ['an adapter it does not list', { ...modelA, adapters: [adapter] }, 'mesh']];
     for (const [name, model, sharingScope] of cases) {
@@ -157,7 +175,7 @@ describe('workspace under a remote permission', () => {
     let release; const gate = new Promise(resolve => { release = resolve; });
     const f = fixture({ hold: request => request.messages.at(-1).content === 'Long' ? gate : null });
     const thread = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
-    f.stored.push(granted());
+    f.stored.push(await boundGranted());
     const running = f.app.send(thread, 'Long');
     await vi.waitFor(() => expect(f.disclosed).toEqual(['Long']));
     f.stored[0] = { ...f.stored[0], revokedAt: 2 };

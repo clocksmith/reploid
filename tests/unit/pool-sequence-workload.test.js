@@ -35,9 +35,9 @@ import {
   revealMatchesCommitment
 } from '../../server/pool/commit-reveal.js';
 
+const { executablePack: _unusedExecutablePack, ...launchProviderModel } = buildLaunchProviderModel();
 const sequenceModel = Object.freeze({
-  ...buildLaunchProviderModel(),
-  executablePack: undefined,
+  ...launchProviderModel,
   modelId: 'amplify-120m-f32-sequence-test',
   modelHash: `sha256:${'1'.repeat(64)}`,
   manifestHash: `sha256:${'2'.repeat(64)}`,

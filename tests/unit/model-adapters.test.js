@@ -55,7 +55,7 @@ it('nests each adapter beneath its base with its own status, version and evidenc
   expect(labels.map(label => label.hasAttribute('data-choice-adapter'))).toEqual([false, true]);
   // A provider applying the adapter also serves base requests, which never inherit it; both are shared choices.
   expect(labels[0].closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
-  expect(labels[0].querySelector('[data-choice-status]').textContent).toBe('Ready');
+  expect(labels[0].querySelector('[data-choice-status]').textContent).toBe('Ready · 1 computer');
   expect(labels[0].querySelector('[data-choice-facts]').textContent).toContain('1 adapter');
   expect(labels[1].querySelector('[data-choice-status]').textContent).toBe('Ready');
   expect(labels[1].querySelector('[data-choice-facts]').textContent).toBe(`Adapter · v${catalogAdapter.manifest.version}`);

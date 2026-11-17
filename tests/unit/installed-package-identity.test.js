@@ -136,7 +136,12 @@ describe('installed package bytes before diagnostic model opening', () => {
       expect((await rpc({ op: 'identity' })).value.archiveSha256).toBe(packageArchive.sha256);
       await fs.appendFile(path.join(f.installedPackage, 'src/partitions.js'), '// mutation');
       expect((await rpc({ op: 'open', indices: [0] })).error.message).toMatch(/Installed package size mismatch/);
-      expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false, sourceReceipts: [] });
+      expect((await rpc({ op: 'close' })).value).toEqual({
+        gpuOpened: false,
+        sourceReceipts: [],
+        closedSourceReceipts: [],
+        sourceCleanup: 'settled'
+      });
     });
   });
 
@@ -169,7 +174,8 @@ describe('installed package bytes before diagnostic model opening', () => {
     expect(report.error.message).toMatch(/Installed package size mismatch/);
     expect(report.packages).toHaveLength(1);
     expect(report.opens).toEqual([]);
-    expect(report.cleanup).toEqual([{ gpuOpened: false, sourceReceipts: [] }, { gpuOpened: false, sourceReceipts: [] }]);
+    const expectedClosed = { gpuOpened: false, sourceReceipts: [], closedSourceReceipts: [], sourceCleanup: 'settled' };
+    expect(report.cleanup).toEqual([expectedClosed, expectedClosed]);
     await expect(fs.stat(marker)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });
@@ -193,7 +199,12 @@ it('preflights whole authenticated gathering and rejects missing weights before 
       files: [{ path: 'weights.bin', available: false, reason: 'missing' }] } });
     const opening = await rpc({ op: 'open', indices: null });
     expect(opening.error.message).toContain('source files are unavailable');
-    expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false, sourceReceipts: [] });
+    expect((await rpc({ op: 'close' })).value).toEqual({
+      gpuOpened: false,
+      sourceReceipts: [],
+      closedSourceReceipts: [],
+      sourceCleanup: 'settled'
+    });
   });
   // Availability is distinct from byte authentication; the actual reader still hashes pieces.
   await fs.writeFile(path.join(f.directory, 'weights.bin'), bytes);
@@ -214,6 +225,6 @@ it('preflights whole authenticated gathering and rejects missing weights before 
     expect(result.error).toBeUndefined();
     expect(result.value).toMatchObject({ gpuOpened: false, model: { readyForWholeModel: true, sourceLayout: 'explicit-mapped-source',
       weightContentsVerified: false, files: [{ canonicalPath: await fs.realpath(target), available: true }] } });
-    expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false, sourceReceipts: [] });
+    expect((await rpc({ op: 'close' })).value).toEqual({ gpuOpened: false, sourceReceipts: [], closedSourceReceipts: [], sourceCleanup: 'settled' });
   });
 });

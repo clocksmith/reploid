@@ -11,8 +11,8 @@ const required = ['zero/index.html', 'zero/boot.js', 'zero/store.js', 'zero/imag
 // not make saved settings, conversations, receipts or credentials exportable.
 const sourceAssets = new Set(['instance.js', 'sw.js', 'zero/config.json', 'zero/source.json',
   'config/file-tool-schemas.json', 'vendor/reploid/config/defaults.json',
-  'vendor/reploid/config/request-overrides.json', 'vendor/reploid/rules/routing.rules.json',
-  'core/vendor/ACORN-LICENSE.txt']);
+  'vendor/reploid/config/request-overrides.json', 'vendor/reploid/config/schema.json',
+  'vendor/reploid/rules/routing.rules.json', 'core/vendor/ACORN-LICENSE.txt']);
 const codePath = /^(?:zero|core|config|host|providers|vendor\/reploid)\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.m?js$/;
 const presentationPath = /^zero\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.(?:html|css|svg)$/;
 const installedPath = /^self\/tools\/[A-Z][A-Za-z0-9]*\.js$/;

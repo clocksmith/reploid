@@ -86,6 +86,7 @@ describe('Chat host with injected execution, not actual inference', () => {
     } });
     const id = session.createThread({ sharingScope: 'local', purpose: 'Instruction' });
     const completion = session.send(id, 'Question');
+    await vi.waitFor(() => expect(signal).toBeDefined());
     session.saveDraft(id, { text: 'Next question', files: [] }); session.renameThread(id, 'New title'); session.archiveThread(id);
     expect(signal.aborted).toBe(false); expect(session.getState().selectedId).toBeNull();
     release(); expect((await completion).status).toBe('completed'); session.restoreThread(id);

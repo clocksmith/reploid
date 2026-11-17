@@ -4,6 +4,7 @@
 // checks show what left the requester (slot 5) and when.
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import { bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createRemotePermission } from '../../packages/reploid/src/chat/remote-permission.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 
@@ -38,6 +39,16 @@ const held = (app, id) => vi.waitFor(() => {
 }, { timeout: 5000 });
 const routeIds = route => route.stages.map(stage => stage.participantId);
 const settle = () => new Promise(resolve => setTimeout(resolve, 250));
+async function orderedNeed(selected) {
+  const req = { model: selected, permissions: { sharingScope: 'mesh' } };
+  const binding = await bindExecutionRoute(req, plaintextExecutionRoute(req, {
+    recipients: routeIds(selected.partition.route),
+    route: selected.partition.route
+  }));
+  return { networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens',
+    modelId: selected.id, modelIdentity: selected.identity, adapterIdentities: [],
+    policyId: binding.policyId, routeId: binding.routeId };
+}
 
 it('nothing leaves before permission: no input, token context, activation, reservation or grant; keeping answers local sends nothing', async () => {
   const { f, app, stored, thread } = await open(), before = dispatch(f), id = thread();
@@ -72,20 +83,22 @@ it('nothing leaves before permission: no input, token context, activation, reser
 
 it('a permitted request is sent with no approval step; each record cites the permission and the route it was dispatched to', async () => {
   const { f, app, stored, statuses, thread } = await open(), id = thread();
-  stored.push(createRemotePermission({ id: 'remote', wording: { id: 'reploid.remote-contributor-permission', version: '1', text: 'Shown text' }, grantedAt: Date.now(), need: { networkId: 'mesh', sharingScope: 'mesh',
-    disclosure: 'ordered-partition-activations-and-tokens', modelId: f.model.id, modelIdentity: f.model.identity, adapterIdentities: [] } }));
+  const wording = { id: 'reploid.remote-contributor-permission', version: '1', text: 'Shown text' };
+  stored.push(createRemotePermission({ id: 'remote', wording, grantedAt: Date.now(), need: await orderedNeed(f.select(REQUESTER, 0)) }));
   const first = await app.send(id, prompt);
   expect(first.authorization).toMatchObject({ kind: 'permission', source: 'permission', permissionId: 'remote',
     recipients: routeIds(first.execution.identity.route), route: first.execution.identity.route });
   expect(first.authorization.recipients[1]).toBe(f.identities[1].peerId);
 
-  // The mesh replaces stage 1 between requests: the next request goes to the new route under the same permission,
-  // its record names that route, and the earlier record is unchanged.
+  // The mesh replaces stage 1 between requests: once the new route is authorized, the next request goes to that route
+  // with no approval step, its record names that route and permission, and the earlier record is unchanged.
   await f.meshes[7].contribute(f.model.id, true); await f.meshes[1].stop();
   await vi.waitFor(() => expect(f.select(REQUESTER, 0)?.partition.route.stages[1].participantId).toBe(f.identities[7].peerId), { timeout: 5000 });
-  const other = app.createThread({ model: f.select(REQUESTER, 0), permissions: { sharingScope: 'mesh' } });
+  const replaced = f.select(REQUESTER, 0);
+  stored.push(createRemotePermission({ id: 'remote-replaced', wording, grantedAt: Date.now(), need: await orderedNeed(replaced) }));
+  const other = app.createThread({ model: replaced, permissions: { sharingScope: 'mesh' } });
   const second = await app.send(other, prompt);
-  expect(second.authorization).toMatchObject({ permissionId: 'remote', recipients: routeIds(second.execution.identity.route) });
+  expect(second.authorization).toMatchObject({ permissionId: 'remote-replaced', recipients: routeIds(second.execution.identity.route) });
   expect(second.authorization.recipients[1]).toBe(f.identities[7].peerId);
   expect(app.getState().threads.find(item => item.id === id).attempts[0].authorization).toEqual(first.authorization);
   expect(statuses).not.toContain('approval');
@@ -93,8 +106,8 @@ it('a permitted request is sent with no approval step; each record cites the per
 
 it('revocation stops new disclosures and leaves an admitted answer running', async () => {
   const { f, app, stored, thread } = await open(), id = thread();
-  stored.push(createRemotePermission({ id: 'remote', wording: { id: 'reploid.remote-contributor-permission', version: '1', text: 'Shown text' }, grantedAt: Date.now(), need: { networkId: 'mesh', sharingScope: 'mesh',
-    disclosure: 'ordered-partition-activations-and-tokens', modelId: f.model.id, modelIdentity: f.model.identity, adapterIdentities: [] } }));
+  stored.push(createRemotePermission({ id: 'remote', wording: { id: 'reploid.remote-contributor-permission', version: '1', text: 'Shown text' },
+    grantedAt: Date.now(), need: await orderedNeed(f.select(REQUESTER, 0)) }));
   const gate = f.gate(2, id, 1), running = app.send(id, prompt);
   await gate.entered;
   stored[0] = { ...stored[0], revokedAt: Date.now() };

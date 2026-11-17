@@ -12,7 +12,7 @@ export function assertSettledJobPatch(job = {}, patch = {}) {
   if (!job.settlement) return;
   for (const field of Object.keys(patch).filter(field => field !== 'updatedAt')) {
     if (Object.hasOwn(patch, field)
-      && hashJson({ value: patch[field] }) !== hashJson({ value: job[field] })) {
+      && (!Object.hasOwn(job, field) || hashJson({ value: patch[field] }) !== hashJson({ value: job[field] }))) {
       throw Object.assign(new Error(`Settled job field cannot change: ${field}`),
         { status: 409, code: 'settlement_conflict' });
     }

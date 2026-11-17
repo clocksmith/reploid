@@ -4228,7 +4228,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:52a3f96282e406871efde9a5437311366a45f9ef5dd90bb5848c99994ee6fec2",
+      "sha256": "sha256:f3bd2e92dfe9953b4a42ad8517d709d9882142fd11e71166c2563c4a557fe4ae",
       "imports": []
     },
     {
@@ -4710,7 +4710,7 @@
     {
       "path": "ui/pool-home/privacy-controls.js",
       "owner": "ui",
-      "sha256": "sha256:86d30e4ae90eabdbbc72aba1ee4d5f45c5c4c95b022d6e3c016f87bf4e36ac62",
+      "sha256": "sha256:0808022189344d05797e55044809f821c4625959161f3dcb7c95486573c5aee8",
       "imports": [
         "../../vendor/reploid/chat/execution-policy.js"
       ]
@@ -19341,7 +19341,7 @@
     {
       "path": "zero/image.js",
       "owner": "zero",
-      "sha256": "sha256:394abff6457286ebd4448d4926640daeb60cd84dce010e06df9e0054cd64ddc0",
+      "sha256": "sha256:5350905d6be52710dc96413821a6b824ab428ddedb8caa146f93aafade25d8b5",
       "imports": []
     },
     {

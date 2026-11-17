@@ -8,6 +8,7 @@ import { createPartitionGrantAuthority } from '../../packages/reploid/src/mesh/p
 import { ATTEMPT_QUEUE_POLICY, ATTEMPT_QUEUE_POLICY_SCHEMA, createPartitionAttemptQueue } from '../../packages/reploid/src/mesh/partitions/partition-attempt-queue.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import { bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';
 import { fixture as stageFixture } from '../fixtures/ordered-partition-ports.js';
 
@@ -90,7 +91,13 @@ async function orderedMesh({ requesters, slots = [2, 2, 2] }) {
       await vi.waitFor(() => { for (let r = 0; r < requesters; r++) expect(selection(r)).toBeTruthy(); }, { timeout: 15000 });
       for (let r = 0; r < requesters; r++) {
         const planned = selection(r), codes = [];
-        const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: planned });
+        const routeRequest = { model: planned, permissions: { sharingScope: 'mesh' } };
+        const binding = await bindExecutionRoute(routeRequest, plaintextExecutionRoute(routeRequest, {
+          recipients: planned.partition.route.stages.map(stage => stage.participantId),
+          route: planned.partition.route
+        }));
+        const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens',
+          model: planned, policyId: binding.policyId, routeId: binding.routeId });
         const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need, wording: WORDING });
         let saved = null;
         // The requester's host port: the coded failure each attempt returned, beside the workspace's message.
