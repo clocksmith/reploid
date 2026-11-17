@@ -131,6 +131,23 @@ describe('native host boundary', () => {
       .rejects.toThrow('cancelled');
     expect(close).toHaveBeenCalledOnce();
   });
+  it('retains optional gather receipts on their authenticated source owner', async () => {
+    const manifestBytes = new TextEncoder().encode(JSON.stringify({ modelId: 'gather-source', shards: [] }));
+    const model = { id: 'gather-source', identity: hash(manifestBytes) };
+    const owner = { manifestBytes, storage: { close: vi.fn() }, count: 0,
+      getReceipt() { return { reads: this.count }; },
+      getGatherReceipt() { return { gathered: this.count }; } };
+    const source = await openNativeModelSource({ model, resolveSource: async () => owner });
+    owner.count = 3;
+    expect(source.getReceipt()).toEqual({ reads: 3 });
+    expect(source.getGatherReceipt()).toEqual({ gathered: 3 });
+    expect(source.storage).toBe(owner.storage);
+    await source.storage.close();
+    expect(owner.storage.close).toHaveBeenCalledOnce();
+    const plain = await openNativeModelSource({ model,
+      resolveSource: async () => ({ ...owner, getGatherReceipt: undefined }) });
+    expect(plain).not.toHaveProperty('getGatherReceipt');
+  });
 
   it('reads the required verified piece and never opens an unrelated corrupt piece', async () => {
     const { directory, model } = await fixture();

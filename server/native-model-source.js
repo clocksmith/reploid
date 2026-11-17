@@ -23,7 +23,8 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
       requireValue(manifest.modelId === model.id && source.storage && typeof source.storage.close === 'function'
         && typeof source.getReceipt === 'function',
         'Native resolved source requires the selected model, owned storage and acquisition receipt');
-      return { manifest, storage: source.storage, getReceipt: () => source.getReceipt() };
+      return { manifest, storage: source.storage, getReceipt: () => source.getReceipt(),
+        ...(typeof source.getGatherReceipt === 'function' ? { getGatherReceipt: () => source.getGatherReceipt() } : {}) };
     } catch (error) {
       try { await source?.storage?.close?.(); }
       catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Native resolved source admission and cleanup failed'); }
