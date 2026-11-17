@@ -30,6 +30,19 @@ it('rejects a KV runtime/kernel contract mismatch before GPU loading and exposes
   expect(requirePeerRepresentation(manifest, selected).cachePrecision.identical).toBe(true);
 });
 
+it('rejects unsupported whole-token replay for the actual hyper-connection manifest contract', () => {
+  const manifest = { modelId: 'hyper-admission', inference: { hyperConnections: { streamCount: 4 } },
+    metadata: { sourceRuntime: { sourceKind: 'gguf' } }, tensors: {} };
+  const selected = structuredClone(config);
+  selected.inference.session.kvcache = { kvDtype: 'f32', layout: 'contiguous' };
+  selected.inference.session.decodeLoop = { batchSize: 1, wholeTokenProgram: true };
+  expect(() => requirePeerRepresentation(manifest, selected)).toThrow('no whole-token replay');
+  selected.inference.session.decodeLoop.wholeTokenProgram = false;
+  expect(requirePeerRepresentation(manifest, selected).ready).toBe(true);
+  selected.inference.session.decodeLoop.batchSize = 2;
+  expect(() => requirePeerRepresentation(manifest, selected)).toThrow('batchSize=1');
+});
+
 it('rejects wrong worker pins and incomplete responses, then closes its actual worker', async () => {
   const source = "import {parentPort} from 'node:worker_threads';parentPort.on('message',({id})=>parentPort.postMessage({id,qs:new Uint8Array(1),scales:new Uint32Array(1)}));";
   const sha256 = createHash('sha256').update(source).digest('hex');

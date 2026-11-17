@@ -13,6 +13,13 @@ export function inspectPeerRepresentation(manifest, runtimeConfig) {
     assert.equal(nativeKVDtype, kernelPath.kvDtype,
       'Explicit native KV dtype must match the selected kernel path before model comparison');
   }
+  if (manifest.inference?.hyperConnections != null) {
+    const session = runtimeConfig.inference.session;
+    assert(session.decodeLoop?.wholeTokenProgram !== true && session.decodeLoop?.batchSize === 1
+      && session.kvcache?.layout === 'contiguous' && ['f16', 'f32'].includes(nativeKVDtype)
+      && !manifest.draftModel,
+    'Hyper-connection comparison requires batchSize=1, contiguous f16/f32 KV and no whole-token replay or draft model');
+  }
   const mismatches = [], counts = {};
   for (const [name, tensor] of Object.entries(manifest.tensors)) {
     const dtype = tensor.dtype?.toUpperCase();
