@@ -145,3 +145,11 @@ source reads, observed buffer reuse and identical recovery. Final unload and
 natural process exit remain mandatory. This adds real model work and must not
 be enabled by editing an already frozen campaign. Historical freezes without
 this field keep their original request sequence and do not qualify lifecycle.
+
+An operator-local peer config may explicitly enable `sourceObservation: true`.
+The adapter then snapshots scalar expert-store counters after reset, immediately
+after stamping the first public token, and after decoded completion. The exported
+`sourceObservation` reports prefill and decode deltas, rejects missing or reset
+counters, and marks the request `performanceRepresentative: false`. The first-token
+callback does additional work in this diagnostic; its clocks cannot qualify a
+speed claim. The selected SDK, weights and ordinary request path are unchanged.

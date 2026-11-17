@@ -9,6 +9,8 @@ import { closeOwnedPeerRoom } from './close-owned-room.js';
 import { serveCompleteRequestProtocol } from '../../complete-request-protocol.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2]));
+assert(config.sourceObservation === undefined || typeof config.sourceObservation === 'boolean',
+  'Peer source observation must be an explicit boolean');
 assert(config.sdk && config.source && config.models && config.webgpuModule && config.memoryObserver
   && config.provenance && config.out && (config.protocol === true || config.cases?.length), 'Explicit frozen peer configuration required');
 const result = { started: new Date().toISOString(), scope: 'Selected unmodified peer SDK with public complete-request timing', cases: [] };
@@ -76,7 +78,8 @@ async function requestOutput(request) {
   assert(room, 'Peer model is not open');
   await memoryGuard(); abort.signal.throwIfAborted();
   const row = await runPooledCompleteRequest({ room, makeSampler, ...request,
-    timeoutMs: config.requestTimeoutMs, signal: abort.signal });
+    timeoutMs: config.requestTimeoutMs, signal: abort.signal,
+    ...(config.sourceObservation === true ? { sourceCounters: () => room.ai.engine?.experts?.stats } : {}) });
   assert.equal(observer.stats.errors.length, 0, 'Peer GPU errors invalidate the result');
   const output = { ...row, name: request.name, repeat: request.repeat,
     memory: { process: process.memoryUsage(), device: structuredClone(observer.stats) },

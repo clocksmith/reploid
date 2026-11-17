@@ -2,12 +2,32 @@
 import assert from 'node:assert/strict';
 import { timeCompleteRequest } from '../../complete-request-timing.js';
 
+const SOURCE_COUNTERS = ['cuts', 'lookups', 'hits', 'misses', 'diskReads', 'diskBytes',
+  'diskWaitMs', 't1Copies', 't1Writes', 'regionCuts', 'regionBytes', 'layerLoads', 'layerBytes'];
+function snapshotSource(read) {
+  const counters = read();
+  return Object.fromEntries(SOURCE_COUNTERS.map(key => {
+    const value = counters?.[key];
+    assert(typeof value === 'number' && Number.isFinite(value) && value >= 0,
+      `Missing or invalid peer source counter: ${key}`);
+    return [key, value];
+  }));
+}
+function sourceDelta(before, after) {
+  return Object.fromEntries(SOURCE_COUNTERS.map(key => {
+    assert(after[key] >= before[key], `Peer source counter reset during request: ${key}`);
+    return [key, after[key] - before[key]];
+  }));
+}
+
 export async function runPooledCompleteRequest({ room, promptIds, maxNew, stopIds, makeSampler, timeoutMs, signal, clock,
-  tokenizePrompt }) {
+  tokenizePrompt, sourceCounters }) {
   assert(Array.isArray(promptIds) && promptIds.length > 0 && promptIds.every(id => Number.isSafeInteger(id) && id >= 0)
     && Number.isSafeInteger(maxNew) && maxNew > 0 && Array.isArray(stopIds)
     && stopIds.every(id => Number.isSafeInteger(id) && id >= 0), 'Peer request requires exact input, stop and token limits');
   assert(tokenizePrompt === undefined || typeof tokenizePrompt === 'function', 'Optional peer tokenizer must be a function');
+  assert(sourceCounters === undefined || typeof sourceCounters === 'function', 'Optional peer source counters must be a function');
+  const source = sourceCounters ? { before: null, firstToken: null } : null;
   const expectedIds = [...promptIds], stop = new Set(stopIds), sampledIds = [];
   let ids = [...expectedIds];
   assert(Number.isSafeInteger(room.ai.engine.maxSeq) && ids.length + maxNew < room.ai.engine.maxSeq - 2,
@@ -24,9 +44,15 @@ export async function runPooledCompleteRequest({ room, promptIds, maxNew, stopId
         ids = actual;
       }
       room.ai.fed = null; room.ckptClear(true);
+      if (source) source.before = snapshotSource(sourceCounters);
     },
     generate: (observe, active) => room.locked(() => room.generate(ids, {
-      maxNew, sample, signal: active, stop, onToken: observe,
+      maxNew, sample, signal: active, stop, onToken: source ? token => {
+        // Stamp the public token first. Counter capture changes callback execution,
+        // so an opted-in request is diagnostic and cannot qualify performance.
+        observe(token);
+        if (source.firstToken === null) source.firstToken = snapshotSource(sourceCounters);
+      } : observe,
     })),
     decode: result => room.ai.tok.decode(Array.from(result.tokens)),
     timeoutMs, signal, clock,
@@ -41,11 +67,20 @@ export async function runPooledCompleteRequest({ room, promptIds, maxNew, stopId
     && returnedIds.length <= maxNew && returnedIds.every(id => Number.isSafeInteger(id) && id >= 0),
   'Peer sampler or returned tokens are invalid');
   assert.deepEqual(measured.timing.emissions.map(row => row.token), returnedIds, 'Peer callbacks differ from returned tokens');
+  let sourceObservation;
+  if (source) {
+    assert(source.before && source.firstToken, 'Peer source observation requires a complete first-token boundary');
+    const after = snapshotSource(sourceCounters);
+    sourceObservation = { schema: 'reploid.peer-source-phases/v1', performanceRepresentative: false,
+      boundary: 'after-reset/after-first-public-token/after-decoded-output',
+      prefill: sourceDelta(source.before, source.firstToken), decode: sourceDelta(source.firstToken, after) };
+  }
   // The SDK may sample terminal or lookahead candidates that it never emits.
   // Preserve that trace; compare public completion IDs under the stop contract.
   return { inputIds: ids, promptIds: ids, rawSampledIds: sampledIds, ids: returnedIds, text: measured.text, ...measured.timing,
     prefillMs: result.tPre, decodeMs: result.tDecode, reused: result.reused, resumed: result.resumed,
     prefilled: result.prefilled, pinned: result.pinned, reason: result.reason,
     inputScope: tokenizePrompt ? 'Actual prompt tokenization included in request/reset time' : 'Frozen pretokenized input',
-    scope: 'Reset through public SDK generation and decoded output; post-request validation/telemetry excluded' };
+    scope: 'Reset through public SDK generation and decoded output; post-request validation/telemetry excluded',
+    ...(sourceObservation ? { sourceObservation, performanceRepresentative: false } : {}) };
 }

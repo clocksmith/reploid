@@ -64,3 +64,49 @@ it('includes actual peer tokenization in complete requests and rejects a changed
     .rejects.toThrow('Peer tokenizer differs');
   expect(generated).toBe(1);
 });
+
+function sourceFixture() {
+  const keys = ['cuts', 'lookups', 'hits', 'misses', 'diskReads', 'diskBytes', 'diskWaitMs',
+    't1Copies', 't1Writes', 'regionCuts', 'regionBytes', 'layerLoads', 'layerBytes'];
+  const counters = Object.fromEntries(keys.map(key => [key, 10]));
+  let reads = 0;
+  const settings = { promptIds: [1], maxNew: 2, stopIds: [], timeoutMs: 1000,
+    makeSampler: () => logits => logits[0], sourceCounters() { reads++; return counters; },
+    room: { ai: { engine: { maxSeq: 2048 }, tok: { decode: () => 'text' } }, ckptClear() {},
+      locked: operation => operation(), async generate(ids, options) {
+        for (const key of keys) counters[key] += 3;
+        options.sample([5]); options.onToken(5);
+        for (const key of keys) counters[key] += 7;
+        options.sample([6]); options.onToken(6);
+        return { tokens: [5, 6], reused: 0, resumed: 0, prefilled: 1, pinned: 0, from: null, count: 2, reason: 'max' };
+      } } };
+  return { settings, counters, reads: () => reads };
+}
+
+it('captures complete source-counter deltas at the public first-token boundary only when opted in', async () => {
+  const f = sourceFixture(), result = await runPooledCompleteRequest(f.settings);
+  expect(f.reads()).toBe(3);
+  expect(result.performanceRepresentative).toBe(false);
+  expect(result.sourceObservation).toMatchObject({ schema: 'reploid.peer-source-phases/v1',
+    performanceRepresentative: false, prefill: { diskBytes: 3, diskWaitMs: 3 }, decode: { diskBytes: 7, diskWaitMs: 7 } });
+  f.counters.diskBytes = 999;
+  expect(result.sourceObservation.prefill.diskBytes).toBe(3);
+  const ordinary = sourceFixture(); delete ordinary.settings.sourceCounters;
+  const output = await runPooledCompleteRequest(ordinary.settings);
+  expect(ordinary.reads()).toBe(0);
+  expect(output).not.toHaveProperty('sourceObservation');
+  expect(output).not.toHaveProperty('performanceRepresentative');
+});
+
+it('rejects missing, nonfinite and backwards peer source counters rather than fabricating phases', async () => {
+  for (const change of [f => { delete f.counters.diskBytes; }, f => { f.counters.diskWaitMs = NaN; },
+    f => { f.settings.sourceCounters = () => null; }]) {
+    const f = sourceFixture(); change(f);
+    await expect(runPooledCompleteRequest(f.settings)).rejects.toThrow(/source counter/u);
+  }
+  const backwards = sourceFixture(), generate = backwards.settings.room.generate;
+  backwards.settings.room.generate = async (...args) => {
+    const result = await generate(...args); backwards.counters.diskBytes = 0; return result;
+  };
+  await expect(runPooledCompleteRequest(backwards.settings)).rejects.toThrow(/counter reset/u);
+});
