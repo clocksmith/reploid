@@ -12,6 +12,7 @@ import sys
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from complete_request_client import CompleteRequestClient
+from provider_state import provider_state, assert_provider_unchanged
 
 
 def native(config, requests, output, deadline):
@@ -58,26 +59,6 @@ def clean_environment(extra=None):
         env.pop(key, None)
     env.update(extra or {})
     return env
-
-
-def provider_state(unit):
-    state = subprocess.check_output(["systemctl", "--user", "show", unit,
-                                     "-p", "ActiveState", "-p", "MainPID"], text=True)
-    values = dict(line.split("=", 1) for line in state.splitlines())
-    assert values["ActiveState"] == "active", "Protected provider is not active"
-    pid = int(values["MainPID"])
-    engines = {}
-    for file in Path("/proc", str(pid), "fdinfo").iterdir():
-        try:
-            values = dict(line.split(":", 1) for line in file.read_text().splitlines()
-                          if line.startswith(("drm-client-id:", "drm-engine-")))
-            if "drm-client-id" in values:
-                engines[values["drm-client-id"].strip()] = {
-                    key: value.strip() for key, value in values.items() if key.startswith("drm-engine-")}
-        except OSError:
-            pass
-    assert engines, "Protected provider GPU ownership is unavailable"
-    return {"service": state, "engines": engines}
 
 
 def main():
@@ -154,7 +135,7 @@ def main():
                     for index, kind in enumerate(freeze["pattern"]):
                         arm = out / (workload["name"] + "-" + str(index) + "-" + kind)
                         arm.mkdir()
-                        assert provider_state(freeze["protectedProviderUnit"]) == before, "Protected provider changed"
+                        assert_provider_unchanged(before, provider_state(freeze["protectedProviderUnit"]))
                         report["modelRunsStarted"] = None
                         report["stage"] = {"workload": workload["name"], "kind": kind,
                                            "state": "owned model-command admission attempted; opening unobserved"}
@@ -208,7 +189,7 @@ def main():
                         if reference is None:
                             reference = normalized
                         assert normalized == reference, "Exact complete IDs, stop reason/token or public text differs"
-                        assert provider_state(freeze["protectedProviderUnit"]) == before, "Provider/GPU activity changed; timing invalid"
+                        assert_provider_unchanged(before, provider_state(freeze["protectedProviderUnit"]))
                         report["arms"].append({"workload": workload["name"], "kind": kind, "exactCompletion": True,
                                                "normalized": normalized, "rows": rows})
                         save()
@@ -222,7 +203,7 @@ def main():
                     server.wait(timeout=5)
                 server_log.close()
                 report["providerAfter"] = provider_state(freeze["protectedProviderUnit"])
-                assert report["providerAfter"] == before
+                assert_provider_unchanged(before, report["providerAfter"])
     except BaseException as error:
         report["failure"] = str(error)
         raise

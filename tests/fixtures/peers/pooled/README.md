@@ -97,6 +97,13 @@ also requires natural exit code zero and complete stdout EOF. An acknowledged
 close followed by a held worker, timer or GPU reference fails that gate;
 termination is fallback cleanup and never proof of graceful retirement.
 
+Protected provider observations bind the systemd MainPID, invocation identity,
+complete service cgroup membership and each process's start identity. GPU counters
+come from every observed DRM-owning member, including a Node child behind a
+`flock` MainPID. Missing observations or changes in membership, process identity,
+DRM ownership or counters invalidate the comparison. These endpoint snapshots
+do not establish global GPU idleness between observations.
+
 Exact input/output, stop-token semantics, prefix reuse, recovery, placement,
 allocation, receipt and lifecycle checks remain mandatory. Metadata dtype
 compatibility alone does not establish physical materialization, token parity,
