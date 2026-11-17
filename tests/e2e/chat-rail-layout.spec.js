@@ -53,6 +53,57 @@ test.beforeEach(async ({ page }) => {
 // phones. The brand opens the conversation list as a drawer; model selection lives in its own panel.
 // Panel changes preserve draft and focus. Pending computer rows stay visible before ads.
 const railButtons = ['[data-toggle-thread-rail]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
+
+for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
+  test(`computer facts stay readable and IDs stay folded: ${theme}, ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.evaluate(async theme => {
+      document.querySelector('.pool-home').dataset.poolTheme = theme;
+      const state = window.railState, key = 'peer:' + 'a'.repeat(24);
+      state.network.partitionPeers = [];
+      state.network.connections = [{ id: 'transport-a', attemptId: '0c0b796e-ad08-4c56-be9a-477fcf5087833:1:2', phase: 'connected', path: 'direct' }];
+      state.network.consumer.peers = [
+        { peerId: 'transport-a', participantId: key, identityVerified: true, model: 'qwen', readiness: 'ready',
+          modelIdentity: 'sha256:' + 'a'.repeat(64), hardware: { vendor: 'apple', architecture: 'metal-3', device: 'apple-m3-pro' },
+          contribution: { providedInputTokens: 128, providedOutputTokens: 0, receiptsServed: 1, receiptsConsumed: 2 } },
+        { peerId: 'transport-b', model: 'qwen', readiness: 'ready' }
+      ];
+      window.emitRailState();
+      const { createComputerPreferences } = await import('/host/computer-preferences.js');
+      const { bindComputerPreferences } = await import('/ui/pool-home/computer-preferences-view.js');
+      const preferences = createComputerPreferences({ storage: null, verifyPeer: async () => key });
+      bindComputerPreferences(document.querySelector('.pool-home'), preferences, window.railSession, window.emitRailState);
+    }, theme);
+    await page.locator('[data-toggle-inspector]').click();
+    const row = page.locator('[data-computer-id="transport-a"]');
+    const details = row.locator('[data-computer-details]');
+    await expect(details.locator('[data-computer-input-tokens]')).toBeHidden();
+    await details.locator(':scope > summary').click();
+    await expect(details.getByRole('table')).toHaveCount(2);
+    await expect(details.locator('[data-computer-path]')).toHaveText('Direct');
+    await expect(details.locator('[data-computer-auth]')).toHaveText('Authenticated');
+    await expect(details.locator('[data-computer-input-tokens]')).toHaveText('128');
+    await expect(details.locator('[data-computer-output-tokens]')).toHaveText('0');
+    await expect(details.locator('[data-computer-identity]')).toBeHidden();
+    await expect(page.locator('[data-computer-usage-help]')).toHaveCount(1);
+    await row.scrollIntoViewIfNeeded();
+    await row.screenshot({ path: info.outputPath('computer-details.png') });
+    await details.locator('[data-computer-preferences] > summary').click();
+    await row.locator('[data-computer-name-input]').fill('Desk');
+    await page.evaluate(() => { window.railState.network.consumer.peers[0].contribution.providedOutputTokens = 4; window.emitRailState(); });
+    await expect(row.locator('[data-computer-name-input]')).toHaveValue('Desk');
+    await expect(details.locator('[data-computer-output-tokens]')).toHaveText('4');
+    expect(await row.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+    await details.locator('[data-computer-preferences] > summary').click();
+    await details.locator('[data-computer-identifiers] > summary').click();
+    await expect(details.locator('[data-computer-attempt]')).toHaveText('0c0b796e-ad08-4c56-be9a-477fcf5087833:1:2');
+    await expect(details.locator('[data-computer-identity]')).toHaveText('sha256:' + 'a'.repeat(64));
+    expect(await row.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await row.screenshot({ path: info.outputPath('computer-identifiers.png') });
+  });
+}
+
 const contrastRatio = (first, second) => {
   const luminance = css => css.match(/[\d.]+/g).slice(0,3).map(Number).map(value => {
     const channel=value/255;return channel<=0.04045?channel/12.92:((channel+0.055)/1.055)**2.4;

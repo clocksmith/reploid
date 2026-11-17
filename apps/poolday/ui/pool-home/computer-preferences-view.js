@@ -19,8 +19,8 @@ export const renderComputerDiagnostic = () => `<details class="pool-disclosure" 
 
 /** These are local aliases for verified keys, not names supplied by a peer. */
 export const renderComputerRename = () => `<form class="pool-stack pool-gap-xs" data-computer-rename hidden>
-  <label class="pool-field"><span>Name on this device</span><input class="pool-input" data-computer-name-input maxlength="${policy.maxLabelLength}" autocomplete="off"></label>
-  <p class="pool-caption pool-muted">Leave blank to use the generated name. This name is saved only here.</p>
+  <label class="pool-field"><span>Local name</span><input class="pool-input" data-computer-name-input maxlength="${policy.maxLabelLength}" autocomplete="off"></label>
+  <p class="pool-caption pool-muted">Only on this device. Blank restores the generated name.</p>
   <button class="pool-button btn-ghost" type="submit">Save name</button></form>`;
 
 /** A local choice about where this device sends its own requests. It is not a network-level ban. */
@@ -43,6 +43,8 @@ export function bindComputerPreferences(root, preferences, session, refresh) {
     setBlockedComputers(session, view.blocked);
     section.hidden = false;
     for (const block of root.querySelectorAll('[data-computer-block]')) {
+      const local = block.closest('[data-computer-preferences]');
+      if (local) local.hidden = false;
       const row = block.closest('[data-computer-id]'), blocked = row.dataset.blocked === 'true';
       const identity = /^peer:[a-f0-9]{24}$/.test(row.dataset.computerParticipant || '') ? row.dataset.computerParticipant : '';
       const button = block.querySelector('button');
@@ -50,9 +52,9 @@ export function bindComputerPreferences(root, preferences, session, refresh) {
       button.textContent = blocked ? 'Unblock' : 'Block';
       button.disabled = view.busy;
       block.querySelector('[data-computer-block-note]').textContent = !blocked
-        ? 'Your requests will not be sent to this computer. Saved only on this device; it can still see the network.'
-        : identity && view.blocked.includes(identity) ? 'Your requests are not sent to this computer. Saved only on this device; it can still see the network.'
-        : 'Your requests are not sent over this connection. Its identity was not verified, so the block may not apply after it reconnects.';
+        ? 'Stops your requests on this device. It can still see the network.'
+        : identity && view.blocked.includes(identity) ? 'Blocked on this device. It can still see the network.'
+        : 'This connection only. An unverified computer may reconnect unblocked.';
     }
     for (const form of root.querySelectorAll('[data-computer-rename]')) {
       const identity = form.closest('[data-computer-id]').dataset.computerParticipant || '';

@@ -157,3 +157,18 @@
    a line with nothing to say takes no space. */
 ul:not([data-show-quiet="true"]) > .network-peer-row[data-quiet="true"] { display: none; }
 .network-peer-row [data-computer-hardware]:empty, .network-peer-row [data-computer-detail]:empty { display: none; }
+
+/* Computer facts align in the narrow drawer; identifiers remain inspectable without taking over it. */
+.network-peer-summary { display: grid; gap: var(--pool-size-4); margin: var(--pool-size-8) 0; }
+.network-peer-summary > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--pool-size-8); }
+.network-peer-summary dd, .network-peer-identifiers dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.network-peer-facts { min-width: 0; }
+.network-peer-facts table { table-layout: fixed; }
+.network-peer-facts th { width: 50%; }
+.network-peer-facts td { overflow-wrap: anywhere; }
+.network-peer-facts caption { text-align: start; padding-bottom: var(--pool-size-8); }
+.network-peer-facts caption span { display: block; }
+.network-peer-identifiers { display: grid; gap: var(--pool-size-12); }
+.network-peer-identifiers > div { display: grid; gap: var(--pool-size-4); min-width: 0; }
+.network-peer-details [data-computer-rename] > button { align-self: start; }
+.network-peer-details [data-computer-block] > button { align-self: start; }

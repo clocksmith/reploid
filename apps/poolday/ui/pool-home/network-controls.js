@@ -62,7 +62,36 @@ export const renderSharingControls = ({ introductory = true } = {}) => `<div cla
 
 /** Only what this browser's connection statistics established; anything else stays unlabelled. */
 const connectionPath = connection => ['relayed', 'direct'].includes(connection?.path) ? connection.path : null;
-const CONNECTION_PATH_LABELS = { relayed: 'Relayed connection', direct: 'Direct connection' };
+const CONNECTION_PATH_LABELS = { relayed: 'Relayed', direct: 'Direct' };
+
+/** Tables share the existing typography; raw identifiers stay one disclosure deeper. */
+const renderComputerDetails = () => `<details class="pool-disclosure network-peer-details" data-computer-details>
+  <summary>Details</summary><div class="pool-stack pool-gap-md">
+    <div class="pool-table network-peer-facts"><table aria-label="Connection details"><tbody>
+      <tr><th scope="row">Connection</th><td data-computer-path></td></tr>
+      <tr><th scope="row">Identity</th><td data-computer-auth></td></tr>
+      <tr><th scope="row">Execution</th><td data-computer-stage></td></tr>
+    </tbody></table></div>
+    <div class="pool-table network-peer-facts"><table aria-label="Peer-reported eligible contribution">
+      <caption class="pool-small">Eligible contribution <span class="pool-caption pool-muted">Peer-reported</span></caption>
+      <tbody data-computer-usage>
+        <tr><th scope="row">Input tokens</th><td data-computer-input-tokens></td></tr>
+        <tr><th scope="row">Output tokens</th><td data-computer-output-tokens></td></tr>
+      </tbody><tbody data-computer-receipts>
+        <tr><th scope="row">Served receipts</th><td data-computer-served-receipts></td></tr>
+        <tr><th scope="row">Consumed receipts</th><td data-computer-consumed-receipts></td></tr>
+      </tbody></table></div>
+    <details class="pool-disclosure" data-computer-identifiers><summary>Technical IDs</summary>
+      <dl class="pool-facts pool-small network-peer-identifiers">
+        <div><dt>Connection ID</dt><dd><code class="pool-mono" data-computer-connection-id></code></dd></div>
+        <div><dt>Attempt ID</dt><dd><code class="pool-mono" data-computer-attempt></code></dd></div>
+        <div><dt>Model ID</dt><dd><code class="pool-mono" data-computer-identity></code></dd></div>
+      </dl>
+    </details>
+    <details class="pool-disclosure" data-computer-preferences hidden><summary>Local preferences</summary>
+      <div class="pool-stack pool-gap-md">${renderComputerRename()}${renderComputerBlock()}</div>
+    </details>
+  </div></details>`;
 
 /** Peer-advertised scoring counters, not device-wide traffic or independently verified work. */
 function reportedContribution(peer) {
@@ -164,9 +193,10 @@ function renderPeerRows(list, state) {
     if (!row) {
       row = list.ownerDocument.createElement('li'); row.className = 'network-peer-row'; row.dataset.computerId = peer.id;
       row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
-        + '<span class="pool-small pool-muted" data-computer-model></span><p class="pool-caption pool-muted" data-computer-hardware></p><p class="pool-small pool-muted" data-computer-detail></p>'
-        + '<p class="pool-caption pool-muted" data-computer-usage></p><progress class="pool-progress" hidden></progress><details><summary>Details</summary><p data-computer-usage-scope></p><p data-computer-receipts></p><p data-computer-auth></p><p data-computer-path hidden></p><p data-computer-stage></p><code data-computer-attempt></code><code data-computer-identity></code>'
-        + renderComputerRename() + renderComputerBlock() + '</details></div>';
+        + '<dl class="pool-facts pool-small network-peer-summary"><div><dt data-computer-model-label>Model</dt><dd data-computer-model></dd></div>'
+        + '<div data-computer-hardware-row><dt>GPU <span class="pool-caption">(reported)</span></dt><dd data-computer-hardware></dd></div></dl>'
+        + '<p class="pool-small pool-muted" data-computer-detail></p><progress class="pool-progress" hidden></progress>'
+        + renderComputerDetails() + '</div>';
     }
     existing.delete(peer.id);
     nodes.set(peer.id, row);
@@ -176,19 +206,23 @@ function renderPeerRows(list, state) {
     row.dataset.computerParticipant = state.computerIdentities?.get(peer.id) || '';
     set('[data-computer-name]', computerLabel(state, peer.id)); set('[data-computer-status]', peer.status);
     if (peer.model !== 'Model status pending') row.dataset.lastModel = peer.model;
-    set('[data-computer-model]', peer.model === 'Model status pending' && row.dataset.lastModel ? `Last model: ${row.dataset.lastModel}` : peer.model); set('[data-computer-detail]', peer.detail);
-    set('[data-computer-hardware]', hardwareText(peer.hardware) ? `Reported GPU: ${hardwareText(peer.hardware)}` : 'GPU not reported');
+    const lastModel = peer.model === 'Model status pending' && row.dataset.lastModel;
+    set('[data-computer-model-label]', lastModel ? 'Last model' : 'Model');
+    set('[data-computer-model]', lastModel || peer.model); set('[data-computer-detail]', peer.detail);
+    set('[data-computer-hardware]', hardwareText(peer.hardware));
+    row.querySelector('[data-computer-hardware-row]').hidden = !hardwareText(peer.hardware);
     const contribution = peer.contribution;
-    const count = value => Number.isSafeInteger(value) && value >= 0 ? value.toLocaleString() : 'Unknown';
-    set('[data-computer-usage]', `Peer-reported eligible tokens provided: ${count(contribution?.inputTokens)} input · ${count(contribution?.outputTokens)} output`);
-    set('[data-computer-usage-scope]', 'Peer-reported reward-eligible contribution, not total traffic or lifetime usage. Small requests and repeated pairs may be excluded. Consumed token counts are not reported.');
-    set('[data-computer-receipts]', `Eligible served receipts: ${count(contribution?.served)} · Consumed receipts: ${count(contribution?.consumed)}. Receipts are not token counts or proof of correctness.`);
-    set('[data-computer-auth]', peer.authenticated ? 'Authenticated identity observed on this connection.' : 'Identity authentication has not been observed on this connection.');
-    set('[data-computer-path]', CONNECTION_PATH_LABELS[peer.connectionPath] || '');
-    row.querySelector('[data-computer-path]').hidden = !peer.connectionPath;
-    set('[data-computer-stage]', peer.partitionIndex === null ? peer.status : `Model stage ${peer.partitionIndex + 1} · ${peer.status}`);
-    set('[data-computer-attempt]', peer.attemptId ? `Connection attempt: ${peer.attemptId}` : 'Connection attempt identity unavailable');
-    set('[data-computer-identity]', peer.modelIdentity || peer.id);
+    const count = value => Number.isSafeInteger(value) && value >= 0 ? value.toLocaleString() : 'Not reported';
+    set('[data-computer-input-tokens]', count(contribution?.inputTokens));
+    set('[data-computer-output-tokens]', count(contribution?.outputTokens));
+    set('[data-computer-served-receipts]', count(contribution?.served));
+    set('[data-computer-consumed-receipts]', count(contribution?.consumed));
+    set('[data-computer-auth]', peer.authenticated ? 'Authenticated' : 'Not observed');
+    set('[data-computer-path]', CONNECTION_PATH_LABELS[peer.connectionPath] || 'Not observed');
+    set('[data-computer-stage]', peer.partitionIndex === null ? peer.executionType === 'whole-model' ? 'Whole model' : 'Not reported' : `Stage ${peer.partitionIndex + 1}`);
+    set('[data-computer-connection-id]', peer.id);
+    set('[data-computer-attempt]', peer.attemptId || 'Not reported');
+    set('[data-computer-identity]', peer.modelIdentity || 'Not reported');
     const progress = row.querySelector('progress'); progress.hidden = !peer.progress;
     if (peer.progress) { progress.value = peer.progress.value; progress.max = peer.progress.max; progress.setAttribute('aria-label', peer.status); }
     // A computer that can answer, or is answering or loading, is what a reader came for. One still connecting,
@@ -197,7 +231,6 @@ function renderPeerRows(list, state) {
     const serving = ['ready', 'executing', 'loading', 'preparing'].includes(peer.phase);
     row.dataset.quiet = String(!serving);
     if (serving && peer.phase === 'ready') set('[data-computer-detail]', peer.partitionIndex === null ? '' : peer.detail);
-    if (!hardwareText(peer.hardware)) set('[data-computer-hardware]', '');
   }
   // Serving computers first; order within each group follows discovery. Rows move only when the order changes,
   // so an open Details or a focused control is not disturbed by every update.
@@ -225,7 +258,13 @@ function renderPeerRows(list, state) {
   }
   toggle.hidden = !quiet; toggle.dataset.showLabel = `Show ${plural(quiet, 'other')} (connecting or idle)`; toggle.dataset.hideLabel = `Hide ${plural(quiet, 'other')}`;
   toggle.setAttribute('aria-expanded', String(list.dataset.showQuiet === 'true')); toggle.textContent = toggle.dataset[list.dataset.showQuiet === 'true' ? 'hideLabel' : 'showLabel'];
-
+  let help = list.parentElement.querySelector('[data-computer-usage-help]');
+  if (!help) {
+    list.insertAdjacentHTML('afterend', '<details class="pool-disclosure" data-computer-usage-help><summary>About contribution counts</summary>'
+      + '<p class="pool-small pool-muted" data-computer-usage-scope>Peer-reported reward-eligible contribution, not total traffic or lifetime usage. Small requests and repeated pairs may be excluded. Consumed token counts are not reported. Receipts are not token counts or proof of correctness.</p></details>');
+    help = list.parentElement.querySelector('[data-computer-usage-help]');
+  }
+  help.hidden = !rows.length;
 }
 
 export function bindNetworkControls(container, session, { getInviteUrl, computers } = {}) {

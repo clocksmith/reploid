@@ -4228,7 +4228,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:508e3cabddf9d8e53d1ffed3d4028691c4cd1b242b40b6d899eb4a7d5a54cc27",
+      "sha256": "sha256:52a3f96282e406871efde9a5437311366a45f9ef5dd90bb5848c99994ee6fec2",
       "imports": []
     },
     {
@@ -4258,7 +4258,7 @@
     {
       "path": "ui/pool-home/computer-preferences-view.js",
       "owner": "ui",
-      "sha256": "sha256:445c5a054798f7a22c8e6f1c245ec91a05a0fdb91278efed43404eb98bff5a49",
+      "sha256": "sha256:a49dfc9a80ca47e12682882b76cc743d3e02986e7467d5c9877cb813fef835d0",
       "imports": [
         "../../config/computer-preferences.json",
         "./computer-labels.js",
@@ -4578,7 +4578,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:8603ff9f7e0796e63a2926ee74e082ace8f97a1711fdc956f49e1d43246845d1",
+      "sha256": "sha256:50d80c003b34c77df06521766586e04a9ef226904e091a0dab7dc3026130e9ca",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",

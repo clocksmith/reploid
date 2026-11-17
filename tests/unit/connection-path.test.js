@@ -132,11 +132,11 @@ describe('Computers panel', () => {
     const view = mount(state);
     try {
       const label = id => view.root.querySelector(`[data-computer-id="${id}"] details [data-computer-path]`);
-      expect(label('a').textContent).toBe('Relayed connection'); expect(label('a').hidden).toBe(false);
-      expect(label('b').textContent).toBe('Direct connection');
-      for (const id of ['c', 'd', 'e']) { expect(label(id).textContent).toBe(''); expect(label(id).hidden).toBe(true); }
+      expect(label('a').textContent).toBe('Relayed'); expect(label('a').hidden).toBe(false);
+      expect(label('b').textContent).toBe('Direct');
+      for (const id of ['c', 'd', 'e']) { expect(label(id).textContent).toBe('Not observed'); expect(label(id).hidden).toBe(false); }
       state.network.connections[0] = { id: 'a', attemptId: '1', phase: 'connected', path: null }; view.session.update(state);
-      expect(label('a').textContent).toBe(''); expect(label('a').hidden).toBe(true);
+      expect(label('a').textContent).toBe('Not observed'); expect(label('a').hidden).toBe(false);
     } finally { view.dispose(); }
   });
 });

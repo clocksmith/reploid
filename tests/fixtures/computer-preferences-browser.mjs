@@ -74,8 +74,9 @@ async function capture(page) {
 try {
   let page = await mount();
   assert.equal(await page.evaluate(() => window.__captures), 0);
-  assert.match(await page.locator('[data-computer-auth]').textContent(), /Authenticated identity observed/);
-  await page.locator('[data-computer-id="wire"] details summary').click();
+  assert.equal(await page.locator('[data-computer-auth]').textContent(), 'Authenticated');
+  await page.locator('[data-computer-id="wire"] [data-computer-details] > summary').click();
+  await page.locator('[data-computer-id="wire"] [data-computer-preferences] > summary').click();
   await page.locator('[data-computer-name-input]').fill('Kitchen workstation');
   await page.locator('[data-computer-rename] button').click();
   await page.waitForFunction(() => document.querySelector('[data-computer-name]').textContent === 'Kitchen workstation');

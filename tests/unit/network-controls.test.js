@@ -187,7 +187,9 @@ it('preserves one DOM row, its details and attempt identity through delayed obse
     state.network.consumer.peers = [{ peerId: 'peer', attemptId: 'first', model: 'Qwen', readiness: 'ready', activity: { phase: 'executing' } }]; update(state);
     expect(row.dataset.computerState).toBe('executing'); expect(row.textContent).toContain('Working');
     state.network.connections[0].phase = 'disconnected'; update(state);
-    expect(row.textContent).toContain('cleanup state are unknown'); expect(row.textContent).toContain('Last model: Qwen');
+    expect(row.textContent).toContain('cleanup state are unknown');
+    expect(row.querySelector('[data-computer-model-label]').textContent).toBe('Last model');
+    expect(row.querySelector('[data-computer-model]').textContent).toBe('Qwen');
     state.network.connections[0] = { id: 'peer', attemptId: 'second', phase: 'connected' }; update(state);
     expect(row.dataset.computerState).toBe('awaiting-advertisement');
     expect(row.dataset.attemptId).toBe('second'); expect(row.textContent).not.toContain('Working');
@@ -204,7 +206,8 @@ it('shows reported peer hardware without leaking host metadata or inventing loca
   root.innerHTML = renderConnectionControl() + renderSharingControls() + '<ul data-insp-device-list></ul><span data-network-message></span>'
     + '<button data-mesh-invite></button><p data-local-computer></p>';
   const dispose = bindNetworkControls(root, session);
-  expect(root.querySelector('[data-computer-hardware]').textContent).toBe('Reported GPU: AMD');
+  expect(root.querySelector('[data-computer-hardware]').textContent).toBe('AMD');
+  expect(root.querySelector('[data-computer-hardware-row] dt').textContent).toContain('(reported)');
   expect(root.querySelector('[data-local-computer]').textContent).toBe('GPU not reported');
   expect(root.textContent).not.toContain('private-machine'); dispose();
 });
@@ -231,18 +234,26 @@ it('renders reported contribution scope and clears counts when the connection lo
   const dispose = bindNetworkControls(root, session);
   try {
     const row = root.querySelector('[data-computer-id="remote"]');
-    expect(row.querySelector('[data-computer-usage]').textContent).toBe('Peer-reported eligible tokens provided: 128 input · 0 output');
-    expect(row.querySelector('[data-computer-usage-scope]').textContent).toContain('Peer-reported reward-eligible');
-    expect(row.querySelector('[data-computer-usage-scope]').textContent).toContain('Consumed token counts are not reported');
-    expect(row.querySelector('[data-computer-receipts]').textContent).toContain('Eligible served receipts: 1 · Consumed receipts: 2');
+    expect(row.querySelector('[data-computer-input-tokens]').textContent).toBe('128');
+    expect(row.querySelector('[data-computer-output-tokens]').textContent).toBe('0');
+    expect(root.querySelector('[data-computer-usage-scope]').textContent).toContain('Peer-reported reward-eligible');
+    expect(root.querySelector('[data-computer-usage-scope]').textContent).toContain('Consumed token counts are not reported');
+    expect(row.querySelector('[data-computer-served-receipts]').textContent).toBe('1');
+    expect(row.querySelector('[data-computer-consumed-receipts]').textContent).toBe('2');
+    expect(row.querySelector('table[aria-label="Peer-reported eligible contribution"]')).not.toBeNull();
+    expect(row.querySelector('[data-computer-identity]').textContent).toBe('Not reported');
+    expect(row.querySelector('[data-computer-connection-id]').textContent).toBe('remote');
+    expect(row.querySelector('[data-computer-identifiers]').open).toBe(false);
     row.querySelector('details').open = true;
     state.network.consumer.peers[0].contribution.providedOutputTokens = 4; update(state);
     expect(root.querySelector('[data-computer-id="remote"]')).toBe(row);
     expect(row.querySelector('details').open).toBe(true);
-    expect(row.querySelector('[data-computer-usage]').textContent).toContain('4 output');
+    expect(row.querySelector('[data-computer-output-tokens]').textContent).toBe('4');
     state.network.consumer.peers = [];
     state.network.consumer.connections = [{ id: 'remote', phase: 'disconnected' }]; update(state);
-    expect(row.querySelector('[data-computer-usage]').textContent).toBe('Peer-reported eligible tokens provided: Unknown input · Unknown output');
-    expect(row.querySelector('[data-computer-receipts]').textContent).toContain('Eligible served receipts: Unknown');
+    expect(row.querySelector('[data-computer-input-tokens]').textContent).toBe('Not reported');
+    expect(row.querySelector('[data-computer-output-tokens]').textContent).toBe('Not reported');
+    expect(row.querySelector('[data-computer-served-receipts]').textContent).toBe('Not reported');
+    expect(root.querySelectorAll('[data-computer-usage-help]').length).toBe(1);
   } finally { dispose(); }
 });
