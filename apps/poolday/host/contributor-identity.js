@@ -9,8 +9,13 @@ const validSlot = value => typeof value === 'string' && /^(0|[1-9]\d*)$/.test(va
  * a new tab reuses an idle slot. Connection/observation sessions remain fresh.
  * Slots identify browser participants, not physical computers or independent parties.
  * Existing unreferenced random-session keys are never guessed, migrated or deleted. */
-export function createContributorIdentity({ storage, locks = globalThis.navigator?.locks,
+export function createContributorIdentity({ storage: pageStorage, locks = globalThis.navigator?.locks,
   tabStorage = globalThis.sessionStorage } = {}) {
+  // Poolday supplies createScopedReploidStorage(), whose raw port is the profile
+  // store. Only contributor signing slots bypass the page namespace: account,
+  // permissions, preferences and requester identities keep their original scope.
+  // The lock and storage must have the same origin/profile lifetime.
+  const storage = pageStorage && Object.hasOwn(pageStorage, 'raw') ? pageStorage.raw : pageStorage;
   let pending = null, lease = null, release = null, closed = false, instanceId = null;
   const claim = slot => new Promise((resolve, reject) => {
     lease = locks.request(`reploid:work-contributor:identity:v1:${slot}`, { ifAvailable: true }, async lock => {
