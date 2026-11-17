@@ -176,12 +176,19 @@ export async function openDiagnosticModelSource({ config, model, runtime, signal
           const total = selected.reduce((sum, range) => sum + range.length, 0);
           assert(Number.isSafeInteger(total) && total <= port.maxPartBytes, 'Diagnostic lease exceeds part bound');
           const names = [...new Set(selected.map(range => metadata.manifest.shards[range.shard]?.filename))];
-          await assertFilesCurrent(layout, names);
+          assert(names.every(name => typeof name === 'string' && layout.readFiles[name] && layout.identities[name]),
+            'Undeclared diagnostic source read');
+          // Only this explicit identity-bound worker contract covers both job
+          // boundaries, including partial-piece batches, before owned transfer.
+          // Legacy readers retain their independent host-side guards.
+          const workerIdentity = batch && port.fileIdentitiesBound === true
+            && port.batchFileIdentityChecks === 'before-read-after-auth/v1';
+          if (!workerIdentity) await assertFilesCurrent(layout, names);
           active?.throwIfAborted();
           if (closed) throw new Error('Diagnostic mapped source closed');
           const lease = await load(selected, active);
           try {
-            await assertFilesCurrent(layout, names);
+            if (!workerIdentity) await assertFilesCurrent(layout, names);
             active?.throwIfAborted();
             if (closed) throw new Error('Diagnostic mapped source closed');
             return lease;

@@ -73,6 +73,7 @@ async function gatheredFixture(hooks = {}) {
     };
     f.readMany = vi.fn(load);
     source.storage.rangeLease = { fileIdentitiesBound: true, concurrency: 2, maxPartBytes: 16, memoryBytes: 96,
+      ...(hooks.batchFileIdentityChecks === undefined ? {} : { batchFileIdentityChecks: hooks.batchFileIdentityChecks }),
       read: (shard, offset, length, active) => load([{ shard, offset, length }], active),
       readMany: hooks.legacy ? undefined : f.readMany };
     source.getGatherReceipt = async () => source.getReceipt();
@@ -80,6 +81,38 @@ async function gatheredFixture(hooks = {}) {
   };
   return { ...f, leases, get readMany() { return f.readMany; } };
 }
+
+it('delegates only explicitly identity-bound batch guards while retaining single-range and legacy guards', async () => {
+  for (const capability of [undefined, 'unrecognized/v1', 'before-read-after-auth/v1']) {
+    const f = await gatheredFixture({ batchFileIdentityChecks: capability }), source = await own(f);
+    const real = fs.lstat.bind(fs), calls = [];
+    const stat = vi.spyOn(fs, 'lstat').mockImplementation(async (filename, options) => {
+      calls.push(filename); return real(filename, options);
+    });
+    // The fake worker's underlying generic reader has its own checks. Only
+    // duplicate facade guards disappear; single-range reads keep theirs.
+    const lease = await source.storage.rangeLease.readMany([{ shard: 0, offset: 0, length: 4 }]);
+    lease.release();
+    const batchCalls = calls.length;
+    calls.length = 0;
+    const single = await source.storage.rangeLease.read(0, 0, 4); single.release();
+    expect(calls.length - batchCalls).toBe(capability === 'before-read-after-auth/v1' ? 2 : 0);
+    stat.mockRestore();
+    await source.storage.close();
+  }
+});
+
+it('delegated batch guards still settle cancellation and close before publishing an owned lease', async () => {
+  const caller = new AbortController();
+  const f = await gatheredFixture({ batchFileIdentityChecks: 'before-read-after-auth/v1',
+    afterRead() { caller.abort(new Error('cancelled delegated batch')); } });
+  const source = await own(f);
+  await expect(source.storage.rangeLease.readMany([{ shard: 0, offset: 0, length: 4 }], caller.signal))
+    .rejects.toThrow('cancelled delegated batch');
+  expect(f.leases[0].release).toHaveBeenCalledOnce();
+  expect(f.leases[0].bytes.byteLength).toBe(0);
+  await source.storage.close();
+});
 
 it('pins approved symlink targets and uses authenticated tokenizer pieces without canonical copies', async () => {
   const f = await fixture(), selected = f.config.sourceMap.files;
