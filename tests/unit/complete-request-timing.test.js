@@ -43,3 +43,24 @@ it('cancels decode publication and rejects nonmonotonic clocks', async () => {
   await expect(timeCompleteRequest({ reset() { now = 1; }, generate: () => ({}), decode: () => '', timeoutMs: 1000,
     clock: () => now })).rejects.toThrow('clock');
 });
+
+it('includes actual peer tokenization in complete requests and rejects a changed input before generation', async () => {
+  let now = 0, generated = 0;
+  const room = {
+    ai: { engine: { maxSeq: 2048 }, tok: { decode() { now += 3; return 'answer'; } } },
+    ckptClear() { now += 2; }, locked: operation => operation(),
+    async generate(ids, options) {
+      generated++; expect(ids).toEqual([1, 2]);
+      now += 5; options.sample([7]); options.onToken(7);
+      return { tokens: [7], resumed: 0, reused: 0, prefilled: 2, pinned: 0, from: null, count: 1, reason: 'max' };
+    },
+  };
+  const settings = { room, promptIds: [1, 2], maxNew: 1, stopIds: [], makeSampler: () => logits => logits[0],
+    timeoutMs: 1000, clock: () => now };
+  const result = await runPooledCompleteRequest({ ...settings, tokenizePrompt() { now += 11; return Uint32Array.of(1, 2); } });
+  expect(result).toMatchObject({ requestWallMs: 21, resetMs: 13, generationWallMs: 8,
+    inputIds: [1, 2], inputScope: 'Actual prompt tokenization included in request/reset time' });
+  await expect(runPooledCompleteRequest({ ...settings, tokenizePrompt: () => [1, 9] }))
+    .rejects.toThrow('Peer tokenizer differs');
+  expect(generated).toBe(1);
+});
