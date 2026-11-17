@@ -57,7 +57,8 @@ async function own(f) { const source = await openDiagnosticModelSource(f); owner
 async function gatheredFixture(hooks = {}) {
   const f = await fixture({ secondFile: true }), create = f.runtime.createVerifiedPieceStorage;
   const leases = [];
-  f.config.workerGather = { concurrency: 2, maxPartBytes: 16, memoryBudgetBytes: 96 };
+  f.config.workerGather = { concurrency: 2, maxPartBytes: 16, memoryBudgetBytes: 96,
+    ...(hooks.maxRanges === undefined ? {} : { maxRanges: hooks.maxRanges }) };
   f.runtime.createVerifiedPieceStorage = async options => {
     const source = await create(options);
     const load = async (ranges, active) => {
@@ -73,6 +74,8 @@ async function gatheredFixture(hooks = {}) {
     };
     f.readMany = vi.fn(load);
     source.storage.rangeLease = { fileIdentitiesBound: true, concurrency: 2, maxPartBytes: 16, memoryBytes: 96,
+      ...(Object.hasOwn(hooks, 'portMaxRanges') ? { maxRanges: hooks.portMaxRanges }
+        : hooks.maxRanges === undefined ? {} : { maxRanges: hooks.maxRanges }),
       ...(hooks.batchFileIdentityChecks === undefined ? {} : { batchFileIdentityChecks: hooks.batchFileIdentityChecks }),
       read: (shard, offset, length, active) => load([{ shard, offset, length }], active),
       readMany: hooks.legacy ? undefined : f.readMany };
@@ -81,6 +84,48 @@ async function gatheredFixture(hooks = {}) {
   };
   return { ...f, leases, get readMany() { return f.readMany; } };
 }
+
+it('admits only the explicitly matched bounded range capability and preserves legacy three-range ports', async () => {
+  for (const maxRanges of [0, -1, 1.5, 33, null, NaN]) {
+    const f = await gatheredFixture({ maxRanges });
+    await expect(own(f)).rejects.toThrow('maxRanges');
+    expect(f.admissions).toHaveLength(0);
+  }
+  for (const options of [{ maxRanges: 9, portMaxRanges: undefined }, { maxRanges: 9, portMaxRanges: 3 },
+    { maxRanges: 9, portMaxRanges: 10 }, { maxRanges: 9, legacy: true }, { portMaxRanges: 9 }, { portMaxRanges: null }]) {
+    await expect(own(await gatheredFixture(options))).rejects.toThrow('identity-bound worker');
+  }
+  const legacy = await own(await gatheredFixture({ maxRanges: 3, portMaxRanges: undefined }));
+  expect(legacy.storage.rangeLease.maxRanges).toBeUndefined();
+  const lease = await legacy.storage.rangeLease.readMany(Array.from({ length: 3 }, () => ({ shard: 0, offset: 0, length: 1 })));
+  expect([...lease.bytes]).toEqual([1, 1, 1]); lease.release();
+});
+
+it('guards nine-range batches with unchanged byte, source, snapshot and cancellation ownership limits', async () => {
+  const f = await gatheredFixture({ maxRanges: 9 }), source = await own(f), port = source.storage.rangeLease;
+  const ranges = Array.from({ length: 9 }, (_, i) => ({ shard: i % 2, offset: 0, length: 1 }));
+  const pending = port.readMany(ranges);
+  ranges[0].shard = 99; ranges.push({ shard: 99, offset: 0, length: 1 });
+  const lease = await pending;
+  expect([...lease.bytes]).toEqual([1, 9, 1, 9, 1, 9, 1, 9, 1]); lease.release();
+  expect(port.maxRanges).toBe(9); expect(f.admissions[0].nodeGather.maxRanges).toBe(9);
+  for (const invalid of [Array.from({ length: 10 }, () => ({ shard: 0, offset: 0, length: 1 })),
+    Array.from({ length: 9 }, () => ({ shard: 0, offset: 0, length: 2 })), [{ shard: 99, offset: 0, length: 1 }]]) {
+    await expect(port.readMany(invalid)).rejects.toThrow(/bound|Undeclared/);
+  }
+  const caller = new AbortController(); caller.abort(new Error('cancelled nine-range request'));
+  await expect(port.readMany(Array.from({ length: 9 }, () => ({ shard: 0, offset: 0, length: 1 })), caller.signal))
+    .rejects.toThrow('cancelled nine-range request');
+  expect(f.readMany).toHaveBeenCalledOnce();
+  const lifetime = new AbortController();
+  const cancelling = await gatheredFixture({ maxRanges: 9, afterRead() { lifetime.abort(new Error('cancelled owned nine-range output')); } });
+  const cancelledSource = await own({ ...cancelling, signal: lifetime.signal });
+  await expect(cancelledSource.storage.rangeLease.readMany(Array.from({ length: 9 }, () => ({ shard: 0, offset: 0, length: 1 }))))
+    .rejects.toThrow('cancelled owned nine-range output');
+  expect(cancelling.leases[0].release).toHaveBeenCalledOnce(); expect(cancelling.leases[0].bytes.byteLength).toBe(0);
+  await source.storage.close();
+  await expect(port.readMany([{ shard: 0, offset: 0, length: 1 }])).rejects.toThrow('closed');
+});
 
 it('delegates only explicitly identity-bound batch guards while retaining single-range and legacy guards', async () => {
   for (const capability of [undefined, 'unrecognized/v1', 'before-read-after-auth/v1']) {

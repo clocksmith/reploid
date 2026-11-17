@@ -6,6 +6,8 @@ import { requireValue } from './native-host-utils.js';
 
 /** Read only complete authenticated pieces requested by Doppler's public reader. */
 export async function openNativeModelSource({ model, modelDirectory, signal, runtime, files, resolveSource = null, gather = null }) {
+  gather = gather === null ? null : { ...gather };
+  const maxRanges = gather?.maxRanges === undefined ? 3 : gather.maxRanges;
   requireValue(gather === null || (!files && resolveSource === null),
     'Local worker gather cannot replace custody or an explicit source resolver');
   // Trusted native composition only: the resolver owns authenticated range reads and lifetime.
@@ -71,8 +73,9 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
   if (gather !== null) {
     requireValue(Number.isSafeInteger(gather.maxPartBytes) && gather.maxPartBytes > 0
       && Number.isSafeInteger(gather.memoryBudgetBytes) && gather.memoryBudgetBytes > 0
-      && Number.isSafeInteger(gather.concurrency ?? 1) && (gather.concurrency ?? 1) > 0,
-    'Local worker gather requires explicit part and memory bounds');
+      && Number.isSafeInteger(gather.concurrency ?? 1) && (gather.concurrency ?? 1) > 0
+      && Number.isSafeInteger(maxRanges) && maxRanges > 0 && maxRanges <= 32,
+    'Local worker gather requires explicit part and memory bounds and a range limit from 1 to 32');
     const approvedFiles = {};
     for (const file of JSON.parse(new TextDecoder().decode(indexBytes)).files) {
       requireValue(/^[a-zA-Z0-9_.-]+$/.test(file.path), 'Gather file must be a plain filename');
@@ -84,12 +87,15 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
       approvedFiles[file.path] = filename;
     }
     nodeGather = { files: approvedFiles, maxPartBytes: gather.maxPartBytes, memoryBudgetBytes: gather.memoryBudgetBytes,
-      ...(gather.concurrency === undefined ? {} : { concurrency: gather.concurrency }) };
+      ...(gather.concurrency === undefined ? {} : { concurrency: gather.concurrency }),
+      ...(gather.maxRanges === undefined ? {} : { maxRanges: gather.maxRanges }) };
   }
   const opened = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,
     signal, nodeGather, acquire: piece => read(piece.path, piece.offset, piece.size) });
   if (nodeGather && (typeof opened.storage?.rangeLease?.read !== 'function' || typeof opened.getGatherReceipt !== 'function'
-    || (opened.storage.rangeLease.concurrency ?? 1) !== (gather.concurrency ?? 1))) {
+    || (opened.storage.rangeLease.concurrency ?? 1) !== (gather.concurrency ?? 1)
+    || (opened.storage.rangeLease.maxRanges === undefined ? 3 : opened.storage.rangeLease.maxRanges) !== maxRanges
+    || (maxRanges > 3 && typeof opened.storage.rangeLease.readMany !== 'function'))) {
     await opened.storage?.close?.();
     throw new Error('Installed Doppler does not support the requested authenticated worker gather');
   }

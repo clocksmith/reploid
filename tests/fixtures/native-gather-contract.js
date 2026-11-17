@@ -27,11 +27,21 @@ try {
     { role: 'model-piece-index', path: 'pieces.json', hashAlgorithm: 'sha256', hash: hash(index).slice(7) }] } };
   let supplied;
   const runtime = { async createVerifiedPieceStorage(options) { supplied = options;
-    return { storage: { rangeLease: { concurrency: options.nodeGather.concurrency ?? 1, async read() {} }, async close() {} }, async getGatherReceipt() {} }; } };
+    return { storage: { rangeLease: { concurrency: options.nodeGather.concurrency ?? 1,
+      ...(options.nodeGather.maxRanges === undefined ? {} : { maxRanges: options.nodeGather.maxRanges }),
+      async read() {}, async readMany() {} }, async close() {} }, async getGatherReceipt() {} }; } };
   const gather = { maxPartBytes: 4, memoryBudgetBytes: 24, concurrency: 2 };
   await openNativeModelSource({ model, modelDirectory: root, runtime, gather });
   assert.deepEqual(supplied.nodeGather, { files: { 'weights.bin': path.join(await fs.realpath(root), 'weights.bin') }, ...gather });
   assert.equal(supplied.indexIdentity, hash(index));
+  for (const maxRanges of [1, 9, 32]) {
+    await openNativeModelSource({ model, modelDirectory: root, runtime, gather: { ...gather, maxRanges } });
+    assert.equal(supplied.nodeGather.maxRanges, maxRanges);
+  }
+  for (const maxRanges of [0, -1, 1.5, 33, null, NaN]) {
+    await assert.rejects(openNativeModelSource({ model, modelDirectory: root, runtime,
+      gather: { ...gather, maxRanges } }), /explicit part and memory bounds/);
+  }
   await assert.rejects(openNativeModelSource({ model, modelDirectory: root, runtime,
     gather: { ...gather, concurrency: 0 } }), /explicit part and memory bounds/);
   let closed = false;
@@ -42,16 +52,26 @@ try {
     return { storage: { rangeLease: { async read() {} }, async close() {} }, async getGatherReceipt() {} };
   } };
   await assert.rejects(openNativeModelSource({ model, modelDirectory: root, runtime: serializedRuntime, gather }), /does not support/);
+  for (const maxRanges of [undefined, null, 3, 10]) {
+    let retired = false;
+    const mismatched = { async createVerifiedPieceStorage() {
+      return { storage: { rangeLease: { concurrency: 2, maxRanges, async read() {}, async readMany() {} },
+        async close() { retired = true; } }, async getGatherReceipt() {} };
+    } };
+    await assert.rejects(openNativeModelSource({ model, modelDirectory: root, runtime: mismatched,
+      gather: { ...gather, maxRanges: 9 } }), /does not support/);
+    assert(retired, 'Range capability rejection retains owned cleanup');
+  }
   await assert.rejects(openNativeModelSource({ model, gather, files: {} }), /cannot replace custody/);
   await assert.rejects(openNativeModelSource({ model, gather, resolveSource() {} }), /cannot replace custody/);
-  for (const [pieceIndex, indices] of [[null, [0]], [{ path: 'pieces.json' }, null]]) {
+  for (const [pieceIndex, indices] of [[null, [0]], [{ path: 'pieces.json' }, undefined]]) {
     const configPath = path.join(root, 'invalid-gather.json');
     await fs.writeFile(configPath, JSON.stringify({ workerGather: gather, pieceIndex }));
     const child = spawnSync(process.execPath, [new URL('./qwen-partition-worker.js', import.meta.url).pathname, configPath], {
       input: JSON.stringify({ id: 'unsupported-gather', op: 'open', indices }) + '\n', encoding: 'utf8', timeout: 10000,
     });
     assert.equal(child.status, 0, child.stderr);
-    assert.match(child.stdout, /workerGather requires pinned pieceIndex and partition indices/);
+    assert.match(child.stdout, /workerGather requires pinned pieceIndex and explicit whole-model or partition selection/);
   }
   if (process.env.DOPPLER_SOURCE_URL) {
     const actualRuntime = await import(new URL('src/partitions.js', process.env.DOPPLER_SOURCE_URL));

@@ -84,8 +84,8 @@ async function assertFileCurrent(layout, name) {
   assert(stat.isFile() && JSON.stringify(identityOf(stat)) === JSON.stringify(expected), 'Diagnostic mapped source identity changed');
 }
 
-// A batch has at most three distinct sources. Dispatch their independent
-// metadata checks together, and retain every check until it actually settles.
+// A batch has at most the explicitly admitted number of distinct sources.
+// Dispatch independent metadata checks together and retain them until settled.
 async function assertFilesCurrent(layout, names) {
   const checks = await Promise.allSettled(names.map(name => assertFileCurrent(layout, name)));
   const failed = checks.find(check => check.status === 'rejected');
@@ -96,6 +96,11 @@ export async function openDiagnosticModelSource({ config, model, runtime, signal
   config = { ...config, pieceIndex: { ...config.pieceIndex }, workerGather: config.workerGather && { ...config.workerGather },
     ...(config.pieceCache === undefined ? {} : { pieceCache: structuredClone(config.pieceCache) }),
     ...(config.sourceMap === undefined ? {} : { sourceMap: structuredClone(config.sourceMap) }) };
+  if (config.workerGather) {
+    const maxRanges = config.workerGather.maxRanges === undefined ? 3 : config.workerGather.maxRanges;
+    assert(Number.isSafeInteger(maxRanges) && maxRanges > 0 && maxRanges <= 32,
+      'Diagnostic worker gather maxRanges must be a positive safe integer no greater than 32');
+  }
   if (config.pieceCache !== undefined) {
     assert(config.sourceMap === undefined && !config.workerGather, 'Partial piece cache cannot claim full mapped sources or worker gather');
     return openDiagnosticPieceCache({ metadata: await readDiagnosticMetadata(config), model, runtime,
@@ -160,14 +165,19 @@ export async function openDiagnosticModelSource({ config, model, runtime, signal
     onSource(retained);
     if (nodeGather) {
       const port = opened.storage.rangeLease;
+      const maxRanges = port?.maxRanges === undefined ? 3 : port.maxRanges;
       assert(port?.fileIdentitiesBound === true && port.concurrency === (nodeGather.concurrency ?? 1)
+        && Number.isSafeInteger(maxRanges) && maxRanges > 0 && maxRanges <= 32
+        && maxRanges === (nodeGather.maxRanges === undefined ? 3 : nodeGather.maxRanges)
+        && (maxRanges <= 3 || typeof port.readMany === 'function')
         && typeof opened.getGatherReceipt === 'function', 'Selected Doppler lacks identity-bound worker gathering');
       const guardLease = (ranges, readSignal, load, batch = false) => {
         const operation = (async () => {
           const active = signal && readSignal ? AbortSignal.any([signal, readSignal]) : signal ?? readSignal;
           active?.throwIfAborted();
           if (closed) throw new Error('Diagnostic mapped source closed');
-          assert(Array.isArray(ranges) && ranges.length > 0 && ranges.length <= 3, 'Diagnostic batch requires one to three ranges');
+          assert(Array.isArray(ranges) && ranges.length > 0 && ranges.length <= maxRanges,
+            'Diagnostic batch exceeds its admitted ranges bound');
           const selected = ranges.map(range => {
             assert(Number.isSafeInteger(range?.shard) && range.shard >= 0 && Number.isSafeInteger(range.offset)
               && range.offset >= 0 && Number.isSafeInteger(range.length) && range.length >= (batch ? 1 : 0), 'Invalid diagnostic lease range');
