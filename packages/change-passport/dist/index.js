@@ -164,6 +164,19 @@ var SWARM_ROLES = Object.freeze({
   DEAD: "dead"
 });
 
+// shared/vendor/reploid/artifacts/generation-terminal.js
+var GENERATION_TERMINAL_SCHEMAS = Object.freeze(["reploid.generation-terminal/v1", "reploid.generation-terminal/v2"]);
+
+// shared/vendor/reploid/mesh/generation-settings.js
+var GENERATION_SETTINGS_SCHEMA = "reploid.generation-settings/v1";
+var GENERATION_SETTINGS_CAPABILITY = Object.freeze({
+  schema: GENERATION_SETTINGS_SCHEMA,
+  maxOutputTokens: false,
+  tools: false,
+  outputSchema: false,
+  thinking: false
+});
+
 // shared/vendor/reploid/mesh/gpu-signature.policy.json
 var gpu_signature_policy_default = {
   schema: "reploid.gpu-order-signature/v1",
