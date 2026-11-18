@@ -257,6 +257,7 @@ var BUNDLE_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "identi
 
 // shared/vendor/reploid/transport/partition-data-channel.js
 var encoder2 = new TextEncoder();
+var decoder = new TextDecoder();
 
 // shared/vendor/reploid/mesh/partitions/partition-generation-request.js
 var TEXT_GENERATION_CAPABILITY = Object.freeze({ schema: "reploid.text-generation/v1", usage: "raw-model-tokens/v1" });
