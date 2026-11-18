@@ -27,8 +27,8 @@ describe('configured support reviewer', () => {
   });
 
   it('sends the blinded packet to the configured endpoint and refuses models it is not declared stronger than', async () => {
-    const fetch = vi.fn(async () => ({ ok: true, json: async () => ({ choices: [{ message: { content:
-      '{"judgments":[{"claim":"claim-1","verdict":"supported","basis":"Stated.","spans":[{"source":1,"quote":"A is true."}]}]}' } }] }) }));
+    const fetch = vi.fn(async () => Response.json({ choices: [{ message: { content:
+      '{"judgments":[{"claim":"claim-1","verdict":"supported","basis":"Stated.","spans":[{"source":1,"quote":"A is true."}]}]}' } }] }));
     const reviewer = createConfiguredSupportReviewer({ env: ENV, fetch });
     const judgments = await reviewer.review(packet, { generator });
     const [url, init] = fetch.mock.calls[0], body = JSON.parse(init.body);
