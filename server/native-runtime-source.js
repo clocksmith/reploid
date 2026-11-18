@@ -36,9 +36,20 @@ export async function openNativeRuntimeSource(file) {
   assert(typeof config.directory === 'string' && path.isAbsolute(config.directory), 'Native runtime source directory must be absolute');
   assert(typeof config.treeSha256 === 'string' && /^[a-f0-9]{64}$/u.test(config.treeSha256), 'Pinned source tree SHA-256 is required');
   const gather = config.gather;
-  assert(gather && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency'].includes(key))
+  assert(gather && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency', 'protectedCache'].includes(key))
     && ['maxPartBytes', 'memoryBudgetBytes', 'concurrency'].every(key => Number.isSafeInteger(gather[key]) && gather[key] > 0),
   'Native runtime source requires explicit positive gather bounds and concurrency');
+  const cache = gather.protectedCache;
+  if (cache !== undefined) {
+    assert(cache && typeof cache === 'object' && !Array.isArray(cache)
+      && Object.keys(cache).every(key => ['directory', 'maxBytes', 'minHostAvailableBytes', 'staleAfterMs'].includes(key))
+      && typeof cache.directory === 'string' && path.isAbsolute(cache.directory)
+      && Number.isSafeInteger(cache.maxBytes) && cache.maxBytes > 0
+      && Number.isSafeInteger(cache.minHostAvailableBytes) && cache.minHostAvailableBytes > 0
+      && (cache.staleAfterMs === undefined || Number.isSafeInteger(cache.staleAfterMs) && cache.staleAfterMs >= 1000),
+    'Protected gather cache requires an absolute directory, a positive byte cap and available memory floor');
+    Object.freeze(cache);
+  }
   const directory = await fs.realpath(config.directory);
   const expected = config.treeSha256;
   const assertCurrent = async () => {

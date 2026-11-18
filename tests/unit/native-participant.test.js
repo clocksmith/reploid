@@ -176,6 +176,20 @@ describe('native host boundary', () => {
       .rejects.toThrow('selected model id');
     expect(createVerifiedPieceStorage).not.toHaveBeenCalled();
   });
+
+  it('forwards protected cache policy and closes storage when the runtime ignores it', async () => {
+    const { directory, model } = await fixture();
+    const cache = { directory: path.join(directory, 'cache'), maxBytes: 64, minHostAvailableBytes: 128 };
+    const gather = { maxPartBytes: 4, memoryBudgetBytes: 12, protectedCache: cache };
+    const opened = { storage: { rangeLease: { read: vi.fn() }, close: vi.fn() }, getGatherReceipt: vi.fn() };
+    const createVerifiedPieceStorage = vi.fn(async () => opened);
+    const options = { model, modelDirectory: directory, runtime: { createVerifiedPieceStorage }, gather };
+    await expect(openNativeModelSource(options)).rejects.toThrow('requested authenticated worker gather');
+    expect(opened.storage.close).toHaveBeenCalledOnce();
+    expect(createVerifiedPieceStorage.mock.calls[0][0].nodeGather.protectedCache).toEqual(cache);
+    opened.storage.rangeLease.protectedCacheBound = true;
+    await expect(openNativeModelSource(options)).resolves.toBe(opened);
+  });
   it('rejects a weight symlink escaping the approved model directory', async () => {
     const { directory, model } = await fixture();
     const external = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-native-external-')); roots.push(external);

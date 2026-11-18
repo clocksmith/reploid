@@ -6,7 +6,8 @@ import { requireValue } from './native-host-utils.js';
 
 /** Read only complete authenticated pieces requested by Doppler's public reader. */
 export async function openNativeModelSource({ model, modelDirectory, signal, runtime, files, resolveSource = null, gather = null }) {
-  gather = gather === null ? null : { ...gather };
+  gather = gather === null ? null : { ...gather,
+    ...(gather.protectedCache === undefined ? {} : { protectedCache: structuredClone(gather.protectedCache) }) };
   const maxRanges = gather?.maxRanges === undefined ? 3 : gather.maxRanges;
   requireValue(gather === null || (!files && resolveSource === null),
     'Local worker gather cannot replace custody or an explicit source resolver');
@@ -88,14 +89,16 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
     }
     nodeGather = { files: approvedFiles, maxPartBytes: gather.maxPartBytes, memoryBudgetBytes: gather.memoryBudgetBytes,
       ...(gather.concurrency === undefined ? {} : { concurrency: gather.concurrency }),
-      ...(gather.maxRanges === undefined ? {} : { maxRanges: gather.maxRanges }) };
+      ...(gather.maxRanges === undefined ? {} : { maxRanges: gather.maxRanges }),
+      ...(gather.protectedCache === undefined ? {} : { protectedCache: gather.protectedCache }) };
   }
   const opened = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,
     signal, nodeGather, acquire: piece => read(piece.path, piece.offset, piece.size) });
   if (nodeGather && (typeof opened.storage?.rangeLease?.read !== 'function' || typeof opened.getGatherReceipt !== 'function'
     || (opened.storage.rangeLease.concurrency ?? 1) !== (gather.concurrency ?? 1)
     || (opened.storage.rangeLease.maxRanges === undefined ? 3 : opened.storage.rangeLease.maxRanges) !== maxRanges
-    || (maxRanges > 3 && typeof opened.storage.rangeLease.readMany !== 'function'))) {
+    || (maxRanges > 3 && typeof opened.storage.rangeLease.readMany !== 'function')
+    || (gather.protectedCache !== undefined && opened.storage.rangeLease.protectedCacheBound !== true))) {
     await opened.storage?.close?.();
     throw new Error('Installed Doppler does not support the requested authenticated worker gather');
   }

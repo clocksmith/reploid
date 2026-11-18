@@ -631,6 +631,13 @@ there is no custody or peer-acquisition fallback in this mode.
 }
 ```
 
+On a reserved test host, `gather.protectedCache` can opt into Doppler's
+authenticated piece cache. Supply a dedicated absolute cache directory,
+`maxBytes`, and a positive `minHostAvailableBytes` memory floor. An optional
+`staleAfterMs` must be at least 1000. The selected runtime must confirm the
+cache is bound, or source preparation fails. Leave this option absent for an
+uncached arm and record cache hits and admitted bytes for the comparison.
+
 Compute the expected tree hash with `inspectNativeRuntimeSource(directory)` from
 `server/native-runtime-source.js`, review the selected checkout, then record that
 hash in the config outside the checkout. The inventory covers the complete tree

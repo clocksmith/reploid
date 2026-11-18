@@ -69,6 +69,21 @@ it('rejects missing pins, unknown fields and invalid limits before any source im
   await expect(openNativeRuntimeSource('relative.json')).rejects.toThrow('absolute');
 });
 
+it('requires an explicit memory floor and snapshots an opted-in protected cache', async () => {
+  const { root, file, config, write } = await fixture();
+  const cache = { directory: path.join(root, 'cache'), maxBytes: 128, minHostAvailableBytes: 256 };
+  for (const protectedCache of [{ ...cache, directory: 'relative' }, { ...cache, minHostAvailableBytes: 0 },
+    { ...cache, staleAfterMs: 999 }]) {
+    await write({ ...config, gather: { ...config.gather, protectedCache } });
+    await expect(openNativeRuntimeSource(file)).rejects.toThrow('Protected gather cache');
+    expect(globalThis.__nativeSourceImported).toBeUndefined();
+  }
+  await write({ ...config, gather: { ...config.gather, protectedCache: cache } });
+  const source = await openNativeRuntimeSource(file);
+  expect(source.gather.protectedCache).toEqual(cache);
+  expect(Object.isFrozen(source.gather.protectedCache)).toBe(true);
+});
+
 it('keeps source selection out of public, signed, custody, earning and whole-model routes', async () => {
   const allowed = { roomId: 'private-fixture', publicRoomId: bootstrap.publicRoomId, model: { id: 'fixture' } };
   expect(() => assertNativeRuntimeSourceMode(allowed)).not.toThrow();
