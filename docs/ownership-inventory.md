@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | --- | ---: |
 | apps/poolday | 382 |
 | self | 457 |
-| shared | 2484 |
-| total | 3323 |
+| shared | 2485 |
+| total | 3324 |
 
 Every file lives in its owner's root.
 
@@ -512,6 +512,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/rate-limiter.js` | `self/infrastructure/rate-limiter.js` | self | Reached only from substrate entries. |
 | `infrastructure/replay-engine.js` | `self/infrastructure/replay-engine.js` | self | Reached only from substrate entries. |
 | `infrastructure/scoped-model-provider.js` | `shared/infrastructure/scoped-model-provider.js` | shared | Reached from native hosts and browser entries. |
+| `infrastructure/search-response.js` | `shared/infrastructure/search-response.js` | shared | Reached from native hosts and browser entries. |
 | `infrastructure/stream-parser.js` | `self/infrastructure/stream-parser.js` | self | Reached only from substrate entries. |
 | `infrastructure/telemetry-timeline.js` | `self/infrastructure/telemetry-timeline.js` | self | Reached only from substrate entries. |
 | `infrastructure/tool-call-constraint.d.ts` | `shared/infrastructure/tool-call-constraint.d.ts` | shared | Describes infrastructure/tool-call-constraint.js. Reached from native hosts and browser entries. |

@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 382,
     "self": 457,
-    "shared": 2484
+    "shared": 2485
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2871,6 +2871,12 @@
     {
       "served": "infrastructure/scoped-model-provider.js",
       "source": "shared/infrastructure/scoped-model-provider.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
+      "served": "infrastructure/search-response.js",
+      "source": "shared/infrastructure/search-response.js",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
     },
