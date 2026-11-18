@@ -5,9 +5,10 @@ import { tmpdir } from 'node:os';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import dopplerPackage from '../../shared/config/doppler-package.json' with { type: 'json' };
 
 const profile = 'qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json';
-const vendor = 'shared/vendor/doppler/0.7.4/';
+const vendor = `shared/vendor/doppler/${dopplerPackage.version}/`;
 
 describe('peer diagnostic shipping boundary', () => {
   it('re-vendors reproducibly and rejects a changed diagnostic before replacing the prior tree', () => {
@@ -59,7 +60,8 @@ describe('peer diagnostic shipping boundary', () => {
 
   it('preserves the pinned kernel registry, including historical reachability metadata', () => {
     const registry = readFileSync(`${vendor}src/config/kernels/registry.json`);
-    const archived = execFileSync('tar', ['-xOf', 'deploy/artifacts/doppler-gpu-0.7.4.tgz', 'package/src/config/kernels/registry.json']);
+    const archive = dopplerPackage.resolved.replace(/^file:/, '');
+    const archived = execFileSync('tar', ['-xOf', archive, 'package/src/config/kernels/registry.json']);
     expect(registry.equals(archived)).toBe(true);
   });
   it('retains the exact diagnostic identity only in explicit peer fixtures', () => {
