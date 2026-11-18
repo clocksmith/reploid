@@ -767,3 +767,22 @@ placed in command arguments or logs. Programmatic hosts can supply an async
 
 This option alone does not establish relay reachability or unattended credential
 renewal. Qualify a forced-relay connection on the actual requester/provider pair.
+
+### Native credential renewal
+
+Run `node server/native-rtc-renewal-cli.js /absolute/private/rtc-state` as a
+single supervised process. It uses the public Firebase anonymous authentication
+flow and existing authorized TURN issuer, not administrator credentials. The
+directory must be owned by the service user with mode 0700. Its identity refresh
+token and `rtc.json` are mode 0600; keep both outside repositories and backups
+intended for sharing. Point the participant at `--rtc-config-file
+/absolute/private/rtc-state/rtc.json` only after initial renewal succeeds.
+
+Renewal reuses its dedicated identity across restarts and runs every four minutes
+or sooner for short expiry. Failed renewal retains the last validated file and
+retries after 30 seconds; expired credentials still block new negotiations. A
+revoked identity fails closed rather than silently creating another account.
+Supervise one renewal process per state directory. Changing these files does not
+retrofit a running participant that started without `--rtc-config-file`; restart
+that participant in an idle service window. A renewal success is not a relay
+connectivity or inference qualification.
