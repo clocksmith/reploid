@@ -122,6 +122,22 @@ export async function startFleetService({ credits, models, placementPolicy, port
         return planFleetPlacement({ computers: [...observations.values()], demand: [...workloads.values()],
           models, links: [...links.values()].flat(), policy: placementPolicy, now: now() });
       }
+      case 'rank': {
+        // Every measured, currently feasible whole-model provider for one workload, cheapest estimate first.
+        // Read-only: it registers no demand and changes no placement. An estimate, not a promise of speed.
+        const model = models.find(row => row.id === payload?.id && row.identity === payload?.identity);
+        assert(model && Number.isSafeInteger(payload.promptTokens) && payload.promptTokens >= 0
+          && Number.isSafeInteger(payload.outputTokens) && payload.outputTokens > 0, 'Exact model and bounded workload required');
+        const computers = [...observations.values()];
+        const plan = planFleetPlacement({ computers, models, links: [], policy: placementPolicy, now: now(),
+          demand: [{ id: model.id, identity: model.identity, since: now(), promptTokens: payload.promptTokens, outputTokens: payload.outputTokens,
+            queued: Math.max(1, computers.length) * placementPolicy.queuedRequestsPerReplica }] });
+        return { schema: 'reploid.fleet-provider-ranking/v1', at: now(), modelId: model.id, modelIdentity: model.identity,
+          providers: plan.routes.filter(route => route.mode === 'whole-model').sort((a, b) => a.estimatedMs - b.estimatedMs
+            || a.computers[0].localeCompare(b.computers[0])).map(route => ({ computerId: route.computers[0],
+            participantIds: credits.enrollment.byId.get(route.computers[0]).providers.map(provider => provider.participantId),
+            estimatedMs: route.estimatedMs, serviceEstimate: route.serviceEstimate, busy: route.busy === true })) };
+      }
       default: throw Error('Unknown fleet operation');
     }
   };

@@ -50,6 +50,9 @@ export function createWholeModelRequester({ mesh, models }) {
         input: { messages: request.messages, ...(requested ? { generationRequest: requested } : {}) } }));
       controls.signal.throwIfAborted();
       if (approved === true) { item.providerId = dispatch.peerId; item.providerIdentity = dispatch.recipientIdentity; }
+      // The route this attempt was sent on, and why, for the caller's own record. Reported after approval only.
+      if (approved === true) controls.onRoute?.(structuredClone({ threadId, attemptId, requestId: dispatch.requestId, providerId: dispatch.peerId,
+        providerIdentity: dispatch.recipientIdentity ?? null, placement: dispatch.placement ?? null }));
       return approved === true;
     },
     async generate(request, controls) {

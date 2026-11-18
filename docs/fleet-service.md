@@ -90,6 +90,15 @@ limits, binds it to `native-delivery.json`, and applies plans at idle boundaries
 ready model. Its UTF-8-byte input estimate is labeled as such and is not a token
 charge. Conservative estimates can reject capacity outside the measured envelope.
 
+The coordinator's read-only `rank` operation returns every measured, currently
+feasible whole-model provider for one exact model and workload, lowest estimate
+first. A requester may pass that order to the mesh as its provider ranking; the
+mesh then reports the provider it chose, the reason (`conversation-affinity`,
+`host-ranking` or `default-order`) and the eligible providers it considered with
+the disclosure the requester approves. Without a ranking the order is the
+self-reported contribution score, then connection id; neither measures speed.
+The native host does not pass this ranking yet; the journey scenario below does.
+
 ## Running
 
 Use Node 22.13 or newer and the packaged native delivery, with its locked Doppler,
@@ -139,6 +148,24 @@ WebRTC requests and retains settlement and cleanup results.
 ```sh
 REPLOID_FLEET_PHYSICAL=1 node tests/fixtures/fleet-native-physical.js /absolute/operator/physical.json
 ```
+
+The whole-request journey is `tests/fixtures/network-journey.js`, checked by
+`tests/integration/network-journey.test.js`. One requester that holds no model
+files and three test-owned providers run in one process over an in-memory
+transport: a provider without the model completes and verifies it from peers,
+the requester streams an answer with ranking off and on, the chosen provider is
+stopped after its first streamed token, a fresh attempt finishes on another
+provider, and a completion whose result is lost in transit is reconciled from
+the provider's journal without generating or charging twice. It writes one
+receipt with the route and reason, bytes moved, timings, charges and what still
+fails. The mesh, custody exchange, journal, admission and credit service are the
+real ones; the transport and the generator are not, so it establishes no real
+inference, hardware speed, GPU cleanup or physical recovery.
+
+```sh
+node tests/fixtures/network-journey.js /absolute/receipt.json
+```
+
 
 `npm run verify:fleet-receipts` replays 50 signed requests from the November 10–11
 native and browser receipts in fresh databases. Automatic CI verifies their

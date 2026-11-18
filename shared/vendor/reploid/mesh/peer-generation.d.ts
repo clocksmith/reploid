@@ -17,10 +17,16 @@ export interface PeerGenerationMesh extends GenerationProvider {
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;
 }
+export interface PlacementCandidate { peerId: string; verifiedIdentity: string | null; contributionScore: number; availableSlots: number | null }
+/** Reported with each `mesh.dispatch` authorization: why this provider, and the eligible providers in the order considered. */
+export interface PlacementChoice { reason: 'conversation-affinity' | 'host-ranking' | 'default-order'; candidates: PlacementCandidate[] }
 export interface PeerGenerationMeshPorts {
   instanceId: string; modelConfig: Record<string, unknown> | null; utils: SwarmOptions['Utils'];
   getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown; hardware?: import('./provider-hardware.js').ProviderHardware | null };
   authorize: Authorize; createTransport(): SwarmTransport;
+  /** Optional requester-side order over eligible providers: connection ids or identities proven on this channel, best first.
+   * Providers it does not name keep the default order after it. The choice and its reason reach `authorize` as `placement`. */
+  rankProviders?(candidates: PlacementCandidate[], request: { modelId: string | null; modelIdentity: string | null }): string[] | null | undefined;
   generate(messages: Message[], onUpdate: ((chunk: string) => void) | null | undefined,
     controls: { privacyBinding?: import('../chat/execution-policy.js').ExecutionBinding; privacy?: import('../chat/execution-policy.js').ExecutionPolicy; signal?: AbortSignal; adapterIdentities?: string[]; requestId?: string; consumer?: string;
       contextId?: string | null; contextOwner?: string | null }): Promise<GenerationResult>;

@@ -4228,7 +4228,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:2f950fb0d64f9c3bb54cd05ccdcb94762cff33454a387ad811a3de2b16bc9888",
+      "sha256": "sha256:737f71b17c778da8a0ce54f798d980ad28a2ca5093036a37aa5d1f0c02eec469",
       "imports": []
     },
     {
@@ -19452,7 +19452,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:6700c1fd8c103655d8e1d8a486fed43ed78261cb06193c6b9b6b19f74fdad244",
+      "sha256": "sha256:27b1916dc2d60d016309d5021016c7b33a523bcf885e462c9d78ee1731b2188c",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",

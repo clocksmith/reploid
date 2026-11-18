@@ -119,14 +119,30 @@ export function createPeerGenerationMesh({ config, ports }) {
     try { return eligibleExecutionOffers({ model: { id: peer.model, identity: peer.modelIdentity }, privacy },
       offers, [peerIdentity?.getVerified(peer.peerId) || peer.peerId]).some(offer => !offerId || offer.id === offerId); } catch { return false; }
   };
+  // Why a provider was chosen, reported to the host with the disclosure it must approve.
+  const placementChoices = new WeakMap();
+  const placementCandidate = peer => ({ peerId: peer.peerId, verifiedIdentity: peerIdentity?.getVerified(peer.peerId) ?? null,
+    contributionScore: peer.decayedScore ?? 0, availableSlots: peer.availableSlots ?? null });
   const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null) => {
     const blocked = blockedComputers();
-    const eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)
+    let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)
       && (!privacy?.allowedRecipients.length || privacy.allowedRecipients.includes(peerIdentity?.getVerified(peer.peerId)))))
     .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract)));
-    return eligible.find(peer => peer.peerId === preferred) || eligible[0] || null;
+    // Optional host ranking: connection ids or identities proven on this channel, best first. Providers it
+    // does not name keep the default order after it. It reorders eligible providers; it cannot add one.
+    const order = eligible.length > 1 ? ports.rankProviders?.(eligible.map(placementCandidate), { modelId, modelIdentity }) : null;
+    const ranked = Array.isArray(order) && order.length > 0;
+    if (ranked) {
+      const place = peer => { const at = order.findIndex(id => id === peer.peerId || id === peerIdentity?.getVerified(peer.peerId)); return at < 0 ? order.length : at; };
+      eligible = eligible.map((peer, index) => ({ peer, index })).sort((a, b) => place(a.peer) - place(b.peer) || a.index - b.index).map(row => row.peer);
+    }
+    const affinity = eligible.find(peer => peer.peerId === preferred);
+    const chosen = affinity || eligible[0] || null;
+    if (chosen) placementChoices.set(chosen, { reason: affinity ? 'conversation-affinity' : ranked ? 'host-ranking' : 'default-order',
+      candidates: eligible.map(placementCandidate) });
+    return chosen;
   };
 
   const getTransportState = () => ({
@@ -244,7 +260,12 @@ export function createPeerGenerationMesh({ config, ports }) {
     while (!closed && Date.now() < deadline) {
       signal?.throwIfAborted();
       const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred, privacy, offerId);
-      if (provider) { reservedProviders.add(provider.peerId); return snapshotJson(provider); }
+      if (provider) {
+        reservedProviders.add(provider.peerId);
+        const selected = snapshotJson(provider);
+        placementChoices.set(selected, placementChoices.get(provider));
+        return selected;
+      }
       if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters, privacy, offerId)) break;
     }
     signal?.throwIfAborted();
@@ -872,7 +893,8 @@ export function createPeerGenerationMesh({ config, ports }) {
         throw new Error(`Conversation exceeds transport payload limit (${policy.webrtc.maxMessageBytes} bytes)`);
       }
       if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, modelId, modelIdentity, messages: snapshotJson(messages),
-        requestId, recipientIdentity, privacyBinding, offerId: selectedOffer?.id ?? null, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext) }) !== true) {
+        requestId, recipientIdentity, privacyBinding, offerId: selectedOffer?.id ?? null, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext),
+        placement: snapshotJson(placementChoices.get(provider) ?? null) }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
       }
       signal?.throwIfAborted();
