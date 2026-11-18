@@ -746,3 +746,24 @@ the timed configuration requires recorded execution. Both numerical arms must
 use the same declared observation settings. The worker does not silently change
 those settings. Neither operation replaces ordinary complete-request correctness,
 timing, allocation or lifecycle qualification, and both honor the request deadline.
+
+## Expiring TURN configuration
+
+Native participants default to the configured STUN-only transport. For networks
+requiring relay, pass `--rtc-config-file /absolute/private/rtc.json`. This is an
+operator-supplied credential **consumer**, not a credential issuer. An authorized
+external producer must atomically replace the file before expiry. Use the
+`reploid.pool.turn_credentials/v1` response shape with `expiresAt` and `rtcConfig`
+(`iceTransportPolicy: "all"` or `"relay"`, and credential-bearing `iceServers`).
+
+The file must be regular, owned by the current POSIX user, mode 0600, no final
+symlink, at most 32 KiB, and valid for more than 60 additional seconds. It is
+validated before provider startup and reread at negotiation and transport
+heartbeat. Invalid/expired explicit configuration blocks new negotiations rather
+than silently falling back to STUN. Existing healthy channels are retained when
+a refresh fails. Keep the file outside the repository; credentials must never be
+placed in command arguments or logs. Programmatic hosts can supply an async
+`getRtcConfig` port directly to `createNativeParticipant`.
+
+This option alone does not establish relay reachability or unattended credential
+renewal. Qualify a forced-relay connection on the actual requester/provider pair.

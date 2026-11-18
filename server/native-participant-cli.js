@@ -1,3 +1,4 @@
+import { createNativeRtcConfigReader } from './native-rtc-config.js';
 import { parseArgs } from 'node:util';
 import path from 'node:path';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
@@ -29,7 +30,7 @@ import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native
 export async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
-    'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile', 'runtime-source-config'].map(key => [key, { type: 'string' }]).concat([
+    'rtc-config-file', 'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile', 'runtime-source-config'].map(key => [key, { type: 'string' }]).concat([
       ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -39,6 +40,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   --web-search (opt in to public Bing search and page extraction; no browser sign-ins)
   --browser-search-profile <dedicated absolute directory> (Google in owned Chrome; human checks stay manual)
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
+  [--rtc-config-file <absolute private JSON path>] (expiring TURN credentials; reread on negotiation and heartbeat)
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
   [--adapter <catalog adapter id>] (prepare this exact adapter with its base model)
@@ -81,6 +83,8 @@ is separate from backend selection; --help opens no provider.`);
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
   // Before source-runtime, identity, provider or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
+  const getRtcConfig = values['rtc-config-file'] === undefined ? null : createNativeRtcConfigReader(values['rtc-config-file']);
+  if (getRtcConfig) await getRtcConfig();
   let sourceRuntime = null;
   if (values['runtime-source-config'] !== undefined) {
     assertNativeRuntimeSourceMode({ roomId: values.room, publicRoomId: bootstrap.publicRoomId,
@@ -182,7 +186,7 @@ is separate from backend selection; --help opens no provider.`);
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
-    sourceRuntime,
+    sourceRuntime, getRtcConfig,
     executionMode: values['execution-mode'] || 'partition',
     onModelFill: (() => {
       // Piece lines at most every 5 s; every other fill event is logged.

@@ -39,7 +39,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  resolvePartitionSource = null, sourceRuntime = null, rankProviders = null }) {
+  resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
+  requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
   if (sourceRuntime !== null) assertNativeRuntimeSourceMode({ roomId, publicRoomId: bootstrap.publicRoomId,
     executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
@@ -141,7 +142,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     },
     createTransport: () => transport = createSwarmTransport({ config, Utils: utils, EventBus: eventBus,
       WebSocket, RTCPeerConnection: rtc.RTCPeerConnection, RTCSessionDescription: rtc.RTCSessionDescription,
-      RTCIceCandidate: rtc.RTCIceCandidate,
+      RTCIceCandidate: rtc.RTCIceCandidate, ...(getRtcConfig ? { getRtcConfig } : {}),
       getSessionId: () => identity.peerId, getRoomCredentials: () => ({ roomId, token: roomToken }),
       introductions: { getIdentity: () => identity, ...(admission ? { createAdmission: admission.create } : {}),
         authorize: async request => !closed && request.roomId === roomId && request.action !== 'forward'
