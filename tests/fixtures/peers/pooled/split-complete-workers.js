@@ -188,7 +188,7 @@ if (config.mode === 'pooled-split-host') {
 } else {
   assert(ROOM_ID_PATTERN.test(config.roomId) && config.roomId !== bootstrap.publicRoomId, 'Separate private room required');
   assert(config.ordered && config.model?.partitionPlanId, 'Explicit ordered distributed plan required');
-  const metadata = await readDiagnosticMetadata(config.diagnostic);
+  await readDiagnosticMetadata(config.diagnostic);
   assert.equal(config.model.identity, 'sha256:' + config.diagnostic.manifestSha256);
   const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
   const lifetime = new AbortController();
