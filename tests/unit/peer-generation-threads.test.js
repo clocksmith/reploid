@@ -209,6 +209,56 @@ it('cancels and settles when a stream consumer throws, without retaining a dead 
   f.update(f.sent[0], 'late'); await f.respond(f.sent[0]); expect(f.sent).toHaveLength(2); await f.mesh.close();
 });
 
+it('delivers one well-formed early input count that precedes text and ignores a malformed, repeated or late one without disturbing the stream', async () => {
+  const f = fixture(); await f.mesh.connect(); f.advertise('east', 'qwen');
+  const completion = promptTokenCount => ({ schema: 'doppler.generation-completion/v1', stopReason: 'eos-token', promptTokenCount, generatedTokenCount: 2 });
+  const open = async controls => {
+    const seen = [], offset = f.sent.length;
+    const pending = f.mesh.generate([], chunk => seen.push(chunk), { modelId: 'qwen', ...controls(seen) });
+    await vi.waitFor(() => expect(f.sent.length).toBeGreaterThan(offset));
+    const { requestId } = f.sent.at(-1).payload;
+    return { seen, pending, raw: payload => f.handlers.get('reploid:generation-update')('east', { requestId, ...payload }),
+      finish: promptTokenCount => f.handlers.get('reploid:generation-result')('east',
+        { requestId, response: { model: 'qwen', content: 'ab', ...(promptTokenCount === undefined ? {} : { completion: completion(promptTokenCount) }) } }) };
+  };
+  const observing = seen => ({ onUsage: usage => seen.push(usage) });
+  try {
+    const first = await open(observing);
+    for (const usage of [null, 'seven', 7, [7], {}, { inputTokens: 0 }, { inputTokens: -1 }, { inputTokens: 1.5 }, { inputTokens: '7' },
+      { inputTokens: Number.MAX_SAFE_INTEGER + 1 }]) first.raw({ usage });
+    expect(first.seen).toEqual([]);
+    first.raw({ usage: { inputTokens: 7 } }); first.raw({ usage: { inputTokens: 8 } });
+    first.raw({ chunk: 'a' }); first.raw({ usage: { inputTokens: 9 } }); first.raw({ chunk: 'b', usage: { inputTokens: 9 } });
+    expect(first.seen).toEqual([{ inputTokens: 7 }, 'a', 'b']);
+    await first.finish(7);
+    expect((await first.pending).content).toBe('ab');
+
+    // An observation that arrives after text is never delivered, so it binds nothing.
+    const late = await open(observing);
+    late.raw({ chunk: 'a' }); late.raw({ usage: { inputTokens: 7 } }); late.raw({ chunk: 'b' });
+    await late.finish(3);
+    expect((await late.pending).content).toBe('ab');
+    expect(late.seen).toEqual(['a', 'b']);
+
+    // Without the control the update is ignored, as by a requester that predates it.
+    const unasked = await open(() => ({}));
+    unasked.raw({ usage: { inputTokens: 7 } }); unasked.raw({ chunk: 'ab' });
+    await unasked.finish(3);
+    expect((await unasked.pending).content).toBe('ab');
+    expect(unasked.seen).toEqual(['ab']);
+
+    // Once delivered, the completion must report the same count; a different or missing one is refused.
+    for (const reported of [8, undefined]) {
+      const bound = await open(observing);
+      bound.raw({ usage: { inputTokens: 7 } }); bound.raw({ chunk: 'ab' });
+      const refused = expect(bound.pending).rejects.toThrow('Provider input token count differs from its early observation');
+      await bound.finish(reported); await refused;
+      expect(bound.seen).toEqual([{ inputTokens: 7 }, 'ab']);
+    }
+    expect(f.sent.every(item => item.name === 'reploid:generation-request')).toBe(true);
+  } finally { await f.mesh.close(); }
+});
+
 it('retains bounded preparation telemetry and executing state without publishing raw loader details', async () => {
   const f = fixture(); await f.mesh.connect();
   f.advertise('loading', 'qwen', { hasInference: false, readiness: 'loading', preparation: {

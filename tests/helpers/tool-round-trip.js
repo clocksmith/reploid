@@ -44,9 +44,13 @@ export function createFakeTokenizer() {
  * them (a more preferred output scores higher, and its end scores a stop token), gives the rest
  * a low score, applies `options.logitMaskFn` exactly as Doppler does, and emits the best token.
  * `unmasked` is the same model with the mask left out: a provider that does not enforce.
+ * Like Doppler, the session can tokenize a prompt before generating, so the provider reports its
+ * input count before the first token; `countsPrompt: false` is a session that cannot, as an older
+ * provider. `pace(index)` is awaited before the token at `index`, to hold generation open.
  */
-export function createScriptedSession({ model, plan, tokenizer = createFakeTokenizer(), unmasked = false, seen = [] }) {
+export function createScriptedSession({ model, plan, tokenizer = createFakeTokenizer(), unmasked = false, seen = [], countsPrompt = true, pace = null }) {
   const { texts, eos, stop, vocabSize } = tokenizer;
+  const promptTokenCount = messages => messages.reduce((total, message) => total + Math.ceil(message.content.length / 4), 0);
   const propose = (scripts, generated) => {
     const logits = Float32Array.from({ length: vocabSize }, (_, id) => -20 - id / 1000);
     scripts.forEach((script, rank) => {
@@ -59,7 +63,9 @@ export function createScriptedSession({ model, plan, tokenizer = createFakeToken
   };
   return { loaded: true, modelId: model.id, manifestHash: model.identity, activeLoRA: null, deviceInfo: null, tokenizer,
     supports: capability => capability === 'advanced', async resetGenerationState() {},
-    advanced: { getStopTokenIds: () => [stop], getSpecialTokens: () => ({ eos }), getStats: () => null },
+    advanced: { getStopTokenIds: () => [stop], getSpecialTokens: () => ({ eos }), getStats: () => null,
+      ...(countsPrompt ? { getGenerationGeometry: () => ({ maxSeqLen: 8192 }),
+        tokenizePrompt: messages => Array(promptTokenCount(messages)).fill(2) } : {}) },
     async *stream(messages, options) {
       // Doppler's chat templates take plain string messages of these three roles and nothing else.
       for (const message of messages) {
@@ -70,6 +76,7 @@ export function createScriptedSession({ model, plan, tokenizer = createFakeToken
       const scripts = plan(messages), generatedIds = [], limit = options.maxTokens ?? 256;
       let outputText = '', stopReason = 'max-tokens';
       while (generatedIds.length < limit) {
+        await pace?.(generatedIds.length);
         const logits = propose(scripts, outputText);
         if (options.logitMaskFn && !unmasked) options.logitMaskFn(logits, { generatedIds: [...generatedIds], tokenizer, vocabSize });
         let best = 0;
@@ -80,8 +87,7 @@ export function createScriptedSession({ model, plan, tokenizer = createFakeToken
         yield { schema: 'doppler.generation-event/v1', type: 'text-delta', text: texts[best] };
       }
       yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText, completion: { schema: 'doppler.generation-completion/v1',
-        stopReason, promptTokenCount: messages.reduce((total, message) => total + Math.ceil(message.content.length / 4), 0),
-        generatedTokenCount: generatedIds.length } };
+        stopReason, promptTokenCount: promptTokenCount(messages), generatedTokenCount: generatedIds.length } };
     } };
 }
 
@@ -91,7 +97,7 @@ export const roundTripPlan = messages => (messages.at(-1).content.includes('<too
   ? [`The sum is ${/<tool_response>\n(.*)\n<\/tool_response>/.exec(messages.at(-1).content)[1]}.`] : ['The sum is 5.', addCall]);
 
 /**
- * `open({ plan, unmasked, execute, intercept, toolCallFormat })` starts the whole path and returns
+ * `open({ plan, unmasked, execute, intercept, toolCallFormat, countsPrompt, pace })` starts the whole path and returns
  * `{ url, post(path, body, headers), sent(type), executed, seen, reservations, row(index), amounts(),
  * journal(), keys, model, mesh, close() }`. `execute(provider, messages, update, controls)` may
  * replace the provider call, for a provider that misreports. `seen` holds what reached the session.
@@ -126,13 +132,14 @@ export function createToolRoundTrip({ ceiling = OUTPUT_CEILING } = {}) {
       credits?.close();
       await fs.rm(root, { recursive: true, force: true });
     },
-    async open({ plan = roundTripPlan, unmasked = false, execute = null, intercept = null, toolCallFormat = TOOL_CALL_FORMAT } = {}) {
+    async open({ plan = roundTripPlan, unmasked = false, execute = null, intercept = null, toolCallFormat = TOOL_CALL_FORMAT,
+      countsPrompt = true, pace = null } = {}) {
       const cleanup = [], executed = [], seen = [], reservations = [], journalStart = credits.snapshot().journal.length;
       const catalogModel = { ...model, ...(toolCallFormat ? { toolCallFormat } : {}) };
       // The real provider chain over the scripted session: native whole model, resident owner, scoped provider.
       const provider = createNativeWholeModel({ model: catalogModel, modelDirectory: path.join(root, 'model'), nativeGpu: async () => {},
         configureMemory: async () => {},
-        service: { open: async () => createScriptedSession({ model: catalogModel, plan, unmasked, seen }), close: async () => {} } });
+        service: { open: async () => createScriptedSession({ model: catalogModel, plan, unmasked, seen, countsPrompt, pace }), close: async () => {} } });
       await provider.contribute(true);
       cleanup.push(() => provider.close());
       const admission = createFleetExecutionAdmission({ credits: providerCredits, model });

@@ -16,7 +16,11 @@ export interface PeerGenerationMesh extends GenerationProvider {
   generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null,
     control?: { offerId?: string | null; privacy?: import('../chat/execution-policy.js').ExecutionPolicy | null; signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; adapterIdentities?: string[]; requestContext?: import('../config/index.js').Json;
       /** Per-request generation settings. Only providers that advertise them are considered; refused before disclosure when none does. */
-      settings?: GenerationSettingsInput }): Promise<GenerationResult>;
+      settings?: GenerationSettingsInput;
+      /** Called at most once, before any chunk, with the remote provider's own prompt token count when it reports one.
+       * Once delivered, a completion or receipt that reports another input count is refused before countersigning.
+       * A provider that predates the observation never calls it. */
+      onUsage?: (usage: { inputTokens: number }) => void }): Promise<GenerationResult>;
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;
 }
@@ -35,7 +39,10 @@ export interface PeerGenerationMeshPorts {
       contextId?: string | null; contextOwner?: string | null;
       /** Canonical settings of an admitted request. The host applies them; its result may name the applied
        * output constraint as `constraintIdentity` (`sha256:<hex>`), which is then signed into the receipt. */
-      settings?: Readonly<GenerationSettings> }): Promise<GenerationResult>;
+      settings?: Readonly<GenerationSettings>;
+      /** Provider side: report the prompt's token count once, before the first chunk, when it is known then.
+       * Later, repeated or non-positive reports are dropped. Never call it with an estimate. */
+      onUsage?: (usage: { inputTokens: number }) => void }): Promise<GenerationResult>;
   /** Provider side: the settings this host's `generate` enforces. Advertised to peers; absent means none. */
   getGenerationSettingsCapability?(): GenerationSettingsCapability | null | undefined;
   /** Requester side: the output constraint identity expected for these settings, or null for no expectation.

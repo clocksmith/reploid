@@ -157,13 +157,13 @@
     },
     {
       "path": "adapters/resident-execution.d.ts",
-      "bytes": 3313,
-      "sha256": "58f1a91354294500ce075bf02231b60519ca3e65d5000458273bf4943abe291d"
+      "bytes": 3501,
+      "sha256": "23557626eb872599a9ffbf4ed6ee27c36e20f157526be13b0c6948fd5f89e639"
     },
     {
       "path": "adapters/resident-execution.js",
-      "bytes": 7960,
-      "sha256": "08028fef4cf9dcc4ea96195c1fe9e417ad77420676938e627b75edc2501e4864"
+      "bytes": 8135,
+      "sha256": "af62c67790222454ec579a18be5afb7834e1e21d5ef5c80f17ab5bc4022ad8f7"
     },
     {
       "path": "adapters/resident.d.ts",
@@ -1472,13 +1472,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 6075,
-      "sha256": "45162be064277f4ad74aae354a3f3c265cca2b4dced0f8ae36b96346a5cc7476"
+      "bytes": 6703,
+      "sha256": "a122ea31415d17aed68d62c5207f34bf5b20cbb216f5e5f7611122397ed35a81"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 62930,
-      "sha256": "4eb3a98438e8e0acba7006fa1bb0200c1ea5e398d12be381d31114c7146ab6ef"
+      "bytes": 64787,
+      "sha256": "b4d2d802605fb6469d7d1f31b5e0abd4e17e3bbd9a9dc0bd4b36b2f7ae5a685f"
     },
     {
       "path": "mesh/peer-identity.js",

@@ -97,7 +97,8 @@ export function parseTextMessage(body) {
 const errorBody = error => ({type:'error',error:{type: error.status===401?'authentication_error':error.status===403?'permission_error'
   :error.status===429?'rate_limit_error':error.status<500?'invalid_request_error':'api_error', message:String(error.message).slice(0,1024)}});
 export function createMessages(options) {
-  return createTextRequester(options,{path:'/v1/messages',idPrefix:'msg_',parse:parseTextMessage,errorBody,
+  // wholeModelUsage: a streamed request asks a whole-model provider for its input count before text.
+  return createTextRequester(options,{path:'/v1/messages',idPrefix:'msg_',parse:parseTextMessage,errorBody,wholeModelUsage:true,
     validateRequest(req) {
       if (req.headers['anthropic-version'] !== undefined && req.headers['anthropic-version'] !== '2023-06-01') throw fail(400,'Unsupported anthropic-version');
       if (req.headers['anthropic-beta'] !== undefined) throw fail(400,'Anthropic beta features are unsupported');
@@ -117,14 +118,21 @@ export function createMessages(options) {
       const openText = () => { textOpen=true; event('content_block_start',{index:0,content_block:{type:'text',text:''}}); };
       const textDelta = text => event('content_block_delta',{index:0,delta:{type:'text_delta',text}});
       return {
+        // The route's own input token observation opens the stream. With tools declared the text
+        // block opens with the first text instead, since the answer may be a call and no text.
         usage(value) {
           if (started) throw fail(502,'Duplicate input token observation');
-          start(value); openText();
+          start(value); if (!tooling) openText();
         },
         // A partition route observes its input tokens before any text, and the requester refuses text
-        // that precedes that observation. A whole-model provider counts its input only when it
-        // completes, so its text is kept here and the stream opens at completion with the actual count.
-        delta(text) { if (started) textDelta(text); else held += text; },
+        // that precedes that observation. A whole-model provider reports its count before its first
+        // token, and text then streams as it arrives. Only a provider that predates that report sends
+        // text first: its text is kept here and the stream opens at completion with the actual count.
+        delta(text) {
+          if (!started) { held += text; return; }
+          if (!textOpen) openText();
+          textDelta(text);
+        },
         complete(content,finishReason,reason,counts,_evidence,toolCalls=[]) {
           if (!counts) throw fail(502,'Actual provider token usage unavailable');
           if (reason==='context-limit' || reason==='stop-sequence') throw fail(502,'Requester stopping reason lacks a supported Messages mapping');

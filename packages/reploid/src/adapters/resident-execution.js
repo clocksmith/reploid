@@ -64,7 +64,7 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     notify();
     return preparing;
   };
-  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy, privacyBinding, settings }) => {
+  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy, privacyBinding, settings, onUsage }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
     const policy = assertAvailableExecutionPolicy(requestExecutionPolicy({ model, privacy }));
     const boundPrivacy = privacyBinding ? structuredClone(privacyBinding) : null;
@@ -88,7 +88,9 @@ export function createResidentExecution({ service, model, generation, maxOutcome
       try {
         const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters,
           maxOutputTokens, contextOwner, contextId: scopedContextId,
-          ...(requestSettings === undefined ? {} : { settings: requestSettings }) });
+          ...(requestSettings === undefined ? {} : { settings: requestSettings }),
+          // The provider's own prompt token count, reported before its first token when it has one.
+          ...(typeof onUsage === 'function' ? { onUsage } : {}) });
         combined.throwIfAborted(); completed++;
         // Count runtime-reported tokens, never text deltas or estimated words.
         const tokens = result.completion?.generatedTokenCount ?? result.timing?.generatedTokenCount;

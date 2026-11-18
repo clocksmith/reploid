@@ -151,6 +151,11 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       } catch (error) { throw fail(400, error.message, error.param ?? null); }
       const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}),
         ...(settings ? { settings } : {}) });
+      // A partition route always observes its input tokens before text. A whole-model provider may
+      // report its own count before its first token: the edge asks for that only where it publishes
+      // it, a streamed response of a protocol that opens with the count. Once observed, the
+      // completion must report the same count, since the caller was already told it.
+      const observesUsage = Boolean(model.partition) || protocol.wholeModelUsage === true && input.stream === true && Boolean(requested);
       // A call is published only whole and validated. While the request may call a tool, streamed
       // text is held back for as long as it could still be a call (always, when a call is forced)
       // and released as ordinary text from the moment it cannot be one.
@@ -177,7 +182,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             res.setHeader('x-reploid-reservation-id', reservationId);
           }
         },
-        onUsage(event) {
+        ...(observesUsage ? { onUsage(event) {
           try {
             signal.throwIfAborted();
             assert(acceptingCallbacks, 'Requester callback after completion');
@@ -187,7 +192,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             observedUsage = tokenUsage(event.inputTokens, event.outputTokens, requested);
             if (input.stream) output.usage?.(observedUsage);
           } catch (error) { controller.abort(error); throw error; }
-        },
+        } } : {}),
         async requestApproval(preview) {
           assert(acceptingCallbacks, 'Requester callback after completion');
           disclosureApproved = false;
@@ -264,7 +269,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
         assert(model.partition
           ? observedUsage && usage.inputTokens === observedUsage.inputTokens && result.usage.schema === usage.schema
             && usage.outputTokens === (result.execution?.stepSummary?.count ?? result.execution?.steps?.length)
-          : !observedUsage && result.usage?.schema === usage.schema
+          : (!observedUsage || usage.inputTokens === observedUsage.inputTokens) && result.usage?.schema === usage.schema
             && usage.inputTokens === result.execution?.completion?.promptTokenCount
             && usage.outputTokens === result.execution?.completion?.generatedTokenCount,
         'Provider final token usage differs from input observation');

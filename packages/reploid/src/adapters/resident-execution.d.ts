@@ -9,6 +9,8 @@ export interface ResidentGenerationControl {
   privacyBinding?: import('../chat/execution-policy.js').ExecutionBinding; privacy?: import('../chat/execution-policy.js').ExecutionPolicy; signal: AbortSignal; adapters?: ModelAdapterSelection[]; maxOutputTokens?: number; contextOwner?: string; contextId?: string;
   /** Canonical generation settings of the request, for the provider to apply. */
   settings?: import('../mesh/generation-settings.js').GenerationSettings;
+  /** Called once with the provider's prompt token count, before its first token, when the provider tokenizes the prompt first. */
+  onUsage?: (usage: { inputTokens: number }) => unknown;
 }
 export interface ResidentProviderPort {
   getIdentity(): ResidentIdentity; getHardware(): unknown; getContextCacheStats?(): unknown; isReady(): boolean;

@@ -373,9 +373,16 @@ export function createPeerGenerationMesh({ config, ports }) {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
     if (!pending || pending.processing) return;
     const chunk = String(payload.chunk || '');
-    if (!chunk) return;
-    try { pending.onUpdate?.(chunk); }
-    catch (error) { remoteRequests.settle(pending, { error, cancel: true }); }
+    try {
+      if (chunk) { pending.streamed = true; pending.onUpdate?.(chunk); return; }
+      // The provider's input token count, for a caller that asked for it: one positive count before
+      // any text. A late, repeated or malformed observation is ignored and the stream is unaffected.
+      const inputTokens = payload.usage?.inputTokens;
+      if (typeof pending.onUsage !== 'function' || pending.streamed || pending.observedInputTokens !== undefined
+        || !Number.isSafeInteger(inputTokens) || inputTokens <= 0) return;
+      pending.observedInputTokens = inputTokens;
+      pending.onUsage({ inputTokens });
+    } catch (error) { remoteRequests.settle(pending, { error, cancel: true }); }
   };
 
   const handleGenerationResult = async (remotePeerId, payload = {}) => {
@@ -396,6 +403,13 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       if (JSON.stringify(response.adapterIdentities || []) !== JSON.stringify(pending.adapterIdentities)) {
         throw new Error('Remote response substituted the requested adapter');
+      }
+      // The caller was already told the provider's early input count. A completion or receipt that
+      // reports another count is refused here, before anything is countersigned or settled.
+      if (pending.observedInputTokens !== undefined
+        && ((response.completion ?? response.evidence?.output?.completion)?.promptTokenCount !== pending.observedInputTokens
+          || payload.receipt && payload.receipt.inputTokens !== pending.observedInputTokens)) {
+        throw new Error('Provider input token count differs from its early observation');
       }
       if (payload.receipt) {
         const verified = await verifyReceipt(payload.receipt);
@@ -702,14 +716,24 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       controller.signal.throwIfAborted();
       advertiseSelf();
+      let streamed = false, usageSent = false;
       const response = await generateBound(messages, (chunk) => {
+        streamed = true;
         if (closed || controller.signal.aborted) return;
         swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-update', {
           requestId,
           chunk
         });
       }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer, contextOwner, contextId, privacyBinding, privacy: assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: payload.privacy })),
-        ...(settings ? { settings } : {}) }, binding);
+        ...(settings ? { settings } : {}),
+        // The host's own prompt token count, sent at most once and only before any text. An update
+        // without `chunk` is ignored by a requester that predates it, so nothing asks for it.
+        onUsage: usage => {
+          const inputTokens = usage?.inputTokens;
+          if (streamed || usageSent || closed || controller.signal.aborted || !Number.isSafeInteger(inputTokens) || inputTokens <= 0) return;
+          usageSent = true;
+          swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-update', { requestId, usage: { inputTokens } });
+        } }, binding);
       controller.signal.throwIfAborted();
       // With settings, the receipt signs the digest and the constraint the host reports it applied.
       const measured = await measureWholeModelReceipt(messages, response, settings
@@ -887,7 +911,7 @@ export function createPeerGenerationMesh({ config, ports }) {
   };
 
 
-  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined } = {}) => {
+  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined, onUsage = undefined } = {}) => {
     if (closed) throw new Error('Mesh is closed');
     const explicitPrivacy = privacy !== null;
     privacy = assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy }));
@@ -996,6 +1020,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
+        ...(typeof onUsage === 'function' ? { onUsage } : {}),
         ...(settings ? { settings, settingsDigest } : {}) }, () =>
         swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload));
       if (affinityKey) {

@@ -294,3 +294,64 @@ it('refuses a request with settings before any disclosure when no single provide
   expect(disclosed(none)).toEqual([['connection-1', null]]);
   expect(disclosed(split)).toEqual([['connection-2', 'on'], ['connection-1', null]]);
 });
+
+// The early input count: a provider host that knows its prompt token count before its first text
+// reports it, and one update carries it to a requester that asked. No request key is involved.
+const ask = (f, controls = {}, onUpdate = null) => f.requesterMesh.generate(f.messages, onUpdate, { modelId: 'model', modelIdentity, ...controls });
+const mismatch = 'Provider input token count differs from its early observation';
+
+it('sends one early input count ahead of the text, drops any other report, and adds no key to the request', async () => {
+  const f = await fixture({ execute: async (_messages, update, controls) => {
+    for (const report of [undefined, {}, { inputTokens: 0 }, { inputTokens: -7 }, { inputTokens: 7.5 }, { inputTokens: '7' }]) controls.onUsage(report);
+    controls.onUsage({ inputTokens: 7 });
+    controls.onUsage({ inputTokens: 8 });
+    update('actual ');
+    controls.onUsage({ inputTokens: 9 });
+    update('answer');
+    return f.response;
+  } });
+  // A caller that takes no observation gets its text and result as before; the update it does not read changes nothing.
+  const plain = [];
+  expect((await ask(f, {}, chunk => plain.push(chunk))).executionReceipt).toMatchObject({ version: 2, inputTokens: 7 });
+  expect(plain).toEqual(['actual ', 'answer']);
+  const seen = [];
+  const result = await ask(f, { onUsage: usage => seen.push(usage) }, chunk => seen.push(chunk));
+  expect(seen).toEqual([{ inputTokens: 7 }, 'actual ', 'answer']);
+  expect(result.executionReceipt).toMatchObject({ version: 2, inputTokens: 7 });
+  expect(await verifyReceipt(result.executionReceipt)).toEqual({ valid: true, providerValid: true, consumerValid: true });
+  const [first, second] = sent(f, 'reploid:generation-request');
+  expect(sent(f, 'reploid:generation-update').filter(update => update.requestId === second.requestId)).toEqual([
+    { requestId: second.requestId, usage: { inputTokens: 7 } }, { requestId: second.requestId, chunk: 'actual ' }, { requestId: second.requestId, chunk: 'answer' }]);
+  expect(Object.keys(second).sort()).toEqual(Object.keys(first).sort());
+  expect(Object.keys(second).sort()).toEqual(['adapterIdentities', 'consumer', 'messages', 'model', 'modelContract', 'modelIdentity', 'provider', 'requestId']);
+  expect(f.errors).toEqual([]);
+});
+
+it('sends no early input count once text has been sent, or from a host that reports none', async () => {
+  const late = await fixture({ execute: async (_messages, update, controls) => { update('actual answer'); controls.onUsage({ inputTokens: 7 }); return late.response; } });
+  const told = [];
+  await ask(late, { onUsage: usage => told.push(usage) });
+  const silent = await fixture();
+  await ask(silent, { onUsage: usage => told.push(usage) });
+  expect(told).toEqual([]);
+  for (const f of [late, silent]) expect(sent(f, 'reploid:generation-update').some(update => 'usage' in update)).toBe(false);
+});
+
+it('refuses, before countersigning, a completion or receipt whose input count differs from the early observation', async () => {
+  // The completion and the receipt sign 7; the host reported 8 before it generated.
+  const f = await fixture({ execute: async (_messages, _update, controls) => { controls.onUsage({ inputTokens: 8 }); return f.response; } });
+  const told = [];
+  await expect(ask(f, { onUsage: usage => told.push(usage) })).rejects.toThrow(mismatch);
+  expect(told).toEqual([{ inputTokens: 8 }]);
+  expect(sent(f, 'reploid:generation-result')[0].receipt).toMatchObject({ version: 2, inputTokens: 7 });
+  expect(sent(f, 'reploid:receipt')).toEqual([]);
+  // A caller that was told nothing has nothing to bind: the same provider is accepted as before.
+  expect((await ask(f)).executionReceipt.inputTokens).toBe(7);
+  expect(sent(f, 'reploid:receipt')).toHaveLength(1);
+
+  // A response edited to agree with the early count does not help: the signed receipt still reports another.
+  const edited = await forging((_f, payload) => { payload.response.completion.promptTokenCount = 8; },
+    { execute: async (_messages, _update, controls) => { controls.onUsage({ inputTokens: 8 }); return edited.response; } });
+  await expect(ask(edited, { onUsage() {} })).rejects.toThrow(mismatch);
+  expect(sent(edited, 'reploid:receipt')).toEqual([]);
+});

@@ -1436,7 +1436,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 685012,
-      "sha256": "sha256:8794cfa7c35153e4b4e4436183cd796462ff5348018319b81d9e7456f6acceb7"
+      "sha256": "sha256:494bd34fe50c2f1cbd93ec7f3b08b9e5aa16bfb91241d34c35f0f1491fd65d9f"
     },
     {
       "path": "config/module-registry.json",
@@ -2340,8 +2340,8 @@
     },
     {
       "path": "infrastructure/scoped-model-provider.js",
-      "byteLength": 14812,
-      "sha256": "sha256:f83425c8eed179f718611a322981a7829d3374723ab1c99d5ede9554fcc84664"
+      "byteLength": 15415,
+      "sha256": "sha256:057f7edb0b8e3a2d216793bd0d3c31831fcdc8b0429af99e90b64c80d0365d56"
     },
     {
       "path": "infrastructure/stream-parser.js",
@@ -3780,8 +3780,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2532647,
-      "sha256": "sha256:7db42513f56e31cc35d5f13ae42b17f38807303ccf9d261cc305e8240d12feb2"
+      "byteLength": 2533574,
+      "sha256": "sha256:a05216ad8709c64a89f82dd83cb22116effe214de6beec0b5ef8d60caedac4c3"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11605,8 +11605,8 @@
     },
     {
       "path": "vendor/reploid/adapters/resident-execution.js",
-      "byteLength": 7960,
-      "sha256": "sha256:08028fef4cf9dcc4ea96195c1fe9e417ad77420676938e627b75edc2501e4864"
+      "byteLength": 8135,
+      "sha256": "sha256:af62c67790222454ec579a18be5afb7834e1e21d5ef5c80f17ab5bc4022ad8f7"
     },
     {
       "path": "vendor/reploid/adapters/resident.js",
@@ -12340,8 +12340,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 62930,
-      "sha256": "sha256:4eb3a98438e8e0acba7006fa1bb0200c1ea5e398d12be381d31114c7146ab6ef"
+      "byteLength": 64787,
+      "sha256": "sha256:b4d2d802605fb6469d7d1f31b5e0abd4e17e3bbd9a9dc0bd4b36b2f7ae5a685f"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -12391,7 +12391,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 60398,
-      "sha256": "sha256:b38727c472035199aaa0469941029c7c040c9fdae66886f3c04d747374a96198"
+      "sha256": "sha256:77ee163a4a54cebd39b47a7188e172318397beb831dea3ba229d64a647ddb19b"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:3f61dd7b79434e7f61bef64fa7eee767629e79933560ac5b3c0c8617f9b140e6"
+  "bundleHash": "sha256:9a9c664836d3170b5cbc02adfc670e63913f7112aff91fb4e2fe6ed018a2ed31"
 }

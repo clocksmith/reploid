@@ -64,7 +64,8 @@ withAnthropic('streams the round trip through the Anthropic SDK: the call as inp
     for await (const event of await anthropic(f).messages.create({ model: f.model.id, max_tokens: 1024, messages: [user], tools: anthropicTools,
       tool_choice: { type: 'tool', name: 'add' }, stream: true })) events.push(event);
     expect(events.map(event => event.type)).toEqual(['message_start', 'content_block_start', 'content_block_delta', 'content_block_stop', 'message_delta', 'message_stop']);
-    // The stream opens with the provider's actual input count, which a whole-model route reports at completion.
+    // The stream opens with the provider's own input count, reported before its first token and signed at completion.
+    expect(f.sent('reploid:generation-update')[0]).toEqual({ requestId: expect.any(String), usage: { inputTokens: events[0].message.usage.input_tokens } });
     expect(events[0].message).toMatchObject({ content: [], stop_reason: null, usage: { input_tokens: f.sent('reploid:receipt')[0].receipt.inputTokens, output_tokens: 0 } });
     expect(events[0].message.usage.input_tokens).toBeGreaterThan(0);
     expect(events[1]).toMatchObject({ index: 0, content_block: { type: 'tool_use', id: expect.stringMatching(/^call_[a-f0-9]{24}$/), name: 'add', input: {} } });
@@ -83,8 +84,111 @@ withAnthropic('streams the round trip through the Anthropic SDK: the call as inp
   } finally { await f.close(); }
 });
 
-it('starts a streamed Messages answer on a whole-model route, which never observes input tokens before text', async () => {
+/** Server-sent events of a streamed response, parsed as they reach the HTTP client. */
+async function* arriving(response) {
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for await (const bytes of response.body) {
+    buffer += decoder.decode(bytes, { stream: true });
+    for (let end = buffer.indexOf('\n\n'); end >= 0; end = buffer.indexOf('\n\n')) {
+      yield JSON.parse(buffer.slice(0, end).split('\n')[1].slice(6));
+      buffer = buffer.slice(end + 2);
+    }
+  }
+}
+/** Fails, instead of waiting for ever, when nothing arrives while the provider is held open. */
+const whileHeld = async reading => {
+  let timer;
+  try { return await Promise.race([reading, new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Nothing reached the client while the provider was held open')), 2000); })]); }
+  finally { clearTimeout(timer); }
+};
+const requestKeys = ['adapterIdentities', 'consumer', 'contextId', 'messages', 'model', 'modelContract', 'modelIdentity', 'provider', 'recoverable', 'requestId'];
+
+it('streams a Messages answer on a whole-model route while the provider is still generating, opening with its reported input count', async () => {
+  // The scripted model stops before its third token until the test has read the first text from HTTP.
+  const held = Promise.withResolvers();
+  const f = await trip.open({ pace: index => index === 2 ? held.promise : undefined });
+  try {
+    const response = await f.post('/messages', { model: f.model.id, max_tokens: 1024, messages: [user], stream: true }, { 'x-api-key': token, authorization: '' });
+    expect(response.status).toBe(200);
+    const stream = arriving(response), early = [];
+    while (!early.some(event => event.type === 'content_block_delta')) early.push((await whileHeld(stream.next())).value);
+    expect(early.map(event => event.type)).toEqual(['message_start', 'content_block_start', 'content_block_delta']);
+    expect(early[0].message.usage).toEqual({ input_tokens: Math.ceil(question.length / 4), output_tokens: 0 });
+    expect(early[2].delta).toEqual({ type: 'text_delta', text: 'The' });
+    // The first text reached the client while the provider was held open: it has sent no result, and nothing is signed.
+    expect(f.sent('reploid:generation-result')).toEqual([]);
+    expect(f.sent('reploid:receipt')).toEqual([]);
+    // One observation went ahead of the text, and the request itself carries no new key.
+    expect(f.sent('reploid:generation-update')[0]).toEqual({ requestId: expect.any(String), usage: { inputTokens: Math.ceil(question.length / 4) } });
+    expect(f.sent('reploid:generation-update').filter(update => 'usage' in update)).toHaveLength(1);
+    expect(Object.keys(f.sent('reploid:generation-request')[0]).sort()).toEqual(requestKeys);
+    held.resolve();
+    const events = [...early];
+    for await (const event of stream) events.push(event);
+    expect(events.map(event => event.type)).toEqual(['message_start', 'content_block_start', ...Array(6).fill('content_block_delta'), 'content_block_stop', 'message_delta', 'message_stop']);
+    expect(events.filter(event => event.type === 'content_block_delta').map(event => event.delta.text)).toEqual(['The', ' sum', ' is', ' ', '5', '.']);
+    expect(events.at(-2)).toMatchObject({ delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 6 } });
+    // The signed receipt agrees with the count the stream opened with.
+    await f.settled(1);
+    expect(f.sent('reploid:receipt')[0].receipt).toMatchObject({ version: 2, inputTokens: early[0].message.usage.input_tokens, outputTokens: 6 });
+    expect(f.executed).toEqual([{ messages: [user], settings: undefined }]);
+  } finally { held.resolve(); await f.close(); }
+});
+
+it('holds text that could still be a tool call after the early count, and streams it once it cannot be one', async () => {
   const f = await trip.open();
+  try {
+    // A forced call: the stream opens early, no text is published, and the call arrives whole.
+    const forced = sse(await (await f.post('/messages', { model: f.model.id, max_tokens: 1024, messages: [user], tools: anthropicTools, tool_choice: { type: 'any' }, stream: true })).text());
+    expect(forced.map(event => event.type)).toEqual(['message_start', 'content_block_start', 'content_block_delta', 'content_block_stop', 'message_delta', 'message_stop']);
+    expect(forced[1].content_block).toMatchObject({ type: 'tool_use', name: 'add', input: {} });
+    expect(forced[2].delta).toEqual({ type: 'input_json_delta', partial_json: '{"a":2,"b":3}' });
+    expect(forced[0].message.usage.input_tokens).toBe(f.sent('reploid:receipt')[0].receipt.inputTokens);
+    // With the choice left to the model, prose is released from the first token that cannot begin a call.
+    const prose = sse(await (await f.post('/messages', { model: f.model.id, max_tokens: 1024, messages: [user], tools: anthropicTools, stream: true })).text());
+    expect(prose.map(event => event.type)).toEqual(['message_start', 'content_block_start', ...Array(6).fill('content_block_delta'), 'content_block_stop', 'message_delta', 'message_stop']);
+    expect(prose.filter(event => event.type === 'content_block_delta').map(event => event.delta.text).join('')).toBe('The sum is 5.');
+    expect(prose[0].message.usage.input_tokens).toBe(f.sent('reploid:receipt')[1].receipt.inputTokens);
+    await f.settled(2);
+  } finally { await f.close(); }
+});
+
+it('refuses, unsettled, a provider whose signed input count differs from the count it reported early', async () => {
+  // The provider host reports one token more before generating than its completion and receipt then sign.
+  const f = await trip.open({ execute: (provider, messages, update, controls) => provider.generate(messages, update,
+    { ...controls, onUsage: usage => controls.onUsage({ inputTokens: usage.inputTokens + 1 }) }) });
+  try {
+    const response = await f.post('/messages', { model: f.model.id, max_tokens: 1024, messages: [user], stream: true });
+    const events = sse(await response.text());
+    expect(events[0]).toMatchObject({ type: 'message_start', message: { usage: { input_tokens: Math.ceil(question.length / 4) + 1 } } });
+    expect(events.at(-1)).toMatchObject({ type: 'error', error: { message: 'Provider input token count differs from its early observation' } });
+    expect(events.some(event => ['message_delta', 'message_stop'].includes(event.type))).toBe(false);
+    // The provider signed its receipt; the requester did not countersign it, so nothing was charged.
+    expect(f.sent('reploid:generation-result')[0].receipt.inputTokens).toBe(Math.ceil(question.length / 4));
+    expect(f.sent('reploid:receipt')).toEqual([]);
+    expect(f.journal()).toEqual([]);
+    expect(f.amounts()[0]).toMatchObject({ balance: 0 });
+    expect(f.amounts()[0].held).toBeGreaterThan(0);
+    expect(f.row(0).state).not.toBe('settled');
+
+    // Only a streamed Messages response publishes the early count, so only it asks for and binds it.
+    // Chat Completions, Responses and an unstreamed Messages request are as before against this provider.
+    const chat = (await (await f.post('/chat/completions', { model: f.model.id, messages: [user], stream: true })).text()).trim().split('\n\n');
+    expect(chat.at(-1)).toBe('data: [DONE]');
+    expect(chat.slice(0, -1).map(frame => JSON.parse(frame.slice(6)).choices[0].delta.content ?? '').join('')).toBe('The sum is 5.');
+    const responses = sse(await (await f.post('/responses', { model: f.model.id, store: false, input: [user], max_output_tokens: 1024, stream: true })).text());
+    expect(responses.at(-1)).toMatchObject({ type: 'response.completed', response: { usage: { input_tokens: Math.ceil(question.length / 4), output_tokens: 6 } } });
+    expect(responses[0]).toMatchObject({ type: 'response.created' });
+    expect(responses[0].response).not.toHaveProperty('usage');
+    const plain = await f.post('/messages', { model: f.model.id, max_tokens: 1024, messages: [user] });
+    expect(await plain.json()).toMatchObject({ content: [{ type: 'text', text: 'The sum is 5.' }], usage: { input_tokens: Math.ceil(question.length / 4), output_tokens: 6 } });
+    expect(f.sent('reploid:receipt')).toHaveLength(3);
+  } finally { await f.close(); }
+});
+
+it('completes a streamed Messages answer from an older provider that reports no early count, by holding its text', async () => {
+  const f = await trip.open({ countsPrompt: false });
   try {
     // A plain text request, no tools: before the adapter kept text until completion this was a 502 at the first delta.
     const response = await f.post('/messages', { model: f.model.id, max_tokens: 1024, messages: [user], stream: true }, { 'x-api-key': token, authorization: '' });
@@ -97,6 +201,9 @@ it('starts a streamed Messages answer on a whole-model route, which never observ
     // No settings were sent: the request is the earlier text contract.
     expect(f.executed).toEqual([{ messages: [user], settings: undefined }]);
     expect(f.sent('reploid:receipt')[0].receipt.version).toBe(2);
+    // Text was all the provider sent before its result: no observation, so the stream opened at completion.
+    expect(f.sent('reploid:generation-update').some(update => 'usage' in update)).toBe(false);
+    expect(f.sent('reploid:generation-update').length).toBeGreaterThan(1);
     await f.settled(1);
   } finally { await f.close(); }
 });
@@ -214,8 +321,12 @@ it('never surfaces an invalid call through Messages or Responses, and refuses un
       ['/responses', { store: false, input: [user], tools: responseTools, tool_choice: 'required' }]]) {
       for (const stream of [false, true]) {
         const response = await f.post(route, { model: f.model.id, ...body, stream });
-        expect(response.status).toBe(502);
+        // A streamed Messages response has already opened with the provider's early input count, so
+        // its refusal is the stream's error event; nothing of the call follows the opening.
+        const opened = stream && route === '/messages';
+        expect(response.status).toBe(opened ? 200 : 502);
         const text = await response.text();
+        if (opened) expect(sse(text).map(event => event.type)).toEqual(['message_start', 'error']);
         expect(text).toContain('Provider output violates the generation settings of this request');
         expect(text).not.toContain('two');
       }

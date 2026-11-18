@@ -96,7 +96,7 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
         catch (error) { healthy = false; throw error; }
       }
     },
-    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens, contextOwner, contextId, settings }) {
+    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens, contextOwner, contextId, settings, onUsage }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
       requireValue(maxOutputTokens === undefined || Number.isSafeInteger(maxOutputTokens) && maxOutputTokens > 0,
@@ -121,6 +121,8 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
       messages = tooling.messages;
       requestGeneration = { ...requestGeneration, ...tooling.generation };
       let text = '', actualModel = model.id, actualIdentity = null, completion = null, timing = null;
+      // The prompt's token count, known before generation only where it is tokenized for the context check.
+      let promptTokenCount = null;
       const update = delta => {
         combined.throwIfAborted();
         requireValue(typeof delta === 'string', 'Provider emitted an invalid text delta');
@@ -133,7 +135,7 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
         if (typeof advanced?.getGenerationGeometry === 'function' && typeof advanced?.tokenizePrompt === 'function') {
           const maxSeqLen = advanced.getGenerationGeometry()?.maxSeqLen;
           if (Number.isSafeInteger(maxSeqLen) && maxSeqLen > 0) {
-            const promptTokens = advanced.tokenizePrompt(messages, { useChatTemplate: requestGeneration.useChatTemplate !== false }).length;
+            const promptTokens = promptTokenCount = advanced.tokenizePrompt(messages, { useChatTemplate: requestGeneration.useChatTemplate !== false }).length;
             const requiredOutputTokens = Number.isSafeInteger(requestGeneration.maxTokens) && requestGeneration.maxTokens > 0
               ? requestGeneration.maxTokens : 1;
             // A request's own output budget must fit whole. The configured default is only a ceiling
@@ -157,6 +159,13 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
             ? JSON.stringify([contextOwner, contextId, model.identity, adapters.map(item => item.identity)]) : null;
           lease = contexts?.acquire(contextKey);
           const cachedGeneration = lease ? { ...requestGeneration, generationContext: lease.context } : requestGeneration;
+          // Reported once, after tool rendering and before the first token, so a caller can open its
+          // stream with the actual input count. Where the prompt was not tokenized nothing is
+          // reported: a count is never invented.
+          if (typeof onUsage === 'function' && promptTokenCount > 0) {
+            await onUsage({ inputTokens: promptTokenCount });
+            combined.throwIfAborted();
+          }
           if (adapters.length) {
             const result = await session.generate(messages, { ...cachedGeneration, signal: combined,
               onToken: (_token, delta) => { if (typeof delta === 'string') update(delta); } });

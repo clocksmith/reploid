@@ -1,5 +1,7 @@
 /** Native requester projection over the same whole-model mesh used by the browser.
- * Completion counts are provider reports, not independently validated billing evidence. */
+ * Completion counts are provider reports, not independently validated billing evidence.
+ * `controls.onUsage`, when given, receives the provider's input token count before any text if the
+ * provider reports one; the completion must then report the same count. */
 import { randomUUID } from 'node:crypto';
 import { projectChatCatalog } from '../apps/poolday/host/chat-view.js';
 import { readWorkGenerationCompletion } from '../shared/infrastructure/generation-completion.js';
@@ -93,7 +95,7 @@ export function createWholeModelRequester({ mesh, models }) {
         request.settings = structuredClone(settings);
       }
       const id = randomUUID(), item = { request, requested, controls, providerId: null }; pending.set(id, item);
-      let sequence = 0;
+      let sequence = 0, observedInputTokens = null;
       try {
         const result = await mesh.generate(request.messages, text => {
           controls.signal.throwIfAborted();
@@ -102,6 +104,15 @@ export function createWholeModelRequester({ mesh, models }) {
         }, { signal: controls.signal, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: partitionAdapterIdentities(model), privacy: request.privacy ?? null,
           ...(settings ? { settings: request.settings } : {}),
+          // Asked of the mesh only for a caller that publishes the provider's input count before its text.
+          ...(typeof controls.onUsage === 'function' ? { onUsage: ({ inputTokens }) => {
+            controls.signal.throwIfAborted();
+            requireValue(item.providerId, 'Whole-model usage preceded disclosure');
+            requireValue(observedInputTokens === null && sequence === 0 && Number.isSafeInteger(inputTokens) && inputTokens > 0,
+              'Whole-model usage observation is invalid or out of order');
+            observedInputTokens = inputTokens;
+            return controls.onUsage({ threadId, attemptId, schema: 'raw-model-tokens/v1', inputTokens, outputTokens: 0 });
+          } } : {}),
           requestContext: {
             id,
             recoverable: true,
@@ -109,6 +120,9 @@ export function createWholeModelRequester({ mesh, models }) {
           } });
         controls.signal.throwIfAborted();
         const projected = projectResult(request, result, item.providerId, item.providerIdentity);
+        // The mesh refuses this before countersigning; the caller was told the early count, so it is checked here too.
+        requireValue(observedInputTokens === null || projected.usage.inputTokens === observedInputTokens,
+          'Whole-model input token count differs from the provider\'s early observation');
         if (requested) tokenUsage(projected.usage.inputTokens, projected.usage.outputTokens, requested);
         return projected;
       } finally { pending.delete(id); }

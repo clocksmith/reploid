@@ -107,6 +107,48 @@ it('callbacks retained by a completed provider cannot publish late output or app
   await expect(controls.requestApproval(preview(request))).rejects.toThrow();expect(f.authorize).toHaveBeenCalledTimes(2);
 });
 
+// A whole-model route: no partition, and the provider may report its input count before its first text.
+const whole={id:'whole-model',identity:'sha256:'+'b'.repeat(64),availability:'ready',providerIds:['provider'],textGeneration:capability},wholeInput={...input,model:whole.id};
+const wholeResult=(request,content,inputTokens,outputTokens)=>({threadId:request.threadId,attemptId:request.attemptId,modelId:whole.id,modelIdentity:whole.identity,adapterIdentities:[],content,
+  usage:{schema:'raw-model-tokens/v1',inputTokens,outputTokens},execution:{stopReason:'stop-token',completion:{promptTokenCount:inputTokens,generatedTokenCount:outputTokens}}});
+const wholeBoot=script=>boot({participant:{getState:()=>({models:[whole]}),generate:async(request,controls)=>{
+  await controls.requestApproval(preview(request,['provider']));let sequence=0;
+  return script({request,controls,usage:inputTokens=>controls.onUsage({threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens,outputTokens:0}),
+    delta:text=>controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:sequence++,text})});}}});
+it('opens a whole-model stream with the early input count and sends text before the provider has finished',async()=>{
+  const held=Promise.withResolvers();let finished=false;
+  const f=await wholeBoot(async({request,usage,delta})=>{await usage(7);delta('he');await held.promise;delta('llo');finished=true;return wholeResult(request,'hello',7,2);});
+  const response=await f.post({...wholeInput,stream:true}),reader=response.body.getReader(),decoder=new TextDecoder();let text='';
+  try{
+    // Fails, instead of waiting for ever, when no text arrives while the provider is held open.
+    const arrive=()=>{let timer;return Promise.race([reader.read(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('No text reached the client while the provider was held open')),2000);})]).finally(()=>clearTimeout(timer));};
+    while(!text.includes('text_delta')){const part=await arrive();if(part.done)throw Error(`The response ended without text: ${text}`);text+=decoder.decode(part.value,{stream:true});}
+    const early=events(text);expect(early.map(r=>r.type)).toEqual(['message_start','content_block_start','content_block_delta']);
+    expect(early[0].message.usage).toEqual({input_tokens:7,output_tokens:0});expect(early[2].delta).toEqual({type:'text_delta',text:'he'});expect(finished).toBe(false);
+    held.resolve();for(let part=await reader.read();!part.done;part=await reader.read())text+=decoder.decode(part.value,{stream:true});
+    const rows=events(text);expect(rows.map(r=>r.type)).toEqual(['message_start','content_block_start','content_block_delta','content_block_delta','content_block_stop','message_delta','message_stop']);
+    expect(rows[3].delta.text).toBe('llo');expect(rows[5]).toMatchObject({delta:{stop_reason:'end_turn'},usage:{output_tokens:2}});
+  }finally{held.resolve();await reader.cancel().catch(()=>{});}
+});
+it('holds whole-model text until completion only when no input count arrived before it, and asks for the count only when streaming',async()=>{
+  const asked=[],f=await wholeBoot(async({request,controls,delta})=>{asked.push(typeof controls.onUsage);delta('he');delta('llo');return wholeResult(request,'hello',7,2);});
+  const rows=events(await(await f.post({...wholeInput,stream:true})).text());
+  expect(rows.map(r=>r.type)).toEqual(['message_start','content_block_start','content_block_delta','content_block_stop','message_delta','message_stop']);
+  expect(rows[0].message.usage).toEqual({input_tokens:7,output_tokens:0});expect(rows[2].delta.text).toBe('hello');expect(rows[4].usage).toEqual({output_tokens:2});
+  expect(await(await f.post(wholeInput)).json()).toMatchObject({content:[{type:'text',text:'hello'}],usage:{input_tokens:7,output_tokens:2}});
+  // An unstreamed response publishes no early count, so it does not ask a whole-model route for one.
+  expect(asked).toEqual(['function','undefined']);
+});
+it.each(['changed-final','duplicate','late','zero'])('refuses a whole-model stream whose early input count is %s',async kind=>{
+  const f=await wholeBoot(async({request,usage,delta})=>{
+    if(kind==='late')delta('x');await usage(kind==='zero'?0:7);if(kind==='duplicate')await usage(7);if(kind!=='late')delta('x');
+    return wholeResult(request,'x',kind==='changed-final'?8:7,1);});
+  const response=await f.post({...wholeInput,stream:true}),text=await response.text();expect(text).not.toContain('message_stop');
+  // The stream opens with the first accepted count, so a later refusal is its error event; before that it is a 502.
+  if(['changed-final','duplicate'].includes(kind)){const rows=events(text);expect(rows[0].message.usage.input_tokens).toBe(7);expect(rows.at(-1).type).toBe('error');expect(rows.some(r=>r.type==='message_delta')).toBe(false);}
+  else{expect(response.status).toBe(502);expect(text).not.toContain('message_start');}
+});
+
 const add={name:'add',description:'Add.',input_schema:{type:'object',properties:{a:{type:'integer',default:0},b:{type:'integer'}},required:['a','b']}};
 it('converts tools, tool choice, tool_use and tool_result blocks to canonical settings and messages',()=>{
   const parsed=parseTextMessage({...input,system:'be exact',tools:[add,{type:'custom',name:'now',input_schema:{type:'object'}}],tool_choice:{type:'tool',name:'add',disable_parallel_tool_use:true},

@@ -5,7 +5,7 @@ import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-cont
 
 const model = { id: 'whole', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler' };
 const request = { threadId: 'thread', attemptId: 'attempt', model, messages: [{ role: 'user', content: 'hello' }] };
-function fixture({ approve = async () => true, result = {}, dispatch = {}, readiness = 'ready' } = {}) {
+function fixture({ approve = async () => true, result = {}, dispatch = {}, readiness = 'ready', stream = (_options, onDelta) => onDelta('answer') } = {}) {
   const controller = new AbortController();
   const controls = { signal: controller.signal, requestApproval: vi.fn(approve), onDelta: vi.fn() };
   const mesh = {
@@ -15,7 +15,7 @@ function fixture({ approve = async () => true, result = {}, dispatch = {}, readi
       if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-1', modelId: options.modelId,
         modelIdentity: options.modelIdentity, adapterIdentities: options.adapterIdentities,
         requestContext: options.requestContext, messages, ...dispatch })) throw Error('Disclosure denied');
-      onDelta('answer');
+      stream(options, onDelta);
       return { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'answer',
         completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'eos-token', promptTokenCount: 7, generatedTokenCount: 2 }, ...result };
     })
@@ -23,6 +23,34 @@ function fixture({ approve = async () => true, result = {}, dispatch = {}, readi
   const requester = createWholeModelRequester({ mesh, models: [model] });
   return { requester, mesh, controls, controller };
 }
+
+it('asks the mesh for the early input count only for a caller that takes it, and binds the completion to it', async () => {
+  const early = (inputTokens, late = false) => (options, onDelta) => { if (late) onDelta('answer'); options.onUsage?.({ inputTokens }); if (!late) onDelta('answer'); };
+  // No onUsage control: none is passed to the mesh, so nothing is observed or bound.
+  const silent = fixture({ stream: early(9) });
+  expect((await silent.requester.generate(request, silent.controls)).usage.inputTokens).toBe(7);
+  expect(silent.mesh.generate.mock.calls[0][2]).not.toHaveProperty('onUsage');
+
+  const f = fixture({ stream: early(7) }), events = [];
+  f.controls.onUsage = vi.fn(event => events.push('usage'));
+  f.controls.onDelta = vi.fn(() => events.push('delta'));
+  expect((await f.requester.generate(request, f.controls)).usage).toMatchObject({ inputTokens: 7, outputTokens: 2 });
+  expect(f.controls.onUsage.mock.calls).toEqual([[{ threadId: 'thread', attemptId: 'attempt', schema: 'raw-model-tokens/v1', inputTokens: 7, outputTokens: 0 }]]);
+  expect(events).toEqual(['usage', 'delta']);
+
+  for (const [stream, error] of [[early(8), /differs from the provider's early observation/], [early(7, true), /invalid or out of order/],
+    [early(0), /invalid or out of order/], [(options, onDelta) => { options.onUsage({ inputTokens: 7 }); options.onUsage({ inputTokens: 7 }); onDelta('answer'); }, /invalid or out of order/]]) {
+    const refused = fixture({ stream });
+    refused.controls.onUsage = vi.fn();
+    await expect(refused.requester.generate(request, refused.controls)).rejects.toThrow(error);
+  }
+  // Before disclosure is approved nothing a provider says is passed on.
+  const undisclosed = fixture();
+  undisclosed.controls.onUsage = vi.fn();
+  undisclosed.mesh.generate.mockImplementationOnce(async (_messages, _onDelta, options) => options.onUsage({ inputTokens: 7 }));
+  await expect(undisclosed.requester.generate(request, undisclosed.controls)).rejects.toThrow('Whole-model usage preceded disclosure');
+  expect(undisclosed.controls.onUsage).not.toHaveBeenCalled();
+});
 
 it('projects ready exact models and binds disclosure, deltas, counts and provider identity', async () => {
   const f = fixture();
