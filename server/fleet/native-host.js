@@ -846,14 +846,20 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           else if (command.op === 'state') result = host.state();
           else if (command.op === 'reconcile') result = await host.reconcile();
           else if (command.op === 'balances') result = await host.balances();
+          // `events: true` also reports the route as soon as it is approved, for callers that must act mid-answer.
           else if (command.op === 'generate') result = await host.generate(command.request,
-            delta => console.log(JSON.stringify({ id: command.id, delta })));
+            delta => console.log(JSON.stringify({ id: command.id, delta })),
+            command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
+              route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null } })));
           else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');
           console.log(JSON.stringify({ id: command.id, result }));
-        } catch (error) { console.log(JSON.stringify({ id: command?.id, error: error.message })); }
+        } catch (error) {
+          console.log(JSON.stringify({ id: command?.id, error: error.message,
+            ...(command?.events === true ? { outcome: error.disconnect ?? null, serviceCredit: error.serviceCredit ?? null } : {}) }));
+        }
       })();
       pending.add(operation); operation.finally(() => pending.delete(operation));
     }
