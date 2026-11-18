@@ -244,6 +244,8 @@ The signed receipt binds this exact object. At execution time only, `self/pool/d
 | `redundant_agreement` | `T3_redundant_agreement` | Multiple independent browser providers must return matching output and token hashes |
 | `ring_quorum_receipt` | `adaptive_T1_to_T4_ring_quorum_receipt` | One to twelve exact-model browser providers run the same deterministic assignment in a deterministic ring; majority matching token/output hashes form the accepted result |
 
+Multi-provider policies (`redundant_agreement`, `ring_quorum_receipt` when `minProviders > 1`, and jobs or policies marked `requireDistinctOwners`) enforce pairwise-distinct provider owner keys (`ownerId`, `operatorId`, `authUid`, `identityClusterId`, `participationProfile.devicePublicKey`, `participationProfile.deviceId`, `deviceClusterId`) both when scheduling (`selectDistinctOwnerProviders` / `selectDiverseProviderGroup`, returning `not_enough_distinct_owner_providers` when blocked, with optional `disallowRequesterOwner`) and inside transactional receipt settlement (`settleReceiptAcceptance` rejects agreed receipt sets sharing an owner key with `409`).
+
 ## Ring quorum policy
 
 `ring_quorum_receipt` is the scalable trust policy. It uses a Paxos-like quorum rule over a deterministic provider ring, capped at twelve providers.

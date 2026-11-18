@@ -111,6 +111,14 @@ model's pinned identities before loading. A model entry with
 `shareModelFiles: true` supplies its verified pieces to other computers in the
 room. Both are off unless set.
 
+For multi-provider assignments that assume non-colluding operators,
+`selectDistinctOwnerProviders` in `server/fleet/placement.js` selects two or more
+qualified whole-model providers under pairwise-distinct operator-enrolled `ownerId`
+values (and optionally excludes `requesterOwnerId`), while partition plans or
+workloads marked `requireDistinctOwners` enforce distinct enrolled owners across
+stages. Separate signing keys or computer IDs never establish separate operators;
+only operator enrollment (`enrollComputers`) qualifies.
+
 ## Running
 
 Use Node 22.13 or newer and the packaged native delivery, with its locked Doppler,
