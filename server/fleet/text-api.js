@@ -5,14 +5,19 @@ import { tokensEqual } from '../token-auth.js';
 import { createFleetBrowserBridgeHandler } from './browser-bridge.js';
 import { assert } from './contract.js';
 
+const isMessagesRoute = req => {
+  try { return new URL(req.url || '/', 'http://127.0.0.1').pathname === '/v1/messages'; } catch { return false; }
+};
+
 function previewRecipients(preview) {
   return [...new Set([...(preview?.recipients || []), ...(preview?.input?.recipients || []),
     ...(preview?.route?.stages?.map(stage => stage.participantId) || []),
     ...[preview?.participantA, preview?.participantB, preview?.recipientIdentity || preview?.providerId].filter(Boolean)])];
 }
 
-/** Authenticated HTTP text API (/v1/models, /v1/chat/completions, /v1/responses)
- * over an enrolled native fleet requester. Non-loopback binding requires TLS;
+/** Authenticated HTTP text API (/v1/models, /v1/chat/completions, /v1/responses, /v1/messages)
+ * over an enrolled native fleet requester. The bearer secret is read from `authorization`; a
+ * Messages client may send the same secret as `x-api-key`, the header that protocol defines. Non-loopback binding requires TLS;
  * every execution reserves and settles non-cash fleet service credits and checks
  * disclosed provider keys against the coordinator's enrolled computers. */
 export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1', port = 0, tls = null, allowedRecipients = null, browserBridge = null }) {
@@ -43,6 +48,7 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
     participant: host.textParticipant,
     production: true,
     authenticate: async req => tokensEqual(req.headers.authorization, expectedHeader)
+      || (isMessagesRoute(req) && tokensEqual(req.headers['x-api-key'], token))
       ? { subject: `fleet-api:${host.identity.peerId}` } : null,
     authorize: async check => {
       if (host.textParticipant.executionClass !== 'private-pool') return false;

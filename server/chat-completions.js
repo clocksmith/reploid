@@ -138,6 +138,37 @@ function parseMessage(message, index) {
   return { role: message.role, content: message.content };
 }
 
+// The mesh refuses these keys in anything it carries, so arguments holding one are refused here, as a 400.
+const hasReservedKey = value => value !== null && typeof value === 'object' && (Array.isArray(value) ? value.some(hasReservedKey)
+  : Object.keys(value).some(key => ['__proto__', 'prototype', 'constructor'].includes(key) || hasReservedKey(value[key])));
+
+/**
+ * The checks every protocol shares, after its own shapes are read. `convert(message, index)` turns
+ * one wire message into one canonical message or a list of them; `tools` are already
+ * `{ name, description, parameters }`. The result is the frozen request the text requester takes:
+ * `{ model, messages, stream }` and, only when a limit or tools were given, `settings`.
+ */
+export function canonicalTextRequest({ model, stream, messages, convert, tools = [], toolChoice, maxOutputTokens, toolParam }) {
+  if (typeof model !== 'string' || !model.trim() || model.length > 256) throw fail(400, 'A bounded model id is required', 'model');
+  if (stream !== undefined && typeof stream !== 'boolean') throw fail(400, 'stream must be boolean', 'stream');
+  if (!Array.isArray(messages) || !messages.length || messages.length > 128) throw fail(400, 'Require 1–128 text messages', 'messages');
+  const settings = toolSettings({ tools, toolChoice, maxOutputTokens }, toolParam);
+  let characters = 0, toolMessages = false;
+  const canonical = messages.flatMap((message, index) => [convert(message, index)].flat().map(parsed => {
+    characters += parsed.content.length + (parsed.toolCalls ? JSON.stringify(parsed.toolCalls).length : 0);
+    if (characters > policy.inputLimits.maxInputCharacters) throw fail(413, 'Input text limit exceeded', 'messages');
+    toolMessages ||= parsed.role === 'tool' || parsed.toolCalls !== undefined;
+    if (hasReservedKey(parsed.toolCalls)) throw fail(400, 'Tool call arguments use a reserved key', `messages[${index}]`);
+    return parsed;
+  }));
+  if (canonical.length > 128) throw fail(400, 'Require 1–128 text messages', 'messages');
+  // Tool calls and results are readable to a model only through the declared tool-call format, which
+  // a route advertises as the `tools` setting. Declaring the tools is what selects such a route.
+  if (toolMessages && !tools.length) throw fail(400, 'Messages with tool calls or tool results require the tools they refer to', 'tools');
+  return freeze({ model, messages: toolMessages ? orderToolResults(canonical) : canonical, stream: stream === true,
+    ...(settings === undefined ? {} : { settings }) });
+}
+
 export function parseTextChatCompletion(body) {
   if (!object(body)) throw fail(400, 'A JSON object is required');
   for (const key of Object.keys(body)) {
@@ -156,27 +187,11 @@ export function parseTextChatCompletion(body) {
     if (maxOutputTokens !== undefined && maxOutputTokens !== body[key]) throw fail(400, 'max_completion_tokens and max_tokens differ', key);
     maxOutputTokens = body[key];
   }
-  if (typeof body.model !== 'string' || !body.model.trim() || body.model.length > 256) throw fail(400, 'A bounded model id is required', 'model');
-  if (body.stream !== undefined && typeof body.stream !== 'boolean') throw fail(400, 'stream must be boolean', 'stream');
   // Accepted for compatibility. A forced call is constrained to exactly one call either way.
   if (![undefined, null, true, false].includes(body.parallel_tool_calls)) throw fail(400, 'parallel_tool_calls must be boolean', 'parallel_tool_calls');
-  if (!Array.isArray(body.messages) || !body.messages.length || body.messages.length > 128) throw fail(400, 'Require 1–128 text messages', 'messages');
-  const tools = parseTools(body);
-  const settings = toolSettings({ tools, toolChoice: parseToolChoice(body.tool_choice), maxOutputTokens },
-    index => `tools[${index}].function.parameters`);
-  let characters = 0, toolMessages = false;
-  const messages = body.messages.map((message, index) => {
-    const parsed = parseMessage(message, index);
-    characters += parsed.content.length + (parsed.toolCalls ? JSON.stringify(parsed.toolCalls).length : 0);
-    if (characters > policy.inputLimits.maxInputCharacters) throw fail(413, 'Input text limit exceeded', 'messages');
-    toolMessages ||= parsed.role === 'tool' || parsed.toolCalls !== undefined;
-    return parsed;
-  });
-  // Tool calls and results are readable to a model only through the declared tool-call format, which
-  // a route advertises as the `tools` setting. Declaring the tools is what selects such a route.
-  if (toolMessages && !tools.length) throw fail(400, 'Messages with tool calls or tool results require the tools they refer to', 'tools');
-  return freeze({ model: body.model, messages: toolMessages ? orderToolResults(messages) : messages, stream: body.stream === true,
-    ...(settings === undefined ? {} : { settings }) });
+  return canonicalTextRequest({ model: body.model, stream: body.stream, messages: body.messages, convert: parseMessage,
+    tools: parseTools(body), toolChoice: parseToolChoice(body.tool_choice), maxOutputTokens,
+    toolParam: index => `tools[${index}].function.parameters` });
 }
 
 /** Tool calls in the Chat Completions result shape; arguments are a JSON string. */

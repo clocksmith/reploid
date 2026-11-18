@@ -27,7 +27,7 @@ async function boot(overrides={}){
   return{api,chat,participant,generate,authenticate,authorize,post,url};
 }
 const events=text=>text.trim().split('\n\n').map(frame=>{const [event,data]=frame.split('\n');const row=JSON.parse(data.slice(6));expect(event).toBe(`event: ${row.type}`);return row;});
-it.each(['previous_response_id','conversation','background','tools','tool_choice','response_format','temperature','top_p','seed','metadata','stream_options'])('rejects unsupported %s without executing',param=>{
+it.each(['previous_response_id','conversation','background','response_format','temperature','top_p','seed','metadata','stream_options','reasoning','truncation','include'])('rejects unsupported %s without executing',param=>{
   expect(()=>parseTextResponse({...input,[param]:null})).toThrow(`Unsupported parameter: ${param}`);
 });
 it.each([undefined,true,null])('requires explicit store:false, rejects %s',store=>expect(()=>parseTextResponse({...input,store})).toThrow('store:false'));
@@ -91,7 +91,7 @@ it.each(['authenticate','authorize'])('abort while %s awaits cannot execute late
 });
 it('authentication failure, unsupported input and wrong output identity never become a successful response',async()=>{
   const f=await boot();expect((await f.post(input,{headers:{'content-type':'application/json'}})).status).toBe(401);
-  expect((await f.post({...input,tools:[]})).status).toBe(400);expect(f.generate).not.toHaveBeenCalled();
+  expect((await f.post({...input,tools:[{type:'web_search'}]})).status).toBe(400);expect(f.generate).not.toHaveBeenCalled();
   f.participant.generate=async request=>({...result(request),attemptId:'different'});expect((await f.post()).status).toBe(502);
 });
 
@@ -179,4 +179,40 @@ it.each(['chat.execute','chat.disclose'])('rejects private-pool drift while %s a
   const response=await f.post({...input,reploid:{pool_id:'valera-private-pool-v1',expected_model_identity:model.identity,allowed_recipients:['actual-stage'],include_execution:true}});
   expect(response.status).toBe(403);
   if(action==='chat.execute')expect(f.generate).not.toHaveBeenCalled();
+});
+
+const add={type:'function',name:'add',description:'Add.',parameters:{type:'object',properties:{a:{type:'integer',default:0},b:{type:'integer'}},required:['a','b']}};
+it('converts function tools, function_call and function_call_output items to canonical settings and messages, statelessly',()=>{
+  const parsed=parseTextResponse({...input,instructions:'be exact',tools:[add],tool_choice:{type:'function',name:'add'},parallel_tool_calls:false,max_output_tokens:9,
+    input:[{role:'user',content:'2+3?'},{type:'message',role:'assistant',content:'Adding.'},{type:'function_call',id:'fc_1',status:'completed',call_id:'call_a',name:'add',arguments:'{"a":2,"b":3}'},
+      {type:'function_call_output',call_id:'call_a',output:'5'}]});
+  expect(parsed.settings).toMatchObject({maxOutputTokens:null,toolChoice:{name:'add'},tools:[{name:'add',description:'Add.',parameters:{type:'object',properties:{a:{type:'integer'},b:{type:'integer'}},required:['a','b']}}]});
+  // The call joins the assistant turn it follows; the caller's call id is kept.
+  expect(parsed.messages).toEqual([{role:'system',content:'be exact'},{role:'user',content:'2+3?'},
+    {role:'assistant',content:'Adding.',toolCalls:[{id:'call_a',name:'add',arguments:{a:2,b:3}}]},{role:'tool',toolCallId:'call_a',content:'5'}]);
+  expect(parsed.generationRequest.maxOutputTokens).toBe(9);
+  expect(parsed).toMatchObject({declaredToolChoice:{type:'function',name:'add'},parallelToolCalls:false,declaredTools:[{type:'function',name:'add',strict:null}]});
+  // No tools is the text contract unchanged: no settings, and items other than messages stay refused.
+  expect(parseTextResponse({...input,tools:[],tool_choice:'none'})).not.toHaveProperty('settings');
+  expect(()=>parseTextResponse({...input,input:[{type:'function_call_output',call_id:'c',output:'5'}]})).toThrow('Only text message inputs are supported');
+  // The statelessness rules are the same with tools.
+  expect(()=>parseTextResponse({...input,tools:[add],store:true})).toThrow('store:false');
+  expect(()=>parseTextResponse({...input,tools:[add],previous_response_id:'resp_1'})).toThrow('Unsupported parameter: previous_response_id');
+});
+it.each([
+  ['a hosted tool',{tools:[{type:'web_search'}]},'Only function tools'],
+  ['the Chat Completions tool shape',{tools:[{type:'function',function:{name:'add'}}]},'Only function tools'],
+  ['a schema keyword the constraint does not support',{tools:[{...add,parameters:{type:'object',properties:{a:{type:'integer',minimum:0}}}}]},'Tool "add": Unsupported JSON Schema keyword "minimum"'],
+  ['an unknown tool choice',{tools:[add],tool_choice:{type:'function',function:{name:'add'}}},'tool_choice must be'],
+  ['a required call without tools',{tool_choice:'required'},"toolChoice must be 'none' when no tools are declared"],
+  ['JSON-object output with tools',{tools:[add],text:{format:{type:'json_object'}}},'cannot be combined with tools'],
+  ['a function_call whose arguments are not a JSON object',{tools:[add],input:[{role:'user',content:'x'},{type:'function_call',call_id:'c',name:'add',arguments:'[2,3]'},{type:'function_call_output',call_id:'c',output:'5'}]},'JSON object encoded as a string'],
+  ['a function_call_output with no call before it',{tools:[add],input:[{role:'user',content:'x'},{type:'function_call_output',call_id:'c',output:'5'}]},'must follow the assistant message'],
+  ['a function_call left without its output',{tools:[add],input:[{role:'user',content:'x'},{type:'function_call',call_id:'c',name:'add',arguments:'{}'},{role:'user',content:'y'}]},'exactly one tool result'],
+  ['an item of another type',{tools:[add],input:[{type:'reasoning',id:'r'}]},'Only message, function_call and function_call_output'],
+  ['a non-string function_call_output',{tools:[add],input:[{role:'user',content:'x'},{type:'function_call',call_id:'c',name:'add',arguments:'{}'},{type:'function_call_output',call_id:'c',output:[{type:'input_text',text:'5'}]}]},'needs string output']
+])('rejects %s with a 400',(_label,body,message)=>{
+  let thrown;
+  try{parseTextResponse({...input,...body});}catch(error){thrown=error;}
+  expect(thrown?.status).toBe(400);expect(thrown.message).toContain(message);
 });

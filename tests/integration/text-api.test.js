@@ -44,6 +44,11 @@ it('mounts authenticated models, completions and responses on the same borrowed 
   const response = await f.send('/v1/responses', { model: model.id, input: 'hello', store: false });
   expect(response.status).toBe(200);
   expect((await response.json()).output[0].content[0].text).toBe('fixture answer');
+  // Messages is mounted on the same requester: its own parser answers, in its own error shape.
+  const message = await f.send('/v1/messages', { model: model.id, messages: [{ role: 'user', content: 'hello' }] });
+  expect(message.status).toBe(400);
+  expect(await message.json()).toMatchObject({ type: 'error', error: { type: 'invalid_request_error', message: expect.stringContaining('max_tokens') } });
+  expect((await fetch(f.base + '/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).status).toBe(401);
 });
 
 it('keeps production closed without an accounting owner and refuses in-repo, relative, invalid or test compositions', async () => {

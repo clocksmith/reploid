@@ -23,7 +23,7 @@ async function boot(overrides={}){
   return{api,post,url,generate,participant,authenticate,authorize};
 }
 const events=text=>text.trim().split('\n\n').map(frame=>{const[event,data]=frame.split('\n');const row=JSON.parse(data.slice(6));expect(event).toBe(`event: ${row.type}`);return row;});
-it.each(['tools','tool_choice','thinking','output_config','temperature','top_p','top_k','seed','stop_sequences','metadata','service_tier','container'])('rejects unsupported %s',param=>expect(()=>parseTextMessage({...input,[param]:null})).toThrow(`Unsupported parameter: ${param}`));
+it.each(['thinking','output_config','temperature','top_p','top_k','seed','stop_sequences','metadata','service_tier','container'])('rejects unsupported %s',param=>expect(()=>parseTextMessage({...input,[param]:null})).toThrow(`Unsupported parameter: ${param}`));
 it.each([undefined,0,-1,1.5,Number.MAX_SAFE_INTEGER,Number.MAX_SAFE_INTEGER+1])('rejects unsupported output ceiling %s before generation',max_tokens=>expect(()=>parseTextMessage({...input,max_tokens})).toThrow('max_tokens'));
 it.each([[{role:'assistant',content:'prefill'}],[{role:'system',content:'hidden'}],[{role:'user',content:'a'},{role:'user',content:'b'}],[{role:'user',content:[{type:'text',text:'a'}]}]])('rejects unsupported prompt shape %j',messages=>expect(()=>parseTextMessage({...input,messages})).toThrow());
 it('authenticates immutable caller ceiling, actual disclosure and input/output token observations',async()=>{
@@ -105,4 +105,40 @@ it('callbacks retained by a completed provider cannot publish late output or app
   expect((await f.post()).status).toBe(200);await vi.waitFor(()=>expect(f.api.getState().active).toBe(0));
   expect(()=>controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:1,text:'late'})).toThrow();
   await expect(controls.requestApproval(preview(request))).rejects.toThrow();expect(f.authorize).toHaveBeenCalledTimes(2);
+});
+
+const add={name:'add',description:'Add.',input_schema:{type:'object',properties:{a:{type:'integer',default:0},b:{type:'integer'}},required:['a','b']}};
+it('converts tools, tool choice, tool_use and tool_result blocks to canonical settings and messages',()=>{
+  const parsed=parseTextMessage({...input,system:'be exact',tools:[add,{type:'custom',name:'now',input_schema:{type:'object'}}],tool_choice:{type:'tool',name:'add',disable_parallel_tool_use:true},
+    messages:[{role:'user',content:'2+3 and the time?'},{role:'assistant',content:[{type:'text',text:'Checking.'},{type:'tool_use',id:'toolu_a',name:'add',input:{a:2,b:3}},{type:'tool_use',id:'toolu_b',name:'now',input:{}}]},
+      {role:'user',content:[{type:'tool_result',tool_use_id:'toolu_b',content:[{type:'text',text:'noon'}]},{type:'tool_result',tool_use_id:'toolu_a',content:'5'},{type:'text',text:'and now?'}]}]});
+  expect(parsed.settings).toMatchObject({maxOutputTokens:null,toolChoice:{name:'add'},
+    tools:[{name:'add',description:'Add.',parameters:{type:'object',properties:{a:{type:'integer'},b:{type:'integer'}},required:['a','b']}},{name:'now',description:'',parameters:{type:'object'}}]});
+  // The caller's ids are kept and results follow their calls in call order; the output ceiling stays a generation request.
+  expect(parsed.messages).toEqual([{role:'system',content:'be exact'},{role:'user',content:'2+3 and the time?'},
+    {role:'assistant',content:'Checking.',toolCalls:[{id:'toolu_a',name:'add',arguments:{a:2,b:3}},{id:'toolu_b',name:'now',arguments:{}}]},
+    {role:'tool',toolCallId:'toolu_a',content:'5'},{role:'tool',toolCallId:'toolu_b',content:'noon'},{role:'user',content:'and now?'}]);
+  expect(parsed.generationRequest).toEqual({schema:'reploid.partition-generation-request/v1',maxOutputTokens:2,usage:'raw-model-tokens/v1'});
+  expect(['auto','any','none'].map(type=>parseTextMessage({...input,tools:[add],tool_choice:{type}}).settings.toolChoice)).toEqual(['auto','required','none']);
+  // Without tools the text contract is unchanged: no settings, and content blocks stay refused.
+  expect(parseTextMessage(input)).not.toHaveProperty('settings');
+  expect(parseTextMessage({...input,tools:[]})).not.toHaveProperty('settings');
+});
+it.each([
+  ['a server tool',{tools:[{type:'web_search_20250305',name:'web_search'}]},'Only client tools'],
+  ['a tool with cache control',{tools:[{...add,cache_control:{type:'ephemeral'}}]},'Only client tools'],
+  ['a schema keyword the constraint does not support',{tools:[{...add,input_schema:{type:'object',properties:{s:{type:'string',format:'date'}}}}]},'Tool "add": Unsupported JSON Schema keyword "format"'],
+  ['a bare string tool choice',{tools:[add],tool_choice:'auto'},'tool_choice must be'],
+  ['a forced call without tools',{tool_choice:{type:'any'}},"toolChoice must be 'none' when no tools are declared"],
+  ['a tool_use block in a user turn',{tools:[add],messages:[{role:'user',content:[{type:'tool_use',id:'t',name:'add',input:{}}]}]},'Only text blocks'],
+  ['a tool_use input that is not an object',{tools:[add],messages:[{role:'user',content:'x'},{role:'assistant',content:[{type:'tool_use',id:'t',name:'add',input:'{}'}]},{role:'user',content:[{type:'tool_result',tool_use_id:'t',content:'5'}]}]},'needs an id, a name and an input object'],
+  ['a tool_result after text',{tools:[add],messages:[{role:'user',content:'x'},{role:'assistant',content:[{type:'tool_use',id:'t',name:'add',input:{}}]},{role:'user',content:[{type:'text',text:'so'},{type:'tool_result',tool_use_id:'t',content:'5'}]}]},'must come before other content'],
+  ['an error tool_result',{tools:[add],messages:[{role:'user',content:'x'},{role:'assistant',content:[{type:'tool_use',id:'t',name:'add',input:{}}]},{role:'user',content:[{type:'tool_result',tool_use_id:'t',content:'boom',is_error:true}]}]},'is_error is unsupported'],
+  ['a tool_use left without its result',{tools:[add],messages:[{role:'user',content:'x'},{role:'assistant',content:[{type:'tool_use',id:'t',name:'add',input:{}}]},{role:'user',content:'next'}]},'exactly one tool result'],
+  ['an image block',{tools:[add],messages:[{role:'user',content:[{type:'image',source:{}}]}]},'Only text blocks'],
+  ['an empty content list',{tools:[add],messages:[{role:'user',content:[]}]},'Message content must be text or a list']
+])('rejects %s with a 400',(_label,body,message)=>{
+  let thrown;
+  try{parseTextMessage({...input,...body});}catch(error){thrown=error;}
+  expect(thrown?.status).toBe(400);expect(thrown.message).toContain(message);
 });

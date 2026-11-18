@@ -94,6 +94,7 @@ it.each([
   ['a non-boolean parallel_tool_calls',{parallel_tool_calls:1},'parallel_tool_calls must be boolean'],
   ['call arguments that are not JSON',{tools:[add],messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c','{"a":')]},{role:'tool',tool_call_id:'c',content:'5'}]},'arguments must be a JSON object encoded as a string'],
   ['call arguments that are not an object',{tools:[add],messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c','[2,3]')]},{role:'tool',tool_call_id:'c',content:'5'}]},'arguments must be a JSON object encoded as a string'],
+  ['call arguments with a key the mesh refuses',{tools:[add],messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c','{"a":{"__proto__":1}}')]},{role:'tool',tool_call_id:'c',content:'5'}]},'reserved key'],
   ['an empty tool_calls list',{tools:[add],messages:[{role:'assistant',content:'x',tool_calls:[]}]},'tool_calls must list'],
   ['a tool message without the id it answers',{tools:[add],messages:[{role:'tool',content:'x'}]},'needs the tool_call_id'],
   ['a tool result with no call before it',{tools:[add],messages:[...input.messages,{role:'tool',tool_call_id:'c',content:'5'}]},'must follow the assistant message'],

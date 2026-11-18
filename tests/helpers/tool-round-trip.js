@@ -95,8 +95,9 @@ export const roundTripPlan = messages => (messages.at(-1).content.includes('<too
  * `{ url, post(path, body, headers), sent(type), executed, seen, reservations, row(index), amounts(),
  * journal(), keys, model, mesh, close() }`. `execute(provider, messages, update, controls)` may
  * replace the provider call, for a provider that misreports. `seen` holds what reached the session.
+ * `ceiling` is the model's prepared output ceiling, which a Messages or Responses limit cannot lower.
  */
-export function createToolRoundTrip() {
+export function createToolRoundTrip({ ceiling = OUTPUT_CEILING } = {}) {
   let root, keys, credits, service, requesterCredits, providerCredits, model;
   return {
     async setup() {
@@ -105,7 +106,7 @@ export function createToolRoundTrip() {
       await fs.mkdir(path.join(root, 'model'));
       await fs.writeFile(path.join(root, 'model', 'manifest.json'), manifest);
       model = { id: 'tool-model', provider: 'doppler', identity: 'sha256:' + createHash('sha256').update(manifest).digest('hex'),
-        generation: { maxTokens: OUTPUT_CEILING } };
+        generation: { maxTokens: ceiling } };
       keys = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
       credits = await openFleetCredits({
         file: path.join(root, 'credits.sqlite'),

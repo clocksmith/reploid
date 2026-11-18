@@ -404,8 +404,8 @@ names another or none. The end-of-sequence tokens the mask allows come from the
 loaded session (`advanced.getStopTokenIds()` and the tokenizer's `eos`).
 Completion metadata is provider-reported, not validated billing evidence.
 
-The application server can mount `/v1/models`, `/v1/chat/completions` and
-`/v1/responses` before the earning router by setting
+The application server can mount `/v1/models`, `/v1/chat/completions`,
+`/v1/responses` and `/v1/messages` before the earning router by setting
 `REPLOID_TEXT_API_COMPOSITION` to an absolute module outside this repository.
 That module exports `createTextApiComposition({env, production})`, returning
 `participant`, `authenticate`, `authorize`, an `accounting.run(request, controls,
@@ -447,14 +447,16 @@ composition must still supply approved terms and those ledger/execution projecti
 | Termination | Stop token/sequence/EOS maps to `stop`; token/context limit maps to `length`; unknown reason fails |
 | Cancellation | HTTP disconnect aborts the existing requester; unresolved HTTP calls remain charged until their promises settle |
 | Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `n`, structured outputs (`response_format`), thinking controls, `logprobs`, `stream_options` and other unrecognized fields |
-| `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions`, boolean `stream`, caller `max_output_tokens`, and `text.format.type=json_object` |
-| Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response |
+| `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions`, boolean `stream`, caller `max_output_tokens`, `text.format.type=json_object`, and function `tools` with `tool_choice` and `parallel_tool_calls` |
+| Responses tools | Flat `type:"function"` tools (`name`, `description`, `parameters`, `strict`) under the same schema rules as Chat Completions; `tool_choice` `auto`, `none`, `required` or `{type:"function",name}`. With tools declared, `input` may hold `function_call` items (joined to the assistant turn they follow) and `function_call_output` items with string `output`. A call is a `function_call` output item with the deterministic `call_id`; nothing is stored, so the caller sends the call and its output back. Not combinable with `json_object` |
+| Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response. A validated call is sent as `response.output_item.added`, `response.function_call_arguments.delta`/`.done` and `response.output_item.done` |
 | Responses termination | Stop/EOS completes; output-token limit is `incomplete/max_output_tokens` with `completed_at:null`; context-limit and unknown termination fail explicitly |
-| Responses unsupported state | Rejects omitted/true `store`, previous response IDs, conversations, background, tools, `json_schema`, sampling and unknown fields; no lookup or response persistence |
-| `POST /v1/messages` | Text Messages wire adapter: `model`, alternating user/assistant string `messages` ending in user, optional string `system`, positive `max_tokens`, optional `stream` |
-| Messages limits | Requires a route advertising caller-limit and raw-token usage support; the requested ceiling must fit its prepared allocation. Zero/cache-only, prefill, content blocks, tools, thinking, structured output, sampling and custom stop sequences are rejected |
-| Messages streaming | Actual tokenization observation produces `message_start` before numerical dispatch; typed content deltas and final cumulative sampled count end with `message_stop` |
-| Messages termination | EOS/stop token → `end_turn`; output ceiling → `max_tokens`; context-limit or unmatched stop-sequence metadata fails explicitly |
+| Responses unsupported state | Rejects omitted/true `store`, previous response IDs, conversations, background, hosted tools, `json_schema`, sampling and unknown fields; no lookup or response persistence |
+| `POST /v1/messages` | Messages wire adapter, mounted beside the other routes: `model`, alternating user/assistant `messages` ending in user, optional string `system`, positive `max_tokens`, optional `stream`, client `tools` and `tool_choice` |
+| Messages tools | Client tools (`name`, `description`, `input_schema`) under the same schema rules as Chat Completions; `tool_choice` `{type: auto \| any \| none}` or `{type:"tool",name}`. Only in a request that declares tools, content may be a block list: assistant `text` and `tool_use`, user `tool_result` (string or text-block content, before any `text`). A call is a `tool_use` block with `stop_reason:"tool_use"`. `is_error` results and server tools are rejected |
+| Messages limits | Requires a route advertising caller-limit and raw-token usage support; the requested ceiling must fit its prepared allocation, and a whole-model route refuses one below its prepared ceiling. Zero/cache-only, prefill, content blocks without tools, thinking, structured output, sampling and custom stop sequences are rejected |
+| Messages streaming | On a partition route the tokenization observation produces `message_start` before numerical dispatch. A whole-model provider counts its input only when it completes, so there the text is kept and the whole stream is sent at completion, opening with the actual count; no count is invented. Typed content deltas (a validated call as `input_json_delta`) and the final cumulative sampled count end with `message_stop` |
+| Messages termination | EOS/stop token → `end_turn`; a validated call → `tool_use`; output ceiling → `max_tokens`; context-limit or unmatched stop-sequence metadata fails explicitly |
 | Other paths | Unimplemented routes return 404 |
 | Usage | Chat Completions omits counts. Responses with a caller ceiling and Messages use actual `raw-model-tokens/v1` local accounting described below; missing counts remain absent |
 

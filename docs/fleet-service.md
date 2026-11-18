@@ -285,9 +285,10 @@ weights, even if an older automatic-download preference was stored.
 
 ## Authenticated HTTP text API
 
-An enrolled native requester can also serve `/v1/models`, `/v1/chat/completions`
-and `/v1/responses` over its private pool by adding `textApi` to its
-`reploid.fleet-native/v1` configuration:
+An enrolled native requester can also serve `/v1/models`, `/v1/chat/completions`,
+`/v1/responses` and `/v1/messages` over its private pool by adding `textApi` to its
+`reploid.fleet-native/v1` configuration (a Messages client may send the bearer
+secret as `x-api-key`, on that route only):
 
 ```json
 {
