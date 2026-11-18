@@ -560,6 +560,21 @@ def check_host_and_gpu_preflight(freeze, *, proc_root="/proc", drm_root="/sys/cl
         sleep_fn=sleep_fn,
         self_pid=self_pid,
     )
+    if (
+        not io_activity["copyProcesses"]
+        and io_activity["ambientDiskBytesPerSec"] > max_disk_bps
+        and sample_seconds > 0
+    ):
+        sleep_fn(1.0)
+        recheck = detect_bulk_copy_activity(
+            proc_root,
+            large_file_bytes=large_copy_bytes,
+            sample_seconds=max(sample_seconds, 0.5),
+            sleep_fn=sleep_fn,
+            self_pid=self_pid,
+        )
+        recheck["initialAmbientDiskBytesPerSec"] = io_activity["ambientDiskBytesPerSec"]
+        io_activity = recheck
     if io_activity["copyProcesses"]:
         summary = ", ".join(f"{row['command']}(pid={row['pid']},{row['reason']})" for row in io_activity["copyProcesses"])
         violations.append(f"Active bulk file copy or archive process detected: {summary}")
@@ -655,7 +670,10 @@ def main():
     }
 
     def save():
-        (out / "report.json").write_text(json.dumps(report, indent=2))
+        with open(out / "report.json", "w", encoding="utf-8") as fh:
+            fh.write(json.dumps(report, indent=2))
+            fh.flush()
+            os.fsync(fh.fileno())
 
     server = None
     try:
@@ -729,6 +747,7 @@ def main():
                 )
             signaling = freeze["signaling"]
             with socket.socket() as free:
+                free.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 free.bind(("127.0.0.1", signaling["port"]))
             server_log = open(out / "signaling.log", "x")
             server = subprocess.Popen(signaling["command"], stdout=server_log, stderr=subprocess.STDOUT,

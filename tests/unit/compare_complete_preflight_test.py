@@ -260,6 +260,44 @@ class CompareCompletePreflightTest(unittest.TestCase):
         with self.assertRaises(comparison.ProviderStateError):
             comparison.snapshot_protected_provider(freeze, show_paused=lambda: active_out)
 
+    def test_settles_transient_journal_flush_without_copy_processes_but_refuses_sustained_io(self):
+        with tempfile.TemporaryDirectory() as root_str:
+            root = Path(root_str)
+            proc, drm = root / "proc", root / "drm"
+            proc.mkdir()
+            drm.mkdir()
+            write_meminfo(proc)
+            write_amdgpu(drm)
+            write_diskstats(proc, sectors_read=1000, sectors_written=1000)
+
+            calls = {"n": 0}
+
+            def transient_flush(_seconds):
+                calls["n"] += 1
+                if calls["n"] == 1:
+                    # Simulate 20 MiB report.json flush in 0.2s (100 MiB/s), then idle on settle + recheck.
+                    write_diskstats(proc, sectors_read=1000, sectors_written=1000 + (20 * MIB // 512))
+
+            snap_transient = comparison.check_host_and_gpu_preflight(
+                self.freeze, proc_root=proc, drm_root=drm, sample_seconds=0.2, sleep_fn=transient_flush, self_pid=999999
+            )
+            self.assertTrue(snap_transient["passed"], snap_transient["violations"])
+            self.assertGreater(snap_transient["io"]["initialAmbientDiskBytesPerSec"], 64 * MIB)
+            self.assertEqual(snap_transient["io"]["ambientDiskBytesPerSec"], 0.0)
+
+            write_diskstats(proc, sectors_read=1000, sectors_written=1000)
+            sustained = {"sectors": 1000}
+
+            def sustained_io(seconds):
+                sustained["sectors"] += int((100 * MIB * seconds) // 512)
+                write_diskstats(proc, sectors_read=sustained["sectors"], sectors_written=1000)
+
+            snap_sustained = comparison.check_host_and_gpu_preflight(
+                self.freeze, proc_root=proc, drm_root=drm, sample_seconds=0.2, sleep_fn=sustained_io, self_pid=999999
+            )
+            self.assertFalse(snap_sustained["passed"])
+            self.assertIn("Ambient disk I/O", " | ".join(snap_sustained["violations"]))
+
 
 if __name__ == "__main__":
     unittest.main()
