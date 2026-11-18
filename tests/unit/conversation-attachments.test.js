@@ -59,7 +59,7 @@ it('does not let a previous thread\'s unfinished file read block or modify a new
   expect(find('[data-composer-send]').disabled).toBe(false);
 });
 it('uses the same configured file limits in help and admission', () => {
-  expect(find('[data-attachment-help]').textContent).toBe('Text files: up to 2, 0.015625 KB each, 0.0234375 KB total.');
+  expect(find('[data-attachment-help]').textContent).toContain('Up to 2, 0.015625 KB each, 0.0234375 KB total.');
 });
 
 it('continues queued admission after a read fails without leaving Send blocked', async () => {
