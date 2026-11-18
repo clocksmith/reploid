@@ -9,6 +9,9 @@ export declare function hasToolMessages(messages: unknown): boolean;
 export declare function toolConstraintSpec(settings: ToolSettings | null | undefined): ConstraintSpec | null;
 export declare function expectedConstraintIdentity(settings: ToolSettings | null | undefined,
   cryptoApi?: { subtle?: SubtleCrypto } | null): Promise<string | null>;
+/** Whether a completed answer is one the agreed tool constraint admits; a requester checks it before countersigning. */
+export declare function acceptToolResult(response: { content?: string; completion?: { stopReason?: string } } | null | undefined,
+  settings: ToolSettings | null | undefined): boolean;
 /** Stop tokens of a loaded Doppler scoped session; throws when it exposes none. */
 export declare function sessionEndTokenIds(session: unknown): number[];
 

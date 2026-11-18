@@ -81,6 +81,10 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (constraintIdentity !== null && !digestValue(constraintIdentity)) throw new Error('Expected constraint identity must be a sha256 digest');
     return { settingsDigest, constraintIdentity };
   };
+  // The host's own check of a completed answer against the agreed settings (for example a tool call's
+  // arguments), made before countersigning: an answer that breaks them is never accepted or settled.
+  const resultHonoursSettings = async (response, settings) => !settings
+    || await ports.acceptGenerationResult?.(snapshotJson(response), snapshotJson(settings)) !== false;
   // A receipt for a request with settings is version 3 and signs this requester's digest; one for a
   // request without settings is never version 3 and never names a settings digest or a constraint.
   const receiptBindsRequest = (receipt, response, settings, bound) => {
@@ -405,6 +409,10 @@ export function createPeerGenerationMesh({ config, ports }) {
         if (!receiptBindsRequest(payload.receipt, response, pending.settings, bound)) {
           throw new Error('Receipt does not bind the generation settings of this request');
         }
+        if (!await resultHonoursSettings(response, pending.settings)) {
+          throw new Error('Provider output violates the generation settings of this request');
+        }
+        if (!current()) return;
         if ([2, 3].includes(Number(payload.receipt.version)) && (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity
           || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
           throw new Error('Measured receipt differs from the admitted request or provider output');
@@ -1028,6 +1036,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     const bound = await expectedReceiptBinding(settings, settingsDigest);
     if (outcome.type !== 'reploid:generation-result' || receipt?.version !== (settings ? 3 : 2) || !verified?.providerValid
       || !receiptBindsRequest(receipt, response, settings, bound)
+      || !await resultHonoursSettings(response, settings)
       || !matchesRequestedModel(response, modelBinding(binding.model, binding.modelIdentity))
       || receipt.provider !== binding.provider || receipt.consumer !== binding.consumer || receipt.model !== binding.model
       || receipt.jobHash !== `request:${binding.requestId}` || receipt.modelIdentity !== binding.modelIdentity

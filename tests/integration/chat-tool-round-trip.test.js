@@ -218,7 +218,7 @@ it('refuses an unsupported schema keyword before any reservation and accepts des
   } finally { await f.close(); }
 });
 
-it('never surfaces a call that breaks the schema from a provider that did not apply the mask', async () => {
+it('refuses a call that breaks the schema before countersigning: never surfaced, never settled', async () => {
   const invalid = callText('add', '{"a": "two", "b": 3}');
   const f = await trip.open({ plan: () => [invalid], unmasked: true });
   try {
@@ -226,15 +226,16 @@ it('never surfaces a call that breaks the schema from a provider that did not ap
       const response = await f.post('/chat/completions', { model: f.model.id, messages: [user], tools, tool_choice: 'required', stream });
       expect(response.status).toBe(502);
       const text = await response.text();
-      expect(JSON.parse(text).error.message).toContain('Provider returned an invalid tool call: Tool call 1 has invalid arguments for "add"');
+      expect(JSON.parse(text).error.message).toContain('Provider output violates the generation settings of this request');
       expect(text).not.toContain('tool_calls');
       expect(text).not.toContain('two');
     }
+    // The provider sent the invalid call and signed that it applied the constraint. The requester
+    // read the answer before countersigning, so no receipt went back and nothing was charged.
     expect(f.sent('reploid:generation-result').map(result => result.response.content)).toEqual([invalid, invalid]);
-    // The provider signed that it applied the constraint, the receipt was countersigned before the
-    // text was read, and the request is charged: the HTTP edge refuses the result, not the ledger.
-    await f.settled(2);
-    expect(f.row(0).outcome.charge).toBeGreaterThan(0);
+    expect(f.sent('reploid:receipt')).toEqual([]);
+    expect(f.journal()).toEqual([]);
+    expect(f.amounts()[1]).toEqual({ balance: 0, held: 0 });
   } finally { await f.close(); }
 });
 

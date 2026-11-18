@@ -13,7 +13,7 @@
  */
 import { compileConstraintWithIdentity, constraintIdentitySource, createLogitMask, digestConstraintIdentity,
   logitMaskIdentity } from './output-constraint.js';
-import { renderToolConversation } from './tool-call-format.js';
+import { parseToolCallOutput, renderToolConversation } from './tool-call-format.js';
 
 /** The wrapper format of tool-call-format.js, as a catalog model declares it in `toolCallFormat`. */
 export const TOOL_CALL_FORMAT = 'reploid.tool-call/hermes-v1';
@@ -47,6 +47,22 @@ export function toolConstraintSpec(settings) {
   if (!tools.length || settings.toolChoice === 'none') return null;
   return { kind: 'tool-call', toolChoice: settings.toolChoice ?? 'auto',
     tools: tools.map(tool => ({ name: tool.name, parameters: tool.parameters })) };
+}
+
+const LENGTH_STOPS = ['length', 'max-tokens', 'context-limit'];
+/**
+ * Whether a completed answer is one the agreed tool constraint admits: free text (only under
+ * 'auto', when the output does not begin with the wrapper), exactly one declared call with
+ * valid arguments and nothing else, or a call cut off by the output limit. A requester checks
+ * this before countersigning, so it never accepts or pays for a call that breaks the schema.
+ */
+export function acceptToolResult(response, settings) {
+  if (!toolConstraintSpec(settings)) return true;
+  const content = typeof response?.content === 'string' ? response.content : '';
+  if (settings.toolChoice === 'auto' && !content.trimStart().startsWith('<tool_call>')) return true;
+  const parsed = parseToolCallOutput(content, settings);
+  if (!parsed.complete) return LENGTH_STOPS.includes(response?.completion?.stopReason);
+  return !parsed.error && parsed.toolCalls.length === 1 && parsed.text === '';
 }
 
 /**

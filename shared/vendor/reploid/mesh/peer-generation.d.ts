@@ -41,6 +41,9 @@ export interface PeerGenerationMeshPorts {
   /** Requester side: the output constraint identity expected for these settings, or null for no expectation.
    * A receipt naming a different identity is refused before it is countersigned. */
   expectedConstraintIdentity?(settings: GenerationSettings): string | null | undefined | Promise<string | null | undefined>;
+  /** Optional requester-side check of a completed answer against its settings, before countersigning. Returning
+   * false refuses the result: it is not countersigned or settled. */
+  acceptGenerationResult?(response: GenerationResult, settings: GenerationSettings): boolean | Promise<boolean>;
   transport?: SwarmTransport | null; forceFreshIdentity?: boolean;
   onReceipt?(receipt: import('../artifacts/receipt.js').Receipt): void | Promise<void>;
   onGenerationTerminal?(terminal: import('../artifacts/generation-terminal.js').GenerationTerminal): void | Promise<void>;

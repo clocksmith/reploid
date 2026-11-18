@@ -216,9 +216,14 @@ it('never surfaces an invalid call through Messages or Responses, and refuses un
         const response = await f.post(route, { model: f.model.id, ...body, stream });
         expect(response.status).toBe(502);
         const text = await response.text();
-        expect(text).toContain('Provider returned an invalid tool call');
+        expect(text).toContain('Provider output violates the generation settings of this request');
         expect(text).not.toContain('two');
       }
     }
+    // Refused before countersigning: nothing was charged, and each refused request keeps its hold
+    // until the provider signs cleanup or the claim window passes.
+    expect(f.journal()).toEqual([]);
+    expect(f.amounts()[0].balance).toBe(0);
+    expect(f.amounts()[0].held).toBeGreaterThan(0);
   } finally { await f.close(); }
 });

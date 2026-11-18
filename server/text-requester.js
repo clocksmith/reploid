@@ -38,9 +38,9 @@ const mayBeToolCall = text => {
  * - under 'auto', output that does not begin with the wrapper: plain text, unchanged;
  * - an invalid, repeated, missing or unfinished call: a 502. It is never returned as a call or as text.
  *
- * That 502 is raised after the provider's receipt was countersigned and settled, like the other
- * checks of a completed result in this file, so the request stays charged: the signed receipt
- * names the constraint the provider claimed and the digest of the output that breaks it.
+ * A native requester refuses such an answer earlier, in the mesh, before it countersigns the
+ * receipt (`acceptToolResult`), so it is not settled. This 502 is the edge's own last check for
+ * a requester host that does not supply that port.
  */
 export function readToolOutput(content, settings, finishReason, requestId) {
   if (settings.toolChoice === 'auto' && !content.trimStart().startsWith(TOOL_CALL_OPEN)) return { text: content, toolCalls: [], finishReason };

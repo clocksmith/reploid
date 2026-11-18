@@ -1053,7 +1053,7 @@
     {
       "path": "infrastructure/tool-call-constraint.js",
       "owner": "infrastructure",
-      "sha256": "sha256:5e368fc814bbf0a1b35ba12d4e084a9e49e16c45de28644e11a245c78ea16b2b",
+      "sha256": "sha256:7c8283b4d22995b6319439bc3f82c229312730e12744ed26c32f29db24e62bef",
       "imports": [
         "./output-constraint.js",
         "./tool-call-format.js"
@@ -4254,7 +4254,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:baee927c0dd4aa4ad33858f4a98ca5844e58ca7c85cb9764b73cae795660e52f",
+      "sha256": "sha256:7db42513f56e31cc35d5f13ae42b17f38807303ccf9d261cc305e8240d12feb2",
       "imports": []
     },
     {
@@ -19487,7 +19487,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:2d4169a4c06af2d1edb784a765eca04fe665100b17470f0253fc0a1f3a49d8ee",
+      "sha256": "sha256:4eb3a98438e8e0acba7006fa1bb0200c1ea5e398d12be381d31114c7146ab6ef",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",

@@ -18,7 +18,7 @@ import { createFleetExecutionAdmission } from '../../server/fleet/execution-admi
 import { startFleetTextApi } from '../../server/fleet/text-api.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { createNativeWholeModel } from '../../server/native-whole-model.js';
-import { TOOL_CALL_FORMAT, expectedConstraintIdentity } from '../../shared/infrastructure/tool-call-constraint.js';
+import { TOOL_CALL_FORMAT, acceptToolResult, expectedConstraintIdentity } from '../../shared/infrastructure/tool-call-constraint.js';
 import { createRecoveryMesh } from './generation-recovery-mesh.js';
 
 export const token = 'synthetic-fleet-api-bearer-secret-0123456789abcdef';
@@ -113,7 +113,7 @@ export function createToolRoundTrip({ ceiling = OUTPUT_CEILING } = {}) {
         computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
           providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })),
         policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/1', unit: 'noncash-service-credit',
-          creditsPerOutputToken: 1, maxDebt: 1000, maxOutputTokens: OUTPUT_CEILING, maxPendingPerComputer: 2,
+          creditsPerOutputToken: 1, maxDebt: 1000, maxOutputTokens: OUTPUT_CEILING, maxPendingPerComputer: 8,
           maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: true, wholeModelTerminalCharge: 0 }
       });
       service = await startFleetService({ credits, models: [model],
@@ -152,7 +152,7 @@ export function createToolRoundTrip({ ceiling = OUTPUT_CEILING } = {}) {
         // The provider advertises what the real native provider reports; the requester expects the
         // constraint the shared engine derives from the settings, as the native requester does.
         ports: index => (index ? { getGenerationSettingsCapability: () => provider.getGenerationSettingsCapability() }
-          : { expectedConstraintIdentity })
+          : { expectedConstraintIdentity, acceptGenerationResult: acceptToolResult })
       });
       wholeRequester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
       const host = {
