@@ -32,7 +32,7 @@ it('presents ready shared models before busy peers, local files and downloads in
   expect(select.value).toBe('ready');
   // Declared facts sit beside the choice; a model without them shows no facts line.
   const facts = document.querySelector('input[value="ready"]').closest('label').querySelector('[data-choice-facts]');
-  expect(facts.hidden).toBe(false); expect(facts.textContent).toBe(`Q4K · ${(4096).toLocaleString()} tokens`);
+  expect(facts.hidden).toBe(false); expect(facts.textContent).toBe(`Q4K · ${(4096).toLocaleString()} tokens maximum`);
   expect(document.querySelector('input[value="local"]').closest('label').querySelector('[data-choice-facts]').hidden).toBe(true);
   choices.dispose();
 });

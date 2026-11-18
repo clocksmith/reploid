@@ -82,8 +82,11 @@ async function launch(spec, role) {
   await writeFiles(spec, [[join(spec, 'host.json'), JSON.stringify(hostConfiguration(spec, role))], [join(spec, 'room.token'), token],
     [join(spec, 'tls', 'cert.pem'), certificate]]);
   const entry = join(spec, 'reploid', 'server', 'fleet', 'native-host.js'), environment = { NODE_EXTRA_CA_CERTS: join(spec, 'tls', 'cert.pem'), ...(spec.env || {}) };
-  const command = spec.gpuLockFile ? '/usr/bin/flock' : spec.node;
-  const args = [...(spec.gpuLockFile ? ['--shared', '--nonblock', spec.gpuLockFile, spec.node] : []), entry, join(spec, 'host.json')];
+  // `hostCommand` replaces the plain node binary for the host process where a machine needs a loader or
+  // library path in front of it; `node` still runs the small launcher.
+  const hostCommand = Array.isArray(spec.hostCommand) && spec.hostCommand.length ? spec.hostCommand : [spec.node];
+  const command = spec.gpuLockFile ? '/usr/bin/flock' : hostCommand[0];
+  const args = [...(spec.gpuLockFile ? ['--shared', '--nonblock', spec.gpuLockFile, ...hostCommand] : hostCommand.slice(1)), entry, join(spec, 'host.json')];
   // The launcher refuses a delivery that differs from the packaged one, then reports the host's process id.
   const launcher = "const fs=require('fs');if(require('crypto').createHash('sha256').update(fs.readFileSync(" + JSON.stringify(join(spec, 'reploid', 'native-delivery.json'))
     + ")).digest('hex')!==" + JSON.stringify(pkg.manifestSha256) + ")throw Error('Installed delivery differs from the package');"
@@ -159,6 +162,21 @@ const readyProviders = async () => {
 };
 const waitForProviders = count => until(async () => { const seen = await readyProviders(); return seen && seen.count >= count ? seen : null; }, 180000, `${count} ready providers`);
 
+// A shared machine is left alone if it comes under memory pressure: `pressure: { command, maxAvg10 }` on a
+// provider names a command that prints /proc/pressure/memory, read before the run and between phases.
+const deadline = Date.now() + (config.maxRunMinutes ?? 45) * 60000;
+async function guard(phase) {
+  if (Date.now() > deadline) throw Error(`Run exceeded its ${config.maxRunMinutes ?? 45}-minute limit before ${phase}`);
+  for (const node of providers) {
+    const check = node.spec.pressure;
+    if (!check || node.exited) continue;
+    const text = node.spec.ssh ? await run('ssh', ['-o', 'BatchMode=yes', node.spec.ssh, check.command]) : await run('/bin/sh', ['-c', check.command]);
+    const avg10 = Number(/some avg10=([0-9.]+)/.exec(text)?.[1]);
+    (report.pressure ??= []).push({ phase, computer: node.spec.computerId, avg10 });
+    if (!(avg10 <= check.maxAvg10)) throw Error(`${node.spec.computerId} memory pressure ${avg10} exceeds ${check.maxAvg10} before ${phase}; stopping`);
+  }
+}
+
 /** One attempt through the real requester. Never throws: the failure is part of the record. */
 async function attempt(attemptId, { onFirstDelta = null } = {}) {
   const seen = await readyProviders();
@@ -231,6 +249,7 @@ try {
   if (new URL(service.url).pathname !== new URL(config.coordinator.url).pathname) throw Error(`coordinator.url must be the address hosts use for this service: ${service.url.replace(/^https:\/\/[^/]+/, 'https://<host>:<port>')}`);
   report.policy = policy; report.computers = enrolled.map(row => ({ id: row.id, name: row.name }));
 
+  await guard('loading');
   // 2. Providers that hold the model load it and offer its pieces. The one without it fills from them, then loads.
   const holders = providers.filter(node => node.spec.fillFromPeers !== true), filler = providers.find(node => node.spec.fillFromPeers === true);
   for (const node of holders) {
@@ -249,6 +268,7 @@ try {
   }
   await waitForProviders(providers.length);
 
+  await guard('calibration');
   // 3. Calibration. Ranking is on; one provider at a time is the only one with a published measurement, so the
   // coordinator's order steers the request to it. The placeholder rates are replaced by what was measured.
   await startRequester(true); await waitForProviders(providers.length);
@@ -272,12 +292,14 @@ try {
   report.reference = { content: reference, sameOnEveryProvider: providers.every(node => node.reference === reference) };
   const fastest = [...providers].sort((a, b) => b.measured.decodeTokensPerSecond - a.measured.decodeTokensPerSecond)[0].spec.computerId;
 
+  await guard('healthy');
   // 4. Healthy route with ranking off, then on, on the same providers.
   await startRequester(false); await waitForProviders(providers.length);
   report.phases.healthyRankingOff = await attempt('healthy-ranking-off');
   await startRequester(true); await waitForProviders(providers.length);
   report.phases.healthyRankingOn = await attempt('healthy-ranking-on');
 
+  await guard('interruption');
   // 5. Interrupted: the chosen provider's process is killed right after its first streamed token.
   let killed = null, killedAt = null;
   const stopChosen = async record => {
@@ -288,6 +310,7 @@ try {
   report.phases.interrupted = await attempt('interrupted', { onFirstDelta: stopChosen });
   report.phases.interrupted.killedProvider = killed?.spec.computerId ?? null;
 
+  await guard('recovery');
   // 6. Recovered: a fresh attempt on another provider. Then the killed provider returns and signs what happened.
   report.phases.recovered = await attempt('recovered');
   const heldWhileAway = requesterHold(), index = providers.indexOf(killed);
@@ -301,6 +324,7 @@ try {
     releasedMsAfterKill: releasedAt - killedAt, finalStatus: interruptedOutcome.status, finalCharge: interruptedOutcome.serviceCredit?.charge ?? null,
     gpuBuffers: 'released by the operating system when the process was killed; not separately measured' };
 
+  await guard('lost-acknowledgment');
   // 7. Lost acknowledgment: the requester is frozen at the first token, the provider finishes and journals, then
   // the frozen requester is killed. A new requester process reconciles from the provider's journal.
   let frozenRoute = null;
@@ -321,6 +345,7 @@ try {
       ledgerEntriesAddedByFirst: journalAfterFirst - journalBefore, ledgerEntriesAddedBySecond: credits.snapshot().journal.length - journalAfterFirst } };
   log('lost-acknowledgment', report.phases.lostAcknowledgment.reconciliation);
 
+  await guard('never-returns');
   // 8. A provider that never returns: killed after its first token and not restarted. The hold must stay until
   // the request deadline plus the claim window, then be released uncharged. This waits that long in real time.
   let abandoned = null;

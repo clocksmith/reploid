@@ -266,11 +266,13 @@ it('blocks local model actions when the host reports missing browser support', (
   expect(inspector.contribute).not.toHaveBeenCalled(); expect(session.getModelDownload).not.toHaveBeenCalled(); detach();
 });
 
-it('keeps storage-only sharing controls in Settings', () => {
+it('groups storage and compute sharing controls under This computer', () => {
   const snapshot = { models: [], network: { files: { enabled: true, sharing: true, suppliedBytes: 10, verifiedFiles: [{ artifactId: 'file' }] } } };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
-  expect(document.querySelector('[data-inspector-pane="settings"] [data-toggle-file-contribution]')).not.toBeNull();
+  const device = document.querySelector('[data-inspector-pane="participants"] [data-this-computer]');
+  expect(device.querySelector('[data-toggle-file-contribution]')).not.toBeNull();
+  expect(device.querySelector('[data-toggle-contribution]')).not.toBeNull();
   expect(document.querySelector('[data-production-pause]')).toBeNull();
   expect(document.querySelector('[data-production-file-metric]').hidden).toBe(false); detach();
 });
