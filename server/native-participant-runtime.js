@@ -103,6 +103,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
     ...(typeof rankProviders === 'function' ? { rankProviders } : {}),
     getExecutionState: () => whole ? { ...whole.getExecutionState(), ...(!wholeEarningReady ? { phase: 'idle' } : {}) } : { phase: 'idle' },
+    getGenerationSettingsCapability: () => whole?.getGenerationSettingsCapability?.() ?? null,
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'

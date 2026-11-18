@@ -2412,6 +2412,7 @@
     "vendor/reploid/mesh/contribution.js",
     "vendor/reploid/mesh/generation-context-cache.js",
     "vendor/reploid/mesh/generation-recovery.js",
+    "vendor/reploid/mesh/generation-settings.js",
     "vendor/reploid/mesh/gpu-signature-shader.js",
     "vendor/reploid/mesh/gpu-signature.js",
     "vendor/reploid/mesh/gpu-signature.policy.json",

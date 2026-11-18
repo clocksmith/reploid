@@ -58,7 +58,7 @@ it('serves a whole-model request over HTTP with exact disclosure, streaming and 
   expect(f.authorize.mock.calls[1][0].preview.recipients).toEqual(['whole-provider']);
   expect(f.authorize.mock.calls[0][0].request.model.partition).toBeUndefined();
 });
-it.each(['tools','tool_choice','response_format','temperature','seed','top_p','max_tokens','n','stream_options'])('rejects unsupported %s explicitly',parameter=>{
+it.each(['tools','tool_choice','response_format','temperature','seed','top_p','n','stream_options'])('rejects unsupported %s explicitly',parameter=>{
   expect(()=>parseTextChatCompletion({...input,[parameter]:null})).toThrow(`Unsupported parameter: ${parameter}`);
 });
 it.each([{role:'tool',content:'x'},{role:'developer',content:'x'},{role:'user',content:[{type:'text',text:'x'}]},{role:'assistant',content:'x',tool_calls:[]}])('rejects unsupported message shape %j',message=>{
@@ -177,4 +177,39 @@ it('normalizes a host failure without an Error object into an explicit HTTP fail
   const f=await boot({authenticate:async()=>{throw null;}});
   const response=await f.post();expect(response.status).toBe(502);expect((await response.json()).error.message).toBe('Requester failed');
   expect(f.generate).not.toHaveBeenCalled();
+});
+it('refuses an output limit before execution is authorized when the route does not advertise generation settings', async () => {
+  const f = await boot();
+  const response = await f.post({ ...input, max_completion_tokens: 8 });
+  expect(response.status).toBe(400);
+  expect((await response.json()).error.message).toBe('Generation settings are not supported by this route');
+  expect(f.authorize).not.toHaveBeenCalled(); expect(f.generate).not.toHaveBeenCalled();
+});
+it('requires the disclosure preview to carry the admitted settings, and enforces the limit on the reported usage', async () => {
+  const whole = { id: 'limited-model', identity: 'sha256:' + 'b'.repeat(64), availability: 'ready', providerIds: ['provider'],
+    generationSettings: { schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: false, outputSchema: false, thinking: false } };
+  const settings = { schema: 'reploid.generation-settings/v1', maxOutputTokens: 2, tools: [], toolChoice: 'none', outputSchema: null, thinking: null };
+  const run = (previewed, outputTokens) => boot({ participant: { getState: () => ({ models: [whole] }), generate: vi.fn(async (request, controls) => {
+    const value = preview(request, ['provider']);
+    await controls.requestApproval({ ...value, input: { ...value.input, ...previewed(request) } });
+    return { threadId: request.threadId, attemptId: request.attemptId, modelId: whole.id, modelIdentity: whole.identity, adapterIdentities: [], content: 'hi',
+      usage: { schema: 'raw-model-tokens/v1', inputTokens: 3, outputTokens }, execution: { stopReason: 'max-tokens' } };
+  }) } });
+  const body = { model: whole.id, messages: input.messages, max_tokens: 2 };
+  const accepted = await run(request => ({ settings: request.settings }), 2);
+  const response = await accepted.post(body);
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ usage: { completion_tokens: 2 }, choices: [{ finish_reason: 'length' }] });
+  expect(accepted.authorize.mock.calls[0][0].request.settings).toEqual(settings);
+  expect(accepted.authorize.mock.calls[1][0].preview.input.settings).toEqual(settings);
+  for (const previewed of [() => ({}), request => ({ settings: { ...request.settings, maxOutputTokens: 3 } })]) {
+    const changed = await run(previewed, 2);
+    const refused = await changed.post(body);
+    expect(refused.status).toBe(502);
+    expect((await refused.json()).error.message).toBe('Disclosure preview differs from the admitted request');
+    expect(changed.authorize.mock.calls.map(([event]) => event.action)).toEqual(['chat.execute']);
+  }
+  const exceeded = await (await run(request => ({ settings: request.settings }), 3)).post(body);
+  expect(exceeded.status).toBe(502);
+  expect((await exceeded.json()).error.message).toBe('Provider output exceeds the caller output limit');
 });

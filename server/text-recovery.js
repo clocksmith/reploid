@@ -23,7 +23,7 @@ export function createTextRecovery({ participant, accounting, authenticate, auth
         const principal = await authenticate(req, { signal }); signal.throwIfAborted();
         if (!object(principal) || typeof principal.subject !== 'string' || !principal.subject || principal.subject.length > 512) throw fail(401, 'Authentication required');
         const input = await readBody(req, signal, body => {
-          if (!object(body) || Object.keys(body).some(key => !['reservationId', 'messages', 'providerId'].includes(key))
+          if (!object(body) || Object.keys(body).some(key => !['reservationId', 'messages', 'providerId', 'settings'].includes(key))
             || typeof body.reservationId !== 'string' || !body.reservationId || body.reservationId.length > 512
             || !Array.isArray(body.messages) || !body.messages.length) throw fail(400, 'Expected accepted reservationId and original messages');
           return body;

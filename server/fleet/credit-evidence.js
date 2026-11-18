@@ -1,4 +1,4 @@
-import { verifyGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
+import { verifyGenerationTerminal, GENERATION_TERMINAL_SCHEMAS } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outputChainGenesis } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -10,12 +10,15 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
     && at <= Math.min(now, request.deadline) + skew;
   if (request.mode === 'whole-model') {
-    if (evidence?.schema === 'reploid.generation-terminal/v1') {
+    // A reservation made with generation settings accepts only evidence signed over the same
+    // effective-request digest; one made without settings accepts only evidence that has none.
+    const settingsBinding = request.settingsDigest === undefined ? {} : { settingsDigest: request.settingsDigest };
+    if (GENERATION_TERMINAL_SCHEMAS.includes(evidence?.schema)) {
       const provider = request.providers[0]?.participantId;
       assert(request.providers.length === 1 && await verifyGenerationTerminal(evidence, {
         requestId: request.executionId, provider, consumer: request.consumer, model: request.model.id,
         modelIdentity: request.model.identity, adapterIdentities: request.model.adapterIdentities,
-        inputDigest: request.inputDigest
+        inputDigest: request.inputDigest, ...settingsBinding
       }) && same(normalizeParticipantPublicKey(evidence.publicJwk), enrollment.byPeer.get(provider)?.publicJwk)
         && evidence.timestamp >= request.createdAt - skew && evidence.timestamp <= now + skew,
       'Terminal cleanup does not match the accepted request');
@@ -25,7 +28,11 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
         workIds: [`whole:${provider}:${request.consumer}:request:${request.executionId}`] };
     }
     const receipt = structuredClone(evidence);
-    assert(request.providers.length === 1 && receipt.version === 2 && receipt.status === 'completed'
+    // The applied constraint's identity is signed by the provider and checked by the requester
+    // before it countersigns. The reservation does not know it, so it is not compared here.
+    assert(request.providers.length === 1 && (request.settingsDigest === undefined
+      ? receipt.version === 2 && receipt.settingsDigest === undefined && receipt.constraintIdentity === undefined
+      : receipt.version === 3 && receipt.settingsDigest === request.settingsDigest) && receipt.status === 'completed'
       && receipt.cleanup === 'settled' && receipt.provider === request.providers[0].participantId
       && receipt.consumer === request.consumer && receipt.jobHash === `request:${request.executionId}`
       && receipt.model === request.model.id && receipt.modelIdentity === request.model.identity

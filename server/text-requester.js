@@ -1,6 +1,7 @@
 import { createHttpRequestOwner } from './http-request-owner.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
+import { assertSettingsSupported, normalizeGenerationSettings } from '../packages/reploid/src/mesh/generation-settings.js';
 /** Text-only HTTP projection of admitted whole-model and partition routes. No model fallback. */
 import { randomUUID } from 'node:crypto';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
@@ -104,7 +105,15 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       assert(typeof model.identity === 'string' && model.identity.length > 0, 'Requester model identity missing');
       if (input.reploid && input.reploid.expected_model_identity !== model.identity) throw fail(409, 'Requested model identity changed');
       const requested = requireGenerationCapability(model, input.generationRequest);
-      const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}) });
+      // Settings are refused here, before execution is authorized or anything is disclosed, when the
+      // selected route does not advertise them. A request without settings carries no settings key.
+      let settings;
+      try {
+        settings = normalizeGenerationSettings(input.settings);
+        assertSettingsSupported(model.generationSettings, settings);
+      } catch (error) { throw fail(400, error.message, error.param ?? null); }
+      const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}),
+        ...(settings ? { settings } : {}) });
       if (await authorize({ action: 'chat.execute', principal, request, signal }) !== true) throw fail(403, 'Request execution denied');
       requirePrivateScope();
       signal.throwIfAborted(); scope.clearDeadline();
@@ -147,7 +156,8 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             assert(preview?.threadId === threadId && preview.attemptId === attemptId
               && preview.modelId === model.id && preview.modelIdentity === model.identity
               && canonicalPartitionJson(preview.input?.messages ?? null) === canonicalPartitionJson(request.messages)
-              && canonicalPartitionJson(preview.input?.generationRequest ?? null) === canonicalPartitionJson(requested ?? null),
+              && canonicalPartitionJson(preview.input?.generationRequest ?? null) === canonicalPartitionJson(requested ?? null)
+              && canonicalPartitionJson(preview.input?.settings ?? null) === canonicalPartitionJson(settings ?? null),
             'Disclosure preview differs from the admitted request');
             const approved = await authorize({ action: 'chat.disclose', principal, request,
               preview, signal });
@@ -193,6 +203,9 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
           && Number.isSafeInteger(result.usage.outputTokens) && result.usage.outputTokens >= 0
           && Number.isSafeInteger(result.usage.inputTokens + result.usage.outputTokens), 'Invalid whole-model token usage');
         usage = Object.freeze({ schema: result.usage.schema, inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens });
+      }
+      if (settings && settings.maxOutputTokens !== null) {
+        assert(usage && usage.outputTokens <= settings.maxOutputTokens, 'Provider output exceeds the caller output limit');
       }
       if (requested) {
         usage = tokenUsage(result.usage?.inputTokens, result.usage?.outputTokens, requested);

@@ -2,6 +2,7 @@ import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { assert, fleetCreditQuote } from './contract.js';
 import { createAttemptEvidenceSigner, openOutputAcknowledgments } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { effectiveRequestDigest, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
 
 export function buildFleetRequestOutcome({
   attemptId = null, threadId = null, reservationId = null, executionId = null,
@@ -76,12 +77,26 @@ export function createFleetRequester({
       assert(typeof controls?.requestApproval === 'function' && controls.signal, 'Explicit disclosure and cancellation required');
       const partition = Boolean(request.model.partition);
       const mode = partition ? 'partition' : 'whole-model';
+      // Generation settings are quoted and reserved as part of the effective request: the hold is
+      // sized by the caller's own limit (never above the model or policy ceiling), and the digest
+      // of model identity, messages and settings is what the provider must present for admission.
+      const settings = normalizeGenerationSettings(request.settings);
+      assert(!settings || !partition, 'Generation settings are not supported on a partition route');
+      if (settings) request.settings = structuredClone(settings);
       const outputLimit = Math.min(maxOutputTokens, request.generationRequest?.maxOutputTokens ?? maxOutputTokens,
-        request.model.generation?.maxTokens ?? maxOutputTokens);
+        request.model.generation?.maxTokens ?? maxOutputTokens, settings?.maxOutputTokens ?? maxOutputTokens);
       assert(Number.isSafeInteger(outputLimit) && outputLimit > 0, 'Explicit bounded output required');
+      // The provider is admitted for exactly the caller's limit, so a limit above the ceiling cannot be
+      // quoted lower and still match: it is refused here, before a quote, a hold or any disclosure.
+      if (settings && settings.maxOutputTokens !== null && settings.maxOutputTokens > outputLimit) {
+        throw Object.assign(Error('Caller output limit exceeds the fleet credit policy or the prepared model ceiling'),
+          { status: 400, param: 'maxOutputTokens' });
+      }
       if (partition) request.generationRequest = { schema: 'reploid.partition-generation-request/v1',
         usage: 'raw-model-tokens/v1', maxOutputTokens: outputLimit };
       const inputDigest = await hashJson(request.messages);
+      const settingsDigest = settings ? await effectiveRequestDigest({ modelIdentity: request.model.identity,
+        adapterIdentities: partitionAdapterIdentities(request.model), messages: request.messages, settings }) : null;
       let reservation = null, dispatched = false, abandoned = false, acknowledgments = null, routeIdentity = null, observeOutput = null;
       let disclosedProviderId = null, disclosedProviderIdentity = null, deltaCount = 0, outputCharacters = 0;
       const wrapped = { ...controls,
@@ -104,7 +119,7 @@ export function createFleetRequester({
           const binding = { id: `service:${identity.peerId}:${executionId}`, executionId,
             consumer: identity.peerId, mode, model: { id: request.model.id,
               identity: request.model.identity, adapterIdentities: partitionAdapterIdentities(request.model) },
-            inputDigest, maxOutputTokens: outputLimit, acceptedQuote,
+            inputDigest, ...(settingsDigest ? { settingsDigest } : {}), maxOutputTokens: outputLimit, acceptedQuote,
             providers: [{ participantId: typeof disclosure.recipientIdentity === 'string' ? disclosure.recipientIdentity
               : disclosure.recipientIdentity?.participantId ?? disclosure.recipientIdentity?.peerId, weight: 1 }] };
           if (partition) {
@@ -227,7 +242,7 @@ export function createFleetRequester({
       }
       return { ...result, serviceCredit: settlement };
     },
-    async recover({ reservationId, messages, providerId }, controls, recoverExecution = participant.recoverGeneration) {
+    async recover({ reservationId, messages, providerId, settings: suppliedSettings }, controls, recoverExecution = participant.recoverGeneration) {
       assert(typeof reservationId === 'string' && reservationId.length > 0 && Array.isArray(messages) && messages.length > 0
         && controls?.signal && typeof recoverExecution === 'function', 'Bound reservation, original messages and cancellation required');
       controls.signal.throwIfAborted();
@@ -246,6 +261,16 @@ export function createFleetRequester({
       const inputDigest = await hashJson(messages);
       if (inputDigest !== row.binding.inputDigest) {
         throw Object.assign(Error('Recovery input differs from the accepted request'), { status: 409 });
+      }
+      // Both absent, or the same effective request: recovery never reads an outcome for other settings.
+      let settings, settingsDigest = null;
+      try {
+        settings = normalizeGenerationSettings(suppliedSettings);
+        if (settings) settingsDigest = await effectiveRequestDigest({ modelIdentity: row.binding.model.identity,
+          adapterIdentities: row.binding.model.adapterIdentities || [], messages, settings });
+      } catch (error) { throw Object.assign(Error(error.message), { status: 400 }); }
+      if (settingsDigest !== (row.binding.settingsDigest ?? null)) {
+        throw Object.assign(Error('Recovery settings differ from the accepted request'), { status: 409 });
       }
       const prior = lookupOutcome(reservationId);
       const emit = (dispatched, settlement, extraTokens = null, resolvedPeer = null) => {
@@ -311,7 +336,8 @@ export function createFleetRequester({
             identity: adapterId, baseModelIdentity: row.binding.model.identity
           }))
         },
-        messages: structuredClone(messages)
+        messages: structuredClone(messages),
+        ...(settings ? { settings: structuredClone(settings) } : {})
       };
       const reference = {
         requestId: row.binding.executionId,

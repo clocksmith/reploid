@@ -1,5 +1,6 @@
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
 import { assert } from './contract.js';
 
 /** Provider-side enforcement: skipping credit admission cannot obtain credited service. */
@@ -10,8 +11,16 @@ export function createFleetExecutionAdmission({ credits, model }) {
   return Object.freeze({
     async whole({ request, consumer }) {
       assert(request.consumer === consumer, 'Execution consumer differs from authenticated peer');
+      // The digest is derived here, from the messages and settings this provider received and
+      // the model it serves. Nothing the requester says about its own digest is used.
+      assert(request.settings === undefined || isCanonicalGenerationSettings(request.settings), 'Canonical generation settings required');
+      const settings = normalizeGenerationSettings(request.settings);
+      const limit = settings?.maxOutputTokens ?? outputLimit;
+      assert(limit <= outputLimit, 'Caller output limit exceeds the prepared model ceiling');
       await credits.call('admit', { id: `service:${consumer}:${request.requestId}`, executionId: request.requestId,
-        consumer, mode: 'whole-model', model: exact, inputDigest: await hashJson(request.messages), outputLimit });
+        consumer, mode: 'whole-model', model: exact, inputDigest: await hashJson(request.messages), outputLimit: limit,
+        ...(settings ? { settingsDigest: await effectiveRequestDigest({ modelIdentity: exact.identity,
+          adapterIdentities: exact.adapterIdentities, messages: request.messages, settings }) } : {}) });
       return true;
     },
     async partition(request) {

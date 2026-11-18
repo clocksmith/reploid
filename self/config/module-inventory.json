@@ -4228,7 +4228,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:99102232d368dbf3cf59e08f7fdde7fc071426bee624544aceddfc30399f30ef",
+      "sha256": "sha256:440138b93ae495ebc138f09a95e43af39a60fd14d66d28436f9a788b26b57782",
       "imports": []
     },
     {
@@ -18588,7 +18588,7 @@
     {
       "path": "vendor/reploid/artifacts/generation-terminal.js",
       "owner": "vendor",
-      "sha256": "sha256:930bcfa26ae43cd66980709bd3d69d69690b70fc786922b0b0723513d5d1fcf2",
+      "sha256": "sha256:098baf53be6629d3add039a224ec5dca7ced196a25b34c88254cbce82fc288e3",
       "imports": [
         "./canonical-json.js",
         "./identity.js"
@@ -18640,7 +18640,7 @@
     {
       "path": "vendor/reploid/artifacts/receipt.js",
       "owner": "vendor",
-      "sha256": "sha256:1c28d6a0eb864ec416cf2336cf9d33018ec04fc51ea21dd27107017b32c3002e",
+      "sha256": "sha256:5078995ef872e258f1d4b2885d7d0cf86ebf6194b95e8607498e2092bc6bbead",
       "imports": [
         "./canonical-json.js",
         "./identity.js",
@@ -18669,7 +18669,7 @@
     {
       "path": "vendor/reploid/artifacts/whole-model-receipt.js",
       "owner": "vendor",
-      "sha256": "sha256:6b5f81fcd8280b246f822ae5b3e1c897c592727b873212c01f03311d5aea27e0",
+      "sha256": "sha256:0681b8c08a7b11213b92621b72ee3d0a0ef7c901708da9061f5f009bd61b9c84",
       "imports": [
         "./canonical-json.js",
         "./signatures.js"
@@ -18961,6 +18961,15 @@
       "sha256": "sha256:c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185",
       "imports": [
         "./remote-generation-requests.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/mesh/generation-settings.js",
+      "owner": "vendor",
+      "sha256": "sha256:bb3b988fc7a6a116a7efa7bdf1660e216750d054c2a4ad14f56b5cc25fce1edc",
+      "imports": [
+        "../artifacts/canonical-json.js",
+        "../artifacts/signatures.js"
       ]
     },
     {
@@ -19452,7 +19461,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:27b1916dc2d60d016309d5021016c7b33a523bcf885e462c9d78ee1731b2188c",
+      "sha256": "sha256:aeb6013eeb24179fee9ef1e9b757e3bc79b0d60ebee9361095430bd24a92c0ae",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
@@ -19465,6 +19474,7 @@
         "./computer-identity.policy.json",
         "./contribution.js",
         "./generation-recovery.js",
+        "./generation-settings.js",
         "./peer-identity.js",
         "./preparation-progress.js",
         "./provider-hardware.js",

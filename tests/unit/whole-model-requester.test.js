@@ -157,3 +157,69 @@ it('does not let the recovery port mutate the identity used to accept a result',
   expect(f.input.messages).toEqual(request.messages);
   expect(f.reference.providerId).toBe('peer-1');
 });
+
+function settingsFixture({ capabilities = [{ schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: false, outputSchema: false, thinking: false }],
+  dispatch = options => ({ settings: options.settings }), generated = 2 } = {}) {
+  const bounded = { ...model, generation: { maxTokens: 16 } };
+  const controls = { signal: new AbortController().signal, requestApproval: vi.fn(async () => true), onDelta: vi.fn() };
+  const mesh = {
+    getSwarmSnapshot: () => ({ peers: capabilities.map((generationSettings, index) => ({ peerId: 'peer-' + index, model: bounded.id, modelIdentity: bounded.identity,
+      hasInference: true, readiness: 'ready', availableSlots: 1, ...(generationSettings ? { generationSettings } : {}) })) }),
+    generate: vi.fn(async (messages, onDelta, options) => {
+      if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-0', modelId: options.modelId, modelIdentity: options.modelIdentity,
+        adapterIdentities: options.adapterIdentities, requestContext: options.requestContext, messages, ...dispatch(options) })) throw Error('Disclosure denied');
+      return { model: bounded.id, modelIdentity: bounded.identity, adapterIdentities: [], content: 'answer',
+        completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'max-tokens', promptTokenCount: 7, generatedTokenCount: generated } };
+    })
+  };
+  const requester = createWholeModelRequester({ mesh, models: [bounded] });
+  return { requester, mesh, controls, request: { ...request, model: bounded } };
+}
+const canonical = maxOutputTokens => ({ schema: 'reploid.generation-settings/v1', maxOutputTokens, tools: [], toolChoice: 'none', outputSchema: null, thinking: null });
+
+it('lets settings lower the output limit and binds them in the mesh control and the disclosure preview', async () => {
+  const f = settingsFixture();
+  expect(f.requester.getModels()[0].generationSettings).toMatchObject({ maxOutputTokens: true, tools: false });
+  const value = await f.requester.generate({ ...f.request, settings: { maxOutputTokens: 2 } }, f.controls);
+  expect(f.mesh.generate.mock.calls[0][2].settings).toEqual(canonical(2));
+  expect(f.controls.requestApproval.mock.calls[0][0].input).toEqual({ messages: f.request.messages, settings: canonical(2) });
+  expect(value.usage.outputTokens).toBe(2);
+  // A request without settings passes no settings control and previews no settings.
+  await f.requester.generate(f.request, f.controls);
+  expect(f.mesh.generate.mock.calls[1][2]).not.toHaveProperty('settings');
+  expect(f.controls.requestApproval.mock.calls[1][0].input).toEqual({ messages: f.request.messages });
+});
+
+it.each([
+  ['changed settings', options => ({ settings: { ...options.settings, maxOutputTokens: 3 } })],
+  ['dropped settings', () => ({})]
+])('refuses a dispatch with %s before approval', async (_label, dispatch) => {
+  const f = settingsFixture({ dispatch });
+  await expect(f.requester.generate({ ...f.request, settings: { maxOutputTokens: 2 } }, f.controls)).rejects.toThrow('disclosure differs');
+  expect(f.controls.requestApproval).not.toHaveBeenCalled();
+});
+
+it('refuses a dispatch that adds settings to a request without them', async () => {
+  const f = settingsFixture({ dispatch: () => ({ settings: canonical(2) }) });
+  await expect(f.requester.generate(f.request, f.controls)).rejects.toThrow('disclosure differs');
+  expect(f.controls.requestApproval).not.toHaveBeenCalled();
+});
+
+it('refuses settings unless every ready provider of the model advertises them, and a limit above the prepared ceiling', async () => {
+  const limit = { schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: true, outputSchema: false, thinking: false };
+  const mixed = settingsFixture({ capabilities: [limit, null] });
+  expect(mixed.requester.getModels()[0]).not.toHaveProperty('generationSettings');
+  await expect(mixed.requester.generate({ ...mixed.request, settings: { maxOutputTokens: 2 } }, mixed.controls)).rejects.toThrow('not supported by this route');
+  const narrowed = settingsFixture({ capabilities: [limit, { ...limit, tools: false }] });
+  expect(narrowed.requester.getModels()[0].generationSettings).toEqual({ ...limit, tools: false });
+  await expect(narrowed.requester.generate({ ...narrowed.request, settings: { tools: [{ name: 'lookup', parameters: {} }] } }, narrowed.controls))
+    .rejects.toThrow('Generation setting tools is not supported');
+  await expect(narrowed.requester.generate({ ...narrowed.request, settings: { maxOutputTokens: 17 } }, narrowed.controls)).rejects.toThrow('exceeds the prepared model ceiling');
+  await expect(narrowed.requester.generate({ ...narrowed.request, settings: { temperature: 1 } }, narrowed.controls)).rejects.toThrow('unknown key temperature');
+  for (const f of [mixed, narrowed]) { expect(f.mesh.generate).not.toHaveBeenCalled(); expect(f.controls.requestApproval).not.toHaveBeenCalled(); }
+});
+
+it('rejects a provider result that reports more output than the caller limit', async () => {
+  const f = settingsFixture({ generated: 3 });
+  await expect(f.requester.generate({ ...f.request, settings: { maxOutputTokens: 2 } }, f.controls)).rejects.toThrow('exceeded the caller output limit');
+});

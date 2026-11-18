@@ -6,6 +6,8 @@ export interface Receipt extends Record<string, unknown> {
   modelIdentity?: string; adapterIdentities?: string[]; inputDigest?: string; outputDigest?: string;
   usage?: 'raw-model-tokens/v1'; stopReason?: string; cleanup?: 'settled';
   ownerPolicyDigest?: string | null;
+  /** Version 3 only: the effective-request digest, and the applied output constraint's identity. */
+  settingsDigest?: string; constraintIdentity?: string;
 }
 export function getReceiptPayload(receipt?: Partial<Receipt>): Receipt;
 export function canonicalizeReceiptPayload(receipt?: Partial<Receipt>): string;

@@ -47,7 +47,11 @@ export async function startFleetService({ credits, models, placementPolicy, port
           && request.providers.some(provider => provider.participantId === signer)
           && same(request.model, payload.model) && Number.isSafeInteger(payload.outputLimit)
           && payload.outputLimit > 0 && payload.outputLimit <= request.maxOutputTokens, 'No matching live credit admission');
-        if (request.mode === 'whole-model') assert(request.inputDigest === payload.inputDigest, 'Input differs from credit admission');
+        if (request.mode === 'whole-model') {
+          assert(request.inputDigest === payload.inputDigest, 'Input differs from credit admission');
+          // Both absent, or equal. The provider derives its digest from the request it received.
+          assert((request.settingsDigest ?? null) === (payload.settingsDigest ?? null), 'Generation settings differ from credit admission');
+        }
         else assert(same(request.route, canonicalRouteAttemptBinding(payload.route))
           && request.providers[payload.partitionIndex]?.participantId === signer, 'Stage differs from credit admission');
         credits.admit(payload.id, request.mode === 'whole-model' ? 0 : payload.partitionIndex);
