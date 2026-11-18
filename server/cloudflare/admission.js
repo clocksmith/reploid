@@ -67,14 +67,20 @@ export class SwarmAdmission extends DurableObject {
   release(id) { this.ctx.storage.sql.exec('DELETE FROM leases WHERE id = ?', id); }
 
   async allowTurn(subject) {
-    this.prune();
     const key = `turn:${subject}`;
     const sql = this.ctx.storage.sql;
-    if (!sql.exec('SELECT id FROM windows WHERE id = ?', key).toArray().length
-      && sql.exec("SELECT COUNT(*) AS count FROM windows WHERE id LIKE 'turn:%'").one().count >= policy.turnMaxSubjects) return false;
-    if (!this.consume('turn-total', policy.turnTotalPerWindow, policy.turnWindowMs)) return false;
-    const allowed = this.consume(key, policy.turnPerSubject, policy.turnWindowMs);
-    await this.arm();
+    const allowed = this.ctx.storage.transactionSync(() => {
+      this.prune();
+      const windows = new Map(sql.exec('SELECT id, count FROM windows WHERE id IN (?, ?)', key, 'turn-total')
+        .toArray().map(row => [row.id, row.count]));
+      if (windows.get(key) >= policy.turnPerSubject || windows.get('turn-total') >= policy.turnTotalPerWindow) return false;
+      if (!windows.has(key) && sql.exec("SELECT COUNT(*) AS count FROM windows WHERE id LIKE 'turn:%'").one().count >= policy.turnMaxSubjects) return false;
+      const expires = Date.now() + policy.turnWindowMs;
+      sql.exec('INSERT INTO windows (id, count, expires) VALUES (?, 1, ?), (?, 1, ?) ON CONFLICT(id) DO UPDATE SET count=count+1',
+        key, expires, 'turn-total', expires);
+      return true;
+    });
+    if (allowed) await this.arm();
     return allowed;
   }
 

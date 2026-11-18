@@ -266,10 +266,18 @@ it('rejects untrusted relay URLs, missing credentials and oversized responses', 
 
 it('rate limits credential issuance by verified subject', async () => {
   const admission = env.ADMISSION.getByName('bounded-admission-v1');
-  for (let i = 0; i < 6; i++) expect(await admission.allowTurn('one-user')).toBe(true);
+  await runInDurableObject(admission, (_instance, state) => {
+    const expiry = Date.now() + policy.turnWindowMs;
+    state.storage.sql.exec('INSERT INTO windows VALUES (?, ?, ?), (?, ?, ?)',
+      'turn-total', policy.turnTotalPerWindow - 1, expiry, 'turn:one-user', policy.turnPerSubject, expiry);
+  });
   const response = await handleTurn(turnRequest(), turnEnv(), { verify: async () => 'one-user', fetcher: async () => { throw new Error('must not execute'); } });
   expect(response.status).toBe(429); expect(response.headers.get('Retry-After')).toBe('60');
   expect(await admission.allowTurn('another-user')).toBe(true);
+  expect(await admission.allowTurn('third-user')).toBe(false);
+  await runInDurableObject(admission, (_instance, state) => {
+    expect(state.storage.sql.exec("SELECT count FROM windows WHERE id='turn:third-user'").toArray()).toEqual([]);
+  });
 });
 
 
