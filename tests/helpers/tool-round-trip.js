@@ -43,12 +43,14 @@ export function createFakeTokenizer() {
  * model would write, most preferred first. Each step scores every token that continues one of
  * them (a more preferred output scores higher, and its end scores a stop token), gives the rest
  * a low score, applies `options.logitMaskFn` exactly as Doppler does, and emits the best token.
- * `unmasked` is the same model with the mask left out: a provider that does not enforce.
+ * `unmasked` is a provider that does not enforce but claims it did: the mask is consulted at every step and its
+ * verdict thrown away. `skipsMask` is a runtime that samples without consulting the mask at all, as Doppler's
+ * ordinary decode step did after the first token: an honest provider detects that and refuses to answer.
  * Like Doppler, the session can tokenize a prompt before generating, so the provider reports its
  * input count before the first token; `countsPrompt: false` is a session that cannot, as an older
  * provider. `pace(index)` is awaited before the token at `index`, to hold generation open.
  */
-export function createScriptedSession({ model, plan, tokenizer = createFakeTokenizer(), unmasked = false, seen = [], countsPrompt = true, pace = null }) {
+export function createScriptedSession({ model, plan, tokenizer = createFakeTokenizer(), unmasked = false, skipsMask = false, seen = [], countsPrompt = true, pace = null }) {
   const { texts, eos, stop, vocabSize } = tokenizer;
   const promptTokenCount = messages => messages.reduce((total, message) => total + Math.ceil(message.content.length / 4), 0);
   const propose = (scripts, generated) => {
@@ -78,7 +80,9 @@ export function createScriptedSession({ model, plan, tokenizer = createFakeToken
       while (generatedIds.length < limit) {
         await pace?.(generatedIds.length);
         const logits = propose(scripts, outputText);
-        if (options.logitMaskFn && !unmasked) options.logitMaskFn(logits, { generatedIds: [...generatedIds], tokenizer, vocabSize });
+        const context = { generatedIds: [...generatedIds], tokenizer, vocabSize };
+        if (options.logitMaskFn && unmasked) { try { options.logitMaskFn(Float32Array.from(logits), context); } catch { /* its verdict is ignored */ } }
+        else if (options.logitMaskFn && !(skipsMask && generatedIds.length > 0)) options.logitMaskFn(logits, context);
         let best = 0;
         for (let id = 1; id < vocabSize; id++) if (logits[id] > logits[best]) best = id;
         if (best === eos || best === stop) { stopReason = best === eos ? 'eos-token' : 'stop-token'; break; }
@@ -132,14 +136,14 @@ export function createToolRoundTrip({ ceiling = OUTPUT_CEILING } = {}) {
       credits?.close();
       await fs.rm(root, { recursive: true, force: true });
     },
-    async open({ plan = roundTripPlan, unmasked = false, execute = null, intercept = null, toolCallFormat = TOOL_CALL_FORMAT,
+    async open({ plan = roundTripPlan, unmasked = false, skipsMask = false, execute = null, intercept = null, toolCallFormat = TOOL_CALL_FORMAT,
       countsPrompt = true, pace = null } = {}) {
       const cleanup = [], executed = [], seen = [], reservations = [], journalStart = credits.snapshot().journal.length;
       const catalogModel = { ...model, ...(toolCallFormat ? { toolCallFormat } : {}) };
       // The real provider chain over the scripted session: native whole model, resident owner, scoped provider.
       const provider = createNativeWholeModel({ model: catalogModel, modelDirectory: path.join(root, 'model'), nativeGpu: async () => {},
         configureMemory: async () => {},
-        service: { open: async () => createScriptedSession({ model: catalogModel, plan, unmasked, seen, countsPrompt, pace }), close: async () => {} } });
+        service: { open: async () => createScriptedSession({ model: catalogModel, plan, unmasked, skipsMask, seen, countsPrompt, pace }), close: async () => {} } });
       await provider.contribute(true);
       cleanup.push(() => provider.close());
       const admission = createFleetExecutionAdmission({ credits: providerCredits, model });

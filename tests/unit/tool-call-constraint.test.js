@@ -114,6 +114,8 @@ it('applies the mask through the scoped provider and returns the constraint iden
   expect(forced).toMatchObject({ content: addCall, constraintIdentity: await expectedConstraintIdentity(settings('required')),
     completion: { stopReason: 'stop-token' } });
   expect(f.seen[0].options).toMatchObject({ maxTokens: 64, logitMaskIdentity: { contentDigest: forced.constraintIdentity } });
+  // A masked request turns speculative decoding off: Doppler refuses the two together.
+  expect(f.seen[0].options).toMatchObject({ useSpeculative: false, speculation: null });
   // Under 'auto' the same model writes the prose it prefers, still under a mask and its identity.
   const free = await f.generate([user], settings('auto'));
   expect(free).toMatchObject({ content: 'The sum is 5.', constraintIdentity: await expectedConstraintIdentity(settings('auto')) });

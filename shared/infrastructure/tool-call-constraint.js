@@ -121,9 +121,17 @@ export function createToolCallEnforcement() {
       if (constraint.identity !== identity) throw new Error('Compiled constraint identity changed');
       compiled.set(identity, constraint);
       while (compiled.size > MAX_COMPILED) compiled.delete(compiled.keys().next().value);
-      return { messages: rendered, constraintIdentity: identity,
-        generation: { logitMaskFn: createLogitMask({ constraint, endTokenIds: endTokenIds() }),
-          logitMaskIdentity: logitMaskIdentity(constraint) } };
+      // The runtime must consult the mask for every token it samples. Some Doppler decode paths have
+      // sampled without it after the first token, so the applications are counted and the provider
+      // refuses to report the constraint for an answer the mask did not cover (`maskedSteps`).
+      const mask = createLogitMask({ constraint, endTokenIds: endTokenIds() });
+      let steps = 0;
+      return { messages: rendered, constraintIdentity: identity, maskedSteps: () => steps,
+        generation: { logitMaskFn: (logits, context) => { steps += 1; return mask(logits, context); },
+          logitMaskIdentity: logitMaskIdentity(constraint),
+          // Doppler refuses a mask together with speculative decoding, which a runtime may enable by
+          // default: turn off both the flag and the session's speculation policy for this request.
+          useSpeculative: false, speculation: null } };
     }
   });
 }

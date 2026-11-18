@@ -239,6 +239,22 @@ it('refuses a call that breaks the schema before countersigning: never surfaced,
   } finally { await f.close(); }
 });
 
+it('refuses, at the provider, a runtime that samples without the mask after the first token', async () => {
+  // What Doppler's ordinary decode step did: the first token is masked, the rest are not. The model
+  // prefers a tool that is not the one named, so the unmasked tail would name the wrong tool.
+  const f = await trip.open({ plan: () => [callText('add', '{"a": "two", "b": 3}')], skipsMask: true });
+  try {
+    const response = await f.post('/chat/completions', { model: f.model.id, messages: [user], tools, tool_choice: 'required' });
+    expect(response.status).toBe(502);
+    expect((await response.json()).error.message).toMatch(/Model runtime applied the output constraint to 1 of \d+ generated tokens/);
+    // The provider did not sign an answer it could not vouch for: no result, no receipt, no charge.
+    expect(f.sent('reploid:generation-result')).toEqual([]);
+    expect(f.sent('reploid:receipt')).toEqual([]);
+    // Its signed failure releases the hold with no charge.
+    await vi.waitFor(() => expect(f.amounts()).toEqual([{ balance: 0, held: 0 }, { balance: 0, held: 0 }]));
+  } finally { await f.close(); }
+});
+
 it.each([
   ['another constraint identity', result => ({ ...result, constraintIdentity: 'sha256:' + 'e'.repeat(64) })],
   ['no constraint identity', ({ constraintIdentity: _applied, ...result }) => result]
@@ -281,6 +297,8 @@ it('keeps a plain chat request exactly as before: no settings on the wire, no re
     expect(f.seen[0].messages).toEqual([user]);
     expect(f.seen[0].options).not.toHaveProperty('logitMaskFn');
     expect(f.seen[0].options).not.toHaveProperty('logitMaskIdentity');
+    expect(f.seen[0].options).not.toHaveProperty('useSpeculative');
+    expect(f.seen[0].options).not.toHaveProperty('speculation');
     const { receipt } = f.sent('reploid:receipt')[0];
     expect(receipt.version).toBe(2);
     expect(receipt).not.toHaveProperty('settingsDigest');

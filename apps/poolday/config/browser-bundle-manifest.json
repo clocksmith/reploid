@@ -1436,7 +1436,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 685012,
-      "sha256": "sha256:494bd34fe50c2f1cbd93ec7f3b08b9e5aa16bfb91241d34c35f0f1491fd65d9f"
+      "sha256": "sha256:f2fb0a3d9f7edd2e48ea71214b66bf2c3d281f5ee1c6745f28713557840e633e"
     },
     {
       "path": "config/module-registry.json",
@@ -2340,8 +2340,8 @@
     },
     {
       "path": "infrastructure/scoped-model-provider.js",
-      "byteLength": 15415,
-      "sha256": "sha256:057f7edb0b8e3a2d216793bd0d3c31831fcdc8b0429af99e90b64c80d0365d56"
+      "byteLength": 15866,
+      "sha256": "sha256:b436de046c441b2623fc9333d4f726e7664243a4b41f289e7fad56a1b9a821f8"
     },
     {
       "path": "infrastructure/stream-parser.js",
@@ -2355,8 +2355,8 @@
     },
     {
       "path": "infrastructure/tool-call-constraint.js",
-      "byteLength": 7016,
-      "sha256": "sha256:7c8283b4d22995b6319439bc3f82c229312730e12744ed26c32f29db24e62bef"
+      "byteLength": 7702,
+      "sha256": "sha256:64fe0acb8dce0762bfc146b0e2d87a97a5671c0e36880b2c7e808e418ece827c"
     },
     {
       "path": "infrastructure/tool-call-format.js",
@@ -3780,8 +3780,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2533574,
-      "sha256": "sha256:a05216ad8709c64a89f82dd83cb22116effe214de6beec0b5ef8d60caedac4c3"
+      "byteLength": 2533876,
+      "sha256": "sha256:bd047eca1ffc304fb8d3f1360e0bbed89f4b72a3d8e9df29b28ff783bca14ef6"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:9a9c664836d3170b5cbc02adfc670e63913f7112aff91fb4e2fe6ed018a2ed31"
+  "bundleHash": "sha256:396ae3600850bc706c41245942be6c660e0aa326d6cbdf3641eb0eabf7135380"
 }

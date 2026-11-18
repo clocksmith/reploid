@@ -1028,7 +1028,7 @@
     {
       "path": "infrastructure/scoped-model-provider.js",
       "owner": "infrastructure",
-      "sha256": "sha256:057f7edb0b8e3a2d216793bd0d3c31831fcdc8b0429af99e90b64c80d0365d56",
+      "sha256": "sha256:b436de046c441b2623fc9333d4f726e7664243a4b41f289e7fad56a1b9a821f8",
       "imports": [
         "../vendor/reploid/mesh/generation-context-cache.js",
         "../vendor/reploid/mesh/provider-hardware.js",
@@ -1053,7 +1053,7 @@
     {
       "path": "infrastructure/tool-call-constraint.js",
       "owner": "infrastructure",
-      "sha256": "sha256:7c8283b4d22995b6319439bc3f82c229312730e12744ed26c32f29db24e62bef",
+      "sha256": "sha256:64fe0acb8dce0762bfc146b0e2d87a97a5671c0e36880b2c7e808e418ece827c",
       "imports": [
         "./output-constraint.js",
         "./tool-call-format.js"
@@ -4254,7 +4254,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a05216ad8709c64a89f82dd83cb22116effe214de6beec0b5ef8d60caedac4c3",
+      "sha256": "sha256:bd047eca1ffc304fb8d3f1360e0bbed89f4b72a3d8e9df29b28ff783bca14ef6",
       "imports": []
     },
     {

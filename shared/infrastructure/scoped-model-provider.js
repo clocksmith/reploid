@@ -225,6 +225,12 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
       }
       combined.throwIfAborted();
       requireValue(text.trim() || completion?.stopReason === 'max-tokens', 'Provider returned no text');
+      // A constraint is reported only for an answer every one of whose tokens was sampled under the mask.
+      if (tooling.constraintIdentity) {
+        const generated = completion?.generatedTokenCount;
+        requireValue(Number.isSafeInteger(generated) && tooling.maskedSteps() >= generated,
+          `Model runtime applied the output constraint to ${tooling.maskedSteps()} of ${generated ?? 'an unknown number of'} generated tokens`);
+      }
       return { content: text, raw: text, requestedModel: model.id, model: actualModel,
         ...(session ? { ...actualIdentity, completion, timing, hardware: publicProviderHardware(session.deviceInfo) } : {}),
         ...(tooling.constraintIdentity ? { constraintIdentity: tooling.constraintIdentity } : {}),

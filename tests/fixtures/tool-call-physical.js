@@ -176,21 +176,21 @@ try {
 
   // 3. The constraint forces tokens the model would not have chosen.
   const plain = { role: 'user', content: 'Reply with the single word hello. Do not call any tool.' };
-  const free = await timed(() => chat(requester, { messages: [plain], tools: [ADD], tool_choice: 'none' }));
-  const forced = await timed(() => chat(requester, { messages: [plain], tools: [ADD], tool_choice: 'required' }));
   const product = { role: 'user', content: 'Multiply 6 by 7. Use the multiply tool.' };
-  const preferred = await chat(requester, { messages: [product], tools: [ADD, MULTIPLY], tool_choice: 'required' });
-  const named = await chat(requester, { messages: [product], tools: [ADD, MULTIPLY], tool_choice: { type: 'function', function: { name: 'add' } } });
-  const nameOf = result => result.choices[0].message.tool_calls?.[0]?.function.name ?? null;
-  report.evidence.constraint = {
-    samePromptUnconstrained: { content: free.value.choices[0].message.content, toolCalls: free.value.choices[0].message.tool_calls ?? null, ms: free.ms, usage: free.value.usage },
-    samePromptForced: { finishReason: forced.value.choices[0].finish_reason, call: forced.value.choices[0].message.tool_calls?.[0] ?? null, ms: forced.ms, usage: forced.value.usage },
-    twoToolsModelChoice: nameOf(preferred), twoToolsForcedToAdd: nameOf(named),
+  const step = async body => { const run = await timed(() => outcome(() => chat(requester, body))); const choice = run.value.value?.choices?.[0] ?? null;
+    return { ms: run.ms, error: run.value.error ?? null, finishReason: choice?.finish_reason ?? null, content: choice?.message?.content ?? null,
+      call: choice?.message?.tool_calls?.[0] ?? null, usage: run.value.value?.usage ?? null }; };
+  const integers = call => { try { const args = JSON.parse(call.function.arguments); return Number.isInteger(args.a) && Number.isInteger(args.b); } catch { return false; } };
+  const free = await step({ messages: [plain], tools: [ADD], tool_choice: 'none' });
+  const forced = await step({ messages: [plain], tools: [ADD], tool_choice: 'required' });
+  const preferred = await step({ messages: [product], tools: [ADD, MULTIPLY], tool_choice: 'required' });
+  const named = await step({ messages: [product], tools: [ADD, MULTIPLY], tool_choice: { type: 'function', function: { name: 'add' } } });
+  report.evidence.constraint = { samePromptUnconstrained: free, samePromptForced: forced, twoToolsModelChoice: preferred, twoToolsForcedToAdd: named,
     note: 'Timings are single requests on one machine; the constrained request disables several of Doppler\'s fast paths.' };
-  report.checks.unconstrainedAnswersInText = typeof free.value.choices[0].message.content === 'string' && !free.value.choices[0].message.tool_calls?.length;
-  report.checks.maskForcesAValidCall = forced.value.choices[0].finish_reason === 'tool_calls' && nameOf(forced) === 'add'
-    && (() => { const args = JSON.parse(forced.value.choices[0].message.tool_calls[0].function.arguments); return Number.isInteger(args.a) && Number.isInteger(args.b); })();
-  report.checks.maskBlocksThePreferredTool = nameOf(preferred) === 'multiply' && nameOf(named) === 'add';
+  report.checks.unconstrainedAnswersInText = typeof free.content === 'string' && free.content.length > 0 && !free.call;
+  report.checks.maskForcesAValidCall = forced.finishReason === 'tool_calls' && forced.call?.function.name === 'add' && integers(forced.call);
+  report.checks.maskBlocksThePreferredTool = preferred.call?.function.name === 'multiply' && named.call?.function.name === 'add' && integers(named.call);
+  log('constraint', { free: free.content ?? free.error, forced: forced.call ?? forced.error, preferred: preferred.call?.function.name ?? preferred.error, named: named.call?.function.name ?? named.error });
 
   // 4. The output limit reaches the sampler and gives the expected terminal reason.
   const counting = { role: 'user', content: 'Count from one to thirty, one number per line.' };
