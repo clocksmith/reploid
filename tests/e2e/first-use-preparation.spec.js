@@ -68,14 +68,14 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       await page.evaluate(() => window.firstUse.phase('ready'));
       await expect(page.locator('[data-composer-send]')).toBeEnabled();
       await expect(page.locator('[data-retry-connection]')).toBeHidden();
-      await expect(page.locator('[data-model-status]')).toBeHidden();
+      await expect(page.locator('[data-model-status]')).toContainText('public computer can read your prompt');
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       await page.evaluate(() => window.firstUse.phase('unavailable'));
       await expect(page.locator('[data-composer-send]')).toBeDisabled();
       await expect(page.locator('[data-retry-connection]')).toBeVisible();
       await expect(page.locator('[data-model-status]')).toBeVisible();
-      await expect(page.locator('[data-model-status]')).toHaveText('Model unavailable.');
+      await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       expect(await page.evaluate(() => ({ calls: window.firstUse.connections(), threads: window.firstUse.state().threads.length }))).toEqual({ calls: 0, threads: 0 });

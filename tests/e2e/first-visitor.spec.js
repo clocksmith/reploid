@@ -1,23 +1,25 @@
 import { test, expect } from '@playwright/test';
 
-// These specs exercise the manual size-and-consent path, so automatic download is off;
-// tests/unit/first-visitor.test.js covers the automatic path.
-async function localOnly(page) {
+// Block real external traffic. The acquisition fixture supplies the model download.
+async function localOnly(page, baseURL) {
+  const origin = new URL(baseURL).origin;
   await page.addInitScript(() => localStorage.setItem('reploid.auto-download.v1', 'off'));
-  await page.route('**/*', route => new URL(route.request().url()).origin === 'http://127.0.0.1:8769' ? route.continue() : route.abort());
+  await page.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
   await page.routeWebSocket('**/*', socket => socket.close());
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
 }
 
-test('fresh public route offers recovery after a bounded search with no peers', async ({ page }, info) => {
-  await localOnly(page);
+test('fresh public route reports interrupted discovery and offers local recovery', async ({ page, baseURL }, info) => {
+  await localOnly(page, baseURL);
   // Discovery owns the composer status; acquisition status starts only after a download.
   const message = page.locator('[data-model-status]');
-  await expect(message).toContainText(/unavailable|WebGPU|storage|Web Locks/, { timeout: 12000 });
+  await expect(message).toContainText('Discovery connection interrupted', { timeout: 12000 });
+  await expect(page.locator('[data-review-shared-model]')).toBeHidden();
+  await expect(page.locator('[data-retry-connection]')).toHaveText('Retry connection');
   const download = page.locator('[data-download-local]');
   if (await page.evaluate(() => !!navigator.gpu && !!navigator.storage?.getDirectory && !!navigator.locks)) {
-    await expect(download).toBeVisible(); await expect(message).toContainText('unavailable');
+    await expect(download).toBeVisible();
     await download.click();
     // The catalog's local, verified manifest supplies size without weight downloads.
     await expect(page.locator('[data-download-confirm]')).toBeEnabled();
@@ -41,8 +43,8 @@ async function installFixture(page, theme) {
     document.body.replaceChildren(root);
     const model = CANONICAL_CHAT_MODELS[0], host = createChatSession({ storage: null, models: [model] });
     const listeners = new Set();
-    let state = { ...host.getState(), peerDiscoveryTimedOut: true, localDownloadIssue: null,
-      network: { connecting: true, consumer: { connectionState: 'retrying', peers: [] } } };
+    let state = { ...host.getState(), peerDiscoveryTimedOut: true, discoveryPhase: 'observed', localDownloadIssue: null,
+      network: { consumer: { connectionState: 'connected', peers: [] } } };
     const notify = () => listeners.forEach(listener => listener(state));
     let report, complete;
     const owner = createModelAcquisition({ capabilities: () => ({ gpu: true, storage: true, locks: navigator.locks }),
@@ -57,18 +59,65 @@ async function installFixture(page, theme) {
         await owner.start(model, true, 123000000);
         state = { ...state, models: [{ ...state.models[0], availability: 'cached', localCached: true }] }; notify();
       }, cancelModelDownload: () => owner.cancel() };
-    bindConversationWorkspace(root, api);
+    bindConversationWorkspace(root, api, { viewState: { chosenModel: model } });
     window.firstVisitor = {
       ready: () => typeof report === 'function',
+      search() { state = { ...state, discoveryPhase: 'searching', peerDiscoveryTimedOut: false }; notify(); },
+      alternate(reachable) {
+        const alternative = { ...CANONICAL_CHAT_MODELS[1], availability: 'ready', networkAvailability: 'ready',
+          providerIds: ['alternate-peer'], reachableProviderIds: reachable ? ['alternate-peer'] : [] };
+        state = { ...state, models: [state.models[0], alternative] }; notify();
+      },
       progress(totalBytes) { report({ stage: 'downloading', downloadedBytes: 30000000, totalBytes }); }, complete: () => complete(),
-      peer() { state = { ...state, models: [{ ...state.models[0], availability: 'ready', networkAvailability: 'ready' }] }; notify(); }
+      peer() { state = { ...state, models: [{ ...state.models[0], availability: 'ready', networkAvailability: 'ready',
+        providerIds: ['fixture-peer'], reachableProviderIds: ['fixture-peer'] }] }; notify(); }
     };
   }, theme);
 }
 
+test('opts into waiting for a public computer and cancels back to an editable draft', async ({ page, baseURL }) => {
+  await localOnly(page, baseURL); await installFixture(page, 'light');
+  await page.evaluate(() => window.firstVisitor.search());
+  const queued = page.locator('[data-queue-send]'), keep = page.locator('[data-cancel-queued-send]');
+  const input = page.locator('[data-composer-input]'), status = page.locator('[data-model-status]');
+  await expect(queued).toBeHidden();
+  await input.fill('Explain ocean tides.');
+  await expect(status).toContainText('public computer');
+  await queued.click();
+  await expect(status).toContainText('Waiting to send');
+  await keep.click();
+  await page.evaluate(() => window.firstVisitor.peer());
+  await expect(status).toContainText('public computer can read your prompt');
+  await expect(input).toHaveValue('Explain ocean tides.');
+  await expect(page.locator('[data-message-stream]')).toBeEmpty();
+});
+
+test('reviews a reachable alternate model before changing the public destination', async ({ page, baseURL }) => {
+  await localOnly(page, baseURL); await installFixture(page, 'light');
+  const status = page.locator('[data-model-status]'), review = page.locator('[data-review-shared-model]');
+  const picker = page.locator('[data-model-picker]'), apply = page.locator('[data-change-model]');
+  const source = page.locator('[data-composer-model-source]');
+  await expect(status).toContainText('No eligible computer found');
+  await page.evaluate(() => window.firstVisitor.alternate(false));
+  await expect(review).toBeHidden();
+  await page.evaluate(() => window.firstVisitor.alternate(true));
+  await expect(review).toBeVisible();
+  await review.click();
+  await expect(picker).toBeVisible();
+  await expect(source).toHaveText(' · Unavailable');
+  await page.evaluate(() => window.firstVisitor.alternate(false));
+  await expect(apply).toBeDisabled();
+  await page.locator('[data-model-picker-close]').click();
+  await page.evaluate(() => window.firstVisitor.alternate(true));
+  await review.click(); await apply.click();
+  await expect(picker).toBeHidden();
+  await expect(source).toHaveText(' · Public network');
+  await expect(status).toContainText('public computer can read your prompt');
+});
+
 for (const [theme, width, height] of [['light', 1440, 1000], ['dark', 390, 844]]) {
-  test(`${theme} ${width}px download, unknown total, cancellation and late peer controls`, async ({ page }, info) => {
-    await page.setViewportSize({ width, height }); await localOnly(page); await installFixture(page, theme);
+  test(`${theme} ${width}px download, unknown total, cancellation and late peer controls`, async ({ page, baseURL }, info) => {
+    await page.setViewportSize({ width, height }); await localOnly(page, baseURL); await installFixture(page, theme);
     const download = page.locator('[data-download-local]'), cancel = page.locator('[data-cancel-download]');
     await expect(download).toBeVisible(); await page.screenshot({ path: info.outputPath('empty.png') });
     await download.click(); await expect(page.locator('[data-download-confirm]')).toBeEnabled();
@@ -86,6 +135,7 @@ for (const [theme, width, height] of [['light', 1440, 1000], ['dark', 390, 844]]
     await page.locator('[data-download-confirm]').click(); await expect(cancel).toBeVisible();
     await expect.poll(() => page.evaluate(() => window.firstVisitor.ready())).toBe(true);
     await page.evaluate(() => window.firstVisitor.peer());
+    await expect(page.locator('[data-acquisition-status]')).toContainText('A computer is ready to answer on the network.');
     await expect(page.locator('[data-composer-send]')).toBeEnabled(); await expect(cancel).toBeVisible();
     await page.evaluate(() => window.firstVisitor.complete());
     await expect(cancel).toBeHidden();

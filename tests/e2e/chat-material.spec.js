@@ -44,7 +44,7 @@ async function installConversation(page, theme) {
     window.setVisualSources = ({ local = false, shared = true } = {}) => {
       const base = { ...model, name: 'Qwen 3.5 0.8B', localCached: local,
         availability: local ? 'cached' : shared ? 'ready' : 'unavailable', networkAvailability: shared ? 'ready' : 'unavailable' };
-      state.models = [base]; state.defaultModel = base; state.peerDiscoveryTimedOut = true;
+      state.models = [base]; state.defaultModel = base; state.peerDiscoveryTimedOut = true; state.discoveryPhase = 'observed';
       state.network = { consumer: { connectionState: 'connected', peers: [] } };
       listeners.forEach(callback => callback(state));
     };
@@ -86,7 +86,7 @@ async function installConversation(page, theme) {
             input: 'Check these public JSON edge cases.', options: {}, limits: { maxOutputTokens: 1024 } } : null }] };
       state = { models: [{ ...model, availability: mode === 'preparing' ? 'preparing' : empty ? 'unavailable' : 'ready' }], defaultModel: model,
         threads: empty ? [] : [thread], selectedId: empty ? null : thread.id,
-        activeThread: empty ? null : thread, runningIds: busy ? [thread.id] : [],
+        activeThread: empty ? null : thread, runningIds: busy ? [thread.id] : [], discoveryPhase: 'observed',
         network: { consumer: { peers: [] } } };
       listeners.forEach(callback => callback(state));
     };
@@ -159,7 +159,7 @@ test('compact chat keeps attempt status reachable and composer visible', async (
     }
     if (mode === 'empty') {
       // One status line under the composer explains a disabled Send.
-      await expect(page.locator('[data-model-status]')).toHaveText('Model unavailable.');
+      await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
       await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
     }
@@ -832,7 +832,7 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await page.locator('[data-change-model]').click();
   await expect(source).toHaveText(' · Public network');
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
-  await expect(page.locator('[data-model-status]')).toBeHidden();
+  await expect(page.locator('[data-model-status]')).toContainText('public computer can read your prompt');
   await expect(page.locator('[data-download-local]')).toBeHidden();
   await openModel();
   await page.locator('[data-execution-choice=local]').click();
@@ -846,9 +846,9 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await page.evaluate(() => window.setVisualSources({ local: true, shared: false }));
   await expect(page.locator('[data-composer-send]')).toBeDisabled();
   await expect(source).toHaveText(' · Unavailable');
-  await expect(page.locator('[data-model-status]')).toHaveText('No shared computer can answer with this model right now.');
+  await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
   await expect(page.locator('[data-download-local]')).toBeHidden();
-  await expect(page.locator('[data-retry-connection]')).toBeHidden();
+  await expect(page.locator('[data-retry-connection]')).toHaveText('Search again');
   expect(await page.locator('[data-composer-field]').boundingBox()).toEqual(field);
   await page.screenshot({ path: info.outputPath(`shared-departed-${width}.png`) });
   await openModel();

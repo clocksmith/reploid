@@ -4,20 +4,24 @@ import { createChatTestService } from '../fixtures/chat-service.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
 import { AUTO_DOWNLOAD_STORAGE_KEY } from '../../apps/poolday/ui/pool-home/auto-download.js';
 const cleanups = [];
+const observedDiscovery = {
+  discoveryPhase: 'observed', peerDiscoveryTimedOut: true,
+  network: { consumer: { connectionState: 'connected', peers: [] } }
+};
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); localStorage.removeItem(AUTO_DOWNLOAD_STORAGE_KEY); });
 // Legacy automatic-download preferences cannot bypass the explicit size-and-consent path.
-function fixture({ automatic = false } = {}) {
+function fixture({ automatic = false, viewState } = {}) {
   localStorage.setItem(AUTO_DOWNLOAD_STORAGE_KEY, automatic ? 'on' : 'off');
   const session = createChatSession({ storage: null, service: createChatTestService(), models: [CANONICAL_CHAT_MODELS[0]] });
   cleanups.push(() => session.close());
-  let state = { ...session.getState(), localDownloadIssue: null, peerDiscoveryTimedOut: false,
-    network: { connecting: true, consumer: { connectionState: 'retrying', peers: [] } } };
+  let state = { ...session.getState(), localDownloadIssue: null, peerDiscoveryTimedOut: false, discoveryPhase: 'searching',
+    network: { connecting: true, consumer: { connectionState: 'connecting', peers: [] } } };
   const listeners = new Set();
   const api = { ...session, getState: () => state, subscribe: callback => { listeners.add(callback); callback(state); return () => listeners.delete(callback); },
     getModelDownload: vi.fn(async id => ({ id, sizeBytes: 123000000 })), downloadLocalModel: vi.fn(async () => {}),
     cancelModelDownload: vi.fn(), connect: vi.fn(async () => {}) };
   const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-  const dispose = bindConversationWorkspace(root, api); cleanups.push(() => { dispose(); root.remove(); });
+  const dispose = bindConversationWorkspace(root, api, { viewState }); cleanups.push(() => { dispose(); root.remove(); });
   return { root, api, find: selector => root.querySelector(selector),
     publish(update) { state = { ...state, ...update }; listeners.forEach(callback => callback(state)); }, state: () => state };
 }
@@ -29,10 +33,82 @@ it('bounds the host discovery window even when signaling never connects, without
   expect(session.getState().peerDiscoveryTimedOut).toBe(true); expect(session.getState().acquisition.phase).toBe('idle');
   await session.close();
 });
+it('distinguishes discovery in progress, a transport interruption and observed absence of providers', async () => {
+  const f = fixture();
+  const status = f.find('[data-model-status]'), retry = f.find('[data-retry-connection]');
+  const alternative = f.find('[data-review-shared-model]');
+  expect(status.textContent).toMatch(/looking|finding|searching/i);
+  expect(alternative.hidden).toBe(true);
+  f.publish({ discoveryPhase: 'interrupted', peerDiscoveryTimedOut: true,
+    network: { consumer: { connectionState: 'retrying', peers: [] } } });
+  expect(status.textContent).toMatch(/interrupt|connection|connect to/i);
+  expect(retry.hidden).toBe(false);
+  expect(alternative.hidden).toBe(true);
+  retry.click();
+  await vi.waitFor(() => expect(f.api.connect).toHaveBeenCalledOnce());
+  f.publish(observedDiscovery);
+  expect(status.textContent).toMatch(/no .*computer|no .*provider/i);
+  expect(status.textContent).not.toMatch(/choose a shared model/i);
+  expect(alternative.hidden).toBe(true);
+  f.publish({ network: { ...observedDiscovery.network, connectionFailure: { peerId: 'departed-peer' } } });
+  expect(status.textContent).toContain('A peer connection failed. No eligible computer found');
+  expect(alternative.hidden).toBe(true);
+});
+
+it('only offers a switch for a reachable shared provider with capacity', () => {
+  const [requested, other] = CANONICAL_CHAT_MODELS;
+  const f = fixture({ viewState: { chosenModel: requested } });
+  const candidate = { ...other, availability: 'ready', networkAvailability: 'ready',
+    providerIds: ['peer'], reachableProviderIds: [] };
+  const publish = changes => f.publish({ ...observedDiscovery,
+    models: [{ ...requested, availability: 'unavailable' }, { ...candidate, ...changes }] });
+  const alternative = f.find('[data-review-shared-model]');
+  publish({});
+  expect(alternative.hidden).toBe(true);
+  publish({ availability: 'busy', networkAvailability: 'busy', reachableProviderIds: ['peer'] });
+  expect(alternative.hidden).toBe(true);
+  publish({ reachableProviderIds: ['peer'] });
+  expect(alternative.hidden).toBe(false);
+  expect(alternative.dataset.selectionId).toBe(other.id);
+  expect(f.find('[data-active-model-select]').value).toBe(requested.id);
+  publish({});
+  expect(alternative.hidden).toBe(true);
+});
+
+it('names the pre-send destination as the selected model moves between local and public execution', () => {
+  const f = fixture(), [model] = f.state().models;
+  const source = f.find('[data-composer-model-source]'), status = f.find('[data-model-status]');
+  f.publish({ ...observedDiscovery, models: [{
+    ...model, localCached: true, availability: 'cached', networkAvailability: 'unavailable'
+  }] });
+  expect(source.textContent).toMatch(/this device/i);
+  f.publish({ models: [{
+    ...model, localCached: false, availability: 'ready', networkAvailability: 'ready',
+    providerIds: ['public-peer'], reachableProviderIds: ['public-peer']
+  }] });
+  expect(source.textContent).toMatch(/public/i);
+  expect(status.hidden).toBe(false);
+  expect(status.textContent).toMatch(/prompt|message/i);
+  expect(status.textContent).toMatch(/read|see|receive/i);
+});
+
+it.each([
+  ['local execution', { executionLocation: 'local' }],
+  ['restricted recipients', { privacy: { profile: 'restricted', placement: 'network-allowed', allowedRecipients: ['private-device'] } }]
+])('keeps an unrelated public provider out of recovery for %s', (_name, policy) => {
+  const [requested, other] = CANONICAL_CHAT_MODELS;
+  const f = fixture({ viewState: { chosenModel: requested, ...policy } });
+  f.publish({ ...observedDiscovery, models: [
+    { ...requested, availability: 'unavailable' },
+    { ...other, availability: 'ready', networkAvailability: 'ready', providerIds: ['public'], reachableProviderIds: ['public'] }
+  ] });
+  expect(f.find('[data-review-shared-model]').hidden).toBe(true);
+});
+
 it('never turns Send into download or queues an automatic answer, even with an old automatic preference', async () => {
   const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0];
   f.api.send = vi.fn(() => Object.assign(Promise.resolve(), { admitted: Promise.resolve() }));
-  f.publish({ peerDiscoveryTimedOut: true });
+  f.publish(observedDiscovery);
   expect(f.find('[data-auto-download-toggle]')).toBeNull();
   expect(f.find('[data-composer-send]').disabled).toBe(true);
   f.find('[data-composer-input]').value = 'Hello'; f.find('[data-composer-form]').requestSubmit();
@@ -44,7 +120,7 @@ it('never turns Send into download or queues an automatic answer, even with an o
 });
 it('cancels an explicitly confirmed download while preserving the unsent draft', async () => {
   const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0]; f.api.send = vi.fn();
-  f.publish({ peerDiscoveryTimedOut: true }); f.find('[data-composer-input]').value = 'Hello';
+  f.publish(observedDiscovery); f.find('[data-composer-input]').value = 'Hello';
   f.find('[data-download-local]').click(); await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled(); f.find('[data-download-confirm]').click();
   await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
@@ -58,7 +134,7 @@ it('cancels an explicitly confirmed download while preserving the unsent draft',
 });
 it('offers explicit local download after no usable peers and reuses the existing size-and-consent dialog', async () => {
   const f = fixture(); expect(f.find('[data-download-local]').hidden).toBe(true);
-  f.publish({ peerDiscoveryTimedOut: true });
+  f.publish(observedDiscovery);
   expect(f.find('[data-download-local]').hidden).toBe(false); expect(f.find('[data-retry-connection]').hidden).toBe(false);
   f.find('[data-download-local]').click();
   await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
@@ -70,23 +146,29 @@ it('offers explicit local download after no usable peers and reuses the existing
   expect(f.api.downloadLocalModel).toHaveBeenCalledWith(CANONICAL_CHAT_MODELS[0].id, true);
 });
 it('does not let a perpetually preparing unusable peer hide the local fallback', () => {
-  const f = fixture(); f.publish({ peerDiscoveryTimedOut: true, models: [{ ...f.state().models[0], availability: 'loading' }] });
+  const f = fixture(); f.publish({ ...observedDiscovery, models: [{ ...f.state().models[0], availability: 'loading' }] });
   expect(f.find('[data-download-local]').hidden).toBe(false);
-  expect(f.find('[data-model-status]').textContent).toContain('This model is unavailable');
+  expect(f.find('[data-model-status]').textContent).toBe('Model preparing…');
+  expect(f.find('[data-composer-send]').disabled).toBe(true);
   expect(f.find('[data-acquisition-status]').hidden).toBe(true);
 });
 it('keeps downloads cancellable when a usable peer arrives and never fabricates unknown totals', () => {
   const f = fixture();
   f.publish({ acquisition: { phase: 'downloading', progress: { message: 'Downloading model files.', receivedBytes: 20, totalBytes: null } } });
   expect(f.find('[data-acquisition-progress]').hasAttribute('value')).toBe(false);
-  const ready = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready' };
+  const ready = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] };
   f.publish({ models: [ready], defaultModels: { auto: ready }, defaultModel: ready });
   expect(f.find('[data-composer-send]').disabled).toBe(false); expect(f.find('[data-cancel-download]').hidden).toBe(false);
-  expect(f.find('[data-acquisition-status]').textContent).toContain('Network capacity is available');
+  const status = f.find('[data-acquisition-status]');
+  expect(status.textContent).toContain('A computer is ready to answer on the network.');
+  f.publish({ models: [{ ...ready, availability: 'busy', networkAvailability: 'busy', reachableProviderIds: [] }] });
+  expect(status.textContent).toBe('Downloading model files.');
+  f.publish({ models: [{ ...ready, availability: 'cached', localCached: true, networkAvailability: 'unavailable', reachableProviderIds: [] }] });
+  expect(status.textContent).toBe('Downloading model files.');
   f.find('[data-cancel-download]').click(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
 });
 it('keeps capability failures actionable and checks failed metadata again without starting a download', async () => {
-  const f = fixture(); f.publish({ peerDiscoveryTimedOut: true, localDownloadIssue: 'This browser needs WebGPU.' });
+  const f = fixture(); f.publish({ ...observedDiscovery, localDownloadIssue: 'This browser needs WebGPU.' });
   expect(f.find('[data-download-local]').hidden).toBe(true);
   expect(f.find('[data-model-status]').textContent).toContain('WebGPU');
   expect(f.find('[data-acquisition-status]').hidden).toBe(true);
