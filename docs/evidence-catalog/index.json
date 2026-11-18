@@ -2,11 +2,12 @@
   "schema": "reploid.retained-evidence/v1",
   "sourceCommit": "e543183bed54dfdf2b6e6139dd4c31c8686f47bd",
   "sourceCommits": [
+    "7de41dccb4e3e6db550e5167a8edf4f856f9a012",
     "e543183bed54dfdf2b6e6139dd4c31c8686f47bd"
   ],
   "retention": "immutable Git history; no expiry for existing qualification evidence",
-  "fileCount": 7150,
-  "bytes": 1210393618,
+  "fileCount": 7152,
+  "bytes": 1217985245,
   "retainedInputs": [
     "artifacts/cleanup-failure-20261012/signed-preflight.js",
     "artifacts/concurrent-memory-observation-20261012/bounded-result/accounting-control.json",
@@ -102,8 +103,8 @@
     },
     {
       "path": "part-0017.json",
-      "count": 350,
-      "sha256": "7292151ca66c38ff3c621837afa926cf17f4771fff402e92ec20beb3963e3f9d"
+      "count": 352,
+      "sha256": "aec8816bff61fc05403f7b3689120e7df0055575afbf90191b06adaa838d44c1"
     }
   ]
 }
