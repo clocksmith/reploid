@@ -1,3 +1,4 @@
+import { parseSearchJson } from '../../shared/infrastructure/search-response.js';
 /**
  * @fileoverview Brave Search API web search, server side only. The subscription key travels in the
  * X-Subscription-Token header, never in the URL or a response. Requests are spaced to the plan's rate and
@@ -52,7 +53,7 @@ export function braveResults(body, count) {
 }
 
 function errorDetail(text) {
-  try { const detail = JSON.parse(text)?.error?.detail; return typeof detail === 'string' ? detail.slice(0, 300) : null; } catch { return null; }
+  try { const detail = parseSearchJson(text)?.error?.detail; return typeof detail === 'string' ? detail.slice(0, 300) : null; } catch { return null; }
 }
 
 export function createBraveSearch({ apiKey, fetch = globalThis.fetch, now = Date.now, endpoint = BRAVE_WEB_SEARCH_ENDPOINT,
@@ -130,7 +131,7 @@ export function createBraveSearch({ apiKey, fetch = globalThis.fetch, now = Date
         throw fail('provider-unavailable');
       }
       let body;
-      try { body = JSON.parse(text); } catch { throw new SearchProviderError('invalid-response', { status: response.status, detail: 'Response is not JSON', usage: { ...failed, billable: true, costMicroUsd: costMicroUsdPerQuery } }); }
+      try { body = parseSearchJson(text); } catch { throw new SearchProviderError('invalid-response', { status: response.status, detail: 'Response is not JSON', usage: { ...failed, billable: true, costMicroUsd: costMicroUsdPerQuery } }); }
       const results = braveResults(body, count);
       const usage = { provider: 'brave', requests: 1, billable: true, costMicroUsd: costMicroUsdPerQuery, rateLimit };
       if (!results) throw new SearchProviderError('invalid-response', { status: response.status, detail: 'Unexpected response shape', usage });

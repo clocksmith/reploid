@@ -1,3 +1,5 @@
+import { parseSearchJson, readSearchJson, searchTextChunks } from '../../../shared/infrastructure/search-response.js';
+
 /** A minimal client for a remote MCP server over the Streamable HTTP transport: initialize once,
  * list tools and call one. Responses may be JSON or an event stream; the session id the server
  * assigns is sent back on later requests. It connects only when a method is called. */
@@ -6,23 +8,22 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
 /** The JSON-RPC message answering `id` from a server-sent event stream. */
 async function readEventStream(response, id) {
-  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = '';
-  try {
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += value;
-      let end;
-      while ((end = buffer.search(/\r?\n\r?\n/)) >= 0) {
-        const event = buffer.slice(0, end); buffer = buffer.slice(end).replace(/^\r?\n\r?\n/, '');
-        const data = event.split(/\r?\n/).filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n');
-        if (!data) continue;
-        const message = JSON.parse(data);
-        if (message.id === id) return message;
-      }
+  const boundary = /\r?\n\r?\n/g;
+  for await (const chunk of searchTextChunks(response)) {
+    boundary.lastIndex = Math.max(0, buffer.length - 3);
+    buffer += chunk;
+    let match;
+    while ((match = boundary.exec(buffer))) {
+      const event = buffer.slice(0, match.index);
+      buffer = buffer.slice(boundary.lastIndex);
+      boundary.lastIndex = 0;
+      const data = event.split(/\r?\n/).filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n');
+      if (!data) continue;
+      const message = parseSearchJson(data);
+      if (message.id === id) return message;
     }
-  } finally { reader.releaseLock(); }
+  }
   throw new Error('The MCP server closed the stream without answering');
 }
 
@@ -33,7 +34,7 @@ export function createMcpClient({ url, token = '', fetch = globalThis.fetch.bind
     const headers = { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', 'MCP-Protocol-Version': protocolVersion };
     if (sessionId) headers['Mcp-Session-Id'] = sessionId;
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal });
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal, credentials: 'omit', redirect: 'error' });
     sessionId = response.headers.get('mcp-session-id') || sessionId;
     return response;
   }
@@ -42,7 +43,7 @@ export function createMcpClient({ url, token = '', fetch = globalThis.fetch.bind
     const response = await post({ jsonrpc: '2.0', id, method, ...(params ? { params } : {}) }, signal);
     assert(response.ok, `The MCP server answered ${response.status} to ${method}`);
     const message = (response.headers.get('content-type') || '').includes('text/event-stream')
-      ? await readEventStream(response, id) : await response.json();
+      ? await readEventStream(response, id) : await readSearchJson(response);
     assert(!message.error, `MCP ${method} failed: ${message.error?.message}`);
     return message.result;
   }
@@ -51,6 +52,7 @@ export function createMcpClient({ url, token = '', fetch = globalThis.fetch.bind
       const result = await request('initialize', { protocolVersion, capabilities: {}, clientInfo }, signal);
       protocolVersion = result?.protocolVersion || protocolVersion;
       const ack = await post({ jsonrpc: '2.0', method: 'notifications/initialized' }, signal);
+      void ack.body?.cancel().catch(() => {});
       assert(ack.ok || ack.status === 202, `The MCP server answered ${ack.status} to initialization`);
       return result;
     })().catch(error => { initialized = null; sessionId = null; throw error; });

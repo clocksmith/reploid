@@ -2,6 +2,9 @@
 // the permission rules, with results run through the library's retrieval. The server here is a fake.
 import { describe, expect, it } from 'vitest';
 import { createWebSearch, parseSearchResults, chooseSearchTool } from '../../apps/poolday/host/web-search.js';
+import { readSearchJson, parseSearchJson, SEARCH_RESPONSE_BYTES } from '../../shared/infrastructure/search-response.js';
+import { WEB_SEARCH_STORAGE_KEY } from '../../apps/poolday/host/web-search.js';
+import { createMcpClient } from '../../apps/poolday/host/mcp-client.js';
 import { createRetrieval } from '../../packages/reploid/src/retrieval/index.js';
 import { bindWebSearchSettings, renderWebSearchSettings } from '../../apps/poolday/ui/pool-home/web-search-settings.js';
 
@@ -79,4 +82,32 @@ describe('MCP web search', () => {
       .toEqual([{ url: 'https://b.example', title: 'Beta page', excerpt: 'Beta text.' }]);
     expect(chooseSearchTool([{ name: 'fetch_page', inputSchema: {} }, SEARCH_TOOL])).toEqual({ name: 'web_search', query: 'query', count: 'numResults' });
   });
+});
+
+it('keeps the token in this tab, revokes an old saved credential and clears it when switching recipients', () => {
+  const storage = memory();
+  storage.setItem(WEB_SEARCH_STORAGE_KEY, JSON.stringify({ enabled: true, url: 'https://one.example/mcp', token: 'old-credential' }));
+  const search = createWebSearch({ storage });
+  expect(search.state()).toMatchObject({ enabled: false, hasToken: false });
+  expect(storage.getItem(WEB_SEARCH_STORAGE_KEY)).not.toContain('old-credential');
+  search.configure({ token: 'new-credential' });
+  search.setEnabled(true);
+  expect(storage.getItem(WEB_SEARCH_STORAGE_KEY)).not.toContain('new-credential');
+  expect(createWebSearch({ storage }).enabled()).toBe(false);
+  search.configure({ url: 'https://two.example/mcp' });
+  expect(search.state()).toMatchObject({ hasToken: false, enabled: false });
+});
+
+it('bounds ordinary JSON, nested tool results and streamed event replies before parsing', async () => {
+  const deep = '['.repeat(65) + '1' + ']'.repeat(65);
+  expect(() => parseSearchResults({ content: [{ type: 'text', text: deep }] })).toThrow(/nesting/);
+  expect(parseSearchJson(JSON.stringify({ text: 'a [brace] in a string' }))).toEqual({ text: 'a [brace] in a string' });
+  await expect(readSearchJson(new Response(deep))).rejects.toThrow(/nesting/);
+  let cancelled = false;
+  const client = createMcpClient({ url: 'https://search.example/mcp', fetch: async () => new Response(new ReadableStream({
+    pull(controller) { controller.enqueue(new Uint8Array(SEARCH_RESPONSE_BYTES / 2 + 1)); },
+    cancel() { cancelled = true; }
+  }), { headers: { 'content-type': 'text/event-stream' } }) });
+  await expect(client.listTools()).rejects.toThrow(/byte limit/);
+  expect(cancelled).toBe(true);
 });

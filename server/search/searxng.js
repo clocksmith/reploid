@@ -1,3 +1,4 @@
+import { parseSearchJson } from '../../shared/infrastructure/search-response.js';
 /**
  * @fileoverview SearXNG search through its JSON API, GET {baseUrl}/search?format=json. Instances answer 403 when
  * `json` is not listed under search.formats in settings.yml, which public instances commonly do. SearXNG has
@@ -56,7 +57,7 @@ export function createSearxngSearch({ baseUrl, fetch = globalThis.fetch, now = D
         throw fail('provider-unavailable');
       }
       let body;
-      try { body = JSON.parse(text); } catch {
+      try { body = parseSearchJson(text); } catch {
         // An HTML page with status 200 usually means the instance ignored format=json.
         throw new SearchProviderError('invalid-response', { status: response.status, detail: 'Response is not JSON', usage });
       }

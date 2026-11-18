@@ -1,3 +1,4 @@
+import { readSearchJson } from '../../shared/infrastructure/search-response.js';
 /**
  * @fileoverview Operator-configured stronger-model entailment reviewer (packages/reploid/src/retrieval/model-reviewer.js)
  * over an OpenAI-compatible chat completions endpoint. Off unless REPLOID_SUPPORT_REVIEWER_ENDPOINT, _PROVIDER, _MODEL,
@@ -67,7 +68,7 @@ export function createConfiguredSupportReviewer({ env = process.env, fetch = glo
         body: JSON.stringify({ model: config.model, temperature: 0,
           messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }] }) });
       if (!response.ok) throw new Error(`The support reviewer returned HTTP ${response.status}`);
-      const payload = await response.json();
+      const payload = await readSearchJson(response);
       const reply = payload?.choices?.[0]?.message?.content;
       if (typeof reply !== 'string') throw new Error('The support reviewer returned no message');
       // OpenAI-compatible endpoints report prompt and completion tokens; absent counts stay unknown.

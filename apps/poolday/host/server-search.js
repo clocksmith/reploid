@@ -1,3 +1,4 @@
+import { readSearchJson } from '../../../shared/infrastructure/search-response.js';
 import { BRAVE_SEARCH_ORIGIN, SEARCH_DISCLOSURE_PROTOCOL, disclosureOrigin, serverSearchPath } from '../../../shared/vendor/reploid/retrieval/disclosure-path.js';
 /** Search-backed answers through Reploid's server search route (server/search). The server holds the search
  * service's key and fetches cited pages; this port only sends the query and asks for passages. Its route is
@@ -32,7 +33,7 @@ export function createServerSearch({ fetch = (...input) => globalThis.fetch(...i
     const response = await fetch(`${baseUrl}${ROUTE}${path}`, { method: body ? 'POST' : 'GET', headers,
       ...(body ? { body: JSON.stringify(body) } : {}), signal, credentials: 'same-origin', redirect: 'error' });
     let payload = null;
-    try { payload = await response.json(); } catch { /* reported below */ }
+    try { payload = await readSearchJson(response); } catch (error) { if (response.ok) throw error; }
     if (!response.ok) {
       const error = new Error(payload?.error?.message || `The search route returned HTTP ${response.status}`);
       error.code = payload?.error?.code || `http-${response.status}`; error.status = response.status;

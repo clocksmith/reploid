@@ -320,7 +320,7 @@ describe('server search port', () => {
           usage: { provider: 'brave', requests: 1, billable: true, costMicroUsd: 5000, rateLimit: null } }
         : { schema: 'reploid.server-passage/v1', url: 'https://example.org/a', text: 'tower text', retrievedAt: 6, contentHash: digest('d'),
           document: { url: 'https://example.org/a', status: 200, contentType: 'text/html', bytes: 900, byteSha256: digest('e'), characters: 40, sha256: digest('d'), start: 10, end: 20 } };
-      return { ok: true, status: 200, json: async () => reply };
+      return Response.json(reply);
     });
     const search = createServerSearch({ fetch });
     expect(await search.refresh()).toMatchObject({ state: 'ready', provider: 'brave' });
@@ -330,7 +330,7 @@ describe('server search port', () => {
     const passage = await search.extractor.extract({ source: found.results[0], query: 'tower', limits: { maxSourceCharacters: 1200 }, signal: null });
     expect(calls[2].body).toEqual({ url: 'https://example.org/a', fetchToken: 'token.9', query: 'tower', maxCharacters: 1200 });
     expect(passage).toMatchObject({ sourceId: 'web-0123456789abcdef', text: 'tower text', document: { start: 10, end: 20, sha256: digest('d') } });
-    const elsewhere = createServerSearch({ fetch: async () => ({ ok: true, json: async () => ({ enabled: true, provider: 'searxng' }) }) });
+    const elsewhere = createServerSearch({ fetch: async () => Response.json({ enabled: true, provider: 'searxng' }) });
     expect(await elsewhere.refresh()).toMatchObject({ state: 'unavailable', provider: 'searxng' });
   });
 
@@ -346,7 +346,7 @@ describe('server search port', () => {
         : url.endsWith('/search') ? { schema: 'reploid.server-search-results/v1', provider: { kind: 'brave', id: 'reploid.server-search/brave', version: '1' },
           results: [hit(1, 'Search title 1'), hit(2, 'Search title 2')], usage: { provider: 'brave', requests: 1, billable: true, costMicroUsd: null, rateLimit: null } }
         : body.fetchToken === 'token.1' ? page(1, '  Publisher page   one ') : page(2, '');
-      return { ok: true, status: 200, json: async () => reply };
+      return Response.json(reply);
     };
     const search = createServerSearch({ fetch });
     await search.refresh();

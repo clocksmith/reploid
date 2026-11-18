@@ -2,6 +2,7 @@
  * Turning it on is the stored, revocable permission to send each question to that server; changing
  * the server turns it off again. When on, a send opts into retrieval (vendor/reploid/retrieval): the
  * server's search tool runs before the model and its results become the numbered sources. */
+import { parseSearchJson } from '../../../shared/infrastructure/search-response.js';
 import { createMcpClient } from './mcp-client.js';
 
 export const WEB_SEARCH_STORAGE_KEY = 'reploid.web-search:v1';
@@ -52,7 +53,7 @@ export function parseSearchResults(result) {
   for (const block of result?.content || []) {
     if (block?.type === 'resource' && block.resource) take({ url: block.resource.uri, title: block.resource.name, text: block.resource.text });
     if (block?.type !== 'text' || typeof block.text !== 'string') continue;
-    try { visit(JSON.parse(block.text)); continue; } catch { /* not JSON: read it as text */ }
+    try { visit(parseSearchJson(block.text)); continue; } catch (error) { if (!(error instanceof SyntaxError)) throw error; }
     found.push(...parseTextResults(block.text));
   }
   const seen = new Set();
@@ -79,7 +80,19 @@ function parseTextResults(text) {
 }
 
 export function createWebSearch({ storage = globalThis.localStorage, fetch, now = Date.now } = {}) {
-  const read = () => { try { return { ...empty, ...JSON.parse(storage?.getItem(WEB_SEARCH_STORAGE_KEY) || '{}') }; } catch { return { ...empty }; } };
+  // Keep credentials in this instance only. Strip previously persisted credentials on first read.
+  const persist = settings => {
+    const { enabled, url, tool, enabledAt, token } = settings;
+    storage?.setItem(WEB_SEARCH_STORAGE_KEY, JSON.stringify({ enabled, url, tool, enabledAt, requiresToken: Boolean(token) }));
+  };
+  const read = () => {
+    try {
+      const { token, requiresToken, ...stored } = JSON.parse(storage?.getItem(WEB_SEARCH_STORAGE_KEY) || '{}');
+      const next = { ...empty, ...stored, ...(token || requiresToken ? { enabled: false, enabledAt: null } : {}) };
+      if (token !== undefined) persist(next);
+      return next;
+    } catch { return { ...empty }; }
+  };
   let settings = read(), client = null, status = { state: 'idle', message: '' };
   const listeners = new Set();
   const notify = () => { for (const listener of listeners) listener(snapshot()); };
@@ -92,11 +105,11 @@ export function createWebSearch({ storage = globalThis.localStorage, fetch, now 
   };
   const save = next => {
     settings = { ...empty, ...next };
-    try { storage?.setItem(WEB_SEARCH_STORAGE_KEY, JSON.stringify(settings)); } catch { /* storage is optional */ }
+    try { persist(settings); } catch { /* storage is optional */ }
     notify();
   };
-  async function resolveTool(signal) {
-    const choice = chooseSearchTool(await connection().listTools(signal), settings.tool);
+  async function resolveTool(signal, mcp = connection()) {
+    const choice = chooseSearchTool(await mcp.listTools(signal), settings.tool);
     assert(choice, settings.tool ? `The server has no tool named ${settings.tool} with a text query` : 'The server offers no search tool with a text query');
     return choice;
   }
@@ -107,9 +120,11 @@ export function createWebSearch({ storage = globalThis.localStorage, fetch, now 
     version: '1', supply: 'device',
     async search(query, limits, signal) {
       assert(settings.enabled && settings.url, 'Web search is off');
-      const tool = await resolveTool(signal);
+      const consent = settings, mcp = connection();
+      const tool = await resolveTool(signal, mcp);
+      assert(settings === consent && settings.enabled, 'Search settings changed before sending the question');
       const args = { [tool.query]: query, ...(tool.count ? { [tool.count]: limits.maxResults } : {}) };
-      const results = parseSearchResults(await connection().callTool(tool.name, args, signal)).slice(0, limits.maxResults * 2);
+      const results = parseSearchResults(await mcp.callTool(tool.name, args, signal)).slice(0, limits.maxResults * 2);
       const retrievedAt = now();
       return Promise.all(results.map(async result => ({ sourceId: `web-${(await sha256(result.url)).slice(7, 23)}`,
         url: result.url, title: result.title, excerpt: result.excerpt.slice(0, limits.maxSourceCharacters * 2),
@@ -123,8 +138,9 @@ export function createWebSearch({ storage = globalThis.localStorage, fetch, now 
     enabled: () => settings.enabled && Boolean(settings.url),
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
     /** A new server or credential turns search off: permission names the server it was given for. */
-    configure({ url = settings.url, token = settings.token, tool = settings.tool } = {}) {
+    configure({ url = settings.url, token, tool = settings.tool } = {}) {
       const trimmed = url.trim();
+      token ??= trimmed === settings.url ? settings.token : '';
       assert(!trimmed || /^https:\/\//.test(trimmed) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(trimmed),
         'Use an https:// MCP server URL (http:// only for localhost)');
       const changed = trimmed !== settings.url || token !== settings.token;

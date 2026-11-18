@@ -78,7 +78,7 @@ describe('separate per-answer cost entries', () => {
     const usage = createSearchUsage({ now: () => AT, maxQueriesPerDay: 1, logPath: 'usage.jsonl', appendFile: async (path, line) => { rows.push(JSON.parse(line)); } });
     const reviewer = createConfiguredSupportReviewer({ usage, env: { ...REVIEWER_ENV, REPLOID_SUPPORT_REVIEWER_USD_PER_MILLION_INPUT_TOKENS: '3',
       REPLOID_SUPPORT_REVIEWER_USD_PER_MILLION_OUTPUT_TOKENS: '15' },
-    fetch: async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: JUDGMENTS } }], usage: { prompt_tokens: 1200, completion_tokens: 300 } }) }) });
+    fetch: async () => Response.json({ choices: [{ message: { content: JUDGMENTS } }], usage: { prompt_tokens: 1200, completion_tokens: 300 } }) });
     const judgments = await reviewer.review(await packetFor(retrieval, record), { generator: GENERATOR, answer: 'attempt-1' });
     const price = { inputMicroUsdPerMillionTokens: 3_000_000, outputMicroUsdPerMillionTokens: 15_000_000 };
     expect(judgments.usage).toEqual({ inputTokens: 1200, outputTokens: 300, price, costMicroUsd: 3600 + 4500 });
@@ -188,8 +188,8 @@ describe('costs in conversations', () => {
 
   it('sends the answer key to the server route only, and builds records without costs as unknown', async () => {
     const calls = [];
-    const port = createServerSearch({ fetch: async (url, init) => { calls.push(JSON.parse(init.body)); return { ok: true, status: 200, json: async () => url.endsWith('/search')
-      ? { schema: 'reploid.server-search-results/v1', provider: { kind: 'brave' }, results: [] } : {} }; } });
+    const port = createServerSearch({ fetch: async (url, init) => { calls.push(JSON.parse(init.body)); return Response.json(url.endsWith('/search')
+      ? { schema: 'reploid.server-search-results/v1', provider: { kind: 'brave' }, results: [] } : {}); } });
     await port.provider.search('tower', { maxResults: 2 }, null, { answer: 'attempt-9' });
     expect(calls[0]).toEqual({ query: 'tower', count: 2, expectProvider: 'brave', answer: 'attempt-9' });
     // A record saved before costs existed gains an unknown retrieval entry rather than a zero one.

@@ -10,7 +10,7 @@ export function renderWebSearchSettings() {
     <details class="pool-disclosure" data-web-search-config><summary>Configure search server</summary><div class="pool-stack pool-gap-sm">
     <label class="pool-stack pool-gap-xs pool-small">MCP server URL
       <input class="pool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://" data-web-search-url></label>
-    <label class="pool-stack pool-gap-xs pool-small">Access token (optional)
+    <label class="pool-stack pool-gap-xs pool-small">Access token (optional, this tab only)
       <input class="pool-input" type="password" autocomplete="off" data-web-search-token></label>
     <label class="pool-stack pool-gap-xs pool-small">Search tool (optional)
       <input class="pool-input" type="text" autocomplete="off" spellcheck="false" placeholder="Found automatically" data-web-search-tool></label>
@@ -45,7 +45,7 @@ export function bindWebSearchSettings(root, webSearch, { search = null } = {}) {
     toggle.setAttribute('aria-describedby', 'web-search-help');
     if (document.activeElement !== url) url.value = state.url;
     if (document.activeElement !== tool) tool.value = state.tool;
-    token.placeholder = state.hasToken ? 'Saved' : '';
+    token.placeholder = state.hasToken ? 'Set for this tab' : '';
     const help = find('[data-web-search-disclosure]'); help.id = 'web-search-help';
     help.textContent = disclosure(state, search);
     report(state.status.message || (!state.url ? search?.state().message || '' : ''));
