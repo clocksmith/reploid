@@ -312,3 +312,7 @@ if (config.mode === 'pooled-split-host') {
     },
   });
 }
+
+// Native WebRTC addons (node-datachannel / wrtc) retain C++ worker threads after room close;
+// close stdout cleanly so CompleteRequestClient observes EOF + exit code 0 immediately.
+process.stdout.end(() => process.exit(process.exitCode ?? 0));
