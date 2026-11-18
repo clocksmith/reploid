@@ -343,3 +343,43 @@ it('rejects an invalid automatic replacement without changing the model', async 
   expect(app.getState().storageError).toContain('Disk unavailable');
   await app.close();
 });
+
+describe('policy-bound whole-model mesh disclosure', () => {
+  const peer = 'peer:' + 'b'.repeat(24), other = 'peer:' + 'c'.repeat(24);
+  async function run({ recipients = [peer], paired = false, delegation = paired, disclosure = 'provider-visible' } = {}) {
+    const { bindExecutionRoute, plaintextExecutionRoute } = await import('../../packages/reploid/src/chat/execution-policy.js');
+    const authorize = vi.fn(() => true);
+    const { app } = fixture(async (request, controls) => {
+      const route = plaintextExecutionRoute(request, { recipients,
+        ...(paired ? { route: { schema: 'reploid.paired-delegation/v1' } } : {}) });
+      const privacyBinding = await bindExecutionRoute(request, route);
+      const preview = { ...result(request, ''), id: 'bound-preview', peerId: peer, recipientIdentity: peer,
+        operation: 'generate', disclosure, expiresAt: Date.now() + 10000,
+        privacyBinding, ...(delegation ? { privateDelegation: { poolIdentity: 'pool' } } : {}) };
+      if (!await controls.requestApproval(preview)) throw Error('Disclosure declined');
+      return result(request, 'Peer answer');
+    });
+    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    const attempt = await app.send(thread, 'Hello', { authorizeDisclosure: authorize });
+    await app.close(); return { attempt, authorize };
+  }
+  it('accepts the public host provider-visible binding without paired delegation', async () => {
+    const { attempt, authorize } = await run();
+    expect(attempt.status).toBe('completed'); expect(authorize).toHaveBeenCalledTimes(1);
+    expect(attempt.authorization).toMatchObject({ disclosure: 'public', recipientIdentity: peer });
+    expect(attempt.privacyReceipt.recipients).toEqual([peer]);
+  });
+  it.each([[other], [peer, other]])('rejects omitted or additional public recipients %j before authorization', async (...values) => {
+    const { attempt, authorize } = await run({ recipients: values });
+    expect(attempt.status).toBe('failed'); expect(attempt.error).toMatch(/verified recipient/);
+    expect(authorize).not.toHaveBeenCalled();
+  });
+  it('retains paired requester inclusion and delegation requirements', async () => {
+    for (const options of [{ recipients: [other] }, { recipients: [peer, other], delegation: false }]) {
+      const { attempt, authorize } = await run({ paired: true, disclosure: 'public', ...options });
+      expect(attempt).toMatchObject({ status: 'failed', error: 'Paired route omitted its plaintext requester' });
+      expect(authorize).not.toHaveBeenCalled();
+    }
+    expect((await run({ paired: true, disclosure: 'public', recipients: [peer, other] })).attempt.status).toBe('completed');
+  });
+});

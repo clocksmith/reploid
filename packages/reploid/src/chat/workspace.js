@@ -392,9 +392,20 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             assert(scope || request.privacy.profile === 'provider-visible' && !request.privacy.allowedRecipients.length,
               'Privacy requires verified execution recipients');
             const recipients = scope ? disclosureRecipients(scope, preview) : [preview.peerId];
-            if (preview.privacyBinding) assert(preview.privateDelegation
-              && preview.privacyBinding.route.hops.some(hop => hop.placement === 'remote' && hop.recipient === preview.recipientIdentity),
+            if (preview.privacyBinding) {
+              const hops = preview.privacyBinding.route?.hops || [];
+              const paired = request.model.fleet || preview.privateDelegation
+                || preview.privacyBinding.route?.route?.schema === 'reploid.paired-delegation/v1';
+              if (paired) assert(preview.privateDelegation
+                && hops.some(hop => hop.placement === 'remote' && hop.recipient === preview.recipientIdentity),
               'Paired route omitted its plaintext requester');
+              else {
+                assert(scope && recipients.every(recipient => hops.some(hop => hop.placement === 'remote'
+                  && hop.recipient === recipient)), 'Execution binding omitted a verified recipient');
+                if (!request.model.partition) assert(hops.every(hop => hop.placement === 'remote'
+                  && recipients.includes(hop.recipient)), 'Execution binding substituted a verified recipient');
+              }
+            }
             const binding = await bindExecutionRoute(request, preview.privacyBinding?.route ?? plaintextExecutionRoute(request, {
               recipients: [...new Set(preview.inputRecipients ?? recipients)], route: scope?.route ?? request.model.partition ?? null }));
             controller.signal.throwIfAborted();
