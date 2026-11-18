@@ -8,6 +8,7 @@
     "src/adapters/model-adapter.js",
     "src/adapters/resident-execution.js",
     "src/chat/execution-policy.js",
+    "src/mesh/generation-settings.js",
     "src/mesh/web-access-network.js",
     "src/mesh/web-access-policy.json",
     "src/mesh/partitions/partition-attempt-evidence.js",

@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 382,
     "self": 457,
-    "shared": 2476
+    "shared": 2478
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16596,6 +16596,16 @@
     {
       "served": "vendor/reploid/mesh/generation-recovery.js",
       "source": "shared/vendor/reploid/mesh/generation-recovery.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/generation-settings.d.ts",
+      "source": "shared/vendor/reploid/mesh/generation-settings.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/generation-settings.js",
+      "source": "shared/vendor/reploid/mesh/generation-settings.js",
       "owner": "shared"
     },
     {

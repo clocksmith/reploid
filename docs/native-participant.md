@@ -387,9 +387,12 @@ partition routes. It prefers a ready whole-model route for the exact base model;
 adapter variants use their catalog `selectionId`. Artifact and adapter identities
 remain bound through disclosure and completion. A whole-model contributor and an
 ordinary requester remain separate roles: the requester does not load weights.
-The current whole-model mesh does not support caller-selected token ceilings, so
-it refuses Responses `max_output_tokens` and cannot serve Messages' required
-`max_tokens`. Completion metadata is provider-reported, not validated billing evidence.
+A whole-model route accepts a caller output limit only as a generation setting
+(`reploid.generation-settings/v1`), and only when every ready provider of the model
+advertises that it enforces it; Chat Completions sends its limit this way. The
+Responses `max_output_tokens` and Messages `max_tokens` paths still use the earlier
+generation request, which a whole-model route refuses below its prepared ceiling.
+Completion metadata is provider-reported, not validated billing evidence.
 
 The application server can mount `/v1/models`, `/v1/chat/completions` and
 `/v1/responses` before the earning router by setting
@@ -425,12 +428,13 @@ composition must still supply approved terms and those ledger/execution projecti
 
 | Surface | Implemented contract |
 | --- | --- |
-| `POST /v1/chat/completions` | `model`, `messages`, optional boolean `stream`; one text choice |
+| `POST /v1/chat/completions` | `model`, `messages`, optional boolean `stream`, optional positive integer `max_completion_tokens` (or its older name `max_tokens`); one text choice |
+| Output limit | Carried as generation settings and bound, with the messages and model identity, into the credit reservation, provider admission and signed receipt; the provider applies it. Refused with 400 before any disclosure when the route does not advertise it |
 | Messages | `system`, `user`, `assistant` with string `content` only |
 | Streaming | SSE deltas, stable completion identity, actual terminal reason and `[DONE]` only on success |
 | Termination | Stop token/sequence/EOS maps to `stop`; token/context limit maps to `length`; unknown reason fails |
 | Cancellation | HTTP disconnect aborts the existing requester; unresolved HTTP calls remain charged until their promises settle |
-| Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `max_tokens`, `n`, tools, structured outputs and other unrecognized fields |
+| Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `n`, tools, structured outputs and other unrecognized fields |
 | `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions`, boolean `stream`, caller `max_output_tokens`, and `text.format.type=json_object` |
 | Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response |
 | Responses termination | Stop/EOS completes; output-token limit is `incomplete/max_output_tokens` with `completed_at:null`; context-limit and unknown termination fail explicitly |

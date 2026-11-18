@@ -8,6 +8,10 @@ import { createNativeResidentProvider } from './native-resident-provider.js';
 import { createModelAdapterResolver, selectModelAdapters } from '../packages/reploid/src/adapters/model-adapter.js';
 import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
+import { GENERATION_SETTINGS_CAPABILITY, assertSettingsSupported, normalizeGenerationSettings } from '../packages/reploid/src/mesh/generation-settings.js';
+
+/** What this provider applies itself: the caller's output limit reaches the sampler options. */
+export const NATIVE_WHOLE_MODEL_SETTINGS = Object.freeze({ ...GENERATION_SETTINGS_CAPABILITY, maxOutputTokens: true });
 
 /** `fill({signal})`, when given, completes the model directory from verified peer pieces before
  * the manifest is read (server/native-model-files.js fillWholeModel); stop aborts it. */
@@ -44,6 +48,7 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
   })().finally(() => { stopping = null; });
   return Object.freeze({
     getState,
+    getGenerationSettingsCapability: () => NATIVE_WHOLE_MODEL_SETTINGS,
     getExecutionState() {
       const state = getState();
       return { ...state,
@@ -126,7 +131,12 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         return structuredClone(selected);
       });
       const ownerPolicyDigest = owner?.digest ?? null;
-      return Promise.resolve(resident.generate(messages, onUpdate, { ...controls, adapters }))
+      // Anything beyond the advertised capability is refused here rather than silently ignored.
+      const settings = normalizeGenerationSettings(controls.settings);
+      assertSettingsSupported(NATIVE_WHOLE_MODEL_SETTINGS, settings);
+      const limit = settings?.maxOutputTokens ?? null;
+      return Promise.resolve(resident.generate(messages, onUpdate, { ...controls, adapters,
+        ...(limit === null ? {} : { maxOutputTokens: limit }) }))
         .then(result => ({ ...result, ownerPolicyDigest }));
     },
     stop,

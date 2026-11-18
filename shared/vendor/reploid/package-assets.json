@@ -457,13 +457,13 @@
     },
     {
       "path": "artifacts/generation-terminal.d.ts",
-      "bytes": 768,
-      "sha256": "0c84bcbbab265af90d6628777a39b0a8480c8226a9704a763079b8b7e3eeb76d"
+      "bytes": 1041,
+      "sha256": "e6f7551f0367742deeab0dad434c024de1ef93975d44830bfe8426a48388003e"
     },
     {
       "path": "artifacts/generation-terminal.js",
-      "bytes": 2682,
-      "sha256": "930bcfa26ae43cd66980709bd3d69d69690b70fc786922b0b0723513d5d1fcf2"
+      "bytes": 3610,
+      "sha256": "098baf53be6629d3add039a224ec5dca7ced196a25b34c88254cbce82fc288e3"
     },
     {
       "path": "artifacts/identity.d.ts",
@@ -512,13 +512,13 @@
     },
     {
       "path": "artifacts/receipt.d.ts",
-      "bytes": 1585,
-      "sha256": "8dc01b87c8f4bb2081601eff99b32ebb2373d8d35281c67794c235ede5b3aca5"
+      "bytes": 1742,
+      "sha256": "132ecc5e456d0dda9c48a1dbd40cd110d732eabba58764ee400c180f8f93c159"
     },
     {
       "path": "artifacts/receipt.js",
-      "bytes": 4253,
-      "sha256": "1c28d6a0eb864ec416cf2336cf9d33018ec04fc51ea21dd27107017b32c3002e"
+      "bytes": 4459,
+      "sha256": "5078995ef872e258f1d4b2885d7d0cf86ebf6194b95e8607498e2092bc6bbead"
     },
     {
       "path": "artifacts/signatures.js",
@@ -537,13 +537,13 @@
     },
     {
       "path": "artifacts/whole-model-receipt.d.ts",
-      "bytes": 389,
-      "sha256": "3eaa87345513aea841e03768783ce841069f2a5320f5c546e3bd3c6389760b2a"
+      "bytes": 570,
+      "sha256": "804ab01adb32a1b59b0ef565e5ccd4c4e9d3e88a3f247928947ca0b18512e5c2"
     },
     {
       "path": "artifacts/whole-model-receipt.js",
-      "bytes": 2848,
-      "sha256": "6b5f81fcd8280b246f822ae5b3e1c897c592727b873212c01f03311d5aea27e0"
+      "bytes": 4854,
+      "sha256": "0681b8c08a7b11213b92621b72ee3d0a0ef7c901708da9061f5f009bd61b9c84"
     },
     {
       "path": "cancellation.d.ts",
@@ -984,6 +984,16 @@
       "path": "mesh/generation-recovery.js",
       "bytes": 3200,
       "sha256": "c60c165232a05ad0eff28701e3fc46f23d034a520a470b8d8adffeac4f1a9185"
+    },
+    {
+      "path": "mesh/generation-settings.d.ts",
+      "bytes": 2222,
+      "sha256": "afd3fea49b087cda01eb774a6a76b0cf3d6197c3c330aec90f8af57d8864df8a"
+    },
+    {
+      "path": "mesh/generation-settings.js",
+      "bytes": 11197,
+      "sha256": "bb3b988fc7a6a116a7efa7bdf1660e216750d054c2a4ad14f56b5cc25fce1edc"
     },
     {
       "path": "mesh/gpu-signature-shader.js",
@@ -1462,13 +1472,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 4642,
-      "sha256": "4e326c255b6025ba515b262c27e22c00846e641c4b4024444a92712c0d1ee324"
+      "bytes": 5756,
+      "sha256": "3716e821f4aa9fb3ed35eaa1fb9557830da2983c78b20ab0f9ddbd5abab8da2a"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 55468,
-      "sha256": "27b1916dc2d60d016309d5021016c7b33a523bcf885e462c9d78ee1731b2188c"
+      "bytes": 61280,
+      "sha256": "aeb6013eeb24179fee9ef1e9b757e3bc79b0d60ebee9361095430bd24a92c0ae"
     },
     {
       "path": "mesh/peer-identity.js",

@@ -38,7 +38,9 @@ export function getReceiptPayload(receipt = {}) {
     outputTokens: Math.max(0, Number(receipt.outputTokens || 0)),
     status: String(receipt.status || 'completed'),
     timestamp: Number(receipt.timestamp || Date.now()),
-    ...(Number(receipt.version) === 2 ? wholeModelReceiptFields({ ...receipt, version: 2 }) : {})
+    // Version 3 adds the signed settings binding to version 2 (see whole-model-receipt.js). Fields
+    // not listed for the receipt's version are never signed.
+    ...([2, 3].includes(Number(receipt.version)) ? wholeModelReceiptFields({ ...receipt, version: Number(receipt.version) }) : {})
   };
 }
 
@@ -101,7 +103,7 @@ export async function countersignReceipt(receipt, consumerBundle, cryptoApi = gl
 
 export async function verifyReceipt(receipt, cryptoApi = globalThis.crypto) {
   const payload = getReceiptPayload(receipt);
-  if (payload.version === 2 && (await createPeerIdFromPublicJwk(receipt.providerKey, cryptoApi) !== receipt.provider
+  if ([2, 3].includes(payload.version) && (await createPeerIdFromPublicJwk(receipt.providerKey, cryptoApi) !== receipt.provider
     || receipt.consumerSignature && await createPeerIdFromPublicJwk(receipt.consumerKey, cryptoApi) !== receipt.consumer)) {
     return { providerValid: false, consumerValid: false, valid: false };
   }

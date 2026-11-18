@@ -1,10 +1,22 @@
 /** Text Chat Completions protocol over the existing authenticated HTTP requester. */
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import { createTextRequester, fail, object, freeze } from './text-requester.js';
+import { normalizeGenerationSettings } from '../packages/reploid/src/mesh/generation-settings.js';
 
 export function parseTextChatCompletion(body) {
   if (!object(body)) throw fail(400, 'A JSON object is required');
-  for (const key of Object.keys(body)) if (!['model', 'messages', 'stream'].includes(key)) throw fail(400, `Unsupported parameter: ${key}`, key);
+  for (const key of Object.keys(body)) if (!['model', 'messages', 'stream', 'max_completion_tokens', 'max_tokens'].includes(key)) throw fail(400, `Unsupported parameter: ${key}`, key);
+  // The caller's output limit is the only generation setting this protocol accepts. It becomes a
+  // settings object that the provider enforces; `max_tokens` is the older name for the same limit.
+  let maxOutputTokens;
+  for (const key of ['max_completion_tokens', 'max_tokens']) {
+    if (body[key] === undefined) continue;
+    if (!Number.isSafeInteger(body[key]) || body[key] <= 0 || body[key] > policy.limits.maxTokens) {
+      throw fail(400, `${key} must be a positive integer within the route budget`, key);
+    }
+    if (maxOutputTokens !== undefined && maxOutputTokens !== body[key]) throw fail(400, 'max_completion_tokens and max_tokens differ', key);
+    maxOutputTokens = body[key];
+  }
   if (typeof body.model !== 'string' || !body.model.trim() || body.model.length > 256) throw fail(400, 'A bounded model id is required', 'model');
   if (body.stream !== undefined && typeof body.stream !== 'boolean') throw fail(400, 'stream must be boolean', 'stream');
   if (!Array.isArray(body.messages) || !body.messages.length || body.messages.length > 128) throw fail(400, 'Require 1–128 text messages', 'messages');
@@ -19,7 +31,8 @@ export function parseTextChatCompletion(body) {
     if (characters > policy.inputLimits.maxInputCharacters) throw fail(413, 'Input text limit exceeded', 'messages');
     return { role: message.role, content: message.content };
   });
-  return freeze({ model: body.model, messages, stream: body.stream === true });
+  return freeze({ model: body.model, messages, stream: body.stream === true,
+    ...(maxOutputTokens === undefined ? {} : { settings: normalizeGenerationSettings({ maxOutputTokens }) }) });
 }
 
 

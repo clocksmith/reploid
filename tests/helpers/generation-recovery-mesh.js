@@ -10,7 +10,7 @@ import { openNativeGenerationJournal } from '../../server/native-generation-jour
 
 export async function createRecoveryMesh(cleanup, { execute, settle = async () => true, identities: suppliedIdentities,
   modelId = 'model', modelIdentity = 'sha256:' + 'a'.repeat(64), messages = [{ role: 'user', content: 'original prompt' }],
-  authorize = async () => true, onGenerationTerminal, result } = {}) {
+  authorize = async () => true, onGenerationTerminal, result, ports = () => ({}), intercept = null } = {}) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'generation-recovery-'));
   cleanup.push(() => fs.rm(directory, { recursive: true, force: true }));
   const identities = suppliedIdentities || await Promise.all(['ECDSA', 'Ed25519'].map(algorithm => createSigningIdentity({ algorithm })));
@@ -21,6 +21,8 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
   const deliver = (i, type, payload) => {
     payload = structuredClone(payload); wire.push({ i, type, payload });
     if (dropResults && type === 'reploid:generation-result') return true;
+    // `intercept(type, payload, senderIndex)` may alter what is delivered; `wire` keeps what was sent.
+    if (intercept) { payload = structuredClone(payload); intercept(type, payload, i); }
     if (tamper && type === 'reploid:generation-recovery' && payload.outcome?.payload?.response) payload.outcome.payload.response.content = 'forged';
     queueMicrotask(() => Promise.resolve(handlers[1-i].get(type)?.(channels[i], payload)).catch(error => errors.push(error)));
     return true;
@@ -39,6 +41,8 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
       events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
       identity: { ensure: async () => identities[i], sync: async () => {}, save: async () => {} },
       generationJournal: i ? journal : null, settleGeneration: settle, onGenerationTerminal,
+      // Extra host ports for mesh `i` (0 requester, 1 provider), for example a settings capability.
+      ...ports(i),
       generate: async (...args) => { executions++; return execute ? execute(...args) : response; },
       createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => channels[i],
         getPeerBinding: () => ({ local: 'cert-' + channels[i], remote: 'cert-' + channels[1-i] }),
@@ -53,11 +57,13 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
   return { requesterMesh: meshes[0], wire, errors, identities, messages, response, get reference() { return reference; }, get executions() { return executions; },
     drop: () => { dropResults = true; }, tamper: () => { tamper = true; },
     async restartProvider() { await meshes[1].close(); journal.close(); channels[1] += '-restarted'; handlers[1].clear(); await open(1); reference.providerId = channels[1]; },
-    run: signal => meshes[0].generate(messages, null, { signal, modelId, modelIdentity, requestContext: { recoverable: true } }),
-    recover: () => meshes[0].recoverGeneration(reference, messages),
-    async replay(changes = {}) {
+    run: (signal, settings) => meshes[0].generate(messages, null, { signal, modelId, modelIdentity, requestContext: { recoverable: true }, ...(settings ? { settings } : {}) }),
+    recover: settings => meshes[0].recoverGeneration(reference, messages, undefined, settings ? { settings } : undefined),
+    async replay(changes = {}, omit = []) {
       const original = wire.find(item => item.type === 'reploid:generation-request').payload;
-      await handlers[1].get('reploid:generation-request')(channels[0], { ...original, provider: channels[1], ...changes });
+      const replayed = { ...original, provider: channels[1], ...changes };
+      for (const key of omit) delete replayed[key];
+      await handlers[1].get('reploid:generation-request')(channels[0], replayed);
     }
   };
 }

@@ -14,6 +14,8 @@ import { measureWholeModelReceipt, matchesWholeModelReceipt } from '../artifacts
 import { hashJson } from '../artifacts/signatures.js';
 import { signGenerationTerminal, verifyGenerationTerminal } from '../artifacts/generation-terminal.js';
 import { createGenerationRecovery, createMemoryGenerationJournal } from './generation-recovery.js';
+import { assertSettingsSupported, effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerationSettings,
+  normalizeGenerationSettingsCapability } from './generation-settings.js';
 
 const adapterSet = value => {
   if (!Array.isArray(value) || value.length > 1 || value.some(id => !/^sha256:[a-f0-9]{64}$/.test(id))) {
@@ -27,6 +29,7 @@ const matchesRequestedModel = (actual, requested) => (!requested.model || actual
   && (!requested.modelIdentity || actual.modelIdentity === requested.modelIdentity);
 const sameModelBinding = (actual, expected) => actual.model === expected.model
   && actual.modelIdentity === expected.modelIdentity;
+const digestValue = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
 
 // Whole-request generation by authorized peers over the swarm protocol: advertisement,
 // provider choice, streamed requests, receipts and recovery. Receipts are signed records,
@@ -68,6 +71,25 @@ export function createPeerGenerationMesh({ config, ports }) {
   let swarmInitPromise = null, swarmInitialized = false, swarmHandlersRegistered = false;
   const executionState = () => ports.getExecutionState?.() || { phase: modelConfig ? 'ready' : 'idle', modelIdentity: null };
   const ready = () => !closed && !!modelConfig && executionState().phase === 'ready';
+  // What this computer's own generate port enforces for per-request settings. Absent port: none.
+  const settingsCapability = () => modelConfig ? normalizeGenerationSettingsCapability(ports.getGenerationSettingsCapability?.()) : null;
+  // The receipt binding a requester expects for a request with settings: its own effective-request
+  // digest, and the output constraint identity its host expects for those settings (null: no expectation).
+  const expectedReceiptBinding = async (settings, settingsDigest) => {
+    if (!settings) return undefined;
+    const constraintIdentity = await ports.expectedConstraintIdentity?.(snapshotJson(settings)) ?? null;
+    if (constraintIdentity !== null && !digestValue(constraintIdentity)) throw new Error('Expected constraint identity must be a sha256 digest');
+    return { settingsDigest, constraintIdentity };
+  };
+  // A receipt for a request with settings is version 3 and signs this requester's digest; one for a
+  // request without settings is never version 3 and never names a settings digest or a constraint.
+  const receiptBindsRequest = (receipt, response, settings, bound) => {
+    if (!settings) return Number(receipt.version) !== 3 && receipt.settingsDigest === undefined && receipt.constraintIdentity === undefined;
+    return Number(receipt.version) === 3 && receipt.settingsDigest === bound.settingsDigest
+      && (bound.constraintIdentity === null || receipt.constraintIdentity === bound.constraintIdentity)
+      && (response?.constraintIdentity ?? null) === (receipt.constraintIdentity ?? null)
+      && (settings.maxOutputTokens === null || receipt.outputTokens <= settings.maxOutputTokens);
+  };
   const currentModelBinding = () => modelBinding(modelConfig?.id || null, executionState().modelIdentity);
   const bindingAvailable = (binding, adapters) => sameModelBinding(currentModelBinding(), binding)
     && supportsAdapters(executionState(), adapters);
@@ -207,6 +229,9 @@ export function createPeerGenerationMesh({ config, ports }) {
     advertisement.queuedJobs = inboundQueued.size;
     advertisement.modelContract = policy.models.contract;
     advertisement.identityProtocol = 1;
+    // Advertised only by a host that enforces settings, so other advertisements are unchanged.
+    const generationSettings = settingsCapability();
+    if (generationSettings) advertisement.generationSettings = generationSettings;
     swarmTransport.broadcast('reploid:peer-advertisement', advertisement);
     return advertisement;
   };
@@ -302,6 +327,9 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.queuedJobs = Number.isSafeInteger(payload.queuedJobs) && payload.queuedJobs > 0 ? payload.queuedJobs : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
+      const generationSettings = normalizeGenerationSettingsCapability(payload.generationSettings);
+      if (generationSettings) next.generationSettings = generationSettings;
+      else delete next.generationSettings;
     }
     if (next) {
       const connection = swarmTransport?.getPeerStates?.().find(peer => peer.id === remotePeerId);
@@ -367,8 +395,13 @@ export function createPeerGenerationMesh({ config, ports }) {
           || payload.receipt.consumer !== identityBundle?.peerId || payload.receipt.model !== response.model) {
           throw new Error('Remote receipt is invalid or does not bind this request');
         }
-        if (Number(payload.receipt.version) === 2 && (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity
-          || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response))) {
+        const bound = await expectedReceiptBinding(pending.settings, pending.settingsDigest);
+        if (!current()) return;
+        if (!receiptBindsRequest(payload.receipt, response, pending.settings, bound)) {
+          throw new Error('Receipt does not bind the generation settings of this request');
+        }
+        if ([2, 3].includes(Number(payload.receipt.version)) && (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity
+          || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
           throw new Error('Measured receipt differs from the admitted request or provider output');
         }
         const countersigned = await countersignReceipt(payload.receipt, identityBundle);
@@ -376,7 +409,8 @@ export function createPeerGenerationMesh({ config, ports }) {
         swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', { receipt: countersigned });
         await updateConsumerReceiptCount();
         response.executionReceipt = countersigned;
-      } else if (policy.models.contract !== null) {
+      } else if (policy.models.contract !== null || pending.settings) {
+        // A request with settings is accepted only with signed evidence of what was applied.
         throw new Error('Remote execution receipt is missing');
       }
       remoteRequests.settle(pending, { response });
@@ -401,6 +435,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           modelIdentity: pending.modelIdentity,
           adapterIdentities: pending.adapterIdentities,
           inputDigest: await hashJson(pending.messages),
+          ...(pending.settingsDigest ? { settingsDigest: pending.settingsDigest } : {}),
         };
         if (await verifyGenerationTerminal(payload.terminal, binding)) {
           error.generationTerminal = snapshotJson(payload.terminal);
@@ -540,6 +575,20 @@ export function createPeerGenerationMesh({ config, ports }) {
       return;
     }
     if (policy.models.contract !== null && JSON.stringify(snapshotJson(payload.modelContract ?? null)) !== JSON.stringify(policy.models.contract)) return;
+    // Settings arrive canonical or the request is refused: a provider never repairs or defaults them.
+    // The digest is computed here from the received messages, settings and this provider's model.
+    let settings, settingsDigest = null;
+    if (payload.settings !== undefined) {
+      try {
+        if (!isCanonicalGenerationSettings(payload.settings)) throw Error('Generation settings are not canonical');
+        settings = normalizeGenerationSettings(payload.settings);
+        assertSettingsSupported(settingsCapability(), settings);
+        settingsDigest = await effectiveRequestDigest({ modelIdentity: binding.modelIdentity, adapterIdentities: adapters, messages, settings });
+      } catch (error) {
+        swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: `Generation settings rejected: ${error.message}` });
+        return;
+      }
+    }
     const checkPrivacy = async () => {
       if (!payload.privacy) return null;
       const request = { privacy: payload.privacy, model: { id: binding.model, identity: binding.modelIdentity,
@@ -611,7 +660,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       if (payload.recoverable === true) {
         if (verifiedConsumer !== consumer) throw Error('Generation consumer identity changed');
         recoveryBinding = { requestId, provider: identityBundle.peerId, consumer, model: binding.model,
-          modelIdentity: binding.modelIdentity, adapterIdentities: adapters, inputDigest: await hashJson(messages) };
+          modelIdentity: binding.modelIdentity, adapterIdentities: adapters, inputDigest: await hashJson(messages),
+          ...(settingsDigest ? { settingsDigest } : {}) };
         const existing = await generationJournal.get(recoveryBinding);
         if (existing) {
           if (JSON.stringify(existing.binding) !== JSON.stringify(recoveryBinding)) throw Error('Generation replay binding changed');
@@ -645,8 +695,18 @@ export function createPeerGenerationMesh({ config, ports }) {
           requestId,
           chunk
         });
-      }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer, contextOwner, contextId, privacyBinding, privacy: assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: payload.privacy })) }, binding);
+      }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer, contextOwner, contextId, privacyBinding, privacy: assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: payload.privacy })),
+        ...(settings ? { settings } : {}) }, binding);
       controller.signal.throwIfAborted();
+      // With settings, the receipt signs the digest and the constraint the host reports it applied.
+      const measured = await measureWholeModelReceipt(messages, response, settings
+        ? { settingsDigest, constraintIdentity: response.constraintIdentity ?? null } : undefined);
+      if (settings) {
+        if (!measured) throw new Error('Generation settings require a measured completion');
+        if (settings.maxOutputTokens !== null && measured.outputTokens > settings.maxOutputTokens) {
+          throw new Error('Execution exceeded the admitted output limit');
+        }
+      }
 
       const receipt = await signReceiptDraft(
         await createReceiptDraft({
@@ -657,7 +717,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           inputTokens: 0,
           outputTokens: 0,
           status: 'unmetered',
-          ...await measureWholeModelReceipt(messages, response)
+          ...measured
         }),
         identityBundle
       );
@@ -814,12 +874,13 @@ export function createPeerGenerationMesh({ config, ports }) {
   };
 
 
-  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null } = {}) => {
+  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined } = {}) => {
     if (closed) throw new Error('Mesh is closed');
     const explicitPrivacy = privacy !== null;
     privacy = assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy }));
     signal?.throwIfAborted();
     messages = snapshotJson(messages);
+    settings = normalizeGenerationSettings(settings);
     requestContext = snapshotJson(requestContext);
     const contextId = requestContext?.contextId ?? null;
     if (contextId !== null && (typeof contextId !== 'string' || !contextId || contextId.length > 256)) throw Error('Invalid generation context ID');
@@ -830,7 +891,9 @@ export function createPeerGenerationMesh({ config, ports }) {
         throw new Error('Requested model is unavailable');
       }
       if (!supportsAdapters(executionState(), adapterIdentities)) throw new Error('Requested adapter is unavailable');
-      return generateBound(messages, onUpdate, { signal, adapterIdentities, contextOwner: 'local', contextId, privacy }, binding);
+      assertSettingsSupported(settingsCapability(), settings);
+      return generateBound(messages, onUpdate, { signal, adapterIdentities, contextOwner: 'local', contextId, privacy,
+        ...(settings ? { settings } : {}) }, binding);
     }
 
     if (!swarmEnabled) {
@@ -864,6 +927,9 @@ export function createPeerGenerationMesh({ config, ports }) {
     modelIdentity ||= provider.modelIdentity || null;
     try {
       if (remoteRequests.size >= policy.mesh.maxPendingJobs) throw new Error('Pending remote job limit exceeded');
+      // Refused from the chosen provider's own advertisement, before identity proof or any disclosure.
+      assertSettingsSupported(provider.generationSettings, settings);
+      const settingsDigest = settings ? await effectiveRequestDigest({ modelIdentity, adapterIdentities, messages, settings }) : null;
       const connectionBinding = JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null);
       const recipientIdentity = provider.identityProtocol === 1 ? await peerIdentity.verify(provider.peerId, signal) : null;
       // A blocked identity can return on a new connection before it is recognised. The proof above is
@@ -886,7 +952,8 @@ export function createPeerGenerationMesh({ config, ports }) {
         requestId, consumer: identityBundle.peerId, provider: provider.peerId,
         ...(contextId && provider.identityProtocol === 1 ? { contextId } : {}),
         model: modelId || provider.model || null, modelIdentity, adapterIdentities,
-        modelContract: policy.models.contract, ...(explicitPrivacy ? { privacy, privacyBinding, offerId: selectedOffer.id } : {}), messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {})
+        modelContract: policy.models.contract, ...(explicitPrivacy ? { privacy, privacyBinding, offerId: selectedOffer.id } : {}), messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {}),
+        ...(settings ? { settings: snapshotJson(settings) } : {})
       };
       if (Number.isSafeInteger(policy.webrtc?.maxMessageBytes) && policy.webrtc.maxMessageBytes > 0
         && new TextEncoder().encode(JSON.stringify(requestPayload)).byteLength > policy.webrtc.maxMessageBytes) {
@@ -894,7 +961,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, modelId, modelIdentity, messages: snapshotJson(messages),
         requestId, recipientIdentity, privacyBinding, offerId: selectedOffer?.id ?? null, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext),
-        placement: snapshotJson(placementChoices.get(provider) ?? null) }) !== true) {
+        placement: snapshotJson(placementChoices.get(provider) ?? null), ...(settings ? { settings: snapshotJson(settings) } : {}) }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
       }
       signal?.throwIfAborted();
@@ -904,11 +971,13 @@ export function createPeerGenerationMesh({ config, ports }) {
         || JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null) !== connectionBinding
         || currentProvider.model !== provider.model || currentProvider.modelIdentity !== provider.modelIdentity
         || !supportsAdapters(currentProvider, adapterIdentities)
-        || JSON.stringify(currentProvider.executionOffers ?? null) !== JSON.stringify(provider.executionOffers ?? null)) {
+        || JSON.stringify(currentProvider.executionOffers ?? null) !== JSON.stringify(provider.executionOffers ?? null)
+        || JSON.stringify(snapshotJson(currentProvider.generationSettings ?? null)) !== JSON.stringify(snapshotJson(provider.generationSettings ?? null))) {
         throw new Error('Selected contributor is no longer ready; retry requires new placement');
       }
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
-        providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal }, () =>
+        providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
+        ...(settings ? { settings, settingsDigest } : {}) }, () =>
         swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload));
       if (affinityKey) {
         contextProviders.delete(affinityKey);
@@ -922,13 +991,17 @@ export function createPeerGenerationMesh({ config, ports }) {
     }
   };
 
-  const recoverGeneration = async (reference, messages, signal) => {
+  const recoverGeneration = async (reference, messages, signal, { settings = undefined } = {}) => {
     await initialize(); signal?.throwIfAborted();
     reference = snapshotJson(reference); messages = snapshotJson(messages);
+    settings = normalizeGenerationSettings(settings);
     if (!reference?.requestId || !reference.providerIdentity || !reference.providerId) throw Error('Bound recovery reference required');
+    const adapters = adapterSet(reference.adapterIdentities);
+    const settingsDigest = settings ? await effectiveRequestDigest({ modelIdentity: reference.modelIdentity,
+      adapterIdentities: adapters, messages, settings }) : null;
     const binding = { requestId: reference.requestId, provider: reference.providerIdentity, consumer: identityBundle.peerId,
-      model: reference.modelId, modelIdentity: reference.modelIdentity, adapterIdentities: adapterSet(reference.adapterIdentities),
-      inputDigest: await hashJson(messages) };
+      model: reference.modelId, modelIdentity: reference.modelIdentity, adapterIdentities: adapters,
+      inputDigest: await hashJson(messages), ...(settingsDigest ? { settingsDigest } : {}) };
     const outcome = await recovery.read(reference, signal);
     signal?.throwIfAborted();
     if (closed) throw Error('Mesh closed during recovery');
@@ -941,12 +1014,14 @@ export function createPeerGenerationMesh({ config, ports }) {
     }
     const response = payload.response, receipt = payload.receipt;
     const verified = receipt && await verifyReceipt(receipt);
-    if (outcome.type !== 'reploid:generation-result' || receipt?.version !== 2 || !verified?.providerValid
+    const bound = await expectedReceiptBinding(settings, settingsDigest);
+    if (outcome.type !== 'reploid:generation-result' || receipt?.version !== (settings ? 3 : 2) || !verified?.providerValid
+      || !receiptBindsRequest(receipt, response, settings, bound)
       || !matchesRequestedModel(response, modelBinding(binding.model, binding.modelIdentity))
       || receipt.provider !== binding.provider || receipt.consumer !== binding.consumer || receipt.model !== binding.model
       || receipt.jobHash !== `request:${binding.requestId}` || receipt.modelIdentity !== binding.modelIdentity
       || JSON.stringify(receipt.adapterIdentities) !== JSON.stringify(binding.adapterIdentities)
-      || !await matchesWholeModelReceipt(receipt, messages, response)) throw Error('Unverified recovered completion');
+      || !await matchesWholeModelReceipt(receipt, messages, response, bound)) throw Error('Unverified recovered completion');
     response.executionReceipt = await countersignReceipt(receipt, identityBundle);
     signal?.throwIfAborted();
     if (closed) throw Error('Mesh closed during recovery');

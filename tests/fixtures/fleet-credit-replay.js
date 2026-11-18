@@ -14,7 +14,7 @@ function flipSignature(value) {
 function corruptedVariants(mode, evidence) {
   const variants = [];
   if (mode === 'whole-model') {
-    if (evidence.schema === 'reploid.generation-terminal/v1') {
+    if (typeof evidence.schema === 'string' && evidence.schema.startsWith('reploid.generation-terminal/')) {
       const copy = structuredClone(evidence);
       copy.signature = flipSignature(copy.signature);
       variants.push(copy);
@@ -64,6 +64,8 @@ try {
         const input = Object.fromEntries(['id', 'executionId', 'consumer', 'mode', 'model', 'inputDigest', 'maxOutputTokens', 'providers']
           .map(key => [key, request.binding[key]]));
         if (request.binding.route) input.route = request.binding.route;
+        // A request made with generation settings reserved their digest; retained reports before that have none.
+        if (request.binding.settingsDigest) input.settingsDigest = request.binding.settingsDigest;
         const reserved = ledger.reserve(input);
         assert.equal(reserved.maximum, request.binding.maximum);
         const heldDuringReserve = ledger.snapshot().accounts.find(row => row.id === request.binding.computerId);

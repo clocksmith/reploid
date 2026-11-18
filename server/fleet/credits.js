@@ -57,6 +57,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       assert(text(value.id) && text(value.executionId) && ['whole-model', 'partition'].includes(value.mode)
         && text(value.model?.id) && digest(value.model.identity) && Array.isArray(value.model.adapterIdentities)
         && value.model.adapterIdentities.every(digest) && digest(value.inputDigest)
+        && (value.settingsDigest === undefined || digest(value.settingsDigest) && value.mode === 'whole-model')
         && integer(value.maxOutputTokens) && value.maxOutputTokens > 0 && value.maxOutputTokens <= policy.maxOutputTokens
         && Array.isArray(value.providers) && value.providers.length > 0 && value.providers.length <= 128,
       'Invalid credit reservation');
