@@ -388,6 +388,7 @@
     "infrastructure/rate-limiter.js",
     "infrastructure/replay-engine.js",
     "infrastructure/scoped-model-provider.js",
+    "infrastructure/search-response.js",
     "infrastructure/stream-parser.js",
     "infrastructure/telemetry-timeline.js",
     "infrastructure/tool-call-constraint.js",
