@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import Mock, patch
 
 MODULE = Path(__file__).resolve().parents[1] / "fixtures" / "complete_request_client.py"
 SPEC = importlib.util.spec_from_file_location("complete_request_client", MODULE)
@@ -212,6 +213,23 @@ print('@q4-response '+json.dumps({'id':r['id'],'value':0}),flush=True)
                 client.request(payload, 1)
             self.assertIsNotNone(client._child.poll())
 
+    def test_darwin_group_cleanup_distinguishes_zombies_from_live_members(self):
+        client = object.__new__(CompleteRequestClient)
+        client._child = Mock(pid=123, **{"poll.return_value": 7})
+        with patch.object(CLIENT_MODULE.sys, 'platform', 'darwin'), \
+             patch.object(CLIENT_MODULE.os, 'killpg', side_effect=PermissionError), \
+             patch.object(CLIENT_MODULE.subprocess, 'run') as snapshot:
+            snapshot.return_value.stdout = "200 S\n123 Z+\n"
+            client._signal_owned_group(CLIENT_MODULE.signal.SIGKILL)
+            snapshot.return_value.stdout = "123 Z\n123 S\n"
+            with self.assertRaises(PermissionError):
+                client._signal_owned_group(CLIENT_MODULE.signal.SIGKILL)
+            snapshot.reset_mock()
+            client._child.poll.return_value = None
+            with self.assertRaises(PermissionError):
+                client._signal_owned_group(CLIENT_MODULE.signal.SIGKILL)
+            snapshot.assert_not_called()
+
     def test_timeout_terminates_owned_descendant(self):
         marker = Path(self.directory.name) / 'descendant-exit'
         client, log = self.client("""
@@ -222,8 +240,11 @@ def stopped(sig,frame):
     sys.exit(0)
 signal.signal(signal.SIGTERM,stopped)
 print('owned-descendant:'+str(sub.pid),flush=True)
+r=json.loads(sys.stdin.readline())
+print('@q4-response '+json.dumps({'id':r['id'],'value':'ready'}),flush=True)
 sys.stdin.readline();time.sleep(30)
 """.replace('MARKER', repr(str(marker))))
+        self.assertEqual(client.request({"op": "ready"}, 4)["value"], "ready")
         with self.assertRaises(TimeoutError):
             client.request({}, .2)
         self.assertIn('owned-descendant:', log.read_text())
@@ -237,11 +258,13 @@ sys.stdin.readline();time.sleep(30)
                       "fcntl.flock(handle,fcntl.LOCK_EX);pathlib.Path(" + repr(str(ready))
                       + ").write_text('ready');time.sleep(30)")
         client, _ = self.client("""
-sys.stdin.readline()
+r=json.loads(sys.stdin.readline())
 subprocess.Popen([sys.executable,'-c',DESCENDANT])
 while not os.path.exists(READY):time.sleep(.001)
-sys.exit(7)
+print('@q4-response '+json.dumps({'id':r['id'],'value':'ready'}),flush=True)
+sys.stdin.readline();sys.exit(7)
 """.replace('DESCENDANT', repr(descendant)).replace('READY', repr(str(ready))))
+        self.assertEqual(client.request({"op": "ready"}, 4)["value"], "ready")
         # The descendant keeps stdout open after its process leader exits.
         with self.assertRaises(TimeoutError):
             client.request({}, .25)

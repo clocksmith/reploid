@@ -6,6 +6,7 @@ from pathlib import Path
 import selectors
 import signal
 import subprocess
+import sys
 import threading
 import time
 
@@ -229,6 +230,26 @@ class CompleteRequestClient:
         if self._stderr is not None:
             self._stderr.close()
 
+    def _signal_owned_group(self, sig):
+        group = self._child.pid
+        try:
+            os.killpg(group, sig)
+        except ProcessLookupError:
+            return
+        except PermissionError:
+            if sys.platform != "darwin" or self._child.poll() is None:
+                raise
+            # Darwin may return EPERM for a group containing only zombies.
+            # An unreaped or inaccessible live member is still a cleanup failure.
+            rows = subprocess.run(
+                ["/bin/ps", "-A", "-o", "pgid=,stat="], capture_output=True,
+                text=True, check=True, timeout=2,
+            ).stdout.splitlines()
+            for row in rows:
+                pgid, state = row.split()
+                if int(pgid) == group and not state.startswith("Z"):
+                    raise
+
     def close(self):
         """Signal the owned process group and reap its direct child process."""
         if self._closed:
@@ -239,20 +260,14 @@ class CompleteRequestClient:
                 # Reap an already-exited leader before signalling its group;
                 # descendants can still retain that owned group and stdout.
                 self._child.poll()
-                try:
-                    os.killpg(self._child.pid, signal.SIGTERM)
-                except ProcessLookupError:
-                    pass
+                self._signal_owned_group(signal.SIGTERM)
                 try:
                     self._child.wait(timeout=2)
                 except subprocess.TimeoutExpired:
                     pass
                 # A group signalled above can retain descendants after its
                 # leader exits. Finish that same owned group before returning.
-                try:
-                    os.killpg(self._child.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
+                self._signal_owned_group(signal.SIGKILL)
                 self._child.wait(timeout=2)
         finally:
             self._release_resources()
