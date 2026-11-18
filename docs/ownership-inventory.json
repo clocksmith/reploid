@@ -19,10 +19,10 @@
   ],
   "counts": {
     "apps/poolday": 382,
-    "self": 457,
+    "self": 461,
     "shared": 2476
   },
-  "pendingMoves": 0,
+  "pendingMoves": 4,
   "violations": [],
   "packageMirrors": {
     "prefix": "vendor/",
@@ -2815,6 +2815,18 @@
       "basis": "Reached only from substrate entries."
     },
     {
+      "served": "infrastructure/output-constraint.d.ts",
+      "source": "shared/infrastructure/output-constraint.d.ts",
+      "owner": "self",
+      "basis": "Describes infrastructure/output-constraint.js. Runtime infrastructure charter; not loaded by the product."
+    },
+    {
+      "served": "infrastructure/output-constraint.js",
+      "source": "shared/infrastructure/output-constraint.js",
+      "owner": "self",
+      "basis": "Runtime infrastructure charter; not loaded by the product."
+    },
+    {
       "served": "infrastructure/pack-job-storage.d.ts",
       "source": "apps/poolday/infrastructure/pack-job-storage.d.ts",
       "owner": "apps/poolday",
@@ -2873,6 +2885,18 @@
       "source": "self/infrastructure/telemetry-timeline.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "infrastructure/tool-call-format.d.ts",
+      "source": "shared/infrastructure/tool-call-format.d.ts",
+      "owner": "self",
+      "basis": "Describes infrastructure/tool-call-format.js. Runtime infrastructure charter; not loaded by the product."
+    },
+    {
+      "served": "infrastructure/tool-call-format.js",
+      "source": "shared/infrastructure/tool-call-format.js",
+      "owner": "self",
+      "basis": "Runtime infrastructure charter; not loaded by the product."
     },
     {
       "served": "infrastructure/tool-executor.js",

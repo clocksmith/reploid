@@ -976,6 +976,14 @@
       "imports": []
     },
     {
+      "path": "infrastructure/output-constraint.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:a6af089423d0506c2f185a6102d6a9a4ca4e4a5acd96df56e0af39b6d42df40f",
+      "imports": [
+        "../vendor/reploid/hashing.js"
+      ]
+    },
+    {
       "path": "infrastructure/pack-job-storage.js",
       "owner": "infrastructure",
       "sha256": "sha256:758e7f8edb780e3aa3dc1c4612603e30469ef84b2ccb83a17671b522ab676153",
@@ -1039,6 +1047,14 @@
       "sha256": "sha256:026e9d62f47528f4bf79340408f4b964c205063d5e2e3b2815940539ca69b2d4",
       "imports": [
         "../core/run-replay-bundle.js"
+      ]
+    },
+    {
+      "path": "infrastructure/tool-call-format.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:ef15d5b90b2ba82e60f2f3e1a2d593fd4098fe6393b4d160e7454e0506221187",
+      "imports": [
+        "./output-constraint.js"
       ]
     },
     {

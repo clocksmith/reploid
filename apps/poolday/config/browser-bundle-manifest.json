@@ -1435,8 +1435,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 683853,
-      "sha256": "sha256:9b12c7ec304e9714e56353722e9454f917f7b17dc9cda9455eef7862d54f1137"
+      "byteLength": 684358,
+      "sha256": "sha256:7fb0f7c7836df86e75a8c3032e198a07acb20289894d968eed7e81d72064cd8b"
     },
     {
       "path": "config/module-registry.json",
@@ -2299,6 +2299,11 @@
       "sha256": "sha256:4cf63d537362058055af54c9b71230fd334234759236fb17d8b48a170a865d2a"
     },
     {
+      "path": "infrastructure/output-constraint.js",
+      "byteLength": 40374,
+      "sha256": "sha256:a6af089423d0506c2f185a6102d6a9a4ca4e4a5acd96df56e0af39b6d42df40f"
+    },
+    {
       "path": "infrastructure/pack-job-storage.js",
       "byteLength": 81,
       "sha256": "sha256:758e7f8edb780e3aa3dc1c4612603e30469ef84b2ccb83a17671b522ab676153"
@@ -2347,6 +2352,11 @@
       "path": "infrastructure/telemetry-timeline.js",
       "byteLength": 12796,
       "sha256": "sha256:026e9d62f47528f4bf79340408f4b964c205063d5e2e3b2815940539ca69b2d4"
+    },
+    {
+      "path": "infrastructure/tool-call-format.js",
+      "byteLength": 11128,
+      "sha256": "sha256:ef15d5b90b2ba82e60f2f3e1a2d593fd4098fe6393b4d160e7454e0506221187"
     },
     {
       "path": "infrastructure/tool-executor.js",
@@ -12649,5 +12659,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:aeb25e77d411e6274808be12f8412f8126584cd79bd21c21269a1feaf2138a1a"
+  "bundleHash": "sha256:a1ae07ed2c093336fe88db7959551a55ae059f958fdf644a9831f55bc7968360"
 }

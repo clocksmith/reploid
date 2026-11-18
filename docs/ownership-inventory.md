@@ -19,11 +19,11 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | Owner | Files |
 | --- | ---: |
 | apps/poolday | 382 |
-| self | 457 |
+| self | 461 |
 | shared | 2476 |
-| total | 3315 |
+| total | 3319 |
 
-Every file lives in its owner's root.
+4 files still live outside their owner's root; the Source column shows where.
 
 ## Package mirrors
 
@@ -502,6 +502,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/intent-bundle-gate.js` | `self/infrastructure/intent-bundle-gate.js` | self | Reached only from substrate entries. |
 | `infrastructure/model-storage-lock.js` | `apps/poolday/infrastructure/model-storage-lock.js` | apps/poolday | Reached only from product entries. |
 | `infrastructure/observability.js` | `self/infrastructure/observability.js` | self | Reached only from substrate entries. |
+| `infrastructure/output-constraint.d.ts` | `shared/infrastructure/output-constraint.d.ts` | self | Describes infrastructure/output-constraint.js. Runtime infrastructure charter; not loaded by the product. |
+| `infrastructure/output-constraint.js` | `shared/infrastructure/output-constraint.js` | self | Runtime infrastructure charter; not loaded by the product. |
 | `infrastructure/pack-job-storage.d.ts` | `apps/poolday/infrastructure/pack-job-storage.d.ts` | apps/poolday | Describes infrastructure/pack-job-storage.js. Reached only from product entries. |
 | `infrastructure/pack-job-storage.js` | `apps/poolday/infrastructure/pack-job-storage.js` | apps/poolday | Reached only from product entries. |
 | `infrastructure/pack-release-storage.js` | `apps/poolday/infrastructure/pack-release-storage.js` | apps/poolday | Reached only from product entries. |
@@ -512,6 +514,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/scoped-model-provider.js` | `shared/infrastructure/scoped-model-provider.js` | shared | Reached from native hosts and browser entries. |
 | `infrastructure/stream-parser.js` | `self/infrastructure/stream-parser.js` | self | Reached only from substrate entries. |
 | `infrastructure/telemetry-timeline.js` | `self/infrastructure/telemetry-timeline.js` | self | Reached only from substrate entries. |
+| `infrastructure/tool-call-format.d.ts` | `shared/infrastructure/tool-call-format.d.ts` | self | Describes infrastructure/tool-call-format.js. Runtime infrastructure charter; not loaded by the product. |
+| `infrastructure/tool-call-format.js` | `shared/infrastructure/tool-call-format.js` | self | Runtime infrastructure charter; not loaded by the product. |
 | `infrastructure/tool-executor.js` | `self/infrastructure/tool-executor.js` | self | Reached only from substrate entries. |
 | `infrastructure/trace-store.js` | `self/infrastructure/trace-store.js` | self | Reached only from substrate entries. |
 | `instance.js` | `shared/instance.js` | shared | Reached from native hosts and browser entries. |
