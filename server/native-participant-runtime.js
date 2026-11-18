@@ -38,7 +38,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  resolvePartitionSource = null, sourceRuntime = null }) {
+  resolvePartitionSource = null, sourceRuntime = null, rankProviders = null }) {
   if (sourceRuntime !== null) assertNativeRuntimeSourceMode({ roomId, publicRoomId: bootstrap.publicRoomId,
     executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
@@ -101,6 +101,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       return true;
     } : undefined,
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
+    ...(typeof rankProviders === 'function' ? { rankProviders } : {}),
     getExecutionState: () => whole ? { ...whole.getExecutionState(), ...(!wholeEarningReady ? { phase: 'idle' } : {}) } : { phase: 'idle' },
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
@@ -250,6 +251,18 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       recoverGeneration(request, reference, controls) {
         requireValue(!closed && wholeRequester, 'Native whole-model recovery unavailable');
         return wholeRequester.recover(request, reference, controls);
+      },
+      /** Proves the identity of each ready provider of this model, so a ranking by identity can apply to it.
+       * A provider that fails the proof is skipped here and keeps the default order. */
+      async verifyProviders(signal) {
+        requireValue(!closed && wholeRequester, 'Native whole-model requester unavailable');
+        const proven = [];
+        for (const peer of mesh.getSwarmSnapshot().peers || []) {
+          if (peer.role !== 'provider' || peer.readiness !== 'ready' || peer.modelIdentity !== model.identity) continue;
+          try { const proof = await mesh.verifyPeerIdentity(peer.peerId, signal); if (proof) proven.push(proof); }
+          catch { signal?.throwIfAborted(); }
+        }
+        return proven;
       },
       contribute: ownerGate ? async approved => {
         if (approved === true && !await ownerAdmission('contribute')) return;

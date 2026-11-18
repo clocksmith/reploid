@@ -334,6 +334,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
     : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
   let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
+  assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
+  // Opt-in: the coordinator's measured order over whole-model providers, refreshed before each credited request.
+  const providerRanking = { order: [], estimates: [] };
   const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
 
   function recordOutcome(outcome) {
@@ -452,11 +455,18 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     try {
       if (participant) await participant.close();
       participant = null; selected = null;
-      const bytes = await fs.readFile(path.join(entry.directory, 'manifest.json'));
-      assert('sha256:' + createHash('sha256').update(bytes).digest('hex') === entry.model.identity, 'Owner-selected model manifest changed');
+      // With a piece cache, a whole-model directory that lacks its manifest is completed from authorized peers
+      // before loading; the fill verifies every piece and file against the model's pinned identities.
+      const fillable = Boolean(config.cacheDirectory) && entry.mode === 'whole-model' && entry.fillFromPeers === true;
+      const manifestIdentity = async () => 'sha256:' + createHash('sha256')
+        .update(await fs.readFile(path.join(entry.directory, 'manifest.json'))).digest('hex');
+      const present = await fs.access(path.join(entry.directory, 'manifest.json')).then(() => true, () => false);
+      if (present || !fillable) assert(await manifestIdentity() === entry.model.identity, 'Owner-selected model manifest changed');
       participant = await createNativeParticipant({ model: entry.model, modelDirectory: entry.directory, identity, rtc, WebSocket,
         signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: () => gpu.open(),
-        cacheDirectory: null, owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
+        cacheDirectory: config.cacheDirectory ?? null, owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
+        rankProviders: () => config.rankProviders === true && providerRanking.order.length ? providerRanking.order : null,
+        onModelFill: progress => onChange({ modelFill: progress }),
         executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model }) : null,
         generationJournalFile: path.join(path.dirname(config.identityFile), 'generation.sqlite'),
         logger: { info() {}, log() {}, debug() {}, warn: (...args) => onChange({ warning: args.join(' ') }), error: (...args) => onChange({ error: args.join(' ') }) },
@@ -464,6 +474,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       selected = entry;
       if (contribute) await participant.contribute(true);
       assert(participant.getState()?.phase !== 'failed', participant.getState()?.error || 'Model preparation failed');
+      if (contribute && fillable && !present) assert(await manifestIdentity() === entry.model.identity, 'Filled model manifest differs from the selected model');
+      // Supplying this model's pieces to other computers in the room is a separate owner choice.
+      if (contribute && config.cacheDirectory && entry.mode === 'whole-model' && entry.shareModelFiles === true) await participant.share(true);
       preparedAt = Date.now(); return state();
     } catch (error) { lastError = error.message; throw error; }
     finally { preparing = false; drainRequesterQueue(); onChange(state()); }
@@ -743,8 +756,26 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
             onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.
           } };
+        let placement = null;
+        if (credits && config.rankProviders === true && !request.model.partition) {
+          try {
+            await participant.verifyProviders(controller.signal);
+            // The input size is a UTF-8 byte estimate, as for published demand; it is not a token count.
+            const ranked = await credits.call('rank', { id: request.model.id, identity: request.model.identity,
+              promptTokens: Math.max(1, Math.ceil(Buffer.byteLength(request.messages.map(row => row.content).join('\n')) / 4)),
+              outputTokens: Math.min(config.maxOutputTokens, request.model.generation?.maxTokens ?? config.maxOutputTokens) });
+            providerRanking.order = ranked.providers.flatMap(row => row.participantIds);
+            providerRanking.estimates = ranked.providers.map(row => ({ computerId: row.computerId, estimatedMs: row.estimatedMs, busy: row.busy }));
+          } catch (error) {
+            controller.signal.throwIfAborted();
+            providerRanking.order = []; providerRanking.estimates = [];
+            onChange({ warning: 'Provider ranking unavailable; using the default order: ' + error.message });
+          }
+          controls.onRoute = chosen => { placement = { ...(chosen.placement ?? {}), estimates: structuredClone(providerRanking.estimates) }; };
+        }
         const requester = credits ? createFleetRequester(requesterPorts({ participant })) : participant;
-        const result = await requester.generate(request, controls);
+        let result = await requester.generate(request, controls);
+        if (placement) result = { ...result, execution: { ...result.execution, placement } };
         return slot.queuedMs > 0
           ? { ...result, execution: { ...result.execution, admission: { ...(result.execution?.admission || {}), queuedMs: slot.queuedMs } } }
           : result;

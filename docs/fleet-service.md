@@ -97,7 +97,19 @@ mesh then reports the provider it chose, the reason (`conversation-affinity`,
 `host-ranking` or `default-order`) and the eligible providers it considered with
 the disclosure the requester approves. Without a ranking the order is the
 self-reported contribution score, then connection id; neither measures speed.
-The native host does not pass this ranking yet; the journey scenario below does.
+The native host does this when its configuration sets `rankProviders: true`: it
+proves each ready provider's identity, asks the coordinator for the order before
+each credited whole-model request, and returns the choice as
+`execution.placement`. If the ranking is unavailable it warns and keeps the
+default order. This path is covered by the journey scenario below, not yet by a
+physical run.
+
+A host with an absolute `cacheDirectory` can complete a whole-model directory
+from authorized peers in its room: a model entry with `fillFromPeers: true` may
+start without its manifest, and every piece and file is verified against the
+model's pinned identities before loading. A model entry with
+`shareModelFiles: true` supplies its verified pieces to other computers in the
+room. Both are off unless set.
 
 ## Running
 
