@@ -228,6 +228,7 @@ try {
   service = await startFleetService({ credits, port: config.coordinator.port, listenHost: config.coordinator.listenHost, models: [model],
     tls: { key: await fs.readFile(config.coordinator.keyFile), cert: certificate },
     placementPolicy: { maxMeasurementAgeMs: 86400000, maxObservationAgeMs: 600000, minResidencyMs: 1, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
+  if (new URL(service.url).pathname !== new URL(config.coordinator.url).pathname) throw Error(`coordinator.url must be the address hosts use for this service: ${service.url.replace(/^https:\/\/[^/]+/, 'https://<host>:<port>')}`);
   report.policy = policy; report.computers = enrolled.map(row => ({ id: row.id, name: row.name }));
 
   // 2. Providers that hold the model load it and offer its pieces. The one without it fills from them, then loads.

@@ -476,7 +476,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       assert(participant.getState()?.phase !== 'failed', participant.getState()?.error || 'Model preparation failed');
       if (contribute && fillable && !present) assert(await manifestIdentity() === entry.model.identity, 'Filled model manifest differs from the selected model');
       // Supplying this model's pieces to other computers in the room is a separate owner choice.
-      if (contribute && config.cacheDirectory && entry.mode === 'whole-model' && entry.shareModelFiles === true) await participant.share(true);
+      if (contribute && config.cacheDirectory && entry.mode === 'whole-model' && entry.shareModelFiles === true) await participant.shareFiles(true);
       preparedAt = Date.now(); return state();
     } catch (error) { lastError = error.message; throw error; }
     finally { preparing = false; drainRequesterQueue(); onChange(state()); }
