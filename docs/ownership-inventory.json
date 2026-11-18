@@ -1624,7 +1624,7 @@
       "served": "config/firebase-public.json",
       "source": "shared/config/firebase-public.json",
       "owner": "shared",
-      "basis": "Reached from product and substrate entries."
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/genesis-levels.json",

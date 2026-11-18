@@ -303,7 +303,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/doppler-metadata-contract.provenance.json` | `apps/poolday/config/doppler-metadata-contract.provenance.json` | apps/poolday | Describes config/doppler-metadata-contract.js. Reached only from product entries. |
 | `config/doppler-package.json` | `shared/config/doppler-package.json` | shared | Reached from native hosts and browser entries. |
 | `config/file-tool-schemas.json` | `self/config/file-tool-schemas.json` | self | Reached only from substrate entries. |
-| `config/firebase-public.json` | `shared/config/firebase-public.json` | shared | Reached from product and substrate entries. |
+| `config/firebase-public.json` | `shared/config/firebase-public.json` | shared | Reached from native hosts and browser entries. |
 | `config/genesis-levels.json` | `self/config/genesis-levels.json` | self | Reached only from substrate entries. |
 | `config/genesis-template.json` | `self/config/genesis-template.json` | self | Substrate module registry, Genesis levels and Zero configuration. |
 | `config/immutability.js` | `shared/config/immutability.js` | shared | Reached from product and substrate entries. |
