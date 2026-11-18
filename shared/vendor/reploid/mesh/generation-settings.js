@@ -100,7 +100,8 @@ export function normalizeGenerationSettings(value, { assertSchema } = {}) {
     assertSchema?.(parameters, `${path}.parameters`);
     tools.push({ name: tool.name, description, parameters });
   }
-  let toolChoice = value.toolChoice === undefined ? (tools.length ? 'auto' : 'none') : value.toolChoice;
+  let toolChoice = value.toolChoice;
+  if (toolChoice === undefined) toolChoice = tools.length ? 'auto' : 'none';
   if (plainObject(toolChoice)) {
     if (Object.keys(toolChoice).join() !== 'name' || !names.has(toolChoice.name)) {
       throw invalid('toolChoice must name one declared tool', 'toolChoice');

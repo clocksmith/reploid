@@ -992,8 +992,8 @@
     },
     {
       "path": "mesh/generation-settings.js",
-      "bytes": 11868,
-      "sha256": "8f2ff52193f4fd5997e87306875cb0aab45abc816e2f500eabcdb5773238ecaa"
+      "bytes": 11877,
+      "sha256": "af37e85b321004bc6e3fe48739b1b423ed84354f42f1d7e6a23c0c94758e0b98"
     },
     {
       "path": "mesh/gpu-signature-shader.js",

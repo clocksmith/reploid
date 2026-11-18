@@ -506,8 +506,10 @@ function buildMachine(plan) {
       }
       return false;
     },
-    plainRun: state => (state.k !== K_STR || state.b !== 0 ? -1
-      : state.n.maxLength === null ? Infinity : state.n.maxLength - state.a)
+    plainRun(state) {
+      if (state.k !== K_STR || state.b !== 0) return -1;
+      return state.n.maxLength === null ? Infinity : state.n.maxLength - state.a;
+    }
   };
 }
 
