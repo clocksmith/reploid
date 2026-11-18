@@ -39,7 +39,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
+  onPartitionReceiveTiming, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
   requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
   if (sourceRuntime !== null) assertNativeRuntimeSourceMode({ roomId, publicRoomId: bootstrap.publicRoomId,
     executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
@@ -216,7 +216,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }
-    if (!wholeMode) partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport.getPeerId() : null, policy),
+    if (!wholeMode) partitions = createAutomaticPartitions({ onReceiveTiming: onPartitionReceiveTiming, identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport.getPeerId() : null, policy),
       canonical: epochs ? { runtime: canonicalRuntime, participantEpoch: epochs.participantEpoch, coordinatorEpoch: epochs.coordinatorEpoch } : null,
       peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport.getPeerId() })),
       createNetwork(options) {

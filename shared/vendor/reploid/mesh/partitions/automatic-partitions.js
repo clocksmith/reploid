@@ -13,10 +13,10 @@ import { canonicalPartitionJson, assertPartition as assert } from './partition-c
 /** Automatic placement over authenticated discovery. Only the supplied host
  * loader may open Doppler, and only after local contribution approval. */
 export function createAutomaticPartitions({ identity, meshId, models, policy, peers, createNetwork,
-  loadProgram, canonical = null, ordered = null, onChange = () => {} }) {
+  loadProgram, canonical = null, ordered = null, onReceiveTiming, onChange = () => {} }) {
   if (ordered !== null) {
     assert(canonical === null, 'Ordered automatic participation is distinct from canonical publication');
-    return createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork, loadProgram, ordered, onChange });
+    return createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork, loadProgram, ordered, onReceiveTiming, onChange });
   }
   const config = structuredClone(policy), catalog = structuredClone(models);
   for (const model of catalog) assert(model.partitionContributionIndexes === undefined
@@ -151,7 +151,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
             localParticipantId: identity.peerId, remoteParticipantId, runtime: program.runtime,
             modelIdentity: program.model.identity, plan: program.plan, planId: program.planId, authority,
             canonical: !!canonical, contributor: program.resident.index === 1 ? program.resident : null, limits: config.executionChannel,
-            receiverLimits: config.receiver, descriptorTtlMs: config.inputLimits.descriptorTtlMs }) });
+            onReceiveTiming, receiverLimits: config.receiver, descriptorTtlMs: config.inputLimits.descriptorTtlMs }) });
         phase = 'ready'; progress = null; notify();
       } catch (cause) {
         for (const owner of preparationOwners) unsettledOwners.add(owner);

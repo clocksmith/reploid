@@ -28,7 +28,7 @@
     "maxPreparationMs": 1200000
   },
   "executionChannel": {
-    "maxFrameBytes": 16384,
+    "maxFrameBytes": 65536,
     "maxControlBytes": 131072,
     "maxPayloadBytes": 33554432,
     "maxPendingBytes": 67108864,
@@ -39,7 +39,7 @@
     "timeoutMs": 300000
   },
   "controlChannel": {
-    "maxFrameBytes": 16384,
+    "maxFrameBytes": 65536,
     "maxControlBytes": 131072,
     "maxPayloadBytes": 8388608,
     "maxPendingBytes": 16777216,
@@ -50,7 +50,7 @@
     "timeoutMs": 10000
   },
   "inputChannel": {
-    "maxFrameBytes": 16384,
+    "maxFrameBytes": 65536,
     "maxControlBytes": 131072,
     "maxPayloadBytes": 33554432,
     "maxPendingBytes": 67108864,

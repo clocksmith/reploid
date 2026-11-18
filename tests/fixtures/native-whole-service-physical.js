@@ -1,5 +1,6 @@
 // Private, explicitly provisioned native service check; never joins the public room.
 import fs from 'node:fs/promises';
+import {createProviderTimingCollector} from './provider-timing-collector.js';
 import assert from 'node:assert/strict';
 import { randomUUID,createHash } from 'node:crypto';
 import {pathToFileURL} from 'node:url';
@@ -24,6 +25,8 @@ class WS extends Socket {constructor(url){super(url,{origin:'http://localhost:80
 const report={started:new Date().toISOString(),role:c.role,pid:process.pid,participantId:identity.peerId,model:{id:c.model.id,identity:c.model.identity},rows:[]};
 report.fixtureSha256=sha(await fs.readFile(new URL(import.meta.url)));
 report.nativeParticipantSha256=sha(await fs.readFile(new URL('../../server/native-participant.js',import.meta.url)));
+const providerTiming=c.providerTiming===true?createProviderTimingCollector():null;
+if(providerTiming)report.providerTiming=providerTiming.receipt;
 const save=()=>fs.writeFile(c.output,JSON.stringify(report,null,2)+'\n');
 const logger={log(){},info(){},debug(){},warn(...v){console.error(...v)},error(...v){console.error(...v)}};
 let participant,service,device,provider,parts,resolvePartitionSource;
@@ -86,7 +89,7 @@ try{
  participant=await createNativeParticipant({model:c.model,modelDirectory:c.modelDirectory,identity,
   rtc:createNativeRtcAdapter(rtcModule),WebSocket:WS,signalingUrl:bootstrap.signalingUrl,
   roomId:c.roomId,roomToken:await fs.readFile(c.roomTokenFile,'utf8'),nativeGpu,executionMode,ordered:c.ordered??null,
-  createWholeModel:factory,resolvePartitionSource,logger});
+  onPartitionReceiveTiming:providerTiming?.observe,createWholeModel:factory,resolvePartitionSource,logger});
  if(c.role==='provider'){
   const t=performance.now();report.phase='loading';await save();await participant.contribute(true);
   if(executionMode==='partition'){

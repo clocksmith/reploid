@@ -127,4 +127,34 @@ describe('authenticated immutable route-keyed network (injected certificate veri
     try{await expect(f.networks[0].connect('transport-1',{route:f.route})).rejects.toThrow();expect(f.owners).toEqual([[],[]]);}
     finally{await f.close();}
   });
+  it('coalesces header and activation into a single binary frame when within maxFrameBytes and fragments cleanly above it',async()=>{
+    const { channels } = await import('../helpers/memory-peer-network.js');
+    const { partitionBinaryResult } = await import('../../packages/reploid/src/transport/partition-data-channel.js');
+    const [left, right] = channels();
+    const wideLimits = { maxFrameBytes: 65536, maxControlBytes: 65536, maxPayloadBytes: 262144,
+      maxPendingBytes: 524288, maxPendingRequests: 4, maxRequestsPerChannel: 64,
+      maxBufferedBytes: 524288, maxTransferBytes: 4194304, timeoutMs: 2000 };
+    const sender = createPartitionDataChannel({ channel: left, localParticipantId: 'peer-a', remoteParticipantId: 'peer-b',
+      limits: wideLimits, authorize: async () => true, serve: async () => ({}) });
+    const receiver = createPartitionDataChannel({ channel: right, localParticipantId: 'peer-b', remoteParticipantId: 'peer-a',
+      limits: wideLimits, authorize: async () => true,
+      serve: async (meta, bytes) => partitionBinaryResult({ echoed: meta.step, len: bytes.length }, bytes) });
+    try {
+      const activation = Uint8Array.from({ length: 20480 }, (_, i) => (i * 29 + 3) & 0xff);
+      const reply = await sender.request({ step: 1, tag: 'decode-activation' }, activation, { maxResponseBytes: 20480 });
+      expect(reply.result).toEqual({ echoed: 1, len: 20480 });
+      expect([...reply.bytes]).toEqual([...activation]);
+      expect(sender.getReceipt().sentFrames).toBe(1);
+      expect(receiver.getReceipt().sentFrames).toBe(1);
+
+      const multiChunk = Uint8Array.from({ length: 90000 }, (_, i) => (i * 13 + 7) & 0xff);
+      const reply2 = await sender.request({ step: 0, tag: 'prefill-activation' }, multiChunk, { maxResponseBytes: 90000 });
+      expect(reply2.result).toEqual({ echoed: 0, len: 90000 });
+      expect([...reply2.bytes]).toEqual([...multiChunk]);
+      expect(sender.getReceipt().sentFrames).toBe(3);
+    } finally {
+      sender.close();
+      receiver.close();
+    }
+  });
 });

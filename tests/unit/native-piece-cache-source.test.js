@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import * as runtime from 'doppler-gpu/partitions';
 import { openDiagnosticModelSource } from '../fixtures/native-diagnostic-source.js';
 
@@ -135,3 +136,14 @@ it('retains failed descriptor closes for an explicit cleanup retry', async () =>
   expect(close).toHaveBeenCalledTimes(3);
   expect(source.getReceipt().pieceCache.pendingDescriptorCloses).toBe(0);
 });
+
+
+it.skipIf(process.platform === 'win32')('rejects a FIFO and settles cleanup without waiting for a writer', async () => {
+  const f = await fixture();
+  await fs.unlink(f.piece);
+  execFileSync('mkfifo', [f.piece]);
+  const source = await openDiagnosticModelSource(f);
+  await expect(source.storage.loadShardRange(0, 0, 4)).rejects.toThrow(/regular file/u);
+  await source.storage.close();
+  expect(source.getReceipt().pieceCache.activeReadBytes).toBe(0);
+}, 2000);

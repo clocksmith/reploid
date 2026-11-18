@@ -9,9 +9,9 @@ import { assertPartition as assert, samePartitionIdentity, partitionFingerprint,
 
 /** Authenticated A-to-B partition RPC. Hosts establish channel identities before constructing it. */
 export function createPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan, planId,
-  modelIdentity, authority, contributor = null, limits, receiverLimits, canonical = false, ordered = null }) {
+  modelIdentity, authority, contributor = null, limits, receiverLimits, canonical = false, ordered = null, onReceiveTiming }) {
   if (ordered) return createOrderedPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan, planId,
-    modelIdentity, authority, contributor, limits, receiverLimits, canonical, ordered });
+    modelIdentity, authority, contributor, limits, receiverLimits, canonical, ordered, onReceiveTiming });
   plan = structuredClone(plan); receiverLimits = structuredClone(receiverLimits);
   assert(runtime?.deserializeActivationFrame && authority?.verify, 'Partition codecs and grant verifier required');
   const activationContract = partitionActivationContract(runtime, plan);
@@ -125,7 +125,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     },
   });
   const notify = () => { notifyObservers(listeners, getState); };
-  const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits,
+  const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits, onReceiveTiming,
     async authorize({ action, metadata, byteLength }) {
       if (metadata.operation === 'describe') return byteLength === 0;
       if (!binding(metadata.identity)) return false;

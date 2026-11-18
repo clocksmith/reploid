@@ -9,14 +9,27 @@ const GRANT_REFERENCE = 'reploid.partition-grant-reference/v1';
 const GRANT_FIELDS = ['executionGrant', 'tokenContextGrant', 'incomingActivationGrant', 'outgoingActivationGrant', 'outputGrant'];
 const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 const unique = values => [...new Set(values)];
-const grantDigest = grant => partitionFingerprint({ schema: GRANT_REFERENCE, grant });
+const grantDigestCache = new Map();
+const grantDigest = async grant => {
+  const sig = typeof grant?.signature === 'string' ? grant.signature : null;
+  if (sig) {
+    const json = canonicalPartitionJson(grant);
+    const cached = grantDigestCache.get(sig);
+    if (cached?.json === json) return cached.digest;
+    const digest = await partitionFingerprint({ schema: GRANT_REFERENCE, grant });
+    if (grantDigestCache.size >= 256) grantDigestCache.delete(grantDigestCache.keys().next().value);
+    grantDigestCache.set(sig, { json, digest });
+    return digest;
+  }
+  return partitionFingerprint({ schema: GRANT_REFERENCE, grant });
+};
 const isReference = value => value?.schema === GRANT_REFERENCE && Object.keys(value).length === 2
   && /^sha256:[a-f0-9]{64}$/.test(value.digest);
 /** Ordered mode of the existing peer. Binary outputs return to the explicitly disclosed coordinator
  * on the reply to the step that produced them. A step names a signed grant already delivered for its
  * attempt by digest; the stage resolves it only from grants it verified for that attempt. */
 export function createOrderedPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan,
-  planId, modelIdentity, authority, contributor, limits, receiverLimits, ordered, canonical }) {
+  planId, modelIdentity, authority, contributor, limits, receiverLimits, ordered, canonical, onReceiveTiming }) {
   assert(!canonical, 'Ordered canonical peer is unsupported');
   plan = structuredClone(plan); ordered = structuredClone(ordered); receiverLimits = structuredClone(receiverLimits); limits = structuredClone(limits);
   const { route, partitionIndex: index } = ordered, stage = route?.stages?.[index], coordinatorId = route?.stages?.[0]?.participantId;
@@ -27,6 +40,17 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     && localParticipantId === stage.participantId && ['transportId', 'residentId', 'executionId'].every(key => contributor[key] === stage[key])
     : localParticipantId === coordinatorId && remoteParticipantId === stage.participantId, 'Ordered channel participant mismatch');
   const ready = validatePartitionRoute(runtime, plan, route); ready.catch(() => {});
+  const generationDigests = new Map();
+  const hashGeneration = async generation => {
+    if (!generation || typeof generation !== 'object') return runtime.hashPartitionGeneration(generation);
+    const json = canonicalPartitionJson(generation);
+    const cached = generationDigests.get(json);
+    if (cached) return cached;
+    const digest = await runtime.hashPartitionGeneration(generation);
+    if (generationDigests.size >= 64) generationDigests.delete(generationDigests.keys().next().value);
+    generationDigests.set(json, digest);
+    return digest;
+  };
   const confirmed = new Map(), retirementReceipts = new Map();
   let undeliveredRetirements = 0;
   const active = new Map(), reservations = new Map(), settlements = new Map(), inflight = new Set(), outputCharacters = new Map(), listeners = new Set();
@@ -128,6 +152,8 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         const total = (outputCharacters.get(request.identity.attemptId) || 0) + result.delta.length;
         assert(total <= request.executionGrant.claim.limits.maxOutputCharacters, 'Ordered output budget exhausted');
         outputCharacters.set(request.identity.attemptId, total);
+        const { logits: _logits, ...finalResult } = result;
+        return finalResult;
       }
       return result;
     },
@@ -153,7 +179,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     })().catch(error => { settlements.delete(identity.attemptId); throw error; });
     return record.promise;
   };
-  const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits,
+  const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits, onReceiveTiming,
     async authorize({ action, metadata, byteLength }) {
       await ready;
       if (closed || retiring && !['settle', 'settle-accepted', 'retired'].includes(metadata.operation)) {
@@ -178,7 +204,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         return byteLength === 0 && !!known && sameRouteAttemptIdentity(known.identity, metadata.identity)
           && known.generationDigest === metadata.generationDigest && await execution(metadata, true);
       }
-      if (!await execution(metadata) || await runtime.hashPartitionGeneration(metadata.generation) !== metadata.generationDigest) return false;
+      if (!await execution(metadata) || await hashGeneration(metadata.generation) !== metadata.generationDigest) return false;
       if (metadata.operation === 'reserve') {
         const allowed = byteLength === 0
           && Number.isSafeInteger(metadata.maxTokens) && metadata.maxTokens > 0

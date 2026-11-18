@@ -14,7 +14,7 @@ function channels() {
 it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners', async count => {
   const f = stageFixture(count), identities = await Promise.all(Array.from({length:count+1}).map(()=>createSigningIdentity({algorithm:'ECDSA'})));
   const listeners = identities.map(()=>new Map()), opens = [], meshes = [], loads = [], models = [{id:f.route.modelId,identity:f.route.modelIdentity,name:'Synthetic'}];
-  let signaling = true;
+  let signaling = true; const received=[];
   f.route.stages.forEach((stage,index)=>{stage.participantId=identities[index].peerId;f.stages[index].id=stage.participantId;});
   f.plan.partitions.forEach((stage,index)=>{stage.layerRange=[index*2,index*2+1];});
   f.stages.forEach((stage,index)=>Object.assign(stage,{index,canAccept:()=>true,close:vi.fn(async()=>{}),subscribe:()=>()=>{},
@@ -36,7 +36,7 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
           const receive=listeners[target].get(label);if(!receive)throw Error('Endpoint unavailable');
           receive(`transport-${index}`,pair[1]);return pair[0];}};
       const loadProgram=vi.fn(async()=>({model:models[0],runtime:f.runtime,plan:f.plan,planId:f.route.planId,resident:f.stages[index]}));loads.push(loadProgram);
-      meshes.push(createAutomaticPartitions({identity:identities[index],meshId:'mesh',models,policy,
+      meshes.push(createAutomaticPartitions({onReceiveTiming:(timing,metadata)=>received.push({index,timing,metadata}),identity:identities[index],meshId:'mesh',models,policy,
         ordered:{stage:index<count?f.route.stages[index]:null,maxRouteBytes:32768,maxSelectionSteps:256,maxRoutes:4},
         peers:()=>signaling?identities.map((_,i)=>({id:`transport-${i}`,localTransportId:`transport-${index}`})).filter(row=>row.id!==`transport-${index}`):[],
         createNetwork:options=>createPartitionNetwork({...options,transport,verifyPeer:async peer=>identities[Number(peer.split('-').at(-1))].peerId}),loadProgram}));
@@ -54,6 +54,8 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
       meshes[0].generate({model:meshes[0].getModels().find(model=>model.partition?.route.stages[0].participantId===identities[0].peerId),
         messages:[{role:'user',content:'Local synthetic request'}],threadId:'local',attemptId:'local'},
         {requestApproval:localApproval,onActivity:event=>localActivity.push(event),onDelta:event=>localDeltas.push(event.text)})]);
+    await vi.waitFor(()=>expect(received.filter(row=>row.metadata.operation==='step')).toHaveLength(6*(count-1)));
+    expect(received.filter(row=>row.metadata.operation==='step').every(row=>row.index>0&&row.index<count&&row.timing.totalMs>=0)).toBe(true);
     expect(remote.content).toBe('012');expect(local.content).toBe('012');expect(remoteDeltas.join('')).toBe('012');expect(localDeltas.join('')).toBe('012');
     expect(remoteActivity.map(row=>row.sequence)).toEqual([0,1,2]);expect(localActivity.map(row=>row.sequence)).toEqual([0,1,2]);
     expect(remoteActivity.at(-1).stepSummary.stages).toEqual(remote.execution.stepSummary.stages);expect(localActivity.at(-1).stepSummary.stages).toEqual(local.execution.stepSummary.stages);

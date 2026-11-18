@@ -36,6 +36,8 @@ export interface AutomaticPartitions {
   generate(request: ChatRequest & { threadId: string; attemptId: string }, controls: ChatControls): Promise<ChatResult>;
 }
 export interface AutomaticPartitionOptions {
+  /** Optional host-local transport diagnostics; not published in discovery or receipts. */
+  onReceiveTiming?: import('../../transport/partition-data-channel.js').PartitionReceiveTimingObserver;
   ordered?: never;
   canonical?:{runtime:PartitionRuntime & CanonicalRunnerRuntime;coordinatorEpoch:string;participantEpoch:string}|null;
   identity: SigningIdentity; meshId: string; models: ChatModel[]; policy: AutomaticPartitionPolicy;
