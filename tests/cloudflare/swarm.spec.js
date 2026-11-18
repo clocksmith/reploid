@@ -49,7 +49,7 @@ it('isolates public/private namespaces and persists a private capability across 
   a.send(join('private-a', room, token)); await a.wait('joined');
   b.send(join('public-b')); expect((await b.wait('joined')).peers).toEqual([]);
   b.send({ type: 'offer', peerId: 'public-b', targetPeer: 'private-a', offer: {} });
-  expect((await b.wait('error')).error).toContain('namespace');
+  expect((await b.wait('peer-unavailable')).error).toContain('namespace');
   await evictDurableObject(env.ROOMS.getByName(`private:${room}`));
   const intruder = await connect(room); intruder.send(join('private-c', room, 'b'.repeat(32)));
   expect((await intruder.wait('error')).error).toContain('Unauthorized');
@@ -283,4 +283,19 @@ it('shares the public room across hosted and arbitrary loopback origins without 
     const credentials = await exports.default.fetch('https://worker.test/rtc-config', { headers: { Origin: origin } });
     expect(credentials.status).toBe(401);
   }
+});
+
+
+it('keeps sender membership when late negotiation races a peer departure', async () => {
+  const a = await connect(), b = await connect(), c = await connect();
+  a.send(join('race-a')); await a.wait('joined');
+  b.send(join('race-b')); await b.wait('joined');
+  c.send(join('race-c')); await c.wait('joined');
+  c.ws.close(); expect((await a.wait('peer-left')).peerId).toBe('race-c');
+  a.send({ type: 'offer', peerId: 'race-a', targetPeer: 'race-c', offer: { type: 'offer', sdp: 'late' } });
+  expect((await a.wait('peer-unavailable')).code).toBe('peer_unavailable');
+  a.send({ type: 'offer', peerId: 'race-a', targetPeer: 'race-b', offer: { type: 'offer', sdp: 'still-connected' } });
+  expect((await b.wait('offer')).offer.sdp).toBe('still-connected');
+  expect(b.messages.filter(message => message.type === 'peer-left').map(message => message.peerId)).not.toContain('race-a');
+  expect(a.ws.readyState).toBe(1);
 });

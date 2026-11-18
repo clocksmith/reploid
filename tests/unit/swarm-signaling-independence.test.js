@@ -406,3 +406,18 @@ it('delivers generation recovery queries and outcomes across direct WebRTC data 
     provider.swarm.disconnect();
   }
 });
+
+it('keeps actual client signaling and surviving peers after nonfatal missing-target notification', async () => {
+  vi.useFakeTimers(); const f = fixture();
+  try {
+    await f.open();
+    await f.sockets[0].receive({ type: 'peer-unavailable', code: 'peer_unavailable', error: 'Target peer is not in this namespace' });
+    expect(f.sockets[0].readyState).toBe(1);
+    expect(f.swarm.getConnectionState()).toBe('connected');
+    expect(f.swarm.sendToPeer('direct', 'sync-request', { afterDeparture: true })).toBe(true);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(f.sockets).toHaveLength(1);
+    expect(f.connections[0].close).not.toHaveBeenCalled();
+    expect(f.sockets[0].send.mock.calls.map(([data]) => JSON.parse(data).type)).toContain('heartbeat');
+  } finally { f.swarm.disconnect(); }
+});

@@ -77,7 +77,14 @@ export class SwarmRoom extends DurableObject {
       const negotiation = negotiationError(message);
       if (negotiation) return await this.reject(ws, negotiation);
       const target = this.sockets().find(socket => socket.deserializeAttachment()?.peerId === message.targetPeer && !socket.deserializeAttachment()?.joining);
-      if (!target) return await this.reject(ws, 'Target peer is not in this namespace');
+      if (!target) {
+        // A late offer/candidate can race a normal departure. Reject only that
+        // negotiation, not the sender's membership and every other live peer.
+        // Use a separate frame: existing clients treat every error frame as fatal.
+        // Do not distinguish a departed peer from a different namespace.
+        this.send(ws, { type: 'peer-unavailable', error: 'Target peer is not in this namespace', code: 'peer_unavailable' });
+        return;
+      }
       this.send(target, forwardedNegotiation(message, meta.peerId));
     } catch {
       console.error(JSON.stringify({ event: 'swarm-message-failed' }));
