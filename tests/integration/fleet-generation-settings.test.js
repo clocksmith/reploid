@@ -26,6 +26,7 @@ const roomId = 'reploid-swarm-fleet-fixture';
 const messages = [{ role: 'user', content: 'Count upward from one.' }];
 const limitOnly = { ...GENERATION_SETTINGS_CAPABILITY, maxOutputTokens: true };
 const otherDigest = 'sha256:' + 'e'.repeat(64);
+const loadedAdapter = 'sha256:' + 'b'.repeat(64);
 const completion = (generatedTokenCount, stopReason) => ({ schema: 'doppler.generation-completion/v1', promptTokenCount: 11, generatedTokenCount, stopReason });
 const answer = (content, tokens, stopReason, extra = {}) => ({ model: model.id, modelIdentity: model.identity, adapterIdentities: [],
   content, completion: completion(tokens, stopReason), ...extra });
@@ -55,7 +56,7 @@ afterEach(async () => {
 });
 
 /** The whole path: HTTP edge, accounted requester, requester mesh, provider mesh, provider credit admission. */
-async function fixture({ execute, capability = limitOnly, intercept = null, expectedConstraintIdentity = null, alterAdmit = null } = {}) {
+async function fixture({ execute, capability = limitOnly, intercept = null, expectedConstraintIdentity = null, alterAdmit = null, loadedAdapters = [] } = {}) {
   const cleanup = [], admits = [], executed = [], authorizations = [], reservations = [];
   const observedCredits = { ...providerCredits, call: async (operation, payload) => {
     if (operation === 'admit') { if (alterAdmit) payload = alterAdmit(structuredClone(payload)); admits.push(structuredClone(payload)); }
@@ -77,7 +78,9 @@ async function fixture({ execute, capability = limitOnly, intercept = null, expe
     },
     onGenerationTerminal: proof => admission.terminal(proof),
     ports: index => index
-      ? { ...(capability ? { getGenerationSettingsCapability: () => capability } : {}) }
+      ? { ...(capability ? { getGenerationSettingsCapability: () => capability } : {}),
+        // Adapters the provider's runtime has loaded beside the base variant its credit admission serves.
+        ...(loadedAdapters.length ? { getExecutionState: () => ({ phase: 'ready', modelIdentity: model.identity, adapterIdentities: loadedAdapters }) } : {}) }
       : { ...(expectedConstraintIdentity ? { expectedConstraintIdentity } : {}) }
   });
   wholeRequester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
@@ -194,10 +197,13 @@ it.each([
   ['the model identity altered on the wire', payload => { payload.modelIdentity = 'sha256:' + 'b'.repeat(64); }, 'Requested model is unavailable'],
   // Without settings the provider asks for the model ceiling of 16, above the 5 that were reserved.
   ['settings removed on the wire', payload => { delete payload.settings; }, 'No matching live credit admission'],
-  ['settings no longer canonical on the wire', payload => { delete payload.settings.thinking; }, 'Generation settings are not canonical']
-])('refuses %s before inference and without settlement', async (_label, alter, reason) => {
+  ['settings no longer canonical on the wire', payload => { delete payload.settings.thinking; }, 'Generation settings are not canonical'],
+  // The provider's runtime has this adapter loaded, so only credit admission stands before running it.
+  ['the adapter altered on the wire', payload => { payload.adapterIdentities = [loadedAdapter]; }, 'Execution request names another model variant than this provider serves',
+    { loadedAdapters: [loadedAdapter] }]
+])('refuses %s before inference and without settlement', async (_label, alter, reason, options = {}) => {
   const execute = vi.fn();
-  const f = await fixture({ execute, intercept: (type, payload) => { if (type === 'reploid:generation-request') alter(payload); } });
+  const f = await fixture({ execute, ...options, intercept: (type, payload) => { if (type === 'reploid:generation-request') alter(payload); } });
   try {
     const response = await f.post({ max_completion_tokens: 5 });
     expect(response.status).toBe(502);
@@ -350,6 +356,38 @@ it('refuses a provider result that exceeds the caller limit and does not settle 
   } finally { await f.close(); }
 });
 
+/** What a dishonest provider delivers in place of its result: `response`, with a receipt it validly signs over it. */
+const resign = async (payload, response, bound) => {
+  payload.response = response;
+  payload.receipt = await signReceiptDraft(await createReceiptDraft({ provider: keys[1].peerId, consumer: keys[0].peerId,
+    jobHash: payload.receipt.jobHash, model: model.id, ...await measureWholeModelReceipt(messages, response, bound) }), keys[1]);
+  return payload.receipt;
+};
+
+it('refuses a validly signed receipt from a provider that exceeded the caller limit, and does not settle it', async () => {
+  // A provider that misbehaves: it returns six tokens for a limit of five and signs a well-formed
+  // version 3 receipt for them over the reserved digest, instead of refusing its own result.
+  let forged;
+  const f = await fixture({ execute: async (_messages, update) => { update('1 2 3'); return answer('1 2 3', 3, 'eos-token'); },
+    intercept: async (type, payload) => {
+      if (type === 'reploid:generation-result') forged = await resign(payload, answer('1 2 3 4 5 6', 6, 'eos-token'), { settingsDigest: payload.receipt.settingsDigest });
+    } });
+  try {
+    const response = await f.post({ max_completion_tokens: 5 });
+    expect(response.status).toBe(502);
+    expect((await response.json()).error.message).toContain('Receipt does not bind the generation settings of this request');
+    expect(forged).toMatchObject({ version: 3, outputTokens: 6, settingsDigest: f.row().binding.settingsDigest });
+    expect((await verifyReceipt(forged)).providerValid).toBe(true);
+    // The requester never countersigned, so the provider holds nothing the ledger accepts as completion.
+    expect(f.sent('reploid:receipt')).toEqual([]);
+    expect(f.row().state).not.toBe('settled');
+    expect(amounts()).toEqual([{ balance: 0, held: 5 }, { balance: 0, held: 0 }]);
+    expect(credits.snapshot().journal).toEqual([]);
+    await expect(providerCredits.settle(f.row().id, forged)).rejects.toThrow();
+    expect(f.row().state).not.toBe('settled');
+  } finally { await f.close(); }
+});
+
 it('signs the applied output constraint identity and settles when it is the one the requester expects', async () => {
   const constraintIdentity = 'sha256:' + 'c'.repeat(64);
   const expectedConstraintIdentity = vi.fn(() => constraintIdentity);
@@ -396,6 +434,23 @@ it('refuses a receipt that names a constraint identity or a settings digest for 
     try {
       const response = await f.post({});
       expect(response.status).toBe(502);
+      expect(f.sent('reploid:receipt')).toEqual([]);
+      expect(credits.snapshot().journal).toEqual([]);
+    } finally { await f.close(); }
+  }
+});
+
+it('refuses a validly signed receipt that names a settings digest or a constraint identity for a request without settings', async () => {
+  // Only version 3 can sign either claim. The receipt verifies; it is refused as not binding this request.
+  for (const bound of [{ settingsDigest: otherDigest }, { settingsDigest: otherDigest, constraintIdentity: 'sha256:' + 'c'.repeat(64) }]) {
+    let forged;
+    const f = await fixture({ execute: async (_messages, update) => { update('one'); return answer('one', 1, 'eos-token'); },
+      intercept: async (type, payload) => { if (type === 'reploid:generation-result') forged = await resign(payload, payload.response, bound); } });
+    try {
+      const response = await f.post({});
+      expect(response.status).toBe(502);
+      expect((await response.json()).error.message).toContain('Receipt does not bind the generation settings of this request');
+      expect((await verifyReceipt(forged)).providerValid).toBe(true);
       expect(f.sent('reploid:receipt')).toEqual([]);
       expect(credits.snapshot().journal).toEqual([]);
     } finally { await f.close(); }

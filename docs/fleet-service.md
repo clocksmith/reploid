@@ -36,6 +36,12 @@ request and participant identities must match. Duplicate settlement has one
 economic effect. Every credit has an equal debit. A requester's own partition
 share is unbilled; there is no reward for paying itself.
 
+A caller's output limit is checked against the token count the provider reports
+in its receipt, because the requester has no tokenizer, so a provider that
+under-reports its tokens is not detected by this check. The limit is enforced in
+the provider's sampler and bounds the charge, not the length of text a dishonest
+provider could return.
+
 SQLite retains balances, reservations, the complete signed evidence, provider
 admissions, and the journal. Requester and provider outboxes retry proofs after
 process restart without generating another answer. Partition acknowledgments

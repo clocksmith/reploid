@@ -28,6 +28,20 @@ it.each(['inputTokens', 'outputTokens', 'modelIdentity', 'inputDigest', 'outputD
     ? 'sha256:' + 'b'.repeat(64) : signed[field] + '-changed';
   expect((await verifyReceipt({ ...signed, [field]: value })).valid).toBe(false);
 });
+it('countersigns only the signed payload: unsigned fields on the provider receipt are not carried', async () => {
+  const { provider, consumer, signed } = await receipt();
+  const { consumerSignature: _signature, consumerKey: _key, ...fromProvider } = signed;
+  const countersigned = await countersignReceipt({ ...fromProvider, maxOutputTokens: 9999, note: 'unsigned' }, consumer);
+  expect(countersigned).toEqual(signed);
+  expect(Object.keys(countersigned).sort()).toEqual(Object.keys(signed).sort());
+  expect(await verifyReceipt(countersigned)).toEqual({ valid: true, providerValid: true, consumerValid: true });
+  // An unmetered version 1 receipt signs no whole-model field, so none can ride along either.
+  const legacy = await signReceiptDraft(await createReceiptDraft({ provider: provider.peerId, consumer: consumer.peerId,
+    jobHash: 'request:legacy', model: result.model, status: 'unmetered' }), provider);
+  const accepted = await countersignReceipt({ ...legacy, settingsDigest: 'sha256:' + 'e'.repeat(64), outputDigest: 'sha256:' + 'f'.repeat(64) }, consumer);
+  expect(Object.keys(accepted).sort()).toEqual([...Object.keys(legacy), 'consumerKey', 'consumerSignature'].sort());
+  expect(await verifyReceipt(accepted)).toEqual({ valid: true, providerValid: true, consumerValid: true });
+});
 it('leaves missing usage unmetered and refuses malformed measured counts', async () => {
   expect(await measureWholeModelReceipt(messages, { ...result, completion: null })).toBeNull();
   await expect(measureWholeModelReceipt(messages, { ...result, completion: { ...result.completion, generatedTokenCount: -1 } })).rejects.toThrow('Measured generation');

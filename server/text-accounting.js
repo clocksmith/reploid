@@ -16,6 +16,11 @@ export const TEXT_ACCOUNTING_COLLECTIONS = Object.freeze({ jobs: 'text_accountin
 const assert = (ok, message, status = 409) => { if (!ok) throw Object.assign(Error(message), { status }); };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const text = value => typeof value === 'string' && value.length > 0 && value.length <= 512;
+// This path reserves, verifies and settles the version 2 receipt of a request without settings.
+// One with settings is refused on entry: before a reservation is claimed, anything is disclosed
+// or a provider is asked, so no held reservation and no recovery of one can exist.
+const assertNoSettings = value => assert(value?.settings === undefined,
+  'This accounting path does not support request settings yet; refused before any reservation, disclosure or recovery query', 400);
 
 // Conservative exposure, not a service price: charge every credit against the
 // cap, even purchased credit. Ceil prevents fractional minor units understating it.
@@ -114,7 +119,9 @@ export function createTextAccounting({ ledger, backend, trialBackend, trialPolic
     reconcile, getRecord: read, getTrialState: () => trial.getState(),
     /** Reconcile retained work, never dispatch it. The requester supplies its
      * original input so neither the accounting store nor a query carries prompts. */
-    async recover({ reservationId, messages, providerId }, controls, recoverExecution) {
+    async recover(input, controls, recoverExecution) {
+      assertNoSettings(input);
+      const { reservationId, messages, providerId } = input;
       assert(text(reservationId) && text(controls?.principal?.subject) && controls.signal
         && typeof recoverExecution === 'function', 'Authenticated recovery required', 403);
       const record = await read(reservationId);
@@ -165,6 +172,7 @@ export function createTextAccounting({ ledger, backend, trialBackend, trialPolic
       return { reservationId: record.reservationId, attemptId: record.attemptId, settled: record.phase === 'settled' };
     },
     async run(request, controls, execute) {
+      assertNoSettings(request);
       request = structuredClone(request);
       assert(!request.model.partition, 'Whole-model accounting cannot settle partition execution');
       assert(text(controls?.principal?.subject) && typeof controls.requestApproval === 'function', 'Authenticated request and disclosure required');

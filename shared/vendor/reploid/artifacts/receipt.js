@@ -92,10 +92,14 @@ export async function signReceiptDraft(draft, providerBundle, cryptoApi = global
   };
 }
 
+// The countersigned receipt is rebuilt from the signed payload: a field the provider's object
+// carried outside its signature is dropped instead of gaining the look of a countersigned fact.
 export async function countersignReceipt(receipt, consumerBundle, cryptoApi = globalThis.crypto) {
   const payload = getReceiptPayload(receipt);
   return {
-    ...receipt,
+    ...payload,
+    providerSignature: receipt.providerSignature,
+    providerKey: receipt.providerKey,
     consumerSignature: await signPayload(payload, consumerBundle, cryptoApi),
     consumerKey: consumerBundle.publicJwk
   };

@@ -15,6 +15,7 @@ import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/gen
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
+import { GENERATION_SETTINGS_CAPABILITY } from '../../packages/reploid/src/mesh/generation-settings.js';
 
 // All monetary figures and decisions below are fictional test fixtures.
 const policyVersion = 'fixture-http-policy/1';
@@ -94,6 +95,86 @@ describe.each(['memory', 'firestore'])('whole-model accounting on %s', storage =
     await expect(f.open({ policyVersion: 'unapproved' }).run(f.request, f.controls, f.execute)).rejects.toThrow('Quote policy');
     await expect(f.open({ resolveAcceptedRequest: async () => null }).run(f.request, f.controls, f.execute)).rejects.toThrow('authorized accepted quote');
     expect((await f.ledger.getReservation(f.accepted.reservationId)).attempts).toEqual([]);
+  });
+  it('refuses request settings at run and at recovery before the participant is asked, and claims no reservation', async () => {
+    const f = await fixture(storage), id = f.accepted.reservationId, settings = { maxOutputTokens: 5 };
+    const resolveAcceptedRequest = vi.fn(async () => f.accepted), execute = vi.fn(f.execute), requestApproval = vi.fn(async () => true);
+    const refusal = { status: 400, message: expect.stringContaining('does not support request settings yet') };
+    const a = f.open({ resolveAcceptedRequest });
+    await expect(a.run({ ...f.request, settings }, { ...f.controls, requestApproval }, execute)).rejects.toMatchObject(refusal);
+    for (const port of [resolveAcceptedRequest, execute, requestApproval]) expect(port).not.toHaveBeenCalled();
+    // Nothing was claimed or held: no accounting record, an untouched reservation, no trial slot.
+    expect(await a.getRecord(id) ?? null).toBeNull();
+    expect(await f.ledger.getReservation(id)).toMatchObject({ status: 'open', attempts: [], settlement: null });
+    expect(await a.getTrialState()).toMatchObject({ active: 0, spentMinor: 0 });
+    // The same acceptance still serves the request without settings; its completion is then lost.
+    await expect(a.run(f.request, f.controls, async (_request, scoped) => {
+      await scoped.requestApproval({ ...f.preview, requestId: 'fixture', providerId: 'peer' }); throw Error('lost completion');
+    })).rejects.toThrow('lost completion');
+    const recoverExecution = vi.fn(async () => ({ status: 'completed', result: await f.result() }));
+    const input = { reservationId: id, messages: f.request.messages };
+    await expect(f.open().recover({ ...input, settings }, f.controls, recoverExecution)).rejects.toMatchObject(refusal);
+    expect(recoverExecution).not.toHaveBeenCalled();
+    expect((await f.ledger.getReservation(id)).settlement).toBeNull();
+    expect((await f.open().recover(input, f.controls, recoverExecution)).accounting).toMatchObject({ settled: true, settlement: { charge: 12 } });
+    expect(recoverExecution).toHaveBeenCalledOnce();
+  });
+  it('refuses an output limit over HTTP before any provider is asked, so no recovery can be answered with a downgraded receipt', async () => {
+    const f = await fixture(storage), cleanup = [], a = f.open(), id = f.accepted.reservationId;
+    const model = { ...f.request.model, generation: { maxTokens: 16 } };
+    const answer = { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'answer', ownerPolicyDigest: OWNER_DIGEST,
+      completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } };
+    let requester;
+    // The provider enforces the limit and advertises it, so the route itself accepts the request. On
+    // recovery it would answer with a version 2 receipt it validly signs for nine tokens, over the limit of five.
+    const mesh = await createRecoveryMesh(cleanup, { identities: [f.consumer, f.provider], modelId: model.id,
+      modelIdentity: model.identity, messages: f.request.messages, result: answer,
+      ports: index => index ? { getGenerationSettingsCapability: () => ({ ...GENERATION_SETTINGS_CAPABILITY, maxOutputTokens: true }) } : {},
+      authorize: input => input.action === 'mesh.dispatch' ? requester.authorize(input) : true,
+      intercept: async (type, payload) => {
+        const outcome = type === 'reploid:generation-recovery' && payload.outcome?.payload;
+        if (!outcome?.receipt) return;
+        outcome.response = { ...answer, content: 'one two three four five six seven eight nine', completion: { ...answer.completion, generatedTokenCount: 9 } };
+        outcome.receipt = await signReceiptDraft(await createReceiptDraft({ ...await measureWholeModelReceipt(f.request.messages, outcome.response),
+          provider: f.provider.peerId, consumer: f.consumer.peerId, model: model.id, jobHash: outcome.receipt.jobHash }), f.provider);
+      } });
+    requester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
+    const participant = { getState: () => ({ models: requester.getModels() }), generate: requester.generate, recoverGeneration: requester.recover };
+    const api = createTextApi({ participant, accounting: a, authenticate: async () => f.controls.principal, authorize: async () => true, production: false });
+    const server = http.createServer((req, res) => api.handle(req, res));
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const post = async (route, body) => {
+      const response = await fetch(`http://127.0.0.1:${server.address().port}${route}`, { method: 'POST',
+        headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      return { code: response.status, body: await response.json() };
+    };
+    const asked = () => mesh.wire.filter(item => ['reploid:generation-request', 'reploid:generation-recovery'].includes(item.type));
+    try {
+      await f.offer();
+      expect(requester.getModels()[0].generationSettings).toMatchObject({ maxOutputTokens: true });
+      for (const limit of [{ max_tokens: 5 }, { max_completion_tokens: 5 }]) {
+        const refused = await post('/v1/chat/completions', { model: model.id, messages: f.request.messages, ...limit });
+        expect(refused.code, JSON.stringify(refused.body)).toBe(400);
+        expect(refused.body.error.message).toContain('does not support request settings yet');
+      }
+      expect(mesh.executions).toBe(0); expect(asked()).toEqual([]);
+      expect(await a.getRecord(id) ?? null).toBeNull();
+      expect(await f.ledger.getReservation(id)).toMatchObject({ status: 'open', attempts: [], settlement: null });
+      // No execution is held, so there is nothing to recover, with the settings or without them.
+      const recovery = { reservationId: id, messages: f.request.messages, providerId: 'connection-1' };
+      const bound = await post('/v1/reploid/recover', { ...recovery, settings: { maxOutputTokens: 5 } });
+      expect(bound.code).toBe(400); expect(bound.body.error.message).toContain('does not support request settings yet');
+      expect((await post('/v1/reploid/recover', recovery)).code).toBe(409);
+      expect(asked()).toEqual([]);
+      expect((await f.ledger.getAccount('requester')).byProvenance.purchased.spent).toBe(0);
+      expect(await a.getTrialState()).toMatchObject({ active: 0, spentMinor: 0 });
+      // The same accepted quote still serves the request without a limit, and charges it once.
+      const served = await post('/v1/chat/completions', { model: model.id, messages: f.request.messages });
+      expect(served.code, JSON.stringify(served.body)).toBe(200);
+      expect(mesh.executions).toBe(1);
+      expect((await f.ledger.getAccount('requester')).byProvenance.purchased.spent).toBe(12);
+    } finally { await api.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
+      for (const close of cleanup.reverse()) await close(); }
   });
   it('allows only one instance to execute a concurrently claimed acceptance', async () => {
     const f = await fixture(storage); let executions = 0;

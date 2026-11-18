@@ -22,9 +22,13 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
     payload = structuredClone(payload); wire.push({ i, type, payload });
     if (dropResults && type === 'reploid:generation-result') return true;
     // `intercept(type, payload, senderIndex)` may alter what is delivered; `wire` keeps what was sent.
-    if (intercept) { payload = structuredClone(payload); intercept(type, payload, i); }
+    // It may return a promise (for example to sign a forged receipt): delivery then waits for it.
+    let altering;
+    if (intercept) { payload = structuredClone(payload); altering = intercept(type, payload, i); }
     if (tamper && type === 'reploid:generation-recovery' && payload.outcome?.payload?.response) payload.outcome.payload.response.content = 'forged';
-    queueMicrotask(() => Promise.resolve(handlers[1-i].get(type)?.(channels[i], payload)).catch(error => errors.push(error)));
+    queueMicrotask(async () => {
+      try { if (altering) await altering; await handlers[1-i].get(type)?.(channels[i], payload); } catch (error) { errors.push(error); }
+    });
     return true;
   };
   async function open(i) {
@@ -56,6 +60,8 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
   await vi.waitFor(() => expect(meshes[0].getSwarmSnapshot().peers.some(peer => peer.readiness === 'ready')).toBe(true));
   return { requesterMesh: meshes[0], wire, errors, identities, messages, response, get reference() { return reference; }, get executions() { return executions; },
     drop: () => { dropResults = true; }, tamper: () => { tamper = true; },
+    // Mesh `i` (0 requester, 1 provider) broadcasts its current advertisement again.
+    readvertise: (i = 1) => meshes[i].refreshAdvertisement(),
     async restartProvider() { await meshes[1].close(); journal.close(); channels[1] += '-restarted'; handlers[1].clear(); await open(1); reference.providerId = channels[1]; },
     run: (signal, settings) => meshes[0].generate(messages, null, { signal, modelId, modelIdentity, requestContext: { recoverable: true }, ...(settings ? { settings } : {}) }),
     recover: settings => meshes[0].recoverGeneration(reference, messages, undefined, settings ? { settings } : undefined),

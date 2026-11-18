@@ -15,7 +15,7 @@ export interface PeerGenerationMesh extends GenerationProvider {
   refreshAdvertisement(): Record<string, unknown>;
   generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null,
     control?: { offerId?: string | null; privacy?: import('../chat/execution-policy.js').ExecutionPolicy | null; signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; adapterIdentities?: string[]; requestContext?: import('../config/index.js').Json;
-      /** Per-request generation settings. Refused before disclosure unless the chosen provider advertises them. */
+      /** Per-request generation settings. Only providers that advertise them are considered; refused before disclosure when none does. */
       settings?: GenerationSettingsInput }): Promise<GenerationResult>;
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;

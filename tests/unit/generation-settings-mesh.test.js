@@ -3,9 +3,13 @@
 // mesh itself advertises, refuses, signs and recovers. Provider execution is a function.
 import { afterEach, expect, it, vi } from 'vitest';
 import { GENERATION_SETTINGS_CAPABILITY, effectiveRequestDigest, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
-import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
+import { createReceiptDraft, signReceiptDraft, verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
+import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { verifyGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
+import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
+import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 
 const cleanup = [];
@@ -16,6 +20,24 @@ const settings = normalizeGenerationSettings({ maxOutputTokens: 4 });
 const provider = capability => index => index && capability ? { getGenerationSettingsCapability: () => capability } : {};
 const fixture = (options = {}) => createRecoveryMesh(cleanup, { ports: provider(limitOnly), ...options });
 const sent = (f, type) => f.wire.filter(item => item.type === type).map(item => item.payload);
+const otherDigest = 'sha256:' + 'e'.repeat(64), constraint = 'sha256:' + 'c'.repeat(64);
+const unbound = 'Receipt does not bind the generation settings of this request';
+const longer = (response, tokens) => ({ ...response, content: 'one two three four five six', completion: { ...response.completion, generatedTokenCount: tokens } });
+
+// A dishonest provider signs whatever receipt it likes with its own enrolled key. Such a receipt
+// verifies, so only the requester's binding checks stand between it and a countersignature.
+const forge = async (f, payload, { bound, response = payload.response } = {}) => {
+  payload.response = response;
+  payload.receipt = await signReceiptDraft(await createReceiptDraft({ provider: f.identities[1].peerId, consumer: f.identities[0].peerId,
+    jobHash: payload.receipt.jobHash, model: response.model, ...await measureWholeModelReceipt(f.messages, response, bound) }), f.identities[1]);
+  expect((await verifyReceipt(payload.receipt)).providerValid).toBe(true);
+};
+/** A fixture whose provider result is replaced in transit by `alter(f, payload)`; `options.type` picks another message. */
+const forging = async (alter, { type = 'reploid:generation-result', ...options } = {}) => {
+  let f;
+  f = await fixture({ ...options, intercept: (kind, payload) => kind === type ? alter(f, payload) : undefined });
+  return f;
+};
 
 it('advertises the capability only from a host that declares it, and copies only a well-formed one', async () => {
   const f = await fixture();
@@ -75,8 +97,81 @@ it('refuses a settings request whose provider returns no measured completion or 
   expect((await unmeasured.requesterMesh.generate(unmeasured.messages, null, { modelId: 'model', modelIdentity })).executionReceipt.version).toBe(1);
   const stripped = await fixture({ intercept: (type, payload) => { if (type === 'reploid:generation-result') delete payload.receipt; } });
   await expect(stripped.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow('Remote execution receipt is missing');
-  const downgraded = await fixture({ intercept: (type, payload) => { if (type === 'reploid:generation-result') { payload.receipt.version = 2; delete payload.receipt.settingsDigest; } } });
-  await expect(downgraded.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow('does not bind');
+  // A provider that signs a well-formed version 2 receipt for the request, as if it had carried no settings.
+  const downgraded = await forging((f, payload) => forge(f, payload));
+  await expect(downgraded.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow(unbound);
+  expect(sent(downgraded, 'reploid:generation-result')[0].receipt.version).toBe(3);
+  expect(sent(downgraded, 'reploid:receipt')).toEqual([]);
+  // The same, with a version 3 receipt signed over another effective request.
+  const rebound = await forging((f, payload) => forge(f, payload, { bound: { settingsDigest: otherDigest } }));
+  await expect(rebound.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow(unbound);
+  expect(sent(rebound, 'reploid:receipt')).toEqual([]);
+});
+
+it('refuses a validly signed version 3 receipt that reports more output than the caller limit', async () => {
+  const sign = tokens => (f, payload) => forge(f, payload, { bound: { settingsDigest: payload.receipt.settingsDigest }, response: longer(payload.response, tokens) });
+  // The same re-signed receipt at the limit is accepted: only the reported count separates the two.
+  const within = await forging(sign(4));
+  expect((await within.run(undefined, { maxOutputTokens: 4 })).executionReceipt).toMatchObject({ version: 3, outputTokens: 4 });
+  const over = await forging(sign(6));
+  await expect(over.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow(unbound);
+  expect(sent(over, 'reploid:receipt')).toEqual([]);
+  expect(over.errors).toEqual([]);
+});
+
+it('refuses, for a request without settings, a validly signed receipt that names a settings digest or a constraint', async () => {
+  // Version 3 is the only version that can sign either field, so both forgeries are version 3.
+  for (const bound of [{ settingsDigest: otherDigest }, { settingsDigest: otherDigest, constraintIdentity: constraint }]) {
+    const f = await forging((fixture, payload) => forge(fixture, payload, { bound }));
+    await expect(f.run()).rejects.toThrow(unbound);
+    expect(sent(f, 'reploid:receipt')).toEqual([]);
+  }
+  // An unmetered version 1 receipt signs neither field, so one added in transit leaves the signature valid.
+  for (const stray of [{ settingsDigest: otherDigest }, { constraintIdentity: constraint }]) {
+    const f = await forging((_fixture, payload) => { Object.assign(payload.receipt, stray); },
+      { execute: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'answer' }) });
+    await expect(f.run()).rejects.toThrow(unbound);
+    expect(sent(f, 'reploid:generation-result')[0].receipt.version).toBe(1);
+    expect(sent(f, 'reploid:receipt')).toEqual([]);
+  }
+});
+
+it('refuses a response whose constraint identity is not the one its receipt signs', async () => {
+  // Added in transit: the receipt signs no constraint, and this requester states no expectation.
+  const added = await forging((_fixture, payload) => { payload.response.constraintIdentity = constraint; });
+  await expect(added.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow(unbound);
+  expect(sent(added, 'reploid:receipt')).toEqual([]);
+  // Removed in transit: the provider's host reported one and its receipt signs it.
+  const removed = await forging((_fixture, payload) => { delete payload.response.constraintIdentity; },
+    { execute: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'actual answer', constraintIdentity: constraint,
+      completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } }) });
+  await expect(removed.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow(unbound);
+  expect(sent(removed, 'reploid:generation-result')[0].receipt.constraintIdentity).toBe(constraint);
+  expect(sent(removed, 'reploid:receipt')).toEqual([]);
+});
+
+it('countersigns only what the provider signed: unsigned fields on its receipt object are dropped', async () => {
+  const f = await forging((_fixture, payload) => { payload.receipt.maxOutputTokens = 9999; payload.receipt.note = 'unsigned'; });
+  const receipt = (await f.run(undefined, { maxOutputTokens: 4 })).executionReceipt;
+  for (const kept of [receipt, sent(f, 'reploid:receipt')[0].receipt]) {
+    expect(kept).not.toHaveProperty('maxOutputTokens');
+    expect(kept).not.toHaveProperty('note');
+    expect(await verifyReceipt(kept)).toEqual({ valid: true, providerValid: true, consumerValid: true });
+  }
+});
+
+it('refuses to send when the chosen provider withdraws the capability while the host authorizes', async () => {
+  let capability = limitOnly, f;
+  f = await createRecoveryMesh(cleanup, { ports: index => index ? { getGenerationSettingsCapability: () => capability } : {},
+    authorize: async input => {
+      if (input.action !== 'mesh.dispatch') return true;
+      capability = null; f.readvertise();
+      await vi.waitFor(() => expect(f.requesterMesh.getSwarmSnapshot().peers[0]).not.toHaveProperty('generationSettings'));
+      return true;
+    } });
+  await expect(f.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow('Selected contributor is no longer ready; retry requires new placement');
+  expect(sent(f, 'reploid:generation-request')).toEqual([]);
+  expect(f.executions).toBe(0);
 });
 
 it('binds the digest into replay admission, signed cleanup and recovery', async () => {
@@ -96,6 +191,23 @@ it('binds the digest into replay admission, signed cleanup and recovery', async 
   expect(recovered).toMatchObject({ status: 'completed', response: { content: 'actual answer', executionReceipt: { version: 3, outputTokens: 3 } } });
   expect(f.executions).toBe(1);
 
+  // A provider that answers recovery with a validly signed receipt over the caller limit, or with a
+  // version 2 receipt, is refused before anything is countersigned; its honest answer is then accepted.
+  let answer = null;
+  const dishonest = await forging((fixture, payload) => answer?.(fixture, payload.outcome?.payload), { type: 'reploid:generation-recovery' });
+  dishonest.drop(); const lost = new AbortController();
+  const dropped = expect(dishonest.run(lost.signal, { maxOutputTokens: 4 })).rejects.toThrow('disconnected');
+  await vi.waitFor(() => expect(dishonest.wire.some(item => item.type === 'reploid:generation-result')).toBe(true));
+  lost.abort(Error('disconnected')); await dropped;
+  answer = (fixture, result) => result?.receipt && forge(fixture, result, { bound: { settingsDigest: result.receipt.settingsDigest }, response: longer(result.response, 6) });
+  await expect(dishonest.recover({ maxOutputTokens: 4 })).rejects.toThrow('Unverified recovered completion');
+  answer = (fixture, result) => result?.receipt && forge(fixture, result);
+  await expect(dishonest.recover({ maxOutputTokens: 4 })).rejects.toThrow('Unverified recovered completion');
+  expect(sent(dishonest, 'reploid:receipt')).toEqual([]);
+  answer = null;
+  expect(await dishonest.recover({ maxOutputTokens: 4 })).toMatchObject({ status: 'completed', response: { executionReceipt: { version: 3, outputTokens: 3 } } });
+  expect(dishonest.errors).toEqual([]);
+
   const failing = await fixture({ execute: async () => { throw Error('sampler failed'); } });
   const failure = await failing.run(undefined, { maxOutputTokens: 4 }).catch(error => error);
   const digest = await effectiveRequestDigest({ modelIdentity, adapterIdentities: [], messages: failing.messages, settings });
@@ -112,4 +224,73 @@ it('binds the digest into replay admission, signed cleanup and recovery', async 
   const legacy = await failing.run().catch(error => error);
   expect(legacy.generationTerminal.schema).toBe('reploid.generation-terminal/v1');
   expect(legacy.generationTerminal).not.toHaveProperty('settingsDigest');
+});
+
+/** One requester (index 0) and one provider per listed capability, all serving the same model. */
+async function placement(capabilities) {
+  const count = capabilities.length + 1;
+  const identities = await Promise.all(Array.from({ length: count }, () => createSigningIdentity({ algorithm: 'Ed25519' })));
+  const handlers = Array.from({ length: count }, () => new Map()), requests = [], disclosures = [];
+  const send = (from, to, type, payload) => {
+    payload = structuredClone(payload);
+    if (type === 'reploid:generation-request') requests.push(to);
+    queueMicrotask(() => Promise.resolve(handlers[to].get(type)?.('connection-' + from, payload)).catch(() => {}));
+    return true;
+  };
+  const meshes = identities.map((identity, i) => {
+    const listeners = new Map(), events = {
+      on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name).delete(fn); },
+      emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
+    };
+    return createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'settings-placement', generationTimeoutMs: 300 } } }), ports: {
+      instanceId: 'instance-' + i, modelConfig: i ? { id: 'model' } : null,
+      getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
+      ...(i && capabilities[i - 1] ? { getGenerationSettingsCapability: () => capabilities[i - 1] } : {}),
+      authorize: async input => { if (input.action === 'mesh.dispatch') disclosures.push(input); return true; },
+      events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
+      identity: { ensure: async () => identity, sync: async () => {}, save: async () => {} },
+      generate: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'answer from ' + i,
+        completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 1, generatedTokenCount: 1, stopReason: 'eos-token' } }),
+      createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => 'connection-' + i,
+        getPeerBinding: peer => ({ local: 'certificate-' + i, remote: 'certificate-' + String(peer).split('-')[1] }),
+        onMessage: (type, fn) => handlers[i].set(type, fn),
+        broadcast: (type, payload) => { for (let to = 0; to < count; to++) if (to !== i) send(i, to, type, payload); return true; },
+        sendToPeer: (peer, type, payload) => send(i, Number(String(peer).split('-')[1]), type, payload) })
+    } });
+  });
+  cleanup.push(() => Promise.all(meshes.map(mesh => mesh.close())));
+  for (const mesh of meshes) await mesh.connect();
+  for (const mesh of meshes.slice(1)) mesh.refreshAdvertisement();
+  await vi.waitFor(() => expect(meshes[0].getSwarmSnapshot().peers.filter(peer => peer.readiness === 'ready')).toHaveLength(capabilities.length));
+  const ask = requested => meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity, ...(requested ? { settings: requested } : {}) });
+  return { ask, requests, disclosures };
+}
+
+it('sends a request with settings to a provider that advertises them, and one without settings in the unchanged order', async () => {
+  // The default order is by connection id, so the provider without the capability comes first.
+  const f = await placement([null, limitOnly]);
+  expect((await f.ask()).content).toBe('answer from 1');
+  const bound = await f.ask({ maxOutputTokens: 4 });
+  expect(bound).toMatchObject({ content: 'answer from 2', executionReceipt: { version: 3 } });
+  expect((await f.ask()).content).toBe('answer from 1');
+  expect(f.requests).toEqual([1, 2, 1]);
+  // The host is told which providers were eligible: for the settings request, only the one that enforces them.
+  expect(f.disclosures.map(input => input.placement.candidates.map(candidate => candidate.peerId)))
+    .toEqual([['connection-1', 'connection-2'], ['connection-2'], ['connection-1', 'connection-2']]);
+});
+
+it('refuses a request with settings before any disclosure when no single provider advertises them', async () => {
+  const thinkingOnly = { ...GENERATION_SETTINGS_CAPABILITY, thinking: true };
+  const none = await placement([null, GENERATION_SETTINGS_CAPABILITY]);
+  await expect(none.ask({ maxOutputTokens: 4 })).rejects.toThrow('Generation settings are not supported by this route');
+  // Each setting is advertised by some provider, but no provider enforces both.
+  const split = await placement([limitOnly, thinkingOnly]);
+  await expect(split.ask({ maxOutputTokens: 4, thinking: 'on' })).rejects.toThrow('Generation setting thinking is not supported by this route');
+  expect((await split.ask({ thinking: 'on' })).content).toBe('answer from 2');
+  for (const f of [none, split]) expect((await f.ask()).content).toBe('answer from 1');
+  expect(none.requests).toEqual([1]);
+  expect(split.requests).toEqual([2, 1]);
+  const disclosed = f => f.disclosures.map(input => [input.peerId, input.settings?.thinking ?? null]);
+  expect(disclosed(none)).toEqual([['connection-1', null]]);
+  expect(disclosed(split)).toEqual([['connection-2', 'on'], ['connection-1', null]]);
 });

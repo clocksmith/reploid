@@ -2,7 +2,7 @@
 import { expect, it, vi } from 'vitest';
 import { GENERATION_SETTINGS_SCHEMA, GENERATION_SETTINGS_CAPABILITY, normalizeGenerationSettings, isCanonicalGenerationSettings,
   effectiveRequestDigest, assertSettingsSupported, normalizeGenerationSettingsCapability,
-  intersectGenerationSettingsCapabilities } from '../../packages/reploid/src/mesh/generation-settings.js';
+  intersectGenerationSettingsCapabilities, unionGenerationSettingsCapabilities } from '../../packages/reploid/src/mesh/generation-settings.js';
 import { parseTextChatCompletion } from '../../server/chat-completions.js';
 
 const modelIdentity = 'sha256:' + 'a'.repeat(64);
@@ -148,6 +148,13 @@ it('accepts only a complete capability and intersects providers flag by flag', (
   expect(intersectGenerationSettingsCapabilities([])).toBeNull();
   expect(intersectGenerationSettingsCapabilities([limitOnly, undefined])).toBeNull();
   expect(intersectGenerationSettingsCapabilities([{ ...limitOnly, tools: true }, { ...limitOnly, thinking: true }])).toEqual(limitOnly);
+  // The union is what at least one provider advertises; providers without a capability add nothing.
+  expect(unionGenerationSettingsCapabilities([])).toBeNull();
+  expect(unionGenerationSettingsCapabilities([undefined, { maxOutputTokens: true }])).toBeNull();
+  expect(unionGenerationSettingsCapabilities([limitOnly, undefined])).toEqual(limitOnly);
+  expect(unionGenerationSettingsCapabilities([limitOnly, { ...GENERATION_SETTINGS_CAPABILITY, thinking: true }]))
+    .toEqual({ ...limitOnly, thinking: true });
+  expect(Object.isFrozen(unionGenerationSettingsCapabilities([limitOnly]))).toBe(true);
 });
 
 it('turns the chat completions output limit into settings and leaves a request without one unchanged', () => {

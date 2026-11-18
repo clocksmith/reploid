@@ -25,4 +25,5 @@ export function effectiveRequestDigest(request: { modelIdentity: string; adapter
   settings: GenerationSettingsInput }): Promise<string>;
 export function normalizeGenerationSettingsCapability(value: unknown): Readonly<GenerationSettingsCapability> | null;
 export function intersectGenerationSettingsCapabilities(capabilities: unknown[]): Readonly<GenerationSettingsCapability> | null;
+export function unionGenerationSettingsCapabilities(capabilities: unknown[]): Readonly<GenerationSettingsCapability> | null;
 export function assertSettingsSupported(capability: unknown, settings: GenerationSettingsInput | undefined): void;

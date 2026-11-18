@@ -145,13 +145,18 @@ export function createPeerGenerationMesh({ config, ports }) {
   const placementChoices = new WeakMap();
   const placementCandidate = peer => ({ peerId: peer.peerId, verifiedIdentity: peerIdentity?.getVerified(peer.peerId) ?? null,
     contributionScore: peer.decayedScore ?? 0, availableSlots: peer.availableSlots ?? null });
-  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null) => {
+  // A request with settings considers only providers whose own advertisement says they enforce them.
+  const supportsSettings = (peer, settings) => {
+    try { assertSettingsSupported(peer.generationSettings, settings); return true; } catch { return false; }
+  };
+  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined) => {
     const blocked = blockedComputers();
     let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)
       && (!privacy?.allowedRecipients.length || privacy.allowedRecipients.includes(peerIdentity?.getVerified(peer.peerId)))))
     .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
       && (policy.models.contract === null
-      || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract)));
+      || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))
+      && (!settings || supportsSettings(peer, settings)));
     // Optional host ranking: connection ids or identities proven on this channel, best first. Providers it
     // does not name keep the default order after it. It reorders eligible providers; it cannot add one.
     const order = eligible.length > 1 ? ports.rankProviders?.(eligible.map(placementCandidate), { modelId, modelIdentity }) : null;
@@ -263,8 +268,8 @@ export function createPeerGenerationMesh({ config, ports }) {
     await syncIdentityDocument();
   };
 
-  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null, adapters = [], privacy = null, offerId = null) => {
-    if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId)) return Promise.resolve(true);
+  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null, adapters = [], privacy = null, offerId = null, settings = undefined) => {
+    if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId, settings)) return Promise.resolve(true);
     return new Promise(resolve => {
       let unsubscribe = () => {};
       const finish = available => {
@@ -274,24 +279,24 @@ export function createPeerGenerationMesh({ config, ports }) {
       const abort = () => finish(false);
       const timer = setTimeout(() => finish(false), timeoutMs);
       providerWaiters.add(finish);
-      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId)) finish(true); });
+      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId, settings)) finish(true); });
       signal?.addEventListener('abort', abort, { once: true });
       if (signal?.aborted) finish(false);
     });
   };
 
-  const chooseProvider = async (modelId, signal, modelIdentity, adapters, preferred = null, privacy = null, offerId = null) => {
+  const chooseProvider = async (modelId, signal, modelIdentity, adapters, preferred = null, privacy = null, offerId = null, settings = undefined) => {
     const deadline = Date.now() + REMOTE_GENERATION_TIMEOUT_MS;
     while (!closed && Date.now() < deadline) {
       signal?.throwIfAborted();
-      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred, privacy, offerId);
+      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred, privacy, offerId, settings);
       if (provider) {
         reservedProviders.add(provider.peerId);
         const selected = snapshotJson(provider);
         placementChoices.set(selected, placementChoices.get(provider));
         return selected;
       }
-      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters, privacy, offerId)) break;
+      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters, privacy, offerId, settings)) break;
     }
     signal?.throwIfAborted();
     return null;
@@ -903,7 +908,13 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (privacy.placement === 'local-only') throw new Error('Local-only privacy excludes mesh execution');
     await initialize();
     const affinityKey = contextId ? JSON.stringify([contextId, modelId, modelIdentity, adapterIdentities]) : null;
-    const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey), privacy, offerId);
+    // Providers serve this model but none advertises these settings: refuse now, from the advertisements
+    // and naming what the default choice lacks, instead of waiting for a provider that enforces them.
+    if (settings && !chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId, settings)) {
+      const unsupporting = chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId);
+      if (unsupporting) assertSettingsSupported(unsupporting.generationSettings, settings);
+    }
+    const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey), privacy, offerId, settings);
     let provider = await pick();
     // With a block list, a candidate whose identity is not yet known is asked to prove it before it is
     // chosen; one that proves to be blocked is passed over for the next. Nothing is disclosed meanwhile.

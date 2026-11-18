@@ -4254,7 +4254,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:bef47bd5fb3bf1ca1e7f3a0e2443ac59bb122323d03895bc5bde54e377797d1c",
+      "sha256": "sha256:baee927c0dd4aa4ad33858f4a98ca5844e58ca7c85cb9764b73cae795660e52f",
       "imports": []
     },
     {
@@ -18666,7 +18666,7 @@
     {
       "path": "vendor/reploid/artifacts/receipt.js",
       "owner": "vendor",
-      "sha256": "sha256:5078995ef872e258f1d4b2885d7d0cf86ebf6194b95e8607498e2092bc6bbead",
+      "sha256": "sha256:5e129e3ac322fcc2e4204b5df09ccf66ec4cc005520c87ecff385b5d721ffde0",
       "imports": [
         "./canonical-json.js",
         "./identity.js",
@@ -18992,7 +18992,7 @@
     {
       "path": "vendor/reploid/mesh/generation-settings.js",
       "owner": "vendor",
-      "sha256": "sha256:bb3b988fc7a6a116a7efa7bdf1660e216750d054c2a4ad14f56b5cc25fce1edc",
+      "sha256": "sha256:8f2ff52193f4fd5997e87306875cb0aab45abc816e2f500eabcdb5773238ecaa",
       "imports": [
         "../artifacts/canonical-json.js",
         "../artifacts/signatures.js"
@@ -19487,7 +19487,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:aeb6013eeb24179fee9ef1e9b757e3bc79b0d60ebee9361095430bd24a92c0ae",
+      "sha256": "sha256:2d4169a4c06af2d1edb784a765eca04fe665100b17470f0253fc0a1f3a49d8ee",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",

@@ -5,7 +5,7 @@ import { projectChatCatalog } from '../apps/poolday/host/chat-view.js';
 import { readWorkGenerationCompletion } from '../shared/infrastructure/generation-completion.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { TEXT_GENERATION_CAPABILITY, generationRequest, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
-import { assertSettingsSupported, intersectGenerationSettingsCapabilities, normalizeGenerationSettings } from '../packages/reploid/src/mesh/generation-settings.js';
+import { assertSettingsSupported, normalizeGenerationSettings, unionGenerationSettingsCapabilities } from '../packages/reploid/src/mesh/generation-settings.js';
 
 const requireValue = (ok, message) => { if (!ok) throw Error(message); };
 const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
@@ -28,10 +28,10 @@ function projectResult(request, result, providerId, providerIdentity) {
 export function createWholeModelRequester({ mesh, models }) {
   models = structuredClone(models);
   const pending = new Map();
-  // A model supports a setting only when every ready provider of that exact variant advertises it:
-  // the requester does not yet choose a provider by setting, so one that lacks it could be selected.
+  // A model supports a setting when at least one ready provider of that exact variant advertises it:
+  // the mesh chooses only among providers whose own capability covers the settings of a request.
   const settingsCapability = (model, peers) => {
-    const capability = intersectGenerationSettingsCapabilities(peers.filter(peer => model.providerIds.includes(peer.peerId))
+    const capability = unionGenerationSettingsCapabilities(peers.filter(peer => model.providerIds.includes(peer.peerId))
       .map(peer => peer.generationSettings));
     return capability ? { generationSettings: capability } : {};
   };

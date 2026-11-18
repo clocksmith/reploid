@@ -136,3 +136,34 @@ it('accepts whole-model offers before advertising capacity and persists admissio
   await expect(ports.mesh.generate([], () => {}, controls)).rejects.toThrow('no accepted offer');
   expect(ports.wholeGenerate).toHaveBeenCalledTimes(1);
 });
+
+it('advertises no generation settings from an earning host, and refuses a request with settings before executing it', async () => {
+  const { createNativeWholeEarning } = await import('../../server/native-whole-earning.js');
+  const capability = { schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: false, outputSchema: false, thinking: false };
+  const whole = () => ({ getState: () => ({ ready: true, adapterIdentities: [] }), getExecutionState: () => ({ phase: 'ready' }),
+    getGenerationSettingsCapability: () => capability, contribute: vi.fn(async () => {}),
+    generate: vi.fn(async () => ({ content: 'answer' })), stop: vi.fn(async () => {}), close: vi.fn(async () => {}) });
+  // Without earning the host advertises what its whole-model runtime enforces.
+  await open({ executionMode: 'whole-model', createWholeModel: whole });
+  expect(ports.mesh.getGenerationSettingsCapability()).toEqual(capability);
+
+  const store = new Map(), runtime = whole();
+  const records = createNativeWholeEarning({ participantId: 'provider', ownerPolicyDigest: 'sha256:' + 'd'.repeat(64), now: () => 1,
+    storage: { get: async key => structuredClone(store.get(key)), set: async (key, value) => { store.set(key, structuredClone(value)); } },
+    findOffer: async () => ({ offerId: 'offer' }), contributionFor: () => ({ claimWholeModels: async rows => rows.map(() => ({ status: 'done' })) }) });
+  const earning = { ensureOffer: vi.fn(async () => ({ offerId: 'offer' })), prepareWholeModel: records.prepare,
+    recordWholeModelReceipt: records.record, observe: vi.fn(async () => ({})) };
+  const participant = await open({ executionMode: 'whole-model', earning, createWholeModel: () => runtime,
+    owner: { waitForAdmission: async () => {}, summary: () => ({}) } });
+  await participant.contribute(true);
+  // Its earning path settles version 2 receipts only, so peers are never told it takes settings.
+  expect(ports.mesh.getGenerationSettingsCapability()).toBeNull();
+  const controls = { requestId: 'job', consumer: 'requester', adapterIdentities: [], signal: new AbortController().signal };
+  const settings = { schema: 'reploid.generation-settings/v1', maxOutputTokens: 4, tools: [], toolChoice: 'none', outputSchema: null, thinking: null };
+  await expect(ports.mesh.generate([], () => {}, { ...controls, settings })).rejects.toThrow('Whole-model earning does not support request settings yet');
+  expect(runtime.generate).not.toHaveBeenCalled();
+  expect(store.size).toBe(0);
+  // The same request without settings is admitted, recorded and executed.
+  expect(await ports.mesh.generate([], () => {}, controls)).toEqual({ content: 'answer' });
+  expect(store.get('whole-model-work')).toMatchObject([{ jobHash: 'request:job', consumer: 'requester', receiptId: null }]);
+});

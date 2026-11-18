@@ -123,6 +123,21 @@ describe.each(['memory', 'firestore'])('whole-model native earning on %s', kind 
     await expect(restarted.client.send({ opId: 'authored-charge', path: `/offers/${ownOffer}/claims`, body: { ...ref, reservationId: 'invented' } }))
       .rejects.toMatchObject({ code: 'invalid_body' });
   });
+  it('refuses a request with settings before execution, leaving no pending row and no admission record', async () => {
+    const f = await fixture(kind); await f.provider.ensureOffer(model);
+    const admission = { model, requestId: 'with-settings', consumer: f.requester.participantId };
+    const store = f.stores.get('provider'), before = JSON.stringify(await store.get('whole-model-work') ?? []);
+    await expect(f.provider.prepareWholeModel({ ...admission, settings: { maxOutputTokens: 5 } }))
+      .rejects.toThrow('Whole-model earning does not support request settings yet');
+    // Its receipt would be version 3, which this path cannot retire: nothing may be left waiting for it.
+    expect(JSON.stringify(await store.get('whole-model-work') ?? [])).toBe(before);
+    expect(before).toBe('[]');
+    expect((await f.provider.observe()).wholeModels).toEqual([]);
+    // No admission was recorded either: the same request id without settings is admitted once, as before.
+    await f.provider.prepareWholeModel(admission);
+    expect(await store.get('whole-model-work')).toMatchObject([{ jobHash: 'request:with-settings', receiptId: null }]);
+    await expect(f.provider.prepareWholeModel(admission)).rejects.toThrow('already recorded');
+  });
   it('does not retroactively accept an offer for already-dispatched work', async () => {
     const f = await fixture(kind);
     await expect(f.provider.prepareWholeModel({ model, requestId: 'early', consumer: f.requester.participantId })).rejects.toThrow('before admitting');
