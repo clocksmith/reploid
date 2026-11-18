@@ -104,6 +104,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const contributionHistory = createContributionHistory({ storage });
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
     connections: consumerTransport?.getPeerStates?.() || retainedConnections,
+    // An established peer channel can outlive the service that introduces new peers.
+    introductionState: consumerTransport?.getStats?.()?.introductionState ?? consumerTransport?.getConnectionState?.() ?? null,
     connectionFailure: connectionFailure ? { ...connectionFailure } : null,
     error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
@@ -280,7 +282,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       const finishReadiness = retireReadiness('connection-failed');
       const results = await Promise.allSettled(owners.map(closeOwner));
       finishReadiness();
-      if (version === generation) error = cause.message;
+      if (version === generation) {
+        error = cause.message;
+        connectionFailure ??= { message: cause.message, attemptId: null, peerId: null };
+      }
       const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
       if (failures.length) throw new AggregateError([cause, ...failures], cause.message + '; connection cleanup failed');
       throw cause;

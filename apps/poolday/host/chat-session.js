@@ -129,8 +129,28 @@ export function createChatSession({
   const isCached = model => failedLocalModel !== model.id && !model.partition && !model.adapters?.length
     && cachedModels.some(item => item.id === model.id && item.identity === model.identity);
   let discovering = false, peerDiscoveryTimedOut = false;
-  const discoveryDeadline = setTimeout(() => { peerDiscoveryTimedOut = true; notifyAll(); }, 8000);
-  discoveryDeadline.unref?.();
+  let observationTimer, observationState;
+  const startObservation = stage => {
+    clearTimeout(observationTimer); observationState = stage;
+    peerDiscoveryTimedOut = stage === 'interrupted' || stage === 'paused';
+    if (!peerDiscoveryTimedOut && !closed) {
+      observationTimer = setTimeout(() => { peerDiscoveryTimedOut = true; notifyAll(); }, 8000);
+      observationTimer.unref?.();
+    }
+  };
+  startObservation('pending');
+  const discoveryPhase = network => {
+    const transport = network.introductionState ?? network.consumer?.connectionState;
+    // Bind the observation window to continuous introductions. A surviving data
+    // channel can still serve requests when the introduction service is down.
+    const failed = (network.connectionFailure && !network.connectionFailure.peerId)
+      || ['retrying', 'stopped', 'failed', 'interrupted'].includes(transport);
+    const stage = network.paused ? 'paused' : transport === 'connected' ? 'connected' : failed ? 'interrupted' : 'pending';
+    if (stage !== observationState) startObservation(stage);
+    if (stage === 'interrupted' || stage === 'paused') return stage;
+    if (!peerDiscoveryTimedOut) return 'searching';
+    return stage === 'connected' ? 'observed' : 'interrupted';
+  };
   const acquisition = createModelAcquisition({ onChange: () => notifyAll() });
   const acquireApprovedModel = model => {
     assert(downloadSizes.has(model.id), 'Check the model download size first');
@@ -245,13 +265,14 @@ export function createChatSession({
       searchServer, searchPeer, query: String(query).trim(), recipients: search.recipients, wording: search.wording, ...(search.source ? { source: search.source } : {}), grantedAt: now() });
   };
 
-  const getCatalogModels = () => copy(projectChatCatalog({
-    models: [...models, ...peerModels], peers: swarm?.getState?.().consumer?.peers || [],
+  const getCatalogModels = (network = swarm?.getState?.()) => copy(projectChatCatalog({
+    models: [...models, ...peerModels], peers: network?.consumer?.peers || [], connections: network?.connections ?? network?.consumer?.connections,
+    introductionState: network?.introductionState ?? network?.consumer?.connectionState,
     releasedPartitionModels: (partitions?.getModels() || []).filter(model => availablePartitionRoute(model))
   }).map(model => {
     model = { ...model, networkAvailability: model.availability };
     const local = execution.getLocalState();
-    if (canonicalHistory && !publishable(historyState.publication, model) && !(canonicalHistory.supportsWholeModel && !model.partition)) return { ...model, availability: 'unavailable', networkAvailability: 'unavailable', localReady: false, localCached: false };
+    if (canonicalHistory && !publishable(historyState.publication, model) && !(canonicalHistory.supportsWholeModel && !model.partition)) return { ...model, availability: 'unavailable', networkAvailability: 'unavailable', localReady: false, localCached: false, reachableProviderIds: [] };
     if (model.partition) return { ...model, localReady: false, localCached: false };
     return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
       ? { ...model, availability: 'ready', localReady: true }
@@ -292,7 +313,7 @@ export function createChatSession({
         status: view.status, approval: view.approval, execution: view.execution });
     }
     const activeThread = wsState.threads.find(t => t.id === wsState.selectedId) || null;
-    const catalog = getCatalogModels();
+    const catalog = getCatalogModels(network);
     const preferred = candidates => candidates.find(model => model.id === profile.defaultModelId) || candidates[0];
     const defaultModels = Object.fromEntries(['auto', 'local', 'network'].map(location =>
       [location, selectAvailableChatModel(catalog, profile.chatModelPreference, location)]));
@@ -309,7 +330,7 @@ export function createChatSession({
       })).filter(entry => entry.cells.length),
       defaultModels,
       defaultModel: defaultModels.auto || preferred(catalog) || null,
-      discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: acquisition.supportError(),
+      discoveryPhase: discoveryPhase(network), discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: acquisition.supportError(),
       localModel: execution.getLocalState(),
       network,
       computerUsage: projectComputerUsage({ threads: wsState.threads, network,
@@ -624,6 +645,7 @@ export function createChatSession({
     async connect() {
       assertOpen();
       assert(swarm?.connect, 'Peer connection is unavailable');
+      startObservation('pending');
       try { await swarm.connect(); } finally { notifyAll(); }
     },
     async disconnect() {
@@ -669,7 +691,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; fleet.close(); clearTimeout(discoveryDeadline); acquisition.cancel(); adapterEvidence.close();
+      closed = true; fleet.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {

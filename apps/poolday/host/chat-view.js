@@ -26,19 +26,29 @@ export function selectAvailableChatModel(models, preference, location = 'auto') 
 export const compatibleAdapters = model => (model.availableAdapters || []).filter(adapter => typeof adapter?.id === 'string' && adapter.id
   && SHA256_PATTERN.test(adapter.identity) && SHA256_PATTERN.test(model.identity || '') && adapter.baseModelIdentity === model.identity);
 
-export function projectChatCatalog({ models, peers, releasedPartitionModels = [] }) {
+export function projectChatCatalog({ models, peers, connections, introductionState, releasedPartitionModels = [] }) {
+  // A retained advert or retired connection alone cannot establish reachability.
+  const openPeers = new Map((connections || []).filter(link => link.phase === 'connected'
+    && (link.channelState === 'open' || link.transport === 'broadcast'
+      || link.transport === 'signaling-relay' && introductionState === 'connected')
+    && !['disconnected', 'failed', 'closed'].includes(link.iceState)).map(link => [link.id, link]));
+  const reachable = peer => {
+    const link = openPeers.get(peer.peerId);
+    return !!link && (link.attemptId ?? null) === (peer.attemptId ?? null);
+  };
   const selections = models.filter(model => !model.partition).flatMap(model => [model, ...compatibleAdapters(model).map(adapter => ({
     ...model, name: adapter.name, selectionId: model.id + '/' + adapter.id, adapters: [adapter]
   }))]);
   // The host supplies only routes admitted by its release policy.
   return selections.map(model => {
     // A computer blocked on this device is never chosen, so it is not counted as capacity either.
-    const compatible = peers.filter(peer => peer.blocked !== true && peer.model === model.id && peer.modelIdentity === model.identity
+    const compatible = peers.filter(peer => peer.blocked !== true && (!connections || reachable(peer)) && peer.model === model.id && peer.modelIdentity === model.identity
       && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
     const ready = compatible.filter(peer => peer.readiness === 'ready' && peer.hasInference);
     const loading = compatible.some(peer => peer.readiness === 'loading');
     return { ...model, availability: ready.length ? (ready.some(peer => peer.availableSlots > 0) ? 'ready' : 'busy')
-      : loading ? 'loading' : 'unavailable', providerIds: ready.map(peer => peer.peerId) };
+      : loading ? 'loading' : 'unavailable', providerIds: ready.map(peer => peer.peerId),
+      reachableProviderIds: ready.filter(peer => peer.availableSlots > 0 && reachable(peer)).map(peer => peer.peerId) };
   }).concat(releasedPartitionModels);
 }
 

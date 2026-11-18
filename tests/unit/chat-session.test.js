@@ -564,3 +564,34 @@ it('prefers ready shared models over locally ready or cached defaults, respectin
   expect(selectAvailableChatModel([local, shared], [local.id, shared.id])).toBe(shared);
   expect(selectAvailableChatModel([local, shared], [local.id, shared.id], 'local')).toBe(local);
 });
+
+it('bounds stalled discovery and starts a new healthy observation window after recovery and manual retry', async () => {
+  vi.useFakeTimers();
+  const network = { connecting: true, introductionState: 'connecting', consumer: { connectionState: 'connected', peers: [] } };
+  const session = createChatSession({ storage: storage(), service: createChatTestService(),
+    swarm: { getState: () => network, connect: async () => {} } });
+  try {
+    const phase = () => session.getState().discoveryPhase;
+    expect(phase()).toBe('searching');
+    vi.advanceTimersByTime(8000);
+    expect(phase()).toBe('interrupted');
+    network.introductionState = 'connected';
+    expect(phase()).toBe('searching');
+    vi.advanceTimersByTime(8000);
+    expect(phase()).toBe('observed');
+    network.connectionFailure = { peerId: 'one-peer', message: 'peer refused' };
+    expect(phase()).toBe('observed');
+    network.introductionState = 'retrying';
+    expect(phase()).toBe('interrupted');
+    network.introductionState = 'connected';
+    expect(phase()).toBe('searching');
+    vi.advanceTimersByTime(7000);
+    await session.connect();
+    vi.advanceTimersByTime(1000);
+    expect(phase()).toBe('searching');
+    vi.advanceTimersByTime(7000);
+    expect(phase()).toBe('observed');
+    network.paused = true;
+    expect(phase()).toBe('paused');
+  } finally { await session.close(); vi.useRealTimers(); }
+});
