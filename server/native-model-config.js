@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { sha256Digest } from './hashing.js';
 import { resolveGenerationOptions } from '../shared/config/doppler-generation-contract.js';
+import { modelToolCallFormat } from '../shared/infrastructure/tool-call-constraint.js';
 
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -18,6 +19,8 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
   requireValue(model?.id === modelId && model.provider === 'doppler' && typeof model.name === 'string'
     && /^sha256:[a-f0-9]{64}$/.test(model.identity), 'Native model configuration requires an exact Doppler model identity');
   model.generation = resolveGenerationOptions(model.generation);
+  // An optional `toolCallFormat` makes a whole-model provider advertise tools; an unknown one is refused here.
+  modelToolCallFormat(model);
   const root = await fs.realpath(modelDirectory);
   const manifestPath = await fs.realpath(path.join(root, 'manifest.json'));
   requireValue(path.dirname(manifestPath) === root, 'Native model manifest escapes the approved directory');

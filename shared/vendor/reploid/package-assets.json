@@ -157,13 +157,13 @@
     },
     {
       "path": "adapters/resident-execution.d.ts",
-      "bytes": 3157,
-      "sha256": "d7f95d709a4eff5b5e0bec79a1f53b467b4f7418ddf619b5ecafaaa1cc46b18b"
+      "bytes": 3313,
+      "sha256": "58f1a91354294500ce075bf02231b60519ca3e65d5000458273bf4943abe291d"
     },
     {
       "path": "adapters/resident-execution.js",
-      "bytes": 7673,
-      "sha256": "f58b563399fe9d3f1fc234ad2cfe2c9b779f84543bcd93aaf68adad922ff781f"
+      "bytes": 7960,
+      "sha256": "08028fef4cf9dcc4ea96195c1fe9e417ad77420676938e627b75edc2501e4864"
     },
     {
       "path": "adapters/resident.d.ts",

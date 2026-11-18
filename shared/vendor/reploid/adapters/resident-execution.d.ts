@@ -7,6 +7,8 @@ export interface ResidentResult {
 }
 export interface ResidentGenerationControl {
   privacyBinding?: import('../chat/execution-policy.js').ExecutionBinding; privacy?: import('../chat/execution-policy.js').ExecutionPolicy; signal: AbortSignal; adapters?: ModelAdapterSelection[]; maxOutputTokens?: number; contextOwner?: string; contextId?: string;
+  /** Canonical generation settings of the request, for the provider to apply. */
+  settings?: import('../mesh/generation-settings.js').GenerationSettings;
 }
 export interface ResidentProviderPort {
   getIdentity(): ResidentIdentity; getHardware(): unknown; getContextCacheStats?(): unknown; isReady(): boolean;

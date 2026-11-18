@@ -976,6 +976,14 @@
       "imports": []
     },
     {
+      "path": "infrastructure/output-constraint.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:a6af089423d0506c2f185a6102d6a9a4ca4e4a5acd96df56e0af39b6d42df40f",
+      "imports": [
+        "../vendor/reploid/hashing.js"
+      ]
+    },
+    {
       "path": "infrastructure/pack-job-storage.js",
       "owner": "infrastructure",
       "sha256": "sha256:758e7f8edb780e3aa3dc1c4612603e30469ef84b2ccb83a17671b522ab676153",
@@ -1020,11 +1028,12 @@
     {
       "path": "infrastructure/scoped-model-provider.js",
       "owner": "infrastructure",
-      "sha256": "sha256:76d1b4a6e50111d6bf5c0cd4635999ceb322b39611dbfb4b66c4a8b64eb22f73",
+      "sha256": "sha256:f83425c8eed179f718611a322981a7829d3374723ab1c99d5ede9554fcc84664",
       "imports": [
         "../vendor/reploid/mesh/generation-context-cache.js",
         "../vendor/reploid/mesh/provider-hardware.js",
-        "./generation-completion.js"
+        "./generation-completion.js",
+        "./tool-call-constraint.js"
       ]
     },
     {
@@ -1039,6 +1048,23 @@
       "sha256": "sha256:026e9d62f47528f4bf79340408f4b964c205063d5e2e3b2815940539ca69b2d4",
       "imports": [
         "../core/run-replay-bundle.js"
+      ]
+    },
+    {
+      "path": "infrastructure/tool-call-constraint.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:5e368fc814bbf0a1b35ba12d4e084a9e49e16c45de28644e11a245c78ea16b2b",
+      "imports": [
+        "./output-constraint.js",
+        "./tool-call-format.js"
+      ]
+    },
+    {
+      "path": "infrastructure/tool-call-format.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:ef15d5b90b2ba82e60f2f3e1a2d593fd4098fe6393b4d160e7454e0506221187",
+      "imports": [
+        "./output-constraint.js"
       ]
     },
     {
@@ -4228,7 +4254,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:440138b93ae495ebc138f09a95e43af39a60fd14d66d28436f9a788b26b57782",
+      "sha256": "sha256:bef47bd5fb3bf1ca1e7f3a0e2443ac59bb122323d03895bc5bde54e377797d1c",
       "imports": []
     },
     {
@@ -18269,7 +18295,7 @@
     {
       "path": "vendor/reploid/adapters/resident-execution.js",
       "owner": "vendor",
-      "sha256": "sha256:f58b563399fe9d3f1fc234ad2cfe2c9b779f84543bcd93aaf68adad922ff781f",
+      "sha256": "sha256:08028fef4cf9dcc4ea96195c1fe9e417ad77420676938e627b75edc2501e4864",
       "imports": [
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",

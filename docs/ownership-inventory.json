@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 382,
     "self": 457,
-    "shared": 2478
+    "shared": 2484
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2815,6 +2815,18 @@
       "basis": "Reached only from substrate entries."
     },
     {
+      "served": "infrastructure/output-constraint.d.ts",
+      "source": "shared/infrastructure/output-constraint.d.ts",
+      "owner": "shared",
+      "basis": "Describes infrastructure/output-constraint.js. Reached from native hosts and browser entries."
+    },
+    {
+      "served": "infrastructure/output-constraint.js",
+      "source": "shared/infrastructure/output-constraint.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
       "served": "infrastructure/pack-job-storage.d.ts",
       "source": "apps/poolday/infrastructure/pack-job-storage.d.ts",
       "owner": "apps/poolday",
@@ -2873,6 +2885,30 @@
       "source": "self/infrastructure/telemetry-timeline.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "infrastructure/tool-call-constraint.d.ts",
+      "source": "shared/infrastructure/tool-call-constraint.d.ts",
+      "owner": "shared",
+      "basis": "Describes infrastructure/tool-call-constraint.js. Reached from native hosts and browser entries."
+    },
+    {
+      "served": "infrastructure/tool-call-constraint.js",
+      "source": "shared/infrastructure/tool-call-constraint.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
+      "served": "infrastructure/tool-call-format.d.ts",
+      "source": "shared/infrastructure/tool-call-format.d.ts",
+      "owner": "shared",
+      "basis": "Describes infrastructure/tool-call-format.js. Reached from native hosts and browser entries."
+    },
+    {
+      "served": "infrastructure/tool-call-format.js",
+      "source": "shared/infrastructure/tool-call-format.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "infrastructure/tool-executor.js",

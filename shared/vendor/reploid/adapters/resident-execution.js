@@ -64,7 +64,7 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     notify();
     return preparing;
   };
-  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy, privacyBinding }) => {
+  const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy, privacyBinding, settings }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
     const policy = assertAvailableExecutionPolicy(requestExecutionPolicy({ model, privacy }));
     const boundPrivacy = privacyBinding ? structuredClone(privacyBinding) : null;
@@ -72,6 +72,8 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     const contextNamespace = contextId ? hashJson([contextId, model.identity, contextOwner ?? null, policy, boundPrivacy?.route ?? null]) : null;
     const input = structuredClone(messages);
     const selectedAdapters = structuredClone(adapters);
+    // Canonical generation settings of this request, for the provider to apply (tools, tool choice).
+    const requestSettings = settings === undefined ? undefined : structuredClone(settings);
     const current = adapter, combined = AbortSignal.any([lifetime.signal, signal]);
     const operation = withDevice(service, combined, async () => {
       combined.throwIfAborted();
@@ -85,7 +87,8 @@ export function createResidentExecution({ service, model, generation, maxOutcome
       phase = 'executing'; notify();
       try {
         const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters,
-          maxOutputTokens, contextOwner, contextId: scopedContextId });
+          maxOutputTokens, contextOwner, contextId: scopedContextId,
+          ...(requestSettings === undefined ? {} : { settings: requestSettings }) });
         combined.throwIfAborted(); completed++;
         // Count runtime-reported tokens, never text deltas or estimated words.
         const tokens = result.completion?.generatedTokenCount ?? result.timing?.generatedTokenCount;

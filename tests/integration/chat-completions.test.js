@@ -58,11 +58,52 @@ it('serves a whole-model request over HTTP with exact disclosure, streaming and 
   expect(f.authorize.mock.calls[1][0].preview.recipients).toEqual(['whole-provider']);
   expect(f.authorize.mock.calls[0][0].request.model.partition).toBeUndefined();
 });
-it.each(['tools','tool_choice','response_format','temperature','seed','top_p','n','stream_options'])('rejects unsupported %s explicitly',parameter=>{
+it.each(['response_format','temperature','seed','top_p','n','stream_options','logprobs','reasoning_effort','functions','function_call'])('rejects unsupported %s explicitly',parameter=>{
   expect(()=>parseTextChatCompletion({...input,[parameter]:null})).toThrow(`Unsupported parameter: ${parameter}`);
 });
-it.each([{role:'tool',content:'x'},{role:'developer',content:'x'},{role:'user',content:[{type:'text',text:'x'}]},{role:'assistant',content:'x',tool_calls:[]}])('rejects unsupported message shape %j',message=>{
+it.each([{role:'developer',content:'x'},{role:'user',content:[{type:'text',text:'x'}]},{role:'user',content:'x',name:'n'},{role:'assistant',content:null},{role:'assistant',content:'x',refusal:'no'},{role:'tool',tool_call_id:'call_1',content:[{type:'text',text:'x'}]}])('rejects unsupported message shape %j',message=>{
   expect(()=>parseTextChatCompletion({...input,messages:[message]})).toThrow('Only system/user/assistant');
+});
+const add={type:'function',function:{name:'add',description:'Add.',parameters:{type:'object',properties:{a:{type:'integer'},b:{type:'integer'}},required:['a','b']}}};
+const called=(id,args='{"a":2,"b":3}',name='add')=>({id,type:'function',function:{name,arguments:args}});
+it('converts tools, tool choice, assistant tool calls and tool results to canonical settings and messages',()=>{
+  const parsed=parseTextChatCompletion({...input,tools:[add,{type:'function',function:{name:'now',strict:true}}],tool_choice:{type:'function',function:{name:'add'}},parallel_tool_calls:false,max_tokens:9,
+    messages:[{role:'user',content:'2+3 and the time?'},{role:'assistant',content:null,refusal:null,tool_calls:[called('call_a'),called('call_b','{}','now')]},
+      {role:'tool',tool_call_id:'call_b',content:'noon'},{role:'tool',tool_call_id:'call_a',content:'5'},{role:'assistant',content:'5 at noon',refusal:null},{role:'user',content:'again'}]});
+  expect(parsed.settings).toEqual({schema:'reploid.generation-settings/v1',maxOutputTokens:9,toolChoice:{name:'add'},outputSchema:null,thinking:null,
+    tools:[{name:'add',description:'Add.',parameters:add.function.parameters},{name:'now',description:'',parameters:{type:'object',properties:{}}}]});
+  // The caller's ids are kept, arguments are objects, and results follow their calls in call order.
+  expect(parsed.messages).toEqual([{role:'user',content:'2+3 and the time?'},
+    {role:'assistant',content:'',toolCalls:[{id:'call_a',name:'add',arguments:{a:2,b:3}},{id:'call_b',name:'now',arguments:{}}]},
+    {role:'tool',toolCallId:'call_a',content:'5'},{role:'tool',toolCallId:'call_b',content:'noon'},{role:'assistant',content:'5 at noon'},{role:'user',content:'again'}]);
+  expect(Object.isFrozen(parsed.settings.tools[0].parameters)).toBe(true);
+  // No tools and no limit is still a request without settings; 'none' without tools adds nothing.
+  expect(parseTextChatCompletion({...input,tools:[],tool_choice:'none',parallel_tool_calls:true})).toEqual({model:model.id,messages:input.messages,stream:false});
+  expect(parseTextChatCompletion({...input,tools:[add]}).settings.toolChoice).toBe('auto');
+  expect(parseTextChatCompletion({...input,tools:[add],tool_choice:'none'}).settings).toMatchObject({toolChoice:'none',tools:[{name:'add'}]});
+});
+it.each([
+  ['a tool type other than function',{tools:[{type:'web_search'}]},'Only function tools'],
+  ['more than sixteen tools',{tools:Array.from({length:17},(_,i)=>({type:'function',function:{name:'t'+i}}))},'at most 16'],
+  ['a duplicate tool name',{tools:[add,add]},'duplicate tool name add'],
+  ['a tool choice naming an undeclared tool',{tools:[add],tool_choice:{type:'function',function:{name:'sub'}}},'toolChoice must name one declared tool'],
+  ['a required call without tools',{tool_choice:'required'},"toolChoice must be 'none' when no tools are declared"],
+  ['an unknown tool choice',{tools:[add],tool_choice:'any'},'tool_choice must be'],
+  ['a schema keyword the constraint does not support',{tools:[{type:'function',function:{name:'f',parameters:{type:'object',properties:{s:{type:'string',pattern:'^a'}}}}}]},'Tool "f": Unsupported JSON Schema keyword "pattern" at $.properties.s'],
+  ['parameters that are not an object schema',{tools:[{type:'function',function:{name:'f',parameters:{type:'array',items:{type:'string'}}}}]},'Tool "f": the parameters must be an object schema'],
+  ['a non-boolean parallel_tool_calls',{parallel_tool_calls:1},'parallel_tool_calls must be boolean'],
+  ['call arguments that are not JSON',{tools:[add],messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c','{"a":')]},{role:'tool',tool_call_id:'c',content:'5'}]},'arguments must be a JSON object encoded as a string'],
+  ['call arguments that are not an object',{tools:[add],messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c','[2,3]')]},{role:'tool',tool_call_id:'c',content:'5'}]},'arguments must be a JSON object encoded as a string'],
+  ['an empty tool_calls list',{tools:[add],messages:[{role:'assistant',content:'x',tool_calls:[]}]},'tool_calls must list'],
+  ['a tool message without the id it answers',{tools:[add],messages:[{role:'tool',content:'x'}]},'needs the tool_call_id'],
+  ['a tool result with no call before it',{tools:[add],messages:[...input.messages,{role:'tool',tool_call_id:'c',content:'5'}]},'must follow the assistant message'],
+  ['a call left without a result',{tools:[add],messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c')]},{role:'user',content:'?'}]},'exactly one tool result'],
+  ['a result for another call',{tools:[add],messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c')]},{role:'tool',tool_call_id:'d',content:'5'}]},'exactly one tool result'],
+  ['tool messages without the tools they refer to',{messages:[...input.messages,{role:'assistant',content:null,tool_calls:[called('c')]},{role:'tool',tool_call_id:'c',content:'5'}]},'require the tools they refer to']
+])('rejects %s with a 400',(_label,body,message)=>{
+  let thrown;
+  try{parseTextChatCompletion({...input,...body});}catch(error){thrown=error;}
+  expect(thrown?.status).toBe(400);expect(thrown.message).toContain(message);
 });
 it('mounted route authenticates exact immutable request and disclosure then returns bound completion without usage guesses',async()=>{
   const f=await boot();const response=await f.post();expect(response.status).toBe(200);const result=await response.json();

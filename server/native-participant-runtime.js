@@ -21,6 +21,7 @@ import policy from '../apps/poolday/config/partition-policy.json' with { type: '
 import path from 'node:path';
 import { NO_OWNER_POLICY } from './native-owner/controls.js';
 import { requireValue, events } from './native-host-utils.js';
+import { expectedConstraintIdentity } from '../shared/infrastructure/tool-call-constraint.js';
 import { openNativePartition } from './native-partition.js';
 import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 
@@ -104,6 +105,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     ...(typeof rankProviders === 'function' ? { rankProviders } : {}),
     getExecutionState: () => whole ? { ...whole.getExecutionState(), ...(!wholeEarningReady ? { phase: 'idle' } : {}) } : { phase: 'idle' },
     getGenerationSettingsCapability: () => whole?.getGenerationSettingsCapability?.() ?? null,
+    // As a requester: the constraint a provider must sign for these settings, from the same engine it compiles with.
+    expectedConstraintIdentity: settings => expectedConstraintIdentity(settings),
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'

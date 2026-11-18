@@ -2,6 +2,7 @@
 import { createGenerationContextCache } from '../vendor/reploid/mesh/generation-context-cache.js';
 import { publicProviderHardware } from '../vendor/reploid/mesh/provider-hardware.js';
 import { consumeWorkGenerationStream, readWorkGenerationCompletion, readWorkGenerationTiming } from './generation-completion.js';
+import { createToolCallEnforcement, sessionEndTokenIds } from './tool-call-constraint.js';
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
 export async function openScopedModelProvider({ model, service, scope, signal, credentials,
@@ -16,6 +17,7 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
   if (session) requireValue(typeof session.stream === 'function', 'Configured Doppler session does not expose text streaming');
   else requireValue(typeof credentials === 'function', 'Firebase Auth and App Check credentials are required');
   let healthy = true;
+  const toolCalls = createToolCallEnforcement();
   const configuredBufferBudget = (loadOptions?.runtimeConfig ?? model.loadOptions?.runtimeConfig)?.shared?.bufferPool?.budget?.maxTotalBytes;
   const contextCachePolicy = Number.isFinite(configuredBufferBudget) && configuredBufferBudget > 0
     ? (() => {
@@ -94,13 +96,30 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
         catch (error) { healthy = false; throw error; }
       }
     },
-    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens, contextOwner, contextId }) {
+    async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens, contextOwner, contextId, settings }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
       requireValue(maxOutputTokens === undefined || Number.isSafeInteger(maxOutputTokens) && maxOutputTokens > 0,
         'Request maxOutputTokens must be a positive integer');
       let requestGeneration = maxOutputTokens === undefined ? generation
         : { ...generation, maxTokens: Math.min(generation.maxTokens ?? maxOutputTokens, maxOutputTokens) };
+      // Tool settings: Doppler's chat templates carry no tools, so the conversation is rendered to
+      // plain messages here, and a call that may or must be made is enforced by a token mask whose
+      // identity is returned for the receipt. A request without tools or tool messages is untouched.
+      let tooling;
+      try {
+        tooling = await toolCalls.prepare(messages, settings, { endTokenIds: () => sessionEndTokenIds(session) });
+        // A model that declares reasoning output must open every answer with its reasoning marker,
+        // which a constraint that starts at the first token forbids.
+        requireValue(!tooling.constraintIdentity || !session.manifest?.inference?.output?.reasoningOutput,
+          'An output constraint cannot be applied to a model that declares reasoning output');
+      } catch (error) {
+        // Refused before the session was touched: a request this provider cannot serve does not retire the model.
+        throw Object.assign(error, { recoverableSession: true });
+      }
+      combined.throwIfAborted();
+      messages = tooling.messages;
+      requestGeneration = { ...requestGeneration, ...tooling.generation };
       let text = '', actualModel = model.id, actualIdentity = null, completion = null, timing = null;
       const update = delta => {
         combined.throwIfAborted();
@@ -199,6 +218,7 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
       requireValue(text.trim() || completion?.stopReason === 'max-tokens', 'Provider returned no text');
       return { content: text, raw: text, requestedModel: model.id, model: actualModel,
         ...(session ? { ...actualIdentity, completion, timing, hardware: publicProviderHardware(session.deviceInfo) } : {}),
+        ...(tooling.constraintIdentity ? { constraintIdentity: tooling.constraintIdentity } : {}),
         provider: model.provider, execution: session ? 'local-scoped-session' : 'cloud-proxy-session' };
     }
   });

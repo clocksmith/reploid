@@ -392,6 +392,16 @@ A whole-model route accepts a caller output limit only as a generation setting
 advertises that it enforces it; Chat Completions sends its limit this way. The
 Responses `max_output_tokens` and Messages `max_tokens` paths still use the earlier
 generation request, which a whole-model route refuses below its prepared ceiling.
+Tools are a generation setting too. A native whole-model provider advertises them
+only for a model whose catalog entry declares `toolCallFormat:
+"reploid.tool-call/hermes-v1"` (an unknown value is refused when the model is
+configured); no shipped catalog entry declares it yet. For such a request the
+provider renders tools, earlier calls and tool results into plain chat text, masks
+tokens so a call names a declared tool with arguments valid for its schema, and
+reports the identity of that constraint, which is signed into the receipt. The
+requester computes the same identity from the settings and refuses a receipt that
+names another or none. The end-of-sequence tokens the mask allows come from the
+loaded session (`advanced.getStopTokenIds()` and the tokenizer's `eos`).
 Completion metadata is provider-reported, not validated billing evidence.
 
 The application server can mount `/v1/models`, `/v1/chat/completions` and
@@ -428,13 +438,15 @@ composition must still supply approved terms and those ledger/execution projecti
 
 | Surface | Implemented contract |
 | --- | --- |
-| `POST /v1/chat/completions` | `model`, `messages`, optional boolean `stream`, optional positive integer `max_completion_tokens` (or its older name `max_tokens`); one text choice |
+| `POST /v1/chat/completions` | `model`, `messages`, optional boolean `stream`, optional positive integer `max_completion_tokens` (or its older name `max_tokens`), optional `tools`, `tool_choice` and `parallel_tool_calls`; one choice |
 | Output limit | Carried as generation settings and bound, with the messages and model identity, into the credit reservation, provider admission and signed receipt; the provider applies it. Refused with 400 before any disclosure when the route does not advertise it |
-| Messages | `system`, `user`, `assistant` with string `content` only |
-| Streaming | SSE deltas, stable completion identity, actual terminal reason and `[DONE]` only on success |
+| Messages | `system`, `user`, `assistant` with string `content`; with `tools` declared, also assistant `tool_calls` (`content` may be null, `function.arguments` must be a JSON object as a string) and `tool` messages with `tool_call_id` and string `content`. Each call needs exactly one result directly after its assistant message; caller ids are kept |
+| Tools | Up to 16 `type:"function"` tools; `tool_choice` `auto`, `none`, `required` or one named function; `parallel_tool_calls` is accepted and a forced call is still exactly one call. Parameters use the JSON Schema subset in `shared/infrastructure/output-constraint.js`: `$schema`, `$id`, `$comment`, `default` and `examples` are dropped, any other unsupported keyword is a 400 naming the keyword and the tool. Refused with 400 before any reservation or disclosure when the route does not advertise tools |
+| Tool calls | `message.tool_calls` with a deterministic `id` per attempt, `content:null` and `finish_reason:"tool_calls"`. A call is returned only whole and valid for its schema. A call cut off by the output limit ends with `length` and no call. Under `auto`, only output that begins with the call wrapper is a call. A provider result that is not the one call the constraint admits is a 502 and never a call; that request stays charged, because the receipt was countersigned before the text was read. `/v1/reploid/recover` returns the generated text as it was written and does not read calls out of it |
+| Streaming | SSE deltas, stable completion identity, actual terminal reason and `[DONE]` only on success. While a call may still come, text is held back: it is released as text deltas once it cannot be a call, and a call is sent only after it has validated, as one `tool_calls` delta with `id` and `name` followed by `arguments` fragments. Token counts ride on the finish chunk |
 | Termination | Stop token/sequence/EOS maps to `stop`; token/context limit maps to `length`; unknown reason fails |
 | Cancellation | HTTP disconnect aborts the existing requester; unresolved HTTP calls remain charged until their promises settle |
-| Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `n`, tools, structured outputs and other unrecognized fields |
+| Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `n`, structured outputs (`response_format`), thinking controls, `logprobs`, `stream_options` and other unrecognized fields |
 | `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions`, boolean `stream`, caller `max_output_tokens`, and `text.format.type=json_object` |
 | Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response |
 | Responses termination | Stop/EOS completes; output-token limit is `incomplete/max_output_tokens` with `completed_at:null`; context-limit and unknown termination fail explicitly |

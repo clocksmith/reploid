@@ -102,3 +102,16 @@ it('rejects operator-local definitions in the public room before identity or pro
   { cwd: process.cwd(), timeout: 5000 })).rejects.toMatchObject({ stderr: expect.stringContaining('explicit private room') });
   await expect(fs.stat(identity)).rejects.toMatchObject({ code: 'ENOENT' });
 });
+it('accepts the declared tool-call format and refuses an unknown one before any runtime work', async () => {
+  const f = await fixture();
+  f.configuration.model.toolCallFormat = 'reploid.tool-call/hermes-v1';
+  await f.write();
+  expect((await f.read()).toolCallFormat).toBe('reploid.tool-call/hermes-v1');
+  for (const unknown of ['openai', true, null]) {
+    f.loadRuntime.mockClear();
+    f.configuration.model.toolCallFormat = unknown;
+    await f.write();
+    await expect(f.read()).rejects.toThrow('Unknown model toolCallFormat');
+    expect(f.loadRuntime).not.toHaveBeenCalled();
+  }
+});

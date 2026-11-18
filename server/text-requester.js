@@ -2,6 +2,8 @@ import { createHttpRequestOwner } from './http-request-owner.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 import { assertSettingsSupported, normalizeGenerationSettings } from '../packages/reploid/src/mesh/generation-settings.js';
+import { TOOL_CALL_OPEN } from '../shared/infrastructure/output-constraint.js';
+import { parseToolCallOutput, toolCallId } from '../shared/infrastructure/tool-call-format.js';
 /** Text-only HTTP projection of admitted whole-model and partition routes. No model fallback. */
 import { randomUUID } from 'node:crypto';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
@@ -17,6 +19,41 @@ const errorBody = error => ({ error: { message: error.message, type: error.statu
 // Protocol adapters borrowing the same requester share its HTTP admission budget.
 // Each adapter still owns only its own request cancellation/settlement.
 const requesterAdmission = new WeakMap();
+
+/** True while generated text may still be, or already is, the tool call the output constraint
+ * admits: whitespace, then the wrapper's opening tag or a prefix of it. */
+const mayBeToolCall = text => {
+  const lead = text.trimStart();
+  return lead.length < TOOL_CALL_OPEN.length ? TOOL_CALL_OPEN.startsWith(lead) : lead.startsWith(TOOL_CALL_OPEN);
+};
+
+/**
+ * Read a completed whole-model answer once, for every protocol adapter, when the request may call
+ * a tool (tools declared and `toolChoice` not 'none'). The provider's constraint admits either
+ * free text (only when the choice is 'auto' and the output does not begin with the wrapper) or
+ * exactly one call and nothing else, so anything else is a provider fault:
+ *
+ * - one whole, declared call with valid arguments: `{ text: '', toolCalls: [call], finishReason: 'tool_calls' }`;
+ * - a call cut off by the output limit: no text and no call, `finishReason: 'length'`. Nothing of it is executable;
+ * - under 'auto', output that does not begin with the wrapper: plain text, unchanged;
+ * - an invalid, repeated, missing or unfinished call: a 502. It is never returned as a call or as text.
+ *
+ * That 502 is raised after the provider's receipt was countersigned and settled, like the other
+ * checks of a completed result in this file, so the request stays charged: the signed receipt
+ * names the constraint the provider claimed and the digest of the output that breaks it.
+ */
+export function readToolOutput(content, settings, finishReason, requestId) {
+  if (settings.toolChoice === 'auto' && !content.trimStart().startsWith(TOOL_CALL_OPEN)) return { text: content, toolCalls: [], finishReason };
+  const parsed = parseToolCallOutput(content, settings);
+  if (!parsed.complete) {
+    assert(finishReason === 'length', 'Provider ended its output inside a tool call');
+    return { text: '', toolCalls: [], finishReason };
+  }
+  assert(!parsed.error && parsed.toolCalls.length === 1 && parsed.text === '',
+    `Provider returned an invalid tool call${parsed.error ? `: ${parsed.error}` : ''}`);
+  return { text: '', finishReason: 'tool_calls',
+    toolCalls: parsed.toolCalls.map((call, index) => ({ id: toolCallId(requestId, index), name: call.name, arguments: call.arguments })) };
+}
 
 export async function readBody(req, signal, parse) {
   const chunks = []; let bytes = 0;
@@ -61,7 +98,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
     });
     const { controller, signal } = scope;
     admitted.add(scope.item);
-    let streaming = false, emitted = '', sequence = 0, observedUsage = null, disclosureApproved = false, acceptingCallbacks = true;
+    let streaming = false, emitted = '', released = 0, sequence = 0, observedUsage = null, disclosureApproved = false, acceptingCallbacks = true;
     let approvedRecipients = [];
     const id = protocol.idPrefix + randomUUID().replaceAll('-', ''), created = Math.floor(Date.now() / 1000);
     let threadId = randomUUID().replaceAll('-', '');
@@ -114,6 +151,18 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       } catch (error) { throw fail(400, error.message, error.param ?? null); }
       const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}),
         ...(settings ? { settings } : {}) });
+      // A call is published only whole and validated. While the request may call a tool, streamed
+      // text is held back for as long as it could still be a call (always, when a call is forced)
+      // and released as ordinary text from the moment it cannot be one.
+      const mayCall = Boolean(settings?.tools.length) && settings.toolChoice !== 'none';
+      let textOnly = !mayCall;
+      const releaseText = () => {
+        textOnly ||= settings.toolChoice === 'auto' && !mayBeToolCall(emitted);
+        if (!textOnly) return;
+        const text = emitted.slice(released);
+        released = emitted.length;
+        output.delta(text);
+      };
       if (await authorize({ action: 'chat.execute', principal, request, signal }) !== true) throw fail(403, 'Request execution denied');
       requirePrivateScope();
       signal.throwIfAborted(); scope.clearDeadline();
@@ -180,7 +229,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             assert(!model.partition || !requested || observedUsage, 'Provider token usage must precede text');
             emitted += event.text;
             assert(emitted.length <= policy.inputLimits.maxOutputCharacters, 'Output text limit exceeded');
-            if (input.stream) output.delta(event.text);
+            if (input.stream) releaseText();
           } catch (error) { controller.abort(error); throw error; }
         }
       });
@@ -195,7 +244,10 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       assert(!sequence || emitted === result.content, 'Requester final text differs from streamed text');
       const reason = result.execution?.stopReason;
       assert(['length', 'max-tokens', 'stop', 'eos', 'eos-token', 'stop-token', 'stop-sequence', 'context-limit'].includes(reason), 'Requester termination reason unavailable');
-      const finishReason = ['length', 'max-tokens', 'context-limit'].includes(reason) ? 'length' : 'stop';
+      const stopped = ['length', 'max-tokens', 'context-limit'].includes(reason) ? 'length' : 'stop';
+      const answer = mayCall ? readToolOutput(result.content, settings, stopped, attemptId)
+        : { text: result.content, toolCalls: [], finishReason: stopped };
+      const { finishReason } = answer;
       let usage;
       if (!model.partition && result.usage !== undefined) {
         assert(result.usage.schema === 'raw-model-tokens/v1'
@@ -217,15 +269,17 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
             && usage.outputTokens === result.execution?.completion?.generatedTokenCount,
         'Provider final token usage differs from input observation');
       }
-      if (input.stream && !sequence) {
+      // Text the stream has not carried yet: all of it when the provider sent no deltas, or what was
+      // held back while it could still have been a call. A call, or a cut-off one, releases no text.
+      if (input.stream && (mayCall ? answer.text.length > released : !sequence)) {
         assert(!model.partition || !requested || observedUsage, 'Provider token usage must precede text');
-        output.delta(result.content);
+        output.delta(answer.text.slice(released));
       }
       const evidence = input.reploid?.include_execution ? { schema: 'reploid.http-execution/v1',
         threadId, attemptId, poolId: participant.roomId, executionClass: participant.executionClass,
         modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model), planIdentity: model.partition?.planId || null, recipients: approvedRecipients,
         execution: structuredClone(result.execution) } : undefined;
-      output.complete(result.content, finishReason, reason, usage, evidence);
+      output.complete(answer.text, finishReason, reason, usage, evidence, answer.toolCalls);
     } catch (cause) {
       const error = cause instanceof Error ? cause : fail(502, 'Requester failed');
       controller.abort(error);
