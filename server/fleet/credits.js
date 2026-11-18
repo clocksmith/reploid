@@ -110,6 +110,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       return transaction(() => {
         const current = read(id);
         if (current.state === 'settled') {
+          assert(current.outcome.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
           assert(current.outcome.evidenceHash === evidenceHash || current.outcome.economicHash === economicHash || previousEconomicHash === economicHash, 'Conflicting completed evidence');
           db.prepare('INSERT OR IGNORE INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
           return current.outcome;

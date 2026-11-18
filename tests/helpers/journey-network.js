@@ -181,14 +181,17 @@ export async function createJourneyNetwork({ providers, modelOptions = {}, maxOu
   const seats = await Promise.all(providers.map(async spec => ({ ...spec, identity: await createSigningIdentity({ algorithm: 'Ed25519' }),
     computerId: 'computer-' + spec.name, directory: path.join(root, spec.name, 'model'), cacheDirectory: path.join(root, spec.name, 'cache'),
     journalFile: path.join(root, spec.name, 'generation.sqlite'), generation: 0, executions: 0, tokensEmitted: 0, cleanups: [], ready: false })));
-  const credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'),
+  // The ledger's clock can be moved forward so a claim window can pass without waiting for it.
+  const ledgerClock = { aheadMs: 0 };
+  const credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'), now: () => Date.now() + ledgerClock.aheadMs,
     computers: [{ id: 'computer-requester', name: 'Requester', ownerId: 'owner-requester',
       providers: [{ participantId: requesterIdentity.peerId, publicJwk: requesterIdentity.publicJwk }] },
     ...seats.map(seat => ({ id: seat.computerId, name: seat.name, ownerId: 'owner-' + seat.name,
       providers: [{ participantId: seat.identity.peerId, publicJwk: seat.identity.publicJwk }] }))],
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'journey/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: 1, maxDebt: 1000, maxOutputTokens, maxPendingPerComputer: 3,
-      maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0 } });
+      maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0,
+      wholeModelUnclaimedReleaseMs: 30000 } });
   const service = await startFleetService({ credits, models: [model],
     placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   cleanup.push(async () => { await service.close(); credits.close(); });
@@ -324,6 +327,8 @@ export async function createJourneyNetwork({ providers, modelOptions = {}, maxOu
   return {
     model, fixture, hub, credits, requester, requesterClient, requesterIdentity, requesterMesh, whole, outcomes, seats, seatOf, ranking,
     readyPeers, expectReady, observe, verifyDirectory, promptTokens,
+    /** Moves the ledger's clock past the request deadline and the claim window. Nothing may settle afterwards. */
+    passClaimWindow() { ledgerClock.aheadMs += credits.policy.maxRequestMs + credits.policy.wholeModelUnclaimedReleaseMs; return ledgerClock.aheadMs; },
     /** A provider that lacks the model completes its directory from peers, verifies it and only then offers service. */
     async fill(name) {
       const seat = seatOf(name), progress = [], mark = hub.mark(), started = Date.now();

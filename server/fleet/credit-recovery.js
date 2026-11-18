@@ -21,6 +21,18 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
         db.prepare("UPDATE fleet_requests SET state='abandoned' WHERE id=?").run(row.id);
       } else db.prepare("UPDATE fleet_requests SET state='closing' WHERE id=?").run(row.id);
     }
+    // Opt-in bound on a whole-model hold whose provider never returned. The provider has the request deadline
+    // plus this window to sign completion or cleanup evidence; after it the unused hold is released with no
+    // charge and no credit, and a later claim for this request is refused. Absent, such a hold stays open.
+    if (!Number.isSafeInteger(policy.wholeModelUnclaimedReleaseMs)) return;
+    for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state='closing'").all()) {
+      const request = read(row.id);
+      if (request.binding.mode !== 'whole-model' || now() < request.binding.deadline + policy.wholeModelUnclaimedReleaseMs) continue;
+      const outcome = { id: row.id, unit: policy.unit, charge: 0, ownComputeUnits: 0, outputTokens: 0, status: 'expired', usage: null,
+        reason: 'provider-unclaimed-after-window', credits: [], evidenceHash: null, economicHash: null, settledAt: now() };
+      db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.binding.maximum, request.binding.computerId);
+      db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), row.id);
+    }
   });
   return {
     expire: expiry,

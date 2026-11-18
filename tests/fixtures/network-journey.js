@@ -182,17 +182,32 @@ export async function runNetworkJourney({ providers = PROVIDERS } = {}) {
         generatedTwice: network.seats.some(seat => seat.executions - executionsBeforeLoss[seat.name] > 1),
         chargedTwice: journalEntries() - entriesAfterFirst !== 0 } };
 
-    // 8. The ledger, and what still fails.
+    // 8. A provider that never returns: stopped after its first token and not restarted. The hold stays through the
+    // request deadline and the claim window, then is released with no charge. Last, because the ledger clock moves.
+    let abandonedProvider = null;
+    const abandoned = await attempt({ attemptId: 'provider-never-returns', threadId: 'thread-abandoned', ranked: true,
+      onFirstDelta: async route => { abandonedProvider = name(route.providerIdentity); await network.stop(abandonedProvider); } });
+    abandoned.stoppedProvider = abandonedProvider;
+    abandoned.holdBeforeWindow = balances()['computer-requester'].held;
+    const movedMs = network.passClaimWindow();
+    abandoned.holdAfterWindow = balances()['computer-requester'].held;
+    const expired = await requester.recover({ reservationId: abandoned.reservationId, messages }, { signal: new AbortController().signal });
+    abandoned.afterWindow = { ledgerClockMovedMs: movedMs, claimWindowMs: credits.policy.wholeModelUnclaimedReleaseMs,
+      status: expired.status, charge: expired.serviceCredit?.charge ?? null, reason: expired.serviceCredit?.reason ?? null };
+    receipt.providerNeverReturns = abandoned;
+
+    // 9. The ledger, and what still fails.
     const snapshot = credits.snapshot();
     receipt.ledger = { balances: balances(), journalEntries: snapshot.journal.length,
       sumOfBalances: snapshot.accounts.reduce((sum, row) => sum + row.balance, 0), openHolds: snapshot.accounts.reduce((sum, row) => sum + row.held, 0) };
     receipt.outcome = { wholeRequestAndRecoveryWorkTogether: receipt.distribution.verifiedAfterFill
       && receipt.healthyRankingOn.requesterSaw.correct === true && receipt.recovered.requesterSaw.correct === true
       && receipt.lostAcknowledgment.reconciliation.first.correct === true && !receipt.lostAcknowledgment.reconciliation.generatedTwice
-      && !receipt.lostAcknowledgment.reconciliation.chargedTwice && receipt.ledger.openHolds === 0,
+      && !receipt.lostAcknowledgment.reconciliation.chargedTwice && receipt.ledger.openHolds === 0
+      && receipt.providerNeverReturns.afterWindow.status === 'expired',
     recoveryMode: recovered.recovery };
     receipt.remaining = [
-      'A provider that stops mid-answer keeps the requester\'s credit hold until that provider returns and signs failure evidence. One that never returns holds it indefinitely; the deadline only closes admission.',
+      'A provider that stops mid-answer keeps the requester\'s credit hold until it returns and signs failure evidence, or until the request deadline plus the policy\'s claim window passes. That window is opt-in: a ledger whose policy omits it still holds such credit indefinitely. A provider that finished the work but returns after the window is not paid for it.',
       'Recovery restarts generation on another provider after a fresh approval. It does not resume tokens, and nothing retries automatically.',
       'The requester notices a lost completion only when it gives up waiting (the mesh deadline is a fixed 300 s); this scenario gives up at once.',
       'The native fleet host does not yet pass coordinator ranking to the mesh, and cannot fill a missing model from peers; both are wired here only in the test network.',

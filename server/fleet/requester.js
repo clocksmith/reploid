@@ -9,7 +9,7 @@ export function buildFleetRequestOutcome({
   phase, dispatched, acknowledged, settlement = null, maximum = 0, recordedAt = Date.now()
 }) {
   const settled = typeof settlement?.settledAt === 'number';
-  const terminal = settlement?.status === 'cancelled' || settlement?.status === 'failed';
+  const terminal = ['cancelled', 'failed', 'expired'].includes(settlement?.status);
   const finished = !dispatched
     ? {
         status: settlement?.status ?? 'cancelled_queued',
@@ -196,7 +196,7 @@ export function createFleetRequester({
         // Sealing admission is durable even if collection/settlement could not reach the service.
         await credits.fence(reservation.id, identity.peerId).catch(() => {});
       }
-      const completed = typeof settlement?.settledAt === 'number' && !['cancelled', 'failed'].includes(settlement?.status);
+      const completed = typeof settlement?.settledAt === 'number' && !['cancelled', 'failed', 'expired'].includes(settlement?.status);
       const acknowledgedOutputTokens = partition
         ? (acknowledgments?.state().count ?? 0)
         : completed ? (settlement.outputTokens ?? result?.usage?.outputTokens ?? 0) : 0;
@@ -249,7 +249,7 @@ export function createFleetRequester({
       }
       const prior = lookupOutcome(reservationId);
       const emit = (dispatched, settlement, extraTokens = null, resolvedPeer = null) => {
-        const completed = typeof settlement?.settledAt === 'number' && !['cancelled', 'failed'].includes(settlement?.status);
+        const completed = typeof settlement?.settledAt === 'number' && !['cancelled', 'failed', 'expired'].includes(settlement?.status);
         const outcome = buildFleetRequestOutcome({
           attemptId: prior?.attemptId ?? null,
           threadId: prior?.threadId ?? null,

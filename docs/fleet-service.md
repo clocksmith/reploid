@@ -54,6 +54,16 @@ For whole-model cancellation or failure, the provider retains and submits
 Usage remains unknown. Setting `creditPolicy.wholeModelTerminalCharge` to `0`
 accepts zero non-cash terminal charge, frozen into each reservation; omission
 keeps the hold pending. This does not change purchased-credit accounting.
+
+A whole-model provider that admitted a request and then never returns leaves
+the requester's hold open: no timeout asserts remote cleanup. Setting
+`creditPolicy.wholeModelUnclaimedReleaseMs` bounds that. The provider has the
+request deadline plus this window to submit completion or cleanup evidence;
+after it the hold is released with status `expired`, no charge and no credit,
+and a later claim for that request is refused. A provider that did the work but
+returns after the window is therefore not paid for it. The field is part of the
+frozen credit policy, so adding it to an existing ledger needs an explicit
+migration; omitted, such holds stay open as before.
 `acceptFleetTerminalPolicy` in `server/fleet/terminal-policy.js` records an
 operator-approved zero-charge policy migration and an explicit list of unresolved
 whole-model reservations to which it applies. It cannot change metered rates,

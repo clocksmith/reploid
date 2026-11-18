@@ -55,6 +55,11 @@ it('carries one request through distribution, ranked placement, streaming, provi
     second: { status: 'completed', charge: JOURNEY_ANSWER.length }, ledgerEntriesAddedBySecond: 0, generatedTwice: false, chargedTwice: false });
   expect(Object.values(receipt.lostAcknowledgment.reconciliation.executionsAdded).reduce((a, b) => a + b, 0)).toBe(1);
 
+  // A provider that never returns: the hold survives until the claim window passes, then is released uncharged.
+  expect(receipt.providerNeverReturns).toMatchObject({ stoppedProvider: 'provider-2-fast', deltaCount: 1, charge: null,
+    holdBeforeWindow: receipt.providerNeverReturns.disclosed.quoteMaximum, holdAfterWindow: 0,
+    afterWindow: { status: 'expired', charge: 0, reason: 'provider-unclaimed-after-window' } });
+
   // Four completed answers were charged, once each; no credit was created or destroyed and no hold is left open.
   expect(receipt.ledger).toMatchObject({ sumOfBalances: 0, openHolds: 0 });
   expect(receipt.ledger.balances['computer-requester'].balance).toBe(-4 * JOURNEY_ANSWER.length);

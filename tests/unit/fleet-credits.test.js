@@ -53,6 +53,34 @@ describe('enrolled fleet service credits', () => {
       adapterIdentities: input.model.adapterIdentities, inputDigest: input.inputDigest, ...changes }, status, identities[1]);
     return proof;
   }
+  it('releases an unclaimed whole-model hold only after the opt-in claim window, then refuses a late claim', async () => {
+    const window = 30000, input = request('abandoned');
+    const open = clock => openFleetCredits({ ...options, file: path.join(directory, 'bounded.sqlite'),
+      policy: { ...policy, wholeModelUnclaimedReleaseMs: window }, now: clock });
+    ledger.close(); ledger = await open(() => at);
+    dispatch(input); ledger.admit(input.id, 0);
+    // The provider admitted the work and then never returned. Inside the window the hold stays.
+    ledger.close(); ledger = await open(() => at + policy.maxRequestMs + window - 1);
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 10 });
+    expect(ledger.request(input.id).state).toBe('closing');
+    ledger.close(); ledger = await open(() => at + policy.maxRequestMs + window);
+    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
+    expect(ledger.request(input.id)).toMatchObject({ state: 'settled',
+      outcome: { status: 'expired', charge: 0, outputTokens: 0, credits: [], reason: 'provider-unclaimed-after-window' } });
+    expect(ledger.snapshot().journal).toHaveLength(0);
+    // A provider that comes back after the window is not paid for this request, with either kind of evidence.
+    const late = await terminal(input, {}, 'failed');
+    ledger.close(); ledger = await open(() => late.timestamp);
+    await expect(ledger.settle(input.id, late)).rejects.toThrow('Claim window closed');
+    await expect(ledger.collect(input.id, { terminal: late })).rejects.toThrow('Claim window closed');
+    expect(ledger.snapshot().accounts.every(row => row.balance === 0 && row.held === 0)).toBe(true);
+  });
+  it('keeps an unclaimed whole-model hold open indefinitely when no claim window is set', async () => {
+    const input = request('unbounded'); dispatch(input); ledger.admit(input.id, 0);
+    ledger.close(); ledger = await openFleetCredits({ ...options, now: () => at + policy.maxRequestMs * 1000 });
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ held: 10 });
+    expect(ledger.request(input.id).state).toBe('closing');
+  });
   it.each(['cancelled', 'failed'])('settles signed %s cleanup without inventing token usage, even after the deadline', async status => {
     const input = request('terminal'); dispatch(input); ledger.admit(input.id, 0);
     const proof = await terminal(input, {}, status);
