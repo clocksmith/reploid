@@ -159,6 +159,16 @@ export function intersectGenerationSettingsCapabilities(capabilities) {
     ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, normalized.every(capability => capability[flag])])) });
 }
 
+/** What at least one listed provider supports: each flag OR-ed over the providers that advertise
+ * a capability, or `null` when none does. It says a setting may be requested, not that one
+ * provider supports every flag at once: provider choice checks each provider's own capability. */
+export function unionGenerationSettingsCapabilities(capabilities) {
+  const normalized = capabilities.map(normalizeGenerationSettingsCapability).filter(Boolean);
+  if (!normalized.length) return null;
+  return Object.freeze({ schema: GENERATION_SETTINGS_SCHEMA,
+    ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, normalized.some(capability => capability[flag])])) });
+}
+
 /** Refuse settings a route does not advertise, naming the first unsupported one. A route with
  * no capability refuses every settings object; a request without settings always passes. */
 export function assertSettingsSupported(capability, settings) {

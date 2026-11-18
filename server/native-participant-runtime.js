@@ -103,7 +103,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     instanceId: 'node:' + identity.peerId, modelConfig: wholeMode ? model : null, utils, eventBus, events: bridge,
     ...(typeof rankProviders === 'function' ? { rankProviders } : {}),
     getExecutionState: () => whole ? { ...whole.getExecutionState(), ...(!wholeEarningReady ? { phase: 'idle' } : {}) } : { phase: 'idle' },
-    getGenerationSettingsCapability: () => whole?.getGenerationSettingsCapability?.() ?? null,
+    // The earning path settles version 2 receipts only, so an earning host advertises no settings.
+    getGenerationSettingsCapability: () => earning ? null : whole?.getGenerationSettingsCapability?.() ?? null,
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
     authorize: async request => !closed && (request.action === 'mesh.connect'
@@ -114,7 +115,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     generate: async (messages, onUpdate, controls) => {
       requireValue(!closed && whole, 'Native whole-model execution was not enabled');
       if (earning) await earning.prepareWholeModel({ requestId: controls.requestId, consumer: controls.consumer,
-        model: { modelId: model.id, modelIdentity: model.identity, executionMode: 'whole-model', adapterIdentities: controls.adapterIdentities || [] } });
+        model: { modelId: model.id, modelIdentity: model.identity, executionMode: 'whole-model', adapterIdentities: controls.adapterIdentities || [] },
+        ...(controls.settings === undefined ? {} : { settings: controls.settings }) });
       controls.signal.throwIfAborted();
       return whole.generate(messages, onUpdate, controls);
     },

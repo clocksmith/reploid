@@ -15,7 +15,10 @@ export function createNativeWholeEarning({ storage, participantId, ownerPolicyDi
   };
   const read = async () => await storage.get(STORE) || [];
   return Object.freeze({
-    async prepare({ model, requestId, consumer }) {
+    async prepare({ model, requestId, consumer, settings }) {
+      // A request with settings is receipted as version 3, which record() below does not accept
+      // yet: refuse it here, before execution and before any row that could never be retired.
+      assert(settings === undefined, 'Whole-model earning does not support request settings yet; the request was not executed');
       assert(model.executionMode === 'whole-model' && text(requestId) && text(consumer), 'Whole-model admission identity required');
       model = structuredClone(model);
       const offer = await findOffer(model);

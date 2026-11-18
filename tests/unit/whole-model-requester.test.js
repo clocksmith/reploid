@@ -205,18 +205,23 @@ it('refuses a dispatch that adds settings to a request without them', async () =
   expect(f.controls.requestApproval).not.toHaveBeenCalled();
 });
 
-it('refuses settings unless every ready provider of the model advertises them, and a limit above the prepared ceiling', async () => {
-  const limit = { schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: true, outputSchema: false, thinking: false };
-  const mixed = settingsFixture({ capabilities: [limit, null] });
-  expect(mixed.requester.getModels()[0]).not.toHaveProperty('generationSettings');
-  await expect(mixed.requester.generate({ ...mixed.request, settings: { maxOutputTokens: 2 } }, mixed.controls)).rejects.toThrow('not supported by this route');
-  const narrowed = settingsFixture({ capabilities: [limit, { ...limit, tools: false }] });
-  expect(narrowed.requester.getModels()[0].generationSettings).toEqual({ ...limit, tools: false });
-  await expect(narrowed.requester.generate({ ...narrowed.request, settings: { tools: [{ name: 'lookup', parameters: {} }] } }, narrowed.controls))
+it('offers a setting when at least one ready provider advertises it, and refuses what none does or a limit above the prepared ceiling', async () => {
+  const limit = { schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: false, outputSchema: false, thinking: false };
+  // One provider without any capability no longer hides what another enforces: the mesh picks among those that do.
+  const mixed = settingsFixture({ capabilities: [null, limit] });
+  expect(mixed.requester.getModels()[0].generationSettings).toEqual(limit);
+  await mixed.requester.generate({ ...mixed.request, settings: { maxOutputTokens: 2 } }, mixed.controls);
+  expect(mixed.mesh.generate.mock.calls[0][2].settings).toEqual(canonical(2));
+  const united = settingsFixture({ capabilities: [limit, { ...limit, maxOutputTokens: false, thinking: true }] });
+  expect(united.requester.getModels()[0].generationSettings).toEqual({ ...limit, thinking: true });
+  const none = settingsFixture({ capabilities: [null, null] });
+  expect(none.requester.getModels()[0]).not.toHaveProperty('generationSettings');
+  await expect(none.requester.generate({ ...none.request, settings: { maxOutputTokens: 2 } }, none.controls)).rejects.toThrow('not supported by this route');
+  await expect(united.requester.generate({ ...united.request, settings: { tools: [{ name: 'lookup', parameters: {} }] } }, united.controls))
     .rejects.toThrow('Generation setting tools is not supported');
-  await expect(narrowed.requester.generate({ ...narrowed.request, settings: { maxOutputTokens: 17 } }, narrowed.controls)).rejects.toThrow('exceeds the prepared model ceiling');
-  await expect(narrowed.requester.generate({ ...narrowed.request, settings: { temperature: 1 } }, narrowed.controls)).rejects.toThrow('unknown key temperature');
-  for (const f of [mixed, narrowed]) { expect(f.mesh.generate).not.toHaveBeenCalled(); expect(f.controls.requestApproval).not.toHaveBeenCalled(); }
+  await expect(united.requester.generate({ ...united.request, settings: { maxOutputTokens: 17 } }, united.controls)).rejects.toThrow('exceeds the prepared model ceiling');
+  await expect(united.requester.generate({ ...united.request, settings: { temperature: 1 } }, united.controls)).rejects.toThrow('unknown key temperature');
+  for (const f of [none, united]) { expect(f.mesh.generate).not.toHaveBeenCalled(); expect(f.controls.requestApproval).not.toHaveBeenCalled(); }
 });
 
 it('rejects a provider result that reports more output than the caller limit', async () => {

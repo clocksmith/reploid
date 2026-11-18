@@ -1436,7 +1436,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 684184,
-      "sha256": "sha256:a13a83306ddb781edfb7f6e9422c8b439050ff4efb0dad1e2366d036d8724225"
+      "sha256": "sha256:fe9cd64e4b01efaa3cc90f148af81ba37f1a91003e66ea49ec8ea705781d4d85"
     },
     {
       "path": "config/module-registry.json",
@@ -3765,8 +3765,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2510729,
-      "sha256": "sha256:440138b93ae495ebc138f09a95e43af39a60fd14d66d28436f9a788b26b57782"
+      "byteLength": 2511039,
+      "sha256": "sha256:2cd2e27722de217994f87ad33dae84e2dcd2be896f2c300125adb746e85d1c3b"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11820,8 +11820,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/receipt.js",
-      "byteLength": 4459,
-      "sha256": "sha256:5078995ef872e258f1d4b2885d7d0cf86ebf6194b95e8607498e2092bc6bbead"
+      "byteLength": 4739,
+      "sha256": "sha256:5e129e3ac322fcc2e4204b5df09ccf66ec4cc005520c87ecff385b5d721ffde0"
     },
     {
       "path": "vendor/reploid/artifacts/signatures.js",
@@ -12060,8 +12060,8 @@
     },
     {
       "path": "vendor/reploid/mesh/generation-settings.js",
-      "byteLength": 11197,
-      "sha256": "sha256:bb3b988fc7a6a116a7efa7bdf1660e216750d054c2a4ad14f56b5cc25fce1edc"
+      "byteLength": 11868,
+      "sha256": "sha256:8f2ff52193f4fd5997e87306875cb0aab45abc816e2f500eabcdb5773238ecaa"
     },
     {
       "path": "vendor/reploid/mesh/gpu-signature-shader.js",
@@ -12325,8 +12325,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 61280,
-      "sha256": "sha256:aeb6013eeb24179fee9ef1e9b757e3bc79b0d60ebee9361095430bd24a92c0ae"
+      "byteLength": 62283,
+      "sha256": "sha256:2d4169a4c06af2d1edb784a765eca04fe665100b17470f0253fc0a1f3a49d8ee"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -12376,7 +12376,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 60398,
-      "sha256": "sha256:aa0cf009b314afdd0fb028a1ad0a4401209b036ab758c8c79a73d5c3c5073a0e"
+      "sha256": "sha256:69e3f929376a1f346d399cab5e4240473e86a80bb9df21b222c6565270b0a710"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12654,5 +12654,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:8e18d58cf101a99027cc501d30957553829f7dbe1c241175a31ac57e2b1e5430"
+  "bundleHash": "sha256:8cc9726002877020c7aff3487a817e4220d1b6b356fbf135b31219ca7dd6080a"
 }
