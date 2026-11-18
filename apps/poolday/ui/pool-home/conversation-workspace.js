@@ -16,10 +16,12 @@ import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
-import { canDownloadModelHere, updateConversationModelPicker } from './conversation-model-picker.js';
+import { canDownloadModelHere, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
 export { renderConversationWorkspace } from './conversation-view.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
+const modelKey = model => model?.selectionId || model?.id;
+const modelIdentity = model => JSON.stringify([modelKey(model), model?.identity, (model?.adapters || []).map(adapter => adapter.identity)]);
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 
 export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null, historyHandover = null } = {}) {
@@ -33,8 +35,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const nextModelChoices = bindModelChoices(find('[data-next-model]'));
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
-  let changingModel = false, pickerTouched = false;
-  let files = [], composerRevision = 0;
+  let changingModel = false, pickerTouched = false, recoverySelection = null;
+  let files = [], composerRevision = 0, queuedSend = null, queueHasText = false;
   const attachmentReader = createTextAttachmentReader({
     getFiles: () => files,
     onLoaded: async loaded => { files.push(...loaded); composerRevision++; await saveDraft(); showFiles(); },
@@ -44,6 +46,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
+  const effectiveLocation = state => {
+    const thread = state.activeThread, privacy = thread?.privacy ?? viewState.privacy;
+    return thread?.permissions?.sharingScope === 'local' || privacy?.placement === 'local-only'
+      ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
+  };
+  const recoveryAlternative = state => recoverySharedModel(state, modelSelect.value,
+    effectiveLocation(state), state.activeThread?.privacy ?? viewState.privacy);
+  const matchesRecovery = state => {
+    const candidate = recoveryAlternative(state);
+    return candidate && modelIdentity(candidate) === modelIdentity(recoverySelection);
+  };
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen, { getSources: session.getDocumentSources });
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions, scrollContainer: find('[data-chat-transcript]') });
@@ -102,8 +115,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     drafts.set(selectedId, structuredClone(value)); return session.saveDraft?.(selectedId, value);
   };
   let selectedId = session.getState().selectedId, submitting = false;
-  // A message sent before any computer has been found is kept and sent the moment a model can answer.
-  let queuedSend = false;
   // While another tab holds the history, the handover notice replaces its refusal.
   const history = session.getState().history;
   const refusal = history?.mode === 'refused' && historyHandover ? history.reason : null;
@@ -147,11 +158,64 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   const showFiles = () => { refreshStartingPrompts(); resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const downloadableHere = (model, state) => canDownloadModelHere(model, state, !!inspector.downloadModel);
+  function pinDraftModel(state) {
+    if (state.selectedId == null && !chosenModel && !viewState.draftModel) {
+      viewState.draftModel = state.models?.find(model => modelKey(model) === modelSelect.value);
+    }
+  }
+  function queueScope(state, model) {
+    const privacy = state.activeThread?.privacy ?? viewState.privacy;
+    return JSON.stringify([state.selectedId, modelIdentity(model), effectiveLocation(state), privacy,
+      state.remoteNetworkId, state.remoteAnswersEnabled, state.activeThread?.permissions, contextPrompt,
+      state.activeThread?.systemContext, searching(), composerRevision, input.value]);
+  }
+  function canWaitForPublicModel(state, model, location) {
+    const privacy = state.activeThread?.privacy ?? viewState.privacy;
+    const pinned = state.activeThread?.model || chosenModel || viewState.draftModel;
+    return !!model?.identity && (!pinned?.identity || modelIdentity(model) === modelIdentity(pinned)) && !model.partition && !model.fleet && location !== 'local'
+      && (!state.activeThread || location === 'network') && (!privacy || privacy.profile === 'provider-visible')
+      && !privacy?.allowedRecipients?.length && !searching() && !attachmentReader.pending
+      && !state.storageError && !state.activeThread?.closed && !state.comparisonPhase
+      && !(state.runningIds || []).includes(state.selectedId) && !submitting
+      && ['observed', 'searching'].includes(state.discoveryPhase);
+  }
+  function readyForQueuedSend(state, intent) {
+    const model = state.models?.find(item => modelKey(item) === modelSelect.value);
+    return !controller.signal.aborted && canWaitForPublicModel(state, model, effectiveLocation(state))
+      && queueScope(state, model) === intent.scope && model.networkAvailability === 'ready'
+      && model.reachableProviderIds?.length > 0;
+  }
+  function renderQueuedSend(state, model, location, usable, busy, preparing) {
+    const button = find('[data-queue-send]'), cancel = find('[data-cancel-queued-send]');
+    const permitted = !busy && canWaitForPublicModel(state, model, location);
+    if (queuedSend && (!permitted || queuedSend.scope !== queueScope(state, model))) queuedSend = null;
+    queueHasText = !!input.value.trim();
+    button.hidden = !queueHasText || !!queuedSend || !permitted || usable || state.discoveryPhase !== 'searching'
+      || preparing;
+    button.disabled = !queueHasText;
+    cancel.hidden = !queuedSend;
+    const status = find('[data-model-status]');
+    if (!queuedSend) {
+      if (!button.hidden) status.textContent += ' Send when ready will share your prompt and attachments with a public computer running this model.';
+      return;
+    }
+    status.hidden = false;
+    status.textContent = `Waiting to send to ${modelVariantLabel(model)}. A public computer running this model will receive your prompt and any attached files.`;
+    const intent = queuedSend;
+    if (!intent.scheduled && readyForQueuedSend(state, intent)) {
+      intent.scheduled = true;
+      queueMicrotask(() => {
+        intent.scheduled = false;
+        if (queuedSend === intent && readyForQueuedSend(session.getState(), intent)) submitDraft(intent);
+      });
+    }
+  }
   const updatePicker = snapshot => {
     pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
       state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
       selectedId: modelSelect.value, privacy: viewState.privacy, canDownload: !!inspector.downloadModel });
+    if (attachmentReader.pending || recoverySelection && !matchesRecovery(snapshot)) find('[data-change-model]').disabled = true;
   };
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
@@ -162,29 +226,28 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const thread = state.activeThread, catalogModels = state.models || [], runningIds = state.runningIds || [];
     const keyFor = model => model?.selectionId || model?.id;
-    const models = [...catalogModels];
-    if (!thread && chosenModel && !models.some(model => keyFor(model) === keyFor(chosenModel))) {
-      models.push(catalogModels.find(model => keyFor(model) === keyFor(chosenModel)) || unavailableModelChoice(chosenModel));
-    }
-    if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
-      models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || unavailableModelChoice(thread.model));
-    }
-    const location = thread?.permissions?.sharingScope === 'local' ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
+    if (!thread && !input.value.trim() && !files.length && !attachmentReader.pending) viewState.draftModel = null;
+    const pinnedModel = thread?.model || chosenModel || viewState.draftModel;
+    const models = catalogModels.filter(model => keyFor(model) !== keyFor(pinnedModel)
+      || !pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel));
+    if (pinnedModel && !models.some(model => keyFor(model) === keyFor(pinnedModel))) models.push(unavailableModelChoice(pinnedModel));
+    const location = effectiveLocation(state);
     const defaultModel = state.defaultModels?.[location] || state.defaultModel;
-    const current = keyFor(thread?.model) || keyFor(chosenModel)
+    const current = keyFor(pinnedModel)
       || keyFor(models.find(model => keyFor(model) === keyFor(defaultModel) && selectable(model)))
       || keyFor(models.find(selectable)) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true, grouped: true, preferNetwork: location !== 'local' });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
-    const selectedModel = catalogModels.find(model => keyFor(model) === current);
+    const selectedModel = catalogModels.find(model => keyFor(model) === current
+      && (!pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel)));
+    if (!thread && !chosenModel && !viewState.draftModel && (input.value.trim() || files.length)) viewState.draftModel = selectedModel;
     const execution = modelExecutionState(selectedModel, location);
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
     const usable = execution.usable || prepareHere;
     find('[data-composer-field]').dataset.executionSource = execution.source;
     const modelStatus = find('[data-model-status]');
-    const networkState = state.network?.consumer?.connectionState;
     const localPreparing = state.localModel?.phase === 'loading';
-    const requestedModel = selectedModel || thread?.model || chosenModel || models.find(model => keyFor(model) === current)
+    const requestedModel = selectedModel || pinnedModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === keyFor(state.defaultModel))
       || catalogModels[0];
@@ -197,14 +260,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       && ['loading', 'preparing'].includes(model.availability));
     const preparing = localPreparing || remotePreparing || selectedPreparing;
     const acquiring = state.acquisition?.phase === 'downloading';
-    const exhausted = state.peerDiscoveryTimedOut === true;
+    const phase = state.discoveryPhase;
+    const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
       && location !== 'network' && !requestedModel?.fleet && !!requestedModel?.source && !requestedModel?.partition && !requestedModel?.adapters?.length && (exhausted || location === 'local');
     const acquisition = state.acquisition;
     const acquisitionText = find('[data-acquisition-status]');
     acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
       : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.' : '';
-    if (acquiring && usable) acquisitionText.textContent += ' Network capacity is available; you can send now or cancel this download.';
+    if (acquiring && execution.source === 'network' && execution.status === 'ready') {
+      acquisitionText.textContent += ' A computer is ready to answer on the network.';
+    }
     acquisitionText.hidden = !acquisitionText.textContent;
     const meter = find('[data-acquisition-progress]');
     meter.hidden = !acquiring;
@@ -213,29 +279,44 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     } else meter.removeAttribute('value');
     find('[data-cancel-download]').hidden = !acquiring;
     find('[data-download-local]').hidden = !canAcquire || !!thread?.closed;
-    find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Download model';
+    find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Review local download';
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
-    // One status line under the composer explains a disabled Send, including before
-    // the first attempt, without adding another panel.
-    const statusText = busy ? '' : thread?.closed ? 'Restore this thread to continue.'
-      : prepareHere && !execution.usable ? 'Send prepares this model on this device.'
-      : state.localModel?.error && !usable ? 'Model preparation failed: ' + state.localModel.error
-      : !usable && (selectedModel || models.find(model => keyFor(model) === current))?.adapters?.length && location !== 'local' ? 'No computer serves this adapter now. The base model is not used instead.'
-      : !usable && location === 'network' ? 'No shared computer can answer with this model right now.'
-      : !usable && location === 'local' ? 'Download this model to run it on this device.'
-      : !usable && exhausted ? state.localDownloadIssue || (requestedModel?.partition || requestedModel?.adapters?.length
-        ? 'This model has no available shared route.' : 'This model is unavailable. Choose a shared model or download it.')
-      : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy', 'cached'].includes(model.availability))
-        ? 'Choose an available model.'
-      : !usable ? preparing ? state.localModel?.progress?.message || 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
-        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…'
-        : state.peerDiscoveryTimedOut === false ? 'Finding computers…' : 'Model unavailable.' : '';
-    if (queuedSend && (exhausted || thread?.closed)) queuedSend = false;
-    if (queuedSend && usable && !busy) { queuedSend = false; queueMicrotask(() => { if (!controller.signal.aborted) find('[data-composer-form]').requestSubmit(); }); }
-    // A busy contributor still answers later; that notice takes the line only when nothing blocks Send.
-    modelStatus.textContent = queuedSend ? 'Finding a computer. Your message sends as soon as one is ready.' : statusText || (!busy && location === 'network' && selectedModel?.networkAvailability === 'busy'
-      ? 'Contributors are busy. Sending waits for capacity.' : '');
-    modelStatus.hidden = !modelStatus.textContent; modelStatus.title = modelStatus.textContent;
+    const privacy = thread?.privacy ?? viewState.privacy;
+    const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring
+      ? recoverySharedModel(state, current, location, privacy) : null;
+    const review = find('[data-review-shared-model]');
+    review.hidden = !shared;
+    review.dataset.selectionId = shared ? keyFor(shared) : '';
+    review.dataset.identity = shared ? modelIdentity(shared) : '';
+    review.textContent = shared ? `Review ${modelVariantLabel(shared)}` : '';
+
+    let statusText = '';
+    if (!busy) {
+      if (thread?.closed) statusText = 'Restore this thread to continue.';
+      else if (usable) {
+        if (execution.source === 'network') {
+          if (privacy?.profile === 'restricted') statusText = 'Only your allowed recipients may receive inference data.';
+          else if (selectedModel?.fleet) statusText = 'Your private computers receive the data needed for inference.';
+          else if (selectedModel?.partition) statusText = 'Computers on the selected public route receive the data needed for their stages.';
+          else statusText = 'The selected public computer can read your prompt.';
+          if (execution.status === 'busy') statusText += ' Sending waits for capacity.';
+        }
+      } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
+      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'This model is unavailable on this device.';
+      else if (phase === 'paused') statusText = 'Network discovery is paused.';
+      else if (phase === 'interrupted') statusText = 'Discovery connection interrupted. Shared capacity is unknown.';
+      else if (phase === 'searching') statusText = 'Finding computers…';
+      else if (phase === 'observed') statusText = state.network?.connectionFailure?.peerId
+        ? 'A peer connection failed. No eligible computer found for this model.'
+        : 'No eligible computer found for this model.';
+      else statusText = 'Model unavailable.';
+      if (!usable && location !== 'local' && state.localDownloadIssue && !shared && !canAcquire && exhausted) {
+        statusText += ' ' + state.localDownloadIssue;
+      }
+    }
+    modelStatus.textContent = statusText;
+    modelStatus.hidden = !statusText;
+    renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
     const answerLimit = find('[data-answer-limit]');
     const detailModel = find('[data-model-picker]').open ? pickerModel : requestedModel;
     const cells = state.answerLimits?.find(entry => entry.selectionId === keyFor(detailModel || {}))?.cells || [];
@@ -247,16 +328,22 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       + '. Input includes conversation history. Answers reaching the limit are incomplete.'
       : Number.isSafeInteger(configuredAnswerTokens) ? `Answer limit: ${configuredAnswerTokens} tokens. Answers reaching the limit are incomplete.` : '';
     answerLimit.hidden = !answerLimit.textContent;
-    find('[data-retry-connection]').title = statusText;
+    const retry = find('[data-retry-connection]');
+    retry.textContent = phase === 'observed' ? 'Search again' : phase === 'paused' ? 'Reconnect' : 'Retry connection';
+    retry.setAttribute('aria-label', retry.textContent);
+    retry.hidden = busy || usable || preparing || location === 'local' || !exhausted || !!thread?.closed;
     find('[data-model-control]').hidden = !models.length;
     find('[data-open-model]').dataset.activity = execution.status === 'ready' ? 'ready' : 'idle';
     find('[data-picker-thread-note]').hidden = !thread;
-    const activeModel = selectedModel || thread?.model || chosenModel || models.find(model => keyFor(model) === current)
+    const activeModel = selectedModel || pinnedModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current) || requestedModel;
     find('[data-model-caption]').hidden = !!activeModel;
-    const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${execution.label}` : '';
+    const sourceLabel = execution.usable ? execution.label
+      : preparing ? 'Loading' : location === 'local' ? 'This device' : phase === 'searching' ? 'Searching'
+      : phase === 'interrupted' || phase === 'paused' ? 'Connection unavailable' : 'Unavailable';
+    const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${sourceLabel}` : '';
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
-    find('[data-composer-model-source]').textContent = activeModel ? ` · ${execution.usable ? execution.source === 'local' ? 'This device' : activeModel.fleet ? 'Private computers' : 'Public network' : execution.status === 'loading' || execution.status === 'preparing' ? 'Loading' : 'Unavailable'}` : '';
+    find('[data-composer-model-source]').textContent = activeModel ? ` · ${sourceLabel}` : '';
     find('[data-open-model]').title = modelDigest ? `Choose model: ${modelDigest}` : 'Choose model';
     find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
     updateContextIndicator(container, state, session);
@@ -276,8 +363,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
-    find('[data-retry-connection]').hidden = busy || usable || location === 'local' || !state.network?.paused && !state.network?.error && !['failed', 'disconnected'].includes(networkState) && !(exhausted && (state.network?.connecting || ['connecting', 'retrying'].includes(networkState))); find('[data-composer-send]').disabled = attachmentReader.pending || !usable || !!thread?.closed || !!state.storageError;
-    // Once a model can answer, the waiting message sends as if Send were pressed again.
+    find('[data-composer-send]').disabled = attachmentReader.pending || !usable || !!thread?.closed || !!state.storageError;
 
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = 'idle';
@@ -299,7 +385,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const refreshSearchToggle = () => { searchToggle.hidden = !(search?.available() || deviceSearchOn() || webSearch?.enabled()); if (searchToggle.hidden) setSearch(false); };
   const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(refreshSearchToggle) : () => {};
   if (search && search.state().state === 'unknown') void search.refresh();
-  on('[data-search-toggle]', 'click', () => setSearch(!searching()));
+  on('[data-search-toggle]', 'click', () => { queuedSend = null; setSearch(!searching()); render(session.getState()); });
   const webSearchOn = find('[data-web-search-on]');
   const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => {
     refreshSearchToggle();
@@ -318,14 +404,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   showFiles();
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
-  const openPicker = event => {
-    pickerTouched = false;
+  const openPicker = (event, alternative = null) => {
+    queuedSend = null;
+    recoverySelection = alternative;
+    pickerTouched = !!alternative;
     const state = session.getState();
     inspector.close?.({ restoreFocus: false });
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
-    pickerModel = (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
+    pickerModel = alternative || (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
       || state.activeThread?.model || chosenModel || state.defaultModel || null;
-    pickerLocation = state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : state.activeThread?.permissions?.executionLocation ?? executionLocation;
+    pickerLocation = alternative ? 'network' : effectiveLocation(state);
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
     render(state);
@@ -333,6 +421,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   // One model control opens the bounded model/source choice.
   on('[data-open-model]', 'click', openPicker);
+  on('[data-review-shared-model]', 'click', event => {
+    const state = session.getState(), alternative = recoveryAlternative(state);
+    if (alternative && modelKey(alternative) === event.currentTarget.dataset.selectionId
+      && modelIdentity(alternative) === event.currentTarget.dataset.identity) openPicker(event, alternative);
+    else render(state);
+  });
   on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-model-picker]', 'close', () => render(session.getState()));
   // A route radio under the providers selects that route of the highlighted variant.
@@ -351,13 +445,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       if (!controller.signal.aborted && find('[data-model-picker]').open && !button.disabled && button.textContent === 'Use model') button.click(); }, 0);
   }, { signal: controller.signal });
   on('[data-next-model]', 'change', () => {
+    if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
     pickerTouched = true;
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     if (pickerLocation !== 'local' && !modelExecutionState(pickerModel, pickerLocation).usable) pickerLocation = isSharedModelChoice(pickerModel) ? 'network' : 'auto';
     updatePicker(session.getState());
     render(session.getState());
   });
-  on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts(); try { observe(saveDraft()); } catch (cause) { error(cause); } });
+  on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts();
+    if (input.value.trim()) pinDraftModel(session.getState());
+    if (queuedSend || queueHasText !== !!input.value.trim()) { queuedSend = null; render(session.getState()); }
+    try { observe(saveDraft()); } catch (cause) { error(cause); } });
   on('[data-starting-prompts]', 'click', event => {
     const button = event.target.closest('[data-starting-prompt]');
     if (!button || find('[data-starting-prompts]').hidden || find('[data-starting-prompts]').inert) return;
@@ -366,35 +464,54 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.focus();
   });
   const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
-  on('[data-new-thread]', 'click', () => { try { observe(newThread()); } catch (cause) { error(cause); } });
+  on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
   on('[data-change-model]', 'click', () => {
-    if (changingModel) return;
+    if (changingModel || attachmentReader.pending) return;
     const next = find('[data-next-model]').value;
     const state = session.getState();
+    if (recoverySelection && !matchesRecovery(state)) { updatePicker(state); return; }
     const model = (state.models || []).find(model => (model.selectionId || model.id) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && !!model.source && !model.partition && !state.localDownloadIssue));
     if (!model) {
       const wanted = (state.models || []).find(item => (item.selectionId || item.id) === next);
       if (wanted && downloadableHere(wanted, state)) { const opener = find('[data-model-control]'); picker.close(); inspector.downloadModel(next, opener); return; }
       updatePicker(session.getState()); return;
     }
-    const location = pickerLocation;
+    const privacy = state.activeThread?.privacy ?? viewState.privacy;
+    const location = privacy?.placement === 'local-only' ? 'local' : pickerLocation;
+    const origin = selectedId, revision = composerRevision;
     changingModel = true; updatePicker(state);
     void act(async () => {
       try {
+        if (controller.signal.aborted || selectedId !== origin || composerRevision !== revision) return;
         if (state.activeThread && (state.activeThread.model.selectionId || state.activeThread.model.id) === next) {
           await session.setExecutionLocation(state.activeThread.id, location);
           picker.close(); input.focus(); return;
         }
-        const pendingDraft = input.value || files.length ? { text: input.value, files: [...files] } : null;
-        await newThread();
-        if (controller.signal.aborted) return;
-        if (pendingDraft) {
+        // New threads share a single draft slot until their first send. If it is
+        // already occupied, give this switch its own thread before copying the draft.
+        const pendingDraft = { text: input.value, files: structuredClone(files) };
+        await saveDraft();
+        if (controller.signal.aborted || selectedId !== origin || composerRevision !== revision) return;
+        if (recoverySelection && !matchesRecovery(session.getState())) return;
+        let destination = origin;
+        if (origin != null) {
+          const existing = drafts.get(null) || session.getDraft?.(null);
+          if (existing?.text || existing?.files.length) {
+            destination = await session.createThread({ model, executionLocation: location,
+              sharingScope: location === 'local' ? 'local' : 'mesh', privacy });
+          } else {
+            await session.select(null);
+            destination = null;
+          }
+          if (controller.signal.aborted || selectedId !== destination || composerRevision !== revision) return;
           input.value = pendingDraft.text;
           files = pendingDraft.files;
-          await saveDraft();
           showFiles();
+          await saveDraft();
+          if (controller.signal.aborted || selectedId !== destination) return;
         }
+        viewState.privacy = privacy;
         chosenModel = model; viewState.chosenModel = chosenModel;
         executionLocation = location;
         viewState.executionLocation = executionLocation;
@@ -406,6 +523,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     });
   });
   on('[data-retry-connection]', 'click', event => {
+    queuedSend = null; render(session.getState());
     const button = event.currentTarget;
     button.disabled = true;
     const retryDeadline = setTimeout(() => { if (!controller.signal.aborted) button.disabled = false; }, 8000);
@@ -444,18 +562,20 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
+    const button = event.target.closest('[data-thread-item-id]'); if (button) { queuedSend = null; try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
   on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
   on('[data-privacy-profile]', 'change', event => {
     find('[data-privacy-recipients-label]').hidden = event.target.value !== 'restricted';
   });
   on('[data-privacy-apply]', 'click', () => {
+    queuedSend = null;
     void act(async () => {
       const privacy = readPrivacyControls(find('[data-privacy-controls]'));
       const state = session.getState();
       if (state.activeThread) await session.setExecutionPrivacy(state.activeThread.id, privacy);
       else viewState.privacy = privacy;
       updatePrivacyControls(find('[data-privacy-controls]'), privacy, false);
+      render(session.getState());
     });
   });
   on('[data-execution-location]', 'click' , event => {
@@ -465,34 +585,55 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerLocation = button.dataset.executionChoice;
     updatePicker(session.getState());
   });
-  on('[data-composer-form]', 'submit', event => {
-    event.preventDefault();
-    const content = input.value.trim(), state = session.getState();
+  on('[data-queue-send]', 'click', () => {
+    const state = session.getState(), location = effectiveLocation(state);
+    const model = state.models?.find(item => modelKey(item) === modelSelect.value);
+    if (!input.value.trim() || state.discoveryPhase !== 'searching' || !canWaitForPublicModel(state, model, location)
+      || modelExecutionState(model, location).usable) return;
+    queuedSend = { scope: queueScope(state, model), scheduled: false };
+    render(state);
+  });
+  on('[data-cancel-queued-send]', 'click', () => { queuedSend = null; render(session.getState()); });
+  on('[data-composer-form]', 'submit', event => { event.preventDefault(); submitDraft(); });
+  function submitDraft(intent = null) {
+    const draftText = input.value, content = draftText.trim(), state = session.getState();
     if (!content || attachmentReader.pending || submitting || (state.runningIds || []).includes(state.selectedId)) return;
-    {
-      const chosen = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
-      const where = state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : state.activeThread?.permissions?.executionLocation ?? executionLocation;
-      const waitingForDiscovery = state.peerDiscoveryTimedOut === false && !state.network?.paused && where !== 'local'
-        && !modelExecutionState(state.activeThread?.model && state.models.find(item => (item.selectionId || item.id) === (state.activeThread.model.selectionId || state.activeThread.model.id)) || chosen, where).usable;
-      if (waitingForDiscovery) { queuedSend = true; render(state); return; }
-    }
-    if (find('[data-composer-send]').disabled) return;
+    if (intent ? !readyForQueuedSend(state, intent) : find('[data-composer-send]').disabled) return;
+    const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
+    const pinned = state.activeThread?.model || chosenModel || viewState.draftModel;
+    if (!model || pinned?.identity && modelIdentity(model) !== modelIdentity(pinned)) return;
+    const location = intent ? 'network' : effectiveLocation(state);
     const searched = searching();
     if (searched && files.length) { error("Search-backed answers don't include files. Remove the files or turn off search for this answer."); return; }
+    queuedSend = null;
     submitting = true;
     const revision = composerRevision, origin = state.selectedId, attachments = files.map(file => ({ ...file }));
-    act(async () => {
+    const dispatch = async () => {
       try {
-        const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
-        const location = state.activeThread?.permissions?.sharingScope === 'local' ? 'local' : state.activeThread?.permissions?.executionLocation ?? executionLocation;
         const sharingScope = location === 'local' ? 'local' : 'mesh';
         const target = state.activeThread || { model, permissions: { sharingScope, executionLocation: location } };
         const personalSearch = searched && webSearch?.enabled() && !!webSearch.state().url;
         const allowed = searched && !personalSearch ? await prepareSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content) : null;
-        const threadId = state.selectedId || await session.createThread({ model, sharingScope, executionLocation: location, privacy: viewState.privacy ?? null, contextPrompt: contextPrompt || undefined });
+        const created = state.selectedId || session.createThread({ model, sharingScope, executionLocation: location, privacy: viewState.privacy ?? null, contextPrompt: contextPrompt || undefined });
+        const threadId = typeof created?.then === 'function' ? await created : created;
         if (selectedId === threadId) {
-          const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
+          const current = composerRevision === revision ? { text: draftText, files: attachments } : drafts.get(origin);
           if (current) { input.value = current.text; files = current.files; showFiles(); }
+        }
+        if (intent) {
+          const latest = session.getState();
+          const current = latest.models?.find(item => modelKey(item) === modelKey(model));
+          if (controller.signal.aborted || composerRevision !== revision || selectedId !== threadId
+            || latest.remoteNetworkId !== state.remoteNetworkId || latest.remoteAnswersEnabled !== state.remoteAnswersEnabled
+            || !['observed', 'searching'].includes(latest.discoveryPhase)
+            || latest.activeThread?.permissions?.executionLocation !== 'network' || searching()
+            || latest.activeThread?.privacy?.profile && latest.activeThread.privacy.profile !== 'provider-visible'
+            || latest.activeThread?.privacy?.allowedRecipients?.length
+            || modelIdentity(current) !== modelIdentity(model)
+            || current?.networkAvailability !== 'ready' || !current.reachableProviderIds?.length) {
+            if (!controller.signal.aborted && selectedId === threadId && composerRevision === revision) await saveDraft();
+            return;
+          }
         }
         // An allowed search answer uses the search route; otherwise, with web search on, the send opts into the MCP server.
         const completion = session.send(threadId, content, attachments, ...(allowed ? [{ search: allowed }]
@@ -502,15 +643,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         completion.catch(() => {});
         if (completion.admitted) await completion.admitted;
         if (composerRevision === revision && selectedId === threadId) {
-          await session.saveDraft?.(null, null); await session.saveDraft?.(threadId, null);
+          if (origin == null) await session.saveDraft?.(null, null);
+          await session.saveDraft?.(threadId, null);
           if (composerRevision === revision && selectedId === threadId) {
-            input.value = ''; resizeInput(); files = []; drafts.delete(null); drafts.delete(threadId); showFiles();
+            input.value = ''; resizeInput(); files = [];
+            if (origin == null) { drafts.delete(null); viewState.draftModel = null; }
+            drafts.delete(threadId); showFiles();
           }
         }
         submitting = false; await completion;
       } finally { submitting = false; }
-    });
-  });
+    };
+    void dispatch().catch(error);
+  }
   on('[data-composer-input]', 'keydown', event => {
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); find('[data-composer-form]').requestSubmit(); }
   });
@@ -549,6 +694,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-composer-files]', 'focus', () => { find('[data-attachment-help]').hidden = false; });
   on('[data-composer-files]', 'change', event => {
     const chosen = [...event.target.files]; event.target.value = '';
+    if (chosen.length) pinDraftModel(session.getState());
     observe(attachmentReader.enqueue(chosen));
   });
   on('[data-attachments-preview]', 'click', event => { const button = event.target.closest('[data-remove-file]'); if (button) { files.splice(Number(button.dataset.removeFile), 1); composerRevision++; void act(async () => { await saveDraft(); showFiles(); }); } });

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { observeMeshProtocol, expectMeshDiscovery } from '../fixtures/mesh-discovery.js';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
 import { privateRoom, expectCachedSharingDefault, contributeModel, waitContributionReady, chooseModel, admitRemote,
-  openComputers, networkProblem, stopAnswer, QUEUED_MESSAGE } from '../fixtures/current-contribution.js';
+  openComputers, networkProblem, stopAnswer } from '../fixtures/current-contribution.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveServedFile } from '../../server/browser-roots.js';
@@ -158,7 +158,9 @@ test('open chat discovers a real contributor, delivers a message sent before cap
     await late.locator('[data-composer-input]').fill(queuedPrompt);
     queued = { sendDisabledBeforeCapacity: await late.locator('[data-composer-send]').isDisabled(), sentAt: Date.now() };
     await late.locator('[data-composer-input]').press('Enter');
-    await expect(late.locator('[data-model-status]')).toHaveText(QUEUED_MESSAGE);
+    await expect(late.locator('[data-cancel-queued-send]')).toBeHidden();
+    await late.locator('[data-queue-send]').click();
+    await expect(late.locator('[data-model-status]')).toContainText('Waiting to send');
     expect((await history(late))?.threads.length || 0).toBe(0);
     await contributor.locator('[data-mesh-connect]').click();
     await expect(contributor.locator('[data-connection-label]')).toHaveText('Connected', { timeout: 30000 });

@@ -32,7 +32,8 @@ describe('Conversation workspace', () => {
     dispose();
     const downloadLocalModel = vi.fn(), send = vi.fn();
     dispose = bindConversationWorkspace(root, { ...session, send, downloadLocalModel,
-      getState: () => ({ ...session.getState(), peerDiscoveryTimedOut: true }),
+      getState: () => ({ ...session.getState(), peerDiscoveryTimedOut: true, discoveryPhase: 'observed', localDownloadIssue: null }),
+      subscribe: fn => session.subscribe(state => fn({ ...state, peerDiscoveryTimedOut: true, discoveryPhase: 'observed', localDownloadIssue: null })),
       getModelDownload: async () => ({ sizeBytes: 123000000 }) });
     find('[data-composer-input]').value = 'Keep this question';
     find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
@@ -136,6 +137,10 @@ describe('Conversation workspace', () => {
     publish([small]); expect(find('[data-active-model-select]').value).toBe(small.id);
     expect(find('[data-composer-send]').disabled).toBe(false);
     expect(find('[data-model-digest]').textContent).toContain(small.name);
+    const draft = find('[data-composer-input]');
+    draft.value = 'Keep the selected destination'; draft.dispatchEvent(new Event('input'));
+    publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(small.id);
+    draft.value = ''; draft.dispatchEvent(new Event('input'));
     publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(medium.id);
     publish([small, medium, large]); expect(find('[data-active-model-select]').value).toBe(large.id);
     const select = find('[data-active-model-select]'); select.value = small.id;
@@ -310,8 +315,8 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-status]').hidden).toBe(false);
     // Within the discovery window an unavailable model reads as still being looked for.
     expect(find('[data-model-status]').textContent).toBe('Finding computers…');
-    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Unavailable');
-    expect(find('[data-open-model]').textContent).toContain('Unavailable');
+    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Searching');
+    expect(find('[data-open-model]').textContent).toContain('Searching');
     expect(find('[data-model-control]').hidden).toBe(false);
     expect(find('[data-toggle-contribution]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
@@ -455,7 +460,7 @@ describe('Conversation workspace', () => {
     dispose();
     const base = { ...CANONICAL_CHAT_MODELS[1], availability: 'unavailable', networkAvailability: 'unavailable' };
     const route = { ...base, selectionId: base.id + '/distributed', partition: { planId: 'test' }, availability: 'ready', networkAvailability: 'ready' };
-    let state = { ...session.getState(), models: [base, route], defaultModel: base, defaultModels: null, peerDiscoveryTimedOut: true, localDownloadIssue: null };
+    let state = { ...session.getState(), models: [base, route], defaultModel: base, defaultModels: null, peerDiscoveryTimedOut: true, discoveryPhase: 'observed', localDownloadIssue: null };
     let emit; const download = vi.fn();
     dispose = bindConversationWorkspace(root, { ...session, downloadLocalModel: download,
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }),
@@ -464,13 +469,13 @@ describe('Conversation workspace', () => {
     await chooseShared(route.selectionId);
     expect(find('[data-active-model-select]').value).toBe(route.selectionId);
     expect(find('[data-composer-send]').disabled).toBe(false);
-    expect(find('[data-model-status]').textContent).toBe('');
+    expect(find('[data-model-status]').textContent).toContain('selected public route');
     expect(find('[data-open-model]').getAttribute('aria-label')).toContain('Public network · Split model');
     expect(find('[data-download-local]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('hi');
     state = { ...state, models: [base, { ...route, availability: 'unavailable', networkAvailability: 'unavailable' }] }; emit(state);
     expect(find('[data-composer-send]').disabled).toBe(true);
-    expect(find('[data-model-status]').textContent).toContain('No shared computer');
+    expect(find('[data-model-status]').textContent).toContain('No eligible computer');
     expect(find('[data-download-local]').hidden).toBe(true);
     expect(download).not.toHaveBeenCalled();
   });
@@ -530,8 +535,7 @@ describe('Conversation workspace', () => {
     expect(service.calls).toHaveLength(0);
     peer.available = false; session.refreshNetwork();
     expect(find('[data-model-status]').hidden).toBe(false);
-    // Within the discovery window an unavailable model reads as still being looked for.
-    expect(find('[data-model-status]').textContent).toBe('Finding computers…');
+    expect(find('[data-model-status]').textContent).toContain('Finding computers…');
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('Keep my question');
   });
@@ -617,6 +621,121 @@ describe('Conversation workspace', () => {
     await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
     expect(session.getState().threads[0].model.id).toBe(CANONICAL_CHAT_MODELS[1].id);
     session.select(id); expect(find('[data-composer-input]').value).toBe('Keep this draft');
+  });
+
+  function waitingDraft(creation = null) {
+    dispose();
+    const model = CANONICAL_CHAT_MODELS[1], send = vi.fn(async () => {});
+    let offer = { ...model, availability: 'unavailable', networkAvailability: 'unavailable', reachableProviderIds: [] };
+    let phase = 'searching', notify;
+    const getState = () => ({ ...session.getState(), discoveryPhase: phase, models: [offer], defaultModel: offer });
+    const publish = () => notify(getState());
+    dispose = bindConversationWorkspace(root, { ...session, getState, send,
+      createThread: creation ? async options => { await creation; return session.createThread(options); } : session.createThread,
+      subscribe(listener) { notify = listener; return session.subscribe(publish); } });
+    const write = text => { find('[data-composer-input]').value = text; find('[data-composer-input]').dispatchEvent(new Event('input')); };
+    write('Exact question');
+    return { send, write, setOffer(changes) { offer = { ...offer, ...changes }; publish(); },
+      setPhase(value) { phase = value; publish(); } };
+  }
+
+  it('sends an explicitly queued draft once when its selected public model has a reachable free slot', async () => {
+    const f = waitingDraft();
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
+    expect(find('[data-cancel-queued-send]').hidden).toBe(true);
+    find('[data-queue-send]').click();
+    expect(find('[data-model-status]').textContent).toContain('Waiting to send');
+    f.setOffer({ availability: 'ready', networkAvailability: 'ready', reachableProviderIds: [] });
+    await Promise.resolve();
+    expect(f.send).not.toHaveBeenCalled();
+    f.setOffer({ reachableProviderIds: ['live'] });
+    await vi.waitFor(() => expect(f.send).toHaveBeenCalledOnce());
+    expect(f.send.mock.calls[0].slice(1)).toEqual(['Exact question', []]);
+    expect(session.getState().activeThread.permissions.executionLocation).toBe('network');
+  });
+
+  it('keeps the queued draft on the new conversation when its provider leaves during thread creation', async () => {
+    let resume;
+    const f = waitingDraft(new Promise(resolve => { resume = resolve; }));
+    const draft = '  Exact question\n';
+    f.write(draft);
+    find('[data-queue-send]').click();
+    f.setOffer({ availability: 'ready', networkAvailability: 'ready', reachableProviderIds: ['live'] });
+    await Promise.resolve();
+    f.setOffer({ availability: 'unavailable', networkAvailability: 'unavailable', reachableProviderIds: [] });
+    resume();
+    await vi.waitFor(() => expect(session.getState().selectedId).toBeTruthy());
+    expect(f.send).not.toHaveBeenCalled();
+    expect(find('[data-composer-input]').value).toBe(draft);
+    expect(session.getDraft(session.getState().selectedId).text).toBe(draft);
+  });
+
+  it.each(['edit', 'identity', 'interrupt', 'cancel', 'retry'])('disarms queued delivery after %s and preserves the draft', async change => {
+    const f = waitingDraft(), id = CANONICAL_CHAT_MODELS[1].identity;
+    find('[data-queue-send]').click();
+    if (change === 'edit') { f.write('Edited question'); f.write('Exact question'); }
+    if (change === 'identity') { f.setOffer({ identity: id + '-replaced' }); f.setOffer({ identity: id }); }
+    if (change === 'interrupt') { f.setPhase('interrupted'); f.setPhase('searching'); }
+    if (change === 'cancel') find('[data-cancel-queued-send]').click();
+    if (change === 'retry') { f.setPhase('observed'); find('[data-retry-connection]').click(); }
+    f.setOffer({ availability: 'ready', networkAvailability: 'ready', reachableProviderIds: ['live'] });
+    await Promise.resolve();
+    expect(f.send).not.toHaveBeenCalled();
+    expect(find('[data-cancel-queued-send]').hidden).toBe(true);
+    expect(find('[data-composer-input]').value).toBe('Exact question');
+  });
+
+  it('carries the text and file to the switched model without overwriting a separate unsent conversation', async () => {
+    dispose(); await session.close();
+    const [first, second] = CANONICAL_CHAT_MODELS;
+    session = createChatSession({ storage: null, service, models: [first, second] });
+    const separate = { text: 'Another unsent question', files: [{ name: 'other.txt', text: 'other' }] };
+    const carried = { text: 'Continue this question', files: [{ name: 'source.txt', text: 'source' }] };
+    await session.saveDraft(null, separate);
+    session.setCachedModels([first, second]);
+    const origin = session.createThread({ model: first, sharingScope: 'local' });
+    await session.saveDraft(origin, carried);
+    dispose = bindConversationWorkspace(root, session);
+    find('[data-open-model]').click();
+    const next = find('[data-next-model]');
+    next.value = second.id; next.dispatchEvent(new Event('change'));
+    find('[data-change-model]').click();
+    await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
+    const destination = session.getState().activeThread;
+    expect(destination.id).not.toBe(origin);
+    expect(destination.model.id).toBe(second.id);
+    expect(session.getDraft(destination.id)).toEqual(carried);
+    expect(session.getDraft(origin)).toEqual(carried);
+    expect(session.getDraft(null)).toEqual(separate);
+    expect(find('[data-composer-input]').value).toBe(carried.text);
+    expect(find('[data-attachments-preview]').textContent).toContain('source.txt');
+    expect(service.calls).toHaveLength(0);
+  });
+
+  it('keeps the newer selection when a switch is still saving the original draft', async () => {
+    dispose(); await session.close();
+    const [first, second] = CANONICAL_CHAT_MODELS;
+    session = createChatSession({ storage: null, service, models: [first, second] });
+    session.setCachedModels([first, second]);
+    const elsewhere = session.createThread({ model: first, sharingScope: 'local' });
+    const origin = session.createThread({ model: first, sharingScope: 'local' });
+    await session.saveDraft(elsewhere, { text: 'Different draft', files: [] });
+    let resume;
+    const gate = new Promise(resolve => { resume = resolve; });
+    const saveDraft = vi.fn(async (id, draft) => { await gate; return session.saveDraft(id, draft); });
+    dispose = bindConversationWorkspace(root, { ...session, saveDraft });
+    find('[data-composer-input]').value = 'Original draft';
+    find('[data-open-model]').click();
+    const next = find('[data-next-model]');
+    next.value = second.id; next.dispatchEvent(new Event('change'));
+    find('[data-change-model]').click();
+    await vi.waitFor(() => expect(saveDraft).toHaveBeenCalled());
+    await session.select(elsewhere);
+    resume();
+    await vi.waitFor(() => expect(find('[data-next-model]').disabled).toBe(false));
+    expect(session.getState().selectedId).toBe(elsewhere);
+    expect(find('[data-composer-input]').value).toBe('Different draft');
+    expect(session.getDraft(origin).text).toBe('Original draft');
   });
 
   it('keeps the picker blocking edits until a pending model switch has saved the current draft', async () => {

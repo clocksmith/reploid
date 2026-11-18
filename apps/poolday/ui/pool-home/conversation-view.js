@@ -69,7 +69,10 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-feedback"><div class="chat-composer-status-line">
         <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p>
-        <div class="chat-composer-notices"><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>${renderControlHelp()}
+        <div class="chat-composer-notices">
+          <button class="pool-button btn-ghost pool-caption" type="button" data-queue-send hidden>Send when ready</button>
+          <button class="pool-button btn-ghost pool-caption" type="button" data-cancel-queued-send hidden>Keep as draft</button>
+          <button class="pool-button btn-ghost pool-caption" type="button" data-review-shared-model hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>${renderControlHelp()}
         </div>
         <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>Text files: up to ${workProfile.files.maxInputs}, ${workProfile.files.maxFileBytes / 1024} KB each, ${workProfile.files.maxInputBytes / 1024} KB total.</p>

@@ -9,8 +9,6 @@ import { expect } from '@playwright/test';
  */
 export const CACHED_COMPUTE_DEFAULT = 'On · waiting for a downloaded model';
 export const CACHED_FILES_DEFAULT = 'On · waiting for cached files';
-/** conversation-workspace.js: the line under the composer while a sent message waits for a computer. */
-export const QUEUED_MESSAGE = 'Finding a computer. Your message sends as soon as one is ready.';
 /** library-adapter.js relayUnavailableReason: informational, connections continue direct-only. */
 export const RELAY_DIRECT_ONLY = 'The relay service is unreachable. New connections are direct only, so some computers may not be reachable.';
 

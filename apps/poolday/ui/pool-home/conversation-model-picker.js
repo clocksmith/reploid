@@ -7,6 +7,16 @@ import { updateAdapterDetails, describeModelChoice } from './model-adapters.js';
 export const canDownloadModelHere = (model, state, canDownload) => canDownload && !!model.source && !model.partition && !model.adapters?.length
   && !model.fleet && !model.localReady && !model.localCached && model.availability !== 'cached' && !state.localDownloadIssue;
 
+// A recovery suggestion requires a free, connected provider for this exact variant.
+// The ordinary picker also lists downloadable, busy and advertised models.
+export function recoverySharedModel(state, selectedId, location, privacy) {
+  if (location === 'local' || privacy?.placement === 'local-only' || privacy?.allowedRecipients?.length
+    || (privacy && privacy.profile !== 'provider-visible')) return null;
+  return state.models?.find(model => (model.selectionId || model.id) !== selectedId
+    && !model.fleet && !model.partition && model.networkAvailability === 'ready'
+    && model.reachableProviderIds?.length > 0) ?? null;
+}
+
 export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
   touched: pickerTouched, changing: changingModel, selectedId, privacy, canDownload }) {
   const keyFor = model => model?.selectionId || model?.id;
