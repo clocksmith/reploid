@@ -18,6 +18,7 @@ import {
   effectiveTrustTierForRingAdmissions,
   findHomogeneousProviderGroup,
   runtimeProfileBucketKey,
+  selectDistinctOwnerProviders,
   selectDiverseProviderGroup,
   validateRuntimeProfileForPolicy
 } from './runtime-profile.js';
@@ -361,19 +362,36 @@ export async function assignJob({ store, job, policy }) {
   const generationConfigHash = hashJson(job.generationConfig || {});
   const assignmentAttemptId = assignmentAttemptIdForJob(job);
   const recovery = recoveryForAssignmentAttempt(job, assignmentAttemptId);
+  const requireDistinctOwners = minProviders > 1 || policy.requireDistinctOwners === true || job.requireDistinctOwners === true;
+  const requesterOwnerKeys = [];
+  if (policy.disallowRequesterOwner === true || job.disallowRequesterOwner === true) {
+    if (job.requesterOwnerId) requesterOwnerKeys.push(`ownerId:${job.requesterOwnerId}`);
+    if (job.requesterAuthUid) requesterOwnerKeys.push(`authUid:${job.requesterAuthUid}`);
+    if (job.requesterDeviceId) requesterOwnerKeys.push(`deviceId:${job.requesterDeviceId}`);
+    if (job.requesterDevicePublicKey) requesterOwnerKeys.push(`devicePublicKey:${job.requesterDevicePublicKey}`);
+  }
   const candidatePool = adaptiveRing
     ? selectDiverseProviderGroup({
       candidates: findHomogeneousProviderGroup({ candidates: providers, policy }),
       policy,
-      maxProviders
+      maxProviders,
+      excludedOwnerKeys: requesterOwnerKeys
     })
-    : providers;
+    : requireDistinctOwners
+      ? selectDistinctOwnerProviders({
+        candidates: providers,
+        maxProviders,
+        excludedOwnerKeys: requesterOwnerKeys
+      })
+      : providers;
   if (candidatePool.length < minProviders) {
     return {
       ok: false,
       reason: adaptiveRing
         ? 'not_enough_hardware_homogeneous_admitted_browser_providers'
-        : 'not_enough_eligible_browser_providers',
+        : requireDistinctOwners
+          ? 'not_enough_distinct_owner_providers'
+          : 'not_enough_eligible_browser_providers',
       requiredProviders: minProviders,
       eligibleProviders: candidatePool.length
     };

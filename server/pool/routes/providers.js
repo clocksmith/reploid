@@ -89,10 +89,16 @@ export function registerProviderRoutes(router, {
     if (body.runtimeProfile && body.runtimeProfileHash && runtimeProfileHash(body.runtimeProfile) !== body.runtimeProfileHash) {
       return res.status(400).json({ error: 'runtimeProfileHash does not match runtimeProfile' });
     }
+    const derivedOwnerCluster = req.poolAuth?.uid
+      ? `auth:${req.poolAuth.uid}`
+      : body.participationProfile?.deviceId
+        ? `device:${body.participationProfile.deviceId}`
+        : null;
     const providerInput = {
       ...body,
       authUid: body.authUid || req.poolAuth?.uid || null,
-      identityClusterId: body.identityClusterId || (req.poolAuth?.uid ? `auth:${req.poolAuth.uid}` : body.providerId || null),
+      ownerId: body.ownerId || derivedOwnerCluster || null,
+      identityClusterId: body.identityClusterId || derivedOwnerCluster || body.providerId || null,
       runtimeProfileHash: body.runtimeProfile ? runtimeProfileHash(body.runtimeProfile) : body.runtimeProfileHash || null,
       admissionPolicyId: null,
       admissionLane: null,

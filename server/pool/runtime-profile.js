@@ -125,17 +125,38 @@ export function deriveProviderAdmission({ provider = {}, reputation = {}, policy
   };
 }
 
+export function ownerKeysForProvider(provider = {}) {
+  const keys = [];
+  const add = (prefix, raw) => {
+    const value = typeof raw === 'string' ? raw.trim() : '';
+    if (value) keys.push(`${prefix}:${value}`);
+  };
+  add('ownerId', provider.ownerId || provider.runtimeProfile?.ownerId);
+  add('operatorId', provider.operatorId || provider.runtimeProfile?.operatorId);
+  add('authUid', provider.authUid);
+  if (provider.identityClusterId && provider.identityClusterId !== provider.providerId) {
+    add('identityClusterId', provider.identityClusterId);
+  }
+  add('devicePublicKey', provider.participationProfile?.devicePublicKey);
+  add('deviceId', provider.participationProfile?.deviceId);
+  add('deviceClusterId', provider.deviceClusterId);
+  if (keys.length === 0 && provider.providerId) {
+    add('providerId', provider.providerId);
+  }
+  return Array.from(new Set(keys));
+}
+
 export function clusterKeysForProvider({ provider = {}, admission = null } = {}) {
   const policy = getProviderAdmissionPolicy(admission?.policyId);
   const fields = policy?.diversity?.clusterFields || [];
-  const keys = [];
+  const keys = [...ownerKeysForProvider(provider)];
   for (const field of fields) {
     if (field === 'runtimeProfileBucket') continue;
     const value = provider[field] || provider.runtimeProfile?.[field] || null;
     if (value) keys.push(`${field}:${value}`);
   }
-  if (keys.length === 0) keys.push(`providerId:${provider.providerId}`);
-  return keys;
+  if (keys.length === 0 && provider.providerId) keys.push(`providerId:${provider.providerId}`);
+  return Array.from(new Set(keys));
 }
 
 export function capTrustTierForAdmission(tierId, admissions = []) {
@@ -160,9 +181,14 @@ export function findHomogeneousProviderGroup({ candidates = [], policy = {} } = 
   return Array.from(groups.values()).sort((left, right) => right.length - left.length)[0] || [];
 }
 
-export function selectDiverseProviderGroup({ candidates = [], policy = {}, maxProviders = candidates.length } = {}) {
+export function selectDiverseProviderGroup({
+  candidates = [],
+  policy = {},
+  maxProviders = candidates.length,
+  excludedOwnerKeys = []
+} = {}) {
   const selected = [];
-  const usedClusterKeys = new Set();
+  const usedClusterKeys = new Set(excludedOwnerKeys);
   for (const candidate of candidates) {
     const admission = candidate.admission || deriveProviderAdmission({ provider: candidate.provider, reputation: candidate.reputation, policy });
     if (!admission.allowed || (policy.agreementMode === 'ring_quorum' && !admission.ringEligible)) continue;
@@ -170,6 +196,23 @@ export function selectDiverseProviderGroup({ candidates = [], policy = {}, maxPr
     if (clusterKeys.some((key) => usedClusterKeys.has(key))) continue;
     for (const key of clusterKeys) usedClusterKeys.add(key);
     selected.push({ ...candidate, admission, clusterKeys });
+    if (selected.length >= maxProviders) break;
+  }
+  return selected;
+}
+
+export function selectDistinctOwnerProviders({
+  candidates = [],
+  maxProviders = candidates.length,
+  excludedOwnerKeys = []
+} = {}) {
+  const selected = [];
+  const usedOwnerKeys = new Set(excludedOwnerKeys);
+  for (const candidate of candidates) {
+    const ownerKeys = ownerKeysForProvider(candidate.provider);
+    if (ownerKeys.some((key) => usedOwnerKeys.has(key))) continue;
+    for (const key of ownerKeys) usedOwnerKeys.add(key);
+    selected.push({ ...candidate, ownerKeys });
     if (selected.length >= maxProviders) break;
   }
   return selected;
@@ -186,9 +229,11 @@ export default {
   runtimeProfileBucketKey,
   validateRuntimeProfileForPolicy,
   deriveProviderAdmission,
+  ownerKeysForProvider,
   clusterKeysForProvider,
   capTrustTierForAdmission,
   findHomogeneousProviderGroup,
   selectDiverseProviderGroup,
+  selectDistinctOwnerProviders,
   effectiveTrustTierForRingAdmissions
 };
