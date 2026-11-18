@@ -59,3 +59,15 @@ it('counts measured supply and saved consumption once, retaining unknown interru
   expect(projectComputerUsage({ historyUnavailable: 'History owned by another tab' })).toMatchObject({
     consumed: { available: false }, error: 'History owned by another tab' });
 });
+
+it('reports the same retained request window in each direction and separates network and local consumption', () => {
+  const attempts = ['local-webgpu', 'two-device-layer-partition', 'local-webgpu'].map((placement, i) => ({
+    id: String(i), status: 'completed', finishedAt: i + 1,
+    execution: { placement, completion: { generatedTokenCount: i + 1 } }
+  }));
+  const usage = projectComputerUsage({ threads: [{ id: 'thread', attempts }],
+    network: { contributionHistory: { limit: 2, records: [{ outputTokens: 3 }, { outputTokens: 2 }, { outputTokens: 1 }] } } });
+  for (const direction of ['supplied', 'consumed']) expect(usage[direction]).toMatchObject({ requests: 2, outputTokens: 5 });
+  expect(usage.consumedBySource.local).toMatchObject({ requests: 1, outputTokens: 3 });
+  expect(usage.consumedBySource.network).toMatchObject({ requests: 1, outputTokens: 2 });
+});

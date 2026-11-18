@@ -7,10 +7,10 @@ export const renderControlHelp = () => `${renderHelpButton()}<dialog class="chat
   <dl class="pool-stack pool-gap-sm">
     <div><dt>Model</dt><dd>Choose who answers. Shared uses another computer; This device runs locally. Ready models can answer now. Model details shows providers and execution choices.</dd></div>
     <div><dt>Files</dt><dd>Attach text files to include them with your question. Sending to a shared model also sends that request’s contents to its computer.</dd></div>
-    <div><dt>Search</dt><dd>Search the web for this answer. Turn it off to ask without web search.</dd></div>
-    <div><dt>Context</dt><dd>The ring shows how much conversation space is used. Tap it to inspect context and execution details.</dd></div>
-    <div><dt>Progress and Stop</dt><dd>The animated status beside an answer shows its current stage. Tap it for details. Stop cancels that answer; any partial text stays.</dd></div>
-    <div><dt>Measurements</dt><dd>Tap an answer’s speed, token count or time for its explanation. Missing measurements remain blank.</dd></div>
+    <div data-help-for="[data-search-toggle]"><dt>Search</dt><dd>Search the web for this answer. Turn it off to ask without web search.</dd></div>
+    <div data-help-for="[data-context-indicator]"><dt>Context</dt><dd>Open the context control to inspect execution details. A ring appears when the model reports context usage.</dd></div>
+    <div data-help-for="[data-composer-stop],[data-answer-stop]"><dt>Progress and Stop</dt><dd>The animated status beside an answer shows its current stage. Tap it for details. Stop cancels that answer; any partial text stays.</dd></div>
+    <div data-help-for=".chat-message-metric"><dt>Measurements</dt><dd>Tap an answer’s speed, token count or time for its explanation. Missing measurements remain blank.</dd></div>
   </dl></dialog>`;
 
 let serial = 0;
@@ -69,7 +69,13 @@ export function bindControlHelp(root) {
   const dialog = dialogNode && bindDialog(dialogNode);
   root.addEventListener('click', event => {
     const help = event.target.closest('[data-open-control-help]');
-    if (help && dialog) { hide(); dialog.open(dialogNode.querySelector('[data-close-control-help]'), help); }
+    if (help && dialog) {
+      hide();
+      for (const entry of dialogNode.querySelectorAll('[data-help-for]')) {
+        entry.hidden = ![...root.querySelectorAll(entry.dataset.helpFor)].some(control => !control.closest('[hidden]') && control.getClientRects().length > 0);
+      }
+      dialog.open(dialogNode.querySelector('[data-close-control-help]'), help);
+    }
     else if (event.target.closest('[data-close-control-help]')) dialog?.close();
     else if (event.target.closest('.chat-message-metric')) show(event.target.closest('.chat-message-metric'));
     else hide();

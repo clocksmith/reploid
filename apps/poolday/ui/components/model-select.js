@@ -19,7 +19,7 @@ export function modelExecutionState(model, location = 'auto') {
 /** Catalog facts shown beside a choice: declared weights and advertised context, nothing inferred. */
 export const modelFacts = model => [
   model?.quantization ? String(model.quantization).toUpperCase() : null,
-  Number.isSafeInteger(model?.contextLength) && model.contextLength > 0 ? `${model.contextLength.toLocaleString()} tokens` : null
+  Number.isSafeInteger(model?.contextLength) && model.contextLength > 0 ? `${model.contextLength.toLocaleString()} tokens maximum` : null
 ].filter(Boolean).join(' · ');
 
 /** Presentation groups never change model identities or execution permissions. */

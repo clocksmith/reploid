@@ -20,7 +20,7 @@ import { createAdapterEvidence } from './adapter-evidence.js';
 import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
-import { LOCAL_DOPPLER_MODELS } from '../../../shared/config/doppler-local-models.js';
+import { DOPPLER_MODULE_URL, LOCAL_DOPPLER_MODELS } from '../../../shared/config/doppler-local-models.js';
 import { openCanonicalChatHistory } from './chat-history.js';
 export { openChatHistory } from './chat-history.js';
 
@@ -126,6 +126,7 @@ export function createChatSession({
   const adapterEvidence = createAdapterEvidence({ models, fetchImpl: fetchEvidence, onChange: () => notifyAll() });
   let cachedModels = [], failedLocalModel = null;
   const downloadSizes = new Map();
+  let fitRegistry;
   const isCached = model => failedLocalModel !== model.id && !model.partition && !model.adapters?.length
     && cachedModels.some(item => item.id === model.id && item.identity === model.identity);
   let discovering = false, peerDiscoveryTimedOut = false;
@@ -372,6 +373,27 @@ export function createChatSession({
 
   const unsubscribePartitions = partitions?.subscribe(notifyAll);
 
+  async function getModelDownload(modelId, { signal } = {}) {
+    assertOpen();
+    const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
+    assert(model?.source, 'Choose a catalog model');
+    const file = model.source.files.find(item => item.role === 'model-manifest');
+    signal = AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(15000)]);
+    const response = await fetch(file.url ? new URL(file.url, location.href) : new URL(file.path, model.source.baseUrl), { signal });
+    assert(response.ok, 'Could not check the model download');
+    const bytes = await response.arrayBuffer();
+    assert(bytes.byteLength === file.sizeBytes, 'Model manifest size mismatch');
+    const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+    assert('sha256:' + hash === model.identity, 'Model manifest identity mismatch');
+    const manifest = JSON.parse(new TextDecoder().decode(bytes));
+    assert(manifest.modelId === model.id && Array.isArray(manifest.shards), 'Model manifest is incomplete');
+    const sizeBytes = manifest.shards.reduce((total, shard) => total + shard.size, 0)
+      + model.source.files.filter(item => item.role !== 'model-piece-index').reduce((total, item) => total + item.sizeBytes, 0)
+      + (model.adapters || []).reduce((total, adapter) => total + adapter.artifact.sizeBytes, 0);
+    assert(Number.isSafeInteger(sizeBytes) && sizeBytes > 0, 'Model download size is unavailable');
+    downloadSizes.set(model.id, sizeBytes);
+    return { id: model.id, name: model.name, sizeBytes };
+  }
   return Object.freeze({
     getState: getSessionState,
     subscribe(listener) {
@@ -411,27 +433,26 @@ export function createChatSession({
       return acquireApprovedModel(model);
     },
     cancelModelDownload: () => acquisition.cancel(),
-    async getModelDownload(modelId, { signal } = {}) {
+    async getLocalModelFit(model, { signal } = {}) {
       assertOpen();
-      const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
-      assert(model?.source, 'Choose a catalog model');
-      const file = model.source.files.find(item => item.role === 'model-manifest');
-      signal = AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(15000)]);
-      const response = await fetch(file.url ? new URL(file.url, location.href) : new URL(file.path, model.source.baseUrl), { signal });
-      assert(response.ok, 'Could not check the model download');
-      const bytes = await response.arrayBuffer();
-      assert(bytes.byteLength === file.sizeBytes, 'Model manifest size mismatch');
-      const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
-      assert('sha256:' + hash === model.identity, 'Model manifest identity mismatch');
-      const manifest = JSON.parse(new TextDecoder().decode(bytes));
-      assert(manifest.modelId === model.id && Array.isArray(manifest.shards), 'Model manifest is incomplete');
-      const sizeBytes = manifest.shards.reduce((total, shard) => total + shard.size, 0)
-        + model.source.files.filter(item => item.role !== 'model-piece-index').reduce((total, item) => total + item.sizeBytes, 0)
-        + (model.adapters || []).reduce((total, adapter) => total + adapter.artifact.sizeBytes, 0);
-      assert(Number.isSafeInteger(sizeBytes) && sizeBytes > 0, 'Model download size is unavailable');
-      downloadSizes.set(model.id, sizeBytes);
-      return { id: model.id, name: model.name, sizeBytes };
+      if (!fitRegistry) fitRegistry = fetch(new URL('config/quickstart-registry.json', new URL(DOPPLER_MODULE_URL, location.href)),
+        { signal: AbortSignal.timeout(8000) }).then(response => response.ok ? response.json() : null)
+        .catch(() => null);
+      const [registry, storage] = await Promise.all([fitRegistry,
+        Promise.resolve().then(() => globalThis.navigator?.storage?.estimate?.()).catch(() => null)]);
+      signal?.throwIfAborted();
+      const entry = registry?.models?.find(row => row.modelId === model.id);
+      const catalogFile = model.source?.files.find(item => item.role === 'model-manifest');
+      let sizeBytes = downloadSizes.get(model.id) ?? (model.adapters?.length ? null : entry?.sizeBytes) ?? null;
+      if (sizeBytes === null && catalogFile?.url?.startsWith('/config/model-manifests/')) {
+        const info = await getModelDownload(model.selectionId || model.id, { signal });
+        sizeBytes = info.sizeBytes;
+      }
+      const freeBytes = Number.isFinite(storage?.quota) && Number.isFinite(storage?.usage)
+        ? Math.max(0, storage.quota - storage.usage) : null;
+      return { sizeBytes, freeBytes, gpuBytes: model.adapters?.length ? null : entry?.quickstartRequirements?.vramRequiredBytes ?? null };
     },
+    getModelDownload,
     privateComputers: fleet,
     getDraft: drafts.get,
     saveDraft(threadId, value) { assertOpen(); return drafts.save(threadId, value); },
@@ -656,6 +677,11 @@ export function createChatSession({
     setIntroductionAssistance(enabled) {
       if (!swarm) throw new Error('Network unavailable');
       swarm.allowIntroductions(enabled);
+    },
+    async setCachedFileContribution(enabled) {
+      assertOpen();
+      assert(swarm?.allowCachedFiles, 'File sharing is unavailable');
+      try { await swarm.allowCachedFiles(enabled); } finally { notifyAll(); }
     },
     async setComputeContribution(enabled) {
       assertOpen();

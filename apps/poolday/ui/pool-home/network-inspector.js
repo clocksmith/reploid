@@ -1,3 +1,4 @@
+import { localFitText } from './conversation-model-picker.js';
 import { renderPrivateComputers, bindPrivateComputers } from './private-computers-view.js';
 import { updateExecutionDetail } from './execution-activity.js';
 import { projectContextIndicator } from './context-indicator.js';
@@ -46,7 +47,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     <section data-inspector-pane="conversation" ${mounted ? 'role="tabpanel" id="inspector-pane-conversation" aria-labelledby="inspector-tab-conversation"' : ''} aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-inspector-context-detail></p><div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
-      <details><summary>Execution details</summary><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
+      <details data-attempt-details><summary>Execution details</summary><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
@@ -61,10 +62,11 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         <p class="pool-caption pool-muted" data-device-usage-scope></p>
         <p class="pool-small pool-muted" data-device-usage-error role="status" hidden></p>
         ${renderComputeSharingControls()}
+        ${renderFileSharingControls()}
         <details class="pool-disclosure" data-production-device><summary>Contribution settings</summary><div class="pool-stack pool-gap-md">
           ${renderComputerDiagnostic()}
           ${contribution}
-          <p class="pool-caption pool-muted" data-file-sharing-summary></p>
+
           ${renderContributionLimits()}
           <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
         </div></details>
@@ -78,7 +80,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" ${mounted ? 'role="tabpanel" id="inspector-pane-settings" aria-labelledby="inspector-tab-settings"' : ''} aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
-      <section data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-muted" data-settings-storage-summary>No downloaded models</p><div class="pool-stack pool-gap-md" data-settings-storage-controls>${renderFileSharingControls()}</div></section>
+      <section data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-muted" data-settings-storage-summary>No downloaded models</p><button class="pool-button btn-ghost" type="button" data-manage-file-sharing>Manage file sharing</button></section>
       ${renderLocalData()}
       ${renderAccountPanel()}
       <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
@@ -96,7 +98,11 @@ export function renderModelSetupDialog() {
   return `<dialog class="chat-model-setup pool-surface pool-small" data-model-dialog aria-labelledby="model-setup-title">
     <h2 class="pool-heading" id="model-setup-title" data-download-title>Start sharing</h2>
     <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
-    <p data-download-size role="status">Checking download size…</p><button class="pool-button btn-ghost" type="button" data-retry-download-check hidden>Retry</button><p class="pool-muted" data-download-explanation>Download a model to answer public requests while this page is open. Pause anytime.</p><details class="pool-disclosure"><summary>Limits</summary><p data-download-compute-limits></p></details>
+    <fieldset data-download-sharing class="pool-stack pool-gap-xs"><legend>Sharing on this device</legend>
+      <label><input type="checkbox" data-download-compute> Answer other people’s requests with downloaded models</label>
+      <label><input type="checkbox" data-download-files> Share cached model files with other computers</label>
+    </fieldset>
+    <p data-download-fit class="pool-small pool-muted"></p><p data-download-size role="status">Checking download size…</p><button class="pool-button btn-ghost" type="button" data-retry-download-check hidden>Retry</button><p class="pool-muted" data-download-explanation>Download a model to answer public requests while this page is open. Pause anytime.</p><details class="pool-disclosure"><summary>Limits</summary><p data-download-compute-limits></p></details>
     <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download & share</button></div>
   </dialog>`;
 }
@@ -223,6 +229,9 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const stored = (state.models || []).filter(model => model.localCached);
     find('[data-settings-storage-summary]').textContent = stored.length ? stored.map(model => model.name || model.id).join(' · ') : 'No downloaded models';
     const view = projectExecutionRibbon(inspectedState), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs, view.executors.map(node => node.label)]);
+    find('[data-attempt-details]').hidden = !view.attempt;
+    find('[data-inspector-route]').hidden = !view.attempt;
+    find('[data-inspector-context-detail]').hidden = !view.attempt;
     creditRequest = view.execution?.serviceCredit?.id || null;
     find('[data-credit-receipt]').hidden = !creditRequest || !state.privateComputers?.connected;
     if (key !== executionKey) {
@@ -239,7 +248,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const connection = find('[data-connection-label]').textContent;
     const summaries = {
       conversation: view.statusLabel,
-      participants: (state.privateComputers?.connected ? `${state.privateComputers.computers.filter(row => row.online).length} private online · ` : '') + (connection === 'Connected' ? `${peers.filter(peer => peer.connectionPhase === 'connected').length} connected · ${peers.filter(peer => peer.phase === 'ready').length} public ready` : connection),
+      participants: (state.privateComputers?.connected ? `${state.privateComputers.computers.filter(row => row.online).length} private online · ` : '') + (connection === 'Discovery connected' ? `${peers.filter(peer => peer.connectionPhase === 'connected').length} connected · ${peers.filter(peer => peer.phase === 'ready').length} public ready` : connection),
       device: [find('[data-contrib-label]').textContent, state.network?.files?.sharing ? 'Files on' : ''].filter(Boolean).join(' · ')
     };
     for (const [section, summary] of Object.entries(summaries)) {
@@ -264,6 +273,9 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
         <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
   };
+  on('[data-manage-file-sharing]', 'click', () => {
+    select('participants'); dialog.open(); find('[data-toggle-file-contribution]').focus();
+  });
   const unsubscribe = session.subscribe(render);
   let downloadMode = 'contribute', downloadInfo = null;
   const checkDownload = async () => {
@@ -275,6 +287,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       const info = await session.getModelDownload(find('[data-download-model]').value, { signal: request.signal });
       if (request.signal.aborted || disposed) return;
       downloadInfo = info;
+      const model = session.getState().models.find(row => (row.selectionId || row.id) === info.id)
+        || session.getState().models.find(row => (row.selectionId || row.id) === find('[data-download-model]').value);
+      find('[data-download-fit]').textContent = localFitText(model, null, { sizeBytes: info.sizeBytes });
+      if (model && session.getLocalModelFit) session.getLocalModelFit(model, { signal: request.signal }).then(fit => {
+        if (!request.signal.aborted && !disposed) find('[data-download-fit]').textContent = localFitText(model, fit, { sizeBytes: info.sizeBytes });
+      }).catch(() => {});
       find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download'; find('[data-download-confirm]').disabled = false;
     } catch (cause) { if (!request.signal.aborted && !disposed) { find('[data-download-size]').textContent = cause.message; find('[data-retry-download-check]').hidden = false; } }
   };
@@ -282,8 +300,15 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     downloadMode = mode;
     find('[data-download-title]').textContent = mode === 'local' ? 'Download model' : 'Start sharing';
     find('[data-download-confirm]').textContent = mode === 'local' ? 'Download model' : 'Download & share';
+    const network = session.getState().network || {};
+    const compute = find('[data-download-compute]'), files = find('[data-download-files]');
+    compute.checked = mode === 'contribute' || !!(network.computeEnabled ?? network.sharing);
+    files.checked = !!(network.files?.enabled ?? network.files?.sharing);
+    files.disabled = !session.setCachedFileContribution;
+    compute.disabled = !session.setComputeContribution;
+    find('[data-download-fit]').textContent = '';
     find('[data-download-explanation]').textContent = mode === 'local'
-      ? 'Store this model on this device to answer when network capacity is unavailable. Retry reuses verified files where supported. Your current sharing settings in Computers also apply to this model.'
+      ? 'Store this model on this device to answer when network capacity is unavailable. Sharing choices apply to cached models on this device when you confirm.'
       : 'Download a model to answer public requests while this page is open. Pause anytime.';
     const models = session.getState().models.filter(model => !model.partition && (mode !== 'local' || !model.adapters?.length));
     updateModelSelect(find('[data-download-model]'), models, { value: modelId });
@@ -303,6 +328,10 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       modelDialog.open(chosen ? find('[data-download-confirm]') : find('[data-download-model]'), opener); void checkDownload();
     }
   };
+  on('[data-download-compute]', 'change', () => {
+    find('[data-download-confirm]').textContent = downloadMode === 'contribute' && find('[data-download-compute]').checked
+      ? (downloadInfo?.cached ? 'Start sharing' : 'Download & share') : downloadInfo?.cached ? 'Apply settings' : 'Download model';
+  });
   on('[data-download-model]', 'change', () => void checkDownload());
   on('[data-retry-download-check]', 'click', () => void checkDownload());
   on('[data-download-cancel]', 'click', () => modelDialog.close());
@@ -311,11 +340,20 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (find('[data-download-confirm]').disabled || !downloadInfo) return;
     find('[data-download-confirm]').disabled = true;
     const modelId = find('[data-download-model]').value; modelDialog.close();
-    if (downloadMode === 'local') { void act(() => session.downloadLocalModel(modelId, true)); return; }
-    find('[data-contribution-model]').value = modelId;
+    const compute = find('[data-download-compute]').checked, files = find('[data-download-files]').checked;
+    const contribute = downloadMode === 'contribute' && compute, cached = downloadInfo.cached;
     void act(async () => {
-      if (session.getState().network?.paused) await session.connect();
-      await session.setSharing(true, modelId, true);
+      const network = session.getState().network || {};
+      const changeCompute = session.setComputeContribution && compute !== !!(network.computeEnabled ?? network.sharing);
+      const changeFiles = session.setCachedFileContribution && files !== !!(network.files?.enabled ?? network.files?.sharing);
+      // Withdraw grants first: enabling either can reconcile all cached sharing.
+      if (changeCompute && !compute) await session.setComputeContribution(false);
+      if (changeFiles) await session.setCachedFileContribution(files);
+      if (changeCompute && compute) await session.setComputeContribution(true);
+      if (contribute) {
+        if (network.paused) await session.connect();
+        await session.setSharing(true, modelId, true);
+      } else if (!cached) await session.downloadLocalModel(modelId, true);
     });
   });
   on('[data-specialized-jobs]', 'toggle', () => {
@@ -340,7 +378,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     contribute(modelId, opener) { openModelSetup(opener, modelId); },
     storage(opener) {
       select('settings'); dialog.open(opener);
-      find('[data-toggle-file-contribution]').focus();
+      find('[data-settings-storage-summary]').closest('section').scrollIntoView?.({ block: 'nearest' });
     },
     toggle(section = 'settings', opener) {
       if (isOpen() && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();

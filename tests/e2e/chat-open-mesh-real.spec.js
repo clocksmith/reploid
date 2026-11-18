@@ -163,7 +163,7 @@ test('open chat discovers a real contributor, delivers a message sent before cap
     await expect(late.locator('[data-model-status]')).toContainText('Waiting to send');
     expect((await history(late))?.threads.length || 0).toBe(0);
     await contributor.locator('[data-mesh-connect]').click();
-    await expect(contributor.locator('[data-connection-label]')).toHaveText('Connected', { timeout: 30000 });
+    await expect(contributor.locator('[data-connection-label]')).toHaveText('Discovery connected', { timeout: 30000 });
     await admitRemote(late, async () => ((await history(late))?.threads[0]?.attempts.length || 0) > 0, { timeout: 120000 });
     const queuedThread = (await history(late)).threads[0];
     expect(queuedThread.messages[0].content).toBe(queuedPrompt);

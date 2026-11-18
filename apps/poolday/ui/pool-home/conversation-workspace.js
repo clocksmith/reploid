@@ -16,7 +16,7 @@ import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
-import { canDownloadModelHere, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
+import { canDownloadModelHere, localFitText, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
 export { renderConversationWorkspace } from './conversation-view.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
@@ -210,11 +210,27 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       });
     }
   }
+  let fitRequest, fitKey, fitInfo;
   const updatePicker = snapshot => {
     pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
       state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
       selectedId: modelSelect.value, privacy: viewState.privacy, canDownload: !!inspector.downloadModel });
+    const node = find('[data-local-fit]');
+    const key = find('[data-model-details]').open ? modelIdentity(pickerModel) : null;
+    if (fitKey !== key) {
+      fitRequest?.abort(); fitInfo = null; fitKey = key;
+      if (key && pickerModel?.source && !pickerModel.partition && !pickerModel.fleet && session.getLocalModelFit) {
+        const request = fitRequest = new AbortController();
+        session.getLocalModelFit(pickerModel, { signal: request.signal }).then(info => {
+          if (!request.signal.aborted && !controller.signal.aborted) {
+            fitInfo = info; node.textContent = localFitText(pickerModel, info, { cached: pickerModel.localCached });
+          }
+        }).catch(() => {});
+      }
+    }
+    node.textContent = pickerModel?.source ? localFitText(pickerModel, fitInfo, { cached: pickerModel.localCached }) : '';
+    node.hidden = !node.textContent;
     if (attachmentReader.pending || recoverySelection && !matchesRecovery(snapshot)) find('[data-change-model]').disabled = true;
   };
   const render = snapshot => {
@@ -292,12 +308,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
 
     let statusText = '';
     if (!busy) {
-      if (thread?.closed) statusText = 'Restore this thread to continue.';
+      if (state.history?.mode === 'refused' && historyHandover) statusText = '';
+      else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          if (privacy?.profile === 'restricted') statusText = 'Only your allowed recipients may receive inference data.';
-          else if (selectedModel?.fleet) statusText = 'Your private computers receive the data needed for inference.';
-          else if (selectedModel?.partition) statusText = 'Computers on the selected public route receive the data needed for their stages.';
+          if (privacy?.profile === 'restricted') statusText = 'Only the named computers may receive inference data. They can read the data they receive.';
+          else if (selectedModel?.fleet) statusText = 'Your private computers can read the inference data they receive.';
+          else if (selectedModel?.partition) statusText = 'Public computers on this route can read the input for their own stages.';
           else statusText = 'The selected public computer can read your prompt.';
           if (execution.status === 'busy') statusText += ' Sending waits for capacity.';
         }
@@ -313,6 +330,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       if (!usable && location !== 'local' && state.localDownloadIssue && !shared && !canAcquire && exhausted) {
         statusText += ' ' + state.localDownloadIssue;
       }
+    }
+    if (!busy && searching() && !thread?.closed && !state.storageError) {
+      const recipient = webSearch?.enabled() && webSearch.state().url ? webSearch.state().recipient
+        : deviceSearchOn() || search?.state?.().provider === 'contributor-bing' ? 'the search contributor and Bing' : 'Brave Search';
+      statusText = [statusText, `Web search sends your question to ${recipient}.`].filter(Boolean).join(' ');
     }
     modelStatus.textContent = statusText;
     modelStatus.hidden = !statusText;
@@ -348,6 +370,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
     updateContextIndicator(container, state, session);
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
+    const emptyList = find('[data-thread-empty]');
+    emptyList.hidden = !!find('[data-thread-list] [data-thread-item-id]');
+    emptyList.textContent = archived ? 'No archived conversations.' : 'No conversations yet. Choose New thread to start one.';
     refreshStartingPrompts();
     find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
     production.update(state);
@@ -390,6 +415,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => {
     refreshSearchToggle();
     if (webSearchOn) setSearch(state.enabled && (!!state.url || !!search?.available() || deviceSearchOn()));
+    render(session.getState());
   }) : () => {};
   const changeContext = () => {
     const selection = { enabled: find('[data-context-enabled]').checked, maxWords: Number(find('[data-context-cap]').value) };
@@ -420,6 +446,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     nextModelChoices.focus();
   };
   // One model control opens the bounded model/source choice.
+  on('[data-model-details]', 'toggle', () => { if (find('[data-model-picker]').open) updatePicker(session.getState()); });
   on('[data-open-model]', 'click', openPicker);
   on('[data-review-shared-model]', 'click', event => {
     const state = session.getState(), alternative = recoveryAlternative(state);
@@ -734,7 +761,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');
-    controller.abort(); detachHandover(); attachmentReader.close(); unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
+    controller.abort(); fitRequest?.abort(); detachHandover(); attachmentReader.close(); unsubscribe(); unsubscribeWebSearch(); unsubscribeSearch(); if (!sharedInspector) inspector.dispose?.();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-open-model]').dataset.activity = 'idle';
   };

@@ -840,6 +840,13 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await page.locator('[data-model-picker-close]').click();
   await expect(source).toHaveText(' · Public network');
   await expect(input).toHaveValue('hi');
+  const name = page.locator('[data-composer-model-name]');
+  await expect(name).toHaveText('Qwen 3.5 0.8B');
+  expect(await name.evaluate(node => {
+    const range = document.createRange(); range.selectNodeContents(node);
+    const visible = node.getBoundingClientRect(), text = range.getBoundingClientRect();
+    return text.left >= visible.left - 1 && text.right <= visible.right + 1;
+  })).toBe(true);
   const bounds = await source.boundingBox(), button = await page.locator('[data-open-model]').boundingBox();
   expect(bounds.x).toBeGreaterThanOrEqual(button.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(button.x + button.width);
   await page.screenshot({ path: info.outputPath(`shared-ready-${width}.png`) });

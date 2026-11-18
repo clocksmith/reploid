@@ -106,15 +106,16 @@ function reportedContribution(peer) {
 export function projectNetworkPeers(state) {
   const network = state.network || {};
   const own = new Set([network.consumer?.peerId, network.supplier?.peerId]);
+  const privateRoom = network.discoveryScope === 'private';
   const peers = new Map(), connections = new Map();
   const connectionLabels = {
     preparing: ['Preparing connection', 'Waiting for connection configuration.'],
     negotiating: ['Connecting', 'Finding a network path to this computer.'],
     connecting: ['Connecting', 'Finding a network path to this computer.'],
-    'awaiting-answer': ['Waiting for computer', 'Invitation sent. Waiting for this computer to answer.'],
+    'awaiting-answer': ['Waiting for computer', 'Waiting for this computer to accept the connection.'],
     'opening-channel': ['Opening connection', 'Computer answered. Waiting for the data channel.'],
     interrupted: ['Connection interrupted', 'Trying to recover the network path. Requests cannot rely on this computer yet.'],
-    failed: ['Connection failed', 'Could not connect. Check the invitation and network, then retry.'],
+    failed: ['Connection failed', privateRoom ? 'Check the private invitation and retry.' : 'Public peer unreachable. Search again to discover other computers.'],
     disconnected: ['Disconnected', 'Connection closed. Remote execution and cleanup state are unknown.'],
     connected: ['Connected', 'Waiting for this computer to report its model status.']
   };
@@ -130,7 +131,7 @@ export function projectNetworkPeers(state) {
     const [status, detail] = connectionLabels[peer.phase] || connectionLabels.connecting;
     peers.set(peer.id, { id: peer.id, model: 'Model status pending', phase: peer.phase, attemptId: peer.attemptId || null, authenticated: peer.authenticated === true,
       state: peer.phase === 'connected' ? 'awaiting-advertisement' : ['disconnected', 'failed'].includes(peer.phase) ? peer.phase : 'connecting',
-      connectionPhase: peer.phase, connectionPath: peer.phase === 'connected' ? connectionPath(peer) : null, partitionIndex: null, status, detail: peer.failure || detail });
+      connectionPhase: peer.phase, connectionPath: peer.phase === 'connected' ? connectionPath(peer) : null, partitionIndex: null, status, detail: !privateRoom && /invit/i.test(peer.failure || '') ? detail : peer.failure || detail });
   }
   const advertisements = new Map();
   for (const snapshot of [network.consumer, network.supplier]) for (const peer of snapshot?.peers || []) advertisements.set(peer.peerId, peer);
@@ -188,6 +189,12 @@ function renderPeerRows(list, state) {
   const existing = new Map([...list.querySelectorAll('[data-computer-id]')].map(node => [node.dataset.computerId, node]));
   list.querySelector('.network-empty')?.remove();
   const nodes = new Map();
+  const byLabel = new Map();
+  for (const peer of rows) {
+    const label = computerLabel(state, peer.id);
+    if (!byLabel.has(label)) byLabel.set(label, []);
+    byLabel.get(label).push(peer.id);
+  }
   for (const peer of rows) {
     let row = existing.get(peer.id);
     if (!row) {
@@ -204,7 +211,10 @@ function renderPeerRows(list, state) {
     row.dataset.peerPhase = peer.phase || 'connected'; row.dataset.computerState = peer.state;
     row.dataset.attemptId = peer.attemptId || ''; row.dataset.blocked = String(peer.blocked === true);
     row.dataset.computerParticipant = state.computerIdentities?.get(peer.id) || '';
-    set('[data-computer-name]', computerLabel(state, peer.id)); set('[data-computer-status]', peer.status);
+    const label = computerLabel(state, peer.id), sameLabel = byLabel.get(label);
+    let suffix = 6;
+    while (suffix < peer.id.length && sameLabel.some(id => id !== peer.id && id.slice(-suffix) === peer.id.slice(-suffix))) suffix++;
+    set('[data-computer-name]', sameLabel.length > 1 ? `${label} · connection ${peer.id.slice(-suffix)}` : label); set('[data-computer-status]', peer.status);
     if (peer.model !== 'Model status pending') row.dataset.lastModel = peer.model;
     const lastModel = peer.model === 'Model status pending' && row.dataset.lastModel;
     set('[data-computer-model-label]', lastModel ? 'Last model' : 'Model');
@@ -293,24 +303,28 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
     contributionSelect.disabled = !!network.files?.sharing || !!network.files?.preparing || !!network.files?.stopping;
     renderPeerRows(find('[data-insp-device-list]'), state);
-    const discoveryState = network.consumer?.connectionState;
+    const discoveryState = network.introductionState ?? network.consumer?.connectionState;
     const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying', 'awaiting-introduction'].includes(discoveryState);
+    const survivingConnection = !activeDiscovery && network.consumer?.connectionState === 'connected';
     const connectControl = find('[data-mesh-connect]');
     connectControl.disabled = false;
-    connectControl.dataset.disconnect = String(!!activeDiscovery);
-    connectControl.setAttribute('aria-checked', String(!!activeDiscovery));
+    connectControl.dataset.disconnect = String(!!activeDiscovery || survivingConnection);
+    connectControl.setAttribute('aria-checked', String(!!activeDiscovery || survivingConnection));
     find('[data-connection-label]').textContent = network.connecting || discoveryState === 'connecting' ? 'Connecting…'
-      : discoveryState === 'awaiting-introduction' ? 'Needs an invitation'
-      : discoveryState === 'retrying' ? 'Reconnecting…' : activeDiscovery ? 'Connected' : 'Disconnected';
+      : discoveryState === 'awaiting-introduction' ? network.discoveryScope === 'private' ? 'Needs an invitation' : 'Discovering computers…'
+      : discoveryState === 'retrying' ? 'Reconnecting…' : activeDiscovery ? 'Discovery connected' : survivingConnection ? 'Discovery interrupted' : 'Disconnected';
     const detail = find('[data-connection-detail]');
     if (detail) detail.textContent = network.connecting || discoveryState === 'connecting'
       ? 'Connection requested. Waiting for network discovery.'
-      : discoveryState === 'awaiting-introduction' ? 'Open an invitation from another computer to continue.'
+      : discoveryState === 'awaiting-introduction' ? network.discoveryScope === 'private' ? 'Open an invitation from another computer to continue.' : 'Looking for a public computer. You can also review a local model download.'
       : discoveryState === 'retrying' ? 'Discovery interrupted. Retrying; existing computer connections may still work.'
+      : survivingConnection ? 'Existing peer connections may still work. Retry discovery to find other computers.'
       : activeDiscovery ? (peers.length ? '' : 'Waiting for other computers to join.')
       : 'Connect to discover computers. Model readiness is reported separately.';
     const message = find('[data-network-message]');
-    message.textContent = network.error || actionError || (relayUnavailableReason() ? 'The relay service is unreachable. New connections are direct only, so some computers may not be reachable.' : ''); message.hidden = !message.textContent;
+    const issue = network.error || actionError;
+    const networkError = network.discoveryScope !== 'private' && /invit/i.test(issue || '') ? 'Public discovery could not connect. Retry the connection.' : issue;
+    message.textContent = networkError || (relayUnavailableReason() ? 'The relay service is unreachable. New connections are direct only, so some computers may not be reachable.' : ''); message.hidden = !message.textContent;
     const cleanupPending = network.contribution?.unsettledOwners > 0;
     const usage = state.computerUsage;
     const tokenText = value => value && value.available !== false ? `${value.outputTokens.toLocaleString()}${value.unmeasured ? ' + unmeasured' : ''}` : '—';
@@ -318,7 +332,12 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
     if (supplied) supplied.textContent = usage?.supplied?.available ? tokenText(usage.supplied) : '—';
     if (consumed) consumed.textContent = tokenText(usage?.consumed);
     const usageScope = find('[data-device-usage-scope]');
-    if (usageScope) usageScope.textContent = `Output tokens in this browser. Supplied: last ${usage?.supplied?.limit ?? 200} contributions. Consumed: saved conversations, including local answers. Credits are separate.`;
+    if (usageScope) {
+      const breakdown = usage?.consumedBySource;
+      usageScope.textContent = `Output tokens from up to the latest ${usage?.supplied?.limit ?? 200} recorded requests in each direction.`;
+      if (usage?.consumed?.available && breakdown) usageScope.textContent += ` Used here: ${tokenText(breakdown.local)} local · ${tokenText(breakdown.network)} network`
+        + (breakdown.unknown.requests ? ` · ${tokenText(breakdown.unknown)} unknown placement.` : '.');
+    }
     const usageError = find('[data-device-usage-error]');
     if (usageError) { usageError.textContent = usage?.error || ''; usageError.hidden = !usageError.textContent; }
     const local = find('[data-local-computer]');
@@ -327,15 +346,10 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
       const id = network.supplier?.peerId || network.consumer?.peerId;
       local.textContent = [id ? computerLabel(state, id) : null, hardwareText(hardware) ? `Reported GPU: ${hardwareText(hardware)}` : 'GPU not reported'].filter(Boolean).join(' · ');
     }
-    const filesSummary = find('[data-file-sharing-summary]');
-    if (filesSummary) filesSummary.textContent = network.files?.sharing ? 'Model file sharing is on. Manage it in Settings → Storage.'
-      : network.files?.stopping ? 'Model file sharing is stopping.'
-      : network.files?.preparing ? 'Preparing model file sharing.'
-      : network.files?.enabled ? 'File sharing is enabled; waiting for available files. Manage it in Settings → Storage.' : 'Model file sharing is off. Manage it in Settings → Storage.';
     const deviceSummary = find('[data-device-state-summary]');
     if (deviceSummary) deviceSummary.textContent = cleanupPending ? '· Cleanup not confirmed'
       : network.stopping ? '· Stopping' : network.contribution?.phase === 'loading' ? '· ' + preparationStatus(network.contribution.progress).status
-      : network.contribution?.phase === 'executing' ? '· Working' : network.sharing ? '· ' + (network.contribution?.phase === 'ready' ? 'Ready' : 'Sharing') : network.computeEnabled ? '· Contribution on' : '· Paused';
+      : network.contribution?.phase === 'executing' ? '· Working' : network.sharing ? '· ' + (network.contribution?.phase === 'ready' ? 'Ready' : 'Sharing') : network.computeEnabled ? '· Enabled · not serving' : '· Paused';
     find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
       ? (network.contribution?.phase === 'loading' ? preparationStatus(network.contribution.progress).status
         : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing')) : network.computeEnabled ? 'On · waiting for a downloaded model' : 'Not sharing';
@@ -378,10 +392,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
     find('[data-file-progress]').textContent = network.files?.progress?.message || '';
     find('[data-file-progress]').hidden = !find('[data-file-progress]').textContent;
     find('[data-toggle-file-contribution]').setAttribute('aria-checked', String(network.files?.enabled ?? !!sharingFiles));
-    const cachedFiles = network.files?.verifiedFiles?.length > 0 || (state.models || []).some(model => model.localCached);
-    const needsCachedFiles = (modeSelect?.value || 'cached-only') === 'cached-only' && !cachedFiles && !network.files?.enabled;
-    find('[data-toggle-file-contribution]').disabled = !!network.files?.stopping || needsCachedFiles;
-    find('[data-toggle-file-contribution]').title = needsCachedFiles ? 'Download a model first, or choose a download option.' : '';
+    find('[data-toggle-file-contribution]').disabled = !!network.files?.stopping;
     const contribution = network.contribution || {};
     const sharedId = contribution.modelId || contribution.descriptor?.modelId;
     const sharedName = catalogModels.find(model => model.id === sharedId)?.name || sharedId;
@@ -420,6 +431,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
     const enable = !(files?.enabled ?? (files?.sharing || files?.preparing));
     if (enable && network?.paused) await session.connect();
     const mode = find('[data-file-mode]')?.value || 'cached-only';
+    if (enable && mode === 'cached-only' && session.setCachedFileContribution) return session.setCachedFileContribution(true);
     return session.setFileSharing(enable, contributionSelect.value, enable, {
       mode, ...(mode !== 'cached-only' ? { downloadBytes: Number(find('[data-file-download]')?.value) * 1048576 } : {})
     });

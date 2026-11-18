@@ -374,6 +374,20 @@ label.chat-model-route-heading { cursor: pointer; }
 
 .chat-composer-model > [data-model-chevron] { flex: none; margin-left: auto; }
 .chat-composer-model > [data-model-chevron] svg { display: block; }
+@media (max-width: 480px) {
+  .chat-composer-toolbar { flex-wrap: wrap; }
+  .pool-home .chat-composer-toolbar .chat-composer-model {
+    flex: 1 1 min-content;
+    min-width: min(100%, 9rem);
+    height: auto;
+  }
+  .chat-composer-model [data-model-digest] { flex-direction: column; align-items: flex-start; text-align: start; }
+  .chat-composer-model [data-composer-model-name], .chat-composer-model [data-composer-model-source] {
+    white-space: normal; overflow-wrap: anywhere; overflow: visible;
+  }
+  .chat-composer-status-line { height: auto; min-height: var(--pool-size-44); }
+  .chat-composer-status-line > [data-model-status] { max-height: none; }
+}
 .chat-execution-activity[data-active] { flex-wrap: wrap; }
 .chat-model-setup [data-model-details] { flex: none; max-height: 35dvh; overflow-y: auto; }
 .chat-model-setup [data-model-details] > div { padding-block: var(--pool-size-8); }

@@ -275,7 +275,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-picker] [data-model-selection-details] [data-execution-location]')).not.toBeNull();
     expect(find('[data-inspector-pane="model"]')).toBeNull();
     expect(find('[data-threads-dialog] [data-model-control]')).toBeNull();
-    expect(find('[data-inspector-pane="settings"] [data-settings-storage-controls] [data-toggle-file-contribution]')).not.toBeNull();
+    expect(find('[data-inspector-pane="participants"] [data-toggle-file-contribution]')).not.toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-production-device] [data-contribution-limits]')).not.toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
     find('[data-toggle-thread-rail]').click();
@@ -469,7 +469,7 @@ describe('Conversation workspace', () => {
     await chooseShared(route.selectionId);
     expect(find('[data-active-model-select]').value).toBe(route.selectionId);
     expect(find('[data-composer-send]').disabled).toBe(false);
-    expect(find('[data-model-status]').textContent).toContain('selected public route');
+    expect(find('[data-model-status]').textContent).toContain('Public computers on this route can read the input for their own stages');
     expect(find('[data-open-model]').getAttribute('aria-label')).toContain('Public network · Split model');
     expect(find('[data-download-local]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('hi');
@@ -567,10 +567,39 @@ describe('Conversation workspace', () => {
     expect(service.calls).toHaveLength(0);
   });
 
+  it('shows effective sharing choices and applies opt-outs before downloading without sending the draft', async () => {
+    dispose();
+    const events = [], model = CANONICAL_CHAT_MODELS[1];
+    const project = state => ({ ...state, discoveryPhase: 'observed', localDownloadIssue: null,
+      network: { ...state.network, computeEnabled: true, files: { enabled: true } } });
+    dispose = bindConversationWorkspace(root, { ...session,
+      getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))),
+      getModelDownload: async () => ({ id: model.id, sizeBytes: 2e9 }),
+      getLocalModelFit: async () => ({ sizeBytes: 2e9, freeBytes: 1e9, gpuBytes: 3e9 }),
+      setComputeContribution: async enabled => events.push(['compute', enabled]),
+      setCachedFileContribution: async enabled => events.push(['files', enabled]),
+      downloadLocalModel: async id => events.push(['download', id]) });
+    find('[data-composer-input]').value = 'Keep this draft';
+    find('[data-download-local]').click();
+    await vi.waitFor(() => expect(find('[data-download-fit]').textContent).toContain('Estimated GPU memory 3 GB'));
+    expect(find('[data-download-fit]').textContent).toContain('smaller than a fresh download');
+    const compute = find('[data-download-compute]'), files = find('[data-download-files]');
+    expect(compute.checked).toBe(true); expect(files.checked).toBe(true);
+    compute.click(); files.click(); find('[data-download-cancel]').click();
+    expect(events).toEqual([]);
+    find('[data-download-local]').click();
+    await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
+    expect(compute.checked).toBe(true); expect(files.checked).toBe(true);
+    compute.click(); files.click(); find('[data-download-confirm]').click();
+    await vi.waitFor(() => expect(events).toEqual([['compute', false], ['files', false], ['download', model.id]]));
+    expect(find('[data-composer-input]').value).toBe('Keep this draft');
+    expect(service.calls).toHaveLength(0);
+  });
+
   it('starts contribution only after the download confirmation, preserving the chat draft', async () => {
     dispose();
-    const setSharing = vi.fn();
-    dispose = bindConversationWorkspace(root, { ...session, setSharing,
+    const setSharing = vi.fn(), setComputeContribution = vi.fn();
+    dispose = bindConversationWorkspace(root, { ...session, setSharing, setComputeContribution, getLocalModelFit: async () => null,
       getState: () => ({ ...session.getState(), localDownloadIssue: null }),
       subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
@@ -578,6 +607,8 @@ describe('Conversation workspace', () => {
     await vi.waitFor(() => expect(find('[data-production-model]').disabled).toBe(false));
     find('[data-production-model]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
+    expect(find('[data-download-compute]').checked).toBe(true);
+    expect(setComputeContribution).not.toHaveBeenCalled();
     expect(setSharing).not.toHaveBeenCalled();
     expect(service.calls).toHaveLength(0);
     find('[data-download-confirm]').click();

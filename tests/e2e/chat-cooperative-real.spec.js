@@ -1,7 +1,7 @@
 import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
 import { readChatWorkspace } from '../fixtures/chat-workspace-history.js';
 import { observeMeshProtocol, expectMeshDiscovery } from '../fixtures/mesh-discovery.js';
-import { privateRoom, expectCachedSharingDefault, openComputers, openStorage, networkProblem, stopAnswer } from '../fixtures/current-contribution.js';
+import { privateRoom, expectCachedSharingDefault, openComputers, openFileSharing, networkProblem, stopAnswer } from '../fixtures/current-contribution.js';
 import { comparisonInput, COMPARISON_CHECK } from '../../apps/poolday/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
@@ -132,11 +132,11 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await route.fulfill({ body: await readFile(path.join(directory, filename)),
       contentType: filename.endsWith('.json') ? 'application/json' : 'application/octet-stream' });
   });
-  // Current controls: the model to seed is chosen under Settings → Storage → Download options;
+  // Current controls: the model to seed is chosen under Computers → Download options;
   // compute contribution lives under Computers → Contribute this computer. Both switches are
   // on by default (cached sharing), so a switch is turned off before a model is chosen.
   const openContribution = async page => {
-    await openStorage(page);
+    await openFileSharing(page);
     const selection = page.locator('[data-contribution-model]');
     await expect(selection).toBeVisible({ timeout: 30000 });
     const fileSwitch = page.locator('[data-toggle-file-contribution]');
@@ -259,7 +259,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         await expect(contributor.locator('[data-connection-label]')).toHaveText('Disconnected');
         await contributor.locator('[data-mesh-connect]').click();
         await expect.poll(() => observations[0].participantId, { timeout: 30000 }).not.toBe(previous);
-        await expect(contributor.locator('[data-connection-label]')).toHaveText('Connected', { timeout: 30000 });
+        await expect(contributor.locator('[data-connection-label]')).toHaveText('Discovery connected', { timeout: 30000 });
         reconnects++;
       }
       await contributor.locator('[data-close-inspector]').click();

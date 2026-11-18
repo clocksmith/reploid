@@ -26,13 +26,21 @@ export function projectComputerUsage({ threads = [], network = {}, historyUnavai
         ?? (Number.isFinite(execution?.serviceCredit?.settledAt) ? execution.serviceCredit.outputTokens : undefined);
       // An interrupted stream without a count is unknown; an attempt rejected before output is not usage.
       if (count === undefined && attempt.status !== 'completed' && !outputAttempts.has(attempt.id)) continue;
-      attempts.set(`${thread.id}:${attempt.id}`, { outputTokens: count });
+      const placement = execution?.placement;
+      const source = ['local-webgpu', 'local'].includes(placement) ? 'local'
+        : ['peer-whole-request', 'ordered-layer-partition', 'two-device-layer-partition', 'private-fleet', 'hosted-api', 'remote'].includes(placement) || execution?.peerId || execution?.serviceCredit ? 'network' : 'unknown';
+      attempts.set(`${thread.id}:${attempt.id}`, { outputTokens: count, source,
+        at: attempt.finishedAt ?? attempt.createdAt ?? 0 });
     }
   }
   const history = network.contributionHistory;
+  const limit = history?.limit ?? LIMIT;
+  const consumed = [...attempts.values()].sort((a, b) => b.at - a.at).slice(0, limit);
   return {
-    supplied: { ...summary(history?.records || []), limit: history?.limit ?? LIMIT, available: !!history },
-    consumed: { ...summary([...attempts.values()]), available: !historyUnavailable },
+    supplied: { ...summary((history?.records || []).slice(0, limit)), limit, available: !!history },
+    consumed: { ...summary(consumed), available: !historyUnavailable },
+    consumedBySource: Object.fromEntries(['local', 'network', 'unknown'].map(source =>
+      [source, summary(consumed.filter(row => row.source === source))])),
     error: [history?.error, historyUnavailable].filter(Boolean).join('. ') || null
   };
 }

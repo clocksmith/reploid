@@ -509,6 +509,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       await sharingConnection;
     },
     stop: () => { computeEnabled = false; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'false'); return stopContribution(); },
+    async allowCachedFiles(enabled) {
+      if (closed) throw new Error('Network is closed');
+      if (!enabled) return api.stopFiles();
+      filesEnabled = true; storage?.setItem('REPLOID_CACHED_FILES_ENABLED', 'true'); notify();
+      return api.shareCachedModels(cachedModels);
+    },
     async allowCachedCompute(enabled) {
       if (closed) throw new Error('Network is closed');
       if (!enabled) return api.stop();

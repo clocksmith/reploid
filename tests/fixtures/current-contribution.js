@@ -37,11 +37,8 @@ export async function openComputers(page) {
   if (!await device.evaluate(node => node.open)) await device.locator(':scope > summary').click();
 }
 
-export async function openStorage(page) {
-  if (!await page.locator('[data-inspector-pane="settings"]').isVisible()) {
-    await page.locator('[data-inspector-section="settings"]').first().click();
-  }
-  await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
+export async function openFileSharing(page) {
+  await openComputers(page);
   const options = page.locator('[data-model-sharing-limits]');
   if (!await options.evaluate(node => node.open)) await options.locator(':scope > summary').click();
 }
@@ -70,9 +67,9 @@ export async function contributeModel(page, selectionId) {
   return size;
 }
 
-/** Settings → Storage: seed one exact model's files, downloading the whole model within an allowance. */
+/** Computers → Download options: seed one exact model's files, downloading the whole model within an allowance. */
 export async function seedModelFiles(page, modelId, allowanceMiB) {
-  await openStorage(page);
+  await openFileSharing(page);
   const toggle = page.locator('[data-toggle-file-contribution]');
   // The default cached-only switch is on; it must be off before the model and mode can change.
   if (await toggle.getAttribute('aria-checked') === 'true') {

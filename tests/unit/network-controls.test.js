@@ -257,3 +257,22 @@ it('renders reported contribution scope and clears counts when the connection lo
     expect(root.querySelectorAll('[data-computer-usage-help]').length).toBe(1);
   } finally { dispose(); }
 });
+
+it('preserves the disconnect action for surviving peers and keeps private invitation errors out of public discovery', () => {
+  const network = { introductionState: 'stopped', consumer: { connectionState: 'connected', peers: [] },
+    discoveryScope: 'public', error: 'Missing private invitation' };
+  const state = { models: [], network };
+  const root = document.createElement('div');
+  root.innerHTML = renderConnectionControl() + renderSharingControls()
+    + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
+  let update;
+  const dispose = bindNetworkControls(root, { getState: () => state, subscribe(fn) { update = fn; fn(state); return () => {}; } });
+  try {
+    expect(root.querySelector('[data-connection-label]').textContent).toBe('Discovery interrupted');
+    expect(root.querySelector('[data-mesh-connect]').dataset.disconnect).toBe('true');
+    expect(root.querySelector('[data-network-message]').textContent).not.toMatch(/invitation/i);
+    network.discoveryScope = 'private'; network.introductionState = 'awaiting-introduction'; update(state);
+    expect(root.querySelector('[data-connection-label]').textContent).toBe('Needs an invitation');
+    expect(root.querySelector('[data-network-message]').textContent).toBe(network.error);
+  } finally { dispose(); }
+});

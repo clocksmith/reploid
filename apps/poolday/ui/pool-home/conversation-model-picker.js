@@ -17,6 +17,19 @@ export function recoverySharedModel(state, selectedId, location, privacy) {
     && model.reachableProviderIds?.length > 0) ?? null;
 }
 
+/** Browser storage quota and GPU memory are distinct resources. The browser exposes no free VRAM counter. */
+export function localFitText(model, info, { cached = false, sizeBytes = info?.sizeBytes } = {}) {
+  if (!model || model.partition || model.fleet) return '';
+  const gb = bytes => (bytes / 1e9).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' GB';
+  const size = Number.isFinite(sizeBytes) ? gb(sizeBytes) : 'size checked before download';
+  const space = Number.isFinite(info?.freeBytes) ? ` · ${gb(info.freeBytes)} browser storage available` : '';
+  const insufficient = !cached && Number.isFinite(info?.freeBytes) && Number.isFinite(sizeBytes) && info.freeBytes < sizeBytes;
+  const fit = insufficient ? 'Remaining browser storage is smaller than a fresh download.' : model.localReady ? 'Model is loaded on this device.'
+    : 'Fit unknown. Available GPU memory is not reported.';
+  const memory = Number.isFinite(info?.gpuBytes) ? `Estimated GPU memory ${gb(info.gpuBytes)}. ` : 'Working memory estimate unavailable for this model. ';
+  return `${cached ? 'Stored on this device' : 'Download: ' + size}${space}. ${memory}${fit} Usable context depends on the workload and available memory.`;
+}
+
 export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
   touched: pickerTouched, changing: changingModel, selectedId, privacy, canDownload }) {
   const keyFor = model => model?.selectionId || model?.id;

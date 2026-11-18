@@ -6,8 +6,9 @@ export function renderWebSearchSettings() {
       <h3 class="pool-subheading" id="web-search-title">Web search</h3>
       <button class="pool-switch" type="button" role="switch" aria-checked="false" aria-labelledby="web-search-title" data-web-search-toggle><span></span></button>
     </div>
-    <p class="pool-small pool-muted" data-web-search-disclosure></p>
-    <details class="pool-disclosure" data-web-search-config><summary>Configure search server</summary><div class="pool-stack pool-gap-sm">
+    <details class="pool-disclosure" data-search-disclosure-details><summary>Who receives the search?</summary>
+    <p class="pool-small pool-muted" data-web-search-disclosure></p></details>
+    <details class="pool-disclosure" data-web-search-config><summary>Developer settings · MCP search server</summary><div class="pool-stack pool-gap-sm">
     <label class="pool-stack pool-gap-xs pool-small">MCP server URL
       <input class="pool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://" data-web-search-url></label>
     <label class="pool-stack pool-gap-xs pool-small">Access token (optional, this tab only)
@@ -26,7 +27,7 @@ export function renderWebSearchSettings() {
 const disclosure = (state, search) => !state.url
   ? search?.state().provider === 'contributor-bing' ? 'A contributor searches Bing and fetches public pages. Each answer asks permission and names the contributor.'
     : search?.available() ? 'Use built-in web search. Each answer asks before sending your query to Brave.'
-    : 'Built-in search is unavailable. Add your MCP search server below, or wait for the service to be configured.'
+    : 'Built-in search is unavailable.'
   : state.enabled
     ? `On. The text of each question you send goes to ${state.recipient} first. Its search results are added to the question as numbered sources. Turn off to stop.`
     : `Off. When on, the text of each question you send goes to ${state.recipient} first. Its search results are added to the question as numbered sources.`;
@@ -48,7 +49,11 @@ export function bindWebSearchSettings(root, webSearch, { search = null } = {}) {
     token.placeholder = state.hasToken ? 'Set for this tab' : '';
     const help = find('[data-web-search-disclosure]'); help.id = 'web-search-help';
     help.textContent = disclosure(state, search);
-    report(state.status.message || (!state.url ? search?.state().message || '' : ''));
+    const details = find('[data-search-disclosure-details]');
+    if (details.dataset.enabled !== String(state.enabled)) {
+      details.open = state.enabled; details.dataset.enabled = String(state.enabled);
+    }
+    report(state.status.message || (state.enabled && !state.url ? search?.state().message || '' : ''));
   };
   const unsubscribe = webSearch.subscribe(render);
   const unsubscribeSearch = search?.subscribe(() => render(webSearch.state())) || (() => {});

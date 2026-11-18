@@ -44,6 +44,7 @@ export function updateContextIndicator(root, state, labelSession) {
   const value = projectContextIndicator(state, labelSession);
   const button = root.querySelector('[data-context-indicator]');
   if (!button) return;
+  button.hidden = value.percent === null && !value.peers.length && !state.activeThread?.attempts?.length;
   button.title = value.title;
   button.setAttribute('aria-label', `${value.text === '—' ? 'Context usage unavailable' : value.text + ' of model context'}. ${value.title}`);
   root.querySelector('[data-context-percent]').textContent = value.text;
