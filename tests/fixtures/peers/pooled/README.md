@@ -129,8 +129,28 @@ Protected provider observations bind the systemd MainPID, invocation identity,
 complete service cgroup membership and each process's start identity. GPU counters
 come from every observed DRM-owning member, including a Node child behind a
 `flock` MainPID. Missing observations or changes in membership, process identity,
-DRM ownership or counters invalidate the comparison. These endpoint snapshots
-do not establish global GPU idleness between observations.
+DRM ownership or counters invalidate the comparison. `protectedProviderPolicy`
+defaults to `"active_unchanged"` (running beside an idle protected provider) and
+also accepts `"paused_inactive"` when an operator explicitly pauses the unit and
+requires it to remain inactive (`MainPID=0`) across every arm; `report.json`
+records `runsBesideProtectedProvider` explicitly. These endpoint snapshots do
+not establish global GPU idleness between observations.
+
+Host and GPU preflight (`--check-host-preflight` for a read-only check, and
+mandatory before admission and before every arm under `--execute`) gates on:
+`MemAvailable`, truly free `MemFree` (`>= 16 GiB` default), `Shmem` (`<= 4 GiB`
+default so `/tmp` and `/dev/shm` tmpfs usage cannot silently exhaust RAM),
+`Dirty + Writeback`, AMD sysfs `mem_info_gtt_used` (`gttFreeBytes >= gpuCapBytes + 8 GiB`
+plus any UMA evictable carve-out bytes), the `512 MiB` UMA VRAM carve-out
+(`effectiveVramAvailableBytes >= 64 MiB` counting TTM-evictable userland
+`drm-memory-vram` above a `4 MiB` per-client pinned reserve, `mem_info_preempt_used <= 64 MiB`,
+and zero unexpected DRM compute clients holding `>= 64 MiB` GTT outside the
+protected provider), `gpu_busy_percent`, and
+absence of active bulk file-copy/archive tools or ambient whole-disk throughput
+above `64 MiB/s`. When `protectedCachePolicy` is `"clear_before_candidate"` or
+`"clear_each_arm"`, validated `/dev/shm` or `/tmp` protected piece caches are
+removed synchronously before each cold candidate arm (and after candidate close
+for `"clear_each_arm"`).
 
 Exact input/output, stop-token semantics, prefix reuse, recovery, placement,
 allocation, receipt and lifecycle checks remain mandatory. Metadata dtype
