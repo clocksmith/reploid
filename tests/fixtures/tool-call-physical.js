@@ -202,6 +202,30 @@ try {
   report.checks.capCutsACallWithNothingExecutable = cutCall.choices[0].finish_reason === 'length' && !cutCall.choices[0].message.tool_calls?.length
     && cutCall.usage.completion_tokens === 4;
 
+  // 4b. Anthropic Messages, streamed on the whole-model route: the stream opens with the provider's real
+  // input count before the answer is complete, and the count agrees with the one signed at the end.
+  const messagesStream = await fetch(`http://127.0.0.1:${config.requester.textApiPort}/v1/messages`, { method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': apiSecret, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: model.id, max_tokens: model.generation.maxTokens, stream: true, messages: [counting] }) });
+  const events = [], decoder = new TextDecoder(); let buffered = '', firstDeltaAt = null; const streamStarted = performance.now();
+  for await (const piece of messagesStream.body) {
+    buffered += decoder.decode(piece, { stream: true });
+    for (let cut = buffered.indexOf('\n\n'); cut >= 0; cut = buffered.indexOf('\n\n')) {
+      const data = buffered.slice(0, cut).split('\n').find(line => line.startsWith('data: ')); buffered = buffered.slice(cut + 2);
+      if (!data) continue;
+      const event = JSON.parse(data.slice(6)); events.push(event);
+      if (event.type === 'content_block_delta' && firstDeltaAt === null) firstDeltaAt = Math.round(performance.now() - streamStarted);
+    }
+  }
+  const opened = events.find(event => event.type === 'message_start'), closing = events.find(event => event.type === 'message_delta');
+  const deltas = events.filter(event => event.type === 'content_block_delta').length;
+  report.evidence.messagesStream = { status: messagesStream.status, openingInputTokens: opened?.message?.usage?.input_tokens ?? null,
+    closingUsage: closing?.usage ?? null, stopReason: closing?.delta?.stop_reason ?? null, textDeltas: deltas, firstDeltaMs: firstDeltaAt,
+    totalMs: Math.round(performance.now() - streamStarted), error: events.find(event => event.type === 'error') ?? null };
+  report.checks.messagesStreamsIncrementallyWithTheRealInputCount = messagesStream.status === 200 && !report.evidence.messagesStream.error
+    && Number.isInteger(opened?.message?.usage?.input_tokens) && opened.message.usage.input_tokens > 0 && deltas > 1
+    && firstDeltaAt < report.evidence.messagesStream.totalMs;
+
   // 5. A setting changed after the quote is refused before the provider generates.
   const before = credits.snapshot().journal.length, requestsBefore = new Set(credits.snapshot().journal.map(row => row.request_id));
   const refused = await outcome(() => chat(tampered, { messages: [counting], max_completion_tokens: 6 }));
