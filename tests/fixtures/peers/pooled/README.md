@@ -152,6 +152,15 @@ above `64 MiB/s`. When `protectedCachePolicy` is `"clear_before_candidate"` or
 removed synchronously before each cold candidate arm (and after candidate close
 for `"clear_each_arm"`).
 
+For matched two-machine split comparisons (`compare-split-single-clock.py`,
+`split-complete-workers.js`, and `local-swarm-signaling.js`), one requester
+monotonic clock (`single-requester-clock-monotonic/v1`) drives both engines over
+the same owned JSONL protocol (`open`, three `request` calls, `receipts`, `close`)
+with matched layer ranges (`expectedRanges`), loopback discovery signaling, and
+deterministic cold-cache clearing, reporting `startupWallMs`,
+`postOpenFirstRequestClientMs`, `openPlusFirstAnswerClientMs`, and
+`repeatRequestClientMeanMs` separately.
+
 Exact input/output, stop-token semantics, prefix reuse, recovery, placement,
 allocation, receipt and lifecycle checks remain mandatory. Metadata dtype
 compatibility alone does not establish physical materialization, token parity,
