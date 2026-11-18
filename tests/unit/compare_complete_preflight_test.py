@@ -150,7 +150,7 @@ class CompareCompletePreflightTest(unittest.TestCase):
             write_proc(proc, 9258, "gnome-shell", state="S")
             (proc / "9258/fdinfo").mkdir()
             (proc / "9258/fdinfo/12").write_text(
-                "drm-client-id:\t45\ndrm-memory-vram:\t200716 KiB\ndrm-memory-gtt:\t22548 KiB\n"
+                "drm-client-id:\t45\ndrm-memory-vram:\t200716 KiB\ndrm-memory-gtt:\t93480 KiB\n"
             )
             write_proc(proc, 116975, "node", state="S")
             (proc / "116975/fdinfo").mkdir()

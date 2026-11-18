@@ -26,6 +26,10 @@ DEFAULT_MAX_GPU_PREEMPT_USED_BYTES = 64 * 1024 ** 2
 DEFAULT_UMA_CARVEOUT_MAX_BYTES = 1024 ** 3
 DEFAULT_UMA_CLIENT_PINNED_RESERVE_BYTES = 4 * 1024 ** 2
 DEFAULT_UNEXPECTED_GPU_CLIENT_GTT_BYTES = 64 * 1024 ** 2
+DEFAULT_MAX_DESKTOP_CLIENT_GTT_BYTES = 512 * 1024 ** 2
+DESKTOP_DISPLAY_COMMS = frozenset({
+    "gnome-shell", "Xwayland", "Xorg", "mutter-x11-fram", "ibus-x11", "kwin_wayland", "sway", "weston"
+})
 DEFAULT_MAX_GPU_BUSY_PERCENT = 5
 DEFAULT_MAX_AMBIENT_DISK_BYTES_PER_SEC = 64 * 1024 ** 2
 DEFAULT_LARGE_COPY_FILE_BYTES = 64 * 1024 ** 2
@@ -509,9 +513,15 @@ def check_host_and_gpu_preflight(freeze, *, proc_root="/proc", drm_root="/sys/cl
                 )
             effective_vram_avail = gpu["vramFreeBytes"] + evictable_uma_vram
             required_gtt_free = min_gtt_free + evictable_uma_vram
+            max_desktop_gtt = int(
+                freeze.get("maxDesktopClientGttBytes", DEFAULT_MAX_DESKTOP_CLIENT_GTT_BYTES)
+            )
             unexpected_clients = [
                 client for client in drm_clients
-                if client["gttBytes"] >= unexpected_client_gtt and client["pid"] not in allowed_pids
+                if client["pid"] not in allowed_pids
+                and client["gttBytes"] >= (
+                    max_desktop_gtt if client["comm"] in DESKTOP_DISPLAY_COMMS else unexpected_client_gtt
+                )
             ]
             gpu["evictableUmaVramBytes"] = evictable_uma_vram
             gpu["effectiveVramAvailableBytes"] = effective_vram_avail
