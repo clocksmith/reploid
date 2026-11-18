@@ -5,13 +5,16 @@
 // it; native contributor clients claim their stage shares from their own admission records; a real
 // custody transfer supplies the delivery evidence. Real accounts, ledger, rewards and route
 // idempotency over memory and fake-Firestore stores. Test-only provider, policies and amounts.
+import { createHash } from 'node:crypto';
 import express from 'express';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // The fixture routes are approved for release only inside this test.
 vi.mock('../../apps/poolday/config/partition-releases.json', async () => ({
   default: { approvals: (await import('../helpers/resident-route.js')).FIXTURE_ROUTE_APPROVALS } }));
 
+import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import { createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';
 import { sha256Hex } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createFirestoreRouteBackend, createMemoryRouteBackend, createRouteIdempotency } from '../../server/earning-routes/idempotency.js';
@@ -172,7 +175,13 @@ describe.each(['memory', 'firestore'])('earning with actual execution and delive
     const execution = createChatExecution({ service: {}, partitions: route.requester, models: [], getModels: () => [route.model],
       profile: { generation: {}, maxOutcomeCharacters: 1000 }, earning: attempts });
     // The one-time remote contributor permission; no per-request review follows it.
-    const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: route.model });
+    const hashSync = (value) => 'sha256:' + createHash('sha256').update(canonicalize(value)).digest('hex');
+    const routeSpec = plaintextExecutionRoute({ model: route.model, permissions: { sharingScope: 'mesh' } }, {
+      recipients: route.model.partition.route.stages.map((stage) => stage.participantId),
+      route: route.model.partition.route
+    });
+    const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: route.model,
+      policyId: hashSync(createExecutionPolicy('provider-visible')), routeId: hashSync(routeSpec) });
     const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need, wording: remotePermissionWording(need) });
     let saved = null;
     const app = createChatWorkspace({ meshId: 'mesh', participantId: identity.peerId, remotePermissions: () => [permission],

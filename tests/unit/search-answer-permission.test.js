@@ -283,7 +283,7 @@ describe('host session and conversation view', () => {
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
     const dispose = bindConversationWorkspace(root, session, { search }); cleanups.push(async () => dispose());
     const find = selector => root.querySelector(selector);
-    const submit = text => { find('[data-composer-input]').value = text; find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); };
+    const submit = text => { const input = find('[data-composer-input]'); input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); };
     expect(find('[data-search-permission]')).toBeNull();
     expect(find('[data-remote-permission]')).toBeNull();
     find('[data-search-toggle]').click(); submit(QUESTION);

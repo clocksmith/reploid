@@ -10,7 +10,7 @@ import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitio
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };
 
-const ports = vi.hoisted(() => ({ identity: null, partitions: null, peers: [] }));
+const ports = vi.hoisted(() => ({ identity: null, partitions: null, peers: [], connections: [] }));
 // Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
 // checked in; docs/partition-releases.md). The ordered fixture route is approved before the product offers it.
 const releases = vi.hoisted(() => []);
@@ -25,7 +25,7 @@ vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...awa
   createAutomaticPartitions: () => ports.partitions
 }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
-  createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, getPeerId: () => 'transport-requester', getConnectedPeers: () => [] }) }));
+  createSwarmTransport: () => ({ disconnect() {}, onMessage() {}, offMessage() {}, sendToPeer() {}, getPeerId: () => 'transport-requester', getConnectedPeers: () => [], getPeerStates: () => ports.connections }) }));
 vi.mock('../../apps/poolday/host/work-model-files.js', async original => ({ ...await original(),
   createWorkModelFiles: () => ({ async attach() {}, async close() {}, announce() {}, getState: () => ({ sharing: false, preparing: false }) }) }));
 vi.mock('../../apps/poolday/host/work-peer-offers.js', () => ({ createWorkPeerOffers: () => ({
@@ -41,7 +41,7 @@ const weightlessRequester = { stage: null, ...orderedPolicy.limits };
 const cleanups = [];
 afterEach(async () => {
   const results = await Promise.allSettled(cleanups.splice(0).reverse().map(close => close()));
-  Object.assign(ports, { identity: null, partitions: null, peers: [] }); releases.length = 0;
+  Object.assign(ports, { identity: null, partitions: null, peers: [], connections: [] }); releases.length = 0;
   const failures = results.filter(row => row.status === 'rejected').map(row => row.reason);
   if (failures.length) throw new AggregateError(failures, 'Product session cleanup failed');
 });
@@ -144,6 +144,7 @@ it('opens requester-owned history for an ordered catalog and publishes the three
   const whole = state.models.find(row => !row.partition && !row.adapters?.length);
   ports.peers = [{ peerId: 'whole-provider', model: whole.id, modelIdentity: whole.identity,
     readiness: 'ready', hasInference: true, availableSlots: 1 }];
+  ports.connections = [{ id: 'whole-provider', phase: 'connected', channelState: 'open' }];
   host.chat.refreshNetwork();
   expect(host.chat.getState().models.find(row => row.id === whole.id && !row.partition).availability).toBe('ready');
   expect(attempt.error).toBeNull(); expect(attempt.status).toBe('completed');

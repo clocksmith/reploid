@@ -6,9 +6,10 @@ import { createHash } from 'node:crypto';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { inspectDiagnosticSource, verifyDiagnosticRuntime } from './diagnostic-runtime-identity.js';
 
-const root = await fs.mkdtemp(path.join(os.tmpdir(), 'diagnostic-source-'));
-const directory = path.join(root, 'source');
-try {
+const runDiagnosticRuntimeIdentityCheck = async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'diagnostic-source-'));
+  const directory = path.join(root, 'source');
+  try {
   await fs.mkdir(path.join(directory, 'src'), { recursive: true });
   await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify({ name: 'doppler-gpu', version: '0.7.4', type: 'module' }));
   await fs.writeFile(path.join(directory, 'src/partitions.js'), 'throw new Error("Source must not execute during preflight");');
@@ -21,7 +22,7 @@ try {
   await assert.rejects(verifyDiagnosticRuntime({ ...config, sourceTree: {} }), /Pinned source/);
   const configPath = path.join(root, 'config.json');
   await fs.writeFile(configPath, JSON.stringify(config));
-  const child = spawnSync(process.execPath, [new URL('./qwen-partition-worker.js', import.meta.url).pathname, configPath], {
+  const child = spawnSync(process.execPath, [path.join(import.meta.dirname, 'qwen-partition-worker.js'), configPath], {
     input: JSON.stringify({ id: 1, op: 'identity' }) + '\n', encoding: 'utf8', timeout: 10000,
   });
   assert.equal(child.status, 0, child.stderr);
@@ -51,5 +52,12 @@ try {
   assert.equal((await verifyDiagnosticRuntime(archiveConfig)).schema, 'reploid.installed-package-identity/v1');
   await fs.symlink('partitions.js', path.join(packageDirectory, 'src/alias.js'));
   await assert.rejects(verifyDiagnosticRuntime(archiveConfig), /links are not supported/);
-} finally { await fs.rm(root, { recursive: true, force: true }); }
-console.log('diagnostic-runtime-identity: explicit source pin, no execution, mutations and links rejected');
+  } finally { await fs.rm(root, { recursive: true, force: true }); }
+  console.log('diagnostic-runtime-identity: explicit source pin, no execution, mutations and links rejected');
+};
+
+if (typeof globalThis.it === 'function') {
+  globalThis.it('verifies explicit source pin, non-execution during preflight, and link/mutation rejection', runDiagnosticRuntimeIdentityCheck, 15000);
+} else {
+  await runDiagnosticRuntimeIdentityCheck();
+}

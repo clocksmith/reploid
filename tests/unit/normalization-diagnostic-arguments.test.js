@@ -5,7 +5,7 @@ import { normalizationArgumentLayout } from '../fixtures/normalization-argument-
 
 describe('normalization diagnostic argument positions', () => {
   for (const [name, file] of [
-    ['doRMSNorm', 'inference/pipelines/text/ops.js'],
+    ['doRMSNorm', 'inference/pipelines/text/execution/ops.js'],
     ['runRMSNorm', 'gpu/kernels/rmsnorm.js'],
     ['recordRMSNorm', 'gpu/kernels/rmsnorm.js'],
   ]) it(`reads options at the installed ${name} boundary`, () => {

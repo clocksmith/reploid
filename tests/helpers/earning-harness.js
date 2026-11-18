@@ -4,10 +4,13 @@
 // native contributor hosts claim and submit evidence through their own clients. Real accounts, ledger,
 // rewards and route idempotency over memory or fake-Firestore stores. Test-only provider, policies and
 // amounts; none is a product decision.
+import { createHash } from 'node:crypto';
 import express from 'express';
 import { expect } from 'vitest';
 
+import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import { createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createFirestoreRouteBackend, createMemoryRouteBackend, createRouteIdempotency } from '../../server/earning-routes/idempotency.js';
@@ -130,8 +133,14 @@ export function createEarningHarness(kind, { evidence = EVIDENCE_TERMS } = {}) {
     const execution = createChatExecution({ service: {}, partitions, models: [], getModels: () => [route.model],
       profile: { generation: {}, maxOutcomeCharacters: 1000 }, earning: attempts });
     // The one-time remote contributor permission; no per-request review follows it.
+    const hashSync = (value) => 'sha256:' + createHash('sha256').update(canonicalize(value)).digest('hex');
+    const routeSpec = plaintextExecutionRoute({ model: route.model, permissions: { sharingScope: 'mesh' } }, {
+      recipients: route.model.partition.route.stages.map((stage) => stage.participantId),
+      route: route.model.partition.route
+    });
     const permission = createRemotePermission({ id: 'remote', grantedAt: 1, wording: PERMISSION_WORDING, need: remotePermissionNeed({
-      networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: route.model }) });
+      networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: route.model,
+      policyId: hashSync(createExecutionPolicy('provider-visible')), routeId: hashSync(routeSpec) }) });
     let saved = null;
     const app = createChatWorkspace({ meshId: 'mesh', participantId: identity.peerId, remotePermissions: () => [permission],
       store: { load: () => structuredClone(saved), save: (value) => { saved = structuredClone(value); } }, execute: execution.execute });

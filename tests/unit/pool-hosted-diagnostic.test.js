@@ -11,11 +11,11 @@ import {
 } from '../../shared/pool/model-contract.js';
 import {
   createSigningKeyPair,
-  exportPublicKey
+  exportPublicKey,
+  sha256Hex
 } from '../../shared/pool/inference-receipt.js';
 import {
-  createRoleDelegation,
-  getDeviceRootIdentity
+  createRoleDelegation
 } from '../../shared/pool/device-identity.js';
 import {
   createSignedParticipationProfile
@@ -79,7 +79,17 @@ const createRouteSdk = (router) => ({
 });
 
 const createClientIdentity = async ({ role, roleId, roleKeyPair, mode }) => {
-  const deviceIdentity = await getDeviceRootIdentity();
+  const deviceKeyPair = await createSigningKeyPair();
+  const devicePublicKey = await exportPublicKey(deviceKeyPair.publicKey);
+  const deviceDigest = await sha256Hex(devicePublicKey);
+  const deviceIdentity = {
+    deviceId: `device_${deviceDigest.replace(/^sha256:/, '')}`,
+    publicKey: devicePublicKey,
+    keyPair: deviceKeyPair,
+    protection: 'browser_exportable_fallback',
+    identityRootId: `device_${deviceDigest.replace(/^sha256:/, '')}`,
+    passkey: null
+  };
   const participationProfile = await createSignedParticipationProfile({
     preferences: { mode },
     deviceId: deviceIdentity.deviceId,
