@@ -1,12 +1,15 @@
 /**
  * Change-only status lines for the native participant. A record is written when its
  * content differs from the last one written for the same kind, or when `heartbeatMs` has
- * passed since that kind was last written (then marked `heartbeat: true`). Time-like fields
- * (`at`, `*At`, `lastSeen*`, `timestamp`, `*elapsedMs`, `*uptimeMs`) are ignored when deciding
- * whether content changed, so an idle host writes only heartbeats.
+ * passed since that kind was last written (then marked `heartbeat: true`). Fields that advance on
+ * every observation whether or not anything happened are ignored when deciding whether content
+ * changed, so an idle host writes only heartbeats: time-like fields (`at`, `*At`, `lastSeen*`,
+ * `timestamp`, `*elapsedMs`, `*uptimeMs`), a peer's `observationSequence` (it counts advertisements),
+ * and cumulative CPU time (`*Micros`). Without the last two, a connected host's network record
+ * differed on every poll and was written every two seconds.
  */
 
-const VOLATILE_KEY = /^(at|timestamp)$|At$|^lastSeen|elapsedMs$|uptimeMs$/;
+const VOLATILE_KEY = /^(at|timestamp|observationSequence)$|At$|^lastSeen|elapsedMs$|uptimeMs$|Micros$/;
 
 /** Stable comparison key: sorted keys, volatile fields removed at every depth. */
 export function statusContentKey(value) {

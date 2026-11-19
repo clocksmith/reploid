@@ -32,6 +32,25 @@ it('ignores only time-like keys when comparing content, at any depth', () => {
   expect(statusContentKey({ b: { n: 1 } })).not.toBe(statusContentKey({ b: { n: 2 } }));
 });
 
+it('a connected but idle host writes only heartbeats: advertisement counters and CPU time are not changes', () => {
+  // Two consecutive polls of a live provider differed only in these fields, so every poll was written.
+  const poll = n => ({ event: 'network', at: `t${n}`, peers: [{ peerId: 'a', readiness: 'ready', updatedAt: 1000 + n, observationSequence: 500 + n }],
+    owner: { decision: { allowed: true, at: n }, measurements: { cpuUserMicros: 9000 + 13 * n, cpuSystemMicros: 400 + n, elapsedMs: 2000 } } });
+  expect(statusContentKey(poll(1))).toBe(statusContentKey(poll(2)));
+  let clock = 0;
+  const lines = [];
+  const log = createChangeOnlyLog({ heartbeatMs: 300000, write: line => lines.push(JSON.parse(line)), now: () => clock });
+  for (let n = 0; n < 150; n++) { clock = n * 2000; log('network', poll(n)); }   // five minutes of two-second polls
+  expect(lines).toHaveLength(1);
+  clock = 300000; log('network', poll(150));
+  expect(lines.map(line => line.heartbeat === true)).toEqual([false, true]);
+  // A real change is still written at once: a peer's readiness, or a new peer.
+  const changed = poll(151); changed.peers[0].readiness = 'executing';
+  clock = 302000; expect(log('network', changed)).toBe(true);
+  const joined = poll(152); joined.peers[0].readiness = 'executing'; joined.peers.push({ peerId: 'b', readiness: 'ready', observationSequence: 1 });
+  clock = 304000; expect(log('network', joined)).toBe(true);
+});
+
 it('requires the heartbeat interval from the partition policy', () => {
   expect(Number.isSafeInteger(policy.statusHeartbeatMs) && policy.statusHeartbeatMs > 0).toBe(true);
   expect(() => createChangeOnlyLog({ heartbeatMs: undefined, write: () => {} })).toThrow('statusHeartbeatMs');
