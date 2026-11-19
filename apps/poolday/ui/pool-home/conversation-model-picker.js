@@ -1,5 +1,4 @@
 /** Model-picker presentation only. Selection and execution remain with the caller. */
-import { updatePrivacyControls } from './privacy-controls.js';
 import { updateModelSelect, modelExecutionState, modelFacts, unavailableModelChoice } from '../components/model-select.js';
 import { updateModelProviders } from './model-providers.js';
 import { updateAdapterDetails, describeModelChoice } from './model-adapters.js';
@@ -31,7 +30,7 @@ export function localFitText(model, info, { cached = false, sizeBytes = info?.si
 }
 
 export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
-  touched: pickerTouched, changing: changingModel, selectedId, privacy, canDownload }) {
+  touched: pickerTouched, changing: changingModel, selectedId, canDownload }) {
   const keyFor = model => model?.selectionId || model?.id;
   if (!pickerTouched) pickerModel = (state.models || []).find(model => keyFor(model) === selectedId) || pickerModel;
   const models = [...(state.models || [])];
@@ -39,8 +38,6 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
     models.push(selected || unavailableModelChoice(pickerModel));
   }
-  updatePrivacyControls(find('[data-privacy-controls]'), state.activeThread?.privacy ?? privacy,
-    changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId));
   const preferNetwork = pickerLocation !== 'local';
   find('[data-next-model]').disabled = changingModel;
   updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });

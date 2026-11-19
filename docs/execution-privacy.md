@@ -1,6 +1,6 @@
 # Inference privacy contracts
 
-The requester validates a versioned policy and exact route before disclosing inference data. Policies are presets over independent dimensions, not provider rankings. The model details dialog offers provider-visible and restricted-recipient requests. Cryptographic inference and hardware attestation remain visibly unavailable.
+The requester validates a versioned policy and exact route before disclosing inference data. Policies are presets over independent dimensions, not provider rankings. Open the shield beside Send to choose provider-visible or restricted-recipient inference. An empty recipient list under Restricted recipients keeps inference on this device. You can change the setting between answers. Cryptographic inference is shown as unavailable. Each answer shows the privacy tier and recipients from its execution receipt when present. Older answers without a receipt show “Privacy unrecorded.”
 
 ## Implemented behavior
 

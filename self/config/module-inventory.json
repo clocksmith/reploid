@@ -4197,7 +4197,7 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:adadf510dc8406d6aee846451f81a35d3476688a0ced68f50d872e2c1f95da36",
+      "sha256": "sha256:436945698bb5ef15a9ba4de8a3ba02c2dfea35bfa2f13729ef6524520ebdffff",
       "imports": []
     },
     {
@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:e0ea04f4df5cf3bd829a4c033cf542f0c836e52f9902600174770ea43fc1c459",
+      "sha256": "sha256:f157dbc4d973a59c3944b93a939494c81adda591eadfdf2feef65ce3522b18de",
       "imports": []
     },
     {
@@ -4386,18 +4386,17 @@
     {
       "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:7543ee8d60fee0f991c9d9650e7a5f123e3c390dd074187f67559ecd25873b18",
+      "sha256": "sha256:e977accebdc98079846d8014342dd4c88cecb7de8fa594af0ba35c135e1bfefa",
       "imports": [
         "../components/model-select.js",
         "./model-adapters.js",
-        "./model-providers.js",
-        "./privacy-controls.js"
+        "./model-providers.js"
       ]
     },
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:69f10e3ef6b47aca84250db4bf4f2f0283ea36df631c7dd808ef87758af2c681",
+      "sha256": "sha256:142d79d1e88c8174afdcda702e92f28e272c4ac659076ceca876a5d7e0949d10",
       "imports": [
         "../../config/chat-context-policy.json",
         "../../config/chat-prompts.json",
@@ -4419,9 +4418,10 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:2c55dbfe1475629fdebe9a25729793587170c960d0f058868ed6b32b72802570",
+      "sha256": "sha256:f9037ded8159f08acef1b41ac1a33623dc9091094e1b9953e39eb6e35edb61f0",
       "imports": [
         "../../config/work-profile.json",
+        "../../vendor/reploid/chat/execution-policy.js",
         "../components/attachments.js",
         "../components/control-help.js",
         "../components/dialog.js",
@@ -4558,12 +4558,13 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:3330fc9c51753548e97c9e70b281f2b97ab76860d68a412a0b59c3fb26011617",
+      "sha256": "sha256:a2619fd257deaa5b6e141dfed070fff8f4c8d5cf8ec6768c169695f609977141",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
         "../components/message-markdown.js",
-        "./execution-activity.js"
+        "./execution-activity.js",
+        "./privacy-controls.js"
       ]
     },
     {
@@ -4747,9 +4748,10 @@
     {
       "path": "ui/pool-home/privacy-controls.js",
       "owner": "ui",
-      "sha256": "sha256:0808022189344d05797e55044809f821c4625959161f3dcb7c95486573c5aee8",
+      "sha256": "sha256:cdc060361717bc38a896b584639b920c9a967d79a1a3cc28b832000295ab3663",
       "imports": [
-        "../../vendor/reploid/chat/execution-policy.js"
+        "../../vendor/reploid/chat/execution-policy.js",
+        "./computer-labels.js"
       ]
     },
     {

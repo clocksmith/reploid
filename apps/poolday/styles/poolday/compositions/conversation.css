@@ -377,8 +377,8 @@ label.chat-model-route-heading { cursor: pointer; }
 @media (max-width: 480px) {
   .chat-composer-toolbar { flex-wrap: wrap; }
   .pool-home .chat-composer-toolbar .chat-composer-model {
-    flex: 1 1 min-content;
-    min-width: min(100%, 9rem);
+    flex: 1 1 var(--pool-size-128);
+    min-width: min(100%, var(--pool-size-128));
     height: auto;
   }
   .chat-composer-model [data-model-digest] { flex-direction: column; align-items: flex-start; text-align: start; }
@@ -394,3 +394,9 @@ label.chat-model-route-heading { cursor: pointer; }
 [data-control-help] dd { margin: 0; }
 [data-control-help] dl { overflow-y: auto; }
 .chat-composer-status-line > [data-open-control-help] { margin-left: auto; flex: none; }
+
+.chat-model-setup [data-privacy-controls] { padding: 0; margin: 0; min-width: 0; }
+.pool-home .chat-model-setup label.chat-privacy-choice { grid-template-columns: auto 1fr; align-items: baseline; cursor: pointer; }
+.chat-privacy-choice > span { display: grid; gap: var(--pool-size-4); }
+.chat-privacy-choice:has(:disabled) { cursor: default; }
+.chat-message-meta [data-metric="privacy"] { white-space: normal; overflow-wrap: anywhere; }
