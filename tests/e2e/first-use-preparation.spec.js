@@ -19,6 +19,7 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       const source = await readFile('artifacts/first-use-preparation-20261013/conversation-workspace-before.js', 'utf8');
       await page.route('**/ui/pool-home/conversation-workspace.js', route => route.fulfill({ contentType: 'text/javascript', body: source }));
     }
+    await page.clock.install();
     await page.setViewportSize({ width, height: 844 });
     // A static JSON document provides the origin without booting discovery or providers.
     await page.goto('/config/chat-files.json');
@@ -36,9 +37,10 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       root.innerHTML = renderNav('home') + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>'; document.body.append(root);
       const model = CANONICAL_CHAT_MODELS[0];
       const peer = { peerId: 'fixture-preparing-peer', model: model.id, modelIdentity: model.identity, readiness: 'loading', hasInference: false, availableSlots: 0 };
+      const link = { id: peer.peerId, phase: 'connected', channelState: 'open' };
       let connections = 0;
       const session = createChatSession({ storage: null, models: [model], swarm: {
-        getState: () => ({ consumer: { connectionState: 'connected', peers: [peer] } }), async connect() { connections++; }
+        getState: () => ({ consumer: { connectionState: 'connected', connections: [link], peers: [peer] } }), async connect() { connections++; }
       } });
       // Home renders no app bar, so there is no execution ribbon; the composer's status line carries preparation.
       const dispose = bindConversationWorkspace(root, session);
@@ -72,6 +74,8 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       await page.evaluate(() => window.firstUse.phase('unavailable'));
+      // A withdrawn advert does not finish discovery. Let the connected observation window elapse.
+      await page.clock.fastForward(8_000);
       await expect(page.locator('[data-composer-send]')).toBeDisabled();
       await expect(page.locator('[data-retry-connection]')).toBeVisible();
       await expect(page.locator('[data-model-status]')).toBeVisible();
