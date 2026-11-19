@@ -285,7 +285,9 @@ describe('Conversation workspace', () => {
     session.setCachedModels([model]); dispose = bindConversationWorkspace(root, session);
     const id = session.createThread({ model, sharingScope: 'local' });
     find('[data-open-model]').click();
-    expect(find('[data-execution-choice=network]').disabled).toBe(true);
+    find('[data-execution-choice=network]').click();
+    expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
+    expect(find('[data-change-model]').disabled).toBe(true);
     peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
     session.refreshNetwork();
     find('[data-execution-choice=network]').click();
@@ -482,7 +484,7 @@ describe('Conversation workspace', () => {
     choice.click();
     expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('unavailable');
     expect(find('[data-change-model]').disabled).toBe(true);
-    expect(find('[data-execution-choice=network]').disabled).toBe(true);
+    expect(find('[data-execution-choice=network]').disabled).toBe(false);
     expect(find('[data-next-model-status]').textContent).toContain('No shared computer');
     expect(find('[data-local-fit]').hidden).toBe(true);
     expect(find('[data-production-model]')).toBeNull();

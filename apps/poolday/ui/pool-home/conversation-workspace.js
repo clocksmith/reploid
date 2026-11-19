@@ -364,7 +364,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     else if (privacy?.profile === 'restricted') disclosure.textContent = 'Only the named computers can receive and read the inference data sent to them.';
     else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
     else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
-    else disclosure.textContent = 'If a network computer answers, it can read your prompt.';
+    else disclosure.textContent = 'A network provider could read your prompt.';
     modelStatus.textContent = statusText;
     modelStatus.hidden = !statusText;
     renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
