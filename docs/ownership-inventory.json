@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 382,
     "self": 457,
-    "shared": 2486
+    "shared": 2487
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1679,6 +1679,12 @@
       "source": "apps/poolday/config/lora-training.json",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
+    },
+    {
+      "served": "config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json",
+      "source": "shared/config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",

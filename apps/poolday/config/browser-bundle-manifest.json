@@ -1245,8 +1245,8 @@
     },
     {
       "path": "config/chat-models.json",
-      "byteLength": 216298,
-      "sha256": "sha256:5330fd1db195eb1584768864a73cf60c3b7439839349cbf9ad04033b3c96428a"
+      "byteLength": 476400,
+      "sha256": "sha256:f92dc2a13600ad2b92e548f4b699738da9ac0aa3e0360d32b65982a18d69ff32"
     },
     {
       "path": "config/chat-prompts.json",
@@ -1369,6 +1369,11 @@
       "sha256": "sha256:1703d68e905afdfe30e28dd7ab41c1cbe3b337189cab879969c7aa864a1bb908"
     },
     {
+      "path": "config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json",
+      "byteLength": 483799,
+      "sha256": "sha256:12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5"
+    },
+    {
       "path": "config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
       "byteLength": 214203,
       "sha256": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
@@ -1436,7 +1441,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 685966,
-      "sha256": "sha256:9ebf08ac2017ba4b1756bd0252c0a4fac97be3c90da9e76cfc97a2433737cc4c"
+      "sha256": "sha256:f3aca172c8845f2fe64357d466a033d03738c7479c687c7a993a4d2bfc83f0e7"
     },
     {
       "path": "config/module-registry.json",
@@ -1525,8 +1530,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148429,
-      "sha256": "sha256:a7855fe83cf68130cfab2d0ab2a58e7de505c2c1cca6c098d191b07f154a8680"
+      "byteLength": 148529,
+      "sha256": "sha256:0adb49e21d4e3e5db631f764d29a7ef7238e2ebe8c82f54f412ab25848f70800"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3785,8 +3790,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2554683,
-      "sha256": "sha256:75a2eb89ec7d6c28c86a9503a8977413ac98ce4c5714cd281b5f9c46f9685877"
+      "byteLength": 2668312,
+      "sha256": "sha256:187d2a44d993b686fc60a76803e29273feea533e1a759f6a659a887f05793c2e"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12679,5 +12684,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:0dc23a8783eb53742facbd4a43378b2b3770085f0ee71131d0a58aa535b5a146"
+  "bundleHash": "sha256:0fe516fab0d4d5e4bf021a656f4f03f07b40d1853394a8c22527b23df4a6aa65"
 }
