@@ -206,9 +206,12 @@ export function createChatCompletions(options) {
         choices: [{ index: 0, delta, logprobs: null, finish_reason: finishReason }] })}\n\n`);
       return {
         delta(text) { chunk({ ...(started ? {} : { role: 'assistant' }), content: text }); started = true; },
-        complete(content, finishReason, _reason, measured, _evidence, toolCalls = []) {
+        complete(content, finishReason, _reason, measured, _evidence, toolCalls = [], timing = null) {
+          const cachedTokens = Number.isSafeInteger(timing?.reusedPrefixTokens) && timing.reusedPrefixTokens > 0
+            ? timing.reusedPrefixTokens : 0;
           const usage = measured ? { prompt_tokens: measured.inputTokens, completion_tokens: measured.outputTokens,
-            total_tokens: measured.inputTokens + measured.outputTokens } : undefined;
+            total_tokens: measured.inputTokens + measured.outputTokens,
+            ...(cachedTokens > 0 ? { prompt_tokens_details: { cached_tokens: cachedTokens } } : {}) } : undefined;
           const calls = callsOut(toolCalls);
           // With tools declared, an answer without text has `content: null`, as a call does.
           const text = input.settings?.tools.length && !content ? null : content;

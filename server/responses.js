@@ -119,7 +119,7 @@ export function createResponses(options) {
     output({ id, created, model, input, write, end, json }) {
       const itemId = 'msg_' + randomUUID().replaceAll('-', '');
       const tooling = Boolean(input.declaredTools);
-      let begun = false, started = false, sequence = 0, observedUsage;
+      let begun = false, started = false, sequence = 0, observedUsage, cachedInputTokens = 0;
       const part = text => ({ type: 'output_text', text, annotations: [], logprobs: [] });
       const item = (text, status) => ({ id: itemId, type: 'message', role: 'assistant', status, content: [part(text)] });
       const callItem = (call, status, encoded) => ({ id: 'fc_' + call.id.replace(/^call_/, ''), type: 'function_call', status,
@@ -131,7 +131,8 @@ export function createResponses(options) {
         temperature: null, top_p: null, metadata: null, access_programs: null, previous_response_id: null,
         text: { format: { type: input.jsonObject ? 'json_object' : 'text' } },
         ...(observedUsage ? { usage: { input_tokens: observedUsage.inputTokens, output_tokens: observedUsage.outputTokens,
-          total_tokens: observedUsage.inputTokens + observedUsage.outputTokens } } : {}) });
+          total_tokens: observedUsage.inputTokens + observedUsage.outputTokens,
+          ...(cachedInputTokens > 0 ? { input_tokens_details: { cached_tokens: cachedInputTokens } } : {}) } } : {}) });
       const frame = (type, value) => `event: ${type}\ndata: ${JSON.stringify({ ...value, type, sequence_number: sequence++ })}\n\n`;
       const event = (type, value) => write(frame(type, value));
       const position = { item_id: itemId, output_index: 0, content_index: 0 };
@@ -148,7 +149,7 @@ export function createResponses(options) {
       return {
         usage(value) { observedUsage = value; },
         delta(text) { start(); event('response.output_text.delta', { ...position, delta: text, logprobs: [] }); },
-        complete(content, finishReason, reason, usage, evidence, toolCalls = []) {
+        complete(content, finishReason, reason, usage, evidence, toolCalls = [], timing = null) {
           // The Responses incomplete enum has no context-limit member. Do not
           // rename a context limit to an output-token budget or successful stop.
           if (reason === 'context-limit') throw fail(502, 'Requester stopped at its context limit');
@@ -158,6 +159,8 @@ export function createResponses(options) {
             if (!object(parsed)) throw fail(502, 'Requester did not return a JSON object');
           }
           observedUsage = usage;
+          cachedInputTokens = Number.isSafeInteger(timing?.reusedPrefixTokens) && timing.reusedPrefixTokens > 0
+            ? timing.reusedPrefixTokens : 0;
           const status = finishReason === 'length' ? 'incomplete' : 'completed';
           // With tools declared, an answer holds a message item only when there is text; a call is a function_call item.
           const finalItem = tooling && !content ? null : item(content, status);
