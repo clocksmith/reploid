@@ -56,7 +56,7 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
     }
     button.setAttribute('aria-pressed', String(location === pickerLocation));
     button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId)
-      || localOnly && location !== 'local' || location !== 'auto' && location !== pickerLocation && !modelExecutionState(selected, location).usable;
+      || localOnly && location !== 'local' || location === 'local' && location !== pickerLocation && !modelExecutionState(selected, 'local').usable;
   }
   // A model nobody is sharing that this device could store is not a dead end: the same button downloads it.
   const downloadable = !available && !!selected && canDownloadModelHere(selected, state, canDownload);

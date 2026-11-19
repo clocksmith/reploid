@@ -81,7 +81,7 @@ it('names the pre-send destination as the selected model moves between local and
   const switcher = f.find('[data-open-model]');
   expect(f.find('[data-composer-send]').getAttribute('aria-describedby')).toBe(note.id);
   expect(note.hidden).toBe(false);
-  expect(note.textContent).toContain('If a network computer answers');
+  expect(note.textContent).toContain('A network provider could read your prompt');
   expect(switcher.title).toBe('Change model');
   expect(switcher.getAttribute('aria-label')).toContain(model.name);
   f.publish({ ...observedDiscovery, models: [{
