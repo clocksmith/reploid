@@ -28,7 +28,7 @@ import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 
-export async function main() {
+export async function main({ runOnce } = {}) {
   const { values } = parseArgs({ options: participantOptions });
   if (values.help) {
     console.log(participantHelp);
@@ -138,7 +138,7 @@ export async function main() {
     storage: native.createNativeEarningStorage(path.join(path.dirname(identityFile), 'earning-state.json')) }))
     .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; }) : null;
   // Status lines only when their content changes, plus a periodic heartbeat (policy.statusHeartbeatMs).
-  const statusLog = createChangeOnlyLog({ heartbeatMs: policy.statusHeartbeatMs, write: line => console.log(line) });
+  const statusLog = createChangeOnlyLog({ heartbeatMs: policy.statusHeartbeatMs, write: line => { if (!runOnce) console.log(line); } });
   let webWorker = null;
   if (values['browser-search-profile']) webWorker =
     await import('./browser-web-worker.js').then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
@@ -149,6 +149,7 @@ export async function main() {
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
+    ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
     executionMode: values['execution-mode'] || 'partition',
     onModelFill: (() => {
       // Piece lines at most every 5 s; every other fill event is logged.
@@ -163,7 +164,7 @@ export async function main() {
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       sha256Hex(values.room || bootstrap.publicRoomId)) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
-    onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
+    onCustodyCertificate: certificate => { if (!runOnce) console.log(JSON.stringify({ event: 'custody-certificate', certificate })); },
     onChange: state => {
       statusLog('partition-state', { ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) });
       // A prepared stage is offered for before any route admits it.
@@ -180,6 +181,18 @@ export async function main() {
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
   const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
     return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
+  if (runOnce) {
+    const controller = new AbortController();
+    const cancel = () => controller.abort(new Error('Request cancelled'));
+    process.once('SIGINT', cancel);
+    process.once('SIGTERM', cancel);
+    try { return await runOnce(participant, model, controller.signal); }
+    finally {
+      process.off('SIGINT', cancel);
+      process.off('SIGTERM', cancel);
+      await stop();
+    }
+  }
   const completion = new Promise((resolve, reject) => {
     const signalStop = () => stop().then(resolve, reject);
     process.once('SIGINT', signalStop); process.once('SIGTERM', signalStop);

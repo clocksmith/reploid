@@ -7,7 +7,9 @@
  */
 import { parseArgs } from 'node:util';
 import { participantOptions } from './native-participant-options.js';
-import { realpathSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
+import { askMesh } from './native-node-ask.js';
+import { runDoctor } from './native-node-doctor.js';
 import { nativeCommand } from './native-node-commands.js';
 import os from 'node:os';
 import path from 'node:path';
@@ -57,17 +59,34 @@ async function main() {
     return;
   }
   if (command.text !== undefined) { console.log(command.text); return; }
+  if (command.doctor) {
+    const result = await runDoctor(command.doctor);
+    console.log(result.text);
+    if (!result.ok) process.exitCode = 1;
+    return;
+  }
   const node = nodeArguments(command.args, { home: os.homedir() });
-  console.log(JSON.stringify({ event: 'reploid-node', model: node.model, chosen: node.chosen }));
+  if (command.prompt === undefined) console.log(JSON.stringify({ event: 'reploid-node', model: node.model, chosen: node.chosen }));
   const { mkdir } = await import('node:fs/promises');
   // The participant reads weights from an existing directory; it creates the identity's.
   const directory = parseArgs({ args: node.args, options: participantOptions }).values['model-directory'];
   if (directory) await mkdir(directory, { recursive: true });
+  if (command.peerFillOnly && !existsSync(path.join(directory, 'manifest.json'))) {
+    console.error('No pinned download for this model. Waiting for a weight supplier; use --weights DIRECTORY if you already have the files.');
+  }
   process.argv = participantProcessArgv(process.argv, node.args);
   const { main: runParticipant } = await import('./native-participant.js');
+  if (command.prompt !== undefined) {
+    const response = await runParticipant({ runOnce: (participant, model, signal) => askMesh(participant, model, command.prompt, { signal }) });
+    console.log(response);
+    return;
+  }
   await runParticipant();
 }
 
 // npm starts a package command through a symbolic link; compare real paths.
 const entered = (() => { try { return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); } catch { return false; } })();
-if (entered) await main();
+if (entered) {
+  try { await main(); }
+  catch (error) { console.error('reploid: ' + error.message); process.exitCode = 1; }
+}

@@ -14,10 +14,12 @@ optional at the application root so browser development can omit them.
 
 The packaged CLI accepts short model names or full catalog IDs. Start with
 `npx reploid models` to see the models included in your installation, their file
-sizes, whole/split support and sources for missing whole-model weights. File
+sizes, solo RAM estimates, whole/split support and sources for missing whole-model weights. File
 sizes describe storage. Runtime memory also depends on context and backend.
 
 ```sh
+npx reploid ask 2b "Count to five"   # send one provider-visible request, no model download
+npx reploid doctor                   # check local prerequisites and signaling
 npx reploid serve 2b                 # contribute this GPU to the public room
 npx reploid connect                  # discover peers
 npx reploid share 2b --weights ./weights
@@ -29,7 +31,15 @@ For Tab completion of commands, models and options in Zsh (after `compinit`),
 run `source <(npx reploid completion zsh)`. In Bash, save it first with
 `npx reploid completion bash > ~/.reploid-completion.bash`, then run
 `source ~/.reploid-completion.bash`. The generated script can be saved and
-sourced from the shell startup file. Completions use the catalog at generation time.
+sourced from the shell startup file. For Fish, run `npx reploid completion fish | source`. Completions use the catalog at generation time.
+
+`ask` searches the selected room for a ready exact model; it prefers whole-model
+serving and can use a ready split. It prints the recipient IDs to standard error
+before disclosure and the completed answer to standard output. Providers in the
+selected room can read the request. The default is 2B in the public room; use
+`--room`, `--room-token-file` and `--signaling-url` to use a private room.
+`doctor` enumerates a GPU adapter and checks the installed Doppler package version
+and signaling handshake. A successful diagnostic does not establish model fit.
 
 The original positional form still works:
 
