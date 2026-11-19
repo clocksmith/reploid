@@ -7,7 +7,7 @@ Mechanisms and ownership live here. The [product contract](product-specification
 Start with the [three plain-language views](glossary.md#1-overview): overview,
 one request, and record keeping. The diagrams below expand the execution details.
 
-The README overview retains its two-contributor example. Its technical diagram
+The README illustrates a two-contributor example. The component diagram below
 shows the intended N-stage mesh: a route selected per attempt, a coordinator on
 the first contributor, final-stage sampling, and separate request state on shared
 residents. Five computers illustrate the route; they are not a fixed stage count
@@ -22,7 +22,7 @@ component view are calls or data flow; dotted arrows supply observations.
 
 ### Component ownership
 
-[View this diagram in the README.](../README.md#component-ownership)
+![A coordinator admits an attempt to a route. Each contributor runs its assigned layers, and the final stage samples the next token. File custody has a separate path.](diagrams/technical-architecture.svg)
 
 The host passes `swarm.partitions` into `createChatSession`; it does not import
 model mathematics into the chat library. Discovery reports candidates. Placement
