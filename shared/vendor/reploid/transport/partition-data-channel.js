@@ -43,7 +43,17 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     && policy.maxControlBytes <= policy.maxBufferedBytes && policy.maxPayloadBytes <= 0xffffffff
     && policy.maxPayloadBytes <= policy.maxPendingBytes && policy.maxRequestsPerChannel <= 0xffffffff
     && policy.timeoutMs <= 2147483647, 'invalid limits');
-  const fragmentBytes = policy.maxFrameBytes - HEADER_BYTES;
+  // An SCTP data channel sends a few packets per send call and then waits for acknowledgements, so one
+  // large frame takes several network round trips where the same bytes in small frames take one. A
+  // payload no larger than burstPayloadBytes therefore travels in frames of at most burstFrameBytes.
+  // Both endpoints declare the same policy, so the receiver derives the same geometry from the size.
+  assert((policy.burstFrameBytes === undefined) === (policy.burstPayloadBytes === undefined)
+    && (policy.burstFrameBytes === undefined || positive(policy.burstFrameBytes) && positive(policy.burstPayloadBytes)
+      && policy.burstFrameBytes > HEADER_BYTES && policy.burstFrameBytes <= policy.maxFrameBytes
+      && policy.burstPayloadBytes <= policy.maxPayloadBytes), 'invalid burst frame limits');
+  const frameBytesFor = size => policy.burstFrameBytes !== undefined && size <= policy.burstPayloadBytes
+    ? policy.burstFrameBytes : policy.maxFrameBytes;
+  const fragmentBytesFor = size => frameBytesFor(size) - HEADER_BYTES;
   // Requests this endpoint sent, and the peer's requests it holds. Each direction is bounded by
   // the declared window (maxPendingRequests, maxPendingBytes): both endpoints of a channel declare
   // the same channel policy, and a peer that exceeds this endpoint's window closes the channel.
@@ -82,8 +92,9 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   }
   const control = (frame, signal) => send(encodeControl(frame), signal);
   async function sendPayload(kind, id, bytes, signal, startOffset = 0) {
-    for (let offset = startOffset; offset < bytes.length; offset += fragmentBytes) {
-      const part = bytes.subarray(offset, offset + fragmentBytes);
+    const fragment = fragmentBytesFor(bytes.length);
+    for (let offset = startOffset; offset < bytes.length; offset += fragment) {
+      const part = bytes.subarray(offset, offset + fragment);
       const frame = new Uint8Array(HEADER_BYTES + part.length);
       const view = new DataView(frame.buffer);
       view.setUint8(0, kind);
@@ -95,7 +106,8 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     }
   }
   function packCombinedFrame(kind, id, controlBytes, bytes) {
-    const firstChunk = Math.min(bytes.length, policy.maxFrameBytes - HEADER_BYTES - controlBytes.length);
+    // A control frame larger than a burst frame still leaves in one frame; it then carries no payload.
+    const firstChunk = Math.max(0, Math.min(bytes.length, frameBytesFor(bytes.length) - HEADER_BYTES - controlBytes.length));
     const frame = new Uint8Array(HEADER_BYTES + controlBytes.length + firstChunk);
     const view = new DataView(frame.buffer);
     view.setUint8(0, kind);
@@ -436,7 +448,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       }
       const entry = outgoing.get(id);
       assert(entry?.response && !entry.complete && offset === entry.responseOffset
-        && size === Math.min(fragmentBytes, entry.response.length - offset), 'response fragment geometry');
+        && size === Math.min(fragmentBytesFor(entry.response.length), entry.response.length - offset), 'response fragment geometry');
       entry.response.set(new Uint8Array(buffer, HEADER_BYTES), offset);
       entry.responseOffset += size;
       if (entry.responseOffset === entry.response.length) responseComplete(entry);
@@ -446,7 +458,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     const entry = incoming.get(id);
     if (!entry || entry.controller.signal.aborted) { counters.discardedFrames++; return; }
     assert(!entry.executing && offset === entry.offset
-      && size === Math.min(fragmentBytes, entry.size - offset), 'activation fragment geometry');
+      && size === Math.min(fragmentBytesFor(entry.size), entry.size - offset), 'activation fragment geometry');
     entry.bytes.set(new Uint8Array(buffer, HEADER_BYTES), offset);
     entry.offset += size;
     if (entry.offset === entry.size) entry.payloadReadyAt = receiveNow();
