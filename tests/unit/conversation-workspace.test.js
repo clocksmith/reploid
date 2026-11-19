@@ -37,6 +37,8 @@ describe('Conversation workspace', () => {
     const dialog = find('[data-privacy-dialog]');
     expect(dialog.open).toBe(true);
     find('[data-privacy-profile][value="restricted"]').click();
+    expect(find('[data-privacy-recipients-label]').hidden).toBe(true);
+    find('[data-privacy-placement][value="named"]').click();
     const ids = find('[data-privacy-recipients]'); ids.value = 'peer:a';
     await session.renameThread(id, 'Refresh the workspace');
     expect(ids.value).toBe('peer:a');
@@ -46,6 +48,11 @@ describe('Conversation workspace', () => {
     expect(find('[data-privacy-profile]:checked').value).toBe('provider-visible');
     expect(ids.value).toBe('');
     find('[data-privacy-profile][value="restricted"]').click();
+    expect(find('[data-privacy-recipients-label]').hidden).toBe(true);
+    find('[data-privacy-placement][value="named"]').click();
+    find('[data-privacy-apply]').click();
+    expect(dialog.open).toBe(true);
+    expect(find('[data-privacy-error]').textContent).toMatch(/at least one/);
     ids.value = 'peer:b'; find('[data-privacy-apply]').click();
     await vi.waitFor(() => expect(dialog.open).toBe(false));
     expect(session.getState().activeThread.privacy.allowedRecipients).toEqual(['peer:b']);
@@ -319,7 +326,7 @@ describe('Conversation workspace', () => {
 
   it('keeps only Computers and Settings in the rail, with model and answer details in context', () => {
     const navigation = find('[data-chat-rail-toolbar] [data-inspector-navigation]');
-    expect([...navigation.querySelectorAll('[data-inspector-section]')].map(node => node.dataset.inspectorSection)).toEqual(['participants', 'settings']);
+    expect([...navigation.querySelectorAll('[data-inspector-section]:not([hidden])')].map(node => node.dataset.inspectorSection)).toEqual(['participants', 'settings']);
     expect(find('[data-composer-area] [data-open-model]')).not.toBeNull();
     find('[data-open-model]').click();
     expect(find('[data-model-picker]').open).toBe(true);
@@ -532,7 +539,7 @@ describe('Conversation workspace', () => {
     await chooseShared(route.selectionId);
     expect(find('[data-active-model-select]').value).toBe(route.selectionId);
     expect(find('[data-composer-send]').disabled).toBe(false);
-    expect(find('[data-model-status]').textContent).toContain('Public computers on this route can read the input for their own stages');
+    expect(find('[data-prompt-disclosure]').textContent).toContain('Computers on this route can read the input for their own stages');
     expect(find('[data-open-model]').getAttribute('aria-label')).toContain('Public network · Split model');
     expect(find('[data-download-local]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('hi');

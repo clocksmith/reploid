@@ -87,7 +87,7 @@ test('opts into waiting for a public computer and cancels back to an editable dr
   await expect(status).toContainText('Waiting to send');
   await keep.click();
   await page.evaluate(() => window.firstVisitor.peer());
-  await expect(status).toContainText('public computer can read your prompt');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
   await expect(input).toHaveValue('Explain ocean tides.');
   await expect(page.locator('[data-message-stream]')).toBeEmpty();
 });
@@ -112,7 +112,7 @@ test('reviews a reachable alternate model before changing the public destination
   await review.click(); await apply.click();
   await expect(picker).toBeHidden();
   await expect(source).toHaveText(' · Public network');
-  await expect(status).toContainText('public computer can read your prompt');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
 });
 
 for (const [theme, width, height] of [['light', 1440, 1000], ['dark', 390, 844]]) {

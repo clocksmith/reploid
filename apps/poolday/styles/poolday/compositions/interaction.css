@@ -117,7 +117,7 @@
 .pool-home .network-inspector :is(.network-inspector-tabs > .pool-button, [data-close-inspector]) {
   display: grid; place-items: center; min-width: 0; height: var(--pool-size-44); padding: 0;
 }
-.pool-home .network-inspector [data-close-inspector] { width: var(--pool-size-44); flex: none; }
+.pool-home .network-inspector [data-close-inspector] { min-width: var(--pool-size-44); padding-inline: var(--pool-size-8); flex: none; }
 
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail { display: contents; }
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail > :is(.chat-rail-heading, .chat-network-toggle) { display: none; }

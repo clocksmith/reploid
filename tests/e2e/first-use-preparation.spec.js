@@ -68,7 +68,7 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       await page.evaluate(() => window.firstUse.phase('ready'));
       await expect(page.locator('[data-composer-send]')).toBeEnabled();
       await expect(page.locator('[data-retry-connection]')).toBeHidden();
-      await expect(page.locator('[data-model-status]')).toContainText('public computer can read your prompt');
+      await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       await page.evaluate(() => window.firstUse.phase('unavailable'));

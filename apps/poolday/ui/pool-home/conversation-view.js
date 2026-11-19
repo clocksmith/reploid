@@ -76,17 +76,18 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           <div class="chat-composer-toolbar">
             <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach text files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
             <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
-            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Choose model" title="Choose model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
+            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Change model" title="Change model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
             <button type="button" class="pool-button btn-ghost pool-icon" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog" aria-label="Inference privacy" title="Inference privacy">${interfaceIcon('privacy')}</button>
             ${renderContextIndicator()}
           </div>
           <div class="chat-input-row">
             <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
             <div class="chat-composer-submit">
-              <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
+              <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-describedby="chat-prompt-disclosure" aria-label="Send" title="Send">${interfaceIcon('send')}</button>
               <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
             </div>
           </div>
+          <p class="chat-setup-hint pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p>
         </div>
       </form></footer>
       ${renderPrivacyControls()}

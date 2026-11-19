@@ -1,6 +1,6 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
 import { requestExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
-import { privacyLabel, readPrivacyControls, updatePrivacyControls } from './privacy-controls.js';
+import { privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
 import { bindWorkspaceNavigation } from './workspace-navigation.js';
@@ -330,12 +330,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          if (privacy?.profile === 'restricted') statusText = 'Only the named computers may receive inference data. They can read the data they receive.';
-          else if (selectedModel?.fleet) statusText = 'Your private computers can read the inference data they receive.';
-          else if (selectedModel?.partition) statusText = 'Public computers on this route can read the input for their own stages.';
-          else statusText = 'The selected public computer can read your prompt.';
-          if (execution.status === 'busy') statusText += ' Sending waits for capacity.';
-          else if (execution.status === 'ready') statusText = 'Ready. ' + statusText;
+          statusText = execution.status === 'busy' ? 'Sending waits for capacity.' : 'Ready.';
         } else if (execution.status === 'ready') statusText = 'Ready. This device runs the model.';
         else if (execution.status === 'cached') statusText = 'Downloaded. Sending loads the model on this device.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
@@ -356,6 +351,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         : deviceSearchOn() || search?.state?.().provider === 'contributor-bing' ? 'the search contributor and Bing' : 'Brave Search';
       statusText = [statusText, `Web search sends your question to ${recipient}.`].filter(Boolean).join(' ');
     }
+    const disclosure = find('[data-prompt-disclosure]');
+    disclosure.hidden = busy || !!thread?.closed;
+    if (policy.profile === 'cryptographic') disclosure.textContent = 'Cryptographic chat is unavailable.';
+    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'This device reads your prompt for inference.';
+    else if (privacy?.profile === 'restricted') disclosure.textContent = 'Only the named computers can receive and read the inference data sent to them.';
+    else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
+    else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
+    else disclosure.textContent = 'If a network computer answers, it can read your prompt.';
     modelStatus.textContent = statusText;
     modelStatus.hidden = !statusText;
     renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
@@ -386,8 +389,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${sourceLabel}` : '';
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
     find('[data-composer-model-source]').textContent = activeModel ? ` · ${sourceLabel}` : '';
-    find('[data-open-model]').title = modelDigest ? `Choose model: ${modelDigest}` : 'Choose model';
-    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
+    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Change model, ${modelDigest}` : 'Change model');
     updateContextIndicator(container, state, session);
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
@@ -613,7 +615,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     privacyDialog.open(privacyNode.querySelector('input:checked'), privacyTrigger);
   });
   on('[data-privacy-controls]', 'change', event => {
-    if (event.target.matches('[data-privacy-profile]')) find('[data-privacy-recipients-label]').hidden = event.target.value !== 'restricted';
+    if (event.target.matches('[data-privacy-profile], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
   });
   on('[data-privacy-cancel]', 'click', () => privacyDialog.close());
   on('[data-privacy-apply]', 'click', async () => {

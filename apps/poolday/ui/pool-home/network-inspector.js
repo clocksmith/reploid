@@ -1,3 +1,4 @@
+import { sameModelVariant } from './model-providers.js';
 import { localFitText } from './conversation-model-picker.js';
 import { renderPrivateComputers, bindPrivateComputers } from './private-computers-view.js';
 import { updateExecutionDetail } from './execution-activity.js';
@@ -8,10 +9,10 @@ import { workspaceHref } from './workspace-navigation.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 /** One projection of conversation execution, participant availability, and device contribution. */
-import { renderComputeSharingControls, renderFileSharingControls, renderContributionLimits, renderConnectionControl, bindNetworkControls, projectNetworkPeers } from './network-controls.js';
+import { renderComputeSharingControls, renderFileSharingControls, renderContributionLimits, renderConnectionControl, bindNetworkControls, projectNetworkPeers, renderPeerRows } from './network-controls.js';
 import { renderComputerDiagnostic } from './computer-preferences-view.js';
 import { bindDialog } from '../components/dialog.js';
-import { hasBrowserModelOrigin, updateModelSelect } from '../components/model-select.js';
+import { hasBrowserModelOrigin, modelVariantLabel, updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-ribbon.js';
 import { renderRemotePermissionSettings, updateRemotePermissionSettings } from './remote-permission.js';
@@ -25,6 +26,7 @@ export function renderInspectorNavigation({ workspace = false } = {}) {
   const tag = workspace ? 'a' : 'button';
   const destination = view => workspace ? `href="${escape(workspaceHref(view))}" data-workspace-view="${view}"` : 'type="button"';
   return `<nav class="pool-stack pool-gap-sm" data-inspector-navigation aria-label="Network sections">
+      ${workspace ? `<a class="pool-button btn-ghost chat-rail-icon" ${destination('conversation')} data-inspector-section="conversation" aria-label="Conversation details" title="Conversation details" hidden>${interfaceIcon('activity')}<span class="chat-rail-label">Conversation details</span></a>` : ''}
       <${tag} class="pool-button btn-ghost chat-network-toggle" ${destination('computers')} data-inspector-section="participants" data-toggle-inspector aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></${tag}>
       <${tag} class="pool-button btn-ghost chat-rail-icon" ${destination('settings')} data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></${tag}>
     </nav>`;
@@ -42,18 +44,17 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
   return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Network and settings">
     ${navigation ? renderInspectorNavigation() : ''}
     <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading">${mounted ? `<span data-drawer-mark>${renderPowerTower(true)}</span>` : ''}<h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button btn-ghost" type="button" data-close-inspector aria-label="Close" title="Close">${interfaceIcon('close')}</button></header>
-    ${mounted ? `<div class="pool-segmented chat-inspector-tabs" role="tablist" aria-label="Inspector">${[['conversation', 'Conversation'], ['participants', 'Computers'], ['settings', 'Settings']].map(([id, label]) => `<button class="pool-segment" type="button" role="tab" id="inspector-tab-${id}" aria-controls="inspector-pane-${id}" data-inspector-tab="${id}" aria-selected="false" tabindex="-1">${label}</button>`).join('')}</div>` : ''}
-    <section data-inspector-pane="conversation" ${mounted ? 'role="tabpanel" id="inspector-pane-conversation" aria-labelledby="inspector-tab-conversation"' : ''} aria-label="This conversation">
+    <header class="chat-network-heading">${mounted ? `<span data-drawer-mark>${renderPowerTower(true)}</span>` : ''}<h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button btn-ghost" type="button" data-close-inspector${mounted ? '' : ' aria-label="Close" title="Close"'}>${mounted ? 'Back to conversation' : interfaceIcon('close')}</button></header>
+    <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-inspector-context-detail></p><div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
       <details data-attempt-details><summary>Execution details</summary><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
-    <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" ${mounted ? 'role="tabpanel" id="inspector-pane-participants" aria-labelledby="inspector-tab-participants"' : ''} aria-label="Computers" hidden>
+    <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
       <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Public network</h3>
-        ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
+        ${renderConnectionControl()}<div class="pool-row pool-row-between pool-gap-sm" data-roster-filter hidden><span data-roster-filter-label></span><button class="pool-button btn-ghost" type="button" data-clear-roster-filter>Show all computers</button></div><p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
         <ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
       </section>
@@ -80,7 +81,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
       </details>
       ${renderPrivateComputers()}
     </section>
-    <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" ${mounted ? 'role="tabpanel" id="inspector-pane-settings" aria-labelledby="inspector-tab-settings"' : ''} aria-label="Settings" hidden>
+    <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
       <section data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-muted" data-settings-storage-summary>No downloaded models</p><button class="pool-button btn-ghost" type="button" data-manage-file-sharing>Manage file sharing</button></section>
       ${renderLocalData()}
@@ -131,12 +132,14 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (node?.tagName === 'A') node.removeAttribute(name); else node?.setAttribute(name, String(value));
   };
   const hide = () => { if (mounted) drawer.setOpen(false); else if (panel.open) panel.close(); };
-  let opener;
+  let opener, modelFilter = null;
+  const conversationLink = navigation.querySelector('[data-inspector-section="conversation"]');
   const dialog = {
     open(trigger) {
       // A production surface without the workspace opens the inspector as a modal
       // sheet; the workspace and the other routes show it as a panel in their layout.
       const standalone = !!surface?.querySelector('[data-production-surface]') && !surface?.querySelector('[data-chat-workspace]');
+      if (conversationLink) conversationLink.hidden = false;
       if (!standalone) onRailOpen?.(activeSection);
       if (!isOpen() || !panel.contains(trigger)) opener = trigger || toggle;
       buttonState(opener, 'aria-expanded', true);
@@ -154,11 +157,23 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       }
       find('#network-inspector-title').focus({ preventScroll: true });
     },
-    close({ restoreFocus = true } = {}) { const wasOpen = isOpen(); buttonState(opener, 'aria-expanded', false); hide(); surface?.removeAttribute('data-network-panel-open'); if (wasOpen) onRailClose?.(); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { buttonState(button, 'aria-expanded', false); button.removeAttribute('aria-current'); buttonState(button, 'aria-pressed', false); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
+    close({ restoreFocus = true } = {}) { const wasOpen = isOpen(); if (conversationLink) conversationLink.hidden = true; clearModelFilter(); buttonState(opener, 'aria-expanded', false); hide(); surface?.removeAttribute('data-network-panel-open'); if (wasOpen) onRailClose?.(); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { buttonState(button, 'aria-expanded', false); button.removeAttribute('aria-current'); buttonState(button, 'aria-pressed', false); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
     dispose() { hide(); drawer?.dispose(); surface?.removeAttribute('data-network-panel-open'); }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
-  const network = bindNetworkControls(panel, session, { getInviteUrl, computers });
+  const drawPeers = (list, state) => {
+    const filter = find('[data-roster-filter]');
+    filter.hidden = !modelFilter;
+    find('[data-roster-filter-label]').textContent = modelFilter ? 'Computers for ' + modelVariantLabel(modelFilter) : '';
+    const current = modelFilter && (state.models || []).find(row => !row.partition && !row.fleet
+      && (row.selectionId || row.id) === (modelFilter.selectionId || modelFilter.id) && sameModelVariant(row, modelFilter));
+    renderPeerRows(list, state, modelFilter ? { model: modelFilter, providers: current?.providerIds || [] } : null);
+  };
+  const refreshPeers = () => drawPeers(find('[data-insp-device-list]'), withComputerLabels(session.getState(), session));
+  const clearModelFilter = () => {
+    if (modelFilter) { modelFilter = null; refreshPeers(); }
+  };
+  const network = bindNetworkControls(panel, session, { getInviteUrl, computers, drawPeers });
   const modelDialog = bindDialog(find('[data-model-dialog]'));
   const on = (selector, event, fn) => find(selector)?.addEventListener(event, fn, options);
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };
@@ -174,15 +189,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (section === 'settings') void storagePanel.refresh();
     if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
-    for (const tab of panel.querySelectorAll('[data-inspector-tab]')) { const active = tab.dataset.inspectorTab === section; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; }
     find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
     for (const button of navigation.querySelectorAll('[data-inspector-section]')) buttonState(button, 'aria-pressed', button.dataset.inspectorSection === section);
   };
   panel.addEventListener('click', event => {
     const copy = event.target.closest('[data-copy-error]');
     if (copy) { void act(() => navigator.clipboard.writeText(session.getState().activeThread?.attempts?.find(item => item.id === copy.dataset.copyError)?.error || '')); return; }
-    const tab = event.target.closest('[data-inspector-tab]');
-    if (tab) { select(tab.dataset.inspectorTab); dialog.open(tab); tab.focus({ preventScroll: true }); return; }
     const toggle = event.target.closest('[data-remote-answers-toggle]');
     if (toggle && !toggle.disabled) {
       toggle.disabled = true;
@@ -193,12 +205,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (grant) void act(() => session.revokeGrant(session.getState().selectedId, grant.dataset.revokeGrant));
     const remote = event.target.closest('[data-revoke-remote-permission]');
     if (remote) void act(() => session.revokeRemotePermission(remote.dataset.revokeRemotePermission));
-  }, options);
-  panel.addEventListener('keydown', event => {
-    const tab = event.target.closest('[data-inspector-tab]');
-    if (!tab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-    event.preventDefault(); const tabs = [...panel.querySelectorAll('[data-inspector-tab]')], index = tabs.indexOf(tab);
-    tabs[event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length].click();
   }, options);
   const onEscape = event => { const modal = event.target.closest('dialog[open]'); if (event.key === 'Escape' && (!modal || modal === panel) && isOpen()) { event.preventDefault(); event.stopPropagation(); dialog.close(); } };
   rail.addEventListener('keydown', onEscape, options);
@@ -211,7 +217,14 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     select(section); dialog.open(button);
   }, options);
   navigation.addEventListener('keydown', onEscape, options);
-  on('[data-close-inspector]', 'click', () => dialog.close());
+  on('[data-close-inspector]', 'click', () => {
+    const input = mounted && root.querySelector('[data-composer-input]');
+    dialog.close({ restoreFocus: !input });
+    if (input) input.focus({ preventScroll: true });
+  });
+  on('[data-clear-roster-filter]', 'click', () => {
+    clearModelFilter(); find('#network-inspector-title').focus({ preventScroll: true });
+  });
   on('[data-credit-receipt]', 'click', () => void act(async () => {
     const id = creditRequest, receipt = await session.privateComputers.receipt(id);
     const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
@@ -257,6 +270,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       const button = navigation.querySelector(`[data-inspector-section="${section}"]`);
       if (!button) continue;
       const digest = button.querySelector('[data-rail-digest]');
+      if (!digest) continue;
       if (digest.textContent !== summary) digest.textContent = summary;
       const label = button.querySelector('.chat-rail-label').textContent;
       button.setAttribute('aria-label', `${label}: ${summary}`); button.title = `${label}: ${summary}`;
@@ -374,6 +388,10 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const disposeAccount = bindAccountPanel(rail, earning);
   return {
     isOpen, section: () => activeSection,
+    openModelComputers(model, opener) {
+      modelFilter = model;
+      refreshPeers(); select('participants'); dialog.open(opener);
+    },
     inspectAttempt(attemptId, opener) { inspected = { threadId: session.getState().selectedId, attemptId }; render(session.getState()); select('conversation'); dialog.open(opener); },
     onClose(callback) { onRailClose = callback; return () => { if (onRailClose === callback) onRailClose = null; }; },
     onOpen(callback) {
@@ -390,7 +408,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       if (isOpen() && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
       else { select(section); dialog.open(opener); }
     },
-    open(section = 'participants', opener) { if (section === 'conversation') { inspected = null; render(session.getState()); } select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
+    open(section = 'participants', opener) { clearModelFilter(); if (section === 'conversation') { inspected = null; render(session.getState()); } select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
     dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };

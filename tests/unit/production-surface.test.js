@@ -1,6 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { renderProductionSurface, bindProductionSurface, projectProduction } from '../../apps/poolday/ui/pool-home/production.js';
 
+import { bindNetworkInspector } from '../../apps/poolday/ui/pool-home/network-inspector.js';
+
 const model = { id: 'm', name: 'Model', identity: 'fixture:model', provider: 'doppler', source: { baseUrl: 'fixture:' }, networkAvailability: 'ready' };
 const state = () => ({ models: [model], network: { sharing: true, computeEnabled: true,
   contribution: { modelId: 'm', ready: true, phase: 'ready', completed: 2,
@@ -186,19 +188,50 @@ it('does not display zero consumption when another tab owns the conversation his
   detach();
 });
 
-it('switches inspector segments by keyboard with one selected tab and matching pane', () => {
+it('keeps one navigation row and returns focus to the conversation draft', () => {
   const snapshot = state();
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session);
-  document.querySelector('[data-inspector-section="participants"]').click();
-  const tab = document.querySelector('[data-inspector-tab="participants"]');
-  tab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
-  expect(document.querySelectorAll('[data-inspector-tab][aria-selected="true"]')).toHaveLength(1);
-  expect(document.querySelector('[data-inspector-tab="settings"]').getAttribute('aria-selected')).toBe('true');
-  expect(document.querySelector('[data-inspector-tab="settings"]').hasAttribute('aria-pressed')).toBe(false);
-  expect(document.querySelector('[data-inspector-pane="settings"]').hidden).toBe(false);
-  expect(document.querySelector('[data-inspector-pane="participants"]').hidden).toBe(true);
+  const find = selector => document.querySelector(selector);
+  const input = find('[data-composer-input]');
+  input.value = 'My unsent question';
+  find('[data-workspace-view="computers"]').click();
+  expect(find('[data-inspector-tab]')).toBeNull();
+  expect(find('[data-workspace-view="conversation"]').hidden).toBe(false);
+  for (const [destination, section] of [['conversation', 'conversation'], ['settings', 'settings'], ['computers', 'participants']]) {
+    const link = find(`[data-workspace-view="${destination}"]`);
+    link.click();
+    expect(link.getAttribute('aria-current')).toBe('page');
+    expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
+  }
+  expect(find('[data-close-inspector]').textContent).toBe('Back to conversation');
+  find('[data-close-inspector]').click();
+  expect(input.value).toBe('My unsent question');
+  expect(document.activeElement).toBe(input);
   detach();
+});
+
+it('keeps an exact model roster filtered as offers change and restores all computers on clear', () => {
+  const selected = { ...model, providerIds: ['ready-a'], adapters: [{ id: 'variant', identity: 'adapter-a' }] };
+  const snapshot = { models: [selected], network: { consumer: { peers: [
+    { peerId: 'ready-a', model: model.id, modelIdentity: model.identity, readiness: 'ready', adapterIdentities: ['adapter-a', 'adapter-b'] },
+    { peerId: 'other', model: 'other-model', modelIdentity: 'other-identity', readiness: 'ready' },
+  ] } } };
+  const listeners = new Set();
+  const session = { getState: () => snapshot, subscribe(fn) { listeners.add(fn); fn(snapshot); return () => listeners.delete(fn); } };
+  const inspector = bindNetworkInspector(document.body, session);
+  const ids = () => [...document.querySelectorAll('[data-computer-id]')].map(node => node.dataset.computerId);
+  try {
+    inspector.openModelComputers(selected, document.querySelector('[data-open-model]'));
+    expect(ids()).toEqual(['ready-a']);
+    expect(document.querySelector('[data-roster-filter-label]').textContent).toContain('Model');
+    snapshot.models = [{ ...selected, adapters: [{ id: 'other', identity: 'adapter-b' }] }];
+    for (const listener of listeners) listener(snapshot);
+    expect(ids()).toEqual([]);
+    expect(document.querySelector('[data-insp-device-list]').textContent).toContain('No computers currently offer this model');
+    document.querySelector('[data-clear-roster-filter]').click();
+    expect(ids()).toEqual(['ready-a', 'other']);
+  } finally { inspector.dispose(); }
 });
 
 it('retains one picker when capacity disappears or a thread opens', () => {
