@@ -161,7 +161,12 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
   await exec('npm', ['install', '--package-lock-only', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: directory });
   const lock = JSON.parse(await fs.readFile(path.join(directory, 'package-lock.json')));
   if (lock.packages['node_modules/doppler-gpu']?.integrity !== pin.integrity) throw new Error('Installed runtime lock differs from the accepted archive');
-  for (const name of ['package.json', 'package-lock.json']) {
+  // npm never packs package-lock.json, and honours a published package's pinned graph only as
+  // npm-shrinkwrap.json. The publishable delivery therefore carries the same resolved graph under that
+  // name, and its file list names what the published package actually contains.
+  const lockName = publishable ? 'npm-shrinkwrap.json' : 'package-lock.json';
+  if (publishable) await fs.rename(lockPath, path.join(directory, lockName));
+  for (const name of ['package.json', lockName]) {
     const bytes = await fs.readFile(path.join(directory, name));
     entries.push({ path: name, bytes: bytes.length, sha256: digest(bytes) });
   }
