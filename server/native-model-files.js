@@ -88,7 +88,7 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
 export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null,
-  modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined, artifactRuntime = null }) {
+  maxSupplyBytes = policy.maxSupplyBytes, modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined, artifactRuntime = null }) {
   assert(artifactRuntime === null || typeof artifactRuntime?.createVerifiedPieceStorage === 'function',
     'Native artifact runtime requires the verified piece storage factory');
   // Trusted host composition only. Snapshot the factory before asynchronous
@@ -96,10 +96,11 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const suppliedRuntime = artifactRuntime === null ? null : Object.freeze({
     createVerifiedPieceStorage: artifactRuntime.createVerifiedPieceStorage.bind(artifactRuntime)
   });
+  assert(Number.isSafeInteger(maxSupplyBytes) && maxSupplyBytes > 0, 'File supply allowance must be a positive byte count');
   const readMappedSource = await createNativeSourceFileReader(sourceFilePaths);
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
   let budget = null, budgetError = null;
-  try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: policy.maxSupplyBytes }); }
+  try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: maxSupplyBytes }); }
   catch (error) { budgetError = error; }
   const supplyBudget = { getState: () => budget?.getState() || null,
     reserve: bytes => { if (!budget) throw budgetError; return budget.reserve(bytes); } };
@@ -136,7 +137,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   // Transfer evidence with both parties' certificates, for whoever claims the delivery.
   const deliveries = [], observeDelivery = record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); };
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
-  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy, ports: { supplyBudget,
+  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
     ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
@@ -372,14 +373,36 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
           const bytes = await readAvailableMetadata(file, signal);
           if (bytes) { await verify(file, bytes); await cache.put(file, bytes, { signal }); offered.push(file); }
         }
-        for (const file of data.index.files) for (const piece of file.pieces) {
-          signal.throwIfAborted(); const descriptor = pieceFile(piece);
-          const cached = await cache.get(descriptor);
-          const bytes = cached || await readLocal(file.path, { ...piece, signal });
-          if (!bytes) continue;
-          await verify(descriptor, bytes);
-          if (!cached) approvedLocalPieces.set(key(descriptor), { ...piece, path: file.path });
-          offered.push(descriptor); assert(offered.length <= policy.maxInventoryFiles, 'Native inventory limit exceeded');
+        // Large verified indexes can contain thousands of pieces. One verified shard offer
+        // lets existing requesters acquire each of its pieces through their pinned range.
+        const compact = offered.length + data.index.files.reduce((sum, file) => sum + file.pieces.length, 0) > policy.maxInventoryFiles;
+        const shards = new Map(data.manifest.shards.map(shard => [shard.filename, shard]));
+        for (const file of data.index.files) {
+          signal.throwIfAborted();
+          const shard = compact && shards.get(file.path);
+          if (shard && shard.size <= policy.maxArtifactBytes) {
+            const bytes = await readLocal(file.path, { offset: 0, size: shard.size, signal });
+            if (bytes) {
+              const descriptor = { path: file.path, role: 'model-weights', sizeBytes: shard.size,
+                hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm };
+              await verify(descriptor, bytes);
+              approvedLocalPieces.set(key(descriptor), { path: file.path, offset: 0, size: shard.size });
+              offered.push(descriptor);
+              assert(offered.length <= policy.maxInventoryFiles, 'Native inventory limit exceeded');
+              continue;
+            }
+          }
+          for (const piece of file.pieces) {
+            signal.throwIfAborted();
+            const descriptor = pieceFile(piece);
+            const cached = await cache.get(descriptor);
+            const bytes = cached || await readLocal(file.path, { ...piece, signal });
+            if (!bytes) continue;
+            await verify(descriptor, bytes);
+            if (!cached) approvedLocalPieces.set(key(descriptor), { ...piece, path: file.path });
+            offered.push(descriptor);
+            assert(offered.length <= policy.maxInventoryFiles, 'Native inventory limit exceeded');
+          }
         }
         signal.throwIfAborted(); offeredFiles.clear(); localPieces.clear();
         for (const [id, piece] of approvedLocalPieces) localPieces.set(id, piece);

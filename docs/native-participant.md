@@ -101,17 +101,23 @@ that piece named. A directory
 holding another model's manifest is refused, never overwritten. A complete
 directory is used unchanged, as before.
 
-`npm run package:native -- --publishable` builds the same delivery with a
-manifest npm accepts. Published under the name `reploid`, the command above
-becomes `npx reploid qwen-3-5-2b-q4k-ehaf16` with no checkout. The example names
-2B because the fleet supplies it; a model with no supplier online starts and
-waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
-files out of a delivery; the publishable build omits
-`qwen3-8-27b-text-q4k-ehaf16`, whose content-addressed manifest names a home
-directory and whose identity a live provider uses, so it cannot be re-issued
-in place. Checked: the built package
-installs, and its three commands start through npm's links (help text and
-argument expansion). On 2026-11-11 the package built from `65a2a7339`, run as
+The npm delivery contains the CLI, runtime and verification metadata. Model
+weights are acquired separately. The public 27B manifest names its upstream
+checkpoint and has identity `sha256:96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df`.
+Its 254 shard hashes and tokenizer hash match the previous 27B identity.
+Use a separate weight directory for the reissued identity when an older
+provider still serves the existing directory.
+
+A contributor with the verified 27B directory can run
+`npx reploid share 27b --weights /path/to/27b --supply-limit-gib 16`.
+This authorizes file supply only. One full copy requires about 15.84 GiB.
+The default lifetime supply allowance is 4 GiB. An explicit allowance binds
+to the supplier's persistent cache on first use and survives restarts.
+Changing it on an existing ledger is refused. Larger models advertise complete
+verified shards within the inventory cap; requesters can fetch their verified
+pieces from those offers.
+
+On 2026-11-11 the package built from `65a2a7339`, run as
 `reploid qwen-3-5-2b-q4k-ehaf16` on one Linux x64 host (Intel integrated GPU,
 Vulkan) with an empty state directory, filled the 2B from a public custody
 supplier (919 verified pieces, 2,087,223,456 bytes, 504 s; no origin bytes),

@@ -39,6 +39,13 @@ export async function main({ runOnce } = {}) {
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
     '--readiness-log requires --contribute and an absolute file path');
+  let maxSupplyBytes;
+  if (values['supply-limit-gib'] !== undefined) {
+    const value = values['supply-limit-gib'];
+    maxSupplyBytes = Number(value) * 2 ** 30;
+    requireValue(values['share-files'] && /^[1-9][0-9]*$/.test(value) && Number.isSafeInteger(maxSupplyBytes),
+      '--supply-limit-gib requires --share-files and a positive whole GiB allowance');
+  }
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
   requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['readiness-log'],
@@ -147,7 +154,7 @@ export async function main({ runOnce } = {}) {
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
-    cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
+    maxSupplyBytes, cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
     ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
     executionMode: values['execution-mode'] || 'partition',

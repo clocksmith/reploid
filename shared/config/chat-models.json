@@ -130,7 +130,7 @@
   {
     "id": "qwen3-8-27b-text-q4k-ehaf16",
     "name": "Qwen 3.8 27B",
-    "identity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+    "identity": "sha256:96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df",
     "provider": "doppler",
     "contextLength": 4096,
     "quantization": "q4k",
@@ -251,10 +251,10 @@
         {
           "path": "manifest.json",
           "role": "model-manifest",
-          "sizeBytes": 563614,
+          "sizeBytes": 563577,
           "hashAlgorithm": "sha256",
-          "hash": "e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
-          "url": "/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json"
+          "hash": "96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df",
+          "url": "/config/model-manifests/96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df.json"
         },
         {
           "path": "tokenizer.json",
@@ -264,12 +264,12 @@
           "hash": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753"
         },
         {
-          "path": "qwen27b-q4-pieces.json",
+          "path": "qwen27b-q4-public-pieces.json",
           "role": "model-piece-index",
           "sizeBytes": 979941,
           "hashAlgorithm": "sha256",
-          "hash": "fb840db2365527a8e8551005c47527db9c54e2b407a4377e61ecc46b27b27af8",
-          "url": "/config/model-pieces/qwen27b-q4-pieces.json"
+          "hash": "a888e6154785a6d3d294e8306309a5e9f72916d997e8399e3e84760dafa76d9d",
+          "url": "/config/model-pieces/qwen27b-q4-public-pieces.json"
         }
       ]
     },

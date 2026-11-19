@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | --- | ---: |
 | apps/poolday | 382 |
 | self | 457 |
-| shared | 2486 |
-| total | 3325 |
+| shared | 2488 |
+| total | 3327 |
 
 Every file lives in its owner's root.
 
@@ -316,15 +316,17 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | `shared/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | `shared/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | `shared/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-manifests/96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df.json` | `shared/config/model-manifests/96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | `shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | shared | Reached from native hosts and browser entries. |
-| `config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | `shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | shared | Reached from native hosts and browser entries. |
+| `config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | `shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | `shared/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json` | `shared/config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json` | `shared/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen-0-8b-pieces.json` | `shared/config/model-pieces/qwen-0-8b-pieces.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen-2b-pieces.json` | `shared/config/model-pieces/qwen-2b-pieces.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen-3-8-27b-pieces.json` | `shared/config/model-pieces/qwen-3-8-27b-pieces.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
-| `config/model-pieces/qwen27b-q4-pieces.json` | `shared/config/model-pieces/qwen27b-q4-pieces.json` | shared | Reached from native hosts and browser entries. |
+| `config/model-pieces/qwen27b-q4-pieces.json` | `shared/config/model-pieces/qwen27b-q4-pieces.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-pieces/qwen27b-q4-public-pieces.json` | `shared/config/model-pieces/qwen27b-q4-public-pieces.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen35b-q4_0-pieces.json` | `shared/config/model-pieces/qwen35b-q4_0-pieces.json` | shared | Reached from native hosts and browser entries. |
 | `config/module-inventory.json` | `self/config/module-inventory.json` | self | Generated VFS hydration list and module inventory read by the substrate loader. |
 | `config/module-registry.json` | `self/config/module-registry.json` | self | Reached only from substrate entries. |
