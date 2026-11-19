@@ -45,6 +45,7 @@ export async function readPinnedOrigin(origin, name, { offset = 0, size, whole =
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
+      if (ranged || whole) assert(value.byteLength <= size - received, `Pinned origin sent more than ${size} bytes of ${name}`, 'MODEL_ORIGIN_RANGE');
       const take = Math.min(value.byteLength, size - received);
       bytes.set(value.subarray(0, take), received); received += take;
       // A whole-file answer to a range request at offset 0 is cut to the requested length.

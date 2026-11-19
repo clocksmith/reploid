@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
+import { isExternalPieceIndex } from '../server/native-piece-index.js';
 import { existsSync } from 'node:fs';
 import { collectModuleClosure, walkFiles } from './hosting-file-set.js';
 import { BROWSER_ROOTS, resolveServedFile } from '../server/browser-roots.js';
@@ -65,7 +66,7 @@ export async function collectNativeFiles(sourceRoot, { omitModels = [] } = {}) {
   for (const model of catalog) {
     for (const file of model.source?.files || []) {
       const bundled = /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '');
-      if (file.role === 'model-piece-index' && !bundled) throw new Error('Native piece index must be a bundled catalog file');
+      if (file.role === 'model-piece-index' && !bundled && !isExternalPieceIndex(model.id, file)) throw new Error('Native piece index must be a bundled catalog file');
       const signedMetadata = model.capsule?.artifacts?.some(artifact => artifact.role !== 'weight-shard'
         && artifact.hash === 'sha256:' + file.hash && artifact.sizeBytes === file.sizeBytes);
       if (signedMetadata && !bundled) throw new Error('Native signed metadata must be a bundled catalog file');

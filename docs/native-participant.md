@@ -645,16 +645,17 @@ loading path the split stages use:
 Every weight piece is then hashed against the model's pinned piece index by parallel workers before it is used,
 the manifest and tokenizer come from the same authenticated storage, and no URL can replace those bytes. With a
 `verificationCache`, pieces verified for a file's exact state (device, inode, size and times) are remembered across
-restarts, and each file's admitted identity is bound. The model directory must hold the manifest, the piece index
-and every indexed file as regular files in that directory. Bounds are explicit; nothing is chosen automatically.
+restarts, and each file's admitted identity is bound. The model directory holds the manifest and indexed weight files. Operator-defined models also supply their piece index locally. Bounds are explicit; nothing is chosen automatically.
 Routed-expert settings that need this storage (`sourceReadMode: "expert-lease-batch"`, `uploadStaging: "mapped"`)
 go in the model's `loadOptions.runtimeConfig` as usual. A model with no `wholeRuntime` is loaded as before.
 
 A reviewed catalog entry can carry the same `wholeRuntime.gather` bounds without a `verificationCache`: a
 catalog cannot name a machine directory, so the provider remembers verified pieces in `piece-state` beside its
-identity file. A catalog entry whose piece index is too large for the application bundle pins the index by
-byte length, SHA-256 and an immutable URL on the weight host instead; a provider reads that index from its
-model directory, where it sits beside the weights it describes, and names the pinned URL when it is missing.
+identity file. Flash’s large piece index is loaded when a provider needs it. A custody-enabled host checks
+its cache, model directory and authorized peers before using the catalog’s immutable Hugging Face URL. A
+standalone host checks its model directory first. The host verifies the byte count and SHA-256 digest and
+retains the index beside the weights when writable. Asking a remote provider requires no index download.
+The hosted file contains the piece map. Flash weight files still need a separate source.
 
 Checked on 2026-11-19 on one AMD host (Vulkan) with Qwen 3.8 Flash-Next in a private room, loopback signaling and
 a connect-only requester over WebRTC using the Chat Completions adapter: the model opened in 6.3 to 7.0 s and

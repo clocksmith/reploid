@@ -1,3 +1,4 @@
+import { fetchPieceIndex, isExternalPieceIndex, retainPieceIndex } from './native-piece-index.js';
 import { sha256Digest as hash } from './hashing.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -63,15 +64,17 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
     'Native manifest differs from the selected model id');
   const descriptor = model.source.files.find(row => row.role === 'model-piece-index');
   requireValue(descriptor?.hashAlgorithm === 'sha256', 'Native model requires a pinned piece index');
-  // Catalog metadata is bundled with the application; the weight directory need
-  // not contain a second hand-maintained copy of it.
-  // An index pinned at an external URL is too large for the bundle: it lives beside the weights it describes.
   const indexBytes = descriptor.url?.startsWith('/config/model-pieces/')
     ? new Uint8Array(await fs.readFile(resolveServedFile(descriptor.url)))
-    : await read(descriptor.path).catch(error => {
-      if (error?.code !== 'ENOENT') throw error;
-      throw new Error(`Native piece index ${descriptor.path} is not in the model directory`
-        + (/^https:/.test(descriptor.url || '') ? `; place the pinned file from ${descriptor.url} there` : ''), { cause: error });
+    : await read(descriptor.path).catch(async error => {
+      if (error.code !== 'ENOENT') throw error;
+      if (!isExternalPieceIndex(model.id, descriptor)) {
+        throw new Error(`Native piece index ${descriptor.path} is not in the model directory`
+          + (/^https:/.test(descriptor.url || '') ? `; place the pinned file from ${descriptor.url} there` : ''), { cause: error });
+      }
+      const bytes = await fetchPieceIndex(model.id, descriptor, signal);
+      await retainPieceIndex(root, bytes, signal);
+      return bytes;
     });
   requireValue(hash(indexBytes) === 'sha256:' + descriptor.hash, 'Native piece index differs from the approved catalog');
   let nodeGather;

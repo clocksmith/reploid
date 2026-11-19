@@ -1,3 +1,4 @@
+import { fetchPieceIndex, isExternalPieceIndex, retainPieceIndex } from './native-piece-index.js';
 import { fetchAdapterFile } from '../packages/reploid/src/adapters/model-adapter.js';
 import { resolvePartitionArtifactSource } from '../apps/poolday/host/work-partition-artifact-source.js';
 /** Filesystem host ports for the existing signed custody protocol. Model weights come from the approved local
@@ -157,10 +158,25 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     }
     return bytes;
   };
-  const readMetadata = async (file, signal, onSupplier = null) => {
+  const readMetadata = async (file, signal, onSupplier = null, modelId = null) => {
     let bytes = await readAvailableMetadata(file, signal);
     if (!bytes) {
-      assert(exchange.has(file), 'No authorized peer offers required model metadata'); bytes = await exchange.acquire(file, { signal, onSupplier });
+      const external = modelId && isExternalPieceIndex(modelId, file);
+      if (exchange.has(file)) {
+        try { bytes = await exchange.acquire(file, { signal, onSupplier }); }
+        catch (error) {
+          signal.throwIfAborted();
+          if (!external) throw error;
+        }
+      }
+      if (!bytes) {
+        assert(external, 'No authorized peer offers required model metadata');
+        bytes = await fetchPieceIndex(modelId, file, signal, originFetch);
+      }
+      if (external) {
+        await verify(file, bytes);
+        await retainPieceIndex(root, bytes, signal);
+      }
     }
     await verify(file, bytes); signal.throwIfAborted(); await cache.put(file, bytes, { signal }); retained.set(key(file), file); return bytes;
   };
@@ -168,7 +184,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     const manifestFile = model.source.files.find(file => file.path === 'manifest.json');
     const indexFile = model.source.files.find(file => file.role === 'model-piece-index');
     assert(manifestFile && 'sha256:' + manifestFile.hash === model.identity && indexFile, 'Pinned manifest and piece index required');
-    const manifestBytes = await readMetadata(manifestFile, signal), indexBytes = await readMetadata(indexFile, signal);
+    const manifestBytes = await readMetadata(manifestFile, signal), indexBytes = await readMetadata(indexFile, signal, null, model.id);
     const runtime = suppliedRuntime ?? await import('doppler-gpu/partitions');
     // Doppler validates the index closure before any piece is offered or read.
     const checked = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + indexFile.hash,

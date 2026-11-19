@@ -59,6 +59,23 @@ it('serves direct-source ranges through canonical authenticated custody, not ori
     expect(source.getReceipt().ranges[0].path).toBe('weights.bin');
   } finally { await source.storage.close(); }
 });
+it('resolves a missing pinned index on demand, preferring a custody peer when available', async () => {
+  for (const peerAvailable of [false, true]) {
+    const fetch = vi.fn();
+    const f = await fixture(peerAvailable ? 2 : 1, { hostOptions: () => ({ originFetch: fetch }) });
+    const descriptor = f.model.source.files.find(file => file.role === 'model-piece-index');
+    descriptor.url = `https://huggingface.co/clocksmith/rdrr/resolve/${'a'.repeat(40)}/models/${f.model.id}/indexes/${descriptor.hash}/pieces.json`;
+    const local = path.join(f.directories[0], 'pieces.json');
+    const bytes = await fs.readFile(local);
+    await fs.unlink(local);
+    fetch.mockImplementation(async () => new Response(bytes));
+    if (peerAvailable) await f.share();
+    const source = await f.owners[0].preparePartitionSource(f.model);
+    await source.storage.close();
+    expect(fetch).toHaveBeenCalledTimes(peerAvailable ? 0 : 1);
+    expect(await fs.readFile(local)).toEqual(bytes);
+  }
+});
 it('persists only requested verified pieces and reopens them without a supplier', async () => {
   const f = await fixture(); await f.share(); const source = await f.owners[0].preparePartitionSource(f.model);
   try {
