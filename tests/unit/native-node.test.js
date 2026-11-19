@@ -89,7 +89,9 @@ describe('native command vocabulary', () => {
     expect(() => nativeCommand(['split', '2b'])).toThrow('--stage');
     expect(() => nativeCommand(['connect', '--contribute'])).toThrow('selects its mode');
     expect(() => nativeCommand(['serve', 'typo'])).toThrow('reploid models');
-    expect(nativeCommand(['models']).text).toContain('GB of files');
+    const listing = nativeCommand(['models']).text;
+    expect(listing).toContain('GB of files');
+    expect(listing).toMatch(/flash-peer-effective-q8-v2\s+107\.0\s+solo\s/);
     expect(nativeCommand(['help', 'split']).text).toContain('--room-token-file');
     expect(nativeCommand(['help', 'options']).text).toContain('--owner-policy');
   });

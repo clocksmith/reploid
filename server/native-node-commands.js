@@ -68,16 +68,23 @@ function modelList() {
   const { totalBytes, availableBytes } = readHostMemory();
   const rows = catalog.map(m => {
     const origin = resolvePinnedOrigin(m) ? 'peer, local files, or pinned download' : 'peer or local files';
-    const indexFile = m.source.files.find(file => file.role === 'model-piece-index');
-    if (indexFile?.hashAlgorithm !== 'sha256' || !/^\/config\/model-pieces\/[a-zA-Z0-9_.-]+\.json$/.test(indexFile.url || '')) {
-      throw new Error(`Missing bundled piece index for ${m.id}`);
+    const manifestFile = m.source.files.find(file => file.role === 'model-manifest');
+    if (manifestFile?.hashAlgorithm !== 'sha256' || !/^[a-f0-9]{64}$/.test(manifestFile.hash)
+      || manifestFile.url !== `/config/model-manifests/${manifestFile.hash}.json`) {
+      throw new Error(`Missing bundled manifest for ${m.id}`);
     }
-    const indexBytes = readFileSync(resolveServedFile(indexFile.url, { roots: ['shared'] }));
-    if (sha256Digest(indexBytes) !== 'sha256:' + indexFile.hash) {
-      throw new Error(`Bundled piece index differs from the approved catalog for ${m.id}`);
+    const manifestBytes = readFileSync(resolveServedFile(manifestFile.url, { roots: ['shared'] }));
+    if (sha256Digest(manifestBytes) !== m.identity || m.identity !== 'sha256:' + manifestFile.hash) {
+      throw new Error(`Bundled manifest differs from the approved catalog for ${m.id}`);
     }
-    const index = JSON.parse(indexBytes.toString('utf8'));
-    const bytes = index.files.reduce((sum, file) => sum + file.size, 0);
+    const manifest = JSON.parse(manifestBytes);
+    // The piece index covers the weight shards and tokenizer. Both sizes are already pinned locally.
+    const tokenizer = m.source.files.find(file => file.role === 'tokenizer');
+    if (manifest.modelId !== m.id || !Number.isSafeInteger(manifest.totalSize) || manifest.totalSize <= 0
+      || !Number.isSafeInteger(tokenizer?.sizeBytes) || tokenizer.sizeBytes <= 0) {
+      throw new Error(`Missing model file sizes for ${m.id}`);
+    }
+    const bytes = manifest.totalSize + tokenizer.sizeBytes;
     const gb = bytes / 1e9;
     const budget = m.loadOptions?.runtimeConfig?.shared?.bufferPool?.budget?.maxTotalBytes;
     let fit = 'files within available RAM';
