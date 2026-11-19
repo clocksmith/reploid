@@ -130,6 +130,9 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
     }
   }
   if (manifest.dependencies['doppler-gpu'] !== pin.spec) throw new Error('Application Doppler dependency differs from its pin');
+  // npm resolves file: dependencies relative to the consumer when installing a packed CLI.
+  // The public dependency must resolve from the registry with the same accepted integrity.
+  if (publishable) manifest.dependencies['doppler-gpu'] = pin.version;
   await fs.mkdir(outputParent, { recursive: true });
   const staging = await fs.mkdtemp(path.join(outputParent, 'reploid-native-'));
   const directory = path.join(staging, 'reploid');
@@ -148,7 +151,12 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
   await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
   // Start from the application's resolved graph, then prune unrelated packages.
   // Native install scripts are not executed while producing the delivery.
-  await fs.copyFile(path.join(sourceRoot, 'package-lock.json'), path.join(directory, 'package-lock.json'));
+  const lockPath = path.join(directory, 'package-lock.json');
+  const sourceLock = JSON.parse(await fs.readFile(path.join(sourceRoot, 'package-lock.json')));
+  if (publishable && sourceLock.packages['node_modules/doppler-gpu']?.resolved?.startsWith('file:')) {
+    delete sourceLock.packages['node_modules/doppler-gpu'];
+  }
+  await fs.writeFile(lockPath, JSON.stringify(sourceLock, null, 2) + '\n');
   await exec('npm', ['install', '--package-lock-only', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: directory });
   const lock = JSON.parse(await fs.readFile(path.join(directory, 'package-lock.json')));
   if (lock.packages['node_modules/doppler-gpu']?.integrity !== pin.integrity) throw new Error('Installed runtime lock differs from the accepted archive');

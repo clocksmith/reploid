@@ -5,7 +5,10 @@
  * (state under ~/.reploid, the supported transport and GPU packages) and says
  * what it chose. The participant, its consent rules and its checks are unchanged.
  */
+import { parseArgs } from 'node:util';
+import { participantOptions } from './native-participant-options.js';
 import { realpathSync } from 'node:fs';
+import { nativeCommand } from './native-node-commands.js';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -16,27 +19,6 @@ const MODES = ['--connect-only', '--share-files', '--contribute'];
 export const DEFAULT_MODEL = 'qwen-3-5-2b-q4k-ehaf16';
 // Options that only exist for partition execution; giving one keeps the participant's own default.
 const PARTITION_ONLY = ['--partition-index', '--ordered-config', '--canonical', '--readiness-log'];
-const USAGE = `Reploid node (Node 22.13 or newer)
-Usage: reploid [catalog model id] [participant options]
-
-  reploid                          (same as: reploid qwen-3-5-2b-q4k-ehaf16)
-  reploid qwen-3-5-2b-q4k-ehaf16
-
-Contributes this computer's GPU for that model and runs the whole model here,
-so it serves requests on its own. A model not yet on this computer is fetched
-from authorized peers piece by piece (or, when no peer offers a piece, from the
-model's pinned public origin), each piece and each file verified against the
-catalog, into ~/.reploid/weights/<model id>; an interrupted fetch resumes.
-
-Chosen for you unless given: --contribute, --execution-mode whole-model,
---model-directory ~/.reploid/weights/<model id>, --identity-file
-~/.reploid/identity.json, --rtc-module @roamhq/wrtc, --ws-module ws,
---gpu-module webgpu. --execution-mode partition (or a partition-only option
-such as --partition-index) shares the model with other contributors instead.
-Pass --connect-only or --share-files to choose another mode. Every other option
-goes to the participant unchanged: run reploid-participant --help for the full
-list. Stop with Ctrl+C.`;
-
 /** The participant arguments this command stands for. Pure, so it can be checked. */
 export function nodeArguments(argv, { home }) {
   // Without a model id (nothing, or options only) the default model is served.
@@ -67,13 +49,19 @@ export function participantProcessArgv(processArgv, args) {
 }
 
 async function main() {
-  const argv = process.argv.slice(2);
-  if (argv.includes('--help') || argv.includes('-h')) { console.log(USAGE); return; }
-  const node = nodeArguments(argv, { home: os.homedir() });
+  let command;
+  try { command = nativeCommand(process.argv.slice(2)); }
+  catch (error) {
+    console.error('reploid: ' + error.message);
+    process.exitCode = 2;
+    return;
+  }
+  if (command.text !== undefined) { console.log(command.text); return; }
+  const node = nodeArguments(command.args, { home: os.homedir() });
   console.log(JSON.stringify({ event: 'reploid-node', model: node.model, chosen: node.chosen }));
   const { mkdir } = await import('node:fs/promises');
   // The participant reads weights from an existing directory; it creates the identity's.
-  const directory = node.args[node.args.indexOf('--model-directory') + 1];
+  const directory = parseArgs({ args: node.args, options: participantOptions }).values['model-directory'];
   if (directory) await mkdir(directory, { recursive: true });
   process.argv = participantProcessArgv(process.argv, node.args);
   const { main: runParticipant } = await import('./native-participant.js');

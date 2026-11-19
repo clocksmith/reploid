@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { nativeCommand } from '../../server/native-node-commands.js';
 import { DEFAULT_MODEL, nodeArguments, participantProcessArgv } from '../../server/native-node.js';
 import { homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 
@@ -70,5 +71,26 @@ describe('reploid <model>: the short native command', () => {
       ['weights/shard_0.bin', Buffer.from('/Users/someone/ raw bytes are not text')],
     ]);
     expect(homePathFindings(contents)).toEqual([{ path: 'shared/config/model-manifests/abc.json', found: 'file:///home/someone/' }]);
+  });
+});
+
+describe('native command vocabulary', () => {
+  it('expands friendly commands and preserves legacy and private-room flags', () => {
+    expect(nativeCommand(['serve', '2b']).args).toEqual([DEFAULT_MODEL, '--contribute', '--execution-mode', 'whole-model']);
+    expect(nativeCommand(['split', '2b', '--stage=1', '--weights', '/weights', '--room', 'lab']).args)
+      .toEqual([DEFAULT_MODEL, '--contribute', '--execution-mode', 'partition', '--partition-index=1', '--model-directory', '/weights', '--room', 'lab']);
+    expect(nativeCommand(['--model', DEFAULT_MODEL, '--connect-only']).args).toEqual([DEFAULT_MODEL, '--connect-only']);
+    expect(nativeCommand(['connect']).args).toEqual(['--connect-only']);
+    expect(nativeCommand(['share', '2b']).args).toEqual([DEFAULT_MODEL, '--share-files']);
+    expect(nativeCommand(['custom', '--model-config', '/private/model.json']).args[0]).toBe('custom');
+  });
+  it('reports catalog limits before starting contribution', () => {
+    expect(() => nativeCommand(['split', '35b', '--stage', '1'])).toThrow('whole-model serving only');
+    expect(() => nativeCommand(['split', '2b'])).toThrow('--stage');
+    expect(() => nativeCommand(['connect', '--contribute'])).toThrow('selects its mode');
+    expect(() => nativeCommand(['serve', 'typo'])).toThrow('reploid models');
+    expect(nativeCommand(['models']).text).toContain('GB of files');
+    expect(nativeCommand(['help', 'split']).text).toContain('--room-token-file');
+    expect(nativeCommand(['help', 'options']).text).toContain('--owner-policy');
   });
 });

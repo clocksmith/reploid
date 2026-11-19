@@ -12,7 +12,26 @@ optional at the application root so browser development can omit them.
 
 ## One command
 
-The delivered package has a short command that stands for the full one:
+The packaged CLI accepts short model names or full catalog IDs. Start with
+`npx reploid models` to see the models included in your installation, their file
+sizes, whole/split support and sources for missing whole-model weights. File
+sizes describe storage. Runtime memory also depends on context and backend.
+
+```sh
+npx reploid serve 2b                 # contribute this GPU to the public room
+npx reploid connect                  # discover peers
+npx reploid share 2b --weights ./weights
+npx reploid help split               # see stage and private-room options
+npx reploid help options             # full participant reference
+```
+
+For Tab completion of commands, models and options in Zsh (after `compinit`),
+run `source <(npx reploid completion zsh)`. In Bash, save it first with
+`npx reploid completion bash > ~/.reploid-completion.bash`, then run
+`source ~/.reploid-completion.bash`. The generated script can be saved and
+sourced from the shell startup file. Completions use the catalog at generation time.
+
+The original positional form still works:
 
 ```sh
 reploid qwen-3-5-2b-q4k-ehaf16
@@ -80,8 +99,7 @@ waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
 files out of a delivery; the publishable build omits
 `qwen3-8-27b-text-q4k-ehaf16`, whose content-addressed manifest names a home
 directory and whose identity a live provider uses, so it cannot be re-issued
-in place. The package
-is not published; that is an owner decision. Checked: the built package
+in place. Checked: the built package
 installs, and its three commands start through npm's links (help text and
 argument expansion). On 2026-11-11 the package built from `65a2a7339`, run as
 `reploid qwen-3-5-2b-q4k-ehaf16` on one Linux x64 host (Intel integrated GPU,
