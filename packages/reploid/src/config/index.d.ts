@@ -14,7 +14,10 @@ export interface Configuration {
   models: { providerId: string | null; contract: Record<string, Json> | null };
   mesh: { enabled: boolean; executeJobs: boolean; supplyArtifacts: boolean; shareCandidates: boolean;
     roomId: string | null; routing: 'local-only' | 'local-first' | 'remote-only';
-    generationTimeoutMs: number; maxPendingJobs: number; maxInboundJobs: number; maxRetainedJobs: number };
+    generationTimeoutMs: number; maxPendingJobs: number; maxInboundJobs: number; maxRetainedJobs: number;
+    /** When true, a request whose policy names its recipients goes only to a provider that decides before the
+     * prompt is sent; a named provider that cannot is not used and the request is refused with nothing sent. */
+    requireNamedAdmission?: boolean };
   webrtc: { protocol: 'assignment/v1' | 'swarm/v1'; signalingUrl: string | null;
     rtcConfig: { iceServers: { urls: string | string[] }[]; iceTransportPolicy: 'all' | 'relay' };
     dataChannelLabel: string; dataChannelOptions: { ordered: boolean; maxRetransmits: number | null };

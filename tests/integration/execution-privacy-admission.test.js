@@ -147,6 +147,25 @@ it('cancelling while waiting for admission discloses nothing and withdraws the a
   expect(f.executions).toBe(0);
 });
 
+it('with admission required, a named recipient that cannot decide first is not used and nothing is sent', async () => {
+  const required = index => index === 0 ? { requireNamedAdmission: true } : {};
+  // The named provider's host predates admission. The request waits for a provider that can admit, finds
+  // none before the caller's deadline, and has disclosed nothing: no question and no request.
+  const legacy = await createRecoveryMesh(cleanup, { admitsBeforeDisclosure: false, meshConfig: required });
+  await expect(run(legacy, named(legacy), AbortSignal.timeout(200))).rejects.toThrow();
+  expect(of(legacy, 'reploid:generation-admit')).toEqual([]);
+  expect(of(legacy, 'reploid:generation-request')).toEqual([]);
+  expect(carryingPrompt(legacy)).toEqual([]);
+  expect(legacy.executions).toBe(0);
+  // The same requester still uses that provider for a request that names nobody.
+  await run(legacy, createExecutionPolicy('provider-visible'), AbortSignal.timeout(5000));
+  expect(legacy.executions).toBe(1);
+  // A provider that admits first is served as usual.
+  const current = await createRecoveryMesh(cleanup, { meshConfig: required });
+  expect((await run(current, named(current), AbortSignal.timeout(5000))).content).toBe('actual answer');
+  expect(of(current, 'reploid:generation-admit')).toHaveLength(1);
+});
+
 // Known limits, pinned so that a change is deliberate.
 it('a provider host that predates admission, or one that changes its mind after admitting, has received the prompt', async () => {
   // A host that does not answer `mesh.admit` does not advertise it; the request is sent as before.

@@ -672,13 +672,13 @@
     },
     {
       "path": "config/defaults.json",
-      "bytes": 2465,
-      "sha256": "be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4"
+      "bytes": 2501,
+      "sha256": "a4a46405c88623e8e797bc85c407cb21d09db703052d78f5f9d88d4ca74bcc71"
     },
     {
       "path": "config/index.d.ts",
-      "bytes": 3801,
-      "sha256": "e612e5d89135d931a0008aa1022f1214060823bd60cfd74f75e8da16b26ec693"
+      "bytes": 4062,
+      "sha256": "890aef9f5ce65977d381f784fd5bdd73d588100bdb2772dee7057bd97a107f38"
     },
     {
       "path": "config/index.js",
@@ -697,8 +697,8 @@
     },
     {
       "path": "config/schema.json",
-      "bytes": 11367,
-      "sha256": "03a1ba983579670c60a8a3bfa70e02b130f475f4b2f2e705ee148627da351e6c"
+      "bytes": 11469,
+      "sha256": "126f0dd5260302dd82ff0215ae77f6cf00e0eab5f6107118119313907c03c11e"
     },
     {
       "path": "config/transport-defaults.json",
@@ -1477,8 +1477,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 73263,
-      "sha256": "6e5687c2cc93603ccdef39ce5454763268c0909089c02f26cd3bdd16fa0642af"
+      "bytes": 73851,
+      "sha256": "75ebe4c343eed685d3aa39a45d479c434ee2369f8a5ee860bb5f54ce9ef84615"
     },
     {
       "path": "mesh/peer-identity.js",

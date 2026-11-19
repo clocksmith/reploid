@@ -101,7 +101,6 @@ it('a provider checks the requester\'s credit from the commitment, and declines 
   expect(served.completed).toBe(true);
   const admitted = toProvider.find(row => row.type === 'reploid:generation-admit');
   const binding = credits.request(served.reservationId).binding;
-  expect(binding.admissionVersion).toBe(2);
   expect(binding.admission).toEqual({ schema: 'reploid.credit-preadmission/v1', commitment: admitted.commitment });
   expect(toProvider.map(row => row.type).filter(type => type.startsWith('reploid:generation-')).slice(0, 2))
     .toEqual(['reploid:generation-admit', 'reploid:generation-request']);
@@ -118,4 +117,13 @@ it('a provider checks the requester\'s credit from the commitment, and declines 
   expect(after.filter(row => row.type === 'reploid:generation-request')).toEqual([]);
   expect(after.filter(row => row.carriesPrompt)).toEqual([]);
   expect(named.executions).toBe(1);
+  // Nobody admitted the refused request, so its hold is released at once with no charge, and releasing it
+  // again changes nothing.
+  const held = () => credits.snapshot().accounts.find(row => row.id === 'computer-requester').held;
+  expect(credits.request(refused.reservationId).state).toBe('settled');
+  expect(credits.request(refused.reservationId).outcome.charge).toBe(0);
+  expect(held()).toBe(0);
+  const again = await fixture.requesterClient.fence(refused.reservationId);
+  expect(again.charge).toBe(0);
+  expect(held()).toBe(0);
 }, 30000);

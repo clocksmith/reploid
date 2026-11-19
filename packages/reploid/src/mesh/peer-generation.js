@@ -151,8 +151,12 @@ export function createPeerGenerationMesh({ config, ports }) {
   const blockedComputers = () => new Set(ports.getBlockedComputers?.() || []);
   const isBlockedProvider = (peerId, blocked = blockedComputers()) => blocked.size > 0
     && (blocked.has(peerId) || blocked.has(peerIdentity?.getVerified(peerId)));
+  // With requireNamedAdmission, a request that names its recipients is never sent to a provider that
+  // decides only after the prompt has arrived.
+  const requireNamedAdmission = policy.mesh.requireNamedAdmission === true;
   const privacyEligible = (peer, privacy, offerId = null) => {
     if (!privacy || !/^sha256:[a-f0-9]{64}$/.test(peer.modelIdentity || '')) return !privacy?.allowedRecipients.length;
+    if (requireNamedAdmission && privacy.allowedRecipients.length > 0 && peer.admissionProtocol !== 1) return false;
     const offers = peer.executionOffers ?? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation',
       backend: 'doppler-plaintext/v1', kind: 'plaintext', modelIdentities: [peer.modelIdentity],
       operation: 'generate', protocol: null, evidence: null }];
@@ -1091,6 +1095,9 @@ export function createPeerGenerationMesh({ config, ports }) {
       // With named recipients, a provider that offers it decides from the request's details first. The
       // prompt is sent only after that provider admits the request.
       let admission = null;
+      if (requireNamedAdmission && explicitPrivacy && privacy.allowedRecipients.length > 0 && provider.admissionProtocol !== 1) {
+        throw new Error('The named recipient cannot decide before the prompt is sent. Nothing was sent.');
+      }
       if (explicitPrivacy && privacy.allowedRecipients.length > 0 && provider.admissionProtocol === 1) {
         const salt = admissionSalt();
         admission = { salt, commitment: await promptCommitment(salt, messages, settings ? snapshotJson(settings) : null), sent: false, send: null };

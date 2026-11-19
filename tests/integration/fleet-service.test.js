@@ -204,7 +204,7 @@ it('checks a reservation from the request’s commitment before the prompt is di
   const binding = { id: `service:${details.consumer}:pre`, executionId: 'pre', consumer: details.consumer, mode: 'whole-model',
     model: { ...model, adapterIdentities: [] }, inputDigest: await hashJson(messages), maxOutputTokens: 8,
     admission: { schema: 'reploid.credit-preadmission/v1', commitment }, providers: [{ participantId: keys[1].peerId, weight: 1 }] };
-  expect((await client.reserve(binding)).admissionVersion).toBe(2);
+  expect((await client.reserve(binding)).admission).toEqual({ schema: 'reploid.credit-preadmission/v1', commitment });
   await expect(ask()).rejects.toThrow('live credit admission');
   await client.dispatch(binding.id);
   const before = credits.snapshot().accounts.map(row => [row.balance, row.held]);
@@ -223,7 +223,7 @@ it('checks a reservation from the request’s commitment before the prompt is di
   // A reservation made without a commitment keeps the earlier version and cannot be checked this way.
   const plain = { ...binding, id: `service:${details.consumer}:plain`, executionId: 'plain' };
   delete plain.admission;
-  expect((await client.reserve(plain)).admissionVersion).toBe(1);
+  expect((await client.reserve(plain)).admission).toBeUndefined();
   await client.dispatch(plain.id);
   await expect(ask({ requestId: 'plain' })).rejects.toThrow('does not bind this pre-disclosure commitment');
   await expect(client.reserve({ ...binding, id: `service:${details.consumer}:bad`, executionId: 'bad',
@@ -233,6 +233,32 @@ it('checks a reservation from the request’s commitment before the prompt is di
   expect(await older.preadmit({ request: details, consumer: keys[0].peerId })).toBe(false);
   const failing = createFleetExecutionAdmission({ credits: { call: async () => { throw Error('Fleet request failed'); } }, model: served });
   await expect(failing.preadmit({ request: details, consumer: keys[0].peerId })).rejects.toThrow('Fleet request failed');
+});
+
+it('releases an undispatched hold once however often the release is repeated', async () => {
+  const binding = { id: `service:${keys[0].peerId}:twice`, executionId: 'twice', consumer: keys[0].peerId, mode: 'whole-model',
+    model: { ...model, adapterIdentities: [] }, inputDigest: await hashJson([{ role: 'user', content: 'never dispatched' }]),
+    maxOutputTokens: 8, providers: [{ participantId: keys[1].peerId, weight: 1 }] };
+  const held = () => credits.snapshot().accounts.find(row => row.id === 'machine-0').held;
+  await client.reserve(binding);
+  expect(held()).toBe(8);
+  await client.abandonBeforeDispatch(binding.id);
+  expect(held()).toBe(0);
+  // The reply to the first release may have been lost; asking again releases nothing further.
+  await client.abandonBeforeDispatch(binding.id);
+  await client.abandonBeforeDispatch(binding.id);
+  expect(held()).toBe(0);
+  expect(credits.request(binding.id).state).toBe('abandoned');
+  // Another computer cannot release it, and a dispatched request is not released this way.
+  await expect(createFleetClient({ url: service.url, identity: keys[2] }).abandonBeforeDispatch(binding.id)).rejects.toThrow('consumer differs');
+  const sent = { ...binding, id: `service:${keys[0].peerId}:sent`, executionId: 'sent' };
+  await client.reserve(sent); await client.dispatch(sent.id);
+  await expect(client.abandonBeforeDispatch(sent.id)).rejects.toThrow('already closed');
+  expect(held()).toBe(8);
+  // Fencing a dispatched request that nobody admitted settles it at zero, and fencing again changes nothing.
+  expect((await client.fence(sent.id)).charge).toBe(0);
+  expect((await client.fence(sent.id)).charge).toBe(0);
+  expect(held()).toBe(0);
 });
 
 it('charges the requester and credits every settled resident stage through the actual requester wrapper', async () => {

@@ -96,8 +96,10 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         const createdAt = now();
         const binding = { ...value, requestHash, computerId: consumer.computerId, maximum,
           policyVersion: policy.version, terminalCharge: value.mode === 'whole-model' ? policy.wholeModelTerminalCharge ?? null : null,
-          // 2: the reservation binds a pre-disclosure commitment and admits a `preadmit` check.
-          admissionVersion: value.admission ? 2 : 1, createdAt, deadline: createdAt + policy.maxRequestMs };
+          // admissionVersion says the ledger journals every admission of this request, which is what lets a
+          // fenced request that nobody admitted settle at zero. A pre-disclosure commitment is versioned by its
+          // own schema in `admission` and does not change that.
+          admissionVersion: 1, createdAt, deadline: createdAt + policy.maxRequestMs };
         db.prepare("INSERT INTO fleet_requests VALUES (?,?,'reserved',NULL)").run(value.id, JSON.stringify(binding));
         db.prepare('UPDATE fleet_accounts SET held=held+? WHERE id=?').run(maximum, consumer.computerId);
         return binding;
@@ -162,10 +164,12 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         return row.binding;
       });
     },
-    /** Only a request that never left the requester can release without execution evidence. */
+    /** Only a request that never left the requester can release without execution evidence. Repeating the
+     * call after it succeeded (for example when the first reply was lost) releases nothing further. */
     abandonBeforeDispatch(id, consumer) {
       return transaction(() => {
         const row = read(id); assert(row?.binding.consumer === consumer, 'Reservation consumer differs');
+        if (row.state === 'abandoned') return;
         assert(row.state === 'reserved', 'Reservation already closed');
         db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(row.binding.maximum, row.binding.computerId);
         db.prepare("UPDATE fleet_requests SET state='abandoned' WHERE id=?").run(id);

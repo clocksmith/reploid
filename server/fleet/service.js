@@ -70,7 +70,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
           && request.consumer === payload.consumer && request.executionId === payload.executionId
           && request.providers.length === 1 && request.providers[0].participantId === signer
           && same(request.model, payload.model), 'No matching live credit admission');
-        assert(request.admissionVersion === 2 && request.admission?.commitment === payload.commitment,
+        assert(request.admission?.schema === 'reploid.credit-preadmission/v1' && request.admission.commitment === payload.commitment,
           'Reservation does not bind this pre-disclosure commitment');
         return { preadmitted: true, deadline: request.deadline, maximum: request.maximum, maxOutputTokens: request.maxOutputTokens };
       }
