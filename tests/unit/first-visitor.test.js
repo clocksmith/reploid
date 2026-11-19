@@ -77,19 +77,25 @@ it('only offers a switch for a reachable shared provider with capacity', () => {
 
 it('names the pre-send destination as the selected model moves between local and public execution', () => {
   const f = fixture(), [model] = f.state().models;
-  const source = f.find('[data-composer-model-source]'), status = f.find('[data-model-status]');
+  const source = f.find('[data-composer-model-source]'), note = f.find('[data-prompt-disclosure]');
+  const switcher = f.find('[data-open-model]');
+  expect(f.find('[data-composer-send]').getAttribute('aria-describedby')).toBe(note.id);
+  expect(note.hidden).toBe(false);
+  expect(note.textContent).toContain('If a network computer answers');
+  expect(switcher.title).toBe('Change model');
+  expect(switcher.getAttribute('aria-label')).toContain(model.name);
   f.publish({ ...observedDiscovery, models: [{
     ...model, localCached: true, availability: 'cached', networkAvailability: 'unavailable'
   }] });
   expect(source.textContent).toMatch(/this device/i);
+  expect(note.textContent).toBe('This device reads your prompt for inference.');
   f.publish({ models: [{
     ...model, localCached: false, availability: 'ready', networkAvailability: 'ready',
     providerIds: ['public-peer'], reachableProviderIds: ['public-peer']
   }] });
   expect(source.textContent).toMatch(/public/i);
-  expect(status.hidden).toBe(false);
-  expect(status.textContent).toMatch(/prompt|message/i);
-  expect(status.textContent).toMatch(/read|see|receive/i);
+  expect(note.hidden).toBe(false);
+  expect(note.textContent).toBe('The answering computer can read your prompt.');
 });
 
 it.each([

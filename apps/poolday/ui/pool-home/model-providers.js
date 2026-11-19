@@ -71,27 +71,22 @@ export function projectModelRoutes(state, selected) {
 
 export const ADAPTER_GUIDE_URL = 'https://github.com/clocksmith/reploid/blob/main/docs/adapters.md';
 
-export const renderModelProviders = () => `<details class="pool-disclosure chat-model-providers" data-model-providers hidden><summary>Providers <span class="pool-muted" data-provider-count></span></summary><div class="pool-stack pool-gap-sm" data-provider-list></div><p class="pool-caption pool-muted">GPU details are reported by providers. The answer’s execution details show which computers were used.</p><p class="pool-caption"><a href="${ADAPTER_GUIDE_URL}" target="_blank" rel="noopener noreferrer">Prepare or serve an adapter</a></p></details>`;
+export const renderModelProviders = () => `<details class="pool-disclosure chat-model-providers" data-model-providers hidden><summary>Execution routes</summary><div class="pool-stack pool-gap-sm" data-provider-list></div><p class="pool-caption"><a href="${ADAPTER_GUIDE_URL}" target="_blank" rel="noopener noreferrer">Prepare or serve an adapter</a></p></details>`;
 
 let routeGroup = 0;
 /** Update only the disclosure contents, keeping its open state and the surrounding controls.
  * With several routes, each route is a radio carrying its selectionId; the caller owns the value. */
 export function updateModelProviders(root, state, model, { selectedId = model ? keyFor(model) : null, disabled = false } = {}) {
   const routes = projectModelRoutes(state, model);
-  const count = routes.reduce((total, route) => total + route.participants.length, 0);
   for (const disclosure of root.querySelectorAll('[data-model-providers]')) {
     disclosure.hidden = !model;
     disclosure.dataset.routeName ||= `model-route-${++routeGroup}`;
-    disclosure.querySelector('[data-provider-count]').textContent = count ? String(count) : '';
     const list = disclosure.querySelector('[data-provider-list]');
     const choose = routes.length > 1 || routes.length === 1 && routes[0].selectionId !== selectedId;
-    // A provider's own status appears only where it differs from its route's.
-    const people = route => route.participants.map(peer => `<li><span>${escape(peer.label)}</span><small class="pool-small pool-muted">${[peer.role, peer.hardware, peer.status === route.status ? '' : peer.status].filter(Boolean).map(escape).join(' · ')}</small></li>`).join('');
-    const markup = count || routes.length > 1 ? routes.map(route => `<div class="chat-model-route pool-stack pool-gap-xs" data-model-route="${escape(route.selectionId)}">${choose
+    const markup = routes.map(route => `<div class="chat-model-route pool-stack pool-gap-xs" data-model-route="${escape(route.selectionId)}">${choose
       ? `<label class="chat-model-choice pool-choice pool-button btn-ghost"><input type="radio" name="${disclosure.dataset.routeName}" value="${escape(route.selectionId)}" data-model-route-choice><span><strong>${escape(route.type)}</strong><small class="pool-muted">${escape(route.status)}</small></span></label>`
-      : `<div class="chat-model-route-heading"><strong>${escape(route.type)}</strong><span class="pool-muted">${escape(route.status)}</span></div>`}${route.participants.length
-      ? `<ul class="chat-model-route-people">${people(route)}</ul>` : `<p class="pool-small pool-muted">${route.type === 'Whole model' ? 'No providers reported.' : 'No computers assigned.'}</p>`}</div>`).join('')
-      : '<p class="pool-small pool-muted">No providers reported for this model.</p>';
+      : `<div class="chat-model-route-heading"><strong>${escape(route.type)}</strong><span class="pool-muted">${escape(route.status)}</span></div>`}</div>`).join('')
+      || '<p class="pool-small pool-muted">No routes available.</p>';
     if (list.dataset.projection !== markup) { list.innerHTML = markup; list.dataset.projection = markup; }
     for (const input of list.querySelectorAll('[data-model-route-choice]')) {
       input.checked = input.value === selectedId; input.disabled = disabled;

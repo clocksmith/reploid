@@ -41,11 +41,13 @@ async function installConversation(page, theme) {
       state.defaultModel = state.models[0] || model;
       listeners.forEach(callback => callback(state));
     };
-    window.setVisualSources = ({ local = false, shared = true } = {}) => {
+    window.setVisualSources = ({ local = false, shared = true, peers = [] } = {}) => {
       const base = { ...model, name: 'Qwen 3.5 0.8B', localCached: local,
+        providerIds: peers.filter(peer => peer.model === model.id).map(peer => peer.peerId),
         availability: local ? 'cached' : shared ? 'ready' : 'unavailable', networkAvailability: shared ? 'ready' : 'unavailable' };
       state.models = [base]; state.defaultModel = base; state.peerDiscoveryTimedOut = true; state.discoveryPhase = 'observed';
-      state.network = { consumer: { connectionState: 'connected', peers: [] } };
+      state.network = { consumer: { connectionState: 'connected', peers },
+        connections: peers.map(peer => ({ id: peer.peerId, phase: 'connected' })) };
       listeners.forEach(callback => callback(state));
     };
     window.setVisualTiming = timing => {
@@ -638,9 +640,10 @@ for (const width of [1280, 390, 320]) test(`two drawers preserve conversation an
   if (width >= 1200) { await expect(left).toBeVisible(); await expect(page).toHaveURL(/view=settings&threads=open/); }
   else { await expect(left).toBeHidden(); await expect(page).toHaveURL(/view=settings$/); }
   await expect(page.locator('[data-conversation-area]')).toBeVisible();
-  await page.locator('[data-inspector-tab="settings"]').focus(); await page.keyboard.press('ArrowLeft');
+  const computers = page.locator('[data-workspace-view="computers"]');
+  await computers.focus(); await computers.press('Enter');
   await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
-  await expect(page.locator('[data-inspector-tab="participants"]')).toBeFocused();
+  await expect(page.locator('[data-inspector-tab]')).toHaveCount(0);
   await page.goBack(); await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
   await page.goForward(); await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
   await expect.poll(() => right.getAttribute('data-drawer-moving')).toBeNull();
@@ -841,7 +844,9 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await page.locator('[data-change-model]').click();
   await expect(source).toHaveText(' · Public network');
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
-  await expect(page.locator('[data-model-status]')).toContainText('public computer can read your prompt');
+  const disclosure = page.locator('[data-prompt-disclosure]');
+  await expect(disclosure).toBeVisible();
+  await expect(disclosure).toContainText('The answering computer can read your prompt');
   await expect(page.locator('[data-download-local]')).toBeHidden();
   await openModel();
   await page.locator('[data-execution-choice=local]').click();
@@ -868,7 +873,8 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   expect(await page.locator('[data-composer-field]').boundingBox()).toEqual(field);
   await page.screenshot({ path: info.outputPath(`shared-departed-${width}.png`) });
   await openModel();
-  await expect(page.locator('[data-execution-choice=network]')).toBeDisabled();
+  await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-choice-group="network-unavailable"]')).toContainText('Qwen 3.5 0.8B');
   await page.locator('[data-execution-choice=local]').click();
   await page.locator('[data-change-model]').click();
   await expect(source).toHaveText(' · This device');
@@ -903,11 +909,11 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
   const opener = page.locator('[data-open-model]');
   await page.locator('[data-composer-input]').focus();
   await opener.hover();
-  await expect(page.getByRole('tooltip')).toContainText('Choose model');
+  await expect(page.getByRole('tooltip')).toHaveText('Change model');
   await page.mouse.move(1, 1);
   await expect(page.getByRole('tooltip')).toBeHidden();
   await opener.focus();
-  await expect(page.getByRole('tooltip')).toContainText('Choose model');
+  await expect(page.getByRole('tooltip')).toHaveText('Change model');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('tooltip')).toBeHidden();
   await opener.press('Enter');
@@ -936,6 +942,36 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
 });
 
 
+test('a model’s computer count opens the matching hardware and returns to the draft', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'light');
+  await page.evaluate(() => {
+    const peers = ['intel', 'apple', 'unrelated'].map((peerId, index) => ({
+      peerId, model: index < 2 ? 'fixture-model' : 'other-model',
+      modelIdentity: 'sha256:' + 'a'.repeat(64), readiness: 'ready',
+      hasInference: true, availableSlots: 1, hardware: { vendor: peerId }
+    }));
+    window.setVisualSources({ peers });
+  });
+  const draft = page.locator('[data-composer-input]');
+  await draft.fill('Return to this draft');
+  await page.locator('[data-open-model]').click();
+  const picker = page.locator('[data-model-picker]');
+  const count = picker.locator('[data-inspect-model-providers]');
+  await expect(count).toContainText('2 computers');
+  await count.click();
+  const pane = page.locator('[data-inspector-pane="participants"]');
+  await expect(pane).toBeVisible();
+  await expect(pane.locator('[data-computer-id]:visible')).toHaveCount(2);
+  await expect(pane.locator('[data-computer-id="unrelated"]')).toBeHidden();
+  await expect(pane.locator('[data-computer-id="intel"] [data-computer-hardware]')).toContainText(/intel/i);
+  await page.getByRole('button', { name: 'Back to conversation' }).click();
+  await expect(draft).toHaveValue('Return to this draft');
+  await expect(draft).toBeInViewport();
+});
+
 test('model preview and inference privacy commit independently', async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
@@ -958,7 +994,11 @@ test('model preview and inference privacy commit independently', async ({ page }
   const privacy = page.locator('[data-privacy-dialog]');
   await expect(privacy.locator('input[value=cryptographic]')).toBeDisabled();
   await privacy.locator('input[value=restricted]').check();
-  await expect(privacy.locator('[data-privacy-recipients]')).toBeVisible();
+  const recipients = privacy.locator('[data-privacy-recipients]');
+  await expect(privacy.getByLabel('This device only', { exact: true })).toBeChecked();
+  await expect(recipients).toBeHidden();
+  await privacy.getByLabel('Named computers', { exact: true }).check();
+  await expect(recipients).toBeVisible();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
   await privacy.locator('[data-privacy-cancel]').click();
   await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/Provider-visible/);

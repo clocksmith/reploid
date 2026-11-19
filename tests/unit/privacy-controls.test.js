@@ -2,10 +2,12 @@ import { it, expect } from 'vitest';
 import { renderPrivacyControls, readPrivacyControls, updatePrivacyControls, answerPrivacy } from '../../apps/poolday/ui/pool-home/privacy-controls.js';
 
 it('shows all tiers and maps named recipients or this device to the existing execution policy', () => {
-  const root = document.createElement('div'); root.innerHTML = renderPrivacyControls();
+  const root = document.createElement('div'); document.body.append(root); root.innerHTML = renderPrivacyControls();
   expect(root.querySelector('input[value="cryptographic"]').disabled).toBe(true);
   root.querySelector('input[value="restricted"]').checked = true;
   expect(readPrivacyControls(root).placement).toBe('local-only');
+  root.querySelector('[data-privacy-placement][value="named"]').checked = true;
+  expect(() => readPrivacyControls(root)).toThrow('at least one computer ID');
   root.querySelector('[data-privacy-recipients]').value = 'peer:a, peer:b, peer:a';
   const policy = readPrivacyControls(root);
   expect(policy.allowedRecipients).toEqual(['peer:a', 'peer:b']);
@@ -16,6 +18,7 @@ it('shows all tiers and maps named recipients or this device to the existing exe
   updatePrivacyControls(root, { ...policy, retention: 'ephemeral' });
   expect(root.querySelector('[data-privacy-apply]').disabled).toBe(true);
   expect(root.querySelector('[data-privacy-error]').textContent).toContain('read-only');
+  root.remove();
 });
 
 it('labels only the recipients in the returned receipt, including multi-computer routes', () => {

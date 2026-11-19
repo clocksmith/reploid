@@ -1,6 +1,6 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
 import { requestExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
-import { privacyLabel, readPrivacyControls, updatePrivacyControls } from './privacy-controls.js';
+import { privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
 import { bindWorkspaceNavigation } from './workspace-navigation.js';
@@ -8,7 +8,7 @@ import { updateContextIndicator } from './context-indicator.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
+import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bindModelChoices, modelVariantKey, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 import { bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
 import { renderAttachments, createTextAttachmentReader } from '../components/attachments.js';
@@ -33,10 +33,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const detachHelp = bindControlHelp(container);
-  const nextModelChoices = bindModelChoices(find('[data-next-model]'));
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
+  const nextModelChoices = bindModelChoices(find('[data-next-model]'), { onInspectProviders(selectionId, variantKey) {
+    const model = session.getState().models?.find(item => modelKey(item) === selectionId && modelVariantKey(item) === variantKey);
+    if (!model || !model.providerIds?.length || !inspector.openModelComputers) return;
+    picker.close();
+    inspector.openModelComputers(model, find('[data-open-model]'));
+  } });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
-  let changingModel = false, pickerTouched = false, recoverySelection = null;
+  let changingModel = false, pickerTouched = false, recoverySelection = null, pickerRevision = 0;
   let files = [], composerRevision = 0, queuedSend = null, queueHasText = false;
   const attachmentReader = createTextAttachmentReader({
     getFiles: () => files,
@@ -247,6 +252,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
+      pickerRevision++;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
@@ -330,12 +336,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          if (privacy?.profile === 'restricted') statusText = 'Only the named computers may receive inference data. They can read the data they receive.';
-          else if (selectedModel?.fleet) statusText = 'Your private computers can read the inference data they receive.';
-          else if (selectedModel?.partition) statusText = 'Public computers on this route can read the input for their own stages.';
-          else statusText = 'The selected public computer can read your prompt.';
-          if (execution.status === 'busy') statusText += ' Sending waits for capacity.';
-          else if (execution.status === 'ready') statusText = 'Ready. ' + statusText;
+          statusText = execution.status === 'busy' ? 'Sending waits for capacity.' : 'Ready.';
         } else if (execution.status === 'ready') statusText = 'Ready. This device runs the model.';
         else if (execution.status === 'cached') statusText = 'Downloaded. Sending loads the model on this device.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
@@ -356,6 +357,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         : deviceSearchOn() || search?.state?.().provider === 'contributor-bing' ? 'the search contributor and Bing' : 'Brave Search';
       statusText = [statusText, `Web search sends your question to ${recipient}.`].filter(Boolean).join(' ');
     }
+    const disclosure = find('[data-prompt-disclosure]');
+    disclosure.hidden = busy || !!thread?.closed;
+    if (policy.profile === 'cryptographic') disclosure.textContent = 'Cryptographic chat is unavailable.';
+    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'This device reads your prompt for inference.';
+    else if (privacy?.profile === 'restricted') disclosure.textContent = 'Only the named computers can receive and read the inference data sent to them.';
+    else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
+    else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
+    else disclosure.textContent = 'If a network computer answers, it can read your prompt.';
     modelStatus.textContent = statusText;
     modelStatus.hidden = !statusText;
     renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
@@ -386,8 +395,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${sourceLabel}` : '';
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
     find('[data-composer-model-source]').textContent = activeModel ? ` · ${sourceLabel}` : '';
-    find('[data-open-model]').title = modelDigest ? `Choose model: ${modelDigest}` : 'Choose model';
-    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Choose model: ${modelDigest}` : 'Choose model');
+    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Change model, ${modelDigest}` : 'Change model');
     updateContextIndicator(container, state, session);
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
@@ -451,6 +459,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
   const openPicker = (event, alternative = null) => {
+    pickerRevision++;
     queuedSend = null;
     recoverySelection = alternative;
     pickerTouched = !!alternative;
@@ -483,10 +492,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     next.value = route.value; next.dispatchEvent(new Event('change', { bubbles: true }));
   });
   on('[data-next-model]', 'change', () => {
+    pickerRevision++;
     if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
     pickerTouched = true;
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
-    if (pickerLocation !== 'local' && !modelExecutionState(pickerModel, pickerLocation).usable) pickerLocation = isSharedModelChoice(pickerModel) ? 'network' : 'auto';
     updatePicker(session.getState());
     render(session.getState());
   });
@@ -504,6 +513,33 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
+  on('[data-switch-local]', 'click', () => {
+    if (changingModel || attachmentReader.pending || pickerLocation !== 'network') return;
+    const state = session.getState();
+    const model = state.models?.find(item => modelIdentity(item) === modelIdentity(pickerModel));
+    if (!model || modelExecutionState(model, 'network').usable) { updatePicker(state); return; }
+    const stageLocal = () => {
+      const current = session.getState();
+      const stored = current.models?.find(item => modelIdentity(item) === modelIdentity(model));
+      if (!modelExecutionState(stored, 'local').usable) return;
+      pickerModel = stored; pickerTouched = true; pickerLocation = 'local'; updatePicker(current);
+      find('[data-change-model]').focus();
+    };
+    if (modelExecutionState(model, 'local').usable) stageLocal();
+    else if (downloadableHere(model, state) && !busyAcquisition(state)) {
+      const revision = ++pickerRevision, scope = queueScope(state, model);
+      inspector.downloadModel(modelKey(model), find('[data-switch-local]'), {
+        isCurrent(id) {
+          const current = session.getState();
+          return !controller.signal.aborted && find('[data-model-picker]').open && pickerRevision === revision
+            && pickerLocation === 'network' && id === modelKey(model) && queueScope(current, model) === scope
+            && !current.activeThread?.closed && !(current.runningIds || []).includes(current.selectedId)
+            && current.models?.some(item => modelIdentity(item) === modelIdentity(model));
+        },
+        onStored: stageLocal
+      });
+    }
+  });
   on('[data-change-model]', 'click', () => {
     if (changingModel || attachmentReader.pending) return;
     const next = find('[data-next-model]').value;
@@ -512,7 +548,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const model = (state.models || []).find(model => (model.selectionId || model.id) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(model) && !state.localDownloadIssue));
     if (!model) {
       const wanted = (state.models || []).find(item => (item.selectionId || item.id) === next);
-      if (wanted && downloadableHere(wanted, state)) { const opener = find('[data-model-control]'); picker.close(); inspector.downloadModel(next, opener); return; }
+      if (pickerLocation !== 'network' && wanted && downloadableHere(wanted, state)) {
+        picker.close();
+        inspector.downloadModel(next, find('[data-open-model]'));
+        return;
+      }
       updatePicker(session.getState()); return;
     }
     const privacy = explicitPrivacy(state);
@@ -613,7 +653,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     privacyDialog.open(privacyNode.querySelector('input:checked'), privacyTrigger);
   });
   on('[data-privacy-controls]', 'change', event => {
-    if (event.target.matches('[data-privacy-profile]')) find('[data-privacy-recipients-label]').hidden = event.target.value !== 'restricted';
+    if (event.target.matches('[data-privacy-profile], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
   });
   on('[data-privacy-cancel]', 'click', () => privacyDialog.close());
   on('[data-privacy-apply]', 'click', async () => {
@@ -637,7 +677,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
     pickerTouched = true;
-    pickerLocation = button.dataset.executionChoice;
+    pickerRevision++; pickerLocation = button.dataset.executionChoice;
     updatePicker(session.getState());
   });
   on('[data-queue-send]', 'click', () => {

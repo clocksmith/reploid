@@ -182,8 +182,10 @@ export function projectNetworkPeers(state) {
     status: 'Blocked', detail: 'Blocked on this device. Your requests are not sent to it.', progress: null } : peer);
 }
 
-function renderPeerRows(list, state) {
-  const rows = projectNetworkPeers(state), key = JSON.stringify(rows.map(peer => [peer, computerLabel(state, peer.id)]));
+export function renderPeerRows(list, state, filter = null) {
+  const rows = projectNetworkPeers(state).filter(peer => !filter || (peer.executionType === 'whole-model'
+    && !peer.blocked && peer.modelId === filter.model.id && peer.modelIdentity === filter.model.identity && filter.providers.includes(peer.id)));
+  const key = JSON.stringify([!!filter, rows.map(peer => [peer, computerLabel(state, peer.id)])]);
   if (list.dataset.projection === key) return;
   list.dataset.projection = key;
   const existing = new Map([...list.querySelectorAll('[data-computer-id]')].map(node => [node.dataset.computerId, node]));
@@ -249,7 +251,7 @@ function renderPeerRows(list, state) {
   if (ordered.length !== current.length || ordered.some((node, index) => node !== current[index])) for (const node of ordered) list.append(node);
   {
   for (const row of existing.values()) row.remove();
-  if (!rows.length) list.innerHTML = '<li class="network-empty pool-small pool-muted">No computers connected yet</li>';
+  if (!rows.length) list.innerHTML = `<li class="network-empty pool-small pool-muted">${filter ? 'No computers currently offer this model.' : 'No computers connected yet'}</li>`;
   }
   const summary = list.parentElement.querySelector('[data-peer-readiness]');
   const count = phase => rows.filter(peer => peer.phase === phase).length, plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -277,7 +279,7 @@ function renderPeerRows(list, state) {
   help.hidden = !rows.length;
 }
 
-export function bindNetworkControls(container, session, { getInviteUrl, computers } = {}) {
+export function bindNetworkControls(container, session, { getInviteUrl, computers, drawPeers = renderPeerRows } = {}) {
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const contributionSelect = find('[data-contribution-model]');
@@ -302,7 +304,7 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
     find('[data-toggle-introductions]')?.setAttribute('aria-checked', String(!!network.introductionAssistance));
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
     contributionSelect.disabled = !!network.files?.sharing || !!network.files?.preparing || !!network.files?.stopping;
-    renderPeerRows(find('[data-insp-device-list]'), state);
+    drawPeers(find('[data-insp-device-list]'), state);
     const discoveryState = network.introductionState ?? network.consumer?.connectionState;
     const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying', 'awaiting-introduction'].includes(discoveryState);
     const survivingConnection = !activeDiscovery && network.consumer?.connectionState === 'connected';
