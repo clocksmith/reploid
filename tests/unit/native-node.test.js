@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_MODEL, nodeArguments, participantProcessArgv } from '../../server/native-node.js';
+import { askOnce, parseAsk } from '../../server/native-node-ask.js';
 import { homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 
 describe('reploid <model>: the short native command', () => {
@@ -53,6 +54,41 @@ describe('reploid <model>: the short native command', () => {
 
   it('treats a leading option as the start of the options for the default model', () => {
     expect(nodeArguments(['--contribute'], { home: '/h' }).model).toBe(DEFAULT_MODEL);
+  });
+
+  it('expands model aliases and short split options without offering whole-model compute', () => {
+    const node = nodeArguments(['split', '27b', '--stage=0', '--weights=/models/27b', '--signaling', 'ws://localhost:8787'], { home: '/h' });
+    expect(node.model).toBe('qwen3-8-27b-text-q4k-ehaf16');
+    expect(node.args).toEqual(expect.arrayContaining(['--partition-index=0', '--model-directory=/models/27b',
+      '--signaling-url', 'ws://localhost:8787', 'partition']));
+    expect(node.args).not.toContain('whole-model');
+    expect(() => nodeArguments(['split', '35b', '--stage', '1'], { home: '/h' })).toThrow('no built-in split plan');
+    expect(() => nodeArguments(['split', '27b', '--stage', '2'], { home: '/h' })).toThrow('Choose --stage');
+  });
+
+  it('selects the correct default weights directory for an explicit model option', () => {
+    const node = nodeArguments(['--model=35b'], { home: '/h' });
+    expect(node.model).toBe('qwen-3-6-35b-a3b-text-source-q4_0-af32');
+    expect(node.args).toContain(`/h/.reploid/weights/${node.model}`);
+    expect(node.args.slice(-2)).toEqual(['--model', node.model]);
+  });
+
+  it('makes ask weightless and requires renewed approval for a changed route', async () => {
+    const options = parseAsk(['2b', 'Hello', '--yes', '--room', 'private-lab']);
+    expect(options.participantArgs).toEqual(['2b', '--connect-only', '--room=private-lab']);
+    const model = { id: DEFAULT_MODEL, identity: 'sha256:model', availability: 'ready', providerIds: ['peer-a'] };
+    const participant = {
+      identity: 'requester', getState: () => ({ models: [model] }),
+      async generate(request, controls) {
+        expect(request.messages).toEqual([{ role: 'user', content: 'Hello' }]);
+        const preview = { modelIdentity: model.identity, recipients: ['peer-a'] };
+        expect(await controls.requestApproval(preview)).toBe(true);
+        expect(await controls.requestApproval({ ...preview, recipients: ['peer-b'] })).toBe(false);
+        return { content: 'OK', execution: { receipt: { receiptId: 'receipt:test' } } };
+      },
+    };
+    await expect(askOnce(options)(participant, model, new AbortController().signal))
+      .resolves.toEqual({ content: 'OK', receiptId: 'receipt:test' });
   });
 
   it('is a command of the delivered package, which is private unless built to publish', () => {

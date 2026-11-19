@@ -10,16 +10,63 @@ Use Node 22.13 or newer. From the checkout, run `npm ci`, then
 `npm run start:native -- --help`. WebRTC and WebGPU dependencies are declared
 optional at the application root so browser development can omit them.
 
-## One command
+## Native npm command
 
-The delivered package has a short command that stands for the full one:
+Use the `reploid` command from the installed native delivery. Once that delivery
+is published to npm, the same commands work with `npx reploid`.
 
 ```sh
-reploid qwen-3-5-2b-q4k-ehaf16
+reploid --help
+reploid models
+reploid ask 2b "Count to five."
+reploid serve 2b
+reploid doctor
+reploid help split
 ```
 
-With no model id, `reploid` serves `qwen-3-5-2b-q4k-ehaf16`, the model public
+`models` lists this delivery's aliases, exact model IDs and built-in execution
+modes. It also accepts `--json`. The list describes the bundled catalog.
+The RAM estimate adds a 4 GiB runtime allowance to the model files and uses
+total host RAM. GPU limits and current headroom can still prevent loading.
+`doctor` checks the installed Doppler version, opens a WebGPU adapter, reports
+memory, and checks the signaling handshake. It loads no model.
+
+`ask` connects to the room as a requester without loading weights. It shows
+the route's recipients before sending the prompt. Use `--yes` in scripts to
+approve the first eligible route. Answers go to stdout. When the route returns
+a signed receipt, its ID goes to stderr.
+
+`serve` binds the OpenAI-compatible `/v1/chat/completions` and `/v1/models`
+endpoints to `127.0.0.1:11434`. It joins no mesh. It downloads verified weights
+from a pinned origin or uses the complete RDRR directory specified by
+`--weights`. Use `contribute` to offer a whole model to peers in a room.
+
+For a private split, use the same signaling endpoint, room and token on both
+hosts. Give each host its own weights path and use stage `1` on the second host.
+Use a requester in the same private room to send a prompt.
+
+```sh
+reploid split 27b --stage 0 --weights "$MODEL_DIRECTORY" \
+  --signaling "$PRIVATE_SIGNALING_URL" --room "$PRIVATE_ROOM" \
+  --room-token-file "$PRIVATE_ROOM_TOKEN_FILE"
+```
+
+`contribute` accepts the same private-room and weights options. A custom split can
+use `--model-config` and `--ordered-config` as described below.
+
+For completion, add the line for your shell to its startup file. In zsh, put
+it after `compinit`. The generated script supports both `reploid` and
+`npx reploid` and uses the catalog from the generating installation.
+
+```sh
+eval "$(reploid completion zsh)"
+eval "$(reploid completion bash)"
+reploid completion fish | source
+```
+
+Bare `reploid` still serves `qwen-3-5-2b-q4k-ehaf16`, the model public
 peers supply; any options may follow directly (`reploid --connect-only`).
+The original `reploid <catalog model id> [options]` also works.
 
 It runs `reploid-participant --contribute --execution-mode whole-model` for that
 catalog model with state under `~/.reploid` (`weights/<model id>/` and
@@ -77,11 +124,12 @@ manifest npm accepts. Published under the name `reploid`, the command above
 becomes `npx reploid qwen-3-5-2b-q4k-ehaf16` with no checkout. The example names
 2B because the fleet supplies it; a model with no supplier online starts and
 waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
-files out of a delivery; the publishable build omits
-`qwen3-8-27b-text-q4k-ehaf16`, whose content-addressed manifest names a home
-directory and whose identity a live provider uses, so it cannot be re-issued
-in place. The package
-is not published; that is an owner decision. Checked: the built package
+files out of a delivery. The publishable build keeps the exact 27B catalog
+identity for mesh requests and owner-supplied weights. The 27B manifest is
+kept out of the published files because it embeds a local path. To serve it,
+supply the complete model directory, including that manifest, with `--weights`.
+The installed version determines which commands and models are available.
+Checked: the built package
 installs, and its three commands start through npm's links (help text and
 argument expansion). On 2026-11-11 the package built from `65a2a7339`, run as
 `reploid qwen-3-5-2b-q4k-ehaf16` on one Linux x64 host (Intel integrated GPU,

@@ -13,6 +13,7 @@ import { BROWSER_ROOTS, resolveServedFile } from '../server/browser-roots.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const exec = promisify(execFile);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const EXTERNAL_MANIFEST_MODELS = ['qwen3-8-27b-text-q4k-ehaf16'];
 
 // `publishable` makes the manifest one npm accepts: the same files and pins, not marked private.
 export function nativePackageManifest(application, { publishable = false } = {}) {
@@ -43,7 +44,7 @@ export function nativePackageManifest(application, { publishable = false } = {})
 // omitModels: catalog model ids left out of this delivery, with their bundled files.
 // Each must name a catalog entry, so a stale or misspelled id fails instead of
 // silently shipping the model.
-export async function collectNativeFiles(sourceRoot, { omitModels = [] } = {}) {
+export async function collectNativeFiles(sourceRoot, { omitModels = [], externalManifests = [] } = {}) {
   const available = new Set();
   for (const directory of ['server', 'packages/reploid/src', ...BROWSER_ROOTS]) {
     const absolute = path.join(sourceRoot, directory);
@@ -75,6 +76,9 @@ export async function collectNativeFiles(sourceRoot, { omitModels = [] } = {}) {
       if (file.hashAlgorithm !== 'sha256' || digest(bytes) !== file.hash || bytes.length !== file.sizeBytes) {
         throw new Error(`Native catalog metadata differs: ${name}`);
       }
+      // Keep the exact descriptor for remote requests and owner-supplied weights. The manifest
+      // bytes may embed operator paths even though its identity and catalog descriptor are public.
+      if (file.path === 'manifest.json' && externalManifests.includes(model.id)) continue;
       selected.add(name);
       retained.set(name, bytes);
     }
@@ -119,7 +123,8 @@ export function homePathFindings(contents) {
 }
 
 export async function packageNative({ sourceRoot = root, outputParent = path.join(root, 'output'), publishable = false, omitModels = [] } = {}) {
-  const { files, pin, contents } = await collectNativeFiles(sourceRoot, { omitModels });
+  const externalManifests = publishable ? EXTERNAL_MANIFEST_MODELS.filter(id => !omitModels.includes(id)) : [];
+  const { files, pin, contents } = await collectNativeFiles(sourceRoot, { omitModels, externalManifests });
   const application = JSON.parse(await fs.readFile(path.join(sourceRoot, 'package.json')));
   const manifest = nativePackageManifest(application, { publishable });
   if (publishable) {
@@ -159,7 +164,8 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
   entries.sort((a, b) => a.path.localeCompare(b.path));
   const receipt = { schema: 'reploid.native-delivery/v1', version: application.version,
     runtime: { name: pin.name, version: pin.version, integrity: pin.integrity },
-    ...(omitModels.length ? { omittedModels: [...omitModels].sort() } : {}), entries };
+    ...(omitModels.length ? { omittedModels: [...omitModels].sort() } : {}),
+    ...(externalManifests.length ? { externalManifests } : {}), entries };
   const bytes = Buffer.from(JSON.stringify(receipt, null, 2) + '\n');
   await fs.writeFile(path.join(directory, 'native-delivery.json'), bytes);
   const archive = path.join(staging, `reploid-native-${application.version}.tgz`);

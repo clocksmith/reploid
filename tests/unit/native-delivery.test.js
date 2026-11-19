@@ -6,7 +6,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { collectNativeFiles, nativePackageManifest } from '../../scripts/package-native.js';
+import { collectNativeFiles, homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 import { resolveServedFile } from '../../server/browser-roots.js';
 
 const exec = promisify(execFile);
@@ -47,6 +47,10 @@ it('delivers the same native source and all catalog metadata outside the checkou
   expect(stdout).toContain('--share-files');
   expect(stdout).toContain('--gpu-module');
   expect(stdout).toContain('--canonical');
+  const nativeHelp = await exec(process.execPath, [manifest.bin.reploid, '--help'], { cwd: directory });
+  expect(nativeHelp.stdout).toContain('OpenAI-compatible server');
+  const modelList = await exec(process.execPath, [manifest.bin.reploid, 'models', '--json'], { cwd: directory });
+  expect(JSON.parse(modelList.stdout)).toEqual(expect.arrayContaining([expect.objectContaining({ aliases: ['27b'] })]));
   await expect(fs.stat(path.join(directory, 'node_modules'))).rejects.toMatchObject({ code: 'ENOENT' });
   await expect(fs.stat(path.join(directory, 'state'))).rejects.toMatchObject({ code: 'ENOENT' });
   const archivePath = pin.spec.startsWith('file:')
@@ -94,4 +98,10 @@ it('omits named catalog models and their bundled files, and rejects ids absent f
   for (const name of bundledName(kept)) expect(files).toContain(name);
   await expect(collectNativeFiles(sourceRoot, { omitModels: ['not-a-catalog-model'] }))
     .rejects.toThrow('Cannot omit models absent from the catalog: not-a-catalog-model');
+  const model27b = fullCatalog.find(model => model.id === 'qwen3-8-27b-text-q4k-ehaf16');
+  const external = await collectNativeFiles(sourceRoot, { externalManifests: [model27b.id] });
+  expect(JSON.parse(external.contents.get('shared/config/chat-models.json')).find(model => model.id === model27b.id))
+    .toEqual(model27b);
+  for (const name of bundledName(model27b)) expect(external.files).not.toContain(name);
+  expect(homePathFindings(external.contents)).toEqual([]);
 });

@@ -27,7 +27,7 @@ import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 
-export async function main() {
+export async function main({ requestOnce } = {}) {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
     'rtc-config-file', 'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile', 'runtime-source-config'].map(key => [key, { type: 'string' }]).concat([
@@ -73,6 +73,8 @@ is separate from backend selection; --help opens no provider.`);
     return;
   }
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
+  requireValue(!requestOnce || values['connect-only'] && !values.contribute && !values['share-files'],
+    'A one-shot request needs a weightless participant');
   requireValue(!values['web-search'] || !values['browser-search-profile'], 'Choose one search service');
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
@@ -187,6 +189,7 @@ is separate from backend selection; --help opens no provider.`);
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
+    ...(requestOnce ? { logger: { warn: console.warn, error: console.error, debug() {}, info() {}, log() {} } } : {}),
     executionMode: values['execution-mode'] || 'partition',
     onModelFill: (() => {
       // Piece lines at most every 5 s; every other fill event is logged.
@@ -203,7 +206,7 @@ is separate from backend selection; --help opens no provider.`);
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
     onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
     onChange: state => {
-      statusLog('partition-state', { ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) });
+      if (!requestOnce) statusLog('partition-state', { ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) });
       // A prepared stage is offered for before any route admits it.
       if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
     } })
@@ -211,10 +214,24 @@ is separate from backend selection; --help opens no provider.`);
   logNetwork = () => statusLog('network', { event: 'network', at: new Date().toISOString(), ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() });
   if (readiness) observeReadiness = () => readiness.observe(participant.getState());
+  const shutdown = createNativeShutdown(participant, gpuHost);
+  if (requestOnce) {
+    const lifetime = new AbortController();
+    const interrupt = () => lifetime.abort(new Error('Request cancelled'));
+    process.once('SIGINT', interrupt);
+    process.once('SIGTERM', interrupt);
+    try { return await requestOnce(participant, model, lifetime.signal); }
+    finally {
+      try { await shutdown(); }
+      finally {
+        process.removeListener('SIGINT', interrupt);
+        process.removeListener('SIGTERM', interrupt);
+      }
+    }
+  }
   // Polling also renews the custody certificate before it expires, and observes readiness even while a partition tick waits.
   const timer = setInterval(() => { participant.announceFiles(); logNetwork(); observeReadiness();
     participant.getCustodyCertificate().catch(error => console.error('Custody certificate renewal failed:', error.message)); }, policy.pollMs);
-  const shutdown = createNativeShutdown(participant, gpuHost);
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
   const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
     return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
