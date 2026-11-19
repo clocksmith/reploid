@@ -113,7 +113,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     acceptGenerationResult: (response, settings) => acceptToolResult(response, settings),
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
+    // `mesh.admit` asks about a request before its prompt is sent: this host answers from its own
+    // readiness. Credit admission binds the prompt's digest, so it still runs on `mesh.execute`.
+    admitsBeforeDisclosure: true,
     authorize: async request => !closed && (request.action === 'mesh.connect'
+      || request.action === 'mesh.admit' && whole?.getState().ready === true && wholeEarningReady
       || request.action === 'mesh.execute' && whole?.getState().ready === true && wholeEarningReady
         && (!executionAdmission || await executionAdmission.whole({ request: request.request,
           consumer: await mesh.verifyPeerIdentity(request.peerId) }))

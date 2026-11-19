@@ -246,7 +246,9 @@ export async function createJourneyNetwork({ providers, modelOptions = {}, maxOu
       },
       onGenerationTerminal: terminal => admission.terminal(terminal),
       onReceipt: receipt => admission.receipt(receipt),
+      admitsBeforeDisclosure: true,
       authorize: async input => !run.stopped && (input.action === 'mesh.connect'
+        || input.action === 'mesh.admit' && seat.ready
         || input.action === 'mesh.execute' && seat.ready
           && await admission.whole({ request: input.request, consumer: await mesh.verifyPeerIdentity(input.peerId) })),
       generate: async (messages, update, controls) => {

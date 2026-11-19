@@ -1472,13 +1472,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 6703,
-      "sha256": "a122ea31415d17aed68d62c5207f34bf5b20cbb216f5e5f7611122397ed35a81"
+      "bytes": 7070,
+      "sha256": "a7785cbfd3ab3de1db7b6b3a9ca72de66033288406ba487791582b8229fdff52"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 64787,
-      "sha256": "b4d2d802605fb6469d7d1f31b5e0abd4e17e3bbd9a9dc0bd4b36b2f7ae5a685f"
+      "bytes": 72950,
+      "sha256": "5a4972e2cc799171c57dba185d2d23a3f60847285dcda45ec27c583e5521714f"
     },
     {
       "path": "mesh/peer-identity.js",
@@ -1772,8 +1772,8 @@
     },
     {
       "path": "transport/message-types.js",
-      "bytes": 1604,
-      "sha256": "a591020c97eac9dda9db313760c9017abdfcbd07c453432f375ae727093eb03c"
+      "bytes": 1665,
+      "sha256": "06c1146db2afd0e2cdf94b23f5cc8e6eb53b08f993ad2c737b0b8c00faf1fe2e"
     },
     {
       "path": "transport/partition-data-channel.d.ts",

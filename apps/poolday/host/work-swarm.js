@@ -179,10 +179,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           if (registeredBuild) throw new Error('The participant identity registered for credits does not rotate here');
           return rotateIdentityBundle({ ...input, storage });
         }, sync: async () => {} },
+      // `mesh.admit` is the same decision as `mesh.execute`, asked before the prompt is sent.
+      admitsBeforeDisclosure: true,
       async authorize(request) {
         if (closed) return false;
         if (request.action === 'mesh.connect') return true;
-        if (request.action === 'mesh.execute') return sharing && contributor === execution && execution?.getState().ready === true;
+        if (request.action === 'mesh.execute' || request.action === 'mesh.admit') return sharing && contributor === execution && execution?.getState().ready === true;
         const pending = requests.get(request.requestContext?.id);
         if (request.action !== 'mesh.dispatch' || !pending) return false;
         const peer = consumer.getSwarmSnapshot().peers.find(item => item.peerId === request.peerId);

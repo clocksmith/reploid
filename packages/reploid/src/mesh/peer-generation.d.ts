@@ -31,6 +31,10 @@ export interface PeerGenerationMeshPorts {
   instanceId: string; modelConfig: Record<string, unknown> | null; utils: SwarmOptions['Utils'];
   getExecutionState?(): { phase: string; modelIdentity: string | null; adapterIdentities?: string[]; progress?: unknown; hardware?: import('./provider-hardware.js').ProviderHardware | null };
   authorize: Authorize; createTransport(): SwarmTransport;
+  /** True when this host answers the `mesh.admit` authorization: the same decision as `mesh.execute`, asked with
+   * the request's details and no messages. The provider then advertises that it can decide before the prompt is
+   * sent, and a requester whose policy names recipients sends the prompt only after it is admitted. */
+  admitsBeforeDisclosure?: boolean;
   /** Optional requester-side order over eligible providers: connection ids or identities proven on this channel, best first.
    * Providers it does not name keep the default order after it. The choice and its reason reach `authorize` as `placement`. */
   rankProviders?(candidates: PlacementCandidate[], request: { modelId: string | null; modelIdentity: string | null }): string[] | null | undefined;

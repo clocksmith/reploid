@@ -10,7 +10,9 @@ import { openNativeGenerationJournal } from '../../server/native-generation-jour
 
 export async function createRecoveryMesh(cleanup, { execute, settle = async () => true, identities: suppliedIdentities,
   modelId = 'model', modelIdentity = 'sha256:' + 'a'.repeat(64), messages = [{ role: 'user', content: 'original prompt' }],
-  authorize = async () => true, onGenerationTerminal, result, ports = () => ({}), intercept = null } = {}) {
+  authorize = async () => true, onGenerationTerminal, result, ports = () => ({}), intercept = null,
+  // False models a provider host that predates admission: it does not advertise it and is never asked.
+  admitsBeforeDisclosure = true } = {}) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'generation-recovery-'));
   cleanup.push(() => fs.rm(directory, { recursive: true, force: true }));
   const identities = suppliedIdentities || await Promise.all(['ECDSA', 'Ed25519'].map(algorithm => createSigningIdentity({ algorithm })));
@@ -38,7 +40,7 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
       emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
     };
     meshes[i] = createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'recovery' } } }), ports: {
-      instanceId: 'instance-' + i, modelConfig: i ? { id: modelId } : null,
+      instanceId: 'instance-' + i, modelConfig: i ? { id: modelId } : null, admitsBeforeDisclosure,
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
       authorize: async input => { if (input.action === 'mesh.dispatch') reference = { requestId: input.requestId, providerId: input.peerId,
         providerIdentity: input.recipientIdentity, modelId: input.modelId, modelIdentity, adapterIdentities: [] }; return authorize(input); },

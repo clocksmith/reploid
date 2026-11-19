@@ -27,15 +27,26 @@ if (role === 'provider' && process.env.REPLOID_PRIVACY_LIVE_MODEL_DIR) {
 }
 const send = value => new Promise(resolve => process.stdout.write('REPLOID_PRIVACY_QUALIFICATION ' + JSON.stringify(value) + '\n', resolve));
 let listener, transport, currentController, revokeDuringApproval = false, offering = role === 'provider', executions = 0, requestFrames = 0;
+// What this process put on, and took off, its data channels: generation message counts by type, and how many
+// messages of any type contained the prompt text.
+const PROMPT = 'Public privacy qualification fixture.';
+const sent = {}, received = {}, promptFrames = { sent: 0, received: 0 };
+let declining = false;
+const record = (table, direction, type, payload) => {
+  if (type.startsWith('reploid:generation-')) table[type] = (table[type] ?? 0) + 1;
+  if (JSON.stringify(payload ?? null).includes(PROMPT)) promptFrames[direction]++;
+};
 const handlers = new Map();
 const events = { on(name, fn) { if (!handlers.has(name)) handlers.set(name, new Set()); handlers.get(name).add(fn); return () => handlers.get(name).delete(fn); },
   emit(name, value) { for (const fn of handlers.get(name) || []) fn(value); } };
 const config = resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId, generationTimeoutMs: 1500 }, webrtc: { rtcConfig: { iceServers: [] } } } });
 const logger = Object.fromEntries(['info', 'debug', 'warn', 'error'].map(key => [key, () => {}]));
 const mesh = createPeerGenerationMesh({ config, ports: {
-  instanceId: 'qualification-' + role, modelConfig: role === 'provider' ? { id: model.id } : null,
+  instanceId: 'qualification-' + role, modelConfig: role === 'provider' ? { id: model.id } : null, admitsBeforeDisclosure: true,
   getExecutionState: () => ({ ...(whole?.getExecutionState() ?? {}), phase: offering ? 'ready' : 'idle', modelIdentity: model.identity, adapterIdentities: [] }),
   async authorize(request) {
+    // A provider host that declines gives the same answer whether it is asked before or after the prompt.
+    if (declining && (request.action === 'mesh.admit' || request.action === 'mesh.execute')) return false;
     if (request.action === 'mesh.dispatch' && revokeDuringApproval) {
       await Promise.resolve(); currentController.abort(Error('Qualification disclosure revoked')); return true;
     }
@@ -49,10 +60,16 @@ const mesh = createPeerGenerationMesh({ config, ports: {
     transport = createWebRTCSwarm({ config, Utils: { logger, generateId: prefix => prefix + ':' + crypto.randomUUID() }, EventBus: events,
       peerId: role + ':' + crypto.randomUUID(), getSessionId: () => roomId, getRoomCredentials: () => ({ roomId, token: '' }),
       ...rtc, signalingAdapter: { subscribe(fn) { listener = fn; return () => { listener = null; }; }, publish(message) { send({ event: 'signal', message }); } } });
-    return { ...transport, sendToPeer(peerId, type, payload) { if (type === 'reploid:generation-request') requestFrames++; return transport.sendToPeer(peerId, type, payload); } };
+    return { ...transport,
+      sendToPeer(peerId, type, payload) {
+        if (type === 'reploid:generation-request') requestFrames++;
+        record(sent, 'sent', type, payload);
+        return transport.sendToPeer(peerId, type, payload);
+      },
+      onMessage: (type, handler) => transport.onMessage(type, (peerId, payload) => { record(received, 'received', type, payload); return handler(peerId, payload); }) };
   }
 } });
-const stats = () => ({ executions, requestFrames, relayMessagesSent: transport?.getStats().relayMessagesSent ?? 0,
+const stats = () => ({ executions, requestFrames, sent: { ...sent }, received: { ...received }, promptFrames: { ...promptFrames }, relayMessagesSent: transport?.getStats().relayMessagesSent ?? 0,
   peers: transport?.getPeerStates().filter(row => row.channelState === 'open').map(row => ({ transport: row.transport, phase: row.phase,
     fingerprintBound: !!transport.getPeerBinding(row.id) })) ?? [] });
 async function waitForProvider() {
@@ -65,6 +82,7 @@ async function waitForProvider() {
 async function command(input) {
   if (input.command === 'close') { await mesh.close(); await whole?.close(); await gpu?.close(); await send({ event: 'closed', id: input.id, stats: stats() }); process.exit(0); }
   if (input.command === 'state') return send({ event: 'result', id: input.id, stats: stats() });
+  if (input.command === 'declining') { declining = input.value === true; return send({ event: 'result', id: input.id, stats: stats() }); }
   if (input.command === 'offering') { offering = input.value === true; mesh.refreshAdvertisement(); return send({ event: 'result', id: input.id, stats: stats() }); }
   if (input.command !== 'run' || role !== 'requester') throw Error('Unknown qualification command');
   if (!['disappeared', 'unsupported'].includes(input.mode)) await waitForProvider();
@@ -76,12 +94,13 @@ async function command(input) {
   else privacy = createExecutionPolicy('restricted', { placement: 'network-allowed',
     allowedRecipients: input.mode === 'denied' ? ['sha256:' + 'f'.repeat(64)] : [recipient] });
   currentController = new AbortController(); revokeDuringApproval = input.mode === 'revoked';
-  const before = requestFrames;
+  const before = requestFrames, startedAt = performance.now();
+  const elapsedMs = () => Math.round((performance.now() - startedAt) * 100) / 100;
   try {
-    const result = await mesh.generate([{ role: 'user', content: 'Public privacy qualification fixture.' }], null, { signal: currentController.signal,
+    const result = await mesh.generate([{ role: 'user', content: PROMPT }], null, { signal: currentController.signal,
       modelId: model.id, modelIdentity: model.identity, privacy });
-    send({ event: 'result', id: input.id, succeeded: true, modelIdentity: result.modelIdentity, deltaRequests: requestFrames - before, stats: stats() });
-  } catch (error) { send({ event: 'result', id: input.id, succeeded: false, error: error.message, deltaRequests: requestFrames - before, stats: stats() }); }
+    send({ event: 'result', id: input.id, succeeded: true, elapsedMs: elapsedMs(), modelIdentity: result.modelIdentity, deltaRequests: requestFrames - before, stats: stats() });
+  } catch (error) { send({ event: 'result', id: input.id, succeeded: false, elapsedMs: elapsedMs(), error: error.message, deltaRequests: requestFrames - before, stats: stats() }); }
   finally { currentController = null; revokeDuringApproval = false; }
 }
 const input = createInterface({ input: process.stdin });

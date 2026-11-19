@@ -31,6 +31,17 @@ const sameModelBinding = (actual, expected) => actual.model === expected.model
   && actual.modelIdentity === expected.modelIdentity;
 const digestValue = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
 
+const PROMPT_COMMITMENT = /^sha256:[a-f0-9]{64}$/;
+const ADMISSION_SALT = /^[a-f0-9]{64}$/;
+// A salted commitment to what the caller wrote: the messages, and the settings (tool definitions and an
+// output schema are the caller's text too). The provider that admits a request holds only this until they
+// arrive; without the 256-bit salt it cannot be tested against guesses.
+const promptCommitment = (salt, messages, settings) => {
+  if (!ADMISSION_SALT.test(salt || '')) throw Error('Admission salt is invalid');
+  return hashJson({ schema: 'reploid.prompt-commitment/v1', salt, messages, settings: settings ?? null });
+};
+const admissionSalt = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
+
 // Whole-request generation by authorized peers over the swarm protocol: advertisement,
 // provider choice, streamed requests, receipts and recovery. Receipts are signed records,
 // not independent evaluation, durable job replay, or hardware attestation.
@@ -51,6 +62,9 @@ export function createPeerGenerationMesh({ config, ports }) {
   const identificationAttempts = new Map(), identifying = new Set();
   let observationSequence = 0;
   const inbound = new Map(), inboundQueued = new Map(), completed = new Map();
+  // Requests a provider admitted from their details alone and whose prompt has not arrived yet.
+  const admitted = new Map(), admitting = new Set();
+  const admitsBeforeDisclosure = ports.admitsBeforeDisclosure === true;
   const consumerOrder = [], consumerBuckets = new Map();
   const inboundSettlements = new Set();
   const receiptSettlements = new Set();
@@ -238,6 +252,9 @@ export function createPeerGenerationMesh({ config, ports }) {
     advertisement.queuedJobs = inboundQueued.size;
     advertisement.modelContract = policy.models.contract;
     advertisement.identityProtocol = 1;
+    // This provider can decide on a request from its details before the prompt is sent. Advertised only
+    // by a host that answers `mesh.admit`, so other advertisements are unchanged.
+    if (admitsBeforeDisclosure) advertisement.admissionProtocol = 1;
     // Advertised only by a host that enforces settings, so other advertisements are unchanged.
     const generationSettings = settingsCapability();
     if (generationSettings) advertisement.generationSettings = generationSettings;
@@ -336,6 +353,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.queuedJobs = Number.isSafeInteger(payload.queuedJobs) && payload.queuedJobs > 0 ? payload.queuedJobs : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
+      next.admissionProtocol = payload.admissionProtocol === 1 ? 1 : null;
       const generationSettings = normalizeGenerationSettingsCapability(payload.generationSettings);
       if (generationSettings) next.generationSettings = generationSettings;
       else delete next.generationSettings;
@@ -371,7 +389,7 @@ export function createPeerGenerationMesh({ config, ports }) {
 
   const handleGenerationUpdate = (remotePeerId, payload = {}) => {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
-    if (!pending || pending.processing) return;
+    if (!pending || pending.processing || pending.admission?.sent === false) return;
     const chunk = String(payload.chunk || '');
     try {
       if (chunk) { pending.streamed = true; pending.onUpdate?.(chunk); return; }
@@ -385,9 +403,24 @@ export function createPeerGenerationMesh({ config, ports }) {
     } catch (error) { remoteRequests.settle(pending, { error, cancel: true }); }
   };
 
+  // The provider admitted the request from its details. Only now does the prompt leave this computer.
+  const handleGenerationAdmitted = (remotePeerId, payload = {}) => {
+    const pending = remoteRequests.get(payload?.requestId, remotePeerId);
+    const admission = pending?.admission;
+    if (!admission || admission.sent) return;
+    if (payload.promptCommitment !== admission.commitment) {
+      remoteRequests.settle(pending, { error: new Error('The provider admitted a different request. The prompt was not sent.'), cancel: true });
+      return;
+    }
+    admission.sent = true;
+    try {
+      if (!admission.send()) remoteRequests.settle(pending, { error: new Error('Failed to send swarm generation request') });
+    } catch (error) { remoteRequests.settle(pending, { error, cancel: true }); }
+  };
+
   const handleGenerationResult = async (remotePeerId, payload = {}) => {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
-    if (!pending || pending.processing) return;
+    if (!pending || pending.processing || pending.admission?.sent === false) return;
     pending.processing = true;
     const current = () => remoteRequests.get(pending.requestId, remotePeerId) === pending;
     try {
@@ -580,41 +613,31 @@ export function createPeerGenerationMesh({ config, ports }) {
     advertiseSelf();
   });
 
-  const handleGenerationRequest = async (remotePeerId, payload = {}) => {
-    if (closed || !policy.mesh.executeJobs || !ready() || !swarmEnabled || !swarmTransport || !identityBundle) return;
-
-    try { payload = snapshotJson(payload); } catch { return; }
-    if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
+  // Everything a provider decides about a request without reading its prompt. A request and its
+  // admission both pass through here, so whatever is refused here is refused the same way before the
+  // prompt is sent. Returns null once the request is dropped or refused.
+  const inspectRequest = async (remotePeerId, payload) => {
     const requestId = String(payload.requestId || '').trim();
     const consumer = String(payload.consumer || remotePeerId).trim() || remotePeerId;
     const targetProvider = payload.provider ? String(payload.provider).trim() : null;
-    const messages = Array.isArray(payload.messages) ? payload.messages : [];
     const contextId = payload.contextId ?? null;
-    if (contextId !== null && (typeof contextId !== 'string' || !contextId || contextId.length > 256)) return;
-
-    if (!requestId || requestId.length > 512 || !messages.length) return;
+    if (contextId !== null && (typeof contextId !== 'string' || !contextId || contextId.length > 256)) return null;
+    if (!requestId || requestId.length > 512) return null;
     let adapters;
-    try { adapters = adapterSet(payload.adapterIdentities || []); } catch { return; }
-    if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport.getPeerId?.()) return;
+    try { adapters = adapterSet(payload.adapterIdentities || []); } catch { return null; }
+    if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport.getPeerId?.()) return null;
+    const refuse = error => { swarmTransport?.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error }); return null; };
     const binding = currentModelBinding();
-    if (!matchesRequestedModel(binding, payload) || !supportsAdapters(executionState(), adapters)) {
-      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Requested model is unavailable' });
-      return;
-    }
-    if (policy.models.contract !== null && JSON.stringify(snapshotJson(payload.modelContract ?? null)) !== JSON.stringify(policy.models.contract)) return;
+    if (!matchesRequestedModel(binding, payload) || !supportsAdapters(executionState(), adapters)) return refuse('Requested model is unavailable');
+    if (policy.models.contract !== null && JSON.stringify(snapshotJson(payload.modelContract ?? null)) !== JSON.stringify(policy.models.contract)) return null;
     // Settings arrive canonical or the request is refused: a provider never repairs or defaults them.
-    // The digest is computed here from the received messages, settings and this provider's model.
-    let settings, settingsDigest = null;
+    let settings;
     if (payload.settings !== undefined) {
       try {
         if (!isCanonicalGenerationSettings(payload.settings)) throw Error('Generation settings are not canonical');
         settings = normalizeGenerationSettings(payload.settings);
         assertSettingsSupported(settingsCapability(), settings);
-        settingsDigest = await effectiveRequestDigest({ modelIdentity: binding.modelIdentity, adapterIdentities: adapters, messages, settings });
-      } catch (error) {
-        swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: `Generation settings rejected: ${error.message}` });
-        return;
-      }
+      } catch (error) { return refuse(`Generation settings rejected: ${error.message}`); }
     }
     const checkPrivacy = async () => {
       if (!payload.privacy) return null;
@@ -631,10 +654,80 @@ export function createPeerGenerationMesh({ config, ports }) {
       return expected;
     };
     let privacyBinding;
-    try { privacyBinding = await checkPrivacy(); } catch {
-      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Execution privacy binding rejected' }); return;
+    try { privacyBinding = await checkPrivacy(); } catch { return refuse('Execution privacy binding rejected'); }
+    return { requestId, consumer, contextId, adapters, binding, settings, checkPrivacy, privacyBinding, refuse, key: `${remotePeerId}:${requestId}` };
+  };
+  // What an admission binds: the request as sent, without the caller's text and without the admission fields.
+  const admissionDigest = ({ messages: _messages, settings: _settings, admission: _admission, promptCommitment: _commitment, ...details }) => hashJson(details);
+  const forgetAdmission = key => {
+    admitting.delete(key);
+    const entry = admitted.get(key);
+    if (entry) { clearTimeout(entry.timer); admitted.delete(key); }
+    return entry ?? null;
+  };
+
+  // A requester may ask for a decision before it sends the prompt. The message is the request without
+  // its messages and settings, plus a salted commitment to them. Every check that does not read them runs
+  // here, including the host's own decision, so a refusal reaches the requester before disclosure. The
+  // requester has already checked its settings against this provider's advertisement.
+  const handleGenerationAdmit = async (remotePeerId, payload = {}) => {
+    if (closed || !admitsBeforeDisclosure || !policy.mesh.executeJobs || !ready() || !swarmEnabled || !swarmTransport || !identityBundle) return;
+    try { payload = snapshotJson(payload); } catch { return; }
+    if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
+    const request = await inspectRequest(remotePeerId, payload);
+    if (!request) return;
+    const { requestId, key, refuse } = request;
+    if (payload.messages !== undefined || payload.settings !== undefined || payload.admission !== undefined || !PROMPT_COMMITMENT.test(payload.promptCommitment || '')
+      || admitted.has(key) || admitting.has(key) || inbound.has(key) || inboundQueued.has(key) || completed.has(key)) return void refuse('Execution admission rejected');
+    if (admitted.size + admitting.size >= policy.mesh.maxPendingJobs
+      || inbound.size >= policy.mesh.maxInboundJobs && inboundQueued.size >= policy.mesh.maxPendingJobs) return void refuse('Provider is busy');
+    if (!payload.recoverable && await generationJournal.get({ provider: identityBundle.peerId, consumer: request.consumer, requestId })) {
+      return void refuse('Previously admitted execution requires recovery');
     }
-    const key = `${remotePeerId}:${requestId}`;
+    let allowed = false, digest;
+    admitting.add(key);
+    try {
+      allowed = await ports.authorize({ action: 'mesh.admit', peerId: remotePeerId, request: snapshotJson(payload) }) === true
+        && sameExecutionBinding(request.privacyBinding, await request.checkPrivacy());
+      digest = await admissionDigest(payload);
+    } catch { allowed = false; }
+    // A cancellation that arrived while the host was deciding withdraws the question.
+    if (!admitting.delete(key) || closed) return;
+    if (!allowed || !ready() || !bindingAvailable(request.binding, request.adapters)) return void refuse('The provider declined this request. The prompt was not sent.');
+    if (admitted.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
+    const entry = { commitment: payload.promptCommitment, digest,
+      timer: setTimeout(() => { if (admitted.get(key) === entry) admitted.delete(key); }, policy.mesh.generationTimeoutMs) };
+    admitted.set(key, entry);
+    swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, promptCommitment: entry.commitment });
+  };
+
+  const handleGenerationRequest = async (remotePeerId, payload = {}) => {
+    if (closed || !policy.mesh.executeJobs || !ready() || !swarmEnabled || !swarmTransport || !identityBundle) return;
+
+    try { payload = snapshotJson(payload); } catch { return; }
+    if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
+    const messages = Array.isArray(payload.messages) ? payload.messages : [];
+    if (!messages.length) return;
+    const request = await inspectRequest(remotePeerId, payload);
+    if (!request) return;
+    const { requestId, consumer, contextId, adapters, binding, settings, checkPrivacy, privacyBinding, key } = request;
+    // An admitted request must arrive exactly as admitted, with the prompt its commitment names. A request
+    // that claims an admission this provider did not give, or skips one it did give, is refused.
+    const admission = forgetAdmission(key);
+    if (admission || payload.admission !== undefined) {
+      let matches = false;
+      try {
+        matches = !!admission && admission.digest === await admissionDigest(payload)
+          && admission.commitment === await promptCommitment(payload.admission?.salt, messages, payload.settings);
+      } catch { matches = false; }
+      if (!matches) { request.refuse('Execution admission rejected'); return; }
+    }
+    // The digest is computed here from the received messages, settings and this provider's model.
+    let settingsDigest = null;
+    if (settings) {
+      try { settingsDigest = await effectiveRequestDigest({ modelIdentity: binding.modelIdentity, adapterIdentities: adapters, messages, settings }); }
+      catch (error) { request.refuse(`Generation settings rejected: ${error.message}`); return; }
+    }
     if (inbound.has(key) || inboundQueued.has(key)) return;
     // A replay cannot evade the durable fence by downgrading its protocol flag.
     const earlierAdmission = !payload.recoverable && await generationJournal.get({ provider: identityBundle.peerId, consumer, requestId });
@@ -837,12 +930,15 @@ export function createPeerGenerationMesh({ config, ports }) {
           timeoutMs: REMOTE_GENERATION_TIMEOUT_MS, maxPending: policy.mesh.maxPendingJobs });
         swarmTransport.onMessage('reploid:peer-advertisement', handlePeerAdvertisement);
         swarmTransport.onMessage('reploid:generation-request', handleGenerationRequest);
+        swarmTransport.onMessage('reploid:generation-admit', handleGenerationAdmit);
+        swarmTransport.onMessage('reploid:generation-admitted', handleGenerationAdmitted);
         swarmTransport.onMessage('reploid:generation-update', handleGenerationUpdate);
         swarmTransport.onMessage('reploid:generation-result', handleGenerationResult);
         swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
         swarmTransport.onMessage('reploid:generation-cancel', (peerId, payload = {}) => {
           const key = `${peerId}:${String(payload.requestId || '')}`;
           const reason = Object.assign(new Error('Requester stopped this job'), { code: 'REQUESTER_CANCELLED' });
+          forgetAdmission(key);
           if (!cancelQueuedInbound(key, reason, true)) inbound.get(key)?.abort(reason);
         });
         swarmTransport.onMessage('reploid:receipt', (peer, payload) => {
@@ -867,6 +963,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           observedPeers.delete(peerId);
           identificationAttempts.delete(peerId);
           remoteRequests.retirePeer(peerId);
+          for (const key of [...admitted.keys(), ...admitting]) if (key.startsWith(`${peerId}:`)) forgetAdmission(key);
           for (const key of [...inboundQueued.keys()]) if (key.startsWith(`${peerId}:`)) cancelQueuedInbound(key, new Error('Requester disconnected'), false);
           for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
           emitSwarmState();
@@ -991,12 +1088,20 @@ export function createPeerGenerationMesh({ config, ports }) {
         recipients: [recipientIdentity || provider.peerId], route: { schema: 'reploid.mesh-route/v1', providerId: recipientIdentity || provider.peerId,
           offerId: selectedOffer.id, backend: selectedOffer.backend } })) : null;
       const requestId = utils.generateId('swarmreq');
+      // With named recipients, a provider that offers it decides from the request's details first. The
+      // prompt is sent only after that provider admits the request.
+      let admission = null;
+      if (explicitPrivacy && privacy.allowedRecipients.length > 0 && provider.admissionProtocol === 1) {
+        const salt = admissionSalt();
+        admission = { salt, commitment: await promptCommitment(salt, messages, settings ? snapshotJson(settings) : null), sent: false, send: null };
+      }
       const requestPayload = {
         requestId, consumer: identityBundle.peerId, provider: provider.peerId,
         ...(contextId && provider.identityProtocol === 1 ? { contextId } : {}),
         model: modelId || provider.model || null, modelIdentity, adapterIdentities,
         modelContract: policy.models.contract, ...(explicitPrivacy ? { privacy, privacyBinding, offerId: selectedOffer.id } : {}), messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {}),
-        ...(settings ? { settings: snapshotJson(settings) } : {})
+        ...(settings ? { settings: snapshotJson(settings) } : {}),
+        ...(admission ? { admission: { salt: admission.salt } } : {})
       };
       if (Number.isSafeInteger(policy.webrtc?.maxMessageBytes) && policy.webrtc.maxMessageBytes > 0
         && new TextEncoder().encode(JSON.stringify(requestPayload)).byteLength > policy.webrtc.maxMessageBytes) {
@@ -1021,8 +1126,13 @@ export function createPeerGenerationMesh({ config, ports }) {
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
         ...(typeof onUsage === 'function' ? { onUsage } : {}),
-        ...(settings ? { settings, settingsDigest } : {}) }, () =>
-        swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload));
+        ...(settings ? { settings, settingsDigest } : {}), ...(admission ? { admission } : {}) }, () => {
+        const sendRequest = () => swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload);
+        if (!admission) return sendRequest();
+        admission.send = sendRequest;
+        const { messages: _messages, settings: _settings, admission: _admission, ...details } = requestPayload;
+        return swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-admit', { ...details, promptCommitment: admission.commitment });
+      });
       if (affinityKey) {
         contextProviders.delete(affinityKey);
         contextProviders.set(affinityKey, provider.peerId);
@@ -1085,6 +1195,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       for (const finish of providerWaiters) finish(false);
       remoteRequests.close();
       for (const key of [...inboundQueued.keys()]) cancelQueuedInbound(key, new Error('Mesh closed'), false);
+      for (const key of [...admitted.keys()]) forgetAdmission(key);
       for (const controller of inbound.values()) controller.abort(new Error('Mesh closed'));
       for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
       swarmTransport?.disconnect();

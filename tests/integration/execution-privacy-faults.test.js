@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { afterEach, expect, it } from 'vitest';
 import { createJourneyNetwork } from '../helpers/journey-network.js';
-import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 
 const cleanup = [];
@@ -70,28 +69,3 @@ it('after the named provider is lost mid-answer, a retry under the same policy d
   expect(held()).toBeLessThan(heldBeforeExpiry);
   expect(held()).toBe(0);
 }, 30000);
-
-// Known limit, pinned so that a change is deliberate: the requester decides who may receive a request, and
-// the provider decides whether to run it only after the request has arrived. A named recipient that refuses
-// has therefore received the prompt. It runs nothing, and the request went to nobody else.
-it('a named recipient that refuses to run a request has received it, has executed nothing, and is the only recipient', async () => {
-  const refused = Promise.withResolvers(), cancel = new AbortController();
-  const f = await createRecoveryMesh(cleanup, { authorize: async input => {
-    if (input.action !== 'mesh.execute') return true;
-    refused.resolve(input.request.messages);
-    return false;
-  } });
-  const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.identities[1].peerId] });
-  const attempt = f.requesterMesh.generate(f.messages, null, { modelId: 'model', modelIdentity: 'sha256:' + 'a'.repeat(64), privacy, signal: cancel.signal });
-  const rejected = expect(attempt).rejects.toThrow('fixture cancelled');
-  try {
-    expect(await refused.promise).toEqual(f.messages);
-    const requests = f.wire.filter(row => row.type === 'reploid:generation-request');
-    expect(requests).toHaveLength(1);
-    expect(requests[0].payload.privacyBinding.route.hops.map(row => row.recipient)).toEqual([f.identities[1].peerId]);
-    expect(f.executions).toBe(0);
-  } finally {
-    cancel.abort(Error('fixture cancelled'));
-    await rejected;
-  }
-});

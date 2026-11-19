@@ -3491,7 +3491,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:62a4e0ea2033f5abc53e8737d374016bb1282137af037365cb99dbf26cd495dc",
+      "sha256": "sha256:e6ad75cf78e4d0efd5215d94b5d5d8d52f94096af3b2cb6c1d71974590c8452f",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f38852c2c633ccb1633ad2eeef8baf0f37c7b965d2b5489f664ee7209839e440",
+      "sha256": "sha256:e0ea04f4df5cf3bd829a4c033cf542f0c836e52f9902600174770ea43fc1c459",
       "imports": []
     },
     {
@@ -19509,7 +19509,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:b4d2d802605fb6469d7d1f31b5e0abd4e17e3bbd9a9dc0bd4b36b2f7ae5a685f",
+      "sha256": "sha256:5a4972e2cc799171c57dba185d2d23a3f60847285dcda45ec27c583e5521714f",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
@@ -19860,7 +19860,7 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:a591020c97eac9dda9db313760c9017abdfcbd07c453432f375ae727093eb03c",
+      "sha256": "sha256:06c1146db2afd0e2cdf94b23f5cc8e6eb53b08f993ad2c737b0b8c00faf1fe2e",
       "imports": [
         "./introductions.js"
       ]

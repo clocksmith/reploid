@@ -10,6 +10,7 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
   'reploid:peer-advertisement',
   'reploid:identity-challenge', 'reploid:identity-proof',
+  'reploid:generation-admit', 'reploid:generation-admitted',
   'reploid:generation-request', 'reploid:generation-update',
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',
