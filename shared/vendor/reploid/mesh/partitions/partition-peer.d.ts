@@ -4,7 +4,7 @@ import type { CanonicalResidentGeneration } from './resident-partition.js';
 import type { PartitionCommitStage } from './partition-stage-commit.js';
 import type { PartitionDevice, PartitionDeviceB, PartitionStepOptions, ActivationFrame,
   PartitionPlan, PartitionRuntime, PartitionBinding } from './partition-runner.js';
-import type { PartitionChannelLimits, PartitionChannelReceipt } from '../../transport/partition-data-channel.js';
+import type { PartitionChannelLimits, PartitionChannelReceipt, PartitionReceiveTimingObserver } from '../../transport/partition-data-channel.js';
 import type { ResidentPartition, ResidentPartitionDescriptor, PartitionReservation } from './resident-partition.js';
 import type { PartitionGrantAuthority } from './partition-grants.js';
 export interface RemotePartitionDevice extends PartitionDevice {
@@ -34,6 +34,7 @@ export function createPartitionPeer(options: {
   runtime: PartitionRuntime & Partial<CanonicalPartitionWireRuntime>; plan: PartitionPlan; planId: string; modelIdentity: string;
   canonical?: boolean;
   authority: PartitionGrantAuthority; contributor?: ResidentPartition | null;
+  onReceiveTiming?: PartitionReceiveTimingObserver;
   limits: PartitionChannelLimits; receiverLimits: { maxAttempts: number; maxSteps: number };
 }): PartitionPeer;
 

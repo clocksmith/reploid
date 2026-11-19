@@ -258,10 +258,16 @@ try {
   }
   report.phases.discoveryBeforeFill = (await waitForProviders(holders.length)).identities.map(nameOf);
   if (filler) {
-    const started = performance.now(); await filler.command('select', { index: 0, contribute: true }); filler.loadMs = performance.now() - started;
+    // A cold fill is bounded by the link, not by this driver: on a slow link 2 GB takes tens of minutes.
+    const started = performance.now();
+    await filler.command('select', { index: 0, contribute: true }, { timeoutMs: (config.fillTimeoutMinutes ?? 60) * 60000 });
+    filler.loadMs = performance.now() - started;
     const last = filler.fills.findLast(event => event.phase === 'complete') ?? filler.fills.at(-1) ?? null;
     report.phases.distribution = { provider: filler.spec.computerId, holders: holders.map(node => node.spec.computerId), fillAndLoadMs: Math.round(filler.loadMs),
       fetchedPieces: last?.fetchedPieces ?? null, fetchedBytes: last?.fetchedBytes ?? null, bySource: last?.sources ?? null,
+      // Pieces already verified on disk from an earlier, interrupted fill are reused, not fetched again.
+      reusedPieces: last?.reusedPieces ?? null, reusedBytes: last?.reusedBytes ?? null, fillMs: last?.elapsedMs ?? null,
+      fetchedBytesPerSecond: last?.fetchedBytes > 0 && last?.elapsedMs > 0 ? Math.round(1000 * last.fetchedBytes / last.elapsedMs) : null,
       bySupplier: last?.suppliers ? Object.fromEntries(Object.entries(last.suppliers).map(([key, value]) => [nameOf(key), value])) : null,
       pieceEvents: filler.fills.filter(event => event.phase === 'piece').length, verified: 'every piece and file against the pinned identities, by the fill' };
     log('distribution', report.phases.distribution);
@@ -364,7 +370,7 @@ try {
     openHolds: snapshot.accounts.reduce((sum, row) => sum + row.held, 0) };
   report.placementComparison = { fastestMeasured: fastest, rankingOff: { provider: phases.healthyRankingOff.route?.provider, completionMs: phases.healthyRankingOff.completionMs },
     rankingOn: { provider: phases.healthyRankingOn.route?.provider, reason: phases.healthyRankingOn.placement?.reason ?? null, completionMs: phases.healthyRankingOn.completionMs } };
-  report.checks = { distributionFilled: !filler || phases.distribution.fetchedPieces > 0, sameAnswerOnEveryProvider: report.reference.sameOnEveryProvider,
+  report.checks = { distributionFilled: !filler || phases.distribution.fetchedPieces > 0 || phases.distribution.reusedPieces > 0, sameAnswerOnEveryProvider: report.reference.sameOnEveryProvider,
     healthyCorrect: correct(phases.healthyRankingOff) && correct(phases.healthyRankingOn), rankedChoseFastest: phases.healthyRankingOn.route?.provider === fastest,
     interruptedKeptPartialAndUncharged: Boolean(phases.interrupted.requesterSaw.error) && phases.interrupted.deltaCount >= 1 && !phases.interrupted.charge,
     recoveredOnAnotherProvider: correct(phases.recovered) && phases.recovered.route?.provider !== phases.interrupted.route?.provider,

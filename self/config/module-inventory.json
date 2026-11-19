@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:58f30475f75bb7f7c54e07715d20b6381e2780dbe323c703d659343a414f2c91",
+      "sha256": "sha256:564ea1250d8b86baee0df6cd2a9f2a0cf68513055840a37202a2144b204b6f8d",
       "imports": []
     },
     {
@@ -19130,7 +19130,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:5cc1fdf6a0a7a1aee26edde2811a056f5dd23b3e3014ba43a5ce2522e2383797",
+      "sha256": "sha256:b96c87a062643dd4d1219920508534166fc69983cd984a832267dade641ac0f7",
       "imports": [
         "../preparation-progress.js",
         "./partition-attempt-queue.js",
@@ -19154,7 +19154,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:a2eb56c542dccdf445cd49f903d8b62ec9bb29959b44422cde5b8640caf29274",
+      "sha256": "sha256:f51e22b6fde33a3cd93030e0ba00e8bb280f778d45e139a02a3b556762e71a9a",
       "imports": [
         "../preparation-progress.js",
         "./automatic-ordered-partitions.js",
@@ -19339,7 +19339,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-peer.js",
       "owner": "vendor",
-      "sha256": "sha256:eb6f1322db011987c07790accc111388be19685936188a2505efa49abf75036a",
+      "sha256": "sha256:7600299b641b9db328b7b9bfed6b874b33a6ecf904bc7efd6349f98e6f2954d3",
       "imports": [
         "../../observation.js",
         "../../transport/partition-data-channel.js",
@@ -19358,7 +19358,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-peer.js",
       "owner": "vendor",
-      "sha256": "sha256:22e843e9182b84489b49dfad633a177fa4c2d7da7d50e48150f5d51c04e9ff1c",
+      "sha256": "sha256:f20f828eb98875f93e229a4895e29586cd828c958438573ad80a5e9eb22a9868",
       "imports": [
         "../../observation.js",
         "../../transport/partition-data-channel.js",
@@ -19868,7 +19868,7 @@
     {
       "path": "vendor/reploid/transport/partition-data-channel.js",
       "owner": "vendor",
-      "sha256": "sha256:ce70d9ca7046405318ef6be4ae7cde1a94ac33e1172ebd6d7c6d9dd37cda7cdf",
+      "sha256": "sha256:1d14a092ce00226d90b0306571d49120fc4e89420f8e72231058dae5e29a0e42",
       "imports": [
         "./bounded-channel-writer.js",
         "./partition-errors.json"

@@ -12,7 +12,7 @@ function channels() {
     close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1-index].close()); } }));
   return pair;
 }
-async function fixture({ stageClockOffsetMs = 0 } = {}) {
+async function fixture({ stageClockOffsetMs = 0, onReceiveTiming } = {}) {
   const f = routeFixture(3), identities = await Promise.all([0,1,2].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
   for (let index=0;index<3;index++) { f.route.stages[index].participantId = identities[index].peerId;
     f.stages[index].id = identities[index].peerId; f.plan.partitions[index].layerRange = [index*2,index*2+1]; }
@@ -28,7 +28,7 @@ async function fixture({ stageClockOffsetMs = 0 } = {}) {
     const common = { runtime: f.runtime, plan: f.plan, planId: f.route.planId, modelIdentity: f.route.modelIdentity,
       limits, receiverLimits: { maxAttempts: 10, maxSteps: 10 }, ordered: { route: f.route, partitionIndex: index } };
     const server = createPartitionPeer({ ...common, channel: pair[1], localParticipantId: identities[index].peerId,
-      remoteParticipantId: identities[0].peerId, authority: authorities[index], contributor });
+      remoteParticipantId: identities[0].peerId, authority: authorities[index], contributor, onReceiveTiming });
     const client = createPartitionPeer({ ...common, channel: pair[0], localParticipantId: identities[0].peerId,
       remoteParticipantId: identities[index].peerId, authority: authorities[0] });
     await client.refresh(); peers.push({ server, client }); pairs.push(pair);
@@ -454,4 +454,16 @@ describe('one deadline outcome in either order (in-process channels, injected co
       expect(f.peers.every(peer => peer.client.getState().unsettled === 0)).toBe(true);
     } finally { await f.close(); }
   });
+});
+
+
+it('forwards optional provider-local timing through ordered peers without changing generation', async () => {
+ const events=[];
+ const f=await fixture({onReceiveTiming:(timing,metadata)=>events.push({timing,metadata})});
+ try {
+  const result=await f.runner.execute(f.request);
+  expect(result.content).toBe('012');
+  await vi.waitFor(()=>expect(events.filter(e=>e.metadata.operation==='step')).toHaveLength(6));
+  for(const {timing} of events) expect(Object.values(timing).every(v=>Number.isFinite(v)&&v>=0)).toBe(true);
+ } finally {await f.close();}
 });

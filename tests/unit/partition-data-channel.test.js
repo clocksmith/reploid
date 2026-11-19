@@ -310,3 +310,61 @@ describe('partition binary transport (injected host ports)', () => {
     expect(h.b.frames.filter(frame => typeof frame === 'string').join('')).not.toContain('private host');
   });
 });
+
+
+describe('combined frame control binding', () => {
+  it.each(['id', 'kind'])('rejects mismatched outer %s before admission', async mismatch => {
+    const f = fixture({server:{limits:{...limits,maxFrameBytes:2048}}});
+    const control = new TextEncoder().encode(JSON.stringify({schema:'reploid.partition-channel/v2', type:'request', id:1, metadata:{}, size:0, responseBytes:0}));
+    const bytes = new Uint8Array(13 + control.length), view = new DataView(bytes.buffer);
+    view.setUint8(0, mismatch === 'kind' ? 3 : 2);
+    view.setUint32(1, mismatch === 'id' ? 9 : 1);
+    view.setUint32(5, control.length); view.setUint32(9, 0); bytes.set(control, 13);
+    f.a.send(bytes.buffer);
+    await vi.waitFor(() => expect(f.server.getReceipt().closed).toBe(true));
+    expect(f.serve).not.toHaveBeenCalled();
+  });
+});
+
+describe('provider-local receive timing', () => {
+  it.each([false, true])('observes a complete request without changing wire frames (combined=%s)', async combined => {
+    const policy = {...limits, maxFrameBytes: combined ? 2048 : 32};
+    const observed = [], metadata = {thread:'timed-provider'};
+    const options = {client:{limits:policy}, server:{limits:policy,
+      serve:async (_m,bytes) => partitionBinaryResult({ok:true}, bytes)}};
+    const baseline=fixture(options);
+    const instrumented=fixture({...options,server:{...options.server,
+      onReceiveTiming(timing, copy){ observed.push(timing); copy.thread='observer mutation'; throw Error('ignored observer'); }}});
+    const bytes=new Uint8Array([1,2,3,4]);
+    for (const f of [baseline,instrumented]) {
+      const result=await f.client.request(metadata,bytes,{maxResponseBytes:bytes.length});
+      expect([...result.bytes]).toEqual([...bytes]);
+    }
+    await vi.waitFor(()=>expect(observed).toHaveLength(1));
+    expect(instrumented.a.frames).toEqual(baseline.a.frames);
+    expect(instrumented.b.frames).toEqual(baseline.b.frames);
+    expect(metadata.thread).toBe('timed-provider');
+    const t=observed[0];
+    expect(t.requestId).toBe(1);
+    for(const [key,value] of Object.entries(t)) {
+      expect(Number.isFinite(value),key).toBe(true); expect(value,key).toBeGreaterThanOrEqual(0);
+    }
+    expect(t.receiveToExecuteMs+t.preServeAuthorizationMs+t.serveMs+t.responseAuthorizationMs
+      +t.responsePreparationMs+t.replyQueueAndEnqueueMs).toBeCloseTo(t.totalMs,5);
+    expect(t.readyToExecuteWaitMs+Math.max(t.admissionMs,t.payloadArrivalMs)).toBeCloseTo(t.receiveToExecuteMs,5);
+  });
+  it('includes awaited serving and authorization, not just runtime kernel execution', async () => {
+    const observed=[];
+    const f=fixture({server:{
+      authorize:async ({action}) => {if(action==='receive'||action==='respond') await new Promise(r=>setTimeout(r,5));return true;},
+      serve:async()=>{await new Promise(r=>setTimeout(r,10));return {ok:true};},
+      onReceiveTiming:t=>observed.push(t),
+    }});
+    await f.client.request({},new Uint8Array());
+    await vi.waitFor(()=>expect(observed).toHaveLength(1));
+    expect(observed[0].admissionMs).toBeGreaterThan(0);
+    expect(observed[0].serveMs).toBeGreaterThan(0);
+    expect(observed[0].responseAuthorizationMs).toBeGreaterThan(0);
+    expect(observed[0].payloadArrivalMs).toBe(0);
+  });
+});

@@ -31,6 +31,18 @@ it('keeps full-model lifecycle execution separate from timed requests and requir
   expect(result.stderr).toContain('Ran 7 tests');
   expect(result.stderr).toContain('OK');
 }, 10000);
+it('enforces hardened host Shmem/MemFree, AMD GPU GTT/512MiB carve-out, bulk-copy, and cold-cache preflight gates', async () => {
+  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'compare_complete_preflight_test.py'],
+    { cwd: repo, timeout: 8000, maxBuffer: 1024 ** 2 });
+  expect(result.stderr).toContain('Ran 8 tests');
+  expect(result.stderr).toContain('OK');
+}, 10000);
+it('measures matched two-machine split startup, post-open first request, and repeats on one requester clock', async () => {
+  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'compare_split_single_clock_test.py'],
+    { cwd: repo, timeout: 10000, maxBuffer: 1024 ** 2 });
+  expect(result.stderr).toContain('Ran 2 tests');
+  expect(result.stderr).toContain('OK');
+}, 12000);
 async function protocol(command, requests, root) {
   const script = `import sys,json,importlib.util,pathlib
 p=pathlib.Path(sys.argv[1])/'tests/fixtures/peers/pooled/compare-complete.py'

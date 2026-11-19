@@ -5,6 +5,15 @@ export interface PartitionRequestTiming {
   /** Includes remote authorization and computation, not pure network time. */
   responseWaitMs: number; acceptanceMs: number; totalMs: number;
 }
+/** Provider-local durations, never sent on the wire. Admission and payload arrival
+ * overlap. Enqueue completion does not establish network delivery or GPU settlement. */
+export interface PartitionReceiveTiming {
+  requestId: number; admissionMs: number; payloadArrivalMs: number;
+  readyToExecuteWaitMs: number; receiveToExecuteMs: number;
+  preServeAuthorizationMs: number; serveMs: number; responseAuthorizationMs: number;
+  responsePreparationMs: number; replyQueueAndEnqueueMs: number; totalMs: number;
+}
+export type PartitionReceiveTimingObserver = (timing: PartitionReceiveTiming, metadata: PartitionMetadata) => void;
 export interface PartitionChannelLimits {
   maxFrameBytes: number; maxControlBytes: number; maxPayloadBytes: number;
   maxPendingBytes: number; maxPendingRequests: number; maxRequestsPerChannel: number;
@@ -35,6 +44,8 @@ export function createPartitionDataChannel(options: {
   /** Host-authenticated channel endpoints, never supplied by received metadata. */
   localParticipantId: string; remoteParticipantId: string;
   limits: PartitionChannelLimits;
+  /** Optional local diagnostics. Observer exceptions do not alter transport outcomes. */
+  onReceiveTiming?: PartitionReceiveTimingObserver;
   /** Verify current grants, endpoints, purpose and allocation budgets. No default allow. */
   authorize(request: {
     action: 'send' | 'receive' | 'respond' | 'accept';

@@ -34,7 +34,7 @@ const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
  * under the partitions component's queue policy, so an authorized attempt that finds no free slot
  * waits and shows `queued` instead of failing; a weightless requester reports that state. */
 export function createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork,
-  loadProgram, ordered, onChange = () => {} }) {
+  loadProgram, ordered, onReceiveTiming, onChange = () => {} }) {
   const config = structuredClone(policy), catalog = structuredClone(models), options = structuredClone(ordered);
   let stage = options.stage ?? null;
   const orchestration = options.orchestration ?? null, auto = orchestration?.autoStage ?? null;
@@ -233,7 +233,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
           return createPartitionPeer({ channel, localParticipantId: identity.peerId, remoteParticipantId, runtime: program.runtime,
             plan: program.plan, planId: program.planId, modelIdentity: program.model.identity, authority,
             contributor: stage.index > 0 ? program.resident : null, limits: config.executionChannel, receiverLimits: config.receiver,
-            ordered: { route, partitionIndex: index } });
+            onReceiveTiming, ordered: { route, partitionIndex: index } });
         } });
       phase = 'ready'; progress = null; readyAt = Date.now();
     } catch (cause) {

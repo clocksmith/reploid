@@ -11,7 +11,11 @@ export async function openDiagnosticPieceCache({ metadata, model, runtime, polic
   policy = structuredClone(policy);
   assert(policy?.schema === 'reploid.diagnostic-piece-cache/v1'
     && Object.keys(policy).every(key => ['schema', 'manifestIdentity', 'indexIdentity', 'directory',
-      'maxPieceBytes', 'maxActiveReadBytes'].includes(key)), 'Invalid diagnostic piece cache policy');
+      'maxPieceBytes', 'maxActiveReadBytes', 'verificationCache'].includes(key)), 'Invalid diagnostic piece cache policy');
+  assert(policy.verificationCache === undefined
+    || (policy.verificationCache && typeof policy.verificationCache === 'object' && !Array.isArray(policy.verificationCache)
+      && typeof policy.verificationCache.directory === 'string' && path.isAbsolute(policy.verificationCache.directory)),
+  'Diagnostic piece cache verificationCache requires an explicit absolute directory');
   assert.equal(policy.manifestIdentity, hash(metadata.manifestBytes), 'Piece cache manifest binding mismatch');
   assert.equal(policy.indexIdentity, hash(metadata.indexBytes), 'Piece cache index binding mismatch');
   assert(model.capsule === undefined && model.id === metadata.manifest.modelId
@@ -21,6 +25,8 @@ export async function openDiagnosticPieceCache({ metadata, model, runtime, polic
     && policy.maxPieceBytes >= metadata.index.maxPieceBytes
     && Number.isSafeInteger(policy.maxActiveReadBytes) && policy.maxActiveReadBytes >= policy.maxPieceBytes,
   'Explicit complete-piece and active-read bounds required');
+  assert(Number.isInteger(constants.O_NOFOLLOW) && Number.isInteger(constants.O_NONBLOCK),
+    'Piece cache requires O_NOFOLLOW and O_NONBLOCK support');
   signal?.throwIfAborted();
   const directory = await fs.realpath(policy.directory);
   const directoryStat = await fs.stat(directory, { bigint: true });
@@ -44,7 +50,7 @@ export async function openDiagnosticPieceCache({ metadata, model, runtime, polic
       assert(currentDirectory.isDirectory() && currentDirectory.dev === directoryStat.dev
         && currentDirectory.ino === directoryStat.ino, 'Piece cache directory changed');
       const filename = path.join(directory, `${piece.path}.${piece.offset}`);
-      handle = await fs.open(filename, constants.O_RDONLY | constants.O_NOFOLLOW);
+      handle = await fs.open(filename, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
       const before = await handle.stat({ bigint: true });
       assert(before.isFile() && before.size === BigInt(piece.size), 'Cached piece must be a complete regular file');
       const bytes = new Uint8Array(piece.size);
@@ -100,10 +106,22 @@ export async function openDiagnosticPieceCache({ metadata, model, runtime, polic
   };
   try {
     opened = await runtime.createVerifiedPieceStorage({ manifestBytes: metadata.manifestBytes, indexBytes: metadata.indexBytes,
-      indexIdentity: policy.indexIdentity, signal, acquire: read });
+      indexIdentity: policy.indexIdentity, signal,
+      ...(policy.verificationCache ? {
+        nodePieceDirectory: {
+          directory,
+          maxPieceBytes: policy.maxPieceBytes,
+          maxActiveReadBytes: policy.maxActiveReadBytes,
+          verificationCache: { directory: policy.verificationCache.directory },
+        },
+      } : { acquire: read }) });
     const source = { ...opened, storage: { ...opened.storage, close },
-      getReceipt: () => ({ ...opened.getReceipt(), pieceCache: { ...stats, pendingDescriptorCloses: failedHandles.size,
-        scope: 'Partial authenticated pieces only; no complete local model claim or whole-part gather' } }) };
+      getReceipt: () => {
+        const ownedReceipt = opened.getPieceDirectoryReceipt?.();
+        return { ...opened.getReceipt(), pieceCache: {
+          ...(ownedReceipt ?? { ...stats, pendingDescriptorCloses: failedHandles.size }),
+          scope: 'Partial authenticated pieces only; no complete local model claim or whole-part gather' } };
+      } };
     onSource(source);
     signal?.throwIfAborted();
     return source;
