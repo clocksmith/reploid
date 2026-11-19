@@ -10,7 +10,7 @@ export const renderControlHelp = () => `${renderHelpButton()}<dialog class="chat
     <div data-help-for="[data-search-toggle]"><dt>Search</dt><dd>Search the web for this answer. Turn it off to ask without web search.</dd></div>
     <div data-help-for="[data-context-indicator]"><dt>Context</dt><dd>Open the context control to inspect execution details. A ring appears when the model reports context usage.</dd></div>
     <div data-help-for="[data-composer-stop],[data-answer-stop]"><dt>Progress and Stop</dt><dd>The animated status beside an answer shows its current stage. Tap it for details. Stop cancels that answer; any partial text stays.</dd></div>
-    <div data-help-for=".chat-message-metric"><dt>Measurements</dt><dd>Tap an answer’s speed, token count or time for its explanation. Missing measurements remain blank.</dd></div>
+    <div data-help-for="[data-execution-trigger]"><dt>Measurements</dt><dd>Open answer details to see recorded timings and token counts.</dd></div>
   </dl></dialog>`;
 
 let serial = 0;

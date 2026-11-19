@@ -143,14 +143,15 @@ it('keeps one composer picker and contribution in Computers, preserving drafts o
   expect(session.setSharing).not.toHaveBeenCalled(); detach();
 });
 
-it('puts this computer first, shows recorded usage, and toggles contribution without a download gate', async () => {
+it('puts network computers first and keeps usage and contribution in the owner disclosure', async () => {
   const snapshot = { ...state(), computerUsage: { supplied: { available: true, outputTokens: 14, unmeasured: 1, limit: 200 },
     consumed: { outputTokens: 9, unmeasured: 0 }, error: null } };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
     setComputeContribution: vi.fn(), setSharing: vi.fn() };
   const detach = bindProductionSurface(document.body, session);
   const pane = document.querySelector('[data-inspector-pane="participants"]');
-  expect(pane.firstElementChild.dataset.thisComputer).toBeDefined();
+  expect(pane.firstElementChild.querySelector('[data-insp-device-list]')).not.toBeNull();
+  expect(pane.querySelector('[data-production-device]').open).toBe(false);
   expect(document.querySelector('[data-device-supplied]').textContent).toBe('14 + unmeasured');
   expect(document.querySelector('[data-device-consumed]').textContent).toBe('9');
   expect(document.querySelector('[data-toggle-contribution]').getAttribute('aria-checked')).toBe('true');

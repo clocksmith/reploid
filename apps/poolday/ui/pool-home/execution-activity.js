@@ -57,7 +57,7 @@ export function updateExecutionActivity(root, state) {
   const stop = root.querySelector('[data-answer-stop]');
   if (stop) { stop.hidden = !view.active; stop.disabled = view.status === 'cancelling'; }
   root.toggleAttribute('data-active', view.active);
-  root.hidden = !view.attempt || !view.active && !toolStatus && !view.nodes.length && !supply.answer && !view.attempt.error;
+  root.hidden = !view.attempt || !view.active && !toolStatus && !view.nodes.length && !supply.answer && !view.attempt.error && !view.execution?.timing;
   if (root.hidden) return;
   const admission = view.execution?.admission;
   const queueLabel = view.status === 'queued' && Number.isSafeInteger(admission?.queuePosition) && admission.queuePosition > 0
@@ -75,7 +75,8 @@ export function updateExecutionActivity(root, state) {
   const icon = view.active
     ? '<span class="pool-dot pool-dot-pulse" data-tool-status role="status"></span>'
     : interfaceIcon(toolStatus ? 'search' : view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
-    + (view.computerCount ? `<span>${view.computerCount}</span>` : '')
+    + '<span class="chat-receipt-label">Execution details</span>'
+    + (view.computerCount ? `<span data-execution-count>${view.computerCount}</span>` : '')
     + (readable ? `<span data-execution-label>${escape(readable)}</span>` : '')
     + `<span class="chat-visually-hidden">${escape(summary)}</span>`;
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
@@ -101,6 +102,8 @@ export function updateExecutionDetail(detail, state) {
     ['Decode', timings?.decodeMs], ['Generation total', timings?.totalMs],
     ['Admission wait', view.execution?.admission?.queuedMs], ['Attempt total', view.totalMs]
   ].filter(([, value]) => Number.isFinite(value) && value >= 0).map(([label, value]) => [label, duration(value)]);
+  const outputTokens = timings?.generatedTokenCount ?? view.execution?.completion?.generatedTokenCount;
+  if (Number.isSafeInteger(outputTokens) && outputTokens >= 0) facts.push(['Output tokens', outputTokens.toLocaleString()]);
   const phases = view.execution?.stepSummary?.phases;
   const stageTotal = (stages, read) => view.ordered && stages?.length === view.nodes.length
     && view.nodes.every((_, index) => stages.filter(stage => stage.partitionIndex === index).length === 1)

@@ -52,30 +52,32 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" ${mounted ? 'role="tabpanel" id="inspector-pane-participants" aria-labelledby="inspector-tab-participants"' : ''} aria-label="Computers" hidden>
-      <section class="pool-stack pool-gap-sm" data-this-computer aria-label="This computer">
-        <h3 class="pool-subheading">This computer <span class="pool-muted" data-device-state-summary></span></h3>
-        <p class="pool-caption pool-muted" data-local-computer></p>
-        <dl class="pool-stats pool-columns computer-usage" aria-label="Recorded output tokens">
-          <div><dt>Tokens supplied</dt><dd data-device-supplied>—</dd></div>
-          <div><dt>Tokens consumed</dt><dd data-device-consumed>—</dd></div>
-        </dl>
-        <p class="pool-caption pool-muted" data-device-usage-scope></p>
-        <p class="pool-small pool-muted" data-device-usage-error role="status" hidden></p>
-        ${renderComputeSharingControls()}
-        ${renderFileSharingControls()}
-        <details class="pool-disclosure" data-production-device><summary>Contribution settings</summary><div class="pool-stack pool-gap-md">
-          ${renderComputerDiagnostic()}
-          ${contribution}
-
-          ${renderContributionLimits()}
-          <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
-        </div></details>
-      </section>
       <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Public network</h3>
         ${renderConnectionControl()}<p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
         <ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
       </section>
+      <details class="pool-disclosure" data-production-device><summary>Contribute this computer</summary>
+        <div class="pool-stack pool-gap-sm" data-this-computer>
+          <h3 class="pool-subheading">This computer <span class="pool-muted" data-device-state-summary></span></h3>
+          <p class="pool-caption pool-muted" data-local-computer></p>
+          <dl class="pool-stats pool-columns computer-usage" aria-label="Recorded output tokens">
+            <div><dt>Tokens supplied</dt><dd data-device-supplied>—</dd></div>
+            <div><dt>Tokens consumed</dt><dd data-device-consumed>—</dd></div>
+          </dl>
+          <p class="pool-caption pool-muted" data-device-usage-scope></p>
+          <p class="pool-small pool-muted" data-device-usage-error role="status" hidden></p>
+          ${renderComputeSharingControls()}
+          ${renderFileSharingControls()}
+          <div class="pool-stack pool-gap-md">
+            ${renderComputerDiagnostic()}
+            ${contribution}
+
+            ${renderContributionLimits()}
+            <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
+          </div>
+        </div>
+      </details>
       ${renderPrivateComputers()}
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" ${mounted ? 'role="tabpanel" id="inspector-pane-settings" aria-labelledby="inspector-tab-settings"' : ''} aria-label="Settings" hidden>
@@ -274,7 +276,9 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     }
   };
   on('[data-manage-file-sharing]', 'click', () => {
-    select('participants'); dialog.open(); find('[data-toggle-file-contribution]').focus();
+    select('participants'); dialog.open();
+    find('[data-production-device]').open = true;
+    find('[data-toggle-file-contribution]').focus();
   });
   const unsubscribe = session.subscribe(render);
   let downloadMode = 'contribute', downloadInfo = null;

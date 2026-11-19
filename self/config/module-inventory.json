@@ -4146,7 +4146,7 @@
     {
       "path": "ui/components/control-help.js",
       "owner": "ui",
-      "sha256": "sha256:da93bb20ab49b983c1adcfea59c2ec0bc7dc776abf13e97fa591a9018ed37844",
+      "sha256": "sha256:20903c3b3bc24324d41a9e26f7c67f1aa4ddaa636551508bb91421efe41a0a1a",
       "imports": [
         "./dialog.js",
         "./interface-icons.js"
@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:53a8cadbb546ea4217705a851a2f3cc84e783e0467dda2bf5dbca52684597780",
+      "sha256": "sha256:2d3e5a4e540b5a31cc88a513e7ea24035074449c6bc767b8e38d20e6a0ead80f",
       "imports": []
     },
     {
@@ -4397,7 +4397,7 @@
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:69f10e3ef6b47aca84250db4bf4f2f0283ea36df631c7dd808ef87758af2c681",
+      "sha256": "sha256:8a3b3886e15db6f9c2f21979cda7eac34569f3ea7adac67951a473fd63de77b6",
       "imports": [
         "../../config/chat-context-policy.json",
         "../../config/chat-prompts.json",
@@ -4419,7 +4419,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:2c55dbfe1475629fdebe9a25729793587170c960d0f058868ed6b32b72802570",
+      "sha256": "sha256:88f0a85d1119468d13bb505629fdf373c64642f0ab6cc5c6ffcaed154c13b6d7",
       "imports": [
         "../../config/work-profile.json",
         "../components/attachments.js",
@@ -4478,7 +4478,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:83ac7937496ea7aa37d489c51a432c791241a7e5a161b43a2a53e25906955a76",
+      "sha256": "sha256:6e421a07cec6a4eea8b2b50f9d77f917c913b07a06f5f18a09d709b3b5e2d733",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -4628,7 +4628,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:ab2295983171eb15a0c7a61130e558e53d3255edf8bcb154fa845971948e8d97",
+      "sha256": "sha256:e8288875824a22d7830eb3da2792e429baa60566659b7fa22fe6be5d390a9b01",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

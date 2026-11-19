@@ -317,7 +317,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
           else if (selectedModel?.partition) statusText = 'Public computers on this route can read the input for their own stages.';
           else statusText = 'The selected public computer can read your prompt.';
           if (execution.status === 'busy') statusText += ' Sending waits for capacity.';
-        }
+          else if (execution.status === 'ready') statusText = 'Ready. ' + statusText;
+        } else if (execution.status === 'ready') statusText = 'Ready. This device runs the model.';
+        else if (execution.status === 'cached') statusText = 'Downloaded. Sending loads the model on this device.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
       else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'This model is unavailable on this device.';
       else if (phase === 'paused') statusText = 'Network discovery is paused.';

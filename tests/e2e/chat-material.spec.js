@@ -514,14 +514,18 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     await page.evaluate(() => window.setVisualTiming({ generatedTokenCount: 256, totalMs: 21700 }));
     // Columns and the details control keep their place as the answer and its measurements arrive.
     const settled = await bounds();
-    for (const key of ['transcript', 'composer', 'details']) expect(settled[key]).toEqual(initial[key]);
+    for (const key of ['transcript', 'composer']) expect(settled[key]).toEqual(initial[key]);
+    // The live status becomes a receipt with a different label; its leading edge stays aligned.
+    expect(settled.details.x).toBe(initial.details.x);
+    expect(settled.details.x + settled.details.width).toBeLessThanOrEqual(settled.transcript.x + settled.transcript.width);
     expect(settled.copy).not.toBeNull();
-    expect(await row.locator('.chat-message-meta').evaluate(node => getComputedStyle(node).display)).toBe('flex');
+    if (width <= 760) await expect(row.locator('.chat-message-meta')).toBeHidden();
+    else await expect(row.locator('.chat-message-meta')).toBeVisible();
     const metric = row.locator('[data-metric="tokens"]');
     await expect(metric).toHaveText('256 tokens');
     const details = row.locator('[data-execution-trigger]');
-    expect(await details.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none');
-    await details.click();
+    await details.focus();
+    await details.press('Enter');
     await expect(page.locator('[data-inspected-activity]')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.locator('[data-inspected-activity]')).not.toBeVisible();
@@ -557,6 +561,11 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
     const area = await page.locator('[data-conversation-area]').boundingBox();
     expect(area.y + area.height - composer.y - composer.height).toBeLessThanOrEqual(24);
     expect(Math.abs(composer.x + composer.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
+    await expect(page.locator('[data-composer-area] [data-starting-prompt]')).toHaveCount(1);
+    const input = await page.locator('[data-composer-input]').boundingBox();
+    const send = await page.locator('[data-composer-send]').boundingBox();
+    expect(send.x).toBeGreaterThanOrEqual(input.x + input.width - 1);
+    expect(send.y).toBeLessThan(input.y + input.height);
     for (const prompt of await page.locator('[data-starting-prompt]').all()) {
       await prompt.scrollIntoViewIfNeeded();
       expect(await prompt.evaluate(node => node.scrollHeight <= node.clientHeight)).toBe(true);
@@ -886,7 +895,7 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
 
   await page.locator('.chat-composer-status-line [data-open-control-help]').click();
   await expect(page.locator('[data-control-help]')).toBeVisible();
-  await expect(page.locator('[data-control-help]')).toContainText('Tap an answer’s speed');
+  await expect(page.locator('[data-control-help]')).toContainText('Open answer details');
   await page.locator('[data-close-control-help]').click();
   await expect(page.locator('.chat-composer-status-line [data-open-control-help]')).toBeFocused();
 
@@ -935,8 +944,10 @@ test('touch help and model choices work without hover', async ({ browser }, info
     await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await installConversation(page, 'dark');
     await page.evaluate(() => { window.setVisualState('completed'); window.setVisualTiming({ generatedTokenCount: 92, totalMs: 5000 }); });
-    await page.locator('.is-assistant [data-metric="tokens"]').tap();
-    await expect(page.getByRole('tooltip')).toHaveText('92 generated tokens');
+    await expect(page.locator('.is-assistant [data-metric="tokens"]')).toBeHidden();
+    await page.locator('.is-assistant [data-execution-trigger]').tap();
+    await expect(page.locator('[data-inspected-activity]')).toContainText('Output tokens92');
+    await page.locator('[data-close-inspector]').tap();
     await page.locator('.chat-composer-status-line [data-open-control-help]').tap();
     await expect(page.locator('[data-control-help]')).toBeVisible();
     await page.screenshot({ path: info.outputPath('touch-help.png'), fullPage: true });
