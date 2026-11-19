@@ -650,6 +650,12 @@ and every indexed file as regular files in that directory. Bounds are explicit; 
 Routed-expert settings that need this storage (`sourceReadMode: "expert-lease-batch"`, `uploadStaging: "mapped"`)
 go in the model's `loadOptions.runtimeConfig` as usual. A model with no `wholeRuntime` is loaded as before.
 
+A reviewed catalog entry can carry the same `wholeRuntime.gather` bounds without a `verificationCache`: a
+catalog cannot name a machine directory, so the provider remembers verified pieces in `piece-state` beside its
+identity file. A catalog entry whose piece index is too large for the application bundle pins the index by
+byte length, SHA-256 and an immutable URL on the weight host instead; a provider reads that index from its
+model directory, where it sits beside the weights it describes, and names the pinned URL when it is missing.
+
 Checked on 2026-11-19 on one AMD host (Vulkan) with Qwen 3.8 Flash-Next in a private room, loopback signaling and
 a connect-only requester over WebRTC using the Chat Completions adapter: the model opened in 6.3 to 7.0 s and
 answered six requests, one of them with text identical to the earlier benchmark reference. That is a single-host

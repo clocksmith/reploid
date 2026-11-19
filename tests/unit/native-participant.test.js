@@ -193,6 +193,14 @@ describe('native host boundary', () => {
     expect(bound.fileIdentities['weights.bin']).toEqual({ device: stat.dev.toString(), inode: stat.ino.toString(), size: stat.size.toString() });
     expect(Object.keys(bound.fileIdentities)).toEqual(Object.keys(bound.files));
   });
+  it('names the pinned external file when a model directory lacks its piece index', async () => {
+    const { directory, model } = await fixture();
+    const external = structuredClone(model);
+    const descriptor = external.source.files.find(row => row.role === 'model-piece-index');
+    descriptor.path = 'absent-pieces.json'; descriptor.url = 'https://weights.example/resolve/' + 'a'.repeat(40) + '/pieces.json';
+    await expect(openNativeModelSource({ model: external, modelDirectory: directory, runtime }))
+      .rejects.toThrow('absent-pieces.json is not in the model directory; place the pinned file from https://weights.example/');
+  });
   it('rejects a weight symlink escaping the approved model directory', async () => {
     const { directory, model } = await fixture();
     const external = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-native-external-')); roots.push(external);

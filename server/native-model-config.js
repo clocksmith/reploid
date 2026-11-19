@@ -7,6 +7,32 @@ import { modelToolCallFormat } from '../shared/infrastructure/tool-call-constrai
 
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
+/** The whole-model gather policy of an operator configuration or a catalog entry, validated and copied. */
+export function validateWholeRuntime(model, wholeRuntime) {
+  const gather = wholeRuntime?.gather;
+  requireValue(wholeRuntime && Object.keys(wholeRuntime).every(key => key === 'gather') && gather
+    && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency', 'maxRanges', 'verificationCache'].includes(key))
+    && ['maxPartBytes', 'memoryBudgetBytes', 'concurrency'].every(key => Number.isSafeInteger(gather[key]) && gather[key] > 0)
+    && (gather.maxRanges === undefined || Number.isSafeInteger(gather.maxRanges) && gather.maxRanges > 0 && gather.maxRanges <= 32)
+    && (gather.verificationCache === undefined || Object.keys(gather.verificationCache).every(key => key === 'directory')
+      && typeof gather.verificationCache.directory === 'string' && path.isAbsolute(gather.verificationCache.directory)),
+  'Whole-model runtime requires explicit gather bounds and concurrency, and an absolute verification cache directory when one is named');
+  requireValue(model.executionModes?.includes('whole-model')
+    && model.source?.files?.some(row => row.role === 'model-piece-index' && row.hashAlgorithm === 'sha256'),
+  'Whole-model gathering requires a whole-model catalog entry with a pinned piece index');
+  return structuredClone(wholeRuntime);
+}
+
+/** A catalog entry's gather policy on this machine. A catalog names bounds only; where verified state is
+ * remembered is this machine's choice, beside the provider's identity. */
+export function catalogWholeRuntime(model, stateDirectory) {
+  const wholeRuntime = validateWholeRuntime(model, model.wholeRuntime);
+  requireValue(wholeRuntime.gather.verificationCache === undefined, 'Whole-model runtime in the catalog cannot name a machine directory');
+  requireValue(path.isAbsolute(stateDirectory), 'Whole-model verification state requires an absolute directory');
+  wholeRuntime.gather.verificationCache = { directory: path.join(stateDirectory, 'piece-state') };
+  return wholeRuntime;
+}
+
 export async function readNativeModelConfiguration(file, { modelId, modelDirectory, models = [],
   loadRuntime = () => import('doppler-gpu/partitions') }) {
   requireValue(path.isAbsolute(file), 'Native model configuration requires an absolute JSON path');
@@ -33,20 +59,8 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
   // Whole-model loading through authenticated worker gathering: every weight piece is hashed against the
   // model's pinned piece index before use, by parallel workers, and what was verified is remembered for the
   // file's current state. Without it a whole model is read through the plain file loader.
-  if (configuration.wholeRuntime !== undefined) {
-    const gather = configuration.wholeRuntime?.gather;
-    requireValue(Object.keys(configuration.wholeRuntime).every(key => key === 'gather') && gather
-      && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency', 'maxRanges', 'verificationCache'].includes(key))
-      && ['maxPartBytes', 'memoryBudgetBytes', 'concurrency'].every(key => Number.isSafeInteger(gather[key]) && gather[key] > 0)
-      && (gather.maxRanges === undefined || Number.isSafeInteger(gather.maxRanges) && gather.maxRanges > 0 && gather.maxRanges <= 32)
-      && (gather.verificationCache === undefined || Object.keys(gather.verificationCache).every(key => key === 'directory')
-        && typeof gather.verificationCache.directory === 'string' && path.isAbsolute(gather.verificationCache.directory)),
-    'Whole-model runtime requires explicit gather bounds and concurrency, and an absolute verification cache directory when one is named');
-    requireValue(model.executionModes?.includes('whole-model')
-      && model.source?.files?.some(row => row.role === 'model-piece-index' && row.hashAlgorithm === 'sha256'),
-    'Whole-model gathering requires a whole-model catalog entry with a pinned piece index');
-    model.wholeRuntime = structuredClone(configuration.wholeRuntime);
-  }
+  const wholeRuntime = configuration.wholeRuntime ?? model.wholeRuntime;
+  if (wholeRuntime !== undefined) model.wholeRuntime = validateWholeRuntime(model, wholeRuntime);
   if (model.partitionRuntime?.runtimeConfig === 'model') {
     requireValue(model.loadOptions?.runtimeConfig && typeof model.loadOptions.runtimeConfig === 'object',
       'The model runtime reference requires explicit model.loadOptions.runtimeConfig');

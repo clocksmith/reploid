@@ -6,7 +6,7 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readNativeModelConfiguration } from '../../server/native-model-config.js';
+import { readNativeModelConfiguration, catalogWholeRuntime } from '../../server/native-model-config.js';
 
 const directories = [];
 afterEach(async () => { await Promise.all(directories.splice(0).map(directory => fs.rm(directory, { recursive: true, force: true }))); });
@@ -136,4 +136,29 @@ it('accepts whole-model gathering only with explicit bounds, a pinned piece inde
   await refuse(c => { c.wholeRuntime.extra = {}; });
   await refuse(c => { c.model.source.files = []; });
   await refuse(c => { c.model.executionModes = ['partition']; });
+});
+
+it('gives a catalog entry\'s gather policy a verification directory beside the provider identity, and refuses one named in the catalog', () => {
+  const model = { id: 'catalog-model', executionModes: ['whole-model'],
+    source: { files: [{ path: 'pieces.json', role: 'model-piece-index', hashAlgorithm: 'sha256', hash: 'c'.repeat(64) }] },
+    wholeRuntime: { gather: { maxPartBytes: 4096, memoryBudgetBytes: 65536, concurrency: 8, maxRanges: 3 } } };
+  const resolved = catalogWholeRuntime(model, '/var/lib/provider');
+  expect(resolved).toEqual({ gather: { ...model.wholeRuntime.gather, verificationCache: { directory: '/var/lib/provider/piece-state' } } });
+  expect(model.wholeRuntime.gather.verificationCache).toBeUndefined();
+  expect(() => catalogWholeRuntime(model, 'relative')).toThrow(/absolute directory/);
+  expect(() => catalogWholeRuntime({ ...model, wholeRuntime: { gather: { ...model.wholeRuntime.gather, verificationCache: { directory: '/elsewhere' } } } },
+    '/var/lib/provider')).toThrow(/cannot name a machine directory/);
+  expect(() => catalogWholeRuntime({ ...model, wholeRuntime: { gather: { maxPartBytes: 4096 } } }, '/var/lib/provider')).toThrow(/Whole-model/);
+  expect(() => catalogWholeRuntime({ ...model, executionModes: ['partition'] }, '/var/lib/provider')).toThrow(/Whole-model/);
+});
+
+it('validates a gather policy carried inside an operator model entry as it does a top-level one', async () => {
+  const f = await fixture();
+  delete f.configuration.partition; delete f.configuration.model.partitionRuntime;
+  f.configuration.model.source = { files: [{ path: 'pieces.json', role: 'model-piece-index', hashAlgorithm: 'sha256', hash: 'c'.repeat(64) }] };
+  f.configuration.model.wholeRuntime = { gather: { maxPartBytes: 4096, memoryBudgetBytes: 65536, concurrency: 2 } };
+  await f.write();
+  expect((await f.read()).wholeRuntime).toEqual(f.configuration.model.wholeRuntime);
+  f.configuration.model.wholeRuntime.gather.concurrency = 0; await f.write();
+  await expect(f.read()).rejects.toThrow(/Whole-model/);
 });

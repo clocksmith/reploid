@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util';
 import path from 'node:path';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
 import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
-import { readNativeModelConfiguration } from './native-model-config.js';
+import { readNativeModelConfiguration, catalogWholeRuntime } from './native-model-config.js';
 import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
 import custodyPolicy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
 import fs from 'node:fs/promises';
@@ -128,6 +128,10 @@ is separate from backend selection; --help opens no provider.`);
     model = { ...model, adapters: [structuredClone(adapter)] };
   }
   if (values['partition-index'] !== undefined) model = { ...model, partitionContributionIndexes: [Number(values['partition-index'])] };
+  // A catalog entry's whole-model gather policy remembers verified pieces beside this provider's identity.
+  if (values['model-config'] === undefined && model.wholeRuntime !== undefined) {
+    model = { ...model, wholeRuntime: catalogWholeRuntime(model, path.dirname(identityFile)) };
+  }
   if (sourceRuntime) assertNativeRuntimeSourceMode({ roomId: values.room, publicRoomId: bootstrap.publicRoomId, model });
   const moduleSpecifier = value => {
     requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),

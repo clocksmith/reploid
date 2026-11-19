@@ -27,7 +27,7 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
   resolveAdapter = createModelAdapterResolver({ models: [model] }),
   service = createReploidDopplerRuntimeService({ loadModule: () => import('doppler-gpu/compat') }),
   createResident = createNativeResidentProvider, providerPolicy = profile, resolveGeneration = resolvePartitionGeneration,
-  // With `model.wholeRuntime.gather` (operator configuration only) the weights are read through authenticated
+  // With `model.wholeRuntime.gather` (a catalog entry or an operator configuration) the weights are read through authenticated
   // worker gathering instead of the plain file loader; these two are replaced in tests.
   openSource = openNativeModelSource, loadGatherRuntime = () => import('doppler-gpu/partitions') }) {
   model = structuredClone(model);

@@ -22,6 +22,17 @@ describe('chat model manifest delivery', () => {
       const manifest = JSON.parse(bytes);
       expect(manifest.modelId).toBe(model.id);
       const pieces = model.source.files.find(item => item.role === 'model-piece-index');
+      // An index too large for the bundle is named by an immutable revision of the weight host, with its
+      // byte length and digest pinned here. It is fetched only by a machine that reads the weights.
+      if (!pieces.url.startsWith('/')) {
+        expect(pieces.url).toBe(`https://huggingface.co/clocksmith/rdrr/resolve/${pieces.url.split('/')[6]}/models/${model.id}/indexes/${pieces.hash}/pieces.json`);
+        expect(pieces.url.split('/')[6]).toMatch(/^[a-f0-9]{40}$/);
+        expect(pieces.hashAlgorithm).toBe('sha256');
+        expect(pieces.hash).toMatch(/^[a-f0-9]{64}$/);
+        expect(Number.isSafeInteger(pieces.sizeBytes) && pieces.sizeBytes > 0).toBe(true);
+        expect([...hosted].some(file => file.includes(pieces.hash))).toBe(false);
+        continue;
+      }
       const indexBytes = await readFile(resolveServedFile(pieces.url));
       expect(hosted.has(pieces.url.slice(1))).toBe(true);
       expect(indexBytes.length).toBe(pieces.sizeBytes);
