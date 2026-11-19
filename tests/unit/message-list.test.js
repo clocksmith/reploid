@@ -112,6 +112,21 @@ describe('Stable message presentation', () => {
 });
 
 
+it('keeps privacy tied to the answer after thread policy changes and ignores an approval-only receipt', () => {
+  const root = document.createElement('div'), thread = conversation(), view = createMessageList(root);
+  thread.model = { name: 'Model' };
+  const receipt = { schema: 'reploid.privacy-receipt/v1', profile: 'restricted', recipients: [] };
+  thread.attempts[0].execution = { placement: 'local-webgpu', privacy: receipt };
+  thread.privacy = { profile: 'provider-visible' };
+  view.update(thread, { usable: true, busy: false });
+  expect(root.querySelector('[data-metric="privacy"]').textContent).toBe('Restricted recipients · This device');
+  delete thread.attempts[0].execution.privacy;
+  thread.attempts[0].privacyReceipt = receipt;
+  view.update(thread, { usable: true, busy: false });
+  expect(root.querySelector('[data-metric="privacy"]').textContent).toBe('Privacy unrecorded');
+  view.dispose();
+});
+
 it('shows recorded answer metadata and omits unknown or invalid measurements', () => {
   const root = document.createElement('div'), thread = conversation();
   thread.model = { name: 'Qwen 27B' };
@@ -119,7 +134,7 @@ it('shows recorded answer metadata and omits unknown or invalid measurements', (
   const view = createMessageList(root);
   view.update(thread, { usable: true, busy: false });
   const meta = root.querySelector('.is-assistant .chat-message-meta');
-  expect(meta.textContent).toBe('');
+  expect(meta.textContent).toBe('Privacy unrecorded');
   thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 92, totalMs: 5000 } };
   view.update(thread, { usable: true, busy: false });
   expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · This device');
@@ -133,7 +148,7 @@ it('shows recorded answer metadata and omits unknown or invalid measurements', (
   expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · Shared computer');
   thread.attempts[0].execution.timing = { generatedTokenCount: -1, totalMs: NaN };
   view.update(thread, { usable: true, busy: false });
-  expect(meta.textContent).toBe('');
+  expect(meta.textContent).toBe('Privacy unrecorded');
   view.dispose();
 });
 

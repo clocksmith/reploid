@@ -1,5 +1,4 @@
 /** Model-picker presentation only. Selection and execution remain with the caller. */
-import { updatePrivacyControls } from './privacy-controls.js';
 import { updateModelSelect, modelExecutionState, modelFacts, unavailableModelChoice } from '../components/model-select.js';
 import { updateModelProviders } from './model-providers.js';
 import { updateAdapterDetails, describeModelChoice } from './model-adapters.js';
@@ -31,7 +30,7 @@ export function localFitText(model, info, { cached = false, sizeBytes = info?.si
 }
 
 export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
-  touched: pickerTouched, changing: changingModel, selectedId, privacy, canDownload }) {
+  touched: pickerTouched, changing: changingModel, selectedId, localOnly, canDownload }) {
   const keyFor = model => model?.selectionId || model?.id;
   if (!pickerTouched) pickerModel = (state.models || []).find(model => keyFor(model) === selectedId) || pickerModel;
   const models = [...(state.models || [])];
@@ -39,8 +38,6 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
     models.push(selected || unavailableModelChoice(pickerModel));
   }
-  updatePrivacyControls(find('[data-privacy-controls]'), state.activeThread?.privacy ?? privacy,
-    changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId));
   const preferNetwork = pickerLocation !== 'local';
   find('[data-next-model]').disabled = changingModel;
   updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });
@@ -53,10 +50,13 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   const available = selected && (preview.usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && !!selected.source && !selected.partition && !state.localDownloadIssue);
   for (const button of find('[data-execution-location]').querySelectorAll('[data-execution-choice]')) {
     const location = button.dataset.executionChoice;
-    if (location === 'network') button.textContent = selected?.fleet ? 'Private computers' : 'Public network';
+    if (location === 'network') {
+      button.textContent = selected?.fleet ? 'Private network' : 'Network';
+      button.setAttribute('aria-label', selected?.fleet ? 'Private network' : 'Public network');
+    }
     button.setAttribute('aria-pressed', String(location === pickerLocation));
     button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId)
-      || location !== 'auto' && !modelExecutionState(selected, location).usable;
+      || localOnly && location !== 'local' || location !== 'auto' && !modelExecutionState(selected, location).usable;
   }
   // A model nobody is sharing that this device could store is not a dead end: the same button downloads it.
   const downloadable = !available && !!selected && canDownloadModelHere(selected, state, canDownload);

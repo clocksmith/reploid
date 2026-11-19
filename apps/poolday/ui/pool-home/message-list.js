@@ -1,3 +1,4 @@
+import { answerPrivacy } from './privacy-controls.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { projectExecutionActivity, updateExecutionActivity } from './execution-activity.js';
 import { escapeHtml as escape } from '../components/attachments.js';
@@ -32,6 +33,7 @@ function updateMessageMeta(root, thread, attempt, state) {
   const tokens = timing?.generatedTokenCount ?? execution?.completion?.generatedTokenCount;
   const view = projectExecutionActivity({ ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
   const measurements = [
+    ['privacy', ...answerPrivacy(execution, state)],
     ['activity', view.averageSpeed === null ? '' : `${view.averageSpeed.toFixed(1)} tok/s`, view.averageSpeed === null ? null : 'Generation average including prompt processing; excludes queue and model loading'],
     ['tokens', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} ${tokens === 1 ? 'token' : 'tokens'}` : '', Number.isSafeInteger(tokens) && tokens >= 0 ? `${tokens} generated tokens` : null],
     ['clock', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? `${(timing.totalMs / 1000).toFixed(1)} s` : '', Number.isFinite(timing?.totalMs) && timing.totalMs > 0 ? 'Generation time including prompt processing' : null]

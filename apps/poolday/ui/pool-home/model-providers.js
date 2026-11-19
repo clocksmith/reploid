@@ -88,7 +88,7 @@ export function updateModelProviders(root, state, model, { selectedId = model ? 
     // A provider's own status appears only where it differs from its route's.
     const people = route => route.participants.map(peer => `<li><span>${escape(peer.label)}</span><small class="pool-small pool-muted">${[peer.role, peer.hardware, peer.status === route.status ? '' : peer.status].filter(Boolean).map(escape).join(' · ')}</small></li>`).join('');
     const markup = count || routes.length > 1 ? routes.map(route => `<div class="chat-model-route pool-stack pool-gap-xs" data-model-route="${escape(route.selectionId)}">${choose
-      ? `<label class="chat-model-route-heading"><input type="radio" name="${disclosure.dataset.routeName}" value="${escape(route.selectionId)}" data-model-route-choice><strong>${escape(route.type)}</strong><span class="pool-muted">${escape(route.status)}</span></label>`
+      ? `<label class="chat-model-choice pool-choice pool-button btn-ghost"><input type="radio" name="${disclosure.dataset.routeName}" value="${escape(route.selectionId)}" data-model-route-choice><span><strong>${escape(route.type)}</strong><small class="pool-muted">${escape(route.status)}</small></span></label>`
       : `<div class="chat-model-route-heading"><strong>${escape(route.type)}</strong><span class="pool-muted">${escape(route.status)}</span></div>`}${route.participants.length
       ? `<ul class="chat-model-route-people">${people(route)}</ul>` : `<p class="pool-small pool-muted">${route.type === 'Whole model' ? 'No providers reported.' : 'No computers assigned.'}</p>`}</div>`).join('')
       : '<p class="pool-small pool-muted">No providers reported for this model.</p>';
