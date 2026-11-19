@@ -114,9 +114,10 @@ try {
   await fs.rm(altered, { recursive: true, force: true });
   await fs.cp(await fs.realpath(path.join(config.requester.releaseRoot, 'reploid')), altered, { recursive: true, verbatimSymlinks: true });
   const meshFile = path.join(altered, 'packages', 'reploid', 'src', 'mesh', 'peer-generation.js'), source = await fs.readFile(meshFile, 'utf8');
-  const anchor = '        ...(settings ? { settings: snapshotJson(settings) } : {})\n      };\n';
-  if (source.split(anchor).length !== 2) throw Error('The altered requester could not be prepared: the payload statement moved');
-  await fs.writeFile(meshFile, source.replace(anchor, anchor
+  // The statement that builds the request, whatever fields it has gained since: the alteration goes right after it.
+  const statements = source.match(/ {6}const requestPayload = \{\n[\s\S]*?\n {6}\};\n/g) ?? [];
+  if (statements.length !== 1 || !statements[0].includes('settings: snapshotJson(settings)')) throw Error('The altered requester could not be prepared: the payload statement moved');
+  await fs.writeFile(meshFile, source.replace(statements[0], () => statements[0]
     + '      if (requestPayload.settings) requestPayload.settings = { ...requestPayload.settings, maxOutputTokens: requestPayload.settings.maxOutputTokens + 1 };\n'));
   const tampered = await requesterHost({ ...config.tamperedRequester, codeRoot: altered }); nodes.push(tampered);
 
