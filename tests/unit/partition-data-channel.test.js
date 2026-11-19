@@ -56,6 +56,37 @@ describe('partition binary transport (injected host ports)', () => {
     const receipt = f.server.getReceipt(); receipt.lastFailure.message = 'changed';
     expect(f.server.getReceipt().lastFailure.message).toBe('private device allocation detail');
   });
+  it('sends a payload within the burst bound in small frames and a larger one in full frames', async () => {
+    const burst = { ...limits, maxFrameBytes: 512, maxControlBytes: 1024, maxPayloadBytes: 4096, maxPendingBytes: 8192,
+      maxBufferedBytes: 65536, burstFrameBytes: 64, burstPayloadBytes: 300 };
+    const serve = async (metadata, bytes) => partitionBinaryResult({ thread: metadata.thread }, bytes.slice());
+    const f = fixture({ client: { limits: burst, serve }, server: { limits: burst, serve } });
+    const small = Uint8Array.from({ length: 300 }, (_, index) => index % 251);
+    const echoed = await f.client.request({ thread: 'small' }, small, { maxResponseBytes: 300 });
+    expect([...echoed.bytes]).toEqual([...small]);
+    // Request and binary reply both fit the burst bound: no frame in either direction exceeds a burst frame
+    // except the leading frame, which may carry a control header larger than one burst frame.
+    for (const channel of [f.a, f.b]) {
+      const sizes = frames(channel).map(frame => frame.byteLength);
+      expect(sizes.length).toBeGreaterThan(4);
+      expect(sizes.slice(1).every(size => size <= 64)).toBe(true);
+    }
+    const sentSmall = frames(f.a).length;
+    const large = Uint8Array.from({ length: 1500 }, (_, index) => index % 249);
+    const back = await f.client.request({ thread: 'large' }, large, { maxResponseBytes: 1500 });
+    expect([...back.bytes]).toEqual([...large]);
+    const largeFrames = frames(f.a).slice(sentSmall).map(frame => frame.byteLength);
+    expect(largeFrames.length).toBeLessThanOrEqual(4);
+    expect(Math.max(...largeFrames)).toBeGreaterThan(64);
+  });
+  it('rejects burst limits that are incomplete or exceed the frame and payload limits', () => {
+    for (const bad of [{ burstFrameBytes: 64 }, { burstPayloadBytes: 64 }, { burstFrameBytes: 64, burstPayloadBytes: 1024 },
+      { burstFrameBytes: 64, burstPayloadBytes: 0 }, { burstFrameBytes: 8, burstPayloadBytes: 64 }]) {
+      const [a] = pair();
+      expect(() => createPartitionDataChannel({ channel: a, localParticipantId: 'a', remoteParticipantId: 'b',
+        authorize: async () => true, serve: async () => ({}), limits: { ...limits, ...bad } })).toThrow(/burst frame limits/);
+    }
+  });
   it('observes bounded request phases without letting an observer break delivery', async () => {
     const f = fixture();
     let measured;

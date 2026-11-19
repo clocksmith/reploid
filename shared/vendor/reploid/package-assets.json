@@ -1777,13 +1777,13 @@
     },
     {
       "path": "transport/partition-data-channel.d.ts",
-      "bytes": 4858,
-      "sha256": "d405b0c94fc5065f677a9c4ab485051d0a9da75ba8c70bc1c2d3be0b73206e26"
+      "bytes": 5036,
+      "sha256": "8908df6f6b98cb409a70ebadb691e6b72b66356cbf12008ed341249653d4d312"
     },
     {
       "path": "transport/partition-data-channel.js",
-      "bytes": 27482,
-      "sha256": "1d14a092ce00226d90b0306571d49120fc4e89420f8e72231058dae5e29a0e42"
+      "bytes": 28668,
+      "sha256": "a3a993369ef3f1f3aacdf777be69331d9a88da5348f5c6e11b0c73547e4f043c"
     },
     {
       "path": "transport/partition-errors.json",

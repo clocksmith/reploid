@@ -16,6 +16,8 @@ export interface PartitionReceiveTiming {
 export type PartitionReceiveTimingObserver = (timing: PartitionReceiveTiming, metadata: PartitionMetadata) => void;
 export interface PartitionChannelLimits {
   maxFrameBytes: number; maxControlBytes: number; maxPayloadBytes: number;
+  /** Set together or not at all: a payload of at most burstPayloadBytes travels in frames of at most burstFrameBytes. */
+  burstFrameBytes?: number; burstPayloadBytes?: number;
   maxPendingBytes: number; maxPendingRequests: number; maxRequestsPerChannel: number;
   maxBufferedBytes: number; maxTransferBytes: number; timeoutMs: number;
 }
