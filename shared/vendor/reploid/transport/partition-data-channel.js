@@ -46,14 +46,37 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   // An SCTP data channel sends a few packets per send call and then waits for acknowledgements, so one
   // large frame takes several network round trips where the same bytes in small frames take one. A
   // payload no larger than burstPayloadBytes therefore travels in frames of at most burstFrameBytes.
-  // Both endpoints declare the same policy, so the receiver derives the same geometry from the size.
+  // Small frames are negotiated on the channel itself: every request and result header carries this
+  // endpoint's burst limits (`accepts`), small frames are sent only once the peer has declared the same
+  // limits, and a header whose payload travels in them says so (`frameBytes`). A peer that declares
+  // nothing, or other limits, gets full frames, so endpoints with different policies interoperate. The
+  // first request on a channel therefore always travels in full frames.
   assert((policy.burstFrameBytes === undefined) === (policy.burstPayloadBytes === undefined)
     && (policy.burstFrameBytes === undefined || positive(policy.burstFrameBytes) && positive(policy.burstPayloadBytes)
       && policy.burstFrameBytes > HEADER_BYTES && policy.burstFrameBytes <= policy.maxFrameBytes
       && policy.burstPayloadBytes <= policy.maxPayloadBytes), 'invalid burst frame limits');
-  const frameBytesFor = size => policy.burstFrameBytes !== undefined && size <= policy.burstPayloadBytes
-    ? policy.burstFrameBytes : policy.maxFrameBytes;
-  const fragmentBytesFor = size => frameBytesFor(size) - HEADER_BYTES;
+  const burst = policy.burstFrameBytes === undefined ? null
+    : Object.freeze({ frameBytes: policy.burstFrameBytes, payloadBytes: policy.burstPayloadBytes });
+  const declared = burst ? { accepts: burst } : {};
+  let peerAgrees = false;
+  const frameBytesFor = size => burst && peerAgrees && size > 0 && size <= burst.payloadBytes
+    ? burst.frameBytes : policy.maxFrameBytes;
+  // Header fields for a payload of this size, and the frame size they announce.
+  const announce = size => {
+    const frameBytes = frameBytesFor(size);
+    return { frameBytes, fields: frameBytes === policy.maxFrameBytes ? declared : { ...declared, frameBytes } };
+  };
+  // The peer's header: remember whether it accepts this endpoint's small frames, and return the frame
+  // size its payload uses. Only this endpoint's own declared geometry is ever accepted.
+  const announced = (frame, size) => {
+    if (frame.accepts !== undefined) {
+      assert(object(frame.accepts) && positive(frame.accepts.frameBytes) && positive(frame.accepts.payloadBytes), 'burst declaration');
+      peerAgrees = burst !== null && frame.accepts.frameBytes === burst.frameBytes && frame.accepts.payloadBytes === burst.payloadBytes;
+    }
+    if (frame.frameBytes === undefined) return policy.maxFrameBytes;
+    assert(burst !== null && frame.frameBytes === burst.frameBytes && size > 0 && size <= burst.payloadBytes, 'payload frame geometry');
+    return frame.frameBytes;
+  };
   // Requests this endpoint sent, and the peer's requests it holds. Each direction is bounded by
   // the declared window (maxPendingRequests, maxPendingBytes): both endpoints of a channel declare
   // the same channel policy, and a peer that exceeds this endpoint's window closes the channel.
@@ -91,8 +114,8 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     return text;
   }
   const control = (frame, signal) => send(encodeControl(frame), signal);
-  async function sendPayload(kind, id, bytes, signal, startOffset = 0) {
-    const fragment = fragmentBytesFor(bytes.length);
+  async function sendPayload(kind, id, bytes, frameBytes, signal, startOffset = 0) {
+    const fragment = frameBytes - HEADER_BYTES;
     for (let offset = startOffset; offset < bytes.length; offset += fragment) {
       const part = bytes.subarray(offset, offset + fragment);
       const frame = new Uint8Array(HEADER_BYTES + part.length);
@@ -105,9 +128,9 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       await send(frame.buffer, signal);
     }
   }
-  function packCombinedFrame(kind, id, controlBytes, bytes) {
+  function packCombinedFrame(kind, id, controlBytes, bytes, frameBytes) {
     // A control frame larger than a burst frame still leaves in one frame; it then carries no payload.
-    const firstChunk = Math.max(0, Math.min(bytes.length, frameBytesFor(bytes.length) - HEADER_BYTES - controlBytes.length));
+    const firstChunk = Math.max(0, Math.min(bytes.length, frameBytes - HEADER_BYTES - controlBytes.length));
     const frame = new Uint8Array(HEADER_BYTES + controlBytes.length + firstChunk);
     const view = new DataView(frame.buffer);
     view.setUint8(0, kind);
@@ -215,23 +238,23 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     if (closed) return;
     const terminal = entry.terminal ?? (entry.timedOut ? { type: 'error', code: 'REQUEST_TIMEOUT' }
       : entry.failure ? { type: 'error', code: entry.failure } : { type: 'released' });
-    const response = entry.responsePayload;
+    const response = entry.responsePayload, responseFrameBytes = entry.responseFrameBytes;
     entry.responsePayload = null;
     (async () => {
       const text = encodeControl({ ...terminal, id: entry.id });
       const controlBytes = response?.length ? encoder.encode(text) : null;
       if (controlBytes && HEADER_BYTES + controlBytes.length < policy.maxFrameBytes) {
-        const packed = packCombinedFrame(COMBINED_RESPONSE, entry.id, controlBytes, response);
+        const packed = packCombinedFrame(COMBINED_RESPONSE, entry.id, controlBytes, response, responseFrameBytes);
         const replyReadyAt = receiveNow();
         await send(packed.buffer);
         if (packed.firstChunk < response.length) {
-          await sendPayload(RESPONSE_PAYLOAD, entry.id, response, undefined, packed.firstChunk);
+          await sendPayload(RESPONSE_PAYLOAD, entry.id, response, responseFrameBytes, undefined, packed.firstChunk);
         }
         observeReceived(entry, replyReadyAt, receiveNow());
       } else {
         const replyReadyAt = receiveNow();
         await send(text);
-        if (response?.length) await sendPayload(RESPONSE_PAYLOAD, entry.id, response);
+        if (response?.length) await sendPayload(RESPONSE_PAYLOAD, entry.id, response, responseFrameBytes);
         observeReceived(entry, replyReadyAt, receiveNow());
       }
     })().catch(failDelivery);
@@ -268,7 +291,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     incomingBytes += frame.size;
     const receivedAt = receiveNow();
     const entry = { id: frame.id, metadata: frame.metadata, size: frame.size, responseBytes: frame.responseBytes,
-      receivedAt, payloadReadyAt: frame.size === 0 ? receivedAt : null,
+      receivedAt, payloadReadyAt: frame.size === 0 ? receivedAt : null, fragment: announced(frame, frame.size) - HEADER_BYTES,
       offset: 0, unfragmented: frame.size === 0, controller: new AbortController(), busy: true, permitted: false, bytes: new Uint8Array(frame.size) };
     incoming.set(frame.id, entry);
     entry.timer = setTimeout(() => { entry.timedOut = true; cancelIncoming(entry); }, policy.timeoutMs);
@@ -310,8 +333,10 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       assert(object(result), 'JSON result object required');
       assert(!payload || payload.length <= entry.responseBytes, 'response exceeds the declared allocation');
       // Bound the reply before releasing the window that carries it.
-      encodeControl({ type: 'result', id: entry.id, result, size: payload?.length ?? 0 });
-      entry.terminal = { type: 'result', result, size: payload?.length ?? 0 };
+      const reply = announce(payload?.length ?? 0);
+      entry.terminal = { type: 'result', result, size: payload?.length ?? 0, ...reply.fields };
+      encodeControl({ ...entry.terminal, id: entry.id });
+      entry.responseFrameBytes = reply.frameBytes;
       entry.responsePayload = payload?.slice() ?? null;
     } catch (error) {
       recordFailure(entry, 'execution', error);
@@ -330,19 +355,19 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       entry.uploadStartedAt = performance.now();
       const controlBytes = entry.bytes.length ? encoder.encode(text) : null;
       if (controlBytes && HEADER_BYTES + controlBytes.length < policy.maxFrameBytes) {
-        const packed = packCombinedFrame(COMBINED_REQUEST, entry.id, controlBytes, entry.bytes);
+        const packed = packCombinedFrame(COMBINED_REQUEST, entry.id, controlBytes, entry.bytes, entry.frameBytes);
         try { await send(packed.buffer, entry.controller.signal); }
         catch (error) { held.delete(entry.id); pump(); throw error; }
         entry.sent = true;
         if (packed.firstChunk < entry.bytes.length) {
-          await sendPayload(REQUEST_PAYLOAD, entry.id, entry.bytes, entry.controller.signal, packed.firstChunk);
+          await sendPayload(REQUEST_PAYLOAD, entry.id, entry.bytes, entry.frameBytes, entry.controller.signal, packed.firstChunk);
         }
       } else {
         try { await send(text, entry.controller.signal); }
         catch (error) { held.delete(entry.id); pump(); throw error; }
         entry.sent = true;
         // The payload follows its header without waiting for a reply.
-        await sendPayload(REQUEST_PAYLOAD, entry.id, entry.bytes, entry.controller.signal);
+        await sendPayload(REQUEST_PAYLOAD, entry.id, entry.bytes, entry.frameBytes, entry.controller.signal);
       }
       entry.bytes = null;
     } catch (error) { entry.abort(error); }
@@ -381,6 +406,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     returnCredit(frame.id);
     const size = frame.type === 'result' ? frame.size : 0;
     assert(count(size) && size <= policy.maxPayloadBytes, 'response geometry');
+    const responseFrameBytes = announced(frame, size);
     const entry = outgoing.get(frame.id);
     if (!entry || entry.finished) {
       counters.discardedFrames++;
@@ -393,6 +419,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       finish(entry, coded(code)); return;
     }
     assert(!entry.result && object(frame.result) && size <= entry.responseBytes, 'unexpected result');
+    entry.responseFragment = responseFrameBytes - HEADER_BYTES;
     entry.resultAt = performance.now();
     entry.result = frame.result;
     entry.response = new Uint8Array(size);
@@ -448,7 +475,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       }
       const entry = outgoing.get(id);
       assert(entry?.response && !entry.complete && offset === entry.responseOffset
-        && size === Math.min(fragmentBytesFor(entry.response.length), entry.response.length - offset), 'response fragment geometry');
+        && size === Math.min(entry.responseFragment, entry.response.length - offset), 'response fragment geometry');
       entry.response.set(new Uint8Array(buffer, HEADER_BYTES), offset);
       entry.responseOffset += size;
       if (entry.responseOffset === entry.response.length) responseComplete(entry);
@@ -458,7 +485,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     const entry = incoming.get(id);
     if (!entry || entry.controller.signal.aborted) { counters.discardedFrames++; return; }
     assert(!entry.executing && offset === entry.offset
-      && size === Math.min(fragmentBytesFor(entry.size), entry.size - offset), 'activation fragment geometry');
+      && size === Math.min(entry.fragment, entry.size - offset), 'activation fragment geometry');
     entry.bytes.set(new Uint8Array(buffer, HEADER_BYTES), offset);
     entry.offset += size;
     if (entry.offset === entry.size) entry.payloadReadyAt = receiveNow();
@@ -494,13 +521,15 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       assert(nextId < policy.maxRequestsPerChannel, 'request identity budget exhausted');
       // Bound metadata before copying or invoking any asynchronous host port.
       const responseBytes = binary ? maxResponseBytes : 0;
-      const text = encodeControl({ type: 'request', id: nextId + 1, metadata, size: bytes.length, responseBytes });
+      const outgoingFrames = announce(bytes.length);
+      const text = encodeControl({ type: 'request', id: nextId + 1, metadata, size: bytes.length, responseBytes, ...outgoingFrames.fields });
       // Local memory: the payload copy until written, and the reply allocation it may receive.
       const reserved = bytes.length + responseBytes;
       assert(outgoing.size < policy.maxPendingRequests, 'pending request limit');
       assert(outgoingBytes + reserved <= policy.maxPendingBytes, 'pending byte limit');
       outgoingBytes += reserved;
       const entry = { metadata: JSON.parse(text).metadata, bytes: bytes.slice(), size: bytes.length, responseBytes, reserved, binary,
+        frameBytes: outgoingFrames.frameBytes,
         controller: new AbortController(), busy: true, finished: false, signal, onTiming, startedAt, id: ++nextId };
       outgoing.set(entry.id, entry);
       const result = new Promise((resolve, reject) => { entry.resolve = resolve; entry.reject = reject; });

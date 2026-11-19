@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a47a9f52ff7360b69882713ae502ab24cfb6cfcb07359d6b45dbbaaa8c4117da",
+      "sha256": "sha256:75a2eb89ec7d6c28c86a9503a8977413ac98ce4c5714cd281b5f9c46f9685877",
       "imports": []
     },
     {
@@ -19870,7 +19870,7 @@
     {
       "path": "vendor/reploid/transport/partition-data-channel.js",
       "owner": "vendor",
-      "sha256": "sha256:a3a993369ef3f1f3aacdf777be69331d9a88da5348f5c6e11b0c73547e4f043c",
+      "sha256": "sha256:19aecb2c291708e2a9919bbdc57bf633608d710edb5d74117900bac5127b7f9a",
       "imports": [
         "./bounded-channel-writer.js",
         "./partition-errors.json"

@@ -36,7 +36,9 @@
     "maxRequestsPerChannel": 65536,
     "maxBufferedBytes": 1048576,
     "maxTransferBytes": 1073741824,
-    "timeoutMs": 300000
+    "timeoutMs": 300000,
+    "burstFrameBytes": 4096,
+    "burstPayloadBytes": 65536
   },
   "controlChannel": {
     "maxFrameBytes": 65536,
@@ -58,7 +60,9 @@
     "maxRequestsPerChannel": 65536,
     "maxBufferedBytes": 1048576,
     "maxTransferBytes": 1073741824,
-    "timeoutMs": 900000
+    "timeoutMs": 900000,
+    "burstFrameBytes": 4096,
+    "burstPayloadBytes": 65536
   },
   "inputLimits": {
     "maxInputCharacters": 48000,

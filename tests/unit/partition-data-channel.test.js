@@ -56,18 +56,27 @@ describe('partition binary transport (injected host ports)', () => {
     const receipt = f.server.getReceipt(); receipt.lastFailure.message = 'changed';
     expect(f.server.getReceipt().lastFailure.message).toBe('private device allocation detail');
   });
-  it('sends a payload within the burst bound in small frames and a larger one in full frames', async () => {
+  it('sends a payload within the burst bound in small frames once the peer has declared the same limits', async () => {
     const burst = { ...limits, maxFrameBytes: 512, maxControlBytes: 1024, maxPayloadBytes: 4096, maxPendingBytes: 8192,
       maxBufferedBytes: 65536, burstFrameBytes: 64, burstPayloadBytes: 300 };
     const serve = async (metadata, bytes) => partitionBinaryResult({ thread: metadata.thread }, bytes.slice());
     const f = fixture({ client: { limits: burst, serve }, server: { limits: burst, serve } });
     const small = Uint8Array.from({ length: 300 }, (_, index) => index % 251);
+    // First request: the requester has heard nothing from the peer yet, so it sends full frames. The reply
+    // already travels in small frames, because the request declared the requester's limits.
+    const first = await f.client.request({ thread: 'first' }, small, { maxResponseBytes: 300 });
+    expect([...first.bytes]).toEqual([...small]);
+    expect(frames(f.a).length).toBeLessThanOrEqual(2);
+    expect(Math.max(...frames(f.a).map(frame => frame.byteLength))).toBeGreaterThan(64);
+    expect(frames(f.b).length).toBeGreaterThan(4);
+    expect(frames(f.b).slice(1).every(frame => frame.byteLength <= 64)).toBe(true);
+    // From then on both directions use small frames for a payload within the bound. The leading frame may
+    // carry a control header larger than one burst frame.
+    const sent = { a: frames(f.a).length, b: frames(f.b).length };
     const echoed = await f.client.request({ thread: 'small' }, small, { maxResponseBytes: 300 });
     expect([...echoed.bytes]).toEqual([...small]);
-    // Request and binary reply both fit the burst bound: no frame in either direction exceeds a burst frame
-    // except the leading frame, which may carry a control header larger than one burst frame.
-    for (const channel of [f.a, f.b]) {
-      const sizes = frames(channel).map(frame => frame.byteLength);
+    for (const [channel, before] of [[f.a, sent.a], [f.b, sent.b]]) {
+      const sizes = frames(channel).slice(before).map(frame => frame.byteLength);
       expect(sizes.length).toBeGreaterThan(4);
       expect(sizes.slice(1).every(size => size <= 64)).toBe(true);
     }
@@ -78,6 +87,36 @@ describe('partition binary transport (injected host ports)', () => {
     const largeFrames = frames(f.a).slice(sentSmall).map(frame => frame.byteLength);
     expect(largeFrames.length).toBeLessThanOrEqual(4);
     expect(Math.max(...largeFrames)).toBeGreaterThan(64);
+  });
+  it('uses full frames with a peer that declares no small frames, or other limits, in both directions', async () => {
+    const plain = { ...limits, maxFrameBytes: 512, maxControlBytes: 1024, maxPayloadBytes: 4096, maxPendingBytes: 8192,
+      maxBufferedBytes: 65536 };
+    const burst = { ...plain, burstFrameBytes: 64, burstPayloadBytes: 300 };
+    const serve = async (metadata, bytes) => partitionBinaryResult({ thread: metadata.thread }, bytes.slice());
+    const small = Uint8Array.from({ length: 300 }, (_, index) => index % 251);
+    for (const [client, server] of [[burst, plain], [plain, burst], [burst, { ...burst, burstFrameBytes: 128 }],
+      [burst, { ...burst, burstPayloadBytes: 200 }]]) {
+      const f = fixture({ client: { limits: client, serve }, server: { limits: server, serve } });
+      for (const [from, to] of [[f.client, 'server'], [f.server, 'client'], [f.client, 'server']]) {
+        const echoed = await from.request({ thread: to }, small, { maxResponseBytes: 300 });
+        expect([...echoed.bytes]).toEqual([...small]);
+      }
+      // Six 300-byte payloads crossed; none was cut into small frames.
+      expect(frames(f.a).length + frames(f.b).length).toBeLessThanOrEqual(12);
+      expect(f.client.getReceipt().closed || f.server.getReceipt().closed).toBe(false);
+    }
+  });
+  it('closes the channel on a small-frame announcement this endpoint never offered', async () => {
+    const plain = { ...limits, maxFrameBytes: 512, maxControlBytes: 1024, maxPayloadBytes: 4096, maxPendingBytes: 8192,
+      maxBufferedBytes: 65536 };
+    const burst = { ...plain, burstFrameBytes: 64, burstPayloadBytes: 300 };
+    for (const [serverLimits, header] of [[plain, { frameBytes: 64 }], [burst, { frameBytes: 32 }], [burst, { frameBytes: 64, size: 301 }],
+      [burst, { accepts: { frameBytes: 0, payloadBytes: 300 } }]]) {
+      const f = fixture({ server: { limits: serverLimits } });
+      f.a.send(JSON.stringify({ schema: 'reploid.partition-channel/v2', type: 'request', id: 1, metadata: {}, size: 300, responseBytes: 0, ...header }));
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(f.server.getReceipt().closed).toBe(true);
+    }
   });
   it('rejects burst limits that are incomplete or exceed the frame and payload limits', () => {
     for (const bad of [{ burstFrameBytes: 64 }, { burstPayloadBytes: 64 }, { burstFrameBytes: 64, burstPayloadBytes: 1024 },
