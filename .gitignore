@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Python bytecode caches written when the Python fixtures and their tests run.
+__pycache__/
+
 # Raw physical decision observations are retained locally and hash-inventoried.
 /artifacts/
 /reports/local/
