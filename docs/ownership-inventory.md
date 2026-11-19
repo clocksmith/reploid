@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | --- | ---: |
 | apps/poolday | 382 |
 | self | 457 |
-| shared | 2486 |
-| total | 3325 |
+| shared | 2487 |
+| total | 3326 |
 
 Every file lives in its owner's root.
 
@@ -313,6 +313,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed47.json` | `self/config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed47.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
 | `config/lora-adapters/react-forms.json` | `self/config/lora-adapters/react-forms.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
 | `config/lora-training.json` | `apps/poolday/config/lora-training.json` | apps/poolday | Reached only from product entries. |
+| `config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json` | `shared/config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | `shared/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | `shared/config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | `shared/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |

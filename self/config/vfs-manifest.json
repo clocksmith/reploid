@@ -268,6 +268,7 @@
     "config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed47.json",
     "config/lora-adapters/react-forms.json",
     "config/lora-training.json",
+    "config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json",
     "config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
     "config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json",
     "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
