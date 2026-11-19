@@ -4215,7 +4215,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:c2199818c04017fd586f54ac6554fceada084dae3fe562f11612665d9a3f887c",
+      "sha256": "sha256:e61fb832d103f458c7e203b5d8461fa8a7ee13a4152736f6fd46d79af9aa2441",
       "imports": [
         "./attachments.js"
       ]
@@ -4264,15 +4264,16 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:187d2a44d993b686fc60a76803e29273feea533e1a759f6a659a887f05793c2e",
+      "sha256": "sha256:5d3db1ed7099a45f61dcd76c4a66315899b85a72fda257b634929cb1aecb4055",
       "imports": []
     },
     {
       "path": "ui/pool-home/auto-download.js",
       "owner": "ui",
-      "sha256": "sha256:380ec6f31667f93f747bd24c17784e709034d234b94c5a519c290ae317cfa706",
+      "sha256": "sha256:4ef8b186272017d38cd4a03c67ffecf5a551052f17077f4bc0d6f4bb91b1ab18",
       "imports": [
-        "../../config/chat-files.json"
+        "../../config/chat-files.json",
+        "../components/model-select.js"
       ]
     },
     {
@@ -4321,12 +4322,13 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:2c6d6bea8223d670e0aaee2bd24b8481f9ec32b13537aa3b82b927ec5477899d",
+      "sha256": "sha256:61d99bfa0dc1ab5f2eeaf03d34028097f46407e0a21c3d91d0d2f321b1ce6355",
       "imports": [
         "../components/dialog.js",
         "../components/html.js",
         "../components/interface-icons.js",
         "../components/mathematical-background.js",
+        "../components/model-select.js",
         "./model-preparation.js"
       ]
     },
@@ -4386,7 +4388,7 @@
     {
       "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:387f0cf405544c2ace0cfdf4c515d977f60718534265e482c651a5656c1170be",
+      "sha256": "sha256:c5685a18d2d73d712115b296704251828844f9bf43f7a829061ff3d4a1224eec",
       "imports": [
         "../components/model-select.js",
         "./model-adapters.js",
@@ -4418,7 +4420,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:ef62d2e201b9e5d8803ea0ed9f3025019a8acb008d2ff1c319c6c421bde8ef5c",
+      "sha256": "sha256:e265f4db7604733c5d1a056cca65b6c98763212fe43eabbed6fc49cd9c9c8cc9",
       "imports": [
         "../../config/work-profile.json",
         "../../vendor/reploid/chat/execution-policy.js",
@@ -4629,7 +4631,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:e8288875824a22d7830eb3da2792e429baa60566659b7fa22fe6be5d390a9b01",
+      "sha256": "sha256:0f5518b0fd92aa72898311224c218c88377576ff4f22c658797e739daa2409b6",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

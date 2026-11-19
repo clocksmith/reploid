@@ -355,6 +355,40 @@ describe('Conversation workspace', () => {
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
+  it('keeps a model with only pinned metadata discoverable and enables it when a provider or local cache appears', async () => {
+    dispose(); await session.close();
+    const model = { ...CANONICAL_CHAT_MODELS[1], source: { files: CANONICAL_CHAT_MODELS[1].source.files } };
+    let peers = [];
+    session = createChatSession({ storage: null, service, models: [model], swarm: { getState: () => ({ consumer: { peers } }) } });
+    const downloadInfo = vi.fn();
+    root.innerHTML = renderConversationWorkspace();
+    dispose = bindConversationWorkspace(root, { ...session, getModelDownload: downloadInfo,
+      getState: () => ({ ...session.getState(), localDownloadIssue: null }),
+      subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })) });
+    find('[data-open-model]').click();
+    const choice = find(`[data-model-picker] input[value="${model.id}"]`);
+    choice.click();
+    expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('unavailable');
+    expect(find('[data-change-model]').disabled).toBe(true);
+    expect(find('[data-execution-choice=network]').disabled).toBe(true);
+    expect(find('[data-next-model-status]').textContent).toContain('No shared computer');
+    expect(find('[data-local-fit]').hidden).toBe(true);
+    expect(find('[data-production-model]')).toBeNull();
+    expect(downloadInfo).not.toHaveBeenCalled();
+
+    peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+    session.refreshNetwork();
+    expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
+    expect(find('[data-execution-choice=network]').disabled).toBe(false);
+    expect(find('[data-change-model]').textContent).toBe('Use model');
+    expect(find('[data-change-model]').disabled).toBe(false);
+    peers = []; session.setCachedModels([model]);
+    expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('local');
+    expect(find('[data-execution-choice=local]').disabled).toBe(false);
+    expect(find('[data-production-model]').disabled).toBe(false);
+    expect(service.calls).toHaveLength(0);
+  });
+
   it('offers a reviewed model download and does nothing on cancel', async () => {
     expect(find('[data-composer-model-setup]')).toBeNull();
     await vi.waitFor(() => expect(find('[data-production-model]').disabled).toBe(false));

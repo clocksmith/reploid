@@ -2,6 +2,7 @@
  * preference is per browser and defaults on; visiting or waiting never downloads. Cancel stops
  * automatic downloads until the page reloads or the setting is turned on again. The host's
  * acquisition owns transfer, verification and the storage limit. */
+import { isDownloadableBaseModel } from '../components/model-select.js';
 import policy from '../../config/chat-files.json' with { type: 'json' };
 
 export const AUTO_DOWNLOAD_STORAGE_KEY = 'reploid.auto-download.v1';
@@ -14,13 +15,12 @@ export function writeAutoDownload(enabled, storage = globalThis.localStorage) {
   try { storage?.setItem(AUTO_DOWNLOAD_STORAGE_KEY, enabled ? 'on' : 'off'); } catch { /* applies to this page only */ }
 }
 
-const wholeModel = model => !!model?.source?.baseUrl && !model.partition && !model.adapters?.length;
 const megabytes = bytes => Math.ceil(bytes / 1e6) + ' MB';
 
 /** An explicit choice is never substituted; without one, every whole base model is a candidate. */
 export function autoDownloadCandidates(models, explicit) {
-  if (explicit) return wholeModel(explicit) ? [explicit] : [];
-  return (models || []).filter(wholeModel);
+  if (explicit) return isDownloadableBaseModel(explicit) ? [explicit] : [];
+  return (models || []).filter(isDownloadableBaseModel);
 }
 
 /** The smallest measured candidate within the storage limit, or null. */

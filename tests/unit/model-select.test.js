@@ -4,7 +4,7 @@ import { bindModelChoices, updateModelSelect, modelExecutionState } from '../../
 
 const models = [
   { id: 'local', name: 'Local', localCached: true, availability: 'cached' },
-  { id: 'download', name: 'Download', source: {}, availability: 'unavailable' },
+  { id: 'download', name: 'Download', source: { baseUrl: 'https://models.example/base/' }, availability: 'unavailable' },
   { id: 'busy', name: 'Busy', networkAvailability: 'busy', availability: 'busy' },
   { id: 'ready', name: 'Ready', networkAvailability: 'ready', availability: 'ready', quantization: 'q4k', contextLength: 4096 }
 ];
@@ -60,7 +60,7 @@ it('places a model family in its most usable member’s group, with each adapter
   const select = document.querySelector('select'), choices = bindModelChoices(select);
   const identity = 'sha256:' + 'a'.repeat(64);
   const family = [
-    { id: 'base', name: 'Base', identity, source: {}, availability: 'unavailable', adapters: [] },
+    { id: 'base', name: 'Base', identity, source: { baseUrl: 'https://models.example/base/' }, availability: 'unavailable', adapters: [] },
     { id: 'base', selectionId: 'base/adapter', name: 'Base adapter', identity, adapters: [{ identity: 'sha256:' + 'b'.repeat(64) }],
       networkAvailability: 'ready', availability: 'ready' }
   ];

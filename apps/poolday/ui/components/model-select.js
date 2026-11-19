@@ -1,6 +1,9 @@
 import { escapeHtml } from './attachments.js';
 
 let choiceId = 0;
+// The browser downloader resolves weights against baseUrl. Pinned metadata alone cannot supply them.
+export const hasBrowserModelOrigin = model => !!model?.source?.baseUrl;
+export const isDownloadableBaseModel = model => hasBrowserModelOrigin(model) && !model.partition && !model.adapters?.length;
 /** Retain a saved choice's identity without retaining old capacity observations. */
 export const unavailableModelChoice = model => ({ ...model, availability: 'unavailable', networkAvailability: 'unavailable',
   localReady: false, localCached: false, providerIds: [] });
@@ -29,7 +32,7 @@ export function modelChoiceGroups(models, { preferNetwork = true } = {}) {
     if (model.fleet) privateModels.push(model);
     else if (isSharedModelChoice(model)) shared.push(model);
     else if (model.localReady || model.localCached || model.availability === 'cached') local.push(model);
-    else if (model.source && !model.partition && !model.adapters?.length) downloads.push(model);
+    else if (isDownloadableBaseModel(model)) downloads.push(model);
     else unavailable.push(model);
   }
   const rank = model => model.networkAvailability === 'ready' ? 0 : model.networkAvailability === 'busy' ? 1 : 2;
@@ -54,7 +57,7 @@ const routeRank = (model, preferNetwork) => {
   const local = model.localReady || model.localCached || model.availability === 'cached';
   if (!preferNetwork && local && !model.partition) return 0;
   return isSharedModelChoice(model) ? ({ ready: 1, busy: 2 }[model.networkAvailability] ?? 4)
-    : local ? 3 : model.source && !model.partition && !model.adapters?.length ? 5 : 6;
+    : local ? 3 : isDownloadableBaseModel(model) ? 5 : 6;
 };
 
 /** One entry per exact model/adapter variant. Its value is the caller's selected route of that variant,
@@ -78,7 +81,7 @@ export function modelVariants(models, { value = null, preferNetwork = true } = {
  * into families: a base model followed by its adapter variants, placed in the group of the family's most usable member.
  * An adapter whose base variant is absent stands alone. Compatibility was settled by the catalog's declared identity. */
 const familyRank = model => isSharedModelChoice(model) ? ({ ready: 0, busy: 1 }[model.networkAvailability] ?? 2)
-  : model.localReady || model.localCached || model.availability === 'cached' ? 3 : model.source && !model.partition && !model.adapters?.length ? 4 : 5;
+  : model.localReady || model.localCached || model.availability === 'cached' ? 3 : isDownloadableBaseModel(model) ? 4 : 5;
 export function modelFamilies(entries) {
   const bases = new Map(entries.filter(entry => !entry.model.adapters?.length)
     .map(entry => [JSON.stringify([entry.model.id, entry.model.identity ?? null, entry.model.fleet?.requester.participantId ?? null]), { base: entry, adapters: [] }]));
