@@ -1,5 +1,6 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
-import { readPrivacyControls, updatePrivacyControls } from './privacy-controls.js';
+import { requestExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
+import { privacyLabel, readPrivacyControls, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
 import { bindWorkspaceNavigation } from './workspace-navigation.js';
@@ -46,13 +47,20 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
+  const explicitPrivacy = state => state.activeThread ? state.activeThread.privacy : viewState.privacy;
+  const currentPolicy = state => explicitPrivacy(state) ?? requestExecutionPolicy({
+    permissions: state.activeThread?.permissions ?? { executionLocation }
+  });
+  const privacyNode = find('[data-privacy-dialog]'), privacyTrigger = find('[data-open-privacy]');
+  const privacyDialog = bindDialog(privacyNode);
+  let editingThread, applyingPrivacy = false;
   const effectiveLocation = state => {
-    const thread = state.activeThread, privacy = thread?.privacy ?? viewState.privacy;
+    const thread = state.activeThread, privacy = explicitPrivacy(state);
     return thread?.permissions?.sharingScope === 'local' || privacy?.placement === 'local-only'
       ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
   };
   const recoveryAlternative = state => recoverySharedModel(state, modelSelect.value,
-    effectiveLocation(state), state.activeThread?.privacy ?? viewState.privacy);
+    effectiveLocation(state), explicitPrivacy(state));
   const matchesRecovery = state => {
     const candidate = recoveryAlternative(state);
     return candidate && modelIdentity(candidate) === modelIdentity(recoverySelection);
@@ -164,13 +172,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
   }
   function queueScope(state, model) {
-    const privacy = state.activeThread?.privacy ?? viewState.privacy;
+    const privacy = explicitPrivacy(state);
     return JSON.stringify([state.selectedId, modelIdentity(model), effectiveLocation(state), privacy,
       state.remoteNetworkId, state.remoteAnswersEnabled, state.activeThread?.permissions, contextPrompt,
       state.activeThread?.systemContext, searching(), composerRevision, input.value]);
   }
   function canWaitForPublicModel(state, model, location) {
-    const privacy = state.activeThread?.privacy ?? viewState.privacy;
+    const privacy = explicitPrivacy(state);
     const pinned = state.activeThread?.model || chosenModel || viewState.draftModel;
     return !!model?.identity && (!pinned?.identity || modelIdentity(model) === modelIdentity(pinned)) && !model.partition && !model.fleet && location !== 'local'
       && (!state.activeThread || location === 'network') && (!privacy || privacy.profile === 'provider-visible')
@@ -215,7 +223,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
       state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
-      selectedId: modelSelect.value, privacy: viewState.privacy, canDownload: !!inspector.downloadModel });
+      selectedId: modelSelect.value, localOnly: explicitPrivacy(snapshot)?.placement === 'local-only', canDownload: !!inspector.downloadModel });
     const node = find('[data-local-fit]');
     const key = find('[data-model-details]').open ? modelIdentity(pickerModel) : null;
     if (fitKey !== key) {
@@ -297,7 +305,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-download-local]').hidden = !canAcquire || !!thread?.closed;
     find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Review local download';
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
-    const privacy = thread?.privacy ?? viewState.privacy;
+    const privacy = explicitPrivacy(state);
+    const policy = currentPolicy(state);
+    privacyTrigger.disabled = busy || !!thread?.closed;
+    const privacyTitle = 'Inference privacy: ' + privacyLabel(policy.profile)
+      + (policy.placement === 'local-only' ? ' · This device only' : '')
+      + (busy ? ' · Available after this answer' : '');
+    privacyTrigger.title = privacyTitle;
+    privacyTrigger.setAttribute('aria-label', privacyTitle);
+    if (privacyNode.open && (privacyTrigger.disabled || editingThread !== state.selectedId)) privacyDialog.close();
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring
       ? recoverySharedModel(state, current, location, privacy) : null;
     const review = find('[data-review-shared-model]');
@@ -438,7 +454,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerTouched = !!alternative;
     const state = session.getState();
     inspector.close?.({ restoreFocus: false });
-    find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
     pickerModel = alternative || (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
       || state.activeThread?.model || chosenModel || state.defaultModel || null;
     pickerLocation = alternative ? 'network' : effectiveLocation(state);
@@ -465,14 +480,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const next = find('[data-next-model]');
     next.value = route.value; next.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  // A pointer click on a model that can answer now is the whole choice: it is applied without a second
-  // confirming click. Keyboard movement between choices still only previews, and a model that needs a
-  // download keeps its explicit button.
-  find('[data-model-picker]').addEventListener('click', event => {
-    if (!event.detail || !event.target.closest?.('label[data-choice-key]')) return;
-    setTimeout(() => { const button = find('[data-change-model]');
-      if (!controller.signal.aborted && find('[data-model-picker]').open && !button.disabled && button.textContent === 'Use model') button.click(); }, 0);
-  }, { signal: controller.signal });
   on('[data-next-model]', 'change', () => {
     if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
     pickerTouched = true;
@@ -506,7 +513,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       if (wanted && downloadableHere(wanted, state)) { const opener = find('[data-model-control]'); picker.close(); inspector.downloadModel(next, opener); return; }
       updatePicker(session.getState()); return;
     }
-    const privacy = state.activeThread?.privacy ?? viewState.privacy;
+    const privacy = explicitPrivacy(state);
     const location = privacy?.placement === 'local-only' ? 'local' : pickerLocation;
     const origin = selectedId, revision = composerRevision;
     changingModel = true; updatePicker(state);
@@ -593,19 +600,36 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { queuedSend = null; try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
   on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
-  on('[data-privacy-profile]', 'change', event => {
-    find('[data-privacy-recipients-label]').hidden = event.target.value !== 'restricted';
-  });
-  on('[data-privacy-apply]', 'click', () => {
+  on('[data-open-privacy]', 'click', () => {
+    if (submitting || applyingPrivacy) return;
+    const state = session.getState();
     queuedSend = null;
-    void act(async () => {
-      const privacy = readPrivacyControls(find('[data-privacy-controls]'));
-      const state = session.getState();
+    render(state);
+    if (privacyTrigger.disabled) return;
+    editingThread = state.selectedId;
+    updatePrivacyControls(privacyNode, currentPolicy(state));
+    privacyDialog.open(privacyNode.querySelector('input:checked'), privacyTrigger);
+  });
+  on('[data-privacy-controls]', 'change', event => {
+    if (event.target.matches('[data-privacy-profile]')) find('[data-privacy-recipients-label]').hidden = event.target.value !== 'restricted';
+  });
+  on('[data-privacy-cancel]', 'click', () => privacyDialog.close());
+  on('[data-privacy-apply]', 'click', async () => {
+    const state = session.getState();
+    if (!privacyNode.open || applyingPrivacy || submitting || editingThread !== state.selectedId || privacyTrigger.disabled) return;
+    const apply = find('[data-privacy-apply]');
+    applyingPrivacy = apply.disabled = true;
+    try {
+      const privacy = readPrivacyControls(privacyNode);
       if (state.activeThread) await session.setExecutionPrivacy(state.activeThread.id, privacy);
       else viewState.privacy = privacy;
-      updatePrivacyControls(find('[data-privacy-controls]'), privacy, false);
+      if (privacyNode.open) privacyDialog.close();
       render(session.getState());
-    });
+    } catch (cause) {
+      const notice = find('[data-privacy-error]');
+      notice.textContent = cause.message;
+      notice.hidden = false;
+    } finally { applyingPrivacy = apply.disabled = false; }
   });
   on('[data-execution-location]', 'click' , event => {
     const button = event.target.closest('[data-execution-choice]');
@@ -759,7 +783,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     detachHelp(); nextModelChoices.dispose();
     production.dispose();
     detachInspector?.(); leftDrawer.dispose();
-    messages.dispose(); threads.dispose(); actionsPanel.dispose(); workspaceNavigation.dispose(); detachInspectorClose?.(); picker.dispose(); renameDialog.dispose();
+    messages.dispose(); threads.dispose(); actionsPanel.dispose(); workspaceNavigation.dispose(); detachInspectorClose?.(); picker.dispose(); privacyDialog.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');

@@ -27,6 +27,33 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
+  it('edits inference privacy from the composer without sending, changing the draft or losing edits on refresh', async () => {
+    const id = session.createThread({ sharingScope: 'mesh' });
+    const input = find('[data-composer-input]');
+    input.value = 'Keep this question'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    const shield = find('[data-composer-form] [data-open-privacy]');
+    expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
+    shield.click();
+    const dialog = find('[data-privacy-dialog]');
+    expect(dialog.open).toBe(true);
+    find('[data-privacy-profile][value="restricted"]').click();
+    const ids = find('[data-privacy-recipients]'); ids.value = 'peer:a';
+    await session.renameThread(id, 'Refresh the workspace');
+    expect(ids.value).toBe('peer:a');
+    find('[data-privacy-cancel]').click();
+    expect(session.getState().activeThread.privacy).toBeFalsy();
+    shield.click();
+    expect(find('[data-privacy-profile]:checked').value).toBe('provider-visible');
+    expect(ids.value).toBe('');
+    find('[data-privacy-profile][value="restricted"]').click();
+    ids.value = 'peer:b'; find('[data-privacy-apply]').click();
+    await vi.waitFor(() => expect(dialog.open).toBe(false));
+    expect(session.getState().activeThread.privacy.allowedRecipients).toEqual(['peer:b']);
+    expect(shield.title).toContain('Restricted recipients');
+    expect(input.value).toBe('Keep this question');
+    expect(session.getState().activeThread.messages).toHaveLength(0);
+  });
+
   it('never turns Send into a download, even with the legacy automatic-download setting on', async () => {
     localStorage.setItem('reploid.auto-download.v1', 'on');
     dispose();
@@ -272,7 +299,8 @@ describe('Conversation workspace', () => {
     expect(find('[data-network-rail] [data-inspector-navigation]')).toBeNull();
     // The selected model's value port and its details live in the workspace's own picker; the inspector has no Model pane.
     expect(find('[data-model-picker] [data-model-control] [data-active-model-select]')).toBe(find('[data-active-model-select]'));
-    expect(find('[data-model-picker] [data-model-selection-details] [data-execution-location]')).not.toBeNull();
+    expect(find('[data-model-picker] [data-execution-location]')).not.toBeNull();
+    expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
     expect(find('[data-inspector-pane="model"]')).toBeNull();
     expect(find('[data-threads-dialog] [data-model-control]')).toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-toggle-file-contribution]')).not.toBeNull();
@@ -366,6 +394,7 @@ describe('Conversation workspace', () => {
         permissions: { executionLocation: 'network', sharingScope: 'mesh' } } });
     dispose = bindConversationWorkspace(root, { ...session,
       getState: () => project(session.getState()), subscribe: fn => session.subscribe(state => fn(project(state))) });
+    expect(find('[data-open-privacy]').disabled).toBe(true);
     expect(find('[data-model-status]').textContent).toBe('');
     expect(find('[data-composer-status]')).toBeNull();
     expect(find('[data-composer-stop]').hidden).toBe(false);

@@ -15,9 +15,11 @@ import { renderProductionContribution } from './contribution-models.js';
 import { renderModelProviders } from './model-providers.js';
 import { renderAdapterDetails } from './model-adapters.js';
 
-const renderModelControl = () => '<span data-model-control><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
+const renderModelControl = () => '<span data-model-control hidden><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
 
-const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><p class="pool-small pool-muted" data-local-fit hidden></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p><div class="chat-execution-location" data-execution-location role="group" aria-label="Execution location"><button class="pool-button btn-ghost" type="button" data-execution-choice="auto" aria-pressed="true">Automatic</button><button class="pool-button btn-ghost" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-button btn-ghost" type="button" data-execution-choice="network" aria-pressed="false">Public network</button></div>${renderPrivacyControls()}</div></details>`;
+const renderLocationControl = () => `<div class="pool-stack pool-gap-xs"><span class="pool-caption pool-muted">Run on</span><div class="chat-execution-location pool-segmented" data-execution-location role="group" aria-label="Execution location"><button class="pool-segment" type="button" data-execution-choice="auto" aria-pressed="true">Auto</button><button class="pool-segment" type="button" data-execution-choice="local" aria-pressed="false">This device</button><button class="pool-segment" type="button" data-execution-choice="network" aria-pressed="false" aria-label="Public network">Network</button></div></div>`;
+
+const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><p class="pool-small pool-muted" data-local-fit hidden></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p></div></details>`;
 
 export function renderConversationWorkspace({ inspector = true, compact = false } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace ${compact ? 'data-compact' : ''} aria-label="Conversation workspace">
@@ -75,6 +77,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
             <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach text files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
             <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
             <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Choose model" title="Choose model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
+            <button type="button" class="pool-button btn-ghost pool-icon" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog" aria-label="Inference privacy" title="Inference privacy">${interfaceIcon('privacy')}</button>
             ${renderContextIndicator()}
           </div>
           <div class="chat-input-row">
@@ -86,17 +89,20 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           </div>
         </div>
       </form></footer>
+      ${renderPrivacyControls()}
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
         <form data-rename-form><h2 class="pool-heading" id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
           <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-rename-cancel>Cancel</button><button class="pool-button btn-primary" type="submit">Save</button></div>
         </form>
       </dialog>
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
-        <header class="chat-network-heading"><h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2>${renderHelpButton()}</header><div class="chat-model-picker-body"><p data-current-model-description></p>
+        <header class="chat-network-heading"><h2 class="pool-heading" id="chat-model-picker-title">Choose a model</h2>${renderHelpButton()}</header>
+        ${renderLocationControl()}
+        <div class="chat-model-picker-body">
         <p data-picker-thread-note hidden>A new model starts a new thread.</p>
         ${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
-        </div>${renderModelSelectionDetails()}
+        ${renderModelSelectionDetails()}</div>
         <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-model-picker-close>Cancel</button><button class="pool-button btn-primary" type="button" data-change-model>Use model</button></div>
       </dialog>
     </section>

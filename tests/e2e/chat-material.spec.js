@@ -936,6 +936,34 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
 });
 
 
+test('model preview and inference privacy commit independently', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'dark');
+  await page.evaluate(() => window.setVisualSupply(4));
+  const opener = page.locator('[data-open-model]');
+  const original = await opener.innerText();
+  await opener.click();
+  const picker = page.locator('[data-model-picker]');
+  await picker.locator('label[data-choice-key]').nth(1).click();
+  await expect(picker).toBeVisible();
+  await expect(picker.locator('[data-execution-location]')).toBeVisible();
+  await expect(picker.locator('[data-privacy-controls]')).toHaveCount(0);
+  await picker.screenshot({ path: info.outputPath('model-picker.png') });
+  await picker.locator('[data-model-picker-close]').click();
+  await expect(picker).toBeHidden();
+  expect(await opener.innerText()).toBe(original);
+  await page.locator('[data-open-privacy]').click();
+  const privacy = page.locator('[data-privacy-dialog]');
+  await expect(privacy.locator('input[value=cryptographic]')).toBeDisabled();
+  await privacy.locator('input[value=restricted]').check();
+  await expect(privacy.locator('[data-privacy-recipients]')).toBeVisible();
+  await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
+  await privacy.locator('[data-privacy-cancel]').click();
+  await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/Provider-visible/);
+});
+
 test('touch help and model choices work without hover', async ({ browser }, info) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   const page = await context.newPage();
