@@ -1,5 +1,7 @@
 import { readHostMemory } from './native-node-doctor.js';
 import { readFileSync } from 'node:fs';
+import { resolveServedFile } from './browser-roots.js';
+import { sha256Digest } from './hashing.js';
 import { parseArgs } from 'node:util';
 import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 import { resolvePinnedOrigin } from './native-model-origin.js';
@@ -67,7 +69,14 @@ function modelList() {
   const rows = catalog.map(m => {
     const origin = resolvePinnedOrigin(m) ? 'peer, local files, or pinned download' : 'peer or local files';
     const indexFile = m.source.files.find(file => file.role === 'model-piece-index');
-    const index = JSON.parse(readFileSync(new URL('../shared' + indexFile.url, import.meta.url), 'utf8'));
+    if (indexFile?.hashAlgorithm !== 'sha256' || !/^\/config\/model-pieces\/[a-zA-Z0-9_.-]+\.json$/.test(indexFile.url || '')) {
+      throw new Error(`Missing bundled piece index for ${m.id}`);
+    }
+    const indexBytes = readFileSync(resolveServedFile(indexFile.url, { roots: ['shared'] }));
+    if (sha256Digest(indexBytes) !== 'sha256:' + indexFile.hash) {
+      throw new Error(`Bundled piece index differs from the approved catalog for ${m.id}`);
+    }
+    const index = JSON.parse(indexBytes.toString('utf8'));
     const bytes = index.files.reduce((sum, file) => sum + file.size, 0);
     const gb = bytes / 1e9;
     const budget = m.loadOptions?.runtimeConfig?.shared?.bufferPool?.budget?.maxTotalBytes;
