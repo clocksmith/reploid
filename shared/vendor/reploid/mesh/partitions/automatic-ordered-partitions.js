@@ -44,6 +44,10 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     && ['pollMs', 'maxPeers', 'connectTimeoutMs', 'grantMs', 'maxStageOffersPerPeer'].every(key => Number.isSafeInteger(config[key]) && config[key] > 0)
     && ['maxRouteBytes', 'maxSelectionSteps', 'maxRoutes'].every(key => Number.isSafeInteger(options[key]) && options[key] > 0),
   'Explicit ordered participation policy required');
+  assert((config.openingPollMs === undefined) === (config.openingWindowMs === undefined)
+    && (config.openingPollMs === undefined || Number.isSafeInteger(config.openingPollMs) && config.openingPollMs > 0
+      && config.openingPollMs < config.pollMs && Number.isSafeInteger(config.openingWindowMs) && config.openingWindowMs > 0),
+  'Opening poll policy requires openingPollMs below pollMs together with openingWindowMs');
   assert(stage === null || Number.isSafeInteger(stage.index) && stage.index >= 0 && stage.participantId === identity.peerId
     && ['transportId', 'residentId', 'executionId'].every(key => typeof stage[key] === 'string' && stage[key].length > 0),
   'Actual local stage identity required');
@@ -235,7 +239,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
             contributor: stage.index > 0 ? program.resident : null, limits: config.executionChannel, receiverLimits: config.receiver,
             onReceiveTiming, ordered: { route, partitionIndex: index } });
         } });
-      phase = 'ready'; progress = null; readyAt = Date.now();
+      phase = 'ready'; progress = null; readyAt = Date.now(); quicken();
     } catch (cause) {
       for (const owner of preparationOwners) debt.add(owner);
       if (typeof candidate?.resident?.close === 'function') debt.add(candidate.resident);
@@ -447,6 +451,22 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     return { state, model: selected };
   }
   const timer = setInterval(tick, config.pollMs);
+  // Optional: a route forms over several observations (a later stage's readiness, the entry stage's
+  // route to it, then the requester's view of that entry), and each one waited for the next pollMs
+  // tick. With openingPollMs and openingWindowMs declared, this participant ticks at openingPollMs
+  // while it sees no ready ordered model, for at most openingWindowMs after it starts, contributes
+  // or becomes ready. Steady-state polling stays at pollMs.
+  let openingUntil = 0, openingTimer = null;
+  const stopOpening = () => { if (openingTimer !== null) { clearInterval(openingTimer); openingTimer = null; } };
+  function quicken() {
+    if (config.openingPollMs === undefined || closed) return;
+    openingUntil = Date.now() + config.openingWindowMs;
+    openingTimer ??= setInterval(() => {
+      if (closed || Date.now() >= openingUntil || getModels().some(model => model.availability === 'ready')) { stopOpening(); return; }
+      tick();
+    }, config.openingPollMs);
+  }
+  quicken();
   return Object.freeze({ getState, getModels,
     subscribe(listener) { listeners.add(listener); listener(getModels()); return () => listeners.delete(listener); },
     async contribute(modelId, approved, adapters) {
@@ -462,7 +482,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
           offer = null; throw new Error('Automatic stage assignment requires a declared ordered plan');
         }
       }
-      controller = new AbortController(); phase = 'waiting'; error = null;
+      controller = new AbortController(); phase = 'waiting'; error = null; quicken();
       if (auto) {
         // The contributor's own choice from what discovery observed; never a remote assignment.
         notify(); await discovery.refresh();
@@ -550,7 +570,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     },
     close() {
       if (closing) return closing;
-      closed = true; clearInterval(timer); lifetime.abort(new Error('Ordered mesh closed'));
+      closed = true; clearInterval(timer); stopOpening(); lifetime.abort(new Error('Ordered mesh closed'));
       closing = (async () => {
         const stopped = await Promise.allSettled([this.stop()]);
         const independent = await Promise.allSettled([closeOwner(entries), closeOwner(discovery)]);

@@ -22,7 +22,7 @@ vi.mock('../../packages/reploid/src/mesh/partitions/partition-discovery.js', () 
 }));
 const cleanups = [];
 afterEach(async () => { await Promise.allSettled(cleanups.splice(0).map(fn => fn())); discoveryOwners.length = 0; });
-async function fixture(index = 0) {
+async function fixture(index = 0, policyOverride = {}) {
   const f = stagesFixture(3), identity = await createSigningIdentity({ algorithm: 'ECDSA' });
   const localIndex = index ?? 0;
   if (index !== null) { f.route.stages[index].participantId = identity.peerId; f.stages[index].id = identity.peerId; }
@@ -34,7 +34,8 @@ async function fixture(index = 0) {
   f.stages[0].tokenize = vi.fn(async () => ({ modelIdentity: model.identity, tokenIds: [1, 2], generation: f.request.generation }));
   const policy = { pollMs: 60000, maxPeers: 8, connectTimeoutMs: 1000, grantMs: 60000,
     maxStageOffersPerPeer: 4, limits: f.limits, receiver: { maxAttempts: 32, maxSteps: 10 }, inputChannel: { maxControlBytes: 131072 },
-    inputLimits: { maxInputCharacters: 4096, maxOutputCharacters: 128, maxAttempts: 32, maxConcurrentAttempts: 2, descriptorTtlMs: 60000 } };
+    inputLimits: { maxInputCharacters: 4096, maxOutputCharacters: 128, maxAttempts: 32, maxConcurrentAttempts: 2, descriptorTtlMs: 60000 },
+    ...policyOverride };
   const networks = [], entry = { id: f.route.stages[0].participantId,
     refresh: vi.fn(async () => ({ ready: true, descriptor: { models: [fullModel()] } })),
     generate: vi.fn(async (_input, controls) => { controls.onDelta?.('ok'); return { content: 'ok', execution: {} }; }), close: vi.fn(async () => {}) };
@@ -84,6 +85,37 @@ describe('explicit ordered automatic participation (injected discovery and numer
     expect(f.networks[1].connect.mock.calls.map(call => call[1].route)).toEqual([f.route, f.route]);
     await f.mesh.stop(); expect(f.stages[0].close).toHaveBeenCalledOnce();
     expect(f.stages[1].close).not.toHaveBeenCalled(); expect(f.stages[2].close).not.toHaveBeenCalled();
+  });
+  it('polls faster only while no ready ordered model is visible and only inside the declared opening window', async () => {
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    // A requester (no assigned stage) with a 60 s steady poll: without the opening policy it never refreshes here.
+    const steady = await fixture(null);
+    steady.discovery.capabilities = [];
+    await wait(80);
+    expect(steady.discovery.refresh).not.toHaveBeenCalled();
+    // With the policy it keeps observing until a ready entry model appears, then stops.
+    const opening = await fixture(null, { openingPollMs: 10, openingWindowMs: 5000 });
+    opening.discovery.capabilities = [];
+    await wait(80);
+    const whileForming = opening.discovery.refresh.mock.calls.length;
+    expect(whileForming).toBeGreaterThanOrEqual(3);
+    opening.discovery.capabilities = opening.capabilities(true);
+    await wait(40);
+    const atReady = opening.discovery.refresh.mock.calls.length;
+    await wait(80);
+    expect(opening.discovery.refresh.mock.calls.length).toBe(atReady);
+    // The window bounds it when no route ever forms.
+    const bounded = await fixture(null, { openingPollMs: 10, openingWindowMs: 60 });
+    bounded.discovery.capabilities = [];
+    await wait(140);
+    const afterWindow = bounded.discovery.refresh.mock.calls.length;
+    expect(afterWindow).toBeGreaterThanOrEqual(2);
+    await wait(80);
+    expect(bounded.discovery.refresh.mock.calls.length).toBe(afterWindow);
+    for (const bad of [{ openingPollMs: 10 }, { openingWindowMs: 100 }, { openingPollMs: 60000, openingWindowMs: 100 },
+      { openingPollMs: 0, openingWindowMs: 100 }, { openingPollMs: 10, openingWindowMs: 0 }]) {
+      await expect(fixture(null, bad)).rejects.toThrow(/Opening poll policy/);
+    }
   });
   it('validates incoming routes against actual local stage and authenticated coordinator', async () => {
     const f = await fixture(1); await f.mesh.contribute('model', true);
