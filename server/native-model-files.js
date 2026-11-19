@@ -13,10 +13,10 @@ import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verify
 import { createPeerPackDataChannel } from '../apps/poolday/pool/peer-pack-data-channel.js';
 import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../shared/pool/executable-pack.js';
 import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
-import { resolveServedFile } from './browser-roots.js';
 import { fillWholeModelDirectory, wholeModelDirectoryComplete } from './native-whole-model-fill.js';
 import { createNativeSourceFileReader } from './native-source-files.js';
 import { resolvePinnedOrigin, readPinnedOrigin } from './native-model-origin.js';
+import { readBundledModelMetadata, readOriginModelMetadata } from './native-model-metadata.js';
 
 // How long a whole-model fill with a pinned origin waits for peers to announce before using the origin.
 const PEER_GRACE_MS = 15000;
@@ -152,23 +152,24 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     signal.throwIfAborted(); let bytes = await cache.get(file);
     // Capsule metadata paths are logical names, not paths inside the weight directory.
     if (!bytes && /^[a-zA-Z0-9_.-]+$/.test(file.path)) bytes = await readLocal(file.path, { signal });
-    if (!bytes && /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '')) {
-      bytes = new Uint8Array(await fs.readFile(resolveServedFile(file.url)));
-    }
-    return bytes;
+    return bytes ?? readBundledModelMetadata(file);
   };
-  const readMetadata = async (file, signal, onSupplier = null) => {
+  const readMetadata = async (file, signal, onSupplier = null, origin = null) => {
     let bytes = await readAvailableMetadata(file, signal);
-    if (!bytes) {
-      assert(exchange.has(file), 'No authorized peer offers required model metadata'); bytes = await exchange.acquire(file, { signal, onSupplier });
+    if (!bytes && exchange.has(file)) {
+      try { bytes = await exchange.acquire(file, { signal, onSupplier }); }
+      catch (error) { if (!origin || signal.aborted) throw error; }
     }
+    if (!bytes && origin && /^[a-zA-Z0-9_.-]+$/.test(file.path)) bytes = await readOriginModelMetadata(origin, file, signal);
+    assert(bytes, 'No authorized peer or pinned origin offers required model metadata');
     await verify(file, bytes); signal.throwIfAborted(); await cache.put(file, bytes, { signal }); retained.set(key(file), file); return bytes;
   };
-  const metadata = async (model, signal) => {
+  const metadata = async (model, signal, origin = resolvePinnedOrigin(model, modelOrigins, originFetch)) => {
     const manifestFile = model.source.files.find(file => file.path === 'manifest.json');
     const indexFile = model.source.files.find(file => file.role === 'model-piece-index');
     assert(manifestFile && 'sha256:' + manifestFile.hash === model.identity && indexFile, 'Pinned manifest and piece index required');
-    const manifestBytes = await readMetadata(manifestFile, signal), indexBytes = await readMetadata(indexFile, signal);
+    const manifestBytes = await readMetadata(manifestFile, signal, null, origin);
+    const indexBytes = await readMetadata(indexFile, signal, null, origin);
     const runtime = suppliedRuntime ?? await import('doppler-gpu/partitions');
     // Doppler validates the index closure before any piece is offered or read.
     const checked = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + indexFile.hash,
@@ -201,8 +202,8 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     },
     preparePartitionSource(model, { signal } = {}) { return own((async () => {
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
-      const data = await metadata(model, signal), descriptors = new Map(); signal.throwIfAborted();
       const partitionOrigin = resolvePinnedOrigin(model, modelOrigins, originFetch);
+      const data = await metadata(model, signal, partitionOrigin), descriptors = new Map(); signal.throwIfAborted();
       for (const file of data.index.files) for (const piece of file.pieces) descriptors.set(piece.identity, { ...piece, path: file.path });
       const acquisition = createPieceAcquisition({
         limits: { maxConcurrent: policy.maxPieceAcquisitions, maxQueued: policy.maxQueuedPieceAcquisitions,
@@ -261,7 +262,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         async readArtifact(artifact, controls = {}) {
           const file = admittedFile(artifact);
           assert(!data.manifest.shards.some(row => row.filename === file.path), 'Native weights require complete pinned piece ranges');
-          return readMetadata(file, AbortSignal.any([signal, controls.signal].filter(Boolean)));
+          return readMetadata(file, AbortSignal.any([signal, controls.signal].filter(Boolean)), null, partitionOrigin);
         },
         async readArtifactRange(artifact, offset, size, controls = {}) {
           const file = admittedFile(artifact);
@@ -284,16 +285,13 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         } }, getReceipt: () => ({ ...opened.getReceipt(), custody: acquisition.getReceipt() }) };
       sources.add(source); return source;
     })()); },
-    /** Completes the model directory for whole-model execution from authorized peers. A complete
-     * directory is left untouched. Pieces come from the verified cache or authorized custody peers
-     * only; the fill verifies each piece and each assembled file. Until some supplier has
-     * delivered, it waits for one; afterwards a piece no connected supplier offers within one
-     * channel timeout fails the fill. */
+    /** Completes the model directory for whole-model execution. The fill verifies each piece and
+     * assembled file from the cache, authorized custody peers, or the pinned origin. */
     fillWholeModel(model, { signal, onProgress = () => {} } = {}) { return own((async () => {
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
       if (await wholeModelDirectoryComplete(root, model)) return { complete: true, filled: false };
-      const data = await metadata(model, signal);
       const origin = resolvePinnedOrigin(model, modelOrigins, originFetch), graceUntil = Date.now() + peerGraceMs;
+      const data = await metadata(model, signal, origin);
       let supplied = false, waiting = false, originAnnounced = false;
       const peerOffers = (file, whole) => exchange.has(file) || Boolean(whole && exchange.has(whole));
       // Peers are preferred. Without a pinned origin the fill waits for a first supplier and then
@@ -343,10 +341,8 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
           return supplier ? { bytes, source: 'authorized-custody-peers', supplier } : bytes;
         }
         catch (error) {
-          // The manifest is always the bundled pinned copy, never an origin's.
-          if (!origin || file.path === 'manifest.json' || current.aborted) throw error;
-          const read = await fromOrigin(file.path, { size: file.sizeBytes, whole: true }, error.message);
-          await verify(file, read.bytes); return read;
+          if (!origin || current.aborted) throw error;
+          return { bytes: await readOriginModelMetadata(origin, file, current), source: origin.id, supplier: origin.supplier };
         }
       };
       const result = await fillWholeModelDirectory({ root, model, manifest: data.manifest, index: data.index, signal, onProgress, acquire,

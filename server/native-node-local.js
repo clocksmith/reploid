@@ -2,24 +2,13 @@ import { createHash } from 'node:crypto';
 import { once } from 'node:events';
 import fs from 'node:fs/promises';
 import http from 'node:http';
-import { resolveServedFile } from './browser-roots.js';
 import { createChatCompletions } from './chat-completions.js';
 import { sha256Digest } from './hashing.js';
 import { createNativeGpuHost } from './native-gpu-host.js';
 import { readPinnedOrigin, resolvePinnedOrigin } from './native-model-origin.js';
+import { readBundledModelMetadata, readOriginModelMetadata } from './native-model-metadata.js';
 import { createNativeWholeModel, nativeWholeModelSettings } from './native-whole-model.js';
 import { fillWholeModelDirectory, wholeModelDirectoryComplete } from './native-whole-model-fill.js';
-
-async function readBundled(file) {
-  if (!file || !/^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '')) {
-    throw new Error('Model delivery is missing pinned local metadata');
-  }
-  const bytes = await fs.readFile(resolveServedFile(file.url));
-  if (bytes.length !== file.sizeBytes || sha256Digest(bytes) !== `sha256:${file.hash}`) {
-    throw new Error(`Bundled model metadata differs from the catalog (${file.path})`);
-  }
-  return bytes;
-}
 
 async function fillLocalWeights(model, root, signal, log) {
   if (await wholeModelDirectoryComplete(root, model)) return;
@@ -27,18 +16,19 @@ async function fillLocalWeights(model, root, signal, log) {
   if (!origin) throw new Error(`No pinned download for ${model.id}. Supply its complete RDRR directory with --weights.`);
   const manifestFile = model.source.files.find(file => file.path === 'manifest.json');
   const indexFile = model.source.files.find(file => file.role === 'model-piece-index');
-  const [manifestBytes, indexBytes] = await Promise.all([readBundled(manifestFile), readBundled(indexFile)]);
+  const readMetadata = async file => (await readBundledModelMetadata(file)) ?? readOriginModelMetadata(origin, file, signal);
+  const [manifestBytes, indexBytes] = await Promise.all([readMetadata(manifestFile), readMetadata(indexFile)]);
   if (sha256Digest(manifestBytes) !== model.identity) throw new Error('Bundled manifest differs from the model identity');
-  const index = JSON.parse(indexBytes);
+  const decoder = new TextDecoder();
+  const index = JSON.parse(decoder.decode(indexBytes));
   if (index.manifestIdentity !== model.identity) throw new Error('Bundled piece index names a different model');
   await fs.mkdir(root, { recursive: true });
   log(`Downloading verified pieces for ${model.id} into ${root}`);
-  await fillWholeModelDirectory({ root, model, manifest: JSON.parse(manifestBytes), index, signal,
+  await fillWholeModelDirectory({ root, model, manifest: JSON.parse(decoder.decode(manifestBytes)), index, signal,
     concurrency: 4,
     acquire: async piece => ({ bytes: await readPinnedOrigin(origin, piece.path, { offset: piece.offset, size: piece.size, signal }),
       source: origin.id, supplier: origin.supplier }),
-    readMetadata: async file => file.url?.startsWith('/config/model-') ? readBundled(file)
-      : readPinnedOrigin(origin, file.path, { size: file.sizeBytes, whole: true, signal }),
+    readMetadata,
     freeBytes: async directory => { const stat = await fs.statfs(directory); return stat.bavail * stat.bsize; },
   });
 }

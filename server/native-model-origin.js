@@ -2,7 +2,7 @@
  * authorized custody peers. The origin is fixed here per exact model identity (repository and
  * immutable revision), never taken from peers or requests, and fetched without credentials.
  * Callers verify every byte against pinned piece identities or file hashes; this module only
- * bounds what it returns. The manifest never comes from an origin: the bundled pinned copy is used. */
+ * bounds what it returns. Callers bind model metadata to its exact catalog hash. */
 import origins from './native-model-origins.json' with { type: 'json' };
 
 const assert = (ok, message, code = 'MODEL_ORIGIN_INVALID') => { if (!ok) throw Object.assign(new Error(message), { code }); };
@@ -45,6 +45,8 @@ export async function readPinnedOrigin(origin, name, { offset = 0, size, whole =
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
+      if (ranged || whole) assert(value.byteLength <= size - received,
+        `Pinned origin sent more than ${size} bytes of ${name}`, 'MODEL_ORIGIN_RANGE');
       const take = Math.min(value.byteLength, size - received);
       bytes.set(value.subarray(0, take), received); received += take;
       // A whole-file answer to a range request at offset 0 is cut to the requested length.

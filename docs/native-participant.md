@@ -95,8 +95,11 @@ the model's pinned public origin when
 one. A pin binds the exact model identity to a Hugging Face repository, an
 immutable 40-hex revision and a path; nothing from peers or requests can name
 an origin, requests carry no credentials, and shards are read by HTTP range per
-pinned piece. The manifest always comes from the delivery's pinned copy, never
-an origin. With a pin, the fill gives peers a 15 s grace to announce and then
+pinned piece. npm installs the CLI and runtime and carries the catalog with
+exact artifact identities. Local or cached metadata is reused when available.
+Missing model manifests and piece indexes can come from authorized peers or
+the pinned origin. Every copy must match the catalog's length and SHA-256
+before the loader uses it. With a pin, the fill gives peers a 15 s grace to announce and then
 uses the origin for pieces no peer offers or that peers fail to deliver, so it
 also completes with no peer online. Partition acquisition uses the same pinned
 origin as its last source. Two models are pinned, both in `clocksmith/rdrr`:
@@ -104,8 +107,10 @@ origin as its last source. Two models are pinned, both in `clocksmith/rdrr`:
 shard hashes and sizes there equal manifest `a0dc69e9`) and
 `qwen-3-5-0-8b-q4k-ehaf16` at `ea7b211b72c4d43687fa72802dee7aba74eca293` (its 18
 shard hashes and sizes equal manifest `fa6eb7bb`); each `tokenizer.json` there
-equals the catalog's hash. The manifests stored at those revisions are older
-issues and are never read. `qwen-3-6-35b-a3b-text-source-q4_0-af32` is not
+equals the catalog's hash. Those revisions contain older manifests. These models
+currently use the exact metadata shipped with the catalog. An origin that supplies
+both metadata and weights must host the exact manifest and index named by the
+catalog. `qwen-3-6-35b-a3b-text-source-q4_0-af32` is not
 published at any origin and has no pin. Each piece is checked
 against the catalog's pinned piece index, each assembled shard against the
 manifest's SHA-256 and each other file against the catalog. A file is written as

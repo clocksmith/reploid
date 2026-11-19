@@ -310,10 +310,12 @@ function fakeOrigin(bytesFor, { corrupt = false } = {}) {
 }
 const originTable = model => ({ schema: 'reploid.native-model-origins/v1', origins: { [model.id]: { modelIdentity: model.identity, kind: 'huggingface',
   repoId: 'owner/repo', revision: 'a'.repeat(40), path: 'models/' + model.id } } });
-async function soloHost(f, origin) {
+async function soloHost(f, origin, { localMetadata = true } = {}) {
   const directory = await folder(), cacheDirectory = await folder();
   // Bundled pinned metadata (the delivery's served config) stands in as local files here.
-  for (const name of ['manifest.json', 'pieces.json']) await fs.copyFile(path.join(f.directories[0], name), path.join(directory, name));
+  if (localMetadata) {
+    for (const name of ['manifest.json', 'pieces.json']) await fs.copyFile(path.join(f.directories[0], name), path.join(directory, name));
+  }
   const transport = { getPeerId: () => 'solo', getConnectedPeers: () => [], onMessage() {}, onDataChannel: () => () => {}, sendToPeer: () => true, broadcast() {} };
   const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, modelOrigins: originTable(f.model),
     originFetch: origin.fetch, peerGraceMs: 20 });
@@ -334,8 +336,33 @@ it('fills from the pinned origin when no peer is online, by verified ranges and 
   expect(origin.requests.map(request => [request.url, request.range, request.credentials])).toEqual([
     [`https://huggingface.co/owner/repo/resolve/${'a'.repeat(40)}/models/native-fixture/weights.bin`, 'bytes=0-3', 'omit'],
     [`https://huggingface.co/owner/repo/resolve/${'a'.repeat(40)}/models/native-fixture/weights.bin`, 'bytes=4-7', 'omit']]);
-  // The manifest is the bundled pinned copy, never the origin's.
+  // An exact local manifest avoids a network request for it.
   expect(origin.requests.some(request => request.url.endsWith('manifest.json'))).toBe(false);
+});
+it('fills a model from its pinned origin with no packaged or local model files', async () => {
+  const f = await fixture(1);
+  const manifest = await fs.readFile(path.join(f.directories[0], 'manifest.json'));
+  const index = await fs.readFile(path.join(f.directories[0], 'pieces.json'));
+  const files = { 'manifest.json': manifest, 'pieces.json': index, 'weights.bin': Buffer.concat(f.chunks) };
+  const origin = fakeOrigin(name => files[name] ?? null);
+  const { host, directory } = await soloHost(f, origin, { localMetadata: false });
+  expect(await host.fillWholeModel(f.model)).toMatchObject({ complete: true, filled: true });
+  expect(await fs.readFile(path.join(directory, 'manifest.json'))).toEqual(manifest);
+  expect(await fs.readFile(path.join(directory, 'weights.bin'))).toEqual(files['weights.bin']);
+  expect(origin.requests.map(request => [request.url.split('/').at(-1), request.range, request.credentials])).toEqual([
+    ['manifest.json', null, 'omit'], ['pieces.json', null, 'omit'],
+    ['weights.bin', 'bytes=0-3', 'omit'], ['weights.bin', 'bytes=4-7', 'omit'],
+  ]);
+});
+it('rejects a same-length origin manifest with a different hash before requesting weights', async () => {
+  const f = await fixture(1);
+  const changed = await fs.readFile(path.join(f.directories[0], 'manifest.json'));
+  changed[2] ^= 1;
+  const origin = fakeOrigin(name => name === 'manifest.json' ? changed : null);
+  const { host, directory } = await soloHost(f, origin, { localMetadata: false });
+  await expect(host.fillWholeModel(f.model)).rejects.toThrow('Model metadata differs from the pinned catalog');
+  expect(origin.requests.map(request => request.url.split('/').at(-1))).toEqual(['manifest.json']);
+  expect(await fs.readdir(directory)).toEqual([]);
 });
 it('rejects a corrupted origin range and leaves no model file', async () => {
   const f = await fixture(1), origin = fakeOrigin(name => name === 'weights.bin' ? Buffer.concat(f.chunks) : null, { corrupt: true });
@@ -347,7 +374,7 @@ it('rejects a corrupted origin range and leaves no model file', async () => {
 it('prefers authorized peers over the pinned origin', async () => {
   const origin = fakeOrigin(() => { throw new Error('origin must not be asked'); });
   const f = await fixture(2, { hostOptions: model => ({ modelOrigins: originTable(model), originFetch: origin.fetch }) });
-  await fs.rm(path.join(f.directories[0], 'manifest.json'));
+  for (const name of ['manifest.json', 'pieces.json']) await fs.unlink(path.join(f.directories[0], name));
   await f.share();
   const result = await f.owners[0].fillWholeModel(f.model);
   expect(result.sources).toEqual({ 'authorized-custody-peers': { pieces: 2, bytes: 8 } });
