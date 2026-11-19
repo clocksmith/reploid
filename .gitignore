@@ -18,7 +18,7 @@ node_modules/
 
 # Only the current integrity-pinned runtime is ordinary source input.
 /deploy/artifacts/*.tgz
-!/deploy/artifacts/doppler-gpu-0.7.6.tgz
+!/deploy/artifacts/doppler-gpu-0.7.7.tgz
 
 # Build outputs
 # Forecast packages are built from live sources by prepack, with a source-hash

@@ -16,7 +16,7 @@ const run = promisify(execFile);
 it('keeps the bounded client failure and graceful-exit subprocess contracts in the focused suite', async () => {
   const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'complete_request_client_test.py'],
     { cwd: repo, timeout: 8000, maxBuffer: 1024 ** 2 });
-  expect(result.stderr).toContain('Ran 17 tests');
+  expect(result.stderr).toContain('Ran 18 tests');
   expect(result.stderr).toContain('OK');
 }, 10000);
 it('keeps protected service cgroup and GPU-owner observations in the focused suite', async () => {
