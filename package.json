@@ -1,7 +1,7 @@
 {
   "name": "reploid",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Shared AI inference across participating computers, with browser-native agents and governed improvement",
   "main": "server/proxy.js",
   "type": "module",

@@ -1,3 +1,4 @@
+import { participantOptions, participantHelp } from './native-participant-options.js';
 import { createNativeRtcConfigReader } from './native-rtc-config.js';
 import { parseArgs } from 'node:util';
 import path from 'node:path';
@@ -27,49 +28,10 @@ import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 
-export async function main() {
-  const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory',
-    'rtc-config-file', 'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile', 'runtime-source-config'].map(key => [key, { type: 'string' }]).concat([
-      ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
+export async function main({ runOnce } = {}) {
+  const { values } = parseArgs({ options: participantOptions });
   if (values.help) {
-    console.log(`Reploid native participant (Node 22.13 or newer)
-Usage: reploid-participant --connect-only|--share-files|--contribute
-  --model <catalog id> --model-directory <read-only weights directory>
-  --identity-file <private state/identity.json>
-  --web-search (opt in to public Bing search and page extraction; no browser sign-ins)
-  --browser-search-profile <dedicated absolute directory> (Google in owned Chrome; human checks stay manual)
-  --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
-  [--rtc-config-file <absolute private JSON path>] (expiring TURN credentials; reread on negotiation and heartbeat)
-  [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
-  [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
-  [--adapter <catalog adapter id>] (prepare this exact adapter with its base model)
-  [--execution-mode partition|whole-model] (default: partition; never falls back;
-     whole-model fills an incomplete --model-directory from verified peer pieces)
-  [--partition-index 0|1] (explicit eligible stage for a two-stage route)
-  [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
-  [--model-config <absolute JSON path>] (pinned operator model and partition request; private rooms only)
-  [--runtime-source-config <absolute JSON path>] (hash-pinned local Doppler source and bounded gather;
-     private unsigned partition compute only; no file sharing, peer acquisition, adapters or earning)
-  [--canonical] (requires explicit catalog generation and a capable installed runtime)
-  [--owner-policy <absolute JSON path>] (owner schedule, memory, rate, power, temperature and foreground limits)
-  [--earning-config <absolute JSON path>] (reploid.native-earning/v1: earning service, sign-in and contribution offers; needs --owner-policy)
-  [--shader-cache-root <absolute directory>] (sealed Mesa shader cache; default: shader-cache beside the identity file)
-  [--readiness-log <absolute JSONL path>] (appends readiness spans and stage admissions for scripts/capacity-utilization.js; needs --contribute)
-
---room-token-file reads the private room token once at startup from a regular
-file owned by this user with mode 0600; one trailing newline is removed.
---room-token <join marker> still works but exposes the token in process
-arguments and prints a warning; it cannot be combined with --room-token-file.
-
-File sharing and compute are separate explicit choices; both may be enabled.
-Compute requires --gpu-module. Missing assigned pieces use authenticated peers.
-SIGINT/SIGTERM stop admission, settle work and release owned resources.
-On Linux, --contribute compiles GPU pipelines into a private Mesa shader cache that is
-sealed only after a complete stage preparation and reused only for the same runtime,
-provider, driver and program; MESA_SHADER_CACHE_DIR must not be set by the caller.
-Native GPU uses Metal on macOS and Vulkan elsewhere. Model and route qualification
-is separate from backend selection; --help opens no provider.`);
+    console.log(participantHelp);
     return;
   }
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
@@ -180,7 +142,7 @@ is separate from backend selection; --help opens no provider.`);
     storage: native.createNativeEarningStorage(path.join(path.dirname(identityFile), 'earning-state.json')) }))
     .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; }) : null;
   // Status lines only when their content changes, plus a periodic heartbeat (policy.statusHeartbeatMs).
-  const statusLog = createChangeOnlyLog({ heartbeatMs: policy.statusHeartbeatMs, write: line => console.log(line) });
+  const statusLog = createChangeOnlyLog({ heartbeatMs: policy.statusHeartbeatMs, write: line => { if (!runOnce) console.log(line); } });
   let webWorker = null;
   if (values['browser-search-profile']) webWorker =
     await import('./browser-web-worker.js').then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
@@ -191,6 +153,7 @@ is separate from backend selection; --help opens no provider.`);
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
+    ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
     executionMode: values['execution-mode'] || 'partition',
     onModelFill: (() => {
       // Piece lines at most every 5 s; every other fill event is logged.
@@ -205,7 +168,7 @@ is separate from backend selection; --help opens no provider.`);
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       sha256Hex(values.room || bootstrap.publicRoomId)) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
-    onCustodyCertificate: certificate => console.log(JSON.stringify({ event: 'custody-certificate', certificate })),
+    onCustodyCertificate: certificate => { if (!runOnce) console.log(JSON.stringify({ event: 'custody-certificate', certificate })); },
     onChange: state => {
       statusLog('partition-state', { ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) });
       // A prepared stage is offered for before any route admits it.
@@ -222,6 +185,18 @@ is separate from backend selection; --help opens no provider.`);
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
   const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
     return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
+  if (runOnce) {
+    const controller = new AbortController();
+    const cancel = () => controller.abort(new Error('Request cancelled'));
+    process.once('SIGINT', cancel);
+    process.once('SIGTERM', cancel);
+    try { return await runOnce(participant, model, controller.signal); }
+    finally {
+      process.off('SIGINT', cancel);
+      process.off('SIGTERM', cancel);
+      await stop();
+    }
+  }
   const completion = new Promise((resolve, reject) => {
     const signalStop = () => stop().then(resolve, reject);
     process.once('SIGINT', signalStop); process.once('SIGTERM', signalStop);
