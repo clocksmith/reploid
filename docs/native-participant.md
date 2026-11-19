@@ -626,6 +626,35 @@ identity remain separate and unchanged. Use the existing worker gather limits
 and receipt collection above; this source activation path does not qualify
 physical correctness, speed, or production deployment.
 
+### Whole-model worker gathering
+
+A whole-model contributor normally reads its weights through the plain file loader. An operator model
+configuration (`--model-config`, private rooms only) can instead ask for authenticated worker gathering, the
+loading path the split stages use:
+
+```json
+{
+  "schema": "reploid.native-model/v1",
+  "model": { "id": "...", "identity": "sha256:...", "executionModes": ["whole-model"],
+    "source": { "files": [{ "role": "model-piece-index", "path": "pieces.json", "hashAlgorithm": "sha256", "hash": "..." }] } },
+  "wholeRuntime": { "gather": { "maxPartBytes": 3670016, "memoryBudgetBytes": 67108864, "concurrency": 8, "maxRanges": 3,
+    "verificationCache": { "directory": "/absolute/state/piece-state" } } }
+}
+```
+
+Every weight piece is then hashed against the model's pinned piece index by parallel workers before it is used,
+the manifest and tokenizer come from the same authenticated storage, and no URL can replace those bytes. With a
+`verificationCache`, pieces verified for a file's exact state (device, inode, size and times) are remembered across
+restarts, and each file's admitted identity is bound. The model directory must hold the manifest, the piece index
+and every indexed file as regular files in that directory. Bounds are explicit; nothing is chosen automatically.
+Routed-expert settings that need this storage (`sourceReadMode: "expert-lease-batch"`, `uploadStaging: "mapped"`)
+go in the model's `loadOptions.runtimeConfig` as usual. A model with no `wholeRuntime` is loaded as before.
+
+Checked on 2026-11-19 on one AMD host (Vulkan) with Qwen 3.8 Flash-Next in a private room, loopback signaling and
+a connect-only requester over WebRTC using the Chat Completions adapter: the model opened in 6.3 to 7.0 s and
+answered six requests, one of them with text identical to the earlier benchmark reference. That is a single-host
+functional check with one requester, not qualification for public serving.
+
 ### Explicit local source runtime
 
 `--runtime-source-config /absolute/runtime.json` activates an operator-selected

@@ -1436,7 +1436,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 685877,
-      "sha256": "sha256:8fc0178070d935afed3010d7add532df399d582a3e33f5e3f2058eafc8389f31"
+      "sha256": "sha256:73fadfa75fe30bd8fcc2363a68f208d723234842ca1cb8dbc53f7488e381e4ae"
     },
     {
       "path": "config/module-registry.json",
@@ -2255,8 +2255,8 @@
     },
     {
       "path": "infrastructure/doppler-runtime-service.js",
-      "byteLength": 10593,
-      "sha256": "sha256:185b22e17670baad70ecac8157b896d3568a0ab1dddb680c3c155902fe2039e0"
+      "byteLength": 10786,
+      "sha256": "sha256:53b9693c6e931fb944ebf5d6d1dacb4d5944a153985175ceff8fefe44e07bb21"
     },
     {
       "path": "infrastructure/error-store.js",
@@ -3785,8 +3785,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2551522,
-      "sha256": "sha256:2d3e5a4e540b5a31cc88a513e7ea24035074449c6bc767b8e38d20e6a0ead80f"
+      "byteLength": 2551568,
+      "sha256": "sha256:fc8e46c584d5f2d800e53134d8370a442a699d27ef13f55f9ca0bfffed38992c"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12679,5 +12679,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:bf0ede7b5a4c55c5f54ef100886a99b9328eb0b83d4ca3f9b9493baae6391f17"
+  "bundleHash": "sha256:8a30e40f28e011f9fcdd2795f930ffc9da3cde8b718fe65c01a05a7cdf4b8007"
 }

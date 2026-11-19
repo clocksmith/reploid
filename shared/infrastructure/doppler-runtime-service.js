@@ -172,7 +172,9 @@ export function createReploidDopplerRuntimeService({
     const previous = inFlight.get(key);
     const task = (async () => {
       if (previous) await previous.catch(() => null);
-      const sourceKey = typeof source === 'string' ? source : JSON.stringify(source);
+      // Owned storage is an object with a lifetime, not content: the manifest hash beside it identifies the source.
+      const sourceKey = typeof source === 'string' ? source
+        : JSON.stringify(source, (key, value) => key === 'storageContext' ? 'owned-storage' : value);
       const current = sessions.get(key);
       if (current?.session?.loaded && !current.quarantined && current.sourceKey === sourceKey) return current.session;
       await releaseEntry(key);

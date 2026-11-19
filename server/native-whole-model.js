@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { sha256Digest } from './hashing.js';
 import { createReploidDopplerRuntimeService } from '../shared/infrastructure/doppler-runtime-service.js';
 import { createNativeResidentProvider } from './native-resident-provider.js';
+import { openNativeModelSource } from './native-model-source.js';
 import { createModelAdapterResolver, selectModelAdapters } from '../packages/reploid/src/adapters/model-adapter.js';
 import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
@@ -25,11 +26,18 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
   configureMemory = async maxBytes => (await import('doppler-gpu/partitions')).configureDeviceMemoryBudget({ maxBytes }),
   resolveAdapter = createModelAdapterResolver({ models: [model] }),
   service = createReploidDopplerRuntimeService({ loadModule: () => import('doppler-gpu/compat') }),
-  createResident = createNativeResidentProvider, providerPolicy = profile, resolveGeneration = resolvePartitionGeneration }) {
+  createResident = createNativeResidentProvider, providerPolicy = profile, resolveGeneration = resolvePartitionGeneration,
+  // With `model.wholeRuntime.gather` (operator configuration only) the weights are read through authenticated
+  // worker gathering instead of the plain file loader; these two are replaced in tests.
+  openSource = openNativeModelSource, loadGatherRuntime = () => import('doppler-gpu/partitions') }) {
   model = structuredClone(model);
   model.adapters = selectModelAdapters(model);
   const settingsCapability = nativeWholeModelSettings(model);
   let resident = null, preparing = null, stopping = null, closed = false, enabled = false, filling = null;
+  // Owned authenticated storage of a gathered whole model. It outlives preparation and is closed only
+  // after the resident that reads from it has closed.
+  let gathered = null;
+  const closeGathered = async () => { const source = gathered; gathered = null; await source?.storage?.close?.(); };
   const ownerAllows = () => {
     const decision = owner?.decide();
     return !decision || decision.action === 'admit'
@@ -51,7 +59,9 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
     enabled = false; filling?.abort(new Error('Whole-model contribution stopped')); notify();
     await resident?.close();
     await preparing?.catch(() => {});
-    resident = null; notify();
+    resident = null;
+    await closeGathered();
+    notify();
   })().finally(() => { stopping = null; });
   return Object.freeze({
     getState,
@@ -114,15 +124,26 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
           loadOptions.runtimeConfig.inference.session.kvcache ??= {};
           loadOptions.runtimeConfig.inference.session.kvcache.maxSeqLen ??= generation.maxSeqLen;
         }
+        const manifestText = manifest.toString('utf8');
+        let source = { manifest: JSON.parse(manifestText), manifestText, manifestHash: model.identity.slice(7),
+          baseUrl: pathToFileURL(root + path.sep).href };
+        if (model.wholeRuntime?.gather) {
+          // The same authenticated bytes for the manifest and every weight piece; no URL can replace them.
+          gathered = await openSource({ model, modelDirectory: root, runtime: await loadGatherRuntime(),
+            gather: model.wholeRuntime.gather });
+          if (!enabled || closed) throw new Error('Whole-model contribution stopped');
+          source = { manifest: gathered.manifest, manifestText, manifestHash: model.identity.slice(7), storageContext: gathered.storage };
+          loadOptions.isolatedLoader = true;
+        }
         resident = createResident({ service, model, resolveAdapter, generation, providerPolicy,
-          maxOutcomeCharacters: providerPolicy.maxOutcomeCharacters, loadOptions,
-          source: { manifest: JSON.parse(manifest.toString('utf8')), manifestText: manifest.toString('utf8'),
-            manifestHash: model.identity.slice(7), baseUrl: pathToFileURL(root + path.sep).href }, onChange: notify });
+          maxOutcomeCharacters: providerPolicy.maxOutcomeCharacters, loadOptions, source, onChange: notify });
         await resident.prepare();
         return getState();
       })().catch(async error => {
         enabled = false;
-        await resident?.close(); resident = null; notify(); throw error;
+        await resident?.close(); resident = null;
+        await closeGathered().catch(() => {});
+        notify(); throw error;
       }).finally(() => { preparing = null; });
       return preparing;
     },

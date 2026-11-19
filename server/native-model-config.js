@@ -12,7 +12,7 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
   requireValue(path.isAbsolute(file), 'Native model configuration requires an absolute JSON path');
   const configuration = JSON.parse(await fs.readFile(file, 'utf8'));
   requireValue(configuration?.schema === 'reploid.native-model/v1'
-    && Object.keys(configuration).every(key => ['schema', 'model', 'partition', 'partitionRuntime'].includes(key)),
+    && Object.keys(configuration).every(key => ['schema', 'model', 'partition', 'partitionRuntime', 'wholeRuntime'].includes(key)),
   'Unknown native model configuration schema or field');
   const catalogReference = typeof configuration.model === 'string';
   const model = structuredClone(catalogReference ? models.find(row => row.id === configuration.model) : configuration.model);
@@ -30,6 +30,23 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
   const manifest = JSON.parse(bytes);
   requireValue(manifest.modelId === model.id, 'Native model configuration differs from the actual model id');
   if (configuration.partitionRuntime !== undefined) model.partitionRuntime = structuredClone(configuration.partitionRuntime);
+  // Whole-model loading through authenticated worker gathering: every weight piece is hashed against the
+  // model's pinned piece index before use, by parallel workers, and what was verified is remembered for the
+  // file's current state. Without it a whole model is read through the plain file loader.
+  if (configuration.wholeRuntime !== undefined) {
+    const gather = configuration.wholeRuntime?.gather;
+    requireValue(Object.keys(configuration.wholeRuntime).every(key => key === 'gather') && gather
+      && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency', 'maxRanges', 'verificationCache'].includes(key))
+      && ['maxPartBytes', 'memoryBudgetBytes', 'concurrency'].every(key => Number.isSafeInteger(gather[key]) && gather[key] > 0)
+      && (gather.maxRanges === undefined || Number.isSafeInteger(gather.maxRanges) && gather.maxRanges > 0 && gather.maxRanges <= 32)
+      && (gather.verificationCache === undefined || Object.keys(gather.verificationCache).every(key => key === 'directory')
+        && typeof gather.verificationCache.directory === 'string' && path.isAbsolute(gather.verificationCache.directory)),
+    'Whole-model runtime requires explicit gather bounds and concurrency, and an absolute verification cache directory when one is named');
+    requireValue(model.executionModes?.includes('whole-model')
+      && model.source?.files?.some(row => row.role === 'model-piece-index' && row.hashAlgorithm === 'sha256'),
+    'Whole-model gathering requires a whole-model catalog entry with a pinned piece index');
+    model.wholeRuntime = structuredClone(configuration.wholeRuntime);
+  }
   if (model.partitionRuntime?.runtimeConfig === 'model') {
     requireValue(model.loadOptions?.runtimeConfig && typeof model.loadOptions.runtimeConfig === 'object',
       'The model runtime reference requires explicit model.loadOptions.runtimeConfig');

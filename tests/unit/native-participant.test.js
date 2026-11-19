@@ -176,6 +176,23 @@ describe('native host boundary', () => {
       .rejects.toThrow('selected model id');
     expect(createVerifiedPieceStorage).not.toHaveBeenCalled();
   });
+  it('gives a verification cache to worker gathering only together with each file\'s admitted identity', async () => {
+    const { directory, model } = await fixture();
+    const stat = await fs.stat(path.join(directory, 'weights.bin'), { bigint: true });
+    const opened = { storage: { rangeLease: { read() {}, concurrency: 1 }, close: vi.fn() }, getGatherReceipt() {} };
+    const createVerifiedPieceStorage = vi.fn(async () => opened);
+    const gather = { maxPartBytes: 4, memoryBudgetBytes: 12, concurrency: 1 };
+    await openNativeModelSource({ model, modelDirectory: directory, runtime: { createVerifiedPieceStorage }, gather });
+    expect(createVerifiedPieceStorage.mock.calls[0][0].nodeGather.fileIdentities).toBeUndefined();
+    expect(createVerifiedPieceStorage.mock.calls[0][0].nodeGather.verificationCache).toBeUndefined();
+    const state = path.join(directory, 'state');
+    await openNativeModelSource({ model, modelDirectory: directory, runtime: { createVerifiedPieceStorage },
+      gather: { ...gather, verificationCache: { directory: state } } });
+    const bound = createVerifiedPieceStorage.mock.calls[1][0].nodeGather;
+    expect(bound.verificationCache).toEqual({ directory: state });
+    expect(bound.fileIdentities['weights.bin']).toEqual({ device: stat.dev.toString(), inode: stat.ino.toString(), size: stat.size.toString() });
+    expect(Object.keys(bound.fileIdentities)).toEqual(Object.keys(bound.files));
+  });
   it('rejects a weight symlink escaping the approved model directory', async () => {
     const { directory, model } = await fixture();
     const external = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-native-external-')); roots.push(external);

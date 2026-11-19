@@ -138,3 +138,49 @@ it('runs a catalog model without explicit generation under its partition route p
   expect(g.createResident.mock.calls.at(-1)[0].generation).toEqual({ maxTokens: 8 });
   expect(g.createResident.mock.calls.at(-1)[0].loadOptions.runtimeConfig.inference?.session?.kvcache).toBeUndefined();
 });
+
+it('reads a gathered whole model through owned authenticated storage and closes it only after the resident', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-whole-')); roots.push(root);
+  const bytes = JSON.stringify({ modelId: 'model' }); await fs.writeFile(path.join(root, 'manifest.json'), bytes);
+  const gather = { maxPartBytes: 4096, memoryBudgetBytes: 65536, concurrency: 2, verificationCache: { directory: path.join(root, 'state') } };
+  const model = { id: 'model', identity: 'sha256:' + createHash('sha256').update(bytes).digest('hex'), wholeRuntime: { gather } };
+  const order = [];
+  const storage = { close: vi.fn(async () => { order.push('storage-closed'); }) };
+  const openSource = vi.fn(async () => ({ manifest: { modelId: 'model' }, storage }));
+  const runtime = { createVerifiedPieceStorage() {} };
+  let ready = false;
+  const resident = { getState: () => ({ phase: ready ? 'ready' : 'loading', ready, modelIdentity: model.identity, adapterIdentities: [] }),
+    prepare: vi.fn(async () => { ready = true; }), close: vi.fn(async () => { ready = false; order.push('resident-closed'); }), generate: vi.fn() };
+  const createResident = vi.fn(() => resident);
+  const participant = createNativeWholeModel({ model, modelDirectory: root, nativeGpu: vi.fn(), createResident, configureMemory: vi.fn(),
+    openSource, loadGatherRuntime: async () => runtime });
+  await participant.contribute(true);
+  expect(participant.getState().ready).toBe(true);
+  // The source opener gets the approved directory, the gather policy and the runtime that hashes pieces.
+  expect(openSource).toHaveBeenCalledWith(expect.objectContaining({ modelDirectory: await fs.realpath(root), runtime, gather }));
+  // The resident loads from that storage, never from a URL, with a loader of its own.
+  const options = createResident.mock.calls[0][0];
+  expect(options.source.storageContext).toBe(storage);
+  expect(options.source.baseUrl).toBeUndefined();
+  expect(options.source.manifestHash).toBe(model.identity.slice(7));
+  expect(options.loadOptions.isolatedLoader).toBe(true);
+  await participant.close();
+  expect(order).toEqual(['resident-closed', 'storage-closed']);
+
+  // A failed preparation closes the storage it opened.
+  const failing = createNativeWholeModel({ model, modelDirectory: root, nativeGpu: vi.fn(), configureMemory: vi.fn(), openSource,
+    loadGatherRuntime: async () => runtime,
+    createResident: () => ({ getState: () => ({ phase: 'failed', ready: false }), prepare: async () => { throw new Error('load failed'); }, close: async () => {} }) });
+  storage.close.mockClear();
+  await expect(failing.contribute(true)).rejects.toThrow('load failed');
+  expect(storage.close).toHaveBeenCalledTimes(1);
+});
+
+it('keeps the plain file loader for a model with no gather policy', async () => {
+  const f = await fixture();
+  await f.participant.contribute(true);
+  const options = f.createResident.mock.calls[0][0];
+  expect(options.source.baseUrl).toMatch(/^file:/);
+  expect(options.source.storageContext).toBeUndefined();
+  expect(options.loadOptions.isolatedLoader).toBeUndefined();
+});

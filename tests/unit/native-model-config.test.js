@@ -115,3 +115,25 @@ it('accepts the declared tool-call format and refuses an unknown one before any 
     expect(f.loadRuntime).not.toHaveBeenCalled();
   }
 });
+
+it('accepts whole-model gathering only with explicit bounds, a pinned piece index and a whole-model entry', async () => {
+  const f = await fixture();
+  delete f.configuration.partition; delete f.configuration.model.partitionRuntime;
+  f.configuration.model.source = { files: [{ path: 'pieces.json', role: 'model-piece-index', hashAlgorithm: 'sha256', hash: 'c'.repeat(64) }] };
+  f.configuration.wholeRuntime = { gather: { maxPartBytes: 4096, memoryBudgetBytes: 65536, concurrency: 8, maxRanges: 3,
+    verificationCache: { directory: path.join(f.directory, 'state') } } };
+  await f.write();
+  expect((await f.read()).wholeRuntime).toEqual(f.configuration.wholeRuntime);
+  const refuse = async change => {
+    const saved = structuredClone(f.configuration);
+    change(f.configuration); await f.write();
+    await expect(f.read()).rejects.toThrow(/Whole-model/);
+    Object.assign(f.configuration, saved); f.configuration.wholeRuntime = saved.wholeRuntime; f.configuration.model = saved.model;
+  };
+  await refuse(c => { delete c.wholeRuntime.gather.concurrency; });
+  await refuse(c => { c.wholeRuntime.gather.verificationCache.directory = 'relative/state'; });
+  await refuse(c => { c.wholeRuntime.gather.unknown = 1; });
+  await refuse(c => { c.wholeRuntime.extra = {}; });
+  await refuse(c => { c.model.source.files = []; });
+  await refuse(c => { c.model.executionModes = ['partition']; });
+});
