@@ -192,6 +192,49 @@ it('refuses execution without held credit, changed inputs, or another consumerâ€
   expect(credits.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-2, 0], [2, 0], [0, 0]]);
 });
 
+it('checks a reservation from the requestâ€™s commitment before the prompt is disclosed, and changes nothing', async () => {
+  const served = { ...model, generation: { maxTokens: 8 } };
+  const admission = createFleetExecutionAdmission({ credits: createFleetClient({ url: service.url, identity: keys[1] }), model: served });
+  const messages = [{ role: 'user', content: 'not sent before admission' }];
+  const commitment = 'sha256:' + 'c'.repeat(64);
+  const details = { requestId: 'pre', consumer: keys[0].peerId, modelIdentity: model.identity, adapterIdentities: [], promptCommitment: commitment };
+  const ask = (changes = {}, consumer = keys[0].peerId) => admission.preadmit({ request: { ...details, ...changes }, consumer });
+  // No reservation yet, then one that has not been dispatched.
+  await expect(ask()).rejects.toThrow('live credit admission');
+  const binding = { id: `service:${details.consumer}:pre`, executionId: 'pre', consumer: details.consumer, mode: 'whole-model',
+    model: { ...model, adapterIdentities: [] }, inputDigest: await hashJson(messages), maxOutputTokens: 8,
+    admission: { schema: 'reploid.credit-preadmission/v1', commitment }, providers: [{ participantId: keys[1].peerId, weight: 1 }] };
+  expect((await client.reserve(binding)).admissionVersion).toBe(2);
+  await expect(ask()).rejects.toThrow('live credit admission');
+  await client.dispatch(binding.id);
+  const before = credits.snapshot().accounts.map(row => [row.balance, row.held]);
+  expect(await ask()).toBe(true);
+  // Another commitment, another consumer, another model variant, a prompt in the question, or another provider: refused.
+  await expect(ask({ promptCommitment: 'sha256:' + 'd'.repeat(64) })).rejects.toThrow('does not bind this pre-disclosure commitment');
+  await expect(ask({}, keys[2].peerId)).rejects.toThrow('authenticated peer');
+  await expect(ask({ modelIdentity: 'sha256:' + 'b'.repeat(64) })).rejects.toThrow('another model variant');
+  await expect(ask({ messages })).rejects.toThrow('carries no prompt');
+  const stranger = createFleetExecutionAdmission({ credits: createFleetClient({ url: service.url, identity: keys[2] }), model: served });
+  await expect(stranger.preadmit({ request: details, consumer: keys[0].peerId })).rejects.toThrow('live credit admission');
+  // The check moved nothing, and admission with the prompt still follows it.
+  expect(credits.snapshot().accounts.map(row => [row.balance, row.held])).toEqual(before);
+  expect(credits.request(binding.id).state).toBe('dispatched');
+  expect(await admission.whole({ request: { requestId: 'pre', consumer: keys[0].peerId, messages }, consumer: keys[0].peerId })).toBe(true);
+  // A reservation made without a commitment keeps the earlier version and cannot be checked this way.
+  const plain = { ...binding, id: `service:${details.consumer}:plain`, executionId: 'plain' };
+  delete plain.admission;
+  expect((await client.reserve(plain)).admissionVersion).toBe(1);
+  await client.dispatch(plain.id);
+  await expect(ask({ requestId: 'plain' })).rejects.toThrow('does not bind this pre-disclosure commitment');
+  await expect(client.reserve({ ...binding, id: `service:${details.consumer}:bad`, executionId: 'bad',
+    admission: { schema: 'reploid.credit-preadmission/v1', commitment: 'not-a-digest' } })).rejects.toThrow('Invalid credit reservation');
+  // A ledger that predates the check answers "unsupported"; any other failure is a refusal.
+  const older = createFleetExecutionAdmission({ credits: { call: async () => { throw Error('Unknown fleet operation'); } }, model: served });
+  expect(await older.preadmit({ request: details, consumer: keys[0].peerId })).toBe(false);
+  const failing = createFleetExecutionAdmission({ credits: { call: async () => { throw Error('Fleet request failed'); } }, model: served });
+  await expect(failing.preadmit({ request: details, consumer: keys[0].peerId })).rejects.toThrow('Fleet request failed');
+});
+
 it('charges the requester and credits every settled resident stage through the actual requester wrapper', async () => {
   const route = await residentRoute({ participants: keys.slice(1).map(key => key.peerId), requesterId: keys[0].peerId,
     signers: keys.slice(1).map(identity => createAttemptEvidenceSigner({ identity })) });

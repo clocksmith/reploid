@@ -58,6 +58,9 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         && text(value.model?.id) && digest(value.model.identity) && Array.isArray(value.model.adapterIdentities)
         && value.model.adapterIdentities.every(digest) && digest(value.inputDigest)
         && (value.settingsDigest === undefined || digest(value.settingsDigest) && value.mode === 'whole-model')
+        // Optional, whole-model only: the commitment a provider may check before the prompt is disclosed.
+        && (value.admission === undefined || value.mode === 'whole-model' && value.admission?.schema === 'reploid.credit-preadmission/v1'
+          && digest(value.admission.commitment) && Object.keys(value.admission).length === 2)
         && integer(value.maxOutputTokens) && value.maxOutputTokens > 0 && value.maxOutputTokens <= policy.maxOutputTokens
         && Array.isArray(value.providers) && value.providers.length > 0 && value.providers.length <= 128,
       'Invalid credit reservation');
@@ -93,7 +96,8 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         const createdAt = now();
         const binding = { ...value, requestHash, computerId: consumer.computerId, maximum,
           policyVersion: policy.version, terminalCharge: value.mode === 'whole-model' ? policy.wholeModelTerminalCharge ?? null : null,
-          admissionVersion: 1, createdAt, deadline: createdAt + policy.maxRequestMs };
+          // 2: the reservation binds a pre-disclosure commitment and admits a `preadmit` check.
+          admissionVersion: value.admission ? 2 : 1, createdAt, deadline: createdAt + policy.maxRequestMs };
         db.prepare("INSERT INTO fleet_requests VALUES (?,?,'reserved',NULL)").run(value.id, JSON.stringify(binding));
         db.prepare('UPDATE fleet_accounts SET held=held+? WHERE id=?').run(maximum, consumer.computerId);
         return binding;

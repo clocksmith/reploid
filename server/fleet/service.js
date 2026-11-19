@@ -57,6 +57,23 @@ export async function startFleetService({ credits, models, placementPolicy, port
         credits.admit(payload.id, request.mode === 'whole-model' ? 0 : payload.partitionIndex);
         return { admitted: true, deadline: request.deadline, maximum: request.maximum };
       }
+      case 'preadmit': {
+        // The provider's credit check before the prompt is disclosed: everything `admit` checks that does not
+        // need the prompt, against the commitment the requester reserved. It changes nothing; `admit` still
+        // follows with the input digest once the request has arrived.
+        const observation = observations.get(owner.computerId);
+        if (observation) assert(observation.preferences.enabled === true
+          && observation.preferences.models.some(model => model.id === payload.model?.id && model.identity === payload.model?.identity),
+        'Provider owner no longer allows this model');
+        const row = credits.request(payload.id), request = row?.binding;
+        assert(row?.state === 'dispatched' && now() <= request.deadline && request.mode === 'whole-model' && payload.mode === 'whole-model'
+          && request.consumer === payload.consumer && request.executionId === payload.executionId
+          && request.providers.length === 1 && request.providers[0].participantId === signer
+          && same(request.model, payload.model), 'No matching live credit admission');
+        assert(request.admissionVersion === 2 && request.admission?.commitment === payload.commitment,
+          'Reservation does not bind this pre-disclosure commitment');
+        return { preadmitted: true, deadline: request.deadline, maximum: request.maximum, maxOutputTokens: request.maxOutputTokens };
+      }
       case 'abandonBeforeDispatch':
         return credits.abandonBeforeDispatch(payload.id, signer) ?? { abandoned: true };
       case 'collect':

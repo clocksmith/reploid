@@ -69,3 +69,53 @@ it('after the named provider is lost mid-answer, a retry under the same policy d
   expect(held()).toBeLessThan(heldBeforeExpiry);
   expect(held()).toBe(0);
 }, 30000);
+
+it('a provider checks the requester\'s credit from the commitment, and declines before the prompt when the ledger refuses', async () => {
+  const fixture = await createJourneyNetwork({ providers: [{ name: 'named', tokensPerSecond: 40, holdsModel: true }] });
+  cleanup.push(() => fixture.close());
+  const { hub, model, requester, credits } = fixture;
+  const named = fixture.seatOf('named');
+  const messages = [{ role: 'user', content: 'Public fixture for credit before disclosure.' }];
+  const restricted = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [named.identity.peerId] });
+  // Everything the transport carries to the provider. While `forge` is set, the commitment in the admission
+  // question is changed in transit, so the provider asks the ledger about a commitment nobody reserved.
+  const toProvider = [];
+  let forge = false;
+  cleanup.push(hub.lose((entry, payload) => {
+    if (entry.to !== named.run.id) return false;
+    if (forge && entry.type === 'reploid:generation-admit') payload.promptCommitment = 'sha256:' + 'f'.repeat(64);
+    toProvider.push({ type: entry.type, commitment: payload?.promptCommitment ?? null, carriesPrompt: JSON.stringify(payload).includes(messages[0].content) });
+    return false;
+  }));
+  await fixture.expectReady(1);
+  const attempt = attemptId => {
+    let reservationId = null;
+    return requester.generate({ model, messages, threadId: 'credit-before-disclosure', attemptId, privacy: restricted },
+      { signal: AbortSignal.timeout(5000), requestApproval: async () => true, onReservation: id => { reservationId = id; } })
+      .then(result => ({ completed: true, reservationId, charge: result.serviceCredit?.charge ?? null }),
+        error => ({ completed: false, reservationId, error: error.message }));
+  };
+
+  // Served: the reservation binds the very commitment the provider was asked to admit.
+  const served = await attempt('served');
+  expect(served.completed).toBe(true);
+  const admitted = toProvider.find(row => row.type === 'reploid:generation-admit');
+  const binding = credits.request(served.reservationId).binding;
+  expect(binding.admissionVersion).toBe(2);
+  expect(binding.admission).toEqual({ schema: 'reploid.credit-preadmission/v1', commitment: admitted.commitment });
+  expect(toProvider.map(row => row.type).filter(type => type.startsWith('reploid:generation-')).slice(0, 2))
+    .toEqual(['reploid:generation-admit', 'reploid:generation-request']);
+  expect(named.executions).toBe(1);
+
+  // Refused by the ledger: the provider declines, and no message carrying the prompt reaches it.
+  const mark = toProvider.length;
+  forge = true;
+  const refused = await attempt('refused');
+  expect(refused.completed).toBe(false);
+  expect(refused.error).toBe('The provider declined this request. The prompt was not sent.');
+  const after = toProvider.slice(mark);
+  expect(after.filter(row => row.type === 'reploid:generation-admit')).toHaveLength(1);
+  expect(after.filter(row => row.type === 'reploid:generation-request')).toEqual([]);
+  expect(after.filter(row => row.carriesPrompt)).toEqual([]);
+  expect(named.executions).toBe(1);
+}, 30000);

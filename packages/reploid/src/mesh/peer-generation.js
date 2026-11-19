@@ -1109,7 +1109,10 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, modelId, modelIdentity, messages: snapshotJson(messages),
         requestId, recipientIdentity, privacyBinding, offerId: selectedOffer?.id ?? null, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext),
-        placement: snapshotJson(placementChoices.get(provider) ?? null), ...(settings ? { settings: snapshotJson(settings) } : {}) }) !== true) {
+        placement: snapshotJson(placementChoices.get(provider) ?? null), ...(settings ? { settings: snapshotJson(settings) } : {}),
+        // The provider will be asked to admit exactly this commitment before the prompt is sent, so a host
+        // that reserves credit for the request can bind the same value.
+        ...(admission ? { admission: { schema: 'reploid.generation-admission/v1', promptCommitment: admission.commitment } } : {}) }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
       }
       signal?.throwIfAborted();

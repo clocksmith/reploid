@@ -32,6 +32,26 @@ export function createFleetExecutionAdmission({ credits, model }) {
         ...(settings ? { settingsDigest } : {}) });
       return true;
     },
+    /**
+     * Before the prompt is sent: the request's details and its salted commitment, no messages. Resolves true
+     * when the ledger holds a live reservation for exactly this request and commitment, and false when the
+     * ledger predates the check, in which case credit is checked with the request as before. Rejects when the
+     * ledger refuses: the provider then declines and the prompt is never sent.
+     */
+    async preadmit({ request, consumer }) {
+      assert(request.consumer === consumer, 'Execution consumer differs from authenticated peer');
+      assert(request.messages === undefined && request.settings === undefined, 'Pre-disclosure admission carries no prompt');
+      assert(request.modelIdentity === exact.identity && same(request.adapterIdentities ?? [], exact.adapterIdentities),
+        'Execution request names another model variant than this provider serves');
+      try {
+        await credits.call('preadmit', { id: `service:${consumer}:${request.requestId}`, executionId: request.requestId,
+          consumer, mode: 'whole-model', model: exact, commitment: request.promptCommitment });
+      } catch (error) {
+        if (error?.message === 'Unknown fleet operation') return false;
+        throw error;
+      }
+      return true;
+    },
     async partition(request) {
       assert(request.charge?.reservationId && request.identity?.requesterId, 'Credited stage requires signed admission');
       await credits.call('admit', { id: request.charge.reservationId, executionId: request.identity.attemptId,

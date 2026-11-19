@@ -120,6 +120,10 @@ export function createFleetRequester({
             consumer: identity.peerId, mode, model: { id: request.model.id,
               identity: request.model.identity, adapterIdentities: partitionAdapterIdentities(request.model) },
             inputDigest, ...(settingsDigest ? { settingsDigest } : {}), maxOutputTokens: outputLimit, acceptedQuote,
+            // The salted commitment the provider is asked to admit before the prompt is sent. With it in the
+            // reservation, the provider can check credit from the request's details alone.
+            ...(!partition && typeof disclosure.admission?.promptCommitment === 'string'
+              ? { admission: { schema: 'reploid.credit-preadmission/v1', commitment: disclosure.admission.promptCommitment } } : {}),
             providers: [{ participantId: typeof disclosure.recipientIdentity === 'string' ? disclosure.recipientIdentity
               : disclosure.recipientIdentity?.participantId ?? disclosure.recipientIdentity?.peerId, weight: 1 }] };
           if (partition) {
