@@ -8,7 +8,7 @@ import { updateContextIndicator } from './context-indicator.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
+import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bindModelChoices, modelVariantKey, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 import { bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
 import { renderAttachments, createTextAttachmentReader } from '../components/attachments.js';
@@ -33,10 +33,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const detachHelp = bindControlHelp(container);
-  const nextModelChoices = bindModelChoices(find('[data-next-model]'));
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl, webSearch, search });
+  const nextModelChoices = bindModelChoices(find('[data-next-model]'), { onInspectProviders(selectionId, variantKey) {
+    const model = session.getState().models?.find(item => modelKey(item) === selectionId && modelVariantKey(item) === variantKey);
+    if (!model || !model.providerIds?.length || !inspector.openModelComputers) return;
+    picker.close();
+    inspector.openModelComputers(model, find('[data-open-model]'));
+  } });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
-  let changingModel = false, pickerTouched = false, recoverySelection = null;
+  let changingModel = false, pickerTouched = false, recoverySelection = null, pickerRevision = 0;
   let files = [], composerRevision = 0, queuedSend = null, queueHasText = false;
   const attachmentReader = createTextAttachmentReader({
     getFiles: () => files,
@@ -247,6 +252,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
+      pickerRevision++;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
@@ -453,6 +459,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
   const openPicker = (event, alternative = null) => {
+    pickerRevision++;
     queuedSend = null;
     recoverySelection = alternative;
     pickerTouched = !!alternative;
@@ -485,10 +492,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     next.value = route.value; next.dispatchEvent(new Event('change', { bubbles: true }));
   });
   on('[data-next-model]', 'change', () => {
+    pickerRevision++;
     if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
     pickerTouched = true;
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
-    if (pickerLocation !== 'local' && !modelExecutionState(pickerModel, pickerLocation).usable) pickerLocation = isSharedModelChoice(pickerModel) ? 'network' : 'auto';
     updatePicker(session.getState());
     render(session.getState());
   });
@@ -506,6 +513,33 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
+  on('[data-switch-local]', 'click', () => {
+    if (changingModel || attachmentReader.pending || pickerLocation !== 'network') return;
+    const state = session.getState();
+    const model = state.models?.find(item => modelIdentity(item) === modelIdentity(pickerModel));
+    if (!model || modelExecutionState(model, 'network').usable) { updatePicker(state); return; }
+    const stageLocal = () => {
+      const current = session.getState();
+      const stored = current.models?.find(item => modelIdentity(item) === modelIdentity(model));
+      if (!modelExecutionState(stored, 'local').usable) return;
+      pickerModel = stored; pickerTouched = true; pickerLocation = 'local'; updatePicker(current);
+      find('[data-change-model]').focus();
+    };
+    if (modelExecutionState(model, 'local').usable) stageLocal();
+    else if (downloadableHere(model, state) && !busyAcquisition(state)) {
+      const revision = ++pickerRevision, scope = queueScope(state, model);
+      inspector.downloadModel(modelKey(model), find('[data-switch-local]'), {
+        isCurrent(id) {
+          const current = session.getState();
+          return !controller.signal.aborted && find('[data-model-picker]').open && pickerRevision === revision
+            && pickerLocation === 'network' && id === modelKey(model) && queueScope(current, model) === scope
+            && !current.activeThread?.closed && !(current.runningIds || []).includes(current.selectedId)
+            && current.models?.some(item => modelIdentity(item) === modelIdentity(model));
+        },
+        onStored: stageLocal
+      });
+    }
+  });
   on('[data-change-model]', 'click', () => {
     if (changingModel || attachmentReader.pending) return;
     const next = find('[data-next-model]').value;
@@ -514,7 +548,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const model = (state.models || []).find(model => (model.selectionId || model.id) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(model) && !state.localDownloadIssue));
     if (!model) {
       const wanted = (state.models || []).find(item => (item.selectionId || item.id) === next);
-      if (wanted && downloadableHere(wanted, state)) { const opener = find('[data-model-control]'); picker.close(); inspector.downloadModel(next, opener); return; }
+      if (pickerLocation !== 'network' && wanted && downloadableHere(wanted, state)) {
+        picker.close();
+        inspector.downloadModel(next, find('[data-open-model]'));
+        return;
+      }
       updatePicker(session.getState()); return;
     }
     const privacy = explicitPrivacy(state);
@@ -639,7 +677,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
     pickerTouched = true;
-    pickerLocation = button.dataset.executionChoice;
+    pickerRevision++; pickerLocation = button.dataset.executionChoice;
     updatePicker(session.getState());
   });
   on('[data-queue-send]', 'click', () => {

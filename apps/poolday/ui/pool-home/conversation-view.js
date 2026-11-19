@@ -103,6 +103,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <p data-picker-thread-note hidden>A new model starts a new thread.</p>
         ${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
         <p data-next-model-status role="status" hidden></p>
+        <button class="pool-button btn-ghost" type="button" data-switch-local hidden>Switch to this device</button>
         ${renderModelSelectionDetails()}</div>
         <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-model-picker-close>Cancel</button><button class="pool-button btn-primary" type="button" data-change-model>Use model</button></div>
       </dialog>

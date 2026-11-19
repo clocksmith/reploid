@@ -51,16 +51,16 @@ it('separates downloaded local files from ready capacity and keeps unknown GPU d
     participants: [{ hardware: 'GPU not reported' }] }]);
 });
 
-it('keeps a disclosure open across updates and renders reported GPU strings as text', () => {
+it('keeps a route disclosure open across updates and leaves reported hardware in Computers', () => {
   const root = document.createElement('div'); root.innerHTML = renderModelProviders();
   const disclosure = root.querySelector('details'); disclosure.open = true;
   const snapshot = state([model], [{ ...peer('a'), hardware: { description: '<img src=x onerror=alert(1)>' } }]);
   updateModelProviders(root, snapshot, model);
   expect(disclosure.open).toBe(true);
   expect(root.querySelector('img')).toBeNull();
-  expect(root.textContent).toContain('<img src=x onerror=alert(1)>');
+  expect(root.textContent).not.toContain('<img src=x onerror=alert(1)>');
   updateModelProviders(root, state([], []), model);
-  expect(root.textContent).toContain('No providers reported');
+  expect(root.textContent).toContain('No routes available');
   expect(disclosure.open).toBe(true);
 });
 
@@ -71,13 +71,11 @@ it('renders one block per route of the variant, with route radios only when ther
   updateModelProviders(root, state([model]), model);
   expect(root.querySelectorAll('[data-model-route]')).toHaveLength(1);
   expect(root.querySelector('[data-model-route-choice]')).toBeNull();
-  expect(root.querySelector('[data-provider-count]').textContent).toBe('2');
-  // A provider's status is not repeated when it matches its route's.
-  expect(root.querySelector('li small').textContent).toBe('AMD');
+  expect(root.textContent).not.toContain('AMD');
   updateModelProviders(root, state([model, route]), model, { selectedId: 'qwen/route' });
   expect([...root.querySelectorAll('[data-model-route]')].map(node => node.dataset.modelRoute)).toEqual(['qwen', 'qwen/route']);
   expect([...root.querySelectorAll('[data-model-route-choice]')].map(input => [input.value, input.checked])).toEqual([['qwen', false], ['qwen/route', true]]);
-  expect(root.querySelector('[data-model-route="qwen/route"]').textContent).toContain('Stage 2 of 2 · GPU not reported');
+  expect(root.querySelector('[data-model-route="qwen/route"]').textContent).toContain('Distributed · 2 computers');
   expect(root.querySelector('[data-model-route="qwen/route"]').textContent).toContain('Unavailable');
 });
 

@@ -295,7 +295,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     find('[data-toggle-file-contribution]').focus();
   });
   const unsubscribe = session.subscribe(render);
-  let downloadMode = 'contribute', downloadInfo = null;
+  let downloadMode = 'contribute', downloadInfo = null, localReview = null;
   const checkDownload = async () => {
     find('[data-retry-download-check]').hidden = true;
     downloadInfo = null; metadataController?.abort(); const request = metadataController = new AbortController();
@@ -314,8 +314,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download'; find('[data-download-confirm]').disabled = false;
     } catch (cause) { if (!request.signal.aborted && !disposed) { find('[data-download-size]').textContent = cause.message; find('[data-retry-download-check]').hidden = false; } }
   };
-  const openModelSetup = (opener, modelId, mode = 'contribute') => {
-    downloadMode = mode;
+  const openModelSetup = (opener, modelId, mode = 'contribute', review = null) => {
+    downloadMode = mode; localReview = review;
     find('[data-download-title]').textContent = mode === 'local' ? 'Download model' : 'Start sharing';
     find('[data-download-confirm]').textContent = mode === 'local' ? 'Download model' : 'Download & share';
     const network = session.getState().network || {};
@@ -355,11 +355,14 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   on('[data-download-model]', 'change', () => void checkDownload());
   on('[data-retry-download-check]', 'click', () => void checkDownload());
   on('[data-download-cancel]', 'click', () => modelDialog.close());
-  on('[data-model-dialog]', 'close', () => metadataController?.abort());
+  on('[data-model-dialog]', 'close', () => {
+    if (!find('[data-model-dialog]').open) { metadataController?.abort(); localReview = null; }
+  });
   on('[data-download-confirm]', 'click', () => {
     if (find('[data-download-confirm]').disabled || !downloadInfo) return;
     find('[data-download-confirm]').disabled = true;
-    const modelId = find('[data-download-model]').value; modelDialog.close();
+    const modelId = find('[data-download-model]').value, review = localReview; modelDialog.close();
+    if (review && !review.isCurrent(modelId)) return;
     const compute = find('[data-download-compute]').checked, files = find('[data-download-files]').checked;
     const contribute = downloadMode === 'contribute' && compute, cached = downloadInfo.cached;
     void act(async () => {
@@ -373,7 +376,11 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       if (contribute) {
         if (network.paused) await session.connect();
         await session.setSharing(true, modelId, true);
-      } else if (!cached) await session.downloadLocalModel(modelId, true);
+      } else if (!cached) {
+        if (review && !review.isCurrent(modelId)) return;
+        await session.downloadLocalModel(modelId, true);
+        if (!disposed && review?.isCurrent(modelId)) review.onStored();
+      }
     });
   });
   on('[data-specialized-jobs]', 'toggle', () => {
@@ -398,7 +405,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       onRailOpen = callback;
       return () => { if (onRailOpen === callback) onRailOpen = null; };
     },
-    downloadModel(modelId, opener) { openModelSetup(opener, modelId, 'local'); },
+    downloadModel(modelId, opener, review) { openModelSetup(opener, modelId, 'local', review); },
     contribute(modelId, opener) { openModelSetup(opener, modelId); },
     storage(opener) {
       select('settings'); dialog.open(opener);

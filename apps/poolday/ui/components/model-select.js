@@ -26,11 +26,12 @@ export const modelFacts = model => [
 ].filter(Boolean).join(' · ');
 
 /** Presentation groups never change model identities or execution permissions. */
-export function modelChoiceGroups(models, { preferNetwork = true } = {}) {
+export function modelChoiceGroups(models, { preferNetwork = true, location = 'auto' } = {}) {
   const privateModels = [], shared = [], local = [], downloads = [], unavailable = [];
   for (const model of models) {
     if (model.fleet) privateModels.push(model);
     else if (isSharedModelChoice(model)) shared.push(model);
+    else if (location === 'network') unavailable.push(model);
     else if (model.localReady || model.localCached || model.availability === 'cached') local.push(model);
     else if (isDownloadableBaseModel(model)) downloads.push(model);
     else unavailable.push(model);
@@ -42,7 +43,7 @@ export function modelChoiceGroups(models, { preferNetwork = true } = {}) {
     { id: 'local', label: 'On this device', models: local },
     { id: 'private', label: 'Your private computers', models: privateModels },
     { id: 'download', label: 'Download to this device', models: downloads },
-    { id: 'unavailable', label: 'Unavailable', models: unavailable }
+    { id: location === 'network' ? 'network-unavailable' : 'unavailable', label: location === 'network' ? 'Unavailable on network' : 'Unavailable', models: unavailable }
   ];
   const ordered = preferNetwork ? groups : [groups[1], groups[0], ...groups.slice(2)];
   return ordered.filter(group => group.models.length);
@@ -94,12 +95,12 @@ export function modelFamilies(entries) {
   return families.map(family => ({ ...family, members: [family.base, ...family.adapters],
     lead: [family.base, ...family.adapters].reduce((best, entry) => familyRank(entry.model) < familyRank(best.model) ? entry : best).model }));
 }
-const ownGroup = (model, preferNetwork) => modelChoiceGroups([model], { preferNetwork })[0]?.id;
+const ownGroup = (model, preferNetwork, location) => modelChoiceGroups([model], { preferNetwork, location })[0]?.id;
 
 /** Native radios keep keyboard selection; the select remains the caller's value port.
  * With `variants`, one radio stands for an exact model/adapter variant and its routes stay with the caller;
  * adapter variants sit directly beneath their base model. `describe(model)` may return { status, facts, note } for a choice. */
-export function bindModelChoices(select) {
+export function bindModelChoices(select, { onInspectProviders } = {}) {
   const group = document.createElement('fieldset');
   group.className = 'chat-model-choices pool-bare';
   group.innerHTML = '<legend class="chat-visually-hidden">Model</legend>';
@@ -112,6 +113,11 @@ export function bindModelChoices(select) {
     select.dispatchEvent(new Event('change', { bubbles: true }));
   };
   const reselect = event => {
+    const providerButton = event.target.closest('[data-inspect-model-providers]');
+    if (providerButton) {
+      if (event.type === 'click') onInspectProviders?.(providerButton.dataset.inspectModelProviders, providerButton.closest('[data-choice-row]').dataset.choiceRow);
+      return;
+    }
     const input = event.target;
     // Native radios emit no change when the user chooses the checked default.
     // The caller still needs that deliberate choice to stop following discovery.
@@ -126,19 +132,18 @@ export function bindModelChoices(select) {
   group.addEventListener('click', reselect);
   group.addEventListener('keydown', reselect);
   return {
-    update(models, { grouped = false, preferNetwork = true, variants = false, describe = null, compact = false } = {}) {
+    update(models, { grouped = false, preferNetwork = true, variants = false, describe = null, compact = false, location = 'auto' } = {}) {
       group.hidden = select.hidden;
       const active = group.contains(document.activeElement) ? document.activeElement : null;
       const entries = variants ? modelVariants(models, { value: select.value, preferNetwork })
         : models.map(model => ({ key: model.selectionId || model.id, model, ids: [model.selectionId || model.id], value: model.selectionId || model.id }));
       const families = variants && !compact ? modelFamilies(entries) : entries.map(entry => ({ base: entry, adapters: [], members: [entry], lead: entry.model }));
       const byLead = new Map(families.map(family => [family.lead, family]));
-      const sections = grouped ? modelChoiceGroups(families.map(family => family.lead), { preferNetwork }) : [{ id: 'all', models: families.map(family => family.lead) }];
+      const sections = grouped ? modelChoiceGroups(families.map(family => family.lead), { preferNetwork, location }) : [{ id: 'all', models: families.map(family => family.lead) }];
       const keys = new Set(entries.map(entry => entry.key));
       // Only this group's own choices; a caller may place other controls beneath a choice.
-      for (const label of [...group.querySelectorAll('label[data-choice-key]')]) {
-        if (!keys.has(label.dataset.choiceKey)) label.remove();
-      }
+      const rows = new Map([...group.querySelectorAll('[data-choice-row]')].map(row => [row.dataset.choiceRow, row]));
+      for (const [key, row] of rows) if (!keys.has(key)) row.remove();
       const parents = new Map();
       for (const [sectionIndex, section] of sections.entries()) {
         let parent = grouped ? group.querySelector(`[data-choice-group="${section.id}"]`) : group;
@@ -156,15 +161,16 @@ export function bindModelChoices(select) {
         }
         section.models.flatMap(lead => byLead.get(lead).members.map(entry => [entry, byLead.get(lead).base !== entry])).forEach(([entry, nested], index) => {
           const model = entry.routes?.find(route => (route.selectionId || route.id) === entry.value) || entry.model;
-          let label = [...group.querySelectorAll('label[data-choice-key]')].find(item => item.dataset.choiceKey === entry.key);
-          if (!label) {
-            label = document.createElement('label');
-            label.className = 'chat-model-choice pool-button btn-ghost pool-choice';
-            label.dataset.choiceKey = entry.key;
-            label.innerHTML = '<input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small><small class="pool-muted" data-choice-note hidden></small></span>';
-            label.querySelector('input').name = name;
-            parent.append(label);
+          let row = rows.get(entry.key);
+          if (!row) {
+            row = document.createElement('div');
+            row.dataset.choiceRow = entry.key;
+            row.innerHTML = '<label class="chat-model-choice pool-button btn-ghost pool-choice"><input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small><small class="pool-muted" data-choice-note hidden></small></span></label>';
+            row.querySelector('input').name = name;
+            if (onInspectProviders) row.insertAdjacentHTML('beforeend', '<button type="button" class="pool-button btn-ghost pool-caption" data-inspect-model-providers hidden></button>');
           }
+          const label = row.querySelector('label');
+          label.dataset.choiceKey = entry.key;
           label.toggleAttribute('data-choice-adapter', nested);
           const input = label.querySelector('input');
           input.value = entry.value;
@@ -173,14 +179,26 @@ export function bindModelChoices(select) {
           label.querySelector('[data-choice-name]').textContent = variants ? modelVariantLabel(model) : modelSelectionLabel(model);
           // Each family member reports its own availability, which may differ from its family's group.
           const described = describe?.(model) || {};
-          label.querySelector('[data-choice-status]').textContent = described.status
-            ?? (grouped ? choiceStatus(model, ownGroup(model, preferNetwork)) : availabilityLabel(model));
+          const statusGroup = ownGroup(model, preferNetwork, location);
+          const providerButton = row.querySelector('[data-inspect-model-providers]');
+          const status = described.status ?? (grouped ? choiceStatus(model, statusGroup, !providerButton) : availabilityLabel(model));
+          const count = statusGroup === 'shared' && !model.fleet ? modelServingComputers(model) : 0;
+          if (providerButton) {
+            providerButton.hidden = !count;
+            providerButton.disabled = select.disabled;
+            providerButton.dataset.inspectModelProviders = input.value;
+            providerButton.textContent = count ? `${status} · ${computerCountLabel(count)}` : '';
+            providerButton.setAttribute('aria-label', `View ${computerCountLabel(count)} serving ${modelVariantLabel(model)}`);
+          }
+          const statusNode = label.querySelector('[data-choice-status]');
+          statusNode.textContent = status;
+          statusNode.classList.toggle('chat-visually-hidden', !!providerButton && count > 0);
           const facts = compact ? '' : described.facts ?? modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
           factsNode.textContent = facts; factsNode.hidden = !facts;
           const noteNode = label.querySelector('[data-choice-note]');
           noteNode.textContent = compact ? '' : described.note || ''; noteNode.hidden = compact || !described.note;
-          const position = parent.querySelectorAll(':scope > label[data-choice-key]')[index];
-          if (position !== label) parent.insertBefore(label, position || null);
+          const position = parent.querySelectorAll(':scope > [data-choice-row]')[index];
+          if (position !== row) parent.insertBefore(row, position || null);
         });
       }
       for (const section of [...group.querySelectorAll('[data-choice-group]')]) {
@@ -204,19 +222,23 @@ export function bindModelChoices(select) {
 const availabilityLabel = model => ({ ready: 'Ready', cached: 'On this device', busy: 'Busy', loading: 'Preparing', preparing: 'Preparing', unavailable: 'Unavailable' }[model.availability] || '');
 /** How many computers advertise this whole model now. A distributed route has no single serving computer, so it reports none. */
 export const modelServingComputers = model => model?.partition ? 0 : new Set(model?.providerIds || []).size;
-const withServingComputers = (status, model) => { const count = modelServingComputers(model);
-  return status && count ? `${status} · ${count} ${count === 1 ? 'computer' : 'computers'}` : status; };
-const choiceStatus = (model, group) => group === 'shared'
-  ? withServingComputers({ ready: 'Ready', busy: 'Busy · waits for capacity', loading: 'Preparing', preparing: 'Preparing' }[model.networkAvailability], model)
-  : group === 'download' ? 'Download required' : availabilityLabel(model);
+const computerCountLabel = count => `${count} ${count === 1 ? 'computer' : 'computers'}`;
+const choiceStatus = (model, group, includeCount = true) => {
+  if (group === 'network-unavailable') return 'Unavailable';
+  if (group === 'download') return 'Download required';
+  if (group !== 'shared') return availabilityLabel(model);
+  const status = { ready: 'Ready', busy: 'Busy · waits for capacity', loading: 'Preparing', preparing: 'Preparing' }[model.networkAvailability];
+  const count = modelServingComputers(model);
+  return includeCount && status && count ? `${status} · ${computerCountLabel(count)}` : status;
+};
 
 /** Options only: selection, availability policy and execution remain caller-owned. */
 /** The model and adapter names, without the execution route. */
 export const modelVariantLabel = model => [...new Set([model.name, ...(model.adapters || []).map(adapter => adapter.name || adapter.id)].filter(Boolean))].join(' + ');
 export const modelSelectionLabel = model => modelVariantLabel(model) + (model.executionModes?.length || model.partition ? (model.partition ? ['ready', 'busy'].includes(model.networkAvailability ?? model.availability) ? ' · Distributed layers' : ' · Unavailable route' : ' · Whole model') : '');
 
-export function updateModelSelect(select, models, { value = select.value, showAvailability = false, empty = 'No models available', grouped = false, preferNetwork = true } = {}) {
-  const groups = grouped ? modelChoiceGroups(models, { preferNetwork }) : [{ id: 'all', models }];
+export function updateModelSelect(select, models, { value = select.value, showAvailability = false, empty = 'No models available', grouped = false, preferNetwork = true, location = 'auto' } = {}) {
+  const groups = grouped ? modelChoiceGroups(models, { preferNetwork, location }) : [{ id: 'all', models }];
   const rows = groups.map(group => ({ ...group, entries: group.models.map(model => [model.selectionId || model.id, modelSelectionLabel(model),
     showAvailability ? grouped ? choiceStatus(model, group.id) : availabilityLabel(model) : '']) }));
   const entries = rows.flatMap(group => group.entries);

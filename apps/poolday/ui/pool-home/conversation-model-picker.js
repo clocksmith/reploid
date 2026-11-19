@@ -40,8 +40,8 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   }
   const preferNetwork = pickerLocation !== 'local';
   find('[data-next-model]').disabled = changingModel;
-  updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork });
-  choices.update(models, { grouped: true, preferNetwork, variants: true, compact: true, describe: describeModelChoice(state) });
+  updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork, location: pickerLocation });
+  choices.update(models, { grouped: true, preferNetwork, location: pickerLocation, variants: true, compact: true, describe: describeModelChoice(state) });
   // Exact variants remain selectable; provider and format facts stay in the disclosure.
   updateAdapterDetails(find('[data-model-picker]'), state, selected || pickerModel);
   updateModelProviders(find('[data-model-picker]'), state, selected || pickerModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
@@ -56,15 +56,22 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
     }
     button.setAttribute('aria-pressed', String(location === pickerLocation));
     button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId)
-      || localOnly && location !== 'local' || location !== 'auto' && !modelExecutionState(selected, location).usable;
+      || localOnly && location !== 'local' || location !== 'auto' && location !== pickerLocation && !modelExecutionState(selected, location).usable;
   }
   // A model nobody is sharing that this device could store is not a dead end: the same button downloads it.
   const downloadable = !available && !!selected && canDownloadModelHere(selected, state, canDownload);
-  find('[data-change-model]').disabled = changingModel || !(available || downloadable);
-  find('[data-change-model]').textContent = downloadable ? 'Download model…' : 'Use model';
+  const switchToLocal = !available && pickerLocation === 'network' && (downloadable || modelExecutionState(selected, 'local').usable);
+  find('[data-switch-local]').hidden = !switchToLocal;
+  find('[data-switch-local]').disabled = changingModel || state.acquisition?.phase === 'downloading';
+  const reviewDownload = downloadable && pickerLocation !== 'network';
+  find('[data-change-model]').disabled = changingModel || !(available || reviewDownload);
+  find('[data-change-model]').textContent = reviewDownload ? 'Download model…' : 'Use model';
   const status = find('[data-next-model-status]');
   let statusText = '';
   if (!pickerModel) statusText = 'No model is available right now.';
+  else if (switchToLocal && state.acquisition?.modelId === selected.id && state.acquisition.phase === 'downloading') statusText = state.acquisition.progress?.message || 'Downloading model…';
+  else if (switchToLocal && state.acquisition?.modelId === selected.id && state.acquisition.phase === 'failed') statusText = state.acquisition.error;
+  else if (switchToLocal) statusText = downloadable ? 'Unavailable on the network. Running here requires a download.' : 'Unavailable on the network. This model is on your device.';
   else if (downloadable) statusText = 'This model is not on this device yet. Download it to run it here.';
   else if (!available) {
     statusText = pickerLocation === 'local' ? 'This model is not prepared on this device.' : 'No shared computer can answer with this model right now.';
