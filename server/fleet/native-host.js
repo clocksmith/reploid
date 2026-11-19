@@ -850,7 +850,9 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           else if (command.op === 'generate') result = await host.generate(command.request,
             delta => console.log(JSON.stringify({ id: command.id, delta })),
             command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
-              route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null } })));
+              // `admission` is present when the prompt waits for the named recipient's decision.
+              route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null,
+                ...(route.admission ? { admission: route.admission } : {}) } })));
           else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           else if (command.op === 'recover') result = await host.recover(command.input);

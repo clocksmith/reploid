@@ -7,6 +7,18 @@
  *
  * Operator paths, hosts, tokens and keys stay in that private file. Every process here is started and stopped
  * by this driver; it changes nothing else on a machine. It deliberately kills provider processes it started.
+ *
+ * Optional, for a machine whose GPU a live service is using (fleet-journey-phases.js has the rules):
+ *   - `deferLoadUntilBarrier: true` on a provider and `barrier: { maxMinutesAfterPause, approvalFile? }`. That
+ *     provider loads only after the operator answers barrier-ready.json in the state directory; the answer
+ *     echoes its runId, barrierId, approvalToken, manifestSha256 and archiveSha256 and adds `approved: true`
+ *     and `pauseUtc`, the time the live service was suspended. Write the answer to a temporary name and
+ *     rename it. When the minutes run out, every process started here is stopped.
+ *   - `requireColdFill: true` on the filling provider: its model and cache directories must be empty at the
+ *     start and every piece must come from peers.
+ *   - `shareModelFiles: false` on a holder keeps it from supplying the fill.
+ * Optional, for a delivery whose providers decide before the prompt is sent: `namedRecipient: true` adds one
+ * request per provider that names it as the only recipient, and checks that each was admitted first.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -14,12 +26,18 @@ import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
 import { randomBytes, randomUUID } from 'node:crypto';
+import { BARRIER_SCHEMA, coldFillProblem, planLoading, sharesModelFiles, validateApproval } from './fleet-journey-phases.js';
 
 if (process.env.REPLOID_FLEET_PHYSICAL !== '1') throw Error('Explicit physical opt-in required');
 const config = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
 const root = config.stateDirectory, pkg = JSON.parse(await fs.readFile(config.packageReceipt, 'utf8'));
 if (!path.isAbsolute(root) || !Array.isArray(config.providers) || config.providers.length < 2) throw Error('Absolute state directory and at least two providers required');
 if (config.requester.ssh) throw Error('The requester runs on this machine: the driver freezes and kills it by process id');
+const plan = planLoading(config.providers, config.barrier ?? null);
+const approvalFile = plan.barrier ? plan.barrier.approvalFile ?? path.join(root, 'barrier-approved.json') : null;
+// The run ends by waiting out a claim window in real time; a shorter barrier window could never pass.
+if (plan.barrier && plan.barrier.maxMinutesAfterPause * 60000 <= config.creditPolicy.maxRequestMs + config.creditPolicy.wholeModelUnclaimedReleaseMs) throw Error('barrier.maxMinutesAfterPause is shorter than the claim-window wait the run ends with');
+if (approvalFile && await fs.access(approvalFile).then(() => true, () => false)) throw Error('A barrier answer from an earlier run is still in place; remove it before starting');
 await fs.mkdir(root, { recursive: true, mode: 0o700 });
 const from = file => import(pathToFileURL(path.join(pkg.directory, file)));
 const { openFleetCredits } = await from('server/fleet/credits.js');
@@ -39,10 +57,11 @@ async function until(check, timeoutMs, label) {
   }
 }
 const model = structuredClone(config.model), messages = [{ role: 'user', content: config.prompt }];
-const token = randomBytes(32).toString('hex'), room = 'reploid-swarm-fleet-journey-' + randomUUID();
+const runId = randomUUID(), token = randomBytes(32).toString('hex'), room = 'reploid-swarm-fleet-journey-' + randomUUID();
 const certificate = await fs.readFile(config.coordinator.certFile, 'utf8');
-const report = { schema: 'reploid.fleet-journey-physical/v1', startedAt: new Date().toISOString(), package: pkg, passed: false,
-  model: { id: model.id, modelDigest: model.identity, maxOutputTokens: model.generation.maxTokens }, prompt: config.prompt, nodes: {}, phases: {} };
+const report = { schema: 'reploid.fleet-journey-physical/v1', runId, startedAt: new Date().toISOString(), package: pkg, passed: false,
+  model: { id: model.id, modelDigest: model.identity, maxOutputTokens: model.generation.maxTokens }, prompt: config.prompt,
+  loading: { ...plan, barrier: plan.barrier && { maxMinutesAfterPause: plan.barrier.maxMinutesAfterPause } }, nodes: {}, phases: {} };
 const reportFile = path.join(root, 'journey-physical.json');
 const save = () => fs.writeFile(reportFile, JSON.stringify(report, null, 2));
 
@@ -76,9 +95,13 @@ function hostConfiguration(spec, role) {
   return { ...common, observationFile: join(spec, 'observation.json'), cacheDirectory: spec.cacheDirectory,
     ...(spec.ownerPolicyFile ? { ownerPolicyFile: spec.ownerPolicyFile } : {}),
     models: [{ model, mode: 'whole-model', ordered: null, directory: spec.modelDirectory,
-      fillFromPeers: spec.fillFromPeers === true, shareModelFiles: spec.fillFromPeers !== true }] };
+      fillFromPeers: spec.fillFromPeers === true, shareModelFiles: sharesModelFiles(spec) }] };
 }
+// Every node ever started, so that whatever ends the run stops all of them, including one that never became ready.
+const createdNodes = new Set();
+let stopping = false;
 async function launch(spec, role) {
+  if (stopping) throw Error('The run is stopping');
   await writeFiles(spec, [[join(spec, 'host.json'), JSON.stringify(hostConfiguration(spec, role))], [join(spec, 'room.token'), token],
     [join(spec, 'tls', 'cert.pem'), certificate]]);
   const entry = join(spec, 'reploid', 'server', 'fleet', 'native-host.js'), environment = { NODE_EXTRA_CA_CERTS: join(spec, 'tls', 'cert.pem'), ...(spec.env || {}) };
@@ -92,10 +115,13 @@ async function launch(spec, role) {
     + ")).digest('hex')!==" + JSON.stringify(pkg.manifestSha256) + ")throw Error('Installed delivery differs from the package');"
     + "const p=require('child_process').spawn(" + JSON.stringify(command) + "," + JSON.stringify(args) + ",{stdio:'inherit',env:{...process.env,..." + JSON.stringify(environment) + "}});"
     + "console.log(JSON.stringify({hostPid:p.pid}));p.on('exit',(c,s)=>process.exit(c??(s?1:0)));";
+  const logFile = await fs.open(path.join(root, `${spec.computerId}-${Date.now()}.log`), 'w');
+  // Nothing may be awaited between this check and the node joining `createdNodes`, or a stop could miss it.
+  if (stopping) { await logFile.close(); throw Error('The run is stopping'); }
   const child = spec.ssh ? spawn('ssh', sshArguments(spec, launcher), { stdio: ['pipe', 'pipe', 'pipe'] })
     : spawn(spec.node, ['-e', launcher], { stdio: ['pipe', 'pipe', 'pipe'] });
   const node = { spec, role, child, pending: new Map(), fills: [], warnings: [], hostPid: null, exited: false };
-  const logFile = await fs.open(path.join(root, `${spec.computerId}-${Date.now()}.log`), 'w');
+  createdNodes.add(node);
   createInterface({ input: child.stderr }).on('line', line => {
     logFile.write(line + '\n');
     try {
@@ -142,11 +168,38 @@ async function launch(spec, role) {
     if (!node.exited) { await node.signal('SIGKILL').catch(() => {}); child.kill('SIGTERM'); report.forcedStops = [...(report.forcedStops || []), spec.computerId]; }
   };
   node.identity = await Promise.race([node.ready, sleep(spec.startupTimeoutMs ?? 60000).then(() => { throw Error(spec.computerId + ' startup timed out'); })]);
+  if (stopping) { await node.stop().catch(() => {}); throw Error('The run is stopping'); }
   return node;
 }
 
 const providers = [], byIdentity = new Map();
 let requester = null, credits = null, service = null;
+
+// ---- Ending. One cleanup, whoever asks for it: the normal end, a signal, or a window that ran out. ----
+let cleaning = null;
+const cleanup = () => cleaning ??= (async () => {
+  report.finishedAt = new Date().toISOString();
+  report.warnings = Object.fromEntries([requester, ...providers].filter(Boolean).map(node => [node.spec.computerId, node.warnings]));
+  await save().catch(() => {});
+  await Promise.allSettled([...createdNodes].map(node => node.stop()));
+  await Promise.resolve().then(() => service?.close()).catch(() => {});
+  try { credits?.close(); } catch { /* already closed */ }
+  await save().catch(() => {});
+})();
+async function emergencyStop(reason) {
+  if (stopping) return;
+  stopping = true; report.failure = reason; process.exitCode = 1;
+  log('stopping', { reason });
+  await cleanup();
+  log('finished', { passed: false, report: reportFile, stopped: reason });
+  process.exit(1);
+}
+process.on('SIGTERM', () => emergencyStop('terminated from outside'));
+process.on('SIGINT', () => emergencyStop('interrupted by the operator'));
+// One limit at a time: the whole run, then, once a barrier is released, the window the operator opened. Only
+// that window is enforced by a timer, because something outside this driver is suspended while it is open.
+let deadline = Date.now() + (config.maxRunMinutes ?? 45) * 60000, deadlineLabel = `its ${config.maxRunMinutes ?? 45}-minute limit`, windowTimer = null;
+const checkDeadline = phase => { if (Date.now() > deadline) throw Error(`Run exceeded ${deadlineLabel} before ${phase}`); };
 const nameOf = identity => byIdentity.get(identity) ?? identity;
 const ledger = () => Object.fromEntries(credits.snapshot().accounts.map(row => [row.id, { balance: row.balance, held: row.held }]));
 const requesterHold = () => ledger()[config.requester.computerId].held;
@@ -164,9 +217,9 @@ const waitForProviders = count => until(async () => { const seen = await readyPr
 
 // A shared machine is left alone if it comes under memory pressure: `pressure: { command, maxAvg10 }` on a
 // provider names a command that prints /proc/pressure/memory, read before the run and between phases.
-const deadline = Date.now() + (config.maxRunMinutes ?? 45) * 60000;
 async function guard(phase) {
-  if (Date.now() > deadline) throw Error(`Run exceeded its ${config.maxRunMinutes ?? 45}-minute limit before ${phase}`);
+  if (stopping) throw Error('The run is stopping');
+  checkDeadline(phase);
   for (const node of providers) {
     const check = node.spec.pressure;
     if (!check || node.exited) continue;
@@ -177,17 +230,52 @@ async function guard(phase) {
   }
 }
 
+/** `requireColdFill`: the filling provider's model and cache directories exist and hold nothing, checked on that machine. */
+async function emptyDirectories(spec) {
+  const code = "const fs=require('fs');for(const [name,dir] of " + JSON.stringify([['modelDirectory', spec.modelDirectory], ['cacheDirectory', spec.cacheDirectory]])
+    + "){if(!fs.statSync(fs.realpathSync(dir)).isDirectory()||fs.readdirSync(dir).length)throw Error(name+' is not an empty directory')}"
+    + "console.log(JSON.stringify({modelDirectory:'empty',cacheDirectory:'empty',checkedAt:new Date().toISOString()}));";
+  return JSON.parse(spec.ssh ? await run('ssh', sshArguments(spec, code)) : await run(spec.node, ['-e', code]));
+}
+
+/** Writes the barrier, waits for the operator's answer and starts the window it opens. The token stays out of the report. */
+async function releaseBarrier() {
+  const barrier = { schema: BARRIER_SCHEMA, runId, barrierId: randomUUID(), approvalToken: randomBytes(32).toString('hex'), manifestSha256: pkg.manifestSha256,
+    archiveSha256: pkg.archiveSha256 ?? null, modelIdentity: model.identity, deferred: plan.deferred, maxMinutesAfterPause: plan.barrier.maxMinutesAfterPause,
+    createdAt: new Date().toISOString() };
+  const { approvalToken: _token, ...visible } = barrier, readyFile = path.join(root, 'barrier-ready.json');
+  report.phases.barrier = visible; await save();
+  await fs.writeFile(readyFile, JSON.stringify(barrier, null, 2), { mode: 0o600 });
+  log('barrier-ready', { barrierId: barrier.barrierId, readyFile, approvalFile });
+  let checkedAt = Date.now();
+  for (;;) {
+    if (stopping) throw Error('The run is stopping');
+    checkDeadline('the barrier was released');
+    if (Date.now() - checkedAt > 30000) { await guard('the barrier was released'); checkedAt = Date.now(); }
+    // A missing answer, or one caught half-written, is waited for; any other answer is final.
+    const answer = await fs.readFile(approvalFile, 'utf8').then(JSON.parse).catch(error => { if (error.code === 'ENOENT' || error instanceof SyntaxError) return null; throw error; });
+    if (!answer) { await sleep(500); continue; }
+    const accepted = validateApproval(answer, barrier, Date.now());
+    deadline = accepted.deadline; deadlineLabel = `the ${plan.barrier.maxMinutesAfterPause} minutes allowed after the outside service was suspended`;
+    windowTimer = setTimeout(() => emergencyStop(`Run exceeded ${deadlineLabel}`), Math.max(0, deadline - Date.now()));
+    report.phases.barrier = { ...visible, pauseUtc: accepted.pauseUtc, acceptedAt: new Date().toISOString(), windowEndsAt: new Date(deadline).toISOString() };
+    await save(); log('barrier-released', { pauseUtc: accepted.pauseUtc, windowEndsAt: report.phases.barrier.windowEndsAt });
+    return;
+  }
+}
+
 /** One attempt through the real requester. Never throws: the failure is part of the record. */
-async function attempt(attemptId, { onFirstDelta = null } = {}) {
+async function attempt(attemptId, { onFirstDelta = null, privacy = null } = {}) {
   const seen = await readyProviders();
   const record = { attemptId, text: '', deltaCount: 0, timeToFirstTokenMs: null, route: null, holdBefore: requesterHold() };
   if (!seen) { record.requesterSaw = { error: 'No ready provider' }; return record; }
   const started = performance.now(); let acting = null;
   try {
     const result = await requester.command('generate', { events: true,
-      request: { threadId: randomUUID(), attemptId, model: seen.entry, messages } }, {
+      request: { threadId: randomUUID(), attemptId, model: seen.entry, messages, ...(privacy ? { privacy } : {}) } }, {
       onEvent: value => { if (value.event === 'route') record.route = { requestId: value.route.requestId, connectionId: value.route.providerId,
-        provider: nameOf(value.route.recipientIdentity), providerIdentity: value.route.recipientIdentity }; },
+        provider: nameOf(value.route.recipientIdentity), providerIdentity: value.route.recipientIdentity,
+        ...(value.route.admission ? { admission: value.route.admission } : {}) }; },
       onDelta: delta => {
         const text = typeof delta === 'string' ? delta : delta?.text ?? '';
         record.deltaCount += 1; record.text += text;
@@ -235,6 +323,8 @@ async function publish(node, measured) {
 
 try {
   // 1. Start every process, then open the ledger and the coordinator for exactly those identities.
+  const fillerSpec = config.providers.find(spec => spec.computerId === plan.filler);
+  const startedEmpty = fillerSpec?.requireColdFill === true ? await emptyDirectories(fillerSpec) : null;
   for (const spec of config.providers) { const node = await launch(spec, 'provider'); providers.push(node); byIdentity.set(node.identity.participantId, spec.computerId); }
   await startRequester(false);
   const enrolled = [requester, ...providers].map(node => ({ id: node.spec.computerId, name: node.spec.name, ownerId: 'owner',
@@ -251,7 +341,8 @@ try {
 
   await guard('loading');
   // 2. Providers that hold the model load it and offer its pieces. The one without it fills from them, then loads.
-  const holders = providers.filter(node => node.spec.fillFromPeers !== true), filler = providers.find(node => node.spec.fillFromPeers === true);
+  // A provider that waits for the barrier loads last, inside the window the operator opens.
+  const holders = providers.filter(node => plan.holders.includes(node.spec.computerId)), filler = providers.find(node => node.spec.computerId === plan.filler);
   for (const node of holders) {
     const started = performance.now(); await node.command('select', { index: 0, contribute: true }); node.loadMs = performance.now() - started;
     log('provider-loaded', { computer: node.spec.computerId, ms: Math.round(node.loadMs) });
@@ -269,8 +360,23 @@ try {
       reusedPieces: last?.reusedPieces ?? null, reusedBytes: last?.reusedBytes ?? null, fillMs: last?.elapsedMs ?? null,
       fetchedBytesPerSecond: last?.fetchedBytes > 0 && last?.elapsedMs > 0 ? Math.round(1000 * last.fetchedBytes / last.elapsedMs) : null,
       bySupplier: last?.suppliers ? Object.fromEntries(Object.entries(last.suppliers).map(([key, value]) => [nameOf(key), value])) : null,
-      pieceEvents: filler.fills.filter(event => event.phase === 'piece').length, verified: 'every piece and file against the pinned identities, by the fill' };
+      pieceEvents: filler.fills.filter(event => event.phase === 'piece').length, verified: 'every piece and file against the pinned identities, by the fill',
+      sources: plan.sources, ...(startedEmpty ? { startedEmpty } : {}) };
     log('distribution', report.phases.distribution);
+    // Checked before the barrier, so nothing outside is suspended for a run that cannot make the claim.
+    const problem = startedEmpty ? coldFillProblem(filler.fills.some(event => event.phase === 'complete') ? report.phases.distribution : null) : null;
+    if (problem) throw Error(`${filler.spec.computerId} had to fill from peers into empty directories, but ${problem}`);
+  }
+  if (plan.deferred.length) {
+    await waitForProviders(providers.length - plan.deferred.length);
+    await releaseBarrier();
+    await guard('loading after the barrier');
+    for (const node of providers.filter(node => plan.deferred.includes(node.spec.computerId))) {
+      const started = performance.now();
+      await node.command('select', { index: 0, contribute: true }, { timeoutMs: Math.max(1000, Math.min(180000, deadline - Date.now())) });
+      node.loadMs = performance.now() - started;
+      log('provider-loaded', { computer: node.spec.computerId, ms: Math.round(node.loadMs), afterBarrier: true });
+    }
   }
   await waitForProviders(providers.length);
 
@@ -290,7 +396,8 @@ try {
       rateBasis: timing?.decodeMs > 0 ? 'provider-reported-timing' : 'requester-wall-clock' };
     node.reference = first.requesterSaw.content;
     report.nodes[node.spec.computerId] = { name: node.spec.name, adapter: state.hardware?.adapter ?? null, loadMs: Math.round(node.loadMs), measured: node.measured,
-      peakGpuBufferBytes: state.hardware?.gpuBuffers?.peakBytes ?? null, processResidentBytes: state.hardware?.processResidentBytes ?? null, startedWithModel: node.spec.fillFromPeers !== true };
+      peakGpuBufferBytes: state.hardware?.gpuBuffers?.peakBytes ?? null, processResidentBytes: state.hardware?.processResidentBytes ?? null, startedWithModel: node.spec.fillFromPeers !== true,
+      ...(plan.deferred.includes(node.spec.computerId) ? { loadedAfterBarrier: true } : {}) };
     report.phases.calibration.push(first);
   }
   for (const node of providers) { const { rateBasis: _basis, ...measured } = node.measured; await publish(node, measured); }
@@ -304,6 +411,19 @@ try {
   report.phases.healthyRankingOff = await attempt('healthy-ranking-off');
   await startRequester(true); await waitForProviders(providers.length);
   report.phases.healthyRankingOn = await attempt('healthy-ranking-on');
+
+  if (config.namedRecipient === true) {
+    await guard('named-recipient');
+    // 4b. Each provider in turn is the only recipient the request names. On a delivery that decides before
+    // disclosure, the requester first sends the request without its prompt and a commitment to the prompt; the
+    // route it reports carries that commitment, and the answer can only follow the provider's admission of it.
+    const { createExecutionPolicy } = await from('packages/reploid/src/chat/execution-policy.js');
+    report.phases.namedRecipient = [];
+    for (const node of providers) {
+      const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [node.identity.participantId] });
+      report.phases.namedRecipient.push({ named: node.spec.computerId, ...(await attempt('named-' + node.spec.computerId, { privacy })) });
+    }
+  }
 
   await guard('interruption');
   // 5. Interrupted: the chosen provider's process is killed right after its first streamed token.
@@ -372,6 +492,8 @@ try {
     rankingOn: { provider: phases.healthyRankingOn.route?.provider, reason: phases.healthyRankingOn.placement?.reason ?? null, completionMs: phases.healthyRankingOn.completionMs } };
   report.checks = { distributionFilled: !filler || phases.distribution.fetchedPieces > 0 || phases.distribution.reusedPieces > 0, sameAnswerOnEveryProvider: report.reference.sameOnEveryProvider,
     healthyCorrect: correct(phases.healthyRankingOff) && correct(phases.healthyRankingOn), rankedChoseFastest: phases.healthyRankingOn.route?.provider === fastest,
+    ...(phases.namedRecipient ? { namedRecipientAdmittedBeforePrompt: phases.namedRecipient.every(record => correct(record) && record.route?.provider === record.named
+      && /^sha256:[a-f0-9]{64}$/.test(record.route.admission?.promptCommitment ?? '')) } : {}),
     interruptedKeptPartialAndUncharged: Boolean(phases.interrupted.requesterSaw.error) && phases.interrupted.deltaCount >= 1 && !phases.interrupted.charge,
     recoveredOnAnotherProvider: correct(phases.recovered) && phases.recovered.route?.provider !== phases.interrupted.route?.provider,
     interruptedHoldReleasedByReturn: phases.interruptedRelease.finalStatus === 'failed' && phases.interruptedRelease.finalCharge === 0,
@@ -383,14 +505,12 @@ try {
   report.passed = Object.values(report.checks).every(Boolean);
   if (!report.passed) process.exitCode = 1;
 } catch (error) {
-  report.failure = error.stack; process.exitCode = 1; log('failed', { error: String(error) });
+  // An emergency stop makes the work in flight fail; its reason, already recorded, is the cause.
+  if (!stopping) { report.failure = error.stack; log('failed', { error: String(error) }); }
+  process.exitCode = 1;
 } finally {
-  report.finishedAt = new Date().toISOString();
-  report.warnings = Object.fromEntries([requester, ...providers].filter(Boolean).map(node => [node.spec.computerId, node.warnings]));
-  await save().catch(() => {});
-  for (const node of [requester, ...providers].filter(Boolean)) await node.stop().catch(() => {});
-  await service?.close(); credits?.close();
-  await save().catch(() => {});
-  log('finished', { passed: report.passed, report: reportFile, checks: report.checks ?? null });
+  clearTimeout(windowTimer);
+  await cleanup();
+  if (!stopping) log('finished', { passed: report.passed, report: reportFile, checks: report.checks ?? null });
 }
 
