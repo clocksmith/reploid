@@ -1,9 +1,9 @@
 /** Model-picker presentation only. Selection and execution remain with the caller. */
-import { updateModelSelect, modelExecutionState, modelFacts, unavailableModelChoice } from '../components/model-select.js';
+import { isDownloadableBaseModel, updateModelSelect, modelExecutionState, modelFacts, unavailableModelChoice } from '../components/model-select.js';
 import { updateModelProviders } from './model-providers.js';
 import { updateAdapterDetails, describeModelChoice } from './model-adapters.js';
 
-export const canDownloadModelHere = (model, state, canDownload) => canDownload && !!model.source && !model.partition && !model.adapters?.length
+export const canDownloadModelHere = (model, state, canDownload) => canDownload && isDownloadableBaseModel(model)
   && !model.fleet && !model.localReady && !model.localCached && model.availability !== 'cached' && !state.localDownloadIssue;
 
 // A recovery suggestion requires a free, connected provider for this exact variant.
@@ -47,7 +47,7 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   updateModelProviders(find('[data-model-picker]'), state, selected || pickerModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
   find('[data-model-facts]').textContent = (selected || pickerModel) ? describeModelChoice(state)(selected || pickerModel).facts || modelFacts(selected || pickerModel) : '';
   const preview = modelExecutionState(selected, pickerLocation);
-  const available = selected && (preview.usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && !!selected.source && !selected.partition && !state.localDownloadIssue);
+  const available = selected && (preview.usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(selected) && !state.localDownloadIssue);
   for (const button of find('[data-execution-location]').querySelectorAll('[data-execution-choice]')) {
     const location = button.dataset.executionChoice;
     if (location === 'network') {

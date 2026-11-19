@@ -8,7 +8,7 @@ import { updateContextIndicator } from './context-indicator.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
-import { updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
+import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bindModelChoices, isSharedModelChoice, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 import { bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
 import { renderAttachments, createTextAttachmentReader } from '../components/attachments.js';
@@ -225,10 +225,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
       selectedId: modelSelect.value, localOnly: explicitPrivacy(snapshot)?.placement === 'local-only', canDownload: !!inspector.downloadModel });
     const node = find('[data-local-fit]');
-    const key = find('[data-model-details]').open ? modelIdentity(pickerModel) : null;
+    const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
+      && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
+    const key = showLocalFit && find('[data-model-details]').open ? modelIdentity(pickerModel) : null;
     if (fitKey !== key) {
       fitRequest?.abort(); fitInfo = null; fitKey = key;
-      if (key && pickerModel?.source && !pickerModel.partition && !pickerModel.fleet && session.getLocalModelFit) {
+      if (key && session.getLocalModelFit) {
         const request = fitRequest = new AbortController();
         session.getLocalModelFit(pickerModel, { signal: request.signal }).then(info => {
           if (!request.signal.aborted && !controller.signal.aborted) {
@@ -237,7 +239,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         }).catch(() => {});
       }
     }
-    node.textContent = pickerModel?.source ? localFitText(pickerModel, fitInfo, { cached: pickerModel.localCached }) : '';
+    node.textContent = showLocalFit ? localFitText(pickerModel, fitInfo, { cached: pickerModel.localCached }) : '';
     node.hidden = !node.textContent;
     if (attachmentReader.pending || recoverySelection && !matchesRecovery(snapshot)) find('[data-change-model]').disabled = true;
   };
@@ -287,7 +289,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const phase = state.discoveryPhase;
     const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
-      && location !== 'network' && !requestedModel?.fleet && !!requestedModel?.source && !requestedModel?.partition && !requestedModel?.adapters?.length && (exhausted || location === 'local');
+      && location !== 'network' && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel) && (exhausted || location === 'local');
     const acquisition = state.acquisition;
     const acquisitionText = find('[data-acquisition-status]');
     acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
@@ -507,7 +509,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const next = find('[data-next-model]').value;
     const state = session.getState();
     if (recoverySelection && !matchesRecovery(state)) { updatePicker(state); return; }
-    const model = (state.models || []).find(model => (model.selectionId || model.id) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && !!model.source && !model.partition && !state.localDownloadIssue));
+    const model = (state.models || []).find(model => (model.selectionId || model.id) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(model) && !state.localDownloadIssue));
     if (!model) {
       const wanted = (state.models || []).find(item => (item.selectionId || item.id) === next);
       if (wanted && downloadableHere(wanted, state)) { const opener = find('[data-model-control]'); picker.close(); inspector.downloadModel(next, opener); return; }

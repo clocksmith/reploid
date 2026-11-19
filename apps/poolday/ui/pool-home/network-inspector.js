@@ -11,7 +11,7 @@ import { interfaceIcon } from '../components/interface-icons.js';
 import { renderComputeSharingControls, renderFileSharingControls, renderContributionLimits, renderConnectionControl, bindNetworkControls, projectNetworkPeers } from './network-controls.js';
 import { renderComputerDiagnostic } from './computer-preferences-view.js';
 import { bindDialog } from '../components/dialog.js';
-import { updateModelSelect } from '../components/model-select.js';
+import { hasBrowserModelOrigin, updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-ribbon.js';
 import { renderRemotePermissionSettings, updateRemotePermissionSettings } from './remote-permission.js';
@@ -314,7 +314,9 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     find('[data-download-explanation]').textContent = mode === 'local'
       ? 'Store this model on this device to answer when network capacity is unavailable. Sharing choices apply to cached models on this device when you confirm.'
       : 'Download a model to answer public requests while this page is open. Pause anytime.';
-    const models = session.getState().models.filter(model => !model.partition && (mode !== 'local' || !model.adapters?.length));
+    const models = session.getState().models.filter(model => !model.partition
+      && (hasBrowserModelOrigin(model) || mode !== 'local' && (model.localReady || model.localCached))
+      && (mode !== 'local' || !model.adapters?.length));
     updateModelSelect(find('[data-download-model]'), models, { value: modelId });
     const chosen = models.find(model => (model.selectionId || model.id) === modelId);
     find('[data-download-model]').closest('label').hidden = !!chosen;

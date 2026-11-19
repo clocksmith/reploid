@@ -1,4 +1,5 @@
 import { escapeHtml as escape } from '../../../../shared/ui/components/html.js';
+import { hasBrowserModelOrigin } from '../components/model-select.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDialog } from '../components/dialog.js';
 import { preparationStatus } from './model-preparation.js';
@@ -13,7 +14,8 @@ export function bindContributionModels(container, session, { onChoose }) {
   const entries = new Map();
   let disposed = false;
   // Whole models and their catalog adapters; an adapter choice prepares its base model with that exact adapter.
-  const eligible = model => !model.partition && model.source && model.provider === 'doppler';
+  const eligible = model => !model.partition && model.provider === 'doppler' && model.source
+    && (model.localReady || model.localCached || hasBrowserModelOrigin(model));
   const size = value => value >= 1e9 ? `${(value / 1e9).toFixed(1)} GB ↓` : `${Math.ceil(value / 1e6)} MB ↓`;
   const paint = (entry, issue) => {
     const { model, button, detail, metadata } = entry;
