@@ -24,13 +24,34 @@ export function renderWebSearchSettings() {
   </section>`;
 }
 
-const disclosure = (state, search) => !state.url
-  ? search?.state().provider === 'contributor-bing' ? 'A contributor searches Bing and fetches public pages. Each answer asks permission and names the contributor.'
-    : search?.available() ? 'Use built-in web search. Each answer asks before sending your query to Brave.'
-    : 'Built-in search is unavailable.'
-  : state.enabled
+const contributors = Object.freeze({
+  'contributor-bing': 'Bing',
+  'contributor-google-browser': 'Google'
+});
+
+export function webSearchRecipient({ personalRecipient, route, provider }) {
+  if (personalRecipient) return personalRecipient;
+  if (route === 'device-search') return 'your configured search server';
+  if (route === 'contributor-search' && Object.hasOwn(contributors, provider)) return `the search contributor and ${contributors[provider]}`;
+  if (route === 'search' && provider === 'brave') return 'Brave Search';
+  return null;
+}
+
+export const webSearchDisclosure = (state, search) => {
+  if (!state.url) {
+    if (!search?.available()) return 'Built-in search is unavailable.';
+    const provider = search.state().provider;
+    if (Object.hasOwn(contributors, provider)) {
+      const browser = provider === 'contributor-google-browser' ? ' in a dedicated browser' : '';
+      return `A contributor searches ${contributors[provider]}${browser} and fetches public pages. Each answer names the contributor before sending your query.`;
+    }
+    return provider === 'brave' ? 'Use built-in web search. Each answer asks before sending your query to Brave.'
+      : 'Built-in search recipient is not identified.';
+  }
+  return state.enabled
     ? `On. The text of each question you send goes to ${state.recipient} first. Its search results are added to the question as numbered sources. Turn off to stop.`
     : `Off. When on, the text of each question you send goes to ${state.recipient} first. Its search results are added to the question as numbered sources.`;
+};
 
 export function bindWebSearchSettings(root, webSearch, { search = null } = {}) {
   const section = root.querySelector('[data-web-search-settings]');
@@ -48,7 +69,7 @@ export function bindWebSearchSettings(root, webSearch, { search = null } = {}) {
     if (document.activeElement !== tool) tool.value = state.tool;
     token.placeholder = state.hasToken ? 'Set for this tab' : '';
     const help = find('[data-web-search-disclosure]'); help.id = 'web-search-help';
-    help.textContent = disclosure(state, search);
+    help.textContent = webSearchDisclosure(state, search);
     const details = find('[data-search-disclosure-details]');
     if (details.dataset.enabled !== String(state.enabled)) {
       details.open = state.enabled; details.dataset.enabled = String(state.enabled);

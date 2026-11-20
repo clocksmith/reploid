@@ -134,3 +134,39 @@ Cloud Run captures these streams in Cloud Logging; local operators can redirect 
 to a chosen file outside the source tree. Log files are ignored and are not durable
 execution or accounting receipts. Do not put credentials or private request payloads
 in operational events.
+
+### Optional landing-link counts
+
+Codes have four base64url characters (`A-Z a-z 0-9 - _`, in that order);
+the last is the sum of the first three character indices modulo 64. Generate
+the first three randomly, ensure the code is unused in the operator's private
+list, and reserve a leading `z` for tests. For example, `https://replo.id/?v=K7pu`.
+Do not encode names, addresses, or sequence numbers. The checksum detects some
+typos, not unissued codes, scanners, or forged hits. Treat only operator-issued
+codes as meaningful. Only the homepage sends the optional event. Deploy the
+existing `reploid-pool` backend route before publishing its Hosting rewrite and
+entry page. Confirm one fresh test token produces one count, that an ordinary
+or malformed URL produces none, and no inference/provider settings changed.
+
+The route logs only `event=reploid_landing_attribution_v1` and a SHA-256 hex
+digest of the tag. Leading-`z` codes use the separate event type
+`reploid_landing_attribution_test_v1`. The digest does not protect the short
+code against enumeration; the private operator mapping must stay private.
+There is no public read endpoint or new analytics store.
+Use existing project IAM. Query only the short observation window needed for
+the link (seven days or less), and discard copied results after use. Actual
+retention follows the existing Cloud Logging bucket policy; this feature
+does not set a bucket TTL or change logging, IAM, quota, or billing settings.
+
+With `TOKEN` set locally and your usual project selected:
+
+```sh
+DIGEST=$(printf '%s' "$TOKEN" | sha256sum | cut -d' ' -f1)
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=reploid-pool AND jsonPayload.event=reploid_landing_attribution_v1 AND jsonPayload.ref=\"$DIGEST\"" \
+  --freshness=7d --format='value(timestamp)' | wc -l
+```
+
+The 30 accepted events per process per minute cap guards application log
+volume; it is not a global edge throttle or a guarantee that hosting metering
+does not apply. Treat counts as approximate, including repeats, scanners and
+forwards; never treat a count as individual identification.

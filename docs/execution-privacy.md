@@ -85,3 +85,19 @@ This test found a Vitest-environment integration bug: the runtime service select
 
 
 A subsequent read-only hardware inventory found TPM device nodes and `tpm2_quote` on the inspected provider, but `tpm2_getcap` could not open `/dev/tpmrm0` under the current account (OS permission denied). No keys were created, PCRs changed, quotes produced or privileges elevated. The SEV/SNP, TDX and SGX device interfaces inspected were absent. This does not establish that the hardware could never be provisioned differently. TPM quotes cover selected PCR measurements and freshness data; appraised model execution, endpoint/key binding and the accelerator's confidential boundary remain separate unmet requirements ([TPM quote/check documentation](https://github.com/tpm2-software/tpm2-tools/blob/master/man/tpm2_checkquote.1.md)).
+
+## Optional tagged landing links
+
+An ordinary replo.id visit sends no landing-attribution event. A link to the
+homepage with one valid opaque `?v=` code lets Reploid count that link's
+landings. The page removes the code from the address before boot and makes one
+best-effort same-origin request without cookies or a referrer. It does not send
+the code to inference providers, peers, or third-party analytics. Global
+Privacy Control and Do Not Track suppress this event. Remove the code before
+opening a link if you do not want it counted.
+
+The application logs only a hash of the code and an event type; those entries
+are not public. Normal hosting and connection logs are separate, and the
+initial URL received by hosting cannot be erased by the browser. Counts can
+include automated previews, repeated opens, and recipients of forwarded links;
+they do not establish that a particular person clicked.
