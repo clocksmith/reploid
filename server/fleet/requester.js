@@ -318,7 +318,7 @@ export function createFleetRequester({
       }
       if (row.binding.mode === 'partition') {
         const settled = await recoverReservation(reservationId);
-        const outcome = emit(true, settled);
+        const outcome = emit(true, settled, settled?.acknowledgedOutputTokens);
         return { status: typeof settled?.settledAt === 'number' ? (settled.status ?? 'completed') : 'unresolved', serviceCredit: settled, outcome };
       }
       const fenced = await credits.fence(reservationId, identity.peerId);

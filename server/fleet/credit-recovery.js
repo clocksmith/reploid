@@ -173,15 +173,18 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
           return outcome;
         });
       }
-      if (!data.ack) return { id, status: 'pending' };
-      const receipts = request.providers.map((_, index) => data[`stage:${index}`]).filter(Boolean);
-      for (let index = 0; index < request.providers.length; index++) {
-        const receipt = receipts.find(value => value.partitionIndex === index);
-        if (!receipt && missing.includes(index) && data.ack.acknowledgment.count === 0) continue;
+      const acknowledgedOutputTokens = data.ack?.acknowledgment.count ?? null;
+      const stages = request.providers.map((_, index) => data[`stage:${index}`]);
+      const awaitingStages = [];
+      for (const [index, receipt] of stages.entries()) {
+        if (!receipt && missing.includes(index) && (acknowledgedOutputTokens ?? 0) === 0) continue;
         if (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
-          || receipt.steps < data.ack.acknowledgment.count) return { id, status: 'pending' };
+          || receipt.steps < (acknowledgedOutputTokens ?? 0)) awaitingStages.push(index);
       }
-      return settle(id, { identity: request.route, receipts, ...data.ack });
+      if (acknowledgedOutputTokens === null || awaitingStages.length) {
+        return { id, status: 'pending', heldCredits: request.maximum, acknowledgedOutputTokens, awaitingStages };
+      }
+      return settle(id, { identity: request.route, receipts: stages.filter(Boolean), ...data.ack });
     }
   };
 }
