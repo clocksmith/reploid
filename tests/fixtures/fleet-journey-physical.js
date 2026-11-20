@@ -22,6 +22,10 @@
  * Optional, for a model only one machine can hold: `singleProvider: true` with exactly one provider. There is
  * then no ranking comparison and no second provider to recover on: the fresh attempt runs on the same provider
  * after it has returned. `cancellation: true` adds a request the requester stops after its first token.
+ * Optional, for a machine shared with something that must not be disturbed: `restartDelayMs` on a provider
+ * waits, after this driver kills it, until the process is gone and then that long before starting it again;
+ * `protect: [{ name, ssh?, command, expect }]` names read-only commands whose output must stay the same,
+ * checked between phases.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -233,6 +237,20 @@ async function guard(phase) {
     (report.pressure ??= []).push({ phase, computer: node.spec.computerId, avg10 });
     if (!(avg10 <= check.maxAvg10)) throw Error(`${node.spec.computerId} memory pressure ${avg10} exceeds ${check.maxAvg10} before ${phase}; stopping`);
   }
+  for (const check of config.protect ?? []) {
+    const value = (check.ssh ? await run('ssh', ['-o', 'BatchMode=yes', check.ssh, check.command]) : await run('/bin/sh', ['-c', check.command])).trim();
+    (report.protected ??= []).push({ phase, name: check.name, value });
+    if (value !== check.expect) throw Error(`${check.name} changed before ${phase}: expected ${check.expect}, saw ${value}; stopping`);
+  }
+}
+
+/** After a kill: the host process must be gone, and `restartDelayMs` more must pass, before that machine is started again. */
+async function settle(node) {
+  if (!node.spec.restartDelayMs) return;
+  const alive = () => (node.spec.ssh ? run('ssh', ['-o', 'BatchMode=yes', node.spec.ssh, `kill -0 ${node.hostPid} 2>/dev/null`]) : Promise.resolve(process.kill(node.hostPid, 0)))
+    .then(() => true, () => false);
+  await until(async () => !(await alive()), 60000, `${node.spec.computerId} to be gone after the kill`);
+  await sleep(node.spec.restartDelayMs);
 }
 
 /** `requireColdFill`: the filling provider's model and cache directories exist and hold nothing, checked on that machine. */
@@ -457,6 +475,7 @@ try {
   // With a single provider the fresh attempt waits until that provider is back.
   if (!single) report.phases.recovered = await attempt('recovered');
   const heldWhileAway = requesterHold(), index = providers.indexOf(killed);
+  await settle(killed);
   providers[index] = Object.assign(await launch(killed.spec, 'provider'), { measured: killed.measured, loadMs: killed.loadMs, reference: killed.reference });
   const releasedAt = await until(() => requesterHold() === 0 ? Date.now() : null, 120000, 'hold release after the provider restarted');
   await providers[index].command('select', { index: 0, contribute: true });
