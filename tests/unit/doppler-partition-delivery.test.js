@@ -63,13 +63,14 @@ describe('partition candidate delivery', () => {
       writeFileSync(path.join(fixture, 'package.json'), JSON.stringify({ type: 'module',
         dependencies: { 'dopplerx': pin.spec } }));
       writeFileSync(path.join(fixture, 'package-lock.json'), JSON.stringify({ packages: {
-        'node_modules/dopplerx': pin,
+        'node_modules/dopplerx': { version: pin.version, resolved: pin.resolved, integrity: pin.integrity },
       } }));
       const target = path.join(fixture, 'shared/vendor/doppler', pin.version);
       mkdirSync(target, { recursive: true });
       writeFileSync(path.join(target, 'removed-module.js'), 'stale');
       execFileSync(process.execPath, [path.join(fixture, 'scripts/vendor-doppler.js'), archive]);
       expect(existsSync(path.join(target, 'removed-module.js'))).toBe(false);
+      expect(sha512(readFileSync(path.join(fixture, 'deploy/artifacts', path.basename(archive))))).toBe(pin.integrity);
       expect(JSON.parse(readFileSync(path.join(fixture, 'shared/config/doppler-package.json')))).toEqual(pin);
       const prior = readFileSync(path.join(target, 'package.json'));
       const damaged = path.join(fixture, 'damaged.tgz');

@@ -1311,7 +1311,7 @@
     {
       "path": "config/doppler-package.json",
       "byteLength": 273,
-      "sha256": "sha256:b3e419c0082899be33843eef48a8964f90371b25839a0b5cdcf851c14f891640"
+      "sha256": "sha256:d8a6243bd3a4f6e80194db0307ab6ac26f3ad2f299dec445c62719f0cf999572"
     },
     {
       "path": "config/file-tool-schemas.json",
@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 688249,
-      "sha256": "sha256:de3f70c9b3c6a7fe15f7f9cc574a1b17999132ccc15b22ab5fbd709c51148f5f"
+      "byteLength": 688311,
+      "sha256": "sha256:832671e98f5001aaf9361ea57859db7f6be6a1d77cdc42d167fee0ff6f445333"
     },
     {
       "path": "config/module-registry.json",
@@ -1990,8 +1990,8 @@
     },
     {
       "path": "host/partition-release.js",
-      "byteLength": 2482,
-      "sha256": "sha256:b7f54a4cff95279f3846d0e45da2ee42ba5d494cd95f43c1cea8cd42364b4a6c"
+      "byteLength": 2884,
+      "sha256": "sha256:1bcfa939c2c13114c4445cb8db8736ba60ca2d6c5126aa562380177a305911be"
     },
     {
       "path": "host/peer-execution-config.js",
@@ -3766,7 +3766,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "byteLength": 2673219,
-      "sha256": "sha256:e32de74ac57f779f3769d906791bc49c0d21824279155e718263a40849eb0331"
+      "sha256": "sha256:08019293200d629a88ea89e6b8b49649637152fab4494c5caebf62bc7b211fca"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -5765,8 +5765,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/experimental/training/clip.js",
-      "byteLength": 1901,
-      "sha256": "sha256:e6a11928ddf96ff3dc3cd03905563a2ac90b1e854df47891966448fce03a898a"
+      "byteLength": 1989,
+      "sha256": "sha256:53011e7a10f677689361f896543741e14f7918249489a8df85c605b396d4e21c"
     },
     {
       "path": "vendor/doppler/0.1.5/src/experimental/training/export.js",
@@ -5785,8 +5785,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/experimental/training/loss-scaling.js",
-      "byteLength": 2179,
-      "sha256": "sha256:81bed513fdc2a036869f1b5ea957236fe44a1f18d33c421d53ba96e48466390d"
+      "byteLength": 2292,
+      "sha256": "sha256:6f10e89cd01d19163e95e6a87aa00f8e1530d8267afef25fb4e8589583b109b8"
     },
     {
       "path": "vendor/doppler/0.1.5/src/experimental/training/loss.js",
@@ -12689,5 +12689,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:ee4598f5ba5f788ffc9b01e4ec691a4782e6253329e297a2dab83defe7b21c2e"
+  "bundleHash": "sha256:c0def48c5912365bd94b7460e852d8f2643f12928a21d445d4ed6b9ee5737cbf"
 }
