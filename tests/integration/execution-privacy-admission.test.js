@@ -194,3 +194,44 @@ it('a provider host that predates admission, or one that changes its mind after 
     expect(fickle.executions).toBe(0);
   } finally { stop.abort(Error('fixture cancelled')); await held; }
 });
+
+it('withdraws an admitted request whose disclosure is still hashing when its requester times out', async () => {
+  const checking = Promise.withResolvers(), release = Promise.withResolvers();
+  let firstDisclosure = true, blockNextCommitment = false;
+  const f = await createRecoveryMesh(cleanup, {
+    meshConfig: i => ({ generationTimeoutMs: i === 0 ? 1000 : 5000 }),
+    intercept(type) {
+      if (type === 'reploid:generation-request' && firstDisclosure) {
+        firstDisclosure = false;
+        blockNextCommitment = true;
+      }
+    }
+  });
+  const digest = crypto.subtle.digest.bind(crypto.subtle);
+  const delayed = vi.spyOn(crypto.subtle, 'digest').mockImplementation(async (algorithm, bytes) => {
+    if (blockNextCommitment && new TextDecoder().decode(bytes).includes('reploid.prompt-commitment/v1')) {
+      blockNextCommitment = false;
+      checking.resolve();
+      await release.promise;
+    }
+    return digest(algorithm, bytes);
+  });
+  const attempt = () => f.requesterMesh.generate(f.messages, null, {
+    modelId: 'model', modelIdentity, privacy: named(f), requestContext: { recoverable: true }
+  });
+  try {
+    const expired = expect(attempt()).rejects.toThrow('Timed out waiting for remote host slot response');
+    await checking.promise;
+    await expired;
+    expect(of(f, 'reploid:generation-cancel')).toHaveLength(1);
+    expect(of(f, 'reploid:generation-admitted')).toHaveLength(1);
+    release.resolve();
+    await attempt();
+    expect(f.executions).toBe(1);
+    expect(of(f, 'reploid:generation-result').map(row => row.payload.requestId)).toEqual([f.reference.requestId]);
+    expect(of(f, 'reploid:receipt')).toHaveLength(1);
+  } finally {
+    release.resolve();
+    delayed.mockRestore();
+  }
+});
