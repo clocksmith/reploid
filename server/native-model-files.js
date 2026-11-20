@@ -6,6 +6,8 @@ import { resolvePartitionArtifactSource } from '../apps/poolday/host/work-partit
  * pinned; every byte is verified against pinned identities. Explicit adapter acquisition permits its pinned origin. */
 import fs from 'node:fs/promises';
 import { openNativeSupplyBudget } from './native-supply-budget.js';
+import { createNativeCustodySlots } from './native-custody-slots.js';
+import { setTimeout as delay } from 'node:timers/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
 import { sha256Hex as digest } from './hashing.js';
@@ -138,9 +140,15 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   // Transfer evidence with both parties' certificates, for whoever claims the delivery.
   const deliveries = [], observeDelivery = record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); };
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
+  const payloadSlots = createNativeCustodySlots(policy.channel.maxPendingRequests);
+  const createChannel = owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel;
   const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
-    createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
+    createChannel(options) {
+      const channel = createChannel(options);
+      return { ...channel, requestChunk: (message, controls) =>
+        payloadSlots.run(controls.signal, () => channel.requestChunk(message, controls)) };
+    },
     ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
     readArtifact: async file => {
       const local = localPieces.get(key(file));
@@ -311,27 +319,34 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       if (await wholeModelDirectoryComplete(root, model)) return { complete: true, filled: false };
       const data = await metadata(model, signal);
       const origin = resolvePinnedOrigin(model, modelOrigins, originFetch), graceUntil = Date.now() + peerGraceMs;
+      const fillConcurrency = Math.min(2, policy.maxTransfers, policy.channel.maxPendingRequests);
+      const peerGrants = createNativeCustodySlots(fillConcurrency);
+      const originRanges = createNativeCustodySlots(policy.maxPieceAcquisitions);
       let supplied = false, waiting = false, originAnnounced = false;
       const peerOffers = (file, whole) => exchange.has(file) || Boolean(whole && exchange.has(whole));
       // Peers are preferred. Without a pinned origin the fill waits for a first supplier and then
       // allows one channel timeout per piece; with one, it waits only a short grace for peers to announce.
-      const awaitPeers = async (file, whole) => {
-        const deadline = origin ? (supplied ? 0 : graceUntil)
-          : supplied ? Date.now() + (owner ? owner.pieceTimeoutMs(policy.channel.timeoutMs, policy.maxArtifactBytes) : policy.channel.timeoutMs) : Infinity;
+      const awaitPeers = async (file, whole, current) => {
+        let deadline = origin ? (supplied ? 0 : graceUntil) : Infinity;
         while (!peerOffers(file, whole)) {
-          signal.throwIfAborted();
+          current.throwIfAborted();
+          if (!origin && supplied && !Number.isFinite(deadline)) {
+            const timeout = owner ? owner.pieceTimeoutMs(policy.channel.timeoutMs, policy.maxArtifactBytes) : policy.channel.timeoutMs;
+            deadline = Date.now() + timeout;
+          }
           if (Date.now() >= deadline) {
             assert(origin, `No authorized peer offers piece ${file.hash} of ${whole?.path ?? file.path}`);
             return false;
           }
           if (!waiting) { waiting = true; onProgress({ phase: 'waiting-for-supplier' }); }
-          exchange.announce(); await new Promise(resolve => setTimeout(resolve, 1000));
+          exchange.announce(); await delay(1000, undefined, { signal: current });
         }
         waiting = false; return true;
       };
-      const fromOrigin = async (name, range, reason) => {
+      const fromOrigin = async (name, range, reason, current) => {
         if (!originAnnounced) { originAnnounced = true; onProgress({ phase: 'source', source: origin.id, origin: origin.label, reason }); }
-        return { bytes: await readPinnedOrigin(origin, name, { ...range, signal }), source: origin.id, supplier: origin.supplier };
+        const bytes = await originRanges.run(current, () => readPinnedOrigin(origin, name, { ...range, signal: current }));
+        return { bytes, source: origin.id, supplier: origin.supplier };
       };
       const acquire = async (piece, controls) => {
         const file = pieceFile(piece), cached = await cache.get(file);
@@ -339,19 +354,33 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         const shard = data.manifest.shards.find(row => row.filename === piece.path);
         const whole = shard ? { path: shard.filename, role: 'model-weights', sizeBytes: shard.size, hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm } : null;
         let reason = 'no authorized peer offers the piece';
-        if (await awaitPeers(file, whole)) {
-          try {
+        if (await awaitPeers(file, whole, controls.signal)) {
+          let overlapped = false;
+          const request = () => peerGrants.run(controls.signal, async () => {
+            overlapped ||= peerGrants.active > 1;
             let supplier = null; const onSupplier = id => { supplier = id; };
             const bytes = exchange.has(file) ? await exchange.acquire(file, { ...controls, onSupplier })
               : await exchange.acquire(whole, { ...controls, onSupplier, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
             supplied = true; return { bytes, source: 'authorized-custody-peers', supplier };
+          });
+          try {
+            try { return await request(); }
+            catch (error) {
+              const errors = error instanceof AggregateError ? error.errors : [error];
+              // Older or rate-limited suppliers can admit just one grant. Finish the
+              // other one and retry in order before considering the pinned origin.
+              if ((!overlapped && !peerGrants.active) || !errors.every(row => row.message === 'File contribution unavailable')) throw error;
+              peerGrants.serialize();
+            }
+            return await request();
           } catch (error) {
-            if (!origin || signal.aborted) throw error;
+            controls.signal.throwIfAborted();
+            if (!origin) throw error;
             reason = 'authorized peers failed: ' + error.message;
             onProgress({ phase: 'source-failed', source: 'authorized-custody-peers', piece: piece.identity, error: error.message });
           }
         }
-        return fromOrigin(piece.path, { offset: piece.offset, size: piece.size }, reason);
+        return fromOrigin(piece.path, { offset: piece.offset, size: piece.size }, reason, controls.signal);
       };
       const readPinned = async (file, current) => {
         try {
@@ -362,13 +391,13 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         catch (error) {
           // The manifest is always the bundled pinned copy, never an origin's.
           if (!origin || file.path === 'manifest.json' || current.aborted) throw error;
-          const read = await fromOrigin(file.path, { size: file.sizeBytes, whole: true }, error.message);
+          const read = await fromOrigin(file.path, { size: file.sizeBytes, whole: true }, error.message, current);
           await verify(file, read.bytes); return read;
         }
       };
       const result = await fillWholeModelDirectory({ root, model, manifest: data.manifest, index: data.index, signal, onProgress, acquire,
-        // The same piece concurrency as partition acquisition: one peer channel admits few pending chunk requests.
-        concurrency: policy.maxPieceAcquisitions,
+        // Overlap grants and durable writes under one host-wide signed chunk limit.
+        concurrency: fillConcurrency,
         readMetadata: readPinned,
         release: async file => { for (const piece of file.pieces) await cache.remove(pieceFile(piece)); },
         freeBytes: async directory => { const stat = await fs.statfs(directory); return stat.bavail * stat.bsize; } });

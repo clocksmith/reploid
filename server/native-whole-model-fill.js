@@ -144,19 +144,21 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
       const info = await handle.stat(); assert(info.isFile(), 'Partial model file must be a regular file');
       if (info.size > file.size) await handle.truncate(file.size);
       const queue = file.pieces.slice();
+      const failure = new AbortController();
+      const current = AbortSignal.any([signal, failure.signal]);
       const worker = async () => {
         for (let piece = queue.shift(); piece; piece = queue.shift()) {
-          signal.throwIfAborted();
+          current.throwIfAborted();
           const present = await readRange(handle, piece.offset, piece.size);
           if (present && 'sha256:' + sha256(present) === piece.identity) {
             progress.reusedPieces++; progress.reusedBytes += piece.size; count('partial-file', piece.size);
             emit('piece', { path: file.path, reused: true, source: 'partial-file' }); continue;
           }
-          const acquired = await acquire({ ...piece, path: file.path }, { signal });
+          const acquired = await acquire({ ...piece, path: file.path }, { signal: current });
           const bytes = acquired instanceof Uint8Array ? acquired : acquired?.bytes;
           const source = acquired instanceof Uint8Array ? 'acquired' : String(acquired?.source || 'acquired');
           const supplier = acquired instanceof Uint8Array ? null : acquired?.supplier ?? null;
-          signal.throwIfAborted();
+          current.throwIfAborted();
           assert(bytes instanceof Uint8Array && bytes.byteLength === piece.size && 'sha256:' + sha256(bytes) === piece.identity,
             `Rejected unverified bytes for piece ${piece.identity} of ${file.path}`, 'WHOLE_MODEL_PIECE_REJECTED');
           let written = 0;
@@ -166,7 +168,11 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
           emit('piece', { path: file.path, reused: false, source, ...(supplier ? { supplier: Object.hasOwn(progress.suppliers, supplierLabel(supplier)) ? supplierLabel(supplier) : OTHER_SUPPLIERS } : {}) });
         }
       };
-      await Promise.all(Array.from({ length: Math.min(concurrency, file.pieces.length) }, worker));
+      // Join out-of-order writes and acquisition cleanup before closing the shared
+      // partial file. A failed worker also wakes siblings waiting for a peer.
+      await Promise.all(Array.from({ length: Math.min(concurrency, file.pieces.length) },
+        () => worker().catch(error => failure.abort(error))));
+      current.throwIfAborted();
       await handle.sync();
     } finally { await handle.close(); }
     const actual = await hashFile(partial, signal);

@@ -113,3 +113,49 @@ it('never overwrites another model and stops when the directory lacks room', asy
   await expect(fillWholeModelDirectory({ ...f.options(empty), freeBytes: async () => 4 })).rejects.toMatchObject({ code: 'WHOLE_MODEL_STORAGE' });
   expect(f.requested).toEqual([]);
 });
+
+it('joins a cancelled sibling before returning and resumes a partial file written out of order', async () => {
+  const f = fixture(), root = await folder(), opts = f.options(root);
+  const laterPieceWritten = Promise.withResolvers();
+  const siblingCleanup = Promise.withResolvers();
+  const controller = new AbortController();
+  let cancelled = false;
+  const run = fillWholeModelDirectory({ ...opts, concurrency: 2, signal: controller.signal,
+    async acquire(piece, { signal }) {
+      if (piece.path === 'shard_00000.bin' && piece.offset === 0) {
+        await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }));
+        await siblingCleanup.promise; cancelled = true; signal.throwIfAborted();
+      }
+      return opts.acquire(piece);
+    }, onProgress(event) { if (event.phase === 'piece') laterPieceWritten.resolve(); }
+  });
+  await laterPieceWritten.promise; controller.abort(new Error('user cancelled'));
+  let settled = false; const outcome = run.catch(error => { settled = true; return error; });
+  await new Promise(resolve => setImmediate(resolve));
+  expect(settled).toBe(false); siblingCleanup.resolve();
+  expect((await outcome).message).toBe('user cancelled'); expect(cancelled).toBe(true);
+  expect(await fs.readdir(root)).toEqual(['shard_00000.bin.partial']);
+  f.requested.length = 0;
+  const resumed = await fillWholeModelDirectory({ ...f.options(root), concurrency: 2 });
+  expect(resumed.reusedPieces).toBe(1);
+  expect(f.requested).not.toContain(f.index.files[0].pieces[1].identity);
+  expect(await fs.readFile(path.join(root, 'shard_00000.bin'))).toEqual(f.shard);
+});
+
+it('rejects a corrupt out-of-order piece and cancels a sibling still waiting for bytes', async () => {
+  const f = fixture(), root = await folder(), opts = f.options(root);
+  const pending = Promise.withResolvers();
+  let siblingStopped = false;
+  const run = fillWholeModelDirectory({ ...opts, concurrency: 2, async acquire(piece, { signal }) {
+    if (piece.offset === 0) {
+      pending.resolve();
+      await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }));
+      siblingStopped = true; signal.throwIfAborted();
+    }
+    await pending.promise;
+    const bytes = await opts.acquire(piece); bytes[0] ^= 1; return bytes;
+  } });
+  await expect(run).rejects.toMatchObject({ code: 'WHOLE_MODEL_PIECE_REJECTED' });
+  expect(siblingStopped).toBe(true);
+  expect(await fs.readdir(root)).toEqual(['shard_00000.bin.partial']);
+});

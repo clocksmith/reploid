@@ -116,6 +116,11 @@ that piece named. A directory
 holding another model's manifest is refused, never overwritten. A complete
 directory is used unchanged, as before.
 
+A whole-model fill may prepare two verified pieces at once. Across all active
+peer grants the native requester admits two signed chunk requests at a time.
+If a peer can serve only one grant, the fill retries one at a time. The
+owner's bandwidth controls still apply. The requester fetches pinned-origin ranges one at a time.
+
 `npm run package:native -- --publishable` builds the same delivery with a
 manifest npm accepts. It names the pinned Doppler release by version, and it
 carries its resolved dependency graph as `npm-shrinkwrap.json`, because npm
