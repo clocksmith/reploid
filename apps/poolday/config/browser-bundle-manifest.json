@@ -1431,7 +1431,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 688330,
-      "sha256": "sha256:349258402db154dbc145e985f789872d409910614942d09c2da11b9cf4dff76f"
+      "sha256": "sha256:d8649100e2f603856018c8869461fbbcb511e0887122253c0aefac3082327b5c"
     },
     {
       "path": "config/module-registry.json",
@@ -2005,8 +2005,8 @@
     },
     {
       "path": "host/partition-release.js",
-      "byteLength": 2482,
-      "sha256": "sha256:b7f54a4cff95279f3846d0e45da2ee42ba5d494cd95f43c1cea8cd42364b4a6c"
+      "byteLength": 2884,
+      "sha256": "sha256:1bcfa939c2c13114c4445cb8db8736ba60ca2d6c5126aa562380177a305911be"
     },
     {
       "path": "host/peer-execution-config.js",
@@ -12704,5 +12704,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:6d587944895014fb8c47e1aac56dcdac21643a75f5d1c741cc25ea6135184379"
+  "bundleHash": "sha256:1857a3286dd0181dcf37553f4822fec828e03debc0602be344ac9e309014ab65"
 }
