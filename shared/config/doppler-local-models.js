@@ -42,7 +42,7 @@ export function resolveDopplerBrowserAssets({ pageUrl, explicitBase, storedBase 
     storageModuleUrl: `${baseUrl}/src/tooling-exports/storage.js` };
 }
 
-export const DEFAULT_DOPPLER_MODEL_ID = 'qwen-3-5-2b-q4k-ef16-af32';
+export const DEFAULT_DOPPLER_MODEL_ID = 'qwen-3-5-2b-q4k-ehaf16';
 
 export const LOCAL_DOPPLER_MODELS = Object.freeze(chatModels.map(model => Object.freeze({
   ...model, adapters: Object.freeze(model.adapters),

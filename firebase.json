@@ -360,22 +360,22 @@
       ],
       "redirects": [
         {
-          "source": "/model-files/qwen-3-5-0-8b-q4k-ef16-af32-vf16/manifest.json",
-          "destination": "/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+          "destination": "/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
           "type": 302
         },
         {
-          "source": "/model-files/qwen-3-5-0-8b-q4k-ef16-af32-vf16/:file",
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/:file",
           "destination": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/:file",
           "type": 302
         },
         {
-          "source": "/model-files/qwen-3-5-2b-q4k-ef16-af32/manifest.json",
-          "destination": "/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json",
+          "source": "/model-files/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+          "destination": "/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
           "type": 302
         },
         {
-          "source": "/model-files/qwen-3-5-2b-q4k-ef16-af32/:file",
+          "source": "/model-files/qwen-3-5-2b-q4k-ehaf16/:file",
           "destination": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/:file",
           "type": 302
         }

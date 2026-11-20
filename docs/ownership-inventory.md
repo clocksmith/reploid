@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | --- | ---: |
 | apps/poolday | 382 |
 | self | 457 |
-| shared | 2494 |
-| total | 3333 |
+| shared | 2497 |
+| total | 3336 |
 
 Every file lives in its owner's root.
 
@@ -315,9 +315,12 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/lora-training.json` | `apps/poolday/config/lora-training.json` | apps/poolday | Reached only from product entries. |
 | `config/model-manifests/74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972.json` | `shared/config/model-manifests/74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json` | `shared/config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json` | shared | Reached from native hosts and browser entries. |
-| `config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json` | `shared/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json` | shared | Reached from native hosts and browser entries. |
-| `config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json` | `shared/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json` | shared | Reached from native hosts and browser entries. |
-| `config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json` | `shared/config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json` | shared | Reached from native hosts and browser entries. |
+| `config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | `shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json` | shared | Reached from native hosts and browser entries. |
+| `config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json` | `shared/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | `shared/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json` | shared | Reached from native hosts and browser entries. |
+| `config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json` | `shared/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
+| `config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json` | `shared/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json` | shared | Reached from native hosts and browser entries. |
+| `config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json` | `shared/config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-pieces/qwen-0-8b-pieces.json` | `shared/config/model-pieces/qwen-0-8b-pieces.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen-2b-pieces.json` | `shared/config/model-pieces/qwen-2b-pieces.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen27b-q4-pieces.json` | `shared/config/model-pieces/qwen27b-q4-pieces.json` | shared | Reached from native hosts and browser entries. |

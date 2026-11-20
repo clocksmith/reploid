@@ -1,24 +1,18 @@
 [
   {
-    "id": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
     "name": "Qwen 3.5 0.8B",
-    "identity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
-    "supersedes": [
-      {
-        "id": "qwen-3-5-0-8b-q4k-ehaf16",
-        "identity": "sha256:fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137"
-      }
-    ],
+    "identity": "sha256:fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
     "source": {
-      "baseUrl": "https://replo.id/model-files/qwen-3-5-0-8b-q4k-ef16-af32-vf16/",
+      "baseUrl": "https://replo.id/model-files/qwen-3-5-0-8b-q4k-ehaf16/",
       "files": [
         {
           "path": "manifest.json",
           "role": "model-manifest",
-          "sizeBytes": 213030,
+          "sizeBytes": 213026,
           "hashAlgorithm": "sha256",
-          "hash": "cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
-          "url": "/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json"
+          "hash": "fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
+          "url": "/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json"
         },
         {
           "path": "tokenizer.json",
@@ -32,7 +26,7 @@
           "role": "model-piece-index",
           "sizeBytes": 50016,
           "hashAlgorithm": "sha256",
-          "hash": "68a0e7b475ca540ac65716fa5108d254a2bf68d249f70f5e57f6b5518c3dc4ce",
+          "hash": "ca9db591758af53748e804f38e243c3fbdb22e99411a375a236a085208a8af49",
           "url": "/config/model-pieces/qwen-0-8b-pieces.json"
         }
       ]
@@ -46,8 +40,8 @@
       {
         "id": "qwen35-0-8b-ner-json-lora",
         "name": "Qwen 3.5 0.8B NER JSON LoRA",
-        "identity": "sha256:179c0a38e593d1210207932a836b5dfd43b3dcea9a9852341a40b7406f0d453a",
-        "baseModelIdentity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+        "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+        "baseModelIdentity": "sha256:fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
         "weightsLayout": "peft",
         "purpose": {
           "statement": "Extracts people, places and dates from one sentence as strict JSON.",
@@ -67,7 +61,7 @@
           "id": "qwen35-0-8b-ner-json-lora",
           "name": "Qwen 3.5 0.8B NER JSON LoRA",
           "version": "1.0.0",
-          "baseModel": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+          "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
           "rank": 16,
           "alpha": 32,
           "targetModules": [
@@ -94,26 +88,20 @@
     ]
   },
   {
-    "id": "qwen-3-5-2b-q4k-ef16-af32",
+    "id": "qwen-3-5-2b-q4k-ehaf16",
     "name": "Qwen 3.5 2B",
     "partitionSplitLayer": 4,
-    "identity": "sha256:eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541",
-    "supersedes": [
-      {
-        "id": "qwen-3-5-2b-q4k-ehaf16",
-        "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b"
-      }
-    ],
+    "identity": "sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
     "source": {
-      "baseUrl": "https://replo.id/model-files/qwen-3-5-2b-q4k-ef16-af32/",
+      "baseUrl": "https://replo.id/model-files/qwen-3-5-2b-q4k-ehaf16/",
       "files": [
         {
           "path": "manifest.json",
           "role": "model-manifest",
-          "sizeBytes": 181682,
+          "sizeBytes": 181671,
           "hashAlgorithm": "sha256",
-          "hash": "eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541",
-          "url": "/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json"
+          "hash": "a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+          "url": "/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json"
         },
         {
           "path": "tokenizer.json",
@@ -127,7 +115,7 @@
           "role": "model-piece-index",
           "sizeBytes": 162108,
           "hashAlgorithm": "sha256",
-          "hash": "d32c286c8cb7615197db516144008d90ffcfb33e3f52779bce507354b4a48a51",
+          "hash": "7dba21ccd3e2f55c16027e1b866bc74bab37a39215d3b563093d1fe860d786d6",
           "url": "/config/model-pieces/qwen-2b-pieces.json"
         }
       ]
@@ -468,15 +456,9 @@
     }
   },
   {
-    "id": "qwen-3-6-35b-a3b-text-source-q40-hq6k-af32",
+    "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
     "name": "Qwen 3.6 35B A3B",
-    "identity": "sha256:ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2",
-    "supersedes": [
-      {
-        "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
-        "identity": "sha256:e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59"
-      }
-    ],
+    "identity": "sha256:e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59",
     "provider": "doppler",
     "contextLength": 4096,
     "quantization": "q4_0",
@@ -5005,10 +4987,10 @@
         {
           "path": "manifest.json",
           "role": "model-manifest",
-          "sizeBytes": 409719,
+          "sizeBytes": 409715,
           "hashAlgorithm": "sha256",
-          "hash": "ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2",
-          "url": "/config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json"
+          "hash": "e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59",
+          "url": "/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json"
         },
         {
           "path": "tokenizer.json",
@@ -5022,7 +5004,7 @@
           "role": "model-piece-index",
           "sizeBytes": 967186,
           "hashAlgorithm": "sha256",
-          "hash": "762bae04159d7abbf5c1ed6df3e2acb2d4aed0782dbf6c3f4324a9f6d08c9f61",
+          "hash": "d54116a53ee5e4fc99d5c50a90e29b86c88ea9ad84f46e596162f62bb182c1fc",
           "url": "/config/model-pieces/qwen35b-q4_0-pieces.json"
         }
       ]

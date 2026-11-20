@@ -7,7 +7,7 @@ export function bindResearchPlugins(root, host, { storage = localStorage, locks 
   const surface = root.querySelector('[data-plugin-root]'), service = createResearchPlugins({ ...host, storage });
   let session = null, unsubscribe = () => {}, detached = false, release = null, owned = false;
   let error = '', latest = null, opening = false;
-  let targetId = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', imitatorId = 'qwen-3-8-27b-text-q4k-ef16-af32';
+  let targetId = 'qwen-3-5-0-8b-q4k-ehaf16', imitatorId = 'qwen-3-8-27b-text-q4k-ef16-af32';
   const e = escapeHtml;
   const render = () => {
     if (detached) return;

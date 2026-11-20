@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 382,
     "self": 457,
-    "shared": 2494
+    "shared": 2497
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1693,8 +1693,20 @@
       "basis": "Reached from native hosts and browser entries."
     },
     {
+      "served": "config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
+      "source": "shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
       "served": "config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
       "source": "shared/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
+      "owner": "shared",
+      "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
+    },
+    {
+      "served": "config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
+      "source": "shared/config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
     },
@@ -1702,13 +1714,19 @@
       "served": "config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json",
       "source": "shared/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json",
       "owner": "shared",
+      "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
+    },
+    {
+      "served": "config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "source": "shared/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json",
       "source": "shared/config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json",
       "owner": "shared",
-      "basis": "Reached from native hosts and browser entries."
+      "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-pieces/qwen-0-8b-pieces.json",

@@ -112,11 +112,11 @@
     "maxPreviewMs": 30000,
     "maxToolResultCharacters": 8192
   },
-  "defaultModelId": "qwen-3-5-2b-q4k-ef16-af32",
+  "defaultModelId": "qwen-3-5-2b-q4k-ehaf16",
   "chatModelPreference": [
     "qwen-3-8-27b-text-q4k-ef16-af32",
-    "qwen-3-5-2b-q4k-ef16-af32",
-    "qwen-3-5-0-8b-q4k-ef16-af32-vf16"
+    "qwen-3-5-2b-q4k-ehaf16",
+    "qwen-3-5-0-8b-q4k-ehaf16"
   ],
   "allowedFallbackModels": []
 }

@@ -350,7 +350,7 @@
     {
       "path": "config/doppler-local-models.js",
       "owner": "config",
-      "sha256": "sha256:c80f61c5367c720ca3a4de566af253dc7071784b7b5ea6fb4a2fe5d7fd922f03",
+      "sha256": "sha256:730d90d8e92a55c7d4c3e34a21ea0b10e3720456dc8d841e1238cc7a46325515",
       "imports": [
         "./chat-models.json",
         "./doppler-package.json"
@@ -4267,7 +4267,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:630987d780fa6e3afc9467929346491305aadbd4cdbe4d19d7411a1f10d759d1",
+      "sha256": "sha256:6fbd4fdedb5bcdecd2692e3c12a74162163658a17d2d5d80c902a8e175870317",
       "imports": []
     },
     {
@@ -4921,7 +4921,7 @@
     {
       "path": "ui/pool-home/research-plugins.js",
       "owner": "ui",
-      "sha256": "sha256:9785da956e47713bb464d2c2d38ed48ec59efd7e5425a7c37bb3512c01d9853a",
+      "sha256": "sha256:537fc6f5930b250aa078cd6abbf4305d9d57a82c88f3ce300c583901ae65285f",
       "imports": [
         "../../host/research-plugins.js",
         "../components/attachments.js"
