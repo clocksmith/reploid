@@ -11,7 +11,7 @@ export async function openNativeSupplyBudget(options) {
     throw custodyBudgetError('STORAGE', 'File contribution ledger unavailable; serving is blocked', cause);
   }
 }
-async function openStore({ directory, maxBytes }) {
+async function openStore({ directory, maxBytes, purpose = 'supply' }) {
   const { DatabaseSync } = await import('node:sqlite');
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
   const root = await fs.realpath(directory), filename = path.join(root, 'custody-budget.sqlite');
@@ -30,7 +30,7 @@ async function openStore({ directory, maxBytes }) {
       let record;
       try { record = row && JSON.parse(row.record); }
       catch (cause) { throw custodyBudgetError('CORRUPT', 'File contribution ledger is corrupt', cause); }
-      const next = reserveCustodyBudget(record, bytes, maxBytes);
+      const next = reserveCustodyBudget(record, bytes, maxBytes, purpose);
       db.prepare('UPDATE allowance SET record = ? WHERE id = 1').run(JSON.stringify(next));
       db.prepare('COMMIT').run(); state = next; return { ...state };
     } catch (error) {
@@ -47,8 +47,8 @@ async function openStore({ directory, maxBytes }) {
       db.prepare('CREATE TABLE IF NOT EXISTS allowance (id INTEGER PRIMARY KEY CHECK(id=1), record TEXT NOT NULL)').run();
       if (!db.prepare('SELECT id FROM allowance WHERE id=1').get()) {
         if (existed || legacy) throw custodyBudgetError('MISSING', 'File contribution ledger missing for existing cache; allowance cannot be renewed');
-        const initial = { schema: 'reploid.custody-supply-budget/v1', maxBytes, reservedBytes: 0 };
-        reserveCustodyBudget(initial, 0, maxBytes);
+        const initial = { schema: `reploid.custody-${purpose}-budget/v1`, maxBytes, reservedBytes: 0 };
+        reserveCustodyBudget(initial, 0, maxBytes, purpose);
         db.prepare('INSERT INTO allowance VALUES (1, ?)').run(JSON.stringify(initial));
       }
       db.prepare('COMMIT').run();

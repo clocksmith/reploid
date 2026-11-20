@@ -8,6 +8,7 @@ import fs from 'node:fs/promises';
 import { openNativeSupplyBudget } from './native-supply-budget.js';
 import { constants } from 'node:fs';
 import path from 'node:path';
+import { setTimeout as pause } from 'node:timers/promises';
 import { sha256Hex as digest } from './hashing.js';
 import { createCustodyExchange, createCustodyContracts, createPieceAcquisition } from '../packages/reploid/src/artifacts/custody/runtime.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../packages/reploid/src/artifacts/signatures.js';
@@ -89,7 +90,7 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
 export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, maxCacheBytes, onChange = () => {}, owner = null, certifyCustodyKey = null,
-  maxSupplyBytes = policy.maxSupplyBytes, modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined, artifactRuntime = null }) {
+  maxSupplyBytes = policy.maxSupplyBytes, modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, authorizePeer, authorizeSupplier, reserveDownload, sourceFilePaths = undefined, artifactRuntime = null }) {
   assert(artifactRuntime === null || typeof artifactRuntime?.createVerifiedPieceStorage === 'function',
     'Native artifact runtime requires the verified piece storage factory');
   // Trusted host composition only. Snapshot the factory before asynchronous
@@ -138,7 +139,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   // Transfer evidence with both parties' certificates, for whoever claims the delivery.
   const deliveries = [], observeDelivery = record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); };
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
-  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget,
+  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget, authorizePeer, authorizeSupplier, reserveDownload,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
     ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
@@ -216,7 +217,8 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         return bytes;
       })());
     },
-    preparePartitionSource(model, { signal } = {}) { return own((async () => {
+    preparePartitionSource(model, { signal, waitForOfferMs = 0 } = {}) { return own((async () => {
+      assert(Number.isSafeInteger(waitForOfferMs) && waitForOfferMs >= 0, 'Invalid custody offer wait');
       signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]);
       const data = await metadata(model, signal), descriptors = new Map(); signal.throwIfAborted();
       const partitionOrigin = resolvePinnedOrigin(model, modelOrigins, originFetch);
@@ -251,6 +253,11 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
             const whole = shard ? { path: shard.filename, role: 'model-weights', sizeBytes: shard.size, hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm }
               : model.source.files.find(file => file.path === piece.path);
             assert(whole, 'Piece is outside pinned model files');
+            const deadline = Date.now() + waitForOfferMs;
+            while (!exchange.has(whole) && !exchange.has(file) && Date.now() < deadline) {
+              await pause(Math.min(100, Math.max(1, deadline - Date.now())), undefined, { signal: controls.signal });
+            }
+            if (exchange.has(file)) return exchange.acquire(file, controls);
             assert(exchange.has(whole), 'No peer offers the assigned verified piece');
             return exchange.acquire(whole, { ...controls, range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
           } },

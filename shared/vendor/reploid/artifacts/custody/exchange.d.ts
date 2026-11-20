@@ -42,6 +42,12 @@ export interface CustodyExchangePorts {
     getState(): { reservedBytes: number; maxBytes: number } | null;
     reserve(bytes: number): Promise<{ reservedBytes: number; maxBytes: number }>;
   };
+  /** Host-wide default charged before each payload request, including retries. */
+  reserveDownload?(bytes: number): Promise<void>;
+  /** Authenticate the selected peer before opening a grant or disclosing the requested range. */
+  authorizePeer?(peerId: string, signal: AbortSignal): Promise<boolean>;
+  /** Optional explicit admission of the certificate bound to the supplier in the grant, before requesting bytes. */
+  authorizeSupplier?(certificate: CustodyKeyCertificate): Promise<boolean>;
   /** Host wall clock; defaults to Date.now. */
   now?(): number;
   /** Optional host admission for new supply. `active` counts transfers being prepared or granted;

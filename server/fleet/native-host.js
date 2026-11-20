@@ -39,7 +39,7 @@ export async function openComputerIdentity(file) {
   return identity;
 }
 
-async function readOwnFile(file) {
+export async function readOwnFile(file) {
   assert(path.isAbsolute(file), 'Absolute operator file path required');
   assert(!(await fs.lstat(file)).isSymbolicLink(), 'Operator file cannot be a symbolic link');
   const handle = await fs.open(file, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
