@@ -507,3 +507,25 @@ it('filters unsupported advertised paths before ranking and never falls back fro
   expect(f.sent).toHaveLength(prior);
   await f.mesh.close();
 });
+
+it.each(['deadline', 'disconnect'])('withdraws a whole-model request during validation on %s', async kind => {
+  const generate = vi.fn(async () => ({ model: 'qwen', content: 'answered' }));
+  const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, generate });
+  await f.mesh.connect();
+  const offer = { requestId: 'request-1', model: 'qwen', messages: [{ role: 'user', content: 'hello' }] };
+  const receive = f.handlers.get('reploid:generation-request');
+  try {
+    const validating = receive('consumer', offer);
+    if (kind === 'deadline') {
+      f.handlers.get('reploid:generation-cancel')('consumer', { requestId: offer.requestId });
+    } else {
+      f.events.emit('swarm:peer-disconnected', { peerId: 'consumer' });
+    }
+    await validating;
+    expect(generate).not.toHaveBeenCalled();
+    expect(f.sent.some(row => row.name === 'reploid:generation-result')).toBe(false);
+    expect(f.authorize.mock.calls.some(([request]) => request.action === 'mesh.execute')).toBe(false);
+    await receive('next-consumer', { ...offer, requestId: 'request-2' });
+    expect(generate).toHaveBeenCalledOnce();
+  } finally { await f.mesh.close(); }
+});

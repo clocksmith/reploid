@@ -62,6 +62,7 @@ export function createPeerGenerationMesh({ config, ports }) {
   const identificationAttempts = new Map(), identifying = new Set();
   let observationSequence = 0;
   const inbound = new Map(), inboundQueued = new Map(), completed = new Map();
+  const validatingInbound = new Map();
   // Requests a provider admitted from their details alone and whose prompt has not arrived yet.
   const admitted = new Map(), admitting = new Set();
   const admitsBeforeDisclosure = ports.admitsBeforeDisclosure === true;
@@ -705,16 +706,10 @@ export function createPeerGenerationMesh({ config, ports }) {
     swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, promptCommitment: entry.commitment });
   };
 
-  const handleGenerationRequest = async (remotePeerId, payload = {}) => {
-    if (closed || !policy.mesh.executeJobs || !ready() || !swarmEnabled || !swarmTransport || !identityBundle) return;
-
-    try { payload = snapshotJson(payload); } catch { return; }
-    if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
-    const messages = Array.isArray(payload.messages) ? payload.messages : [];
-    if (!messages.length) return;
+  const validateDisclosedRequest = async (remotePeerId, payload, messages, signal) => {
     const request = await inspectRequest(remotePeerId, payload);
-    if (!request) return;
-    const { requestId, consumer, contextId, adapters, binding, settings, checkPrivacy, privacyBinding, key } = request;
+    if (!request || signal.aborted || closed) return;
+    const { requestId, key, consumer, settings, binding, adapters } = request;
     // An admitted request must arrive exactly as admitted, with the prompt its commitment names. A request
     // that claims an admission this provider did not give, or skips one it did give, is refused.
     const admission = forgetAdmission(key);
@@ -732,9 +727,41 @@ export function createPeerGenerationMesh({ config, ports }) {
       try { settingsDigest = await effectiveRequestDigest({ modelIdentity: binding.modelIdentity, adapterIdentities: adapters, messages, settings }); }
       catch (error) { request.refuse(`Generation settings rejected: ${error.message}`); return; }
     }
-    if (inbound.has(key) || inboundQueued.has(key)) return;
+    if (signal.aborted || closed) return;
     // A replay cannot evade the durable fence by downgrading its protocol flag.
     const earlierAdmission = !payload.recoverable && await generationJournal.get({ provider: identityBundle.peerId, consumer, requestId });
+    return { request, settingsDigest, earlierAdmission };
+  };
+
+  const handleGenerationRequest = async (remotePeerId, payload = {}) => {
+    if (closed || !policy.mesh.executeJobs || !ready() || !swarmEnabled || !swarmTransport || !identityBundle) return;
+
+    try { payload = snapshotJson(payload); } catch { return; }
+    if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
+    const messages = Array.isArray(payload.messages) ? payload.messages : [];
+    const requestId = String(payload.requestId || '').trim();
+    if (!messages.length || !requestId || requestId.length > 512) return;
+    const key = `${remotePeerId}:${requestId}`;
+    if (validatingInbound.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
+    if (validatingInbound.size >= policy.mesh.maxInboundJobs + policy.mesh.maxPendingJobs) {
+      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Provider is busy' });
+      return;
+    }
+    // A requester can leave while the provider hashes its commitment or reads its journal.
+    // Keep the request reachable from cancellation until its execution or queue slot takes over.
+    const validation = new AbortController();
+    validatingInbound.set(key, validation);
+    const inspection = validateDisclosedRequest(remotePeerId, payload, messages, validation.signal);
+    inboundSettlements.add(inspection);
+    let checked;
+    try { checked = await inspection; }
+    finally {
+      validatingInbound.delete(key);
+      inboundSettlements.delete(inspection);
+    }
+    if (!checked || validation.signal.aborted) return;
+    const { request, settingsDigest, earlierAdmission } = checked;
+    const { consumer, contextId, adapters, binding, settings, checkPrivacy, privacyBinding } = request;
     if (closed || !ready() || !bindingAvailable(binding, adapters)) return;
     if (earlierAdmission) {
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Previously admitted execution requires recovery' });
@@ -943,6 +970,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           const key = `${peerId}:${String(payload.requestId || '')}`;
           const reason = Object.assign(new Error('Requester stopped this job'), { code: 'REQUESTER_CANCELLED' });
           forgetAdmission(key);
+          validatingInbound.get(key)?.abort(reason);
           if (!cancelQueuedInbound(key, reason, true)) inbound.get(key)?.abort(reason);
         });
         swarmTransport.onMessage('reploid:receipt', (peer, payload) => {
@@ -968,6 +996,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           identificationAttempts.delete(peerId);
           remoteRequests.retirePeer(peerId);
           for (const key of [...admitted.keys(), ...admitting]) if (key.startsWith(`${peerId}:`)) forgetAdmission(key);
+          for (const [key, controller] of validatingInbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
           for (const key of [...inboundQueued.keys()]) if (key.startsWith(`${peerId}:`)) cancelQueuedInbound(key, new Error('Requester disconnected'), false);
           for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
           emitSwarmState();
@@ -1206,6 +1235,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       remoteRequests.close();
       for (const key of [...inboundQueued.keys()]) cancelQueuedInbound(key, new Error('Mesh closed'), false);
       for (const key of [...admitted.keys()]) forgetAdmission(key);
+      for (const controller of validatingInbound.values()) controller.abort(new Error('Mesh closed'));
       for (const controller of inbound.values()) controller.abort(new Error('Mesh closed'));
       for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
       swarmTransport?.disconnect();
