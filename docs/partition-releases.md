@@ -71,6 +71,12 @@ and listing as JSON. Use a frozen prompt fixture containing `modelId`,
 node tests/fixtures/private-split-request.mjs requester.json state.json models.json prompt.json > request.json
 ```
 
+Run the offline fixture checks with
+`node --test tests/fixtures/private-split-request-check.mjs`. The five cases
+cover an accepted split, a replaced stage executor, a whole-model-only listing,
+two approved rosters sharing the selection ID, and a requester assigned to a
+stage. They require only Node and the repository files.
+
 The resulting body is for `POST /v1/chat/completions`. It binds the model,
 plan, adapter set and permitted identities. The third requester receives its
 own output. Its key therefore also appears in the request's disclosure list.
