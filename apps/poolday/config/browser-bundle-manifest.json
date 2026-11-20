@@ -1311,7 +1311,7 @@
     {
       "path": "config/doppler-package.json",
       "byteLength": 282,
-      "sha256": "sha256:360643731b54071ef6a50141eb2f3e47458fc1c9a1f8f3d96031d764d18f7da4"
+      "sha256": "sha256:4e7f1b3cd7c178310370955359bbf58651765c28fdd74eb1af8003b67f35b438"
     },
     {
       "path": "config/file-tool-schemas.json",
@@ -1430,8 +1430,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 688330,
-      "sha256": "sha256:d8649100e2f603856018c8869461fbbcb511e0887122253c0aefac3082327b5c"
+      "byteLength": 688392,
+      "sha256": "sha256:efaba5ae2e909b6d5ab8b37b9403c7ae6195fddc54f9c885043045109641475a"
     },
     {
       "path": "config/module-registry.json",
@@ -3781,7 +3781,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "byteLength": 2673307,
-      "sha256": "sha256:6fbd4fdedb5bcdecd2692e3c12a74162163658a17d2d5d80c902a8e175870317"
+      "sha256": "sha256:f373185beed2ce88c872b379e94ad93b79f5efa499278f467e2ddaf22598d20d"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -5780,8 +5780,8 @@
     },
     {
       "path": "vendor/doppler/0.7.9/src/experimental/training/clip.js",
-      "byteLength": 1901,
-      "sha256": "sha256:e6a11928ddf96ff3dc3cd03905563a2ac90b1e854df47891966448fce03a898a"
+      "byteLength": 1989,
+      "sha256": "sha256:53011e7a10f677689361f896543741e14f7918249489a8df85c605b396d4e21c"
     },
     {
       "path": "vendor/doppler/0.7.9/src/experimental/training/export.js",
@@ -5800,8 +5800,8 @@
     },
     {
       "path": "vendor/doppler/0.7.9/src/experimental/training/loss-scaling.js",
-      "byteLength": 2179,
-      "sha256": "sha256:81bed513fdc2a036869f1b5ea957236fe44a1f18d33c421d53ba96e48466390d"
+      "byteLength": 2292,
+      "sha256": "sha256:6f10e89cd01d19163e95e6a87aa00f8e1530d8267afef25fb4e8589583b109b8"
     },
     {
       "path": "vendor/doppler/0.7.9/src/experimental/training/loss.js",
@@ -12704,5 +12704,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:1857a3286dd0181dcf37553f4822fec828e03debc0602be344ac9e309014ab65"
+  "bundleHash": "sha256:aa3d9853540d335c2b355df927fad620bb6ff0711f0c0a0059a85da4606981bf"
 }
