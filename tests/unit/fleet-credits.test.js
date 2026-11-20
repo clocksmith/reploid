@@ -231,6 +231,18 @@ describe('enrolled fleet service credits', () => {
         requesterId: identities[0].peerId, count: 7, chain: other, signedAt });
     await expect(ledger.settle(input.id, { identity, receipts: receipts.slice(1), acknowledgment })).rejects.toThrow();
     await expect(ledger.settle(input.id, { identity, receipts, acknowledgment: { ...acknowledgment, chain: hash } })).rejects.toThrow();
+    ledger.admit(input.id, 0);
+    ledger.admit(input.id, 1);
+    expect(await ledger.fence(input.id, input.consumer)).toMatchObject({
+      status: 'pending', heldCredits: 10, acknowledgedOutputTokens: null, awaitingStages: [0, 1]
+    });
+    // Only the final stage and its matching acknowledgment survived this interruption.
+    await ledger.collect(input.id, { identity, receipts: [receipts[1]], acknowledgment });
+    ledger.close(); ledger = await openFleetCredits(options);
+    expect(await ledger.recover(input.id)).toMatchObject({
+      status: 'pending', heldCredits: 10, acknowledgedOutputTokens: 7, awaitingStages: [0]
+    });
+    expect(ledger.snapshot().journal).toHaveLength(0);
     const result = await ledger.settle(input.id, { identity, receipts, acknowledgment });
     expect(result.credits.map(row => row.amount)).toEqual([2, 5]);
     expect(ledger.snapshot().accounts.map(row => row.balance)).toEqual([-7, 2, 5]);

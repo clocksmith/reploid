@@ -55,6 +55,14 @@ Unacknowledged work is not billed. A signed `failed` receipt proves cleanup only
 with its closing timestamp; it does not turn a failed answer into a completed one.
 Equivalent verified re-signatures retain the original economic outcome.
 
+For a fenced partition request, `POST /v1/reploid/recover` returns
+`serviceCredit.awaitingStages` while settlement is pending. Its zero-based
+indices identify stages from the accepted route whose closing evidence is
+still required. `heldCredits` is the outstanding reservation, and
+`acknowledgedOutputTokens` is the durably signed count. A null count means
+the ledger is waiting for the requester’s acknowledgment. Zero means the
+requester signed the empty prefix. Recovery reads those facts across restarts.
+
 For whole-model cancellation or failure, the provider retains and submits
 `reploid.generation-terminal/v1` only after its execution owner confirms cleanup.
 Usage remains unknown. Setting `creditPolicy.wholeModelTerminalCharge` to `0`
