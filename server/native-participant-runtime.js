@@ -1,3 +1,4 @@
+import { bindFleetStageAdmission } from './fleet/execution-admission.js';
 import { randomUUID } from 'node:crypto';
 import { createNativeWholeModel } from './native-whole-model.js';
 import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../apps/poolday/host/work-partition-plan.js';
@@ -36,11 +37,17 @@ import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
  * `readiness` (createReadinessRecorder from reploid/measurement, off by default) observes every
  * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxSupplyBytes, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxCacheBytes, maxSupplyBytes, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  onPartitionReceiveTiming, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
+  onPartitionReceiveTiming, localStageWitness = null, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
   requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
+  if (localStageWitness) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && ordered && !canonical && typeof localStageWitness.wrap === 'function',
+    'Token parity witnesses require a private ordered stage');
+  if (privateCustodyPrefill) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && cacheDirectory
+    && typeof privateCustodyPrefill.supplierId === 'string' && privateCustodyPrefill.supplierId.length > 0
+    && typeof privateCustodyPrefill.authorizeSupplier === 'function' && typeof privateCustodyPrefill.reserveDownload === 'function',
+  'Stage prefill requires a private room, cache and explicit supplier and download policies');
   if (sourceRuntime !== null) assertNativeRuntimeSourceMode({ roomId, publicRoomId: bootstrap.publicRoomId,
     executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
@@ -220,7 +227,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
-      files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, maxSupplyBytes, sourceFilePaths: approvedSourceFilePaths, onChange: onFileChange, owner: ownerGate,
+      files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, maxCacheBytes, maxSupplyBytes, sourceFilePaths: approvedSourceFilePaths, onChange: onFileChange, owner: ownerGate,
+        ...(privateCustodyPrefill ? { authorizePeer: async (peer, signal) => (await mesh.verifyPeerIdentity(peer, signal)) === privateCustodyPrefill.supplierId,
+          authorizeSupplier: privateCustodyPrefill.authorizeSupplier,
+          reserveDownload: privateCustodyPrefill.reserveDownload, modelOrigins: { schema: 'reploid.native-model-origins/v1', origins: {} },
+          originFetch: async () => { throw new Error('External origin disabled for private stage prefill'); } } : {}),
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }
@@ -242,13 +253,10 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           onEvidence: executionAdmission ? bundle => executionAdmission.partitionReceipt(bundle) : null,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes) } : {}) });
-        let prepared = ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
+        let prepared = localStageWitness ? { ...program, resident: localStageWitness.wrap(program.resident) } : program;
+        if (ownerGate) prepared = { ...prepared, resident: ownerGate.gateResident(prepared.resident) };
         if (executionAdmission) {
-          const resident = prepared.resident;
-          prepared = { ...prepared, resident: { ...resident, async reserve(request) {
-            await executionAdmission.partition({ ...request, partitionIndex: index });
-            return resident.reserve(request);
-          } } };
+          prepared = { ...prepared, resident: bindFleetStageAdmission(prepared.resident, executionAdmission, index) };
         }
         readiness?.watchResident(prepared.resident);
         return prepared;
@@ -296,6 +304,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         return whole.contribute(approved);
       } : approved => whole ? whole.contribute(approved) : partitions.contribute(model.id, approved),
       stop: ownerGate ? () => { endOwnerWait('contribute', 'Native contribution stopped'); return whole ? whole.stop() : partitions.stop(); } : () => whole ? whole.stop() : partitions.stop(), close,
+      ...(privateCustodyPrefill ? { preparePrivateStageSource: controls => files.preparePartitionSource(model, controls) } : {}),
       getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: options => files?.getState(options) || null,
       shareFiles: ownerGate ? async approved => {
         requireValue(files, 'Native cache directory required');

@@ -1,0 +1,168 @@
+{
+  "recordedAt": "2026-11-20T08:07:03Z",
+  "scope": "One normal private fleet streaming /v1/responses call, real two-host Qwen 0.8B numerical inference, greedy one-token cap",
+  "implementation": "e9bf11abb6a46e3e23bb3465f3a2c3d491dcd1a7",
+  "dopplerVersion": "0.7.9",
+  "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+  "modelIdentity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+  "planIdentity": "sha256:0fa7e02c1193dbb15924f558524f3fd10c7c61db275d038bdc341cd4bbba1ea0",
+  "stageLayerRangesInclusive": [
+    [
+      0,
+      19
+    ],
+    [
+      20,
+      23
+    ]
+  ],
+  "compute": "CPU SwiftShader on two physical Linux hosts with no physical GPU devices exposed; requester and stage zero share one process with separate enrolled identities",
+  "sourcePerHost": {
+    "shards": 18,
+    "bytes": 1146048704,
+    "kind": "existing-local-model-directory"
+  },
+  "modelTransferBytes": 0,
+  "frozenWholeReference": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "2"
+      }
+    ],
+    "generation": {
+      "maxTokens": 1,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 1,
+      "maxSeqLen": 256,
+      "useChatTemplate": false
+    },
+    "inputIds": [
+      1421,
+      25,
+      220,
+      17,
+      198,
+      69267,
+      25
+    ],
+    "outputIds": [
+      220
+    ],
+    "stopReason": "max-tokens",
+    "promptDigest": "b3155063650ffeed182f13fe0d1ce5492c05c7a4ff2db91cba6665e251740460",
+    "sampleDigest": "991a26ff4edaa7d5244848d1b20fa4c667589de6f83f6e38b45c763f8bee10eb"
+  },
+  "operatorObservations": [
+    {
+      "index": 0,
+      "role": "input",
+      "fixtureSha256": "5f12d3bc484d18b16ec2e714ff9f85679a20d37da368dfb0b9fb500032530393",
+      "bindingDigest": "7876cd7630f549fa94123fbbe66be3f293f7885c5a4651f1075b338e7023262b",
+      "promptCount": 7,
+      "promptDigest": "b3155063650ffeed182f13fe0d1ce5492c05c7a4ff2db91cba6665e251740460",
+      "generationDigest": "7be3c848c443d05d7b8e84b162f6bf80de9479b34477a6e428db892a7f39dc27",
+      "tokenizerDigest": "b3155063650ffeed182f13fe0d1ce5492c05c7a4ff2db91cba6665e251740460",
+      "originalWitnessSha256": "7b1f139f6b8acfa914a473288c283e21dc6309154b656ecf346e73c65e555de7"
+    },
+    {
+      "index": 1,
+      "role": "output",
+      "fixtureSha256": "5f12d3bc484d18b16ec2e714ff9f85679a20d37da368dfb0b9fb500032530393",
+      "bindingDigest": "7876cd7630f549fa94123fbbe66be3f293f7885c5a4651f1075b338e7023262b",
+      "promptCount": 7,
+      "promptDigest": "b3155063650ffeed182f13fe0d1ce5492c05c7a4ff2db91cba6665e251740460",
+      "generationDigest": "7be3c848c443d05d7b8e84b162f6bf80de9479b34477a6e428db892a7f39dc27",
+      "sampleCount": 1,
+      "sampleDigest": "991a26ff4edaa7d5244848d1b20fa4c667589de6f83f6e38b45c763f8bee10eb",
+      "stopReason": "max-tokens",
+      "originalWitnessSha256": "005fb7cc4283fb04f43c1442033587c11c4f18d42f526e27490fe17859f1b7b0"
+    }
+  ],
+  "http": {
+    "status": 200,
+    "terminalStatus": "incomplete",
+    "incompleteReason": "max_output_tokens",
+    "answer": " ",
+    "usage": {
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "total_tokens": 8
+    },
+    "activationBytes": 28672,
+    "wallMs": 396103,
+    "exactAttemptBoundParity": true
+  },
+  "network": {
+    "distinctHostToHostStageDatagram": true,
+    "nominatedCandidateTypes": [
+      "host",
+      "host"
+    ],
+    "protocol": "udp",
+    "iceServerCount": 0,
+    "stage0Direct": {
+      "name": "stage0",
+      "iceServers": 0,
+      "local": "host",
+      "remote": "host",
+      "protocol": "udp",
+      "distinctAddresses": true,
+      "sent": 660462,
+      "received": 326517
+    },
+    "stage1Matching": {
+      "name": "stage1",
+      "iceServers": 0,
+      "local": "host",
+      "remote": "host",
+      "protocol": "udp",
+      "distinctAddresses": true,
+      "sent": 326517,
+      "received": 660462
+    }
+  },
+  "accounting": {
+    "balances": {
+      "requester": -1,
+      "stage0": 0,
+      "stage1": 1
+    },
+    "held": 0,
+    "settlements": 1,
+    "stageCleanup": [
+      "settled",
+      "settled"
+    ]
+  },
+  "priorAttempts": [
+    {
+      "reason": "Worker stopped before the last admitted stage could sign cleanup",
+      "acknowledgedOutputTokens": 0,
+      "finalStageSignature": false,
+      "noncashHold": 4,
+      "journalEntries": 0,
+      "reconciliation": "Requester reconciliation without a final-stage receipt left the hold open."
+    },
+    {
+      "reason": "Client interrupted during software prefill; both signed terminal components arrived",
+      "noncashCharge": 0,
+      "outstandingHold": 0
+    },
+    {
+      "reason": "HTTP client failed before a returned sample on a 16+8 plan",
+      "noncashCharge": 0,
+      "outstandingHold": 0
+    }
+  ],
+  "scopeLimits": [
+    "The admitted base model fits either host.",
+    "The whole-model comparator uses the same Doppler runtime.",
+    "The sampled space hit the explicit limit; no natural EOS was generated.",
+    "Timing is a bounded CPU qualification, not a throughput comparison."
+  ],
+  "rawReceiptSha256": "2bb36382b8775daf748193a490aa169000e832cc37c8fb40050e579267c0824a"
+}

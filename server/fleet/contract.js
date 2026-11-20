@@ -1,6 +1,8 @@
 import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { participantIdFor, normalizeParticipantPublicKey } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 
+export const FLEET_SERVICE_REQUEST_SCHEMA = 'reploid.fleet-service-request/v1';
+
 export const assert = (condition, message) => { if (!condition) throw Error(message); };
 export const integer = value => Number.isSafeInteger(value) && value >= 0;
 export const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);

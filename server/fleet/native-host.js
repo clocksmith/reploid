@@ -21,7 +21,10 @@ import { startFleetBrowserBridge } from './browser-bridge.js';
 import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester, buildFleetRequestOutcome } from './requester.js';
+import { createStageHistory } from './stage-history.js';
+import { openStageOwner } from './stage-owner.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
+import { openStageTokenWitness } from './stage-token-witness.js';
 import { assert, text, same } from './contract.js';
 import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
@@ -39,7 +42,7 @@ export async function openComputerIdentity(file) {
   return identity;
 }
 
-async function readOwnFile(file) {
+export async function readOwnFile(file) {
   assert(path.isAbsolute(file), 'Absolute operator file path required');
   assert(!(await fs.lstat(file)).isSymbolicLink(), 'Operator file cannot be a symbolic link');
   const handle = await fs.open(file, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
@@ -321,7 +324,14 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     && config.models.every(row => ['partition', 'whole-model'].includes(row.mode)), 'Explicit fleet native configuration required');
   assert(text(config.roomId) && config.roomId !== bootstrap.publicRoomId && config.roomTokenFile,
     'Operator fleet models require an explicit private room');
+  assert(config.hostCandidatesOnly === undefined || typeof config.hostCandidatesOnly === 'boolean',
+    'hostCandidatesOnly must be a boolean');
+  assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
+  assert(config.maxCacheBytes === undefined || (config.cacheDirectory && Number.isSafeInteger(config.maxCacheBytes) && config.maxCacheBytes > 0),
+    'maxCacheBytes requires a piece cache directory and a positive integer byte count');
   const identity = await openComputerIdentity(config.identityFile);
+  const tokenWitness = config.localTokenWitness ? await openStageTokenWitness(config.localTokenWitness,
+    { roomId: config.roomId, participantId: identity.peerId }) : null;
   const [rtcModule, socketModule] = await Promise.all([loadRtc(), loadSocket()]);
   const rtc = createNativeRtcAdapter(rtcModule.default ?? rtcModule), Socket = socketModule.default ?? socketModule.WebSocket;
   class WebSocket extends Socket { constructor(url) { super(url, { origin: config.origin || 'http://localhost:8000' }); } }
@@ -334,7 +344,6 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
     : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
   let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
-  assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
   // Opt-in: the coordinator's measured order over whole-model providers, refreshed before each credited request.
   const providerRanking = { order: [], estimates: [] };
   const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
@@ -408,15 +417,21 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   });
   const acquireDispatchSlot = options => laneScheduler.acquire(options);
   const drainRequesterQueue = () => laneScheduler.drain();
+  const stageHistory = createStageHistory({ credits, participantId: identity.peerId,
+    notify: () => { if (!closed) onChange(state()); }, pollMs: config.pollMs ?? 5000 });
+  const executionState = () => stageHistory.view(participant?.getState() ?? null);
   const state = () => ({ computerId: config.computerId, name: config.name, participantId: identity.peerId,
     selected: selected && { modelId: selected.model.id, modelIdentity: selected.model.identity, mode: selected.mode },
     preparing, activeRequests: requests.size, queuedRequests: laneScheduler.queuedCount(), error: lastError, hardware: fleetHardwareSnapshot(),
-    execution: participant?.getState() ?? null, network: participant?.getNetworkState() ?? null });
+    execution: executionState(), network: participant?.getNetworkState() ?? null });
 
+  const stageOwner = credits && config.models.some(entry => entry.mode === 'partition' && entry.ordered?.stage)
+    ? await openStageOwner({ file: config.identityFile + '.stage-owner.sqlite', participantId: identity.peerId,
+      roomId: config.roomId, serviceUrl: config.serviceUrl }) : null;
   let startupProviderCleaned = false;
   async function reconcileCredits() {
     if (!credits) return [];
-    const results = [];
+    const results = stageOwner ? await stageOwner.recover(credits) : [];
     if (!startupProviderCleaned && !participant && !preparing) {
       try {
         const orphaned = await credits.call('providerOpenMine', {});
@@ -439,6 +454,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       }
     }
     const reconciled = await credits.reconcile(requests.size === 0 ? { activeIds: [] } : {});
+    await stageHistory.refresh(participant?.getState());
     for (const row of reconciled) {
       if (!results.some(prior => prior.id === row.id)) results.push(row);
     }
@@ -449,7 +465,13 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   async function select(index, contribute) {
     assert(!closed && !preparing && requests.size === 0, 'Computer is busy or closing');
     const entry = config.models[index]; assert(entry, 'Model is outside owner preferences');
-    const activity = participant?.getState();
+    if (credits && participant?.getState()?.unknownAttempts?.length) {
+      preparing = true;
+      try { await stageHistory.refresh(participant.getState()); }
+      finally { preparing = false; }
+      assert(!closed && requests.size === 0, 'Computer is busy or closing');
+    }
+    const activity = executionState();
     assert(activeProviderRequests(activity) === 0, 'Active provider cannot move');
     preparing = true; lastError = null;
     try {
@@ -464,10 +486,13 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       if (present || !fillable) assert(await manifestIdentity() === entry.model.identity, 'Owner-selected model manifest changed');
       participant = await createNativeParticipant({ model: entry.model, modelDirectory: entry.directory, identity, rtc, WebSocket,
         signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: () => gpu.open(),
-        cacheDirectory: config.cacheDirectory ?? null, owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
+        ...(config.hostCandidatesOnly ? { getRtcConfig: () => ({ iceServers: [], iceTransportPolicy: 'all' }) } : {}),
+        cacheDirectory: config.cacheDirectory ?? null, maxCacheBytes: config.maxCacheBytes,
+        owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
+        ...(tokenWitness && entry.ordered ? { localStageWitness: tokenWitness } : {}),
         rankProviders: () => config.rankProviders === true && providerRanking.order.length ? providerRanking.order : null,
         onModelFill: progress => onChange({ modelFill: progress }),
-        executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model }) : null,
+        executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model, stageOwner: entry.ordered?.stage ? stageOwner : null }) : null,
         generationJournalFile: path.join(path.dirname(config.identityFile), 'generation.sqlite'),
         logger: { info() {}, log() {}, debug() {}, warn: (...args) => onChange({ warning: args.join(' ') }), error: (...args) => onChange({ error: args.join(' ') }) },
         onChange: () => { drainRequesterQueue(); onChange(state()); } });
@@ -488,7 +513,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     // Generated after the package closure is collected; it cannot hash itself as an input.
     const delivery = await fs.readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'native-delivery.json'));
     observation.softwareIdentity = 'sha256:' + createHash('sha256').update(delivery).digest('hex');
-    const activity = participant?.getState();
+    const activity = executionState();
     const hardware = fleetHardwareSnapshot();
     observation.id = config.computerId; observation.participantId = identity.peerId; observation.observedAt = Date.now();
     observation.preparing = preparing;
@@ -544,6 +569,11 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const textParticipant = Object.freeze({
     roomId: config.roomId,
     executionClass: 'private-pool',
+    partitionOutputLimit(model) {
+      const entry = config.models.find(entry => entry.mode === 'partition' && entry.model.id === model.id && entry.model.identity === model.identity
+        && (!entry.model.partitionPlanId || entry.model.partitionPlanId === model.partition?.planId));
+      return Math.min(config.maxOutputTokens, entry?.model.generation?.maxTokens ?? config.maxOutputTokens);
+    },
     getState: () => participant?.getState() ?? { models: [] },
     generate: (request, controls) => {
       assert(participant && !closed && !preparing, 'Requester unavailable');
@@ -673,16 +703,18 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         await publishDemand().catch(error => onChange({ warning: error.message }));
       }
     },
+    // A fenced partition is recovered entirely from the durable coordinator and signed stages.
+    // Only recovery that actually contacts a provider needs a live mesh participant.
     async recoverAccountedGeneration(input, controls, recoverExecution) {
-      assert(participant && !closed && !preparing, 'Requester unavailable');
+      assert(!closed && !preparing, 'Requester unavailable');
       assert(credits, 'Service credits are not configured');
       const requester = createFleetRequester(requesterPorts({ participant: textParticipant }));
       return requester.recover(input, controls, recoverExecution);
     },
     async recover(input, signal = AbortSignal.timeout(30000)) {
-      assert(participant && !closed && !preparing, 'Requester unavailable');
+      assert(!closed && !preparing, 'Requester unavailable');
       assert(credits, 'Service credits are not configured');
-      const requester = createFleetRequester(requesterPorts({ participant }));
+      const requester = createFleetRequester(requesterPorts({ participant: textParticipant }));
       return requester.recover(input, { signal });
     },
     async browserState() {
@@ -791,6 +823,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       laneScheduler.close();
       for (const { controller } of requests.values()) controller.abort();
       try { await participant?.close(); } finally { await owner?.close(); await gpu.close(); }
+      await stageOwner?.close();
     }
   });
 }

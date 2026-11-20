@@ -36,6 +36,27 @@ it('refuses operator model configurations in the public pool before loading nati
     .rejects.toThrow('explicit private room');
 });
 
+it('rejects a malformed host-candidates-only policy before opening an identity', async () => {
+  await expect(openFleetNativeHost({ configuration: {
+    schema: 'reploid.fleet-native/v1', computerId: 'machine', name: 'Machine', models: [{ mode: 'partition' }],
+    roomId: 'private-test', roomTokenFile: '/unused', hostCandidatesOnly: 'true'
+  } })).rejects.toThrow('hostCandidatesOnly must be a boolean');
+});
+
+it.each([
+  [undefined, 1024],
+  ['/cache', 0],
+  ['/cache', -4],
+  ['/cache', 1.5],
+  ['/cache', '17179869184'],
+  ['/cache', Number.MAX_SAFE_INTEGER + 1]
+])('rejects an invalid owner piece cache budget before opening an identity', async (cacheDirectory, maxCacheBytes) => {
+  await expect(openFleetNativeHost({ configuration: {
+    schema: 'reploid.fleet-native/v1', computerId: 'machine', name: 'Machine', models: [{ mode: 'partition' }],
+    roomId: 'private-test', roomTokenFile: '/unused', cacheDirectory, maxCacheBytes
+  } })).rejects.toThrow('maxCacheBytes requires');
+});
+
 it('reports a live requester without inventing local GPU capacity or another computer’s presence', () => {
   const rows = includeRequesterPresence([{ id: 'mac', online: false }, { id: 'miles', online: false }],
     { computerId: 'mac', activeRequests: 1, preparing: false, hardware: { freeHostBytes: 123 } }, 456);
