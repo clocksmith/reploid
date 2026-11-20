@@ -173,12 +173,16 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         reserved = Math.max(reserved, budgetState(reservation).reservedBytes);
         budgetState(); live();
         if (!supply || epoch !== supplyEpoch) throw new Error('File contribution stopped');
-        let bytes = await readArtifact(descriptor, { signal: lifetime.signal });
-        await verifyArtifact(descriptor, bytes); live();
-        if (message.range) {
-          bytes = bytes.slice(message.range.offset, message.range.offset + message.range.size);
-          await verifyArtifact(selected, bytes);
+        const controls = { signal: lifetime.signal };
+        const range = message.range;
+        let bytes = range && ports.readIndexedRange ? await ports.readIndexedRange(descriptor, range, controls) : null;
+        if (bytes == null) {
+          bytes = await readArtifact(descriptor, controls);
+          await verifyArtifact(descriptor, bytes);
+          if (range) bytes = bytes.slice(range.offset, range.offset + range.size);
         }
+        if (range) await verifyArtifact(selected, bytes);
+        live();
         if (!supply || epoch !== supplyEpoch) throw new Error('File contribution stopped');
         const artifact = { artifactId: selected.path, path: selected.path, role: selected.role,
           sizeBytes: bytes.byteLength, hash: await hashBytes(bytes) };

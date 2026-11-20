@@ -3080,7 +3080,7 @@
     {
       "path": "self/host/partition-release.js",
       "owner": "self",
-      "sha256": "sha256:b7f54a4cff95279f3846d0e45da2ee42ba5d494cd95f43c1cea8cd42364b4a6c",
+      "sha256": "sha256:1bcfa939c2c13114c4445cb8db8736ba60ca2d6c5126aa562380177a305911be",
       "imports": [
         "../config/partition-releases.json",
         "../vendor/reploid/mesh/partitions/partition-contract.js"
@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:eb4564420c05d41aa8d40a1808d156f61bf700a9753c92fc663b5022f59906d4",
+      "sha256": "sha256:cb83fd045c492b4270ba2fdf23c4f03e99c643e4f87e62780fc7805719f93731",
       "imports": []
     },
     {
@@ -18646,7 +18646,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8",
+      "sha256": "sha256:dd101774d943e394a33aba3347a86c453222142174748af30d8358334c883f2b",
       "imports": [
         "../../cancellation.js",
         "../delivery-attestation.js"

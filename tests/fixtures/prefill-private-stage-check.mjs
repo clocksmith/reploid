@@ -26,6 +26,7 @@ const roomId = 'reploid-swarm-stage-' + randomBytes(10).toString('hex');
 const signaling = new SignalingServer({ path:'/signaling', accessToken: roomToken });
 const server = createServer((req,res) => { res.writeHead(404).end(); });
 server.on('upgrade',(req,socket,head) => signaling.handleUpgrade(req,socket,head));
+const compact = process.argv.includes('--compact');
 const checks = [];
 let peer, gpuOpens = 0;
 try {
@@ -34,7 +35,15 @@ try {
   await fs.writeFile(directory('room-token'), roomToken, {mode:0o600});
   server.listen(0,'127.0.0.1'); await once(server,'listening');
   const signalingUrl = 'ws://127.0.0.1:' + server.address().port + '/signaling';
-  const chunks = [Buffer.from('aaaa'),Buffer.from('bbbb'),Buffer.from('cccc')], shard = Buffer.concat(chunks);
+  const chunks = [Buffer.from('aaaa'), Buffer.from('bbbb'), Buffer.from('cccc')];
+  if (compact) {
+    for (let i = chunks.length; i < 1025; i++) {
+      const bytes = Buffer.alloc(4);
+      bytes.writeUInt32LE(i);
+      chunks.push(bytes);
+    }
+  }
+  const shard = Buffer.concat(chunks);
   const fixtureId = 'tiny-stage-prefill';
   const manifest = Buffer.from(JSON.stringify({ modelId: fixtureId, hashAlgorithm:'sha256',
     shards:[{ index:0, filename:'weights.bin', size:shard.length, hash:hash(shard) }] }));
@@ -52,13 +61,13 @@ try {
       {path:'manifest.json',role:'model-manifest',hashAlgorithm:'sha256',hash:hash(manifest),sizeBytes:manifest.length},
       {path:'index.json',role:'model-piece-index',hashAlgorithm:'sha256',hash:hash(index),sizeBytes:index.length}
     ]}};
-  const stages = [[0,1],[2]].map((which,stageIndex) => ({stageIndex,layerRange:model.partitionPlan.partitions[stageIndex].layerRange,
+  const stages = [[0,1], pieces.slice(2).map((_, i) => i + 2)].map((which,stageIndex) => ({stageIndex,layerRange:model.partitionPlan.partitions[stageIndex].layerRange,
     assignedBytes:4*which.length,ranges:which.map(i=>({...pieces[i],shardIndex:0,path:'weights.bin'}))}));
   const inventory = Buffer.from(JSON.stringify({modelId:model.id,modelIdentity:model.identity,planId:model.partitionPlanId,indexSha256:hash(index),stages}));
   const inventoryFile=directory('inventory.json'); await fs.writeFile(inventoryFile,inventory);
   const config = {enrollmentStatus:'enrolled',modelId:model.id,modelIdentity:model.identity,planId:model.partitionPlanId,stageIndex:0,inventorySha256:hash(inventory),
     supplierPublicJwk:supplier.publicJwk,supplierId:supplier.peerId,receiverId:receiver.peerId,identityFile:directory('identity.json'),roomTokenFile:directory('room-token'),
-    roomId,signalingUrl,modelDirectory:target,cacheDirectory:cache,maxCacheBytes:30000,maxDownloadBytes:16,offerTimeoutMs:8000,hostIceOnly:true};
+    roomId,signalingUrl,modelDirectory:target,cacheDirectory:cache,maxCacheBytes:2 * 1024 * 1024,maxDownloadBytes:16,offerTimeoutMs:8000,hostIceOnly:true};
   const run = (settings, transfer, signal, onProgress) => runPrefill(settings,inventoryFile,transfer,signal,{models:[model],onProgress});
   const deadline = () => AbortSignal.timeout(29000);
   assert.equal((await run(config,false,deadline())).mode,'plan');
@@ -72,6 +81,12 @@ try {
     nativeGpu:()=>{gpuOpens++;throw Error('Unexpected GPU access');},rtc:createNativeRtcAdapter(wrtc),WebSocket:HostSocket,
     signalingUrl,roomId,roomToken,getRtcConfig:()=>({iceServers:[]}),maxSupplyBytes:128,executionMode:'whole-model'});
   await peer.shareFiles(true);
+  if (compact) {
+    // Only the two assigned pieces should be read again after the full-shard admission.
+    const handle = await fs.open(path.join(sourceDir, 'weights.bin'), 'r+');
+    try { await handle.write(Buffer.from('edit'), 0, 4, 8); }
+    finally { await handle.close(); }
+  }
   const ticker = setInterval(()=>peer.announceFiles(),150);
   try {
     const rejectConfig = {...config,supplierPublicJwk:stranger.publicJwk,supplierId:stranger.peerId};
@@ -115,7 +130,7 @@ try {
       error.errors?.some(source => source.code === 'CUSTODY_BUDGET_LIMIT'));
     await assert.rejects(fs.stat(stored(1)),{code:'ENOENT'});
     checks.push('exhausted-budget-no-new-payload');
-    assert.equal(gpuOpens,0); console.log(JSON.stringify({checks,completed:recovered.pieces,assignedBytes:recovered.bytes,
+    assert.equal(gpuOpens,0); console.log(JSON.stringify({compact,checks,completed:recovered.pieces,assignedBytes:recovered.bytes,
       afterInterruption:recovered.reservedBefore,afterRecovery:recovered.reservedAfter,afterRepair:repair.reservedAfter,gpuOpens}));
   } finally { clearInterval(ticker); }
 } finally {
