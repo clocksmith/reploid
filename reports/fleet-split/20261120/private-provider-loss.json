@@ -1,0 +1,285 @@
+{
+  "scope": "Two real Linux hosts execute an ordinary private Responses API request using the pinned 0.8B model. The final-stage Node process receives SIGKILL after the user-visible first token. The HTTP client keeps its connection open.",
+  "implementation": "090b4aea1a7dbb14bb7eb666308df4f74dd3d3f1",
+  "model": {
+    "id": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+    "identity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+    "planId": "sha256:0fa7e02c1193dbb15924f558524f3fd10c7c61db275d038bdc341cd4bbba1ea0"
+  },
+  "runtime": "doppler-gpu@0.7.9, isolated CPU SwiftShader",
+  "modelTransferBytes": 0,
+  "stageLayerRangesInclusive": [
+    [
+      0,
+      19
+    ],
+    [
+      20,
+      23
+    ]
+  ],
+  "startedAt": "2026-11-20T11:17:44.458103+00:00",
+  "httpFailure": {
+    "status": 200,
+    "firstDelta": " ",
+    "firstDeltaAtMs": 1795173832615,
+    "processDeathObservedAtMs": 1795173833424,
+    "clientDeltas": 1,
+    "streamError": {
+      "type": "error",
+      "code": "connection_lost",
+      "message": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+    },
+    "closedBeforeRestart": true
+  },
+  "providerRestart": {
+    "sameScope": [
+      "container",
+      "pidNamespace",
+      "boot",
+      "ownerInode",
+      "ownerDevice"
+    ],
+    "sameEnrolledParticipants": true,
+    "sameProcess": false,
+    "sameTransportInstance": false,
+    "valueBeforeRestart": {
+      "state": "closing",
+      "held": [
+        2,
+        0,
+        0
+      ],
+      "journal": 0,
+      "at": 1795173854743
+    },
+    "httpRecoveryBeforeRestart": {
+      "http": 200,
+      "status": "unresolved",
+      "state": "closing",
+      "held": [
+        2,
+        0,
+        0
+      ],
+      "journal": 0,
+      "at": 1795173854751
+    }
+  },
+  "accounting": {
+    "verifiedStageEvidence": [
+      {
+        "index": 0,
+        "steps": 2,
+        "status": "settled",
+        "closedAt": "2026-11-20T11:24:13.677Z"
+      },
+      {
+        "index": 1,
+        "steps": 1,
+        "status": "executing",
+        "closedAt": null
+      }
+    ],
+    "interruptedStageIndices": [
+      1
+    ],
+    "outputTokens": 1,
+    "charge": 1,
+    "signedAcknowledgmentCount": 1,
+    "heldAfterSettlement": 0,
+    "journalTransfers": [
+      -1,
+      0,
+      1
+    ],
+    "repeatSettleReturnedSameOutcome": true,
+    "authenticatedHttpRecovery": 200,
+    "recoveredStatus": "failed"
+  },
+  "survivingAndRejoinedHosts": [
+    {
+      "phase": "ready",
+      "activeProviderRequests": 0,
+      "queued": 0,
+      "requesterWork": 0,
+      "liveLocalReservations": 0,
+      "unsettledOwners": 0,
+      "creditReconciled": [
+        {
+          "attemptId": "fc8055b828e44c00b618172e35d80972",
+          "phase": "cleanup-failed",
+          "settledAt": 1795173856333,
+          "evidenceHash": "6518a9f8276d3d586ec5ca70b0c5dabfc333875723694c47e76ac8dded48bf0d"
+        }
+      ],
+      "unknown": [],
+      "attempts": []
+    },
+    {
+      "phase": "ready",
+      "activeProviderRequests": 0,
+      "queued": 0,
+      "requesterWork": 0,
+      "liveLocalReservations": 0,
+      "unsettledOwners": 0,
+      "creditReconciled": [],
+      "unknown": [],
+      "attempts": []
+    }
+  ],
+  "rebind": {
+    "changedTransportIndices": [
+      1
+    ],
+    "listedBeforeOperatorRebind": false,
+    "listedAfterOperatorRebind": true,
+    "priorApprovalMatchedNewRoute": false,
+    "explicitRebind": true,
+    "at": 1795173867716
+  },
+  "readmission": {
+    "http": 200,
+    "answer": " ",
+    "usage": {
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "total_tokens": 8
+    },
+    "accounting": {
+      "verifiedStageEvidence": [
+        {
+          "index": 0,
+          "steps": 1,
+          "status": "settled",
+          "closedAt": "2026-11-20T11:30:16.359Z"
+        },
+        {
+          "index": 1,
+          "steps": 1,
+          "status": "settled",
+          "closedAt": "2026-11-20T11:30:16.401Z"
+        }
+      ],
+      "interruptedStageIndices": [],
+      "outputTokens": 1,
+      "charge": 1,
+      "signedAcknowledgmentCount": 1,
+      "heldAfterSettlement": 0,
+      "journalTransfers": [
+        -1,
+        0,
+        1
+      ],
+      "repeatSettleReturnedSameOutcome": true,
+      "authenticatedHttpRecovery": 200,
+      "recoveredStatus": "completed"
+    }
+  },
+  "finalDurableOwners": [
+    {
+      "host": "jupiter",
+      "openRows": 0
+    },
+    {
+      "host": "suby",
+      "openRows": 0
+    }
+  ],
+  "crossHostRoutes": [
+    [
+      {
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "byteCounts": [
+          584287,
+          293468
+        ]
+      }
+    ],
+    [
+      {
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "byteCounts": [
+          265070,
+          155150
+        ]
+      },
+      {
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "byteCounts": [
+          293468,
+          584287
+        ]
+      }
+    ]
+  ],
+  "scopeLimits": [
+    "The responding process returns under the same enrolled identity, host filesystem and PID namespace.",
+    "Each machine can fit this 0.8B model alone.",
+    "This checks failed-request settlement and new work, not automatic continuation of the interrupted generation.",
+    "CPU SwiftShader timings do not establish hardware GPU performance."
+  ],
+  "rawReceiptSha256": "6c301605e477617352007dbb0f43e5975c628cc2c754aa48aa1ced6804b4c605",
+  "independentLedgerCheck": {
+    "scope": "Separate process reopened the private ledger read-only after both hosts closed. Verified against pre-enrolled keys persisted before dispatch.",
+    "openHolds": 0,
+    "proof": [
+      {
+        "reservationId": "service:peer:7b0a0f51407ded988805b095:fc8055b828e44c00b618172e35d80972",
+        "evidenceSha256": "c5c74b3d9e091c43a7293fcec383737e8e94442ba25e80eb4d4cf6482656b42f",
+        "stageWorkRows": 2,
+        "acknowledgedOutput": 1,
+        "charge": 1,
+        "journalTransfers": [
+          -1,
+          0,
+          1
+        ],
+        "interruptedOwners": [
+          1
+        ]
+      },
+      {
+        "reservationId": "service:peer:7b0a0f51407ded988805b095:744aa394ef85409ab1cda0d130aeeff2",
+        "evidenceSha256": "fe8fcd0639d11dc5e22b56185e2ee7bfe488d1a7294af8a8659889ff340e0563",
+        "stageWorkRows": 2,
+        "acknowledgedOutput": 1,
+        "charge": 1,
+        "journalTransfers": [
+          -1,
+          0,
+          1
+        ],
+        "interruptedOwners": []
+      }
+    ]
+  },
+  "priorSetupAttempts": [
+    {
+      "id": "run-1795172165",
+      "failure": "The new private run directory was absent on first setup. No request was admitted."
+    },
+    {
+      "id": "run-1795172188",
+      "failure": "The isolated container could not see Docker\u2019s injected init under the read-only /usr mount. No request was admitted."
+    }
+  ],
+  "beforeFix": {
+    "implementation": "21d10abed738a201d02b332f677a333d5628f21c",
+    "rawReceiptSha256": "33bae1aab4a79742c4bf2868c260741e852ada599b82ca20dc429cc4269d299c",
+    "request": "An ordinary route returned connection_lost, signed fencing settled the delivered token, and fresh work succeeded. The coordinator still reported one active provider request from an archived cleanup-failed attempt; both durable owners had zero rows."
+  },
+  "operatorDriverSha256": {
+    "runtime/after-loss.mjs": "d4297e191e1451e5001eeac04469325cfcab23146f735c3322134d4c3dfef892",
+    "loss-controller.py": "11cc5f53ff9014a4d86e6d4673e74f6bd0a4dd1ac5958641fae35d07aef6be07",
+    "after-loss.sh": "29953326ecbedb5f5aba60405ce7ce747ae686df52c14ad40fdd958478224d84",
+    "verify-loss-ledger.mjs": "f6c6a53141339d40a8b5cf013e8716389877d7abb78d0005845c9776b17df7d6",
+    "whole-tokens.json": "7d375a6417789884bbd80250f2c04b1a31199d96740adfdbadf5a0d70b47b7de"
+  }
+}
