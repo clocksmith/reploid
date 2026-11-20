@@ -147,6 +147,13 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       const bytes = await cache.get(file) || (local && await readLocal(local.path, { ...local, signal: lifetime.signal }));
       assert(bytes, 'Advertised native bytes are unavailable'); await verify(file, bytes); return bytes;
     },
+    readIndexedRange: async (file, range, { signal }) => {
+      const local = localPieces.get(key(file));
+      const piece = local?.pieces?.find(piece => piece.offset === range.offset && piece.size === range.size);
+      if (!piece) return null;
+      assert(piece.identity === range.identity, 'Requested piece differs from the pinned index');
+      return readLocal(local.path, { offset: piece.offset, size: piece.size, signal });
+    },
     verifyArtifact: verify, commitArtifact: (file, bytes, controls) => cache.put(file, bytes, controls), observe, onChange,
     certificate: custodyCertificate, observeDelivery
   } });
@@ -402,7 +409,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
               const descriptor = { path: file.path, role: 'model-weights', sizeBytes: shard.size,
                 hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm };
               await verify(descriptor, bytes);
-              approvedLocalPieces.set(key(descriptor), { path: file.path, offset: 0, size: shard.size });
+              approvedLocalPieces.set(key(descriptor), { path: file.path, offset: 0, size: shard.size, pieces: file.pieces });
               offered.push(descriptor);
               assert(offered.length <= policy.maxInventoryFiles, 'Native inventory limit exceeded');
               continue;

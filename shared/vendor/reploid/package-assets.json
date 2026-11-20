@@ -392,13 +392,13 @@
     },
     {
       "path": "artifacts/custody/exchange.d.ts",
-      "bytes": 5677,
-      "sha256": "a95feaa6da375ec6f229cac37e88c8e6165dd607c3e505113c6b806e2d9b0b83"
+      "bytes": 6036,
+      "sha256": "9d6fea79e9a32d03184a84881cc646c69153f3dbb33c5a6e4bf9f565c7897427"
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 26269,
-      "sha256": "a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8"
+      "bytes": 26465,
+      "sha256": "d9591ab156408f60eeec2b45b272c920178b5937546bd15626732050ee3d9978"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",

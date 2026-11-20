@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:eb4564420c05d41aa8d40a1808d156f61bf700a9753c92fc663b5022f59906d4",
+      "sha256": "sha256:a8bc48e69d1bce03e7afefbf423d15f1c644c380263a77390ca249a4ee8bf9ac",
       "imports": []
     },
     {
@@ -18646,7 +18646,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8",
+      "sha256": "sha256:d9591ab156408f60eeec2b45b272c920178b5937546bd15626732050ee3d9978",
       "imports": [
         "../../cancellation.js",
         "../delivery-attestation.js"

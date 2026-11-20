@@ -55,6 +55,10 @@ export interface CustodyExchangePorts {
     close(): void;
   };
   readArtifact(file: FileDescriptor, controls: { signal: AbortSignal }): Promise<Uint8Array>;
+  /** Only use a range bound to the offered file by a trusted local index. The exchange
+   * verifies the returned bytes against the selected commitment. Null requests a full-file check. */
+  readIndexedRange?(file: FileDescriptor, range: { offset: number; size: number; identity: string },
+    controls: { signal: AbortSignal }): Promise<Uint8Array | null>;
   verifyArtifact(file: FileDescriptor, bytes: Uint8Array): Promise<void>;
   commitArtifact?(file: FileDescriptor, bytes: Uint8Array, controls: { signal: AbortSignal }): Promise<void>;
   hash(value: unknown): Promise<string>;

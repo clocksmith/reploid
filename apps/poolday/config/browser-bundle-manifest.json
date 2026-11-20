@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 688213,
-      "sha256": "sha256:7f4507406ac781f14137912851880988f457425b25c791745c9964155e777236"
+      "sha256": "sha256:03f91a1850c6373ff72fdacceebb19318149123831f59e24b160c5ab86a1e0aa"
     },
     {
       "path": "config/module-registry.json",
@@ -3765,8 +3765,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2672656,
-      "sha256": "sha256:eb4564420c05d41aa8d40a1808d156f61bf700a9753c92fc663b5022f59906d4"
+      "byteLength": 2672729,
+      "sha256": "sha256:a8bc48e69d1bce03e7afefbf423d15f1c644c380263a77390ca249a4ee8bf9ac"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -11790,8 +11790,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
-      "byteLength": 26269,
-      "sha256": "sha256:a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8"
+      "byteLength": 26465,
+      "sha256": "sha256:d9591ab156408f60eeec2b45b272c920178b5937546bd15626732050ee3d9978"
     },
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
@@ -12411,7 +12411,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 60398,
-      "sha256": "sha256:c37ed6d0e24d4c7910be0712f8a950b5dd17fcbc70bec8e1bbd52479e304e6b2"
+      "sha256": "sha256:e89ba1c8fe307294562106746106f8146cf617f61b7d829f3b986d2012cebff7"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12689,5 +12689,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:512aec9e8d59f13fdce7084af246caf018fab5cb2c1ddb8bc49cc74b10037bc9"
+  "bundleHash": "sha256:74282e7ba6b46a6f4c0bbc42f601a251245e5e52ff33d1468e5d0480e45778ae"
 }
