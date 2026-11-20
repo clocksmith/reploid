@@ -247,8 +247,10 @@ async function guard(phase) {
 /** After a kill: the host process must be gone, and `restartDelayMs` more must pass, before that machine is started again. */
 async function settle(node) {
   if (!node.spec.restartDelayMs) return;
-  const alive = () => (node.spec.ssh ? run('ssh', ['-o', 'BatchMode=yes', node.spec.ssh, `kill -0 ${node.hostPid} 2>/dev/null`]) : Promise.resolve(process.kill(node.hostPid, 0)))
-    .then(() => true, () => false);
+  const alive = async () => {
+    try { if (node.spec.ssh) await run('ssh', ['-o', 'BatchMode=yes', node.spec.ssh, `kill -0 ${node.hostPid} 2>/dev/null`]); else process.kill(node.hostPid, 0); return true; }
+    catch { return false; }
+  };
   await until(async () => !(await alive()), 60000, `${node.spec.computerId} to be gone after the kill`);
   await sleep(node.spec.restartDelayMs);
 }
@@ -426,7 +428,11 @@ try {
   for (const node of providers) { const { rateBasis: _basis, ...measured } = node.measured; await publish(node, measured); }
   const reference = providers[0].reference, correct = record => record.requesterSaw.content === reference;
   report.reference = { content: reference, sameOnEveryProvider: providers.every(node => node.reference === reference) };
-  const fastest = [...providers].sort((a, b) => b.measured.decodeTokensPerSecond - a.measured.decodeTokensPerSecond)[0].spec.computerId;
+  // Fastest for this request: the smallest time its own measured prompt and decode rates predict. Decode rate
+  // alone misorders providers that decode alike and differ on the prompt.
+  const sized = report.phases.calibration[0].requesterSaw.usage;
+  const predictedMs = node => 1000 * (sized.inputTokens / node.measured.prefillTokensPerSecond + Math.max(1, sized.outputTokens - 1) / node.measured.decodeTokensPerSecond);
+  const fastest = [...providers].sort((a, b) => predictedMs(a) - predictedMs(b))[0].spec.computerId;
 
   await guard('healthy');
   // 4. Healthy route with ranking off, then on, on the same providers.
