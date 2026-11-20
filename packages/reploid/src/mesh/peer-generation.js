@@ -1226,6 +1226,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         hardware: swarmController.listPeers().find(peer => peer.peerId === peerId)?.hardware,
         verifyPeer: (id, signal) => peerIdentity.verify(id, signal) });
     },
+    getVerifiedPeerIdentity: peerId => peerIdentity?.getVerified(peerId) ?? null,
     verifyPeerIdentity: (peerId, signal) => {
       if (closed || !peerIdentity) throw new Error('Peer identity verification is unavailable');
       return peerIdentity.verify(peerId, signal);

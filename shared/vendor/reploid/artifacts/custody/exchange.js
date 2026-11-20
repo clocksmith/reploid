@@ -168,6 +168,11 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         || reserved + selected.sizeBytes > policy.maxSupplyBytes) throw new Error('File contribution limit reached');
       const epoch = supplyEpoch; preparing++;
       try {
+        if (ports.authorizeRequester) {
+          if (await ports.authorizeRequester(peer, lifetime.signal) !== true) throw new Error('File requester is not permitted');
+          live();
+          if (!supply || epoch !== supplyEpoch) throw new Error('File contribution stopped');
+        }
         budgetState();
         const reservation = await ports.supplyBudget.reserve(selected.sizeBytes);
         reserved = Math.max(reserved, budgetState(reservation).reservedBytes);

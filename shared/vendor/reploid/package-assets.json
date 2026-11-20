@@ -392,13 +392,13 @@
     },
     {
       "path": "artifacts/custody/exchange.d.ts",
-      "bytes": 5677,
-      "sha256": "a95feaa6da375ec6f229cac37e88c8e6165dd607c3e505113c6b806e2d9b0b83"
+      "bytes": 5854,
+      "sha256": "df5ca79e411d9726a17b3b43f81b1f3919b92acd9998d595907e96ca116d1205"
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 26269,
-      "sha256": "a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8"
+      "bytes": 26561,
+      "sha256": "9357a18e5f85fe7d497bb8deceb3a8df6245c50179d09ad06ea7f3a419afc496"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
@@ -1472,13 +1472,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 7070,
-      "sha256": "a7785cbfd3ab3de1db7b6b3a9ca72de66033288406ba487791582b8229fdff52"
+      "bytes": 7128,
+      "sha256": "3a56e08e798329df8359420ed8492d681f64594f70e0adf21bcbbb649b07ea90"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 73851,
-      "sha256": "75ebe4c343eed685d3aa39a45d479c434ee2369f8a5ee860bb5f54ce9ef84615"
+      "bytes": 73933,
+      "sha256": "581128029a1a3f0bc78fb6e92234c83a651a7da7228bdca1f2b125b3f0c20e86"
     },
     {
       "path": "mesh/peer-identity.js",

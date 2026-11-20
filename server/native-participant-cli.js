@@ -40,6 +40,8 @@ export async function main({ runOnce } = {}) {
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
     '--readiness-log requires --contribute and an absolute file path');
+  const supplyTo = values['supply-to'];
+  if (supplyTo !== undefined) requireValue(values['share-files'], '--supply-to requires file sharing');
   let maxSupplyBytes;
   if (values['supply-limit-gib'] !== undefined) {
     const value = values['supply-limit-gib'];
@@ -161,7 +163,7 @@ export async function main({ runOnce } = {}) {
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
-    maxSupplyBytes, cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
+    maxSupplyBytes, supplyTo, cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
     ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
     executionMode: values['execution-mode'] || 'partition',

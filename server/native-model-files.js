@@ -88,7 +88,7 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * `certifyCustodyKey` (packages/reploid/src/artifacts/custody-certificate.js) lets the persistent
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
-export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null,
+export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null, authorizeRequester = undefined,
   maxSupplyBytes = policy.maxSupplyBytes, modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined, artifactRuntime = null }) {
   assert(artifactRuntime === null || typeof artifactRuntime?.createVerifiedPieceStorage === 'function',
     'Native artifact runtime requires the verified piece storage factory');
@@ -138,7 +138,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   // Transfer evidence with both parties' certificates, for whoever claims the delivery.
   const deliveries = [], observeDelivery = record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); };
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
-  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget,
+  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget, authorizeRequester,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel: owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel,
     ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,

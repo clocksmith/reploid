@@ -36,7 +36,7 @@ import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
  * `readiness` (createReadinessRecorder from reploid/measurement, off by default) observes every
  * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxSupplyBytes, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxSupplyBytes, supplyTo = undefined, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
   onPartitionReceiveTiming, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
@@ -45,6 +45,10 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
+  requireValue(supplyTo === undefined || Array.isArray(supplyTo) && supplyTo.length > 0
+    && supplyTo.every(id => typeof id === 'string' && /^peer:[a-f0-9]{24}$/.test(id)),
+  'File supply recipients must be signing identities (peer: followed by 24 lowercase hex digits)');
+  const supplyRecipients = supplyTo && new Set(supplyTo);
   requireValue(executionAdmission === null || ['whole', 'partition', 'partitionReceipt', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),
     'Execution admission requires whole-model, partition and receipt ports');
   requireValue(!wholeMode || canonical === null && ordered === null && readiness === null,
@@ -221,6 +225,10 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
       files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, maxSupplyBytes, sourceFilePaths: approvedSourceFilePaths, onChange: onFileChange, owner: ownerGate,
+        authorizeRequester: supplyRecipients ? async (peer, signal) => {
+          const participantId = mesh.getVerifiedPeerIdentity(peer) ?? await mesh.verifyPeerIdentity(peer, signal);
+          return supplyRecipients.has(participantId);
+        } : undefined,
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }

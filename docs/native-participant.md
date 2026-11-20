@@ -141,7 +141,12 @@ To supply the 27B to peers, run `reploid share 27b --weights /path/to/27b --supp
 with a fresh supplier cache. A complete copy needs about 15.84 GiB. The default
 lifetime upload allowance is 4 GiB per cache. Large indexes can advertise whole
 verified shards within the inventory limit. A requester verifies the requested
-pieces against its pinned index.
+pieces against its pinned index. On a machine already serving another model, give the sharing process
+its own `--identity-file` and `--cache-directory` so each service can start and stop independently.
+Sharing opens no GPU. The room's peers can request the advertised files. To restrict grants,
+repeat `--supply-to <computer-id>` for the permitted signing identities. Inventory stays visible to
+the room. The supplier verifies the requester's current connection before reserving upload bytes.
+Stop the sharing process with SIGTERM; its lifetime budget is kept in the cache directory.
 
 ## Delivery archive
 
