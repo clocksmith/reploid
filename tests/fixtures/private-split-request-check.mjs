@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { parseTextResponse } from '../../server/responses.js';
 import { fileURLToPath } from 'node:url';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 
@@ -53,13 +54,22 @@ async function run(input) {
 test('the approved split produces a streaming request pinned to both stages and its output requester', async () => {
   const input = snapshot(), result = await run(input);
   assert.equal(result.status, 0, result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout), { model: selectionId, messages: input.prompt.messages, stream: true,
-    max_completion_tokens: 4, reploid: { pool_id: input.config.roomId, expected_model_identity: model.identity,
+  const body = JSON.parse(result.stdout);
+  const parsed = parseTextResponse(body);
+  assert.deepEqual(parsed.messages, input.prompt.messages);
+  assert.equal(parsed.generationRequest.maxOutputTokens, 4);
+  assert.deepEqual(parsed.reploid.allowed_recipients, [...providers, requester]);
+  assert.deepEqual(body, { model: selectionId, input: input.prompt.messages, store: false, stream: true,
+    max_output_tokens: 4, reploid: { pool_id: input.config.roomId, expected_model_identity: model.identity,
       expected_adapter_identities: [], expected_plan_identity: model.partitionPlanId,
       allowed_recipients: [...providers, requester], include_execution: true } });
 });
 
 const refusals = [
+  ['a reference for a superseded model', data => { data.prompt.modelIdentity = 'sha256:' + '0'.repeat(64); },
+    /different model/],
+  ['a reference bound to a different partition plan', data => { data.prompt.planIdentity = 'sha256:' + '0'.repeat(64); },
+    /different plan/],
   ['a changed executor', data => { data.state.result.execution.models[0].partition.route.stages[1].executionId = 'restarted'; },
     /one ready instance/],
   ['a whole-model listing alone', data => { data.listing.data[0].id = model.id; }, /missing or ambiguous/],

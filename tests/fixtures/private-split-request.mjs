@@ -31,6 +31,8 @@ const approvals = config.textApi.privatePartitionApprovals.filter(row => row.mod
 // The list ID names the plan. Two approvals for different rosters on that plan
 // would give the same list ID, so require a single reviewed descriptor here.
 assert.equal(approvals.length, 1, 'Require exactly one reviewed roster for this model and plan');
+if (fixture.modelIdentity !== undefined) assert.equal(fixture.modelIdentity, model.identity, 'Reference was captured for a different model');
+if (fixture.planIdentity !== undefined) assert.equal(fixture.planIdentity, model.partitionPlanId, 'Reference targets a different plan');
 const [approved] = approvals;
 const route = canonicalPartitionRoute(approved.partition.route);
 assert(route.modelId === model.id && route.modelIdentity === model.identity && route.planId === model.partitionPlanId
@@ -53,8 +55,8 @@ assert(Array.isArray(fixture.messages) && fixture.messages.length > 0
   'Expected text messages from the frozen reference');
 assert(Number.isSafeInteger(fixture.maxOutputTokens) && fixture.maxOutputTokens > 0
   && fixture.maxOutputTokens <= Math.min(config.maxOutputTokens, model.generation.maxTokens), 'Token limit exceeds the serving configuration');
-console.log(JSON.stringify({ model: selection, messages: fixture.messages, stream: true,
-  max_completion_tokens: fixture.maxOutputTokens, reploid: { pool_id: config.roomId, expected_model_identity: model.identity,
+console.log(JSON.stringify({ model: selection, input: fixture.messages, store: false, stream: true,
+  max_output_tokens: fixture.maxOutputTokens, reploid: { pool_id: config.roomId, expected_model_identity: model.identity,
     expected_adapter_identities: [], expected_plan_identity: model.partitionPlanId,
     // Output is also disclosed back to this requester. The fleet server separately
     // constrains compute recipients to the two providers pinned above.

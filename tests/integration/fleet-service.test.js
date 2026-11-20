@@ -348,7 +348,7 @@ async function privateSplitApi() {
   const token = 'test-only-private-fleet-authorization-token';
   const host = { identity: keys[0], allowsModel: model => model.identity === selected.identity,
     enrolledRecipients: async () => new Set(keys.slice(1).map(key => key.peerId)),
-    textParticipant: { executionClass: 'private-pool', partitionOutputLimit: () => 3, getState: () => ({ models: [advertised] }), generate },
+    textParticipant: { roomId: 'private-split-test', executionClass: 'private-pool', partitionOutputLimit: () => 3, getState: () => ({ models: [advertised] }), generate },
     runAccountedGeneration(request, controls, execute) {
       if (replaceAtDispatch) advertised = { ...selected, partition: { ...selected.partition, planId: 'another-plan' } };
       return createFleetRequester({ participant: { generate: execute }, identity: keys[0], credits: client, maxOutputTokens: 3 }).generate(request, controls);
@@ -357,7 +357,7 @@ async function privateSplitApi() {
   const api = await startFleetTextApi({ host, token, privatePartitionApprovals: [approval] });
   const send = (body, options) => fetch(api.url + '/chat/completions', { method: 'POST', headers,
     body: JSON.stringify({ model: selected.id, messages: [{ role: 'user', content: 'test' }], ...body }), ...options });
-  return { route, generate, send, replace() { replaceAtDispatch = true; },
+  return { route, generate, send, url: api.url, headers, replace() { replaceAtDispatch = true; },
     list: async () => (await (await fetch(api.url + '/models', { headers })).json()).data,
     async close() { await api.close(); await route.close(); } };
 }
@@ -391,6 +391,35 @@ it('lists and streams an operator-approved split with a single signed settlement
     expect((await send({})).status).toBe(503);
     expect(generate).toHaveBeenCalledTimes(2);
     expect(await f.list()).toEqual([]);
+  } finally { await f.close(); }
+});
+
+it('streams execution evidence and settles once for a Responses request bound to two stages', async () => {
+  const f = await privateSplitApi();
+  try {
+    const model = f.route.model;
+    const binding = { pool_id: 'private-split-test', expected_model_identity: model.identity,
+      expected_adapter_identities: [], expected_plan_identity: model.partition.planId,
+      allowed_recipients: keys.slice(0, 3).map(key => key.peerId), include_execution: true };
+    const response = await fetch(f.url + '/responses', { method: 'POST', headers: f.headers,
+      body: JSON.stringify({ model: model.selectionId || model.id, input: [{ role: 'user', content: 'test' }],
+        store: false, stream: true, max_output_tokens: 2, reploid: binding }) });
+    const stream = await response.text();
+    expect(response.status, stream).toBe(200);
+    const events = stream.split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
+    const final = events.at(-1);
+    expect(final.type, stream).toBe('response.completed');
+    expect(final.response.usage.output_tokens).toBe(2);
+    expect(final.response.output[0].content[0].text).toBe('01');
+    expect(final.response.reploid).toMatchObject({ modelIdentity: model.identity, planIdentity: model.partition.planId,
+      poolId: binding.pool_id, executionClass: 'private-pool', adapterIdentities: [] });
+    expect([...final.response.reploid.recipients].sort()).toEqual([...binding.allowed_recipients].sort());
+    const reservation = response.headers.get('x-reploid-reservation-id');
+    expect(reservation).toBeTruthy();
+    const settled = await client.call('request', { id: reservation });
+    expect(settled.evidence.receipts).toHaveLength(2);
+    expect((await client.call('recover', { id: reservation })).charge).toBe(2);
+    expect(credits.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-2, 0], [1, 0], [1, 0]]);
   } finally { await f.close(); }
 });
 

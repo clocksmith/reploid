@@ -72,16 +72,26 @@ node tests/fixtures/private-split-request.mjs requester.json state.json models.j
 ```
 
 Run the offline fixture checks with
-`node --test tests/fixtures/private-split-request-check.mjs`. The five cases
+`node --test tests/fixtures/private-split-request-check.mjs`. The checks
 cover an accepted split, a replaced stage executor, a whole-model-only listing,
-two approved rosters sharing the selection ID, and a requester assigned to a
-stage. They require only Node and the repository files.
+two approved rosters sharing the selection ID, a requester assigned to a
+stage, and a reference bound to a different model or plan. The positive case
+parses the resulting body through the Responses handler. These checks require
+only Node and the repository files.
 
-The resulting body is for `POST /v1/chat/completions`. It binds the model,
+The resulting body is for `POST /v1/responses`. Its terminal response includes
+the requested execution evidence in `response.reploid`. The request binds the model,
 plan, adapter set and permitted identities. The third requester receives its
 own output. Its key therefore also appears in the request's disclosure list.
 The qualified route and server allowlist bind just the two compute providers.
 The normal API checks the route again when it dispatches the request.
+
+The [27B code-trace fixture](../tests/fixtures/private-split-27b-code-trace.json)
+includes the exact messages and greedy tokens measured by the independent
+Transformers reference over the retained Q4 weights. The reference prints 22
+for a calculation whose correct answer is 26. Record numerical agreement and
+task accuracy separately. Compare the executing stages’ prompt IDs and output
+IDs, including the stop token, before claiming token parity.
 
 Account for both stage storage and GPU memory. Network-fetched partition pieces
 are retained in the native cache with its configured storage limit. Stage 1 of
