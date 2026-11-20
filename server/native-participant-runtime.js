@@ -39,8 +39,12 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxCacheBytes, maxSupplyBytes, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  onPartitionReceiveTiming, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
+  onPartitionReceiveTiming, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
   requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
+  if (privateCustodyPrefill) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && cacheDirectory
+    && typeof privateCustodyPrefill.supplierId === 'string' && privateCustodyPrefill.supplierId.length > 0
+    && typeof privateCustodyPrefill.authorizeSupplier === 'function' && typeof privateCustodyPrefill.reserveDownload === 'function',
+  'Stage prefill requires a private room, cache and explicit supplier and download policies');
   if (sourceRuntime !== null) assertNativeRuntimeSourceMode({ roomId, publicRoomId: bootstrap.publicRoomId,
     executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
@@ -221,6 +225,10 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
       files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, maxCacheBytes, maxSupplyBytes, sourceFilePaths: approvedSourceFilePaths, onChange: onFileChange, owner: ownerGate,
+        ...(privateCustodyPrefill ? { authorizePeer: async (peer, signal) => (await mesh.verifyPeerIdentity(peer, signal)) === privateCustodyPrefill.supplierId,
+          authorizeSupplier: privateCustodyPrefill.authorizeSupplier,
+          reserveDownload: privateCustodyPrefill.reserveDownload, modelOrigins: { schema: 'reploid.native-model-origins/v1', origins: {} },
+          originFetch: async () => { throw new Error('External origin disabled for private stage prefill'); } } : {}),
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }
@@ -296,6 +304,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         return whole.contribute(approved);
       } : approved => whole ? whole.contribute(approved) : partitions.contribute(model.id, approved),
       stop: ownerGate ? () => { endOwnerWait('contribute', 'Native contribution stopped'); return whole ? whole.stop() : partitions.stop(); } : () => whole ? whole.stop() : partitions.stop(), close,
+      ...(privateCustodyPrefill ? { preparePrivateStageSource: controls => files.preparePartitionSource(model, controls) } : {}),
       getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: options => files?.getState(options) || null,
       shareFiles: ownerGate ? async approved => {
         requireValue(files, 'Native cache directory required');
