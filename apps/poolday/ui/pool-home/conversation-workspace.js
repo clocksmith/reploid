@@ -3,11 +3,10 @@ import { requestExecutionPolicy } from '../../../../shared/vendor/reploid/chat/e
 import { privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
-import { bindWorkspaceNavigation } from './workspace-navigation.js';
-import { updateContextIndicator } from './context-indicator.js';
+import { bindWorkspaceNavigation, workspaceThreadId } from './workspace-navigation.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
-import { createConversationList } from './conversation-list.js';
+import { createConversationList, threadTitle } from './conversation-list.js';
 import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bindModelChoices, modelVariantKey, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 import { bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
@@ -17,7 +16,7 @@ import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
-import { canDownloadModelHere, localFitText, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
+import { canDownloadModelHere, localFitText, modelReadiness, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
 export { renderConversationWorkspace } from './conversation-view.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
@@ -41,7 +40,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     inspector.openModelComputers(model, find('[data-open-model]'));
   } });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
-  let changingModel = false, pickerTouched = false, recoverySelection = null, pickerRevision = 0;
+  let changingModel = false, recoverySelection = null, pickerRevision = 0;
+  const pickerOrder = new Map();
   let files = [], composerRevision = 0, queuedSend = null, queueHasText = false;
   const attachmentReader = createTextAttachmentReader({
     getFiles: () => files,
@@ -83,7 +83,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
   const railToggle = find('[data-toggle-thread-rail]');
-  let workspaceNavigation = null, applyingView = false;
+  let workspaceNavigation = null, applyingView = false, routeSelection = null;
   const threadsDialogNode = find('[data-threads-dialog]');
   const leftDrawer = bindDrawer(threadsDialogNode, { side: 'left', markRoot: find('[data-thread-rail-brand]') });
   const allowBoth = () => (globalThis.innerWidth || 0) >= 1200;
@@ -227,7 +227,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const updatePicker = snapshot => {
     pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
       state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
-      model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
+      model: pickerModel, location: pickerLocation, order: pickerOrder, changing: changingModel,
       selectedId: modelSelect.value, localOnly: explicitPrivacy(snapshot)?.placement === 'local-only', canDownload: !!inspector.downloadModel });
     const node = find('[data-local-fit]');
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
@@ -248,6 +248,30 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     node.hidden = !node.textContent;
     if (attachmentReader.pending || recoverySelection && !matchesRecovery(snapshot)) find('[data-change-model]').disabled = true;
   };
+  function selectUrlThread(id, { initial = false } = {}) {
+    const state = session.getState();
+    const target = state.threads.find(thread => thread.id === id)?.id ?? null;
+    const request = { id };
+    routeSelection = request;
+    const current = () => routeSelection === request && !controller.signal.aborted && workspaceThreadId() === request.id;
+    const select = () => current() && session.getState().selectedId !== target ? session.select(target) : undefined;
+    const finish = () => {
+      if (!current()) return;
+      routeSelection = null;
+      render(session.getState());
+    };
+    try {
+      if (target === state.selectedId) { finish(); return; }
+      queuedSend = null;
+      const pending = initial ? select() : after(saveDraft(), select);
+      if (pending?.then) return pending.then(finish, cause => { finish(); error(cause); });
+      finish();
+    } catch (cause) { finish(); error(cause); }
+  }
+  const openThread = id => {
+    workspaceNavigation.navigate('chat', { threadId: id });
+    return selectUrlThread(id);
+  };
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
@@ -255,8 +279,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       pickerRevision++;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
+      if (!routeSelection) workspaceNavigation?.reflectThread(selectedId);
+
     }
     const thread = state.activeThread, catalogModels = state.models || [], runningIds = state.runningIds || [];
+    const currentTitle = find('[data-current-chat-title]');
+    currentTitle.textContent = thread ? threadTitle(thread, session.getDocumentSources) : '';
+    currentTitle.hidden = !thread;
+    const linkedId = workspaceThreadId();
+    const unavailableThread = find('[data-thread-unavailable]');
+    unavailableThread.hidden = !linkedId || state.threads.some(item => item.id === linkedId);
     const keyFor = model => model?.selectionId || model?.id;
     if (!thread && !input.value.trim() && !files.length && !attachmentReader.pending) viewState.draftModel = null;
     const pinnedModel = thread?.model || chosenModel || viewState.draftModel;
@@ -278,23 +310,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const usable = execution.usable || prepareHere;
     find('[data-composer-field]').dataset.executionSource = execution.source;
     const modelStatus = find('[data-model-status]');
-    const localPreparing = state.localModel?.phase === 'loading';
     const requestedModel = selectedModel || pinnedModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === keyFor(state.defaultModel))
       || catalogModels[0];
-    const remotePreparing = (state.network?.partitionPeers || []).some(peer => peer.available
-      && peer.description?.phase === 'loading' && catalogModels.some(model => model.id === peer.description.offer?.id
-        && model.identity === peer.description.offer?.identity)
-      && (!requestedModel || requestedModel.id === peer.description.offer?.id
-        && requestedModel.identity === peer.description.offer?.identity));
-    const selectedPreparing = catalogModels.some(model => keyFor(model) === current
-      && ['loading', 'preparing'].includes(model.availability));
-    const preparing = localPreparing || remotePreparing || selectedPreparing;
+    const readiness = modelReadiness(state, requestedModel, location);
+    const preparing = readiness.phase === 'preparing';
     const acquiring = state.acquisition?.phase === 'downloading';
     const phase = state.discoveryPhase;
     const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
-    const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
+    const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !(preparing && execution.source === 'local') && !busyAcquisition(state)
       && location !== 'network' && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel) && (exhausted || location === 'local');
     const acquisition = state.acquisition;
     const acquisitionText = find('[data-acquisition-status]');
@@ -319,7 +344,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacyTitle = 'Inference privacy: ' + privacyLabel(policy.profile)
       + (policy.placement === 'local-only' ? ' · This device only' : '')
       + (busy ? ' · Available after this answer' : '');
-    privacyTrigger.title = privacyTitle;
     privacyTrigger.setAttribute('aria-label', privacyTitle);
     if (privacyNode.open && (privacyTrigger.disabled || editingThread !== state.selectedId)) privacyDialog.close();
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring
@@ -334,20 +358,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!busy) {
       if (state.history?.mode === 'refused' && historyHandover) statusText = '';
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
-      else if (usable) {
-        if (execution.source === 'network') {
-          statusText = execution.status === 'busy' ? 'Sending waits for capacity.' : 'Ready.';
-        } else if (execution.status === 'ready') statusText = 'Ready. This device runs the model.';
-        else if (execution.status === 'cached') statusText = 'Downloaded. Sending loads the model on this device.';
-      } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
-      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'This model is unavailable on this device.';
-      else if (phase === 'paused') statusText = 'Network discovery is paused.';
-      else if (phase === 'interrupted') statusText = 'Discovery connection interrupted. Shared capacity is unknown.';
-      else if (phase === 'searching') statusText = 'Finding computers…';
-      else if (phase === 'observed') statusText = state.network?.connectionFailure?.peerId
-        ? 'A peer connection failed. No eligible computer found for this model.'
-        : 'No eligible computer found for this model.';
-      else statusText = 'Model unavailable.';
+      else if (usable && !preparing) {
+        if (execution.status === 'busy') statusText = 'Waiting for capacity…';
+      } else if (!acquiring) statusText = location === 'local' && (state.localModel?.error || state.localDownloadIssue)
+        || readiness.label;
+      if (statusText === 'No ready computer' && state.network?.connectionFailure?.peerId) statusText += ' · A peer connection failed';
       if (!usable && location !== 'local' && state.localDownloadIssue && !shared && !canAcquire && exhausted) {
         statusText += ' ' + state.localDownloadIssue;
       }
@@ -365,6 +380,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
     else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
     else disclosure.textContent = 'A network provider could read your prompt.';
+    const privacySummary = find('[data-privacy-current]');
+    privacySummary.textContent = disclosure.textContent;
+    privacySummary.hidden = disclosure.textContent === 'The answering computer can read your prompt.';
+    privacyTrigger.dataset.help = disclosure.textContent;
     modelStatus.textContent = statusText;
     modelStatus.hidden = !statusText;
     renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
@@ -382,21 +401,21 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const retry = find('[data-retry-connection]');
     retry.textContent = phase === 'observed' ? 'Search again' : phase === 'paused' ? 'Reconnect' : 'Retry connection';
     retry.setAttribute('aria-label', retry.textContent);
-    retry.hidden = busy || usable || preparing || location === 'local' || !exhausted || !!thread?.closed;
+    retry.hidden = busy || usable || readiness.active || location === 'local' || !exhausted || !!thread?.closed;
+    const statusLine = modelStatus.parentElement;
+    statusLine.hidden = modelStatus.hidden && !statusLine.querySelector('.chat-composer-notices button:not([hidden])');
     find('[data-model-control]').hidden = !models.length;
     find('[data-open-model]').dataset.activity = execution.status === 'ready' ? 'ready' : 'idle';
     find('[data-picker-thread-note]').hidden = !thread;
     const activeModel = selectedModel || pinnedModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current) || requestedModel;
     find('[data-model-caption]').hidden = !!activeModel;
-    const sourceLabel = execution.usable ? execution.label
-      : preparing ? 'Loading' : location === 'local' ? 'This device' : phase === 'searching' ? 'Searching'
-      : phase === 'interrupted' || phase === 'paused' ? 'Connection unavailable' : 'Unavailable';
+    const sourceLabel = location === 'local' || execution.usable && execution.source === 'local' ? 'This device'
+      : activeModel?.fleet ? 'Private computers' : activeModel?.partition ? 'Public network · Split model' : 'Public network';
     const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${sourceLabel}` : '';
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
     find('[data-composer-model-source]').textContent = activeModel ? ` · ${sourceLabel}` : '';
     find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Change model, ${modelDigest}` : 'Change model');
-    updateContextIndicator(container, state, session);
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
     emptyList.hidden = !!find('[data-thread-list] [data-thread-item-id]');
@@ -462,7 +481,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerRevision++;
     queuedSend = null;
     recoverySelection = alternative;
-    pickerTouched = !!alternative;
+    pickerOrder.clear();
     const state = session.getState();
     inspector.close?.({ restoreFocus: false });
     pickerModel = alternative || (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
@@ -494,8 +513,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-next-model]', 'change', () => {
     pickerRevision++;
     if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
-    pickerTouched = true;
-    pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
+    const value = find('[data-next-model]').value;
+    if (value !== modelKey(pickerModel)) pickerModel = (session.getState().models || []).find(model => modelKey(model) === value)
+      || [...pickerOrder.values()].find(model => modelKey(model) === value) || pickerModel;
     updatePicker(session.getState());
     render(session.getState());
   });
@@ -510,47 +530,53 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
+  const newThread = () => after(openThread(null), () => {
+    chosenModel = null; viewState.chosenModel = null; archived = false;
+    find('[data-show-archived]').setAttribute('aria-pressed', 'false');
+    find('[data-show-active]').setAttribute('aria-pressed', 'true');
+    actionsPanel.setOpen(false); render(session.getState()); input.focus();
+  });
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
-  on('[data-switch-local]', 'click', () => {
+  function stageLocalPickerModel(model) {
+    const current = session.getState();
+    const stored = current.models?.find(item => modelIdentity(item) === modelIdentity(model));
+    if (!modelExecutionState(stored, 'local').usable) return;
+    pickerModel = stored; pickerLocation = 'local'; updatePicker(current);
+    find('[data-change-model]').focus();
+  }
+  function reviewPickerDownload(model, state, opener) {
+    if (!downloadableHere(model, state) || busyAcquisition(state)) return;
+    const revision = ++pickerRevision, scope = queueScope(state, model), location = pickerLocation;
+    inspector.downloadModel(modelKey(model), opener, {
+      isCurrent(id) {
+        const current = session.getState();
+        return !controller.signal.aborted && find('[data-model-picker]').open && pickerRevision === revision
+          && pickerLocation === location && id === modelKey(model) && queueScope(current, model) === scope
+          && !current.activeThread?.closed && !(current.runningIds || []).includes(current.selectedId)
+          && current.models?.some(item => modelIdentity(item) === modelIdentity(model));
+      },
+      onStored: () => stageLocalPickerModel(model)
+    });
+  }
+  on('[data-switch-local]', 'click', event => {
     if (changingModel || attachmentReader.pending || pickerLocation !== 'network') return;
     const state = session.getState();
     const model = state.models?.find(item => modelIdentity(item) === modelIdentity(pickerModel));
     if (!model || modelExecutionState(model, 'network').usable) { updatePicker(state); return; }
-    const stageLocal = () => {
-      const current = session.getState();
-      const stored = current.models?.find(item => modelIdentity(item) === modelIdentity(model));
-      if (!modelExecutionState(stored, 'local').usable) return;
-      pickerModel = stored; pickerTouched = true; pickerLocation = 'local'; updatePicker(current);
-      find('[data-change-model]').focus();
-    };
-    if (modelExecutionState(model, 'local').usable) stageLocal();
-    else if (downloadableHere(model, state) && !busyAcquisition(state)) {
-      const revision = ++pickerRevision, scope = queueScope(state, model);
-      inspector.downloadModel(modelKey(model), find('[data-switch-local]'), {
-        isCurrent(id) {
-          const current = session.getState();
-          return !controller.signal.aborted && find('[data-model-picker]').open && pickerRevision === revision
-            && pickerLocation === 'network' && id === modelKey(model) && queueScope(current, model) === scope
-            && !current.activeThread?.closed && !(current.runningIds || []).includes(current.selectedId)
-            && current.models?.some(item => modelIdentity(item) === modelIdentity(model));
-        },
-        onStored: stageLocal
-      });
-    }
+    if (modelExecutionState(model, 'local').usable) stageLocalPickerModel(model);
+    else reviewPickerDownload(model, state, event.currentTarget);
   });
-  on('[data-change-model]', 'click', () => {
+  on('[data-change-model]', 'click', event => {
     if (changingModel || attachmentReader.pending) return;
     const next = find('[data-next-model]').value;
     const state = session.getState();
     if (recoverySelection && !matchesRecovery(state)) { updatePicker(state); return; }
-    const model = (state.models || []).find(model => (model.selectionId || model.id) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(model) && !state.localDownloadIssue));
+    const model = (state.models || []).find(model => modelIdentity(model) === modelIdentity(pickerModel) && modelKey(model) === next && (modelExecutionState(model, pickerLocation).usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(model) && !state.localDownloadIssue));
     if (!model) {
-      const wanted = (state.models || []).find(item => (item.selectionId || item.id) === next);
+      const wanted = (state.models || []).find(item => modelIdentity(item) === modelIdentity(pickerModel) && modelKey(item) === next);
       if (pickerLocation !== 'network' && wanted && downloadableHere(wanted, state)) {
-        picker.close();
-        inspector.downloadModel(next, find('[data-open-model]'));
+        reviewPickerDownload(wanted, state, event.currentTarget);
         return;
       }
       updatePicker(session.getState()); return;
@@ -640,8 +666,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { queuedSend = null; try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
-  on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
+    const link = event.target.closest('[data-thread-item-id]');
+    if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    observe(after(openThread(link.dataset.threadItemId), () => input.focus({ preventScroll: true })));
+  });
   on('[data-open-privacy]', 'click', () => {
     if (submitting || applyingPrivacy) return;
     const state = session.getState();
@@ -676,7 +705,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-execution-location]', 'click' , event => {
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
-    pickerTouched = true;
     pickerRevision++; pickerLocation = button.dataset.executionChoice;
     updatePicker(session.getState());
   });
@@ -770,10 +798,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       const content = copy.hasAttribute('data-copy-code') ? copy.parentElement.querySelector('code').textContent
         : session.getState().activeThread.messages.find(message => message.id === row.dataset.messageId).content;
       await navigator.clipboard.writeText(content);
-      if (copy.hasAttribute('data-copy-message')) {
-        copy.innerHTML = interfaceIcon('check');
-        copy.setAttribute('aria-label', 'Copied'); copy.title = 'Copied';
-      } else copy.textContent = 'Copied';
+      copy.innerHTML = interfaceIcon('check');
+      const notice = find('[data-copy-status]');
+      notice.textContent = copy.hasAttribute('data-copy-code') ? 'Code copied.' : 'Message copied.';
     });
     const button = event.target.closest('[data-retry-attempt]');
     if (button && !button.disabled) act(async () => {
@@ -806,6 +833,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (target) { event.preventDefault(); target.closest('details').open = true; target.focus(); target.scrollIntoView({ block: 'nearest' }); }
   });
   workspaceNavigation = bindWorkspaceNavigation(container, (view, routeState) => {
+    if (routeState.restoreThread) {
+      if (routeState.initial && !routeState.threadId) workspaceNavigation.reflectThread(session.getState().selectedId, { replace: true });
+      else observe(selectUrlThread(routeState.threadId, routeState));
+    }
     applyingView = true;
     try {
       setThreads(view === 'threads' || !!routeState?.threads, false);
@@ -818,7 +849,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       event.preventDefault(); setThreads(false); railToggle?.focus();
     }
   }, options);
-  workspaceNavigation.restore();
+  workspaceNavigation.restore({ initial: true });
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect(); stopVisibility?.disconnect();

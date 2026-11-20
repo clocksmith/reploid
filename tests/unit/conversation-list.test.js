@@ -21,7 +21,7 @@ describe('Conversation list', () => {
     const thread = { id: 'one', purpose: 'Question', messages: [], attempts: [{ id: 'first', status: 'completed' }] };
     view.update([thread], 'one');
     const button = root.firstElementChild;
-    expect(button.textContent).toContain('Complete');
+    expect(button.textContent).toContain('Current chat');
     thread.attempts.push({ id: 'followup', status: 'completed' });
     view.update([thread], null);
     expect(root.firstElementChild).toBe(button);
@@ -96,7 +96,7 @@ describe('Conversation list', () => {
     const view = createConversationList(root), before = vi.getTimerCount();
     try {
       view.update([{ id: 'one', messages: [], attempts: [{ status: 'completed', createdAt: Date.now() - 3600000, finishedAt: Date.now() - 120000 }] }], 'one');
-      const button = root.querySelector('button'); button.focus();
+      const button = root.querySelector('[data-thread-item-id]'); button.focus();
       expect(button.querySelector('time').textContent).toBe('2m');
       vi.advanceTimersByTime(60000);
       expect(button.querySelector('time').textContent).toBe('3m');

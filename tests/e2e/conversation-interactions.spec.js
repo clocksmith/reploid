@@ -12,7 +12,7 @@ for (const width of [1440, 390]) test(`model picker retains unavailable choices 
     const peer = (model, index) => ({ peerId: `fixture-${index}`, model: model.id, modelIdentity: model.identity,
       readiness: 'ready', hasInference: true, availableSlots: 1 });
     let peers = [peer(first, 0), peer(second, 1)];
-    const session = createChatSession({ storage: null, swarm: { getState: () => ({ consumer: { peers } }) } });
+    const session = createChatSession({ storage: null, swarm: { getState: () => ({ introductionState: 'connected', consumer: { peers } }) } });
     const original = session.createThread({ model: first });
     const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
     const dispose = bindConversationWorkspace(root, session);
@@ -33,12 +33,13 @@ for (const width of [1440, 390]) test(`model picker retains unavailable choices 
   await choice.locator('input').check();
   await page.evaluate(() => window.modelPickerFixture.setCapacity(false));
   await expect(page.locator('[data-next-model]')).toHaveValue(second);
-  // With its shared capacity gone, the choice stays listed under its download group and cannot be used.
-  await expect(choice.locator('[data-choice-status]')).toHaveText('Download required');
+  // Capacity changes update the existing choice while discovery continues.
+  await expect(choice.locator('[data-choice-status]')).toHaveText(/Finding computers…|No ready computer/);
   await expect(page.locator('[data-next-model-status]')).toBeVisible();
-  await expect(page.locator('[data-change-model]')).toBeDisabled();
+  await expect(page.locator('[data-change-model]')).toHaveText('Download model…');
   await page.evaluate(() => window.modelPickerFixture.setCapacity(true));
   await expect(page.locator('[data-next-model]')).toHaveValue(second);
+  await expect(page.locator('[data-change-model]')).toHaveText('Use model');
   await expect(page.locator('[data-change-model]')).toBeEnabled();
   await page.locator('[data-change-model]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();

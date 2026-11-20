@@ -1,5 +1,6 @@
 import { projectExecutionRibbon, RECORDED_GPU_TITLE } from './execution-ribbon.js';
 import { escapeHtml as escape } from '../components/attachments.js';
+import { answerPrivacy } from './privacy-controls.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 
 /** Observed attempt data only. Token deltas are not assumed to be single tokens. */
@@ -31,12 +32,6 @@ export function projectExecutionActivity(state) {
 const SUPPLY_LABELS = { local: 'This device', mesh: 'Mesh', hosted: 'Hosted', unknown: 'Executor not verified' };
 const supplyLabel = part => part?.supply === 'mixed' ? `Mixed: ${part.classes.map(name => SUPPLY_LABELS[name]).join(' + ')}`
   : SUPPLY_LABELS[part?.supply] ?? null;
-const supplyCaption = (view, supply) => view.execution?.privateDelegation && view.nodes.length
-  ? (view.split ? 'split across ' : '') + view.nodes.map(node => node.label).join(' + ') : view.local || supply.answer === 'This device' ? 'This device'
-  : supply.answer === 'Hosted' || view.attempt?.execution?.provider === 'hosted' ? 'Hosted'
-  : supply.answer === 'Executor not verified' ? 'Executor not verified'
-  : view.nodes.length || supply.answer === 'Mesh' || supply.answer?.startsWith('Mixed:') || view.attempt?.execution?.provider === 'peer' || view.attempt?.execution?.placement ? 'Shared computer' : '';
-
 /** The recorded answer-level supply label, and this attempt's own when earlier attempts of the answer differ. */
 export function projectSupplyLabel(attempt) {
   const provenance = attempt?.provenance?.schema === 'reploid.answer-provenance/v1' ? attempt.provenance : null;
@@ -66,19 +61,13 @@ export function updateExecutionActivity(root, state) {
   const summary = [toolStatus || queueLabel || (view.status === 'executing' ? 'Generating' : view.statusLabel),
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
     ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
-  const supplyText = supplyCaption(view, supply);
-  const readable = [view.model || (supplyText ? view.thread?.model?.name : ''), supplyText].filter(Boolean).join(' · ');
   const trigger = root.querySelector('[data-execution-trigger]');
-  trigger.setAttribute('aria-label', summary + '. Execution details');
-  trigger.title = summary + (view.nodes.length ? '\n' + view.nodes.map(node => node.label).join(' → ') : '')
-    + (view.attempt.error ? '\n' + view.attempt.error : '') + '\nClick to inspect';
+  trigger.setAttribute('aria-label', view.active ? `Answer details. ${summary}` : 'Answer details');
+  trigger.dataset.help = 'Answer details';
+  trigger.setAttribute('aria-description', summary);
   const icon = view.active
     ? '<span class="pool-dot pool-dot-pulse" data-tool-status role="status"></span>'
-    : interfaceIcon(toolStatus ? 'search' : view.local ? 'device' : view.nodes.length ? 'peers' : 'activity')
-    + '<span class="chat-receipt-label">Execution details</span>'
-    + (view.computerCount ? `<span data-execution-count>${view.computerCount}</span>` : '')
-    + (readable ? `<span data-execution-label>${escape(readable)}</span>` : '')
-    + `<span class="chat-visually-hidden">${escape(summary)}</span>`;
+    : interfaceIcon('activity');
   if (trigger.dataset.markup !== icon) { trigger.innerHTML = icon; trigger.dataset.markup = icon; }
   if (view.active) {
     const status = root.querySelector('[data-execution-trigger] [data-tool-status]');
@@ -102,6 +91,10 @@ export function updateExecutionDetail(detail, state) {
     ['Decode', timings?.decodeMs], ['Generation total', timings?.totalMs],
     ['Admission wait', view.execution?.admission?.queuedMs], ['Attempt total', view.totalMs]
   ].filter(([, value]) => Number.isFinite(value) && value >= 0).map(([label, value]) => [label, duration(value)]);
+  const [privacy, privacyDetail] = answerPrivacy(view.execution, state);
+  if (view.model) facts.unshift(['Model', view.model]);
+  if (privacy) facts.push(['Prompt visibility', privacyDetail || privacy]);
+  if (view.averageSpeed !== null) facts.push(['Generation average', `${view.averageSpeed.toFixed(1)} tok/s (includes prompt processing)`]);
   const outputTokens = timings?.generatedTokenCount ?? view.execution?.completion?.generatedTokenCount;
   if (Number.isSafeInteger(outputTokens) && outputTokens >= 0) facts.push(['Output tokens', outputTokens.toLocaleString()]);
   const phases = view.execution?.stepSummary?.phases;

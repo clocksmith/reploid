@@ -66,7 +66,7 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
     try {
       await expect(page.locator('[data-retry-connection]')).toBeHidden();
       await expect(page.locator('[data-model-status]')).toBeVisible();
-      await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
+      await expect(page.locator('[data-model-status]')).toHaveText('Preparing model…');
       await page.evaluate(() => window.firstUse.phase('ready'));
       await expect(page.locator('[data-composer-send]')).toBeEnabled();
       await expect(page.locator('[data-retry-connection]')).toBeHidden();
@@ -79,7 +79,7 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       await expect(page.locator('[data-composer-send]')).toBeDisabled();
       await expect(page.locator('[data-retry-connection]')).toBeVisible();
       await expect(page.locator('[data-model-status]')).toBeVisible();
-      await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
+      await expect(page.locator('[data-model-status]')).toContainText('No ready computer');
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       expect(await page.evaluate(() => ({ calls: window.firstUse.connections(), threads: window.firstUse.state().threads.length }))).toEqual({ calls: 0, threads: 0 });

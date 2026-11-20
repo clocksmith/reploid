@@ -1,3 +1,4 @@
+import { updateExecutionDetail } from '../../apps/poolday/ui/pool-home/execution-activity.js';
 import { describe, it, expect } from 'vitest';
 import { createMessageList } from '../../apps/poolday/ui/pool-home/message-list.js';
 
@@ -105,71 +106,53 @@ describe('Stable message presentation', () => {
     view.update(thread, { usable: true, busy: false, state: { participantId: 'requester' } });
     const details = root.querySelector('[data-message-id="reply"] [data-execution-activity]');
     expect(details.hidden).toBe(false);
-    expect(details.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Complete · 1 computer · Mesh. Execution details');
+    expect(details.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Answer details');
+    expect(details.querySelector('[data-execution-trigger]').getAttribute('aria-description')).toBe('Complete · 1 computer · Mesh');
     view.dispose();
   });
 
 });
 
 
-it('keeps privacy tied to the answer after thread policy changes and ignores an approval-only receipt', () => {
-  const root = document.createElement('div'), thread = conversation(), view = createMessageList(root);
+function answerDetails(thread, attempt = thread.attempts[0]) {
+  const detail = document.createElement('div');
+  updateExecutionDetail(detail, { activeThread: { ...thread, attempts: [attempt] } });
+  return detail;
+}
+
+it('keeps the recorded privacy receipt in answer details after thread privacy changes', () => {
+  const thread = conversation();
   thread.model = { name: 'Model' };
   const receipt = { schema: 'reploid.privacy-receipt/v1', profile: 'restricted', recipients: [] };
   thread.attempts[0].execution = { placement: 'local-webgpu', privacy: receipt };
   thread.privacy = { profile: 'provider-visible' };
-  view.update(thread, { usable: true, busy: false });
-  expect(root.querySelector('[data-metric="privacy"]').textContent).toBe('Restricted recipients · This device');
+  expect(answerDetails(thread).textContent).toContain('Restricted recipients · This device');
   delete thread.attempts[0].execution.privacy;
   thread.attempts[0].privacyReceipt = receipt;
-  view.update(thread, { usable: true, busy: false });
-  expect(root.querySelector('[data-metric="privacy"]').textContent).toBe('Privacy unrecorded');
-  view.dispose();
+  expect(answerDetails(thread).textContent).toContain('This answer has no recorded inference privacy tier.');
 });
 
-it('shows recorded answer metadata and omits unknown or invalid measurements', () => {
-  const root = document.createElement('div'), thread = conversation();
+it('shows each answer’s recorded metadata in details and omits unknown measurements', () => {
+  const root = document.createElement('div'), thread = conversation(), view = createMessageList(root);
   thread.model = { name: 'Qwen 27B' };
   thread.attempts[0].status = 'completed';
-  const view = createMessageList(root);
-  view.update(thread, { usable: true, busy: false });
-  const meta = root.querySelector('.is-assistant .chat-message-meta');
-  expect(meta.textContent).toBe('Privacy unrecorded');
   thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 92, totalMs: 5000 } };
-  view.update(thread, { usable: true, busy: false });
-  expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · This device');
-  expect(meta.querySelector('[title="92 generated tokens"]').textContent).toBe('92 tokens');
-  expect(meta.textContent).toContain('18.4 tok/s');
-  expect(meta.textContent).toContain('92 tokens');
-  expect(meta.textContent).toContain('5.0 s');
-  expect(meta.querySelector('[title="Generation time including prompt processing"]')).not.toBeNull();
-  thread.attempts[0].execution = { peerId: 'peer-1', timing: { generatedTokenCount: 92, totalMs: 5000 } };
-  view.update(thread, { usable: true, busy: false });
-  expect(root.querySelector('.is-assistant [data-execution-label]').textContent).toBe('Qwen 27B · Shared computer');
-  thread.attempts[0].execution.timing = { generatedTokenCount: -1, totalMs: NaN };
-  view.update(thread, { usable: true, busy: false });
-  expect(meta.textContent).toBe('Privacy unrecorded');
-  view.dispose();
-});
-
-it('shows each answer’s own route and latency, without borrowing metrics from a later attempt', () => {
-  const root = document.createElement('div'), thread = conversation();
-  thread.model = { name: 'Model' };
-  thread.attempts[0].execution = { placement: 'local-webgpu', timing: { generatedTokenCount: 10, totalMs: 1000, firstTokenMs: 250, prefillMs: 200, decodeMs: 800 } };
   thread.attempts.push({ id: 'later', status: 'completed', execution: { placement: 'two-device-layer-partition', participantA: 'a', participantB: 'b' } });
   thread.messages.push({ id: 'later-reply', role: 'assistant', attemptId: 'later', content: 'Later answer' });
-  const view = createMessageList(root);
   view.update(thread, { usable: true, busy: false });
-  const first = root.querySelector('[data-message-id="reply"]'), second = root.querySelector('[data-message-id="later-reply"]');
-  expect(first.querySelector('.chat-message-meta').textContent).toContain('10.0 tok/s');
-  expect(first.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toContain('1 computer');
-  expect(root.querySelector('[popover]')).toBeNull();
-  expect(second.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toContain('2 computers · Partitioned');
-  expect(second.textContent).not.toContain('tok/s');
-  expect(second.textContent).not.toContain('First token');
+  expect(root.querySelector('[data-message-id="reply"] [data-execution-trigger]').getAttribute('aria-description')).toContain('1 computer');
+  expect(root.querySelector('[data-message-id="later-reply"] [data-execution-trigger]').getAttribute('aria-description')).toContain('2 computers · Partitioned');
+  expect(root.textContent).not.toContain('tok/s');
+  const measured = answerDetails(thread).textContent;
+  expect(measured).toContain('Qwen 27B');
+  expect(measured).toContain('18.4 tok/s');
+  expect(measured).toContain('Output tokens92');
+  expect(measured).toContain('Generation total5.00 s');
+  expect(answerDetails(thread, thread.attempts[1]).textContent).not.toContain('Output tokens');
+  thread.attempts[0].execution.timing = { generatedTokenCount: -1, totalMs: NaN };
+  expect(answerDetails(thread).textContent).not.toContain('Output tokens');
   view.dispose();
 });
-
 
 it('keeps retrieval failure and retry controls outside model output, with no empty copy action', () => {
   const root = document.createElement('div'), thread = conversation();
