@@ -544,6 +544,11 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const textParticipant = Object.freeze({
     roomId: config.roomId,
     executionClass: 'private-pool',
+    partitionOutputLimit(model) {
+      const entry = config.models.find(entry => entry.mode === 'partition' && entry.model.id === model.id && entry.model.identity === model.identity
+        && (!entry.model.partitionPlanId || entry.model.partitionPlanId === model.partition?.planId));
+      return Math.min(config.maxOutputTokens, entry?.model.generation?.maxTokens ?? config.maxOutputTokens);
+    },
     getState: () => participant?.getState() ?? { models: [] },
     generate: (request, controls) => {
       assert(participant && !closed && !preparing, 'Requester unavailable');

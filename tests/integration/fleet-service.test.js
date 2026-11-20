@@ -7,6 +7,7 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
+import { startFleetTextApi } from '../../server/fleet/text-api.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
@@ -333,6 +334,119 @@ async function chargedRoute(options = {}) {
   client = createFleetClient({ url: service.url, identity: keys[0], outboxFile: path.join(root, 'outbox.json') });
   return route;
 }
+async function privateSplitApi() {
+  let route;
+  route = await chargedRoute({ beforeReserve: async (request, index) => {
+    const provider = createFleetClient({ url: service.url, identity: keys[index + 1] });
+    await createFleetExecutionAdmission({ credits: provider, model: route.model }).partition(request);
+  } });
+  const selected = route.model;
+  const approval = { modelId: selected.id, modelIdentity: selected.identity, adapterIdentities: [],
+    partition: structuredClone(selected.partition), evidence: 'fixture://two-signed-residents' };
+  let advertised = selected, replaceAtDispatch = false;
+  const generate = vi.fn(route.requester.generate);
+  const token = 'test-only-private-fleet-authorization-token';
+  const host = { identity: keys[0], allowsModel: model => model.identity === selected.identity,
+    enrolledRecipients: async () => new Set(keys.slice(1).map(key => key.peerId)),
+    textParticipant: { executionClass: 'private-pool', partitionOutputLimit: () => 3, getState: () => ({ models: [advertised] }), generate },
+    runAccountedGeneration(request, controls, execute) {
+      if (replaceAtDispatch) advertised = { ...selected, partition: { ...selected.partition, planId: 'another-plan' } };
+      return createFleetRequester({ participant: { generate: execute }, identity: keys[0], credits: client, maxOutputTokens: 3 }).generate(request, controls);
+    } };
+  const headers = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
+  const api = await startFleetTextApi({ host, token, privatePartitionApprovals: [approval] });
+  const send = (body, options) => fetch(api.url + '/chat/completions', { method: 'POST', headers,
+    body: JSON.stringify({ model: selected.id, messages: [{ role: 'user', content: 'test' }], ...body }), ...options });
+  return { route, generate, send, replace() { replaceAtDispatch = true; },
+    list: async () => (await (await fetch(api.url + '/models', { headers })).json()).data,
+    async close() { await api.close(); await route.close(); } };
+}
+
+it('lists and streams an operator-approved split with a single signed settlement and a plain chat default', async () => {
+  const f = await privateSplitApi();
+  const { send, generate } = f;
+  try {
+    expect((await f.list()).map(row => row.id)).toEqual([f.route.model.id]);
+    const response = await send({ stream: true, max_completion_tokens: 2 });
+    const stream = await response.text();
+    expect(response.status, stream).toBe(200);
+    expect(stream).toContain('[DONE]');
+    expect(stream.split('\n\n').filter(frame => frame.startsWith('data: {')).map(frame =>
+      JSON.parse(frame.slice(6)).choices[0].delta.content || '').join('')).toBe('01');
+    const reservationId = response.headers.get('x-reploid-reservation-id');
+    const settled = await client.call('request', { id: reservationId });
+    expect(settled.evidence.receipts).toHaveLength(2);
+    expect(settled.outcome.charge).toBe(2);
+    expect((await client.call('recover', { id: reservationId })).charge).toBe(2);
+    expect(credits.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-2, 0], [1, 0], [1, 0]]);
+
+    expect((await send({ max_completion_tokens: 4 })).status).toBe(400);
+    expect(generate).toHaveBeenCalledTimes(1);
+    const plain = await send({});
+    const answer = await plain.json();
+    expect(plain.status, JSON.stringify(answer)).toBe(200);
+    expect(answer.choices[0].message.content).toBe('012');
+
+    f.replace();
+    expect((await send({})).status).toBe(503);
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect(await f.list()).toEqual([]);
+  } finally { await f.close(); }
+});
+
+it.each(['resident', 'adapters'])('rejects changed %s at disclosure even when both physical peers remain enrolled', async change => {
+  const f = await privateSplitApi();
+  try {
+    f.generate.mockImplementationOnce((request, controls) => f.route.requester.generate(request, {
+      ...controls, requestApproval(preview) {
+        const changed = structuredClone(preview);
+        if (change === 'resident') changed.route.stages[1].residentId = 'new-resident';
+        else changed.adapterIdentities = ['sha256:' + '5'.repeat(64)];
+        return controls.requestApproval(changed);
+      }
+    }));
+    const response = await f.send({});
+    expect(response.status).toBe(403);
+    expect(credits.snapshot().accounts.every(row => row.balance === 0 && row.held === 0)).toBe(true);
+    expect(f.route.residents.map(stage => stage.getState().reservations.active)).toEqual([0, 0]);
+  } finally { await f.close(); }
+});
+
+it('releases both residents after an HTTP disconnect and charges only the acknowledged token', async () => {
+  const f = await privateSplitApi();
+  const gate = f.route.hold(1, 1);
+  try {
+    const abort = new AbortController();
+    const response = await f.send({ stream: true }, { signal: abort.signal });
+    const id = response.headers.get('x-reploid-reservation-id');
+    const reader = response.body.getReader();
+    expect(new TextDecoder().decode((await reader.read()).value)).toContain('0');
+    await gate.entered;
+    abort.abort();
+    await vi.waitFor(() => expect(credits.request(id).state).toBe('settled'));
+    expect(credits.request(id).outcome.outputTokens).toBe(1);
+    expect(f.route.residents.map(stage => stage.getState().reservations.active)).toEqual([0, 0]);
+    const next = await f.send({});
+    expect(next.status, await next.text()).toBe(200);
+  } finally { gate.release(); await f.close(); }
+});
+
+it('fails a dropped stage over HTTP and admits a later request while missing closing evidence is reconciled', async () => {
+  const f = await privateSplitApi();
+  try {
+    f.route.loseStage(1, 0);
+    const failed = await f.send({});
+    expect(failed.status).toBe(502);
+    expect((await failed.json()).error.message).toBeTruthy();
+    const id = failed.headers.get('x-reploid-reservation-id');
+    expect(credits.request(id).state).toBe('closing');
+    expect(credits.snapshot().journal).toHaveLength(0);
+    expect(f.route.residents[0].getState().reservations.active).toBe(0);
+    const next = await f.send({});
+    expect(next.status, await next.text()).toBe(200);
+  } finally { await f.close(); }
+});
+
 const routeRequest = (route, attemptId) => ({ model: route.model, threadId: 'thread', attemptId, messages: [{ role: 'user', content: 'test' }] });
 
 it.each(['0', '2'])('settles the acknowledged prefix when cancellation races with delta %s', async delta => {

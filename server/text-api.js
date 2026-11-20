@@ -1,28 +1,34 @@
-import { availablePartitionRoute, currentPartitionRoute } from '../apps/poolday/host/partition-release.js';
+import { availablePartitionRoute, currentPartitionRoute, matchesPartitionDisclosure } from '../apps/poolday/host/partition-release.js';
 /** One authenticated HTTP surface over a borrowed requester. Production execution
  * must be wrapped by the accounting owner; test execution is explicitly unbilled. */
 import { createChatCompletions } from './chat-completions.js';
 import { createResponses } from './responses.js';
 import { createMessages } from './messages.js';
 import { createTextRecovery, TEXT_RECOVERY_PATH } from './text-recovery.js';
-import { partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 export const TEXT_API_PATHS = Object.freeze(['/v1/chat/completions', '/v1/responses', '/v1/messages', '/v1/models', TEXT_RECOVERY_PATH]);
-export function createTextApi({ participant, authenticate, authorize, accounting, production = true, allowUnbilledTest = false, statelessPrefixCache = undefined }) {
+export function createTextApi({ participant, authenticate, authorize, accounting, production = true, allowUnbilledTest = false, statelessPrefixCache = undefined, privatePartitionApprovals }) {
   if (!participant || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text API requires requester authentication and authorization');
   if (typeof accounting?.run !== 'function' && (production || !allowUnbilledTest)) throw Error('Text API requires accounted execution; unbilled tests must be explicit');
   if (accounting && typeof accounting.run !== 'function') throw Error('Invalid text API accounting port');
+  if (privatePartitionApprovals !== undefined && (participant.executionClass !== 'private-pool'
+    || !Array.isArray(privatePartitionApprovals) || typeof accounting?.run !== 'function')) {
+    throw Error('Private partition approvals require an accounted private fleet');
+  }
+  // Operator configuration is held for this API instance. Discovery and HTTP requests cannot extend it.
+  const approvals = structuredClone(privatePartitionApprovals);
   const assertRoute = request => {
-    if (request.model.partition && !currentPartitionRoute(request.model, participant.getState().models || [])) {
-      throw Object.assign(Error('Selected distributed route is unavailable or not qualified for public use'), { status: 503 });
+    if (request.model.partition && !currentPartitionRoute(request.model, participant.getState().models || [], approvals)) {
+      throw Object.assign(Error('Selected distributed route is unavailable or not qualified for this API'), { status: 503 });
     }
   };
   const execute = (request, controls) => { assertRoute(request); return participant.generate(request, controls); };
   const requester = { ...participant,
     getState() {
       const state = participant.getState();
-      return { ...state, models: (state.models || []).filter(model => !model.partition || availablePartitionRoute(model)) };
+      return { ...state, models: (state.models || []).filter(model => !model.partition || availablePartitionRoute(model, approvals)) };
     },
     generate(request, controls) {
       assertRoute(request);
@@ -30,7 +36,15 @@ export function createTextApi({ participant, authenticate, authorize, accounting
         : execute(request, controls);
     }
   };
-  const options = { participant: requester, authenticate, authorize,
+  const options = { participant: requester, authenticate,
+    async authorize(check) {
+      if (check.action === 'chat.disclose' && check.request.model.partition) {
+        assertRoute(check.request);
+        if (!matchesPartitionDisclosure(check.request.model.partition, check.preview)
+          || canonicalPartitionJson(check.preview.adapterIdentities ?? []) !== canonicalPartitionJson(partitionAdapterIdentities(check.request.model))) return false;
+      }
+      return authorize(check);
+    },
     ...(typeof statelessPrefixCache === 'boolean' ? { statelessPrefixCache } : {}) };
   const completions = createChatCompletions(options), responses = createResponses(options), messages = createMessages(options);
   const recovery = createTextRecovery({ participant, authenticate, authorize, accounting });
@@ -62,7 +76,7 @@ export function createTextApi({ participant, authenticate, authorize, accounting
         }
         signal.throwIfAborted();
         const rows = (requester.getState().models || []).filter(model => !model.canonical
-          && (model.partition ? availablePartitionRoute(model) : ['ready', 'busy'].includes(model.availability) && model.providerIds?.length));
+          && (model.partition ? availablePartitionRoute(model, approvals) : ['ready', 'busy'].includes(model.availability) && model.providerIds?.length));
         const variants = new Map();
         for (const model of rows) {
           const value = { id: model.selectionId || model.id, object: 'model', owned_by: 'reploid',

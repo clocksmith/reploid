@@ -315,3 +315,20 @@ identities against the coordinator's enrolled computers (and optional
 `allowedRecipients`), and reserves and settles non-cash service credits before
 publishing `reploid.http-execution/v1`. Signing keys and room tokens remain on
 the native host.
+
+
+To serve a qualified split through this API, put an array of operator-reviewed
+records in `textApi.privatePartitionApprovals`. Each record uses the same fields
+as a [partition release](partition-releases.md): `modelId`, `modelIdentity`,
+`adapterIdentities`, the complete ordered `partition` descriptor, and an
+`evidence` reference. Review the exact plan and signed participant, transport,
+resident and execution identities on each stage. Configure the matching plan
+and stage credit weights on the fleet service. All stage providers must be
+enrolled and, when specified, included in `allowedRecipients`.
+
+The private API lists the approved route in `GET /v1/models` while it is ready
+or busy. Submit the listed ID to `POST /v1/chat/completions` with `messages`
+and optional `stream` and `max_completion_tokens`. A bare base model ID
+continues to prefer available whole-model providers. Approval is local to the
+configured fleet host and is checked again before dispatch. A changed stage
+requires a new review. Public route approval is managed separately.

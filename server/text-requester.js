@@ -178,14 +178,31 @@ export function createTextRequester({ participant, authenticate, authorize, stat
           threadId = derived;
         }
       }
-      const requested = requireGenerationCapability(model, input.generationRequest);
+      let generation = input.generationRequest;
       // Settings are refused here, before execution is authorized or anything is disclosed, when the
       // selected route does not advertise them. A request without settings carries no settings key.
       let settings;
       try {
         settings = normalizeGenerationSettings(input.settings);
+        if (model.partition) {
+          // An ordered stage enforces its native token ceiling. Pin the same ceiling in the
+          // admitted HTTP request, the disclosure preview, and the service-credit quote.
+          const fleetLimit = participant.partitionOutputLimit?.(model);
+          const limit = fleetLimit == null ? undefined : Math.min(fleetLimit, model.generation?.maxTokens ?? fleetLimit);
+          if (model.textGeneration && settings?.maxOutputTokens != null && !settings.tools.length && !settings.outputSchema && settings.thinking === null) {
+            generation = { schema: 'reploid.partition-generation-request/v1', usage: 'raw-model-tokens/v1', maxOutputTokens: settings.maxOutputTokens };
+            settings = undefined;
+          } else if (!generation && limit != null) {
+            generation = { schema: 'reploid.partition-generation-request/v1', usage: 'raw-model-tokens/v1',
+              maxOutputTokens: limit };
+          }
+          if (limit != null && generation?.maxOutputTokens > limit) {
+            throw fail(400, 'Caller output limit exceeds the prepared model or fleet policy', 'maxOutputTokens');
+          }
+        }
         assertSettingsSupported(model.generationSettings, settings);
       } catch (error) { throw fail(400, error.message, error.param ?? null); }
+      const requested = requireGenerationCapability(model, generation);
       const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}),
         ...(settings ? { settings } : {}) });
       // A partition route always observes its input tokens before text. A whole-model provider may
