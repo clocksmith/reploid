@@ -20,14 +20,23 @@ async function checkRuntime() {
   return `${version} matches the pinned version`;
 }
 
-async function checkAdapter() {
+export async function inspectNativeAdapter() {
   const { create } = await import('webgpu');
   const backend = process.platform === 'darwin' ? 'metal' : 'vulkan';
   const gpu = create(['backend=' + backend]);
   const adapter = await gpu.requestAdapter();
   if (!adapter) throw Error(`no ${backend} adapter found; check the GPU driver and the optional webgpu package`);
   const name = adapter.info?.description || adapter.info?.device || adapter.info?.vendor || 'adapter available';
-  return `${backend}, ${name}`;
+  const limits = adapter.limits;
+  return { backend, name, shaderF16: adapter.features?.has('shader-f16') ?? null,
+    maxBufferSize: limits?.maxBufferSize ?? null, maxStorageBufferBindingSize: limits?.maxStorageBufferBindingSize ?? null,
+    maxStorageBuffersPerShaderStage: limits?.maxStorageBuffersPerShaderStage ?? null };
+}
+
+async function checkAdapter() {
+  const adapter = await inspectNativeAdapter();
+  const binding = adapter.maxStorageBufferBindingSize == null ? '' : `, max storage binding ${adapter.maxStorageBufferBindingSize} B`;
+  return `${adapter.backend}, ${adapter.name}${binding}`;
 }
 
 async function checkSignaling(signalingUrl, origin) {

@@ -19,3 +19,35 @@ The host filters choices before the UI renders them. A saved partition selection
 is checked again before dispatch, including after asynchronous accounting admission;
 a changed or missing route fails explicitly rather than substituting another model
 or provider. Completed-answer records remain historical execution evidence.
+
+
+## Checking a memory-expanding private split
+
+For the catalogued untied 27B plan, run the offline source qualification on a
+computer already holding its weight files:
+
+```sh
+node tests/fixtures/partition-source-preflight.mjs qwen-3-8-27b-text-q4k-ef16-af32 "$WEIGHTS"
+```
+
+This validates the installed Doppler plan and catalog identities, counts each
+stage's tensor spans, verified pieces and whole shard files, and reads a bounded
+sample from each stage through the native verified storage reader. Each sample
+opens with the other stage's shard absent. The fixture uses sparse scratch files
+and leaves existing weights untouched.
+
+On each proposed contributor, record physical GPU heaps, binding limits, shader
+features, active services and the result of a normal whole-model open with the
+same identity, context and decoding settings. A shared-memory adapter's binding
+limit applies to one buffer. Doppler can divide a large embedding across several
+buffers. An operator-selected allocation cap or other work occupying the GPU does
+not establish a physical limit.
+
+After verifying both whole-model limits, configure the enrolled requester with
+the exact approved ordered route and stage credit weights as described in
+[the fleet API guide](fleet-service.md). Request the split selection shown in its
+authenticated `GET /v1/models`. Compare greedy token IDs to the frozen reference,
+record the model/plan and both physical stage identities, then interrupt a new
+stream and drop a stage in a separate request. Check the stage cleanup,
+reservation outcomes, and a subsequent successful request on the surviving
+provider when the route is available again.
