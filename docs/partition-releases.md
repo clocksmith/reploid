@@ -36,6 +36,12 @@ sample from each stage through the native verified storage reader. Each sample
 opens with the other stage's shard absent. The fixture uses sparse scratch files
 and leaves existing weights untouched.
 
+To inventory the exact ranges before transferring weights, replace the weight
+directory argument with `--piece-inventory`. This reads the packaged manifest
+and piece index and emits the model, plan, index digest and the stage assignment
+for each range. An inventory accounts for the required bytes. A receiver still
+has to hash every range it actually acquires and report its source.
+
 On each proposed contributor, record physical GPU heaps, binding limits, shader
 features, active services and the result of a normal whole-model open with the
 same identity, context and decoding settings. A shared-memory adapter's binding
