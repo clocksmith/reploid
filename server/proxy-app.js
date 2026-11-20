@@ -22,6 +22,7 @@ import { createExternalBrainRouter } from './external-brain.js';
 import { mountEarningRoutes } from './earning-routes/mount.js';
 import { mountTextApi } from './text-api-mount.js';
 import { mountSearchRoutes } from './search/mount.js';
+import { mountLandingAttribution } from './landing-attribution.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
 import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
 import { createChangeControlAuthenticator, parseChangeControlTokenConfig } from './change-control/auth.js';
@@ -364,6 +365,9 @@ const externalBrain = process.env.REPLOID_EXTERNAL_BRAIN === 'true'
   ? createExternalBrainRouter()
   : null;
 if (externalBrain) app.use('/api/external-brain', externalBrain.router);
+
+// This public feature owns its 64-byte parser, independent of generic CORS/JSON.
+mountLandingAttribution(app);
 
 // Middleware to parse JSON bodies
 installJsonBodyMiddleware(app, {

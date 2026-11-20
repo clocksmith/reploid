@@ -4264,7 +4264,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:8c2be96a913ec375e8089ec1c5629d9b14350ff2d27d2420f4f27e0c3c60d9aa",
+      "sha256": "sha256:a25b0c1c162f63a77a10010e84b43778c30348fbd6d5375ef8d44a1eb5d57a9c",
       "imports": []
     },
     {
@@ -4420,7 +4420,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:f3ee61f8dc2dbcf8c121d1185c6c11e712a587bafffb82fb5b3d2edecddf96ae",
+      "sha256": "sha256:cf0669b16b33e1768371d033f7611c4a4504ac39891683cc169a90857c9f836d",
       "imports": [
         "../../config/work-profile.json",
         "../../vendor/reploid/chat/execution-policy.js",
@@ -4441,6 +4441,7 @@
         "./message-list.js",
         "./network-inspector.js",
         "./privacy-controls.js",
+        "./web-search-settings.js",
         "./workspace-navigation.js"
       ]
     },
@@ -5302,7 +5303,7 @@
     {
       "path": "ui/pool-home/web-search-settings.js",
       "owner": "ui",
-      "sha256": "sha256:29cd83aca2679389d8aab3548d3f11c23b1b000d9c5c5cd947910f247a6ea1a8",
+      "sha256": "sha256:4e00cffa816463eea74cfce5f44218ccdf5fac89f8d4065b3197638f4451f03f",
       "imports": []
     },
     {
