@@ -9,10 +9,10 @@ const [fixtureBytes, header, body, input, output] = await Promise.all(
   [fixture, headers, stream, inputFile, outputFile].map(file => readFile(file)));
 const attempts = [...header.toString().matchAll(/^x-reploid-attempt-id:[ \t]*(\S+)[ \t]*\r?$/gmi)];
 assert.equal(attempts.length, 1, 'Require one HTTP attempt header');
-const terminal = body.toString().split(/\r?\n\r?\n/).filter(frame => /^event: response\.completed\r?$/m.test(frame));
-assert.equal(terminal.length, 1, 'Require one completed response');
+const terminal = body.toString().split(/\r?\n\r?\n/).filter(frame => /^event: response\.(?:completed|incomplete)\r?$/m.test(frame));
+assert.equal(terminal.length, 1, 'Require one terminal response');
 const data = terminal[0].split(/\r?\n/).find(line => line.startsWith('data: '));
 const event = JSON.parse(data.slice(6));
-assert.equal(event.type, 'response.completed');
+assert(terminal[0].startsWith('event: ' + event.type + '\n') || terminal[0].startsWith('event: ' + event.type + '\r\n'));
 console.log(JSON.stringify(verifyStageTokenWitnesses({ fixtureBytes, httpAttemptId: attempts[0][1],
   response: event.response, input: JSON.parse(input), output: JSON.parse(output) })));

@@ -14,9 +14,18 @@ const peerId = id => typeof id === 'string' && /^peer:[0-9a-f]{24}$/.test(id);
 
 function referenceTokens(fixture) {
   const reference = fixture.reference;
-  assert(validIds(reference?.inputIds, 4096) && Array.isArray(reference.visibleOutputIds)
+  assert(validIds(reference?.inputIds, 4096)
     && Number.isSafeInteger(fixture.maxOutputTokens) && fixture.maxOutputTokens > 0 && fixture.maxOutputTokens <= 256);
-  const selected = [...reference.visibleOutputIds, reference.stopId];
+  let selected;
+  if (reference.stopReason === 'max-tokens') {
+    assert(validIds(reference.outputIds, fixture.maxOutputTokens) && reference.outputIds.length === fixture.maxOutputTokens
+      && reference.stopId === undefined && reference.visibleOutputIds === undefined, 'A capped reference must contain exactly the requested sample count');
+    selected = reference.outputIds;
+  } else {
+    assert(reference.stopReason === undefined && Array.isArray(reference.visibleOutputIds)
+      && reference.outputIds === undefined, 'Expected a frozen stop-token reference');
+    selected = [...reference.visibleOutputIds, reference.stopId];
+  }
   assert(validIds(selected, fixture.maxOutputTokens) && fixture.messages?.length > 0);
   return { promptCount: reference.inputIds.length, promptDigest: digest(reference.inputIds),
     sampleCount: selected.length, sampleDigest: digest(selected) };
@@ -111,10 +120,12 @@ export async function openStageTokenWitness(options, { roomId, participantId }) 
 }
 
 export function verifyStageTokenWitnesses({ fixtureBytes, httpAttemptId, response, input, output }) {
+  const fixture = JSON.parse(fixtureBytes), capped = fixture.reference.stopReason === 'max-tokens';
   const evidence = response?.reploid;
-  assert(response?.status === 'completed' && evidence?.attemptId === httpAttemptId && typeof httpAttemptId === 'string'
-    && httpAttemptId.length > 0, 'Require the completed HTTP response and its matching attempt header');
-  const fixture = JSON.parse(fixtureBytes), target = referenceTokens(fixture), execution = evidence.execution;
+  assert((capped ? response?.status === 'incomplete' && response.incomplete_details?.reason === 'max_output_tokens'
+    : response?.status === 'completed') && evidence?.attemptId === httpAttemptId && typeof httpAttemptId === 'string'
+    && httpAttemptId.length > 0, 'Require the matching terminal HTTP response and attempt header');
+  const target = referenceTokens(fixture), execution = evidence.execution;
   const binding = canonicalRouteAttemptBinding(execution.identity), route = binding.route;
   assert(evidence.executionClass === 'private-pool' && binding.attemptId === httpAttemptId && binding.threadId === evidence.threadId
     && route.modelId === fixture.modelId && route.modelIdentity === fixture.modelIdentity && evidence.modelIdentity === route.modelIdentity
@@ -136,7 +147,8 @@ export function verifyStageTokenWitnesses({ fixtureBytes, httpAttemptId, respons
   assert.equal(input.generation.maxTokens, fixture.maxOutputTokens);
   assert.equal(output.sampleCount, target.sampleCount);
   assert.equal(output.sampleDigest, target.sampleDigest, 'Sampled token or stop token mismatch');
-  assert(['eos-token', 'stop-token'].includes(output.stopReason) && execution.stopReason === output.stopReason, 'Unexpected terminal reason');
+  assert((capped ? output.stopReason === 'max-tokens' : ['eos-token', 'stop-token'].includes(output.stopReason))
+    && execution.stopReason === output.stopReason, 'Unexpected terminal reason');
   if (execution.schema === 'reploid.mesh.partition-summary/v2') {
     assert.equal(execution.stepSummary.count, target.sampleCount);
     assert.equal(execution.stepSummary.phases.prompt.inputTokens, target.promptCount);

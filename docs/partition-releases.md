@@ -149,3 +149,11 @@ jq -e '.exact and .generation.maxTokens == 4 and .generation.temperature == 0 an
 Stage zero records SHA-256 over the canonical JSON token array returned by the tokenizer and the prompt array consumed by its first execution step. The final stage records its actual prefill and successive sampled tokens, including the invisible stop. The two files contain counts, digests, sampling settings, and attempt bindings. Each file is created once with mode 0600. A fresh attempt needs fresh paths and a fresh conversation ID.
 
 The verifier checks the complete HTTP route and terminal answer, the stop reason, both token counts, and both operators’ observations against the reference. Remote ordered HTTP returns aggregate step counts. The full per-token output digest comes from the final resident. For this 27B reference there are 85 prompt IDs and 3 selected IDs, including the stop. The decoded answer is `22` and the task’s correct answer is `26`. This procedure assumes an honest operator on both hosts. A matching observation establishes numerical agreement for this single execution. Physical memory eligibility, general answer quality, cancellation and settlement require their own evidence.
+
+A deliberately length-limited control can declare `reference.stopReason` as
+`max-tokens` and supply `reference.outputIds` containing exactly
+`maxOutputTokens` actual selected IDs. Omit `stopId` and `visibleOutputIds`
+for that case. The verifier then requires an HTTP `response.incomplete` event
+with `incomplete_details.reason` equal to `max_output_tokens`, plus the
+resident's `max-tokens` terminal reason. Reference fixtures with a model stop
+ID still require a completed HTTP response and the actual sampled stop.
