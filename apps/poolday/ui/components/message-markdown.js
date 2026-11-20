@@ -1,4 +1,6 @@
 /** Bounded Markdown presentation. No HTML evaluation or execution; reconcile existing DOM. */
+import { interfaceIcon } from './interface-icons.js';
+
 const text = value => ({ text: value });
 const element = (tag, children, attrs = {}) => ({ tag, children, attrs });
 const literal = value => element('span', [text(value)]);
@@ -41,7 +43,11 @@ function parse(value, targets) {
     if (/^```/.test(line)) {
       const code = []; i++; while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
       if (i < lines.length) { code.push(''); i++; }
-      blocks.push(element('pre', [element('code', [text(code.join('\n'))]), element('button', [text('Copy code')], { type: 'button', class: 'pool-button', 'data-copy-code': '' })], { 'data-text-block': '' }));
+      blocks.push(element('div', [
+        element('pre', [element('code', [text(code.join('\n'))])], { class: 'pool-bare' }),
+        { ...element('button', [], { type: 'button', class: 'pool-button btn-ghost pool-icon',
+          'data-copy-code': '', 'aria-label': 'Copy code', 'data-help': 'Copy code' }), icon: 'copy' }
+      ], { 'data-text-block': '', class: 'chat-code-block pool-well' }));
     } else if (/^#{1,6}\s+/.test(line)) {
       const [, marks, content] = line.match(/^(#{1,6})\s+(.*)$/); blocks.push(element('h' + marks.length, inline(content, targets), { 'data-text-block': '' })); i++;
     } else if (tableRule(lines[i + 1])) {
@@ -79,7 +85,8 @@ function reconcile(parent, descriptions) {
     if (!item.tag) { updateText(node, item.text); return; }
     for (const attr of [...node.attributes]) if (!(attr.name in item.attrs)) node.removeAttribute(attr.name);
     for (const [key, value] of Object.entries(item.attrs)) if (node.getAttribute(key) !== value) node.setAttribute(key, value);
-    reconcile(node, item.children);
+    if (item.icon) { if (!node.firstChild) node.innerHTML = interfaceIcon(item.icon); }
+    else reconcile(node, item.children);
   });
   while (parent.childNodes.length > descriptions.length) parent.lastChild.remove();
 }

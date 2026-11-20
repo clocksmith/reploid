@@ -5,7 +5,6 @@ import contextPolicy from '../../config/chat-context-policy.json' with { type: '
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { renderControlHelp, renderHelpButton } from '../components/control-help.js';
 import { workspaceHref } from './workspace-navigation.js';
-import { renderContextIndicator } from './context-indicator.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog } from './network-inspector.js';
 import { renderBrandLink } from './shell-view.js';
@@ -45,6 +44,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
             <label>Word cap <select class="pool-input" data-context-cap aria-label="Context prompt word cap">${contextPolicy.wordLimits.map(limit => `<option value="${limit}">${limit}</option>`).join('')}</select></label>
             <p class="chat-setup-hint pool-small pool-muted" data-context-count></p><p class="chat-setup-hint pool-small pool-muted" data-context-preview></p>
           </fieldset>
+          ${renderHelpButton()}
         </div></details>
       </div>
     </section>
@@ -66,7 +66,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <div class="chat-composer-notices">
           <button class="pool-button btn-ghost pool-caption" type="button" data-queue-send hidden>Send when ready</button>
           <button class="pool-button btn-ghost pool-caption" type="button" data-cancel-queued-send hidden>Keep as draft</button>
-          <button class="pool-button btn-ghost pool-caption" type="button" data-review-shared-model hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>${renderControlHelp()}
+          <button class="pool-button btn-ghost pool-caption" type="button" data-review-shared-model hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>
         </div>
         <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>TXT, Markdown, JSON, JS, TS, HTML and CSS. Up to ${workProfile.files.maxInputs}, ${workProfile.files.maxFileBytes / 1024} KB each, ${workProfile.files.maxInputBytes / 1024} KB total.</p>
@@ -74,22 +74,23 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
           <div class="chat-composer-toolbar">
-            <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach text files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
-            <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
-            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Change model" title="Change model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
-            <button type="button" class="pool-button btn-ghost pool-icon" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog" aria-label="Inference privacy" title="Inference privacy">${interfaceIcon('privacy')}</button>
-            ${renderContextIndicator()}
+            <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" data-help="Attach text files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
+            <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" data-help="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
+            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Change model" data-help="Change model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
+            <button type="button" class="pool-button btn-ghost pool-icon" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog" aria-label="Inference privacy" data-help="Inference privacy">${interfaceIcon('privacy')}</button>
           </div>
           <div class="chat-input-row">
             <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
             <div class="chat-composer-submit">
-              <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-describedby="chat-prompt-disclosure" aria-label="Send" title="Send">${interfaceIcon('send')}</button>
-              <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
+              <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-describedby="chat-prompt-disclosure" aria-label="Send" data-help="Send">${interfaceIcon('send')}</button>
+              <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" data-help="Stop" hidden>${interfaceIcon('stop')}</button>
             </div>
           </div>
           <p class="chat-setup-hint pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p>
         </div>
       </form></footer>
+      <span class="chat-visually-hidden" role="status" data-copy-status></span>
+      ${renderControlHelp()}
       ${renderPrivacyControls()}
       <dialog class="chat-model-setup pool-surface pool-small" data-rename-dialog aria-labelledby="chat-rename-title">
         <form data-rename-form><h2 class="pool-heading" id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
@@ -102,10 +103,18 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <div class="chat-model-picker-body">
         <p data-picker-thread-note hidden>A new model starts a new thread.</p>
         ${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
-        <p data-next-model-status role="status" hidden></p>
-        <button class="pool-button btn-ghost" type="button" data-switch-local hidden>Switch to this device</button>
         ${renderModelSelectionDetails()}</div>
-        <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-model-picker-close>Cancel</button><button class="pool-button btn-primary" type="button" data-change-model>Use model</button></div>
+        <footer class="chat-model-picker-footer">
+          <div class="chat-model-picker-progress" data-model-picker-progress data-progress="idle">
+            <p class="pool-small pool-muted" data-next-model-status role="status"></p>
+            <progress class="pool-progress" aria-label="Model preparation"></progress>
+          </div>
+          <div class="chat-model-picker-actions">
+            <button class="pool-button btn-ghost pool-small" type="button" data-switch-local hidden>Switch to this device</button>
+            <button class="pool-button btn-ghost" type="button" data-model-picker-close>Cancel</button>
+            <button class="pool-button btn-primary" type="button" data-change-model>Use model</button>
+          </div>
+        </footer>
       </dialog>
     </section>
     ${inspector ? renderModelSetupDialog() : ''}

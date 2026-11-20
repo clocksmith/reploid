@@ -1,20 +1,19 @@
 import { bindDialog } from './dialog.js';
 import { interfaceIcon } from './interface-icons.js';
 
-export const renderHelpButton = () => `<button class="pool-button btn-ghost pool-icon" type="button" data-open-control-help aria-label="Help" title="Help" aria-haspopup="dialog">${interfaceIcon('help')}</button>`;
-export const renderControlHelp = () => `${renderHelpButton()}<dialog class="chat-model-setup pool-surface pool-small" data-control-help aria-labelledby="chat-help-title">
+export const renderHelpButton = () => `<button class="pool-button btn-ghost pool-icon" type="button" data-open-control-help aria-label="Help" data-help="Help" aria-haspopup="dialog">${interfaceIcon('help')}</button>`;
+export const renderControlHelp = () => `<dialog class="chat-model-setup pool-surface pool-small" data-control-help aria-labelledby="chat-help-title">
   <header class="chat-network-heading"><h2 class="pool-heading" id="chat-help-title">Help</h2><button class="pool-button btn-ghost" type="button" data-close-control-help>Close</button></header>
   <dl class="pool-stack pool-gap-sm">
     <div><dt>Model</dt><dd>Choose who answers. Shared uses another computer; This device runs locally. Ready models can answer now. Model details shows providers and execution choices.</dd></div>
     <div><dt>Files</dt><dd>Attach text files to include them with your question. Sending to a shared model also sends that request’s contents to its computer.</dd></div>
     <div data-help-for="[data-search-toggle]"><dt>Search</dt><dd>Search the web for this answer. Turn it off to ask without web search.</dd></div>
-    <div data-help-for="[data-context-indicator]"><dt>Context</dt><dd>Open the context control to inspect execution details. A ring appears when the model reports context usage.</dd></div>
     <div data-help-for="[data-composer-stop],[data-answer-stop]"><dt>Progress and Stop</dt><dd>The animated status beside an answer shows its current stage. Tap it for details. Stop cancels that answer; any partial text stays.</dd></div>
     <div data-help-for="[data-execution-trigger]"><dt>Measurements</dt><dd>Open answer details to see recorded timings and token counts.</dd></div>
   </dl></dialog>`;
 
 let serial = 0;
-/** Shared hover/focus help; read-only measurements also open on tap. Action taps keep their action. */
+/** One shared hover and keyboard-focus tooltip. A tap keeps the control's action. */
 export function bindControlHelp(root) {
   const controller = new AbortController(), options = { signal: controller.signal };
   const doc = root.ownerDocument, tip = doc.createElement('div');
@@ -77,7 +76,6 @@ export function bindControlHelp(root) {
       dialog.open(dialogNode.querySelector('[data-close-control-help]'), help);
     }
     else if (event.target.closest('[data-close-control-help]')) dialog?.close();
-    else if (event.target.closest('.chat-message-metric')) show(event.target.closest('.chat-message-metric'));
     else hide();
   }, options);
   root.addEventListener('scroll', hide, { ...options, capture: true });

@@ -43,7 +43,7 @@
 .pool-home .pool-list > * + * { border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
 .pool-home .pool-prose :is(h1, h2, h3, h4, h5, h6) { font-size: var(--pool-text-lg); font-weight: var(--pool-weight-medium); }
 .pool-home .pool-prose a { color: inherit; text-decoration: underline; border-bottom: 0; }
-.pool-home .pool-prose pre { border-radius: var(--pool-radius-control); background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+.pool-home .pool-prose pre:not(.pool-bare) { border-radius: var(--pool-radius-control); background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-home .pool-prose :is(th, td) { border: var(--pool-border-hairline) solid var(--pool-color-line); }
 .pool-home .pool-bar { display: flex; gap: var(--pool-size-2); height: var(--pool-size-4); overflow: hidden; border-radius: var(--pool-radius-control); }
 .pool-home .pool-bar > span { flex: var(--pool-param-share) 1 0; background: var(--pool-color-ink); }
