@@ -97,14 +97,14 @@ test('reviews a reachable alternate model before changing the public destination
   const status = page.locator('[data-model-status]'), review = page.locator('[data-review-shared-model]');
   const picker = page.locator('[data-model-picker]'), apply = page.locator('[data-change-model]');
   const source = page.locator('[data-composer-model-source]');
-  await expect(status).toContainText('No eligible computer found');
+  await expect(status).toContainText('No ready computer');
   await page.evaluate(() => window.firstVisitor.alternate(false));
   await expect(review).toBeHidden();
   await page.evaluate(() => window.firstVisitor.alternate(true));
   await expect(review).toBeVisible();
   await review.click();
   await expect(picker).toBeVisible();
-  await expect(source).toHaveText(' · Unavailable');
+  await expect(source).toHaveText(' · Public network');
   await page.evaluate(() => window.firstVisitor.alternate(false));
   await expect(apply).toBeDisabled();
   await page.locator('[data-model-picker-close]').click();

@@ -23,7 +23,7 @@ export function acquisitionProgress(value) {
   const total = Number.isFinite(value?.totalBytes) && value.totalBytes > 0 ? value.totalBytes : null;
   const mb = bytes => (bytes / 1e6).toFixed(1) + ' MB';
   // Doppler also emits phase percentages. Only measured byte totals justify a download percentage.
-  return { receivedBytes: received, totalBytes: total,
+  return { stage: value?.stage ?? null, receivedBytes: received, totalBytes: total,
     message: value?.stage === 'downloading' ? 'Downloading ' + (received === null ? 'model files' : mb(received))
       + (total && received !== null ? ' of ' + mb(total) + ' (' + Math.min(100, Math.floor(received / total * 100)) + '%)' : '') + '.'
       : value?.stage === 'download-complete' ? 'Verifying downloaded model files.' : 'Checking and preparing model files.' };

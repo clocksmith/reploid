@@ -51,7 +51,7 @@ it('distinguishes discovery in progress, a transport interruption and observed a
   expect(status.textContent).not.toMatch(/choose a shared model/i);
   expect(alternative.hidden).toBe(true);
   f.publish({ network: { ...observedDiscovery.network, connectionFailure: { peerId: 'departed-peer' } } });
-  expect(status.textContent).toContain('A peer connection failed. No eligible computer found');
+  expect(status.textContent).toContain('No ready computer · A peer connection failed');
   expect(alternative.hidden).toBe(true);
 });
 
@@ -82,7 +82,7 @@ it('names the pre-send destination as the selected model moves between local and
   expect(f.find('[data-composer-send]').getAttribute('aria-describedby')).toBe(note.id);
   expect(note.hidden).toBe(false);
   expect(note.textContent).toContain('A network provider could read your prompt');
-  expect(switcher.title).toBe('Change model');
+  expect(switcher.dataset.help).toBe('Change model');
   expect(switcher.getAttribute('aria-label')).toContain(model.name);
   f.publish({ ...observedDiscovery, models: [{
     ...model, localCached: true, availability: 'cached', networkAvailability: 'unavailable'
@@ -152,9 +152,9 @@ it('offers explicit local download after no usable peers and reuses the existing
   expect(f.api.downloadLocalModel).toHaveBeenCalledWith(CANONICAL_CHAT_MODELS[0].id, true);
 });
 it('does not let a perpetually preparing unusable peer hide the local fallback', () => {
-  const f = fixture(); f.publish({ ...observedDiscovery, models: [{ ...f.state().models[0], availability: 'loading' }] });
+  const f = fixture(); f.publish({ ...observedDiscovery, models: [{ ...f.state().models[0], availability: 'loading', networkAvailability: 'loading' }] });
   expect(f.find('[data-download-local]').hidden).toBe(false);
-  expect(f.find('[data-model-status]').textContent).toBe('Model preparing…');
+  expect(f.find('[data-model-status]').textContent).toBe('Preparing model…');
   expect(f.find('[data-composer-send]').disabled).toBe(true);
   expect(f.find('[data-acquisition-status]').hidden).toBe(true);
 });

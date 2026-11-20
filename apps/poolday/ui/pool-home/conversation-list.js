@@ -1,4 +1,6 @@
 import { bindDisclosure } from '../components/disclosure.js';
+import { interfaceIcon } from '../components/interface-icons.js';
+import { workspaceHref } from './workspace-navigation.js';
 import { projectThreadContext, renderContextRing, updateContextRing } from './context-indicator.js';
 
 const activityTime = thread => thread.attempts.at(-1)?.finishedAt ?? thread.attempts.at(-1)?.createdAt ?? thread.createdAt;
@@ -10,6 +12,12 @@ function relativeTime(timestamp, now) {
   const hours = Math.floor(minutes / 60);
   return hours < 24 ? `${hours}h` : `${Math.floor(hours / 24)}d`;
 }
+export function threadTitle(thread, getSources) {
+  const input = thread.messages.find(message => message.role === 'user')?.content;
+  const source = input && getSources?.(input);
+  return thread.title || thread.purpose || (source ? source.question.split('\n')[0] : input) || 'New thread';
+}
+
 /** Retain controls and keyboard focus when background conversations change. */
 export function createConversationList(list, seen = new Map(), { getSources, now = Date.now } = {}) {
   const rows = new Map(), menus = new Map();
@@ -29,12 +37,12 @@ export function createConversationList(list, seen = new Map(), { getSources, now
       for (const [index, thread] of visible.entries()) {
         let row = rows.get(thread.id), button = row?.querySelector('[data-thread-item-id]');
         if (!button) {
-          button = list.ownerDocument.createElement('button'); button.type = 'button';
-          button.className = 'chat-thread-item pool-button btn-ghost pool-activity-edge'; button.dataset.threadItemId = thread.id;
+          button = list.ownerDocument.createElement('a');
+          button.className = 'chat-thread-item pool-button btn-ghost pool-plain pool-activity-edge'; button.dataset.threadItemId = thread.id;
           button.innerHTML = `<span class="chat-thread-title pool-small"></span><small class="chat-thread-digest pool-caption pool-muted"></small><span class="chat-thread-shortcut pool-caption" aria-hidden="true">${renderContextRing()}<span data-thread-monogram></span><span class="chat-thread-mark pool-dot pool-dot-pulse" data-thread-working aria-hidden="true" hidden></span><span class="chat-thread-mark pool-dot" data-thread-unread aria-hidden="true" hidden></span><span class="chat-thread-mark pool-dot pool-dot-open" data-thread-attention aria-hidden="true" hidden></span></span><time class="chat-thread-time pool-caption pool-muted" hidden></time>`;
           row = list.ownerDocument.createElement('div'); row.className = 'chat-thread-row'; row.append(button);
           const menu = list.ownerDocument.createElement('details'); menu.className = 'chat-thread-menu';
-          menu.innerHTML = '<summary class="pool-button btn-ghost" aria-label="Thread actions">…</summary><div class="pool-surface"><button class="pool-button" type="button" data-rename-thread>Rename</button><button class="pool-button" type="button" data-archive-thread></button></div>';
+          menu.innerHTML = `<summary class="pool-button btn-ghost" aria-label="Thread actions">${interfaceIcon('more')}</summary><div class="pool-surface"><button class="pool-button" type="button" data-rename-thread>Rename</button><button class="pool-button" type="button" data-archive-thread></button></div>`;
           for (const action of menu.querySelectorAll('button')) action.dataset.threadId = thread.id;
           menus.set(thread.id, bindDisclosure({ root: menu, trigger: menu.querySelector('summary'), panel: menu.querySelector('div'), native: true }));
           row.append(menu); rows.set(thread.id, row);
@@ -46,12 +54,12 @@ export function createConversationList(list, seen = new Map(), { getSources, now
           : ({ queued: 'Queued', loading: 'Loading', executing: 'Generating', approval: 'Permission needed',
             cancelled: 'Stopped', cancelling: 'Stopping', failed: 'Failed', interrupted: 'Interrupted',
             disconnected: 'Disconnected', recovering: 'Recovering' }[status] || status);
-        const firstInput = thread.messages.find(message => message.role === 'user')?.content;
-        const sources = firstInput && getSources?.(firstInput);
-        const title = thread.title || thread.purpose || (sources ? sources.question.split('\n')[0] : firstInput) || 'New thread';
+        const title = threadTitle(thread, getSources), current = thread.id === selectedId;
+        button.href = workspaceHref('chat', { threadId: thread.id });
         if (button.firstElementChild.textContent !== title) button.firstElementChild.textContent = title;
         const digest = button.querySelector('.chat-thread-digest');
-        const summary = label || thread.model?.name || 'New thread';
+        const summary = current ? (label && label !== 'Complete' ? `Current chat · ${label}` : 'Current chat')
+          : label || thread.model?.name || 'New thread';
         if (digest.textContent !== summary) digest.textContent = summary;
         button.querySelector('[data-thread-monogram]').textContent = Array.from(title.trim())[0]?.toUpperCase() || 'N';
         const context = projectThreadContext(thread, models);
@@ -63,13 +71,11 @@ export function createConversationList(list, seen = new Map(), { getSources, now
         time.hidden = !Number.isFinite(timestamp);
         if (!time.hidden) {
           time.dataset.timestamp = String(timestamp); time.dateTime = new Date(timestamp).toISOString();
-          time.title = `Last activity: ${new Date(timestamp).toLocaleString()}`;
           time.textContent = relativeTime(timestamp, now());
         }
         button.setAttribute('aria-label', `${title}: ${summary}${context.percent === null ? '' : `, last answer ${context.text} of advertised context`}`);
-        button.title = [title, summary, time.hidden ? '' : time.title, context.percent === null ? '' : context.usage].filter(Boolean).join('\n');
         button.dataset.activity = status === 'executing' ? 'executing' : 'idle';
-        button.setAttribute('aria-current', String(thread.id === selectedId));
+        button.setAttribute('aria-current', String(current));
         row.querySelector('summary').setAttribute('aria-label', `Actions for ${title}`);
         row.querySelector('[data-archive-thread]').textContent = archived ? 'Restore' : 'Archive';
         if (list.children[index] !== row) list.insertBefore(row, list.children[index] || null);

@@ -1,5 +1,6 @@
 /** Model-picker presentation only. Selection and execution remain with the caller. */
-import { isDownloadableBaseModel, updateModelSelect, modelExecutionState, modelFacts, unavailableModelChoice } from '../components/model-select.js';
+import { isDownloadableBaseModel, updateModelSelect, modelExecutionState, modelFacts, modelVariantKey, modelChoiceGroups, modelServingComputers, unavailableModelChoice } from '../components/model-select.js';
+import { preparationStatus } from './model-preparation.js';
 import { updateModelProviders } from './model-providers.js';
 import { updateAdapterDetails, describeModelChoice } from './model-adapters.js';
 
@@ -29,23 +30,90 @@ export function localFitText(model, info, { cached = false, sizeBytes = info?.si
   return `${cached ? 'Stored on this device' : 'Download: ' + size}${space}. ${memory}${fit} Usable context depends on the workload and available memory.`;
 }
 
-export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
-  touched: pickerTouched, changing: changingModel, selectedId, localOnly, canDownload }) {
-  const keyFor = model => model?.selectionId || model?.id;
-  if (!pickerTouched) pickerModel = (state.models || []).find(model => keyFor(model) === selectedId) || pickerModel;
-  const models = [...(state.models || [])];
-  const selected = (state.models || []).find(model => keyFor(model) === keyFor(pickerModel));
-  if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
-    models.push(selected || unavailableModelChoice(pickerModel));
+const keyFor = model => model?.selectionId || model?.id;
+const connectingPhases = new Set(['preparing', 'negotiating', 'connecting', 'awaiting-answer', 'opening-channel']);
+
+export function modelReadiness(state, model, location) {
+  const execution = modelExecutionState(model, location);
+  const { source, status } = execution;
+  const loadingHere = source === 'local' && state.localModel?.phase === 'loading'
+    && (!state.localModel.modelIdentity || state.localModel.modelIdentity === model?.identity);
+  const acquiring = state.acquisition?.modelId === model?.id && state.acquisition?.phase === 'downloading';
+  const preparing = (progress, label, phase = 'preparing') => ({ ...preparationStatus(progress), label, phase, active: true });
+  if (acquiring) {
+    const progress = state.acquisition.progress;
+    if (progress?.stage === 'download-complete') return { label: 'Verifying model files…', active: true };
+    if (progress?.stage === 'downloading' || Number.isFinite(progress?.receivedBytes)) {
+      return preparing({ ...progress, kind: 'downloading' }, 'Downloading model…', 'downloading');
+    }
+    return { label: 'Checking model files…', active: true };
   }
+  if (loadingHere) return preparing(state.localModel.progress, 'Preparing model…');
+  if (execution.usable) {
+    const count = source === 'network' ? modelServingComputers(model) : 0;
+    const computers = count ? ` · ${count} ${count === 1 ? 'computer' : 'computers'}` : '';
+    const route = source === 'local' ? ' · This device' : model?.partition ? ' · Split model' : '';
+    return { label: status === 'cached' ? 'Downloaded · This device' : `${status === 'busy' ? 'At capacity' : 'Ready'}${computers || route}` };
+  }
+  if (source === 'local') return { label: isDownloadableBaseModel(model) ? 'Download available' : 'Unavailable on this device' };
+  const network = state.network || {};
+  const connections = network.connections ?? network.consumer?.connections ?? [];
+  const matching = (network.consumer?.peers || []).filter(peer => !model?.fleet && !model?.partition && !peer.blocked
+    && peer.model === model?.id && peer.modelIdentity === model?.identity
+    && (model?.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
+  const partition = model && !model.fleet && !model.adapters?.length && (network.partitionPeers || []).find(peer => peer.available
+    && peer.description?.phase === 'loading' && peer.description.offer?.id === model.id
+    && peer.description.offer?.identity === model.identity
+    && (!model.partition || model.partition.route?.stages?.some(stage => stage.participantId === peer.participantId)
+      || [model.partition.participantA, model.partition.participantB].includes(peer.participantId)));
+  if (status === 'loading' || status === 'preparing' || partition) {
+    const peer = matching.find(peer => peer.readiness === 'loading'
+      && (!connections.length || connections.some(link => link.id === peer.peerId && link.phase === 'connected'
+        && (link.attemptId ?? null) === (peer.attemptId ?? null))));
+    return preparing(partition?.description.preparation || peer?.preparation, 'Preparing model…');
+  }
+  if (matching.some(peer => connections.some(link => link.id === peer.peerId && connectingPhases.has(link.phase)))) {
+    return { label: 'Connecting…', active: true };
+  }
+  if (state.discoveryPhase === 'searching') return { label: 'Finding computers…', active: true };
+  if (state.discoveryPhase === 'paused') return { label: 'Discovery paused' };
+  if (state.discoveryPhase === 'interrupted') return { label: 'Connection interrupted' };
+  return { label: 'No ready computer' };
+}
+
+export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
+  order, changing: changingModel, selectedId, localOnly, canDownload }) {
   const preferNetwork = pickerLocation !== 'local';
-  find('[data-next-model]').disabled = changingModel;
-  updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork, location: pickerLocation });
-  choices.update(models, { grouped: true, preferNetwork, location: pickerLocation, variants: true, compact: true, describe: describeModelChoice(state) });
-  // Exact variants remain selectable; provider and format facts stay in the disclosure.
-  updateAdapterDetails(find('[data-model-picker]'), state, selected || pickerModel);
-  updateModelProviders(find('[data-model-picker]'), state, selected || pickerModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
-  find('[data-model-facts]').textContent = (selected || pickerModel) ? describeModelChoice(state)(selected || pickerModel).facts || modelFacts(selected || pickerModel) : '';
+  const catalog = state.models || [];
+  if (!pickerModel) pickerModel = catalog.find(model => keyFor(model) === selectedId) || catalog[0];
+  const selection = keyFor(pickerModel);
+  const models = catalog.filter(model => keyFor(model) !== selection || modelVariantKey(model) === modelVariantKey(pickerModel));
+  const selected = models.find(model => keyFor(model) === selection);
+  if (!order.size) {
+    for (const { models: group } of modelChoiceGroups(models, { preferNetwork, location: pickerLocation })) {
+      for (const model of group) order.set(modelVariantKey(model), model);
+    }
+  }
+  for (const model of models) order.set(modelVariantKey(model), model);
+  const liveKeys = new Set(models.map(modelVariantKey));
+  for (const [key, model] of order) if (!liveKeys.has(key) && !catalog.some(item => keyFor(item) === keyFor(model))) {
+    models.push(unavailableModelChoice(model));
+  }
+  if (pickerModel && !selected && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
+    models.push(unavailableModelChoice(pickerModel));
+  }
+  const indices = new Map([...order.keys()].map((key, index) => [key, index]));
+  const rank = model => indices.get(modelVariantKey(model)) ?? indices.size;
+  models.sort((a, b) => rank(a) - rank(b));
+  const next = find('[data-next-model]');
+  next.disabled = changingModel;
+  updateModelSelect(next, models, { value: keyFor(pickerModel) });
+  choices.update(models, { preferNetwork, location: pickerLocation, variants: true, compact: true,
+    describe: model => ({ status: modelReadiness(state, model, pickerLocation).label }) });
+  const displayModel = selected || pickerModel;
+  updateAdapterDetails(find('[data-model-picker]'), state, displayModel);
+  updateModelProviders(find('[data-model-picker]'), state, displayModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
+  find('[data-model-facts]').textContent = displayModel ? describeModelChoice(state)(displayModel).facts || modelFacts(displayModel) : '';
   const preview = modelExecutionState(selected, pickerLocation);
   const available = selected && (preview.usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(selected) && !state.localDownloadIssue);
   for (const button of find('[data-execution-location]').querySelectorAll('[data-execution-choice]')) {
@@ -58,26 +126,38 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
     button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId)
       || localOnly && location !== 'local' || location === 'local' && location !== pickerLocation && !modelExecutionState(selected, 'local').usable;
   }
-  // A model nobody is sharing that this device could store is not a dead end: the same button downloads it.
   const downloadable = !available && !!selected && canDownloadModelHere(selected, state, canDownload);
   const switchToLocal = !available && pickerLocation === 'network' && (downloadable || modelExecutionState(selected, 'local').usable);
-  find('[data-switch-local]').hidden = !switchToLocal;
-  find('[data-switch-local]').disabled = changingModel || state.acquisition?.phase === 'downloading';
+  const switchButton = find('[data-switch-local]');
+  const confirm = find('[data-change-model]');
+  const active = confirm.ownerDocument.activeElement;
+  switchButton.hidden = !switchToLocal;
+  switchButton.disabled = changingModel || state.acquisition?.phase === 'downloading';
+  switchButton.textContent = downloadable ? 'Download…' : 'Use this device';
+  switchButton.setAttribute('aria-label', downloadable ? 'Download to this device' : 'Switch to this device');
   const reviewDownload = downloadable && pickerLocation !== 'network';
-  find('[data-change-model]').disabled = changingModel || !(available || reviewDownload);
-  find('[data-change-model]').textContent = reviewDownload ? 'Download model…' : 'Use model';
-  const status = find('[data-next-model-status]');
-  let statusText = '';
-  if (!pickerModel) statusText = 'No model is available right now.';
-  else if (switchToLocal && state.acquisition?.modelId === selected.id && state.acquisition.phase === 'downloading') statusText = state.acquisition.progress?.message || 'Downloading model…';
-  else if (switchToLocal && state.acquisition?.modelId === selected.id && state.acquisition.phase === 'failed') statusText = state.acquisition.error;
-  else if (switchToLocal) statusText = downloadable ? 'Unavailable on the network. Running here requires a download.' : 'Unavailable on the network. This model is on your device.';
-  else if (downloadable) statusText = 'This model is not on this device yet. Download it to run it here.';
-  else if (!available) {
-    statusText = pickerLocation === 'local' ? 'This model is not prepared on this device.' : 'No shared computer can answer with this model right now.';
+  confirm.disabled = changingModel || !(available || reviewDownload)
+    || reviewDownload && state.acquisition?.phase === 'downloading';
+  confirm.textContent = reviewDownload ? 'Download model…' : 'Use model';
+  if ((active === switchButton || active === confirm) && (active.hidden || active.disabled)) {
+    if (confirm.disabled) choices.focus({ preventScroll: true });
+    else confirm.focus({ preventScroll: true });
   }
-  status.textContent = statusText;
-  status.hidden = !status.textContent;
-
-  return pickerModel;
+  const readiness = modelReadiness(state, selected || unavailableModelChoice(displayModel), pickerLocation);
+  const failed = state.acquisition?.modelId === selected?.id && state.acquisition?.phase === 'failed';
+  const text = failed ? state.acquisition.error || 'Model download failed' : readiness.progressText
+    ? `${readiness.status} · ${readiness.progressText}` : displayModel ? readiness.label : 'No models available';
+  const status = find('[data-next-model-status]');
+  if (status.textContent !== text) status.textContent = text;
+  const strip = find('[data-model-picker-progress]');
+  const waiting = readiness.active && !readiness.progress && !failed;
+  status.classList.toggle('pool-dot', waiting);
+  status.classList.toggle('pool-dot-pulse', waiting);
+  strip.dataset.progress = readiness.progress && !failed ? 'measured' : waiting ? 'waiting' : 'idle';
+  const meter = strip.querySelector('progress');
+  if (readiness.progress) {
+    meter.max = readiness.progress.max;
+    meter.value = readiness.progress.value;
+  } else meter.removeAttribute('value');
+  return displayModel;
 }

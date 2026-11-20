@@ -3,8 +3,8 @@ import { openParticipantControls } from '../fixtures/signaling-interruption.js';
 import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 // Explicit host-state fixtures exercise presentation, not model inference.
-async function installConversation(page, theme) {
-  await page.evaluate(async theme => {
+async function installConversation(page, theme, seedThreads = false) {
+  await page.evaluate(async ({ theme, seedThreads }) => {
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const { bindExecutionRibbon } = await import('/ui/pool-home/execution-ribbon.js');
     const root = document.querySelector('.pool-home');
@@ -50,6 +50,20 @@ async function installConversation(page, theme) {
         connections: peers.map(peer => ({ id: peer.peerId, phase: 'connected' })) };
       listeners.forEach(callback => callback(state));
     };
+    window.setPickerPhase = phase => {
+      const target = { ...model, id: '35b', name: 'Qwen 3.6 35B', availability: phase,
+        networkAvailability: phase, providerIds: phase === 'ready' ? ['peer-35b'] : [] };
+      const peer = { peerId: 'peer-35b', attemptId: 'link', model: target.id, modelIdentity: target.identity,
+        readiness: phase, preparation: { kind: 'pipelines', prepared: 4, total: 12 } };
+      const connected = ['ready', 'loading'].includes(phase);
+      state.network = { consumer: { peers: phase === 'searching' ? [] : [peer] },
+        connections: [{ id: 'peer-35b', phase: connected ? 'connected' : 'opening-channel', attemptId: 'link' }] };
+      if (phase === 'observed') state.network = { consumer: { peers: [] }, connections: [] };
+      state.discoveryPhase = phase === 'searching' ? 'searching' : 'observed';
+      state.models = phase === 'ready' ? [target, ...state.models.filter(item => item.id !== target.id)]
+        : [...state.models.filter(item => item.id !== target.id), target];
+      listeners.forEach(callback => callback(state));
+    };
     window.setVisualTiming = timing => {
       state.activeThread.attempts[0].execution.timing = timing;
       listeners.forEach(callback => callback(state));
@@ -92,11 +106,12 @@ async function installConversation(page, theme) {
         network: { consumer: { peers: [] } } };
       listeners.forEach(callback => callback(state));
     };
-    window.setVisualState('empty');
+    window.setVisualState(seedThreads ? 'completed' : 'empty');
+    if (seedThreads) window.setVisualThreads(3);
     window.disposeVisual = bindConversationWorkspace(fixture, session);
     // Home renders no app bar; the execution ribbon exists only on routes that keep one.
     if (fixture.querySelector('[data-execution-ribbon]')) { const ribbon = bindExecutionRibbon(fixture, { labelSession: session }); session.subscribe(state => ribbon.update(state)); }
-  }, theme);
+  }, { theme, seedThreads });
 }
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
@@ -154,16 +169,17 @@ test('compact chat keeps attempt status reachable and composer visible', async (
     await page.evaluate(mode => window.setVisualState(mode), mode);
     const status = page.locator('[data-execution-activity]:not([hidden]) [data-execution-trigger]');
     if (mode !== 'empty') {
-      await expect(status).toContainText(mode === 'executing' ? 'Generating' : label);
+      if (mode === 'cancelled') await expect(page.locator('.is-assistant [data-system-status]')).toContainText('Stopped');
+      else await expect(status).toContainText(mode === 'executing' ? 'Generating' : label);
       await expect(status).toBeVisible();
       await status.scrollIntoViewIfNeeded();
       await expect(status).toBeInViewport();
     }
     if (mode === 'empty') {
       // One status line under the composer explains a disabled Send.
-      await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
+      await expect(page.locator('[data-model-status]')).toContainText('No ready computer');
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
-      await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
+      await expect(page.getByRole('textbox', { name: 'Message' })).not.toHaveAttribute('placeholder');
     }
     await expect(page.locator('[data-composer-input]')).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -236,14 +252,12 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-close-threads]').click();
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
-    await page.locator('[data-inspector-section="participants"]').click();
     await expect(page.locator('[data-inspector-pane="participants"]')).toBeVisible();
-    await openParticipantControls(page);
     await expect(page.locator('[data-mesh-connect]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    for (const control of await page.locator('.pool-button:visible').all()) {
-      expect((await control.boundingBox()).height).toBeGreaterThanOrEqual(44);
-    }
+    const heights = await page.locator('.pool-button:visible').evaluateAll(controls =>
+      controls.map(control => control.getBoundingClientRect().height));
+    for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
   });
 }
 
@@ -282,15 +296,40 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   const stream = page.locator('[data-message-stream]');
   await page.locator('[data-chat-transcript]').evaluate(node => { node.scrollTop = 0; });
   await page.locator('[data-composer-input]').fill('Keep this draft while I read.');
-  await expect(page.locator('[data-copy-code]')).toHaveText('Copy code');
+  const copy = page.getByRole('button', { name: 'Copy code', exact: true });
+  await expect(copy).toBeVisible();
+  await expect(copy.locator('svg')).toBeVisible();
+  await expect(copy).toHaveText('');
+  await copy.hover();
+  await expect(page.getByRole('tooltip')).toHaveText('Copy code');
+  await expect(copy).not.toHaveAttribute('title');
+  const codeBounds = await page.locator('.chat-code-block').boundingBox(), copyBounds = await copy.boundingBox();
+  expect(copyBounds.x + copyBounds.width).toBeCloseTo(codeBounds.x + codeBounds.width, 0);
+  expect(copyBounds.y).toBeCloseTo(codeBounds.y, 0);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => { window.copiedCode = text; } } });
+  });
+  await copy.click();
+  expect(await page.evaluate(() => window.copiedCode)).toBe('const amount = 42;\n');
+  await expect(page.locator('[data-copy-status]')).toHaveText('Code copied.');
+  expect(await copy.boundingBox()).toEqual(copyBounds);
   await page.locator('[data-source-reference]').click();
   await expect(page.locator('#source-question-D1-P1')).toBeFocused();
   await expect(page.locator('.chat-message-content details')).toHaveAttribute('open', '');
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
-  expect((await stream.boundingBox()).width).toBeLessThanOrEqual(768);
+  const answer = await stream.locator('.is-assistant .chat-message-content').boundingBox(), composer = await page.locator('[data-composer-area]').boundingBox();
+  expect(answer.x).toBeCloseTo(composer.x, 0);
+  expect(answer.width).toBeCloseTo(composer.width, 0);
   await page.screenshot({ path: info.outputPath('desktop-reading.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 460 });
   await expect(page.locator('[data-composer-input]')).toBeInViewport();
+  await page.evaluate(() => window.setVisualMessages('Question', '```js\n' + 'longCodeLine'.repeat(120) + '\n```'));
+  const mobileAnswer = await stream.locator('.is-assistant .chat-message-content').boundingBox();
+  const mobileComposer = await page.locator('[data-composer-area]').boundingBox();
+  expect(mobileAnswer.x).toBeCloseTo(mobileComposer.x, 0);
+  expect(mobileAnswer.width).toBeCloseTo(mobileComposer.width, 0);
+  expect(await page.locator('.chat-code-block > pre').evaluate(node => node.scrollWidth > node.clientWidth
+    && node.getBoundingClientRect().right <= node.nextElementSibling.getBoundingClientRect().left)).toBe(true);
   await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
   await expect(page.locator('[data-thread-list]')).toBeHidden();
   // Threads and their conversation actions open as one dialog over the phone-sized viewport.
@@ -320,10 +359,10 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   });
   const before = await page.locator('[data-composer-area]').boundingBox();
   for (let i = 0; i < 3; i++) {
-    // The conversation pane opens from the composer's context indicator; the rail keeps Computers and Settings.
-    await page.locator('[data-context-indicator]').click();
+    // The answer opens its receipt; the rail keeps Computers and Settings.
+    await page.locator('.is-assistant [data-execution-trigger]').evaluate(button => { button.focus({ preventScroll: true }); button.click(); });
     await expect(page.locator('[data-inspector-route]')).toContainText(participantLabel('fixture-A'));
-    await page.keyboard.press('Escape'); await expect(page.locator('[data-context-indicator]')).toBeFocused();
+    await page.keyboard.press('Escape'); await expect(page.locator('.is-assistant [data-execution-trigger]')).toBeFocused();
   }
   expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
   expect(await page.locator('[data-chat-transcript]').evaluate(node => node.scrollTop)).toBe(100);
@@ -428,7 +467,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
       await page.screenshot({ path: info.outputPath(`rail-${mode}-collapsed.png`) });
       await page.locator('[data-toggle-thread-rail]').click();
       await expect(threads).toHaveCount(mode === 'empty' ? 0 : 6);
-      await expect(page.locator('[data-context-percent]')).toHaveText(mode === 'completed' ? '25%' : '—');
+      await expect(page.locator('[data-context-percent]')).toHaveCount(0);
       await expect(page.locator('[data-composer-area] [data-execution-location]')).toHaveCount(0);
       await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
       const expanded = await page.locator('[data-threads-dialog]').boundingBox();
@@ -521,14 +560,11 @@ test('answer measurements and bottom-centered thread badges stay stable while lo
     expect(settled.details.x).toBe(initial.details.x);
     expect(settled.details.x + settled.details.width).toBeLessThanOrEqual(settled.transcript.x + settled.transcript.width);
     expect(settled.copy).not.toBeNull();
-    if (width <= 760) await expect(row.locator('.chat-message-meta')).toBeHidden();
-    else await expect(row.locator('.chat-message-meta')).toBeVisible();
-    const metric = row.locator('[data-metric="tokens"]');
-    await expect(metric).toHaveText('256 tokens');
+    await expect(row.locator('.chat-message-meta')).toHaveCount(0);
     const details = row.locator('[data-execution-trigger]');
     await details.focus();
     await details.press('Enter');
-    await expect(page.locator('[data-inspected-activity]')).toBeVisible();
+    await expect(page.locator('[data-inspected-activity]')).toContainText('Output tokens256');
     await page.keyboard.press('Escape');
     await expect(page.locator('[data-inspected-activity]')).not.toBeVisible();
     await page.evaluate(() => window.setVisualThreads(4));
@@ -586,13 +622,15 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await input.evaluate(node => node.setSelectionRange(5, 9));
     const field = await page.locator('[data-composer-field]').boundingBox();
     const text = await input.boundingBox();
-    for (const selector of ['.chat-file-label', '[data-open-model]', '[data-context-indicator]', '[data-composer-send]']) {
+    const send = await page.locator('[data-composer-send]').boundingBox();
+    for (const selector of ['.chat-file-label', '[data-open-model]', '[data-open-privacy]', '[data-composer-send]']) {
       const rect = await page.locator(selector).boundingBox();
       expect(rect.y).toBeGreaterThanOrEqual(text.y + text.height);
+      expect(rect.y + rect.height / 2).toBeCloseTo(send.y + send.height / 2);
       expect(rect.x).toBeGreaterThanOrEqual(field.x); expect(rect.x + rect.width).toBeLessThanOrEqual(field.x + field.width);
       expect(rect.height).toBeGreaterThanOrEqual(44);
     }
-    await page.locator('[data-context-indicator]').click();
+    await page.locator('.is-assistant [data-execution-trigger]').click();
     await expect(page.locator('[data-conversation-area]')).toBeVisible();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     const chat = await page.locator('[data-conversation-area]').boundingBox(), pane = await page.locator('[data-chat-inspector-slot]').boundingBox();
@@ -601,7 +639,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     expect(await page.locator('[data-inspector-route]').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath('conversation-inspection.png') });
     await page.keyboard.press('Escape');
-    await expect(page.locator('[data-context-indicator]')).toBeFocused();
+    await expect(page.locator('.is-assistant [data-execution-trigger]')).toBeFocused();
     await expect(input).toHaveValue('Keep my exact draft');
     expect(await input.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([5, 9]);
     await page.locator('[data-open-model]').click();
@@ -845,8 +883,14 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(source).toHaveText(' · Public network');
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
   const disclosure = page.locator('[data-prompt-disclosure]');
-  await expect(disclosure).toBeVisible();
-  await expect(disclosure).toContainText('The answering computer can read your prompt');
+  await expect(disclosure).toHaveClass('chat-visually-hidden');
+  await expect(page.locator('[data-composer-send]')).toHaveAccessibleDescription('The answering computer can read your prompt.');
+  const shield = page.locator('[data-open-privacy]');
+  await shield.hover();
+  await expect(page.getByRole('tooltip')).toHaveText('The answering computer can read your prompt.');
+  await shield.click();
+  await expect(page.locator('[data-privacy-dialog]')).toContainText('The answering computer can read your prompt.');
+  await page.locator('[data-privacy-cancel]').click();
   await expect(page.locator('[data-download-local]')).toBeHidden();
   await openModel();
   await page.locator('[data-execution-choice=local]').click();
@@ -861,20 +905,20 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
     const visible = node.getBoundingClientRect(), text = range.getBoundingClientRect();
     return text.left >= visible.left - 1 && text.right <= visible.right + 1;
   })).toBe(true);
-  const bounds = await source.boundingBox(), button = await page.locator('[data-open-model]').boundingBox();
-  expect(bounds.x).toBeGreaterThanOrEqual(button.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(button.x + button.width);
+  await expect(source).toHaveClass('chat-visually-hidden');
+  await expect(page.locator('[data-open-model]')).toHaveAccessibleName(/Qwen 3.5 0.8B.*Public network/);
   await page.screenshot({ path: info.outputPath(`shared-ready-${width}.png`) });
   await page.evaluate(() => window.setVisualSources({ local: true, shared: false }));
   await expect(page.locator('[data-composer-send]')).toBeDisabled();
-  await expect(source).toHaveText(' · Unavailable');
-  await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
+  await expect(source).toHaveText(' · Public network');
+  await expect(page.locator('[data-model-status]')).toContainText('No ready computer');
   await expect(page.locator('[data-download-local]')).toBeHidden();
   await expect(page.locator('[data-retry-connection]')).toHaveText('Search again');
   expect(await page.locator('[data-composer-field]').boundingBox()).toEqual(field);
   await page.screenshot({ path: info.outputPath(`shared-departed-${width}.png`) });
   await openModel();
   await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('[data-choice-group="network-unavailable"]')).toContainText('Qwen 3.5 0.8B');
+  await expect(page.locator('[data-model-picker] .chat-model-choices')).toContainText('Qwen 3.5 0.8B');
   await page.locator('[data-execution-choice=local]').click();
   await page.locator('[data-change-model]').click();
   await expect(source).toHaveText(' · This device');
@@ -899,11 +943,7 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
   await expect(page.locator('.is-assistant [data-answer-stop]')).toBeHidden();
   await expect(page.locator('.is-assistant [data-system-status]')).toContainText('Stopped');
 
-  await page.locator('.chat-composer-status-line [data-open-control-help]').click();
-  await expect(page.locator('[data-control-help]')).toBeVisible();
-  await expect(page.locator('[data-control-help]')).toContainText('Open answer details');
-  await page.locator('[data-close-control-help]').click();
-  await expect(page.locator('.chat-composer-status-line [data-open-control-help]')).toBeFocused();
+
 
   await page.evaluate(() => { window.setVisualState('empty'); window.setVisualSupply(24); });
   const opener = page.locator('[data-open-model]');
@@ -960,7 +1000,8 @@ test('a model’s computer count opens the matching hardware and returns to the 
   await page.locator('[data-open-model]').click();
   const picker = page.locator('[data-model-picker]');
   const count = picker.locator('[data-inspect-model-providers]');
-  await expect(count).toContainText('2 computers');
+  await expect(count).toHaveAccessibleName(/View 2 computers/);
+  await expect(picker.locator('[data-choice-status]')).toHaveText('Ready · 2 computers');
   await count.click();
   const pane = page.locator('[data-inspector-pane="participants"]');
   await expect(pane).toBeVisible();
@@ -1016,14 +1057,120 @@ test('touch help and model choices work without hover', async ({ browser }, info
     await page.locator('.is-assistant [data-execution-trigger]').tap();
     await expect(page.locator('[data-inspected-activity]')).toContainText('Output tokens92');
     await page.locator('[data-close-inspector]').tap();
-    await page.locator('.chat-composer-status-line [data-open-control-help]').tap();
+    await page.locator('[data-open-model]').tap();
+    await page.locator('[data-model-picker] [data-open-control-help]').tap();
     await expect(page.locator('[data-control-help]')).toBeVisible();
     await page.screenshot({ path: info.outputPath('touch-help.png'), fullPage: true });
     await page.locator('[data-close-control-help]').tap();
-    await page.locator('[data-open-model]').tap();
     await expect(page.locator('[data-model-picker]')).toBeVisible();
     await expect(page.locator('[data-model-details]')).not.toHaveAttribute('open');
     await page.locator('[data-model-picker-close]').tap();
     await expect(page.locator('[data-open-model]')).toBeFocused();
   } finally { await context.close(); }
+});
+
+
+for (const width of [1440, 320]) test(`35B discovery keeps the picker still at ${width}px`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 740 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'dark');
+  await page.evaluate(() => { window.setVisualSupply(8); window.setPickerPhase('searching'); });
+  const draft = page.locator('[data-composer-input]');
+  await draft.fill('Keep this draft');
+  await page.locator('[data-open-model]').click();
+  const picker = page.locator('[data-model-picker]'), row = picker.locator('[data-choice-row]').filter({ hasText: 'Qwen 3.6 35B' });
+  await row.locator('input').check();
+  const bounds = () => picker.evaluate(node => {
+    const body = node.querySelector('.chat-model-picker-body');
+    return {
+      dialog: node.getBoundingClientRect().toJSON(),
+      order: [...body.querySelectorAll('[data-choice-name]')].map(item => item.textContent),
+      row: body.querySelector('input[value="35b"]').closest('[data-choice-row]').getBoundingClientRect().toJSON(),
+      action: node.querySelector('[data-change-model]').getBoundingClientRect().toJSON(),
+      scroll: body.scrollTop
+    };
+  });
+  const initial = await bounds();
+  expect(initial.scroll).toBeGreaterThan(0);
+  for (const [phase, label] of [
+    ['searching', 'Finding computers…'], ['connecting', 'Connecting…'],
+    ['loading', 'Preparing model…'], ['ready', 'Ready · 1 computer'], ['observed', 'No ready computer']
+  ]) {
+    await page.evaluate(phase => window.setPickerPhase(phase), phase);
+    await expect(row.locator('[data-choice-status]')).toHaveText(label);
+    await expect(row.locator('input')).toBeChecked();
+    await expect(row.locator('input')).toBeFocused();
+    expect(await bounds()).toEqual(initial);
+    const action = picker.locator('[data-change-model]');
+    if (phase === 'ready') await expect(action).toBeEnabled();
+    else await expect(action).toBeDisabled();
+    if (phase === 'loading') {
+      await expect(picker.locator('[data-next-model-status]')).toHaveText('Preparing GPU · 4 of 12');
+      await expect(picker.getByRole('progressbar')).toHaveAttribute('value', '4');
+      await expect(picker.getByRole('progressbar')).toHaveAttribute('max', '12');
+      await picker.screenshot({ path: info.outputPath('35b-preparing.png') });
+    }
+  }
+  await page.evaluate(() => window.setVisualAcquisition({ modelId: '35b', phase: 'downloading',
+    progress: { stage: 'downloading', receivedBytes: 420_000_000, totalBytes: 2_100_000_000 } }));
+  await expect(picker.locator('[data-next-model-status]')).toHaveText('Downloading · 420 MB / 2.10 GB');
+  expect(await bounds()).toEqual(initial);
+  await page.evaluate(() => window.setVisualAcquisition({ modelId: '35b', phase: 'downloading',
+    progress: { stage: 'download-complete', receivedBytes: 2_100_000_000, totalBytes: 2_100_000_000 } }));
+  await expect(picker.locator('[data-next-model-status]')).toHaveText('Verifying model files…');
+  await expect(picker.getByRole('progressbar')).toBeHidden();
+  await page.evaluate(() => window.setVisualAcquisition(null));
+  await page.evaluate(() => window.setPickerPhase('ready'));
+  await row.locator('[data-inspect-model-providers]').focus();
+  await page.evaluate(() => window.setPickerPhase('observed'));
+  await expect(row.locator('input')).toBeFocused();
+  await picker.locator('[data-model-picker-close]').click();
+  await expect(draft).toHaveValue('Keep this draft');
+});
+
+
+test('thread links show the current chat without a popup and survive reload and history', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  expect(await page.evaluate(() => {
+    const composer = document.querySelector('[data-composer-input]');
+    history.pushState(null, '', '/?thread=missing-chat');
+    dispatchEvent(new PopStateEvent('popstate'));
+    return document.querySelector('[data-composer-input]') === composer;
+  })).toBe(true);
+  await expect(page.locator('[data-thread-unavailable]')).toBeVisible();
+  await page.evaluate(() => {
+    history.replaceState(null, '', '/');
+    dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await installConversation(page, 'dark', true);
+  await expect(page).toHaveURL(/thread=recent-0/);
+  await page.locator('[data-toggle-thread-rail]').click();
+  const current = page.locator('[data-thread-item-id="recent-0"]');
+  await expect(current).toBeFocused();
+  await expect(current).toContainText('Current chat');
+  await expect(current).not.toHaveAttribute('title');
+  await expect(page.getByRole('tooltip')).toBeHidden();
+  await page.screenshot({ path: info.outputPath('threads.png'), animations: 'disabled' });
+  const next = page.getByRole('link', { name: /^Review the formatter:/ });
+  await expect(next).toHaveAttribute('href', '/?thread=recent-1');
+  await next.click();
+  await expect(page).toHaveURL(/thread=recent-1/);
+  await expect(page.locator('[data-current-chat-title]')).toHaveText('Review the formatter');
+  await page.locator('[data-composer-field]').screenshot({ path: info.outputPath('composer.png') });
+  await page.goBack();
+  await expect(page).toHaveURL(/thread=recent-0/);
+  await expect(current).toHaveAttribute('aria-current', 'true');
+  await page.goForward();
+  await expect(page).toHaveURL(/thread=recent-1/);
+  await page.reload();
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'dark', true);
+  await expect(page.locator('[data-current-chat-title]')).toHaveText('Review the formatter');
+  await page.locator('[data-toggle-thread-rail]').click();
+  await page.locator('[data-new-thread]').click();
+  expect(new URL(page.url()).searchParams.has('thread')).toBe(false);
+  await expect(page.locator('[data-current-chat-title]')).toBeHidden();
 });

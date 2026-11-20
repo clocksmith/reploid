@@ -17,5 +17,8 @@ export function preparationStatus(progress) {
   };
   const [status, detail] = labels[step.kind];
   const maximum = step.totalBytes || step.total || null;
-  return { status, detail, progress: maximum ? { value: step.receivedBytes ?? step.prepared ?? 0, max: maximum, workId: step.workId || null, sequence: step.sequence ?? null } : null };
+  const formatBytes = bytes => bytes >= 1e9 ? `${(bytes / 1e9).toFixed(2)} GB` : `${(bytes / 1e6).toFixed(0)} MB`;
+  const progressText = step.totalBytes ? `${formatBytes(step.receivedBytes)} / ${formatBytes(step.totalBytes)}`
+    : step.total ? `${step.prepared} of ${step.total}` : '';
+  return { status, detail, progressText, progress: maximum ? { value: step.receivedBytes ?? step.prepared ?? 0, max: maximum, workId: step.workId || null, sequence: step.sequence ?? null } : null };
 }

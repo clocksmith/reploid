@@ -56,7 +56,7 @@ describe('Conversation workspace', () => {
     ids.value = 'peer:b'; find('[data-privacy-apply]').click();
     await vi.waitFor(() => expect(dialog.open).toBe(false));
     expect(session.getState().activeThread.privacy.allowedRecipients).toEqual(['peer:b']);
-    expect(shield.title).toContain('Restricted recipients');
+    expect(shield.getAttribute('aria-label')).toContain('Restricted recipients');
     expect(input.value).toBe('Keep this question');
     expect(session.getState().activeThread.messages).toHaveLength(0);
   });
@@ -72,7 +72,7 @@ describe('Conversation workspace', () => {
     find('[data-composer-input]').value = 'Keep this question';
     find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     expect(find('[data-composer-send]').disabled).toBe(true);
-    expect(find('[data-composer-model-source]').textContent).toContain('Unavailable');
+    expect(find('[data-model-status]').textContent).toContain('No ready computer');
     expect(downloadLocalModel).not.toHaveBeenCalled(); expect(send).not.toHaveBeenCalled();
     find('[data-download-local]').click();
     await vi.waitFor(() => expect(find('[data-download-size]').textContent).toContain('123 MB'));
@@ -105,6 +105,26 @@ describe('Conversation workspace', () => {
     find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2));
     expect(send.mock.calls[1][3]).toEqual({ retrieval: {} });
+  });
+
+  it('resolves a thread link from local history and clears the chat on a missing thread', async () => {
+    const first = session.createThread({ purpose: 'First conversation' });
+    const second = session.createThread({ purpose: 'Second conversation' });
+    session.saveDraft(first, { text: 'Draft for the first chat', files: [] });
+    dispose();
+    history.replaceState(null, '', `/?thread=${first}&view=threads`);
+    dispose = bindConversationWorkspace(root, session);
+    expect(session.getState().selectedId).toBe(first);
+    expect(find('[data-current-chat-title]').textContent).toBe('First conversation');
+    expect(find('[data-composer-input]').value).toBe('Draft for the first chat');
+    expect(new URL(find(`[data-thread-item-id="${second}"]`).href).searchParams.get('thread')).toBe(second);
+    history.replaceState(null, '', '/?thread=missing');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
+    expect(find('[data-thread-unavailable]').hidden).toBe(false);
+    expect(new URL(location.href).searchParams.get('thread')).toBe('missing');
+    expect(find('[data-composer-input]').value).toBe('');
+    expect(session.getDraft(first).text).toBe('Draft for the first chat');
   });
 
   it('uses linked workspace destinations and restores history without replacing the composer', () => {
@@ -150,7 +170,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-next-model]').value).toBe(small.value);
     expect(small.checked).toBe(true);
     expect(find('[data-change-model]').disabled).toBe(true);
-    expect(find('[data-next-model-status]').textContent).toContain('No shared computer');
+    expect(find('[data-next-model-status]').textContent).toBe('Finding computers…');
     session.refreshNetwork();
     expect(choices.querySelector('input:checked')).toBe(small);
     expect(find('[data-composer-send]').disabled).toBe(true);
@@ -189,7 +209,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-digest]').textContent).toContain(large.name);
   });
 
-  it('updates an untouched open picker with discovered capacity but keeps a staged explicit choice', async () => {
+  it('preserves the open picker selection while automatic capacity changes behind it', async () => {
     dispose(); await session.close();
     let peers = [];
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
@@ -200,13 +220,13 @@ describe('Conversation workspace', () => {
     peers = [{ peerId: 'ready', model: ready.id, modelIdentity: ready.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
     session.refreshNetwork();
     expect(find('[data-active-model-select]').value).toBe(ready.id);
-    expect(find('[data-next-model]').value).toBe(ready.id);
-    expect(find('[data-change-model]').disabled).toBe(false);
-    const next = find('[data-next-model]'); next.value = fallback;
+    expect(find('[data-next-model]').value).toBe(fallback);
+    expect(find('[data-change-model]').disabled).toBe(true);
+    const next = find('[data-next-model]'); next.value = ready.id;
     next.dispatchEvent(new Event('change', { bubbles: true }));
     session.refreshNetwork();
-    expect(next.value).toBe(fallback);
-    expect(find('[data-change-model]').disabled).toBe(true);
+    expect(next.value).toBe(ready.id);
+    expect(find('[data-change-model]').disabled).toBe(false);
     find('[data-model-picker-close]').click(); find('[data-open-model]').click();
     expect(next.value).toBe(ready.id);
   });
@@ -340,9 +360,8 @@ describe('Conversation workspace', () => {
       expect(find('#network-inspector-title').textContent).toBe(title);
       expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
     }
-    find('[data-context-indicator]').click();
-    expect(find('#network-inspector-title').textContent).toBe('This conversation');
-    expect(new URL(location.href).searchParams.get('view')).toBe('conversation');
+    expect(find('[data-context-indicator]')).toBeNull();
+    expect(find('[data-inspector-pane="conversation"] [data-inspector-context-detail]')).not.toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
   });
 
@@ -352,15 +371,15 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-status]').hidden).toBe(false);
     // Within the discovery window an unavailable model reads as still being looked for.
     expect(find('[data-model-status]').textContent).toBe('Finding computers…');
-    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Searching');
-    expect(find('[data-open-model]').textContent).toContain('Searching');
+    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Public network');
+    expect(find('[data-open-model]').textContent).toContain('Public network');
     expect(find('[data-model-control]').hidden).toBe(false);
     expect(find('[data-toggle-contribution]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
     expect(find('[data-contextual-inspector]').hidden).toBe(true);
-    expect(find('[data-composer-input]').placeholder).toBeTruthy();
+    expect(find('[data-composer-input]').hasAttribute('placeholder')).toBe(false);
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
@@ -379,7 +398,7 @@ describe('Conversation workspace', () => {
       getModelDownload: async id => ({ id, sizeBytes: 1200000000 }) }, { viewState });
     const draft = find('[data-composer-input]'); draft.value = 'Keep this draft'; draft.dispatchEvent(new Event('input', { bubbles: true }));
     find('[data-open-model]').click();
-    const radio = find(`[data-choice-group="network-unavailable"] input[value="${small.id}"]`);
+    const radio = find(`[data-model-picker] input[value="${small.id}"]`);
     radio.click();
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
     expect(find('[data-change-model]').disabled).toBe(true);
@@ -434,7 +453,7 @@ describe('Conversation workspace', () => {
       subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 1200000000 }) });
     find('[data-open-model]').click();
-    find(`[data-choice-group="network-unavailable"] input[value="${small.id}"]`).click();
+    find(`[data-model-picker] input[value="${small.id}"]`).click();
     find('[data-switch-local]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     find('[data-download-confirm]').click();
@@ -459,7 +478,8 @@ describe('Conversation workspace', () => {
     const draft = find('[data-composer-input]'); draft.value = 'Keep this text'; draft.dispatchEvent(new Event('input', { bubbles: true }));
     find('[data-open-model]').click();
     const count = find(`[data-inspect-model-providers="${small.id}"]`);
-    expect(count.textContent).toBe('Ready · 1 computer');
+    expect(count.getAttribute('aria-label')).toContain('View 1 computer');
+    expect(count.closest('[data-choice-row]').querySelector('[data-choice-status]').textContent).toBe('Ready · 1 computer');
     expect(count.closest('label')).toBeNull();
     count.click();
     expect(inspector.openModelComputers).toHaveBeenCalledWith(expect.objectContaining({ id: small.id, identity: small.identity, providerIds: [small.id] }), find('[data-open-model]'));
@@ -482,22 +502,25 @@ describe('Conversation workspace', () => {
     find('[data-open-model]').click();
     const choice = find(`[data-model-picker] input[value="${model.id}"]`);
     choice.click();
-    expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('unavailable');
+    const row = choice.closest('[data-choice-row]');
+    expect(row.querySelector('[data-choice-status]').textContent).toBe('Finding computers…');
     expect(find('[data-change-model]').disabled).toBe(true);
     expect(find('[data-execution-choice=network]').disabled).toBe(false);
-    expect(find('[data-next-model-status]').textContent).toContain('No shared computer');
+    expect(find('[data-next-model-status]').textContent).toBe('Finding computers…');
     expect(find('[data-local-fit]').hidden).toBe(true);
     expect(find('[data-production-model]')).toBeNull();
     expect(downloadInfo).not.toHaveBeenCalled();
 
     peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
     session.refreshNetwork();
-    expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
+    expect(choice.closest('[data-choice-row]')).toBe(row);
+    expect(row.querySelector('[data-choice-status]').textContent).toBe('Ready · 1 computer');
     expect(find('[data-execution-choice=network]').disabled).toBe(false);
     expect(find('[data-change-model]').textContent).toBe('Use model');
     expect(find('[data-change-model]').disabled).toBe(false);
     peers = []; session.setCachedModels([model]);
-    expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('local');
+    expect(choice.closest('[data-choice-row]')).toBe(row);
+    expect(row.querySelector('[data-choice-status]').textContent).toBe('Downloaded · This device');
     expect(find('[data-execution-choice=local]').disabled).toBe(false);
     expect(find('[data-production-model]').disabled).toBe(false);
     expect(service.calls).toHaveLength(0);
@@ -626,7 +649,7 @@ describe('Conversation workspace', () => {
     // Each adapter has its own readiness; technical notes stay out of the row.
     const adapterChoice = choices.querySelector(`input[value="${adapted.selectionId}"]`).closest('label');
     expect(adapterChoice.hasAttribute('data-choice-adapter')).toBe(false);
-    expect(adapterChoice.querySelector('[data-choice-status]').textContent).toBe('No computer serves it now');
+    expect(adapterChoice.querySelector('[data-choice-status]').textContent).toBe('Finding computers…');
     expect(adapterChoice.querySelector('[data-choice-note]').hidden).toBe(true);
     expect(find('[data-change-model]').disabled).toBe(false);
     find('[data-change-model]').click();
@@ -652,7 +675,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-composer-input]').value).toBe('hi');
     state = { ...state, models: [base, { ...route, availability: 'unavailable', networkAvailability: 'unavailable' }] }; emit(state);
     expect(find('[data-composer-send]').disabled).toBe(true);
-    expect(find('[data-model-status]').textContent).toContain('No eligible computer');
+    expect(find('[data-model-status]').textContent).toContain('No ready computer');
     expect(find('[data-download-local]').hidden).toBe(true);
     expect(download).not.toHaveBeenCalled();
   });
@@ -706,7 +729,7 @@ describe('Conversation workspace', () => {
     dispose = bindConversationWorkspace(root, session);
     find('[data-composer-input]').value = 'Keep my question';
     expect(find('[data-model-status]').hidden).toBe(false);
-    expect(find('[data-model-status]').textContent).toBe('Model preparing…');
+    expect(find('[data-model-status]').textContent).toBe('Preparing model…');
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(service.calls).toHaveLength(0);
@@ -1003,7 +1026,7 @@ describe('Conversation workspace', () => {
     next.value = second.id; next.dispatchEvent(new Event('change'));
     peers = peers.slice(0, 1); session.refreshNetwork();
     expect(next.value).toBe(second.id);
-    expect(next.textContent).toContain('Unavailable');
+    expect(find('[data-next-model-status]').textContent).toBe('Finding computers…');
     expect(find('[data-change-model]').disabled).toBe(true);
     expect(session.getState().selectedId).toBe(id);
     expect(find('[data-composer-input]').value).toBe('Keep this draft');
