@@ -17,6 +17,7 @@ import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
+import { webSearchRecipient } from './web-search-settings.js';
 import { canDownloadModelHere, localFitText, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
 export { renderConversationWorkspace } from './conversation-view.js';
 
@@ -143,7 +144,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const searchToggle = find('[data-search-toggle]');
   const setSearch = on => { const active = on && !searchToggle.hidden; searchToggle.setAttribute('aria-pressed', String(active)); find('[data-web-search-on]').hidden = !active; };
   const searching = () => searchToggle.getAttribute('aria-pressed') === 'true';
-  // The person's own search server when it is set up and on, otherwise the server's Brave route.
+  // Resolve the selected built-in or device route before applying personal MCP settings.
   const searchRouteNow = () => session.preferredSearchRoute?.() ?? undefined;
   const deviceSearchOn = () => session.preferredSearchRoute?.() === 'device-search';
   const prepareSearch = async (model, sharingScope, route = searchRouteNow(), location = executionLocation, query = input.value) => {
@@ -353,9 +354,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       }
     }
     if (!busy && searching() && !thread?.closed && !state.storageError) {
-      const recipient = webSearch?.enabled() && webSearch.state().url ? webSearch.state().recipient
-        : deviceSearchOn() || search?.state?.().provider === 'contributor-bing' ? 'the search contributor and Bing' : 'Brave Search';
-      statusText = [statusText, `Web search sends your question to ${recipient}.`].filter(Boolean).join(' ');
+      const personal = webSearch?.enabled() ? webSearch.state() : null;
+      const recipient = webSearchRecipient({ personalRecipient: personal?.url ? personal.recipient : null,
+        route: searchRouteNow(), provider: search?.state?.().provider });
+      statusText = [statusText, recipient ? `Web search sends your question to ${recipient}.`
+        : 'Web search recipient is not confirmed.'].filter(Boolean).join(' ');
     }
     const disclosure = find('[data-prompt-disclosure]');
     disclosure.hidden = busy || !!thread?.closed;

@@ -450,6 +450,21 @@ names another or none. The end-of-sequence tokens the mask allows come from the
 loaded session (`advanced.getStopTokenIds()` and the tokenizer's `eos`).
 Completion metadata is provider-reported, not validated billing evidence.
 
+Before enabling a catalog model, qualify the exact model and installed package
+with [the opt-in physical fixture](../tests/fixtures/tool-call-physical.js):
+
+```sh
+REPLOID_FLEET_PHYSICAL=1 node tests/fixtures/tool-call-physical.js /absolute/operator/tool-call.json
+```
+
+Use an isolated coordinator and a private model descriptor declaring the format.
+Qwen 3.5 2B is the candidate to start with; do not infer support for a different
+model or release from its result. The streamed and non-streamed rounds require
+the requested arguments and an exact caller-generated receipt that was not in
+the prompt. A valid tool-call shape or a correct arithmetic answer alone is not
+evidence that the model used the tool result. This check does not deploy or
+qualify the public chat UI.
+
 The application server can mount `/v1/models`, `/v1/chat/completions`,
 `/v1/responses` and `/v1/messages` before the earning router by setting
 `REPLOID_TEXT_API_COMPOSITION` to an absolute module outside this repository.
