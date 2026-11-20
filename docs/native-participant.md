@@ -81,19 +81,19 @@ pinned piece. The manifest always comes from the delivery's pinned copy, never
 an origin. With a pin, the fill gives peers a 15 s grace to announce and then
 uses the origin for pieces no peer offers or that peers fail to deliver, so it
 also completes with no peer online. Partition acquisition uses the same pinned
-origin as its last source. Two models are pinned, both in `clocksmith/rdrr`:
-`qwen-3-5-2b-q4k-ef16-af32` at `3a05b346b1c86abf02c7620f2369a9a7b82cb62f` (its 32
-shard hashes and sizes there equal manifest `eb2a4840`) and
-`qwen-3-5-0-8b-q4k-ef16-af32-vf16` at `ea7b211b72c4d43687fa72802dee7aba74eca293` (its 18
-shard hashes and sizes equal manifest `cdda7ddc`); each `tokenizer.json` there
-equals the catalog's hash. Both were reissued under these names on 2026-11-20
-over the same weights, so the repository directories still carry the earlier
-names (`models/qwen-3-5-2b-q4k-ehaf16`, `models/qwen-3-5-0-8b-q4k-ehaf16`). The
-manifests stored at those revisions are older issues and are never read.
-`qwen-3-6-35b-a3b-text-source-q40-hq6k-af32`,
-`qwen-3-8-27b-text-q4k-ef16-af32` and
-`qwen-3-8-flash-next-177b-text-source-q40-hq80-af32` are not published at any
-origin and have no pin: their weights come from a local directory or from peers.
+origin as its last source. The native delivery pins three models in `clocksmith/rdrr`.
+
+| CLI name | Repository directory | Immutable revision |
+| --- | --- | --- |
+| `0.8b` | `models/qwen-3-5-0-8b-q4k-ehaf16` | `ea7b211b72c4d43687fa72802dee7aba74eca293` |
+| `2b` | `models/qwen-3-5-2b-q4k-ehaf16` | `3a05b346b1c86abf02c7620f2369a9a7b82cb62f` |
+| `27b` | `models/qwen-3-8-27b-text-q4k-ef16-af32` | `03345c4dde66115b9d3e26dca3362ef2fb39220e` |
+
+`reploid serve 27b` fills missing pieces for the whole model. A
+`reploid split 27b --stage 0` or `--stage 1` contributor fetches its
+assigned ranges as needed. Both use the same pinned 27B manifest and verify
+each piece. The 0.8B and 2B origins retain their earlier directory names.
+35B and Flash use a local directory or authorized peers for weights.
 
 Every model in the catalog was reissued on 2026-11-20 under a name that
 describes its manifest. A reissue is a new manifest over the same weights, so
