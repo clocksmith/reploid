@@ -1,6 +1,6 @@
 {
   "schema": "reploid.chat-task-quality/v1",
-  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelId": "qwen-3-5-2b-q4k-ef16-af32",
   "hypothesis": "A completion-first system instruction may avoid abbreviation on longer requests expressed with worded bounds. Earlier shorter numeric-bound controls did not test this condition.",
   "acceptance": "Every fresh task must match its complete expected text and stop naturally. A failure rejects the candidate before protected replay.",
   "maxGpuBufferBytes": 6000000000,

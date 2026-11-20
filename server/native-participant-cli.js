@@ -3,6 +3,7 @@ import { createNativeRtcConfigReader } from './native-rtc-config.js';
 import { parseArgs } from 'node:util';
 import path from 'node:path';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
+import { findCatalogModel } from './native-model-names.js';
 import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { readNativeModelConfiguration, catalogWholeRuntime } from './native-model-config.js';
 import { openNativeOwnerControls, nativeOwnerStatus, NO_OWNER_POLICY } from './native-owner/controls.js';
@@ -40,6 +41,8 @@ export async function main({ runOnce } = {}) {
   requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
     '--readiness-log requires --contribute and an absolute file path');
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
+  // A model reissued under a new name is still selected by the name it replaced.
+  values.model = findCatalogModel(models, values.model)?.id ?? values.model;
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
   requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['readiness-log'],
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');

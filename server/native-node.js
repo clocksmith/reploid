@@ -11,6 +11,8 @@ import { existsSync, realpathSync } from 'node:fs';
 import { askMesh } from './native-node-ask.js';
 import { runDoctor } from './native-node-doctor.js';
 import { nativeCommand } from './native-node-commands.js';
+import { supersededIds } from './native-model-names.js';
+import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -18,11 +20,11 @@ import { fileURLToPath } from 'node:url';
 
 const MODES = ['--connect-only', '--share-files', '--contribute'];
 // The model `reploid` serves when no model id is given: the one public peers supply.
-export const DEFAULT_MODEL = 'qwen-3-5-2b-q4k-ehaf16';
+export const DEFAULT_MODEL = 'qwen-3-5-2b-q4k-ef16-af32';
 // Options that only exist for partition execution; giving one keeps the participant's own default.
 const PARTITION_ONLY = ['--partition-index', '--ordered-config', '--canonical', '--readiness-log'];
 /** The participant arguments this command stands for. Pure, so it can be checked. */
-export function nodeArguments(argv, { home }) {
+export function nodeArguments(argv, { home, exists = existsSync, models = catalog }) {
   // Without a model id (nothing, or options only) the default model is served.
   const [model, ...rest] = argv.length && !argv[0].startsWith('-') ? argv : [DEFAULT_MODEL, ...argv];
   const given = name => rest.includes(name) || rest.some(value => value.startsWith(name + '='));
@@ -33,8 +35,11 @@ export function nodeArguments(argv, { home }) {
   const contributes = !MODES.some(given) || given('--contribute');
   const fill = (name, value) => { if (!given(name)) { args.push(name, value); chosen[name.slice(2)] = value; } };
   if (contributes && !PARTITION_ONLY.some(given)) fill('--execution-mode', 'whole-model');
-  // One directory per model: catalog models share file names such as manifest.json.
-  fill('--model-directory', path.join(state, 'weights', model));
+  // One directory per model: catalog models share file names such as manifest.json. A model reissued under a
+  // new name keeps its weights: without a directory of its own, the directory of the name it replaced is used.
+  const own = path.join(state, 'weights', model);
+  const earlier = supersededIds(models.find(row => row.id === model)).map(id => path.join(state, 'weights', id)).find(exists);
+  fill('--model-directory', earlier && !exists(own) ? earlier : own);
   fill('--identity-file', path.join(state, 'identity.json'));
   fill('--rtc-module', '@roamhq/wrtc');
   fill('--ws-module', 'ws');

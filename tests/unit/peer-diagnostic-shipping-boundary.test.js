@@ -68,7 +68,7 @@ describe('peer diagnostic shipping boundary', () => {
     const bytes = readFileSync(`tests/fixtures/peers/pooled/${profile}`);
     expect(createHash('sha256').update(bytes).digest('hex'))
       .toBe('de27a1fd23f676039b06111b7abd1085b36dd682dcb7baa49fedfe882decf297');
-    expect(JSON.parse(bytes).model).toBe('qwen-3-6-35b-a3b-text-source-q4_0-af32-pooled-q8-common');
+    expect(JSON.parse(bytes).model).toBe('qwen-3-6-35b-a3b-text-source-q40-hq6k-af32-pooled-q8-common');
     expect(existsSync(`${vendor}src/config/runtime/profiles/${profile}`)).toBe(false);
   });
 

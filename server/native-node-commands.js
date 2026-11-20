@@ -5,6 +5,7 @@ import { sha256Digest } from './hashing.js';
 import { parseArgs } from 'node:util';
 import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 import { resolvePinnedOrigin } from './native-model-origin.js';
+import { findCatalogModel } from './native-model-names.js';
 import { participantHelp, participantOptions } from './native-participant-options.js';
 import { shellCompletion } from './native-node-completion.js';
 
@@ -19,10 +20,10 @@ const commands = {
   completion: 'Print tab completion for Bash, Zsh or Fish',
 };
 const shortNames = {
-  'qwen-3-5-0-8b-q4k-ehaf16': '0.8b',
-  'qwen-3-5-2b-q4k-ehaf16': '2b',
+  'qwen-3-5-0-8b-q4k-ef16-af32-vf16': '0.8b',
+  'qwen-3-5-2b-q4k-ef16-af32': '2b',
   'qwen3-8-27b-text-q4k-ehaf16': '27b',
-  'qwen-3-6-35b-a3b-text-source-q4_0-af32': '35b',
+  'qwen-3-6-35b-a3b-text-source-q40-hq6k-af32': '35b',
 };
 const canSplit = model => !model.executionModes || model.executionModes.includes('partition');
 const modelNames = models => models.flatMap(m => [shortNames[m.id], m.id].filter(Boolean));
@@ -131,7 +132,7 @@ export function nativeCommand(argv) {
   if (command === 'ask' && !prompt?.trim()) throw Error(details.ask);
   if (positionals.length > 1 || (positionals.length && values.model)) throw Error('Choose one model. Run reploid models for available names.');
   const name = positionals[0] ?? values.model;
-  const model = name === undefined ? undefined : catalog.find(m => m.id === name || shortNames[m.id] === name);
+  const model = name === undefined ? undefined : catalog.find(m => m.id === name || shortNames[m.id] === name) ?? findCatalogModel(catalog, name);
   if (name !== undefined && !model && !values['model-config']) throw Error(`Unknown model or command "${name}". Run reploid models for this installation.`);
   if (values.weights !== undefined && values['model-directory'] !== undefined) throw Error('Choose --weights or --model-directory once.');
   if (values.stage !== undefined && (command !== 'split' || values['partition-index'] !== undefined)) throw Error('Use --stage with split, in place of --partition-index.');

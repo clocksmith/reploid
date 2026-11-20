@@ -224,7 +224,7 @@ test('actual pinned model origin supplies one bounded verified piece without com
  const evidence=await page.evaluate(async()=>{
   const {createWorkModelFiles}=await import('/host/work-model-files.js');
   const {LOCAL_DOPPLER_MODELS}=await import('/config/doppler-local-models.js');
-  const model=LOCAL_DOPPLER_MODELS.find(m=>m.id==='qwen-3-5-0-8b-q4k-ehaf16');
+  const model=LOCAL_DOPPLER_MODELS.find(m=>m.id==='qwen-3-5-0-8b-q4k-ef16-af32-vf16');
   const metadata=model.source.files.filter(f=>['model-manifest','model-piece-index'].includes(f.role));
   const allowance=metadata.reduce((n,f)=>n+f.sizeBytes,0)+4194304;
   const requests=[], offers=[];

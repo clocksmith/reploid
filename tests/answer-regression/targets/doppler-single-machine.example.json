@@ -6,7 +6,7 @@
  "hostLabel": "amd-host",
  "description": "Example, not yet run: Doppler's own Node/Dawn pipeline for one package and model on amd-host, whole model in one pipeline. Copy this file, set the ${...} variables, and keep one id per package-independent target so runs of different packages compare against each other.",
  "placement": "unsplit",
- "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+ "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
  "routePromptTokenLimit": 250,
  "remote": {
   "workDir": "${REPLOID_ARX_REMOTE_WORK}",

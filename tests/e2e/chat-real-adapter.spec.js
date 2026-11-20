@@ -18,7 +18,7 @@ test('three Chrome tabs supply files, execute Doppler and receive independent ad
   const requesterContext = await browser.newContext(), supplierContext = await browser.newContext(), filesContext = await browser.newContext();
   const a = await requesterContext.newPage(), b = await supplierContext.newPage(), c = await filesContext.newPage();
   const errors = [], modelRequests = [], executorRequests = [], seedOrigin = [];
-  const base = 'qwen-3-5-0-8b-q4k-ehaf16', specialist = base + '/qwen35-0-8b-ner-json-lora';
+  const base = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', specialist = base + '/qwen35-0-8b-ner-json-lora';
   const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8')).find(item => item.id === base);
   const room = privateRoom('real-adapter');
   b.on('console', message => {

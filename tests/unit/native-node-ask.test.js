@@ -6,7 +6,7 @@ import { askMesh } from '../../server/native-node-ask.js';
 it('defaults to 2B, accepts a quoted prompt and keeps compute flags out of ask', () => {
   expect(nativeCommand(['ask', 'two words'])).toEqual({ args: ['--connect-only'], prompt: 'two words' });
   expect(nativeCommand(['ask', '--model', '2b', '--room', 'my-team', '--', '--help'])).toMatchObject({
-    args: ['qwen-3-5-2b-q4k-ehaf16', '--connect-only', '--room', 'my-team'], prompt: '--help'
+    args: ['qwen-3-5-2b-q4k-ef16-af32', '--connect-only', '--room', 'my-team'], prompt: '--help'
   });
   expect(() => nativeCommand(['ask', '2b', 'hello', '--contribute'])).toThrow('Unknown option');
   expect(() => nativeCommand(['ask'])).toThrow('Your question');

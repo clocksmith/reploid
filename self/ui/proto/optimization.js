@@ -7,7 +7,7 @@ const DEFAULT_CONTRACT = Object.freeze({
   contractId: 'reploid-qwen35-2b-decode-grid-v1',
   kind: 'runtime_profile',
   model: {
-    modelId: 'qwen-3-5-2b-q4k-ehaf16',
+    modelId: 'qwen-3-5-2b-q4k-ef16-af32',
     modelUrl: null,
     expectedExecutionContractHash: null
   },

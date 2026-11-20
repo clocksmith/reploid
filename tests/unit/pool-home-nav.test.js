@@ -382,8 +382,8 @@ describe('poolday home navigation', () => {
     expect(askHtml).toContain('<option value="esm2-t12-35m-ur50d-f32-af32" data-workload="sequence.embedding.v1" selected>ESM-2 35M (Protein)</option>');
     expect(computeHtml).toContain('<option value="esm2-t12-35m-ur50d-f32-af32" data-workload="sequence.embedding.v1" selected>ESM-2 35M (Protein)</option>');
     expect(askHtml).toContain('id="pool-run-sequence-public"');
-    expect(askHtml).not.toContain('qwen-3-5-0-8b-q4k-ehaf16');
-    expect(computeHtml).not.toContain('qwen-3-5-0-8b-q4k-ehaf16');
+    expect(askHtml).not.toContain('qwen-3-5-0-8b-q4k-ef16-af32-vf16');
+    expect(computeHtml).not.toContain('qwen-3-5-0-8b-q4k-ef16-af32-vf16');
     expect(computeHtml).not.toMatch(/<option[^>]+disabled/);
   });
 

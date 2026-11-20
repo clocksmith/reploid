@@ -10,7 +10,7 @@ import { openScopedModelProvider } from '../../shared/infrastructure/scoped-mode
 import workProfile from '../../apps/poolday/config/work-profile.json' with { type: 'json' };
 
 const model = {
-  id: 'qwen-3-5-2b-q4k-ehaf16',
+  id: 'qwen-3-5-2b-q4k-ef16-af32',
   provider: 'doppler',
   identity: 'sha256:' + 'b'.repeat(64),
   generation: { maxTokens: 64 },

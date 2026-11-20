@@ -1,6 +1,6 @@
 {
   "schema": "reploid.chat-task-quality/v1",
-  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelId": "qwen-3-5-2b-q4k-ef16-af32",
   "hypothesis": "After the independently frozen 2B neutral-penalty holdout passes, replay the original counting failure with that candidate application policy.",
   "acceptance": "All 200 integers in order and natural EOS; original small-model failure and original application test remain unchanged.",
   "maxGpuBufferBytes": 6000000000,

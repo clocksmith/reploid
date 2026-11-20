@@ -384,18 +384,18 @@ it('ships origins only for catalog models whose identity the pin names', async (
   const table = JSON.parse(await fs.readFile(new URL('../../server/native-model-origins.json', import.meta.url), 'utf8'));
   const catalog = JSON.parse(await fs.readFile(new URL('../../shared/config/chat-models.json', import.meta.url), 'utf8'));
   const models = new Map((Array.isArray(catalog) ? catalog : catalog.models).map(model => [model.id, model]));
-  expect(Object.keys(table.origins).sort()).toEqual(['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16']);
+  expect(Object.keys(table.origins).sort()).toEqual(['qwen-3-5-0-8b-q4k-ef16-af32-vf16', 'qwen-3-5-2b-q4k-ef16-af32']);
   for (const id of Object.keys(table.origins)) {
     const origin = resolvePinnedOrigin(models.get(id), table);
     expect(origin.url('tokenizer.json')).toBe(`https://huggingface.co/${table.origins[id].repoId}/resolve/${table.origins[id].revision}/models/${id}/tokenizer.json`);
     expect(origin.supplier).toBe(`origin:clocksmith/rdrr@${table.origins[id].revision}`);
   }
-  expect(resolvePinnedOrigin(models.get('qwen-3-5-0-8b-q4k-ehaf16'), table).label)
-    .toBe('huggingface:clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293/models/qwen-3-5-0-8b-q4k-ehaf16');
+  expect(resolvePinnedOrigin(models.get('qwen-3-5-0-8b-q4k-ef16-af32-vf16'), table).label)
+    .toBe('huggingface:clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16');
   // The 35B is not published at any origin; it has no pin.
-  expect(resolvePinnedOrigin(models.get('qwen-3-6-35b-a3b-text-source-q4_0-af32'), table)).toBeNull();
+  expect(resolvePinnedOrigin(models.get('qwen-3-6-35b-a3b-text-source-q40-hq6k-af32'), table)).toBeNull();
   // A pin never serves another identity of the same model id.
-  expect(() => resolvePinnedOrigin({ ...models.get('qwen-3-5-0-8b-q4k-ehaf16'), identity: 'sha256:' + '0'.repeat(64) }, table)).toThrow('another model identity');
+  expect(() => resolvePinnedOrigin({ ...models.get('qwen-3-5-0-8b-q4k-ef16-af32-vf16'), identity: 'sha256:' + '0'.repeat(64) }, table)).toThrow('another model identity');
 });
 
 it('uses exact host-approved external sources while retaining pinned piece verification', async () => {

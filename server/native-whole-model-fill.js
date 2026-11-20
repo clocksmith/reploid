@@ -10,6 +10,7 @@ import { constants, createReadStream } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { countSupplier, supplierLabel, OTHER_SUPPLIERS } from '../packages/reploid/src/artifacts/custody/supplier-summary.js';
+import { supersededIdentities } from './native-model-names.js';
 
 const assert = (ok, message, code) => { if (!ok) throw Object.assign(new Error(message), code ? { code } : {}); };
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -104,10 +105,13 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
   release = async () => {}, freeBytes, concurrency = 1, signal = AbortSignal.timeout(2 ** 31 - 1), onProgress = () => {} }) {
   assert(Number.isSafeInteger(concurrency) && concurrency > 0, 'Explicit fill concurrency required');
   const started = Date.now(), plan = wholeModelFillPlan({ model, manifest, index });
-  // Never overwrite a directory that holds another model.
+  // Never overwrite a directory that holds another model. A directory that holds the manifest this model
+  // replaced (a reissue under a new name) is the same weights: it is adopted, each file is still used only
+  // after its whole hash matches, and the manifest is replaced last.
   try {
-    const present = await fs.readFile(path.join(root, 'manifest.json'));
-    assert('sha256:' + sha256(present) === model.identity, 'Model directory holds a different manifest', 'WHOLE_MODEL_DIRECTORY_CONFLICT');
+    const present = 'sha256:' + sha256(await fs.readFile(path.join(root, 'manifest.json')));
+    assert(present === model.identity || supersededIdentities(model).includes(present),
+      'Model directory holds a different manifest', 'WHOLE_MODEL_DIRECTORY_CONFLICT');
   } catch (error) { if (error.code !== 'ENOENT') throw error; }
   // A file already under its final name is used only after its whole hash matches; one that
   // does not becomes the partial file, so its matching pieces are still reused.

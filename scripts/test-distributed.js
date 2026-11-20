@@ -21,7 +21,7 @@ import { homeRedactingStream, portableEvidence } from './evidence-paths.js';
 
 const root = resolve(import.meta.dirname, '..');
 const modelArgument = process.argv.indexOf('--model');
-const modelId = modelArgument < 0 ? 'qwen-3-5-0-8b-q4k-ehaf16' : process.argv[modelArgument + 1];
+const modelId = modelArgument < 0 ? 'qwen-3-5-0-8b-q4k-ef16-af32-vf16' : process.argv[modelArgument + 1];
 if (!modelId || modelId.startsWith('--')) throw new Error('--model requires a catalog model ID');
 const capacityDiagnostic = process.argv.includes('--capacity');
 const recoveryDiagnostic = process.argv.includes('--recovery');
@@ -31,7 +31,7 @@ const signalingDiagnostic = process.argv.includes('--signaling-only');
 if ([capacityDiagnostic, recoveryDiagnostic, numericalDiagnostic, memoryDiagnostic, signalingDiagnostic].filter(Boolean).length > 1) {
   throw new Error('Choose one diagnostic: --capacity, --recovery, --numerical-only, --memory-only, or --signaling-only');
 }
-if (memoryDiagnostic && modelId !== 'qwen-3-5-0-8b-q4k-ehaf16') {
+if (memoryDiagnostic && modelId !== 'qwen-3-5-0-8b-q4k-ef16-af32-vf16') {
   throw new Error('--memory-only requires the retained long-prompt model');
 }
 if (memoryDiagnostic && process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1') {
@@ -56,7 +56,7 @@ if (localConversation && process.env.REPLOID_E2E_BASE_URL) {
 const documentWorkload = memoryDiagnostic || numericalDiagnostic || capacityDiagnostic || signalingDiagnostic ? false
   : recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS === '1'
   : process.env.REPLOID_E2E_DOCUMENTS !== '0';
-const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic && !memoryDiagnostic && !signalingDiagnostic;
+const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ef16-af32-vf16' && !capacityDiagnostic && !recoveryDiagnostic && !memoryDiagnostic && !signalingDiagnostic;
 const standaloneControls = !capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic && !signalingDiagnostic
   && (recoveryDiagnostic ? process.env.REPLOID_E2E_CAPACITY === '1' : !frozenWorkloads);
 const peer = process.env.REPLOID_TEST_PEER || 'amd-host';

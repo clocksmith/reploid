@@ -1,6 +1,6 @@
 {
   "schema": "reploid.chat-task-quality/v1",
-  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelId": "qwen-3-5-2b-q4k-ef16-af32",
   "hypothesis": "After passing the separately frozen fresh tasks, the existing larger model naturally completes the retained failing counting request.",
   "acceptance": "All 200 integers in order and natural EOS; original small-model failure and original application test remain unchanged.",
   "maxGpuBufferBytes": 6000000000,

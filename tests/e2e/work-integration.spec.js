@@ -164,7 +164,7 @@ test('two browsers exchange an approved text request over WebRTC and settle shar
         async open({scope}) {window.providerScopes.add(scope);await new Promise(resolve=>{window.releaseModel=resolve;});return {async *stream(){window.providerCalls++;await new Promise(resolve=>{window.releaseGeneration=resolve;});yield {type:'text-delta',text:'A peer checked the proposed approach.'};}};},
         async close(scope){window.providerScopes.delete(scope);}
       }});
-      await window.testSwarm.share('qwen-3-5-2b-q4k-ehaf16',true);
+      await window.testSwarm.share('qwen-3-5-2b-q4k-ef16-af32',true);
     });
     await requester.evaluate(async()=>{const {createWorkSwarm}=await import('/host/work-swarm.js');window.testSwarm=createWorkSwarm({storage:localStorage});await window.testSwarm.connect();});
     await expect.poll(()=>requester.evaluate(()=>window.testSwarm.getState().consumer?.providerCount),{timeout:15000}).toBeGreaterThan(0);

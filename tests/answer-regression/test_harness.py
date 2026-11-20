@@ -157,7 +157,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class Judge(unittest.TestCase):
-    generator = {'names': ['qwen-3-5-0-8b-q4k-ehaf16', 'Qwen/Qwen3.5-0.8B'], 'manifestIdentity': 'sha256:abc', 'routeBaseUrl': None}
+    generator = {'names': ['qwen-3-5-0-8b-q4k-ef16-af32-vf16', 'Qwen/Qwen3.5-0.8B'], 'manifestIdentity': 'sha256:abc', 'routeBaseUrl': None}
 
     def config(self, model, endpoint='http://127.0.0.1:9/v1/chat/completions'):
         return {'schema': judge.JUDGE_SCHEMA, 'adapter': 'openai-chat', 'endpoint': endpoint, 'model': model,
@@ -165,7 +165,7 @@ class Judge(unittest.TestCase):
 
     def test_judge_must_differ_from_generator(self):
         os.environ['ARX_TEST_JUDGE_KEY'] = 'test-key'
-        for same in ('Qwen/Qwen3.5-0.8B', 'qwen3.5-0.8b-instruct', 'qwen-3-5-0-8b-q4k-ehaf16', 'Qwen3.5'):
+        for same in ('Qwen/Qwen3.5-0.8B', 'qwen3.5-0.8b-instruct', 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', 'Qwen3.5'):
             with self.assertRaises(SystemExit):
                 judge.Judge(self.config(same), self.generator)
         with self.assertRaises(SystemExit):

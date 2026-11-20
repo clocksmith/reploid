@@ -20,7 +20,7 @@ import { startFleetTextApi } from '../../server/fleet/text-api.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 
-const model = { id: 'qwen-3-5-2b-q4k-ehaf16', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler', generation: { maxTokens: 16 } };
+const model = { id: 'qwen-3-5-2b-q4k-ef16-af32', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler', generation: { maxTokens: 16 } };
 const token = 'synthetic-fleet-api-bearer-secret-0123456789abcdef';
 const roomId = 'reploid-swarm-fleet-fixture';
 const messages = [{ role: 'user', content: 'Count upward from one.' }];

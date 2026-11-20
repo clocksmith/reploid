@@ -70,7 +70,7 @@ profile from any existing public contributor:
 
 ```bash
 export P2P_APP_URL='https://reploid.example.invalid/'
-export P2P_MODEL='qwen-3-5-0-8b-q4k-ehaf16'
+export P2P_MODEL='qwen-3-5-0-8b-q4k-ef16-af32-vf16'
 node scripts/run-mesh-contributor.js \
   --url "$P2P_APP_URL" --model "$P2P_MODEL" \
   --profile "$HOME/.local/share/reploid/p2p-test-compute" --contribute compute
@@ -81,7 +81,7 @@ available. To explicitly seed identical local model files, use another window:
 
 ```bash
 node scripts/run-mesh-contributor.js \
-  --url 'https://reploid.example.invalid/' --model qwen-3-5-0-8b-q4k-ehaf16 \
+  --url 'https://reploid.example.invalid/' --model qwen-3-5-0-8b-q4k-ef16-af32-vf16 \
   --profile "$HOME/.local/share/reploid/p2p-test-files" --contribute files \
   --model-directory /path/to/exact/catalog-model-files
 ```

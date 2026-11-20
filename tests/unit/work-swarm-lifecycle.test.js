@@ -10,7 +10,7 @@ vi.mock('../../shared/vendor/reploid/transport/index.js', () => ({
 }));
 vi.mock('../../shared/config/doppler-local-models.js', async importOriginal => {
   const actual = await importOriginal();
-  const base = actual.LOCAL_DOPPLER_MODELS.find(model => model.id === 'qwen-3-5-2b-q4k-ehaf16');
+  const base = actual.LOCAL_DOPPLER_MODELS.find(model => model.id === 'qwen-3-5-2b-q4k-ef16-af32');
   // Exercise the explicit whole-request compatibility contract independently
   // of the production catalog's verified partition acquisition descriptors.
   const wholeRequest = { ...base, id: 'whole-model-lifecycle-fixture', source: { ...base.source,
@@ -77,7 +77,7 @@ it('coalesces attempts and disconnect retires an already opening transport', asy
 
 afterEach(() => vi.unstubAllGlobals());
 
-it.each(['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16'])(
+it.each(['qwen-3-5-0-8b-q4k-ef16-af32-vf16', 'qwen-3-5-2b-q4k-ef16-af32'])(
   'contributes %s through the verified partition interface', async modelId => {
     vi.stubGlobal('navigator', { gpu: {} });
     ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
@@ -97,9 +97,9 @@ it('reserves contribution startup before connecting and stop prevents a late mod
   const transport = { init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn() };
   ports.createTransport.mockReturnValue(transport);
   const service = { open: vi.fn(), close: vi.fn() }, swarm = fixture(service);
-  const first = swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
+  const first = swarm.share('qwen-3-5-2b-q4k-ef16-af32', true);
   const failure = expect(first).rejects.toThrow('stopped');
-  const duplicate = swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
+  const duplicate = swarm.share('qwen-3-5-2b-q4k-ef16-af32', true);
   const duplicateFailure = expect(duplicate).rejects.toThrow('stopped');
   await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalledOnce());
   const stop = swarm.stop(); identity.resolve({ peerId: 'fixture', contribution: {} });
@@ -112,7 +112,7 @@ it('reports contribution setup failure even when the connection fails before a r
   vi.stubGlobal('navigator', { gpu: {} });
   ports.ensure.mockRejectedValue(new Error('Signaling unavailable'));
   const service = { open: vi.fn(), close: vi.fn() }, swarm = fixture(service);
-  await expect(swarm.share('qwen-3-5-2b-q4k-ehaf16', true)).rejects.toThrow('Signaling unavailable');
+  await expect(swarm.share('qwen-3-5-2b-q4k-ef16-af32', true)).rejects.toThrow('Signaling unavailable');
   expect(swarm.getState().contribution).toMatchObject({ phase: 'failed', ready: false, error: 'Signaling unavailable' });
   expect(service.open).not.toHaveBeenCalled(); await swarm.close();
 });
@@ -120,7 +120,7 @@ it('reports contribution setup failure even when the connection fails before a r
 it('disconnect immediately after share cannot deadlock or create a late contributor', async () => {
   vi.stubGlobal('navigator', { gpu: {} });
   const service = { open: vi.fn(), close: vi.fn() }, swarm = fixture(service);
-  const first = swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
+  const first = swarm.share('qwen-3-5-2b-q4k-ef16-af32', true);
   const failure = expect(first).rejects.toThrow('stopped');
   await swarm.disconnect(); await failure;
   expect(service.open).not.toHaveBeenCalled(); expect(ports.ensure).not.toHaveBeenCalled();
@@ -152,7 +152,7 @@ async function supplierFixture(modelId = 'whole-model-lifecycle-fixture') {
 }
 
 it('advertises loading without slots, prepares once and reuses reset resident weights', async () => {
-  const f = await supplierFixture('qwen-3-5-2b-q4k-ehaf16');
+  const f = await supplierFixture('qwen-3-5-2b-q4k-ef16-af32');
   expect(f.ads.at(-1)).toMatchObject({ hasInference: false, readiness: 'loading', availableSlots: 0 });
   expect(f.swarm.getState().contribution.phase).toBe('loading');
   f.service.open.mock.calls[0][0].options.onProgress({ kind: 'receiving', receivedBytes: 25, totalBytes: 100,
@@ -211,7 +211,7 @@ it('stop during partition connection prevents a late contribution', async () => 
   vi.stubGlobal('navigator', { gpu: {} });
   const identity = deferred(); ports.ensure.mockReturnValue(identity.promise);
   const swarm = fixture();
-  const pending = swarm.share('qwen-3-5-0-8b-q4k-ehaf16', true, [], { mode: 'partition' });
+  const pending = swarm.share('qwen-3-5-0-8b-q4k-ef16-af32-vf16', true, [], { mode: 'partition' });
   const failure = expect(pending).rejects.toThrow('stopped');
   await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalledOnce());
   const stopping = swarm.disconnect(); identity.resolve({ peerId: 'fixture', contribution: {} });
@@ -365,11 +365,11 @@ it('lets a requester-only ordered browser share a whole model, while partition s
     storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) },
     createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}), prepareSource: async model => model.id }),
     networkOptions: () => ({ autoConnect: true, discoveryScope: 'public', config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'reploid-swarm-public' } } }) }) });
-  await expect(swarm.share('qwen-3-5-2b-q4k-ehaf16', true, [], { mode: 'partition' })).rejects.toThrow('Model differs from assigned ordered stage');
-  const whole = swarm.share('qwen-3-5-2b-q4k-ehaf16', true, [], { mode: 'whole-model' });
+  await expect(swarm.share('qwen-3-5-2b-q4k-ef16-af32', true, [], { mode: 'partition' })).rejects.toThrow('Model differs from assigned ordered stage');
+  const whole = swarm.share('qwen-3-5-2b-q4k-ef16-af32', true, [], { mode: 'whole-model' });
   const stopped = expect(whole).rejects.toThrow('stopped');
   await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalled());
-  expect(swarm.getState().contribution).toMatchObject({ phase: 'connecting', modelId: 'qwen-3-5-2b-q4k-ehaf16' });
+  expect(swarm.getState().contribution).toMatchObject({ phase: 'connecting', modelId: 'qwen-3-5-2b-q4k-ef16-af32' });
   const stop = swarm.stop(); identity.resolve({ peerId: 'fixture', contribution: {} });
   await stop; await stopped; await swarm.close();
 });

@@ -20,7 +20,7 @@
  },
  "identities": {
   "model": {
-   "catalogId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "catalogId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
    "manifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
    "source": "Qwen/Qwen3.5-0.8B",
    "weights": "deployed Q4_K bytes decoded by gguf to float32",
@@ -115,9 +115,9 @@
     "sha256": "59811b4af5f7b44387344fe38fdea155de4f27a487332a846c27fee9257481d5",
     "entrySha256": "e98d85c3f849350d241a7015eb15fe03f4ff37a3e404c6aa118ca75156c0f215"
    },
-   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
    "manifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
-   "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-67f240af03e77a892eb1cc724000dd11e580ad180405b426b0f62e5c309b3fe1",
+   "capsuleId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16-capsule-v3-67f240af03e77a892eb1cc724000dd11e580ad180405b426b0f62e5c309b3fe1",
    "targetPlanCount": 1,
    "generation": {
     "maxTokens": 1024,

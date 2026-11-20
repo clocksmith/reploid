@@ -1,6 +1,6 @@
 {
   "schema": "reploid.chat-task-quality/v1",
-  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelId": "qwen-3-5-2b-q4k-ef16-af32",
   "hypothesis": "The previously declared general formatting instruction may transfer to the existing 2B model on fresh longer structured tasks, without changing weights or sampling.",
   "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. Protected numerical and application cases remain unchanged.",
   "maxGpuBufferBytes": 6000000000,

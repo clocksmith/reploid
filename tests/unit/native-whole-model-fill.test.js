@@ -80,6 +80,31 @@ it('resumes: verified pieces already written are reused, and a damaged final fil
   expect(await fs.readFile(path.join(root, 'shard_00000.bin'))).toEqual(f.shard);
 });
 
+it('adopts the directory of the identity a reissued model replaced, after hashing every file', async () => {
+  const f = fixture(), root = await folder();
+  // The same weights under the earlier manifest: only the name inside the manifest differs.
+  const earlier = Buffer.from(JSON.stringify({ ...f.manifest, modelId: 'fixture-earlier-name' }));
+  await fs.writeFile(path.join(root, 'shard_00000.bin'), f.shard);
+  await fs.writeFile(path.join(root, 'tokenizer.json'), f.tokenizer);
+  await fs.writeFile(path.join(root, 'manifest.json'), earlier);
+  // Without the catalog saying so, that directory is another model.
+  await expect(fillWholeModelDirectory(f.options(root))).rejects.toMatchObject({ code: 'WHOLE_MODEL_DIRECTORY_CONFLICT' });
+  const reissued = { ...f.model, supersedes: [{ id: 'fixture-earlier-name', identity: 'sha256:' + hash(earlier) }] };
+  expect(await wholeModelDirectoryComplete(root, reissued)).toBe(false);
+  const result = await fillWholeModelDirectory({ ...f.options(root), model: reissued });
+  expect(f.requested).toEqual([]);
+  expect(result).toMatchObject({ fetchedPieces: 0 });
+  expect(await fs.readFile(path.join(root, 'manifest.json'))).toEqual(f.manifestBytes);
+  expect(await wholeModelDirectoryComplete(root, reissued)).toBe(true);
+  // Adoption trusts nothing: a shard that differs is fetched again, piece by piece.
+  const other = await folder(), damaged = Buffer.from(f.shard); damaged[5] ^= 1;
+  await fs.writeFile(path.join(other, 'shard_00000.bin'), damaged);
+  await fs.writeFile(path.join(other, 'manifest.json'), earlier);
+  await fillWholeModelDirectory({ ...f.options(other), model: reissued });
+  expect(f.requested).toEqual([f.index.files[0].pieces[1].identity, f.index.files[1].pieces[0].identity]);
+  expect(await fs.readFile(path.join(other, 'shard_00000.bin'))).toEqual(f.shard);
+});
+
 it('never overwrites another model and stops when the directory lacks room', async () => {
   const f = fixture(), root = await folder();
   await fs.writeFile(path.join(root, 'manifest.json'), '{"modelId":"other"}');

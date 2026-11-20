@@ -1,6 +1,6 @@
 {
   "schema": "reploid.chat-task-quality/v1",
-  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
   "hypothesis": "A general formatting instruction improves obedience and bounded completion without changing sampling, weights, or task inputs.",
   "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. Protected numerical and application cases remain unchanged.",
   "maxGpuBufferBytes": 6000000000,

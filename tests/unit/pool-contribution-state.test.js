@@ -36,14 +36,14 @@ describe('Poolday contribution state', () => {
     const snapshot = updateContributionState({
       state: 'working',
       optedIn: true,
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       roomId: 'room-a'
     });
 
     expect(snapshot.state).toBe('working');
     expect(snapshot.label).toBe('Answering');
     expect(snapshot.optedIn).toBe(true);
-    expect(snapshot.modelId).toBe('qwen-3-5-0-8b-q4k-ehaf16');
+    expect(snapshot.modelId).toBe('qwen-3-5-0-8b-q4k-ef16-af32-vf16');
   });
 
   it('persists recent contribution history and computes token windows', () => {
@@ -59,7 +59,7 @@ describe('Poolday contribution state', () => {
       receiptHash: 'sha256:recent-a',
       receipt: {
         assignmentId: 'assignment-a',
-        model: { id: 'qwen-3-5-0-8b-q4k-ehaf16' },
+        model: { id: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16' },
         tokenCounts: { input: 7, output: 11 },
         timing: { completedAt: '2026-07-04T11:30:00.000Z' }
       }
@@ -71,7 +71,7 @@ describe('Poolday contribution state', () => {
         tokenCounts: { input: 3, output: 5 },
         timing: { completedAt: '2026-07-04T10:45:00.000Z' }
       }
-    }, { roomId: 'room-a', modelId: 'qwen-3-5-0-8b-q4k-ehaf16' });
+    }, { roomId: 'room-a', modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16' });
 
     const snapshot = getContributionSnapshot();
 

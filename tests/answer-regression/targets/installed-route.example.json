@@ -7,7 +7,7 @@
  "protocol": "chat-completions",
  "protocolNotes": "chat-completions sends model, messages, stream:false. messages also reports raw-model-token usage (prompt and output token counts) and needs maxTokens within the route's prepared allocation.",
  "baseUrl": "${REPLOID_ARX_ROUTE_URL}",
- "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+ "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
  "maxTokens": 1024,
  "routePromptTokenLimit": 250,
  "declaredPlacement": "Operator-declared route, for example the signed ordered three-stage route and the hosts serving each stage. The API does not report placement.",

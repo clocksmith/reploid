@@ -11,7 +11,7 @@ try {
  await page.goto((process.env.REPLOID_UI_BASE_URL || 'http://127.0.0.1:8000') + '/plugin-fixture');
  await page.evaluate(async()=>{
   const ui=await import('/ui/pool-home/research-plugins.js');
-  const models=[{id:'qwen-3-5-0-8b-q4k-ehaf16',name:'Qwen 3.5 0.8B',identity:'fixture-small',provider:'doppler'},{id:'qwen3-8-27b-text-q4k-ehaf16',name:'Qwen 3.8 27B',identity:'fixture-large',provider:'doppler'}];
+  const models=[{id:'qwen-3-5-0-8b-q4k-ef16-af32-vf16',name:'Qwen 3.5 0.8B',identity:'fixture-small',provider:'doppler'},{id:'qwen3-8-27b-text-q4k-ehaf16',name:'Qwen 3.8 27B',identity:'fixture-large',provider:'doppler'}];
   const host={chat:{getState:()=>({models}),subscribe:()=>()=>{}},swarm:{getState:()=>({consumer:{peers:models.map(m=>({model:m.id,modelIdentity:m.identity,peerId:m.id,role:'provider',readiness:'ready',availableSlots:1}))}}),generate:async(messages,c)=>{
    window.__calls++;if(window.__wait)await new Promise((resolve,reject)=>c.signal.addEventListener('abort',()=>reject(c.signal.reason),{once:true}));
    const preview={providerId:c.modelId,modelId:c.modelId,modelIdentity:c.modelIdentity,adapterIdentities:[]};

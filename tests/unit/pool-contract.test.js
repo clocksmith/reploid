@@ -34,7 +34,7 @@ const PROTEIN_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32';
 const AMPLIFY_MODEL_ID = 'amplify-120m-f16-af32';
 const ESMC_MODEL_ID = 'esmc-300m-f32-af32';
 const NUCLEOTIDE_MODEL_ID = 'nucleotide-transformer-v2-50m-f32-af32';
-const RETIRED_TEXT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+const RETIRED_TEXT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16';
 const deploymentEnv = JSON.parse(readFileSync('deploy/env.production.json', 'utf8'));
 const cloudRunService = readFileSync('deploy/cloud-run-service.yaml', 'utf8');
 

@@ -82,7 +82,7 @@ test('concurrent primary inference is placed on two approved WebRTC participants
           yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: text };
         } }; }
       } });
-      await window.swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
+      await window.swarm.share('qwen-3-5-2b-q4k-ef16-af32', true);
     })));
     await requester.evaluate(async () => {
       const { createWorkSwarm } = await import('/host/work-swarm.js');

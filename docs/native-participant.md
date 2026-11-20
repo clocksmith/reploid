@@ -44,10 +44,10 @@ and signaling handshake. A successful diagnostic does not establish model fit.
 The original positional form still works:
 
 ```sh
-reploid qwen-3-5-2b-q4k-ehaf16
+reploid qwen-3-5-2b-q4k-ef16-af32
 ```
 
-With no model id, `reploid` serves `qwen-3-5-2b-q4k-ehaf16`, the model public
+With no model id, `reploid` serves `qwen-3-5-2b-q4k-ef16-af32`, the model public
 peers supply; any options may follow directly (`reploid --connect-only`).
 
 It runs `reploid-participant --contribute --execution-mode whole-model` for that
@@ -82,12 +82,15 @@ an origin. With a pin, the fill gives peers a 15 s grace to announce and then
 uses the origin for pieces no peer offers or that peers fail to deliver, so it
 also completes with no peer online. Partition acquisition uses the same pinned
 origin as its last source. Two models are pinned, both in `clocksmith/rdrr`:
-`qwen-3-5-2b-q4k-ehaf16` at `3a05b346b1c86abf02c7620f2369a9a7b82cb62f` (its 32
-shard hashes and sizes there equal manifest `a0dc69e9`) and
-`qwen-3-5-0-8b-q4k-ehaf16` at `ea7b211b72c4d43687fa72802dee7aba74eca293` (its 18
-shard hashes and sizes equal manifest `fa6eb7bb`); each `tokenizer.json` there
-equals the catalog's hash. The manifests stored at those revisions are older
-issues and are never read. `qwen-3-6-35b-a3b-text-source-q4_0-af32` is not
+`qwen-3-5-2b-q4k-ef16-af32` at `3a05b346b1c86abf02c7620f2369a9a7b82cb62f` (its 32
+shard hashes and sizes there equal manifest `eb2a4840`) and
+`qwen-3-5-0-8b-q4k-ef16-af32-vf16` at `ea7b211b72c4d43687fa72802dee7aba74eca293` (its 18
+shard hashes and sizes equal manifest `cdda7ddc`); each `tokenizer.json` there
+equals the catalog's hash. Both were reissued under these names on 2026-11-20
+over the same weights, so the repository directories still carry the earlier
+names (`models/qwen-3-5-2b-q4k-ehaf16`, `models/qwen-3-5-0-8b-q4k-ehaf16`). The
+manifests stored at those revisions are older issues and are never read.
+`qwen-3-6-35b-a3b-text-source-q40-hq6k-af32` is not
 published at any origin and has no pin. Each piece is checked
 against the catalog's pinned piece index, each assembled shard against the
 manifest's SHA-256 and each other file against the catalog. A file is written as
@@ -106,7 +109,7 @@ manifest npm accepts. It names the pinned Doppler release by version, and it
 carries its resolved dependency graph as `npm-shrinkwrap.json`, because npm
 leaves `package-lock.json` out of a published package; `native-delivery.json`
 lists that file. Published under the name `reploid`, the command above
-becomes `npx reploid qwen-3-5-2b-q4k-ehaf16` with no checkout. The example names
+becomes `npx reploid qwen-3-5-2b-q4k-ef16-af32` with no checkout. The example names
 2B because the fleet supplies it; a model with no supplier online starts and
 waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
 files out of a delivery; the publishable build omits
@@ -115,7 +118,7 @@ directory and whose identity a live provider uses, so it cannot be re-issued
 in place. Checked: the built package
 installs, and its three commands start through npm's links (help text and
 argument expansion). On 2026-11-11 the package built from `65a2a7339`, run as
-`reploid qwen-3-5-2b-q4k-ehaf16` on one Linux x64 host (Intel integrated GPU,
+`reploid qwen-3-5-2b-q4k-ehaf16` (the 2B's name at the time) on one Linux x64 host (Intel integrated GPU,
 Vulkan) with an empty state directory, filled the 2B from a public custody
 supplier (919 verified pieces, 2,087,223,456 bytes, 504 s; no origin bytes),
 became ready and answered one Chat Completions request through a separate
@@ -140,7 +143,7 @@ npm ci --no-audit --no-fund
 npm start -- --help
 mkdir -p weights
 npm start -- --connect-only \
-  --model qwen-3-5-0-8b-q4k-ehaf16 \
+  --model qwen-3-5-0-8b-q4k-ef16-af32-vf16 \
   --model-directory ./weights \
   --identity-file ./state/identity.json \
   --rtc-module @roamhq/wrtc --ws-module ws

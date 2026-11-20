@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelId": "qwen-3-5-2b-q4k-ef16-af32",
   "modelType": "transformer",
   "quantization": "Q4_K_M",
   "quantizationInfo": {
@@ -6073,8 +6073,8 @@
     "convertedAt": "2026-04-05T01:30:03.550Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-08T18:59:27.186Z",
-      "config": "qwen-3-5-2b-q4k-ehaf16.json"
+      "at": "2026-11-20T02:31:18.141Z",
+      "config": "qwen-3-5-2b-q4k-ef16-af32.json"
     },
     "integrityMigration": {
       "previousManifestIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
@@ -6089,9 +6089,9 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:76bb8729cd138886f1a411657aa155c3f98d33e65f245232135724e37e996df9",
-    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
-    "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-09dd1b7d79bc",
+    "conversionConfigDigest": "sha256:3f0f1963c6a0dfdd994b6dfdae6b9fc151e2a747312e7c464d65200fa3754d86",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ef16-af32.json",
+    "manifestVariantId": "qwen-3-5-2b-q4k-ef16-af32-mv-41e532684994",
     "materializationProfile": "auto",
     "modalitySet": [
       "text"

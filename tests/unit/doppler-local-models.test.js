@@ -36,7 +36,7 @@ describe('local Doppler model contract', () => {
     expect(DOPPLER_KERNEL_BASE_URL).toBe(`/vendor/doppler/${pin.version}/src/gpu/kernels`);
     expect(DOPPLER_TOOLING_URL).toBe(`/vendor/doppler/${pin.version}/src/tooling-exports.browser.js`);
     expect(DOPPLER_STORAGE_TOOLING_URL).toBe(`/vendor/doppler/${pin.version}/src/tooling-exports/storage.js`);
-    expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
+    expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ef16-af32');
     expect(LOCAL_DOPPLER_MODELS.length).toBeGreaterThan(0);
     for (const model of LOCAL_DOPPLER_MODELS) {
       const local = buildLocalDopplerModelConfig(model.id);

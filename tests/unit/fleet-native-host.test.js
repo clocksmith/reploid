@@ -88,7 +88,7 @@ it('admits two independent conversations within capacity and cancels a third bef
 });
 
 it('serves other conversations before a second turn from a fast-path conversation and updates queue positions', async () => {
-  const route = { id: 'qwen-3-5-2b-q4k-ehaf16', identity: 'sha256:test', availability: 'ready' };
+  const route = { id: 'qwen-3-5-2b-q4k-ef16-af32', identity: 'sha256:test', availability: 'ready' };
   const scheduler = createFairLaneScheduler({
     enabled: true,
     capacityWaitMs: 5000,

@@ -3,8 +3,8 @@ import { bindResearchPlugins, renderResearchPlugins } from '../../apps/poolday/u
 
 function fixture(lock = {}) {
   const models = [
-    { id: 'qwen-3-5-0-8b-q4k-ehaf16', name: 'Target', identity: 's', provider: 'doppler' },
-    { id: 'qwen-3-5-2b-q4k-ehaf16', name: 'Alternative', identity: 'm', provider: 'doppler' },
+    { id: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', name: 'Target', identity: 's', provider: 'doppler' },
+    { id: 'qwen-3-5-2b-q4k-ef16-af32', name: 'Alternative', identity: 'm', provider: 'doppler' },
     { id: 'qwen3-8-27b-text-q4k-ehaf16', name: 'Imitator', identity: 'l', provider: 'doppler' }
   ];
   let notify, peers = [];
@@ -29,9 +29,9 @@ it('waits for contributors, retains selection, prepares then judges without new 
     expect(f.root.querySelector('[data-study-start]').disabled).toBe(true);
     f.ready();
     const select = f.root.querySelector('[data-study-imitator]');
-    select.value = 'qwen-3-5-2b-q4k-ehaf16'; select.dispatchEvent(new Event('change'));
+    select.value = 'qwen-3-5-2b-q4k-ef16-af32'; select.dispatchEvent(new Event('change'));
     f.notify();
-    expect(f.root.querySelector('[data-study-imitator]').value).toBe('qwen-3-5-2b-q4k-ehaf16');
+    expect(f.root.querySelector('[data-study-imitator]').value).toBe('qwen-3-5-2b-q4k-ef16-af32');
     f.root.querySelector('[data-study-start]').click();
     await vi.waitFor(() => expect(f.root.querySelector('[data-study-judge]')).not.toBeNull());
     expect(f.swarm.generate).toHaveBeenCalledTimes(18);

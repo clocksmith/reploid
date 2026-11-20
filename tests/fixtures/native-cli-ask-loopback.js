@@ -17,7 +17,7 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 
 const exec = promisify(execFile);
-const model = catalog.find(row => row.id === 'qwen-3-5-2b-q4k-ehaf16');
+const model = catalog.find(row => row.id === 'qwen-3-5-2b-q4k-ef16-af32');
 const home = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-cli-ask-'));
 const roomId = 'reploid-swarm-' + randomUUID(), roomToken = randomUUID();
 const prompt = 'Local CLI transport check.', answer = 'The loopback provider answered.';

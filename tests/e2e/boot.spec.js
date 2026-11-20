@@ -227,7 +227,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
     await expect(page.locator('[data-work-form]')).toBeVisible();
     await expect(page.locator('[data-work-goal]')).toHaveValue('');
-    await expect(page.locator('[data-work-model]')).toHaveValue('qwen-3-5-2b-q4k-ehaf16');
+    await expect(page.locator('[data-work-model]')).toHaveValue('qwen-3-5-2b-q4k-ef16-af32');
     await expect(page.locator('[data-work-peers]')).not.toBeChecked();
     await expect(page.locator('[data-work-recall]')).not.toBeChecked();
     await expect(page.locator('[data-work-start]')).toHaveText('Start');

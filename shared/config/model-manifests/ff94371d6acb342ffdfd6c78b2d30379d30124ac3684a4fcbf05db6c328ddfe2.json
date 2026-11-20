@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "modelId": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+  "modelId": "qwen-3-6-35b-a3b-text-source-q40-hq6k-af32",
   "modelType": "transformer",
   "quantization": "Q4_0",
   "quantizationInfo": {
@@ -16,15 +16,15 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:40f8043a69194b3e05b4ef50b2a4da8e435eec295fc528054b653a2b2f96434d",
-    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-6-35b-a3b-q4_0-passthrough.json",
-    "manifestVariantId": "qwen-3-6-35b-a3b-text-source-q4_0-af32-mv-61ab5b75d9ae",
+    "conversionConfigDigest": "sha256:9e922b4c698dd2fd09a2d49a1d9aedd9a25f30b5fdb4361477cfc613889996d1",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-source-q40-hq6k-af32.json",
+    "manifestVariantId": "qwen-3-6-35b-a3b-text-source-q40-hq6k-af32-mv-1ae51e4351c0",
     "materializationProfile": "auto",
     "modalitySet": [
       "text"
     ],
     "shardSetHash": "sha256:d1e4369bb64aea21bb6a893f271a1ade89a871f66934597d8fe8a7c32f5abe52",
-    "sourceCheckpointId": "file:///run/media/x/models/deco-evidence/qwen-economics-20261030/Qwen_Qwen3.6-35B-A3B-Q4_0.gguf",
+    "sourceCheckpointId": "Qwen/Qwen3.6-35B-A3B",
     "sourceFormat": "gguf",
     "weightCapsuleHash": "sha256:663142c052c56a000e0f1d95adab42de0d6105f3cafbcabca70aa2273f879818",
     "weightCapsuleId": "qwen-3-6-35b-a3b-text-source-q4_0-af32-wp-663142c052c5"
@@ -15694,7 +15694,7 @@
   ],
   "conversion": null,
   "metadata": {
-    "source": "file:///run/media/x/models/deco-evidence/qwen-economics-20261030/Qwen_Qwen3.6-35B-A3B-Q4_0.gguf",
+    "source": "Qwen/Qwen3.6-35B-A3B",
     "convertedAt": "2026-10-30T23:21:07.350Z",
     "sourceExclusions": [
       {
@@ -15778,7 +15778,11 @@
         "reason": "next-token-prediction layer outside text decoder"
       }
     ],
-    "hasTokenizer": true
+    "hasTokenizer": true,
+    "manifestRefresh": {
+      "at": "2026-11-20T02:31:18.860Z",
+      "config": "qwen-3-6-35b-a3b-text-source-q40-hq6k-af32.json"
+    }
   },
   "tokenizer": {
     "type": "bundled",

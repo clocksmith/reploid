@@ -57,10 +57,10 @@ describe('pool model artifact helpers', () => {
 
   it('builds hosted model artifact URLs from a model-specific base policy', () => {
     expect(buildModelArtifactUrls({
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       manifestHash: 'sha256:manifest',
       artifactPolicy: {
-        baseUrl: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+        baseUrl: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16',
         pathTemplate: '',
         paths: {
           manifest: 'manifest.json',
@@ -69,19 +69,19 @@ describe('pool model artifact helpers', () => {
         }
       }
     })).toEqual({
-      root: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
-      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
-      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
-      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/'
+      root: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16',
+      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16/manifest.json',
+      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16/tokenizer.json',
+      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16/'
     });
   });
 
   it('lets an explicit artifact root override a model-specific base policy', () => {
     expect(buildModelArtifactUrls({
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       manifestHash: 'sha256:manifest',
       artifactPolicy: {
-        baseUrl: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+        baseUrl: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16',
         pathTemplate: '',
         paths: {
           manifest: 'manifest.json',
@@ -99,7 +99,7 @@ describe('pool model artifact helpers', () => {
 
   it('accepts Doppler manifest shape with artifact identity and filename shards', () => {
     const result = validateModelArtifactManifestShape({
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       artifactIdentity: {
         weightPackHash: 'sha256:weight-pack'
       },

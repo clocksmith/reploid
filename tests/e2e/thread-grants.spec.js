@@ -43,7 +43,7 @@ test('real WebRTC binds each Send to verified recipients across refresh and repl
     const contribute = async page => {
       await page.locator('[data-toggle-inspector]').click();
       await page.locator('[data-inspector-section="device"]').click();
-      await page.locator('[data-contribution-model]').selectOption('qwen-3-5-2b-q4k-ehaf16');
+      await page.locator('[data-contribution-model]').selectOption('qwen-3-5-2b-q4k-ef16-af32');
       await page.locator('[data-toggle-contribution]').click();
       await expect(page.locator('[data-contrib-label]')).toHaveText('Ready');
     };

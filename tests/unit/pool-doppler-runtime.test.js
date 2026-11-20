@@ -415,7 +415,7 @@ describe('Doppler browser runtime adapter', () => {
   });
 
   it('keeps retired text and Qwen embedding lanes out of the enabled Poolday catalog', () => {
-    expect(getEnabledPoolModelContract('qwen-3-5-0-8b-q4k-ehaf16')).toBeNull();
+    expect(getEnabledPoolModelContract('qwen-3-5-0-8b-q4k-ef16-af32-vf16')).toBeNull();
     expect(getEnabledPoolModelContract('qwen-3-embedding-0-6b-q4k-ehf16-af32')).toBeNull();
   });
 
@@ -478,7 +478,7 @@ describe('Doppler browser runtime adapter', () => {
       manifestVariantId: 'qwen-mv-exec-v1'
     };
     const manifest = {
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       artifactIdentity,
       shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]
     };
@@ -527,7 +527,7 @@ describe('Doppler browser runtime adapter', () => {
       manifestVariantId: 'qwen-mv-exec-v1'
     };
     const sourceManifest = {
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       artifactIdentity,
       shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]
     };
@@ -598,7 +598,7 @@ describe('Doppler browser runtime adapter', () => {
       artifactCompleteness: 'complete'
     };
     const manifest = {
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       artifactIdentity,
       shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]
     };
@@ -613,7 +613,7 @@ describe('Doppler browser runtime adapter', () => {
     globalThis.REPLOID_DOPPLER_MODULE = {
       load() {
         return {
-          modelId: 'https://cdn.example.test/models/qwen-3-5-0-8b-q4k-ehaf16',
+          modelId: 'https://cdn.example.test/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16',
           modelHash: 'loader-cache-id',
           manifest,
           encodeSequence: testSequenceEncoding,
@@ -643,7 +643,7 @@ describe('Doppler browser runtime adapter', () => {
       manifestVariantId: 'qwen-mv-exec-v1'
     };
     const manifest = {
-      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
       manifestHash: 'sha256:bad_manifest_hash',
       artifactIdentity,
       shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]

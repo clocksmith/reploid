@@ -114,7 +114,7 @@ def extract_archive(archive, destination):
 class CpuQ4kControl(Target):
     """The useful-answer set's CPU control. run-arm.py and doppler-text.mjs run unchanged, pinned by sha256."""
     kind = 'cpu-q4k-control'
-    MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16'
+    MODEL_ID = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16'
 
     def scripts(self):
         for path, expected in ((RUN_ARM, RUN_ARM_SHA256), (DOPPLER_TEXT, DOPPLER_TEXT_SHA256)):

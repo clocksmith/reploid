@@ -1,6 +1,6 @@
 {
   "schema": "reploid.chat-task-quality/v1",
-  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "modelId": "qwen-3-5-2b-q4k-ef16-af32",
   "hypothesis": "The neutral repetition policy transfers to the larger model without losing its exact-output quality; this is a separate model scope from the rejected small-model control.",
   "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. The original counting regression is tested only after these fresh cases pass.",
   "maxGpuBufferBytes": 6000000000,

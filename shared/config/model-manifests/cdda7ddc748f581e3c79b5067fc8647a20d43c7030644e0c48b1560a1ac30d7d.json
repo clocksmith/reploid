@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
   "modelType": "transformer",
   "quantization": "Q4_K_M",
   "quantizationInfo": {
@@ -14,9 +14,9 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:0dc4434639c098aa9ff724dd89028996ff43d888ab14b5293d61613fc424766a",
-    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
-    "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-e4238fa564c4",
+    "conversionConfigDigest": "sha256:499e270f264ad9bf804d4e0673b5026d5d174141307c51b3d8991c0efdf8d331",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ef16-af32-vf16.json",
+    "manifestVariantId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16-mv-4085b42abdaa",
     "materializationProfile": "auto",
     "modalitySet": [
       "text",
@@ -6657,12 +6657,12 @@
   },
   "conversion": null,
   "metadata": {
-    "source": "file://~/deco/doppler/downloads/qwen3.5-0.8b",
+    "source": "Qwen/Qwen3.5-0.8B",
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-10T04:54:19.637Z",
-      "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
+      "at": "2026-11-20T02:31:18.495Z",
+      "config": "qwen-3-5-0-8b-q4k-ef16-af32-vf16.json"
     },
     "integrityMigration": {
       "previousManifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",

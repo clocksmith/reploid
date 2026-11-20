@@ -5,7 +5,7 @@ import { homePathFindings, nativePackageManifest } from '../../scripts/package-n
 
 describe('reploid <model>: the short native command', () => {
   it('serves the default model when no model id is given, keeping any options', () => {
-    expect(DEFAULT_MODEL).toBe('qwen-3-5-2b-q4k-ehaf16');
+    expect(DEFAULT_MODEL).toBe('qwen-3-5-2b-q4k-ef16-af32');
     expect(nodeArguments([], { home: '/h' }).args).toEqual(nodeArguments([DEFAULT_MODEL], { home: '/h' }).args);
     const withOption = nodeArguments(['--connect-only'], { home: '/h' });
     expect(withOption.model).toBe(DEFAULT_MODEL);
@@ -13,10 +13,26 @@ describe('reploid <model>: the short native command', () => {
     expect(withOption.args).toContain('--connect-only');
     expect(withOption.args).not.toContain('--contribute');
   });
+  it('still selects a reissued model by the name it replaced, and finds the weights stored under that name', () => {
+    expect(nativeCommand(['serve', 'qwen-3-5-2b-q4k-ehaf16']).args[0]).toBe(DEFAULT_MODEL);
+    expect(nativeCommand(['qwen-3-6-35b-a3b-text-source-q4_0-af32', '--connect-only']).args[0]).toBe('qwen-3-6-35b-a3b-text-source-q40-hq6k-af32');
+    expect(() => nativeCommand(['serve', 'qwen-3-5-2b-q4k-ehaf17'])).toThrow(/Unknown model/);
+    const models = [{ id: 'new-name', supersedes: [{ id: 'old-name', identity: 'sha256:0' }] }, { id: 'plain' }];
+    const directory = present => {
+      const args = nodeArguments(['new-name'], { home: '/h', models, exists: file => present.includes(file) }).args;
+      return args[args.indexOf('--model-directory') + 1];
+    };
+    expect(directory([])).toBe('/h/.reploid/weights/new-name');
+    expect(directory(['/h/.reploid/weights/old-name'])).toBe('/h/.reploid/weights/old-name');
+    // Its own directory wins once it exists.
+    expect(directory(['/h/.reploid/weights/old-name', '/h/.reploid/weights/new-name'])).toBe('/h/.reploid/weights/new-name');
+    expect(nodeArguments(['plain'], { home: '/h', models, exists: () => true }).args).toContain('/h/.reploid/weights/plain');
+  });
+
   it('stands for an explicit whole-model contribute command with state under the home directory', () => {
-    const node = nodeArguments(['qwen-3-5-0-8b-q4k-ehaf16'], { home: '/home/someone' });
-    expect(node.args).toEqual(['--model', 'qwen-3-5-0-8b-q4k-ehaf16', '--contribute', '--execution-mode', 'whole-model',
-      '--model-directory', '/home/someone/.reploid/weights/qwen-3-5-0-8b-q4k-ehaf16', '--identity-file', '/home/someone/.reploid/identity.json',
+    const node = nodeArguments(['qwen-3-5-0-8b-q4k-ef16-af32-vf16'], { home: '/home/someone' });
+    expect(node.args).toEqual(['--model', 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', '--contribute', '--execution-mode', 'whole-model',
+      '--model-directory', '/home/someone/.reploid/weights/qwen-3-5-0-8b-q4k-ef16-af32-vf16', '--identity-file', '/home/someone/.reploid/identity.json',
       '--rtc-module', '@roamhq/wrtc', '--ws-module', 'ws', '--gpu-module', 'webgpu']);
     expect(node.chosen).toMatchObject({ mode: 'contribute', 'execution-mode': 'whole-model' });
   });
