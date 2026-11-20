@@ -26,8 +26,8 @@ async function fixture(count = 2, { certify = null, hostOptions = () => ({}), di
       size: whole.length, hash: hash(whole), hashAlgorithm: 'sha256' }] } } : undefined;
   const manifest = Buffer.from(JSON.stringify({ modelId: 'native-fixture', hashAlgorithm: 'sha256', metadata,
     shards: [{ filename: 'weights.bin', size: whole.length, hash: hash(whole) }] }));
-  const index = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', manifestIdentity: 'sha256:' + hash(manifest), maxPieceBytes: 4,
-    files: [{ path: 'weights.bin', size: whole.length, pieces: chunks.map((bytes, i) => ({ offset: i * 4, size: 4, identity: 'sha256:' + hash(bytes) })) }] }));
+  const index = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', manifestIdentity: 'sha256:' + hash(manifest), maxPieceBytes: Math.max(...chunks.map(chunk => chunk.length)),
+    files: [{ path: 'weights.bin', size: whole.length, pieces: chunks.map((bytes, i) => ({ offset: i * chunks[0].length, size: bytes.length, identity: 'sha256:' + hash(bytes) })) }] }));
   const model = { id: 'native-fixture', identity: 'sha256:' + hash(manifest), source: { files: [
     { path: 'manifest.json', role: 'model-manifest', sizeBytes: manifest.length, hashAlgorithm: 'sha256', hash: hash(manifest) },
     { path: 'pieces.json', role: 'model-piece-index', sizeBytes: index.length, hashAlgorithm: 'sha256', hash: hash(index) }
@@ -42,7 +42,7 @@ async function fixture(count = 2, { certify = null, hostOptions = () => ({}), di
       sendToPeer(peer, type, payload) { const message = structuredClone(payload); writes.push({ from: i, peer, type, message }); network.intercept({ from: i, peer, type, message }); queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), message)); return true; },
       broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
       openDataChannel(peer) { const [left,right] = channels(); callbacks[Number(peer)](String(i), right); return left; } };
-    const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, ...(certify ? { certifyCustodyKey: certify(i) } : {}), ...hostOptions(model) });
+    const host = await createNativeModelFiles({ transport, modelDirectory: directory, cacheDirectory, ...(certify ? { certifyCustodyKey: certify(i) } : {}), ...hostOptions(model, i) });
     owners.push(host); hosts.push(host);
   }
   return { owners, model, chunks, directories, cacheDirectories, writes, network,
@@ -460,4 +460,106 @@ it('uses a snapshotted trusted storage runtime without changing custody or pinne
     await expect(source.storage.loadShardRange(0, 4, 4)).rejects.toThrow();
   } finally { await source.storage.close(); }
   await expect(createNativeModelFiles({ artifactRuntime: {} })).rejects.toThrow('verified piece storage factory');
+});
+
+it('overlaps two signed piece grants while limiting the entire requester to two payloads', async () => {
+  const chunks = [Buffer.alloc(3 * 262144, 1), Buffer.alloc(3 * 262144, 2)];
+  let active = 0, peak = 0;
+  const grantsPresent = Promise.withResolvers();
+  const owner = {
+    admitSupply: () => true,
+    pieceTimeoutMs: ms => ms,
+    paceChannel: create => options => {
+      const channel = create(options);
+      return { ...channel, async requestChunk(message, controls) {
+        active++; peak = Math.max(peak, active);
+        try {
+          await grantsPresent.promise;
+          return await channel.requestChunk(message, controls);
+        } finally { active--; }
+      } };
+    }
+  };
+  const f = await fixture(2, { chunks, hostOptions: (_model, i) => i === 0 ? { owner } : {} });
+  const transfers = new Set();
+  f.network.intercept = ({ type, message }) => {
+    if (type === 'reploid:custody-response' && message.authorization) {
+      transfers.add(message.authorization.transferId);
+      if (transfers.size === 2) grantsPresent.resolve();
+    }
+  };
+  await f.share();
+  const result = await f.owners[0].fillWholeModel(f.model);
+  expect(result.fetchedPieces).toBe(2);
+  expect([...transfers]).toHaveLength(2);
+  expect(peak).toBe(2);
+  expect(active).toBe(0);
+  expect(hash(await fs.readFile(path.join(f.directories[0], 'weights.bin')))).toBe(hash(Buffer.concat(chunks)));
+  const receipts = f.owners[0].getDeliveryEvidence();
+  expect(receipts).toHaveLength(2);
+  expect(receipts.every(row => row.receipt.completed.length === 1 && row.receipt.attempts.length === 3)).toBe(true);
+});
+
+it('waits for a single-slot authorized peer before using an available pinned origin', async () => {
+  const origin = fakeOrigin(() => { throw new Error('Unexpected origin access'); });
+  const owner = { admitSupply: ({ active }) => active === 0, paceChannel: create => create, pieceTimeoutMs: ms => ms };
+  const f = await fixture(2, { hostOptions: (model, i) => ({
+    modelOrigins: originTable(model), originFetch: origin.fetch, ...(i === 1 ? { owner } : {})
+  }) });
+  await f.share();
+  const result = await f.owners[0].fillWholeModel(f.model);
+  expect(f.writes.some(row => row.message.error === 'File contribution unavailable')).toBe(true);
+  expect(result.sources).toEqual({ 'authorized-custody-peers': { pieces: 2, bytes: 8 } });
+  expect(origin.requests).toEqual([]);
+});
+
+it('takes verified partial, peer and pinned origin pieces for the same whole file', async () => {
+  const chunks = [Buffer.from('aaaa'), Buffer.from('bbbb'), Buffer.from('cccc')];
+  const origin = fakeOrigin(() => Buffer.concat(chunks));
+  const f = await fixture(2, { chunks, hostOptions: model => ({
+    modelOrigins: originTable(model), originFetch: origin.fetch, peerGraceMs: 0
+  }) });
+  await fs.writeFile(path.join(f.directories[0], 'weights.bin.partial'), chunks[0]);
+  // Publish a complete supplier inventory, then model a peer that has only the middle piece.
+  f.network.intercept = ({ from, type, message }) => {
+    if (from === 1 && type === 'reploid:custody-offer') {
+      message.artifacts = message.artifacts.filter(file => !file.path.startsWith('piece-') || file.hash === hash(chunks[1]));
+    }
+  };
+  await f.share();
+  const result = await f.owners[0].fillWholeModel(f.model);
+  expect(result.sources['partial-file']).toEqual({ pieces: 1, bytes: 4 });
+  expect(result.sources['authorized-custody-peers']).toEqual({ pieces: 1, bytes: 4 });
+  expect(origin.requests.map(request => request.range)).toEqual(['bytes=8-11']);
+  expect(await fs.readFile(path.join(f.directories[0], 'weights.bin'))).toEqual(Buffer.concat(chunks));
+});
+
+it('cancels active and queued signed chunks and permits a later whole fill', async () => {
+  const chunks = [Buffer.alloc(3 * 262144, 19), Buffer.alloc(3 * 262144, 23)];
+  const bothRunning = Promise.withResolvers();
+  let stalled = true, active = 0, peak = 0;
+  const owner = { admitSupply: () => true, pieceTimeoutMs: ms => ms, paceChannel: create => options => {
+    const channel = create(options);
+    return { ...channel, async requestChunk(message, controls) {
+      active++; peak = Math.max(peak, active);
+      try {
+        if (stalled) {
+          if (active === 2) bothRunning.resolve();
+          await new Promise((_, reject) => controls.signal.addEventListener('abort', () => reject(controls.signal.reason), { once: true }));
+        }
+        return await channel.requestChunk(message, controls);
+      } finally { active--; }
+    } };
+  } };
+  const f = await fixture(2, { chunks, hostOptions: (_model, i) => i === 0 ? { owner } : {} });
+  await f.share();
+  const controller = new AbortController();
+  const stopped = f.owners[0].fillWholeModel(f.model, { signal: controller.signal });
+  await bothRunning.promise; controller.abort(new Error('stop pending fill'));
+  await expect(stopped).rejects.toThrow('stop pending fill');
+  expect(active).toBe(0); expect(f.owners[0].getState().pending).toBe(0);
+  stalled = false;
+  const complete = await f.owners[0].fillWholeModel(f.model);
+  expect(complete).toMatchObject({ complete: true, fetchedPieces: 2 });
+  expect(peak).toBe(2); expect(active).toBe(0);
 });
