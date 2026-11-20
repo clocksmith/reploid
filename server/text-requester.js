@@ -5,8 +5,27 @@ import { assertSettingsSupported, normalizeGenerationSettings } from '../package
 import { TOOL_CALL_OPEN } from '../shared/infrastructure/output-constraint.js';
 import { parseToolCallOutput, toolCallId } from '../shared/infrastructure/tool-call-format.js';
 /** Text-only HTTP projection of admitted whole-model and partition routes. No model fallback. */
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
+
+const STATELESS_THREAD_SALT = randomBytes(16).toString('hex');
+const activeDerivedThreads = new WeakMap();
+
+/** Derive a process-salted, principal- and model-scoped conversation root ID so stateless
+ * OpenAI/Anthropic multi-turn clients reuse the provider's warm GenerationContext cache
+ * without exposing prompt text or sharing state across users. */
+export function deriveStatelessConversationThreadId({ subject, modelIdentity, messages, salt = STATELESS_THREAD_SALT }) {
+  if (typeof subject !== 'string' || !subject || typeof modelIdentity !== 'string' || !modelIdentity
+    || !Array.isArray(messages) || !messages.length) return null;
+  const root = [];
+  for (const message of messages) {
+    if (!message || typeof message.role !== 'string' || typeof message.content !== 'string') continue;
+    root.push([message.role, message.content]);
+    if (message.role !== 'system') break;
+  }
+  if (!root.length) return null;
+  return 'conv_' + createHash('sha256').update(JSON.stringify([salt, subject, modelIdentity, root])).digest('hex').slice(0, 32);
+}
 
 export const fail = (status, message, param = null) => Object.assign(new Error(message), { status, param });
 export const assert = (ok, message) => { if (!ok) throw fail(502, message); };
@@ -73,13 +92,19 @@ export async function readBody(req, signal, parse) {
 /** Explicit opt-in: the host authenticates callers AND approves each exact disclosure.
  * The participant and its model/cleanup owners are borrowed, never replaced or closed here.
  */
-export function createTextRequester({ participant, authenticate, authorize }, protocol) {
+export function createTextRequester({ participant, authenticate, authorize, statelessPrefixCache = undefined }, protocol) {
   if (!participant || typeof participant.generate !== 'function' || typeof participant.getState !== 'function'
     || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text requester requires an actual requester and explicit authentication/authorization ports');
   const formatError = protocol.errorBody || errorBody;
+  const isStatelessPrefixCacheEnabled = () => {
+    if (typeof statelessPrefixCache === 'boolean') return statelessPrefixCache;
+    return process.env.REPLOID_DISABLE_STATELESS_PREFIX_CACHE !== '1';
+  };
   const requests = createHttpRequestOwner({ timeoutMs: policy.controlChannel.timeoutMs });
   if (!requesterAdmission.has(participant)) requesterAdmission.set(participant, new Set());
+  if (!activeDerivedThreads.has(participant)) activeDerivedThreads.set(participant, new Set());
   const admitted = requesterAdmission.get(participant);
+  const activeThreads = activeDerivedThreads.get(participant);
   const handle = async (req, res) => {
     let pathname;
     try { pathname = new URL(req.url || '/', 'http://localhost').pathname; }
@@ -91,10 +116,14 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
     if (requests.closed || admitted.size >= policy.inputLimits.maxConcurrentAttempts) {
       json(res, requests.closed ? 503 : 429, formatError(fail(requests.closed ? 503 : 429, 'Requester admission unavailable'))); return;
     }
+    let leasedDerivedThread = null;
     const scope = requests.begin(req, res, {
       disconnectError: () => Error('HTTP requester disconnected'),
       deadlineError: () => fail(408, 'Request admission deadline exceeded'),
-      onFinish: item => admitted.delete(item)
+      onFinish: item => {
+        admitted.delete(item);
+        if (leasedDerivedThread) activeThreads.delete(leasedDerivedThread);
+      }
     });
     const { controller, signal } = scope;
     admitted.add(scope.item);
@@ -141,6 +170,14 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       model = freeze(structuredClone(eligible[0]));
       assert(typeof model.identity === 'string' && model.identity.length > 0, 'Requester model identity missing');
       if (input.reploid && input.reploid.expected_model_identity !== model.identity) throw fail(409, 'Requested model identity changed');
+      if (!input.reploid?.conversation_id && isStatelessPrefixCacheEnabled()) {
+        const derived = deriveStatelessConversationThreadId({ subject: principal.subject, modelIdentity: model.identity, messages: input.messages });
+        if (derived && !activeThreads.has(derived)) {
+          activeThreads.add(derived);
+          leasedDerivedThread = derived;
+          threadId = derived;
+        }
+      }
       const requested = requireGenerationCapability(model, input.generationRequest);
       // Settings are refused here, before execution is authorized or anything is disclosed, when the
       // selected route does not advertise them. A request without settings carries no settings key.
@@ -280,11 +317,26 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
         assert(!model.partition || !requested || observedUsage, 'Provider token usage must precede text');
         output.delta(answer.text.slice(released));
       }
+      const providerTiming = object(result.execution?.timing) ? result.execution.timing : null;
+      if (providerTiming && !res.headersSent) {
+        if (Number.isSafeInteger(providerTiming.reusedPrefixTokens) && providerTiming.reusedPrefixTokens >= 0) {
+          res.setHeader('x-reploid-reused-prefix-tokens', String(providerTiming.reusedPrefixTokens));
+        }
+        if (Number.isSafeInteger(providerTiming.prefillComputedTokens) && providerTiming.prefillComputedTokens >= 0) {
+          res.setHeader('x-reploid-prefill-computed-tokens', String(providerTiming.prefillComputedTokens));
+        }
+        if (Number.isFinite(providerTiming.prefillMs) && providerTiming.prefillMs >= 0) {
+          res.setHeader('x-reploid-prefill-ms', String(Math.round(providerTiming.prefillMs * 100) / 100));
+        }
+        if (Number.isFinite(providerTiming.firstTokenMs) && providerTiming.firstTokenMs >= 0) {
+          res.setHeader('x-reploid-first-token-ms', String(Math.round(providerTiming.firstTokenMs * 100) / 100));
+        }
+      }
       const evidence = input.reploid?.include_execution ? { schema: 'reploid.http-execution/v1',
         threadId, attemptId, poolId: participant.roomId, executionClass: participant.executionClass,
         modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model), planIdentity: model.partition?.planId || null, recipients: approvedRecipients,
         execution: structuredClone(result.execution) } : undefined;
-      output.complete(answer.text, finishReason, reason, usage, evidence, answer.toolCalls);
+      output.complete(answer.text, finishReason, reason, usage, evidence, answer.toolCalls, providerTiming);
     } catch (cause) {
       const error = cause instanceof Error ? cause : fail(502, 'Requester failed');
       controller.abort(error);

@@ -19,6 +19,13 @@
  *   - `shareModelFiles: false` on a holder keeps it from supplying the fill.
  * Optional, for a delivery whose providers decide before the prompt is sent: `namedRecipient: true` adds one
  * request per provider that names it as the only recipient, and checks that each was admitted first.
+ * Optional, for a model only one machine can hold: `singleProvider: true` with exactly one provider. There is
+ * then no ranking comparison and no second provider to recover on: the fresh attempt runs on the same provider
+ * after it has returned. `cancellation: true` adds a request the requester stops after its first token.
+ * Optional, for a machine shared with something that must not be disturbed: `restartDelayMs` on a provider
+ * waits, after this driver kills it, until the process is gone and then that long before starting it again;
+ * `protect: [{ name, ssh?, command, expect }]` names read-only commands whose output must stay the same,
+ * checked between phases.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -31,7 +38,9 @@ import { BARRIER_SCHEMA, coldFillProblem, planLoading, sharesModelFiles, validat
 if (process.env.REPLOID_FLEET_PHYSICAL !== '1') throw Error('Explicit physical opt-in required');
 const config = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
 const root = config.stateDirectory, pkg = JSON.parse(await fs.readFile(config.packageReceipt, 'utf8'));
-if (!path.isAbsolute(root) || !Array.isArray(config.providers) || config.providers.length < 2) throw Error('Absolute state directory and at least two providers required');
+const single = config.singleProvider === true;
+if (!path.isAbsolute(root) || !Array.isArray(config.providers) || config.providers.length < (single ? 1 : 2)) throw Error('Absolute state directory and at least two providers required (one with singleProvider)');
+if (single && config.providers.length !== 1) throw Error('singleProvider is for exactly one provider');
 if (config.requester.ssh) throw Error('The requester runs on this machine: the driver freezes and kills it by process id');
 const plan = planLoading(config.providers, config.barrier ?? null);
 const approvalFile = plan.barrier ? plan.barrier.approvalFile ?? path.join(root, 'barrier-approved.json') : null;
@@ -228,6 +237,22 @@ async function guard(phase) {
     (report.pressure ??= []).push({ phase, computer: node.spec.computerId, avg10 });
     if (!(avg10 <= check.maxAvg10)) throw Error(`${node.spec.computerId} memory pressure ${avg10} exceeds ${check.maxAvg10} before ${phase}; stopping`);
   }
+  for (const check of config.protect ?? []) {
+    const value = (check.ssh ? await run('ssh', ['-o', 'BatchMode=yes', check.ssh, check.command]) : await run('/bin/sh', ['-c', check.command])).trim();
+    (report.protected ??= []).push({ phase, name: check.name, value });
+    if (value !== check.expect) throw Error(`${check.name} changed before ${phase}: expected ${check.expect}, saw ${value}; stopping`);
+  }
+}
+
+/** After a kill: the host process must be gone, and `restartDelayMs` more must pass, before that machine is started again. */
+async function settle(node) {
+  if (!node.spec.restartDelayMs) return;
+  const alive = async () => {
+    try { if (node.spec.ssh) await run('ssh', ['-o', 'BatchMode=yes', node.spec.ssh, `kill -0 ${node.hostPid} 2>/dev/null`]); else process.kill(node.hostPid, 0); return true; }
+    catch { return false; }
+  };
+  await until(async () => !(await alive()), 60000, `${node.spec.computerId} to be gone after the kill`);
+  await sleep(node.spec.restartDelayMs);
 }
 
 /** `requireColdFill`: the filling provider's model and cache directories exist and hold nothing, checked on that machine. */
@@ -403,7 +428,11 @@ try {
   for (const node of providers) { const { rateBasis: _basis, ...measured } = node.measured; await publish(node, measured); }
   const reference = providers[0].reference, correct = record => record.requesterSaw.content === reference;
   report.reference = { content: reference, sameOnEveryProvider: providers.every(node => node.reference === reference) };
-  const fastest = [...providers].sort((a, b) => b.measured.decodeTokensPerSecond - a.measured.decodeTokensPerSecond)[0].spec.computerId;
+  // Fastest for this request: the smallest time its own measured prompt and decode rates predict. Decode rate
+  // alone misorders providers that decode alike and differ on the prompt.
+  const sized = report.phases.calibration[0].requesterSaw.usage;
+  const predictedMs = node => 1000 * (sized.inputTokens / node.measured.prefillTokensPerSecond + Math.max(1, sized.outputTokens - 1) / node.measured.decodeTokensPerSecond);
+  const fastest = [...providers].sort((a, b) => predictedMs(a) - predictedMs(b))[0].spec.computerId;
 
   await guard('healthy');
   // 4. Healthy route with ranking off, then on, on the same providers.
@@ -425,6 +454,17 @@ try {
     }
   }
 
+  if (config.cancellation === true) {
+    await guard('cancellation');
+    // 4c. The requester stops its own request after the first token. The provider must stay up, the hold must
+    // not stay open, and the next request must be answered.
+    let cancelledAt = null;
+    const cancelled = await attempt('cancelled', { onFirstDelta: async () => { cancelledAt = Date.now(); await requester.command('cancel', { attemptId: 'cancelled' }); } });
+    const releasedAt = await until(() => requesterHold() === 0 ? Date.now() : null, 120000, 'the cancelled request to release its hold');
+    await waitForProviders(providers.length);
+    report.phases.cancelled = { ...cancelled, holdReleasedMsAfterCancel: cancelledAt === null ? null : releasedAt - cancelledAt, after: await attempt('after-cancellation') };
+  }
+
   await guard('interruption');
   // 5. Interrupted: the chosen provider's process is killed right after its first streamed token.
   let killed = null, killedAt = null;
@@ -438,13 +478,16 @@ try {
 
   await guard('recovery');
   // 6. Recovered: a fresh attempt on another provider. Then the killed provider returns and signs what happened.
-  report.phases.recovered = await attempt('recovered');
+  // With a single provider the fresh attempt waits until that provider is back.
+  if (!single) report.phases.recovered = await attempt('recovered');
   const heldWhileAway = requesterHold(), index = providers.indexOf(killed);
+  await settle(killed);
   providers[index] = Object.assign(await launch(killed.spec, 'provider'), { measured: killed.measured, loadMs: killed.loadMs, reference: killed.reference });
   const releasedAt = await until(() => requesterHold() === 0 ? Date.now() : null, 120000, 'hold release after the provider restarted');
   await providers[index].command('select', { index: 0, contribute: true });
   for (const node of providers) { const { rateBasis: _basis, ...measured } = node.measured; await publish(node, measured); }
   await waitForProviders(providers.length);
+  if (single) report.phases.recovered = await attempt('recovered');
   const interruptedOutcome = await requester.command('recover', { input: { reservationId: report.phases.interrupted.reservationId, messages } });
   report.phases.interruptedRelease = { heldWhileProviderAway: heldWhileAway, releasedBy: 'the restarted provider signed failed-execution evidence',
     releasedMsAfterKill: releasedAt - killedAt, finalStatus: interruptedOutcome.status, finalCharge: interruptedOutcome.serviceCredit?.charge ?? null,
@@ -490,18 +533,21 @@ try {
     openHolds: snapshot.accounts.reduce((sum, row) => sum + row.held, 0) };
   report.placementComparison = { fastestMeasured: fastest, rankingOff: { provider: phases.healthyRankingOff.route?.provider, completionMs: phases.healthyRankingOff.completionMs },
     rankingOn: { provider: phases.healthyRankingOn.route?.provider, reason: phases.healthyRankingOn.placement?.reason ?? null, completionMs: phases.healthyRankingOn.completionMs } };
-  report.checks = { distributionFilled: !filler || phases.distribution.fetchedPieces > 0 || phases.distribution.reusedPieces > 0, sameAnswerOnEveryProvider: report.reference.sameOnEveryProvider,
-    healthyCorrect: correct(phases.healthyRankingOff) && correct(phases.healthyRankingOn), rankedChoseFastest: phases.healthyRankingOn.route?.provider === fastest,
+  report.checks = { distributionFilled: !filler || phases.distribution.fetchedPieces > 0 || phases.distribution.reusedPieces > 0, ...(single ? {} : { sameAnswerOnEveryProvider: report.reference.sameOnEveryProvider }),
+    healthyCorrect: correct(phases.healthyRankingOff) && correct(phases.healthyRankingOn), ...(single ? {} : { rankedChoseFastest: phases.healthyRankingOn.route?.provider === fastest }),
     ...(phases.namedRecipient ? { namedRecipientAdmittedBeforePrompt: phases.namedRecipient.every(record => correct(record) && record.route?.provider === record.named
       && /^sha256:[a-f0-9]{64}$/.test(record.route.admission?.promptCommitment ?? '')) } : {}),
     interruptedKeptPartialAndUncharged: Boolean(phases.interrupted.requesterSaw.error) && phases.interrupted.deltaCount >= 1 && !phases.interrupted.charge,
-    recoveredOnAnotherProvider: correct(phases.recovered) && phases.recovered.route?.provider !== phases.interrupted.route?.provider,
+    ...(single ? { recoveredAfterProviderReturned: correct(phases.recovered) }
+      : { recoveredOnAnotherProvider: correct(phases.recovered) && phases.recovered.route?.provider !== phases.interrupted.route?.provider }),
+    ...(phases.cancelled ? { cancelledThenServedAgain: Boolean(phases.cancelled.requesterSaw.error) && phases.cancelled.deltaCount >= 1
+      && phases.cancelled.requesterSaw.content === undefined && correct(phases.cancelled.after) } : {}),
     interruptedHoldReleasedByReturn: phases.interruptedRelease.finalStatus === 'failed' && phases.interruptedRelease.finalCharge === 0,
     lostAcknowledgmentChargedOnce: phases.lostAcknowledgment.reconciliation.first.status === 'completed' && phases.lostAcknowledgment.reconciliation.first.correct
       && phases.lostAcknowledgment.reconciliation.ledgerEntriesAddedBySecond === 0,
     neverReturningHoldExpired: holdBeforeWindow > 0 && holdAfterWindow === 0 && expired.status === 'expired',
     ledgerConservedNoOpenHolds: report.ledger.sumOfBalances === 0 && report.ledger.openHolds === 0 };
-  report.recoveryMode = 'restarted-generation';
+  report.recoveryMode = 'restarted-generation'; if (single) report.singleProvider = true;
   report.passed = Object.values(report.checks).every(Boolean);
   if (!report.passed) process.exitCode = 1;
 } catch (error) {

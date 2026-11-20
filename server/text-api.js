@@ -9,7 +9,7 @@ import { partitionAdapterIdentities } from '../packages/reploid/src/mesh/partiti
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 export const TEXT_API_PATHS = Object.freeze(['/v1/chat/completions', '/v1/responses', '/v1/messages', '/v1/models', TEXT_RECOVERY_PATH]);
-export function createTextApi({ participant, authenticate, authorize, accounting, production = true, allowUnbilledTest = false }) {
+export function createTextApi({ participant, authenticate, authorize, accounting, production = true, allowUnbilledTest = false, statelessPrefixCache = undefined }) {
   if (!participant || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text API requires requester authentication and authorization');
   if (typeof accounting?.run !== 'function' && (production || !allowUnbilledTest)) throw Error('Text API requires accounted execution; unbilled tests must be explicit');
   if (accounting && typeof accounting.run !== 'function') throw Error('Invalid text API accounting port');
@@ -30,7 +30,8 @@ export function createTextApi({ participant, authenticate, authorize, accounting
         : execute(request, controls);
     }
   };
-  const options = { participant: requester, authenticate, authorize };
+  const options = { participant: requester, authenticate, authorize,
+    ...(typeof statelessPrefixCache === 'boolean' ? { statelessPrefixCache } : {}) };
   const completions = createChatCompletions(options), responses = createResponses(options), messages = createMessages(options);
   const recovery = createTextRecovery({ participant, authenticate, authorize, accounting });
   const listing = new Set(); let closed = false;

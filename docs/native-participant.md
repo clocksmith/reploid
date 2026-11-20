@@ -102,7 +102,10 @@ holding another model's manifest is refused, never overwritten. A complete
 directory is used unchanged, as before.
 
 `npm run package:native -- --publishable` builds the same delivery with a
-manifest npm accepts. Published under the name `reploid`, the command above
+manifest npm accepts. It names the pinned Doppler release by version, and it
+carries its resolved dependency graph as `npm-shrinkwrap.json`, because npm
+leaves `package-lock.json` out of a published package; `native-delivery.json`
+lists that file. Published under the name `reploid`, the command above
 becomes `npx reploid qwen-3-5-2b-q4k-ehaf16` with no checkout. The example names
 2B because the fleet supplies it; a model with no supplier online starts and
 waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
