@@ -94,8 +94,11 @@ task accuracy separately. Compare the executing stages’ prompt IDs and output
 IDs, including the stop token, before claiming token parity.
 
 Account for both stage storage and GPU memory. Network-fetched partition pieces
-are retained in the native cache with its configured storage limit. Stage 1 of
-the catalogued 27B needs more than the default 3 GiB. Locally staged, verified
+are retained on disk under the fleet host’s absolute `cacheDirectory`. Its owner
+can set `maxCacheBytes` in the private host configuration. The default is 3 GiB.
+For example, a dedicated cache with `"maxCacheBytes": 17179869184` allows 16 GiB
+for the catalogued 27B’s 14.24 GB second stage and cache metadata. Check available
+disk space and other models sharing that directory before selecting a limit. Locally staged, verified
 pieces can be read directly from the owner's weight directory. The supplier's
 lifetime upload allowance is a separate budget. Preserve the HTTP reservation
 ID for recovery. The stage and requester signatures bind acknowledged output

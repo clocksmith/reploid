@@ -321,6 +321,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     && config.models.every(row => ['partition', 'whole-model'].includes(row.mode)), 'Explicit fleet native configuration required');
   assert(text(config.roomId) && config.roomId !== bootstrap.publicRoomId && config.roomTokenFile,
     'Operator fleet models require an explicit private room');
+  assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
+  assert(config.maxCacheBytes === undefined || (config.cacheDirectory && Number.isSafeInteger(config.maxCacheBytes) && config.maxCacheBytes > 0),
+    'maxCacheBytes requires a piece cache directory and a positive integer byte count');
   const identity = await openComputerIdentity(config.identityFile);
   const [rtcModule, socketModule] = await Promise.all([loadRtc(), loadSocket()]);
   const rtc = createNativeRtcAdapter(rtcModule.default ?? rtcModule), Socket = socketModule.default ?? socketModule.WebSocket;
@@ -334,7 +337,6 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
     : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
   let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
-  assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
   // Opt-in: the coordinator's measured order over whole-model providers, refreshed before each credited request.
   const providerRanking = { order: [], estimates: [] };
   const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
@@ -464,7 +466,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       if (present || !fillable) assert(await manifestIdentity() === entry.model.identity, 'Owner-selected model manifest changed');
       participant = await createNativeParticipant({ model: entry.model, modelDirectory: entry.directory, identity, rtc, WebSocket,
         signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: () => gpu.open(),
-        cacheDirectory: config.cacheDirectory ?? null, owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
+        cacheDirectory: config.cacheDirectory ?? null, maxCacheBytes: config.maxCacheBytes,
+        owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
         rankProviders: () => config.rankProviders === true && providerRanking.order.length ? providerRanking.order : null,
         onModelFill: progress => onChange({ modelFill: progress }),
         executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model }) : null,

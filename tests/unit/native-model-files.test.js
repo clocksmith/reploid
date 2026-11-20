@@ -92,6 +92,19 @@ it('resolves a missing pinned index on demand, preferring a custody peer when av
     expect(await fs.readFile(local)).toEqual(bytes);
   }
 });
+it('honors the host disk cap when preparing an assigned partition', async () => {
+  const f = await fixture(1, { hostOptions: () => ({ maxCacheBytes: 1 }) });
+  await expect(f.owners[0].preparePartitionSource(f.model)).rejects.toThrow('cache budget exhausted');
+  expect((await fs.readdir(f.cacheDirectories[0])).filter(name => name.startsWith('sha256-'))).toEqual([]);
+
+  const larger = await fixture(2, { hostOptions: () => ({ maxCacheBytes: 16 * 2 ** 30 }) });
+  await larger.share();
+  const stage = await larger.owners[0].preparePartitionSource(larger.model);
+  try {
+    expect(new Uint8Array(await stage.storage.loadShardRange(0, 0, 4))).toEqual(new Uint8Array(larger.chunks[0]));
+    expect(await fs.readdir(larger.cacheDirectories[0])).toContain('sha256-' + hash(larger.chunks[0]));
+  } finally { await stage.storage.close(); }
+});
 it('persists only requested verified pieces and reopens them without a supplier', async () => {
   const f = await fixture(); await f.share(); const source = await f.owners[0].preparePartitionSource(f.model);
   try {

@@ -88,7 +88,7 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * `certifyCustodyKey` (packages/reploid/src/artifacts/custody-certificate.js) lets the persistent
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
-export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null,
+export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, maxCacheBytes, onChange = () => {}, owner = null, certifyCustodyKey = null,
   maxSupplyBytes = policy.maxSupplyBytes, modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined, artifactRuntime = null }) {
   assert(artifactRuntime === null || typeof artifactRuntime?.createVerifiedPieceStorage === 'function',
     'Native artifact runtime requires the verified piece storage factory');
@@ -99,7 +99,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   });
   assert(Number.isSafeInteger(maxSupplyBytes) && maxSupplyBytes > 0, 'File supply allowance must be a positive byte count');
   const readMappedSource = await createNativeSourceFileReader(sourceFilePaths);
-  const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
+  const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory, maxBytes: maxCacheBytes });
   let budget = null, budgetError = null;
   try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: maxSupplyBytes }); }
   catch (error) { budgetError = error; }
