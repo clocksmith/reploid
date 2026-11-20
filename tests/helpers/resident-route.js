@@ -13,7 +13,7 @@ import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/part
 import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
 import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
 import { createResidentPartition } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
-import { MODEL } from './reward-fixture.js';
+import { MODEL } from './resident-test-model.js';
 
 /**
  * Release approvals for the fixture routes built here. A test that executes them through the

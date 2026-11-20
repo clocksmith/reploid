@@ -1,5 +1,6 @@
 // Shared contribution-reward test fixture. Test-only values; no product decisions.
 import { expect } from 'vitest';
+import { MODEL } from './resident-test-model.js';
 
 import custody from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
 import { PRODUCT_ECONOMICS_CONTRACT_ID } from '../../server/ledger/domain.js';
@@ -52,7 +53,7 @@ export const OWNER_POLICY = validateNativeOwnerPolicy({
 }, { custody });
 export const OWNER_DIGEST = nativeOwnerPolicyDigest(OWNER_POLICY);
 export const ownerAuthorization = { policy: OWNER_POLICY, digest: OWNER_DIGEST };
-export const MODEL = Object.freeze({ modelId: 'model_test', modelIdentity: `sha256:${'a'.repeat(64)}`, planId: `sha256:${'b'.repeat(64)}` });
+export { MODEL };
 
 export const START = Date.parse('2026-10-14T00:00:00.000Z');
 export const MIN = 60_000;
