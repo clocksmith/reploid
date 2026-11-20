@@ -36,7 +36,7 @@ import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
  * `readiness` (createReadinessRecorder from reploid/measurement, off by default) observes every
  * partition state and each prepared resident's admissions; the caller owns and ends it. */
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxSupplyBytes, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
   onPartitionReceiveTiming, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
@@ -220,7 +220,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
-      files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, sourceFilePaths: approvedSourceFilePaths, onChange: onFileChange, owner: ownerGate,
+      files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, maxSupplyBytes, sourceFilePaths: approvedSourceFilePaths, onChange: onFileChange, owner: ownerGate,
         certifyCustodyKey: createCustodyKeyCertifier({ identity, onIssue: onCustodyCertificate }).certify });
       await files.custodyCertificate();
     }

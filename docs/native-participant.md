@@ -101,20 +101,25 @@ that piece named. A directory
 holding another model's manifest is refused, never overwritten. A complete
 directory is used unchanged, as before.
 
-`npm run package:native -- --publishable` builds the same delivery with a
-manifest npm accepts. It names the pinned Doppler release by version, and it
-carries its resolved dependency graph as `npm-shrinkwrap.json`, because npm
-leaves `package-lock.json` out of a published package; `native-delivery.json`
-lists that file. Published under the name `reploid`, the command above
-becomes `npx reploid qwen-3-5-2b-q4k-ehaf16` with no checkout. The example names
-2B because the fleet supplies it; a model with no supplier online starts and
-waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
-files out of a delivery; the publishable build omits
-`qwen3-8-27b-text-q4k-ehaf16`, whose content-addressed manifest names a home
-directory and whose identity a live provider uses, so it cannot be re-issued
-in place. Checked: the built package
-installs, and its three commands start through npm's links (help text and
-argument expansion). On 2026-11-11 the package built from `65a2a7339`, run as
+The package builder accepts `--publishable` and repeatable
+`--omit-model <catalog id>` options. The publishable delivery uses the pinned
+Doppler version and carries its dependency graph in `npm-shrinkwrap.json`.
+Reploid 0.1.4 shipped without the 27B metadata. This catalog reissues the 27B
+manifest with its upstream checkpoint as provenance and the new identity
+`sha256:96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df`.
+The 254 shard hashes and the tokenizer hash match the earlier catalog entry.
+Use a separate directory for the reissued manifest when an existing provider
+still serves the earlier identity.
+
+To offer files from a verified directory with this build, use
+`reploid share 27b --weights /path/to/27b --supply-limit-gib 16`.
+A full copy requires about 15.84 GiB. The lifetime supply allowance defaults
+to 4 GiB and binds to a supplier cache on first use. Larger models advertise
+verified whole shards within the inventory cap. Requesters verify the pieces
+they receive against the index. The 27B entry currently relies on peers for
+whole-model acquisition. Its native origin table has no pinned backup.
+
+On 2026-11-11 the package built from `65a2a7339`, run as
 `reploid qwen-3-5-2b-q4k-ehaf16` on one Linux x64 host (Intel integrated GPU,
 Vulkan) with an empty state directory, filled the 2B from a public custody
 supplier (919 verified pieces, 2,087,223,456 bytes, 504 s; no origin bytes),

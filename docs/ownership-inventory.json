@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 382,
     "self": 457,
-    "shared": 2493
+    "shared": 2495
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1705,6 +1705,12 @@
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
+      "served": "config/model-manifests/96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df.json",
+      "source": "shared/config/model-manifests/96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df.json",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
       "served": "config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
       "source": "shared/config/model-manifests/a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b.json",
       "owner": "shared",
@@ -1714,7 +1720,7 @@
       "served": "config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
       "source": "shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
       "owner": "shared",
-      "basis": "Reached from native hosts and browser entries."
+      "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-manifests/e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59.json",
@@ -1755,6 +1761,12 @@
     {
       "served": "config/model-pieces/qwen27b-q4-pieces.json",
       "source": "shared/config/model-pieces/qwen27b-q4-pieces.json",
+      "owner": "shared",
+      "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
+    },
+    {
+      "served": "config/model-pieces/qwen27b-q4-public-pieces.json",
+      "source": "shared/config/model-pieces/qwen27b-q4-public-pieces.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
     },
