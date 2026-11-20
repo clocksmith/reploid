@@ -21,6 +21,7 @@ import { startFleetBrowserBridge } from './browser-bridge.js';
 import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester, buildFleetRequestOutcome } from './requester.js';
+import { openStageOwner } from './stage-owner.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
 import { openStageTokenWitness } from './stage-token-witness.js';
 import { assert, text, same } from './contract.js';
@@ -420,10 +421,13 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     preparing, activeRequests: requests.size, queuedRequests: laneScheduler.queuedCount(), error: lastError, hardware: fleetHardwareSnapshot(),
     execution: participant?.getState() ?? null, network: participant?.getNetworkState() ?? null });
 
+  const stageOwner = credits && config.models.some(entry => entry.mode === 'partition' && entry.ordered?.stage)
+    ? await openStageOwner({ file: config.identityFile + '.stage-owner.sqlite', participantId: identity.peerId,
+      roomId: config.roomId, serviceUrl: config.serviceUrl }) : null;
   let startupProviderCleaned = false;
   async function reconcileCredits() {
     if (!credits) return [];
-    const results = [];
+    const results = stageOwner ? await stageOwner.recover(credits) : [];
     if (!startupProviderCleaned && !participant && !preparing) {
       try {
         const orphaned = await credits.call('providerOpenMine', {});
@@ -477,7 +481,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         ...(tokenWitness && entry.ordered ? { localStageWitness: tokenWitness } : {}),
         rankProviders: () => config.rankProviders === true && providerRanking.order.length ? providerRanking.order : null,
         onModelFill: progress => onChange({ modelFill: progress }),
-        executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model }) : null,
+        executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model, stageOwner: entry.ordered?.stage ? stageOwner : null }) : null,
         generationJournalFile: path.join(path.dirname(config.identityFile), 'generation.sqlite'),
         logger: { info() {}, log() {}, debug() {}, warn: (...args) => onChange({ warning: args.join(' ') }), error: (...args) => onChange({ error: args.join(' ') }) },
         onChange: () => { drainRequesterQueue(); onChange(state()); } });
@@ -688,16 +692,18 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         await publishDemand().catch(error => onChange({ warning: error.message }));
       }
     },
+    // A fenced partition is recovered entirely from the durable coordinator and signed stages.
+    // Only recovery that actually contacts a provider needs a live mesh participant.
     async recoverAccountedGeneration(input, controls, recoverExecution) {
-      assert(participant && !closed && !preparing, 'Requester unavailable');
+      assert(!closed && !preparing, 'Requester unavailable');
       assert(credits, 'Service credits are not configured');
       const requester = createFleetRequester(requesterPorts({ participant: textParticipant }));
       return requester.recover(input, controls, recoverExecution);
     },
     async recover(input, signal = AbortSignal.timeout(30000)) {
-      assert(participant && !closed && !preparing, 'Requester unavailable');
+      assert(!closed && !preparing, 'Requester unavailable');
       assert(credits, 'Service credits are not configured');
-      const requester = createFleetRequester(requesterPorts({ participant }));
+      const requester = createFleetRequester(requesterPorts({ participant: textParticipant }));
       return requester.recover(input, { signal });
     },
     async browserState() {
@@ -806,6 +812,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       laneScheduler.close();
       for (const { controller } of requests.values()) controller.abort();
       try { await participant?.close(); } finally { await owner?.close(); await gpu.close(); }
+      await stageOwner?.close();
     }
   });
 }

@@ -1,12 +1,14 @@
 import { createHash } from 'node:crypto';
 import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
-import { assert, same } from './contract.js';
+import { assert, same, FLEET_SERVICE_REQUEST_SCHEMA } from './contract.js';
+import { verifyParticipantSignature } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
 
 /** Durable admission fences and independently verified proof components. No timeout asserts
  * remote cleanup. Deadline expiry only closes admission; an admitted owner must still sign. */
 export function createCreditRecovery({ db, transaction, read, settle, enrollment, policy, now }) {
   db.exec(`CREATE TABLE IF NOT EXISTS fleet_admissions (request_id TEXT NOT NULL, stage INTEGER NOT NULL, PRIMARY KEY(request_id,stage));
+    CREATE TABLE IF NOT EXISTS fleet_stage_owners (request_id TEXT NOT NULL, stage INTEGER NOT NULL, owner TEXT NOT NULL, closure TEXT, PRIMARY KEY(request_id,stage));
     CREATE TABLE IF NOT EXISTS fleet_components (request_id TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(request_id,kind));`);
   const admitted = id => db.prepare('SELECT stage FROM fleet_admissions WHERE request_id=?').all(id).map(row => row.stage);
   const pieces = id => Object.fromEntries(db.prepare('SELECT kind,payload FROM fleet_components WHERE request_id=?').all(id)
@@ -42,10 +44,54 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       return ['closing', 'settled'].includes(row?.state) && row.binding.admissionVersion === 1
         ? row.binding.providers.map((_, index) => index).filter(index => !admitted(id).includes(index)) : [];
     },
-    admit(id, stage) {
+    interrupted(id) {
+      return db.prepare('SELECT stage,closure FROM fleet_stage_owners WHERE request_id=? AND closure IS NOT NULL').all(id)
+        .map(row => ({ stage: row.stage, closure: JSON.parse(row.closure) }));
+    },
+    async closeStageOwner(envelope) {
+      const { signature, ...signed } = envelope;
+      const { id, partitionIndex: stage, owner, receipt } = signed.payload;
+      const enrolled = enrollment.byPeer.get(signed.participantId);
+      assert(signed.schema === FLEET_SERVICE_REQUEST_SCHEMA && signed.operation === 'closeStageOwner'
+        && Number.isSafeInteger(signed.at) && Math.abs(now() - signed.at) <= policy.maxClockSkewMs
+        && enrolled && await verifyParticipantSignature(enrolled.publicJwk, FLEET_SERVICE_REQUEST_SCHEMA, signed, signature),
+      'Enrolled stage owner signature required');
+      assert(Object.keys(signed.payload).length === 4 && typeof id === 'string' && id.length <= 160
+        && typeof owner === 'string' && /^[a-f0-9]{64}$/.test(owner) && Number.isSafeInteger(stage) && stage >= 0,
+      'Malformed stage owner closure');
+      const row = read(id);
+      assert(row?.binding.mode === 'partition' && row.binding.providers[stage]?.participantId === envelope.participantId,
+        'Unmatched partition stage owner');
+      assert(receipt === null || receipt?.partitionIndex === stage && receipt.status === 'executing', 'Invalid recovered step checkpoint');
+      if (receipt) await verifyPartitionComponents(row.binding, { identity: row.binding.route, receipts: [receipt] }, enrollment, now(), policy.maxClockSkewMs);
+      const result = transaction(() => {
+        const owned = db.prepare('SELECT owner,closure FROM fleet_stage_owners WHERE request_id=? AND stage=?').get(id, stage);
+        if (owned) assert(owned.owner === owner, 'Another process owns the stage admission');
+        else assert(!admitted(id).includes(stage), 'Historical admission has no matching exclusive owner');
+        if (owned?.closure) {
+          assert(same(JSON.parse(owned.closure).payload, signed.payload), 'Conflicting interrupted stage checkpoint');
+          return 'closed';
+        }
+        // Fence even if the earlier HTTP admission is still in flight. A late packet cannot reopen this stage.
+        db.prepare('INSERT INTO fleet_stage_owners VALUES (?,?,?,?) ON CONFLICT(request_id,stage) DO UPDATE SET closure=excluded.closure')
+          .run(id, stage, owner, JSON.stringify(envelope));
+        const prior = pieces(id)[`stage:${stage}`];
+        if (receipt && (!prior || prior.status === 'executing' && receipt.sequence > prior.sequence)) store(id, `stage:${stage}`, receipt);
+        return 'closed';
+      });
+      const outcome = await this.recover(id);
+      return { stageOwner: result, outcome };
+    },
+    admit(id, stage, owner = null) {
       return transaction(() => {
         const row = read(id);
         assert(row?.state === 'dispatched' && now() <= row.binding.deadline, 'Credit admission is closed');
+        const prior = db.prepare('SELECT owner,closure FROM fleet_stage_owners WHERE request_id=? AND stage=?').get(id, stage);
+        if (prior) assert(!prior.closure && prior.owner === owner, 'Different or closed stage process owner');
+        else if (owner !== null) {
+          assert(!admitted(id).includes(stage), 'Historical stage admission cannot be adopted');
+          db.prepare('INSERT INTO fleet_stage_owners VALUES (?,?,?,NULL)').run(id, stage, owner);
+        }
         db.prepare('INSERT OR IGNORE INTO fleet_admissions VALUES (?,?)').run(id, stage);
       });
     },
@@ -175,16 +221,20 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       }
       const acknowledgedOutputTokens = data.ack?.acknowledgment.count ?? null;
       const stages = request.providers.map((_, index) => data[`stage:${index}`]);
+      const interrupted = this.interrupted(id);
       const awaitingStages = [];
       for (const [index, receipt] of stages.entries()) {
         if (!receipt && missing.includes(index) && (acknowledgedOutputTokens ?? 0) === 0) continue;
+        const exited = interrupted.find(row => row.stage === index);
+        if (exited && (exited.closure.payload.receipt?.steps ?? 0) >= (acknowledgedOutputTokens ?? 0)
+          && (receipt?.steps ?? 0) >= (acknowledgedOutputTokens ?? 0)) continue;
         if (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
           || receipt.steps < (acknowledgedOutputTokens ?? 0)) awaitingStages.push(index);
       }
       if (acknowledgedOutputTokens === null || awaitingStages.length) {
         return { id, status: 'pending', heldCredits: request.maximum, acknowledgedOutputTokens, awaitingStages };
       }
-      return settle(id, { identity: request.route, receipts: stages.filter(Boolean), ...data.ack });
+      return settle(id, { identity: request.route, receipts: stages.filter(Boolean), ...(interrupted.length ? { interruptedOwners: interrupted.map(row => row.closure) } : {}), ...data.ack });
     }
   };
 }

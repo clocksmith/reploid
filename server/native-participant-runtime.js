@@ -1,3 +1,4 @@
+import { bindFleetStageAdmission } from './fleet/execution-admission.js';
 import { randomUUID } from 'node:crypto';
 import { createNativeWholeModel } from './native-whole-model.js';
 import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../apps/poolday/host/work-partition-plan.js';
@@ -255,11 +256,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         let prepared = localStageWitness ? { ...program, resident: localStageWitness.wrap(program.resident) } : program;
         if (ownerGate) prepared = { ...prepared, resident: ownerGate.gateResident(prepared.resident) };
         if (executionAdmission) {
-          const resident = prepared.resident;
-          prepared = { ...prepared, resident: { ...resident, async reserve(request) {
-            await executionAdmission.partition({ ...request, partitionIndex: index });
-            return resident.reserve(request);
-          } } };
+          prepared = { ...prepared, resident: bindFleetStageAdmission(prepared.resident, executionAdmission, index) };
         }
         readiness?.watchResident(prepared.resident);
         return prepared;

@@ -69,6 +69,24 @@ Usage remains unknown. Setting `creditPolicy.wholeModelTerminalCharge` to `0`
 accepts zero non-cash terminal charge, frozen into each reservation; omission
 keeps the hold pending. This does not change purchased-credit accounting.
 
+A credited native ordered stage and its fleet service now bind each admission to an exclusive process owner.
+The stage keeps an owner-only SQLite journal beside its identity file. It commits each signed step receipt before
+returning the step. The requester already records its signed output acknowledgments at the service. These writes
+are part of the serving cost. A retained signed terminal is replayed if its original delivery was interrupted.
+
+On restart with the same profile, the stage reacquires the exclusive filesystem lock and checks the previous
+process lifetime before reporting an interrupted owner to the service. On Linux the check uses the boot,
+PID namespace and process start time. A copied journal, a live predecessor, or an ambiguous PID namespace
+cannot close the admission. This lifecycle report carries the last signed step when one exists. The service
+still requires the requester’s signed output count and all other stages’ closing evidence. It charges only
+the acknowledged prefix and returns `failed` with reason `interrupted-stage-owner` for an interrupted
+execution. `POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
+Unpublished work, physical GPU recovery and output text beyond the acknowledged prefix remain unknown.
+
+Both the service and the stage need the owned-admission operation. Legacy stages still use their existing
+admission protocol. Historical holds without a matching owner claim remain unresolved if a stage signature
+is missing. Use a private local filesystem with SQLite locking for the journal and retain it across restarts.
+
 A whole-model provider that admitted a request and then never returns leaves
 the requester's hold open: no timeout asserts remote cleanup. Setting
 `creditPolicy.wholeModelUnclaimedReleaseMs` bounds that. The provider has the

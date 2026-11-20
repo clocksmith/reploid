@@ -1,7 +1,10 @@
 // @vitest-environment node
 import { afterEach, beforeEach, it, expect, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, copyFile } from 'node:fs/promises';
 import os from 'node:os';
+import { fork } from 'node:child_process';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
@@ -596,7 +599,11 @@ it('keeps a hold when an admitted stage disappears without a signed closing rece
     await expect(requester.generate(routeRequest(route, 'lost'), {
       signal: new AbortController().signal, requestApproval: async () => true })).rejects.toThrow();
     await client.reconcile();
-    expect(credits.request(`service:${keys[0].peerId}:lost`).state).toBe('closing');
+    const lostId = `service:${keys[0].peerId}:lost`;
+    expect(credits.request(lostId).state).toBe('closing');
+    const sameProvider = createFleetClient({ url: service.url, identity: keys[2] });
+    await expect(sameProvider.call('closeStageOwner', { id: lostId, partitionIndex: 1, owner: 'a'.repeat(64), receipt: null }))
+      .rejects.toThrow('Historical admission has no matching exclusive owner');
     expect(credits.snapshot().accounts[0].held).toBe(3);
     expect(credits.snapshot().journal).toHaveLength(0);
   } finally { await route.close(); }
@@ -863,3 +870,146 @@ it('retains interrupted native output and requires fresh disclosure before retry
     for (const close of cleanup.reverse()) await close();
   }
 });
+
+it.each([
+  { index: 1, name: 'after admission', executed: 0, acknowledged: 0, lostReply: false },
+  { index: 1, name: 'after partial delivery', executed: 2, acknowledged: 1, lostReply: false },
+  { index: 0, name: 'during a partial nonfinal stage', executed: 2, acknowledged: 1, lostReply: false },
+  { index: 1, name: 'after losing the terminal HTTP reply', executed: 1, acknowledged: 1, lostReply: true }
+])('recovers the enrolled stage process killed $name, once', async ({ index, executed, acknowledged, lostReply }) => {
+  const { openOutputAcknowledgments, openStageReceipts } = await import('../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js');
+  const { openFleetNativeHost } = await import('../../server/fleet/native-host.js');
+  const { openStageOwner } = await import('../../server/fleet/stage-owner.js');
+  const route = await chargedRoute();
+  const sibling = 1 - index, workerKey = keys[index + 1];
+  const cfg = { identityFile: path.join(root, 'stage.key'), roomId: 'private-process-recovery',
+    serviceUrl: service.url, index, model: { ...route.model, generation: { maxTokens: 3 } } };
+  await writeFile(cfg.identityFile, JSON.stringify(workerKey), { mode: 0o600 });
+  const configFile = path.join(root, 'child.json'), roomTokenFile = path.join(root, 'room.token');
+  await writeFile(configFile, JSON.stringify(cfg), { mode: 0o600 });
+  await writeFile(roomTokenFile, 'test-only-private-local-pool-token-abcdefghijklmnopqrstuvwxyz12345', { mode: 0o600 });
+  const child = fork(fileURLToPath(new URL('../fixtures/stage-owner-process.mjs', import.meta.url)), [configFile],
+    { execArgv: [], stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+  const ask = async (op, payload) => {
+    const message = once(child, 'message');
+    child.send({ op, payload });
+    const [reply] = await message;
+    if (reply.error) throw Error(reply.error);
+    return reply.result;
+  };
+  let host, requesterHost, api;
+  try {
+    await ask('open');
+    const id = 'service:' + keys[0].peerId + ':child-exit';
+    const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'private-thread', attemptId: 'child-exit',
+      requesterId: keys[0].peerId, placementGeneration: 0, route: route.route };
+    const signer = ix => createAttemptEvidenceSigner({ identity: keys[ix] });
+    const acks = await openOutputAcknowledgments({ signer: signer(0), identity, reservationId: id });
+    const siblingTally = await openStageReceipts({ signer: signer(sibling + 1), identity, partitionIndex: sibling, charge: acks.charge });
+    const req = { identity, charge: acks.charge, maxTokens: 3 };
+    await client.reserve({ id, executionId: identity.attemptId, consumer: keys[0].peerId, mode: 'partition', route: identity,
+      model: { id: cfg.model.id, identity: cfg.model.identity, adapterIdentities: [] }, inputDigest: await hashJson([{ role: 'user', content: 'test' }]),
+      maxOutputTokens: 3, providers: keys.slice(1).map(key => ({ participantId: key.peerId, weight: 1 })) });
+    await client.collect(id, { identity, receipts: [], acknowledgment: acks.charge });
+    await client.dispatch(id);
+    await createFleetExecutionAdmission({ credits: createFleetClient({ url: service.url, identity: keys[sibling + 1] }), model: cfg.model })
+      .partition({ ...req, partitionIndex: sibling });
+    await ask('reserve', req);
+    const scope = { participantId: workerKey.peerId, roomId: cfg.roomId, serviceUrl: cfg.serviceUrl };
+    await expect(openStageOwner({ file: cfg.identityFile + '.stage-owner.sqlite', ...scope })).rejects.toThrow(/locked|busy/i);
+    // An independent profile with the same enrolled key also cannot reserve this work.
+    const other = await openStageOwner({ file: path.join(root, 'competing.sqlite'), ...scope });
+    try {
+      await expect(createFleetExecutionAdmission({ credits: createFleetClient({ url: service.url, identity: workerKey }), model: cfg.model, stageOwner: other })
+        .partition({ ...req, partitionIndex: index })).rejects.toThrow(/owner/i);
+    } finally { await other.close(); }
+    for (let step = 0; step < executed; step++) {
+      const otherReceipt = await siblingTally.step({ step, inputTokenCount: 1, delta: 'x' });
+      const result = await ask('step', { identity, step, done: lostReply });
+      if (step < acknowledged) {
+        const pair = await acks.observe({ step, delta: result.delta, receipt: index === 1 ? result.receipt : otherReceipt });
+        await client.collect(id, { identity, receipts: [], acknowledged: pair });
+      }
+    }
+    if (lostReply) await expect(ask('lose-reply')).rejects.toThrow('dropped');
+    if (!executed) {
+      // Releasing a handle while its original process is still alive is insufficient evidence.
+      await ask('close');
+      const replay = await openStageOwner({ file: cfg.identityFile + '.stage-owner.sqlite', ...scope });
+      try {
+        const early = await replay.recover(createFleetClient({ url: service.url, identity: workerKey }));
+        expect(early).toHaveLength(1);
+        expect(early[0].error).toMatch(/death is unconfirmed/i);
+      } finally { await replay.close(); }
+      const copy = path.join(root, 'copied.sqlite');
+      await copyFile(cfg.identityFile + '.stage-owner.sqlite', copy);
+      await expect(openStageOwner({ file: copy, ...scope })).rejects.toThrow(/moved|scope/i);
+    }
+    const dead = once(child, 'exit');
+    child.kill('SIGKILL');
+    expect((await dead)[1]).toBe('SIGKILL');
+    await siblingTally.close({ failed: true });
+    await client.collect(id, siblingTally.evidence());
+    const requesterKey = path.join(root, 'requester.key');
+    await writeFile(requesterKey, JSON.stringify(keys[0]), { mode: 0o600 });
+    const sockets = { loadRtc: async () => ({ RTCPeerConnection: class {} }), loadSocket: async () => ({ WebSocket: class {} }),
+      loadGpu: () => { throw Error('Recovery attempted to open a GPU'); } };
+    requesterHost = await openFleetNativeHost({ configuration: { schema: 'reploid.fleet-native/v1', computerId: 'machine-0',
+      name: 'Recovery requester', maxOutputTokens: 3, identityFile: requesterKey, roomId: cfg.roomId, roomTokenFile, serviceUrl: cfg.serviceUrl,
+      models: [{ model: cfg.model, mode: 'partition', ordered: { stage: null } }] }, ...sockets });
+    const token = 'private-recovery-fixture-authorization-bearer-2026';
+    api = await startFleetTextApi({ host: requesterHost, token });
+    async function httpRecover(content = 'test') {
+      const response = await fetch(api.url + '/reploid/recover', { method: 'POST', headers: {
+        'content-type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify({
+        reservationId: id, messages: [{ role: 'user', content }] }) });
+      return { status: response.status, body: await response.json() };
+    }
+    const initial = await httpRecover();
+    expect(initial.status, JSON.stringify(initial.body)).toBe(200);
+    const before = initial.body.serviceCredit;
+    if (!lostReply) expect(before).toMatchObject({ status: 'pending', heldCredits: 3, acknowledgedOutputTokens: acknowledged, awaitingStages: [index] });
+    if (executed && !lostReply) {
+      const replay = await openStageOwner({ file: cfg.identityFile + '.stage-owner.sqlite', ...scope });
+      try {
+        const withoutReply = createFleetClient({ url: service.url, identity: workerKey, fetchImpl: async (url, options) => {
+          const response = await fetch(url, options);
+          await response.arrayBuffer();
+          throw Error('Dropped interrupted-owner response after committing');
+        } });
+        expect((await replay.recover(withoutReply))[0].error).toMatch(/Dropped interrupted-owner response/);
+      } finally { await replay.close(); }
+      const proof = credits.request(id).evidence;
+      const signed = proof.interruptedOwners[0];
+      await expect(credits.closeStageOwner({ ...signed, payload: { ...signed.payload, receipt: null } })).rejects.toThrow(/signature/);
+    }
+    const configuration = { schema: 'reploid.fleet-native/v1', computerId: 'machine-' + (index + 1), name: 'Recovered stage',
+      identityFile: cfg.identityFile, roomId: cfg.roomId, roomTokenFile, serviceUrl: cfg.serviceUrl,
+      models: [{ model: cfg.model, mode: 'partition', ordered: { stage: { index } } }] };
+    const boot = () => openFleetNativeHost({ configuration, ...sockets });
+    host = await boot(); // Normal startup recovers before connecting to peers or starting the model.
+    await host.reconcileCredits();
+    const result = await client.call('recover', { id });
+    expect(result).toMatchObject({ charge: acknowledged, outputTokens: acknowledged });
+    expect(await httpRecover()).toMatchObject({ status: 200, body: { status: lostReply ? 'completed' : 'failed',
+      serviceCredit: { charge: acknowledged, outputTokens: acknowledged }, outcome: { acknowledged: { acknowledgedOutputTokens: acknowledged } } } });
+    expect((await httpRecover('different input')).status).toBe(409);
+    const proof = credits.request(id).evidence;
+    if (lostReply) expect(proof.receipts[1]).toMatchObject({ status: 'settled', steps: executed });
+    else {
+      expect(proof.interruptedOwners).toHaveLength(1);
+      expect(proof.interruptedOwners[0]).toMatchObject({ participantId: workerKey.peerId, operation: 'closeStageOwner',
+        payload: { partitionIndex: index, receipt: executed ? expect.objectContaining({ status: 'executing', steps: executed }) : null } });
+      expect(proof.receipts.find(r => r.partitionIndex === index)?.timing.closedAt ?? null).toBeNull();
+    }
+    const snapshot = credits.snapshot();
+    expect(snapshot.accounts.every(row => row.held === 0)).toBe(true);
+    expect(snapshot.journal).toHaveLength(3);
+    await host.close(); host = await boot(); await host.reconcileCredits();
+    expect(await client.call('recover', { id })).toEqual(result);
+    expect(credits.snapshot()).toEqual(snapshot);
+  } finally {
+    if (child.exitCode === null && child.signalCode === null) { const dead = once(child, 'exit'); child.kill('SIGKILL'); await dead; }
+    await api?.close(); await requesterHost?.close(); await host?.close(); await route.close();
+  }
+}, 30000);

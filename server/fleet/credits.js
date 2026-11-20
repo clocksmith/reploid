@@ -108,9 +108,10 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     async settle(id, evidence) {
       evidence = structuredClone(evidence);
       const row = read(id); assert(row, 'Unknown credit reservation');
-      const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id) });
+      const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id), interrupted: recovery.interrupted(id) });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
-      const economicHash = createHash('sha256').update(canonicalize(observed)).digest('hex');
+      const { interruptedStages, ...economics } = observed;
+      const economicHash = createHash('sha256').update(canonicalize(economics)).digest('hex');
       const previousEconomicHash = row.outcome?.economicHash ?? (row.evidence ? createHash('sha256').update(canonicalize(
         await verifyCreditEvidence(row.binding, row.evidence, enrollment, now(), policy.maxClockSkewMs))).digest('hex') : null);
       const evidenceHash = createHash('sha256').update(canonicalize(evidence)).digest('hex');
@@ -148,6 +149,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, request.computerId);
         const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens,
           ...(observed.terminalStatus ? { status: observed.terminalStatus, usage: null } : {}),
+          ...(interruptedStages ? { status: 'failed', reason: 'interrupted-stage-owner', interruptedStages } : {}),
           credits, evidenceHash, economicHash, settledAt: now() };
         db.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
         db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
