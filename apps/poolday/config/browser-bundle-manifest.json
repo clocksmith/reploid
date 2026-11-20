@@ -1369,24 +1369,9 @@
       "sha256": "sha256:1703d68e905afdfe30e28dd7ab41c1cbe3b337189cab879969c7aa864a1bb908"
     },
     {
-      "path": "config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
-      "byteLength": 214203,
-      "sha256": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
-    },
-    {
-      "path": "config/model-manifests/19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d.json",
-      "byteLength": 563307,
-      "sha256": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d"
-    },
-    {
       "path": "config/model-manifests/74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972.json",
       "byteLength": 563715,
       "sha256": "sha256:74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972"
-    },
-    {
-      "path": "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
-      "byteLength": 183803,
-      "sha256": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028"
     },
     {
       "path": "config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json",
@@ -1404,11 +1389,6 @@
       "sha256": "sha256:eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541"
     },
     {
-      "path": "config/model-manifests/f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735.json",
-      "byteLength": 734314,
-      "sha256": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735"
-    },
-    {
       "path": "config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json",
       "byteLength": 409719,
       "sha256": "sha256:ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2"
@@ -1422,11 +1402,6 @@
       "path": "config/model-pieces/qwen-2b-pieces.json",
       "byteLength": 162108,
       "sha256": "sha256:d32c286c8cb7615197db516144008d90ffcfb33e3f52779bce507354b4a48a51"
-    },
-    {
-      "path": "config/model-pieces/qwen-3-8-27b-pieces.json",
-      "byteLength": 135069,
-      "sha256": "sha256:44f05f1fdf34423e45621ac78fb75620927c6d228aa3771037ae093ef947233d"
     },
     {
       "path": "config/model-pieces/qwen27b-q4-pieces.json",
@@ -1530,8 +1505,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148907,
-      "sha256": "sha256:83ebe828cad0f8fe1d54c8a20dbaaa15ca7c14519e40bd698ac5583ae3c5d0cf"
+      "byteLength": 148455,
+      "sha256": "sha256:9a615b7e2d5c483499b5fd56742e2565b196cc0f75eaf7234a65bcd2bd5bebc9"
     },
     {
       "path": "config/vfs-policy.js",
@@ -12709,5 +12684,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:565ee5fed9b7879d9774f26f9e367a707e0f04895288b6ce42c6ab1846cdd850"
+  "bundleHash": "sha256:358a9c62cf1fadfd3c3847aafd762844cce9a646f56ad6d221cdd5362f0dae26"
 }
