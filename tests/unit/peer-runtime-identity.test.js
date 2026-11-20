@@ -59,6 +59,12 @@ it('rejects aliases into excluded code and namespace mutation during inventory',
     await expect(inspectPeerRuntime(config)).rejects.toThrow('excluded code');
     await fs.unlink(path.join(root, 'alias.js'));
     await fs.writeFile(path.join(root, 'entry.js'), 'entry');
+    // On filesystems with coarse timestamps, a directory insertion can keep
+    // exactly the same metadata. Exercise the independent entry-list check.
+    const lstat = fs.lstat.bind(fs);
+    const directoryStat = await lstat(root, { bigint: true });
+    vi.spyOn(fs, 'lstat').mockImplementation((name, ...args) =>
+      name === root ? Promise.resolve(directoryStat) : lstat(name, ...args));
     vi.spyOn(fs, 'open').mockImplementationOnce(async (...args) => {
       const handle = await original(...args);
       await fs.writeFile(path.join(root, 'inserted.js'), 'new executable');

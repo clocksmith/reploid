@@ -388,6 +388,23 @@ it('prefers authorized peers over the pinned origin', async () => {
   expect(result.suppliers).toEqual({ 1: { pieces: 2, bytes: 8 } });
   expect(origin.requests).toEqual([]);
 });
+it('retries only a rejected whole-model piece against the pinned origin', async () => {
+  const chunks = [Buffer.from([1, 2, 3, 4]), Buffer.from([5, 6, 7, 8])];
+  const weights = Buffer.concat(chunks);
+  const origin = fakeOrigin(name => name === 'weights.bin' ? weights : null);
+  const f = await fixture(2, { chunks, hostOptions: model => ({ modelOrigins: originTable(model), originFetch: origin.fetch }) });
+  await f.share();
+  const corrupt = Buffer.from(weights);
+  corrupt[chunks[0].length] ^= 0xff;
+  await fs.writeFile(path.join(f.directories[1], 'weights.bin'), corrupt);
+
+  const events = [];
+  const result = await f.owners[0].fillWholeModel(f.model, { onProgress: event => events.push(event) });
+  expect(await fs.readFile(path.join(f.directories[0], 'weights.bin'))).toEqual(weights);
+  expect(result.suppliers).toEqual({ 1: { pieces: 1, bytes: 4 }, [`origin:owner/repo@${'a'.repeat(40)}`]: { pieces: 1, bytes: 4 } });
+  expect(origin.requests.map(request => request.range)).toEqual(['bytes=4-7']);
+  expect(events).toContainEqual(expect.objectContaining({ phase: 'source-failed', source: 'authorized-custody-peers', piece: 'sha256:' + hash(chunks[1]) }));
+});
 it('attributes partition pieces to the custody peer that delivered them', async () => {
   const f = await fixture(); await f.share(); const source = await f.owners[0].preparePartitionSource(f.model);
   try {
@@ -400,7 +417,7 @@ it('ships origins only for catalog models whose identity the pin names', async (
   const table = JSON.parse(await fs.readFile(new URL('../../server/native-model-origins.json', import.meta.url), 'utf8'));
   const catalog = JSON.parse(await fs.readFile(new URL('../../shared/config/chat-models.json', import.meta.url), 'utf8'));
   const models = new Map((Array.isArray(catalog) ? catalog : catalog.models).map(model => [model.id, model]));
-  expect(Object.keys(table.origins).sort()).toEqual(['qwen-3-5-0-8b-q4k-ef16-af32-vf16', 'qwen-3-5-2b-q4k-ef16-af32']);
+  expect(Object.keys(table.origins).sort()).toEqual(['qwen-3-5-0-8b-q4k-ef16-af32-vf16', 'qwen-3-5-2b-q4k-ef16-af32', 'qwen-3-8-27b-text-q4k-ef16-af32']);
   for (const id of Object.keys(table.origins)) {
     const origin = resolvePinnedOrigin(models.get(id), table);
     expect(origin.url('tokenizer.json')).toBe(`https://huggingface.co/${table.origins[id].repoId}/resolve/${table.origins[id].revision}/${table.origins[id].path}/tokenizer.json`);
@@ -409,6 +426,8 @@ it('ships origins only for catalog models whose identity the pin names', async (
   expect(resolvePinnedOrigin(models.get('qwen-3-5-0-8b-q4k-ef16-af32-vf16'), table).label)
     // Reissued under a new name over the same weights: the repository directory keeps the earlier name.
     .toBe('huggingface:clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293/models/qwen-3-5-0-8b-q4k-ehaf16');
+  expect(resolvePinnedOrigin(models.get('qwen-3-8-27b-text-q4k-ef16-af32'), table).label)
+    .toBe('huggingface:clocksmith/rdrr@03345c4dde66115b9d3e26dca3362ef2fb39220e/models/qwen-3-8-27b-text-q4k-ef16-af32');
   // The 35B is not published at any origin; it has no pin.
   expect(resolvePinnedOrigin(models.get('qwen-3-6-35b-a3b-text-source-q40-hq6k-af32'), table)).toBeNull();
   // A pin never serves another identity of the same model id.

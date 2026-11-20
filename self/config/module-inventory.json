@@ -4267,7 +4267,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:630987d780fa6e3afc9467929346491305aadbd4cdbe4d19d7411a1f10d759d1",
+      "sha256": "sha256:0a271dec7f67af8186206cfd0e94950cf55f3c281088a8d5dd72b47aa27d412a",
       "imports": []
     },
     {
@@ -8161,9 +8161,10 @@
     {
       "path": "vendor/doppler/0.7.9/src/experimental/training/clip.js",
       "owner": "vendor",
-      "sha256": "sha256:e6a11928ddf96ff3dc3cd03905563a2ac90b1e854df47891966448fce03a898a",
+      "sha256": "sha256:53011e7a10f677689361f896543741e14f7918249489a8df85c605b396d4e21c",
       "imports": [
         "../../gpu/kernels/scale.js",
+        "../../gpu/tensor.js",
         "../../inference/kv-cache/types.js",
         "../../memory/buffer-pool.js"
       ]
@@ -8611,9 +8612,10 @@
     {
       "path": "vendor/doppler/0.7.9/src/experimental/training/loss-scaling.js",
       "owner": "vendor",
-      "sha256": "sha256:81bed513fdc2a036869f1b5ea957236fe44a1f18d33c421d53ba96e48466390d",
+      "sha256": "sha256:6f10e89cd01d19163e95e6a87aa00f8e1530d8267afef25fb4e8589583b109b8",
       "imports": [
         "../../gpu/kernels/scale.js",
+        "../../gpu/tensor.js",
         "../../inference/kv-cache/types.js",
         "../../memory/buffer-pool.js"
       ]

@@ -43,7 +43,11 @@ export async function inspectPeerRuntime({ roots, maxBytes, timeoutMs, signal })
         return;
       }
       if (before.isDirectory()) {
-        for (const name of (await fs.readdir(filename)).sort()) {
+        const names = (await fs.readdir(filename)).sort();
+        // Directory times and size may stay unchanged across a namespace update.
+        checks.push(async () => assert.deepEqual((await fs.readdir(filename)).sort(), names,
+          'Peer code directory changed during inventory'));
+        for (const name of names) {
           assert(!/[\x00-\x1f\x7f\\]/u.test(name), 'Unsupported peer source filename');
           if (name === '.git') continue;
           await walk(relative ? relative + '/' + name : name);
