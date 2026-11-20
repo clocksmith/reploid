@@ -18,16 +18,16 @@ function channels() {
     close() { if (this.readyState === 'closed') return; this.readyState = 'closed'; this.dispatchEvent(new Event('close')); queueMicrotask(() => pair[1-index].close()); } }));
   return pair;
 }
-async function fixture(count = 2, { certify = null, hostOptions = () => ({}), directSource = false } = {}) {
+async function fixture(count = 2, { certify = null, hostOptions = () => ({}), directSource = false, chunks = [Buffer.from([1,2,3,4]), Buffer.from([5,6,7,8])] } = {}) {
   const stores = [], callbacks = [], owners = [], directories = [], cacheDirectories = [], writes = [];
-  const chunks = [Buffer.from([1,2,3,4]), Buffer.from([5,6,7,8])], whole = Buffer.concat(chunks);
+  const whole = Buffer.concat(chunks);
   const metadata = directSource ? { sourceRuntime: { mode: 'direct-source', sourceKind: 'gguf',
     sourceFiles: [{ index: 0, path: '/unavailable/original.gguf', filename: 'weights.bin',
       size: whole.length, hash: hash(whole), hashAlgorithm: 'sha256' }] } } : undefined;
   const manifest = Buffer.from(JSON.stringify({ modelId: 'native-fixture', hashAlgorithm: 'sha256', metadata,
-    shards: [{ filename: 'weights.bin', size: 8, hash: hash(whole) }] }));
+    shards: [{ filename: 'weights.bin', size: whole.length, hash: hash(whole) }] }));
   const index = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', manifestIdentity: 'sha256:' + hash(manifest), maxPieceBytes: 4,
-    files: [{ path: 'weights.bin', size: 8, pieces: chunks.map((bytes, i) => ({ offset: i * 4, size: 4, identity: 'sha256:' + hash(bytes) })) }] }));
+    files: [{ path: 'weights.bin', size: whole.length, pieces: chunks.map((bytes, i) => ({ offset: i * 4, size: 4, identity: 'sha256:' + hash(bytes) })) }] }));
   const model = { id: 'native-fixture', identity: 'sha256:' + hash(manifest), source: { files: [
     { path: 'manifest.json', role: 'model-manifest', sizeBytes: manifest.length, hashAlgorithm: 'sha256', hash: hash(manifest) },
     { path: 'pieces.json', role: 'model-piece-index', sizeBytes: index.length, hashAlgorithm: 'sha256', hash: hash(index) }
@@ -48,6 +48,22 @@ async function fixture(count = 2, { certify = null, hostOptions = () => ({}), di
   return { owners, model, chunks, directories, cacheDirectories, writes, network,
     async share() { for (const host of owners.slice(1)) await host.share(model, true); await new Promise(resolve => setTimeout(resolve, 10)); } };
 }
+it('offers a large piece index as verified shards and serves a selected piece over custody', async () => {
+  const chunks = Array.from({ length: 1025 }, (_, i) => {
+    const bytes = Buffer.alloc(4); bytes.writeUInt32LE(i); return bytes;
+  });
+  const f = await fixture(2, { chunks, hostOptions: () => ({ maxSupplyBytes: 16 * 2 ** 30 }) });
+  await f.share();
+  const offers = f.writes.filter(row => row.type === 'reploid:custody-offer').flatMap(row => row.message.artifacts);
+  expect(offers.some(file => file.path === 'weights.bin')).toBe(true);
+  expect(offers.some(file => file.path.startsWith('piece-'))).toBe(false);
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    expect(new Uint8Array(await source.storage.loadShardRange(0, 4096, 4))).toEqual(new Uint8Array(chunks[1024]));
+    expect(source.getReceipt().custody.suppliers).toEqual({ 1: { pieces: 1, bytes: 4 } });
+  } finally { await source.storage.close(); }
+});
+
 it('serves direct-source ranges through canonical authenticated custody, not original machine paths', async () => {
   const f = await fixture(2, { directSource: true });
   await f.share();

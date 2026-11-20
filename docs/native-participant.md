@@ -137,6 +137,12 @@ became ready and answered one Chat Completions request through a separate
 connect-only requester. That is a single-host functional check, not model
 quality or throughput qualification.
 
+To supply the 27B to peers, run `reploid share 27b --weights /path/to/27b --supply-limit-gib 16`
+with a fresh supplier cache. A complete copy needs about 15.84 GiB. The default
+lifetime upload allowance is 4 GiB per cache. Large indexes can advertise whole
+verified shards within the inventory limit. A requester verifies the requested
+pieces against its pinned index.
+
 ## Delivery archive
 
 To create an installable native delivery without a source checkout on its host:
