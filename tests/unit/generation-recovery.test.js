@@ -73,3 +73,42 @@ it('retains uncertainty when the owning host cannot confirm cleanup', async () =
   await f.restartProvider(); expect(await f.recover()).toEqual({ status: 'unresolved' });
   await f.replay(); expect(f.executions).toBe(1);
 });
+
+it('keeps the next requester out until a timed-out active executor drains and settles once', async () => {
+  const entered = Promise.withResolvers(), aborted = Promise.withResolvers(), release = Promise.withResolvers();
+  const terminal = vi.fn(), cleanupConfirmed = vi.fn(() => true);
+  const f = await fixture({
+    meshConfig: i => ({ generationTimeoutMs: i === 0 ? 1000 : 5000, maxInboundJobs: 1 }),
+    onGenerationTerminal: terminal, settle: cleanupConfirmed,
+    execute: async (_messages, _update, { signal }) => {
+      if (f.executions === 1) {
+        signal.addEventListener('abort', () => aborted.resolve(), { once: true });
+        entered.resolve();
+        await release.promise;
+        signal.throwIfAborted();
+      }
+      return f.response;
+    }
+  });
+  try {
+    const expired = expect(f.run()).rejects.toThrow('Timed out waiting for remote host slot response');
+    await entered.promise;
+    const first = structuredClone(f.reference);
+    await expired;
+    await aborted.promise;
+    const second = f.run();
+    // A round trip to the same provider is possible while the original executor still holds its slot.
+    expect(await f.requesterMesh.recoverGeneration(first, f.messages)).toEqual({ status: 'unresolved' });
+    expect(f.executions).toBe(1);
+    expect(terminal).not.toHaveBeenCalled();
+    release.resolve();
+    await second;
+    expect(f.executions).toBe(2);
+    expect(cleanupConfirmed).toHaveBeenCalledOnce();
+    expect(terminal).toHaveBeenCalledOnce();
+    expect(await f.requesterMesh.recoverGeneration(first, f.messages)).toMatchObject({
+      status: 'cancelled', terminal: { cleanup: 'settled', usage: null }
+    });
+    expect(f.wire.filter(row => row.type === 'reploid:receipt')).toHaveLength(1);
+  } finally { release.resolve(); }
+});
