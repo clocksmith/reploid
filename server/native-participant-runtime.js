@@ -39,8 +39,10 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxCacheBytes, maxSupplyBytes, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  onPartitionReceiveTiming, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
+  onPartitionReceiveTiming, localStageWitness = null, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
   requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
+  if (localStageWitness) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && ordered && !canonical && typeof localStageWitness.wrap === 'function',
+    'Token parity witnesses require a private ordered stage');
   if (privateCustodyPrefill) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && cacheDirectory
     && typeof privateCustodyPrefill.supplierId === 'string' && privateCustodyPrefill.supplierId.length > 0
     && typeof privateCustodyPrefill.authorizeSupplier === 'function' && typeof privateCustodyPrefill.reserveDownload === 'function',
@@ -250,7 +252,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           onEvidence: executionAdmission ? bundle => executionAdmission.partitionReceipt(bundle) : null,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes) } : {}) });
-        let prepared = ownerGate ? { ...program, resident: ownerGate.gateResident(program.resident) } : program;
+        let prepared = localStageWitness ? { ...program, resident: localStageWitness.wrap(program.resident) } : program;
+        if (ownerGate) prepared = { ...prepared, resident: ownerGate.gateResident(prepared.resident) };
         if (executionAdmission) {
           const resident = prepared.resident;
           prepared = { ...prepared, resident: { ...resident, async reserve(request) {

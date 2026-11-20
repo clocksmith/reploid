@@ -110,3 +110,42 @@ lifetime upload allowance is a separate budget. Preserve the HTTP reservation
 ID for recovery. The stage and requester signatures bind acknowledged output
 deltas and counts; exact token-ID parity also needs a token trace from the
 executing stage and a matched independent reference.
+
+### Collecting token evidence on the private ordered route
+
+Use a new conversation ID and a new receipt path for each attempt. On the first and final enrolled contributors, add `localTokenWitness` to the private fleet host configuration before starting the host. Both hosts must use the same reference file, conversation ID, requester ID and stage roster. Each writes its own local file.
+
+```json
+{
+  "localTokenWitness": {
+    "fixtureFile": "/absolute/path/private-split-27b-code-trace.json",
+    "fixtureSha256": "850b9fde269c73ad15464744f674219a4ad94cab54e8a11471c1e3e0915a69ee",
+    "receiptFile": "/absolute/private/directory/attempt-01-stage.json",
+    "threadId": "qualification-REPLACE-WITH-A-FRESH-UUID",
+    "requesterId": "REPLACE-WITH-THE-ENROLLED-REQUESTER-ID",
+    "stageParticipants": ["REPLACE-WITH-THE-STAGE-0-ID", "REPLACE-WITH-THE-STAGE-1-ID"]
+  }
+}
+```
+
+On the requester, build the ordinary request as above, set its conversation ID, and retain the response headers and stream. `REQUESTER_TOKEN` is the existing private endpoint credential. `REQUESTER_URL` is its base URL without a trailing slash.
+
+```sh
+umask 077
+jq --arg id "$QUALIFICATION_THREAD" '.reploid.conversation_id = $id' request.json > private-request.json
+curl --fail-with-body --silent --show-error --no-buffer -D headers.txt \
+  -H "Authorization: Bearer $REQUESTER_TOKEN" -H 'Content-Type: application/json' \
+  --data-binary @private-request.json "$REQUESTER_URL/v1/responses" > response.sse
+```
+
+Collect each receipt from its respective operator through an authenticated channel. Substitute the actual paths when checking the captured attempt.
+
+```sh
+node tests/fixtures/verify-private-stage-tokens.mjs tests/fixtures/private-split-27b-code-trace.json \
+  headers.txt response.sse stage-0.json stage-1.json > parity.json
+jq -e '.exact and .generation.maxTokens == 4 and .generation.temperature == 0 and .generation.topK == 1 and .generation.topP == 1 and .generation.repetitionPenalty == 1' parity.json
+```
+
+Stage zero records SHA-256 over the canonical JSON token array returned by the tokenizer and the prompt array consumed by its first execution step. The final stage records its actual prefill and successive sampled tokens, including the invisible stop. The two files contain counts, digests, sampling settings, and attempt bindings. Each file is created once with mode 0600. A fresh attempt needs fresh paths and a fresh conversation ID.
+
+The verifier checks the complete HTTP route and terminal answer, the stop reason, both token counts, and both operators’ observations against the reference. Remote ordered HTTP returns aggregate step counts. The full per-token output digest comes from the final resident. For this 27B reference there are 85 prompt IDs and 3 selected IDs, including the stop. The decoded answer is `22` and the task’s correct answer is `26`. This procedure assumes an honest operator on both hosts. A matching observation establishes numerical agreement for this single execution. Physical memory eligibility, general answer quality, cancellation and settlement require their own evidence.

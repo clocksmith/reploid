@@ -22,6 +22,7 @@ import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester, buildFleetRequestOutcome } from './requester.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
+import { openStageTokenWitness } from './stage-token-witness.js';
 import { assert, text, same } from './contract.js';
 import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
@@ -325,6 +326,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   assert(config.maxCacheBytes === undefined || (config.cacheDirectory && Number.isSafeInteger(config.maxCacheBytes) && config.maxCacheBytes > 0),
     'maxCacheBytes requires a piece cache directory and a positive integer byte count');
   const identity = await openComputerIdentity(config.identityFile);
+  const tokenWitness = config.localTokenWitness ? await openStageTokenWitness(config.localTokenWitness,
+    { roomId: config.roomId, participantId: identity.peerId }) : null;
   const [rtcModule, socketModule] = await Promise.all([loadRtc(), loadSocket()]);
   const rtc = createNativeRtcAdapter(rtcModule.default ?? rtcModule), Socket = socketModule.default ?? socketModule.WebSocket;
   class WebSocket extends Socket { constructor(url) { super(url, { origin: config.origin || 'http://localhost:8000' }); } }
@@ -468,6 +471,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: () => gpu.open(),
         cacheDirectory: config.cacheDirectory ?? null, maxCacheBytes: config.maxCacheBytes,
         owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
+        ...(tokenWitness && entry.ordered ? { localStageWitness: tokenWitness } : {}),
         rankProviders: () => config.rankProviders === true && providerRanking.order.length ? providerRanking.order : null,
         onModelFill: progress => onChange({ modelFill: progress }),
         executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model }) : null,
