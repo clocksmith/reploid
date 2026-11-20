@@ -253,6 +253,31 @@ it('coalesces auxiliary channel creation for simultaneous transfers in both dire
   } finally { f.close(); }
 });
 
+it('places overlapping pieces on two eligible suppliers and releases the choice after cancellation', async () => {
+  const f = await fixture({ count: 3 });
+  const [requester, first, second] = f.owners;
+  const held = Promise.withResolvers(), entered = Promise.withResolvers();
+  const controller = new AbortController();
+  const other = { ...f.file, path: 'other.bin' };
+  try {
+    first.offer([f.file, other]); second.offer([f.file, other]);
+    await vi.waitFor(() => expect(requester.getState().peers).toHaveLength(2));
+    f.reads.mockImplementation(async (_, controls, supplier) => {
+      if (supplier === 1) { entered.resolve(); await held.promise; }
+      return f.bytes.slice();
+    });
+    const pending = requester.acquire(f.file, { signal: controller.signal });
+    const cancelled = expect(pending).rejects.toThrow();
+    await entered.promise;
+    const owners = [];
+    expect(await requester.acquire(other, { signal: AbortSignal.timeout(1000), onSupplier: id => owners.push(id) })).toEqual(f.bytes);
+    expect(owners).toEqual(['2']);
+    controller.abort(); await cancelled; held.resolve();
+    await requester.acquire(f.file, { signal: AbortSignal.timeout(1000), onSupplier: id => owners.push(id) });
+    expect(owners).toEqual(['2', '1']);
+  } finally { controller.abort(); held.resolve(); await f.close(); }
+});
+
 it('recovers from supplier failure through another authorized supplier without an origin', async () => {
   const f = await fixture({ count: 3 }), [a, b, c] = f.owners;
   try {
@@ -285,7 +310,7 @@ it('does not exceed acquisition slots while streams are active or dispatch a fal
     await expect(a.acquire(f.file, { signal: controller.signal })).rejects.toThrow('limit');
     controller.abort(new Error('Stop this acquisition'));
     expect((await settled).every(result => result.status === 'rejected')).toBe(true);
-    expect(f.reads.mock.calls.every(call => call[2] === 1)).toBe(true);
+    expect(f.reads.mock.calls.map(call => call[2]).sort()).toEqual([1, 2]);
     expect(a.getState().pending).toBe(0);
   } finally { release(); f.close(); }
 });
