@@ -322,6 +322,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     && config.models.every(row => ['partition', 'whole-model'].includes(row.mode)), 'Explicit fleet native configuration required');
   assert(text(config.roomId) && config.roomId !== bootstrap.publicRoomId && config.roomTokenFile,
     'Operator fleet models require an explicit private room');
+  assert(config.hostCandidatesOnly === undefined || typeof config.hostCandidatesOnly === 'boolean',
+    'hostCandidatesOnly must be a boolean');
   assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
   assert(config.maxCacheBytes === undefined || (config.cacheDirectory && Number.isSafeInteger(config.maxCacheBytes) && config.maxCacheBytes > 0),
     'maxCacheBytes requires a piece cache directory and a positive integer byte count');
@@ -469,6 +471,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       if (present || !fillable) assert(await manifestIdentity() === entry.model.identity, 'Owner-selected model manifest changed');
       participant = await createNativeParticipant({ model: entry.model, modelDirectory: entry.directory, identity, rtc, WebSocket,
         signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: () => gpu.open(),
+        ...(config.hostCandidatesOnly ? { getRtcConfig: () => ({ iceServers: [], iceTransportPolicy: 'all' }) } : {}),
         cacheDirectory: config.cacheDirectory ?? null, maxCacheBytes: config.maxCacheBytes,
         owner, executionMode: entry.mode, ordered: entry.ordered ?? null,
         ...(tokenWitness && entry.ordered ? { localStageWitness: tokenWitness } : {}),

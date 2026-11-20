@@ -157,7 +157,11 @@ Host configuration uses schema `reploid.fleet-native/v1`, explicit `computerId`,
 `serviceUrl`, `maxOutputTokens` and `models`. Each model entry supplies the exact
 catalog `model`, local artifact `directory`, `mode`, and, for ordered shards,
 `ordered` stage configuration. Doppler's public partition API owns the layer plan.
-The model manifest digest is checked before preparation.
+The model manifest digest is checked before preparation. For a private LAN whose
+peers can reach one another directly, set `hostCandidatesOnly: true` to use
+WebRTC host candidates with an empty ICE server list. Configure the private
+signaling URL separately. A pair behind incompatible NATs may fail to connect
+with this setting.
 
 `observationFile`, `auto: true` and `pollMs` enable reconciliation. `daemon: true`
 keeps the host running after standard input closes. `initialModel` and

@@ -36,6 +36,13 @@ it('refuses operator model configurations in the public pool before loading nati
     .rejects.toThrow('explicit private room');
 });
 
+it('rejects a malformed host-candidates-only policy before opening an identity', async () => {
+  await expect(openFleetNativeHost({ configuration: {
+    schema: 'reploid.fleet-native/v1', computerId: 'machine', name: 'Machine', models: [{ mode: 'partition' }],
+    roomId: 'private-test', roomTokenFile: '/unused', hostCandidatesOnly: 'true'
+  } })).rejects.toThrow('hostCandidatesOnly must be a boolean');
+});
+
 it.each([
   [undefined, 1024],
   ['/cache', 0],
