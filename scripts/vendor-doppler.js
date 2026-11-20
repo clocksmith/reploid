@@ -60,7 +60,7 @@ try {
 }
 const archiveDirectory = path.join(root, 'deploy/artifacts');
 mkdirSync(archiveDirectory, { recursive: true });
-const archived = path.join(archiveDirectory, `${pin.name}-${pin.version}.tgz`);
+const archived = path.join(archiveDirectory, `${manifest.name}-${manifest.version}.tgz`);
 if (path.resolve(archive) !== archived) copyFileSync(archive, archived);
 const packageJson = JSON.parse(readFileSync(path.join(root, 'package.json')));
 // The pin is shared browser configuration; this script runs standalone, so it names its root.

@@ -31,3 +31,9 @@ export function currentPartitionRoute(model, models, approvals) {
     && canonicalPartitionJson(partitionAdapterIdentities(current)) === canonicalPartitionJson(partitionAdapterIdentities(model))
     && canonicalPartitionJson(current.partition) === canonicalPartitionJson(model.partition));
 }
+
+/** Check what the requester is about to disclose against the exact selected stage bindings. */
+export function matchesPartitionDisclosure(partition, preview) {
+  return typeof partition?.planId === 'string' && !!partition.planId && !!preview && Object.keys(partition).every(key =>
+    Object.hasOwn(preview, key) && canonicalPartitionJson(preview[key]) === canonicalPartitionJson(partition[key]));
+}

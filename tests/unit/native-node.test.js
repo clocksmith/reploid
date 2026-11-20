@@ -32,6 +32,21 @@ describe('reploid <model>: the short native command', () => {
     expect(nodeArguments(['plain'], { home: '/h', models, exists: () => true }).args).toContain('/h/.reploid/weights/plain');
   });
 
+  it('lists the 27B pinned download and retains the exact 27B model for solo and split', () => {
+    const id = 'qwen-3-8-27b-text-q4k-ef16-af32';
+    const row = nativeCommand(['models']).text.split('\n').find(line => line.startsWith('27b '));
+    expect(row).toContain(id);
+    expect(row).toContain('solo/split');
+    expect(row).toContain('pinned download');
+    for (const name of ['27b', id, 'qwen3-8-27b-text-q4k-ehaf16']) {
+      expect(nativeCommand(['serve', name])).toEqual({ args: [id, '--contribute', '--execution-mode', 'whole-model'] });
+      for (const stage of ['0', '1']) {
+        expect(nativeCommand(['split', name, '--stage', stage]).args)
+          .toEqual([id, '--contribute', '--execution-mode', 'partition', '--partition-index', stage]);
+      }
+    }
+  });
+
   it('stands for an explicit whole-model contribute command with state under the home directory', () => {
     const node = nodeArguments(['qwen-3-5-0-8b-q4k-ef16-af32-vf16'], { home: '/home/someone' });
     expect(node.args).toEqual(['--model', 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', '--contribute', '--execution-mode', 'whole-model',

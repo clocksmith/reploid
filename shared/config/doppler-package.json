@@ -3,5 +3,5 @@
   "version": "0.1.5",
   "spec": "file:deploy/artifacts/dopplerx-0.1.5.tgz",
   "resolved": "file:deploy/artifacts/dopplerx-0.1.5.tgz",
-  "integrity": "sha512-agmOgR9zU0SxRDuhlTkdB3uHD3hQWH0WJMeaAyXeHU2/NJPdQoinW3c19QtNMXh2M+LvooM/yYseNlxDZVVDoA=="
+  "integrity": "sha512-v3iGOA2637OORldJEAtuyGF/fa8/tp4m/NWWqKEyz0WGSqoAfBkusZrNM83eB3BrryFne5nJDtsLDrffkGrsUA=="
 }
