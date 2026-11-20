@@ -3,6 +3,8 @@
  * `controls.onUsage`, when given, receives the provider's input token count before any text if the
  * provider reports one; the completion must then report the same count. */
 import { randomUUID } from 'node:crypto';
+import catalog from '../shared/config/chat-models.json' with { type: 'json' };
+import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
 import { projectChatCatalog } from '../apps/poolday/host/chat-view.js';
 import { readWorkGenerationCompletion } from '../shared/infrastructure/generation-completion.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -12,6 +14,13 @@ import { assertSettingsSupported, normalizeGenerationSettings, unionGenerationSe
 const requireValue = (ok, message) => { if (!ok) throw Error(message); };
 const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 const supportsModelCeiling = model => Number.isSafeInteger(model?.generation?.maxTokens) && model.generation.maxTokens > 0;
+// Native whole-model preparation uses the Poolday generation policy when an exact catalog
+// entry omits generation. An arbitrary model without its own declaration has no known bound.
+function settingsOutputCeiling(model) {
+  if (Object.hasOwn(model, 'generation')) return supportsModelCeiling(model) ? model.generation.maxTokens : null;
+  const entry = catalog.find(row => row.id === model.id && row.identity === model.identity && !Object.hasOwn(row, 'generation'));
+  return entry ? resolvePartitionGeneration(entry).maxTokens : null;
+}
 function projectResult(request, result, providerId, providerIdentity) {
   const { model, threadId, attemptId } = request;
   requireValue(providerId && result.model === model.id && result.modelIdentity === model.identity
@@ -35,7 +44,8 @@ export function createWholeModelRequester({ mesh, models }) {
   const settingsCapability = (model, peers) => {
     const capability = unionGenerationSettingsCapabilities(peers.filter(peer => model.providerIds.includes(peer.peerId))
       .map(peer => peer.generationSettings));
-    return capability ? { generationSettings: capability } : {};
+    if (!capability) return {};
+    return { generationSettings: { ...capability, maxOutputTokens: capability.maxOutputTokens && settingsOutputCeiling(model) !== null } };
   };
   const getModels = () => projectChatCatalog({ models, peers: mesh.getSwarmSnapshot().peers || [], partitionModels: [] })
     .map(model => ({ ...model, ...settingsCapability(model, mesh.getSwarmSnapshot().peers || []),
@@ -73,12 +83,6 @@ export function createWholeModelRequester({ mesh, models }) {
     },
     async generate(request, controls) {
       requireValue(!request.model.partition, 'Whole-model requester cannot execute a partition route');
-      if (request.generationRequest !== undefined && !supportsModelCeiling(request.model)) {
-        throw Error('Whole-model caller token limits are not supported by this mesh protocol');
-      }
-      const requested = generationRequest(request.generationRequest);
-      requireValue(!requested || requested.maxOutputTokens >= request.model.generation.maxTokens,
-        'Whole-model caller token limits below the prepared model ceiling are not supported by this mesh protocol');
       requireValue(typeof controls?.requestApproval === 'function' && controls.signal, 'Explicit whole-model disclosure and cancellation required');
       const settings = normalizeGenerationSettings(request.settings);
       request = structuredClone(request);
@@ -86,11 +90,18 @@ export function createWholeModelRequester({ mesh, models }) {
       const route = getModels().find(candidate => candidate.id === model.id && candidate.identity === model.identity
         && same(partitionAdapterIdentities(candidate), partitionAdapterIdentities(model)));
       requireValue(route, 'No ready whole-model provider for the exact variant');
+      if (request.generationRequest !== undefined && !supportsModelCeiling(route)) {
+        throw Error('Whole-model caller token limits are not supported by this mesh protocol');
+      }
+      const requested = generationRequest(request.generationRequest);
+      requireValue(!requested || requested.maxOutputTokens >= route.generation.maxTokens,
+        'Whole-model caller token limits below the prepared model ceiling are not supported by this mesh protocol');
       if (settings) {
         // Refused here, from the providers' current advertisements, before any provider is asked.
         assertSettingsSupported(route.generationSettings, settings);
         // Unlike a generationRequest ceiling, a settings limit may lower output: the provider applies it.
-        if (settings.maxOutputTokens !== null && !(supportsModelCeiling(model) && settings.maxOutputTokens <= model.generation.maxTokens)) {
+        const ceiling = settingsOutputCeiling(route);
+        if (settings.maxOutputTokens !== null && (ceiling === null || settings.maxOutputTokens > ceiling)) {
           throw Object.assign(Error('Caller output limit exceeds the prepared model ceiling'), { status: 400, param: 'maxOutputTokens' });
         }
         request.settings = structuredClone(settings);
