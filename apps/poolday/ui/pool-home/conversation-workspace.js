@@ -3,10 +3,10 @@ import { requestExecutionPolicy } from '../../../../shared/vendor/reploid/chat/e
 import { privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
-import { bindWorkspaceNavigation } from './workspace-navigation.js';
+import { bindWorkspaceNavigation, workspaceThreadId } from './workspace-navigation.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
-import { createConversationList } from './conversation-list.js';
+import { createConversationList, threadTitle } from './conversation-list.js';
 import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bindModelChoices, modelVariantKey, modelExecutionState, modelVariantLabel, unavailableModelChoice } from '../components/model-select.js';
 import { bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
@@ -83,7 +83,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
   const railToggle = find('[data-toggle-thread-rail]');
-  let workspaceNavigation = null, applyingView = false;
+  let workspaceNavigation = null, applyingView = false, routeSelection = null;
   const threadsDialogNode = find('[data-threads-dialog]');
   const leftDrawer = bindDrawer(threadsDialogNode, { side: 'left', markRoot: find('[data-thread-rail-brand]') });
   const allowBoth = () => (globalThis.innerWidth || 0) >= 1200;
@@ -248,6 +248,30 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     node.hidden = !node.textContent;
     if (attachmentReader.pending || recoverySelection && !matchesRecovery(snapshot)) find('[data-change-model]').disabled = true;
   };
+  function selectUrlThread(id, { initial = false } = {}) {
+    const state = session.getState();
+    const target = state.threads.find(thread => thread.id === id)?.id ?? null;
+    const request = { id };
+    routeSelection = request;
+    const current = () => routeSelection === request && !controller.signal.aborted && workspaceThreadId() === request.id;
+    const select = () => current() && session.getState().selectedId !== target ? session.select(target) : undefined;
+    const finish = () => {
+      if (!current()) return;
+      routeSelection = null;
+      render(session.getState());
+    };
+    try {
+      if (target === state.selectedId) { finish(); return; }
+      queuedSend = null;
+      const pending = initial ? select() : after(saveDraft(), select);
+      if (pending?.then) return pending.then(finish, cause => { finish(); error(cause); });
+      finish();
+    } catch (cause) { finish(); error(cause); }
+  }
+  const openThread = id => {
+    workspaceNavigation.navigate('chat', { threadId: id });
+    return selectUrlThread(id);
+  };
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
@@ -255,8 +279,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       pickerRevision++;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
       const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
+      if (!routeSelection) workspaceNavigation?.reflectThread(selectedId);
+
     }
     const thread = state.activeThread, catalogModels = state.models || [], runningIds = state.runningIds || [];
+    const currentTitle = find('[data-current-chat-title]');
+    currentTitle.textContent = thread ? threadTitle(thread, session.getDocumentSources) : '';
+    currentTitle.hidden = !thread;
+    const linkedId = workspaceThreadId();
+    const unavailableThread = find('[data-thread-unavailable]');
+    unavailableThread.hidden = !linkedId || state.threads.some(item => item.id === linkedId);
     const keyFor = model => model?.selectionId || model?.id;
     if (!thread && !input.value.trim() && !files.length && !attachmentReader.pending) viewState.draftModel = null;
     const pinnedModel = thread?.model || chosenModel || viewState.draftModel;
@@ -348,6 +380,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
     else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
     else disclosure.textContent = 'A network provider could read your prompt.';
+    const privacySummary = find('[data-privacy-current]');
+    privacySummary.textContent = disclosure.textContent;
+    privacySummary.hidden = disclosure.textContent === 'The answering computer can read your prompt.';
+    privacyTrigger.dataset.help = disclosure.textContent;
     modelStatus.textContent = statusText;
     modelStatus.hidden = !statusText;
     renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
@@ -494,7 +530,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
+  const newThread = () => after(openThread(null), () => {
+    chosenModel = null; viewState.chosenModel = null; archived = false;
+    find('[data-show-archived]').setAttribute('aria-pressed', 'false');
+    find('[data-show-active]').setAttribute('aria-pressed', 'true');
+    actionsPanel.setOpen(false); render(session.getState()); input.focus();
+  });
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
   function stageLocalPickerModel(model) {
@@ -625,7 +666,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { queuedSend = null; try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
+    const link = event.target.closest('[data-thread-item-id]');
+    if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    observe(after(openThread(link.dataset.threadItemId), () => input.focus({ preventScroll: true })));
+  });
   on('[data-open-privacy]', 'click', () => {
     if (submitting || applyingPrivacy) return;
     const state = session.getState();
@@ -788,6 +833,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (target) { event.preventDefault(); target.closest('details').open = true; target.focus(); target.scrollIntoView({ block: 'nearest' }); }
   });
   workspaceNavigation = bindWorkspaceNavigation(container, (view, routeState) => {
+    if (routeState.restoreThread) {
+      if (routeState.initial && !routeState.threadId) workspaceNavigation.reflectThread(session.getState().selectedId, { replace: true });
+      else observe(selectUrlThread(routeState.threadId, routeState));
+    }
     applyingView = true;
     try {
       setThreads(view === 'threads' || !!routeState?.threads, false);
@@ -800,7 +849,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       event.preventDefault(); setThreads(false); railToggle?.focus();
     }
   }, options);
-  workspaceNavigation.restore();
+  workspaceNavigation.restore({ initial: true });
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect(); stopVisibility?.disconnect();

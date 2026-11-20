@@ -3,8 +3,8 @@ import { openParticipantControls } from '../fixtures/signaling-interruption.js';
 import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 // Explicit host-state fixtures exercise presentation, not model inference.
-async function installConversation(page, theme) {
-  await page.evaluate(async theme => {
+async function installConversation(page, theme, seedThreads = false) {
+  await page.evaluate(async ({ theme, seedThreads }) => {
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const { bindExecutionRibbon } = await import('/ui/pool-home/execution-ribbon.js');
     const root = document.querySelector('.pool-home');
@@ -106,11 +106,12 @@ async function installConversation(page, theme) {
         network: { consumer: { peers: [] } } };
       listeners.forEach(callback => callback(state));
     };
-    window.setVisualState('empty');
+    window.setVisualState(seedThreads ? 'completed' : 'empty');
+    if (seedThreads) window.setVisualThreads(3);
     window.disposeVisual = bindConversationWorkspace(fixture, session);
     // Home renders no app bar; the execution ribbon exists only on routes that keep one.
     if (fixture.querySelector('[data-execution-ribbon]')) { const ribbon = bindExecutionRibbon(fixture, { labelSession: session }); session.subscribe(state => ribbon.update(state)); }
-  }, theme);
+  }, { theme, seedThreads });
 }
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
@@ -178,7 +179,7 @@ test('compact chat keeps attempt status reachable and composer visible', async (
       // One status line under the composer explains a disabled Send.
       await expect(page.locator('[data-model-status]')).toContainText('No ready computer');
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
-      await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
+      await expect(page.getByRole('textbox', { name: 'Message' })).not.toHaveAttribute('placeholder');
     }
     await expect(page.locator('[data-composer-input]')).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -621,9 +622,11 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await input.evaluate(node => node.setSelectionRange(5, 9));
     const field = await page.locator('[data-composer-field]').boundingBox();
     const text = await input.boundingBox();
+    const send = await page.locator('[data-composer-send]').boundingBox();
     for (const selector of ['.chat-file-label', '[data-open-model]', '[data-open-privacy]', '[data-composer-send]']) {
       const rect = await page.locator(selector).boundingBox();
-      expect(selector === '[data-composer-send]' ? rect.y + rect.height === text.y + text.height : rect.y + rect.height <= text.y).toBe(true);
+      expect(rect.y).toBeGreaterThanOrEqual(text.y + text.height);
+      expect(rect.y + rect.height / 2).toBeCloseTo(send.y + send.height / 2);
       expect(rect.x).toBeGreaterThanOrEqual(field.x); expect(rect.x + rect.width).toBeLessThanOrEqual(field.x + field.width);
       expect(rect.height).toBeGreaterThanOrEqual(44);
     }
@@ -880,8 +883,14 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(source).toHaveText(' · Public network');
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
   const disclosure = page.locator('[data-prompt-disclosure]');
-  await expect(disclosure).toBeVisible();
-  await expect(disclosure).toContainText('The answering computer can read your prompt');
+  await expect(disclosure).toHaveClass('chat-visually-hidden');
+  await expect(page.locator('[data-composer-send]')).toHaveAccessibleDescription('The answering computer can read your prompt.');
+  const shield = page.locator('[data-open-privacy]');
+  await shield.hover();
+  await expect(page.getByRole('tooltip')).toHaveText('The answering computer can read your prompt.');
+  await shield.click();
+  await expect(page.locator('[data-privacy-dialog]')).toContainText('The answering computer can read your prompt.');
+  await page.locator('[data-privacy-cancel]').click();
   await expect(page.locator('[data-download-local]')).toBeHidden();
   await openModel();
   await page.locator('[data-execution-choice=local]').click();
@@ -896,8 +905,8 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
     const visible = node.getBoundingClientRect(), text = range.getBoundingClientRect();
     return text.left >= visible.left - 1 && text.right <= visible.right + 1;
   })).toBe(true);
-  const bounds = await source.boundingBox(), button = await page.locator('[data-open-model]').boundingBox();
-  expect(bounds.x).toBeGreaterThanOrEqual(button.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(button.x + button.width);
+  await expect(source).toHaveClass('chat-visually-hidden');
+  await expect(page.locator('[data-open-model]')).toHaveAccessibleName(/Qwen 3.5 0.8B.*Public network/);
   await page.screenshot({ path: info.outputPath(`shared-ready-${width}.png`) });
   await page.evaluate(() => window.setVisualSources({ local: true, shared: false }));
   await expect(page.locator('[data-composer-send]')).toBeDisabled();
@@ -1118,4 +1127,50 @@ for (const width of [1440, 320]) test(`35B discovery keeps the picker still at $
   await expect(row.locator('input')).toBeFocused();
   await picker.locator('[data-model-picker-close]').click();
   await expect(draft).toHaveValue('Keep this draft');
+});
+
+
+test('thread links show the current chat without a popup and survive reload and history', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  expect(await page.evaluate(() => {
+    const composer = document.querySelector('[data-composer-input]');
+    history.pushState(null, '', '/?thread=missing-chat');
+    dispatchEvent(new PopStateEvent('popstate'));
+    return document.querySelector('[data-composer-input]') === composer;
+  })).toBe(true);
+  await expect(page.locator('[data-thread-unavailable]')).toBeVisible();
+  await page.evaluate(() => {
+    history.replaceState(null, '', '/');
+    dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await installConversation(page, 'dark', true);
+  await expect(page).toHaveURL(/thread=recent-0/);
+  await page.locator('[data-toggle-thread-rail]').click();
+  const current = page.locator('[data-thread-item-id="recent-0"]');
+  await expect(current).toBeFocused();
+  await expect(current).toContainText('Current chat');
+  await expect(current).not.toHaveAttribute('title');
+  await expect(page.getByRole('tooltip')).toBeHidden();
+  await page.screenshot({ path: info.outputPath('threads.png'), animations: 'disabled' });
+  const next = page.getByRole('link', { name: /^Review the formatter:/ });
+  await expect(next).toHaveAttribute('href', '/?thread=recent-1');
+  await next.click();
+  await expect(page).toHaveURL(/thread=recent-1/);
+  await expect(page.locator('[data-current-chat-title]')).toHaveText('Review the formatter');
+  await page.locator('[data-composer-field]').screenshot({ path: info.outputPath('composer.png') });
+  await page.goBack();
+  await expect(page).toHaveURL(/thread=recent-0/);
+  await expect(current).toHaveAttribute('aria-current', 'true');
+  await page.goForward();
+  await expect(page).toHaveURL(/thread=recent-1/);
+  await page.reload();
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'dark', true);
+  await expect(page.locator('[data-current-chat-title]')).toHaveText('Review the formatter');
+  await page.locator('[data-toggle-thread-rail]').click();
+  await page.locator('[data-new-thread]').click();
+  expect(new URL(page.url()).searchParams.has('thread')).toBe(false);
+  await expect(page.locator('[data-current-chat-title]')).toBeHidden();
 });

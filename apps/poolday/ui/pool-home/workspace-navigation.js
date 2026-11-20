@@ -4,12 +4,15 @@ export const workspaceView = () => {
   const value = new URL(globalThis.location.href).searchParams.get('view');
   return views.has(value) ? value : 'chat';
 };
+export const workspaceThreadId = () => new URL(globalThis.location.href).searchParams.get('thread') || null;
+
 const hasThreads = () => workspaceView() === 'threads' || new URL(globalThis.location.href).searchParams.get('threads') === 'open';
-export function workspaceHref(view, { threads = false } = {}) {
+export function workspaceHref(view, { threads = false, threadId = workspaceThreadId() } = {}) {
   const url = new URL(globalThis.location.href);
   if (!['/', '/network'].includes(url.pathname)) url.pathname = '/';
   if (view === 'chat') url.searchParams.delete('view'); else url.searchParams.set('view', view);
   if (threads && !['chat', 'threads'].includes(view)) url.searchParams.set('threads', 'open'); else url.searchParams.delete('threads');
+  if (threadId) url.searchParams.set('thread', threadId); else url.searchParams.delete('thread');
   return url.pathname + url.search + url.hash;
 }
 export function bindWorkspaceNavigation(root, apply) {
@@ -23,7 +26,7 @@ export function bindWorkspaceNavigation(root, apply) {
   };
   const reflect = (view, state = {}) => {
     const href = workspaceHref(view, state);
-    if (globalThis.location.pathname + globalThis.location.search + globalThis.location.hash !== href) globalThis.history.pushState(globalThis.history.state, '', href);
+    if (globalThis.location.pathname + globalThis.location.search + globalThis.location.hash !== href) globalThis.history[state.replace ? 'replaceState' : 'pushState'](globalThis.history.state, '', href);
     mark(view);
   };
   const navigate = (view, state = {}) => { reflect(view, { ...state, threads: (globalThis.innerWidth || 0) >= 1200 && state.threads }); apply(view, { threads: hasThreads() }); };
@@ -37,12 +40,13 @@ export function bindWorkspaceNavigation(root, apply) {
       else navigate(hasThreads() ? 'chat' : 'threads');
     } else navigate(next, { threads: hasThreads() });
   }, options);
-  const restore = () => {
+  const restore = ({ initial = false } = {}) => {
     const view = workspaceView();
     if ((globalThis.innerWidth || 0) < 1200 && view !== 'threads' && hasThreads()) globalThis.history.replaceState(globalThis.history.state, '', workspaceHref(view));
-    apply(view, { threads: hasThreads() }); mark(view);
+    apply(view, { threads: hasThreads(), restoreThread: true, initial, threadId: workspaceThreadId() }); mark(view);
   };
   globalThis.addEventListener('popstate', restore, options);
   mark(workspaceView());
-  return { navigate, reflect, restore, dispose: () => controller.abort() };
+  const reflectThread = (threadId, { replace = false } = {}) => reflect(workspaceView(), { threads: hasThreads(), threadId, replace });
+  return { navigate, reflect, reflectThread, restore, dispose: () => controller.abort() };
 }

@@ -10,6 +10,7 @@ export const privacyLabel = profile => profiles.find(([key]) => key === profile)
 
 export const renderPrivacyControls = () => `<dialog class="chat-model-setup pool-surface pool-small" id="chat-privacy-dialog" data-privacy-dialog aria-labelledby="chat-privacy-title">
   <h2 class="pool-heading" id="chat-privacy-title">Inference privacy</h2>
+  <p class="pool-muted" data-privacy-current></p>
   <fieldset class="pool-stack pool-bare pool-gap-sm" data-privacy-controls><legend class="chat-visually-hidden">Inference privacy tier</legend>
     ${profiles.map(([id, label, hint]) => `<label class="chat-model-choice pool-choice pool-button btn-ghost${id === 'cryptographic' ? ' pool-muted' : ''}"><input type="radio" name="chat-privacy-profile" data-privacy-profile value="${id}"${id === 'cryptographic' ? ' disabled' : ''}><span><strong>${label}</strong><span class="pool-muted">${hint}</span></span></label>`).join('')}
     <fieldset class="pool-stack pool-bare pool-gap-xs" data-privacy-placement-controls hidden><legend>Allowed recipients</legend>

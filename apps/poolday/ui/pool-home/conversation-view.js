@@ -51,7 +51,9 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
     <aside class="chat-inspector-slot pool-surface" hidden data-drawer-side="right" data-chat-inspector-slot aria-label="Selected controls">${inspector ? renderInspectorRail({ mounted: true, contribution: renderProductionContribution() }) : ''}</aside>
     <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
       <div class="chat-conversation-content">
+      <h1 class="chat-current-title pool-small pool-muted" data-current-chat-title hidden></h1>
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
+      <p class="chat-error pool-well" data-thread-unavailable role="status" hidden>This chat is unavailable in this browser.</p>
       <p class="chat-error pool-well" role="alert" data-chat-error hidden></p>
       ${renderHistoryHandover()}
       </div>
@@ -73,20 +75,18 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </div>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
+          <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required></textarea>
           <div class="chat-composer-toolbar">
             <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" data-help="Attach text files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
             <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" data-help="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
-            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Change model" data-help="Change model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
+            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Change model" data-help="Change model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="chat-visually-hidden" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
             <button type="button" class="pool-button btn-ghost pool-icon" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog" aria-label="Inference privacy" data-help="Inference privacy">${interfaceIcon('privacy')}</button>
-          </div>
-          <div class="chat-input-row">
-            <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
             <div class="chat-composer-submit">
               <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-describedby="chat-prompt-disclosure" aria-label="Send" data-help="Send">${interfaceIcon('send')}</button>
               <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" data-help="Stop" hidden>${interfaceIcon('stop')}</button>
             </div>
           </div>
-          <p class="chat-setup-hint pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p>
+          <p class="chat-visually-hidden" id="chat-prompt-disclosure" data-prompt-disclosure></p>
         </div>
       </form></footer>
       <span class="chat-visually-hidden" role="status" data-copy-status></span>

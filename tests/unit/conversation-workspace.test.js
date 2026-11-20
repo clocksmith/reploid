@@ -107,6 +107,26 @@ describe('Conversation workspace', () => {
     expect(send.mock.calls[1][3]).toEqual({ retrieval: {} });
   });
 
+  it('resolves a thread link from local history and clears the chat on a missing thread', async () => {
+    const first = session.createThread({ purpose: 'First conversation' });
+    const second = session.createThread({ purpose: 'Second conversation' });
+    session.saveDraft(first, { text: 'Draft for the first chat', files: [] });
+    dispose();
+    history.replaceState(null, '', `/?thread=${first}&view=threads`);
+    dispose = bindConversationWorkspace(root, session);
+    expect(session.getState().selectedId).toBe(first);
+    expect(find('[data-current-chat-title]').textContent).toBe('First conversation');
+    expect(find('[data-composer-input]').value).toBe('Draft for the first chat');
+    expect(new URL(find(`[data-thread-item-id="${second}"]`).href).searchParams.get('thread')).toBe(second);
+    history.replaceState(null, '', '/?thread=missing');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
+    expect(find('[data-thread-unavailable]').hidden).toBe(false);
+    expect(new URL(location.href).searchParams.get('thread')).toBe('missing');
+    expect(find('[data-composer-input]').value).toBe('');
+    expect(session.getDraft(first).text).toBe('Draft for the first chat');
+  });
+
   it('uses linked workspace destinations and restores history without replacing the composer', () => {
     const input = find('[data-composer-input]');
     input.value = 'Keep this draft'; input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -359,7 +379,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
     expect(find('[data-contextual-inspector]').hidden).toBe(true);
-    expect(find('[data-composer-input]').placeholder).toBeTruthy();
+    expect(find('[data-composer-input]').hasAttribute('placeholder')).toBe(false);
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 

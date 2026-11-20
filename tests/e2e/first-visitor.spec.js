@@ -104,7 +104,7 @@ test('reviews a reachable alternate model before changing the public destination
   await expect(review).toBeVisible();
   await review.click();
   await expect(picker).toBeVisible();
-  await expect(source).toHaveText(' · Unavailable');
+  await expect(source).toHaveText(' · Public network');
   await page.evaluate(() => window.firstVisitor.alternate(false));
   await expect(apply).toBeDisabled();
   await page.locator('[data-model-picker-close]').click();
