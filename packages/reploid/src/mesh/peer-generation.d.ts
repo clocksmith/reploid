@@ -5,6 +5,7 @@ import type { SwarmTransport, SwarmOptions } from '../transport/swarm.js';
 import type { GenerationSettings, GenerationSettingsCapability, GenerationSettingsInput } from './generation-settings.js';
 export interface PeerGenerationMesh extends GenerationProvider {
   connect(): Promise<unknown>; initialize(): Promise<unknown>; close(): Promise<void>;
+  getVerifiedPeerIdentity(peerId: string): string | null;
   verifyPeerIdentity(peerId: string, signal?: AbortSignal): Promise<string | null>;
   identifyComputer(peerId: string, options?: {
     ownerLabel?: string; signal?: AbortSignal;

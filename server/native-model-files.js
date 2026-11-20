@@ -90,7 +90,7 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
  * `certifyCustodyKey` (packages/reploid/src/artifacts/custody-certificate.js) lets the persistent
  * participant identity certify this process's custody key; without it the key stays
  * unattributable to any device. */
-export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null,
+export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {}, owner = null, certifyCustodyKey = null, authorizeRequester = undefined,
   maxSupplyBytes = policy.maxSupplyBytes, modelOrigins = undefined, originFetch = undefined, peerGraceMs = PEER_GRACE_MS, sourceFilePaths = undefined, artifactRuntime = null }) {
   assert(artifactRuntime === null || typeof artifactRuntime?.createVerifiedPieceStorage === 'function',
     'Native artifact runtime requires the verified piece storage factory');
@@ -142,7 +142,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
   const payloadSlots = createNativeCustodySlots(policy.channel.maxPendingRequests);
   const createChannel = owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel;
-  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget,
+  const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget, authorizeRequester,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel(options) {
       const channel = createChannel(options);

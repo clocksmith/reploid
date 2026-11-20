@@ -1,0 +1,137 @@
+{
+  "schema": "reploid.native-custody-cli-qualification/v1",
+  "host": "Jupiter, Linux, nice 19, CPU 22",
+  "candidateSource": "4ddc364ff1a93e77c261e47b71b8e78a2463e432",
+  "candidateTarballSha256": "c031152eb0c1cb3a05fed0dbb6fce7da02170afb3bcc6fc2b03061064565683b",
+  "transport": "Native Node WebRTC with the real signaling server inside a network namespace with only loopback. No GPU devices. No external origin or public room.",
+  "fixture": "Two 12-byte deterministic pieces. Both native CLI processes received the private manifest and piece index. Only the supplier started with weights.bin. Every recipient began with an empty weight and piece cache.",
+  "exactCandidateRoom": {
+    "finishedUtc": "2026-11-20T11:40:15.264482+00:00",
+    "policy": "room",
+    "approvedRequester": "peer:05afa65020e76cfa7fdbb2fc",
+    "modelIdentity": "sha256:c1ea9ca5ad2277e03b75cd1b9a477e34d6152940910c42e00bb6b9c3d48b7c3c",
+    "indexIdentity": "sha256:2081c22cd03d2598396f623b7ec01641e2a7fac5dd94e19a30e8eeaf079940a7",
+    "permitted": {
+      "verifiedPayload": 24,
+      "pieces": 2,
+      "sha256": "2ae2efaf74820888ccad882b58b5ab180160fd093b450f5d3c6fe15213ec5d3a",
+      "suppliers": {
+        "593133e5-3581-466c-92f7-b7a89dc6bc22": {
+          "pieces": 2,
+          "bytes": 24
+        }
+      },
+      "weightSources": [
+        "authorized-custody-peers"
+      ]
+    },
+    "denied": null,
+    "supplierStop": {
+      "status": 0,
+      "signal": null
+    },
+    "supplyLimitBytes": 1073741824,
+    "budget": {
+      "schema": "reploid.custody-supply-budget/v1",
+      "maxBytes": 1073741824,
+      "reservedBytes": 24
+    },
+    "reservedBeforePermitted": 0,
+    "supplierCompute": false
+  },
+  "postCutNamed": {
+    "finishedUtc": "2026-11-20T11:40:21.396542+00:00",
+    "policy": "named",
+    "approvedRequester": "peer:ba4c62696d807a91d9da919d",
+    "modelIdentity": "sha256:c1ea9ca5ad2277e03b75cd1b9a477e34d6152940910c42e00bb6b9c3d48b7c3c",
+    "indexIdentity": "sha256:2081c22cd03d2598396f623b7ec01641e2a7fac5dd94e19a30e8eeaf079940a7",
+    "permitted": {
+      "verifiedPayload": 24,
+      "pieces": 2,
+      "sha256": "2ae2efaf74820888ccad882b58b5ab180160fd093b450f5d3c6fe15213ec5d3a",
+      "suppliers": {
+        "8718d48c-e5e6-4bdd-93e1-f3d537f2ac2c": {
+          "pieces": 2,
+          "bytes": 24
+        }
+      },
+      "weightSources": [
+        "authorized-custody-peers"
+      ]
+    },
+    "denied": {
+      "refused": true,
+      "verifiedPayload": 0
+    },
+    "supplierStop": {
+      "status": 0,
+      "signal": null
+    },
+    "supplyLimitBytes": 1073741824,
+    "budget": {
+      "schema": "reploid.custody-supply-budget/v1",
+      "maxBytes": 1073741824,
+      "reservedBytes": 24
+    },
+    "reservedBeforePermitted": 0,
+    "supplierCompute": false
+  },
+  "scope": "Transfers and admission only. The receiver verified and assembled the shard through serve; GPU generation is outside the test. No public supplier, real model transfer, serving throughput or full-model disk scan was exercised.",
+  "commands": [
+    "bwrap --unshare-user --unshare-net --die-with-parent --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp -- node tests/fixtures/native-custody-cli.mjs <absolute-path-to-015c-install> room",
+    "bwrap --unshare-user --unshare-net --die-with-parent --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp -- node tests/fixtures/native-custody-cli.mjs <absolute-path-to-postcut-checkout> named"
+  ],
+  "postCutRoom": {
+    "finishedUtc": "2026-11-20T11:41:35.409263+00:00",
+    "policy": "room",
+    "approvedRequester": "peer:c15a5b9ebc2e077e2aa49299",
+    "modelIdentity": "sha256:c1ea9ca5ad2277e03b75cd1b9a477e34d6152940910c42e00bb6b9c3d48b7c3c",
+    "indexIdentity": "sha256:2081c22cd03d2598396f623b7ec01641e2a7fac5dd94e19a30e8eeaf079940a7",
+    "permitted": {
+      "verifiedPayload": 24,
+      "pieces": 2,
+      "sha256": "2ae2efaf74820888ccad882b58b5ab180160fd093b450f5d3c6fe15213ec5d3a",
+      "suppliers": {
+        "eb0d9f3b-3281-4276-a1a0-baa1e58254dd": {
+          "pieces": 2,
+          "bytes": 24
+        }
+      },
+      "weightSources": [
+        "authorized-custody-peers"
+      ]
+    },
+    "denied": null,
+    "supplierStop": {
+      "status": 0,
+      "signal": null
+    },
+    "supplyLimitBytes": 1073741824,
+    "budget": {
+      "schema": "reploid.custody-supply-budget/v1",
+      "maxBytes": 1073741824,
+      "reservedBytes": 24
+    },
+    "reservedBeforePermitted": 0,
+    "supplierCompute": false
+  },
+  "normal27bCatalog": {
+    "package": "reploid@0.1.5 candidate C",
+    "manifestIdentity": "sha256:74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972",
+    "indexIdentity": "sha256:39e5875b09b06f4100468abe43eea11552616d7b3ed7540c1ddf056e571e50fb",
+    "catalogMetadataDigestsChecked": true,
+    "indexFiles": 255,
+    "shards": 254,
+    "shardBytes": 16994352128,
+    "largestShardBytes": 67108864,
+    "indexPieces": 5515,
+    "maxInventoryFiles": 1024,
+    "compactInventoryUpperBound": 260,
+    "explanation": "Three catalog metadata files, 254 shard descriptors and three tokenizer pieces. The installed archive contains the index and manifest. No weight file was opened."
+  },
+  "liveHostReadOnlyPostflight": [
+    "SubState=running",
+    "MainPID=1575053",
+    "ExecMainStartTimestamp=Thu 2026-11-19 23:56:04 EST"
+  ]
+}

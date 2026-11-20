@@ -54,7 +54,7 @@ For a private room, pass these options on both computers and the requester:
   --room NAME --signaling-url URL --room-token-file /absolute/path/to/token
 Use a token file owned by you with mode 0600. Both stages and a requester are needed to answer.`,
   connect: 'npx reploid connect [model] [--room NAME]\nJoin discovery without starting a GPU or sharing files.',
-  share: 'npx reploid share [model] [--weights DIRECTORY] [--supply-limit-gib GiB]\nOffer existing verified model files to authorized peers. No compute is offered.',
+  share: 'npx reploid share [model] [--weights DIRECTORY] [--supply-limit-gib GiB] [--supply-to COMPUTER_ID]\nOffer verified files to room peers. Repeat --supply-to to restrict uploads to named computers.',
   models: 'npx reploid models\nList the bundled model IDs, shortcuts, supported modes and whole-model weight sources.',
   completion: `npx reploid completion bash|zsh|fish
 Enable Tab for reploid and npx reploid in the current shell:

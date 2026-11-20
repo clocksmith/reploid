@@ -47,6 +47,8 @@ export interface CustodyExchangePorts {
   /** Optional host admission for new supply. `active` counts transfers being prepared or granted;
    * `advertise` asks whether the inventory may be announced. Returning false withholds the
    * announcement and refuses new requests; granted transfers are never revoked by it. */
+  /** Optional owner restriction checked on the connected peer before reserving or reading bytes. */
+  authorizeRequester?(peer: string, signal: AbortSignal): Promise<boolean>;
   admitSupply?(request: { active: number; advertise: boolean }): boolean;
   createSupplier: typeof createPeerPackSupplier;
   createStore: typeof createPeerPackArtifactStore;

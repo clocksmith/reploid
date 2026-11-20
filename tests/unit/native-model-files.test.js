@@ -130,6 +130,32 @@ it('persists only requested verified pieces and reopens them without a supplier'
     finally { await reopened.storage.close(); }
   } finally { await source.storage.close(); }
 });
+it('keeps the upload budget intact when a named peer is refused or sharing stops during verification', async () => {
+  let resolveAdmission, verificationStarted;
+  const started = new Promise(resolve => { verificationStarted = resolve; });
+  let delayProof = false;
+  const f = await fixture(2, { hostOptions: () => ({ authorizeRequester: async (peer, signal) => {
+    expect(peer).toBe('0');
+    signal.throwIfAborted();
+    if (!delayProof) return false;
+    verificationStarted();
+    return new Promise(resolve => { resolveAdmission = resolve; });
+  } }) });
+  await f.share();
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    await expect(source.storage.loadShardRange(0, 0, 4)).rejects.toThrow(/No eligible source/);
+    expect(f.writes.some(row => row.type === 'reploid:custody-response' && row.message.error === 'File requester is not permitted')).toBe(true);
+    expect(f.owners[1].getState().suppliedBytes).toBe(0);
+    delayProof = true;
+    const reading = source.storage.loadShardRange(0, 0, 4);
+    await started;
+    f.owners[1].stopSupply();
+    resolveAdmission(true);
+    await expect(reading).rejects.toThrow();
+    expect(f.owners[1].getState().suppliedBytes).toBe(0);
+  } finally { await source.storage.close(); }
+});
 it('certifies the custody key its grants carry only when a participant identity certifier is supplied', async () => {
   const identities = [await createSigningIdentity({ algorithm: 'Ed25519' }), await createSigningIdentity({ algorithm: 'ECDSA' })];
   const issued = [];
