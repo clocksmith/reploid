@@ -387,11 +387,12 @@ it('ships origins only for catalog models whose identity the pin names', async (
   expect(Object.keys(table.origins).sort()).toEqual(['qwen-3-5-0-8b-q4k-ef16-af32-vf16', 'qwen-3-5-2b-q4k-ef16-af32']);
   for (const id of Object.keys(table.origins)) {
     const origin = resolvePinnedOrigin(models.get(id), table);
-    expect(origin.url('tokenizer.json')).toBe(`https://huggingface.co/${table.origins[id].repoId}/resolve/${table.origins[id].revision}/models/${id}/tokenizer.json`);
+    expect(origin.url('tokenizer.json')).toBe(`https://huggingface.co/${table.origins[id].repoId}/resolve/${table.origins[id].revision}/${table.origins[id].path}/tokenizer.json`);
     expect(origin.supplier).toBe(`origin:clocksmith/rdrr@${table.origins[id].revision}`);
   }
   expect(resolvePinnedOrigin(models.get('qwen-3-5-0-8b-q4k-ef16-af32-vf16'), table).label)
-    .toBe('huggingface:clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16');
+    // Reissued under a new name over the same weights: the repository directory keeps the earlier name.
+    .toBe('huggingface:clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293/models/qwen-3-5-0-8b-q4k-ehaf16');
   // The 35B is not published at any origin; it has no pin.
   expect(resolvePinnedOrigin(models.get('qwen-3-6-35b-a3b-text-source-q40-hq6k-af32'), table)).toBeNull();
   // A pin never serves another identity of the same model id.

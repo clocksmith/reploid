@@ -11,7 +11,7 @@
   "owner": "doppler-core",
   "createdAtUtc": "2026-10-30T00:00:00Z",
   "extends": "profiles/default",
-  "model": "qwen-3-6-35b-a3b-text-source-q40-hq6k-af32-pooled-q8-common",
+  "model": "qwen-3-6-35b-a3b-text-source-q4_0-af32-pooled-q8-common",
   "runtime": {
     "inference": {
       "session": {
@@ -51,7 +51,7 @@
         "disableMultiTokenDecode": true
       },
       "kernelPath": {
-        "id": "qwen-3-6-35b-a3b-text-source-q40-hq6k-af32-native-decode-candidate-pooled-q8-common-diagnostic",
+        "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32-native-decode-candidate-pooled-q8-common-diagnostic",
         "name": "Execution inline kernel path",
         "description": "Native GGUF Q4_0 candidate: post-attention norm with the expert and shared router GEMVs in one dispatch, subgroup F32 GEMV linear a-b, cooperative Q-family projections and lm_head, pair shared-slot MoE gate/up with the down projection, slot combine and layer residual in one dispatch, split-K GQA decode attention.",
         "activationDtype": "f32",
