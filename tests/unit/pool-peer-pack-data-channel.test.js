@@ -42,6 +42,39 @@ describe('bounded Pack custody data-channel framing', () => {
     } finally { client.close(); server.close(); }
   });
 
+  it.each([
+    [64, 64, 64], [96, 64, 64], [64, 96, 64], [undefined, 64, 32], [64, undefined, 32],
+  ])('caps optional frames at both endpoints (%s, %s)', async (clientLimit, serverLimit, expected) => {
+    const [requester, supplier] = pair();
+    const bytes = Uint8Array.from({ length: 117 }, (_, i) => i);
+    const client = createPeerPackDataChannel({ channel: requester, limits: { ...limits, negotiatedFrameBytes: clientLimit } });
+    const server = createPeerPackDataChannel({ channel: supplier, limits: { ...limits, negotiatedFrameBytes: serverLimit },
+      serve: async (request) => ({ message: { request }, bytes }) });
+    const request = { id: 'signed-body-unchanged', sizeBytes: bytes.length };
+    try {
+      expect(await client.requestChunk(request, { maxBytes: bytes.length })).toEqual({ bytes, message: { request } });
+      expect(JSON.parse(requester.frames[0]).receiveFrameBytes).toBe(clientLimit);
+      expect(JSON.parse(supplier.frames[0]).frameBytes).toBe(expected === limits.maxFrameBytes ? undefined : expected);
+      const frames = supplier.frames.filter((frame) => frame instanceof ArrayBuffer);
+      expect(Math.max(...frames.map((frame) => frame.byteLength))).toBe(expected);
+      expect(frames.length).toBe(Math.ceil(bytes.length / (expected - 24)));
+      expect(client.getReceipt().receivedFrameBytes).toBe(server.getReceipt().sentFrameBytes);
+    } finally { client.close(); server.close(); }
+  });
+
+  it.each([31, 65, 64.5, null])('rejects an invalid supplier frame selection %s', async (frameBytes) => {
+    const [requester, supplier] = pair();
+    const client = createPeerPackDataChannel({ channel: requester, limits: { ...limits, negotiatedFrameBytes: 64 } });
+    supplier.addEventListener('message', ({ data }) => {
+      const { schema, id } = JSON.parse(data);
+      supplier.send(JSON.stringify({ schema, type: 'response', id, message: {}, byteLength: 19, frameBytes }));
+    });
+    try {
+      await expect(client.requestChunk({ sizeBytes: 19 }, { maxBytes: 19 })).rejects.toThrow(/offered framing/);
+      expect(client.getReceipt().pendingRequests).toBe(0);
+    } finally { client.close(); supplier.close(); }
+  });
+
   it('reassembles out-of-order and duplicate fragments without counting duplicate payload', async () => {
     const [requester, supplier] = pair();
     const bytes = Uint8Array.from({ length: 19 }, (_, index) => index);
@@ -117,6 +150,9 @@ describe('bounded Pack custody data-channel framing', () => {
     const [channel, supplier] = pair();
     expect(() => createPeerPackDataChannel({ channel, limits: {} })).toThrow(/explicit/);
     expect(() => createPeerPackDataChannel({ channel: { ...channel, ordered: false }, limits })).toThrow(/reliable ordered/);
+    for (const negotiatedFrameBytes of [31, 32768, 65537]) {
+      expect(() => createPeerPackDataChannel({ channel, limits: { ...limits, negotiatedFrameBytes } })).toThrow(/frame limit/);
+    }
     const client = createPeerPackDataChannel({ channel, limits });
     expect(() => client.requestChunk({ sizeBytes: 1025 }, { maxBytes: 1025 })).toThrow(/chunk limit/);
     expect(() => client.requestChunk({ sizeBytes: 5 }, { maxBytes: 4 })).toThrow(/chunk limit/);

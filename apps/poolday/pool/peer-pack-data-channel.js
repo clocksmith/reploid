@@ -19,7 +19,11 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
     && limits.maxControlBytes <= limits.maxBufferedBytes && limits.maxChunkBytes <= 0xffffffff
     && limits.timeoutMs <= 2147483647, 'invalid framing limits');
   const policy = structuredClone(limits);
-  const fragmentBytes = policy.maxFrameBytes - HEADER_BYTES;
+  const receiveFrameBytes = policy.negotiatedFrameBytes ?? policy.maxFrameBytes;
+  if (policy.negotiatedFrameBytes !== undefined) {
+    assert(positive(receiveFrameBytes) && receiveFrameBytes >= policy.maxFrameBytes
+      && receiveFrameBytes <= Math.min(policy.maxBufferedBytes, 65536), 'invalid negotiated frame limit');
+  }
   channel.binaryType = 'arraybuffer';
   channel.bufferedAmountLowThreshold = 0;
   const pending = new Map();
@@ -105,7 +109,12 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
       const response = await serve(structuredClone(frame.request), { signal: controller.signal });
       if (controller.signal.aborted || closed) return;
       assert(response?.bytes instanceof Uint8Array && response.bytes.length === frame.request.sizeBytes, 'supplier response geometry');
-      await control({ type: 'response', id: frame.id, message: response.message, byteLength: response.bytes.length }, controller.signal);
+      // An older requester sends no offer. An older supplier ignores the offer and replies without a selection.
+      const frameBytes = positive(frame.receiveFrameBytes) && frame.receiveFrameBytes >= policy.maxFrameBytes
+        ? Math.min(frame.receiveFrameBytes, receiveFrameBytes) : policy.maxFrameBytes;
+      const fragmentBytes = frameBytes - HEADER_BYTES;
+      await control({ type: 'response', id: frame.id, message: response.message, byteLength: response.bytes.length,
+        ...(frameBytes > policy.maxFrameBytes ? { frameBytes } : {}) }, controller.signal);
       for (let offset = 0; offset < response.bytes.length; offset += fragmentBytes) {
         const part = response.bytes.subarray(offset, offset + fragmentBytes);
         const bytes = new Uint8Array(HEADER_BYTES + part.length);
@@ -145,6 +154,10 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
     }
     assert(frame.type === 'response' && !entry.bytes && frame.byteLength === entry.maxBytes, 'response binding or geometry');
     assert(frame.message && typeof frame.message === 'object', 'signed response required');
+    const frameBytes = frame.frameBytes === undefined ? policy.maxFrameBytes : frame.frameBytes;
+    assert(positive(frameBytes) && frameBytes >= policy.maxFrameBytes && frameBytes <= receiveFrameBytes,
+      'response exceeds offered framing');
+    entry.fragmentBytes = frameBytes - HEADER_BYTES;
     entry.message = frame.message;
     entry.bytes = new Uint8Array(frame.byteLength);
   }
@@ -159,6 +172,7 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
     const view = new DataView(buffer);
     const offset = view.getUint32(16);
     const length = view.getUint32(20);
+    const fragmentBytes = entry.fragmentBytes;
     assert(offset % fragmentBytes === 0 && offset < entry.maxBytes
       && length === Math.min(fragmentBytes, entry.maxBytes - offset) && length === bytes.length - HEADER_BYTES, 'binary frame range');
     if (entry.offsets.has(offset)) {
@@ -180,7 +194,7 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
       const size = text ? new TextEncoder().encode(data).byteLength : data.byteLength;
       counters.receivedFrameBytes += size;
       counters.receivedFrames += 1;
-      assert(size <= (text ? policy.maxControlBytes : policy.maxFrameBytes), 'frame limit exceeded');
+      assert(size <= (text ? policy.maxControlBytes : receiveFrameBytes), 'frame limit exceeded');
       assert(counters.receivedFrameBytes <= policy.maxTransferBytes, 'incoming byte budget exhausted');
       text ? receiveControl(data) : receiveBinary(data);
     } catch (error) { close(error.message); }
@@ -207,7 +221,8 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
           timer: setTimeout(abort, policy.timeoutMs) };
         pending.set(id, entry);
         signal?.addEventListener('abort', abort, { once: true });
-        control({ type: 'request', id, request }).catch((error) => finish(id, error));
+        control({ type: 'request', id, request,
+          ...(receiveFrameBytes > policy.maxFrameBytes ? { receiveFrameBytes } : {}) }).catch((error) => finish(id, error));
       });
     },
     close,
