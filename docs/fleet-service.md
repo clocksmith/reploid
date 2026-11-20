@@ -332,3 +332,9 @@ and optional `stream` and `max_completion_tokens`. A bare base model ID
 continues to prefer available whole-model providers. Approval is local to the
 configured fleet host and is checked again before dispatch. A changed stage
 requires a new review. Public route approval is managed separately.
+
+For a split interrupted by a provider disconnect, the Chat Completions and
+Responses APIs return the `connection_lost` error code, including when a stream
+has already emitted tokens. Keep the `x-reploid-reservation-id` for recovery.
+Partial output may already be acknowledged; the ledger can hold a reservation
+while it waits for missing stage evidence.

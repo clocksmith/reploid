@@ -437,13 +437,29 @@ it('fails a dropped stage over HTTP and admits a later request while missing clo
     f.route.loseStage(1, 0);
     const failed = await f.send({});
     expect(failed.status).toBe(502);
-    expect((await failed.json()).error.message).toBeTruthy();
+    expect((await failed.json()).error).toMatchObject({ code: 'connection_lost' });
     const id = failed.headers.get('x-reploid-reservation-id');
     expect(credits.request(id).state).toBe('closing');
     expect(credits.snapshot().journal).toHaveLength(0);
     expect(f.route.residents[0].getState().reservations.active).toBe(0);
     const next = await f.send({});
     expect(next.status, await next.text()).toBe(200);
+  } finally { await f.close(); }
+});
+
+it('ends a partial HTTP stream with its stage-loss code and keeps the attempt recoverable', async () => {
+  const f = await privateSplitApi();
+  try {
+    f.route.loseStage(1, 1);
+    const response = await f.send({ stream: true });
+    const stream = await response.text();
+    expect(response.status).toBe(200);
+    const events = stream.trim().split('\n\n').map(frame => JSON.parse(frame.slice(6)));
+    expect(events.some(event => event.choices?.[0]?.delta?.content === '0')).toBe(true);
+    expect(events.at(-1).error).toMatchObject({ code: 'connection_lost' });
+    const id = response.headers.get('x-reploid-reservation-id');
+    expect(credits.request(id).state).toBe('closing');
+    expect(f.route.residents[0].getState().reservations.active).toBe(0);
   } finally { await f.close(); }
 });
 
