@@ -51,3 +51,37 @@ record the model/plan and both physical stage identities, then interrupt a new
 stream and drop a stage in a separate request. Check the stage cleanup,
 reservation outcomes, and a subsequent successful request on the surviving
 provider when the route is available again.
+
+For a physical two-stage acceptance run, keep both contributor processes alive
+while reviewing the advertised route. Configure each contributor's
+`ordered.stage` with its model, index, resident ID and execution ID. Use
+`ordered.stage: null` on a third connect-only requester, with the same ordered
+limits. The requester still needs the pinned local `manifest.json`. Review the
+complete route in the native host's `{"op":"state"}` output against the enrolled
+computers. Keep the API's single approval for that roster and pin
+`textApi.allowedRecipients` to the two stage providers. One can restart the
+requester with the reviewed configuration while the contributors remain up.
+Recheck its state and the authenticated `GET /v1/models` listing afterwards.
+
+To prepare the HTTP request without sending anything, save the state result
+and listing as JSON. Use a frozen prompt fixture containing `modelId`,
+`messages` and `maxOutputTokens`.
+
+```sh
+node tests/fixtures/private-split-request.mjs requester.json state.json models.json prompt.json > request.json
+```
+
+The resulting body is for `POST /v1/chat/completions`. It binds the model,
+plan, adapter set and permitted identities. The third requester receives its
+own output. Its key therefore also appears in the request's disclosure list.
+The qualified route and server allowlist bind just the two compute providers.
+The normal API checks the route again when it dispatches the request.
+
+Account for both stage storage and GPU memory. Network-fetched partition pieces
+are retained in the native cache with its configured storage limit. Stage 1 of
+the catalogued 27B needs more than the default 3 GiB. Locally staged, verified
+pieces can be read directly from the owner's weight directory. The supplier's
+lifetime upload allowance is a separate budget. Preserve the HTTP reservation
+ID for recovery. The stage and requester signatures bind acknowledged output
+deltas and counts; exact token-ID parity also needs a token trace from the
+executing stage and a matched independent reference.
