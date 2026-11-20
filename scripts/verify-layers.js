@@ -71,7 +71,7 @@ export function findLayerViolations({ repoRoot, sourcePath, source, edges = modu
       reason = 'native hosts must use shared execution ports, not product provider implementations';
     }
     if (sourceLayer === 'packages/reploid/src' &&
-      (resolved ? !target.startsWith('packages/reploid/src/') : !(relative === 'packages/reploid/src/adapters/doppler.js' && specifier === 'doppler-gpu'))) reason = 'library must remain independent of host and Node services';
+      (resolved ? !target.startsWith('packages/reploid/src/') : !(relative === 'packages/reploid/src/adapters/doppler.js' && specifier === 'dopplerx'))) reason = 'library must remain independent of host and Node services';
     if (forbidden[sourceLayer]?.includes(targetLayer)) reason = 'forbidden layer dependency';
     if (/packages\/reploid\/src\/agent\/(task-strategy|lab-strategy(?:-[a-z-]+)?)\.js$/.test(relative)
       && /\/(lifecycle|cancellation|tool-dispatch)\.js$/.test(target)) reason = 'strategies must use the execution engine';

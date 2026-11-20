@@ -28,7 +28,7 @@ const rows = git(['ls-tree', '-rlz', sourceCommit]).split('\0').filter(Boolean).
   const [metadata, name] = line.split('\t'), fields = metadata.trim().split(/\s+/);
   if (retainedInputs.includes(name)) return [];
   if (!name.startsWith('artifacts/') && !name.startsWith('reports/local/')
-    && !(name.startsWith('deploy/artifacts/') && name.endsWith('.tgz') && (includeCurrent || name !== `deploy/artifacts/doppler-gpu-${pin.version}.tgz`))) return [];
+    && !(name.startsWith('deploy/artifacts/') && name.endsWith('.tgz') && (includeCurrent || name !== `deploy/artifacts/${pin.name}-${pin.version}.tgz`))) return [];
   if (!['100644', '100755'].includes(fields[0])) throw new Error('Evidence must be an ordinary file');
   return [{ path: name, gitBlob: fields[2], bytes: Number(fields[3]), mode: fields[0], sourceCommit }];
 }).sort((left, right) => left.path.localeCompare(right.path));

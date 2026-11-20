@@ -1,6 +1,6 @@
 // Physical installed-package decisions. No UI or synthetic model computation.
-import * as runtime from 'doppler-gpu';
-import * as compat from 'doppler-gpu/compat';
+import * as runtime from 'dopplerx';
+import * as compat from 'dopplerx/compat';
 
 let model, submittedController;
 const devices = [], destroyed = new WeakSet();

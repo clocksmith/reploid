@@ -49,7 +49,7 @@ const createFixture = async () => {
       }
     },
     runtime: {
-      packageName: 'doppler-gpu',
+      packageName: 'dopplerx',
       packageVersion: '0.4.15',
       packageIntegrity: 'sha512-test-integrity',
       moduleUrl: 'https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/index.js',

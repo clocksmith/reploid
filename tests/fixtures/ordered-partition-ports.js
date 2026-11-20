@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import * as codecs from 'doppler-gpu/partitions';
+import * as codecs from 'dopplerx/partitions';
 import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
 
 // Injected numerical stages: proves orchestration, not GPU execution or capacity.

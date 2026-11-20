@@ -14,7 +14,7 @@ const importedTrees = new Map();
 export async function inspectNativeRuntimeSource(directory) {
   const files = await inventory(directory, { installed: true, source: true });
   const manifest = JSON.parse(await fs.readFile(path.join(directory, 'package.json'), 'utf8'));
-  assert.equal(manifest.name, 'doppler-gpu', 'Expected Doppler source');
+  assert.ok(['dopplerx', 'doppler-gpu'].includes(manifest.name), 'Expected Doppler source');
   assert(files.some(file => file.path === 'src/partitions.js'), 'Missing source partition entry');
   return {
     schema: 'reploid.diagnostic-source-identity/v1',

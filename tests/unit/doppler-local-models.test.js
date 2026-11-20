@@ -28,10 +28,10 @@ describe('local Doppler model contract', () => {
     expect(partition.grantMs).toBeGreaterThanOrEqual(conversation.attemptTimeoutMs);
   });
   it('exposes the same identified Qwen models for requests and contribution', () => {
-    expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
+    expect(DOPPLER_PACKAGE_NAME).toBe('dopplerx');
     expect(DOPPLER_PACKAGE_VERSION).toBe(`${pin.version}`);
     expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe(`${pin.version}`);
-    expect(DOPPLER_BROWSER_RELEASE_REF).toBe(`doppler-gpu@${pin.version}`);
+    expect(DOPPLER_BROWSER_RELEASE_REF).toBe(`${pin.name}@${pin.version}`);
     expect(DOPPLER_MODULE_URL).toBe(`/vendor/doppler/${pin.version}/src/index.js`);
     expect(DOPPLER_KERNEL_BASE_URL).toBe(`/vendor/doppler/${pin.version}/src/gpu/kernels`);
     expect(DOPPLER_TOOLING_URL).toBe(`/vendor/doppler/${pin.version}/src/tooling-exports.browser.js`);
@@ -62,7 +62,7 @@ describe('local Doppler model contract', () => {
       name: 'Qwen 3.5 2B',
       provider: 'doppler',
       hostType: 'browser-local',
-      packageName: 'doppler-gpu',
+      packageName: 'dopplerx',
       packageVersion: DOPPLER_BROWSER_RUNTIME_VERSION
     });
     expect(buildDefaultLocalDopplerModelConfig()).toMatchObject({

@@ -15,14 +15,14 @@ const rawArg = process.argv[2];
 const isLocalDirectory = !rawArg || existsSync(resolve(rawArg));
 const source = isLocalDirectory ? resolve(rawArg || resolve(root, '../doppler')) : null;
 const registrySpec = !isLocalDirectory
-  ? (rawArg.startsWith('doppler-gpu@') ? rawArg : `doppler-gpu@${rawArg}`)
+  ? (rawArg.startsWith('dopplerx@') ? rawArg : `dopplerx@${rawArg}`)
   : null;
 let staging;
 try {
   const artifacts = resolve(root, 'deploy/artifacts');
   await mkdir(artifacts, { recursive: true });
-  const old = JSON.parse(await readFile(resolve(root, 'package-lock.json'))).packages['node_modules/doppler-gpu'];
-  const oldFilename = `doppler-gpu-${old.version}.tgz`;
+  const old = JSON.parse(await readFile(resolve(root, 'shared/config/doppler-package.json')));
+  const oldFilename = `${old.name}-${old.version}.tgz`;
   let version;
   let filename;
   if (isLocalDirectory) {
@@ -43,9 +43,9 @@ try {
     await exec(process.execPath, ['scripts/vendor-doppler.js', archive], { cwd: root });
   } else {
     await exec('npm', ['install', '--save-exact', '--ignore-scripts', registrySpec], { cwd: root });
-    const installedPin = JSON.parse(await readFile(resolve(root, 'package-lock.json'))).packages['node_modules/doppler-gpu'];
+    const installedPin = JSON.parse(await readFile(resolve(root, 'package-lock.json'))).packages['node_modules/dopplerx'];
     version = installedPin.version;
-    filename = `doppler-gpu-${version}.tgz`;
+    filename = `dopplerx-${version}.tgz`;
     await exec(process.execPath, ['scripts/vendor-doppler.js'], { cwd: root });
   }
   for (const name of ['deploy/Dockerfile', '.gcloudignore', '.dockerignore', '.gitignore']) {
@@ -68,18 +68,20 @@ try {
   const retention = JSON.parse(await readFile(retentionPath));
   for (const previous of retention.expandedVersions || []) {
     if (previous.version === version || retention.archivedVersions.some(row => row.version === previous.version)) continue;
-    const previousFilename = `doppler-gpu-${previous.version}.tgz`;
+    const previousFilename = `${previous.name ?? old.name}-${previous.version}.tgz`;
     const bytes = await readFile(resolve(artifacts, previousFilename));
     retention.archivedVersions.push({ version: previous.version, archive: `deploy/artifacts/${previousFilename}`,
       integrity: `sha512-${createHash('sha512').update(bytes).digest('base64')}` });
   }
   retention.archivedVersions = retention.archivedVersions.filter(row => row.version !== version);
-  retention.expandedVersions = [{ version, reason: 'Current standard package-lock and browser pin' }];
+  retention.expandedVersions = [{ name: 'dopplerx', version, reason: 'Current standard package-lock and browser pin' }];
   await writeFile(retentionPath, JSON.stringify(retention, null, 2) + '\n');
   const vendor = resolve(root, 'shared/vendor/doppler');
   for (const entry of await readdir(vendor, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name === version || !/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(entry.name)) continue;
-    await access(resolve(artifacts, `doppler-gpu-${entry.name}.tgz`));
+    const retained = retention.archivedVersions.find(row => row.version === entry.name);
+    if (!retained) throw new Error(`Missing retained archive for Doppler ${entry.name}`);
+    await access(resolve(root, retained.archive));
     await rm(resolve(vendor, entry.name), { recursive: true });
   }
   for (const script of ['scripts/sync-runtime-config.js', 'scripts/build-change-passport-sdk.js',

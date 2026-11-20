@@ -14,7 +14,7 @@ const read = async path => JSON.parse(await readFile(path, 'utf8'));
 const hash = async path => createHash('sha256').update(await readFile(path)).digest('hex');
 const dopplerInfo = await read(resolve(dopplerRoot, 'package.json'));
 const reploidInfo = await read(resolve(reploidRoot, 'package.json'));
-assert.equal(dopplerInfo.name, 'doppler-gpu'); assert.equal(reploidInfo.name, 'reploid');
+assert.equal(dopplerInfo.name, 'dopplerx'); assert.equal(reploidInfo.name, 'reploid');
 const api = await import(pathToFileURL(resolve(dopplerRoot, dopplerInfo.exports['.'].import)));
 const host = await import(pathToFileURL(resolve(dopplerRoot, dopplerInfo.exports['./host'].import)));
 const library = await import(pathToFileURL(resolve(reploidRoot, reploidInfo.exports['./doppler'].import)));

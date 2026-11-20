@@ -27,6 +27,8 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 const formatJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const runtimePackageNames = [DOPPLER_PACKAGE_NAME, 'doppler-gpu'];
+
 function synchronizeCompatibility(value, packageVersion) {
   if (Array.isArray(value)) {
     return value.map((entry) => synchronizeCompatibility(entry, packageVersion));
@@ -35,13 +37,13 @@ function synchronizeCompatibility(value, packageVersion) {
 
   const synchronized = {};
   for (const [key, entry] of Object.entries(value)) {
-    if (key === 'runtime' && typeof entry === 'string' && entry.startsWith(`${DOPPLER_PACKAGE_NAME}@`)) {
+    if (key === 'runtime' && typeof entry === 'string' && runtimePackageNames.some(name => entry.startsWith(`${name}@`))) {
       synchronized[key] = `${DOPPLER_PACKAGE_NAME}@${packageVersion}`;
       continue;
     }
     if (key === 'capabilityAction' && typeof entry === 'string') {
       synchronized[key] = entry.replace(
-        new RegExp(`${escapeRegExp(DOPPLER_PACKAGE_NAME)}@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?`, 'g'),
+        new RegExp(`(?:${runtimePackageNames.map(escapeRegExp).join('|')})@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?`, 'g'),
         `${DOPPLER_PACKAGE_NAME}@${packageVersion}`
       );
       continue;

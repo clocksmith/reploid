@@ -104,7 +104,7 @@ export async function observeNormalizationDispatch(page, sources = []) {
   const cdp = await page.context().newCDPSession(page), points = new Map(), errors = [];
   await cdp.send('Debugger.enable');
   const add = async (file, name, marker, action, condition = '') => {
-    const source = sources.find(source => source.path === file)?.body ?? await readFile(`node_modules/doppler-gpu/src/${file}`, 'utf8');
+    const source = sources.find(source => source.path === file)?.body ?? await readFile(`node_modules/dopplerx/src/${file}`, 'utf8');
     const fn = parse(source, { ecmaVersion: 'latest', sourceType: 'module' }).body
       .map(node => node.declaration ?? node).find(node => node.type === 'FunctionDeclaration' && node.id?.name === name);
     if (!fn) throw Error(`Missing diagnostic function ${name}`);

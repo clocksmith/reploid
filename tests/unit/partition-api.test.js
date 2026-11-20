@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import * as runtime from 'doppler-gpu/partitions';
+import * as runtime from 'dopplerx/partitions';
 import { createPartitionDataChannel } from '../../packages/reploid/src/transport/partition-data-channel.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority, createResidentPartition, createPartitionPeer, createLayerPartitionRunner,

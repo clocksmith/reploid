@@ -49,12 +49,12 @@ const createFixture = () => ({
     ''
   ].join('\n'),
   packageManifest: {
-    dependencies: { 'doppler-gpu': DOPPLER_PACKAGE_SPEC }
+    dependencies: { 'dopplerx': DOPPLER_PACKAGE_SPEC }
   },
   packageLock: {
     packages: {
-      '': { dependencies: { 'doppler-gpu': DOPPLER_PACKAGE_SPEC } },
-      'node_modules/doppler-gpu': {
+      '': { dependencies: { 'dopplerx': DOPPLER_PACKAGE_SPEC } },
+      'node_modules/dopplerx': {
         version: DOPPLER_PACKAGE_VERSION,
         resolved: DOPPLER_PACKAGE_TARBALL_URL,
         integrity: DOPPLER_PACKAGE_INTEGRITY
@@ -73,8 +73,8 @@ describe('runtime config synchronization', () => {
 
     expect(synchronized.poolConfig.configVersion).toBe(`2026-07-24.doppler-${DOPPLER_BROWSER_RUNTIME_VERSION}.v1`);
     expect(synchronized.poolConfig.launchModel.runtimeCompatibility).toMatchObject({
-      capabilityFallbacks: [{ runtime: `doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION}` }],
-      capabilityAction: `Use doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION} or newer.`
+      capabilityFallbacks: [{ runtime: `dopplerx@${DOPPLER_BROWSER_RUNTIME_VERSION}` }],
+      capabilityAction: `Use dopplerx@${DOPPLER_BROWSER_RUNTIME_VERSION} or newer.`
     });
     expect(synchronized.deploymentConfig.runtimeEnv).toMatchObject({
       REPLOID_POOL_MODEL_BASE_URL: 'https://models.example.test',
@@ -103,10 +103,10 @@ describe('runtime config synchronization', () => {
 
   it('rejects package metadata that is not an exact integrity-bound pin', () => {
     const fixture = createFixture();
-    fixture.packageManifest.dependencies['doppler-gpu'] = '^0.4.15';
+    fixture.packageManifest.dependencies['dopplerx'] = '^0.4.15';
 
     expect(() => synchronizeRuntimeConfig(fixture)).toThrow(
-      `package.json must pin doppler-gpu exactly to ${DOPPLER_PACKAGE_SPEC}`
+      `package.json must pin dopplerx exactly to ${DOPPLER_PACKAGE_SPEC}`
     );
   });
 
@@ -141,7 +141,7 @@ it('removes a previous prerelease suffix without consuming the configuration suf
   fixture.poolConfig.launchModel.runtimeCompatibility.capabilityAction = 'Use doppler-gpu@0.6.27-unicode.1 or newer.';
   const result = synchronizeRuntimeConfig(fixture);
   expect(result.poolConfig.configVersion).toBe(`release.doppler-${DOPPLER_BROWSER_RUNTIME_VERSION}.esm2-capsule-v2`);
-  expect(result.poolConfig.launchModel.runtimeCompatibility.capabilityAction).toBe(`Use doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION} or newer.`);
+  expect(result.poolConfig.launchModel.runtimeCompatibility.capabilityAction).toBe(`Use dopplerx@${DOPPLER_BROWSER_RUNTIME_VERSION} or newer.`);
 });
 
 it('projects changed and removed environment values while retaining secret and release ownership', () => {

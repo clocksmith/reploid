@@ -77,7 +77,7 @@ describe('reploid <model>: the short native command', () => {
 
   it('is a command of the delivered package, which is private unless built to publish', () => {
     const application = { name: 'reploid', version: '0.1.0', license: 'MIT', repository: { url: 'r' }, homepage: 'h',
-      dependencies: { 'doppler-gpu': '0.7.1', ws: '^8' }, optionalDependencies: { '@roamhq/wrtc': '0.10.0', webgpu: '0.4.0' } };
+      dependencies: { 'dopplerx': '0.7.1', ws: '^8' }, optionalDependencies: { '@roamhq/wrtc': '0.10.0', webgpu: '0.4.0' } };
     expect(nativePackageManifest(application).bin.reploid).toBe('./server/native-node.js');
     expect(nativePackageManifest(application).private).toBe(true);
     expect('private' in nativePackageManifest(application, { publishable: true })).toBe(false);

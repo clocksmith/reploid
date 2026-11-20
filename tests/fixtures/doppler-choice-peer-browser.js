@@ -1,5 +1,5 @@
 // Real signed decisions through the existing complete-request WebRTC protocol.
-import * as api from 'doppler-gpu';
+import * as api from 'dopplerx';
 import { createDopplerChoiceScoringAdapter } from 'reploid/doppler';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
@@ -23,7 +23,7 @@ const errors = [];
 
 export async function start({ role, selectedModel, capsuleUrl, publicKey, preparedSession = null }) {
   if (role === 'provider') {
-    const host = await import('doppler-gpu/host');
+    const host = await import('dopplerx/host');
     session = preparedSession ?? await host.openCapsule(capsuleUrl, { trustedSigners: { 'local-choice-acceptance': publicKey }, requiredOperations: ['scoreChoices'] });
     const binding = { ...session.capsuleIdentity, artifacts: session.verification.capsule.artifacts,
       requiredOperation: 'scoreChoices', acceptedTargetPlanDigests: [session.selectedTargetPlanDigest] };

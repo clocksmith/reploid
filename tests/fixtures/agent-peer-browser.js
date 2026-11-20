@@ -1,5 +1,5 @@
 // Installed agent and Doppler, injected model programs, native WebRTC and IndexedDB.
-import * as doppler from 'doppler-gpu';
+import * as doppler from 'dopplerx';
 import { createReploid } from 'reploid';
 import { resolveConfig } from 'reploid/config';
 import { createDopplerProvider } from 'reploid/doppler';

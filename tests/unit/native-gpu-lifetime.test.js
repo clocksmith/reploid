@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ device: null, destroyPool: vi.fn() }));
-vi.mock('doppler-gpu/tooling', () => ({ getDevice: () => state.device, destroyBufferPool: state.destroyPool }));
+vi.mock('dopplerx/tooling', () => ({ getDevice: () => state.device, destroyBufferPool: state.destroyPool }));
 import { createNativeGpuHost } from '../../server/native-participant.js';
 const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
 afterEach(() => {

@@ -13,12 +13,12 @@ vi.mock('../../apps/poolday/infrastructure/custody-supply-budget.js', () => ({
 }));
 vi.mock('../../shared/config/doppler-local-models.js', () => ({
   LOCAL_DOPPLER_MODELS: ports.models, DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.27',
-  DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',
-  DOPPLER_STORAGE_TOOLING_URL: 'doppler-gpu/tooling/storage',
+  DOPPLER_PARTITIONS_MODULE_URL: 'dopplerx/partitions',
+  DOPPLER_STORAGE_TOOLING_URL: 'dopplerx/tooling/storage',
   DOPPLER_MODULE_URL: '/vendor/doppler/0.6.27/src/index.js',
 }));
-vi.mock('doppler-gpu/partitions', () => ({ createVerifiedPieceStorage: ports.createStorage }));
-vi.mock('doppler-gpu/tooling/storage', () => ({ computeHash: ports.computeHash }));
+vi.mock('dopplerx/partitions', () => ({ createVerifiedPieceStorage: ports.createStorage }));
+vi.mock('dopplerx/tooling/storage', () => ({ computeHash: ports.computeHash }));
 vi.mock('../../shared/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
 vi.mock('../../apps/poolday/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
 import { createWorkModelFiles } from '../../apps/poolday/host/work-model-files.js';

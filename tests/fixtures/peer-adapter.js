@@ -5,8 +5,8 @@ import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { sha256Hex } from '../../shared/pool/inference-receipt.js';
 import { packPeerIdentity } from './peer-pack-operation.js';
 import { packPeerModel } from '../../apps/poolday/pool/peer-pack-job.js';
-export async function peerAdapterFixture(modelInput) {
-  modelInput.runtimeVersion = '0.6.0';
+export async function peerAdapterFixture(modelInput, { runtimeVersion = '0.6.0', minimumVersion = '0.4.10' } = {}) {
+  modelInput.runtimeVersion = runtimeVersion;
   const h = char => `sha256:${char.repeat(64)}`;
   const model = { ...modelInput, tokenizerHash: h('1'), artifactIdentity: { tokenizerHash: h('1'),
     sourceRepo: 'test/base', sourceRevision: 'a'.repeat(40), weightPackId: 'base-weights', weightPackHash: h('2'),
@@ -18,7 +18,7 @@ export async function peerAdapterFixture(modelInput) {
       rank: 1, alpha: 1, targetModules: ['q_proj'] },
     baseModel: { modelId: model.modelId, modelHash: model.modelHash, manifestHash: model.manifestHash,
       checkpointSha256: h('4'), moduleGraphHash: h('5'), ...identity },
-    runtime: { name: 'doppler', minimumVersion: '0.4.10', allowedSurfaces: ['browser-webgpu'] },
+    runtime: { name: 'doppler', minimumVersion, allowedSurfaces: ['browser-webgpu'] },
     evidence: { dopplerIdentityReceiptHash: h('6'), dopplerParityReceiptHash: h('7'), gammaSelectionReceiptHash: h('8'), humanPromotionReceiptHash: h('9') },
     promotion: { state: 'promoted', humanRequired: true },
     distribution: { visibility: 'public', primaryOrigin: { provider: 'huggingface', repoId: 'test/adapter',

@@ -36,7 +36,12 @@ export async function normalizeExecutionAdapterSet(input, { model, policy: polic
       assert(typeof value === 'string' && /^\d+\.\d+\.\d+$/.test(value), 'explicit stable runtime versions required');
       return value.split('.').map(Number);
     };
-    const actual = version(model.runtimeVersion), minimum = version(pack.runtime.minimumVersion);
+    const minimum = version(pack.runtime.minimumVersion);
+    // Existing signed adapters carry the original Doppler version floor. The
+    // first DopplerX package uses that engine lineage with a new npm version.
+    const legacyMinimum = minimum[0] === 0 && minimum[1] >= 2;
+    const actualVersion = model.runtimeVersion === '0.1.5' && legacyMinimum ? '0.7.9' : model.runtimeVersion;
+    const actual = version(actualVersion);
     const difference = actual.map((number, index) => number - minimum[index]).find(number => number !== 0);
     assert(difference === undefined || difference > 0, 'adapter requires a newer runtime');
   }

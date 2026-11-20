@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import * as runtime from 'doppler-gpu/partitions';
+import * as runtime from 'dopplerx/partitions';
 import { readNativeModelConfiguration } from '../../server/native-model-config.js';
 import { createNativeGpuHost, openNativePartition } from '../../server/native-participant.js';
 import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';

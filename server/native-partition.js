@@ -29,7 +29,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     await sourceRuntime.assertCurrent();
     signal.throwIfAborted();
   }
-  const runtime = sourceRuntime === null ? await import('doppler-gpu/partitions') : sourceRuntime.runtime;
+  const runtime = sourceRuntime === null ? await import('dopplerx/partitions') : sourceRuntime.runtime;
   const orderedOptions = workOrderedResidentOptions(runtime, stageBinding);
   if (canonical) {
     requireValue(typeof runtime.canonicalGenerationIdentity === 'function' && selected.canonicalGeneration
@@ -77,7 +77,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       release = await prepareLocalPackRelease({ model: configured,
         openCheckpoints: () => openNativeReleaseCheckpoints({ directory: releaseDirectory }) });
       cleanupOwner.release = release;
-      const { openCapsule } = await import('doppler-gpu/host');
+      const { openCapsule } = await import('dopplerx/host');
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession, canonical: !!canonical,

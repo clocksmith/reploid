@@ -55,7 +55,7 @@ export async function prepareAdapterEntry({ models, base, bytes, weightsUrl, id,
   const manifest = { id, name, version, baseModel: model.id, rank, alpha, targetModules: modules, weightsFormat: 'safetensors',
     weightsPath: url.href, weightsSize: bytes.byteLength, checksum: hex, checksumAlgorithm: 'sha256' };
   // The same loader the runtime uses computes the identity providers report as executed.
-  const { loadLoRAFromManifest } = await import('doppler-gpu/training');
+  const { loadLoRAFromManifest } = await import('dopplerx/training');
   const loaded = await loadLoRAFromManifest(manifest, { weightsLayout: layout,
     fetchUrl: async requested => { if (requested !== url.href) fail('Doppler requested an undeclared file'); return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); } });
   return { id, name, identity: loaded.identity.digest, baseModelIdentity: model.identity, weightsLayout: layout,

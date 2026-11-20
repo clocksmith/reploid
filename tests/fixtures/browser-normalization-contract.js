@@ -29,7 +29,7 @@ if (intervention) {
   assert.equal(observationMode, 'dispatch', 'Entry-point isolation uses operand observation, not contract acceptance');
   assert(['main', 'main_subgroup'].includes(intervention.fromEntryPoint));
   assert(['main', 'main_subgroup'].includes(intervention.toEntryPoint));
-  interventionShader = await readFile('node_modules/doppler-gpu/src/gpu/kernels/rmsnorm.wgsl', 'utf8');
+  interventionShader = await readFile('node_modules/dopplerx/src/gpu/kernels/rmsnorm.wgsl', 'utf8');
   assert.equal(createHash('sha256').update(interventionShader).digest('hex'), intervention.shaderSha256,
     'Entry-point intervention must identify the exact installed shader');
 }
@@ -118,7 +118,7 @@ try {
     if (cdp) {
       await cdp.send('Debugger.enable');
       const lines = (sources.find(source => source.path === 'inference/pipelines/text/linear-attention.js')?.body
-        ?? await readFile('node_modules/doppler-gpu/src/inference/pipelines/text/linear-attention.js', 'utf8')).split('\n');
+        ?? await readFile('node_modules/dopplerx/src/inference/pipelines/text/linear-attention.js', 'utf8')).split('\n');
       const bp = await cdp.send('Debugger.setBreakpointByUrl', {
         urlRegex: '/pipelines/text/linear-attention\\.js$',
         lineNumber: lines.findIndex(line => line.includes('let normedTensor = inputTensor;')),
@@ -170,7 +170,7 @@ try {
     });
     observers.push(cdp ? {read:async()=>({records:metadata,errors:observationErrors}),close:()=>cdp.detach()}
       : observationMode === 'calls' ? await observeNormalizationDispatch(page, sources)
-        : await observeBrowserNumerics(page, 'node_modules/doppler-gpu', { steps: observedSteps }));
+        : await observeBrowserNumerics(page, 'node_modules/dopplerx', { steps: observedSteps }));
     const opened = await page.evaluate(async ({ reference, index }) => {
       const config = await import('/config/doppler-local-models.js');
       const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);

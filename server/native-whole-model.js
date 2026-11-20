@@ -23,13 +23,13 @@ export const nativeWholeModelSettings = model => modelToolCallFormat(model) ? NA
 /** `fill({signal})`, when given, completes the model directory from verified peer pieces before
  * the manifest is read (server/native-model-files.js fillWholeModel); stop aborts it. */
 export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner = null, onChange = () => {}, fill = null,
-  configureMemory = async maxBytes => (await import('doppler-gpu/partitions')).configureDeviceMemoryBudget({ maxBytes }),
+  configureMemory = async maxBytes => (await import('dopplerx/partitions')).configureDeviceMemoryBudget({ maxBytes }),
   resolveAdapter = createModelAdapterResolver({ models: [model] }),
-  service = createReploidDopplerRuntimeService({ loadModule: () => import('doppler-gpu/compat') }),
+  service = createReploidDopplerRuntimeService({ loadModule: () => import('dopplerx/compat') }),
   createResident = createNativeResidentProvider, providerPolicy = profile, resolveGeneration = resolvePartitionGeneration,
   // With `model.wholeRuntime.gather` (a catalog entry or an operator configuration) the weights are read through authenticated
   // worker gathering instead of the plain file loader; these two are replaced in tests.
-  openSource = openNativeModelSource, loadGatherRuntime = () => import('doppler-gpu/partitions') }) {
+  openSource = openNativeModelSource, loadGatherRuntime = () => import('dopplerx/partitions') }) {
   model = structuredClone(model);
   model.adapters = selectModelAdapters(model);
   const settingsCapability = nativeWholeModelSettings(model);

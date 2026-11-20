@@ -8,14 +8,14 @@ const ports = vi.hoisted(() => ({
 }));
 vi.mock('../../shared/config/doppler-local-models.js', () => ({
   DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.31',
-  DOPPLER_MODULE_URL: 'doppler-gpu/host',
-  DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions',
+  DOPPLER_MODULE_URL: 'dopplerx/host',
+  DOPPLER_PARTITIONS_MODULE_URL: 'dopplerx/partitions',
   DOPPLER_KERNEL_BASE_URL: '/vendor/doppler/0.6.31/src/gpu/kernels',
 }));
 vi.mock('../../apps/poolday/host/work-partition-capsule.js', () => ({ assertWorkResidentCapsule: async () => {} }));
 vi.mock('../../apps/poolday/pool/pack-release-policy.js', () => ({ prepareLocalPackRelease: ports.release }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident }));
-vi.mock('doppler-gpu/partitions', () => ({
+vi.mock('dopplerx/partitions', () => ({
   get ORDERED_LAYER_PARTITION_SCHEMA() { return ports.orderedSchema; },
   validateOrderedLayerPartitionPlan: ports.validateOrderedPlan, hashPartitionGeneration: ports.generationHash,
   createResidentPartitionFactory: ports.signedFactory, configureDeviceMemoryBudget: ports.budget,
@@ -23,10 +23,10 @@ vi.mock('doppler-gpu/partitions', () => ({
   createManifestResidentPartitionFactory: ports.factory, inspectDeviceMemory: ports.memory, resolveLayerPartition: ports.validatePlan,
   getPartitionActivationContract: ports.activationContract, validateActivationFrameForPlan: ports.validateFrame,
 }));
-vi.mock('doppler-gpu', () => ({ openCapsule() {
+vi.mock('dopplerx', () => ({ openCapsule() {
   throw new Error('Capsule runtime openCapsule() requires explicit ports: device, programFactory.');
 } }));
-vi.mock('doppler-gpu/host', () => ({ openCapsule: ports.openCapsule }));
+vi.mock('dopplerx/host', () => ({ openCapsule: ports.openCapsule }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async importOriginal => ({
   ...await importOriginal(), createResidentPartition: ports.resident,
 }));
@@ -42,8 +42,8 @@ it('requires a session cleanup owner before constructing a signed factory', () =
 
 // Imports the real Doppler package entries, which can exceed the default 5 s under suite load.
 it('uses composed public openers while the low-level entry requires explicit runtime ports', async () => {
-  const raw = await vi.importActual('doppler-gpu');
-  const native = await vi.importActual('doppler-gpu/host');
+  const raw = await vi.importActual('dopplerx');
+  const native = await vi.importActual('dopplerx/host');
   const browser = await vi.importActual(`../../shared/vendor/doppler/${pin.version}/src/index.js`);
   expect(() => raw.openCapsule({})).toThrow(/requires explicit ports:.*device.*programFactory/);
   expect(native.openCapsule).not.toBe(raw.openCapsule);

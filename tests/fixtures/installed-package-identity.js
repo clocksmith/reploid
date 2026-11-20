@@ -44,7 +44,7 @@ export async function inspectPackageArchive({ path: archivePath, sha256 }) {
     const directory = path.join(scratch, 'package');
     const files = await inventory(directory);
     const manifest = JSON.parse(await fs.readFile(path.join(directory, 'package.json'), 'utf8'));
-    assert.equal(manifest.name, 'doppler-gpu', 'Expected a Doppler package');
+    assert.equal(manifest.name, 'dopplerx', 'Expected a Doppler package');
     assert(typeof manifest.version === 'string' && manifest.version.length > 0, 'Missing package version');
     return { schema, archiveSha256: sha256, package: { name: manifest.name, version: manifest.version },
       treeSha256: sha(JSON.stringify(files)), fileCount: files.length,

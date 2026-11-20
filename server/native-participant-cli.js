@@ -82,7 +82,7 @@ export async function main({ runOnce } = {}) {
     custody: custodyPolicy, onChange: () => { logNetwork(); observeReadiness(); },
     // Doppler's application GPU buffer accounting; null until compute opens a device.
     readGpuBuffers: values.contribute ? async () => (sourceRuntime === null
-      ? await import('doppler-gpu/partitions') : sourceRuntime.runtime).inspectDeviceMemory() : null });
+      ? await import('dopplerx/partitions') : sourceRuntime.runtime).inspectDeviceMemory() : null });
   let ordered = null;
   if (values['ordered-config']) {
     requireValue(!values.canonical && path.isAbsolute(values['ordered-config']), 'Ordered config requires an absolute file path and ordinary execution');
@@ -117,7 +117,7 @@ export async function main({ runOnce } = {}) {
     const gpuModule = values['gpu-module'];
     const { key, identity: cacheIdentity } = await nativeShaderCacheIdentity({
       runtime: sourceRuntime ? { directory: sourceRuntime.directory, sourceIdentity: sourceRuntime.receipt }
-        : { directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve('doppler-gpu/partitions')), 'doppler-gpu'),
+        : { directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve('dopplerx/partitions')), 'dopplerx'),
           archiveIntegrity: dopplerPin.integrity },
       provider: { module: gpuModule, directory: await installedPackageDirectory(fileURLToPath(import.meta.resolve(moduleSpecifier(gpuModule))),
         path.isAbsolute(gpuModule) ? null : gpuModule) },

@@ -114,10 +114,10 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "doppler-gpu": ">=0.6.27 <0.8.0"
+    "dopplerx": "^0.1.5"
   },
   "peerDependenciesMeta": {
-    "doppler-gpu": {
+    "dopplerx": {
       "optional": true
     }
   },

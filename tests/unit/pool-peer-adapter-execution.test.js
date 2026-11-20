@@ -38,6 +38,16 @@ describe('remote adapter composition and shared custody', () => {
     await expect(normalizeExecutionAdapterSet([f.entry], { ...context, policy: { ...policy, maxAdapterBytes: 1 } })).rejects.toThrow('byte limit');
   });
 
+  it.each([['0.7.9', true], ['0.7.10', false], ['0.1.5', true], ['0.1.6', false]])(
+    'checks signed adapter minimum %s against the DopplerX cutover', async (minimumVersion, compatible) => {
+      const { model } = await operationFixture('generate');
+      const f = await peerAdapterFixture(model, { runtimeVersion: '0.1.5', minimumVersion });
+      const result = normalizeExecutionAdapterSet([f.entry], { model: packPeerModel(f.model), policy });
+      if (compatible) await expect(result).resolves.toHaveLength(1);
+      else await expect(result).rejects.toThrow('adapter requires a newer runtime');
+    }
+  );
+
   it('uses verified chunks after reopening and never asks custody for base model bytes', async () => {
     const f = await fixture(), ports = await custody(f), registry = createAdapterRegistry();
     await registry.publish(f.publication);

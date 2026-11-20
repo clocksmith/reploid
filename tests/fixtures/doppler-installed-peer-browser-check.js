@@ -15,7 +15,7 @@ const bundleRoot = path.dirname(consumer);
 const bundle = JSON.parse(await readFile(path.join(bundleRoot, 'receipt.json'), 'utf8'));
 assert(bundle.passed);
 assert.equal(createHash('sha256').update(await readFile(path.join(bundleRoot, bundle.package.filename))).digest('hex'), bundle.package.sha256);
-const metadata = JSON.parse(await readFile(path.join(consumer, 'node_modules/doppler-gpu/package.json'), 'utf8'));
+const metadata = JSON.parse(await readFile(path.join(consumer, 'node_modules/dopplerx/package.json'), 'utf8'));
 const entry = metadata.exports['.'].browser ?? metadata.exports['.'].import;
 assert(entry?.startsWith('./'), 'Candidate must declare a public ESM entry.');
 const report = { passed: false, schema: 'reploid.installed-peer-browser/v1', package: bundle.package,
@@ -29,14 +29,14 @@ const server = createServer(async (request, response) => {
     if (pathname === '/') {
       response.setHeader('Content-Type', 'text/html');
       response.end(`<!doctype html><title>Installed peer streaming</title><script type="importmap">${JSON.stringify({ imports: {
-        'doppler-gpu': `/installed/node_modules/doppler-gpu/${entry.slice(2)}`,
+        'dopplerx': `/installed/node_modules/dopplerx/${entry.slice(2)}`,
       } })}</script>`); return;
     }
     const installed = pathname.startsWith('/installed/');
     const served = installed ? null : await readServedHarnessFile(pathname);
     const file = path.resolve(installed ? consumer : root, pathname.slice(installed ? '/installed/'.length : 1));
     const allowed = installed
-      ? file === path.join(consumer, 'generation-fixture.json') || file.startsWith(path.join(consumer, 'node_modules/doppler-gpu') + path.sep)
+      ? file === path.join(consumer, 'generation-fixture.json') || file.startsWith(path.join(consumer, 'node_modules/dopplerx') + path.sep)
       : !!served || file.startsWith(path.join(root, 'tests/fixtures') + path.sep);
     if (!allowed) { response.writeHead(403).end(); return; }
     response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript');

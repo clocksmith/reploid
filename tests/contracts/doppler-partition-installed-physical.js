@@ -9,12 +9,12 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createLayerPartitionPlan, hashLayerPartitionPlan, comparePartitionExecution,
   serializeActivationFrame, deserializeActivationFrame, LAYER_PARTITION_SCHEMA,
-  ACTIVATION_TENSOR_SCHEMA } from 'doppler-gpu/partitions';
+  ACTIVATION_TENSOR_SCHEMA } from 'dopplerx/partitions';
 import { qualifyDopplerPartitionSessions } from './doppler-partition-session.js';
 
 const directory = process.env.DOPPLER_PARTITION_MODEL_DIR;
 if (!directory) throw new Error('Set DOPPLER_PARTITION_MODEL_DIR to the identified local model directory.');
-const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.resolve('doppler-gpu'))), '..');
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.resolve('dopplerx'))), '..');
 const installed = async relative => import(pathToFileURL(path.join(packageRoot, 'src', relative)).href);
 const [{ bootstrapNodeWebGPU, releaseNodeWebGPU }, { installNodeFileFetchShim },
   { initDevice, destroyDevice }, { createPipeline }, { createNodeFileArtifactStorageContext },

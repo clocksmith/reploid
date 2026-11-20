@@ -23,7 +23,7 @@ export function checkArtifactAdditions({ root, base, head = 'HEAD' }) {
   if (!base || /^0+$/.test(base)) base = git(['hash-object', '-t', 'tree', '--stdin']).trim();
   const policy = JSON.parse(git(['show', `${head}:scripts/artifact-policy.json`]));
   const pin = JSON.parse(git(['show', `${head}:shared/config/doppler-package.json`]));
-  const currentArchive = `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
+  const currentArchive = `deploy/artifacts/${pin.name}-${pin.version}.tgz`;
   const added = new Set(git(['diff', '--name-only', '-z', '--diff-filter=A', base, head, '--']).split('\0').filter(Boolean));
   const entries = git(['ls-tree', '-rlz', head]).split('\0').filter(Boolean).map(row => {
     const [metadata, file] = row.split('\t');

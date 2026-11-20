@@ -95,9 +95,9 @@ export async function evaluateDocumentAnswers(config) {
   const { corpus, bytes: corpusBytes, corpusPath, corpusDigest } = await readDocumentAnswerCorpus(config);
   const output = resolve(config.outputDirectory);
   await mkdir(output); // No overwriting previous observations.
-  const packageRoot = resolve(root, 'node_modules/doppler-gpu');
+  const packageRoot = resolve(root, 'node_modules/dopplerx');
   const packageInfo = await read(resolve(packageRoot, 'package.json'));
-  const locked = (await read(resolve(root, 'package-lock.json'))).packages['node_modules/doppler-gpu'];
+  const locked = (await read(resolve(root, 'package-lock.json'))).packages['node_modules/dopplerx'];
   assert(packageInfo.version === locked.version && locked.integrity.startsWith('sha512-'), 'Locked runtime identity required');
   const { createStaticFileServer } = await import(pathToFileURL(resolve(packageRoot, 'src/tooling/node-browser-command-runner.js')));
   const { getCapsuleIdentity } = await import(pathToFileURL(resolve(packageRoot, 'src/config/capsule.js')));

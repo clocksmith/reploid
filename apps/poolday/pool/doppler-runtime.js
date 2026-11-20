@@ -52,7 +52,7 @@ import { SEQUENCE_WORKLOADS } from '../../../shared/pool/sequence-workload.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
-  'doppler-gpu'
+  'dopplerx'
 ]);
 
 let dopplerStorageModulePromise = null;

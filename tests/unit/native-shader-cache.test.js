@@ -253,7 +253,7 @@ describe('identity', () => {
   async function inputs() {
     const write = async (file, bytes) => { await fs.mkdir(path.dirname(file), { recursive: true }); await fs.writeFile(file, bytes); };
     const base = path.join(tmp, 'inputs');
-    await write(path.join(base, 'runtime/package.json'), JSON.stringify({ name: 'doppler-gpu', version: '0.6.28' }));
+    await write(path.join(base, 'runtime/package.json'), JSON.stringify({ name: 'dopplerx', version: '0.6.28' }));
     await write(path.join(base, 'runtime/src/gpu/kernels/state.wgsl'), 'fn main() {}');
     await write(path.join(base, 'provider/package.json'), JSON.stringify({ name: 'webgpu', version: '0.4.0' }));
     await write(path.join(base, 'provider/dist/linux-x64.dawn.node'), 'dawn');

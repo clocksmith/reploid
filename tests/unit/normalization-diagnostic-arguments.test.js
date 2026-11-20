@@ -9,7 +9,7 @@ describe('normalization diagnostic argument positions', () => {
     ['runRMSNorm', 'gpu/kernels/rmsnorm.js'],
     ['recordRMSNorm', 'gpu/kernels/rmsnorm.js'],
   ]) it(`reads options at the installed ${name} boundary`, () => {
-    const source = readFileSync(`node_modules/doppler-gpu/src/${file}`, 'utf8');
+    const source = readFileSync(`node_modules/dopplerx/src/${file}`, 'utf8');
     const declaration = parse(source, { ecmaVersion: 'latest', sourceType: 'module' }).body
       .map(node => node.declaration).find(node => node?.id?.name === name);
     expect(declaration).toBeDefined();

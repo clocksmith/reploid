@@ -3,10 +3,10 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 const ports = vi.hoisted(() => ({ generation: vi.fn(), digest: vi.fn(), resident: vi.fn(), signer: vi.fn(), budget: vi.fn() }));
 vi.mock('../../shared/config/doppler-local-models.js', async original => ({ ...await original(), DOPPLER_MODULE_URL: '../unused.js',
-  DOPPLER_PARTITIONS_MODULE_URL: 'doppler-gpu/partitions', DOPPLER_KERNEL_BASE_URL: '/unused' }));
+  DOPPLER_PARTITIONS_MODULE_URL: 'dopplerx/partitions', DOPPLER_KERNEL_BASE_URL: '/unused' }));
 vi.mock('../../shared/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident,
   createPartitionStageCommitAuthority: ports.signer }));
-vi.mock('doppler-gpu/partitions', () => ({ canonicalGenerationIdentity: ports.generation,
+vi.mock('dopplerx/partitions', () => ({ canonicalGenerationIdentity: ports.generation,
   metadataDigest: ports.digest, configureDeviceMemoryBudget: ports.budget,
   createLayerPartitionPlan: () => ({ vocabSize: 100 }), hashLayerPartitionPlan: () => 'plan',
   createManifestResidentPartitionFactory: value => value, inspectDeviceMemory: () => ({}) }));

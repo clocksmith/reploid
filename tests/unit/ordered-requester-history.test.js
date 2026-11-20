@@ -5,7 +5,7 @@
 // and the Doppler partitions module. Numerical outputs are fixture data, never physical inference.
 import { afterEach, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
-import * as runtime from 'doppler-gpu/partitions';
+import * as runtime from 'dopplerx/partitions';
 import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 import orderedPolicy from '../../apps/poolday/config/ordered-participation.json' with { type: 'json' };

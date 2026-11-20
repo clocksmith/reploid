@@ -14,7 +14,7 @@ const roots = [];
 afterEach(async () => Promise.all(roots.splice(0).map(root => fs.rm(root, { recursive: true, force: true }))));
 
 it('rejects undeclared native dependencies instead of emitting an incomplete installer', () => {
-  expect(() => nativePackageManifest({ dependencies: { 'doppler-gpu': 'file:runtime.tgz', ws: '8.21.0' },
+  expect(() => nativePackageManifest({ dependencies: { 'dopplerx': 'file:runtime.tgz', ws: '8.21.0' },
     optionalDependencies: { '@roamhq/wrtc': '0.10.0' } })).toThrow('Application must declare native dependency webgpu');
 });
 
@@ -23,7 +23,7 @@ it('delivers the same native source and all catalog metadata outside the checkou
   const { files, contents, pin } = await collectNativeFiles(sourceRoot);
   const application = JSON.parse(await fs.readFile(path.join(sourceRoot, 'package.json')));
   const manifest = nativePackageManifest(application);
-  expect(manifest.dependencies['doppler-gpu']).toBe(pin.spec);
+  expect(manifest.dependencies['dopplerx']).toBe(pin.spec);
   expect(manifest.dependencies['@roamhq/wrtc']).toBe(application.optionalDependencies['@roamhq/wrtc']);
   expect(manifest.optionalDependencies.webgpu).toBe(application.optionalDependencies.webgpu);
   expect(files).not.toContain('server/proxy.js');
@@ -51,7 +51,7 @@ it('delivers the same native source and all catalog metadata outside the checkou
   await expect(fs.stat(path.join(directory, 'state'))).rejects.toMatchObject({ code: 'ENOENT' });
   const archivePath = pin.spec.startsWith('file:')
     ? pin.spec.slice(5)
-    : `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
+    : `deploy/artifacts/${pin.name}-${pin.version}.tgz`;
   const copied = await fs.readFile(path.join(directory, archivePath));
   expect('sha512-' + createHash('sha512').update(copied).digest('base64')).toBe(pin.integrity);
 });

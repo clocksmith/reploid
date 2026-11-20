@@ -1,7 +1,7 @@
 {
-  "name": "doppler-gpu",
-  "version": "0.7.9",
-  "spec": "file:deploy/artifacts/doppler-gpu-0.7.9.tgz",
-  "resolved": "file:deploy/artifacts/doppler-gpu-0.7.9.tgz",
-  "integrity": "sha512-rzLACVHsnikbjnQjSB78fWGMyOLaGS8XCuXEqEh6Y8EYdEjf1LWVsVOW7vaV48MUaD7M5iybhxovqbcxWxIudg=="
+  "name": "dopplerx",
+  "version": "0.1.5",
+  "spec": "file:deploy/artifacts/dopplerx-0.1.5.tgz",
+  "resolved": "file:deploy/artifacts/dopplerx-0.1.5.tgz",
+  "integrity": "sha512-agmOgR9zU0SxRDuhlTkdB3uHD3hQWH0WJMeaAyXeHU2/NJPdQoinW3c19QtNMXh2M+LvooM/yYseNlxDZVVDoA=="
 }

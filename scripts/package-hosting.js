@@ -18,7 +18,7 @@ async function verifyArchiveProjection(tree, files) {
   const staging = await fs.mkdtemp(path.join(tmpdir(), 'reploid-hosting-integrity-'));
   try {
     for (const version of versions) {
-      const archive = path.join(tree.repoRoot, 'deploy/artifacts', `doppler-gpu-${version}.tgz`);
+      const archive = path.join(tree.repoRoot, 'deploy/artifacts', `${version === pin.version ? (pin.name ?? 'doppler-gpu') : 'doppler-gpu'}-${version}.tgz`);
       const bytes = await fs.readFile(archive);
       const integrity = `sha512-${createHash('sha512').update(bytes).digest('base64')}`;
       if (version === pin.version && integrity !== pin.integrity) throw new Error('Pinned Doppler archive integrity mismatch');

@@ -69,7 +69,7 @@ import { createResidentPartition, createPartitionPeer, createPartitionChat,
   type PartitionLimits, type PartitionGrantAuthority } from '../../packages/reploid/src/mesh/index.js';
 import type { ChatModel } from '../../packages/reploid/src/chat/index.js';
 export function composePartitionChat(factory: DopplerPartitionSessionFactory, runtime: PartitionRuntime,
-  model: ChatModel & { generation: import('doppler-gpu/generation-contract').ResolvedGenerationOptions }, plan: PartitionPlan, planId: string, limits: PartitionLimits,
+  model: ChatModel & { generation: import('dopplerx/generation-contract').ResolvedGenerationOptions }, plan: PartitionPlan, planId: string, limits: PartitionLimits,
   authority: PartitionGrantAuthority, channel: RTCDataChannel, channelLimits: PartitionChannelLimits) {
   const local = createResidentPartition({ runtime: factory, model, plan, planId, limits,
     index: 0, participantId: authority.participantId });
@@ -82,7 +82,7 @@ export function composePartitionChat(factory: DopplerPartitionSessionFactory, ru
 }
 
 // Installed Doppler declarations own computation; Reploid adds coordination only.
-import type { ResidentPartitionSession, ResidentPartitionDescriptor, ResidentPartitionFactory } from 'doppler-gpu/partitions';
+import type { ResidentPartitionSession, ResidentPartitionDescriptor, ResidentPartitionFactory } from 'dopplerx/partitions';
 import type { ResidentPartitionSession as ProjectedResidentPartitionSession } from '../../packages/reploid/src/contracts/doppler-partitions.js';
 import type { DopplerResidentPartitionSession } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
 

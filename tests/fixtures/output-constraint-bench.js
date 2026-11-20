@@ -169,7 +169,7 @@ function measure(tokenizer, label) {
 
 const args = process.argv.slice(2);
 const flag = args.indexOf('--doppler');
-const packageRoot = flag >= 0 ? args.splice(flag, 2)[1] : resolve(import.meta.dirname, '../../node_modules/doppler-gpu');
+const packageRoot = flag >= 0 ? args.splice(flag, 2)[1] : resolve(import.meta.dirname, '../../node_modules/dopplerx');
 const file = args[0];
 const tokenizer = file ? await dopplerTokenizer(resolve(file), packageRoot) : syntheticTokenizer(150000);
 console.log(JSON.stringify(measure(tokenizer, file ? 'doppler tokenizer.json' : 'synthetic 150000-token vocabulary'), null, 2));

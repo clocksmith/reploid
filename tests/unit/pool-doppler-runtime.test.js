@@ -747,7 +747,7 @@ describe('Doppler browser runtime adapter', () => {
     const runtimeProfile = {
       schema: 'doppler_runtime_profile/v1',
       runtime: {
-        package: 'doppler-gpu',
+        package: 'dopplerx',
         version: '0.4.15',
         surface: 'browser'
       },

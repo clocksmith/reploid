@@ -66,7 +66,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   if (canonical !== null) {
     requireValue(canonical && typeof canonical.epochDirectory === 'string' && model.canonicalGeneration,
       'Canonical native participation requires explicit durable epochs and declared model generation');
-    canonicalRuntime = await import('doppler-gpu/partitions');
+    canonicalRuntime = await import('dopplerx/partitions');
     for (const name of ['canonicalGenerationIdentity', 'metadataDigest', 'tokenDigest', 'validateResidentAttemptIdentity',
       'residentAttemptDigest', 'residentPublicationDecisionDigest', 'validateExecutionPublication', 'validateAdmissionPublication']) {
       requireValue(typeof canonicalRuntime[name] === 'function', 'Installed Doppler lacks canonical capability: ' + name);

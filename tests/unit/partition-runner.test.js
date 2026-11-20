@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import * as runtime from 'doppler-gpu/partitions';
+import * as runtime from 'dopplerx/partitions';
 import { createLayerPartitionRunner, verifySplitParity } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
 
 // These ports deliberately simulate computation. This suite proves orchestration,

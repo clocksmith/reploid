@@ -28,7 +28,7 @@ async function fixture() {
 
 async function pack(f, source = 'export const value = 42;\n') {
   await fs.writeFile(path.join(f.installedPackage, 'package.json'),
-    JSON.stringify({ name: 'doppler-gpu', version: '1.0.0', type: 'module' }));
+    JSON.stringify({ name: 'dopplerx', version: '1.0.0', type: 'module' }));
   await fs.writeFile(path.join(f.installedPackage, 'src/partitions.js'), source);
   const archivePath = path.join(f.directory, 'package.tgz');
   await exec('tar', ['-czf', archivePath, '-C', f.directory, 'package']);
@@ -69,7 +69,7 @@ describe('installed package bytes before diagnostic model opening', () => {
       path: 'src/partitions.js', sizeBytes: Buffer.byteLength(source), sha256: hash(source) });
     const receipt = await verifyInstalledPackage({ ...f, packageArchive });
     expect(receipt.archiveSha256).toBe(packageArchive.sha256);
-    expect(receipt.package).toEqual({ name: 'doppler-gpu', version: '1.0.0' });
+    expect(receipt.package).toEqual({ name: 'dopplerx', version: '1.0.0' });
     expect(receipt.fileCount).toBe(2);
     expect(receipt.exclusions).toEqual(['node_modules']);
     // External dependencies are explicitly outside this byte-identity contract.

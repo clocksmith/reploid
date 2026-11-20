@@ -10,8 +10,8 @@ const format = process.env.DOPPLER_TEST_STREAM_FORMAT;
 assert(consumer, 'DOPPLER_TEST_CONSUMER must identify an installed archive consumer');
 assert(['v1', 'v2'].includes(format), 'DOPPLER_TEST_STREAM_FORMAT must explicitly select v1 or v2');
 const entry = execFileSync(process.execPath, ['--input-type=module', '-e',
-  "process.stdout.write(import.meta.resolve('doppler-gpu'))"], { cwd: consumer, encoding: 'utf8' }).trim();
-assert(entry.includes('/node_modules/doppler-gpu/'));
+  "process.stdout.write(import.meta.resolve('dopplerx'))"], { cwd: consumer, encoding: 'utf8' }).trim();
+assert(entry.includes('/node_modules/dopplerx/'));
 const api = await import(entry);
 const fixture = JSON.parse(await readFile(resolve(consumer, 'generation-fixture.json'), 'utf8'));
 const artifacts = new Map(fixture.artifacts.map(([id, bytes]) => [id, Uint8Array.from(bytes)]));

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import * as training from 'doppler-gpu/training';
+import * as training from 'dopplerx/training';
 import { createDopplerTrainingExecutor } from '../../apps/poolday/host/lora-training-executor.js';
 import { createTrainingSession } from '../../packages/reploid/src/training/session.js';
 import policy from '../../apps/poolday/config/lora-training.json' with { type: 'json' };

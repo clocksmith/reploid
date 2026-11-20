@@ -37,7 +37,8 @@ if (mode === '--check') {
   const listing = execFileSync('tar', ['-tvzf', archive], { encoding: 'utf8' });
   if (listing.trim().split('\n').some(line => !['-', 'd'].includes(line[0]))) throw new Error('Archive links are not supported');
   const pkg = JSON.parse(execFileSync('tar', ['-xOf', archive, 'package/package.json'], { encoding: 'utf8' }));
-  if (pkg.name !== 'doppler-gpu' || pkg.version !== version) throw new Error('Historical package identity mismatch');
+  if (!['doppler-gpu', 'dopplerx'].includes(pkg.name) || pkg.version !== version
+    || path.basename(archive) !== `${pkg.name}-${pkg.version}.tgz`) throw new Error('Historical package identity mismatch');
   mkdirSync(target, { recursive: true });
   try { execFileSync('tar', ['-xzf', archive, '--strip-components=1', '-C', target]); }
   catch (error) { rmSync(target, { recursive: true, force: true }); throw error; }

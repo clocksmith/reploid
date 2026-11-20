@@ -28,7 +28,7 @@ const report = { schema: 'doppler.choice-scoring-physical/v1', passed: false,
   manifestSha256: contract.manifestSha256, modelId: contract.modelId, logs: [] };
 const imports = Object.fromEntries(['.', './compat'].map(key => {
   const entry = metadata.exports[key].browser ?? metadata.exports[key].import;
-  return [key === '.' ? 'doppler-gpu' : 'doppler-gpu/compat', '/installed/' + entry.slice(2)];
+  return [key === '.' ? 'dopplerx' : 'dopplerx/compat', '/installed/' + entry.slice(2)];
 }));
 const server = createServer(async (request, response) => {
   try {

@@ -18,7 +18,7 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // `publishable` makes the manifest one npm accepts: the same files and pins, not marked private.
 export function nativePackageManifest(application, { publishable = false } = {}) {
   for (const [name, spec] of Object.entries({
-    'doppler-gpu': application.dependencies?.['doppler-gpu'], ws: application.dependencies?.ws,
+    'dopplerx': application.dependencies?.['dopplerx'], ws: application.dependencies?.ws,
     '@roamhq/wrtc': application.optionalDependencies?.['@roamhq/wrtc'],
     webgpu: application.optionalDependencies?.webgpu,
   })) {
@@ -33,7 +33,7 @@ export function nativePackageManifest(application, { publishable = false } = {})
     ...(publishable ? { repository: application.repository, homepage: application.homepage } : {}),
     scripts: { start: 'node server/native-participant.js' },
     dependencies: {
-      'doppler-gpu': application.dependencies['doppler-gpu'],
+      'dopplerx': application.dependencies['dopplerx'],
       ws: application.dependencies.ws,
       '@roamhq/wrtc': application.optionalDependencies['@roamhq/wrtc'],
     },
@@ -84,7 +84,7 @@ export async function collectNativeFiles(sourceRoot, { omitModels = [] } = {}) {
   const pinBytes = await fs.readFile(path.join(sourceRoot, pinName));
   retained.set(pinName, pinBytes);
   const pin = JSON.parse(pinBytes);
-  const archive = `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
+  const archive = `deploy/artifacts/${pin.name}-${pin.version}.tgz`;
   if (pin.spec !== pin.version && pin.spec !== `file:${archive}`) {
     throw new Error('Native delivery requires the accepted application archive');
   }
@@ -130,10 +130,10 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
         + findings.map(finding => `  ${finding.path}: ${finding.found}`).join('\n'));
     }
   }
-  if (manifest.dependencies['doppler-gpu'] !== pin.spec) throw new Error('Application Doppler dependency differs from its pin');
+  if (manifest.dependencies['dopplerx'] !== pin.spec) throw new Error('Application Doppler dependency differs from its pin');
   // npm resolves file: dependencies relative to the consumer when installing a packed CLI.
   // The public dependency must resolve from the registry with the same accepted integrity.
-  if (publishable) manifest.dependencies['doppler-gpu'] = pin.version;
+  if (publishable) manifest.dependencies['dopplerx'] = pin.version;
   await fs.mkdir(outputParent, { recursive: true });
   const staging = await fs.mkdtemp(path.join(outputParent, 'reploid-native-'));
   const directory = path.join(staging, 'reploid');
@@ -154,13 +154,13 @@ export async function packageNative({ sourceRoot = root, outputParent = path.joi
   // Native install scripts are not executed while producing the delivery.
   const lockPath = path.join(directory, 'package-lock.json');
   const sourceLock = JSON.parse(await fs.readFile(path.join(sourceRoot, 'package-lock.json')));
-  if (publishable && sourceLock.packages['node_modules/doppler-gpu']?.resolved?.startsWith('file:')) {
-    delete sourceLock.packages['node_modules/doppler-gpu'];
+  if (publishable && sourceLock.packages['node_modules/dopplerx']?.resolved?.startsWith('file:')) {
+    delete sourceLock.packages['node_modules/dopplerx'];
   }
   await fs.writeFile(lockPath, JSON.stringify(sourceLock, null, 2) + '\n');
   await exec('npm', ['install', '--package-lock-only', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: directory });
   const lock = JSON.parse(await fs.readFile(path.join(directory, 'package-lock.json')));
-  if (lock.packages['node_modules/doppler-gpu']?.integrity !== pin.integrity) throw new Error('Installed runtime lock differs from the accepted archive');
+  if (lock.packages['node_modules/dopplerx']?.integrity !== pin.integrity) throw new Error('Installed runtime lock differs from the accepted archive');
   // npm never packs package-lock.json, and honours a published package's pinned graph only as
   // npm-shrinkwrap.json. The publishable delivery therefore carries the same resolved graph under that
   // name, and its file list names what the published package actually contains.

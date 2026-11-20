@@ -186,7 +186,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     const indexFile = model.source.files.find(file => file.role === 'model-piece-index');
     assert(manifestFile && 'sha256:' + manifestFile.hash === model.identity && indexFile, 'Pinned manifest and piece index required');
     const manifestBytes = await readMetadata(manifestFile, signal), indexBytes = await readMetadata(indexFile, signal, null, model.id);
-    const runtime = suppliedRuntime ?? await import('doppler-gpu/partitions');
+    const runtime = suppliedRuntime ?? await import('dopplerx/partitions');
     // Doppler validates the index closure before any piece is offered or read.
     const checked = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + indexFile.hash,
       signal, acquire: () => { throw new Error('Metadata validation cannot acquire weights'); } });

@@ -8,7 +8,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { openNativeCanonicalEpochs } from '../../server/native-canonical-epochs.js';
 const ports = vi.hoisted(() => ({ resident: null, mesh: null, networks: [], files: null }));
-vi.mock('doppler-gpu/partitions', () => ({
+vi.mock('dopplerx/partitions', () => ({
   canonicalGenerationIdentity: () => ({ executionIdentity: 'execution' }), metadataDigest: () => 'stage',
   tokenDigest() {}, validateResidentAttemptIdentity() {}, residentAttemptDigest() {}, residentPublicationDecisionDigest() {},
   validateExecutionPublication() {}, validateAdmissionPublication() {}, configureDeviceMemoryBudget() {},

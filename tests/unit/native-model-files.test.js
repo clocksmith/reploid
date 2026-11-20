@@ -428,7 +428,7 @@ it('uses exact host-approved external sources while retaining pinned piece verif
 });
 
 it('uses a snapshotted trusted storage runtime without changing custody or pinned source checks', async () => {
-  const runtime = await import('doppler-gpu/partitions');
+  const runtime = await import('dopplerx/partitions');
   const factory = vi.fn(options => runtime.createVerifiedPieceStorage(options));
   const injected = { createVerifiedPieceStorage: factory };
   const f = await fixture(1, { hostOptions: () => ({ artifactRuntime: injected }) });

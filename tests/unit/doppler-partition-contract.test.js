@@ -1,6 +1,6 @@
-import { resolveGenerationOptions } from 'doppler-gpu/generation-contract';
+import { resolveGenerationOptions } from 'dopplerx/generation-contract';
 import { it, expect } from 'vitest';
-import * as runtime from 'doppler-gpu/partitions';
+import * as runtime from 'dopplerx/partitions';
 import { qualifyDopplerPartitionSessions } from '../contracts/doppler-partition-session.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 

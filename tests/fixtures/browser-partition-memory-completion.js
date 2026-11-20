@@ -340,7 +340,7 @@ try {
         if (captureAttention) {
           const { observeAttentionCache } = await import('../../../doppler/tests/fixtures/attention-cache-observer.js');
           diagnostic.captureHelperSha256 = createHash('sha256').update(observeAttentionCache.toString()).digest('hex');
-          await observeAttentionCache(context, new URL('../../node_modules/doppler-gpu', import.meta.url).pathname,
+          await observeAttentionCache(context, new URL('../../node_modules/dopplerx', import.meta.url).pathname,
             linearCaptures, { ...(captureKind !== '1' ? { attentionLayer: probeLayer,
               ...(captureKind === 'attention-projection' ? { projectionLayer: probeLayer } : {}) }
               : probePrompt === null ? { linearOnly: true } : { linearLayer: probeLayer }),

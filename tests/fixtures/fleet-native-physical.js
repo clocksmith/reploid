@@ -16,7 +16,7 @@ const token=randomBytes(32).toString('hex'), room='reploid-swarm-fleet-agent-f-'
 const model=structuredClone(config.model);
 if(config.mode==='partition'){
   const require=createRequire(path.join(pkg.directory,'package.json'));
-  const partitions=await import(pathToFileURL(require.resolve('doppler-gpu/partitions')));
+  const partitions=await import(pathToFileURL(require.resolve('dopplerx/partitions')));
   model.partitionPlan=partitions.createOrderedLayerPartitionPlanFromManifest(JSON.parse(await fs.readFile(config.local.modelDirectory+'/manifest.json')),config.partition);
   model.partitionPlanId=partitions.hashLayerPartitionPlan(model.partitionPlan);
   model.partitionRuntime={maxGpuBufferBytes:config.stageGpuBudgets,runtimeConfig:structuredClone(model.loadOptions.runtimeConfig)};

@@ -137,13 +137,13 @@
     },
     {
       "path": "adapters/doppler.d.ts",
-      "bytes": 4917,
-      "sha256": "da4b176590bcb099229805dc6f0424ae937326f2675f724d101d933906432e8f"
+      "bytes": 4902,
+      "sha256": "1167a980e928abdde14d9f323fe58f5fba064fdae589db3adf02d89495b25410"
     },
     {
       "path": "adapters/doppler.js",
-      "bytes": 12693,
-      "sha256": "e489085c4bb8c29f296187200de2dde5bbe91b3ce3e5894fc410c0363c2b2f9e"
+      "bytes": 12690,
+      "sha256": "536d279d3441354bdfe052d991cbaec451b927dfee39b8695ed71727a7c344e6"
     },
     {
       "path": "adapters/model-adapter.d.ts",
@@ -657,8 +657,8 @@
     },
     {
       "path": "chat/workspace-publication.d.ts",
-      "bytes": 5657,
-      "sha256": "9aa9c5a212073eb27202f9646c889d1bc055ab7729bdc50da5942d46f84848d1"
+      "bytes": 5654,
+      "sha256": "63873b6114d44333250bb7338c017b063405397910c68314878d1e47f8d2bdaf"
     },
     {
       "path": "chat/workspace-publication.js",
@@ -732,13 +732,13 @@
     },
     {
       "path": "contracts/doppler-partitions.d.ts",
-      "bytes": 16634,
-      "sha256": "2e8fb97b6f8b42242db5d3c6c712c8fa333b06808a0553547071ce016723b657"
+      "bytes": 16631,
+      "sha256": "044bc49b3d3bec971919fbbd5991a26f867c2d8e3da29b6bb8aec9588e939f62"
     },
     {
       "path": "contracts/doppler-partitions.provenance.json",
       "bytes": 1806,
-      "sha256": "1fddd6be6915f83f0695fec88d7bb0461ac5b1230c1a0d15cbe2da0a27fdb7e0"
+      "sha256": "242de1537a132bca5f117e2647796b3b6c2bc0fef82a6e9e01d19dab4b9107cc"
     },
     {
       "path": "contracts/error.d.ts",

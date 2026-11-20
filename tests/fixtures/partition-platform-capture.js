@@ -11,7 +11,7 @@ const output = process.env.REPLOID_CAPTURE_OUT;
 assert(directory && output, 'DOPPLER_CHAT_MODEL_DIR and REPLOID_CAPTURE_OUT are required');
 const base = process.env.DOPPLER_CAPTURE_SOURCE_DIR
   ? pathToFileURL(resolve(process.env.DOPPLER_CAPTURE_SOURCE_DIR) + '/')
-  : new URL('./', import.meta.resolve('doppler-gpu'));
+  : new URL('./', import.meta.resolve('dopplerx'));
 const load = file => import(new URL(file, base));
 const [{ bootstrapNodeWebGPU, releaseNodeWebGPU }, { initDevice, destroyDevice, getDevice },
   { createPipeline }, { createNodeFileArtifactStorageContext }, { installNodeFileFetchShim }] = await Promise.all([

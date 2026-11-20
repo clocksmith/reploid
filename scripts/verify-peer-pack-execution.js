@@ -78,7 +78,7 @@ export async function verifyPeerPackExecution(config) {
   for (const key of ['maxInputBytes', 'maxOutputBytes']) assert(Number.isSafeInteger(config.operationLimits?.[key]) && config.operationLimits[key] > 0, `Proof requires operationLimits.${key}`);
   const dopplerRoot = resolve(config.dopplerRoot);
   const runtimeRoot = config.runtimePackageBundlePath
-    ? resolve(config.runtimePackageBundlePath, 'consumer/node_modules/doppler-gpu') : dopplerRoot;
+    ? resolve(config.runtimePackageBundlePath, 'consumer/node_modules/dopplerx') : dopplerRoot;
   let installedPackage = null;
   if (config.runtimePackageBundlePath) {
     const installed = JSON.parse(await readFile(resolve(config.runtimePackageBundlePath, 'receipt.json'), 'utf8'));

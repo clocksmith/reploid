@@ -20,7 +20,7 @@ await mkdir(evidence, { recursive: true });
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const resolveEntry = name => fileURLToPath(execFileSync(process.execPath, ['--input-type=module', '-e',
   `process.stdout.write(import.meta.resolve(${JSON.stringify(name)}))`], { cwd: consumer, encoding: 'utf8' }).trim());
-const imports = Object.fromEntries(['doppler-gpu', 'reploid', 'reploid/config', 'reploid/doppler', 'reploid/browser'].map(name => {
+const imports = Object.fromEntries(['dopplerx', 'reploid', 'reploid/config', 'reploid/doppler', 'reploid/browser'].map(name => {
   const entry = resolveEntry(name);
   assert(entry.startsWith(path.join(consumer, 'node_modules') + path.sep), 'Public imports must resolve to installed files');
   return [name, '/installed/' + path.relative(consumer, entry)];
@@ -33,7 +33,7 @@ const report = { schema: 'reploid.agent-peer-local-acceptance/v1', passed: false
   fixtureSha256: hash(await readFile(path.join(consumer, 'generation-fixture.json'))),
   packageLockSha256: hash(await readFile(path.join(consumer, 'package-lock.json'))), packages: {}, sourceFiles: {} };
 const lock = JSON.parse(await readFile(path.join(consumer, 'package-lock.json')));
-for (const name of ['reploid', 'doppler-gpu']) {
+for (const name of ['reploid', 'dopplerx']) {
   const manifest = JSON.parse(await readFile(path.join(consumer, 'node_modules', name, 'package.json')));
   const entry = lock.packages['node_modules/' + name];
   assert(entry?.integrity && entry.resolved, `Lockfile must identify installed ${name}`);

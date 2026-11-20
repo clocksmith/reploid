@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import * as accepted from 'doppler-gpu/partitions';
+import * as accepted from 'dopplerx/partitions';
 import { createWorkPartitionPlan, workOrderedResidentOptions, snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../../apps/poolday/host/work-partition-plan.js';
 
 const manifest = { modelId: 'plan-fixture', architecture: { numLayers: 4, hiddenSize: 8, vocabSize: 16 },

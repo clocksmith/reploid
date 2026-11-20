@@ -18,7 +18,7 @@ export async function verifyDocumentSearch(config) {
   }
   requireValue(Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0
     && Array.isArray(config.browserArgs) && typeof config.requiredVendor === 'string', 'Explicit browser policy required');
-  const packageRoot = resolve(config.packageBundlePath, 'consumer/node_modules/doppler-gpu');
+  const packageRoot = resolve(config.packageBundlePath, 'consumer/node_modules/dopplerx');
   const installed = JSON.parse(await readFile(resolve(config.packageBundlePath, 'receipt.json'), 'utf8'));
   requireValue(installed.passed && hash(await readFile(resolve(config.packageBundlePath, installed.package.filename)))
     === `sha256:${installed.package.sha256}`, 'Retained package receipt or tarball mismatch');

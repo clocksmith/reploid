@@ -95,7 +95,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const candidateDopplerDirs = [
   path.join(__dirname, '..', '..', 'doppler'),
-  path.join(__dirname, '..', 'node_modules', 'doppler-gpu'),
+  path.join(__dirname, '..', 'node_modules', 'dopplerx'),
   path.join(__dirname, '..', 'doppler')
 ];
 const dopplerRootDir = candidateDopplerDirs.find((dir) => fs.existsSync(dir)) || candidateDopplerDirs[0];

@@ -57,7 +57,7 @@ it('uses the shared client with the actual native metadata worker without import
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-client-boundary-'));
   try {
     const source = path.join(root, 'source'); await fs.mkdir(path.join(source, 'src'), { recursive: true });
-    await fs.writeFile(path.join(source, 'package.json'), JSON.stringify({ name: 'doppler-gpu', version: '0.0.0', type: 'module' }));
+    await fs.writeFile(path.join(source, 'package.json'), JSON.stringify({ name: 'dopplerx', version: '0.0.0', type: 'module' }));
     await fs.writeFile(path.join(source, 'src/partitions.js'), 'throw new Error("runtime must not import in metadata test");');
     const weights = Uint8Array.of(1, 2, 3, 4), manifest = JSON.stringify({ modelId: 'metadata-only', hashAlgorithm: 'sha256',
       shards: [{ filename: 'weights.bin', size: 4, hash: hash(weights) }] });

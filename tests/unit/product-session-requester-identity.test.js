@@ -3,7 +3,7 @@
 // the signaling mesh, WebRTC transport, identity storage, model-file IO and the peer-offer tab lock are
 // injected. Numerical outputs are fixture data, never evidence of physical inference.
 import { afterEach, expect, it, vi } from 'vitest';
-import * as runtime from 'doppler-gpu/partitions';
+import * as runtime from 'dopplerx/partitions';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createResidentPartition } from '../../packages/reploid/src/mesh/index.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';

@@ -80,7 +80,7 @@ try {
       dependencies: { reploid: 'file:' + archive }
     }, null, 2));
     await command('npm-install', 'npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--legacy-peer-deps'], consumer);
-    await assert.rejects(access(path.join(consumer, 'node_modules/doppler-gpu/package.json')), { code: 'ENOENT' });
+    await assert.rejects(access(path.join(consumer, 'node_modules/dopplerx/package.json')), { code: 'ENOENT' });
     manifest = JSON.parse(await readFile(path.join(consumer, 'node_modules/reploid/package.json'), 'utf8'));
     return { package: manifest.name, version: manifest.version, optionalDopplerPeerInstalled: false };
   });
@@ -193,12 +193,12 @@ try {
       await writeFile(path.join(directory, 'package.json'), JSON.stringify({
         ...dopplerFixture, dependencies: {
           ...dopplerFixture.dependencies,
-          'doppler-gpu': pin.spec.startsWith('file:') ? 'file:' + archive : expectedVersion,
+          'dopplerx': pin.spec.startsWith('file:') ? 'file:' + archive : expectedVersion,
           reploid: 'file:' + report.archive.path
         }
       }, null, 2));
       await command('npm-install-doppler', 'npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund'], directory);
-      const installedDoppler = JSON.parse(await readFile(path.join(directory, 'node_modules/doppler-gpu/package.json'), 'utf8'));
+      const installedDoppler = JSON.parse(await readFile(path.join(directory, 'node_modules/dopplerx/package.json'), 'utf8'));
       assert.equal(installedDoppler.version, expectedVersion);
       const typePackages = {};
       for (const name of dopplerFixture.reploidAcceptance.types) {
@@ -219,7 +219,7 @@ try {
         const code = `
           import assert from 'node:assert/strict';
           import { createDopplerProvider, openDopplerProvider } from 'reploid/doppler';
-          import { openCapsule } from 'doppler-gpu';
+          import { openCapsule } from 'dopplerx';
           for (const api of [createDopplerProvider, openDopplerProvider, openCapsule]) assert.equal(typeof api, 'function');
           console.log(JSON.stringify({ publicExports: true, modelExecution: false }));
         `;

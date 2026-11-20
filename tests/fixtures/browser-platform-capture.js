@@ -17,7 +17,7 @@ try {
   const page = await context.newPage();
   page.on('pageerror', error => console.error(error.message));
   await page.goto('http://localhost:8000/config/chat-files.json');
-  const observer = await observeBrowserNumerics(page, 'node_modules/doppler-gpu', { countEmbeddings: true });
+  const observer = await observeBrowserNumerics(page, 'node_modules/dopplerx', { countEmbeddings: true });
   const result = await page.evaluate(async reference => {
     const config = await import('/config/doppler-local-models.js');
     const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);

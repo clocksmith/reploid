@@ -18,7 +18,7 @@ async function fixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-runtime-source-')); roots.push(root);
   const directory = path.join(root, 'runtime');
   await fs.mkdir(path.join(directory, 'src'), { recursive: true });
-  await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify({ name: 'doppler-gpu', version: 'test', type: 'module' }));
+  await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify({ name: 'dopplerx', version: 'test', type: 'module' }));
   await fs.writeFile(path.join(directory, 'src/state.js'), 'export const state = { budget: 0 };');
   await fs.writeFile(path.join(directory, 'src/partitions.js'), `import { state } from './state.js';
     globalThis.__nativeSourceImported = true;

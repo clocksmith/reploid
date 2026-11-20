@@ -4,7 +4,7 @@ import { requireValue } from './native-host-utils.js';
  * process. Final close follows resident settlement; stopping contribution alone
  * keeps the provider reusable. No private Doppler imports are needed. */
 export function createNativeGpuHost(loadProvider, { backend = process.platform === 'darwin' ? 'metal' : 'vulkan',
-  loadTooling = () => import('doppler-gpu/tooling') } = {}) {
+  loadTooling = () => import('dopplerx/tooling') } = {}) {
   requireValue(['metal', 'vulkan'].includes(backend), 'Native GPU backend must be metal or vulkan');
   let opening = null, closing = null, restore = null, retirement = null, stopped = false;
   let ownedDevice = null, lost = null, queueSettled = false, queueRejected = false, lossResolved = false, poolDestroyed = false, deviceDestroyed = false;

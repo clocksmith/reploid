@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
-import * as installed from 'doppler-gpu/partitions';
+import * as installed from 'dopplerx/partitions';
 import { openDiagnosticModelSource } from '../fixtures/native-diagnostic-source.js';
 import { inspectDiagnosticModel, openDiagnosticWholeModel } from '../fixtures/native-diagnostic-whole.js';
 

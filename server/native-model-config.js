@@ -34,7 +34,7 @@ export function catalogWholeRuntime(model, stateDirectory) {
 }
 
 export async function readNativeModelConfiguration(file, { modelId, modelDirectory, models = [],
-  loadRuntime = () => import('doppler-gpu/partitions') }) {
+  loadRuntime = () => import('dopplerx/partitions') }) {
   requireValue(path.isAbsolute(file), 'Native model configuration requires an absolute JSON path');
   const configuration = JSON.parse(await fs.readFile(file, 'utf8'));
   requireValue(configuration?.schema === 'reploid.native-model/v1'

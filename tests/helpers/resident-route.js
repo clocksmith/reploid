@@ -5,7 +5,7 @@
 // requester's contract (approval with the route's exact recipients, executing state with the
 // route identity, activity, deltas, the summary on success and the route's error otherwise).
 // Proves orchestration, admission and settlement records, not GPU execution or model quality.
-import * as codecs from 'doppler-gpu/partitions';
+import * as codecs from 'dopplerx/partitions';
 
 import { canonicalPartitionRoute } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';

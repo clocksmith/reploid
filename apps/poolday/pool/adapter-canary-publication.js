@@ -87,7 +87,7 @@ export function validateAdapterCanaryPublication(publication = {}) {
   requireText(reasons, publication.baseModel?.artifactIdentity?.manifestVariantId, 'adapter canary base manifestVariantId');
   requireHash(reasons, publication.baseModel?.artifactIdentity?.conversionConfigDigest, 'adapter canary base conversionConfigDigest');
 
-  if (publication.runtime?.packageName !== 'doppler-gpu') reasons.push('adapter canary runtime packageName must be doppler-gpu');
+  if (publication.runtime?.packageName !== 'dopplerx') reasons.push('adapter canary runtime packageName must be dopplerx');
   if (!PACKAGE_VERSION.test(String(publication.runtime?.packageVersion || ''))) reasons.push('adapter canary runtime packageVersion is invalid');
   if (!String(publication.runtime?.packageIntegrity || '').startsWith('sha512-')) reasons.push('adapter canary runtime packageIntegrity is required');
   requireText(reasons, publication.runtime?.moduleUrl, 'adapter canary runtime moduleUrl');

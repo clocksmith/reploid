@@ -7,8 +7,8 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
-import { inspectDeviceMemory } from 'doppler-gpu/partitions';
-import { getDevice, getKernelCapabilities } from 'doppler-gpu/tooling/device';
+import { inspectDeviceMemory } from 'dopplerx/partitions';
+import { getDevice, getKernelCapabilities } from 'dopplerx/tooling/device';
 import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
 import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
@@ -330,7 +330,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   const gpu = createNativeGpuHost(loadGpu), credits = config.serviceUrl ? createFleetClient({ url: config.serviceUrl, identity, ca: serviceCa,
     outboxFile: path.join(path.dirname(config.identityFile), 'service-credit-outbox.json') }) : null;
   const owner = config.ownerPolicyFile ? await openNativeOwnerControls({ file: config.ownerPolicyFile, custody: custodyPolicy,
-    readGpuBuffers: async () => (await import('doppler-gpu/partitions')).inspectDeviceMemory() }) : null;
+    readGpuBuffers: async () => (await import('dopplerx/partitions')).inspectDeviceMemory() }) : null;
   const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
     : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
   let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;

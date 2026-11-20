@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { constants, runInThisContext } from 'node:vm';
 import { pathToFileURL } from 'node:url';
-import * as legacy from 'doppler-gpu/partitions';
+import * as legacy from 'dopplerx/partitions';
 import fixture from '../fixtures/paired-activation-contract.json' with { type: 'json' };
 import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
 import { createPartitionPeer } from '../../packages/reploid/src/mesh/partitions/partition-peer.js';

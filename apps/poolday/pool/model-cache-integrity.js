@@ -1,7 +1,7 @@
 /**
  * @fileoverview Fail-closed verification of Doppler's browser-persistent model cache.
  *
- * Reploid uses only the public doppler-gpu/tooling/storage contract. The
+ * Reploid uses only the public dopplerx/tooling/storage contract. The
  * browser runtime remains responsible for cache layout and IO.
  */
 

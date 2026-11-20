@@ -1,5 +1,5 @@
 // Installed public Doppler with injected logits, real WebRTC, signatures and IndexedDB.
-import * as api from 'doppler-gpu';
+import * as api from 'dopplerx';
 import { createReploidDopplerRuntimeService } from '../../shared/infrastructure/doppler-runtime-service.js';
 import { createPackPeerProvider } from '../../apps/poolday/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../apps/poolday/pool/peer-pack-requester.js';

@@ -4,7 +4,7 @@ import { abortable } from '../cancellation.js';
 import choiceDefinition from './doppler-choice.json' with { type: 'json' };
 import { createDopplerStreamAccumulator, dopplerOperationEvents } from './doppler-session.js';
 
-const loadDopplerRuntime = runtime => runtime ?? import('doppler-gpu');
+const loadDopplerRuntime = runtime => runtime ?? import('dopplerx');
 
 // Public session calls applications share; importable alone without the lazy runtime import below.
 export * from './doppler-session.js';

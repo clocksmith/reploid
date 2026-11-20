@@ -25,18 +25,18 @@ describe('peer diagnostic shipping boundary', () => {
       put(`archive/package/${excluded}`, readFileSync(`tests/fixtures/peers/pooled/${profile}`));
       put('archive/package/src/config/kernels/registry.json', registry);
       put('archive/package/src/version.js', "export const DOPPLER_VERSION = '0.0.1';");
-      put('archive/package/package.json', JSON.stringify({ name: 'doppler-gpu', version: '0.0.1' }));
+      put('archive/package/package.json', JSON.stringify({ name: 'dopplerx', version: '0.0.1' }));
       put('scripts/vendor-doppler.js', readFileSync('scripts/vendor-doppler.js'));
       put('scripts/doppler-browser-assets.json', readFileSync('scripts/doppler-browser-assets.json'));
       put('package.json', JSON.stringify({ type: 'module', dependencies: {
-        'doppler-gpu': 'file:deploy/artifacts/doppler-gpu-0.0.1.tgz'
+        'dopplerx': 'file:deploy/artifacts/doppler-gpu-0.0.1.tgz'
       } }));
       mkdirSync(path.join(root, 'shared/config'), { recursive: true });
       mkdirSync(path.join(root, 'deploy/artifacts'), { recursive: true });
       const archive = path.join(root, 'deploy/artifacts/doppler-gpu-0.0.1.tgz');
       const pack = () => {
         execFileSync('tar', ['-czf', archive, '-C', path.join(root, 'archive'), 'package']);
-        put('package-lock.json', JSON.stringify({ packages: { 'node_modules/doppler-gpu': {
+        put('package-lock.json', JSON.stringify({ packages: { 'node_modules/dopplerx': {
           version: '0.0.1', integrity: 'sha512-' + createHash('sha512').update(readFileSync(archive)).digest('base64')
         } } }));
       };

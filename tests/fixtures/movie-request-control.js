@@ -24,7 +24,7 @@ const manifest = JSON.parse(manifestText);
 const { createNativeGpuHost } = await fromSnapshot('server/native-participant.js');
 const { createReploidDopplerRuntimeService } = await fromSnapshot('shared/infrastructure/doppler-runtime-service.js');
 const { openWorkProvider } = await fromSnapshot('apps/poolday/providers/work-provider.js');
-const runtime = await fromSnapshot('node_modules/doppler-gpu/src/index.js');
+const runtime = await fromSnapshot('node_modules/dopplerx/src/index.js');
 const profile = await load(resolve(contract.snapshot, 'apps/poolday/config/work-profile.json'));
 const generation = runtime.resolveGenerationOptions({ ...profile.generation, ...model.generation,
   maxTokens: contract.maxTokens, maxSeqLen: contract.maxSeqLen });

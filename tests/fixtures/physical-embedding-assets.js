@@ -16,7 +16,7 @@ export async function physicalEmbeddingAssets(filename) {
   const capsule = JSON.parse(await readFile(config.capsulePath, 'utf8'));
   const configuration = { config: { ...config, capsuleFilename: path.basename(config.capsulePath) },
     reference, capsule, expectedReferenceDigest: config.application.oracle.digest, runtimePackage: receipt.package };
-  const runtimeRoot = path.join(config.packageBundlePath, 'consumer/node_modules/doppler-gpu');
+  const runtimeRoot = path.join(config.packageBundlePath, 'consumer/node_modules/dopplerx');
   const capsuleRoot = path.dirname(config.capsulePath);
   return { configuration, serve(pathname, response) {
     if (pathname === '/physical/config.json') {

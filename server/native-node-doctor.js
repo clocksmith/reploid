@@ -13,7 +13,7 @@ export function readHostMemory() {
 }
 
 async function checkRuntime() {
-  const entry = createRequire(import.meta.url).resolve('doppler-gpu/partitions');
+  const entry = createRequire(import.meta.url).resolve('dopplerx/partitions');
   const directory = await installedPackageDirectory(entry, dopplerPin.name);
   const { version } = JSON.parse(await readFile(path.join(directory, 'package.json'), 'utf8'));
   if (version !== dopplerPin.version) throw Error(`found ${version}; this package requires ${dopplerPin.version}`);

@@ -40,7 +40,7 @@ const report = { schema: 'reploid.installed-choice-peer-browser/v1', passed: fal
   archiveSha256: await sha(archivePath), capsuleSha256: await sha(resolve(capsule, 'capsule.json')),
   qualificationSha256: await sha(referencePath), executionClass: 'real-webgpu-real-webrtc-weightless-requester',
   physicalMachines: 1, publicRelease: false };
-const imports = Object.fromEntries(['.', './host'].map(key => ['doppler-gpu' + (key === '.' ? '' : '/host'),
+const imports = Object.fromEntries(['.', './host'].map(key => ['dopplerx' + (key === '.' ? '' : '/host'),
   '/installed/' + (metadata.exports[key].browser ?? metadata.exports[key].import).slice(2)]));
 imports['reploid/doppler'] = '/reploid/' + library.exports['./doppler'].import.slice(2);
 const mappings = [['/installed/', doppler], ['/reploid/', reploid], ['/capsule/', capsule], ['/self/', resolve(root, 'self')], ['/tests/fixtures/', resolve(root, 'tests/fixtures')]];
@@ -145,7 +145,7 @@ try {
     console.log(JSON.stringify({ stage: 'opening-signed-capsule-from-peers', originBlocked: true }));
     prepared = await provider.evaluate(async input => {
       window.custodyStore = await window.custody.createStore(input.custody);
-      const host = await import('doppler-gpu/host');
+      const host = await import('dopplerx/host');
       const session = await host.openCapsule(input.envelope, { artifactStore: window.custodyStore,
         trustedSigners: { 'local-choice-acceptance': input.publicKey }, requiredOperations: ['scoreChoices'] });
       return window.fixture.start({ role: 'provider', preparedSession: session });

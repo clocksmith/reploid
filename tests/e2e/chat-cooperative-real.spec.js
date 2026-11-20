@@ -7,7 +7,7 @@ import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
+import { createLayerPartitionPlan } from 'dopplerx/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, measureStandaloneGeneration, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';

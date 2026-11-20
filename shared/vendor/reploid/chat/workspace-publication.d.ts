@@ -1,4 +1,4 @@
-/** Model types are inferred from the explicitly injected doppler-gpu/partitions
+/** Model types are inferred from the explicitly injected dopplerx/partitions
  * module; this owner defines only conversation transaction requirements.
  * Canonical records need Doppler's validators; ordinary ordered records need only
  * its metadataDigest. */

@@ -18,7 +18,7 @@ for (const entry of delivery.entries) {
   assert(!entry.path.startsWith('/') && !entry.path.split('/').includes('..'));
   assert.equal(hash(await readFile(resolve(app, entry.path))), entry.sha256, `Native application file changed: ${entry.path}`);
 }
-const runtimeRoot = await realpath(resolve(app, 'node_modules/doppler-gpu'));
+const runtimeRoot = await realpath(resolve(app, 'node_modules/dopplerx'));
 const verified = await verifyNumericalTestDelivery({ ...config.testDelivery, runtimeDirectory: runtimeRoot });
 const requireInstalled = createRequire(resolve(app, 'package.json'));
 assert.equal(config.providerModule, 'webgpu', 'This fixture qualifies the explicitly selected Dawn provider only');

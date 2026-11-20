@@ -4,9 +4,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { resolveGenerationOptions } from 'doppler-gpu/generation-contract';
-import { createDopplerRun } from 'doppler-gpu';
-import { createResidentPartitionFactory, hashLayerPartitionPlan } from 'doppler-gpu/partitions';
+import { resolveGenerationOptions } from 'dopplerx/generation-contract';
+import { createDopplerRun } from 'dopplerx';
+import { createResidentPartitionFactory, hashLayerPartitionPlan } from 'dopplerx/partitions';
 import { createResidentPartition } from '../../packages/reploid/src/mesh/index.js';
 import { portablePath } from '../../scripts/evidence-paths.js';
 
@@ -15,10 +15,10 @@ const fixture = JSON.parse(await fs.readFile(new URL('../../artifacts/partition-
 const pin = JSON.parse(await fs.readFile(new URL('../../shared/config/doppler-package.json', import.meta.url), 'utf8'));
 const archiveRelative = pin.resolved.startsWith('file:')
   ? pin.resolved.slice('file:'.length)
-  : `deploy/artifacts/doppler-gpu-${pin.version}.tgz`;
+  : `deploy/artifacts/${pin.name}-${pin.version}.tgz`;
 const archive = await fs.readFile(new URL('../../' + archiveRelative, import.meta.url));
 assert.equal('sha512-' + createHash('sha512').update(archive).digest('base64'), pin.integrity);
-const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.resolve('doppler-gpu'))), '..');
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.resolve('dopplerx'))), '..');
 const installed = relative => import(pathToFileURL(path.join(packageRoot, 'src', relative)).href);
 const [{ resolveResidentPartitionAllocation }, { computeCanonicalSha256 }] = await Promise.all([
   installed('inference/pipelines/text/resident-partition-contract.js'), installed('formats/canonical-hash.js')]);

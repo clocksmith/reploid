@@ -5,12 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
-import * as runtime from 'doppler-gpu/partitions';
+import * as runtime from 'dopplerx/partitions';
 import { normalizeNativeDataChannel, openNativeModelSource, openNativePartition, createNativeGpuHost, createNativeShutdown, createNativeParticipant } from '../../server/native-participant.js';
 
 const gpu = vi.hoisted(() => ({ device: null, order: [] }));
-vi.mock('doppler-gpu/partitions', async importOriginal => ({ ...(await importOriginal()), canonicalGenerationIdentity: undefined }));
-vi.mock('doppler-gpu/tooling', () => ({ getDevice: () => gpu.device, destroyBufferPool: () => gpu.order.push('pool') }));
+vi.mock('dopplerx/partitions', async importOriginal => ({ ...(await importOriginal()), canonicalGenerationIdentity: undefined }));
+vi.mock('dopplerx/tooling', () => ({ getDevice: () => gpu.device, destroyBufferPool: () => gpu.order.push('pool') }));
 
 it('settles the provider after failed participant cleanup and shares overlapping stops', async () => {
   const order = [];

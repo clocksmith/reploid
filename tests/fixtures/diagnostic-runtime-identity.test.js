@@ -11,7 +11,7 @@ const runDiagnosticRuntimeIdentityCheck = async () => {
   const directory = path.join(root, 'source');
   try {
   await fs.mkdir(path.join(directory, 'src'), { recursive: true });
-  await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify({ name: 'doppler-gpu', version: '0.7.4', type: 'module' }));
+  await fs.writeFile(path.join(directory, 'package.json'), JSON.stringify({ name: 'dopplerx', version: '0.7.4', type: 'module' }));
   await fs.writeFile(path.join(directory, 'src/partitions.js'), 'throw new Error("Source must not execute during preflight");');
   await fs.symlink('partitions.js', path.join(directory, 'src/alias.js'));
   const expected = await inspectDiagnosticSource(directory);

@@ -16,7 +16,7 @@ import { LAUNCH_MODEL } from '../shared/pool/model-contract.js';
 import { ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA } from '../apps/poolday/pool/adapter-canary-publication.js';
 
 const packageLock = JSON.parse(await fs.readFile(new URL('../package-lock.json', import.meta.url), 'utf8'));
-const lockedDoppler = packageLock.packages?.['node_modules/doppler-gpu'];
+const lockedDoppler = packageLock.packages?.['node_modules/dopplerx'];
 if (lockedDoppler?.version !== DOPPLER_PACKAGE_VERSION || !String(lockedDoppler?.integrity || '').startsWith('sha512-')) {
   throw new Error(`package-lock.json must bind doppler-gpu@${DOPPLER_PACKAGE_VERSION} with sha512 integrity`);
 }
@@ -77,7 +77,7 @@ const sha256 = (value) => `sha256:${createHash('sha256').update(value).digest('h
 
 const runArtifactPreflight = async () => {
   const [registryResponse, manifestResponse] = await Promise.all([
-    fetch(`https://registry.npmjs.org/doppler-gpu/${DOPPLER_VERSION}`),
+    fetch(`https://registry.npmjs.org/dopplerx/${DOPPLER_VERSION}`),
     fetch(`${MODEL_URL}/manifest.json`)
   ]);
   if (!registryResponse.ok) throw new Error(`npm package metadata returned ${registryResponse.status}`);
@@ -344,7 +344,7 @@ const receipt = {
   },
   artifactPreflight,
   runtime: {
-    packageName: 'doppler-gpu',
+    packageName: 'dopplerx',
     packageVersion: DOPPLER_VERSION,
     packageIntegrity: DOPPLER_INTEGRITY,
     moduleUrl: MODULE_URL,

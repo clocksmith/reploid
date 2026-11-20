@@ -15,9 +15,9 @@ const consumer = process.env.DOPPLER_TEST_CONSUMER;
 assert(consumer, 'DOPPLER_TEST_CONSUMER must name the retained installed candidate consumer directory.');
 // Resolve with ESM conditions from the consumer: the public root has no CommonJS export.
 const entry = execFileSync(process.execPath,
-  ['--input-type=module', '-e', "process.stdout.write(import.meta.resolve('doppler-gpu'))"],
+  ['--input-type=module', '-e', "process.stdout.write(import.meta.resolve('dopplerx'))"],
   { cwd: consumer, encoding: 'utf8' }).trim();
-assert(entry.includes('/node_modules/doppler-gpu/'), 'Inference must use installed package bytes.');
+assert(entry.includes('/node_modules/dopplerx/'), 'Inference must use installed package bytes.');
 const api = await import(entry);
 assert.deepEqual(api.GENERATION_CONTRACT, DOPPLER_GENERATION_CONTRACT);
 // The producer signs this data before installation. The consumer needs no Doppler checkout.
