@@ -14,6 +14,13 @@
       "repoId": "clocksmith/rdrr",
       "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
       "path": "models/qwen-3-5-2b-q4k-ehaf16"
+    },
+    "qwen-3-8-27b-text-q4k-ef16-af32": {
+      "modelIdentity": "sha256:74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972",
+      "kind": "huggingface",
+      "repoId": "clocksmith/rdrr",
+      "revision": "03345c4dde66115b9d3e26dca3362ef2fb39220e",
+      "path": "models/qwen-3-8-27b-text-q4k-ef16-af32"
     }
   }
 }
