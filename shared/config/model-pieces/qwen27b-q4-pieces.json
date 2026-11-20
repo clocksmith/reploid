@@ -1,6 +1,6 @@
 {
   "schema": "doppler.verified-pieces/v1",
-  "manifestIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+  "manifestIdentity": "sha256:74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972",
   "maxPieceBytes": 4194304,
   "files": [
     {

@@ -5,7 +5,7 @@ function fixture(lock = {}) {
   const models = [
     { id: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', name: 'Target', identity: 's', provider: 'doppler' },
     { id: 'qwen-3-5-2b-q4k-ef16-af32', name: 'Alternative', identity: 'm', provider: 'doppler' },
-    { id: 'qwen3-8-27b-text-q4k-ehaf16', name: 'Imitator', identity: 'l', provider: 'doppler' }
+    { id: 'qwen-3-8-27b-text-q4k-ef16-af32', name: 'Imitator', identity: 'l', provider: 'doppler' }
   ];
   let notify, peers = [];
   const data = new Map(), storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };

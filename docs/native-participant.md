@@ -90,8 +90,20 @@ equals the catalog's hash. Both were reissued under these names on 2026-11-20
 over the same weights, so the repository directories still carry the earlier
 names (`models/qwen-3-5-2b-q4k-ehaf16`, `models/qwen-3-5-0-8b-q4k-ehaf16`). The
 manifests stored at those revisions are older issues and are never read.
-`qwen-3-6-35b-a3b-text-source-q40-hq6k-af32` is not
-published at any origin and has no pin. Each piece is checked
+`qwen-3-6-35b-a3b-text-source-q40-hq6k-af32`,
+`qwen-3-8-27b-text-q4k-ef16-af32` and
+`qwen-3-8-flash-next-177b-text-source-q40-hq80-af32` are not published at any
+origin and have no pin: their weights come from a local directory or from peers.
+
+Every model in the catalog was reissued on 2026-11-20 under a name that
+describes its manifest. A reissue is a new manifest over the same weights, so
+it has a new identity; the catalog entry lists what it replaces (`supersedes`).
+The earlier name still selects the model. Without a directory of its own the
+model uses the weights directory of the earlier name, and a directory that
+holds the earlier manifest is adopted: each file is used only after its whole
+hash matches, nothing is downloaded for files that match, and the manifest is
+replaced last. After that the directory holds the new manifest, and Reploid
+0.1.4 and earlier refuse it as another model. Each piece is checked
 against the catalog's pinned piece index, each assembled shard against the
 manifest's SHA-256 and each other file against the catalog. A file is written as
 `<name>.partial` and renamed only after its whole hash matches; the manifest is
@@ -112,10 +124,10 @@ lists that file. Published under the name `reploid`, the command above
 becomes `npx reploid qwen-3-5-2b-q4k-ef16-af32` with no checkout. The example names
 2B because the fleet supplies it; a model with no supplier online starts and
 waits. `--omit-model <catalog id>` (repeatable) leaves a model and its bundled
-files out of a delivery; the publishable build omits
-`qwen3-8-27b-text-q4k-ehaf16`, whose content-addressed manifest names a home
-directory and whose identity a live provider uses, so it cannot be re-issued
-in place. Checked: the built package
+files out of a delivery. Reploid 0.1.3 and 0.1.4 omitted the 27B, whose manifest
+named a home directory; it was reissued on 2026-11-20 as
+`qwen-3-8-27b-text-q4k-ef16-af32` over the same 254 shards, with the upstream
+checkpoint as its source, and no model is omitted now. Checked: the built package
 installs, and its three commands start through npm's links (help text and
 argument expansion). On 2026-11-11 the package built from `65a2a7339`, run as
 `reploid qwen-3-5-2b-q4k-ehaf16` (the 2B's name at the time) on one Linux x64 host (Intel integrated GPU,
@@ -180,7 +192,7 @@ Doppler package (0.6.36 or newer with the manifest-driven plan API).
 ```json
 {
   "schema": "reploid.native-model/v1",
-  "model": "qwen3-8-27b-text-q4k-ehaf16",
+  "model": "qwen-3-8-27b-text-q4k-ef16-af32",
   "partition": {
     "splitLayers": [32],
     "activationDtype": "f32",
@@ -215,7 +227,7 @@ Use the same model JSON on every contributor and requester. Supply a separate
 ```json
 {
   "stage": {
-    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+    "modelId": "qwen-3-8-27b-text-q4k-ef16-af32",
     "index": 0,
     "residentId": "operator-stage-zero",
     "executionId": "operator-program-zero"

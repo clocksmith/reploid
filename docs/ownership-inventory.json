@@ -1681,12 +1681,6 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json",
-      "source": "shared/config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json",
-      "owner": "shared",
-      "basis": "Reached from native hosts and browser entries."
-    },
-    {
       "served": "config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
       "source": "shared/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
       "owner": "shared",
@@ -1699,20 +1693,26 @@
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
+      "served": "config/model-manifests/74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972.json",
+      "source": "shared/config/model-manifests/74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972.json",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
       "served": "config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "source": "shared/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json",
       "owner": "shared",
       "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
-      "served": "config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
-      "source": "shared/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
+      "served": "config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json",
+      "source": "shared/config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
     },
     {
-      "served": "config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
-      "source": "shared/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json",
+      "served": "config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
+      "source": "shared/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
     },

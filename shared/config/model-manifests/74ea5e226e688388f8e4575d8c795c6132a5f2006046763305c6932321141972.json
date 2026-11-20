@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "modelId": "qwen-3-8-27b-text-q4k-ef16-af32",
   "modelType": "transformer",
   "quantization": "Q4_K_M",
   "quantizationInfo": {
@@ -13,9 +13,9 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:6c8f0e935ce9da61a9bd7451381cee1d99dc1b154673b5c8391e5aa6207846f4",
-    "conversionConfigPath": "src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
-    "manifestVariantId": "qwen3-8-27b-text-q4k-ehaf16-mv-b99eab5e47e5",
+    "conversionConfigDigest": "sha256:c1bd325c01ab52803e6e57b9417bb24b1b154c1e376eb66199a1e0ab0028174d",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-8-27b-text-q4k-ef16-af32.json",
+    "manifestVariantId": "qwen-3-8-27b-text-q4k-ef16-af32-mv-64225426826c",
     "materializationProfile": "auto",
     "modalitySet": [
       "text"
@@ -19865,12 +19865,16 @@
   "video_token_id": 248057,
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/deco/doppler/models/source/qwen3.8-27b",
+    "source": "Qwen/Qwen3.8-27B",
     "convertedAt": "2026-08-23T02:31:11.445Z",
     "hasTokenizer": true,
     "integrityMigration": {
       "previousManifestIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
       "reason": "Replace incorrect legacy BLAKE3 shard digests with measured SHA256; bind kernels to Doppler 0.6.33. Weight and tokenizer bytes unchanged."
+    },
+    "manifestRefresh": {
+      "at": "2026-11-20T02:31:19.219Z",
+      "config": "qwen-3-8-27b-text-q4k-ef16-af32.json"
     }
   },
   "tokenizer": {

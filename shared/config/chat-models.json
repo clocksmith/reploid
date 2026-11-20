@@ -140,9 +140,19 @@
     "adapters": []
   },
   {
-    "id": "qwen3-8-27b-text-q4k-ehaf16",
+    "id": "qwen-3-8-27b-text-q4k-ef16-af32",
     "name": "Qwen 3.8 27B",
-    "identity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+    "identity": "sha256:74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972",
+    "supersedes": [
+      {
+        "id": "qwen3-8-27b-text-q4k-ehaf16",
+        "identity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06"
+      },
+      {
+        "id": "qwen3-8-27b-text-q4k-ehaf16",
+        "identity": "sha256:96215d144f3351d6131afa6d68b381835d16c45aaa4b8169955ccb3bc3f0e1df"
+      }
+    ],
     "provider": "doppler",
     "contextLength": 4096,
     "quantization": "q4k",
@@ -263,10 +273,10 @@
         {
           "path": "manifest.json",
           "role": "model-manifest",
-          "sizeBytes": 563614,
+          "sizeBytes": 563715,
           "hashAlgorithm": "sha256",
-          "hash": "e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
-          "url": "/config/model-manifests/e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06.json"
+          "hash": "74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972",
+          "url": "/config/model-manifests/74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972.json"
         },
         {
           "path": "tokenizer.json",
@@ -280,14 +290,14 @@
           "role": "model-piece-index",
           "sizeBytes": 979941,
           "hashAlgorithm": "sha256",
-          "hash": "fb840db2365527a8e8551005c47527db9c54e2b407a4377e61ecc46b27b27af8",
+          "hash": "39e5875b09b06f4100468abe43eea11552616d7b3ed7540c1ddf056e571e50fb",
           "url": "/config/model-pieces/qwen27b-q4-pieces.json"
         }
       ]
     },
     "partitionPlan": {
       "schema": "doppler.layer-partition-contract/v3",
-      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelId": "qwen-3-8-27b-text-q4k-ef16-af32",
       "totalLayers": 64,
       "hiddenSize": 5120,
       "vocabSize": 248320,
@@ -355,7 +365,7 @@
         }
       ]
     },
-    "partitionPlanId": "sha256:b16f75916a28265354eb89ac2260d100fe44e2083e2f014f2aa1d0a2903dda7b",
+    "partitionPlanId": "sha256:a000b91dd404ff328a0deaa2f5e3ff89b5c73c9a93001d1870c145df4fdd882c",
     "partitionRuntime": {
       "maxGpuBufferBytes": [
         6442450944,
@@ -5019,9 +5029,15 @@
     }
   },
   {
-    "id": "flash-peer-effective-q8-v2",
+    "id": "qwen-3-8-flash-next-177b-text-source-q40-hq80-af32",
     "name": "Qwen 3.8 Flash-Next",
-    "identity": "sha256:12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5",
+    "identity": "sha256:93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d",
+    "supersedes": [
+      {
+        "id": "flash-peer-effective-q8-v2",
+        "identity": "sha256:12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5"
+      }
+    ],
     "provider": "doppler",
     "contextLength": 2048,
     "quantization": "q4_0",
@@ -11235,10 +11251,10 @@
         {
           "path": "manifest.json",
           "role": "model-manifest",
-          "sizeBytes": 483799,
+          "sizeBytes": 483823,
           "hashAlgorithm": "sha256",
-          "hash": "12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5",
-          "url": "/config/model-manifests/12f0ddbc8ecf5944b6aadbca6a2f1ac22d45b7fccaafc9bc9bea36a202c4b5a5.json"
+          "hash": "93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d",
+          "url": "/config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json"
         },
         {
           "path": "tokenizer.json",
@@ -11252,8 +11268,8 @@
           "role": "model-piece-index",
           "sizeBytes": 62964289,
           "hashAlgorithm": "sha256",
-          "hash": "938c5ee1b14f573f4c4453ba24f442f39e2ebe866fb59220473fd5b5796c6ffa",
-          "url": "https://huggingface.co/clocksmith/rdrr/resolve/bb4bc7fda30c1863e415846753dc4f58af0b08b9/models/flash-peer-effective-q8-v2/indexes/938c5ee1b14f573f4c4453ba24f442f39e2ebe866fb59220473fd5b5796c6ffa/pieces.json"
+          "hash": "d0d0d7689266fda8987380b9a464dcb5de589377a15ec52d96081da6bb780e47",
+          "url": "https://huggingface.co/clocksmith/rdrr/resolve/7d6a06ecd6c4316befd5b132f6387dd2196c090b/models/qwen-3-8-flash-next-177b-text-source-q40-hq80-af32/indexes/d0d0d7689266fda8987380b9a464dcb5de589377a15ec52d96081da6bb780e47/pieces.json"
         }
       ]
     }

@@ -17,6 +17,9 @@ describe('reploid <model>: the short native command', () => {
     expect(nativeCommand(['serve', 'qwen-3-5-2b-q4k-ehaf16']).args[0]).toBe(DEFAULT_MODEL);
     expect(nativeCommand(['qwen-3-6-35b-a3b-text-source-q4_0-af32', '--connect-only']).args[0]).toBe('qwen-3-6-35b-a3b-text-source-q40-hq6k-af32');
     expect(() => nativeCommand(['serve', 'qwen-3-5-2b-q4k-ehaf17'])).toThrow(/Unknown model/);
+    expect(nativeCommand(['serve', 'flash']).args[0]).toBe('qwen-3-8-flash-next-177b-text-source-q40-hq80-af32');
+    expect(nativeCommand(['serve', 'flash-peer-effective-q8-v2']).args[0]).toBe('qwen-3-8-flash-next-177b-text-source-q40-hq80-af32');
+    expect(nativeCommand(['serve', 'qwen3-8-27b-text-q4k-ehaf16']).args[0]).toBe(nativeCommand(['serve', '27b']).args[0]);
     const models = [{ id: 'new-name', supersedes: [{ id: 'old-name', identity: 'sha256:0' }] }, { id: 'plain' }];
     const directory = present => {
       const args = nodeArguments(['new-name'], { home: '/h', models, exists: file => present.includes(file) }).args;
@@ -107,7 +110,7 @@ describe('native command vocabulary', () => {
     expect(() => nativeCommand(['serve', 'typo'])).toThrow('reploid models');
     const listing = nativeCommand(['models']).text;
     expect(listing).toContain('GB of files');
-    expect(listing).toMatch(/flash-peer-effective-q8-v2\s+107\.0\s+solo\s/);
+    expect(listing).toMatch(/qwen-3-8-flash-next-177b-text-source-q40-hq80-af32\s+107\.0\s+solo\s/);
     expect(nativeCommand(['help', 'split']).text).toContain('--room-token-file');
     expect(nativeCommand(['help', 'options']).text).toContain('--owner-policy');
   });

@@ -2,7 +2,7 @@
   "kind": "runtime-model",
   "sourceFormat": "gguf",
   "version": 1,
-  "modelId": "flash-peer-effective-q8-v2",
+  "modelId": "qwen-3-8-flash-next-177b-text-source-q40-hq80-af32",
   "modelType": "transformer",
   "quantization": "Q4_0",
   "hashAlgorithm": "sha256",

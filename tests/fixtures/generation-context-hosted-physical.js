@@ -6,7 +6,7 @@ import { readChatWorkspace } from './chat-workspace-history.js';
 
 const [url, output] = process.argv.slice(2);
 assert(url && output && process.env.REPLOID_CONTEXT_PHYSICAL === '1', 'Explicit URL, receipt and physical opt-in required');
-const modelId = 'qwen3-8-27b-text-q4k-ehaf16';
+const modelId = 'qwen-3-8-27b-text-q4k-ef16-af32';
 const catalog = JSON.parse(await fs.readFile(new URL('../../shared/config/chat-models.json', import.meta.url)));
 const expectedIdentity = catalog.find(model => model.id === modelId)?.identity;
 assert(expectedIdentity, 'The exact test model must exist in the catalog');

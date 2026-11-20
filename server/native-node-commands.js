@@ -22,8 +22,9 @@ const commands = {
 const shortNames = {
   'qwen-3-5-0-8b-q4k-ef16-af32-vf16': '0.8b',
   'qwen-3-5-2b-q4k-ef16-af32': '2b',
-  'qwen3-8-27b-text-q4k-ehaf16': '27b',
+  'qwen-3-8-27b-text-q4k-ef16-af32': '27b',
   'qwen-3-6-35b-a3b-text-source-q40-hq6k-af32': '35b',
+  'qwen-3-8-flash-next-177b-text-source-q40-hq80-af32': 'flash',
 };
 const canSplit = model => !model.executionModes || model.executionModes.includes('partition');
 const modelNames = models => models.flatMap(m => [shortNames[m.id], m.id].filter(Boolean));

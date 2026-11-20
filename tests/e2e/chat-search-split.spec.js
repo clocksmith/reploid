@@ -7,7 +7,7 @@ test('contributor search feeds a cited answer through the prepared 27B split', a
   const url = process.env.REPLOID_SEARCH_SPLIT_URL;
   test.skip(!url, 'Set REPLOID_SEARCH_SPLIT_URL for prepared search and split contributors');
   test.setTimeout(240000);
-  const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8')).find(row => row.id === 'qwen3-8-27b-text-q4k-ehaf16');
+  const model = JSON.parse(await readFile(resolveServedFile('config/chat-models.json'), 'utf8')).find(row => row.id === 'qwen-3-8-27b-text-q4k-ef16-af32');
   const context = await browser.newContext();
   const page = await context.newPage();
   const errors = [], permissions = [], weightRequests = [];

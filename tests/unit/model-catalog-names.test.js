@@ -15,8 +15,6 @@ const manifestOf = model => {
 // The tag a manifest stores keeps the format's own spelling (q4_0); a name writes it without the underscore.
 const nameSuffix = tag => String(tag).toLowerCase().replace(/q(\d)_(\d)/g, 'q$1$2').replace(/[^a-z0-9-]/g, '-');
 const tensorFormat = dtype => ({ q4_k_m: 'q4k', q5_k_m: 'q5k', q6_k: 'q6k' })[String(dtype).toLowerCase()] ?? String(dtype).toLowerCase();
-// Issued before the rule and not yet reissued. Remove an entry when its model is.
-const earlier = new Set(['qwen3-8-27b-text-q4k-ehaf16', 'flash-peer-effective-q8-v2']);
 
 describe('catalog model names', () => {
   it('uses lowercase letters, digits and single hyphens', () => {
@@ -28,10 +26,8 @@ describe('catalog model names', () => {
       const { bytes, manifest } = manifestOf(model);
       expect('sha256:' + createHash('sha256').update(bytes).digest('hex'), model.id).toBe(model.identity);
       expect(manifest.modelId, model.id).toBe(model.id);
-      if (earlier.has(model.id)) continue;
       expect(model.id.endsWith('-' + nameSuffix(manifest.quantizationInfo.variantTag)), `${model.id} against ${manifest.quantizationInfo.variantTag}`).toBe(true);
     }
-    for (const id of earlier) expect(catalog.some(model => model.id === id), `${id} is no longer in the catalog; remove it from this list`).toBe(true);
   });
 
   it('records a format that matches the stored type of the embedding and head tensors', () => {
@@ -52,14 +48,17 @@ describe('catalog model names', () => {
       // Rejoining after the rename: the earlier name must not have become a valid name of something else.
       expect(row.id).not.toBe(model.id);
     }
+    // A split plan carries the model's name, and its ID is the hash of the plan.
+    for (const model of catalog.filter(row => row.partitionPlan)) expect(model.partitionPlan.modelId, model.id).toBe(model.id);
     for (const [id, pin] of Object.entries(origins.origins)) {
       const model = catalog.find(row => row.id === id);
       expect(model?.identity, `origin pin ${id}`).toBe(pin.modelIdentity);
     }
   });
 
-  it('keeps paths of the converting machine out of the manifests it reissued', () => {
-    for (const model of catalog.filter(row => row.supersedes)) {
+  it('keeps paths of the converting machine out of every manifest', () => {
+    expect(catalog.every(row => row.supersedes?.length), 'every model was reissued under a conforming name').toBe(true);
+    for (const model of catalog) {
       const text = manifestOf(model).bytes.toString('utf8');
       expect(text.match(/file:|\/home\/|\/run\/media|\/Users\/|~\//g) ?? [], model.id).toEqual([]);
     }
