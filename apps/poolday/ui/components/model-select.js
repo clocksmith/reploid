@@ -1,3 +1,4 @@
+import { interfaceIcon } from './interface-icons.js';
 import { escapeHtml } from './attachments.js';
 
 let choiceId = 0;
@@ -167,7 +168,9 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
             row.dataset.choiceRow = entry.key;
             row.innerHTML = '<label class="chat-model-choice pool-button btn-ghost pool-choice"><input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small><small class="pool-muted" data-choice-note hidden></small></span></label>';
             row.querySelector('input').name = name;
-            if (onInspectProviders) row.insertAdjacentHTML('beforeend', '<button type="button" class="pool-button btn-ghost pool-caption" data-inspect-model-providers hidden></button>');
+            if (onInspectProviders) row.insertAdjacentHTML('beforeend', compact
+              ? `<button type="button" class="pool-button btn-ghost pool-icon" data-inspect-model-providers data-help="Computers" hidden>${interfaceIcon('peers')}</button>`
+              : '<button type="button" class="pool-button btn-ghost pool-caption" data-inspect-model-providers hidden></button>');
           }
           const label = row.querySelector('label');
           label.dataset.choiceKey = entry.key;
@@ -179,20 +182,21 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
           label.querySelector('[data-choice-name]').textContent = variants ? modelVariantLabel(model) : modelSelectionLabel(model);
           // Each family member reports its own availability, which may differ from its family's group.
           const described = describe?.(model) || {};
-          const statusGroup = ownGroup(model, preferNetwork, location);
+          const statusGroup = !compact && ownGroup(model, preferNetwork, location);
           const providerButton = row.querySelector('[data-inspect-model-providers]');
           const status = described.status ?? (grouped ? choiceStatus(model, statusGroup, !providerButton) : availabilityLabel(model));
-          const count = statusGroup === 'shared' && !model.fleet ? modelServingComputers(model) : 0;
+          const count = !model.fleet && (compact ? modelExecutionState(model, location).source === 'network'
+            : statusGroup === 'shared') ? modelServingComputers(model) : 0;
           if (providerButton) {
             providerButton.hidden = !count;
             providerButton.disabled = select.disabled;
             providerButton.dataset.inspectModelProviders = input.value;
-            providerButton.textContent = count ? `${status} · ${computerCountLabel(count)}` : '';
+            if (!compact) providerButton.textContent = count ? `${status} · ${computerCountLabel(count)}` : '';
             providerButton.setAttribute('aria-label', `View ${computerCountLabel(count)} serving ${modelVariantLabel(model)}`);
           }
           const statusNode = label.querySelector('[data-choice-status]');
           statusNode.textContent = status;
-          statusNode.classList.toggle('chat-visually-hidden', !!providerButton && count > 0);
+          statusNode.classList.toggle('chat-visually-hidden', !compact && !!providerButton && count > 0);
           const facts = compact ? '' : described.facts ?? modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
           factsNode.textContent = facts; factsNode.hidden = !facts;
           const noteNode = label.querySelector('[data-choice-note]');
@@ -204,9 +208,12 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
       for (const section of [...group.querySelectorAll('[data-choice-group]')]) {
         if (!parents.has(section.dataset.choiceGroup)) section.remove();
       }
-      if (active?.isConnected && document.activeElement !== active) active.focus({ preventScroll: true });
+      if (active?.isConnected && (active.hidden || document.activeElement !== active)) {
+        const target = active.hidden ? active.closest('[data-choice-row]')?.querySelector('input') : active;
+        target?.focus({ preventScroll: true });
+      }
     },
-    focus() { (group.querySelector(`input[name="${name}"]:checked`) || group.querySelector(`input[name="${name}"]`))?.focus(); },
+    focus(options) { (group.querySelector(`input[name="${name}"]:checked`) || group.querySelector(`input[name="${name}"]`))?.focus(options); },
     /** The checked choice's label, beneath which a caller may place that choice's details. */
     checkedChoice: () => [...group.querySelectorAll(`input[name="${name}"]`)].find(input => input.checked)?.closest('label') || null,
     dispose() {

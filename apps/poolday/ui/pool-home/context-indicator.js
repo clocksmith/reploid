@@ -35,26 +35,3 @@ export function projectContextIndicator(state, labelSession = state) {
   const placement = peers.length ? `${view.active ? 'Executing on' : 'Last execution on'} ${peers.map(node => node.label).join(', ')}.` : 'No execution placement reported.';
   return { text, percent, peers, title: `${usage}\n${placement}\nWorking KV-cache residency is not reported.`, active: view.active };
 }
-
-export function renderContextIndicator() {
-  return `<button class="chat-context-indicator pool-button btn-ghost pool-caption pool-muted" type="button" data-context-indicator aria-label="Context and execution details">${renderContextRing()}<span data-context-percent>—</span><svg data-context-peers height="12" aria-hidden="true" hidden></svg></button>`;
-}
-
-export function updateContextIndicator(root, state, labelSession) {
-  const value = projectContextIndicator(state, labelSession);
-  const button = root.querySelector('[data-context-indicator]');
-  if (!button) return;
-  button.hidden = value.percent === null && !value.peers.length && !state.activeThread?.attempts?.length;
-  button.title = value.title;
-  button.setAttribute('aria-label', `${value.text === '—' ? 'Context usage unavailable' : value.text + ' of model context'}. ${value.title}`);
-  root.querySelector('[data-context-percent]').textContent = value.text;
-  updateContextRing(button, value.percent);
-  const graph = root.querySelector('[data-context-peers]');
-  const nodes = value.peers.slice(0, 4), width = nodes.length * 16;
-  graph.toggleAttribute('hidden', !nodes.length);
-  graph.setAttribute('viewBox', `0 0 ${width || 16} 12`); graph.setAttribute('width', String(width));
-  const markup = nodes.map((node, index) => `${index ? `<path d="M${index * 16 - 4} 6h8"/>` : ''}${node.label === 'This device' ? `<rect x="${index * 16 + 4}" y="2" width="8" height="8" rx="1"/>` : `<circle cx="${index * 16 + 8}" cy="6" r="4"/>`}`).join('');
-  if (graph.innerHTML !== markup) graph.innerHTML = markup;
-  const detail = root.querySelector('[data-context-detail]');
-  if (detail) detail.textContent = value.title;
-}
