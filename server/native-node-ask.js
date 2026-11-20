@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { availablePartitionRoute, currentPartitionRoute, matchesPartitionDisclosure } from '../apps/poolday/host/partition-release.js';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000 } = {}) {
@@ -10,7 +11,7 @@ export async function askMesh(participant, model, prompt, { signal, report = con
       waiting.throwIfAborted();
       const eligible = (participant.getState().models || []).filter(candidate =>
         candidate.id === model.id && candidate.identity === model.identity && candidate.availability === 'ready'
-        && !candidate.adapters?.length);
+        && !candidate.adapters?.length && (!candidate.partition || participant.executionClass === 'private-pool' || availablePartitionRoute(candidate)));
       route = eligible.find(candidate => !candidate.partition) ?? eligible[0];
       if (route) break;
       await delay(200, undefined, { signal: waiting });
@@ -24,12 +25,19 @@ export async function askMesh(participant, model, prompt, { signal, report = con
   const result = await participant.generate({ model: route, threadId, attemptId, messages: [{ role: 'user', content: prompt }] }, {
     signal: AbortSignal.any([signal, AbortSignal.timeout(120000)]),
     requestApproval(preview) {
+      if (route.partition && (!matchesPartitionDisclosure(route.partition, preview)
+        || (participant.executionClass !== 'private-pool' && !currentPartitionRoute(route, participant.getState().models || [])))) return false;
       const recipients = preview.recipients ?? preview.input?.recipients;
       const messages = preview.input?.messages;
       if (preview.modelId !== model.id || preview.modelIdentity !== model.identity || preview.threadId !== threadId
         || preview.attemptId !== attemptId || preview.adapterIdentities?.length || !Array.isArray(recipients)
         || !recipients.length || !recipients.every(id => typeof id === 'string' && id.length)
         || messages?.length !== 1 || messages[0].role !== 'user' || messages[0].content !== prompt) return false;
+      if (route.partition) {
+        const stages = route.partition.route?.stages?.map(stage => stage.participantId)
+          ?? [route.partition.participantA, route.partition.participantB];
+        if (stages.some(id => !recipients.includes(id)) || recipients.some(id => id !== participant.identity && !stages.includes(id))) return false;
+      }
       report(`Sending to ${recipients.join(', ')} in ${participant.roomId}. Participating computers can read this request.`);
       return true;
     }
