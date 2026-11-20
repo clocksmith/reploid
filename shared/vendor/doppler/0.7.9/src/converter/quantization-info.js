@@ -3,6 +3,7 @@ import { validateW8A8Policy } from "../config/schema/manifest/w8a8.schema.js";
 
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/schema/index.js';
 import { classifyTensorRole } from '../formats/rdrr/index.js';
+import { variantNameSuffix } from './model-naming.js';
 
 // Default quantization tag when no explicit dtype is provided.
 // F16 is the canonical unquantized storage format for WebGPU inference.
@@ -19,8 +20,13 @@ const QUANT_TAG_ALIASES = {
   // Q4_0 variants
   'q4_0': 'q4_0',
   'q4-0': 'q4_0',
+  'q40': 'q4_0',
   'gguf-q4_0': 'q4_0',
   'gguf_q4_0': 'q4_0',
+  // The other plain GGUF block formats, by their name tokens.
+  'q41': 'q4_1',
+  'q50': 'q5_0',
+  'q80': 'q8_0',
   // Native Q5_K source storage (no new quantization encoder).
   'q5_k': 'q5k',
   'q5k': 'q5k',
@@ -129,6 +135,22 @@ export function normalizeQuantTag(value) {
   const lower = String(value).trim().toLowerCase();
   return QUANT_TAG_ALIASES[lower] ?? lower;
 }
+
+// Names (model IDs and their variant tags) use lowercase letters, digits and hyphens only; see
+// docs/style/model-naming.md. Manifest fields keep the GGUF spelling of a quantization, which for the plain
+// block formats carries an underscore, so those have a name token without it.
+const QUANT_NAME_TOKENS = Object.freeze({
+  'q4_0': 'q40',
+  'q4_1': 'q41',
+  'q5_0': 'q50',
+  'q8_0': 'q80',
+});
+
+export function quantNameToken(value) {
+  const normalized = normalizeQuantTag(value);
+  return QUANT_NAME_TOKENS[normalized] ?? normalized.replace(/_/g, '');
+}
+
 
 function validateQuantType(value, source) {
   if (!value) return;
@@ -281,7 +303,7 @@ export function resolveManifestQuantization(quantize, fallback) {
 }
 
 
-function buildVariantTag(info) {
+export function buildVariantTag(info) {
   const weights = info.weights;
   const embeddings = info.embeddings ?? weights;
   const lmHead = info.lmHead ?? embeddings;
@@ -569,7 +591,8 @@ export function resolveModelId(modelId, baseName, variantTag) {
 
   const base = modelId ? sanitize(modelId) : sanitize(baseName);
   if (!variantTag) return base;
-  return base.endsWith(variantTag) ? base : `${base}-${variantTag}`;
+  const tag = variantNameSuffix(variantTag);
+  return base.endsWith(tag) ? base : `${base}-${tag}`;
 }
 
 

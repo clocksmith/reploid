@@ -1,3 +1,4 @@
+import { assertCanonicalModelId, assertModelIdDescribesFormat } from './model-naming.js';
 import {
   EXECUTION_V1_SCHEMA_ID,
   expandExecutionV1,
@@ -286,9 +287,21 @@ export function resolveConvertedModelId(options) {
   const quantizationInfo = options?.quantizationInfo ?? null;
   const fallbackModelId = options?.fallbackModelId ?? null;
   const sanitizeOnly = options?.sanitizeOnly === true;
+  // Names are lowercase letters, digits and hyphens. A new ID that breaks the rule is refused here, on every
+  // path, before it is written into a manifest and becomes part of an identity. Where the model's format is
+  // known the name must also end with the suffix that format generates; only a direct-source runtime label,
+  // which names no published identity, is excused from that.
+  const accept = (modelId) => {
+    if (modelId === null) return null;
+    assertCanonicalModelId(modelId, 'Converted model ID');
+    if (quantizationInfo?.variantTag && !sanitizeOnly && options?.runtimeLabel !== true) {
+      assertModelIdDescribesFormat(modelId, quantizationInfo.variantTag, 'Converted model ID');
+    }
+    return modelId;
+  };
 
   if (explicitModelId) {
-    return sanitizeModelId(explicitModelId);
+    return accept(sanitizeModelId(explicitModelId));
   }
 
   const baseModelId = (
@@ -309,5 +322,5 @@ export function resolveConvertedModelId(options) {
         ? baseModelId
         : resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo?.variantTag)
     );
-  return sanitizeModelId(resolved);
+  return accept(sanitizeModelId(resolved));
 }
