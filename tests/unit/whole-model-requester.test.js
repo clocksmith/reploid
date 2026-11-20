@@ -1,4 +1,6 @@
 // @vitest-environment node
+import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
+import { resolvePartitionGeneration } from '../../apps/poolday/config/partition-generation.js';
 import { expect, it, vi } from 'vitest';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
@@ -187,8 +189,7 @@ it('does not let the recovery port mutate the identity used to accept a result',
 });
 
 function settingsFixture({ capabilities = [{ schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: false, outputSchema: false, thinking: false }],
-  dispatch = options => ({ settings: options.settings }), generated = 2 } = {}) {
-  const bounded = { ...model, generation: { maxTokens: 16 } };
+  dispatch = options => ({ settings: options.settings }), generated = 2, bounded = { ...model, generation: { maxTokens: 16 } } } = {}) {
   const controls = { signal: new AbortController().signal, requestApproval: vi.fn(async () => true), onDelta: vi.fn() };
   const mesh = {
     getSwarmSnapshot: () => ({ peers: capabilities.map((generationSettings, index) => ({ peerId: 'peer-' + index, model: bounded.id, modelIdentity: bounded.identity,
@@ -255,4 +256,43 @@ it('offers a setting when at least one ready provider advertises it, and refuses
 it('rejects a provider result that reports more output than the caller limit', async () => {
   const f = settingsFixture({ generated: 3 });
   await expect(f.requester.generate({ ...f.request, settings: { maxOutputTokens: 2 } }, f.controls)).rejects.toThrow('exceeded the caller output limit');
+});
+
+const defaultQwenRows = catalog.filter(row => /^qwen-3-5-(0-8b|2b)-/.test(row.id));
+
+it.each(defaultQwenRows)('admits a lower settings cap on the prepared default policy for $id', async bounded => {
+  expect(bounded).not.toHaveProperty('generation');
+  const f = settingsFixture({ bounded });
+  expect(f.requester.getModels()[0].generationSettings.maxOutputTokens).toBe(true);
+  const ceiling = resolvePartitionGeneration(bounded).maxTokens;
+  for (const maxOutputTokens of [2, ceiling]) {
+    await f.requester.generate({ ...f.request, settings: { maxOutputTokens } }, f.controls);
+    expect(f.controls.requestApproval.mock.lastCall[0].input.settings.maxOutputTokens).toBe(maxOutputTokens);
+  }
+  f.controls.requestApproval.mockClear();
+  f.mesh.generate.mockClear();
+  // Caller input cannot enlarge the participant's prepared route.
+  const altered = { ...bounded, generation: { maxTokens: ceiling + 20 } };
+  await expect(f.requester.generate({ ...f.request, model: altered,
+    settings: { maxOutputTokens: ceiling + 1 } }, f.controls)).rejects.toThrow('prepared model ceiling');
+  await expect(f.requester.generate({ ...f.request, model: altered, generationRequest: {
+    schema: 'reploid.partition-generation-request/v1', maxOutputTokens: 2, usage: 'raw-model-tokens/v1'
+  } }, f.controls)).rejects.toThrow('not supported');
+  expect(f.mesh.generate).not.toHaveBeenCalled();
+  expect(f.controls.requestApproval).not.toHaveBeenCalled();
+});
+
+it('refuses a borrowed model name or digest and a legacy peer before sending a prompt', async () => {
+  const row = defaultQwenRows[0];
+  for (const f of [
+    settingsFixture({ bounded: { ...row, identity: model.identity } }),
+    settingsFixture({ bounded: { ...row, id: 'private-other-model' } }),
+    settingsFixture({ bounded: row, capabilities: [undefined] })
+  ]) {
+    const offered = f.requester.getModels()[0];
+    expect(offered.generationSettings?.maxOutputTokens).toBeFalsy();
+    await expect(f.requester.generate({ ...f.request, settings: { maxOutputTokens: 2 } }, f.controls)).rejects.toThrow('not supported');
+    expect(f.mesh.generate).not.toHaveBeenCalled();
+    expect(f.controls.requestApproval).not.toHaveBeenCalled();
+  }
 });
