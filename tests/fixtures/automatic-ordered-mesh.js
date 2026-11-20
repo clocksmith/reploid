@@ -20,7 +20,7 @@ function channels() {
   return pair;
 }
 // modelFields adds catalog metadata, such as provider, that host composition requires.
-export async function automaticOrderedMesh({ modelFields = {}, channelPair = channels } = {}) {
+export async function automaticOrderedMesh({ modelFields = {}, channelPair = channels, prepareResident } = {}) {
   const base = stageFixture(3), identities = await Promise.all(Array.from({ length: 8 }, () => createSigningIdentity({ algorithm: 'ECDSA' })));
   base.plan.partitions.forEach((stage,index)=>{stage.layerRange=[index*2,index*2+1];});
   // Two coordinators and middle-stage replicas share a final-stage resident.
@@ -51,7 +51,7 @@ export async function automaticOrderedMesh({ modelFields = {}, channelPair = cha
     const index = indices[slot], stage = index === null ? null : { index, participantId: identities[slot].peerId,
       transportId: `transport-${slot}`, residentId: `resident-${slot}`, executionId: `execution-${slot}` };
     const attempts = new Map(), received = [], closedAttempts = [], state = { stage, attempts, received, closedAttempts, closed: false };
-    const resident = stage && { ...stage, id: stage.participantId, canAccept: () => !state.closed,
+    const fixtureResident = stage && { ...stage, id: stage.participantId, canAccept: () => !state.closed,
       subscribe: () => () => {}, getState: () => ({ ready: !state.closed,
         descriptor: { schema: 'doppler.resident-partition/v2', ready: !state.closed, index, stageCount: 3, modelId: model.id,
           modelIdentity: model.identity, planId: base.route.planId, layerRange: [index*2,index*2+1] },
@@ -80,6 +80,7 @@ export async function automaticOrderedMesh({ modelFields = {}, channelPair = cha
       closeAttempt: vi.fn(async ({ identity }) => { attempts.delete(identity.attemptId); closedAttempts.push(identity); }),
       close: vi.fn(async () => { if (attempts.size) throw Error('Unsettled fixture attempts'); state.closed = true; })
     };
+    const resident = stage && prepareResident ? await prepareResident({ resident: fixtureResident, stage, identity: identities[slot], model, plan: base.plan, planId: base.route.planId, runtime: base.runtime }) : fixtureResident;
     state.resident = resident; states.push(state);
     const transport = { getPeerBinding: peer => ({ local: `cert-${slot}`, remote: `cert-${peer}` }),
       onDataChannel(label, handler) { listeners[slot].set(label, handler); return () => listeners[slot].delete(label); },

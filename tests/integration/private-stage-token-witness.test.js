@@ -15,6 +15,13 @@ import { createNativeRtcAdapter } from '../../server/native-rtc-adapter.js';
 import { createResponses } from '../../server/responses.js';
 import { openStageTokenWitness, verifyStageTokenWitnesses } from '../../server/fleet/stage-token-witness.js';
 import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
+import { createResidentPartition } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
+import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { openFleetCredits } from '../../server/fleet/credits.js';
+import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
+import { createFleetExecutionAdmission, bindFleetStageAdmission } from '../../server/fleet/execution-admission.js';
+import { createFleetRequester } from '../../server/fleet/requester.js';
+import { startFleetTextApi } from '../../server/fleet/text-api.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 
 // The native binding is an optional package; minimal installations still exercise the full HTTP handler.
@@ -148,3 +155,83 @@ it('binds tokenization and the sampled stop to the ordinary HTTP split attempt',
   checkAttempt({ close() {} }), 45000);
 it.runIf(wrtc)('verifies the HTTP attempt and rejects a changed stop across native WebRTC data channels', async () =>
   checkAttempt(await rtcChannels()), 45000);
+
+it.runIf(wrtc)('settles one enrolled Responses execution across native RTC channels with signed resident evidence', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-rtc-settle-'));
+  const link = await rtcChannels();
+  const generation = { maxTokens: 3 };
+  let mesh, service, ledger, api;
+  try {
+    mesh = await automaticOrderedMesh({ channelPair: link.pair, modelFields: { generation, provider: 'doppler' },
+      async prepareResident({ resident, stage, identity, model, plan, planId, runtime }) {
+        const index = stage.index;
+        const descriptor = resident.getState().descriptor;
+        const session = {
+          getDescriptor: () => ({ ...descriptor, generationDigest: runtime.hashPartitionGeneration(generation), residentWeightBytes: 64 }),
+          getRecoveryCapabilities: () => ({ schema: 'doppler.resident-recovery/v1', inputReplay: false, checkpointExport: false, checkpointImport: false }),
+          tokenize: resident.tokenize, executeStage: resident.executeStage,
+          closeAttempt: resident.closeAttempt, close: resident.close
+        };
+        const signed = createResidentPartition({ runtime: { openResidentPartition: async () => session }, model, plan, planId, index,
+          participantId: identity.peerId, limits: { maxAttempts: 64, maxConcurrentAttempts: 2 }, ordered: { runtime, stage },
+          evidence: createAttemptEvidenceSigner({ identity }) });
+        await signed.prepare({ approved: true });
+        // The deterministic stage keeps a separate arithmetic context for the current input.
+        // Admission and all metering stay with the packaged implementations.
+        return { ...signed, async reserve(request) {
+          const provider = createFleetClient({ url: service.url, identity });
+          const admission = createFleetExecutionAdmission({ credits: provider, model });
+          const result = await bindFleetStageAdmission(signed, admission, index).reserve(request);
+          await resident.reserve(request);
+          return result;
+        } };
+      }
+    });
+    const requester = mesh.identities[5];
+    const stages = mesh.identities.slice(0, 3);
+    const peers = [requester, ...stages];
+    ledger = await openFleetCredits({ file: path.join(root, 'credits.sqlite'),
+      computers: peers.map((key, i) => ({ id: 'test-' + i, ownerId: 'private-test', name: 'Fixture ' + i,
+        providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })),
+      policy: { schema: 'reploid.service-credit-policy/v1', version: 'test-rtc/1', unit: 'noncash-service-credit',
+        creditsPerOutputToken: 3, maxDebt: 100, maxOutputTokens: 3, maxPendingPerComputer: 2,
+        maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: true, wholeModelTerminalCharge: 0 } });
+    await mesh.prepare();
+    await vi.waitFor(() => expect(mesh.select(5, 0)).toBeTruthy(), { timeout: 8000 });
+    const choice = mesh.select(5, 0);
+    service = await startFleetService({ credits: ledger, models: [{ ...choice, plans: [{ id: choice.partition.planId, creditWeights: [1, 1, 1] }] }],
+      placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
+    const client = createFleetClient({ url: service.url, identity: requester });
+    const roomId = 'private-rtc-credit-qualification';
+    const host = { identity: requester, allowsModel: m => m.identity === choice.identity,
+      enrolledRecipients: async () => new Set(stages.map(key => key.peerId)),
+      textParticipant: { ...mesh.meshes[5], roomId, executionClass: 'private-pool', partitionOutputLimit: () => 3 },
+      runAccountedGeneration(request, controls, execute) {
+        return createFleetRequester({ participant: { generate: execute }, identity: requester, credits: client, maxOutputTokens: 3 }).generate(request, controls);
+      } };
+    const token = 'private-fixture-bearer-credential-for-localhost';
+    api = await startFleetTextApi({ host, token, privatePartitionApprovals: [{ modelId: choice.id, modelIdentity: choice.identity,
+      adapterIdentities: [], partition: choice.partition, evidence: 'fixture://enrolled-three-stage-route' }] });
+    const response = await fetch(api.url + '/responses', { method: 'POST', headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: choice.selectionId ?? choice.id, input: [{ role: 'user', content: tasks[0].prompt }],
+        stream: true, store: false, reploid: { pool_id: roomId, expected_model_identity: choice.identity,
+          expected_plan_identity: choice.partition.planId, allowed_recipients: peers.map(key => key.peerId), include_execution: true } }) });
+    const stream = await response.text();
+    expect(response.status, stream).toBe(200);
+    const events = stream.split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
+    expect(events.at(-1).type, stream).toBe('response.completed');
+    expect(events.at(-1).response.output[0].content[0].text).toBe(tasks[0].chunks.join(''));
+    const id = response.headers.get('x-reploid-reservation-id');
+    const row = await client.call('request', { id });
+    expect(row.evidence.receipts.map(r => r.participantId).sort()).toEqual(stages.map(key => key.peerId).sort());
+    expect(row.outcome.charge).toBe(9);
+    const entries = ledger.snapshot().journal.length;
+    expect((await client.call('recover', { id })).charge).toBe(9);
+    expect(ledger.snapshot().journal).toHaveLength(entries);
+    expect(ledger.snapshot().accounts.map(a => [a.balance, a.held])).toEqual([[-9, 0], [3, 0], [3, 0], [3, 0]]);
+    expect(mesh.traffic.some(frame => frame.label === 'reploid-partitions-ordered')).toBe(true);
+  } finally {
+    try { await api?.close(); await mesh?.close(); }
+    finally { await service?.close(); ledger?.close(); link.close(); await fs.rm(root, { recursive: true, force: true }); }
+  }
+}, 45000);
