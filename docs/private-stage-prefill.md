@@ -19,6 +19,7 @@ The per-receiver JSON has this shape. Supply the actual budgets as byte counts.
   "planId": "sha256:<catalog-plan-hash>",
   "inventorySha256": "<independently-pinned-inventory-hash>",
   "stageIndex": 0,
+  "receiverId": "<enrolled-stage-participant-id>",
   "supplierId": "<enrolled-supplier-participant-id>",
   "supplierPublicJwk": { "kty": "OKP", "crv": "Ed25519", "x": "<supplier-public-key>" },
   "roomId": "reploid-swarm-<private-room>",

@@ -57,12 +57,13 @@ try {
   const inventory = Buffer.from(JSON.stringify({modelId:model.id,modelIdentity:model.identity,planId:model.partitionPlanId,indexSha256:hash(index),stages}));
   const inventoryFile=directory('inventory.json'); await fs.writeFile(inventoryFile,inventory);
   const config = {enrollmentStatus:'enrolled',modelId:model.id,modelIdentity:model.identity,planId:model.partitionPlanId,stageIndex:0,inventorySha256:hash(inventory),
-    supplierPublicJwk:supplier.publicJwk,supplierId:supplier.peerId,identityFile:directory('identity.json'),roomTokenFile:directory('room-token'),
+    supplierPublicJwk:supplier.publicJwk,supplierId:supplier.peerId,receiverId:receiver.peerId,identityFile:directory('identity.json'),roomTokenFile:directory('room-token'),
     roomId,signalingUrl,modelDirectory:target,cacheDirectory:cache,maxCacheBytes:30000,maxDownloadBytes:16,offerTimeoutMs:8000,hostIceOnly:true};
   const run = (settings, transfer, signal, onProgress) => runPrefill(settings,inventoryFile,transfer,signal,{models:[model],onProgress});
   const deadline = () => AbortSignal.timeout(29000);
   assert.equal((await run(config,false,deadline())).mode,'plan');
   await assert.rejects(run({...config,enrollmentStatus:'offline-unenrolled'},true,deadline()),/cannot transfer/);
+  await assert.rejects(run({...config,receiverId:stranger.peerId},true,deadline()),/pinned stage receiver/);
   await assert.rejects(fs.stat(cache), {code:'ENOENT'}); checks.push('plan-no-cache-or-network');
   await assert.rejects(run({...config,inventorySha256:'0'.repeat(64)},true,deadline()),/separately pinned/);
   await assert.rejects(run({...config,maxCacheBytes:4},true,deadline()),/cache budget/); checks.push('pins-and-budget-preflight');

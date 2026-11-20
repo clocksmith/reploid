@@ -83,6 +83,8 @@ export async function runPrefill(config, inventoryFile, transfer, signal, { mode
     && path.isAbsolute(config.modelDirectory) && path.isAbsolute(config.cacheDirectory), 'Expected absolute local paths');
   assert(positive(config.maxCacheBytes) && positive(config.maxDownloadBytes) && positive(config.offerTimeoutMs),
     'Explicit disk, cumulative payload and discovery limits are required');
+  assert(/^peer:[a-f0-9]{24,64}$/.test(config.receiverId) && config.receiverId !== config.supplierId,
+    'Bind the stage to a separate receiver participant ID');
   const approved = supplierGate(config.supplierPublicJwk);
   assert.equal(await participantIdFor(config.supplierPublicJwk), config.supplierId, 'Supplier public key differs from the pinned identity');
   const readMetadata = async role => {
@@ -98,13 +100,13 @@ export async function runPrefill(config, inventoryFile, transfer, signal, { mode
     stageIndex: config.stageIndex, manifestBytes: await readMetadata('model-manifest'), indexBytes: await readMetadata('model-piece-index') });
   const result = { enrollmentStatus: config.enrollmentStatus, modelId: model.id, modelIdentity: model.identity, planId: model.partitionPlanId,
     inventorySha256: config.inventorySha256, stageIndex: stage.stageIndex, layerRange: stage.layerRange,
-    assignedBytes: stage.assignedBytes, assignedRanges: stage.ranges.length, supplierId: config.supplierId,
+    assignedBytes: stage.assignedBytes, assignedRanges: stage.ranges.length, receiverId: config.receiverId, supplierId: config.supplierId,
     maxCacheBytes: config.maxCacheBytes, maxDownloadBytes: config.maxDownloadBytes };
   if (!transfer) return { ...result, mode: 'plan' };
   assert(stage.assignedBytes <= config.maxCacheBytes, 'Stage exceeds the owner’s cache budget');
   const roomToken = process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile) : (await readOwnFile(config.roomTokenFile)).trimEnd();
   const identity = JSON.parse(await readOwnFile(config.identityFile));
-  assert(identity.peerId !== config.supplierId, 'Use separate enrolled supplier and requester identities');
+  assert.equal(await participantIdFor(identity.publicJwk), config.receiverId, 'Local key differs from the pinned stage receiver');
   const [rtcModule, wsModule] = await Promise.all([import('@roamhq/wrtc'), import('ws')]);
   const rtc = createNativeRtcAdapter(rtcModule.default ?? rtcModule), Socket = wsModule.default ?? wsModule.WebSocket;
   class HostSocket extends Socket { constructor(url) { super(url, { origin: config.origin ?? 'http://localhost:8000' }); } }
