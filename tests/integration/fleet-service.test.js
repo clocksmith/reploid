@@ -1002,12 +1002,22 @@ it.each([
         payload: { partitionIndex: index, receipt: executed ? expect.objectContaining({ status: 'executing', steps: executed }) : null } });
       expect(proof.receipts.find(r => r.partitionIndex === index)?.timing.closedAt ?? null).toBeNull();
     }
-    const snapshot = credits.snapshot();
-    expect(snapshot.accounts.every(row => row.held === 0)).toBe(true);
-    expect(snapshot.journal).toHaveLength(3);
+    const snapshot = await client.call('snapshot', {});
+    // Equal stage weights split one indivisible credit by the existing stage-order rule.
+    const spent = acknowledged ? -acknowledged : 0;
+    expect(snapshot.accounts.map(({ id, balance, held }) => [id, balance, held])).toEqual([
+      ['machine-0', spent, 0], ['machine-1', 0, 0], ['machine-2', acknowledged, 0]
+    ]);
+    expect(snapshot.journal.map(({ account_id, delta }) => [account_id, delta])).toEqual([
+      ['machine-0', spent], ['machine-1', 0], ['machine-2', acknowledged]
+    ]);
+    const firstRecovery = await httpRecover();
     await host.close(); host = await boot(); await host.reconcileCredits();
+    // The observation timestamp is fresh on each HTTP read; the accepted settlement is immutable.
+    expect(await httpRecover()).toEqual({ ...firstRecovery, body: { ...firstRecovery.body,
+      outcome: { ...firstRecovery.body.outcome, recordedAt: expect.any(Number) } } });
     expect(await client.call('recover', { id })).toEqual(result);
-    expect(credits.snapshot()).toEqual(snapshot);
+    expect(await client.call('snapshot', {})).toEqual(snapshot);
   } finally {
     if (child.exitCode === null && child.signalCode === null) { const dead = once(child, 'exit'); child.kill('SIGKILL'); await dead; }
     await api?.close(); await requesterHost?.close(); await host?.close(); await route.close();
