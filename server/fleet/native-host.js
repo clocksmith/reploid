@@ -21,6 +21,7 @@ import { startFleetBrowserBridge } from './browser-bridge.js';
 import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester, buildFleetRequestOutcome } from './requester.js';
+import { createStageHistory } from './stage-history.js';
 import { openStageOwner } from './stage-owner.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
 import { openStageTokenWitness } from './stage-token-witness.js';
@@ -416,10 +417,13 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   });
   const acquireDispatchSlot = options => laneScheduler.acquire(options);
   const drainRequesterQueue = () => laneScheduler.drain();
+  const stageHistory = createStageHistory({ credits, participantId: identity.peerId,
+    notify: () => { if (!closed) onChange(state()); }, pollMs: config.pollMs ?? 5000 });
+  const executionState = () => stageHistory.view(participant?.getState() ?? null);
   const state = () => ({ computerId: config.computerId, name: config.name, participantId: identity.peerId,
     selected: selected && { modelId: selected.model.id, modelIdentity: selected.model.identity, mode: selected.mode },
     preparing, activeRequests: requests.size, queuedRequests: laneScheduler.queuedCount(), error: lastError, hardware: fleetHardwareSnapshot(),
-    execution: participant?.getState() ?? null, network: participant?.getNetworkState() ?? null });
+    execution: executionState(), network: participant?.getNetworkState() ?? null });
 
   const stageOwner = credits && config.models.some(entry => entry.mode === 'partition' && entry.ordered?.stage)
     ? await openStageOwner({ file: config.identityFile + '.stage-owner.sqlite', participantId: identity.peerId,
@@ -450,6 +454,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       }
     }
     const reconciled = await credits.reconcile(requests.size === 0 ? { activeIds: [] } : {});
+    await stageHistory.refresh(participant?.getState());
     for (const row of reconciled) {
       if (!results.some(prior => prior.id === row.id)) results.push(row);
     }
@@ -460,7 +465,13 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   async function select(index, contribute) {
     assert(!closed && !preparing && requests.size === 0, 'Computer is busy or closing');
     const entry = config.models[index]; assert(entry, 'Model is outside owner preferences');
-    const activity = participant?.getState();
+    if (credits && participant?.getState()?.unknownAttempts?.length) {
+      preparing = true;
+      try { await stageHistory.refresh(participant.getState()); }
+      finally { preparing = false; }
+      assert(!closed && requests.size === 0, 'Computer is busy or closing');
+    }
+    const activity = executionState();
     assert(activeProviderRequests(activity) === 0, 'Active provider cannot move');
     preparing = true; lastError = null;
     try {
@@ -502,7 +513,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     // Generated after the package closure is collected; it cannot hash itself as an input.
     const delivery = await fs.readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'native-delivery.json'));
     observation.softwareIdentity = 'sha256:' + createHash('sha256').update(delivery).digest('hex');
-    const activity = participant?.getState();
+    const activity = executionState();
     const hardware = fleetHardwareSnapshot();
     observation.id = config.computerId; observation.participantId = identity.peerId; observation.observedAt = Date.now();
     observation.preparing = preparing;
