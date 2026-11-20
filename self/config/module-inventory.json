@@ -3080,7 +3080,7 @@
     {
       "path": "self/host/partition-release.js",
       "owner": "self",
-      "sha256": "sha256:b7f54a4cff95279f3846d0e45da2ee42ba5d494cd95f43c1cea8cd42364b4a6c",
+      "sha256": "sha256:1bcfa939c2c13114c4445cb8db8736ba60ca2d6c5126aa562380177a305911be",
       "imports": [
         "../config/partition-releases.json",
         "../vendor/reploid/mesh/partitions/partition-contract.js"
