@@ -1,0 +1,72 @@
+{
+  "schema": "reploid.backend-readiness-and-rollback/v1",
+  "verifiedUtc": "2026-11-21T16:47:38.439Z",
+  "candidateRevision": "5c3da9aa0e690ad257fc8a18f03825e9d3895644",
+  "rollbackRevision": "e303f6823ecc3623c1279848f6ed3edd1ccc9fd7",
+  "runtimeBundleHash": "sha256:33ac8bab46996455b6e6fff0f2e0ed3918a1cbf53b57009e02aec8c058f95967",
+  "runtimeFileCount": 3983,
+  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.1.5.esm2-capsule-v2.http-admission-v1",
+  "configHash": "sha256:919529138d6ceea09c2ef5cf2c76f76da4d774ae225bf1110018f3a5c269be56",
+  "candidateBoundAndReady": true,
+  "unboundImageRejected": true,
+  "zeroDroppedRequestsDuringRollback": true,
+  "switchoverTimeline": [
+    {
+      "probe": 1,
+      "httpStatus": 200,
+      "platformRevision": "reploid-pool-00150-candidate",
+      "sourceRevision": "5c3da9aa0e690ad257fc8a18f03825e9d3895644",
+      "imageBoundToSourceRevision": true
+    },
+    {
+      "probe": 2,
+      "httpStatus": 200,
+      "platformRevision": "reploid-pool-00150-candidate",
+      "sourceRevision": "5c3da9aa0e690ad257fc8a18f03825e9d3895644",
+      "imageBoundToSourceRevision": true
+    },
+    {
+      "probe": 3,
+      "httpStatus": 200,
+      "platformRevision": "reploid-pool-00149-previous",
+      "sourceRevision": "e303f6823ecc3623c1279848f6ed3edd1ccc9fd7",
+      "imageBoundToSourceRevision": true
+    },
+    {
+      "probe": 4,
+      "httpStatus": 200,
+      "platformRevision": "reploid-pool-00149-previous",
+      "sourceRevision": "e303f6823ecc3623c1279848f6ed3edd1ccc9fd7",
+      "imageBoundToSourceRevision": true
+    },
+    {
+      "probe": 5,
+      "httpStatus": 200,
+      "platformRevision": "reploid-pool-00149-previous",
+      "sourceRevision": "e303f6823ecc3623c1279848f6ed3edd1ccc9fd7",
+      "imageBoundToSourceRevision": true
+    },
+    {
+      "probe": 6,
+      "httpStatus": 200,
+      "platformRevision": "reploid-pool-00150-candidate",
+      "sourceRevision": "5c3da9aa0e690ad257fc8a18f03825e9d3895644",
+      "imageBoundToSourceRevision": true
+    }
+  ],
+  "jupiterLiveFlashContinuity": {
+    "before": {
+      "reachable": true,
+      "pid": 1575058,
+      "elapsedSeconds": 129092,
+      "rssBytes": 5141483520
+    },
+    "after": {
+      "reachable": true,
+      "pid": 1575058,
+      "elapsedSeconds": 129094,
+      "rssBytes": 5141483520
+    },
+    "uninterrupted": true
+  }
+}

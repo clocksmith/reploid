@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.signed-api-qualification/v1",
+  "qualifiedUtc": "2026-11-21T17:01:10.485Z",
+  "reploidVersion": "0.1.5",
+  "dopplerPackage": "dopplerx@0.1.5",
+  "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+  "modelIdentity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+  "requesterIdentity": "peer:0c800bf19c683db280825f52",
+  "verifiedRecipientIdentity": "peer:a7c91b5ebd570ef795adeb6c",
+  "requesterWeightFilesDownloaded": 0,
+  "turn1ChatCompletion": {
+    "outputText": "Paris",
+    "usage": {
+      "prompt_tokens": 38,
+      "completion_tokens": 2,
+      "total_tokens": 40
+    },
+    "settledCharge": 2
+  },
+  "turn2PrefixCacheFollowUp": {
+    "outputText": "Germany",
+    "usage": {
+      "prompt_tokens": 56,
+      "completion_tokens": 2,
+      "total_tokens": 58,
+      "prompt_tokens_details": {
+        "cached_tokens": 34
+      }
+    },
+    "cachedTokensReused": 34
+  },
+  "midStreamCancellation": {
+    "streamedDeltasBeforeAbort": 33,
+    "partialTextLength": 65,
+    "cumulativeChargedAfterCancel": 4,
+    "unacknowledgedTokensCharged": 0,
+    "openHoldsAfterCancel": 0
+  },
+  "subsequentIndependentResponsesApi": {
+    "httpStatus": 200,
+    "status": "completed",
+    "finalAccountsConserved": true,
+    "finalProviderEarnedCredits": 6,
+    "finalOpenHolds": 0
+  }
+}

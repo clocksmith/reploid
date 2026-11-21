@@ -130,7 +130,8 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
   }
   const totals = { files: missing.length + metadata.length, pieces: missing.reduce((sum, file) => sum + file.pieces.length, 0),
     bytes: missing.reduce((sum, file) => sum + file.size, 0) + metadata.reduce((sum, file) => sum + file.sizeBytes, 0) };
-  const progress = { fetchedPieces: 0, fetchedBytes: 0, reusedPieces: 0, reusedBytes: 0, completedFiles: 0, sources: {}, suppliers: {} };
+  const progress = { fetchedPieces: 0, fetchedBytes: 0, reusedPieces: 0, reusedBytes: 0, duplicateReads: 0, completedFiles: 0, sources: {}, suppliers: {} };
+  const requestedPieceIdentities = new Set();
   const count = (source, bytes) => { const row = progress.sources[source] ||= { pieces: 0, bytes: 0 }; row.pieces++; row.bytes += bytes; };
   const emit = (phase, extra = {}) => onProgress(structuredClone({ phase, ...totals, ...progress, elapsedMs: Date.now() - started, ...extra }));
   const available = await freeBytes(root);
@@ -154,6 +155,8 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
             progress.reusedPieces++; progress.reusedBytes += piece.size; count('partial-file', piece.size);
             emit('piece', { path: file.path, reused: true, source: 'partial-file' }); continue;
           }
+          if (requestedPieceIdentities.has(piece.identity)) progress.duplicateReads++;
+          else requestedPieceIdentities.add(piece.identity);
           const acquired = await acquire({ ...piece, path: file.path }, { signal: current });
           const bytes = acquired instanceof Uint8Array ? acquired : acquired?.bytes;
           const source = acquired instanceof Uint8Array ? 'acquired' : String(acquired?.source || 'acquired');
@@ -194,5 +197,7 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
     progress.completedFiles++; emit('file', { path: file.path, ...(read instanceof Uint8Array ? {} : { source: read?.source }) });
   }
   emit('complete');
-  return { ...totals, ...progress, elapsedMs: Date.now() - started };
+  const elapsedMs = Date.now() - started;
+  const bytesPerSecond = elapsedMs > 0 ? Math.round((progress.fetchedBytes * 1000) / elapsedMs) : 0;
+  return { ...totals, ...progress, elapsedMs, totalAcquisitionMs: elapsedMs, bytesPerSecond };
 }

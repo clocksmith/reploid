@@ -1,0 +1,36 @@
+{
+  "schema": "reploid.fresh-browser-qualification/v1",
+  "qualifiedUtc": "2026-11-21T17:16:58.485Z",
+  "reploidVersion": "0.1.5",
+  "dopplerPackage": "dopplerx@0.1.5",
+  "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+  "modelIdentity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+  "disclosedRecipientIdentity": "peer:4c3ea0f3cfb43d450d8e6480",
+  "replacementMachineIdentity": "peer:4f38eda9f9c1a4a8057efff7",
+  "weightShardRequests": 0,
+  "weightShardBytesDownloaded": 0,
+  "turn1": {
+    "placement": "peer-whole-request",
+    "recipients": [
+      "peer:4c3ea0f3cfb43d450d8e6480"
+    ],
+    "answerPreview": "42"
+  },
+  "turn2ReturningProviderReconnect": {
+    "placement": "peer-whole-request",
+    "recipients": [
+      "peer:4c3ea0f3cfb43d450d8e6480"
+    ],
+    "repeatedApprovalModalShown": false,
+    "storedPermissionRecords": 1,
+    "answerPreview": "40"
+  },
+  "turn3DifferentMachineRequiresFreshConsent": {
+    "freshConsentModalRequired": true,
+    "attemptStatusBeforeConsent": "queued",
+    "recipientsAfterExplicitApproval": [
+      "peer:4f38eda9f9c1a4a8057efff7"
+    ],
+    "answerPreview": "42"
+  }
+}

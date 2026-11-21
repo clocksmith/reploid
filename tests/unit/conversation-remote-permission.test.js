@@ -238,11 +238,14 @@ describe('Contributor execution without permission popups', () => {
     // Same cryptographic identity reconnects with a fresh ephemeral WebRTC socket + reloaded session: zero approval prompt.
     activeProvider = { providerId: 'rtc-conn-2', recipientIdentity: providerKeyA };
     const reloaded = openSession({ storage, partitions: null, swarm });
+    const view = mount(reloaded.session);
+    reloaded.session.select(thread);
     const statuses = [];
     reloaded.session.subscribe(state => statuses.push(state.activeThread?.attempts.at(-1)?.status));
     await reloaded.session.send(thread, 'Turn two after provider reconnect');
     await completed(reloaded.session, 2);
     expect(statuses).not.toContain('approval');
+    expect(view.find('[data-remote-permission]')).toBeNull();
     expect(disclosed).toHaveLength(2);
     expect(disclosed[1]).toMatchObject({ recipientIdentity: providerKeyA, providerId: 'rtc-conn-2' });
     expect(reloaded.session.getState().remotePermissions).toHaveLength(1);
@@ -252,13 +255,13 @@ describe('Contributor execution without permission popups', () => {
     const thirdTurn = reloaded.session.send(thread, 'Turn three with another machine');
     await vi.waitFor(() => expect(lastAttempt(reloaded.session)?.status).toBe('approval'));
     expect(disclosed).toHaveLength(2);
-    const pending = lastAttempt(reloaded.session);
-    expect(pending.approval).toMatchObject({ recipientIdentity: providerKeyB, peerId: 'rtc-conn-3' });
-    await reloaded.session.grantRemotePermission(pending.approval.permissionNeed, {
-      wording: remotePermissionWording(pending.approval.permissionNeed),
-    });
+    const dialog = view.find('[data-remote-permission]');
+    expect(dialog).not.toBeNull();
+    expect(dialog.textContent).toContain(providerKeyB);
+    view.find('[data-remote-permission-allow]').click();
     await thirdTurn;
     await completed(reloaded.session, 3);
+    expect(view.find('[data-remote-permission]')).toBeNull();
     expect(disclosed).toHaveLength(3);
     expect(disclosed[2].recipientIdentity).toBe(providerKeyB);
     expect(reloaded.session.getState().remotePermissions).toHaveLength(2);

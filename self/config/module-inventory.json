@@ -2234,7 +2234,7 @@
     {
       "path": "pool/peer-pack-data-channel.js",
       "owner": "pool",
-      "sha256": "sha256:7efc1728b482d3739722c587565d4178427400f02cfee116722730d47e45a1f3",
+      "sha256": "sha256:e8cdfcebed26f2aaaa377036ef71ad37ee5b1bff34f32c676bbfd845e9b2dae5",
       "imports": []
     },
     {
@@ -2860,7 +2860,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:9a4d5e340101fa5657418c4dee3332119959418930fb7288c4c796e7f67930f7",
+      "sha256": "sha256:2bd763293970504d5955d5a5527cb0549531cdd809b661030492ff4fe34f06bc",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -4273,7 +4273,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b69b4fb666e97d52ae8ed3b4cd288fc21ed1df81b1f9fdba3fba5ceb2a733bd5",
+      "sha256": "sha256:a43b57df6a243db43f8f4d678a7ec182f14c53a4d117cfc7d90be6b240cce054",
       "imports": []
     },
     {
@@ -4429,7 +4429,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:cf0669b16b33e1768371d033f7611c4a4504ac39891683cc169a90857c9f836d",
+      "sha256": "sha256:7a2d1989af84fc19be014813ff87cf08e074d9fea6318d8f88507a614f4d9455",
       "imports": [
         "../../config/work-profile.json",
         "../../vendor/reploid/chat/execution-policy.js",
@@ -4450,6 +4450,7 @@
         "./message-list.js",
         "./network-inspector.js",
         "./privacy-controls.js",
+        "./remote-permission.js",
         "./web-search-settings.js",
         "./workspace-navigation.js"
       ]
@@ -18691,7 +18692,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
       "owner": "vendor",
-      "sha256": "sha256:3e8d2b0ae551e6d584b1d232a1f06999149476402d02dd94a9de581d6f5ff5f1",
+      "sha256": "sha256:cb6e232841ad2135f0d2a16eca93a700031698e1ce490f4630261c3e40be2edf",
       "imports": [
         "../../cancellation.js",
         "./supplier-summary.js"

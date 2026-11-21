@@ -26,7 +26,8 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
   const inbound = new Map();
   const lifecycle = new AbortController();
   const counters = { sentFrameBytes: 0, receivedFrameBytes: 0, sentFrames: 0, receivedFrames: 0,
-    completedRequests: 0, cancelledRequests: 0, interruptedPayloadBytes: 0, discardedFrames: 0 };
+    completedRequests: 0, cancelledRequests: 0, interruptedPayloadBytes: 0, discardedFrames: 0,
+    backpressureWaits: 0, backpressureWaitMs: 0, duplicateFragments: 0 };
   let closed = false;
 
   function finish(id, error, response) {
@@ -62,8 +63,11 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
     assert(!closed && channel.readyState === 'open' && !signal.aborted, 'channel unavailable');
     assert(counters.sentFrameBytes + byteLength <= policy.maxTransferBytes, 'outgoing byte budget exhausted');
     if (channel.bufferedAmount + byteLength > policy.maxBufferedBytes) {
+      counters.backpressureWaits += 1;
+      const waitStarted = performance.now();
       await new Promise((resolve, reject) => {
         const finish = (error) => {
+          counters.backpressureWaitMs = Number((counters.backpressureWaitMs + (performance.now() - waitStarted)).toFixed(3));
           clearTimeout(timer);
           channel.removeEventListener('bufferedamountlow', low);
           signal.removeEventListener('abort', abort);
@@ -164,6 +168,7 @@ export function createPeerPackDataChannel({ channel, limits, serve = null }) {
     if (entry.offsets.has(offset)) {
       assert(bytes.subarray(HEADER_BYTES).every((byte, index) => entry.bytes[offset + index] === byte), 'conflicting duplicate fragment');
       counters.discardedFrames += 1;
+      counters.duplicateFragments += 1;
       return;
     }
     entry.bytes.set(bytes.subarray(HEADER_BYTES), offset);

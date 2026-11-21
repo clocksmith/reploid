@@ -10,14 +10,23 @@ export function createPieceAcquisition({ sources, cache, authorize, verify, limi
     || !['maxConcurrent', 'maxQueued', 'maxPieceBytes', 'timeoutMs'].every(k => Number.isSafeInteger(limits?.[k]) && limits[k] > 0)) {
     throw new Error('Explicit acquisition ports and limits required');
   }
-  const policy = structuredClone(limits), tasks = new Map(), queue = [];
+  const policy = structuredClone(limits), tasks = new Map(), queue = [], readIdentities = new Set();
   const lifetime = new AbortController();
-  const receipt = { transferredBytes: 0, reusedBytes: 0, completedPieces: 0, failedSources: [], active: 0, suppliers: {} };
+  let activeWindowStartedAt = null, completedWindowMs = 0;
+  const receipt = { transferredBytes: 0, reusedBytes: 0, completedPieces: 0, duplicateReads: 0,
+    deduplicatedRequests: 0, backpressureWaits: 0, backpressureWaitMs: 0, failedSources: [], active: 0, suppliers: {} };
   const pump = () => {
     while (!lifetime.signal.aborted && queue.length && receipt.active < policy.maxConcurrent) {
-      const task = queue.shift(); receipt.active++;
+      const task = queue.shift();
+      if (receipt.active === 0) activeWindowStartedAt = performance.now();
+      receipt.active++;
       run(task).then(task.resolve, task.reject).finally(() => {
-        receipt.active--; tasks.delete(task.piece.identity); pump();
+        receipt.active--;
+        if (receipt.active === 0 && activeWindowStartedAt !== null) {
+          completedWindowMs += performance.now() - activeWindowStartedAt;
+          activeWindowStartedAt = null;
+        }
+        tasks.delete(task.piece.identity); pump();
       });
     }
   };
@@ -30,10 +39,16 @@ export function createPieceAcquisition({ sources, cache, authorize, verify, limi
       signal.throwIfAborted();
       if (await authorize({ sourceId: source.id, piece }) !== true) continue;
       try {
+        const idleStart = performance.now();
         await foregroundIdle(signal); signal.throwIfAborted();
+        const idleMs = performance.now() - idleStart;
+        if (idleMs >= 1) { receipt.backpressureWaits++; receipt.backpressureWaitMs += idleMs; }
+        if (readIdentities.has(piece.identity)) receipt.duplicateReads++;
+        else readIdentities.add(piece.identity);
         // A source may name the participant that delivered (a custody peer); otherwise its own id.
         let supplier = source.supplier ?? source.id;
-        const data = await source.read(piece, { signal, onSupplier: id => { supplier = id; } });
+        const data = await source.read(piece, { signal, onSupplier: id => { supplier = id; },
+          onBackpressure: waitMs => { if (Number.isFinite(waitMs) && waitMs > 0) { receipt.backpressureWaits++; receipt.backpressureWaitMs += waitMs; } } });
         receipt.transferredBytes += data.byteLength;
         signal.throwIfAborted();
         if (data.byteLength !== piece.size || !await verify(piece, data)) throw new Error('Piece verification failed');
@@ -58,12 +73,17 @@ export function createPieceAcquisition({ sources, cache, authorize, verify, limi
         task.promise = new Promise((resolve, reject) => { task.resolve = resolve; task.reject = reject; });
         tasks.set(piece.identity, task); queue.push(task); pump();
       } else if (task.piece.size !== piece.size) throw new Error('Conflicting piece identity');
+      else receipt.deduplicatedRequests++;
       // Cancelling one consumer does not discard a shared verified transfer.
       const shared = task.promise;
       if (!signal) return shared.then(bytes => bytes.slice());
       return untilAborted(shared, signal).then(bytes => bytes.slice());
     },
-    getReceipt: () => structuredClone(receipt),
+    getReceipt: () => {
+      const totalAcquisitionMs = Number((completedWindowMs + (activeWindowStartedAt !== null ? performance.now() - activeWindowStartedAt : 0)).toFixed(3));
+      const bytesPerSecond = totalAcquisitionMs > 0 ? Math.round((receipt.transferredBytes * 1000) / totalAcquisitionMs) : 0;
+      return structuredClone({ ...receipt, backpressureWaitMs: Number(receipt.backpressureWaitMs.toFixed(3)), totalAcquisitionMs, bytesPerSecond });
+    },
     async close() {
       lifetime.abort(new Error('Acquisition closed'));
       for (const task of queue.splice(0)) { task.reject(lifetime.signal.reason); tasks.delete(task.piece.identity); }

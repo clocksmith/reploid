@@ -1,0 +1,63 @@
+{
+  "schema": "reploid.peer-transfer-benchmark/v1",
+  "measuredUtc": "2026-11-21T16:45:50.077Z",
+  "reploidVersion": "0.1.5",
+  "dopplerPackage": "dopplerx@0.1.5",
+  "singleSupplier": {
+    "supplierCount": 1,
+    "totalBytes": 8388608,
+    "pieceCount": 16,
+    "pieceSizeBytes": 524288,
+    "totalAcquisitionMs": 1182,
+    "bytesPerSecond": 7096961,
+    "duplicateReads": 0,
+    "reusedPieces": 0,
+    "receiverBackpressure": {
+      "limit": 2,
+      "active": 0,
+      "queued": 0,
+      "peakActive": 2,
+      "backpressureWaits": 2,
+      "backpressureWaitMs": 13.703
+    },
+    "suppliersUsed": 1,
+    "perSupplier": {
+      "f853ed0b-4382-4914-8113-50a02dfe1363": {
+        "pieces": 16,
+        "bytes": 8388608
+      }
+    },
+    "verifiedWholeShardSha256": "babdfda74f77918439628fecb54a442be77bbe2b32b5bb22341e153e1c220dcc"
+  },
+  "twoSuppliers": {
+    "supplierCount": 2,
+    "totalBytes": 8388608,
+    "pieceCount": 16,
+    "pieceSizeBytes": 524288,
+    "totalAcquisitionMs": 147,
+    "bytesPerSecond": 57065361,
+    "duplicateReads": 0,
+    "reusedPieces": 0,
+    "receiverBackpressure": {
+      "limit": 2,
+      "active": 0,
+      "queued": 0,
+      "peakActive": 2,
+      "backpressureWaits": 5,
+      "backpressureWaitMs": 13.311
+    },
+    "suppliersUsed": 2,
+    "perSupplier": {
+      "3b2a4e23-4a40-4834-a870-da7417d99a68": {
+        "pieces": 8,
+        "bytes": 4194304
+      },
+      "8617ed37-8481-4646-a852-a2f5afb64a4f": {
+        "pieces": 8,
+        "bytes": 4194304
+      }
+    },
+    "verifiedWholeShardSha256": "babdfda74f77918439628fecb54a442be77bbe2b32b5bb22341e153e1c220dcc"
+  },
+  "multiSupplierSpeedupFactor": 8.04
+}

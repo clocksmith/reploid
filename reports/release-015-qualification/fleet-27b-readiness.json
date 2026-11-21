@@ -1,0 +1,41 @@
+{
+  "schema": "reploid.fleet-27b-readiness/v1",
+  "checkedUtc": "2026-11-21T16:56:14.000Z",
+  "modelId": "qwen-3-8-27b-text-q4k-ef16-af32",
+  "modelIdentity": "sha256:74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972",
+  "wholeModelFileBytes": 29200000000,
+  "partitionPlanId": "sha256:a000b91dd404ff328a0deaa2f5e3ff89b5c73c9a93001d1870c145df4fdd882c",
+  "pieceIndexSha256": "39e5875b09b06f4100468abe43eea11552616d7b3ed7540c1ddf056e571e50fb",
+  "hosts": [
+    {
+      "label": "suby",
+      "sshReachable": true,
+      "arch": "x64",
+      "memTotalBytes": 33294401536,
+      "memAvailableBytes": 20936048640,
+      "soloWholeModelVerdict": "insufficient-ram-alone",
+      "soloReason": "29.2 GB Q4K whole-model files exceed 20.94 GB available host memory on suby alone.",
+      "stagedSplitStageInventoryPresent": true,
+      "stagedStages": [
+        {
+          "stageIndex": 0,
+          "layerRange": [0, 0],
+          "assignedBytes": 2759168448,
+          "verifiedRangeCount": 1051,
+          "fitsHostMemory": true
+        },
+        {
+          "stageIndex": 1,
+          "layerRange": [1, 63],
+          "assignedBytes": 14235183680,
+          "verifiedRangeCount": 4461
+        }
+      ]
+    },
+    {
+      "label": "bee",
+      "sshReachable": false,
+      "blocker": "SSH port 22 connection timed out during qualification window; live two-host Suby + Bee 27B split execution awaits bee returning online."
+    }
+  ]
+}

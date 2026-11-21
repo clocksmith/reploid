@@ -402,13 +402,13 @@
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
-      "bytes": 1007,
-      "sha256": "ec8b3fe0a1bd50d8a1940304909169666a86096123373bd5d06f6f28f2a5ca6f"
+      "bytes": 1192,
+      "sha256": "d438de65079554438ea38177fa2be460d19df46be19743ac6552f5ace90decf0"
     },
     {
       "path": "artifacts/custody/piece-acquisition.js",
-      "bytes": 4179,
-      "sha256": "3e8d2b0ae551e6d584b1d232a1f06999149476402d02dd94a9de581d6f5ff5f1"
+      "bytes": 5572,
+      "sha256": "cb6e232841ad2135f0d2a16eca93a700031698e1ce490f4630261c3e40be2edf"
     },
     {
       "path": "artifacts/custody/runtime.d.ts",

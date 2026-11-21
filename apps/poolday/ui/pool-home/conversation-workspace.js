@@ -19,6 +19,8 @@ import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
 import { webSearchRecipient } from './web-search-settings.js';
 import { canDownloadModelHere, localFitText, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
+import { escapeHtml } from '../components/attachments.js';
+import { remotePermissionText, remotePermissionWording } from './remote-permission.js';
 export { renderConversationWorkspace } from './conversation-view.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
@@ -436,7 +438,48 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (find('[data-model-picker]').open) updatePicker(state);
     error(state.storageError || '');
 
+    const pendingApproval = thread?.attempts?.find(item => item.status === 'approval' && item.approval?.permissionNeed);
+    let consentDialog = container.querySelector('[data-remote-permission]');
+    if (!pendingApproval) {
+      consentDialog?.remove();
+    } else {
+      const need = pendingApproval.approval.permissionNeed;
+      const recipientLabel = pendingApproval.approval.recipientIdentity || need.routeId || 'another computer';
+      const copy = remotePermissionText(need);
+      const key = `${pendingApproval.id}:${pendingApproval.approval.id}:${recipientLabel}`;
+      if (!consentDialog) {
+        consentDialog = container.ownerDocument.createElement('dialog');
+        consentDialog.className = 'pool-dialog pool-stack pool-gap-sm';
+        consentDialog.dataset.remotePermission = '';
+        consentDialog.setAttribute('open', '');
+        container.append(consentDialog);
+      }
+      if (consentDialog.dataset.approvalKey !== key) {
+        consentDialog.dataset.approvalKey = key;
+        consentDialog.innerHTML = `<h2 class="pool-subheading">Send to another computer?</h2>`
+          + `<p class="pool-body">${escapeHtml(copy.what)}</p>`
+          + `<p class="pool-small pool-muted">Recipient identity: <code>${escapeHtml(recipientLabel)}</code></p>`
+          + `<div class="pool-row pool-gap-sm">`
+          + `<button class="pool-button btn-primary" type="button" data-remote-permission-allow>Allow this computer</button>`
+          + `<button class="pool-button btn-ghost" type="button" data-remote-permission-decline>Cancel</button>`
+          + `</div>`;
+      }
+    }
   };
+  container.addEventListener('click', event => {
+    const allowBtn = event.target.closest?.('[data-remote-permission-allow]');
+    const declineBtn = event.target.closest?.('[data-remote-permission-decline]');
+    if (!allowBtn && !declineBtn) return;
+    const thread = session.getState().activeThread;
+    const pending = thread?.attempts?.find(item => item.status === 'approval' && item.approval?.permissionNeed);
+    if (!pending) return;
+    if (allowBtn) {
+      const need = pending.approval.permissionNeed;
+      void act(() => session.grantRemotePermission(need, { wording: remotePermissionWording(need) }));
+    } else {
+      void act(() => session.approve(thread.id, pending.id, pending.approval.id, false));
+    }
+  }, options);
   const unsubscribe = session.subscribe(render);
   const refreshSearchToggle = () => { searchToggle.hidden = !(search?.available() || deviceSearchOn() || webSearch?.enabled()); if (searchToggle.hidden) setSearch(false); };
   const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(refreshSearchToggle) : () => {};

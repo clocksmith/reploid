@@ -210,7 +210,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     return { runtime, manifestBytes, indexBytes, indexIdentity: 'sha256:' + indexFile.hash, manifest: checked.manifest,
       index: JSON.parse(new TextDecoder().decode(indexBytes)) };
   };
-  const getState = ({ includeReceipts = true } = {}) => ({ ...exchange.getState(), cache: cache.getState(),
+  const getState = ({ includeReceipts = true } = {}) => ({ ...exchange.getState(), cache: cache.getState(), payloadSlots: payloadSlots.getStats(),
     supplyBudgetError: budgetError && { code: budgetError.code || 'CUSTODY_BUDGET_STORAGE', message: budgetError.message },
     retainedFiles: retained.size, receiptCount: receipts.length,
     ...(includeReceipts ? { receipts: structuredClone(receipts) } : {}) });
@@ -409,13 +409,14 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
           await verify(file, read.bytes); return read;
         }
       };
-      const result = await fillWholeModelDirectory({ root, model, manifest: data.manifest, index: data.index, signal, onProgress, acquire,
+      const result = await fillWholeModelDirectory({ root, model, manifest: data.manifest, index: data.index, signal,
+        onProgress: event => onProgress({ ...event, receiverBackpressure: payloadSlots.getStats() }), acquire,
         // Overlap grants and durable writes under one host-wide signed chunk limit.
         concurrency: fillConcurrency,
         readMetadata: readPinned,
         release: async file => { for (const piece of file.pieces) await cache.remove(pieceFile(piece)); },
         freeBytes: async directory => { const stat = await fs.statfs(directory); return stat.bavail * stat.bsize; } });
-      return { complete: true, filled: true, ...result };
+      return { complete: true, filled: true, ...result, receiverBackpressure: payloadSlots.getStats() };
     })()); },
     share(model, approved) { return own((async () => {
       assert(approved === true && !closed, 'Approve file contribution separately from compute');

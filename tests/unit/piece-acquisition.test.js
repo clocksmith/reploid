@@ -10,7 +10,9 @@ it('deduplicates in-flight work, reuses verified cache, and replaces a departed 
   authorize:async()=>true,verify:async(_p,b)=>b[0]===1&&b.length===4,foregroundIdle:async()=>{}});
  const [a,b]=await Promise.all([store.acquire(piece),store.acquire(piece)]);expect(calls).toBe(1);expect(a).toEqual(b);expect(a).not.toBe(b);
  await new Promise(r=>setTimeout(r,0));await store.acquire(piece);expect(calls).toBe(1);
- expect(store.getReceipt().reusedBytes).toBe(4);expect(store.getReceipt().failedSources).toHaveLength(1);await store.close();
+ expect(store.getReceipt().reusedBytes).toBe(4);expect(store.getReceipt().failedSources).toHaveLength(1);
+ expect(store.getReceipt().duplicateReads).toBe(1);expect(store.getReceipt().deduplicatedRequests).toBe(1);
+ expect(store.getReceipt().totalAcquisitionMs).toBeGreaterThanOrEqual(0);await store.close();
 });
 it('does not admit unverified bytes into cache and respects source permissions',async()=>{
  let cached=false,calls=0;const store=createPieceAcquisition({limits,cache:{get:async()=>null,put:async()=>{cached=true;}},
