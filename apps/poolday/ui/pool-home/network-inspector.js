@@ -1,6 +1,8 @@
 import { sameModelVariant } from './model-providers.js';
 import { localFitText } from './conversation-model-picker.js';
 import { renderPrivateComputers, bindPrivateComputers } from './private-computers-view.js';
+import { renderOwnerPairingControls, bindOwnerPairingControls } from './owner-pairing-view.js';
+import { renderCircleInviteControls, bindCircleInviteControls } from './circle-invites-view.js';
 import { updateExecutionDetail } from './execution-activity.js';
 import { projectContextIndicator } from './context-indicator.js';
 import { bindDrawer } from '../components/drawer.js';
@@ -80,6 +82,8 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         </div>
       </details>
       ${renderPrivateComputers()}
+      ${renderOwnerPairingControls()}
+      ${renderCircleInviteControls()}
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
@@ -179,6 +183,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };
   const act = operation => Promise.resolve().then(operation).catch(error);
   const privateComputers = bindPrivateComputers(panel, session);
+  const ownerPairingView = bindOwnerPairingControls(panel, session);
+  const circleInvites = bindCircleInviteControls(panel, () => session.circleInvites);
   const storagePanel = bindModelStorage(panel, modelStorage);
   const localData = bindLocalData(panel, session, computers);
   if (modelStorage) find('[data-settings-storage-summary]').hidden = true;
@@ -235,6 +241,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     privateComputers.update(state);
+    ownerPairingView.update(state);
+    circleInvites.update();
     if (inspected?.threadId !== state.selectedId) inspected = null;
     const attempt = state.activeThread?.attempts?.find(item => item.id === inspected?.attemptId);
     const inspectedState = attempt ? { ...state, activeThread: { ...state.activeThread, attempts: [attempt] } } : state;
@@ -417,6 +425,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { clearModelFilter(); if (section === 'conversation') { inspected = null; render(session.getState()); } select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); ownerPairingView.dispose(); circleInvites.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

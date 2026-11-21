@@ -1,4 +1,6 @@
 import { createPrivateComputers } from './private-computers.js';
+import { createCircleInviteOwner } from './circle-invites.js';
+import { createBrowserOwnerPairing } from './owner-pairing.js';
 import { projectComputerUsage } from './contribution-history.js';
 import { availablePartitionRoute } from './partition-release.js';
 /**
@@ -92,11 +94,13 @@ export function createChatSession({
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
   privateComputers = null,
+  getCircleOwnerRequest = () => null,
   // Reads declared adapter evaluation files; only verified passing receipts label an adapter evaluated.
   fetchEvidence = globalThis.fetch?.bind(globalThis),
   now = Date.now,
   id = () => crypto.randomUUID()
 } = {}) {
+  let ownerRequest, inviteControls;
   const store = canonicalHistory || {
     load() {
       try {
@@ -169,6 +173,13 @@ export function createChatSession({
   };
 
   const fleet = privateComputers || createPrivateComputers({ onChange: () => notifyAll() });
+  const ownerPairing = createBrowserOwnerPairing({
+    storage,
+    getChannel: () => swarm?.getOwnerPairingChannel?.() || null,
+    connect: swarm?.connect ? () => swarm.connect({ automatic: false }) : null,
+    onChange: () => notifyAll(),
+    now
+  });
   const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, fleet, resolveLocalSource, isCached,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => {
       const local = execution.getLocalState();
@@ -340,7 +351,7 @@ export function createChatSession({
       closed,
       activeThread,
       comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
-      models: catalog, privateComputers: fleet.state(),
+      models: catalog, privateComputers: fleet.state(), ownerPairing: ownerPairing.state(),
       answerLimits: catalog.filter(model => model.partition).map(model => ({
         selectionId: model.selectionId || model.id,
         cells: ROUTE_ENVELOPE_POLICY.routes.find(row => row.modelIdentity === model.identity
@@ -471,6 +482,15 @@ export function createChatSession({
     },
     getModelDownload,
     privateComputers: fleet,
+    ownerPairing,
+    get circleInvites() {
+      const current = getCircleOwnerRequest();
+      if (current !== ownerRequest) {
+        ownerRequest = current;
+        inviteControls = current ? createCircleInviteOwner({ request: current }) : null;
+      }
+      return inviteControls;
+    },
     getDraft: drafts.get,
     saveDraft(threadId, value) { assertOpen(); return drafts.save(threadId, value); },
     getDocumentSources: comparisonSources,
@@ -734,7 +754,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; fleet.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
+      closed = true; fleet.close(); ownerPairing.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {

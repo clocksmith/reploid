@@ -1,6 +1,7 @@
 import { participantOptions, participantHelp } from './native-participant-options.js';
 import { createNativeRtcConfigReader } from './native-rtc-config.js';
 import { parseArgs } from 'node:util';
+import { createInterface } from 'node:readline';
 import path from 'node:path';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
 import { findCatalogModel } from './native-model-names.js';
@@ -28,6 +29,7 @@ import { createNativeParticipant } from './native-participant-runtime.js';
 import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
+import { openOwnerPairing } from './circles/owner-pairing.js';
 
 export async function main({ runOnce } = {}) {
   const { values } = parseArgs({ options: participantOptions });
@@ -55,6 +57,9 @@ export async function main({ runOnce } = {}) {
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
   requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['readiness-log'],
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
+  if (values['owner-pairing']) requireValue(!runOnce && process.stdin.isTTY && process.stderr.isTTY
+    && values.contribute && values['execution-mode'] === 'whole-model' && values.room && values.room !== bootstrap.publicRoomId,
+  'Owner pairing requires an interactive terminal and a private whole-model host');
   // Before source-runtime, identity, provider or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
   const getRtcConfig = values['rtc-config-file'] === undefined ? null : createNativeRtcConfigReader(values['rtc-config-file']);
@@ -160,6 +165,15 @@ export async function main({ runOnce } = {}) {
     await import('./browser-web-worker.js').then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
       .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
   else if (values['web-search']) webWorker = createPublicWebWorker();
+  let ownerPairing;
+  try {
+    if (values['owner-pairing']) ownerPairing = await openOwnerPairing({ file: path.join(path.dirname(identityFile), 'owner-pairing.sqlite'),
+      hostParticipantId: identity.peerId, onRequest({ requestId, participantId }) {
+        console.error(`Pair ${participantId}? Type approve ${requestId} or decline ${requestId}.`);
+      } });
+  } catch (error) {
+    owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error;
+  }
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
@@ -176,7 +190,7 @@ export async function main({ runOnce } = {}) {
       };
     })(),
     generationJournalFile: path.join(path.dirname(identityFile), 'generation-journal.sqlite'),
-    webWorker,
+    webWorker, ownerPairing,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       sha256Hex(values.room || bootstrap.publicRoomId)) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
@@ -186,7 +200,26 @@ export async function main({ runOnce } = {}) {
       // A prepared stage is offered for before any route admits it.
       if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
     } })
-    .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
+    .catch(async error => { ownerPairing?.close(); owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
+  const pairingTerminal = ownerPairing && createInterface({ input: process.stdin, terminal: false });
+  if (pairingTerminal) {
+    console.error('Type pair to issue a one-time owner pairing code.');
+    pairingTerminal.on('line', line => {
+      const [command, requestId] = line.trim().split(/\s+/);
+      try {
+        if (command === 'pair') {
+          const { hostParticipantId, code } = ownerPairing.issue();
+          const params = new URLSearchParams({ pair: code, host: hostParticipantId });
+          if (values.room) params.set('room', values.room);
+          console.error(`Owner pairing code for ${hostParticipantId} (2 minutes): ${code}`);
+          console.error(`Pairing link (fragment-only, 2 minutes): https://replo.id/#${params.toString()}`);
+        } else if (command === 'approve' || command === 'decline') {
+          const approved = ownerPairing.decide(requestId, command === 'approve');
+          console.error(approved ? 'Owner device paired.' : 'Owner pairing was declined or expired.');
+        }
+      } catch (error) { console.error(error.message); }
+    });
+  }
   logNetwork = () => statusLog('network', { event: 'network', at: new Date().toISOString(), ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() });
   if (readiness) observeReadiness = () => readiness.observe(participant.getState());
@@ -196,6 +229,7 @@ export async function main({ runOnce } = {}) {
   const shutdown = createNativeShutdown(participant, gpuHost);
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
   const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
+    pairingTerminal?.close(); ownerPairing?.close();
     return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
   if (runOnce) {
     const controller = new AbortController();

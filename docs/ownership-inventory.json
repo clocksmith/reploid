@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 383,
+    "apps/poolday": 389,
     "self": 457,
-    "shared": 2496
+    "shared": 2498
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2287,6 +2287,18 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "host/circle-http-client.js",
+      "source": "apps/poolday/host/circle-http-client.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/circle-invites.js",
+      "source": "apps/poolday/host/circle-invites.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "host/computer-preferences.js",
       "source": "apps/poolday/host/computer-preferences.js",
       "owner": "apps/poolday",
@@ -2427,6 +2439,12 @@
     {
       "served": "host/model-storage.js",
       "source": "apps/poolday/host/model-storage.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/owner-pairing.js",
+      "source": "apps/poolday/host/owner-pairing.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4759,6 +4777,18 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "ui/pool-home/circle-guest-view.js",
+      "source": "apps/poolday/ui/pool-home/circle-guest-view.js",
+      "owner": "apps/poolday",
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
+    },
+    {
+      "served": "ui/pool-home/circle-invites-view.js",
+      "source": "apps/poolday/ui/pool-home/circle-invites-view.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "ui/pool-home/computer-labels.js",
       "source": "apps/poolday/ui/pool-home/computer-labels.js",
       "owner": "apps/poolday",
@@ -4965,6 +4995,12 @@
     {
       "served": "ui/pool-home/operation-sharing.js",
       "source": "apps/poolday/ui/pool-home/operation-sharing.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/owner-pairing-view.js",
+      "source": "apps/poolday/ui/pool-home/owner-pairing-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -17490,6 +17526,16 @@
     {
       "served": "vendor/reploid/transport/message-types.js",
       "source": "shared/vendor/reploid/transport/message-types.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/owner-pairing.d.ts",
+      "source": "shared/vendor/reploid/transport/owner-pairing.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/owner-pairing.js",
+      "source": "shared/vendor/reploid/transport/owner-pairing.js",
       "owner": "shared"
     },
     {

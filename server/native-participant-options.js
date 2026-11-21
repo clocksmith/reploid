@@ -1,7 +1,7 @@
 export const participantOptions = Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory', 'supply-limit-gib',
     'rtc-config-file', 'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile', 'runtime-source-config'].map(key => [key, { type: 'string' }]).concat([
-      ['supply-to', { type: 'string', multiple: true }], ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]]));
+      ['supply-to', { type: 'string', multiple: true }], ['owner-pairing', { type: 'boolean', default: false }], ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]]));
 
 export const participantHelp = `Reploid native participant (Node 22.13 or newer)
 Usage: reploid-participant --connect-only|--share-files|--contribute
@@ -13,6 +13,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   [--rtc-config-file <absolute private JSON path>] (expiring TURN credentials; reread on negotiation and heartbeat)
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
+  [--owner-pairing] (private whole-model host with desktop terminal approval)
   [--supply-limit-gib <GiB>] (lifetime file upload allowance for this cache; default 4)
   [--supply-to <peer:signing-identity>] (repeat to limit file grants to named computers)
   [--adapter <catalog adapter id>] (prepare this exact adapter with its base model)
