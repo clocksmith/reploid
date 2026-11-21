@@ -1,0 +1,126 @@
+{
+  "schema": "reploid.wire-circle-fixture-review/v1",
+  "base": "d99b9c2375e5c386bd1a4f15c1cf915fc9200554",
+  "fixtureSourceSha256": "1704f9dfa62e013a35b07be6e7fa24b1533698f7044584199d35cd2fc754c533",
+  "prerequisiteSources": {
+    "invite": "cdd29ad097534f20bf51a7310e5002d3d9e20a0d",
+    "reconnect": "3038daf5d57878e7e08b1e1f4d77f3b73e369e0a"
+  },
+  "coverage": {
+    "originalLoopbackRelayShim": "passed",
+    "focusedTestCasesPassed": 14,
+    "consecutiveCliPassesPerScenario": 3,
+    "physicalCellular": false,
+    "productionGuestDispatch": false
+  },
+  "receipts": [
+    {
+      "schema": "reploid.circle-wire-fixture/v1",
+      "scenario": "invite",
+      "checkedAtUtc": "2026-11-21T20:46:20.539Z",
+      "scope": "same-host native direct RTC, loopback WebSocket, synthetic inference; no TURN, cellular, TLS proxy, or public service",
+      "fixtureAdmission": "verified invite grant applied by test host port; guest dispatch is not wired in the application",
+      "checks": {
+        "signaling": {
+          "frames": 33,
+          "bytes": 12611,
+          "promptMatches": 0,
+          "answerMatches": 0
+        },
+        "signalingDirections": {
+          "inbound": {
+            "frames": 16,
+            "bytes": 6049,
+            "promptMatches": 0,
+            "answerMatches": 0
+          },
+          "outbound": {
+            "frames": 17,
+            "bytes": 6562,
+            "promptMatches": 0,
+            "answerMatches": 0
+          }
+        },
+        "desktopControlStore": {
+          "frames": 2,
+          "bytes": 41496,
+          "promptMatches": 0,
+          "answerMatches": 0
+        },
+        "endpointDataChannels": {
+          "frames": 23,
+          "bytes": 16607,
+          "promptMatches": 1,
+          "answerMatches": 1
+        },
+        "preadmissions": 2,
+        "admitted": 1,
+        "revokedRefused": true,
+        "freshScope": false,
+        "staleRefused": false,
+        "selectedTransport": "webrtc",
+        "selectedIcePath": "direct",
+        "selectedPairTraffic": {
+          "bytesSent": 7698,
+          "bytesReceived": 5911
+        },
+        "iceServersConfigured": 0,
+        "cellularTested": false
+      }
+    },
+    {
+      "schema": "reploid.circle-wire-fixture/v1",
+      "scenario": "reconnect",
+      "checkedAtUtc": "2026-11-21T20:46:21.463Z",
+      "scope": "same-host native direct RTC, loopback WebSocket, synthetic inference; no TURN, cellular, TLS proxy, or public service",
+      "fixtureAdmission": null,
+      "checks": {
+        "signaling": {
+          "frames": 66,
+          "bytes": 25280,
+          "promptMatches": 0,
+          "answerMatches": 0
+        },
+        "signalingDirections": {
+          "inbound": {
+            "frames": 32,
+            "bytes": 12126,
+            "promptMatches": 0,
+            "answerMatches": 0
+          },
+          "outbound": {
+            "frames": 34,
+            "bytes": 13154,
+            "promptMatches": 0,
+            "answerMatches": 0
+          }
+        },
+        "desktopControlStore": {
+          "frames": 1,
+          "bytes": 16384,
+          "promptMatches": 0,
+          "answerMatches": 0
+        },
+        "endpointDataChannels": {
+          "frames": 29,
+          "bytes": 17975,
+          "promptMatches": 1,
+          "answerMatches": 1
+        },
+        "preadmissions": 1,
+        "admitted": 1,
+        "revokedRefused": false,
+        "freshScope": true,
+        "staleRefused": true,
+        "selectedTransport": "webrtc",
+        "selectedIcePath": "direct",
+        "selectedPairTraffic": {
+          "bytesSent": 7775,
+          "bytesReceived": 7196
+        },
+        "iceServersConfigured": 0,
+        "cellularTested": false
+      }
+    }
+  ]
+}
