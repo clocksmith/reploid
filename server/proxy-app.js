@@ -413,6 +413,7 @@ app.use('/pool', createPoolRouter({
   ...configuredPoolAuth,
   allowUnauthenticatedLocal: process.env.POOL_ALLOW_UNAUTHENTICATED_LOCAL === 'true',
   allowCanaryCreation: process.env.POOL_ALLOW_BROWSER_CANARY_CREATE === 'true',
+  allowPlaintextJobPrompts: process.env.POOL_ALLOW_PLAINTEXT_JOB_PROMPTS === 'true',
   createAdapterDownloadUrl: configuredAdapterOriginSigner
 }));
 

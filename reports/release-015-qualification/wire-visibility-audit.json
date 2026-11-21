@@ -1,0 +1,53 @@
+{
+  "schema": "reploid.wire-visibility-audit/v1",
+  "verifiedUtc": "2026-11-21T20:21:17.288Z",
+  "checks": {
+    "signalingFramesObserved": 3,
+    "signalingBytesObserved": 1243,
+    "signalingPromptCanaryMatches": 0,
+    "signalingAnswerCanaryMatches": 0,
+    "udpRelayPacketsObserved": 22,
+    "udpRelayBytesObserved": 3608,
+    "udpRelayPromptCanaryMatches": 0,
+    "udpRelayAnswerCanaryMatches": 0,
+    "fleetHttpWireBytesObserved": 6952,
+    "fleetHttpPromptCanaryMatches": 0,
+    "fleetHttpAnswerCanaryMatches": 0,
+    "fleetSqliteBytesInspected": 214056,
+    "fleetSqlitePromptCanaryMatches": 0,
+    "fleetSqliteAnswerCanaryMatches": 0,
+    "coordinatorStorePromptCanaryMatches": 0,
+    "coordinatorStoreAnswerCanaryMatches": 0,
+    "peerRoomPromptInjectionHttpStatus": 400,
+    "coordinatorPlaintextJobHttpStatus": 400,
+    "coordinatorUnprivilegedCanaryHttpStatus": 403,
+    "servingComputerReadPrompt": true,
+    "requesterBrowserReadAnswer": true
+  },
+  "visibilityMatrix": [
+    {
+      "party": "your-device",
+      "prompt": "plaintext",
+      "answer": "plaintext",
+      "metadata": "model, recipient Ed25519 key, timing, receipt"
+    },
+    {
+      "party": "coordinator",
+      "prompt": "none (SHA-256 commitment/digest only on credited routes)",
+      "answer": "none (SHA-256 digest & token count only on credited routes)",
+      "metadata": "room rendezvous, SDP/ICE signaling, enrolled public keys, credit balances"
+    },
+    {
+      "party": "udp-turn-relay",
+      "prompt": "none (DTLS-encrypted WebRTC DataChannel)",
+      "answer": "none (DTLS-encrypted WebRTC DataChannel)",
+      "metadata": "endpoint IP/port, packet sizes, timing"
+    },
+    {
+      "party": "serving-computer",
+      "prompt": "plaintext (required to execute model weights today)",
+      "answer": "plaintext",
+      "metadata": "requester peer identity, model, token limits"
+    }
+  ]
+}

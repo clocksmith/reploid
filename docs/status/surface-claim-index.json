@@ -232,6 +232,24 @@
       "claimPermission": true
     },
     {
+      "surface": "wire-visibility",
+      "status": "supported",
+      "evidencePaths": [
+        "docs/wire-visibility.md",
+        "scripts/verify-wire-visibility.js",
+        "tests/integration/wire-visibility.test.js",
+        "reports/release-015-qualification/wire-visibility-audit.json",
+        "server/signaling-server.js",
+        "server/pool/routes/peer-rooms.js",
+        "server/pool/routes/jobs.js",
+        "server/proxy-app.js",
+        "server/fleet/service.js"
+      ],
+      "blockers": [],
+      "claimPermission": true,
+      "claimBoundary": "Signaling, peer rooms, production /pool/jobs, /v1/fleet credit settlement, credits.sqlite, and DTLS-encrypted WebRTC DataChannel relays expose zero plaintext prompt or answer bytes in repository-tested live socket captures. The serving computer executing the model weights reads the prompt and answer in plaintext today."
+    },
+    {
       "surface": "sealed-credentials",
       "status": "supported",
       "evidencePaths": [

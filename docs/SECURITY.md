@@ -4,7 +4,7 @@
 
 **Foundational thesis:** Constraints aren't limitations; they're the engine that makes browser-native RSI work. The browser sandbox, VFS containment, and graduated gates create stable pressure toward compact, efficient self-modifications.
 
-This document provides a high-level overview of REPLOID's security model. For detailed implementation specifications, see the referenced blueprints.
+This document provides a high-level overview of REPLOID's security model. For coordinator, WebSocket signaling, UDP/TURN relay, and serving-computer wire visibility across live inference routes, see [Wire Visibility: Who Can Read What](./wire-visibility.md). For detailed implementation specifications, see the referenced blueprints.
 
 Current defaults are intentionally permissive for experimentation: `REPLOID_SECURITY_MODE` defaults to `'off'` and `REPLOID_ARENA_GATING` defaults to `'false'`. Enable them explicitly for substrate-modification experiments.
 
