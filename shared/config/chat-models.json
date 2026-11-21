@@ -295,75 +295,10 @@
         }
       ]
     },
-    "partitionPlan": {
-      "schema": "doppler.layer-partition-contract/v3",
-      "modelId": "qwen-3-8-27b-text-q4k-ef16-af32",
-      "totalLayers": 64,
-      "hiddenSize": 5120,
-      "vocabSize": 248320,
-      "stageCount": 2,
-      "splitLayers": [
-        1
-      ],
+    "partitionRequest": {
+      "splitLayers": [1],
       "activationDtype": "f32",
-      "activationPrecision": "f32",
-      "activationComponents": 1,
-      "activationElementStrideBytes": 4,
-      "partitions": [
-        {
-          "index": 0,
-          "layerRange": [
-            0,
-            0
-          ],
-          "layerCount": 1,
-          "hasEmbedding": true,
-          "hasLmHead": false,
-          "inputContract": {
-            "type": "token-ids",
-            "rank": 2,
-            "shapeDescription": "[batchSize, seqLen]",
-            "dtype": "i32"
-          },
-          "outputContract": {
-            "type": "activation-tensor",
-            "rank": 3,
-            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
-            "hiddenSize": 5120,
-            "dtype": "f32",
-            "precision": "f32",
-            "components": 1,
-            "elementStrideBytes": 4
-          }
-        },
-        {
-          "index": 1,
-          "layerRange": [
-            1,
-            63
-          ],
-          "layerCount": 63,
-          "hasEmbedding": false,
-          "hasLmHead": true,
-          "inputContract": {
-            "type": "activation-tensor",
-            "rank": 3,
-            "shapeDescription": "[batchSize, seqLen, hiddenSize]",
-            "hiddenSize": 5120,
-            "dtype": "f32",
-            "precision": "f32",
-            "components": 1,
-            "elementStrideBytes": 4
-          },
-          "outputContract": {
-            "type": "logits",
-            "rank": 3,
-            "shapeDescription": "[batchSize, seqLen, vocabSize]",
-            "vocabSize": 248320,
-            "dtype": "f32"
-          }
-        }
-      ]
+      "activationPrecision": "f32"
     },
     "partitionPlanId": "sha256:a000b91dd404ff328a0deaa2f5e3ff89b5c73c9a93001d1870c145df4fdd882c",
     "partitionRuntime": {
