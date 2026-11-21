@@ -191,6 +191,19 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     expect(disclosedPrompts).toEqual(['owner first','retained local draft']);
   });
 
+  it('returns bounded per-guest queue pressure without sending the rejected draft', async () => {
+    const inviteId = newGuest();
+    const holding = await post('/circle/admit',metadata('owner-first'),OWNER_ID);
+    const queued = ['one','two'].map(name => normalChat({...metadata(name,inviteId),prompt:name},GUEST_ID));
+    await expect.poll(()=>admission.getQueuedCount(inviteId)).toBe(2);
+    const full = await normalChat({...metadata('beyond-limit',inviteId),prompt:'never transmitted'},GUEST_ID);
+    expect(full).toMatchObject({status:429,body:{code:'CIRCLE_FULL'}});
+    expect(disclosedPrompts).toEqual([]);
+    await post('/circle/cancel',{},OWNER_ID,grantHeaders(holding.body.grant));
+    expect((await Promise.all(queued)).map(result=>result.status)).toEqual([200,200]);
+    expect(disclosedPrompts.sort()).toEqual(['one','two']);
+  });
+
   it('rejects legacy chat headers before reading a body and rejects prompt-bearing admission metadata', async () => {
     const status = await new Promise((resolve,reject) => {
       const req = http.request(origin+'/circle/chat',{method:'POST',headers:{'x-test-peer':GUEST_ID,'content-length':'400'}},res => {

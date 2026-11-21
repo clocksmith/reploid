@@ -264,6 +264,9 @@ export function createCirclePublicGateway({
         entry = grants.issue(lease,peerId,metadata);
         ownsEntry = true;
         signal.throwIfAborted();
+        const undelivered = () => { if (!res.writableFinished) grants.abandon(entry); };
+        res.once('close',undelivered);
+        res.once('finish',() => res.off('close',undelivered));
         return sendJson(res,200,{admitted:true,grant:entry.token,expiresAt:entry.expiresAt,hostPeerId,
           requesterPeerId:peerId,requestId:metadata.requestId,modelIdentity:metadata.modelIdentity,maxOutputTokens:metadata.maxOutputTokens,
           disclosure:lease.disclosure});
@@ -316,10 +319,13 @@ export function createCirclePublicGateway({
   }
 
   async function listen({ host = '127.0.0.1', port = 0 } = {}) {
+    const inFlight = new Set();
     const server = http.createServer((req, res) => {
-      void handle(req, res).catch(error => {
+      const task = handle(req, res).catch(error => {
         if (!res.headersSent) sendJson(res, 500, { error: error?.message || 'Internal error' });
       });
+      inFlight.add(task);
+      void task.finally(() => inFlight.delete(task));
     });
     await new Promise((resolve, reject) => {
       server.once('error', reject);
@@ -337,6 +343,7 @@ export function createCirclePublicGateway({
         server.closeIdleConnections?.();
         server.closeAllConnections?.();
         await new Promise(resolve => server.close(resolve));
+        await Promise.allSettled(inFlight);
       }
     });
   }

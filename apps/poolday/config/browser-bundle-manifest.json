@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 691037,
-      "sha256": "sha256:920479a0b66c52fc9cedc51804755d7ac32e0983be1576045c46a88f50dbc3a8"
+      "sha256": "sha256:4ef095ecffce3eddd4b55f65a832a95bddac13b17a43daf2b97f97d2e66553d8"
     },
     {
       "path": "config/module-registry.json",
@@ -1875,8 +1875,8 @@
     },
     {
       "path": "host/circle-http-client.js",
-      "byteLength": 2880,
-      "sha256": "sha256:5786445331e9f2a4dbca47c0e38ea84ac6a94e6b611f527161a31d17f2f71095"
+      "byteLength": 3091,
+      "sha256": "sha256:7b76331efc48abd965d4aa01c7ddd732027a58ec9e4b2f175aa8116cca2c5c52"
     },
     {
       "path": "host/circle-invites.js",
@@ -12714,5 +12714,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:9dc11254274ceb89c4b1495f0c0c2b2ce9cedb5a3909f94d0935eb6810d81039"
+  "bundleHash": "sha256:24b87d692a6aedfba42fd1131271054cba1dbd5319d67d7026135c0d5c80f82e"
 }

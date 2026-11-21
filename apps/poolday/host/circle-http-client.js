@@ -14,11 +14,13 @@ export async function sendCircleChat({ origin = globalThis.location?.origin, met
   // Snapshot the expected identity and scope. Caller edits during a queue wait
   // cannot change the authorized recipient or the budget for this attempt.
   const expected = {...metadata};
-  async function post(path, data, grant, requestSignal) {
+  async function post(path, data, grant, requestSignal, expiresAt) {
     const body = JSON.stringify(data);
-    const auth = new Headers(typeof headers === 'function' ? await headers({path,method:'POST',body}) : headers);
+    const auth = new Headers(typeof headers === 'function' ? await headers({path,method:'POST',body,signal:requestSignal}) : headers);
     auth.set('content-type','application/json');
     if (grant) { auth.set('x-circle-grant',grant); auth.set('x-circle-host',expected.hostPeerId); }
+    requestSignal?.throwIfAborted();
+    if (expiresAt !== undefined && Date.now() >= expiresAt) throw Error('Circle admission expired before prompt submission');
     return fetchImpl(new URL(path,base).href,{method:'POST',headers:auth,body,signal:requestSignal,redirect:'error',cache:'no-store'});
   }
   const admission = await post('/circle/admit',expected,null,signal);
@@ -32,7 +34,7 @@ export async function sendCircleChat({ origin = globalThis.location?.origin, met
       || offer.modelIdentity !== expected.modelIdentity || offer.maxOutputTokens !== expected.maxOutputTokens
       || !Number.isSafeInteger(offer.expiresAt) || Date.now() >= offer.expiresAt) throw Error('Circle admission no longer matches this turn');
     signal?.throwIfAborted();
-    return await post('/circle/chat',{prompt},token,signal);
+    return await post('/circle/chat',{prompt},token,signal,offer.expiresAt);
   } catch (error) {
     // This closes only an unused offer; a dispatched request keeps its own settlement.
     await post('/circle/cancel',{},token,AbortSignal.timeout(1500)).catch(() => {});

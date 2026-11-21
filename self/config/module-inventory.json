@@ -2892,7 +2892,7 @@
     {
       "path": "self/host/circle-http-client.js",
       "owner": "self",
-      "sha256": "sha256:5786445331e9f2a4dbca47c0e38ea84ac6a94e6b611f527161a31d17f2f71095",
+      "sha256": "sha256:7b76331efc48abd965d4aa01c7ddd732027a58ec9e4b2f175aa8116cca2c5c52",
       "imports": []
     },
     {
