@@ -4281,7 +4281,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:ce271c6f9e1e5b1e1c9873290e96c6c86d61881deaabaffb05086d40b6a2b60b",
+      "sha256": "sha256:72ffc28a47201684ee8633a732d7d114d4c1f066769636a1f81b3281a001cbef",
       "imports": []
     },
     {
@@ -4304,7 +4304,7 @@
     {
       "path": "ui/pool-home/circle-invites-view.js",
       "owner": "ui",
-      "sha256": "sha256:0bed7f6adc465f1c171049cb50d0ff8f3212635f7ca7b4f61f22a005bfdc2e55",
+      "sha256": "sha256:092dd209e0c7692c55e8a73a761ea5e0059379724fd9d85a05cd6822a8c90160",
       "imports": [
         "../components/attachments.js"
       ]

@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 690196,
-      "sha256": "sha256:14f3c7a34270aa28973f35b42bae1998ed3aa001537f76bfda0f73edb2679fb1"
+      "sha256": "sha256:9cafbc6a7c89799b918cd5bfe0ee649bb75287d7382d4503d282385dced169be"
     },
     {
       "path": "config/module-registry.json",
@@ -3775,8 +3775,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2690419,
-      "sha256": "sha256:ce271c6f9e1e5b1e1c9873290e96c6c86d61881deaabaffb05086d40b6a2b60b"
+      "byteLength": 2690502,
+      "sha256": "sha256:72ffc28a47201684ee8633a732d7d114d4c1f066769636a1f81b3281a001cbef"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3790,8 +3790,8 @@
     },
     {
       "path": "ui/pool-home/circle-invites-view.js",
-      "byteLength": 5632,
-      "sha256": "sha256:0bed7f6adc465f1c171049cb50d0ff8f3212635f7ca7b4f61f22a005bfdc2e55"
+      "byteLength": 5729,
+      "sha256": "sha256:092dd209e0c7692c55e8a73a761ea5e0059379724fd9d85a05cd6822a8c90160"
     },
     {
       "path": "ui/pool-home/computer-labels.js",
@@ -12699,5 +12699,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:ba4e742aef496fa082ef160d24635d5199ffade3200f781929e1446fac281743"
+  "bundleHash": "sha256:546a30fefc9e8c50bc37ed046e351946c16b0994687686a3c5f8ce0409a659cc"
 }

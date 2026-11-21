@@ -44,6 +44,7 @@ export function bindCircleInviteControls(root, getPort) {
       return `<li class="pool-stack pool-gap-sm">
         <span>${escape(recipient)} · ${escape(row.status)}</span>
         <span>${escape(row.usedRequests)} of ${escape(row.maxRequests)} requests used · expires ${escape(expiry)}</span>
+        ${row.queuedRequests == null ? '' : `<span>${escape(row.queuedRequests)} queued</span>`}
         ${row.status === 'active' ? `<button class="pool-button btn-ghost" type="button" data-circle-invite-revoke="${escape(row.inviteId)}">Revoke invite</button>` : ''}
       </li>`;
     }).join('');

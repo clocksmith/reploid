@@ -38,7 +38,7 @@ describe('single-host invites', () => {
     expect((await fs.readFile(file)).includes(created.token)).toBe(false);
   });
 
-  it('charges one request against the limit and binds replay to the original invite and output limit', () => {
+  it('counts one admitted request and binds replay to the original invite and output limit', () => {
     const first = issue(), second = issue();
     invites.redeem({ token: first.token, guestPeerId: GUEST });
     invites.redeem({ token: second.token, guestPeerId: GUEST });
@@ -76,11 +76,13 @@ describe('single-host invites', () => {
   it('authorizes owner controls from the authenticated channel identity only', async () => {
     const authenticatePeer = async peer => ({ 'owner-channel': 'peer:paired-owner', 'guest-channel': GUEST })[peer];
     const ownerPairing = { isOwner: identity => identity === 'peer:paired-owner' };
-    const run = (peerId, command) => handleCircleInviteOwnerCommand({ invites, ownerPairing, authenticatePeer, peerId, command });
+    const run = (peerId, command) => handleCircleInviteOwnerCommand({
+      invites, ownerPairing, authenticatePeer, getQueuedCount: () => 1, peerId, command
+    });
     const payload = { op: 'circle-invites.issue', expiresAt: time + 500, maxRequests: 2, maxOutputTokens: 24 };
     await expect(run('guest-channel', { ...payload, ownerPeerId: 'peer:paired-owner' })).rejects.toThrow('Only a paired owner');
     const created = await run('owner-channel', payload);
-    await expect(run('owner-channel', { op: 'circle-invites.list' })).resolves.toMatchObject([{ inviteId: created.inviteId }]);
+    await expect(run('owner-channel', { op: 'circle-invites.list' })).resolves.toMatchObject([{ inviteId: created.inviteId, queuedRequests: 1 }]);
     await expect(run('guest-channel', { op: 'circle-invites.revoke', inviteId: created.inviteId })).rejects.toThrow('Only a paired owner');
     await expect(run('owner-channel', { op: 'circle-invites.revoke', inviteId: created.inviteId })).resolves.toMatchObject({ status: 'revoked' });
   });
