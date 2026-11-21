@@ -51,6 +51,7 @@ it.each([
   let requester;
   const mesh = {
     getSwarmSnapshot: () => ({ peers: [{ peerId: 'whole-provider', model: whole.id, modelIdentity: whole.identity,
+      identityProtocol: 1, admissionProtocol: 2,
       readiness: 'ready', hasInference: true, availableSlots: 1, generationSettings: NATIVE_WHOLE_MODEL_SETTINGS }] }),
     async generate(messages, onDelta, options) {
       const privacy = options.privacy;

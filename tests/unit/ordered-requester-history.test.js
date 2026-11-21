@@ -144,6 +144,7 @@ it('opens requester-owned history for an ordered catalog and publishes the three
   expect(state.models.filter(row => !row.partition).every(row => row.availability === 'unavailable')).toBe(true);
   const whole = state.models.find(row => !row.partition && !row.adapters?.length);
   ports.peers = [{ peerId: 'whole-provider', model: whole.id, modelIdentity: whole.identity,
+    identityProtocol: 1, admissionProtocol: 2,
     readiness: 'ready', hasInference: true, availableSlots: 1 }];
   ports.connections = [{ id: 'whole-provider', phase: 'connected', channelState: 'open' }];
   host.chat.refreshNetwork();
