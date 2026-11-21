@@ -1102,8 +1102,8 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 46754,
-      "sha256": "2cbeb443e9786a4582019e6521983f1212c54c602b3b55b0d2798fe200fe4f69"
+      "bytes": 47007,
+      "sha256": "99cc79013fe21a5ff03f958a39e735f45ff57e3cd6a13d4b8af656e23c18509b"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",

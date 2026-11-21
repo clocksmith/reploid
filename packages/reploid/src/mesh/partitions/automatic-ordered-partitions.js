@@ -19,6 +19,7 @@ import { planStageAssignment, stageDemand, STAGE_ASSIGNMENT_SCHEMA, STAGE_COSTS_
 import { createDeviceAdmission } from './partition-device-admission.js';
 import { ATTEMPT_QUEUE_POLICY, createPartitionAttemptQueue } from './partition-attempt-queue.js';
 
+const stageCountFor = model => model.partitionRequest?.splitLayers?.length + 1 || model.partitionPlan?.stageCount;
 const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 /** Explicit prepared-stage mode of automatic participation. Geometry and local
  * allocation identity come from the host; discovery cannot assign either. Launch 3
@@ -82,7 +83,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   // Observed local allocation failures, scoped to this approved contribution.
   // Never turn an identity/integrity failure into a different preparation.
   const unavailableStages = new Set();
-  const eligibleIndexes = () => Array.from({ length: offer.partitionPlan.stageCount }, (_, index) => index)
+  const eligibleIndexes = () => Array.from({ length: stageCountFor(offer) }, (_, index) => index)
     .filter(index => !unavailableStages.has(index));
   let discovery, entries;
   // Receipts whose cleanup stayed unknown outlive their retired route, bounded
@@ -217,6 +218,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       assert(candidate.resident.id === stage.participantId && candidate.resident.index === stage.index && candidate.model.id === selected.id && candidate.model.identity === selected.identity
         && observed.ready && observed.descriptor.schema === 'doppler.resident-partition/v2'
         && observed.descriptor.planId === candidate.planId && candidate.plan.stageCount === observed.descriptor.stageCount
+        && (selected.partitionRequest === undefined || candidate.planId === selected.partitionPlanId
+          && candidate.plan.stageCount === stageCountFor(selected))
         && ['transportId', 'residentId', 'executionId'].every(key => candidate.resident[key] === stage[key]), 'Loaded ordered stage identity mismatch');
       program = candidate;
       preparationOwners.clear(); // Validated handoff transfers loading ownership to the resident.
@@ -356,7 +359,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   const autoIdentity = index => ({ index, participantId: identity.peerId, transportId: auto.transportId,
     residentId: 'auto-' + hex(), executionId: 'auto-' + hex() });
   function plan(current) {
-    const capabilities = discovery.getSnapshot(), now = Date.now(), stageCount = offer.partitionPlan.stageCount;
+    const capabilities = discovery.getSnapshot(), now = Date.now(), stageCount = stageCountFor(offer);
     const demand = replicas ? stageDemand({ model: offer, stageCount, capabilities, now, maxOffersPerPeer: config.maxStageOffersPerPeer,
       queueBound: replicas.queueBound, bottleneckRatio: replicas.bottleneckRatio }) : null;
     const decision = planStageAssignment({ participantId: identity.peerId, model: offer, stageCount, capabilities, now, current,
@@ -476,7 +479,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       unavailableStages.clear();
       offer = selectPartitionContribution(selected, adapters);
       if (auto) {
-        const count = offer.partitionPlan?.stageCount;
+        const count = stageCountFor(offer);
         if (!Number.isSafeInteger(count) || count < 2 || count > config.limits.maxStages
           || typeof offer.partitionPlanId !== 'string' || !offer.partitionPlanId) {
           offer = null; throw new Error('Automatic stage assignment requires a declared ordered plan');

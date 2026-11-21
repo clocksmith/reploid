@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { sha256Digest } from './hashing.js';
 import { resolveGenerationOptions } from '../shared/config/doppler-generation-contract.js';
+import { createWorkPartitionPlan } from '../apps/poolday/host/work-partition-plan.js';
 import { modelToolCallFormat } from '../shared/infrastructure/tool-call-constraint.js';
 
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
@@ -69,6 +70,10 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
     requireValue(model.loadOptions?.runtimeConfig && typeof model.loadOptions.runtimeConfig === 'object',
       'The model runtime reference requires explicit model.loadOptions.runtimeConfig');
     model.partitionRuntime.runtimeConfig = structuredClone(model.loadOptions.runtimeConfig);
+  }
+  if (model.partitionRequest !== undefined) {
+    requireValue(configuration.partition === undefined, 'Cannot override a pinned compact catalog plan');
+    createWorkPartitionPlan(await loadRuntime(), manifest, model);
   }
   if (configuration.partition !== undefined) {
     requireValue(catalogReference || model.partitionPlan === undefined && model.partitionPlanId === undefined,
