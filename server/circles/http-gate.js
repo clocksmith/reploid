@@ -191,8 +191,10 @@ export function createCirclePublicGateway({
           waiting.signal.throwIfAborted();
           if (res.destroyed) throw Error('Requester disconnected');
           const token = randomUUID();
-          const expiresAt = Date.now() + releaseTtlMs;
-          const timer = setTimeout(() => retireRelease(token), releaseTtlMs);
+          const issuedAt = Date.now();
+          const expiresAt = Math.min(issuedAt + releaseTtlMs, lease.expiresAt ?? Infinity);
+          if (expiresAt <= issuedAt || lease.streamSignal.aborted) throw Error('Disclosure release has expired');
+          const timer = setTimeout(() => retireRelease(token), expiresAt - issuedAt);
           timer.unref?.();
           const cancel = () => retireRelease(token);
           releases.set(token, { peerId, hostPeerId, metadata, lease, expiresAt, timer, cancel });

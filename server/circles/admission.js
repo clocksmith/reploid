@@ -174,6 +174,13 @@ export function createCircleAdmission({
         waitingSignal.throwIfAborted();
         if (!isReady()) throw fail('CIRCLE_OFFLINE', 'The invited computer is unavailable', { state: 'offline', fallback: ['replay', 'host-your-own'] });
         if (owner && isOwner(authenticatedPeerId) !== true) throw fail('CIRCLE_OWNER', 'Owner access was withdrawn');
+        // The single resident slot serializes releases. Re-read the invitation
+        // after waiting so no two releases promise its last request allowance.
+        const releaseGrant = !owner ? invites.lookup(binding) : null;
+        if (!owner && (!releaseGrant || releaseGrant.expiresAt <= now()
+          || releaseGrant.maxOutputTokens < maxOutputTokens || releaseGrant.usedRequests >= releaseGrant.maxRequests)) {
+          throw fail('CIRCLE_INVITE', 'Invite access changed while waiting for the computer');
+        }
         const streamAbort = new AbortController();
         const activeRecord = {
           attemptId,
@@ -272,6 +279,7 @@ export function createCircleAdmission({
           inviteId: activeRecord.inviteId,
           conversationId,
           get grant() { return admittedGrant; },
+          expiresAt: releaseGrant?.expiresAt ?? null,
           beginDisclosure,
           disclosure,
           queuedMs: slot.queuedMs,
