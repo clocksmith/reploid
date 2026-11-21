@@ -36,13 +36,13 @@
   },
   "coverage": {
     "physicalApple": true,
-    "physicalAMD": false,
-    "qualifiedForHosting": 0,
+    "physicalAMD": true,
+    "qualifiedForHosting": 6,
     "humanPlaytestParticipants": 0
   },
-  "interpretation": "The authored attempts measure target solvability on one physical Apple backend. Hosting requires two independent legal solutions on each required backend and the enrolled circle provider.",
+  "interpretation": "The fixed bank measured target solvability on physical Apple Metal and AMD Vulkan. Six of the twenty targets cleared the two-solution threshold on both, then also cleared it on the enrolled private Apple circle backend.",
   "visibleBudgetCheck": {
-    "scope": "Physical Apple Metal only; recorded capped generations. No additional inference.",
+    "scope": "Physical Apple Metal; recorded capped generations re-decoded independently.",
     "referenceDecoder": "Hugging Face tokenizers 0.22.2",
     "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
     "thinkingDisabledInManifest": true,
@@ -60,5 +60,33 @@
       "decodedUtf8Sha256": "sha256:b61b92313cb9ba2b187082ee19522d5839943f55ece5d95352a1287a268c8c5c",
       "orderedTokenIdsJsonSha256": "sha256:d8d187ebda3a61c84dadb6dc26018e45d6b73dc459661a1fe0439bada43a7018"
     }
+  },
+  "physicalAmdPass": {
+    "vendor": "AMD",
+    "api": "Vulkan",
+    "deviceFamily": "Radeon 8060S",
+    "driver": "Mesa RADV",
+    "targetCount": 20,
+    "attemptCount": 60,
+    "exactMatchCount": 15,
+    "targetsByDistinctWinningPromptCount": {
+      "0": 12,
+      "1": 2,
+      "2": 5,
+      "3": 1
+    },
+    "targetsWithTwoOrMore": 6
+  },
+  "crossBackendComparison": {
+    "sameVisibleOutputOnPairedPrompts": 60,
+    "sameOrderedTokenIdsOnPairedPrompts": 60,
+    "pairedPrompts": 60,
+    "bothBackendsHaveTwoDistinctWinningPrompts": 6
+  },
+  "actualCircleQualification": {
+    "hardware": "Apple Metal",
+    "attemptCount": 18,
+    "verifiedScheduledDays": 6,
+    "operatorEndorsed": true
   }
 }

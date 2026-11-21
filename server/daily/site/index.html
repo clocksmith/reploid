@@ -1,43 +1,82 @@
 <!doctype html>
-<html lang="en" class="pool-page" data-theme="dark">
+<html lang="en" class="pool-page">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="referrer" content="no-referrer"><meta name="color-scheme" content="dark">
-  <title>Reploid Daily · Make it say</title>
-  <link rel="stylesheet" href="/pool-tokens.css"><link rel="stylesheet" href="/style.css">
-  <script type="module" src="/app.js"></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer"><title>Reploid Daily</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="stylesheet" href="/pool.css"><link rel="stylesheet" href="/style.css">
+  <script src="/theme.js" defer></script><script type="module" src="/app.js"></script>
 </head>
-<body><div class="shell">
-  <header><a class="brand" href="/" aria-label="Reploid Daily home">Reploid <b>Daily</b></a><nav><a href="#rules">Rules</a><a href="/host.html">Host your own ↗</a></nav></header>
-  <main>
-    <div class="edition"><span id="date"></span><span id="circle"></span></div>
-    <section id="dare" class="replay" hidden><h2>Incoming dare</h2><p id="dare-score"></p><details><summary>View recorded answer</summary><small id="dare-target"></small><blockquote id="dare-output"></blockquote><small id="dare-proof"></small></details></section>
-    <div class="board">
-      <article class="puzzle">
-        <h1>Make it say</h1><blockquote class="target" id="target" aria-live="polite">…</blockquote>
-        <p id="banned"></p>
-        <form id="attempt-form"><label for="prompt">Your prompt</label>
-          <textarea id="prompt" rows="3" maxlength="480" placeholder="What would you ask the model?" aria-describedby="disclosure"></textarea>
-          <div class="meter"><span id="count">0 words · 0 characters</span><span id="tries"></span></div>
-          <button class="primary" id="submit" type="submit" disabled>Submit prompt</button>
-        </form>
-        <p id="disclosure" class="muted"></p>
-        <p id="status" role="status" class="notice"></p>
-        <form id="auth" hidden>
-          <label for="email">Sign in for your three daily tries</label>
-          <input id="email" type="email" autocomplete="email" required placeholder="Email address">
-          <div id="code-field" hidden><label for="code">Email code</label><input id="code" autocomplete="one-time-code" inputmode="numeric" maxlength="10"></div>
-          <button id="auth-button" type="submit">Send code</button>
-        </form>
-        <p id="feedback" role="status"></p>
-        <section id="attempts" hidden><h2>Your attempts</h2><div id="history"></div></section>
-      </article>
-      <aside>
-        <section><h2>Circle leaderboard</h2><p class="muted">Fewest words wins. Characters break ties.</p><ol id="leaderboard"></ol><p id="leader-empty" class="empty">No wins yet.</p></section>
-        <section id="rules"><h2>Rules</h2><ul><li>Three tries per signed-in guest each UTC day.</li><li>Match the whole answer. Case, outside whitespace and one final punctuation mark are ignored.</li><li>After Unicode normalization, runs of letters and digits form words. Hyphens and apostrophes split them. Word ties use the number of characters in the trimmed prompt.</li><li>Write in any language. Translations, riddles and analogies are allowed. Split spellings, listed inflections and lookalikes of banned words are blocked. “I” is banned only as a whole word when listed.</li><li>Each turn starts fresh. Thinking is off. The pinned model gets up to 16 output tokens.</li></ul></section>
-        <details class="activity"><summary>What the circle counts</summary><p>We count opened dares, guests who play or pass on a dare, and players who return the next day. These counts exclude prompts, answers and email addresses.</p></details>
-        <section><h2>Yesterday’s winners</h2><div id="yesterday"></div></section>
-      </aside>
-    </div>
-  </main><footer><span>Reploid Daily</span><span id="model"></span></footer>
-</div></body></html>
+<body class="pool-home">
+  <header class="daily-header pool-row pool-row-between">
+    <a class="brand pool-plain pool-row" href="/" aria-label="Reploid Daily home"><span aria-hidden="true" class="pool-mark">7<sup>7</sup></span><span class="pool-subheading">Reploid Daily</span></a>
+    <nav class="pool-row pool-gap-xs" aria-label="Game"><button class="pool-button btn-ghost" data-open="rules">Rules</button><button class="pool-button btn-ghost" data-open="scores">Scores</button></nav>
+  </header>
+  <main class="daily-main pool-stack">
+    <article class="pool-card pool-stack pool-gap-lg" aria-labelledby="target">
+      <div class="pool-row pool-row-between pool-caption pool-muted"><time id="date"></time><span id="mode"></span></div>
+      <div class="pool-stack pool-gap-xs">
+        <p class="pool-small pool-muted">Make the model say</p>
+        <h1 class="pool-title" id="target">…</h1>
+        <p class="pool-body" id="banned"></p>
+      </div>
+      <section id="dare" class="pool-well pool-stack pool-gap-xs" hidden aria-label="Incoming dare">
+        <p id="dare-score" class="pool-subheading"></p>
+        <button class="pool-button btn-ghost" data-open="replay">View recorded answer</button>
+      </section>
+      <form id="attempt-form" class="pool-stack pool-gap-sm" hidden>
+        <label for="prompt" class="pool-small">Your prompt</label>
+        <textarea class="pool-input" id="prompt" rows="2" enterkeyhint="send" maxlength="480" aria-describedby="disclosure"></textarea>
+        <div class="pool-row pool-row-between"><span id="count" class="pool-caption pool-muted"></span><button class="pool-button btn-primary" id="submit" type="submit" disabled>Submit prompt</button></div>
+        <p id="disclosure" class="pool-caption pool-muted"></p>
+      </form>
+      <p id="status" class="pool-small" role="status"></p>
+      <p id="feedback" class="pool-small" role="status" aria-live="polite"></p>
+      <section id="attempts" class="pool-stack pool-gap-sm" hidden aria-label="Latest turn"><div id="history"></div></section>
+      <div class="pool-row pool-row-between"><span class="pool-caption pool-muted" id="tries"></span><button id="open-join" data-open="join" class="pool-button btn-ghost" hidden>Sign in</button><button class="pool-button btn-ghost" data-open="past" id="past-button" hidden>Past turns</button></div>
+    </article>
+    <footer class="pool-row pool-row-between pool-caption pool-muted"><span id="circle"></span><a href="/host.html">Host a circle</a></footer>
+  </main>
+
+  <dialog id="join" class="pool-card daily-dialog" aria-labelledby="join-title"><div class="pool-stack">
+    <div class="pool-row pool-row-between"><h2 id="join-title" class="pool-heading">Join this circle</h2><button class="pool-button btn-ghost" data-close>Close</button></div>
+      <form id="auth" class="pool-stack pool-gap-sm" hidden>
+        <label class="pool-small" id="email-label" for="email">Email to play</label>
+        <input class="pool-input" id="email" type="email" autocomplete="email" required>
+        <div id="code-field" class="pool-stack pool-gap-xs" hidden><label class="pool-small" for="code">Email code</label><input class="pool-input" id="code" autocomplete="one-time-code" inputmode="numeric" maxlength="10"></div>
+        <button id="auth-button" class="pool-button btn-primary" type="submit">Send code</button>
+      </form>
+      <div id="passkey-join" class="pool-stack pool-gap-sm" hidden>
+        <p class="pool-small">Your passkey keeps your three daily turns across visits.</p>
+        <div class="pool-row"><button id="passkey-register" type="button" class="pool-button btn-primary">Join game</button><button id="passkey-login" type="button" class="pool-button btn-ghost">Use existing passkey</button></div>
+      </div>
+      <form id="grant-form" class="pool-stack pool-gap-sm" hidden><label class="pool-small" for="grant">Your player pass</label><input class="pool-input" id="grant" type="password" autocomplete="off" required><button class="pool-button btn-primary" type="submit">Join game</button></form>
+    <p id="join-status" class="pool-small pool-muted" role="status"></p></div></dialog>
+  <dialog id="rules" class="pool-card daily-dialog" aria-labelledby="rules-title"><div class="pool-stack">
+    <div class="pool-row pool-row-between"><h2 id="rules-title" class="pool-heading">How to play</h2><button class="pool-button btn-ghost" data-close>Close</button></div>
+    <p class="pool-body">Write a prompt that makes the model give the target answer. You get three tries each UTC day. The shortest winning prompt tops your circle’s board.</p>
+    <details class="pool-disclosure"><summary>Scoring and banned words</summary><div class="pool-stack pool-gap-sm pool-body">
+      <p>We compare the whole answer, ignoring case, surrounding whitespace, and one final punctuation mark.</p><p>Runs of letters or digits count as words after Unicode normalization. Hyphens and apostrophes split them. Characters break ties. Limit: 240 characters.</p>
+      <p>Translations, analogies and riddles are fair game. Split spellings, lookalikes and listed word forms are banned. A banned “I” counts only as a whole word.</p></div></details>
+    <details class="pool-disclosure"><summary>Model and privacy</summary><div class="pool-stack pool-gap-sm pool-body"><p id="model"></p><p>Every turn starts fresh with thinking off and a 16-token limit. The serving computer can read your prompt.</p><p>A dare shares your score and the recorded answer. Showing your winning prompt tomorrow requires your permission and the host’s review.</p><p>The host can count dare opens, plays and next-day returns without prompt text in those counts.</p></div></details>
+  </div></dialog>
+  <dialog id="scores" class="pool-card daily-dialog" aria-labelledby="scores-title"><div class="pool-stack">
+    <div class="pool-row pool-row-between"><h2 class="pool-heading" id="scores-title">Circle scores</h2><button class="pool-button btn-ghost" data-close>Close</button></div>
+    <ol id="leaderboard" class="daily-list pool-stack pool-gap-xs"></ol><p id="leader-empty" class="pool-small pool-muted">No wins yet.</p>
+    <details class="pool-disclosure"><summary>Yesterday’s winners</summary><div id="yesterday" class="pool-stack pool-gap-sm"></div></details>
+  </div></dialog>
+  <dialog id="replay" class="pool-card daily-dialog" aria-labelledby="replay-title"><div class="pool-stack">
+    <div class="pool-row pool-row-between"><h2 id="replay-title" class="pool-heading">Recorded answer</h2><button class="pool-button btn-ghost" data-close>Close</button></div>
+    <p class="pool-small pool-muted" id="dare-target"></p><blockquote id="dare-output" class="pool-well pool-body"></blockquote>
+    <details class="pool-disclosure"><summary>Run details</summary><p id="dare-proof" class="pool-caption pool-mono"></p></details>
+  </div></dialog>
+  <dialog id="past" class="pool-card daily-dialog" aria-labelledby="past-title"><div class="pool-stack">
+    <div class="pool-row pool-row-between"><h2 id="past-title" class="pool-heading">Your turns</h2><button class="pool-button btn-ghost" data-close>Close</button></div><div id="past-list" class="pool-stack"></div>
+  </div></dialog>
+  <dialog id="share-sheet" class="pool-card daily-dialog" aria-labelledby="share-title"><div class="pool-stack">
+    <div class="pool-row pool-row-between"><h2 id="share-title" class="pool-heading">Share your dare</h2><button class="pool-button btn-ghost" data-close>Close</button></div>
+    <p id="share-score" class="pool-subheading"></p><p class="pool-small pool-muted">Friends get the same challenge. Your prompt stays hidden.</p>
+    <label class="pool-row pool-small"><input id="allow-reveal" type="checkbox"> Allow tomorrow’s winning prompt reveal</label>
+    <button id="publish-share" class="pool-button btn-primary">Get dare link</button><input id="share-link" aria-label="Dare link with the circle invitation" class="pool-input" readonly hidden>
+    <p id="share-status" class="pool-small pool-muted" role="status"></p>
+  </div></dialog>
+</body></html>

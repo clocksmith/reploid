@@ -12,9 +12,14 @@ export function createEmailIdentity({projectUrl, publishableKey, fetchImpl = fet
         ...(accessToken ? {Authorization: 'Bearer ' + accessToken} : {})},
       ...(payload ? {body: JSON.stringify(payload)} : {}),
     });
-    if (!response.ok) throw Object.assign(new Error('Email sign-in was unsuccessful. Check the code or try again later.'), {
-      code: 'email_sign_in_failed', status: response.status === 429 ? 429 : response.status >= 500 ? 503 : 401,
-    });
+    if (!response.ok) {
+      let status = 401;
+      if (response.status === 429) status = 429;
+      else if (response.status >= 500) status = 503;
+      throw Object.assign(new Error('Email sign-in was unsuccessful. Check the code or try again later.'), {
+        code: 'email_sign_in_failed', status,
+      });
+    }
     return response;
   }
   function address(email) {

@@ -34,9 +34,10 @@ function physicalVendor(identity, nativeBackend) {
   // Some native AMD drivers report only a vendor-specific string. The collector explicitly
   // selects Dawn's Vulkan backend on that host and signs the selection with the raw evidence.
   const detail = [architecture, description].join(' ');
-  const reportedApi = /\bmetal\b/i.test(detail) ? 'metal'
-    : /\b(vulkan|radv|amdvlk)\b/i.test(detail) ? 'vulkan'
-      : /\b(direct3d|d3d11|d3d12|opengl|gles)\b/i.test(detail) ? 'other' : null;
+  let reportedApi = null;
+  if (/\bmetal\b/i.test(detail)) reportedApi = 'metal';
+  else if (/\b(vulkan|radv|amdvlk)\b/i.test(detail)) reportedApi = 'vulkan';
+  else if (/\b(direct3d|d3d11|d3d12|opengl|gles)\b/i.test(detail)) reportedApi = 'other';
   if (reportedApi && nativeBackend && reportedApi !== nativeBackend) return null;
   const api = reportedApi ?? nativeBackend;
   if (/^(apple|0x106b)$/i.test(vendor)) return api === 'metal' ? 'apple' : null;
@@ -72,17 +73,25 @@ function completedTranscript({evidence, completion}) {
     && completion.generatedTokenCount === trace.tokenIds.length && trace.tokenIds.length <= PROFILE.maxOutputTokens;
 }
 
-export function measuredAttempt(row, {nativeBackend} = {}) {
-  if (!row || row.reusedPrefixTokens !== 0 || !validTarget(row.target)) return null;
-  const {target, prompt, evidence} = row;
+export function measuredOutput(row, {nativeBackend} = {}) {
+  if (!row || row.reusedPrefixTokens !== 0) return null;
+  const evidence = row.evidence;
   const vendor = physicalVendor(evidence?.backendIdentity, nativeBackend);
   if (!vendor || evidence.schema !== 'doppler_generation_evidence/v1' || !pinnedRuntime(evidence)
-    || !completedTranscript(row) || !scoreOutput(evidence.transcript.outputText, target)) return null;
+    || !completedTranscript(row)) return null;
+  return {output:evidence.transcript.outputText, vendor, backend:evidence.backendIdentityHash};
+}
+
+export function measuredAttempt(row, options) {
+  if (!row || !validTarget(row.target)) return null;
+  const {target, prompt} = row;
+  const physical = measuredOutput(row, options);
+  if (!physical || !scoreOutput(physical.output, target)) return null;
   try {
     const judged = judgePrompt(prompt, target);
     // Cosmetic variants (casing, punctuation, spacing and accents) count as one solution.
     const wording = judged.prompt.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().match(/[\p{L}\p{N}]+/gu).join(' ');
-    return {target, wording, vendor, backend: evidence.backendIdentityHash};
+    return {target, wording, vendor:physical.vendor, backend:physical.backend};
   } catch { return null; }
 }
 

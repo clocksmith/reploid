@@ -13,7 +13,8 @@ function requireValue(ok, status, code) {
 
 // A database belongs to one disclosed host/circle. Only owner-side code can issue
 // credentials, finalize a receipt, moderate a reveal, or inspect aggregate metrics.
-export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.now }) {
+export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.now, mode = 'ranked' }) {
+  requireValue(['ranked','playtest'].includes(mode), 500, 'invalid_store_mode');
   requireValue(typeof path === 'string' && path.length > 0, 500, 'missing_store_path');
   requireValue(typeof hostId === 'string' && hostId.length > 0, 500, 'missing_host');
   requireValue(Number.isSafeInteger(hostDailyCap) && hostDailyCap >= 0, 500, 'invalid_host_cap');
@@ -46,6 +47,9 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
       CREATE TABLE IF NOT EXISTS daily_circle (
         slot INTEGER PRIMARY KEY CHECK(slot = 1), host TEXT NOT NULL, salt TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS daily_store_mode (
+        slot INTEGER PRIMARY KEY CHECK(slot=1), mode TEXT NOT NULL
+      );
       CREATE TABLE IF NOT EXISTS daily_grants (
         id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE,
         guest TEXT NOT NULL, expires INTEGER NOT NULL, revoked INTEGER NOT NULL DEFAULT 0
@@ -75,7 +79,10 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
       CREATE INDEX IF NOT EXISTS daily_by_day ON daily_attempts(day, guest);
     `);
     circle = transaction(() => {
-      db.prepare('INSERT OR IGNORE INTO daily_circle VALUES (1, ?, ?)').run(hostId, opaqueToken());
+      const added = db.prepare('INSERT OR IGNORE INTO daily_circle VALUES (1, ?, ?)').run(hostId, opaqueToken());
+      // A ledger created before playtesting was introduced belongs to ranked play.
+      db.prepare('INSERT OR IGNORE INTO daily_store_mode VALUES (1,?)').run(added.changes ? mode : 'ranked');
+      requireValue(db.prepare('SELECT mode FROM daily_store_mode WHERE slot=1').get().mode === mode, 500, 'store_mode_mismatch');
       const saved = db.prepare('SELECT host, salt FROM daily_circle WHERE slot = 1').get();
       requireValue(saved.host === hostId, 500, 'store_host_mismatch');
       return saved;
@@ -291,7 +298,8 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
     const empty = () => ({ eligibleGuestDays: 0, nextDayReturns: 0 });
     const groups = { withReveal: empty(), withoutReveal: empty(), unknown: empty(), total: empty() };
     for (const {available, eligibleGuestDays, nextDayReturns} of counts) {
-      const group = available === null ? 'unknown' : available ? 'withReveal' : 'withoutReveal';
+      let group = 'unknown';
+      if (available !== null) group = available ? 'withReveal' : 'withoutReveal';
       groups[group] = {eligibleGuestDays, nextDayReturns};
       groups.total.eligibleGuestDays += eligibleGuestDays;
       groups.total.nextDayReturns += nextDayReturns;
@@ -299,7 +307,7 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
     return groups;
   }
   return Object.freeze({
-    authorizeGuest, issueInvite: authorizeGuest, guest, circleInvite, resolveCircle, reserve, existingAttempt,
+    mode, authorizeGuest, issueInvite: authorizeGuest, guest, circleInvite, resolveCircle, reserve, existingAttempt,
     complete, history, readShare, publish, leaderboard, metrics,
     pinChallenge({ day, digest, challenge = null }) {
       requireValue(/^\d{4}-\d{2}-\d{2}$/.test(day) && typeof digest === 'string' && digest.length > 0,

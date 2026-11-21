@@ -135,6 +135,53 @@ describe('daily circle HTTP boundary', () => {
     expect(store.capacity(firstDay).used).toBe(3);
   });
 
+  it('keeps ranked staged while a separate, loopback-only playtest uses explicit stable host grants', async () => {
+    game.qualified = false;
+    const appArgs = {store, gameForDay:day => ({...game,day}), run:runner, mode:'playtest'};
+    expect(() => createDailyApp(appArgs)).toThrow('matching score database');
+    store.close(); store = createDailyStore({path:':memory:', hostId:'test-host', mode:'playtest', now:clock});
+    invite = store.circleInvite({expiresAt:time+86400000});
+    const player = store.authorizeGuest({subject:'owner-assigned-player', expiresAt:time+86400000});
+    await start({mode:'playtest', identity:null, evidenceKind:'local-doppler'});
+    expect((await state()).json).toMatchObject({mode:'playtest',authMode:'host-grant',availability:'ready',evidenceKind:'local-doppler',
+      challenge:{qualified:false,playable:true},authenticated:false});
+    expect((await post('auth/grant', {grant:invite.token})).json.error).toBe('grant-rejected');
+    const auth = await post('auth/grant',{grant:player.token}); const cookie = auth.cookie.split(';')[0];
+    expect(auth.json).toEqual({authenticated:true}); expect((await turn(cookie,'local-test')).status).toBe(201);
+    expect((await post('auth/grant',{grant:player.token},null,{'x-forwarded-for':'192.0.2.8'})).status).toBe(403);
+    expect((await state()).json.authenticated).toBe(false); expect((await state(cookie)).json.history.length).toBe(1);
+  });
+
+  it('isolates a public static frontend’s CORS, ceremony and partitioned sessions from the direct circle', async () => {
+    const quick = 'https://backend.example', site = 'https://daily.example';
+    const primary = { start:vi.fn(),finish:vi.fn() };
+    const stable = { start:vi.fn(async () => ({grant:'ceremony',options:{rp:{id:'daily.example'}}})),
+      finish:vi.fn(async () => 'passkey/test-stable-guest') };
+    await start({origin:quick,passkeys:primary,publicInvite:invite.token,trustedFrontends:new Map([[site,{passkeys:stable}]])});
+    const preflight = (origin, headers = 'content-type,x-circle-invite') => fetch(base+'/api/attempt',{method:'OPTIONS',
+      headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':headers}});
+    const valid = await preflight(site);
+    expect(valid.status).toBe(204);
+    expect(valid.headers.get('access-control-allow-origin')).toBe(site);
+    expect(valid.headers.get('access-control-allow-credentials')).toBe('true');
+    expect(valid.headers.get('vary')).toContain('Origin');
+    expect((await preflight(site,'authorization')).status).toBe(403);
+    const other = await preflight('https://elsewhere.example');
+    expect(other.status).toBe(403); expect(other.headers.has('access-control-allow-origin')).toBe(false);
+    expect((await post('auth/grant',{grant:'test'},null,{Origin:site})).status).toBe(403);
+    const registration = await post('auth/passkey/start',{action:'register'},null,{Origin:site});
+    expect(registration.json.options.rp.id).toBe('daily.example'); expect(primary.start).not.toHaveBeenCalled();
+    expect(registration.cookie).toMatch(/^__Host-reploid_daily_passkey=ceremony;/);
+    for (const flag of ['HttpOnly','Secure','Partitioned','SameSite=None','Path=/;']) expect(registration.cookie).toContain(flag);
+    expect((await post('auth/passkey/finish',{response:{}},'reploid_daily_passkey=ceremony',{Origin:site})).json.error).toBe('session-storage');
+    const done = await post('auth/passkey/finish',{response:{}},'__Host-reploid_daily_passkey=ceremony',{Origin:site});
+    expect(done.json.authenticated).toBe(true); expect(primary.finish).not.toHaveBeenCalled();
+    const session = done.cookie.match(/__Host-reploid_daily_guest=[^;]+/)[0];
+    const read = async origin => (await fetch(base+'/api/today',{headers:{Origin:origin,Cookie:session}})).json();
+    expect((await read(site)).authenticated).toBe(true); expect((await read(quick)).authenticated).toBe(false);
+    expect((await read('https://elsewhere.example')).error).toBe('origin-denied');
+  });
+
   it('uses the configured external origin and issues a secure session behind a proxy', async () => {
     await start({ origin:'https://circle.example' });
     expect((await post('auth/start',{email:'a@b.example'})).status).toBe(403);

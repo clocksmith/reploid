@@ -50,6 +50,7 @@ describe('daily game ledger', () => {
     expect(submit(second, '1')).toEqual({ created: false, attempt: done });
     expect(store.history(second.token, day)).toHaveLength(3);
     expect(() => open({ hostId: 'different-host' })).toThrow('store_host_mismatch');
+    expect(() => open({ mode:'playtest' })).toThrow('store_mode_mismatch');
     const file = readFileSync(path);
     for (const value of [alice.token, second.token, circle.token, 'verified:alice']) expect(file.includes(value)).toBe(false);
     expect(statSync(path).mode & 0o077).toBe(0);

@@ -13,6 +13,24 @@ npm run daily -- preview
 
 Open the printed loopback address. The preview displays the rules and a staged target. Real ranked play requires the qualifications below. The server has its own origin, cookie and score database. The hosted chat site and ordinary chat permissions are independent.
 
+## Private physical playtest
+
+Use a source checkout and a private state directory to play before ranked qualification. The default state directory is `~/.local/share/reploid/daily-playtest`. The playtest has its own SQLite ledger, challenge pins, daily host budget and three turns per stable player. It binds only to loopback. Ranked play continues to require the signed calendar and physical qualification.
+
+To use an existing enrolled fleet, save `playtest.json` in that directory with `fleetConfig` (private requester config path), `providerId`, `backendIdentityHash`, `target`, `circleName`, `port` and `hostDailyCap`. Configure `auth` for verified email if desired. A separate operator-provisioned local player grant works without email. Launch the private circle from the source checkout.
+
+~~~sh
+npm run daily -- playtest
+~~~
+
+Alternatively, use a local model directory plus the physical backend digest recorded by the Doppler collector. The direct runner verifies the installed runtime against its pinned archive, rechecks the manifest, tokenizer and shard bytes, opens the physical GPU on first use and resets model state before each turn. It records the generated output and Doppler evidence fingerprint. The fleet route records a countersigned and settled peer receipt. Pick one runner per host.
+
+~~~sh
+npm run daily -- playtest --model /private/pinned-model --backend "$BACKEND_IDENTITY_HASH" --target Paris --port 4180
+~~~
+
+Open `open-owner.html` in the printed private directory to play with the operator seat. `private-links.json` contains the operator link and three separately assigned guest links by default. Both files are owner-readable. Each player's bootstrap link contains the circle invitation and a credential for that player's own seat. Give each guest only their own link. The in-game dare includes the shared invitation alone. Reopening a bootstrap link restores that same player's attempt count. An ordinary visit can read a recorded dare without using GPU time. Private playtest submissions and scores stay separate from ranked results.
+
 ## Rules
 
 - Three submitted turns per verified account per UTC day across cookies, browsers and invitations. The host also sets a finite daily turn budget. A failed admission before dispatch returns the turn. An ambiguous dispatch keeps its place in the budget; retrying the same submission key retrieves its record.
@@ -84,6 +102,42 @@ npm run daily -- revoke --config /private/circle.json --id "$INVITE_ID"
 ~~~
 
 Once qualified, the first submitted turn opens the requester. Discovery allows 20 seconds to locate the enrolled provider. Each turn has a 60-second HTTP deadline. Private signed receipts and attempt records stay in the circle’s SQLite database. Keep the database private and persistent, including its salt. A new database starts a new circle history.
+
+## Isolated public and private circles on one GPU
+
+An operator can serve two ranked circles together. Prepare a second config with its own origin, loopback port, score database, and access directory. Both configs must select the exact same fleet requester file, provider identity and backend digest. Each has its own passkeys, board, receipts and daily budget. Set `sharedHostDailyCap` to the same finite number in both files to limit their combined daily workload. Otherwise the combined limit is the sum of their individual caps. The public invitation allows twelve passkey ceremonies per minute without recording IP addresses. Both listeners share one requester identity and admit only one physical turn at a time. A second simultaneous request receives a busy response and keeps its try.
+
+~~~sh
+npm run daily -- serve --config /private/friends/circle.json --also /private/public/circle.json
+~~~
+
+Set `publicChallenge` to `true`, `auth.type` to `passkey`, and `bootstrapPlayers` to an empty array in the public config. Set its `origin` to the exact HTTPS address of the tunnel or reverse proxy and send that endpoint to the public loopback port. Keep the private circle on its original origin and separate port. Visitors register on the public origin. The private owner launcher and its three-turn allowance remain attached to the private circle. The databases persist across a coordinated restart; a new public hostname changes the WebAuthn relying party.
+
+## Host the game files on a stable HTTPS origin
+
+A phone opens the static site on its permanent hostname. The browser makes credentialed requests directly to the ranked API over HTTPS. The static site’s hostname is the passkey relying party and the address used in shared dares. In the public circle config, set the API `origin` and allow the exact frontend under `trustedFrontendOrigins`. Public sign-in requires `publicChallenge` and passkey authentication.
+
+~~~json
+{
+  "origin": "https://api.example.org",
+  "trustedFrontendOrigins": ["https://my-daily.example.workers.dev"],
+  "publicChallenge": true,
+  "auth": {"type": "passkey"}
+}
+~~~
+
+Merge these fields into the ranked configuration described above. Confirm that a request to `/api/today` carrying the frontend’s `Origin` receives that exact value in `Access-Control-Allow-Origin` and `true` in `Access-Control-Allow-Credentials`. Use the same API origin when packaging the public files.
+
+~~~sh
+bundle=$(mktemp -d)
+node scripts/package-daily-static.mjs --api-origin https://api.example.org \
+  --out "$bundle/site" --name my-daily
+npx --no-install wrangler deploy --dry-run --config "$bundle/site/wrangler.json"
+~~~
+
+The packager creates a new local directory. Its `public/` folder contains the game interface, styles, icon, public host guide and HTTP headers. The HTML and its content security policy both pin the API origin. The accompanying `wrangler.json` configures an assets-only Worker. With an authenticated deployment account and an unused Worker name, publish it using `npx --no-install wrangler deploy --config "$bundle/site/wrangler.json"`. For another static host, serve the contents of `public/` and apply the response headers in `_headers`. [Cloudflare static asset billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
+
+If the API tunnel address changes, check the replacement’s credentialed API response, package a fresh directory with the new `--api-origin`, and redeploy under the same Worker name. Players can refresh the page and use their existing passkeys on the stable frontend. Their API session may need a new sign-in.
 
 ## Review and measure
 
