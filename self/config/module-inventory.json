@@ -3405,7 +3405,7 @@
     {
       "path": "self/host/work-partition-plan.js",
       "owner": "self",
-      "sha256": "sha256:2a4e7dd361cee1c4cde98cedcd4f4c213bc1ef569582456e87a9573720966b5f",
+      "sha256": "sha256:c6978900139abb88e9c33729459e0470d73555f6a533d5dd3924a65c3380e7f8",
       "imports": [
         "../config/partition-policy.json",
         "../providers/work-adapter.js",
@@ -4275,7 +4275,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:55f9db4929a1ce0eeb043a07532a734e1dc2bb6e47bf5779ec06200d66445eea",
+      "sha256": "sha256:6aa73d11c37c0304e3152ce887c4625a7a6689bef35d33692b1c526f65295307",
       "imports": []
     },
     {
@@ -19235,7 +19235,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:13d378e6049b9c327cef60e507ce2f8fee948241f9b2f6d401cc92b067dcc2d7",
+      "sha256": "sha256:d60f07b2d08ef762f3bb83013b4d96e290fd2f4137f82ffdc5cc6bdaeb1b1e5d",
       "imports": [
         "../../chat/execution-policy.js",
         "../preparation-progress.js",

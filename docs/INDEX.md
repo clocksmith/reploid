@@ -2,7 +2,7 @@
 
 Guide to all documentation in the REPLOID project.
 
-[Execution privacy contracts and current limits](execution-privacy.md).
+[Execution privacy contracts and current limits](execution-privacy.md) · [Wire visibility: who can read what](wire-visibility.md).
 
 Start with [concepts, glossary and code map](glossary.md) to distinguish Reploid,
 Doppler, WebRTC, WebGPU and the internal Poolday name.

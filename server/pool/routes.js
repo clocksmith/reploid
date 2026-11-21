@@ -70,6 +70,7 @@ export function createPoolRouter({
   requireAuth = false,
   allowUnauthenticatedLocal = false,
   allowCanaryCreation = false,
+  allowPlaintextJobPrompts = true,
   createAdapterDownloadUrl = null,
   turnEnv = process.env,
   releaseEnv = process.env,
@@ -126,7 +127,8 @@ export function createPoolRouter({
     store,
     asyncRoute,
     requireBoundAnyRole,
-    recoverHostedAssignments
+    recoverHostedAssignments,
+    allowPlaintextJobPrompts
   });
 
   registerCommitRevealRoutes(router, {
