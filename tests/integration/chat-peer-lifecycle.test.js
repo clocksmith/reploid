@@ -1,10 +1,12 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 // @vitest-environment node
 import { expect, it, vi } from 'vitest';
 import { createChatPeerLifecycle } from '../fixtures/chat-peer-lifecycle.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 
 const options = { authorizeDisclosure: () => true };
-const newThread = f => f.app.createThread({ model: f.model, permissions: { sharingScope: 'mesh', executionLocation: 'network' } });
+const newThread = f => f.app.createThread({ model: f.model,
+  privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), permissions: { sharingScope: 'mesh', executionLocation: 'network' } });
 const thread = (f, id) => f.app.getState().threads.find(value => value.id === id);
 const requests = f => f.wire.filter(row => row.type === 'reploid:generation-request');
 

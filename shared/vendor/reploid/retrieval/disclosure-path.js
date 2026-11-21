@@ -1,6 +1,6 @@
 /** Installed HTTP auxiliary route semantics; remote advertisements cannot select upstream recipients. */
 const assert = (ok, message) => { if (!ok) throw Error(`Retrieval privacy: ${message}`); };
-export const SEARCH_DISCLOSURE_PROTOCOL = 'reploid.search-disclosure/v1';
+export const SEARCH_DISCLOSURE_PROTOCOL = 'reploid.search-disclosure/v2';
 export const BRAVE_SEARCH_ORIGIN = 'https://api.search.brave.com';
 export function disclosureOrigin(value) {
   const url = new URL(value);

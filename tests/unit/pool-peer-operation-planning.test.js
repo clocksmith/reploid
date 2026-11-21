@@ -159,7 +159,7 @@ it('keeps provider offers distinct while sharing its real capacity observation',
 it('filters the fastest unauthorized provider before ranking and binds the chosen offer', async () => {
   const args = await fixture(); offers(args);
   args.candidates[1].capabilities.resources.queuedJobs = 5;
-  args.requirements.privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [hash('b')] });
+  args.requirements.privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [hash('b')] } });
   args.requirements.offerId = 'restricted';
   const plan = await planOperationProviders(args);
   expect(plan.selectedProviderId).toBe(hash('b')); expect(plan.selectedOfferId).toBe('restricted');
@@ -170,7 +170,7 @@ it('filters the fastest unauthorized provider before ranking and binds the chose
 });
 it('rejects unsupported privacy before planning and does not qualify advertised secure flags', async () => {
   const args = await fixture(); offers(args);
-  args.requirements.privacy = createExecutionPolicy('cryptographic', { protocol: 'unqualified', keyContext: 'key' });
+  args.requirements.privacy = createExecutionPolicy({ computation: 'cryptographic', protocol: 'unqualified', keyContext: 'key' });
   await expect(planOperationProviders(args)).rejects.toThrow('unavailable');
   args.requirements.privacy = createExecutionPolicy();
   args.candidates.forEach(candidate => candidate.capabilities.executionOffers.forEach(offer => { offer.kind = 'attested'; }));

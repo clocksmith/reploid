@@ -2,6 +2,7 @@
 import { isDownloadableBaseModel, updateModelSelect, modelExecutionState, modelFacts, unavailableModelChoice } from '../components/model-select.js';
 import { updateModelProviders } from './model-providers.js';
 import { updateAdapterDetails, describeModelChoice } from './model-adapters.js';
+import { allowsOpenPlaintext } from './privacy-controls.js';
 
 export const canDownloadModelHere = (model, state, canDownload) => canDownload && isDownloadableBaseModel(model)
   && !model.fleet && !model.localReady && !model.localCached && model.availability !== 'cached' && !state.localDownloadIssue;
@@ -9,8 +10,7 @@ export const canDownloadModelHere = (model, state, canDownload) => canDownload &
 // A recovery suggestion requires a free, connected provider for this exact variant.
 // The ordinary picker also lists downloadable, busy and advertised models.
 export function recoverySharedModel(state, selectedId, location, privacy) {
-  if (location === 'local' || privacy?.placement === 'local-only' || privacy?.allowedRecipients?.length
-    || (privacy && privacy.profile !== 'provider-visible')) return null;
+  if (location === 'local' || !allowsOpenPlaintext(privacy)) return null;
   return state.models?.find(model => (model.selectionId || model.id) !== selectedId
     && !model.fleet && !model.partition && model.networkAvailability === 'ready'
     && model.reachableProviderIds?.length > 0) ?? null;

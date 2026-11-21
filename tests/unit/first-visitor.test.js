@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -10,7 +11,8 @@ const observedDiscovery = {
 };
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); localStorage.removeItem(AUTO_DOWNLOAD_STORAGE_KEY); });
 // Legacy automatic-download preferences cannot bypass the explicit size-and-consent path.
-function fixture({ automatic = false, viewState } = {}) {
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+function fixture({ automatic = false, viewState, fresh = false } = {}) {
   localStorage.setItem(AUTO_DOWNLOAD_STORAGE_KEY, automatic ? 'on' : 'off');
   const session = createChatSession({ storage: null, service: createChatTestService(), models: [CANONICAL_CHAT_MODELS[0]] });
   cleanups.push(() => session.close());
@@ -21,10 +23,27 @@ function fixture({ automatic = false, viewState } = {}) {
     getModelDownload: vi.fn(async id => ({ id, sizeBytes: 123000000 })), downloadLocalModel: vi.fn(async () => {}),
     cancelModelDownload: vi.fn(), connect: vi.fn(async () => {}) };
   const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-  const dispose = bindConversationWorkspace(root, api, { viewState }); cleanups.push(() => { dispose(); root.remove(); });
+  const dispose = bindConversationWorkspace(root, api, { viewState: { ...(fresh ? {} : { privacy: openPolicy }), ...viewState } }); cleanups.push(() => { dispose(); root.remove(); });
   return { root, api, find: selector => root.querySelector(selector),
     publish(update) { state = { ...state, ...update }; listeners.forEach(callback => callback(state)); }, state: () => state };
 }
+it('requires explicit placement and recipient opt-in before a first visitor can send to a network provider', async () => {
+  const f = fixture({ fresh: true });
+  const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
+    providerIds: ['peer'], reachableProviderIds: ['peer'] };
+  f.publish({ ...observedDiscovery, models: [model] });
+  const send = f.find('[data-composer-send]');
+  expect(send.disabled).toBe(true);
+  const review = f.find('[data-review-network-execution]');
+  expect(review.hidden).toBe(false);
+  review.click();
+  f.find('[data-privacy-placement]').value = 'network-allowed'; f.find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
+  expect(f.find('[data-privacy-recipient-mode]').value).toBe('none');
+  f.find('[data-privacy-recipient-mode]').value = 'open'; f.find('[data-privacy-recipient-mode]').dispatchEvent(new Event('change', { bubbles: true }));
+  f.find('[data-privacy-apply]').click();
+  await vi.waitFor(() => expect(send.disabled).toBe(false));
+});
+
 it('bounds the host discovery window even when signaling never connects, without acquiring anything', async () => {
   vi.useFakeTimers();
   const session = createChatSession({ storage: null, service: createChatTestService(), swarm: { getState: () => ({ connecting: true }) } });
@@ -100,7 +119,7 @@ it('names the pre-send destination as the selected model moves between local and
 
 it.each([
   ['local execution', { executionLocation: 'local' }],
-  ['restricted recipients', { privacy: { profile: 'restricted', placement: 'network-allowed', allowedRecipients: ['private-device'] } }]
+  ['named recipients', { privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['private-device'] } }) }]
 ])('keeps an unrelated public provider out of recovery for %s', (_name, policy) => {
   const [requested, other] = CANONICAL_CHAT_MODELS;
   const f = fixture({ viewState: { chosenModel: requested, ...policy } });

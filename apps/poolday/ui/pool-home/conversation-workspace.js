@@ -1,6 +1,6 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
-import { requestExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
-import { privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
+import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
+import { allowsOpenPlaintext, privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
 import { bindWorkspaceNavigation } from './workspace-navigation.js';
@@ -55,16 +55,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
-  const explicitPrivacy = state => state.activeThread ? state.activeThread.privacy : viewState.privacy;
-  const currentPolicy = state => explicitPrivacy(state) ?? requestExecutionPolicy({
-    permissions: state.activeThread?.permissions ?? { executionLocation }
-  });
+  const localPolicy = createExecutionPolicy();
+  const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy) ?? localPolicy;
+  const currentPolicy = explicitPrivacy;
   const privacyNode = find('[data-privacy-dialog]'), privacyTrigger = find('[data-open-privacy]');
   const privacyDialog = bindDialog(privacyNode);
   let editingThread, applyingPrivacy = false;
   const effectiveLocation = state => {
     const thread = state.activeThread, privacy = explicitPrivacy(state);
-    return thread?.permissions?.sharingScope === 'local' || privacy?.placement === 'local-only'
+    return thread?.permissions?.sharingScope === 'local' || privacy.placement === 'local-only' || privacy.recipients?.kind === 'none'
       ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
   };
   const recoveryAlternative = state => recoverySharedModel(state, modelSelect.value,
@@ -189,8 +188,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacy = explicitPrivacy(state);
     const pinned = state.activeThread?.model || chosenModel || viewState.draftModel;
     return !!model?.identity && (!pinned?.identity || modelIdentity(model) === modelIdentity(pinned)) && !model.partition && !model.fleet && location !== 'local'
-      && (!state.activeThread || location === 'network') && (!privacy || privacy.profile === 'provider-visible')
-      && !privacy?.allowedRecipients?.length && !searching() && !attachmentReader.pending
+      && (!state.activeThread || location === 'network') && allowsOpenPlaintext(privacy)
+      && !searching() && !attachmentReader.pending
       && !state.storageError && !state.activeThread?.closed && !state.comparisonPhase
       && !(state.runningIds || []).includes(state.selectedId) && !submitting
       && ['observed', 'searching'].includes(state.discoveryPhase);
@@ -231,7 +230,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
       state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
-      selectedId: modelSelect.value, localOnly: explicitPrivacy(snapshot)?.placement === 'local-only', canDownload: !!inspector.downloadModel });
+      selectedId: modelSelect.value, localOnly: explicitPrivacy(snapshot).placement === 'local-only'
+        || explicitPrivacy(snapshot).recipients.kind === 'none', canDownload: !!inspector.downloadModel });
     const node = find('[data-local-fit]');
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
       && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
@@ -278,7 +278,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!thread && !chosenModel && !viewState.draftModel && (input.value.trim() || files.length)) viewState.draftModel = selectedModel;
     const execution = modelExecutionState(selectedModel, location);
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
-    const usable = execution.usable || prepareHere;
+    const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
     find('[data-composer-field]').dataset.executionSource = execution.source;
     const modelStatus = find('[data-model-status]');
     const localPreparing = state.localModel?.phase === 'loading';
@@ -319,11 +319,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacy = explicitPrivacy(state);
     const policy = currentPolicy(state);
     privacyTrigger.disabled = busy || !!thread?.closed;
-    const privacyTitle = 'Inference privacy: ' + privacyLabel(policy.profile)
-      + (policy.placement === 'local-only' ? ' · This device only' : '')
+    const privacyTitle = 'Execution and disclosure: ' + privacyLabel(policy)
       + (busy ? ' · Available after this answer' : '');
     privacyTrigger.title = privacyTitle;
     privacyTrigger.setAttribute('aria-label', privacyTitle);
+    const resetNotice = find('[data-execution-settings-reset]');
+    resetNotice.hidden = thread?.executionSettingsReset !== true;
+    const networkOptIn = find('[data-review-network-execution]');
+    networkOptIn.hidden = busy || usable || preparing || acquiring || !!thread?.closed || (policy.placement !== 'local-only' && policy.recipients.kind !== 'none');
     if (privacyNode.open && (privacyTrigger.disabled || editingThread !== state.selectedId)) privacyDialog.close();
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring
       ? recoverySharedModel(state, current, location, privacy) : null;
@@ -364,9 +367,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const disclosure = find('[data-prompt-disclosure]');
     disclosure.hidden = busy || !!thread?.closed;
-    if (policy.profile === 'cryptographic') disclosure.textContent = 'Cryptographic chat is unavailable.';
+    if (policy.computation !== 'plaintext') disclosure.textContent = 'The required computation mode is unavailable.';
+    else if (policy.recipients.kind === 'none' && !usable) disclosure.textContent = 'No input will be sent to network recipients.';
     else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'This device reads your prompt for inference.';
-    else if (privacy?.profile === 'restricted') disclosure.textContent = 'Only the named computers can receive and read the inference data sent to them.';
+    else if (policy.recipients.kind === 'named') disclosure.textContent = 'Only named recipients can receive input. They can read what they receive.';
     else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
     else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
     else disclosure.textContent = 'A network provider could read your prompt.';
@@ -688,7 +692,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { queuedSend = null; try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
   on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
-  on('[data-open-privacy]', 'click', () => {
+  const openExecutionPolicy = trigger => {
     if (submitting || applyingPrivacy) return;
     const state = session.getState();
     queuedSend = null;
@@ -696,10 +700,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (privacyTrigger.disabled) return;
     editingThread = state.selectedId;
     updatePrivacyControls(privacyNode, currentPolicy(state));
-    privacyDialog.open(privacyNode.querySelector('input:checked'), privacyTrigger);
-  });
+    privacyDialog.open(privacyNode.querySelector('[data-privacy-placement]'), trigger);
+  };
+  on('[data-open-privacy]', 'click', event => openExecutionPolicy(event.currentTarget));
+  on('[data-review-network-execution]', 'click', event => openExecutionPolicy(event.currentTarget));
   on('[data-privacy-controls]', 'change', event => {
-    if (event.target.matches('[data-privacy-profile], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
+    if (event.target.matches('[data-privacy-recipient-mode], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
   });
   on('[data-privacy-cancel]', 'click', () => privacyDialog.close());
   on('[data-privacy-apply]', 'click', async () => {
@@ -709,8 +715,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     applyingPrivacy = apply.disabled = true;
     try {
       const privacy = readPrivacyControls(privacyNode);
-      if (state.activeThread) await session.setExecutionPrivacy(state.activeThread.id, privacy);
-      else viewState.privacy = privacy;
+      if (state.activeThread) {
+        await session.setExecutionPrivacy(state.activeThread.id, privacy);
+        if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none'
+          && state.activeThread.permissions?.executionLocation === 'local') await session.setExecutionLocation(state.activeThread.id, 'auto');
+      } else {
+        viewState.privacy = privacy;
+        if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none' && executionLocation === 'local') {
+          executionLocation = viewState.executionLocation = 'auto';
+        }
+      }
       if (privacyNode.open) privacyDialog.close();
       render(session.getState());
     } catch (cause) {
@@ -755,7 +769,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         const target = state.activeThread || { model, permissions: { sharingScope, executionLocation: location } };
         const personalSearch = searched && webSearch?.enabled() && !!webSearch.state().url;
         const allowed = searched && !personalSearch ? await prepareSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content) : null;
-        const created = state.selectedId || session.createThread({ model, sharingScope, executionLocation: location, privacy: viewState.privacy ?? null, contextPrompt: contextPrompt || undefined });
+        const created = state.selectedId || session.createThread({ model, sharingScope, executionLocation: location, privacy: explicitPrivacy(state), contextPrompt: contextPrompt || undefined });
         const threadId = typeof created?.then === 'function' ? await created : created;
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: draftText, files: attachments } : drafts.get(origin);
@@ -768,8 +782,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
             || latest.remoteNetworkId !== state.remoteNetworkId || latest.remoteAnswersEnabled !== state.remoteAnswersEnabled
             || !['observed', 'searching'].includes(latest.discoveryPhase)
             || latest.activeThread?.permissions?.executionLocation !== 'network' || searching()
-            || latest.activeThread?.privacy?.profile && latest.activeThread.privacy.profile !== 'provider-visible'
-            || latest.activeThread?.privacy?.allowedRecipients?.length
+            || !allowsOpenPlaintext(latest.activeThread?.privacy)
             || modelIdentity(current) !== modelIdentity(model)
             || current?.networkAvailability !== 'ready' || !current.reachableProviderIds?.length) {
             if (!controller.signal.aborted && selectedId === threadId && composerRevision === revision) await saveDraft();

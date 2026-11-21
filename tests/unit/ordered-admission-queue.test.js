@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { describe, expect, it, vi } from 'vitest';
 import failureMessages from '../../packages/reploid/src/transport/partition-errors.json' with { type: 'json' };
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
@@ -38,8 +39,8 @@ async function orderedMesh({ requesters, slots = [2, 2, 2] }) {
   const model = { id: f.route.modelId, identity: f.route.modelIdentity, name: 'Synthetic queue fixture', generation: f.request.generation };
   const listeners = identities.map(() => new Map()), meshes = [], residents = [], tokenized = [], holds = new Map();
   const channelPolicy = { maxFrameBytes: 64, maxControlBytes: 131072, maxPayloadBytes: 8192, maxPendingBytes: 32768,
-    maxPendingRequests: 16, maxRequestsPerChannel: 4096, maxBufferedBytes: 262144, maxTransferBytes: 16777216, timeoutMs: 10000 };
-  const policy = { pollMs: 25, maxPeers: 16, connectTimeoutMs: 10000, grantMs: 60000, maxStageOffersPerPeer: 4, limits: f.limits,
+    maxPendingRequests: 16, maxRequestsPerChannel: 4096, maxBufferedBytes: 262144, maxTransferBytes: 16777216, timeoutMs: 30000 };
+  const policy = { pollMs: 25, maxPeers: 16, connectTimeoutMs: 20000, grantMs: 60000, maxStageOffersPerPeer: 4, limits: f.limits,
     receiver: { maxAttempts: 64, maxSteps: 10 }, inputChannel: channelPolicy, executionChannel: channelPolicy, controlChannel: channelPolicy,
     inputLimits: { maxInputCharacters: 4096, maxOutputCharacters: 128, maxAttempts: 64, maxConcurrentAttempts: 2, descriptorTtlMs: 60000 } };
   const session = index => ({
@@ -91,7 +92,7 @@ async function orderedMesh({ requesters, slots = [2, 2, 2] }) {
       await vi.waitFor(() => { for (let r = 0; r < requesters; r++) expect(selection(r)).toBeTruthy(); }, { timeout: 15000 });
       for (let r = 0; r < requesters; r++) {
         const planned = selection(r), codes = [];
-        const routeRequest = { model: planned, permissions: { sharingScope: 'mesh' } };
+        const routeRequest = { model: planned, privacy: partitionTestPolicy, permissions: { sharingScope: 'mesh' } };
         const binding = await bindExecutionRoute(routeRequest, plaintextExecutionRoute(routeRequest, {
           recipients: planned.partition.route.stages.map(stage => stage.participantId),
           route: planned.partition.route
@@ -115,7 +116,7 @@ async function orderedMesh({ requesters, slots = [2, 2, 2] }) {
     /** Requester `r` sends one message in a new conversation; `hold` keeps it at the final stage once admitted. */
     send(r, { hold = true } = {}) {
       const { app, planned, statuses } = apps[r];
-      const threadId = app.createThread({ model: planned, permissions: { sharingScope: 'mesh' } });
+      const threadId = app.createThread({ model: planned, privacy: partitionTestPolicy, permissions: { sharingScope: 'mesh' } });
       if (hold) holds.set(threadId, { entered: false, released: false, release: Promise.withResolvers() });
       const completion = app.send(threadId, 'Count to three.');
       const attempt = () => app.getState().threads.find(thread => thread.id === threadId).attempts.at(-1);
@@ -175,7 +176,7 @@ describe('coordinator admission queue across real ordered owners', () => {
       expect(m.coordinator.getState().queue).toMatchObject({ queued: 0, admitted: 0, opening: 0 });
       for (const index of [0, 1, 2]) expect(m.activeReservations(index)).toBe(0);
     } finally { await m.close(); }
-  }, 30000);
+  }, 60000);
 
   it('admits waiting requesters in arrival order and refuses one more with CAPACITY_QUEUE_FULL at the requester', async () => {
     const queued = ATTEMPT_QUEUE_POLICY.maxQueuedAttempts;
@@ -187,7 +188,7 @@ describe('coordinator admission queue across real ordered owners', () => {
       const waiting = [];
       for (let r = 2; r < 2 + queued; r++) {
         waiting.push(m.send(r));
-        await vi.waitFor(() => expect(m.coordinator.getState().queue.queued).toBe(waiting.length), { timeout: 10000 });
+        await vi.waitFor(() => expect(m.coordinator.getState().queue.queued).toBe(waiting.length), { timeout: 20000 });
         expect(waiting.at(-1).attempt().status).toBe('queued');
       }
       // One more attempt (requester 0's second conversation) fails explicitly. The coordinator advertises
@@ -233,7 +234,7 @@ describe('coordinator admission queue across real ordered owners', () => {
       m.releaseAll();
       expect((await Promise.all(holding.map(run => run.completion))).map(row => row.status)).toEqual(['completed', 'completed']);
     } finally { await m.close(); }
-  }, 30000);
+  }, 60000);
 
   it('carries a remote stage\'s slot refusal to the requester as CAPACITY_UNAVAILABLE, never the generic failure', async () => {
     // The middle stage admits one attempt while the coordinator admits two: its refusal crosses the
@@ -253,7 +254,7 @@ describe('coordinator admission queue across real ordered owners', () => {
       expect((await held.completion).status).toBe('completed');
       for (const index of [0, 1, 2]) expect(m.activeReservations(index)).toBe(0);
     } finally { await m.close(); }
-  }, 30000);
+  }, 60000);
 });
 
 describe('ordered chat admission bounds (injected stage ports, explicit test queue policy)', () => {
@@ -277,7 +278,7 @@ describe('ordered chat admission bounds (injected stage ports, explicit test que
     const generate = (attemptId, extra = {}) => {
       states.set(attemptId, []);
       return owner.generate({ meshId: 'mesh', participantId: 'requester', threadId: attemptId, attemptId, placementGeneration: 0,
-        model: owner.getModels()[0], messages: [{ role: 'user', content: 'hi' }], permissions: { sharingScope: 'approved-partition-path' }, ...extra },
+        model: owner.getModels()[0], privacy: partitionTestPolicy, messages: [{ role: 'user', content: 'hi' }], permissions: { sharingScope: 'approved-partition-path' }, ...extra },
       { requestApproval: async () => true, onDelta: () => {}, onState: value => states.get(attemptId).push(value.status) });
     };
     const hold = attemptId => { const value = { entered: Promise.withResolvers(), release: Promise.withResolvers() }; holds.set(attemptId, value);

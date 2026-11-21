@@ -241,10 +241,6 @@
         "maxRetainedJobs": {
           "type": "integer",
           "default": 32
-        },
-        "requireNamedAdmission": {
-          "type": "boolean",
-          "default": false
         }
       }
     },

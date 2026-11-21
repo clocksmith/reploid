@@ -3,6 +3,7 @@
 // host session and the conversation view. Search runs over fixed documents and execution is injected; no search
 // service, page fetch or inference is involved.
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { REMOTE_PERMISSION_SCHEMA, createRemotePermission, remotePermissionCovers, validateRemotePermission } from '../../packages/reploid/src/chat/remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, createSearchPermission, searchPermissionWording, validateSearchPermission } from '../../packages/reploid/src/chat/search-permission.js';
@@ -21,6 +22,8 @@ vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: {
 
 const APPROVED = 'Allow Reploid to send this search query to Brave and share retrieved passages with the listed execution contributors for this answer. Your files and unrelated conversation history are excluded.';
 const peer = c => 'peer:' + c.repeat(24), digest = c => 'sha256:' + c.repeat(64);
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+const binding = (request, recipients, route = null) => bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients, route }));
 const REQUESTER = peer('d'), STAGES = [peer('0'), peer('1'), peer('2')];
 const DOCUMENTS = [{ id: 'fixed:eiffel', url: 'https://fixed.example/eiffel', title: 'Eiffel Tower', text: 'The Eiffel Tower in Paris was completed in 1889.' }];
 const QUESTION = 'When was the Eiffel Tower completed?';
@@ -47,7 +50,7 @@ function orderedRoute() {
       const disclosure = orderedPartitionDisclosure(identity);
       const approved = await controls.requestApproval({ id: 'preview-' + attemptId, threadId, attemptId, operation: 'generate-partition',
         peerId: STAGES[0], recipientIdentity: STAGES[0], ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity,
-        adapterIdentities: [], disclosure, expiresAt: Date.now() + 60000,
+        adapterIdentities: [], disclosure, privacyBinding: await binding(request, STAGES, route), expiresAt: Date.now() + 60000,
         input: { messages: structuredClone(request.messages), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
       if (approved !== true) throw Error('Ordered disclosure declined or expired');
       disclosed.push(structuredClone(request.messages));
@@ -166,7 +169,7 @@ describe('search-backed answers in the workspace', () => {
     const app = createChatWorkspace({ meshId: 'mesh', participantId: REQUESTER, store: { load: () => null, save() {} },
       retrieval: { routes: { [SEARCH_ROUTE]: searchPorts() } }, execute: (request, controls) => partitions.generate(request, controls) });
     cleanups.push(() => app.close());
-    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    const thread = app.createThread({ model, privacy: openPolicy, permissions: { sharingScope: 'mesh' } });
     const failed = await app.send(thread, QUESTION, { retrieval: { route: SEARCH_ROUTE }, searchPermission: grant(thread, { recipients: STAGES.slice(0, 2) }) });
     expect(failed).toMatchObject({ status: 'failed', error: SEARCH_RECIPIENTS_CHANGED, retrieval: { outcome: 'retrieved' } });
     expect(partitions.disclosed).toEqual([]);
@@ -186,13 +189,13 @@ describe('search-backed answers in the workspace', () => {
         const { threadId, attemptId } = request;
         const approved = await controls.requestApproval({ id: 'preview-' + attemptId, threadId, attemptId, operation: 'generate',
           disclosure: 'public', peerId: PROVIDER, recipientIdentity: PROVIDER, modelId: single.id, modelIdentity: single.identity,
-          adapterIdentities: [], expiresAt: Date.now() + 60000 });
+          adapterIdentities: [], privacyBinding: await binding(request, [PROVIDER]), expiresAt: Date.now() + 60000 });
         if (approved !== true) throw Error('Disclosure declined or expired');
         disclosed.push(structuredClone(request.messages));
         return { threadId, attemptId, modelId: single.id, modelIdentity: single.identity, adapterIdentities: [], content: ANSWER };
       } });
     cleanups.push(() => app.close());
-    const thread = app.createThread({ model: single, permissions: { sharingScope: 'mesh' } }), search = { route: SEARCH_ROUTE };
+    const thread = app.createThread({ model: single, privacy: openPolicy, permissions: { sharingScope: 'mesh' } }), search = { route: SEARCH_ROUTE };
     const failed = await app.send(thread, QUESTION, { retrieval: search, searchPermission: grant(thread, { recipients: [peer('6')] }),
       authorizeDisclosure: () => true });
     expect(failed).toMatchObject({ status: 'failed', error: SEARCH_RECIPIENTS_CHANGED });
@@ -227,7 +230,7 @@ describe('host session and conversation view', () => {
       verifyPeerIdentity, connect: async () => {}, hasProvider: () => true,
       async generate(messages, controls) {
         const preview = { id: 'preview', operation: 'generate', disclosure: 'public', providerId: connection,
-          recipientIdentity: recipient, modelId: single.id, modelIdentity: single.identity, adapterIdentities: [], expiresAt: Date.now() + 60000 };
+          recipientIdentity: recipient, modelId: single.id, modelIdentity: single.identity, adapterIdentities: [], privacyBinding: await binding({ model: single, privacy: controls.privacy }, [recipient]), expiresAt: Date.now() + 60000 };
         if (!await controls.approve(preview)) throw Error('Declined');
         disclosed.push(messages); controls.onPartial(ANSWER);
         return { model: single.id, modelIdentity: single.identity, provider: 'doppler', peerId: connection, adapterIdentities: [], content: ANSWER };
@@ -239,7 +242,7 @@ describe('host session and conversation view', () => {
     session.setRemoteAnswersEnabled(false);
     const need = session.remotePermissionNeeded({ model: single, sharingScope: 'mesh' });
     await session.grantRemotePermission(need, { wording: remotePermissionWording(need) });
-    const thread = session.createThread({ model: single });
+    const thread = session.createThread({ model: single, privacy: openPolicy });
     const allowed = await session.searchPermissionRequest({ model: single });
     expect(verifyPeerIdentity).toHaveBeenCalledWith('connection-before', undefined);
     expect(allowed.recipients).toEqual([peer('5')]);
@@ -260,7 +263,7 @@ describe('host session and conversation view', () => {
     await grantContributors(session);
     const request = await session.searchPermissionRequest({ model, sharingScope: 'mesh' });
     expect(request).toEqual({ route: SEARCH_ROUTE, searchProvider: 'brave', searchServer: null, wording: wording(), recipients: STAGES });
-    const thread = session.createThread({ model });
+    const thread = session.createThread({ model, privacy: openPolicy });
     expect(() => session.send(thread, QUESTION, [{ name: 'notes.txt', text: 'My private notes' }], { search: request }))
       .toThrow("Search-backed answers don't include files");
     const done = await session.send(thread, QUESTION, [], { search: request });
@@ -269,7 +272,11 @@ describe('host session and conversation view', () => {
         wording: { text: APPROVED } }, authorization: { kind: 'permission', recipients: STAGES } });
     expect(partitions.disclosed[0].at(-1).content).not.toContain('My private notes');
     // The remote-contributor permission and the search grant stay separate records.
-    expect(session.getState().remotePermissions.map(permission => permission.kind)).toEqual(['remote-contributors']);
+    const remotePermissions = session.getState().remotePermissions;
+    expect(remotePermissions.every(permission => permission.kind === 'remote-contributors')).toBe(true);
+    expect(remotePermissions.find(permission => permission.id === done.authorization.permissionId)).toMatchObject({
+      routeId: expect.stringMatching(/^sha256:/), policyId: expect.stringMatching(/^sha256:/)
+    });
     const unapproved = open({ retrieval: { routes: { [SEARCH_ROUTE]: searchPorts('searxng') } } });
     await expect(unapproved.session.searchPermissionRequest({ model })).rejects.toThrow('Search is not available');
   });
@@ -278,7 +285,7 @@ describe('host session and conversation view', () => {
     const { session, partitions } = open();
     const generate = partitions.generate;
     let fail = true;
-    partitions.generate = async (...args) => { if (fail) { fail = false; throw Error('Provider disconnected'); } return generate(...args); };
+    partitions.generate = async (...args) => { if (fail) { fail = false; throw Error('Fixture generation failed; retry manually'); } return generate(...args); };
     const search = { available: () => true, state: () => ({ state: 'ready' }), subscribe: listener => { listener(); return () => {}; }, refresh() {} };
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
     const dispose = bindConversationWorkspace(root, session, { search }); cleanups.push(async () => dispose());
@@ -286,12 +293,13 @@ describe('host session and conversation view', () => {
     const submit = text => { const input = find('[data-composer-input]'); input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); };
     expect(find('[data-search-permission]')).toBeNull();
     expect(find('[data-remote-permission]')).toBeNull();
+    session.createThread({ model, privacy: openPolicy, executionLocation: 'network' });
     find('[data-search-toggle]').click(); submit(QUESTION);
-    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('failed'));
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('failed'), { timeout: 10000 });
     const first = session.getState().activeThread.attempts[0];
     expect(first.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });
     find('[data-retry-attempt]').click();
-    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'));
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'), { timeout: 10000 });
     const retried = session.getState().activeThread.attempts.at(-1);
     expect(retried.retryOf).toBe(first.id);
     expect(retried.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });

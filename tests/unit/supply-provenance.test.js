@@ -154,7 +154,7 @@ describe('conversation provenance', () => {
   it('records retrieval supply separately from execution supply', async () => {
     const documents = [{ id: 'fixed:a', url: 'https://fixed.example/a', title: 'A', text: 'Alpha is the first letter.' }];
     const base = createFixedSearchProvider({ documents, now: () => 1760000000000 });
-    const provider = { id: base.id, version: base.version, search: base.search, supply: 'server' };
+    const provider = { id: base.id, version: base.version, search: base.search, describeDisclosure: base.describeDisclosure, supply: 'server' };
     const { app } = fixture(async request => result(request, 'Alpha [1]', PEER), { retrieval: { provider, extractor: base } });
     const thread = app.createThread({ model });
     const attempt = await app.send(thread, 'What is alpha?', { retrieval: {} });

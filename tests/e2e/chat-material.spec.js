@@ -3,8 +3,10 @@ import { openParticipantControls } from '../fixtures/signaling-interruption.js';
 import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 // Explicit host-state fixtures exercise presentation, not model inference.
-async function installConversation(page, theme) {
-  await page.evaluate(async theme => {
+async function installConversation(page, theme, { network = true } = {}) {
+  await page.evaluate(async ({ theme, network }) => {
+    const { createExecutionPolicy } = await import('/vendor/reploid/chat/execution-policy.js');
+    const privacy = network ? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) : createExecutionPolicy();
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const { bindExecutionRibbon } = await import('/ui/pool-home/execution-ribbon.js');
     const root = document.querySelector('.pool-home');
@@ -80,7 +82,7 @@ async function installConversation(page, theme) {
       const busy = ['queued', 'loading', 'executing', 'approval', 'cancelling'].includes(mode);
       const empty = ['empty', 'unavailable', 'preparing'].includes(mode);
       const thread = { id: 'thread', purpose: 'Review the formatter', model,
-        permissions: { sharingScope: 'mesh' }, grants: [],
+        permissions: { sharingScope: 'mesh' }, privacy, grants: [],
         messages: [{ id: 'question', role: 'user', content: 'Check the formatter against malformed JSON.' },
           { id: 'response', role: 'assistant', attemptId: 'attempt', content: mode === 'completed' ? 'Valid values are preserved. Two malformed inputs need a clearer error.' : 'Checking edge cases…' }],
         attempts: [{ id: 'attempt', status: mode, execution: { placement: 'two-device-layer-partition', participantA: 'fixture-A', participantB: 'fixture-B', requesterId: 'requester', splitLayer: 12, ...(mode === 'completed' ? { completion: { promptTokenCount: 768, generatedTokenCount: 256 } } : {}) },
@@ -93,10 +95,10 @@ async function installConversation(page, theme) {
       listeners.forEach(callback => callback(state));
     };
     window.setVisualState('empty');
-    window.disposeVisual = bindConversationWorkspace(fixture, session);
+    window.disposeVisual = bindConversationWorkspace(fixture, session, { viewState: { privacy } });
     // Home renders no app bar; the execution ribbon exists only on routes that keep one.
     if (fixture.querySelector('[data-execution-ribbon]')) { const ribbon = bindExecutionRibbon(fixture, { labelSession: session }); session.subscribe(state => ribbon.update(state)); }
-  }, theme);
+  }, { theme, network });
 }
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
@@ -976,7 +978,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-  await installConversation(page, 'dark');
+  await installConversation(page, 'dark', { network: false });
   await page.evaluate(() => window.setVisualSupply(4));
   const opener = page.locator('[data-open-model]');
   const original = await opener.innerText();
@@ -992,16 +994,20 @@ test('model preview and inference privacy commit independently', async ({ page }
   expect(await opener.innerText()).toBe(original);
   await page.locator('[data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');
-  await expect(privacy.locator('input[value=cryptographic]')).toBeDisabled();
-  await privacy.locator('input[value=restricted]').check();
+  await expect(privacy.locator('option[value=cryptographic]')).toBeDisabled();
+  await expect(privacy.locator('option[value=attested]')).toBeDisabled();
+  const placement = privacy.locator('[data-privacy-placement]');
+  const recipientMode = privacy.locator('[data-privacy-recipient-mode]');
   const recipients = privacy.locator('[data-privacy-recipients]');
-  await expect(privacy.getByLabel('This device only', { exact: true })).toBeChecked();
+  await expect(placement).toHaveValue('local-only');
   await expect(recipients).toBeHidden();
-  await privacy.getByLabel('Named computers', { exact: true }).check();
+  await placement.selectOption('network-allowed');
+  await expect(recipientMode).toHaveValue('none');
+  await recipientMode.selectOption('named');
   await expect(recipients).toBeVisible();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
   await privacy.locator('[data-privacy-cancel]').click();
-  await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/Provider-visible/);
+  await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/This device only/);
 });
 
 test('touch help and model choices work without hover', async ({ browser }, info) => {

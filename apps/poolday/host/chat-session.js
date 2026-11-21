@@ -187,20 +187,22 @@ export function createChatSession({
       assert(remoteAccess.enabled(), 'Network answers are off. Turn them on in Settings or choose this device.');
       if (!remotePermissions.some(permission => remotePermissionCovers(permission, need))) {
         const unbound = { ...need, policyId: undefined, routeId: undefined };
-        const completedPermissionIds = new Set(
+        // A failed attempt can already have disclosed its input. Keep that route
+        // established so the startup preference cannot authorize a replacement.
+        const usedPermissionIds = new Set(
           (workspace?.getState?.().threads || []).flatMap(thread =>
             (thread.attempts || [])
-              .filter(attempt => attempt.status === 'completed' && attempt.authorization?.permissionId)
+              .filter(attempt => attempt.authorization?.permissionId)
               .map(attempt => attempt.authorization.permissionId)
           )
         );
         const isEstablishedBoundMachine = permission => permission.routeId !== undefined
-          && (completedPermissionIds.has(permission.id) || permission.wording?.id !== remoteAccess.wording.id)
+          && (usedPermissionIds.has(permission.id) || permission.wording?.id !== remoteAccess.wording.id)
           && remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, unbound);
         if (!remotePermissions.some(isEstablishedBoundMachine)) {
           const retained = remotePermissions.filter(
             permission => !(remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, unbound)
-              && !completedPermissionIds.has(permission.id)
+              && !usedPermissionIds.has(permission.id)
               && permission.wording?.id === remoteAccess.wording.id)
           );
           savePermissions([...retained, createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
@@ -363,7 +365,7 @@ export function createChatSession({
   // Automatic failover. When the computer chosen for a shared answer drops out, the answer is tried again
   // on another computer as a new attempt, the same thing the Retry control does, at most
   // MAX_AUTOMATIC_FAILOVERS times per question. The failed attempt stays in the record. Each attempt has its
-  // own request identity, and this requester countersigns a receipt only for the attempt that completes, so
+  // own request identity and needs existing or new approval for its recipient before disclosure; this requester countersigns a receipt only for the attempt that completes, so
   // a dropped attempt never receives its countersignature.
   const failovers = new Map(), failedOver = new Set();
   const considerFailover = () => {

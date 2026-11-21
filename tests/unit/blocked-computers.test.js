@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { describe, expect, it, vi } from 'vitest';
 import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
@@ -33,7 +34,7 @@ async function fixture({ providers = 2, blocked = () => [] } = {}) {
       instanceId: 'instance-' + i, modelConfig: i ? { id: 'model' } : null,
       ...(i === 0 ? { getBlockedComputers: blocked } : {}),
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
-      authorize: async () => true, events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
+      authorize: async () => true, admitsBeforeDisclosure: true, events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
       identity: { ensure: async () => identity, sync: async () => {}, save: async () => {} },
       generate: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'answer from ' + i,
         completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 1, generatedTokenCount: 1, stopReason: 'eos-token' } }),
@@ -49,7 +50,7 @@ async function fixture({ providers = 2, blocked = () => [] } = {}) {
   const requester = meshes[0];
   await vi.waitFor(() => expect(requester.getSwarmSnapshot().peers.filter(peer => peer.readiness === 'ready')).toHaveLength(providers));
   const requestsTo = () => wire.filter(message => message.type === 'reploid:generation-request').map(message => message.to);
-  const ask = () => requester.generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity });
+  const ask = () => requester.generate([{ role: 'user', content: 'prompt' }], null, { privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), modelId: 'model', modelIdentity });
   const readvertise = () => { for (const mesh of meshes.slice(1)) mesh.refreshAdvertisement(); };
   return { identities, requester, wire, requestsTo, ask, readvertise, close: () => Promise.all(meshes.map(mesh => mesh.close())) };
 }

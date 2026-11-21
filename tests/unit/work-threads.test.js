@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { createWorkSession, DEFAULT_WORK_MODELS } from '../../apps/poolday/host/work-session.js';
 import { createWorkNetworkProvider, withWorkDevice } from '../../apps/poolday/providers/work-network-provider.js';
 
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const store = () => {
   let value = null, tail = Promise.resolve();
@@ -26,8 +27,8 @@ describe('independent work threads', () => {
         return { content: text, model: control.modelId, provider: 'doppler', execution: 'peer-whole-request' };
       } };
     const app = createWorkSession({ ...ports, service, swarm });
-    const first = app.start({ goal: 'First objective' }), firstId = app.getState().selectedId;
-    const second = app.start({ goal: 'Second objective' }), secondId = app.getState().selectedId;
+    const first = app.start({ goal: 'First objective', privacy: openPolicy, allowPeers: true }), firstId = app.getState().selectedId;
+    const second = app.start({ goal: 'Second objective', privacy: openPolicy, allowPeers: true }), secondId = app.getState().selectedId;
     await vi.waitFor(() => expect(app.getState().approvalThreadIds).toHaveLength(2));
     expect(app.getState().runningIds).toEqual([firstId, secondId]);
     const secondApproval = app.getState().pendingApproval.id;
@@ -75,7 +76,7 @@ describe('independent work threads', () => {
   it('never falls back to another execution after peer refusal or failure', async () => {
     const service = { open: vi.fn(), isSupported: () => true };
     const swarm = { connect: vi.fn(), hasProvider: () => true, generate: vi.fn().mockRejectedValue(new Error('Denied')) };
-    const provider = createWorkNetworkProvider({ model: DEFAULT_WORK_MODELS[0], service, swarm,
+    const provider = createWorkNetworkProvider({ model: DEFAULT_WORK_MODELS[0], service, swarm, privacy: openPolicy,
       signal: new AbortController().signal, controls: {} });
     await expect(provider.generate([])).rejects.toThrow('Denied');
     expect(service.open).not.toHaveBeenCalled();
@@ -86,7 +87,7 @@ describe('independent work threads', () => {
     const service = { isSupported: () => true, close: vi.fn(),
       open: async () => ({ async *stream() { yield { type: 'text-delta', text: 'device answer' }; } }) };
     const swarm = { connect: async () => { throw new Error('Signaling unavailable'); }, generate: vi.fn(), hasProvider: () => false };
-    const provider = createWorkNetworkProvider({ model: DEFAULT_WORK_MODELS[0], service, swarm, scope: 'test',
+    const provider = createWorkNetworkProvider({ model: DEFAULT_WORK_MODELS[0], service, swarm, scope: 'test', privacy: openPolicy,
       signal: new AbortController().signal, generation: {}, maxOutcomeCharacters: 100 });
     await expect(provider.generate([], () => {})).rejects.toThrow('Signaling unavailable');
     expect(swarm.generate).not.toHaveBeenCalled();
@@ -95,26 +96,26 @@ describe('independent work threads', () => {
 });
 
 it('snapshots work policy and propagates it to the network without fallback', async () => {
-  const privacy = structuredClone(createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: ['approved-provider'] }));
+  const privacy = structuredClone(createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['approved-provider'] } }));
   const service = { open: vi.fn() }, swarm = { connect: vi.fn(), hasProvider: () => true, generate: vi.fn().mockRejectedValue(Error('Declined')) };
   const provider = createWorkNetworkProvider({ model: DEFAULT_WORK_MODELS[0], service, swarm, privacy,
     signal: new AbortController().signal, controls: {} });
-  privacy.allowedRecipients.push('injected-provider');
+  privacy.recipients.ids.push('injected-provider');
   await expect(provider.generate([{ role: 'user', content: 'private workload' }])).rejects.toThrow('Declined');
-  expect(swarm.generate.mock.calls[0][1].privacy.allowedRecipients).toEqual(['approved-provider']);
+  expect(swarm.generate.mock.calls[0][1].privacy.recipients.ids).toEqual(['approved-provider']);
   expect(service.open).not.toHaveBeenCalled();
 });
 it('enforces local-only and unavailable work backends before any remote data port', async () => {
   const service = { isSupported: () => false, open: vi.fn() }, swarm = { connect: vi.fn(), generate: vi.fn() };
   const options = { model: DEFAULT_WORK_MODELS[0], service, swarm, controls: {}, signal: new AbortController().signal };
-  await expect(createWorkNetworkProvider({ ...options, privacy: createExecutionPolicy('restricted') }).generate([{ content: 'secret' }])).rejects.toThrow('cannot execute');
+  await expect(createWorkNetworkProvider({ ...options, privacy: createExecutionPolicy() }).generate([{ content: 'secret' }])).rejects.toThrow('cannot execute');
   expect(swarm.connect).not.toHaveBeenCalled(); expect(swarm.generate).not.toHaveBeenCalled();
-  expect(() => createWorkNetworkProvider({ ...options, privacy: createExecutionPolicy('cryptographic', { protocol: 'unsupported', keyContext: 'key' }) })).toThrow('unavailable');
+  expect(() => createWorkNetworkProvider({ ...options, privacy: createExecutionPolicy({ computation: 'cryptographic', protocol: 'unsupported', keyContext: 'key' }) })).toThrow('unavailable');
   expect(() => createWorkNetworkProvider({ ...options, model: { provider: 'gemini', id: 'unqualified-cloud' }, privacy: createExecutionPolicy() })).toThrow('qualified complete');
   expect(service.open).not.toHaveBeenCalled();
 });
 it('retains a host-owned work policy in local records and revision drafts', async () => {
-  const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: ['approved-provider'] });
+  const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['approved-provider'] } });
   const swarm = { connect: vi.fn(), hasProvider: () => true, generate: vi.fn(async (_messages, controls) => ({
     content: 'IDLE: Done', model: controls.modelId, provider: 'doppler', adapterIdentities: [] })) };
   const app = createWorkSession({ ...store(), service: { isSupported: () => false }, swarm });

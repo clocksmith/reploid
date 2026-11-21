@@ -3,7 +3,7 @@
  * objective grants, network placement, local records and per-thread lifetime.
  * Whole-request compatibility execution does not imply signed Pack admission.
  */
-import { assertAvailableExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
+import { assertAvailableExecutionPolicy, validateExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
 import { createReploid } from '../../../shared/vendor/reploid/agent/index.js';
 import { resolveConfig } from '../../../shared/vendor/reploid/config/index.js';
 import protocol from '../../../shared/vendor/reploid/agent/protocol.json' with { type: 'json' };
@@ -92,7 +92,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     finally { discovering = false; notify(); }
   };
   const start = async ({ goal, modelId, parentId = null, criteria = '', feedback = '',
-    inputs = [], allowPeers = true, recallAccepted = false, allowHelpers = true, allowImprovement = false, privacy = null }) => {
+    inputs = [], allowPeers = false, recallAccepted = false, allowHelpers = true, allowImprovement = false, privacy = null }) => {
     requireValue(!closed, 'Work is closed');
     requireValue(runs.size < policy.maxConcurrentThreads, 'Concurrent thread limit reached');
     requireValue(!storageError, storageError);
@@ -102,6 +102,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     const model = selectWorkModel({ models, modelId, defaultModelId: policy.defaultModelId });
     const isDopplerModel = model.provider === 'doppler';
     privacy = privacy === null ? null : assertAvailableExecutionPolicy(privacy);
+    allowPeers = Boolean(allowPeers && privacy?.placement === 'network-allowed' && privacy.recipients.kind !== 'none');
     requireValue(!privacy || isDopplerModel, 'This provider has no qualified complete privacy route');
     const row = {
       id: crypto.randomUUID(), parentId, goal: goal.trim(), modelId: model.id, modelName: model.name,
@@ -376,8 +377,10 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     prepareRevision(id) {
       const row = records.find(item => item.id === id);
       requireValue(row && !runs.has(id), 'Stop this thread before revising it');
+      let privacy = null;
+      try { if (row.privacy) privacy = validateExecutionPolicy(row.privacy); } catch { /* Unsupported history never grants network use. */ }
       revisionDraft = copy({ parentId: row.id, goal: row.goal, criteria: row.criteria || '', modelId: row.modelId,
-        inputs: row.inputs || [], feedback: '', allowPeers: false, recallAccepted: false, privacy: row.privacy ?? null });
+        inputs: row.inputs || [], feedback: '', allowPeers: false, recallAccepted: false, privacy });
       return copy(revisionDraft);
     },
     subscribe(listener) { listeners.add(listener); listener(getState()); return () => listeners.delete(listener); },

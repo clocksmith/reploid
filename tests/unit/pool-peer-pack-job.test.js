@@ -187,19 +187,19 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
   it('executes restricted text with an exact signed offer and never expands legacy public consent', async () => {
     const f = await setup('generate', undefined, { private: true });
     try {
-      const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.providerIdentity.keyId] });
+      const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.providerIdentity.keyId] } });
       const request = { privacy, model: { id: f.model.modelId, identity: await hashDopplerEvidence(f.model) } };
       const route = plaintextExecutionRoute(request, { recipients: [f.providerIdentity.keyId], route: {
         schema: 'reploid.operation-route/v1', operation: { name: 'generate', version: 1 }, providerId: f.providerIdentity.keyId,
         offerId: 'restricted', backend: 'doppler-plaintext/v1' } });
-      const consent = { schema: 'reploid.peer.execution_consent/v2', publicInput: false, providerIds: [f.providerIdentity.keyId],
+      const consent = { schema: 'reploid.peer.execution_consent/v3', publicInput: false, providerIds: [f.providerIdentity.keyId],
         offerId: 'restricted', privacyBinding: await bindExecutionRoute(request, route) };
       const result = await f.requester.run({ ...f.args, consent, acceptanceMode: 'execution', comparisonPolicy: null, reference: null });
       expect(result.job.body.intent.inputClass).toBe('private_text');
       expect(result.execution.request.assignment.privacyBinding).toEqual(consent.privacyBinding);
       expect(result.job.body.intent.planning.plan.selectedOfferId).toBe('restricted');
       for (const change of [body => { body.intent.consent.offerId = 'ordinary'; }, body => { body.intent.inputClass = 'public_text'; },
-        body => { body.intent.consent.privacyBinding.policy.allowedRecipients = []; }, body => { delete body.assignment.privacyBinding; },
+        body => { body.intent.consent.privacyBinding.policy.recipients.ids = []; }, body => { delete body.assignment.privacyBinding; },
         body => { body.intent.consent.schema = 'reploid.peer.public_operation_consent/v1'; body.intent.consent.publicInput = true; }]) {
         const body = structuredClone(result.job.body); change(body);
         const altered = await signPackPeerMessage({ identity: f.requesterIdentity, type: result.job.type,
@@ -219,7 +219,7 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
         return { adverts: [f.args.advert], resources: f.args.resources, limits }; },
         run: ({ request, providerAdverts, ...controls }) => f.requester.run({ ...request, adverts: providerAdverts, ...controls }) };
       const jobs = createWorkPeerJobs({ getNetwork: () => network, models: [f.model] });
-      const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.providerIdentity.keyId] });
+      const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.providerIdentity.keyId] } });
       const events = [], partials = [], signal = new AbortController().signal;
       const payload = { modelId: f.model.modelId, input: { prompt: 'private host canary' }, options: f.options, privacy, offerId: 'restricted' };
       const pending = jobs.execute(payload, { signal, approve: async preview => {
@@ -242,9 +242,9 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
         const network = { async describe() { descriptions++; return { adverts: mode === 'disappeared' && descriptions > 1 ? [] : [f.args.advert],
           resources: f.args.resources, limits }; }, async run() { transmissions++; throw new Error('unexpected payload'); } };
         const jobs = createWorkPeerJobs({ getNetwork: () => network, models: [f.model] });
-        const privacy = mode === 'unsupported' ? createExecutionPolicy('cryptographic', { protocol: 'unqualified', keyContext: 'key' })
-          : mode === 'local-only' ? createExecutionPolicy('restricted')
-            : createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.providerIdentity.keyId] });
+        const privacy = mode === 'unsupported' ? createExecutionPolicy({ computation: 'cryptographic', protocol: 'unqualified', keyContext: 'key' })
+          : mode === 'local-only' ? createExecutionPolicy()
+            : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.providerIdentity.keyId] } });
         await expect(jobs.execute({ modelId: f.model.modelId, input: f.input, options: f.options, privacy }, {
           signal: new AbortController().signal, approve: async () => true,
           async record(event) { if (mode === 'revoked' && event.stage === 'approved') { await Promise.resolve(); current = false; } }, isCurrent: () => current

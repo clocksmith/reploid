@@ -449,7 +449,7 @@ try {
     const { createExecutionPolicy } = await from('packages/reploid/src/chat/execution-policy.js');
     report.phases.namedRecipient = [];
     for (const node of providers) {
-      const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [node.identity.participantId] });
+      const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [node.identity.participantId] } });
       report.phases.namedRecipient.push({ named: node.spec.computerId, ...(await attempt('named-' + node.spec.computerId, { privacy })) });
     }
   }

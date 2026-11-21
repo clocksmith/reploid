@@ -11,6 +11,7 @@ export function createLexicalSupportChecker({ supportedAt = 0.8, unsupportedBelo
   if (!(unsupportedBelow > 0 && unsupportedBelow <= supportedAt && supportedAt <= 1)) throw new Error('Invalid lexical support thresholds');
   return Object.freeze({
     id: 'reploid.lexical-overlap-test', version: '1', qualified: false,
+    describeDisclosure: ({ id, version }) => ({ schema: 'reploid.auxiliary-path/v1', id, version, hops: [] }),
     async check({ claim, source }) {
       const words = contentWords(claim), passage = new Set(wordTokens(source.passage));
       if (!words.length) return { verdict: 'unverified', reason: 'The claim has no checkable words.' };

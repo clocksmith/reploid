@@ -1,10 +1,11 @@
+import { partitionTestPolicy, partitionTestBinding } from './fixtures/partition-execution-policy.js';
 // CPU entry-protocol control: real data-channel framing over in-memory channels;
 // publication store is injected here (real signed/IndexedDB owner tested separately).
 import assert from 'node:assert/strict';
 import { createPartitionEntry } from '../packages/reploid/src/mesh/partitions/partition-entry.js';
 import { createEntryPublicationScope } from '../packages/reploid/src/mesh/partitions/partition-entry-publication.js';
 const epoch = '0'.repeat(32), hash = 'sha256:' + 'a'.repeat(64);
-const request = { schema: 'reploid.partition-input/v2', operation: 'generate', meshId: 'mesh', requesterId: 'q', participantA: 'a', participantB: 'b',
+const request = { schema: 'reploid.partition-input/v5', operation: 'generate', meshId: 'mesh', requesterId: 'q', participantA: 'a', participantB: 'b',
   modelId: 'm', modelIdentity: hash, planId: hash, threadId: 'thread', attemptId: 'attempt', placementGeneration: 0,
   messages: [{ role: 'user', content: 'question' }] };
 const context = { schema: 'reploid.partition-publication-context/v1', publisherEpoch: epoch, coordinatorEpoch: epoch, routeId: hash,
@@ -12,6 +13,7 @@ const context = { schema: 'reploid.partition-publication-context/v1', publisherE
   stages: [0, 1].map(i => ({ stageId: 'sha256:' + String(i).repeat(64), participantId: i ? 'b' : 'a', participantEpoch: epoch,
     deviceEpoch: epoch, residentId: 'r' + i, partitionIndex: i, executionId: hash })) };
 request.canonical = context;
+Object.assign(request, {privacy: partitionTestPolicy, privacyBinding: await partitionTestBinding(request)});
 const identity = { schema: 'doppler.resident-attempt/v2', attemptId: request.attemptId, requesterId: 'q', inputDigest: hash,
   authorizationScope: hash, routeId: hash, generationId: hash, coordinatorEpoch: epoch, publisherEpoch: epoch, routeKind: 'two-stage-layer', stages: context.stages };
 const admission = { identity, generationPolicy: context.generation.policy, executionIdentity: hash, vocabSize: 100, deadlineAt: context.deadlineAt };

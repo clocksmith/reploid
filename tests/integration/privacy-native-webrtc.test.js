@@ -5,7 +5,7 @@ import { createInterface } from 'node:readline';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-it.skipIf(process.env.REPLOID_PRIVACY_NATIVE_RTC !== '1')('enforces both profiles, revocation and no downgrade over native WebRTC processes', async () => {
+it.skipIf(process.env.REPLOID_PRIVACY_NATIVE_RTC !== '1')('enforces both recipient policies, revocation and no downgrade over native WebRTC processes', async () => {
   const room = 'privacy-qualification:' + randomUUID(), peers = new Map(), children = [], pending = new Map();
   const path = fileURLToPath(new URL('../helpers/privacy-native-webrtc-peer.js', import.meta.url));
   // Optional: the provider process runs on another machine. A JSON array naming the command that starts this
@@ -56,9 +56,9 @@ it.skipIf(process.env.REPLOID_PRIVACY_NATIVE_RTC !== '1')('enforces both profile
       expect(result.stats.relayMessagesSent).toBe(0);
       expect(result.stats.peers).toEqual([expect.objectContaining({ transport: 'webrtc', fingerprintBound: true })]);
     }
-    // A request that names its recipient asked for admission first; the provider-visible one did not.
+    // Both named and open recipient policies require admission before transmission.
     const served = (await command(provider, { command: 'state' })).stats;
-    expect(served.received).toMatchObject({ 'reploid:generation-admit': 1, 'reploid:generation-request': 2 });
+    expect(served.received).toMatchObject({ 'reploid:generation-admit': 2, 'reploid:generation-request': 2 });
     expect(served.promptFrames.received).toBe(2);
 
     // The named recipient's host declines. It decides from the request's details, and the prompt stays with the requester.
@@ -71,7 +71,7 @@ it.skipIf(process.env.REPLOID_PRIVACY_NATIVE_RTC !== '1')('enforces both profile
     expect(declined.stats.promptFrames.sent).toBe(sentBefore.promptFrames.sent);
     expect(declined.stats.sent['reploid:generation-admit']).toBe(sentBefore.sent['reploid:generation-admit'] + 1);
     const refused = (await command(provider, { command: 'state' })).stats;
-    expect(refused.received).toMatchObject({ 'reploid:generation-admit': 2, 'reploid:generation-request': 2 });
+    expect(refused.received).toMatchObject({ 'reploid:generation-admit': 3, 'reploid:generation-request': 2 });
     expect(refused.promptFrames.received).toBe(2);
     expect(refused.executions).toBe(2);
     // The same provider serves the same request again once its host allows it.

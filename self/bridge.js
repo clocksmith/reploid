@@ -279,7 +279,8 @@ export function createSelfBridge(options = {}) {
       transport: options.swarmTransport || null,
       createTransport: () => SwarmTransportModule.factory(networkOptions),
       generate: (messages, onUpdate, control) => llmClient.chat(messages, modelConfig, onUpdate, control),
-      authorize: options.authorizePeerJob || (() => swarmEnabled),
+      // Enabling swarm transport does not authorize outbound prompt disclosure.
+      authorize: options.authorizePeerJob || (request => swarmEnabled && request.action !== 'mesh.dispatch'),
       identity: {
         ensure: input => ensureIdentityBundle(input),
         save: bundle => saveIdentityBundle(bundle, undefined, { instanceId }),

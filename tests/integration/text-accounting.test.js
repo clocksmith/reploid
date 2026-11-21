@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 import http from 'node:http';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createTextApi } from '../../server/text-api.js';
 import { createTextAccounting, TEXT_ACCOUNTING_COLLECTIONS } from '../../server/text-accounting.js';
 import { TRIAL_COLLECTIONS } from '../../server/trial-admission.js';
@@ -140,7 +141,8 @@ describe.each(['memory', 'firestore'])('whole-model accounting on %s', storage =
       } });
     requester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
     const participant = { getState: () => ({ models: requester.getModels() }), generate: requester.generate, recoverGeneration: requester.recover };
-    const api = createTextApi({ participant, accounting: a, authenticate: async () => f.controls.principal, authorize: async () => true, production: false });
+    const api = createTextApi({ participant, accounting: a, authenticate: async () => f.controls.principal,
+      executionPolicyFor: () => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.provider.peerId] } }), authorize: async () => true, production: false });
     const server = http.createServer((req, res) => api.handle(req, res));
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     const post = async (route, body) => {
@@ -326,6 +328,7 @@ describe.each(['memory', 'firestore'])('whole-model accounting on %s', storage =
     requester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [f.request.model] });
     const participant = { getState: () => ({ models: requester.getModels() }), generate: requester.generate, recoverGeneration: requester.recover };
     const api = createTextApi({ participant, accounting: a, authenticate: async () => f.controls.principal,
+      executionPolicyFor: () => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.provider.peerId] } }),
       authorize: async () => true, production: false });
     const server = http.createServer((req, res) => api.handle(req, res));
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

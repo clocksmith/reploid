@@ -18,7 +18,7 @@ sizes, solo RAM estimates, whole/split support and sources for missing whole-mod
 sizes describe storage. Runtime memory also depends on context and backend.
 
 ```sh
-npx reploid ask 2b "Count to five"   # send one provider-visible request, no model download
+npx reploid ask 2b "Count to five"   # send one plaintext request to an approved recipient, no model download
 npx reploid doctor                   # check local prerequisites and signaling
 npx reploid serve 2b                 # contribute this GPU to the public room
 npx reploid connect                  # discover peers

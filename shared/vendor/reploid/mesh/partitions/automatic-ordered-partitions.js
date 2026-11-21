@@ -1,3 +1,4 @@
+import { partitionPrivacyBinding } from '../../chat/execution-policy.js';
 import { partitionAdapterIdentities, samePartitionAdapters, selectPartitionContribution } from './partition-contract.js';
 import { publicPreparationProgress, createPreparationProgressObserver } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
@@ -425,7 +426,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
         result = await service.generate({ meshId, participantId: identity.peerId, threadId: input.threadId,
           attemptId: input.attemptId, placementGeneration: input.placementGeneration, disclosureExpiresAt: input.disclosureExpiresAt, model, messages: structuredClone(input.messages), ...(input.generationRequest ? {generationRequest: input.generationRequest} : {}),
           ...(scope ? { publication: structuredClone(input.publication) } : {}), ...(input.charge !== undefined ? { charge: structuredClone(input.charge) } : {}),
-          permissions: { sharingScope: 'approved-partition-path' } }, { signal, ...(input.charge !== undefined && onOutput ? { onOutput } : {}),
+          privacy: input.privacy, privacyBinding: input.privacyBinding, permissions: { sharingScope: 'approved-partition-path' } }, { signal, ...(input.charge !== undefined && onOutput ? { onOutput } : {}),
           ...(scope ? { publication: entryPublicationPort((method, body) => scope.call(method, body)) } : {}),
           requestApproval: async () => equal(admissions.get(input.attemptId), input), onActivity: value => onActivity?.(value), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text),
           // The same admission state a remote entry forwards: queued while waiting, executing once admitted.
@@ -527,10 +528,11 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       const route = canonicalPartitionRoute(model.partition.route), identityBinding = { schema: 'reploid.partition-attempt/v2', route,
         requesterId: identity.peerId, threadId: request.threadId, attemptId: request.attemptId, placementGeneration: request.placementGeneration ?? 0 };
       const disclosure = orderedPartitionDisclosure(identityBinding);
+      const privacyBinding = await partitionPrivacyBinding(request, route.stages.map(stage => stage.participantId), route);
       let expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
         operation: 'generate-partition', peerId: route.stages[0].participantId, recipientIdentity: route.stages[0].participantId,
-        ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model), disclosure, expiresAt, executionTimeoutMs: config.grantMs,
+        ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model), disclosure, privacyBinding, expiresAt, executionTimeoutMs: config.grantMs,
         input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
       signal.throwIfAborted(); assert(approved === true && Date.now() < expiresAt, 'Ordered disclosure declined or expired');
       expiresAt = Math.min(controls.authorizationExpiresAt?.() ?? expiresAt, Date.now() + config.grantMs);
@@ -538,12 +540,12 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       assertCapacity(checked.state.ready && checked.model);
       assert(equal(checked.model.partition, model.partition), 'Approved ordered route changed; review a new attempt');
       signal.throwIfAborted(); assert(Date.now() < expiresAt, 'Ordered disclosure expired');
-      const input = { schema: 'reploid.partition-input/v3', operation: 'generate', meshId, requesterId: identity.peerId,
+      const input = { schema: 'reploid.partition-input/v6', operation: 'generate', meshId, requesterId: identity.peerId,
         coordinatorId: route.stages[0].participantId, route, modelId: model.id, modelIdentity: model.identity, planId: route.planId,
         ...(controls.onActivity ? {activity:'reploid.partition-activity/v1'} : {}),
         // This requester reports the coordinator's admission state (queued, then executing).
         attemptState: ATTEMPT_STATE_SCHEMA,
-        threadId: request.threadId, attemptId: request.attemptId, placementGeneration: identityBinding.placementGeneration, disclosureExpiresAt: expiresAt, messages: request.messages, ...(requested ? {generationRequest: requested} : {}),
+        threadId: request.threadId, attemptId: request.attemptId, placementGeneration: identityBinding.placementGeneration, disclosureExpiresAt: expiresAt, messages: request.messages, privacy: request.privacy, privacyBinding, ...(requested ? {generationRequest: requested} : {}),
         ...(published ? { publication: { schema: ORDERED_PUBLICATION_CONTEXT_SCHEMA, publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}),
         // A charged attempt's signed binding, made after its spending binding; outputs return for acknowledgment.
         ...(controls.charge && typeof controls.onOutput === 'function' ? { charge: structuredClone(controls.charge) } : {}) };

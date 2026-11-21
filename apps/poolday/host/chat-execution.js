@@ -1,4 +1,4 @@
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from '../../../shared/vendor/reploid/chat/index.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding, executionPrivacyReceipt } from '../../../shared/vendor/reploid/chat/index.js';
 import { currentPartitionRoute } from './partition-release.js';
 /** Adapt identified chat attempts to existing execution ports; own only the scheduler we create. */
 import { createChatScheduler, remoteDisclosureKind } from '../../../shared/vendor/reploid/chat/index.js';
@@ -63,10 +63,9 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     const originalApproval = controls.requestApproval;
     let privacyBinding = null;
     const validatePreview = async preview => {
-      const recipients = preview.inputRecipients ?? preview.route?.stages?.map(stage => stage.participantId)
-        ?? (model.partition ? [preview.participantA, preview.participantB] : [preview.recipientIdentity]);
-      const binding = await bindExecutionRoute(request, preview.privacyBinding?.route ?? plaintextExecutionRoute(request, {
-        recipients: [...new Set(recipients)], route: preview.route ?? model.partition ?? null }));
+      assert(preview.privacyBinding, 'A current execution binding is required before remote disclosure');
+      const binding = await bindExecutionRoute(request, preview.privacyBinding.route);
+      assert(sameExecutionBinding(binding, preview.privacyBinding), 'Execution binding differs from the approved request');
       controls.signal?.throwIfAborted();
       assert(!privacyBinding || privacyBinding.routeId === binding.routeId, 'Execution route changed; retry requires a new attempt');
       privacyBinding = binding;
@@ -74,6 +73,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     };
     controls = { ...controls, requestApproval: validatePreview };
     assert(['auto', 'local', 'network'].includes(request.permissions?.executionLocation ?? 'auto'), 'Invalid execution location');
+    assert(!(request.permissions?.executionLocation === 'network' && request.privacy.placement === 'local-only'),
+      'Network execution requires an explicit network execution policy');
     assert(!(model.partition && (request.permissions?.executionLocation === 'local' || request.permissions?.sharingScope === 'local')), 'This model requires network execution');
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
     if (model.fleet) { assert(fleet, 'Private computers are not connected'); return fleet.execute(request, controls); }

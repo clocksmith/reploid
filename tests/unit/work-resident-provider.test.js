@@ -59,7 +59,7 @@ it('isolates retained generation context across policies for the same tenant and
       yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'answer' };
     } });
   await f.owner.prepare();
-  for (const privacy of [createExecutionPolicy(), createExecutionPolicy('restricted'), createExecutionPolicy()]) {
+  for (const privacy of [createExecutionPolicy(), createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), createExecutionPolicy()]) {
     await f.owner.generate([{ content: 'private prompt' }], () => {}, { signal: signal(), contextOwner: 'alice', contextId: 'thread', privacy });
   }
   expect(seen[0]).toBe(seen[2]); expect(seen[0]).not.toBe(seen[1]);

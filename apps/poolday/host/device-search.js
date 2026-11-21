@@ -79,6 +79,7 @@ export function createDeviceSearch({ access, accessServer, source, enabled = () 
   assert(typeof enabled === 'function' && typeof server === 'function',
     'Device search needs its consent check, its search server and fetch');
   const allowed = new Set(policy.contentTypes), unsupported = new Set(policy.unsupportedContentTypes);
+  const describeSearch = access?.describeDisclosure ?? source?.describeDisclosure;
   const available = () => enabled() && Boolean(server()) && (!access || server() === accessServer);
   const requireAccess = () => assert(available(), 'Device search is off or its service binding changed');
 
@@ -88,6 +89,14 @@ export function createDeviceSearch({ access, accessServer, source, enabled = () 
     /** The host of the search server the person set up; each per-answer permission names it. */
     get searchServer() { return server() || null; },
     // The answer key stays on this device: the search tool receives only the query.
+    async describeDisclosure(detail) {
+      requireAccess();
+      const selected = access ?? source;
+      assert(typeof describeSearch === 'function', 'Device search disclosure is not qualified');
+      const path = await describeSearch.call(selected, { ...detail, id: selected.id, version: selected.version });
+      requireAccess();
+      return { ...path, id: provider.id, version: provider.version };
+    },
     async search(query, limits, signal) {
       requireAccess();
       const found = await web.search(query, limits, signal);
@@ -115,7 +124,7 @@ export function createDeviceSearch({ access, accessServer, source, enabled = () 
       const discard = () => response.body?.cancel?.().catch(() => {});
       if (!available()) { discard(); requireAccess(); }
       const final = response.url ? devicePageUrl(response.url, policy) : url;
-      if (!final) { discard(); throw failure('blocked-address'); }
+      if (!final || final.origin !== url.origin) { discard(); throw failure('blocked-address'); }
       if (!response.ok) { discard(); throw failure('http-error', String(response.status)); }
       const contentType = String(response.headers.get('content-type') || ''), mime = mimeOf(contentType);
       if (unsupported.has(mime)) { discard(); throw failure('unsupported-content-type', `${mime} text extraction is not supported`); }
@@ -134,6 +143,14 @@ export function createDeviceSearch({ access, accessServer, source, enabled = () 
 
   // The same extraction, passage selection and hashing as the server route's /extract.
   const extractor = Object.freeze({ id: 'reploid.device-page-extract', version: '1',
+    describeDisclosure(detail) {
+      requireAccess();
+      if (access) { assert(typeof describeSearch === 'function', 'Device search disclosure is not qualified'); return describeSearch.call(access, detail); }
+      const page = devicePageUrl(detail.resourceOrigin, policy);
+      assert(page, 'Page origin is not permitted');
+      return { schema: 'reploid.auxiliary-path/v1', id: extractor.id, version: extractor.version,
+        hops: [{ recipient: page.origin, placement: 'remote', disclosure: 'plaintext' }] };
+    },
     async extract({ source: result, query, limits, signal }) {
       const url = devicePageUrl(result.url, policy);
       if (!url) throw failure('blocked-address');
@@ -151,5 +168,5 @@ export function createDeviceSearch({ access, accessServer, source, enabled = () 
 
   return Object.freeze({ provider, extractor, searchProvider: DEVICE_SEARCH_PROVIDER,
     /** The one-time configuration consent; the per-answer permission is checked separately for every answer. */
-    available });
+    qualified: () => typeof describeSearch === 'function' && available(), available });
 }

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import http from 'node:http';
+import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatCompletions } from '../../server/chat-completions.js';
 import { createMessages } from '../../server/messages.js';
@@ -152,8 +153,10 @@ it('reuses GenerationContext across stateless multi-turn /v1/chat/completions re
       }],
     }),
     async generate(messages, onDelta, options) {
+      const privacyBinding = await bindExecutionRoute({ model, privacy: options.privacy }, plaintextExecutionRoute({ model }, { recipients: ['p1'] }));
       const allowed = await requester.authorize({
         action: 'mesh.dispatch',
+        privacyBinding, recipientIdentity: 'p1', admission: { schema: 'reploid.generation-admission/v2' },
         requestContext: options.requestContext,
         peerId: 'p1',
         modelId: options.modelId,
@@ -170,7 +173,10 @@ it('reuses GenerationContext across stateless multi-turn /v1/chat/completions re
     },
   };
   requester = createWholeModelRequester({ mesh, models: [model] });
-  const participant = { getState: () => ({ models: requester.getModels() }), generate: requester.generate };
+  const participant = { getState: () => ({ models: requester.getModels() }),
+    generate: (request, controls) => requester.generate({ ...request, privacy: createExecutionPolicy({
+      placement: 'network-allowed', recipients: { kind: 'named', ids: ['p1'] }
+    }) }, controls) };
   const route = await mountRoute(createChatCompletions, '/v1/chat/completions', participant);
 
   const turn1 = [{ role: 'system', content: 'Rules.' }, { role: 'user', content: 'First.' }];

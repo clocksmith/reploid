@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { qualifiedPartitionRoute, availablePartitionRoute, currentPartitionRoute } from '../../apps/poolday/host/partition-release.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 import { projectModelRoutes } from '../../apps/poolday/ui/pool-home/model-providers.js';
@@ -8,6 +9,7 @@ const approvals = vi.hoisted(() => []);
 vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals } }));
 afterEach(() => { approvals.length = 0; });
 
+const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const route = { id: 'fixture', identity: 'sha256:model', provider: 'doppler', availability: 'ready',
   partition: { planId: 'sha256:plan', participantA: 'a', participantB: 'b' }, adapters: [] };
 const approval = { modelId: route.id, modelIdentity: route.identity, partition: route.partition,
@@ -44,7 +46,7 @@ it('keeps whole-model replicas visible without advertising an unapproved split',
 it('rejects a restored unqualified selection before calling the partition executor', async () => {
   const generate = vi.fn();
   const execution = createChatExecution({ service: {}, models: [route], getModels: () => [route], profile: {}, scheduler: {}, partitions: { generate } });
-  await expect(execution.execute({ model: route, permissions: { executionLocation: 'network' } }, {})).rejects.toThrow('not qualified');
+  await expect(execution.execute({ model: route, privacy, permissions: { executionLocation: 'network' } }, {})).rejects.toThrow('not qualified');
   expect(generate).not.toHaveBeenCalled();
   await execution.close();
 });
@@ -60,7 +62,7 @@ it('allows an approved route but rechecks after asynchronous accounting admissio
     return dispatch(request, controls);
   } };
   const execution = createChatExecution({ service: {}, models: [route], getModels: () => [current], profile: {}, scheduler: {}, partitions: { generate }, earning });
-  const request = { model: route, permissions: { executionLocation: 'network' } };
+  const request = { model: route, privacy, permissions: { executionLocation: 'network' } };
   expect(await execution.execute(request, {})).toBe('answer');
   drop = true;
   await expect(execution.execute(request, {})).rejects.toThrow('unavailable');

@@ -3,10 +3,18 @@ import catalog from '../../shared/config/chat-models.json' with { type: 'json' }
 import { resolvePartitionGeneration } from '../../apps/poolday/config/partition-generation.js';
 import { expect, it, vi } from 'vitest';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
+import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
 
 const model = { id: 'whole', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler' };
-const request = { threadId: 'thread', attemptId: 'attempt', model, messages: [{ role: 'user', content: 'hello' }] };
+const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+async function dispatchProof(options, recipientIdentity) {
+  const input = { model: { id: options.modelId, identity: options.modelIdentity,
+    adapters: options.adapterIdentities.map(identity => ({ identity })) }, privacy: options.privacy };
+  return { recipientIdentity, admission: { schema: 'reploid.generation-admission/v2' },
+    privacyBinding: await bindExecutionRoute(input, plaintextExecutionRoute(input, { recipients: [recipientIdentity] })) };
+}
+const request = { privacy, threadId: 'thread', attemptId: 'attempt', model, messages: [{ role: 'user', content: 'hello' }] };
 function fixture({ approve = async () => true, result = {}, dispatch = {}, readiness = 'ready', stream = (_options, onDelta) => onDelta('answer') } = {}) {
   const controller = new AbortController();
   const controls = { signal: controller.signal, requestApproval: vi.fn(approve), onDelta: vi.fn() };
@@ -14,7 +22,7 @@ function fixture({ approve = async () => true, result = {}, dispatch = {}, readi
     getSwarmSnapshot: () => ({ peers: [{ peerId: 'peer-1', model: model.id, modelIdentity: model.identity,
       hasInference: true, readiness, availableSlots: 1 }] }),
     generate: vi.fn(async (messages, onDelta, options) => {
-      if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-1', modelId: options.modelId,
+      if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-1', ...await dispatchProof(options, 'peer-1'), modelId: options.modelId,
         modelIdentity: options.modelIdentity, adapterIdentities: options.adapterIdentities,
         requestContext: options.requestContext, messages, ...dispatch })) throw Error('Disclosure denied');
       stream(options, onDelta);
@@ -102,7 +110,7 @@ it('binds verified peer signing identity in recipients and enforces prepared who
       model: boundedModel.id, modelIdentity: boundedModel.identity, hasInference: true, readiness: 'ready', availableSlots: 1 }] }),
     generate: vi.fn(async (messages, onDelta, options) => {
       if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'transport-uuid',
-        recipientIdentity: 'peer:enrolled1234567890abcdef', requestId: 'req-1',
+        ...await dispatchProof(options, 'peer:enrolled1234567890abcdef'), requestId: 'req-1',
         modelId: options.modelId, modelIdentity: options.modelIdentity, adapterIdentities: options.adapterIdentities,
         requestContext: options.requestContext, messages })) throw Error('Disclosure denied');
       onDelta('{"ok":true}');
@@ -195,7 +203,7 @@ function settingsFixture({ capabilities = [{ schema: 'reploid.generation-setting
     getSwarmSnapshot: () => ({ peers: capabilities.map((generationSettings, index) => ({ peerId: 'peer-' + index, model: bounded.id, modelIdentity: bounded.identity,
       hasInference: true, readiness: 'ready', availableSlots: 1, ...(generationSettings ? { generationSettings } : {}) })) }),
     generate: vi.fn(async (messages, onDelta, options) => {
-      if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-0', modelId: options.modelId, modelIdentity: options.modelIdentity,
+      if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-0', ...await dispatchProof(options, 'peer-0'), modelId: options.modelId, modelIdentity: options.modelIdentity,
         adapterIdentities: options.adapterIdentities, requestContext: options.requestContext, messages, ...dispatch(options) })) throw Error('Disclosure denied');
       return { model: bounded.id, modelIdentity: bounded.identity, adapterIdentities: [], content: 'answer',
         completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'max-tokens', promptTokenCount: 7, generatedTokenCount: generated } };

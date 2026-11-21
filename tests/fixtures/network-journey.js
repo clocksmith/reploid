@@ -13,6 +13,7 @@
  */
 import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createJourneyNetwork, waitFor, JOURNEY_ANSWER } from '../helpers/journey-network.js';
 
@@ -44,7 +45,9 @@ export async function runNetworkJourney({ providers = PROVIDERS } = {}) {
       timeToFirstTokenMs: null, approvals: 0 };
     let route = null, result = null, failure = null;
     try {
-      result = await requester.generate({ model, messages, threadId, attemptId }, {
+      result = await requester.generate({ model, messages, threadId, attemptId, privacy: createExecutionPolicy({
+        placement: 'network-allowed', recipients: { kind: 'open', ids: [] }
+      }) }, {
         signal,
         requestApproval: async disclosure => {
           record.approvals += 1;

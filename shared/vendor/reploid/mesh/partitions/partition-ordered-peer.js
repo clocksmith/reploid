@@ -4,7 +4,7 @@ import { createPartitionStepReceiver } from './partition-step-receiver.js';
 import { assertPartition as assert, assertCapacity, partitionFailure, canonicalPartitionJson, canonicalRouteAttemptBinding,
   sameRouteAttemptIdentity, validatePartitionRoute, partitionFingerprint, matchingPartitionActivation } from './partition-contract.js';
 
-const SCHEMA = 'reploid.partition-stage-rpc/v2';
+const SCHEMA = 'reploid.partition-stage-rpc/v3';
 const GRANT_REFERENCE = 'reploid.partition-grant-reference/v1';
 const GRANT_FIELDS = ['executionGrant', 'tokenContextGrant', 'incomingActivationGrant', 'outgoingActivationGrant', 'outputGrant'];
 const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
@@ -222,7 +222,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     async serve(metadata, payload, { signal }) {
       if (metadata.operation === 'describe') {
         const state = contributor?.getState();
-        return { descriptor: state?.ready && typeof contributor.executeStage === 'function' ? state.descriptor : null,
+        return { stageProtocol: SCHEMA, descriptor: state?.ready && typeof contributor.executeStage === 'function' ? state.descriptor : null,
           stage: state?.ready ? stage : null, capability: state?.ready ? 'ordered-stage' : null };
       }
       if (metadata.operation === 'retired') {
@@ -377,6 +377,9 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     async refresh({ signal } = {}) {
       await ready;
       const observed = await endpoint.request({ schema: SCHEMA, operation: 'describe' }, new Uint8Array(), { signal });
+      if (observed.stageProtocol !== SCHEMA) {
+        descriptor = null; notify(); throw Error('Remote stage does not bind the current execution policy');
+      }
       const value = observed.descriptor;
       assert(!value || observed.capability === 'ordered-stage' && equal(observed.stage, stage)
         && value.schema === 'doppler.resident-partition/v2' && value.ready === true && value.index === index
@@ -387,7 +390,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     async reserve(request) {
       request = snapshotRequest(request);
       await ready; assert(!serving, 'Only the coordinator reserves a remote stage');
-      assertCapacity(!closed && !retiring && active.size + confirmed.size < receiverLimits.maxAttempts);
+      assertCapacity(!closed && !retiring && descriptor?.ready === true && active.size + confirmed.size < receiverLimits.maxAttempts);
       const metadata = control({ ...request, step: 0 }, 'reserve'); protocol(metadata);
       const previous = active.get(request.identity.attemptId);
       assert(!previous || sameRouteAttemptIdentity(previous.identity, metadata.identity), 'Ordered reservation identity collision');

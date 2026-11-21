@@ -1,3 +1,4 @@
+import { partitionTestPolicy, partitionTestBinding } from '../fixtures/partition-execution-policy.js';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as runtime from 'dopplerx/partitions';
 import { createPartitionDataChannel } from '../../packages/reploid/src/transport/partition-data-channel.js';
@@ -96,7 +97,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       } });
       await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
       await f.chat.refresh();
-      const session = host(f), thread = session.createThread({ model: f.chat.getModels()[0] });
+      const session = host(f), thread = session.createThread({ privacy: partitionTestPolicy, model: f.chat.getModels()[0] });
       const pending = session.send(thread, '1');
       await pending.catch(() => {});
       const state = session.getState().threads.find(t => t.id === thread);
@@ -119,7 +120,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     };
     await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
     await f.chat.refresh();
-    const session = host(f), thread = session.createThread({ model: f.chat.getModels()[0] });
+    const session = host(f), thread = session.createThread({ privacy: partitionTestPolicy, model: f.chat.getModels()[0] });
     const pending = session.send(thread, '1');
     expect((await pending).status).toBe('failed');
     const state = session.getState().threads.find(t => t.id === thread);
@@ -175,13 +176,13 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
   it('verifies signatures, exact attempt/recipient/plan binding, expiry, revocation and cleanup authority', async () => {
     const f = await fixture();
     Object.assign(f.binding, { requesterId: 'requester', placementGeneration: 1 });
-    const grant = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000,
+    const grant = await f.authority.issue(f.binding, policy, { privacyBinding: await partitionTestBinding(f.binding), approved: true, ttlMs: 10000,
       disclosure: 'partition-activations-and-tokens', generationDigest: f.generationDigest });
     const request = { identity: f.binding, action: 'mesh.execute_partition_b', step: 0, inputTokenCount: 1,
       generationDigest: f.generationDigest };
     expect(await f.otherAuthority.verify(grant, request)).toBe(true);
     expect(await f.otherAuthority.verify(grant, { ...request, generationDigest: await partitionFingerprint({ ...f.generation, temperature: 1 }) })).toBe(false);
-    const activationOnly = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000,
+    const activationOnly = await f.authority.issue(f.binding, policy, { privacyBinding: await partitionTestBinding(f.binding), approved: true, ttlMs: 10000,
       disclosure: 'partition-activations', generationDigest: f.generationDigest });
     expect(await f.otherAuthority.verify(activationOnly, { ...request, action: 'mesh.transfer_intermediate_activation' })).toBe(true);
     expect(await f.otherAuthority.verify(activationOnly, { ...request, action: 'mesh.transfer_token_context' })).toBe(false);
@@ -213,7 +214,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       maxTtlMs: 10000, now: () => clock });
     const receiver = createPartitionGrantAuthority({ identity: f.b, meshId: 'mesh', maxGrants: 1,
       maxTtlMs: 10000, maxClockSkewMs: 250, now: () => clock });
-    const grant = await issuer.issue(f.binding, policy, { approved: true, ttlMs: 10000,
+    const grant = await issuer.issue(f.binding, policy, { privacyBinding: await partitionTestBinding(f.binding), approved: true, ttlMs: 10000,
       disclosure: 'partition-activations-and-tokens', generationDigest: f.generationDigest });
     const request = { identity: f.binding, action: 'mesh.execute_partition_b', step: 0,
       inputTokenCount: 1, generationDigest: f.generationDigest };
@@ -230,7 +231,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     const f = await fixture(); await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
     await f.chat.refresh(); const session = host(f);
     const selection = f.chat.getModels()[0];
-    const a = session.createThread({ model: selection }), b = session.createThread({ model: selection });
+    const a = session.createThread({ privacy: partitionTestPolicy, model: selection }), b = session.createThread({ privacy: partitionTestPolicy, model: selection });
     const pending = [session.send(a, '1'), session.send(b, '10')];
     expect((await Promise.all(pending)).map(r => r.status)).toEqual(['completed', 'completed']);
     expect(session.getState().threads.map(t => t.messages.at(-1).content)).toEqual(['2 3 4 ', '11 12 13 ']);
@@ -254,7 +255,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
     await f.remote.refresh();
     const shortened = { ...f.generation, maxTokens: 2 };
-    const grant = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000,
+    const grant = await f.authority.issue(f.binding, policy, { privacyBinding: await partitionTestBinding(f.binding), approved: true, ttlMs: 10000,
       disclosure: 'partition-activations-and-tokens', generationDigest: await partitionFingerprint(shortened) });
     const runner = createLayerPartitionRunner({ runtime, plan: f.plan, deviceA: f.local, deviceB: f.remote,
       limits: policy, authorize: request => f.authority.verify(request.grant, {
@@ -272,7 +273,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     const f = await fixture();
     await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
     await f.remote.refresh();
-    const grant = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000,
+    const grant = await f.authority.issue(f.binding, policy, { privacyBinding: await partitionTestBinding(f.binding), approved: true, ttlMs: 10000,
       disclosure: 'partition-activations', generationDigest: f.generationDigest });
     const runner = createLayerPartitionRunner({ runtime, plan: f.plan, deviceA: f.local, deviceB: f.remote,
       limits: policy, authorize: request => f.authority.verify(request.grant, { ...request, identity: f.binding }) });
@@ -287,7 +288,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
   it.each(['missing', 'over-budget', 'mismatched'])('rejects a %s remote token limit before computation', async kind => {
     const f = await fixture();
     await f.supplier.prepare({ approved: true });
-    const grant = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000,
+    const grant = await f.authority.issue(f.binding, policy, { privacyBinding: await partitionTestBinding(f.binding), approved: true, ttlMs: 10000,
       disclosure: 'partition-activations-and-tokens', generationDigest: f.generationDigest });
     const maxTokens = kind === 'missing' ? undefined : kind === 'over-budget' ? policy.maxTokens + 1 : 2;
     const frame = runtime.serializeActivationFrame({ shape: [1, 1, f.plan.hiddenSize], dtype: 'f32',
@@ -308,7 +309,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       if (index === 1 && held) { held = false; entered.resolve(); await release.promise; }
     } });
     await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
-    await f.chat.refresh(); const session = host(f), id = session.createThread({ model: f.chat.getModels()[0] });
+    await f.chat.refresh(); const session = host(f), id = session.createThread({ privacy: partitionTestPolicy, model: f.chat.getModels()[0] });
     const first = session.send(id, '1');
     await entered.promise;
     session.revokeRemotePermission(session.getState().remotePermissions[0].id);
@@ -339,12 +340,13 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       remoteParticipantId: f.a.peerId, authority: f.otherAuthority, contributor: f.supplier });
     cleanup.push(() => Promise.all([second.close(), server.close()]));
     const reserve = async (peer, identity) => {
-      const grant = await f.authority.issue(identity, policy, { approved: true, ttlMs: 10000,
+      const grant = await f.authority.issue(identity, policy, { privacyBinding: await partitionTestBinding(identity), approved: true, ttlMs: 10000,
         disclosure: 'partition-activations-and-tokens', generationDigest: f.generationDigest });
       return peer.reserve({ identity, grant, generation: f.generation,
         generationDigest: f.generationDigest, inputTokenCount: 1 });
     };
     const other = { ...f.binding, attemptId: 'other', threadId: 'other' };
+    await Promise.all([f.remote.refresh(), second.refresh()]);
     await reserve(f.remote, f.binding);
     await expect(reserve(second, other)).rejects.toMatchObject({ code: 'CAPACITY_UNAVAILABLE' });
     expect(f.factory.log.steps).toEqual([]);
@@ -417,7 +419,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
 
   it('rejects unavailable split selection without loading a whole model', async () => {
     const f = await fixture(), session = host(f);
-    const id = session.createThread({ model: f.chat.getModels()[0] });
+    const id = session.createThread({ privacy: partitionTestPolicy, model: f.chat.getModels()[0] });
     const result = await session.send(id, '1');
     // The public release gate refuses an unavailable route before the partition executor runs.
     expect(result.status).toBe('failed'); expect(result.error).toContain('Selected distributed route is unavailable');
@@ -525,7 +527,7 @@ describe('weightless requester entry', () => {
   }
   it('runs A and B without any requester runtime, retaining requester and generation binding', async () => {
     const f = await entryFixture();
-    const result = await f.requester.generate({ messages: [{role:'user',content:'10'}], threadId:'requester-thread' });
+    const result = await f.requester.generate({privacy:partitionTestPolicy, messages: [{role:'user',content:'10'}], threadId:'requester-thread' });
     expect(result.content).toBeTruthy();
     expect(result.execution.requesterId).toBe('requester');
     expect(result.execution.participantA).toBe(f.a.peerId);
@@ -537,7 +539,7 @@ describe('weightless requester entry', () => {
   it('drains a resident without cancelling an already admitted generation', async () => {
     const held = gate(), entered = gate();
     const f = await entryFixture({ beforeStep: async (_request, index) => { if(index===1){entered.resolve();await held.promise;} } });
-    const generation = f.requester.generate({ messages:[{role:'user',content:'10'}],threadId:'drain' });
+    const generation = f.requester.generate({privacy:partitionTestPolicy, messages:[{role:'user',content:'10'}],threadId:'drain' });
     await entered.promise;
     const draining = f.supplier.drain();
     expect(f.supplier.getState().phase).toBe('draining');
@@ -551,11 +553,11 @@ describe('weightless requester entry', () => {
   });
   it('keeps shared weights available after a single malformed input fails', async () => {
     const f = await entryFixture();
-    await expect(f.requester.generate({ messages:[{role:'user',content:'not a number'}],threadId:'bad' })).rejects.toThrow();
+    await expect(f.requester.generate({privacy:partitionTestPolicy, messages:[{role:'user',content:'not a number'}],threadId:'bad' })).rejects.toThrow();
     expect(f.local.getState().ready).toBe(true);
     expect(f.local.getState().activeAttempts).toBe(0);
     expect(f.factory.log.closes).toEqual([]);
-    const result = await f.requester.generate({ messages:[{role:'user',content:'10'}],threadId:'healthy' });
+    const result = await f.requester.generate({privacy:partitionTestPolicy, messages:[{role:'user',content:'10'}],threadId:'healthy' });
     expect(result.content).toBe('11 12 13 ');
   });
   it('restarts using a new identity on a separately approved replacement', async () => {
@@ -565,7 +567,7 @@ describe('weightless requester entry', () => {
       generate:async request=>{calls.push(request);if(id==='a1')throw Error('executor lost');return {content:'ok',execution:request};}}));
     const requester=createPartitionRequester({entries:()=>entries,requesterId:'r',meshId:'mesh',modelId:'m',modelIdentity:model.identity,
       planId:'p',maxPlacements:2,authorize:async()=>true});
-    const result=await requester.generate({messages:[{role:'user',content:'go'}],threadId:'t'});
+    const result=await requester.generate({privacy:partitionTestPolicy,messages:[{role:'user',content:'go'}],threadId:'t'});
     expect(result.recovery.attempts).toBe(2);expect(calls[0].attemptId).not.toBe(calls[1].attemptId);
     expect(calls[1].placementGeneration).toBe(1);
   });
@@ -610,7 +612,7 @@ describe('automatic cooperative placement', () => {
       expect(preview.threadId).toBeTruthy(); expect(preview.attemptId).toBe(preview.threadId); return true;
     },
       onDelta: delta => deltas.push(delta.text), onState() {} };
-    const run = id => meshes[0].generate({ model, threadId: id, attemptId: id,
+    const run = id => meshes[0].generate({ privacy: partitionTestPolicy, model, threadId: id, attemptId: id,
       messages: [{ role: 'user', content: '10' }] }, controls);
     const result = await run('first');
     expect(deltas.join('')).toBe(result.content);
@@ -653,7 +655,7 @@ describe('automatic cooperative placement', () => {
     };
     try { expect((await run('human-review')).content).toBe(result.content); }
     finally { controls.requestApproval = normalApproval; }
-    const reviewedRequest = { model, threadId: 'reviewed-input', attemptId: 'reviewed-input',
+    const reviewedRequest = { model, privacy: partitionTestPolicy, threadId: 'reviewed-input', attemptId: 'reviewed-input',
       messages: [{ role: 'user', content: '10' }] };
     controls.requestApproval = async preview => {
       expect(preview.input.messages[0].content).toBe('10');
@@ -715,7 +717,7 @@ it('carries caller cap and actual usage through legacy entry and resident genera
   const server=createPartitionEntry({channel:pair[1],localParticipantId:f.a.peerId,remoteParticipantId:'requester',service:f.chat,authorize:async()=>true,limits:channelPolicy,inputLimits});
   const client=createPartitionEntry({channel:pair[0],localParticipantId:'requester',remoteParticipantId:f.a.peerId,authorize:async()=>true,limits:channelPolicy,inputLimits});cleanup.push(()=>Promise.all([client.close(),server.close()]));await client.refresh();
   const generationRequest={schema:'reploid.partition-generation-request/v1',maxOutputTokens:2,usage:'raw-model-tokens/v1'},usages=[];
-  const result=await client.generate({...f.binding,meshId:'mesh',requesterId:'requester',placementGeneration:0,messages:[{role:'user',content:'1'}],generationRequest},{onUsage:value=>usages.push(value)});
+  const result=await client.generate({...f.binding,privacy:partitionTestPolicy,privacyBinding:await partitionTestBinding(f.binding),meshId:'mesh',requesterId:'requester',placementGeneration:0,messages:[{role:'user',content:'1'}],generationRequest},{onUsage:value=>usages.push(value)});
   expect(result.content).toBe('2 3 ');expect(result.execution.stopReason).toBe('max-tokens');expect(usages).toEqual([{schema:'raw-model-tokens/v1',inputTokens:1,outputTokens:0}]);expect(result.usage).toEqual({schema:'raw-model-tokens/v1',inputTokens:1,outputTokens:2});expect(f.model.generation.maxTokens).toBe(4);
   expect(f.factory.log.steps.map(row=>row.maxTokens)).toEqual([2,2,2,2]);
 });

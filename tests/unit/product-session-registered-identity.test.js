@@ -47,7 +47,7 @@ const open = async (participantIdentity, options = {}) => {
   return host;
 };
 
-it('composes browser search only under its configured service and preserves the per-answer route', async () => {
+it('keeps an attached browser without a complete disclosure path out of per-answer search', async () => {
   ports.connection = await createSigningIdentity({ algorithm: 'Ed25519' });
   const bridge = { id: 'attached-browser', search: vi.fn(async () => []), fetch: vi.fn() };
   const access = createBrowserWebAccess({ bridge, authorized: () => true });
@@ -55,7 +55,10 @@ it('composes browser search only under its configured service and preserves the 
   expect(host.deviceSearch.available()).toBe(false);
   host.webSearch.configure({ url: 'https://search.example.org/mcp' });
   host.webSearch.setEnabled(true);
-  expect(host.chat.preferredSearchRoute()).toBe('device-search');
+  expect(host.deviceSearch.available()).toBe(true);
+  expect(host.deviceSearch.qualified()).toBe(false);
+  expect(host.chat.preferredSearchRoute()).not.toBe('device-search');
+  expect(bridge.search).not.toHaveBeenCalled();
   await host.deviceSearch.provider.search('public question', {});
   expect(bridge.search).toHaveBeenCalledWith('public question', {}, undefined);
   host.webSearch.configure({ url: 'https://other.example.org/mcp' });

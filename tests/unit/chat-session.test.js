@@ -1,8 +1,9 @@
 import { selectAvailableChatModel } from '../../apps/poolday/host/chat-view.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
-import { createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute, createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
+const networkPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const storage = () => {
   const values = new Map();
   return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
@@ -142,7 +143,9 @@ describe('Chat host with injected execution, not actual inference', () => {
     const swarm = {
       getState: () => ({ sharing: false }), connect: async () => {}, hasProvider: () => true,
       async generate(messages, controls) {
-        const preview = { id: crypto.randomUUID(), providerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
+        const request = { model: { id: controls.modelId, identity: controls.modelIdentity }, privacy: controls.privacy };
+        const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [peer] }));
+        const preview = { privacyBinding, id: crypto.randomUUID(), providerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
           modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], input: messages, expiresAt: Date.now() + 10000 };
         if (!await controls.approve(preview)) throw new Error('Declined');
         disclosed.push(messages.at(-1).content);
@@ -154,7 +157,7 @@ describe('Chat host with injected execution, not actual inference', () => {
     const store = storage(), service = createChatTestService(), session = createChatSession({ storage: store, service, swarm });
     session.setRemoteAnswersEnabled(false);
     session.setCachedModels(CANONICAL_CHAT_MODELS);
-    const id = session.createThread({ executionLocation: 'network' }), model = session.getState().activeThread.model;
+    const id = session.createThread({ executionLocation: 'network', privacy: networkPolicy }), model = session.getState().activeThread.model;
     expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh', executionLocation: 'network' })).toMatchObject({ disclosure: 'public', modelIdentity: model.identity });
     expect(() => session.send(id, 'Public question')).toThrow('Network answers are off');
     expect(disclosed).toEqual([]);
@@ -211,7 +214,7 @@ it('keeps mesh conversations unavailable without silently acquiring local weight
     generate: vi.fn(async () => { throw new Error('No remote host slot available'); }), getState: () => ({ consumer: { peers: [] } }) };
   const session = createChatSession({ storage: null, service, swarm });
   expect(session.getState().models.every(model => model.availability === 'unavailable')).toBe(true);
-  const id = session.createThread();
+  const id = session.createThread({ executionLocation: 'network', privacy: networkPolicy });
   expect((await session.send(id, 'Wait for a contributor')).status).toBe('failed');
   expect(service.calls).toHaveLength(0); expect(swarm.generate).toHaveBeenCalledOnce(); await session.close();
 });
@@ -490,7 +493,7 @@ it('does not fall back to a cached model when Network has no capacity', async ()
     generate: vi.fn(async () => { throw Error('No network capacity'); }) };
   const session = createChatSession({ storage: null, service, swarm });
   session.setCachedModels(CANONICAL_CHAT_MODELS);
-  const id = session.createThread({ executionLocation: 'network' });
+  const id = session.createThread({ executionLocation: 'network', privacy: networkPolicy });
   const attempt = await session.send(id, 'Do not run locally');
   expect(attempt).toMatchObject({ status: 'failed', error: 'No network capacity' });
   expect(service.calls).toHaveLength(0);

@@ -197,7 +197,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         if (!peer) return false;
         const preview = { id: crypto.randomUUID(), operation: 'generate', modelId: peer.model || 'advertised text model',
           modelIdentity: peer.modelIdentity, adapterIdentities: request.adapterIdentities || [], providerId: peer.peerId,
-          recipientIdentity: request.recipientIdentity || null, disclosure: request.privacyBinding ? 'provider-visible' : 'public',
+          recipientIdentity: request.recipientIdentity || null, disclosure: 'public',
           ...(request.privacyBinding ? { privacyBinding: request.privacyBinding, offerId: request.offerId } : {}),
           input: request.messages, options: {}, limits: { maxJobMs: config.value.mesh.generationTimeoutMs },
           expiresAt: Date.now() + profile.peers.maxPreviewMs };

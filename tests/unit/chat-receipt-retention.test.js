@@ -4,13 +4,16 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { createReceiptDraft, signReceiptDraft, countersignReceipt, verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { hashJson, sha256Hex } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+
+const OPEN_POLICY = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 
 it.each(['public', 'private'])('retains a %s whole-model receipt through history reload without another request', async kind => {
   // Injected execution ports, real receipt signatures, no physical inference.
   const provider = await createSigningIdentity({ algorithm: 'Ed25519' });
   const consumer = await createSigningIdentity({ algorithm: 'Ed25519' });
   const model = { ...CANONICAL_CHAT_MODELS[0], ...(kind === 'private' ? {
-    selectionId: 'private:fixture:model', fleet: { poolIdentity: 'fixture' }, availability: 'ready'
+    selectionId: 'private:fixture:model', fleet: { poolIdentity: 'fixture', requester: { participantId: consumer.peerId } }, availability: 'ready'
   } : {}) };
   const values = new Map(), storage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
   let receipt;
@@ -31,17 +34,27 @@ it.each(['public', 'private'])('retains a %s whole-model receipt through history
       const preview = { id: crypto.randomUUID(), providerId: provider.peerId, recipientIdentity: provider.peerId,
         operation: 'generate', disclosure: 'public', modelId: model.id, modelIdentity: model.identity,
         adapterIdentities: [], input: messages, expiresAt: Date.now() + 10000 };
+      const request = { model, privacy: controls.privacy };
+      preview.privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [provider.peerId] }));
       if (!await controls.approve(preview)) throw Error('Declined');
       await controls.record({ stage: 'approved', preview });
       return answer(messages);
     } };
   const fleet = { state: () => ({ connected: true }), models: () => [model], close() {},
-    async execute(request) { return { ...await answer(request.messages), modelId: model.id,
+    async execute(request, controls) {
+      const inputRecipients = [consumer.peerId, provider.peerId];
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: inputRecipients,
+        route: { schema: 'reploid.paired-whole-route/v1', requester: consumer.peerId, providerIdentity: provider.peerId } }));
+      if (!await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
+        peerId: consumer.peerId, recipientIdentity: consumer.peerId, operation: 'generate', disclosure: 'public',
+        modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], expiresAt: Date.now() + 10000,
+        privateDelegation: { poolIdentity: 'fixture' }, inputRecipients, privacyBinding, input: request.messages })) throw Error('Declined');
+      return { ...await answer(request.messages), modelId: model.id,
       threadId: request.threadId, attemptId: request.attemptId,
       execution: { provider: 'peer', peerId: provider.peerId, placement: 'peer-whole-request' } }; } };
   const options = { storage, service: createChatTestService(), ...(kind === 'private' ? { privateComputers: fleet } : { swarm }) };
   const session = createChatSession(options);
-  const thread = session.createThread({ model, executionLocation: 'network' });
+  const thread = session.createThread({ model, privacy: OPEN_POLICY, executionLocation: 'network' });
   const result = await session.send(thread, 'Public fixture question');
   expect(result.error).toBeFalsy();
   expect(result.status).toBe('completed');

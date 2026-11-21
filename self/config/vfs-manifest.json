@@ -2379,7 +2379,6 @@
     "vendor/reploid/cancellation.js",
     "vendor/reploid/chat/execution-offers.js",
     "vendor/reploid/chat/execution-policy.js",
-    "vendor/reploid/chat/execution-policy.json",
     "vendor/reploid/chat/index.js",
     "vendor/reploid/chat/policy.json",
     "vendor/reploid/chat/publication-policy.json",

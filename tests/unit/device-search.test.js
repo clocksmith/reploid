@@ -4,6 +4,7 @@
 // the person's search server. The MCP server and every page are injected fakes; no network.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRetrieval, extractDocumentText, selectPassage, sha256Text, PAGE_FETCH_POLICY } from '../../packages/reploid/src/retrieval/index.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createSearchPermission, searchPermissionWording } from '../../packages/reploid/src/chat/search-permission.js';
 import { createDeviceSearch, devicePageUrl, DEVICE_SEARCH_PROVIDER } from '../../apps/poolday/host/device-search.js';
@@ -178,7 +179,14 @@ describe('authorization', () => {
       .toThrow('does not cover');
     expect(server.calls).toEqual([]);
     expect(browser.requests).toEqual([]);
-    await app.send(other, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE }, searchPermission: grant() });
+    const blocked = await app.send(other, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE }, searchPermission: grant() });
+    expect(blocked).toMatchObject({ status: 'failed' });
+    expect(server.calls).toEqual([]);
+    const allowed = app.createThread({ model: { id: 'm', name: 'M', identity: 'sha256:' + 'a'.repeat(64) },
+      privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named',
+        ids: ['https://search.example.net', 'https://www.example.org', 'https://encyclopedia.example.net'] } }),
+      permissions: { executionLocation: 'local' } });
+    await app.send(allowed, QUESTION, { retrieval: { route: DEVICE_SEARCH_ROUTE }, searchPermission: grant({ threadId: allowed }) });
     expect(server.calls.length).toBeGreaterThan(0);
   });
 });

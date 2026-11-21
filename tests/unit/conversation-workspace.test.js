@@ -1,8 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { renderConversationWorkspace, bindConversationWorkspace as bindWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 import { updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
+import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
+
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+// The workspace tests exercise model discovery and selection after an explicit opt-in.
+const bindConversationWorkspace = (root, session, options = {}) => {
+  const viewState = options.viewState ?? {};
+  viewState.privacy ??= openPolicy;
+  return bindWorkspace(root, session, { ...options, viewState });
+};
 
 describe('Conversation workspace', () => {
   let root, session, dispose, service;
@@ -36,27 +45,27 @@ describe('Conversation workspace', () => {
     shield.click();
     const dialog = find('[data-privacy-dialog]');
     expect(dialog.open).toBe(true);
-    find('[data-privacy-profile][value="restricted"]').click();
+    find('[data-privacy-placement]').value = 'network-allowed'; find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
     expect(find('[data-privacy-recipients-label]').hidden).toBe(true);
-    find('[data-privacy-placement][value="named"]').click();
+    find('[data-privacy-recipient-mode]').value = 'named'; find('[data-privacy-recipient-mode]').dispatchEvent(new Event('change', { bubbles: true }));
     const ids = find('[data-privacy-recipients]'); ids.value = 'peer:a';
     await session.renameThread(id, 'Refresh the workspace');
     expect(ids.value).toBe('peer:a');
     find('[data-privacy-cancel]').click();
-    expect(session.getState().activeThread.privacy).toBeFalsy();
+    expect(session.getState().activeThread.privacy).toMatchObject({ placement: 'local-only', recipients: { kind: 'none', ids: [] } });
     shield.click();
-    expect(find('[data-privacy-profile]:checked').value).toBe('provider-visible');
+    expect(find('[data-privacy-placement]').value).toBe('local-only');
     expect(ids.value).toBe('');
-    find('[data-privacy-profile][value="restricted"]').click();
+    find('[data-privacy-placement]').value = 'network-allowed'; find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
     expect(find('[data-privacy-recipients-label]').hidden).toBe(true);
-    find('[data-privacy-placement][value="named"]').click();
+    find('[data-privacy-recipient-mode]').value = 'named'; find('[data-privacy-recipient-mode]').dispatchEvent(new Event('change', { bubbles: true }));
     find('[data-privacy-apply]').click();
     expect(dialog.open).toBe(true);
     expect(find('[data-privacy-error]').textContent).toMatch(/at least one/);
     ids.value = 'peer:b'; find('[data-privacy-apply]').click();
     await vi.waitFor(() => expect(dialog.open).toBe(false));
-    expect(session.getState().activeThread.privacy.allowedRecipients).toEqual(['peer:b']);
-    expect(shield.title).toContain('Restricted recipients');
+    expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'named', ids: ['peer:b'] });
+    expect(shield.title).toContain('Named recipients');
     expect(input.value).toBe('Keep this question');
     expect(session.getState().activeThread.messages).toHaveLength(0);
   });
@@ -283,7 +292,7 @@ describe('Conversation workspace', () => {
     const model = CANONICAL_CHAT_MODELS[1]; let peers = [];
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
     session.setCachedModels([model]); dispose = bindConversationWorkspace(root, session);
-    const id = session.createThread({ model, sharingScope: 'local' });
+    const id = session.createThread({ model, sharingScope: 'local', privacy: openPolicy });
     find('[data-open-model]').click();
     find('[data-execution-choice=network]').click();
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
@@ -425,7 +434,7 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     const [small, medium] = CANONICAL_CHAT_MODELS;
     session = createChatSession({ storage: null, service, models: [small, medium] });
-    const origin = session.createThread({ model: medium, sharingScope: 'mesh', executionLocation: 'network' });
+    const origin = session.createThread({ model: medium, sharingScope: 'mesh', executionLocation: 'network', privacy: openPolicy });
     let finish;
     const downloadLocalModel = vi.fn(() => new Promise(resolve => { finish = resolve; }));
     root.innerHTML = renderConversationWorkspace();
@@ -439,7 +448,7 @@ describe('Conversation workspace', () => {
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     find('[data-download-confirm]').click();
     await vi.waitFor(() => expect(downloadLocalModel).toHaveBeenCalledOnce());
-    const other = session.createThread({ model: medium, sharingScope: 'mesh', executionLocation: 'network' });
+    const other = session.createThread({ model: medium, sharingScope: 'mesh', executionLocation: 'network', privacy: openPolicy });
     session.setCachedModels([small]); finish(); await new Promise(resolve => setTimeout(resolve, 0));
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
     expect(session.getState().activeThread.id).toBe(other);
@@ -996,7 +1005,7 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
     dispose = bindConversationWorkspace(root, session);
-    const id = session.createThread({ model: first });
+    const id = session.createThread({ model: first, privacy: openPolicy });
     find('[data-composer-input]').value = 'Keep this draft';
     find('[data-open-model]').click();
     const next = find('[data-next-model]');

@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { openNativeGenerationJournal } from '../../server/native-generation-journal.js';
@@ -19,7 +20,7 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
   cleanup.push(() => fs.rm(directory, { recursive: true, force: true }));
   const identities = suppliedIdentities || await Promise.all(['ECDSA', 'Ed25519'].map(algorithm => createSigningIdentity({ algorithm })));
   const handlers = [new Map(), new Map()], channels = ['connection-0', 'connection-1'], wire = [], errors = [], meshes = [];
-  let dropResults = false, journal, reference, executions = 0, tamper = false;
+  let dropResults = false, journal, reference, executions = 0, tamper = false, channelEpoch = 0;
   const response = result || { model: modelId, modelIdentity, adapterIdentities: [], content: 'actual answer',
     completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } };
   const deliver = (i, type, payload) => {
@@ -53,7 +54,7 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
       ...ports(i),
       generate: async (...args) => { executions++; return execute ? execute(...args) : response; },
       createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => channels[i],
-        getPeerBinding: () => ({ local: 'cert-' + channels[i], remote: 'cert-' + channels[1-i] }),
+        getPeerBinding: () => ({ local: 'cert-' + channels[i] + ':' + channelEpoch, remote: 'cert-' + channels[1-i] + ':' + channelEpoch }),
         onMessage: (type, fn) => handlers[i].set(type, fn), broadcast: (type, payload) => deliver(i, type, payload),
         sendToPeer: (_peer, type, payload) => deliver(i, type, payload) })
     } });
@@ -66,8 +67,9 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
     drop: () => { dropResults = true; }, tamper: () => { tamper = true; },
     // Mesh `i` (0 requester, 1 provider) broadcasts its current advertisement again.
     readvertise: (i = 1) => meshes[i].refreshAdvertisement(),
+    changeChannelScope() { channelEpoch++; },
     async restartProvider() { await meshes[1].close(); journal.close(); channels[1] += '-restarted'; handlers[1].clear(); await open(1); reference.providerId = channels[1]; },
-    run: (signal, settings) => meshes[0].generate(messages, null, { signal, modelId, modelIdentity, requestContext: { recoverable: true }, ...(settings ? { settings } : {}) }),
+    run: (signal, settings) => meshes[0].generate(messages, null, { signal, modelId, modelIdentity, privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), requestContext: { recoverable: true }, ...(settings ? { settings } : {}) }),
     recover: settings => meshes[0].recoverGeneration(reference, messages, undefined, settings ? { settings } : undefined),
     async replay(changes = {}, omit = []) {
       const original = wire.find(item => item.type === 'reploid:generation-request').payload;

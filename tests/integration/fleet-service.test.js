@@ -19,10 +19,13 @@ import { residentRoute } from '../helpers/resident-route.js';
 import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
 import { acceptFleetOutputLimitPolicy } from '../../server/fleet/terminal-policy.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 
 const model = { id: 'test-model', identity: 'sha256:' + 'a'.repeat(64) };
 let root, credits, service, keys, client;
+const policyFor = index => createExecutionPolicy({ placement: 'network-allowed',
+  recipients: { kind: 'named', ids: [keys[index].peerId] } });
 beforeEach(async () => {
   root = await mkdtemp(path.join(os.tmpdir(), 'fleet-service-'));
   keys = await Promise.all([0, 1, 2].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
@@ -99,6 +102,7 @@ it.each([false, true])('settles cancellation after cleanup, retaining lost HTTP 
   const mesh = await createRecoveryMesh(cleanup, { identities: keys.slice(0, 2), modelId: model.id, modelIdentity: model.identity,
     authorize: async input => {
       if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.admit') return admission.preadmit({ request: input.request, consumer: keys[0].peerId });
       if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
       return true;
     },
@@ -109,7 +113,7 @@ it.each([false, true])('settles cancellation after cleanup, retaining lost HTTP 
   const requester = createFleetRequester({ participant: wholeRequester, identity: keys[0], credits: client, maxOutputTokens: 10 });
   const controller = new AbortController();
   try {
-    const running = requester.generate({ model, messages: mesh.messages },
+    const running = requester.generate({ model, messages: mesh.messages, privacy: policyFor(1) },
       { signal: controller.signal, requestApproval: async () => true });
     const rejected = expect(running).rejects.toThrow('Stopped');
     await entered.promise;
@@ -232,9 +236,11 @@ it('checks a reservation from the request’s commitment before the prompt is di
   await expect(ask({ requestId: 'plain' })).rejects.toThrow('does not bind this pre-disclosure commitment');
   await expect(client.reserve({ ...binding, id: `service:${details.consumer}:bad`, executionId: 'bad',
     admission: { schema: 'reploid.credit-preadmission/v1', commitment: 'not-a-digest' } })).rejects.toThrow('Invalid credit reservation');
-  // A ledger that predates the check answers "unsupported"; any other failure is a refusal.
+  // An unsupported or malformed ledger response is a refusal, never a disclosure fallback.
   const older = createFleetExecutionAdmission({ credits: { call: async () => { throw Error('Unknown fleet operation'); } }, model: served });
-  expect(await older.preadmit({ request: details, consumer: keys[0].peerId })).toBe(false);
+  await expect(older.preadmit({ request: details, consumer: keys[0].peerId })).rejects.toThrow('Unknown fleet operation');
+  const malformed = createFleetExecutionAdmission({ credits: { call: async () => true }, model: served });
+  await expect(malformed.preadmit({ request: details, consumer: keys[0].peerId })).rejects.toThrow('Exact credit preadmission');
   const failing = createFleetExecutionAdmission({ credits: { call: async () => { throw Error('Fleet request failed'); } }, model: served });
   await expect(failing.preadmit({ request: details, consumer: keys[0].peerId })).rejects.toThrow('Fleet request failed');
 });
@@ -745,6 +751,7 @@ it('settles recoverable over-context whole-model rejections immediately and bloc
     modelIdentity: model.identity,
     authorize: async input => {
       if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.admit') return admission.preadmit({ request: input.request, consumer: keys[0].peerId });
       if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
       return true;
     },
@@ -767,19 +774,19 @@ it('settles recoverable over-context whole-model rejections immediately and bloc
   try {
     // 1. Oversized WebRTC payload (> 65536 bytes) rejects BEFORE reserving any credits.
     const hugeMessages = [{ role: 'user', content: 'x'.repeat(70000) }];
-    await expect(requester.generate({ attemptId: 'oversized-1', threadId: 't-long', model, messages: hugeMessages },
+    await expect(requester.generate({ attemptId: 'oversized-1', privacy: policyFor(1), threadId: 't-long', model, messages: hugeMessages },
       { signal: new AbortController().signal, requestApproval: async () => true }))
       .rejects.toThrow('transport payload limit');
     expect(credits.snapshot().accounts.every(row => row.held === 0 && row.balance === 0)).toBe(true);
 
     // 2. Over-context conversation signs a failed terminal proof and settles charge=0, held=0 immediately.
-    await expect(requester.generate({ attemptId: 'overctx-1', threadId: 't-long', model, messages: [{ role: 'user', content: 'OVER_CONTEXT' }] },
+    await expect(requester.generate({ attemptId: 'overctx-1', privacy: policyFor(1), threadId: 't-long', model, messages: [{ role: 'user', content: 'OVER_CONTEXT' }] },
       { signal: new AbortController().signal, requestApproval: async () => true }))
       .rejects.toThrow('context limit');
     expect(credits.snapshot().accounts.every(row => row.held === 0 && row.balance === 0)).toBe(true);
 
     // 3. Follow-up ordinary turn succeeds cleanly on the same contributor.
-    const ok = await requester.generate({ attemptId: 'followup-1', threadId: 't-short', model, messages: [{ role: 'user', content: 'Short question.' }] },
+    const ok = await requester.generate({ attemptId: 'followup-1', privacy: policyFor(1), threadId: 't-short', model, messages: [{ role: 'user', content: 'Short question.' }] },
       { signal: new AbortController().signal, requestApproval: async () => true });
     expect(ok.content).toBe('Still ready.');
     expect(ok.serviceCredit.charge).toBe(2);
@@ -802,6 +809,7 @@ it('retains interrupted native output and requires fresh disclosure before retry
     const mesh = await createRecoveryMesh(cleanup, {
       identities: [keys[0], keys[index]], modelId: model.id, modelIdentity: model.identity, messages,
       authorize: async input => input.action === 'mesh.dispatch' ? whole.authorize(input)
+        : input.action === 'mesh.admit' ? admission.preadmit({ request: input.request, consumer: keys[0].peerId })
         : input.action === 'mesh.execute' ? admission.whole({ request: input.request, consumer: keys[0].peerId }) : true,
       execute, onGenerationTerminal: proof => admission.terminal(proof)
     });
@@ -815,7 +823,7 @@ it('retains interrupted native output and requires fresh disclosure before retry
     controls.signal.throwIfAborted();
   });
   const second = await supplier(2);
-  const request = attemptId => ({ model, messages, threadId: 'same-conversation', attemptId });
+  const request = (attemptId, supplier) => ({ model, messages, threadId: 'same-conversation', attemptId, privacy: policyFor(supplier) });
   const approvals = [];
   const approve = allowed => async disclosure => {
     approvals.push(disclosure);
@@ -825,7 +833,7 @@ it('retains interrupted native output and requires fresh disclosure before retry
     return allowed;
   };
   try {
-    const running = first.requester.generate(request('interrupted'), {
+    const running = first.requester.generate(request('interrupted', 1), {
       signal: controllers[0].signal, requestApproval: approve(true), onDelta: delta => {
         attempts.get(delta.attemptId).push(delta.text); firstDelta.resolve();
       }
@@ -838,7 +846,7 @@ it('retains interrupted native output and requires fresh disclosure before retry
     expect(credits.snapshot().accounts[0].held).toBe(10);
     expect(second.mesh.executions).toBe(0);
 
-    await expect(second.requester.generate(request('denied-replacement'), {
+    await expect(second.requester.generate(request('denied-replacement', 2), {
       signal: controllers[1].signal, requestApproval: approve(false)
     })).rejects.toThrow();
     expect(second.mesh.executions).toBe(0);
@@ -848,7 +856,7 @@ it('retains interrupted native output and requires fresh disclosure before retry
     await vi.waitFor(() => expect(credits.snapshot().accounts[0].held).toBe(0));
     const oldId = `service:${keys[0].peerId}:${first.mesh.reference.requestId}`;
     expect(credits.request(oldId).outcome).toMatchObject({ status: 'cancelled', charge: 0 });
-    const result = await second.requester.generate(request('replacement'), {
+    const result = await second.requester.generate(request('replacement', 2), {
       signal: controllers[1].signal, requestApproval: approve(true),
       onDelta: delta => attempts.get(delta.attemptId).push(delta.text)
     });

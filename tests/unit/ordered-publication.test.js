@@ -1,3 +1,4 @@
+import { partitionTestPolicy, partitionTestBinding } from '../fixtures/partition-execution-policy.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
@@ -158,15 +159,16 @@ async function requester(c, store, { writerEpoch = epochA, expectedWriterEpoch =
     const binding = { schema: 'reploid.partition-attempt/v2', route, requesterId, threadId: request.threadId,
       attemptId: request.attemptId, placementGeneration: 0 };
     const disclosure = orderedPartitionDisclosure(binding), expiresAt = Date.now() + 60000;
+    const privacyBinding = await partitionTestBinding({ route });
     const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
       operation: 'generate-partition', peerId: coordinatorId, recipientIdentity: coordinatorId, ...structuredClone(request.model.partition),
-      modelId: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [], disclosure, expiresAt,
+      modelId: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [], disclosure, privacyBinding, expiresAt,
       input: { messages: request.messages, recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
     if (approved !== true) throw Error('Ordered disclosure declined');
     await client.refresh({ signal: controls.signal });
     controls.onState({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing',
       execution: { placement: 'ordered-layer-partition', identity: binding } });
-    const result = await client.generate({ meshId: 'mesh', modelId: request.model.id, modelIdentity: request.model.identity,
+    const result = await client.generate({ privacy: request.privacy, privacyBinding, meshId: 'mesh', modelId: request.model.id, modelIdentity: request.model.identity,
       planId: route.planId, route, coordinatorId, threadId: request.threadId, attemptId: request.attemptId, placementGeneration: 0,
       disclosureExpiresAt: expiresAt, messages: request.messages,
       publication: { schema: 'reploid.ordered-publication-context/v1', publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } },
@@ -193,7 +195,7 @@ async function requester(c, store, { writerEpoch = epochA, expectedWriterEpoch =
     attempt: () => thread().attempts.at(-1), response: () => thread().messages.at(-1),
     send: (threadId, content = 'Hello') => workspace.send(threadId, content, { authorizeDisclosure: () => true }),
     async newThread() {
-      return workspace.createThread({ model: c.chat.getModels()[0], permissions: { sharingScope: 'approved-partition-path' } });
+      return workspace.createThread({ model: c.chat.getModels()[0], privacy: partitionTestPolicy, permissions: { sharingScope: 'approved-partition-path' } });
     },
     async close() {
       await Promise.allSettled([workspace.close(), client.close(), server.close()]);

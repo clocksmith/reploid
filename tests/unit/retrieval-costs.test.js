@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import { createRetrieval, createFixedSearchProvider, createModelSupportReviewer, createSupportReviewPacket, renderSourceContext,
   retrievalCostRecord, withReviewCosts, withVerification } from '../../packages/reploid/src/retrieval/index.js';
+import { bindAuxiliaryDisclosure, createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+import { SEARCH_DISCLOSURE_PROTOCOL } from '../../packages/reploid/src/retrieval/disclosure-path.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createSearchRouter } from '../../server/search/router.js';
 import { answerCostTotals, createSearchUsage } from '../../server/search/usage.js';
@@ -35,24 +37,29 @@ async function serverRoute({ costMicroUsd = 5000, fetchMicroUsdPerGb = null, fai
   const rows = [];
   const usage = createSearchUsage({ now: () => AT, maxQueriesPerDay: 10, logPath: 'usage.jsonl',
     appendFile: async (path, line) => { rows.push(JSON.parse(line)); } });
-  const search = { kind: 'brave', search: vi.fn(async ({ count }) => ({ results: Object.keys(PAGES).slice(0, count)
+  const upstreamOrigin = 'https://api.search.brave.com';
+  const search = { kind: 'brave', privacyProtocol: SEARCH_DISCLOSURE_PROTOCOL, disclosureOrigin: upstreamOrigin, search: vi.fn(async ({ count }) => ({ results: Object.keys(PAGES).slice(0, count)
     .map(url => ({ url, title: 'Search title', excerpt: 'Search snippet' })),
   usage: { provider: 'brave', requests: 1, billable: true, costMicroUsd, rateLimit: null } })) };
-  const fetcher = { timeoutMs: 1000, fetchPage: async url => {
+  const fetcher = { timeoutMs: 1000, privacyProtocol: 'reploid.page-fetch/v1', fetchPage: async url => {
     if (url === failUrl) throw Object.assign(new Error('http-error'), { code: 'http-error', status: 404 });
     const body = Buffer.from(PAGES[url]);
     return { url, status: 200, contentType: 'text/html; charset=utf-8', charset: 'utf-8', bytes: body.length, byteSha256: 'sha256:' + 'b'.repeat(64), body };
   } };
   const app = express();
-  app.use('/api/retrieval', createSearchRouter({ search, fetcher, usage, fetchSecret: SECRET, now: () => AT, fetchMicroUsdPerGb }));
   const server = app.listen(0, '127.0.0.1'); servers.push(server);
   await new Promise(resolve => server.once('listening', resolve));
-  const port = createServerSearch({ baseUrl: `http://127.0.0.1:${server.address().port}`, fetch: (url, init) => globalThis.fetch(url, init) });
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  app.use('/api/retrieval', createSearchRouter({ search, fetcher, usage, fetchSecret: SECRET, publicOrigin: baseUrl, now: () => AT, fetchMicroUsdPerGb }));
+  const port = createServerSearch({ baseUrl, upstreamOrigin, fetch: (url, init) => globalThis.fetch(url, init) });
+  await port.refresh();
   return { port, rows, usage, search };
 }
 async function retrieveThrough(port, answer) {
   const retrieval = createRetrieval({ provider: port.provider, extractor: port.extractor, now: () => AT });
-  const record = await retrieval.retrieve(retrieval.pending(retrieval.request({ limits: { maxResults: 2 } }, QUESTION), AT), null, { answer });
+  const record = await retrieval.retrieve(retrieval.pending(retrieval.request({ limits: { maxResults: 2 } }, QUESTION), AT), null, { answer, beforeDisclosure: (detail, path) =>
+    bindAuxiliaryDisclosure(createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }),
+      { ...detail, requestId: answer }, path) });
   return { retrieval, record };
 }
 async function packetFor(retrieval, record) {
@@ -164,10 +171,11 @@ describe('costs in conversations', () => {
     const fixed = createFixedSearchProvider({ documents: [{ id: 'fixed:eiffel', url: 'https://fixed.example/eiffel', title: 'Eiffel Tower',
       text: 'The Eiffel Tower was completed in 1889.' }], now: () => AT });
     const contexts = [];
-    const provider = { id: 'test.search', version: '1', costBearer: 'operator', async search(query, limits, signal, context) {
+    const describeDisclosure = ({ id, version }) => ({ schema: 'reploid.auxiliary-path/v1', id, version, hops: [] });
+    const provider = { id: 'test.search', version: '1', describeDisclosure, costBearer: 'operator', async search(query, limits, signal, context) {
       contexts.push(context); return { results: await fixed.search(query, limits, signal), usage: { provider: 'brave', requests: 1, costMicroUsd: 5000 } };
     } };
-    const extractor = { id: 'test.extract', version: '1', async extract(input) { contexts.push({ answer: input.answer }); return { ...await fixed.extract(input), costMicroUsd: 7 }; } };
+    const extractor = { id: 'test.extract', version: '1', describeDisclosure, async extract(input) { contexts.push({ answer: input.answer }); return { ...await fixed.extract(input), costMicroUsd: 7 }; } };
     let data; const executed = [];
     const app = createChatWorkspace({ meshId: 'mesh', participantId: 'alice', store: { load: () => data, save: value => { data = structuredClone(value); } },
       retrieval: { provider, extractor }, execute: async request => { executed.push(structuredClone(request));

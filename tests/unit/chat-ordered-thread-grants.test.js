@@ -1,3 +1,4 @@
+import { partitionTestPolicy, partitionTestBinding } from '../fixtures/partition-execution-policy.js';
 import { expect, it, vi } from 'vitest';
 import { disclosureScope, matchingThreadGrant, validateThreadGrants } from '../../packages/reploid/src/chat/thread-grants.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
@@ -5,22 +6,22 @@ import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.j
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 
 const digest = c => 'sha256:' + c.repeat(64), peer = c => 'peer:' + c.repeat(24);
-function previewFixture(count = 3) {
+async function previewFixture(count = 3) {
   const requester = peer('f');
   const route = { schema: 'reploid.partition-route/v1', modelId: 'model', modelIdentity: digest('a'), planId: digest('b'),
     activation: { schema: 'doppler.activation-tensor/v1', dtype: 'f32', hiddenSize: 8, precision: 'f32', components: 1, elementStrideBytes: 4 },
     stages: Array.from({length:count},(_,index)=>({index,participantId:peer(String(index)),transportId:'transport-'+index,residentId:'resident-'+index,executionId:'execution-'+index})) };
   const partition = {schema:'reploid.partition-selection/v2',planId:route.planId,coordinatorId:route.stages[0].participantId,route};
-  const request = {model:{id:route.modelId,identity:route.modelIdentity,adapters:[],partition},permissions:{sharingScope:'mesh'}};
+  const request = {privacy:partitionTestPolicy,model:{id:route.modelId,identity:route.modelIdentity,adapters:[],partition},permissions:{sharingScope:'mesh'}};
   const disclosure = orderedPartitionDisclosure({schema:'reploid.partition-attempt/v2',threadId:'thread',attemptId:'attempt',requesterId:requester,placementGeneration:0,route});
   const preview = {...partition,threadId:'thread',attemptId:'attempt',operation:'generate-partition',peerId:partition.coordinatorId,recipientIdentity:partition.coordinatorId,
-    modelId:route.modelId,modelIdentity:route.modelIdentity,adapterIdentities:[],disclosure,
+    modelId:route.modelId,modelIdentity:route.modelIdentity,adapterIdentities:[],disclosure,privacyBinding:await partitionTestBinding({route}),
     input:{recipients:[...new Set([...disclosure.tokenRecipients,...disclosure.outputRecipients])]}};
   return {request,preview,requester};
 }
 
-it.each([2,3,7])('binds an ordered %i-stage disclosure to every route identity and recipient', count => {
-  const f=previewFixture(count), scope=disclosureScope(f.request,f.preview,f.requester);
+it.each([2,3,7])('binds an ordered %i-stage disclosure to every route identity and recipient', async count => {
+  const f=await previewFixture(count), scope=disclosureScope(f.request,f.preview,f.requester);
   expect(scope).toMatchObject({disclosure:'ordered-partition-activations-and-tokens',route:f.preview.route,requesterIdentity:f.requester});
   const grant={...scope,id:'grant',meshId:'mesh',threadId:'thread',createdAt:1,revokedAt:null};
   expect(()=>validateThreadGrants([grant],'thread','mesh',4,f.requester)).not.toThrow();
@@ -36,8 +37,8 @@ it.each([2,3,7])('binds an ordered %i-stage disclosure to every route identity a
   expect(()=>validateThreadGrants([changed],'thread','mesh',4,f.requester)).toThrow('Invalid stored conversation grants');
 });
 
-it('rejects malformed or broadened ordered disclosure before reusable authorization',()=>{
-  const f=previewFixture();
+it('rejects malformed or broadened ordered disclosure before reusable authorization',async()=>{
+  const f=await previewFixture();
   const mutations=[
     p=>p.input.recipients.pop(),p=>p.input.recipients.push(peer('e')),
     p=>p.disclosure.tokenRecipients.reverse(),p=>p.disclosure.outputRecipients.push(peer('e')),
@@ -58,7 +59,7 @@ it('uses Send authorization and remembers/restores the exact actual ordered rout
   try {
     await f.prepare();await vi.waitFor(()=>expect(f.select(5,0)).toBeTruthy(),{timeout:5000});
     const app=createChatWorkspace(options);apps.push(app);
-    const thread=app.createThread({model:f.select(5,0),permissions:{sharingScope:'mesh'}}), authorize=vi.fn(()=>true);
+    const thread=app.createThread({privacy:partitionTestPolicy,model:f.select(5,0),permissions:{sharingScope:'mesh'}}), authorize=vi.fn(()=>true);
     const first=await app.send(thread,tasks[0].prompt,{authorizeDisclosure:authorize});
     expect(first.status).toBe('completed');expect(authorize).toHaveBeenCalledOnce();
     expect(first.authorization).toMatchObject({source:'send',requesterIdentity:f.identities[5].peerId});

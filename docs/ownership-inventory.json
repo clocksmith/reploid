@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 383,
     "self": 457,
-    "shared": 2497
+    "shared": 2496
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16290,11 +16290,6 @@
     {
       "served": "vendor/reploid/chat/execution-policy.js",
       "source": "shared/vendor/reploid/chat/execution-policy.js",
-      "owner": "shared"
-    },
-    {
-      "served": "vendor/reploid/chat/execution-policy.json",
-      "source": "shared/vendor/reploid/chat/execution-policy.json",
       "owner": "shared"
     },
     {

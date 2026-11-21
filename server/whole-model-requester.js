@@ -1,3 +1,4 @@
+import { assertAvailableExecutionPolicy, requestExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
 /** Native requester projection over the same whole-model mesh used by the browser.
  * Completion counts are provider reports, not independently validated billing evidence.
  * `controls.onUsage`, when given, receives the provider's input token count before any text if the
@@ -67,7 +68,12 @@ export function createWholeModelRequester({ mesh, models }) {
         && same(dispatch.settings ?? null, request.settings ?? null),
       'Whole-model disclosure differs from the admitted request');
       requireValue(typeof dispatch.peerId === 'string' && dispatch.peerId, 'Whole-model recipient missing');
-      const recipient = typeof dispatch.recipientIdentity === 'string' && dispatch.recipientIdentity ? dispatch.recipientIdentity : dispatch.peerId;
+      const recipient = dispatch.recipientIdentity;
+      requireValue(typeof recipient === 'string' && recipient && dispatch.admission?.schema === 'reploid.generation-admission/v2'
+        && same(dispatch.privacyBinding?.policy, request.privacy)
+        && dispatch.privacyBinding.route?.hops?.length === 1
+        && dispatch.privacyBinding.route.hops[0].recipient === recipient
+        && dispatch.privacyBinding.route.hops[0].placement === 'remote', 'Verified, policy-bound whole-model disclosure required');
       const approved = await controls.requestApproval(structuredClone({ threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
         adapterIdentities: partitionAdapterIdentities(model), providerId: dispatch.peerId, recipients: [recipient],
         privacyBinding: dispatch.privacyBinding, offerId: dispatch.offerId, requestId: dispatch.requestId, recipientIdentity: dispatch.recipientIdentity,
@@ -86,6 +92,8 @@ export function createWholeModelRequester({ mesh, models }) {
       requireValue(typeof controls?.requestApproval === 'function' && controls.signal, 'Explicit whole-model disclosure and cancellation required');
       const settings = normalizeGenerationSettings(request.settings);
       request = structuredClone(request);
+      request.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(request));
+      requireValue(request.privacy.placement === 'network-allowed' && request.privacy.recipients.kind !== 'none', 'Whole-model remote recipients required');
       const { model, threadId, attemptId } = request;
       const route = getModels().find(candidate => candidate.id === model.id && candidate.identity === model.identity
         && same(partitionAdapterIdentities(candidate), partitionAdapterIdentities(model)));
@@ -114,7 +122,7 @@ export function createWholeModelRequester({ mesh, models }) {
           requireValue(item.providerId, 'Whole-model output preceded disclosure');
           controls.onDelta?.({ threadId, attemptId, sequence: sequence++, text });
         }, { signal: controls.signal, modelId: model.id, modelIdentity: model.identity,
-          adapterIdentities: partitionAdapterIdentities(model), privacy: request.privacy ?? null,
+          adapterIdentities: partitionAdapterIdentities(model), privacy: request.privacy,
           ...(settings ? { settings: request.settings } : {}),
           // Asked of the mesh only for a caller that publishes the provider's input count before its text.
           ...(typeof controls.onUsage === 'function' ? { onUsage: ({ inputTokens }) => {

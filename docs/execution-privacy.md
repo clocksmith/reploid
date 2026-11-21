@@ -1,90 +1,80 @@
-# Inference privacy contracts
+# Execution security and disclosure
 
-The requester validates a versioned policy and exact route before disclosing inference data. Policies are presets over independent dimensions, not provider rankings. Open the shield beside Send to choose provider-visible or restricted-recipient inference. An empty recipient list under Restricted recipients keeps inference on this device. You can change the setting between answers. Cryptographic inference is shown as unavailable. Each answer shows the privacy tier and recipients from its execution receipt when present. Older answers without a receipt show “Privacy unrecorded.”
+The transport, authorization, computation and integrity layers answer different questions.
+No layer supplies another layer's guarantee.
 
-## Implemented behavior
+| Layer | What it establishes | What it does not establish |
+| --- | --- | --- |
+| Transport | Poolday discovers and signals connections over WebSocket. WebRTC data channels carry peer requests; a paired native bridge uses an authenticated HTTPS or loopback route. | A connection or room membership alone is not permission to receive a prompt. |
+| Authorization | The requester verifies current peer identity and authorizes an exact request, model, route and complete recipient set. A room admits participants; it does not approve their access to request content. | A named recipient is not an encrypted or attested executor. |
+| Execution | Local or allowed network placement and the requested computation method. Plaintext compute allows each approved worker or coordinator to read the data that reaches it. | Encryption in transit does not conceal plaintext computation from its recipient. |
+| Integrity | Pinned model/artifact identities, signed records and independently scoped correctness checks. | A signed disclosure or settlement receipt does not prove correct computation, erasure, or availability. |
 
-- `packages/reploid/src/chat/execution-policy.json` owns the defaults. Existing local settings map to restricted local-only execution; existing mesh settings map to provider-visible plaintext inference. Neither grants publication or reuse.
-- Policies bind placement, allowed recipients, collusion assumptions, leakage, protocol, attestation policy, key context, retention, publication/reuse authorization and no-downgrade behavior. Unknown fields and unsupported choices fail closed. A restricted network policy requires named recipients.
-- A request snapshots its policy. Grants and requester validation receipts bind policy and route digests, exact model/adapters and all execution recipients. Reusable legacy permissions cannot override a different policy. Retries keep the failed attempt's policy and create a new attempt; changing the conversation's policy affects subsequent Sends.
-- Mesh eligibility filters offers before performance ranking. Each provider can advertise independent per-model paths. Signed advertisements identify claims; they do not prove hardware attestation, encryption, correct output or availability. Unsupported offers cannot become ordinary plaintext fallbacks.
-- Generic operation planning keeps `(providerId, offerId)` distinct, with a common `capacityId` and one authoritative resource observation per provider. Eligibility, including requester recipient restrictions, runs before ranking. Provider lists are deduplicated for shared capacity; per-offer performance contexts remain separate.
-- Direct private text operations use `reploid.peer.execution_consent/v2`, exact signed policy/offer/model binding and a separately advertised `private_text` input class. Legacy public consent retains its original meaning and cannot authorize private classes. Ordinary biological sequence jobs remain public-only. Host jobs snapshot before asynchronous discovery, recheck consent and current advertisements after approval, and do not substitute another provider or offer.
-- Work-session callers can supply a host-owned privacy policy. Main inference, helpers and peer operation tools receive that policy; revisions retain it. Local-only bypasses network inference. Unqualified cloud routes refuse explicit privacy policies. Existing callers without privacy settings retain legacy behavior; no new Work privacy picker is introduced.
-- Search, extraction and support-check data ports run an identity-only pre-disclosure guard, followed by cancellation and implementation checks. Explicit profiles require host-installed complete auxiliary paths; a local declared path can run under local-only policy. Legacy unrestricted search remains explicitly unqualified and cannot become a restricted path on reload. The built-in Brave server path can qualify when its configured public origin and installed upstream adapter match the requester-installed route. Page extraction binds each result origin and enforces the recipient at every redirect. Other remote search paths remain unavailable to explicit profiles.
-- Protected operation and text-swarm observers receive metadata-only evidence constructed before the callback. Approval previews remain requester-local and can show the payload; requester/provider signed recovery records retain their existing execution-and-recovery contract.
-- Current whole-model and partition protocols are plaintext inference. Ordered partitions send token context to the stages and activations through their route. Signed partition grants now optionally include the validated privacy binding; signatures cover that binding and receivers revalidate it.
-- The paired v2 bridge advertises exact model routes before messages leave the browser. This includes the native requester, which sees ordinary messages, and every downstream stage/provider. Both browser and native host revalidate the route. Changed enrollment or routes require a new attempt. Legacy v1 bridges are unavailable for policy-bound requests and send no `/generate` call. Direct legacy callers without a policy retain their provider-visible delegation behavior, explicitly short of complete-route validation.
-- Retained conversation contexts use a namespace derived from model, authenticated tenant, conversation, full privacy policy and selected route. Existing adapters still bind adapter identity and isolate generation contexts. Ordinary shared model weights remain reusable.
-- Requester privacy receipts contain authorization metadata, with no prompt, output, token IDs, transcript, activation data or plaintext fingerprint. They record requester validation, not proof of provider honesty. Ordinary plaintext execution/recovery evidence remains available under its existing contract.
+## Current policy and cutover
 
-## Admission before disclosure
+`reploid.execution-policy/v2` has separate placement (`local-only`, `network-allowed`),
+recipient authorization (`none`, `named`, `open`) and computation
+(`plaintext`, `cryptographic`, `attested`). Named authorization requires a
+nonempty, unique list of identities. Open authorizes consideration of candidates,
+not automatic disclosure: a verified recipient must still be approved for the
+exact attempt. Transport configuration does not change any of these settings.
 
-When a policy names its recipients, the requester asks the chosen provider to decide before it sends the prompt. The requester sends `reploid:generation-admit`: the request without its messages and without its settings (tool definitions and an output schema are the caller's text too), plus a commitment, the SHA-256 digest of a fresh 256-bit salt with the canonical messages and settings. The provider runs every check that does not read them: model and adapters, model contract, the privacy binding against its own identity and offers, capacity, the durable replay fence, and its host's own decision (`mesh.admit`, the same question as `mesh.execute`). It answers `reploid:generation-admitted` or an error. Only after an admission that names the same commitment does the requester send `reploid:generation-request`, with the salt. The provider serves it only if it is the admitted request unchanged and the messages and settings open the commitment.
+Missing or obsolete policy is rejected at protected wire edges. There is no
+old-policy decoder, remote implication from placement, or downgrade retry.
+Older conversation history remains readable: settings reset explicitly to
+local-only/no remote recipients, and old disclosure grants are discarded.
+This does not execute old policy or carry forward permission. A historical
+attempt using an unsupported policy cannot retry; review settings, then send a
+new request. Old receipts are historical records, with unsupported disclosure
+information displayed as unrecorded. The new `reploid.privacy-receipt/v2` records
+requester validation only.
 
-- A named recipient that declines has received the model identity, adapters, policy, offer, context identifier and the requester's identity, and nothing the caller wrote. The requester's attempt fails at once with "The provider declined this request. The prompt was not sent."
-- A provider advertises `admissionProtocol: 1` only when its host sets `admitsBeforeDisclosure`; the native participant and the Poolday host do. A provider that does not advertise it receives the request as before, so mixed versions keep working, and such a provider still decides after the prompt arrives.
-- Requests without named recipients are unchanged and make no extra exchange.
-- `mesh.requireNamedAdmission` (default false) makes the requester refuse the fallback above: a request whose policy names its recipients is then never sent to a provider that does not advertise admission. Such a provider is not eligible, nothing is sent to it, and the request waits for an admitting recipient until the caller's deadline.
-- A request declined before disclosure was dispatched in the ledger but admitted by nobody. Fencing it settles it at zero and releases the hold at once. Releasing an undispatched hold and fencing a dispatched one are both safe to repeat after a lost reply.
-- A provider that admits against a credit ledger checks the requester's reservation at the same moment. The requester's host learns the commitment with its `mesh.dispatch` authorization and binds it into the reservation (`admission`, versioned by its own schema `reploid.credit-preadmission/v1`). The provider asks the ledger (`preadmit`) whether a live, dispatched reservation exists for this request, consumer, model, provider and commitment. The check moves no credit and changes no state; the provider's `admit`, which binds the prompt's digest, still follows once the request has arrived. A ledger that refuses makes the provider decline before the prompt is sent. A ledger that predates the operation is treated as unsupported and credit is checked with the request as before.
-- Refusals that can still follow disclosure to an admitting provider: its host changes its answer between admission and execution, the reservation changes between the two ledger checks or the digest of the prompt the requester sent differs from the one it reserved, settings it advertised are no longer supported, or its ledger predates `preadmit`. In each case it executes nothing.
-- The commitment hides the prompt from the provider until the requester sends it. It is not a cryptographic privacy tier: a provider that admits then receives the plaintext.
+## Request admission
 
-`tests/integration/execution-privacy-admission.test.js` covers this with real requester and provider meshes over a test-owned transport: a declining recipient (no generation request and no message containing the prompt on the wire, host asked once with no messages), the order of the exchange, withheld settings, a swapped prompt, altered details, an admission that was never given, a forged admission, an admission message that carries messages, cancellation while the host decides, and the two limits above for an older host and a host that changes its answer. `tests/integration/fleet-service.test.js` covers the ledger's `preadmit` against a real ledger service (wrong commitment, consumer, model variant or provider, a reservation without a commitment, an older ledger, and that the check moves nothing), and `tests/integration/execution-privacy-faults.test.js` runs it end to end with the real requester wrapper, provider admission and ledger: the reservation binds the commitment the provider was asked to admit, and when the ledger refuses, the provider declines and no message carrying the prompt reaches it.
+- **Whole-model WebRTC:** the requester verifies the peer for the active
+  channel and rejects peers without admission protocol 2. It binds the policy,
+  identity, model, adapters and offer. After exact requester approval, the
+  recipient first receives metadata and a salted commitment, not content.
+  The provider verifies eligibility, capacity, replay fences and configured
+  credit admission. Only a matching admission lets the requester send
+  messages, tool definitions, output schema and the salt. Unsupported,
+  cancelled or changed requests deliver none of that content. Both named
+  and open recipient modes use this exchange.
+- **Partition:** unbound or old protocol workers and entry routes are ineligible.
+  Grants and payloads bind the exact stage and coordinator identities; no stage
+  not named by the current approved route receives activations or tokens.
+- **Paired bridge:** version 3 exposes exact enrolled route identities before
+  the browser dispatches. The native requester is itself a plaintext recipient;
+  the browser and native host validate it and all downstream workers. A fresh
+  route check follows consent. Older bridge protocol is not a fallback.
+- **Standard HTTP API:** OpenAI/Responses/Anthropic request shapes do not expose
+  internal fields. An authenticated operator-owned API composition provides
+  explicit execution policy. Native fleet composition binds the enrolled
+  identity set, intersected with the configured recipient list when present.
+- **Retrieval:** only host-installed paths with complete recipient disclosures
+  can run. A qualified Brave server advertises
+  `reploid.search-disclosure/v2` at the configured exact HTTPS origin
+  (loopback HTTP in test/local setups only). It recomputes the binding before
+  upstream work. Extraction and redirects stay within the approved origin.
+  A configured MCP search origin is separately disclosed. Undeclared paths
+  fail without sending the query rather than falling back to unrestricted search.
+- **Peer operations:** private input requires
+  `reploid.peer.execution_consent/v3` bound to the exact operation, model,
+  offer and identity. The separate, explicitly public input contract is not a
+  compatibility route for private data.
 
-## Availability and precise limits
+## Unavailable and unproven
 
-No attested backend, attestation verifier, encrypted evaluator or client cryptographic implementation is installed or qualified. Selecting an attestation policy, cryptographic protocol, key context or all-remote-collusion guarantee fails before execution. Advertisements cannot change that. No encrypted demonstrator or cryptographic security claim is made by this change.
+No built-in encrypted evaluator or attestation verifier is qualified. Requests
+for these modes fail before disclosure or computation. Ordinary execution
+allows existing recovery storage but never publication, training or reuse.
+A recipient of plaintext could still copy it; recipient authorization cannot
+enforce their downstream behavior. Ephemeral erasure is not qualified.
 
-The `ephemeral` retention requirement is unavailable: existing recovery journals and state lifetimes do not establish remote erasure. Ordinary execution-and-recovery permits existing operational records, including plaintext-derived accounting/recovery fingerprints; it never authorizes training, publication or reuse. A malicious plaintext recipient can still copy what it receives. Recipient restrictions are requester disclosure enforcement, not a cryptographic restriction on an authorized operator's behavior.
-
-Current plaintext routes disclose input/output content, token context and intermediate activations as required by the path. They also expose model identity, length, timing and data-dependent access patterns. Metadata restrictions are checked independently of the profile name. A local-only request blocks remote execution and remote retrieval. Brave server retrieval supports explicit profiles only with the exact installed disclosure protocol and deployment origin; device/SearXNG/contributor paths remain unavailable until separately qualified. Local and host-installed complete paths are supported.
-
-Confidentiality, integrity and availability remain distinct. Existing model, receipt and payload verification still apply; a policy receipt cannot establish correct computation, service availability, or erasure. Cancellation suppresses delivery and settles owned resources under the existing cooperative cancellation contract; it does not promise immediate GPU interruption.
-
-## Extension and qualification boundary
-
-Doppler's `src/inference/execution-backend-contract.js` defines versioned descriptors, exact per-model support and state identities. Its declaration defines separate `prepareClient`, `verifyEvidence`, `sealInput`, `execute`, `finalizeClient` and `dispose` operations for a future implementation. Stronger descriptors are inventory only and unavailable for execution. Ordinary tensor/frame and generation contracts remain plaintext; opaque ciphertext must use a separate backend and transport.
-
-Before any stronger path can become eligible, implement and independently review the actual protocol and client operations. For attestation, validate certificate/endorsement trust, hardware status, measured software, freshness, anti-replay and session/channel binding before plaintext disclosure. For cryptographic computation, bind model/artifacts, protocol/version/parameters, participant identities, client-held secrets, cancellation/retry and exact permitted leakage. Demonstrate the requested collusion model, including all remote operators colluding where required; consider MoE expert-selection/access-pattern leakage. Do not infer qualification from a boolean or successful toy arithmetic.
-
-Qualification must additionally test malicious/corrupt responses separately from privacy, key/tenant/cache separation, stale evidence and wrong sessions, reconnection, provider replacement, cancellation settlement, and absence of plaintext in all provider/coordinator messages, logs and receipts. Measure client work, memory, bandwidth, first-token/decode cost and model quality on the actual implementation before making performance or security claims.
-
-## Focused evidence
-
-`tests/integration/execution-privacy-routes.test.js`, `tests/unit/auxiliary-privacy.test.js`, `pool-peer-operation-planning.test.js`, `pool-peer-pack-job.test.js`, `work-threads.test.js`, `tests/unit/execution-privacy.test.js`, `privacy-controls.test.js`, `peer-generation-threads.test.js`, `chat-thread-grants.test.js`, `conversation-remote-permission.test.js`, `work-resident-provider.test.js`, `ordered-partition-grants.test.js` and `tests/integration/fleet-browser-bridge.test.js` exercise requester enforcement and lifecycle boundaries with controlled providers. These tests do not qualify physical attestation or encrypted inference.
-
-The route test also checks that no requirement is met through a weaker tier. A restricted local-only request, a cryptographic request, an attestation policy, ephemeral retention, an all-remote collusion requirement and a policy with an unknown field each fail before any message carrying the prompt is sent, and none of them runs as provider-visible. One case does not refuse: a restricted request whose named recipient is not present waits for that recipient until the caller cancels or the generation deadline (`mesh.generationTimeoutMs`, 45 s by default) passes. It discloses nothing while it waits; the only message is the requester's identity proof.
-
-`tests/integration/execution-privacy-faults.test.js` covers the fault case with the real requester, provider admission, journal and credit ledger over a test-owned transport. When the named provider is stopped after its first streamed token, a retry under the same restricted policy sends no generation request and no message carrying the prompt to another ready provider that holds the model, and that provider executes nothing; the same provider serves the same prompt once a policy names it, and the interrupted attempt's hold is released uncharged after the claim window.
-
-A bounded manual check on Apple Metal used cached Qwen 3.5 2B (`sha256:a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b`) and the installed Doppler 0.7.4 runtime. Provider-visible and restricted profiles each completed four-token generation locally (518/398 ms), through authenticated mesh orchestration (397/384 ms), and through the paired HTTP bridge (398/391 ms). The mesh transport was an isolated in-process loopback with fresh ECDSA/Ed25519 identities; the HTTP bridge and GPU inference were real. Its host adapter exercised `createWholeModelRequester` but bypassed native credit accounting. It rejected omission of the native coordinator from the allowlist before a third generation request. These timings are individual functional runs, not an overhead benchmark, WebRTC qualification, separate-machine test, or evidence for the pending package refresh.
-
-Hardware inspection found no installed attestation verifier or guest attestation device on the inspected AMD provider (`/dev/sev-guest`, `/dev/tdx_guest`, `/dev/sgx_enclave` absent). This is a readiness observation, not proof about every machine or hardware capability. Hardware qualification still needs appraised evidence, endorsement/revocation trust and freshness bound to endpoint/session keys, with the GPU/accelerator inside the measured confidential boundary. An enclave protecting keys alone does not qualify arbitrary GPU inference.
-
-The source audit is scoped to these paths. It does not establish that every repository diagnostic, application extension, direct low-level API or external model reviewer follows a supplied chat/work policy. Hosts that add data ports must declare and enforce their complete disclosure routes. No independent cryptographic review, active-adversary protocol, accelerator attestation or production encrypted language-model backend is delivered.
-
-
-## Qualified Brave server retrieval
-
-Set `REPLOID_SEARCH_PUBLIC_ORIGIN` to the exact externally used HTTPS origin to enable the server's disclosure protocol; loopback HTTP is accepted only for local/test operation. No deployment is changed automatically. The browser pins that origin from its own request URL and Brave's installed API origin; status metadata negotiates protocol compatibility and cannot choose another upstream or enable attestation/cryptographic claims. A mismatched or old server sends no explicit-profile query.
-
-Each search/extraction request carries the immutable policy and its binding to the identified implementation, opaque answer/attempt ID and complete recipient origins. The server recomputes that binding from its actual installed adapter before invoking upstream search or page fetching. Extraction derives its origin from the selected URL, checks it against policy before sending the query to the extraction server, and constrains the server fetcher to that origin. Cross-origin redirects fail before the next socket request; same-origin redirects remain inside the authorized recipient. The Brave API and browser API fetches reject automatic redirects. HTTPS origins identify the intended service endpoint; they do not attest operator behavior, accelerators, erasure or third-party infrastructure inside an authorized service.
-
-`tests/integration/retrieval-privacy.test.js` exercises actual HTTP browser/server/Brave-adapter/page-fetcher ports against local fixture services: both profiles, all recipients, missing allowlist entries, local-only, legacy status, altered bindings, asynchronous cancellation and redirect containment. These are protocol/enforcement checks; no live Brave key, quota, provider terms or remote answer-quality qualification is claimed.
-
-
-## Native WebRTC qualification harness
-
-`REPLOID_PRIVACY_NATIVE_RTC=1 npx vitest run --config tests/vitest.config.js tests/integration/privacy-native-webrtc.test.js` runs fresh native processes using the production WebRTC transport, signed peer identity/channel binding and privacy enforcement. The default numerical port is a fixture. Setting `REPLOID_PRIVACY_LIVE_MODEL_DIR` to an already cached model directory makes only the provider process load the real model; no weights are downloaded. Both profiles, revocation during asynchronous authorization, disallowed recipients, unsupported crypto and provider withdrawal are exercised. The coordinator admits negotiation/control messages only; application signaling fallback fails the test. It also covers admission before disclosure: a restricted request asks for admission first, and when the provider's host declines, the provider process takes no generation request and no message containing the prompt off its data channel, then serves the same request once its host allows it. `REPLOID_PRIVACY_REMOTE_PROVIDER` (a JSON array naming the command that starts the peer helper on another machine) runs the provider process elsewhere; its standard streams carry negotiation and control only, and requests travel on the WebRTC channel between the two machines.
-
-The harness passed locally with actual cached Qwen 3.5 2B inference over native WebRTC (two processes on one physical machine), including zero application signaling fallback and no transmitted requests for refusal/revocation cases. This closes the previous in-process transport gap, but does not qualify separate-machine operation. The proposed isolated Jupiter requester remains blocked by automatic approval review of the exact source transfer; no code was copied and the public provider was unchanged.
-
-This test found a Vitest-environment integration bug: the runtime service selected a legacy test loader even when the module supplied the modern scoped API. Modern API precedence is now enforced, and legacy test streams retain the text they emitted. Another regression test exercises chat completion with metadata-only approved observer events; the consumer uses the provider captured at approval rather than expecting a payload-bearing preview.
-
-
-A subsequent read-only hardware inventory found TPM device nodes and `tpm2_quote` on the inspected provider, but `tpm2_getcap` could not open `/dev/tpmrm0` under the current account (OS permission denied). No keys were created, PCRs changed, quotes produced or privileges elevated. The SEV/SNP, TDX and SGX device interfaces inspected were absent. This does not establish that the hardware could never be provisioned differently. TPM quotes cover selected PCR measurements and freshness data; appraised model execution, endpoint/key binding and the accelerator's confidential boundary remain separate unmet requirements ([TPM quote/check documentation](https://github.com/tpm2-software/tpm2-tools/blob/master/man/tpm2_checkquote.1.md)).
+Controlled integration tests cover malformed and missing policies, obsolete
+clients, changed routes and recipients, unavailable computation, cancellation,
+and protected wire paths. Tests with fixture providers do not qualify physical
+GPU attestation, malicious-provider resistance, or production encrypted inference.
 
 ## Optional tagged landing links
 

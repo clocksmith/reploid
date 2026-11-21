@@ -34,7 +34,7 @@ export type CostBearer = 'operator' | 'requester';
 export type RetrievalSupplyKind = 'server' | 'device' | 'contributor';
 /** A search provider. The host owns its credentials, terms and any disclosure of the query to it. */
 export interface AuxiliaryDisclosurePort {
-  privacyProtocol?: 'reploid.search-disclosure/v1';
+  privacyProtocol?: 'reploid.search-disclosure/v2';
   describeDisclosure?(detail: import('../chat/execution-policy.js').AuxiliaryDetail): import('../chat/execution-policy.js').AuxiliaryPath | null | Promise<import('../chat/execution-policy.js').AuxiliaryPath | null>;
 }
 export interface SearchProvider extends AuxiliaryDisclosurePort {

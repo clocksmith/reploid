@@ -1,5 +1,6 @@
 // @vitest-environment node
 import http from 'node:http';
+import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createStandaloneSignalingServer } from '../../server/reploid-signaling.js';
 import { createChatCompletions, parseTextChatCompletion } from '../../server/chat-completions.js';
@@ -8,6 +9,14 @@ import { NATIVE_WHOLE_MODEL_SETTINGS } from '../../server/native-whole-model.js'
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
+const orderedParticipant = mesh => ({
+  ...mesh.meshes[5],
+  generate(request, controls) {
+    const ids = request.model.partition?.route?.stages?.map(stage => stage.participantId) ?? mesh.identities.map(key => key.peerId);
+    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [...new Set(ids)] } });
+    return mesh.meshes[5].generate({ ...request, privacy }, controls);
+  }
+});
 const preview = (request, recipients=['stage']) => ({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
 const model = { id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true} };
 const input = {model:model.id,messages:[{role:'user',content:'hello'}]};
@@ -44,7 +53,10 @@ it.each([
     getSwarmSnapshot: () => ({ peers: [{ peerId: 'whole-provider', model: whole.id, modelIdentity: whole.identity,
       readiness: 'ready', hasInference: true, availableSlots: 1, generationSettings: NATIVE_WHOLE_MODEL_SETTINGS }] }),
     async generate(messages, onDelta, options) {
+      const privacy = options.privacy;
+      const privacyBinding = await bindExecutionRoute({ model: whole, privacy }, plaintextExecutionRoute({ model: whole }, { recipients: ['whole-provider'] }));
       const allowed = await requester.authorize({ action: 'mesh.dispatch', requestContext: options.requestContext,
+        privacyBinding, recipientIdentity: 'whole-provider', admission: { schema: 'reploid.generation-admission/v2' },
         peerId: 'whole-provider', modelId: options.modelId, modelIdentity: options.modelIdentity,
         adapterIdentities: options.adapterIdentities, messages, settings: options.settings });
       if (!allowed) throw Error('Disclosure denied');
@@ -54,7 +66,10 @@ it.each([
     }
   };
   requester = createWholeModelRequester({ mesh, models: [whole] });
-  const f = await boot({ participant: { getState: () => ({ models: [model, ...requester.getModels()] }), generate: requester.generate } });
+  const f = await boot({ participant: { getState: () => ({ models: [model, ...requester.getModels()] }),
+    generate: (request, controls) => requester.generate({ ...request, privacy: createExecutionPolicy({
+      placement: 'network-allowed', recipients: { kind: 'named', ids: ['whole-provider'] }
+    }) }, controls) } });
   const response = await f.post({ ...input, model: whole.id, stream: true, ...(cap ? { max_completion_tokens: cap } : {}) });
   expect(response.status).toBe(200);
   expect(await response.text()).toContain('"content":"hello"');
@@ -167,7 +182,7 @@ it('disconnect during an incomplete JSON body releases admission without calling
 it('actual mounted handler reaches weightless automatic requester, signed grants and all ordered stages',async()=>{
   const mesh=await automaticOrderedMesh();owners.push(()=>mesh.close());await mesh.prepare();
   await vi.waitFor(()=>expect(mesh.select(5,0)).toBeTruthy());
-  const f=await boot({participant:mesh.meshes[5]});
+  const f=await boot({participant:orderedParticipant(mesh)});
   const response=await f.post({model:mesh.model.id,messages:[{role:'user',content:tasks[0].prompt}],stream:true});
   expect(response.status).toBe(200);const rows=(await response.text()).trim().split('\n\n').map(row=>row.slice(6));expect(rows.pop()).toBe('[DONE]');
   expect(rows.map(JSON.parse).map(row=>row.choices[0].delta.content||'').join('')).toBe(tasks[0].chunks.join(''));
@@ -203,7 +218,7 @@ it('execution approval cannot substitute for denied actual recipient disclosure'
   const mesh=await automaticOrderedMesh();owners.push(()=>mesh.close());await mesh.prepare();
   await vi.waitFor(()=>expect(mesh.select(5,0)).toBeTruthy());
   const authorize=vi.fn(async ({action})=>action==='chat.execute');
-  const f=await boot({participant:mesh.meshes[5],authorize});
+  const f=await boot({participant:orderedParticipant(mesh),authorize});
   const response=await f.post({model:mesh.model.id,messages:[{role:'user',content:tasks[0].prompt}]});
   expect(response.status).toBe(403);expect(authorize.mock.calls.map(([row])=>row.action)).toEqual(['chat.execute','chat.disclose']);
   expect(authorize.mock.calls[1][0].preview.disclosure).toBeTruthy();

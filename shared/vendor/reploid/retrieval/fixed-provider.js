@@ -16,6 +16,8 @@ export function createFixedSearchProvider({ documents, now = Date.now, id = 'rep
     .sort((a, b) => b.score - a.score || a.index - b.index)[0].part;
   return Object.freeze({
     id, version,
+    // This implementation reads in-memory fixtures only; the URL labels cause no fetch.
+    describeDisclosure: () => ({ schema: 'reploid.auxiliary-path/v1', id, version, hops: [] }),
     async search(query, limits, signal) {
       signal?.throwIfAborted();
       const terms = contentWords(query);
