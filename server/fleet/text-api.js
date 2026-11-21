@@ -20,7 +20,7 @@ function previewRecipients(preview) {
  * Messages client may send the same secret as `x-api-key`, the header that protocol defines. Non-loopback binding requires TLS;
  * every execution reserves and settles non-cash fleet service credits and checks
  * disclosed provider keys against the coordinator's enrolled computers. */
-export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1', port = 0, tls = null, allowedRecipients = null, browserBridge = null }) {
+export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1', port = 0, tls = null, allowedRecipients = null, privatePartitionApprovals, browserBridge = null }) {
   assert(typeof token === 'string' && token.length >= 32, 'Strong API bearer secret required');
   assert(host?.textParticipant && typeof host.runAccountedGeneration === 'function'
     && typeof host.enrolledRecipients === 'function' && host.identity?.peerId,
@@ -35,6 +35,11 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
     'Allowed recipients must be distinct enrolled peer identities');
     pinned = new Set(allowedRecipients);
   }
+  if (privatePartitionApprovals !== undefined) {
+    assert(Array.isArray(privatePartitionApprovals) && privatePartitionApprovals.every(approval =>
+      approval?.partition?.route?.schema === 'reploid.partition-route/v1'),
+    'Private fleet approvals require ordered partition routes for service-credit settlement');
+  }
   const bridge = browserBridge ? createFleetBrowserBridgeHandler({
     host,
     token: browserBridge.token,
@@ -47,6 +52,7 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
   const api = createTextApi({
     participant: host.textParticipant,
     production: true,
+    privatePartitionApprovals,
     authenticate: async req => tokensEqual(req.headers.authorization, expectedHeader)
       || (isMessagesRoute(req) && tokensEqual(req.headers['x-api-key'], token))
       ? { subject: `fleet-api:${host.identity.peerId}` } : null,
@@ -57,7 +63,17 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
       if (check.action === 'chat.recover') return typeof host.recoverAccountedGeneration === 'function';
       if (check.action === 'chat.disclose') {
         const enrolled = await host.enrolledRecipients();
-        const recipients = previewRecipients(check.preview);
+        let recipients = previewRecipients(check.preview);
+        const partition = check.request.model.partition;
+        if (partition) {
+          const route = partition.route;
+          // The ordered protocol returns the output to its own requester. Only count the
+          // local identity as a provider when it also owns a stage on the selected route.
+          if (route && !route.stages.some(stage => stage.participantId === host.identity.peerId)) {
+            recipients = recipients.filter(id => id !== host.identity.peerId);
+          }
+          if (!route || recipients.some(id => !route.stages.some(stage => stage.participantId === id))) return false;
+        }
         return recipients.length > 0 && recipients.every(id => enrolled.has(id) && (!pinned || pinned.has(id)));
       }
       return false;

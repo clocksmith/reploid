@@ -20,7 +20,7 @@ function channels() {
   return pair;
 }
 // modelFields adds catalog metadata, such as provider, that host composition requires.
-export async function automaticOrderedMesh({ modelFields = {} } = {}) {
+export async function automaticOrderedMesh({ modelFields = {}, channelPair = channels } = {}) {
   const base = stageFixture(3), identities = await Promise.all(Array.from({ length: 8 }, () => createSigningIdentity({ algorithm: 'ECDSA' })));
   base.plan.partitions.forEach((stage,index)=>{stage.layerRange=[index*2,index*2+1];});
   // Two coordinators and middle-stage replicas share a final-stage resident.
@@ -86,7 +86,7 @@ export async function automaticOrderedMesh({ modelFields = {} } = {}) {
       openDataChannel(peer, label) {
         const target = Number(peer.split('-').at(-1)); if (slot === target) throw Error('Unexpected self connection');
         const receive = listeners[target].get(label); if (!receive) throw Error('Endpoint unavailable');
-        const pair = channels(); opens.push({ from: slot, to: target, label });
+        const pair = channelPair(slot, target, label); opens.push({ from: slot, to: target, label });
         // Every frame either side transmits, so tests can prove what left a participant and when.
         for (const [side, from, to] of [[0, slot, target], [1, target, slot]]) {
           const send = pair[side].send;

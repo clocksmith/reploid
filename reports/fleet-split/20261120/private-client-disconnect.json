@@ -1,0 +1,242 @@
+{
+  "scope": "Client closes an ordinary private ordered /v1/responses stream after its first visible delta. A second independent ordinary request uses the same enrolled providers.",
+  "implementation": "21d10abed738a201d02b332f677a333d5628f21c",
+  "model": {
+    "id": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+    "identity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+    "planId": "sha256:0fa7e02c1193dbb15924f558524f3fd10c7c61db275d038bdc341cd4bbba1ea0"
+  },
+  "startedAt": "2026-11-20T09:51:41.340839+00:00",
+  "compute": "Physical Jupiter and Suby, software SwiftShader. Requester and stage 0 are separate principals in one Jupiter process. Stage 1 runs on Suby.",
+  "executionLimits": "Existing 0.8B artifacts fit either host. This checks lifecycle and accounting. It does not establish a memory-expanding hardware split.",
+  "routeTypes": [
+    [
+      {
+        "name": "stage0",
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "distinctAddresses": true
+      },
+      {
+        "name": "requester",
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "distinctAddresses": true
+      }
+    ],
+    [
+      {
+        "name": "stage1",
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "distinctAddresses": true
+      },
+      {
+        "name": "stage1",
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "distinctAddresses": true
+      }
+    ]
+  ],
+  "cancellation": {
+    "firstHttpDelta": " ",
+    "clientDeltaCount": 1,
+    "maximumOutputTokens": 2,
+    "settlement": {
+      "charge": 1,
+      "acknowledgedOutputTokens": 1,
+      "outstandingHold": 0,
+      "signedStages": [
+        {
+          "index": 0,
+          "steps": 1,
+          "status": "failed",
+          "closedAt": "2026-11-20T09:57:46.308Z"
+        },
+        {
+          "index": 1,
+          "steps": 1,
+          "status": "settled",
+          "closedAt": "2026-11-20T09:57:43.728Z"
+        }
+      ],
+      "journalTransfers": [
+        -1,
+        0,
+        1
+      ],
+      "duplicateSettleSame": true,
+      "normalHttpRecovery": 200
+    },
+    "executionOwnersAfterClose": [
+      {
+        "activeProviderRequests": 0,
+        "queued": 0,
+        "requesterWork": 0,
+        "phase": "ready"
+      },
+      {
+        "activeProviderRequests": 0,
+        "queued": 0,
+        "requesterWork": 0,
+        "phase": "ready"
+      }
+    ],
+    "clientDisconnectUnixMs": 1795168663566,
+    "settlementObservedUnixMs": 1795168666627
+  },
+  "readmission": {
+    "sameParticipants": true,
+    "visibleText": " ",
+    "httpStatus": 200,
+    "usage": {
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "total_tokens": 8
+    },
+    "settlement": {
+      "charge": 1,
+      "acknowledgedOutputTokens": 1,
+      "outstandingHold": 0,
+      "signedStages": [
+        {
+          "index": 0,
+          "steps": 1,
+          "status": "settled",
+          "closedAt": "2026-11-20T10:03:35.107Z"
+        },
+        {
+          "index": 1,
+          "steps": 1,
+          "status": "settled",
+          "closedAt": "2026-11-20T10:03:35.129Z"
+        }
+      ],
+      "journalTransfers": [
+        -1,
+        0,
+        1
+      ],
+      "duplicateSettleSame": true,
+      "normalHttpRecovery": 200
+    }
+  },
+  "afterBothRequestsDurableOwners": [
+    {
+      "host": "jupiter",
+      "openRows": 0
+    },
+    {
+      "host": "suby",
+      "openRows": 0
+    }
+  ],
+  "directStageRoutes": [
+    [
+      {
+        "name": "stage0",
+        "iceServers": 0,
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "distinctAddresses": true,
+        "sent": 1160137,
+        "received": 569794
+      }
+    ],
+    [
+      {
+        "name": "stage1",
+        "iceServers": 0,
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "distinctAddresses": true,
+        "sent": 569794,
+        "received": 1160137
+      },
+      {
+        "name": "stage1",
+        "iceServers": 0,
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "distinctAddresses": true,
+        "sent": 510850,
+        "received": 301767
+      }
+    ]
+  ],
+  "rawReceiptSha256": "f84d3f9dd9cf023bb30809f9df15085bc76c3b0b6b817745b698b6a65c723159",
+  "signatureEvidence": [
+    {
+      "reservationId": "service:peer:e82eb113d01212c85dfa909a:ca9859aefb604536aca0e559cd5bd5a0",
+      "file": "verified-ca9859aefb604536aca0e559cd5bd5a0.json",
+      "sha256": "ccf6903ac0bf8a0d6781c054c18ec743bf0d08bdf81f752115daa23542660eb5"
+    },
+    {
+      "reservationId": "service:peer:e82eb113d01212c85dfa909a:d35d449a1092443f97a192e57fe1fc19",
+      "file": "verified-d35d449a1092443f97a192e57fe1fc19.json",
+      "sha256": "429e58a2c5ac5d641d1bd4fa0320d16df1f026e399bde961ed89abeb321f8729"
+    }
+  ],
+  "testDriverSha256": {
+    "cancel-controller.py": "ff88d8d59fbd3af7156d178773e1cc667b221afc993c8070169551d7fd5a4007",
+    "runtime/after-delta.mjs": "5437eae4248e92637693999983a54c28d5438e5743a3526eb80b7a39ff17d1f7",
+    "after-delta.sh": "a501af760182df36940ba530e964d2c6a87d54cbb71038479b1297963cf9f882",
+    "whole-tokens.json": "7d375a6417789884bbd80250f2c04b1a31199d96740adfdbadf5a0d70b47b7de"
+  },
+  "independentLedgerCheck": {
+    "scope": "Separate process reopened the private ledger read-only after both hosts closed. Verified against pre-enrolled keys persisted before dispatch.",
+    "openHolds": 0,
+    "proof": [
+      {
+        "reservationId": "service:peer:e82eb113d01212c85dfa909a:d35d449a1092443f97a192e57fe1fc19",
+        "evidenceSha256": "d4d0c0b2f6eb9d1cae2bceaacdc15fe02b4d57b88b3983e458f4adc97ce0aaab",
+        "stageWorkRows": 2,
+        "acknowledgedOutput": 1,
+        "charge": 1,
+        "journalTransfers": [
+          -1,
+          0,
+          1
+        ]
+      },
+      {
+        "reservationId": "service:peer:e82eb113d01212c85dfa909a:ca9859aefb604536aca0e559cd5bd5a0",
+        "evidenceSha256": "0c24bf96819a67f1c231fe4f3108bc013d38775014a21c2c6c4b4b37bfb0123c",
+        "stageWorkRows": 2,
+        "acknowledgedOutput": 1,
+        "charge": 1,
+        "journalTransfers": [
+          -1,
+          0,
+          1
+        ]
+      }
+    ]
+  },
+  "stageLayerRangesInclusive": [
+    [
+      0,
+      19
+    ],
+    [
+      20,
+      23
+    ]
+  ],
+  "modelTransferBytes": 0,
+  "baselineRuntime": "doppler-gpu@0.7.9",
+  "scopeLimits": [
+    "This model can fit on either physical machine.",
+    "The stores reused existing local weights.",
+    "This run canceled the HTTP client. Provider death is a separate test.",
+    "CPU SwiftShader timings describe this run only."
+  ]
+}

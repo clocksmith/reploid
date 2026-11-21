@@ -1,12 +1,16 @@
 // @vitest-environment node
 import { afterEach, beforeEach, it, expect, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, copyFile } from 'node:fs/promises';
 import os from 'node:os';
+import { fork } from 'node:child_process';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
+import { startFleetTextApi } from '../../server/fleet/text-api.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
@@ -333,6 +337,164 @@ async function chargedRoute(options = {}) {
   client = createFleetClient({ url: service.url, identity: keys[0], outboxFile: path.join(root, 'outbox.json') });
   return route;
 }
+async function privateSplitApi() {
+  let route;
+  route = await chargedRoute({ beforeReserve: async (request, index) => {
+    const provider = createFleetClient({ url: service.url, identity: keys[index + 1] });
+    await createFleetExecutionAdmission({ credits: provider, model: route.model }).partition(request);
+  } });
+  const selected = route.model;
+  const approval = { modelId: selected.id, modelIdentity: selected.identity, adapterIdentities: [],
+    partition: structuredClone(selected.partition), evidence: 'fixture://two-signed-residents' };
+  let advertised = selected, replaceAtDispatch = false;
+  const generate = vi.fn(route.requester.generate);
+  const token = 'test-only-private-fleet-authorization-token';
+  const host = { identity: keys[0], allowsModel: model => model.identity === selected.identity,
+    enrolledRecipients: async () => new Set(keys.slice(1).map(key => key.peerId)),
+    textParticipant: { roomId: 'private-split-test', executionClass: 'private-pool', partitionOutputLimit: () => 3, getState: () => ({ models: [advertised] }), generate },
+    runAccountedGeneration(request, controls, execute) {
+      if (replaceAtDispatch) advertised = { ...selected, partition: { ...selected.partition, planId: 'another-plan' } };
+      return createFleetRequester({ participant: { generate: execute }, identity: keys[0], credits: client, maxOutputTokens: 3 }).generate(request, controls);
+    } };
+  const headers = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
+  const api = await startFleetTextApi({ host, token, privatePartitionApprovals: [approval] });
+  const send = (body, options) => fetch(api.url + '/chat/completions', { method: 'POST', headers,
+    body: JSON.stringify({ model: selected.id, messages: [{ role: 'user', content: 'test' }], ...body }), ...options });
+  return { route, generate, send, url: api.url, headers, replace() { replaceAtDispatch = true; },
+    list: async () => (await (await fetch(api.url + '/models', { headers })).json()).data,
+    async close() { await api.close(); await route.close(); } };
+}
+
+it('lists and streams an operator-approved split with a single signed settlement and a plain chat default', async () => {
+  const f = await privateSplitApi();
+  const { send, generate } = f;
+  try {
+    expect((await f.list()).map(row => row.id)).toEqual([f.route.model.id]);
+    const response = await send({ stream: true, max_completion_tokens: 2 });
+    const stream = await response.text();
+    expect(response.status, stream).toBe(200);
+    expect(stream).toContain('[DONE]');
+    expect(stream.split('\n\n').filter(frame => frame.startsWith('data: {')).map(frame =>
+      JSON.parse(frame.slice(6)).choices[0].delta.content || '').join('')).toBe('01');
+    const reservationId = response.headers.get('x-reploid-reservation-id');
+    const settled = await client.call('request', { id: reservationId });
+    expect(settled.evidence.receipts).toHaveLength(2);
+    expect(settled.outcome.charge).toBe(2);
+    expect((await client.call('recover', { id: reservationId })).charge).toBe(2);
+    expect(credits.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-2, 0], [1, 0], [1, 0]]);
+
+    expect((await send({ max_completion_tokens: 4 })).status).toBe(400);
+    expect(generate).toHaveBeenCalledTimes(1);
+    const plain = await send({});
+    const answer = await plain.json();
+    expect(plain.status, JSON.stringify(answer)).toBe(200);
+    expect(answer.choices[0].message.content).toBe('012');
+
+    f.replace();
+    expect((await send({})).status).toBe(503);
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect(await f.list()).toEqual([]);
+  } finally { await f.close(); }
+});
+
+it('streams execution evidence and settles once for a Responses request bound to two stages', async () => {
+  const f = await privateSplitApi();
+  try {
+    const model = f.route.model;
+    const binding = { pool_id: 'private-split-test', expected_model_identity: model.identity,
+      expected_adapter_identities: [], expected_plan_identity: model.partition.planId,
+      allowed_recipients: keys.slice(0, 3).map(key => key.peerId), include_execution: true };
+    const response = await fetch(f.url + '/responses', { method: 'POST', headers: f.headers,
+      body: JSON.stringify({ model: model.selectionId || model.id, input: [{ role: 'user', content: 'test' }],
+        store: false, stream: true, max_output_tokens: 2, reploid: binding }) });
+    const stream = await response.text();
+    expect(response.status, stream).toBe(200);
+    const events = stream.split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)));
+    const final = events.at(-1);
+    expect(final.type, stream).toBe('response.completed');
+    expect(final.response.usage.output_tokens).toBe(2);
+    expect(final.response.output[0].content[0].text).toBe('01');
+    expect(final.response.reploid).toMatchObject({ modelIdentity: model.identity, planIdentity: model.partition.planId,
+      poolId: binding.pool_id, executionClass: 'private-pool', adapterIdentities: [] });
+    expect([...final.response.reploid.recipients].sort()).toEqual([...binding.allowed_recipients].sort());
+    const reservation = response.headers.get('x-reploid-reservation-id');
+    expect(reservation).toBeTruthy();
+    const settled = await client.call('request', { id: reservation });
+    expect(settled.evidence.receipts).toHaveLength(2);
+    expect((await client.call('recover', { id: reservation })).charge).toBe(2);
+    expect(credits.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-2, 0], [1, 0], [1, 0]]);
+  } finally { await f.close(); }
+});
+
+it.each(['resident', 'adapters'])('rejects changed %s at disclosure even when both physical peers remain enrolled', async change => {
+  const f = await privateSplitApi();
+  try {
+    f.generate.mockImplementationOnce((request, controls) => f.route.requester.generate(request, {
+      ...controls, requestApproval(preview) {
+        const changed = structuredClone(preview);
+        if (change === 'resident') changed.route.stages[1].residentId = 'new-resident';
+        else changed.adapterIdentities = ['sha256:' + '5'.repeat(64)];
+        return controls.requestApproval(changed);
+      }
+    }));
+    const response = await f.send({});
+    expect(response.status).toBe(403);
+    expect(credits.snapshot().accounts.every(row => row.balance === 0 && row.held === 0)).toBe(true);
+    expect(f.route.residents.map(stage => stage.getState().reservations.active)).toEqual([0, 0]);
+  } finally { await f.close(); }
+});
+
+it('releases both residents after an HTTP disconnect and charges only the acknowledged token', async () => {
+  const f = await privateSplitApi();
+  const gate = f.route.hold(1, 1);
+  try {
+    const abort = new AbortController();
+    const response = await f.send({ stream: true }, { signal: abort.signal });
+    const id = response.headers.get('x-reploid-reservation-id');
+    const reader = response.body.getReader();
+    expect(new TextDecoder().decode((await reader.read()).value)).toContain('0');
+    await gate.entered;
+    abort.abort();
+    await vi.waitFor(() => expect(credits.request(id).state).toBe('settled'));
+    expect(credits.request(id).outcome.outputTokens).toBe(1);
+    expect(f.route.residents.map(stage => stage.getState().reservations.active)).toEqual([0, 0]);
+    const next = await f.send({});
+    expect(next.status, await next.text()).toBe(200);
+  } finally { gate.release(); await f.close(); }
+});
+
+it('fails a dropped stage over HTTP and admits a later request while missing closing evidence is reconciled', async () => {
+  const f = await privateSplitApi();
+  try {
+    f.route.loseStage(1, 0);
+    const failed = await f.send({});
+    expect(failed.status).toBe(502);
+    expect((await failed.json()).error).toMatchObject({ code: 'connection_lost' });
+    const id = failed.headers.get('x-reploid-reservation-id');
+    expect(credits.request(id).state).toBe('closing');
+    expect(credits.snapshot().journal).toHaveLength(0);
+    expect(f.route.residents[0].getState().reservations.active).toBe(0);
+    const next = await f.send({});
+    expect(next.status, await next.text()).toBe(200);
+  } finally { await f.close(); }
+});
+
+it('ends a partial HTTP stream with its stage-loss code and keeps the attempt recoverable', async () => {
+  const f = await privateSplitApi();
+  try {
+    f.route.loseStage(1, 1);
+    const response = await f.send({ stream: true });
+    const stream = await response.text();
+    expect(response.status).toBe(200);
+    const events = stream.trim().split('\n\n').map(frame => JSON.parse(frame.slice(6)));
+    expect(events.some(event => event.choices?.[0]?.delta?.content === '0')).toBe(true);
+    expect(events.at(-1).error).toMatchObject({ code: 'connection_lost' });
+    const id = response.headers.get('x-reploid-reservation-id');
+    expect(credits.request(id).state).toBe('closing');
+    expect(f.route.residents[0].getState().reservations.active).toBe(0);
+  } finally { await f.close(); }
+});
+
 const routeRequest = (route, attemptId) => ({ model: route.model, threadId: 'thread', attemptId, messages: [{ role: 'user', content: 'test' }] });
 
 it.each(['0', '2'])('settles the acknowledged prefix when cancellation races with delta %s', async delta => {
@@ -437,7 +599,11 @@ it('keeps a hold when an admitted stage disappears without a signed closing rece
     await expect(requester.generate(routeRequest(route, 'lost'), {
       signal: new AbortController().signal, requestApproval: async () => true })).rejects.toThrow();
     await client.reconcile();
-    expect(credits.request(`service:${keys[0].peerId}:lost`).state).toBe('closing');
+    const lostId = `service:${keys[0].peerId}:lost`;
+    expect(credits.request(lostId).state).toBe('closing');
+    const sameProvider = createFleetClient({ url: service.url, identity: keys[2] });
+    await expect(sameProvider.call('closeStageOwner', { id: lostId, partitionIndex: 1, owner: 'a'.repeat(64), receipt: null }))
+      .rejects.toThrow('Historical admission has no matching exclusive owner');
     expect(credits.snapshot().accounts[0].held).toBe(3);
     expect(credits.snapshot().journal).toHaveLength(0);
   } finally { await route.close(); }
@@ -704,3 +870,156 @@ it('retains interrupted native output and requires fresh disclosure before retry
     for (const close of cleanup.reverse()) await close();
   }
 });
+
+it.each([
+  { index: 1, name: 'after admission', executed: 0, acknowledged: 0, lostReply: false },
+  { index: 1, name: 'after partial delivery', executed: 2, acknowledged: 1, lostReply: false },
+  { index: 0, name: 'during a partial nonfinal stage', executed: 2, acknowledged: 1, lostReply: false },
+  { index: 1, name: 'after losing the terminal HTTP reply', executed: 1, acknowledged: 1, lostReply: true }
+])('recovers the enrolled stage process killed $name, once', async ({ index, executed, acknowledged, lostReply }) => {
+  const { openOutputAcknowledgments, openStageReceipts } = await import('../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js');
+  const { openFleetNativeHost } = await import('../../server/fleet/native-host.js');
+  const { openStageOwner } = await import('../../server/fleet/stage-owner.js');
+  const route = await chargedRoute();
+  const sibling = 1 - index, workerKey = keys[index + 1];
+  const cfg = { identityFile: path.join(root, 'stage.key'), roomId: 'private-process-recovery',
+    serviceUrl: service.url, index, model: { ...route.model, generation: { maxTokens: 3 } } };
+  await writeFile(cfg.identityFile, JSON.stringify(workerKey), { mode: 0o600 });
+  const configFile = path.join(root, 'child.json'), roomTokenFile = path.join(root, 'room.token');
+  await writeFile(configFile, JSON.stringify(cfg), { mode: 0o600 });
+  await writeFile(roomTokenFile, 'test-only-private-local-pool-token-abcdefghijklmnopqrstuvwxyz12345', { mode: 0o600 });
+  const child = fork(fileURLToPath(new URL('../fixtures/stage-owner-process.mjs', import.meta.url)), [configFile],
+    { execArgv: [], stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+  const ask = async (op, payload) => {
+    const message = once(child, 'message');
+    child.send({ op, payload });
+    const [reply] = await message;
+    if (reply.error) throw Error(reply.error);
+    return reply.result;
+  };
+  let host, requesterHost, api;
+  try {
+    await ask('open');
+    const id = 'service:' + keys[0].peerId + ':child-exit';
+    const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'private-thread', attemptId: 'child-exit',
+      requesterId: keys[0].peerId, placementGeneration: 0, route: route.route };
+    const signer = ix => createAttemptEvidenceSigner({ identity: keys[ix] });
+    const acks = await openOutputAcknowledgments({ signer: signer(0), identity, reservationId: id });
+    const siblingTally = await openStageReceipts({ signer: signer(sibling + 1), identity, partitionIndex: sibling, charge: acks.charge });
+    const req = { identity, charge: acks.charge, maxTokens: 3 };
+    await client.reserve({ id, executionId: identity.attemptId, consumer: keys[0].peerId, mode: 'partition', route: identity,
+      model: { id: cfg.model.id, identity: cfg.model.identity, adapterIdentities: [] }, inputDigest: await hashJson([{ role: 'user', content: 'test' }]),
+      maxOutputTokens: 3, providers: keys.slice(1).map(key => ({ participantId: key.peerId, weight: 1 })) });
+    await client.collect(id, { identity, receipts: [], acknowledgment: acks.charge });
+    await client.dispatch(id);
+    await createFleetExecutionAdmission({ credits: createFleetClient({ url: service.url, identity: keys[sibling + 1] }), model: cfg.model })
+      .partition({ ...req, partitionIndex: sibling });
+    await ask('reserve', req);
+    const scope = { participantId: workerKey.peerId, roomId: cfg.roomId, serviceUrl: cfg.serviceUrl };
+    await expect(openStageOwner({ file: cfg.identityFile + '.stage-owner.sqlite', ...scope })).rejects.toThrow(/locked|busy/i);
+    // An independent profile with the same enrolled key also cannot reserve this work.
+    const other = await openStageOwner({ file: path.join(root, 'competing.sqlite'), ...scope });
+    try {
+      await expect(createFleetExecutionAdmission({ credits: createFleetClient({ url: service.url, identity: workerKey }), model: cfg.model, stageOwner: other })
+        .partition({ ...req, partitionIndex: index })).rejects.toThrow(/owner/i);
+    } finally { await other.close(); }
+    for (let step = 0; step < executed; step++) {
+      const otherReceipt = await siblingTally.step({ step, inputTokenCount: 1, delta: 'x' });
+      const result = await ask('step', { identity, step, done: lostReply });
+      if (step < acknowledged) {
+        const pair = await acks.observe({ step, delta: result.delta, receipt: index === 1 ? result.receipt : otherReceipt });
+        await client.collect(id, { identity, receipts: [], acknowledged: pair });
+      }
+    }
+    if (lostReply) await expect(ask('lose-reply')).rejects.toThrow('dropped');
+    if (!executed) {
+      // Releasing a handle while its original process is still alive is insufficient evidence.
+      await ask('close');
+      const replay = await openStageOwner({ file: cfg.identityFile + '.stage-owner.sqlite', ...scope });
+      try {
+        const early = await replay.recover(createFleetClient({ url: service.url, identity: workerKey }));
+        expect(early).toHaveLength(1);
+        expect(early[0].error).toMatch(/death is unconfirmed/i);
+      } finally { await replay.close(); }
+      const copy = path.join(root, 'copied.sqlite');
+      await copyFile(cfg.identityFile + '.stage-owner.sqlite', copy);
+      await expect(openStageOwner({ file: copy, ...scope })).rejects.toThrow(/moved|scope/i);
+    }
+    const dead = once(child, 'exit');
+    child.kill('SIGKILL');
+    expect((await dead)[1]).toBe('SIGKILL');
+    await siblingTally.close({ failed: true });
+    await client.collect(id, siblingTally.evidence());
+    const requesterKey = path.join(root, 'requester.key');
+    await writeFile(requesterKey, JSON.stringify(keys[0]), { mode: 0o600 });
+    const sockets = { loadRtc: async () => ({ RTCPeerConnection: class {} }), loadSocket: async () => ({ WebSocket: class {} }),
+      loadGpu: () => { throw Error('Recovery attempted to open a GPU'); } };
+    requesterHost = await openFleetNativeHost({ configuration: { schema: 'reploid.fleet-native/v1', computerId: 'machine-0',
+      name: 'Recovery requester', maxOutputTokens: 3, identityFile: requesterKey, roomId: cfg.roomId, roomTokenFile, serviceUrl: cfg.serviceUrl,
+      models: [{ model: cfg.model, mode: 'partition', ordered: { stage: null } }] }, ...sockets });
+    const token = 'private-recovery-fixture-authorization-bearer-2026';
+    api = await startFleetTextApi({ host: requesterHost, token });
+    async function httpRecover(content = 'test') {
+      const response = await fetch(api.url + '/reploid/recover', { method: 'POST', headers: {
+        'content-type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify({
+        reservationId: id, messages: [{ role: 'user', content }] }) });
+      return { status: response.status, body: await response.json() };
+    }
+    const initial = await httpRecover();
+    expect(initial.status, JSON.stringify(initial.body)).toBe(200);
+    const before = initial.body.serviceCredit;
+    if (!lostReply) expect(before).toMatchObject({ status: 'pending', heldCredits: 3, acknowledgedOutputTokens: acknowledged, awaitingStages: [index] });
+    if (executed && !lostReply) {
+      const replay = await openStageOwner({ file: cfg.identityFile + '.stage-owner.sqlite', ...scope });
+      try {
+        const withoutReply = createFleetClient({ url: service.url, identity: workerKey, fetchImpl: async (url, options) => {
+          const response = await fetch(url, options);
+          await response.arrayBuffer();
+          throw Error('Dropped interrupted-owner response after committing');
+        } });
+        expect((await replay.recover(withoutReply))[0].error).toMatch(/Dropped interrupted-owner response/);
+      } finally { await replay.close(); }
+      const proof = credits.request(id).evidence;
+      const signed = proof.interruptedOwners[0];
+      await expect(credits.closeStageOwner({ ...signed, payload: { ...signed.payload, receipt: null } })).rejects.toThrow(/signature/);
+    }
+    const configuration = { schema: 'reploid.fleet-native/v1', computerId: 'machine-' + (index + 1), name: 'Recovered stage',
+      identityFile: cfg.identityFile, roomId: cfg.roomId, roomTokenFile, serviceUrl: cfg.serviceUrl,
+      models: [{ model: cfg.model, mode: 'partition', ordered: { stage: { index } } }] };
+    const boot = () => openFleetNativeHost({ configuration, ...sockets });
+    host = await boot(); // Normal startup recovers before connecting to peers or starting the model.
+    await host.reconcileCredits();
+    const result = await client.call('recover', { id });
+    expect(result).toMatchObject({ charge: acknowledged, outputTokens: acknowledged });
+    expect(await httpRecover()).toMatchObject({ status: 200, body: { status: lostReply ? 'completed' : 'failed',
+      serviceCredit: { charge: acknowledged, outputTokens: acknowledged }, outcome: { acknowledged: { acknowledgedOutputTokens: acknowledged } } } });
+    expect((await httpRecover('different input')).status).toBe(409);
+    const proof = credits.request(id).evidence;
+    if (lostReply) expect(proof.receipts[1]).toMatchObject({ status: 'settled', steps: executed });
+    else {
+      expect(proof.interruptedOwners).toHaveLength(1);
+      expect(proof.interruptedOwners[0]).toMatchObject({ participantId: workerKey.peerId, operation: 'closeStageOwner',
+        payload: { partitionIndex: index, receipt: executed ? expect.objectContaining({ status: 'executing', steps: executed }) : null } });
+      expect(proof.receipts.find(r => r.partitionIndex === index)?.timing.closedAt ?? null).toBeNull();
+    }
+    const snapshot = await client.call('snapshot', {});
+    // Equal stage weights split one indivisible credit by the existing stage-order rule.
+    const spent = acknowledged ? -acknowledged : 0;
+    expect(snapshot.accounts.map(({ id, balance, held }) => [id, balance, held])).toEqual([
+      ['machine-0', spent, 0], ['machine-1', 0, 0], ['machine-2', acknowledged, 0]
+    ]);
+    expect(snapshot.journal.map(({ account_id, delta }) => [account_id, delta])).toEqual([
+      ['machine-0', spent], ['machine-1', 0], ['machine-2', acknowledged]
+    ]);
+    const firstRecovery = await httpRecover();
+    await host.close(); host = await boot(); await host.reconcileCredits();
+    // The observation timestamp is fresh on each HTTP read; the accepted settlement is immutable.
+    expect(await httpRecover()).toEqual({ ...firstRecovery, body: { ...firstRecovery.body,
+      outcome: { ...firstRecovery.body.outcome, recordedAt: expect.any(Number) } } });
+    expect(await client.call('recover', { id })).toEqual(result);
+    expect(await client.call('snapshot', {})).toEqual(snapshot);
+  } finally {
+    if (child.exitCode === null && child.signalCode === null) { const dead = once(child, 'exit'); child.kill('SIGKILL'); await dead; }
+    await api?.close(); await requesterHost?.close(); await host?.close(); await route.close();
+  }
+}, 30000);

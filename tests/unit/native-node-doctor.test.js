@@ -2,7 +2,7 @@
 import { once } from 'node:events';
 import { afterEach, expect, it, vi } from 'vitest';
 import { WebSocketServer } from 'ws';
-import { readHostMemory, runDoctor } from '../../server/native-node-doctor.js';
+import { inspectNativeAdapter, readHostMemory, runDoctor } from '../../server/native-node-doctor.js';
 
 const { requestAdapter, requestDevice } = vi.hoisted(() => ({ requestAdapter: vi.fn(), requestDevice: vi.fn() }));
 vi.mock('webgpu', () => ({ create: () => ({ requestAdapter }) }));
@@ -44,4 +44,13 @@ it('reports independent GPU and signaling failures while preserving successful l
   expect(result.text).toMatch(/OK +Host RAM/);
   expect(result.text).toMatch(/FAIL +WebGPU adapter +no .* adapter found/);
   expect(result.text).toMatch(/FAIL +Signaling +expected a ws:/);
+});
+
+
+it('reads physical adapter limits without creating a device or treating a binding limit as total memory', async () => {
+  requestAdapter.mockResolvedValue({ info: { description: 'Fixture' }, features: new Set(['shader-f16']),
+    limits: { maxBufferSize: 2147483648, maxStorageBufferBindingSize: 1073741824, maxStorageBuffersPerShaderStage: 8 }, requestDevice });
+  expect(await inspectNativeAdapter()).toMatchObject({ shaderF16: true, maxBufferSize: 2147483648,
+    maxStorageBufferBindingSize: 1073741824, maxStorageBuffersPerShaderStage: 8 });
+  expect(requestDevice).not.toHaveBeenCalled();
 });

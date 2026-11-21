@@ -7,6 +7,7 @@ import { parseToolCallOutput, toolCallId } from '../shared/infrastructure/tool-c
 /** Text-only HTTP projection of admitted whole-model and partition routes. No model fallback. */
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
+import partitionFailures from '../packages/reploid/src/transport/partition-errors.json' with { type: 'json' };
 
 const STATELESS_THREAD_SALT = randomBytes(16).toString('hex');
 const activeDerivedThreads = new WeakMap();
@@ -32,9 +33,10 @@ export const assert = (ok, message) => { if (!ok) throw fail(502, message); };
 export const object = value => value && typeof value === 'object' && !Array.isArray(value);
 export const freeze = value => { if (object(value) || Array.isArray(value)) { for (const item of Object.values(value)) freeze(item); Object.freeze(value); } return value; };
 const json = (res, status, value) => { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(value)); };
-const errorBody = error => ({ error: { message: error.message, type: error.status < 500 ? 'invalid_request_error' : 'server_error',
+const errorBody = (error, model) => ({ error: { message: error.message, type: error.status < 500 ? 'invalid_request_error' : 'server_error',
   param: error.param || null, code: error.status === 401 ? 'unauthorized' : error.status === 403 ? 'permission_denied'
-    : error.code === 'CONTEXT_LENGTH_EXCEEDED' ? 'context_length_exceeded' : null } });
+    : error.code === 'CONTEXT_LENGTH_EXCEEDED' ? 'context_length_exceeded'
+      : model?.partition && Object.hasOwn(partitionFailures, error.code) ? error.code.toLowerCase() : null } });
 // Protocol adapters borrowing the same requester share its HTTP admission budget.
 // Each adapter still owns only its own request cancellation/settlement.
 const requesterAdmission = new WeakMap();
@@ -178,14 +180,31 @@ export function createTextRequester({ participant, authenticate, authorize, stat
           threadId = derived;
         }
       }
-      const requested = requireGenerationCapability(model, input.generationRequest);
+      let generation = input.generationRequest;
       // Settings are refused here, before execution is authorized or anything is disclosed, when the
       // selected route does not advertise them. A request without settings carries no settings key.
       let settings;
       try {
         settings = normalizeGenerationSettings(input.settings);
+        if (model.partition) {
+          // An ordered stage enforces its native token ceiling. Pin the same ceiling in the
+          // admitted HTTP request, the disclosure preview, and the service-credit quote.
+          const fleetLimit = participant.partitionOutputLimit?.(model);
+          const limit = fleetLimit == null ? undefined : Math.min(fleetLimit, model.generation?.maxTokens ?? fleetLimit);
+          if (model.textGeneration && settings?.maxOutputTokens != null && !settings.tools.length && !settings.outputSchema && settings.thinking === null) {
+            generation = { schema: 'reploid.partition-generation-request/v1', usage: 'raw-model-tokens/v1', maxOutputTokens: settings.maxOutputTokens };
+            settings = undefined;
+          } else if (!generation && limit != null) {
+            generation = { schema: 'reploid.partition-generation-request/v1', usage: 'raw-model-tokens/v1',
+              maxOutputTokens: limit };
+          }
+          if (limit != null && generation?.maxOutputTokens > limit) {
+            throw fail(400, 'Caller output limit exceeds the prepared model or fleet policy', 'maxOutputTokens');
+          }
+        }
         assertSettingsSupported(model.generationSettings, settings);
       } catch (error) { throw fail(400, error.message, error.param ?? null); }
+      const requested = requireGenerationCapability(model, generation);
       const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}),
         ...(settings ? { settings } : {}) });
       // A partition route always observes its input tokens before text. A whole-model provider may
@@ -341,7 +360,7 @@ export function createTextRequester({ participant, authenticate, authorize, stat
       const error = cause instanceof Error ? cause : fail(502, 'Requester failed');
       controller.abort(error);
       if (!res.destroyed && !res.writableEnded) {
-        const body = formatError(error);
+        const body = formatError(error, model);
         if (streaming) output.error(body.error);
         else json(res, error.status || 502, body);
       }

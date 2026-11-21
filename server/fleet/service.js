@@ -5,13 +5,12 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { signAsParticipant, verifyParticipantSignature } from '../../packages/reploid/src/artifacts/participant-proofs.js';
-import { assert, same, text } from './contract.js';
+import { assert, same, text, FLEET_SERVICE_REQUEST_SCHEMA as DOMAIN } from './contract.js';
 import { planFleetPlacement } from './placement.js';
 import { createNativeEarningStorage } from '../native-earning.js';
 import { openFleetCredits } from './credits.js';
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
-const DOMAIN = 'reploid.fleet-service-request/v1';
 
 /** Private to enrolled signers, using TLS outside loopback. */
 export async function startFleetService({ credits, models, placementPolicy, port = 0, listenHost = '127.0.0.1', tls = null,
@@ -19,7 +18,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
   assert(['127.0.0.1', '::1', 'localhost'].includes(listenHost) || tls?.key && tls?.cert,
     'Non-loopback fleet service requires TLS');
   const observations = new Map(), demand = new Map(), links = new Map();
-  const invoke = async (signer, operation, payload) => {
+  const invoke = async (signer, operation, payload, envelope) => {
     const owner = credits.enrollment.byPeer.get(signer);
     assert(owner, 'Unenrolled computer');
     switch (operation) {
@@ -36,6 +35,8 @@ export async function startFleetService({ credits, models, placementPolicy, port
       }
       case 'dispatch':
         return credits.dispatch(payload.id, signer);
+      case 'closeStageOwner': return credits.closeStageOwner(envelope);
+      case 'admitOwnedStage':
       case 'admit': {
         const observation = observations.get(owner.computerId);
         if (observation) assert(observation.preferences.enabled === true
@@ -54,7 +55,10 @@ export async function startFleetService({ credits, models, placementPolicy, port
         }
         else assert(same(request.route, canonicalRouteAttemptBinding(payload.route))
           && request.providers[payload.partitionIndex]?.participantId === signer, 'Stage differs from credit admission');
-        credits.admit(payload.id, request.mode === 'whole-model' ? 0 : payload.partitionIndex);
+        const owned = operation === 'admitOwnedStage';
+        if (owned) assert(request.mode === 'partition' && typeof payload.owner === 'string' && /^[a-f0-9]{64}$/.test(payload.owner),
+          'Exclusive partition stage owner is required');
+        credits.admit(payload.id, request.mode === 'whole-model' ? 0 : payload.partitionIndex, owned ? payload.owner : null);
         return { admitted: true, deadline: request.deadline, maximum: request.maximum };
       }
       case 'preadmit': {
@@ -174,7 +178,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
       const registered = credits.enrollment.byPeer.get(body.participantId);
       assert(registered && await verifyParticipantSignature(registered.publicJwk, DOMAIN, body, signature), 'Invalid fleet request signature');
       // Mutations remain idempotent by reservation/work identity. Observations replace only the sender’s slot.
-      const result = await invoke(body.participantId, body.operation, body.payload);
+      const result = await invoke(body.participantId, body.operation, body.payload, { ...body, signature });
       response.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
       response.end(JSON.stringify({ result }));
     } catch (error) {

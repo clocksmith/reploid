@@ -264,6 +264,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   });
   const acquireFrom = async (peer, source, combined, range, reserveDownload) => {
       const artifact = rangeDescriptor(source, range);
+      if (ports.authorizePeer && !await ports.authorizePeer(peer, combined)) throw new Error('Custody peer identity is not authorized');
+      combined.throwIfAborted();
       const bus = await channelFor(peer, combined);
       const maxExpiresAt = now() + policy.grantMs, requesterCertificate = await ownCertificate();
       const result = await request(peer, source, combined, range, maxExpiresAt, requesterCertificate); combined.throwIfAborted();
@@ -276,6 +278,13 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         || grant.expiresAt > maxExpiresAt) throw new Error('File grant exceeds requested acquisition');
       let store, reservationFailure;
       try {
+        if (ports.authorizeSupplier) {
+          const party = grant.suppliers[0], certificate = result.supplierCertificate;
+          if (!bound(certificate, party) || !await ports.authorizeSupplier(certificate)) {
+            throw new Error('Custody supplier certificate is not authorized');
+          }
+          combined.throwIfAborted();
+        }
         store = await createStore({ authorization: grant, index: result.index, inventories: [result.inventory],
           requesterPrivateKey: identity.privateKey, requestChunk: async (_, message, controls) => {
             // Checkpoint hits never call this port. Reserve every requested chunk,
@@ -357,7 +366,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       revokeSupply(); offered = replacement; supply = true; announce(); notify();
     },
     stopSupply,
-    async acquire(artifact, { signal, range = null, reserveDownload = null, onSupplier = null }) {
+    async acquire(artifact, { signal, range = null, reserveDownload = ports.reserveDownload ?? null, onSupplier = null }) {
       live();
       if (reserveDownload !== null && typeof reserveDownload !== 'function') throw new Error('Invalid acquisition accounting port');
       if (onSupplier !== null && typeof onSupplier !== 'function') throw new Error('Invalid supplier attribution port');

@@ -294,7 +294,8 @@ export function createFleetRequester({
           acknowledged: {
             deltaCount: prior?.acknowledged?.deltaCount ?? 0,
             outputCharacters: prior?.acknowledged?.outputCharacters ?? 0,
-            acknowledgedOutputTokens: extraTokens ?? (completed ? (settlement.outputTokens ?? 0) : (prior?.acknowledged?.acknowledgedOutputTokens ?? 0))
+            acknowledgedOutputTokens: extraTokens ?? (settlement?.reason === 'interrupted-stage-owner' ? settlement.outputTokens : null)
+              ?? (completed ? (settlement.outputTokens ?? 0) : (prior?.acknowledged?.acknowledgedOutputTokens ?? 0))
           },
           settlement,
           maximum: dispatched ? row.binding.maximum : 0,
@@ -318,7 +319,7 @@ export function createFleetRequester({
       }
       if (row.binding.mode === 'partition') {
         const settled = await recoverReservation(reservationId);
-        const outcome = emit(true, settled);
+        const outcome = emit(true, settled, settled?.acknowledgedOutputTokens);
         return { status: typeof settled?.settledAt === 'number' ? (settled.status ?? 'completed') : 'unresolved', serviceCredit: settled, outcome };
       }
       const fenced = await credits.fence(reservationId, identity.peerId);

@@ -6,7 +6,7 @@ import { normalizeParticipantPublicKey } from '../../packages/reploid/src/artifa
 import { assert, same, integer } from './contract.js';
 
 /** Reuse execution signatures; the credit service never treats a completed counter as evidence. */
-export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [] } = {}) {
+export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [] } = {}) {
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
     && at <= Math.min(now, request.deadline) + skew;
   if (request.mode === 'whole-model') {
@@ -48,10 +48,18 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   const proof = await verifyPartitionComponents(request, evidence, enrollment, now, skew);
   const { receipts, acknowledgment, acknowledgedReceipt } = proof;
   assert(acknowledgment, 'Matching requester acknowledgment required');
-  const workIds = [];
+  const workIds = [], interruptedStages = [];
   for (let index = 0; index < request.providers.length; index++) {
     const receipt = receipts.find(row => row.partitionIndex === index);
     if (!receipt && unadmitted.includes(index) && acknowledgment.count === 0) continue;
+    const exit = interrupted.find(row => row.stage === index);
+    if (exit && (!receipt || receipt.status === 'executing') && evidence.interruptedOwners?.some(claim => same(claim, exit.closure))) {
+      assert((exit.closure.payload.receipt?.steps ?? 0) >= acknowledgment.count && (receipt?.steps ?? 0) >= acknowledgment.count,
+        'Last signed step is behind the acknowledged output');
+      interruptedStages.push(index);
+      workIds.push(`stage:${request.providers[index].participantId}:${request.id}:${request.executionId}:${index}`);
+      continue;
+    }
     assert(receipt && ['settled', 'failed'].includes(receipt.status) && receipt.timing.closedAt !== null
       && receipt.steps >= acknowledgment.count, 'Settled stage receipt does not match the acknowledged work');
     workIds.push(`stage:${receipt.participantId}:${receipt.reservationId}:${receipt.attemptId}:${index}`);
@@ -61,7 +69,8 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
     assert(final?.output?.count === acknowledgment.count && final.output.chain === acknowledgment.chain,
       'Final output differs from requester acknowledgment');
   }
-  return { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, workIds };
+  return { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, workIds,
+    ...(interruptedStages.length ? { interruptedStages } : {}) };
 }
 
 /** Validate independently submitted pieces before retaining them. A signed failure is a closing

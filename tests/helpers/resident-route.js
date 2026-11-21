@@ -7,6 +7,7 @@
 // Proves orchestration, admission and settlement records, not GPU execution or model quality.
 import * as codecs from 'dopplerx/partitions';
 
+import { TEXT_GENERATION_CAPABILITY, tokenUsage } from '../../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 import { canonicalPartitionRoute } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
@@ -128,7 +129,7 @@ export async function residentRoute({ participants, requesterId, signers = [], s
   });
   const grant = { id: 'grant' };
   const model = {
-    id: MODEL.modelId, identity: MODEL.modelIdentity, generation: { maxTokens: steps }, name: 'Resident route fixture', provider: 'doppler', availability: 'ready',
+    id: MODEL.modelId, identity: MODEL.modelIdentity, generation: { maxTokens: steps }, textGeneration: TEXT_GENERATION_CAPABILITY, name: 'Resident route fixture', provider: 'doppler', availability: 'ready',
     partition: { schema: 'reploid.partition-selection/v2', planId: MODEL.planId, coordinatorId: route.stages[0].participantId, route }
   };
   FIXTURE_ROUTE_APPROVALS.push({ modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
@@ -143,15 +144,18 @@ export async function residentRoute({ participants, requesterId, signers = [], s
         id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId, operation: 'generate-partition',
         peerId: coordinator, recipientIdentity: coordinator, ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity,
         adapterIdentities: [], disclosure, expiresAt: Date.now() + 60_000, executionTimeoutMs: 60_000,
-        input: { messages: structuredClone(request.messages), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] }
+        input: { messages: structuredClone(request.messages), ...(request.generationRequest ? { generationRequest: request.generationRequest } : {}), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] }
       });
       controls.signal?.throwIfAborted();
       if (approved !== true) throw new Error('Ordered disclosure declined or expired');
       controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing', execution: { placement: 'ordered-layer-partition', identity } });
       let sequence = 0;
       const maxTokens = Math.min(steps, request.generationRequest?.maxOutputTokens ?? steps);
+      const tokenIds = [1, 2];
+      if (request.generationRequest) controls.onUsage?.({ threadId: request.threadId, attemptId: request.attemptId,
+        ...tokenUsage(tokenIds.length, 0, request.generationRequest) });
       const result = await runner.execute({
-        identity, tokenIds: [1, 2], generation: { maxTokens }, maxTokens, signal: controls.signal,
+        identity, tokenIds, generation: { maxTokens }, maxTokens, signal: controls.signal,
         deadlineAt: controls.authorizationExpiresAt?.() ?? null,
         // The requester's charge binding and acknowledgment port, as the coordinator's ordered chat forwards them.
         ...(controls.charge ? { charge: controls.charge, acknowledgmentDeadlineAt: Date.now() + acknowledgmentWaitMs,
@@ -160,9 +164,11 @@ export async function residentRoute({ participants, requesterId, signers = [], s
         onActivity: (activity) => controls.onActivity?.({ threadId: request.threadId, attemptId: request.attemptId, ...activity }),
         onDelta: (text) => controls.onDelta?.({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text })
       });
+      const execution = summarizePartitionExecution(result.execution);
       return {
+        ...(request.generationRequest ? { usage: tokenUsage(tokenIds.length, execution.stepSummary.count, request.generationRequest) } : {}),
         threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
-        content: result.content, execution: { ...summarizePartitionExecution(result.execution), provider: 'peer' }
+        content: result.content, execution: { ...execution, provider: 'peer' }
       };
     }
   };

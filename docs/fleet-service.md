@@ -55,11 +55,37 @@ Unacknowledged work is not billed. A signed `failed` receipt proves cleanup only
 with its closing timestamp; it does not turn a failed answer into a completed one.
 Equivalent verified re-signatures retain the original economic outcome.
 
+For a fenced partition request, `POST /v1/reploid/recover` returns
+`serviceCredit.awaitingStages` while settlement is pending. Its zero-based
+indices identify stages from the accepted route whose closing evidence is
+still required. `heldCredits` is the outstanding reservation, and
+`acknowledgedOutputTokens` is the durably signed count. A null count means
+the ledger is waiting for the requester’s acknowledgment. Zero means the
+requester signed the empty prefix. Recovery reads those facts across restarts.
+
 For whole-model cancellation or failure, the provider retains and submits
 `reploid.generation-terminal/v1` only after its execution owner confirms cleanup.
 Usage remains unknown. Setting `creditPolicy.wholeModelTerminalCharge` to `0`
 accepts zero non-cash terminal charge, frozen into each reservation; omission
 keeps the hold pending. This does not change purchased-credit accounting.
+
+A credited native ordered stage and its fleet service now bind each admission to an exclusive process owner.
+The stage keeps an owner-only SQLite journal beside its identity file. It commits each signed step receipt before
+returning the step. The requester already records its signed output acknowledgments at the service. These writes
+are part of the serving cost. A retained signed terminal is replayed if its original delivery was interrupted.
+
+On restart with the same profile, the stage reacquires the exclusive filesystem lock and checks the previous
+process lifetime before reporting an interrupted owner to the service. On Linux the check uses the boot,
+PID namespace and process start time. A copied journal, a live predecessor, or an ambiguous PID namespace
+cannot close the admission. This lifecycle report carries the last signed step when one exists. The service
+still requires the requester’s signed output count and all other stages’ closing evidence. It charges only
+the acknowledged prefix and returns `failed` with reason `interrupted-stage-owner` for an interrupted
+execution. `POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
+Unpublished work, physical GPU recovery and output text beyond the acknowledged prefix remain unknown.
+
+Both the service and the stage need the owned-admission operation. Legacy stages still use their existing
+admission protocol. Historical holds without a matching owner claim remain unresolved if a stage signature
+is missing. Use a private local filesystem with SQLite locking for the journal and retain it across restarts.
 
 A whole-model provider that admitted a request and then never returns leaves
 the requester's hold open: no timeout asserts remote cleanup. Setting
@@ -157,7 +183,11 @@ Host configuration uses schema `reploid.fleet-native/v1`, explicit `computerId`,
 `serviceUrl`, `maxOutputTokens` and `models`. Each model entry supplies the exact
 catalog `model`, local artifact `directory`, `mode`, and, for ordered shards,
 `ordered` stage configuration. Doppler's public partition API owns the layer plan.
-The model manifest digest is checked before preparation.
+The model manifest digest is checked before preparation. For a private LAN whose
+peers can reach one another directly, set `hostCandidatesOnly: true` to use
+WebRTC host candidates with an empty ICE server list. Configure the private
+signaling URL separately. A pair behind incompatible NATs may fail to connect
+with this setting.
 
 `observationFile`, `auto: true` and `pollMs` enable reconciliation. `daemon: true`
 keeps the host running after standard input closes. `initialModel` and
@@ -315,3 +345,26 @@ identities against the coordinator's enrolled computers (and optional
 `allowedRecipients`), and reserves and settles non-cash service credits before
 publishing `reploid.http-execution/v1`. Signing keys and room tokens remain on
 the native host.
+
+
+To serve a qualified split through this API, put an array of operator-reviewed
+records in `textApi.privatePartitionApprovals`. Each record uses the same fields
+as a [partition release](partition-releases.md): `modelId`, `modelIdentity`,
+`adapterIdentities`, the complete ordered `partition` descriptor, and an
+`evidence` reference. Review the exact plan and signed participant, transport,
+resident and execution identities on each stage. Configure the matching plan
+and stage credit weights on the fleet service. All stage providers must be
+enrolled and, when specified, included in `allowedRecipients`.
+
+The private API lists the approved route in `GET /v1/models` while it is ready
+or busy. Submit the listed ID to `POST /v1/chat/completions` with `messages`
+and optional `stream` and `max_completion_tokens`. A bare base model ID
+continues to prefer available whole-model providers. Approval is local to the
+configured fleet host and is checked again before dispatch. A changed stage
+requires a new review. Public route approval is managed separately.
+
+For a split interrupted by a provider disconnect, the Chat Completions and
+Responses APIs return the `connection_lost` error code, including when a stream
+has already emitted tokens. Keep the `x-reploid-reservation-id` for recovery.
+Partial output may already be acknowledged; the ledger can hold a reservation
+while it waits for missing stage evidence.

@@ -4,7 +4,7 @@ import { effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerat
 import { assert, same } from './contract.js';
 
 /** Provider-side enforcement: skipping credit admission cannot obtain credited service. */
-export function createFleetExecutionAdmission({ credits, model }) {
+export function createFleetExecutionAdmission({ credits, model, stageOwner = null }) {
   const exact = { id: model.id, identity: model.identity, adapterIdentities: partitionAdapterIdentities(model) };
   const outputLimit = model.generation?.maxTokens;
   assert(Number.isSafeInteger(outputLimit) && outputLimit > 0, 'Credited providers need an explicit output bound');
@@ -54,11 +54,14 @@ export function createFleetExecutionAdmission({ credits, model }) {
     },
     async partition(request) {
       assert(request.charge?.reservationId && request.identity?.requesterId, 'Credited stage requires signed admission');
-      await credits.call('admit', { id: request.charge.reservationId, executionId: request.identity.attemptId,
+      const payload = { id: request.charge.reservationId, executionId: request.identity.attemptId,
         consumer: request.identity.requesterId, mode: 'partition', model: exact, route: request.identity,
-        partitionIndex: request.partitionIndex, outputLimit: request.maxTokens });
+        partitionIndex: request.partitionIndex, outputLimit: request.maxTokens };
+      if (stageOwner) await stageOwner.admit(credits, payload);
+      else await credits.call('admit', payload);
     },
-    partitionReceipt(bundle) { return credits.collect(bundle.reservationId, bundle); },
+    ...(stageOwner ? { checkpoint: (request, index, receipt) => stageOwner.checkpoint(request, index, receipt) } : {}),
+    partitionReceipt(bundle) { return stageOwner ? stageOwner.finish(credits, bundle) : credits.collect(bundle.reservationId, bundle); },
     terminal(terminal) {
       return credits.collect(`service:${terminal.consumer}:${terminal.requestId}`, { terminal });
     },
@@ -67,4 +70,19 @@ export function createFleetExecutionAdmission({ credits, model }) {
       return credits.settle(`service:${receipt.consumer}:${receipt.jobHash.slice(8)}`, receipt);
     }
   });
+}
+
+/** Keep released step results behind the durable signed evidence write on a credited native stage. */
+export function bindFleetStageAdmission(resident, admission, index) {
+  return { ...resident,
+    async reserve(request) {
+      await admission.partition({ ...request, partitionIndex: index });
+      return resident.reserve(request);
+    },
+    ...(admission.checkpoint ? { async executeStage(input) {
+      const result = await resident.executeStage(input);
+      admission.checkpoint(input, index, result.receipt);
+      return result;
+    } } : {})
+  };
 }

@@ -189,7 +189,7 @@ export function createResponses(options) {
           event(status === 'completed' ? 'response.completed' : 'response.incomplete', { response: final });
           end();
         },
-        error(error) { end(frame('error', { code: 'server_error', message: String(error.message).slice(0, 1024), param: error.param })); }
+        error(error) { end(frame('error', { code: error.code || 'server_error', message: String(error.message).slice(0, 1024), param: error.param })); }
       };
     }
   });
