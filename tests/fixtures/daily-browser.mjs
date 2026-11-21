@@ -35,7 +35,8 @@ try {
     return page;
   };
   const login = async (page,email) => {
-    await page.getByLabel('Sign in for your three daily tries').fill(email);
+    await page.getByRole('button',{name:'Sign in',exact:true}).click();
+    await page.getByLabel('Email to play').fill(email);
     await page.getByRole('button',{name:'Send code'}).click();
     await page.getByLabel('Email code').fill('123456');
     await page.getByRole('button',{name:'Verify code'}).click();
@@ -43,16 +44,22 @@ try {
   };
   const play = async (page,prompt) => {
     await page.getByLabel('Your prompt').fill(prompt);
+    const response = page.waitForResponse(r => r.url() === origin + '/api/attempt' && r.request().method() === 'POST');
     await page.getByRole('button',{name:'Submit prompt'}).click();
-    await expect(page.locator('#history .attempt').last()).toContainText(prompt);
+    assert.equal((await (await response).json()).attempt.prompt,prompt);
+    await expect(page.locator('#history .attempt')).toContainText('Blue!');
   };
   const share = async (page,allowReveal = false) => {
     const row = page.locator('#history .attempt').last();
-    if (allowReveal) await row.getByRole('checkbox').check();
     await row.getByRole('button',{name:'Share this win'}).click();
-    const field = row.getByLabel('Dare link with the circle invitation');
+    const sheet = page.locator('#share-sheet');
+    if (allowReveal) await sheet.getByRole('checkbox').check();
+    await sheet.getByRole('button',{name:'Get dare link'}).click();
+    const field = sheet.getByLabel('Dare link with the circle invitation');
     await expect(field).toBeVisible();
-    return field.inputValue();
+    const url = await field.inputValue();
+    await sheet.getByRole('button',{name:'Close'}).click();
+    return url;
   };
   const entry = origin + '/#invite=' + grant.token;
   const alice = await open(entry);
@@ -60,9 +67,10 @@ try {
   await play(alice,'Color of sky');
   const first = await share(alice);
   const bob = await open(first,390);
-  await expect(bob.locator('#dare-score')).toContainText('Reploid Daily #20261121 · Got it in 3 words · 1/3 tries');
+  await expect(bob.locator('#dare-score')).toHaveText('Beat 3 words.');
   await bob.getByText('View recorded answer').click();
   await expect(bob.locator('#dare-output')).toHaveText('Blue!');
+  await bob.locator('#replay').getByRole('button',{name:'Close'}).click();
   assert.equal(runs,1);
   assert(!await bob.content().then(html => html.includes('Color of sky')));
   await login(bob,'b@example.test'); await play(bob,'Ocean hue');
@@ -92,6 +100,8 @@ try {
   await expect(full.locator('#yesterday')).toContainText('Sky');
   await expect(full.locator('#dare-score')).toContainText('Played on 2026-11-21');
   await third.reload();
+  await third.getByRole('button',{name:'Scores'}).click();
+  await third.getByText('Yesterday’s winners',{exact:true}).click();
   await third.getByRole('button',{name:'Withdraw my prompt: Sky'}).click();
   await expect(third.locator('#yesterday')).toHaveText('No reviewed winning prompts to show.');
   await full.reload();

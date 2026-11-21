@@ -1,69 +1,29 @@
 // Private operator tooling. No network service, provider enrollment, or production publication.
-import { createHash, createPrivateKey, sign } from 'node:crypto';
-import { createReadStream } from 'node:fs';
-import { readFile, realpath, writeFile } from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createPrivateKey, sign } from 'node:crypto';
+import { readFile, writeFile } from 'node:fs/promises';
 import { canonicalize } from '../packages/reploid/src/artifacts/canonical-json.js';
-import { createNativeWholeModel } from '../server/native-whole-model.js';
-import { createNativeGpuHost } from '../server/native-gpu-host.js';
-import { createReploidDopplerRuntimeService } from '../shared/infrastructure/doppler-runtime-service.js';
-import { REVERSE_PROMPT_GENERATION, hasReversePromptTemplate } from '../shared/infrastructure/reverse-prompt-profile.js';
-import { readWorkGenerationCompletion } from '../shared/infrastructure/generation-completion.js';
-import { verifyInstalledPackage } from '../tests/fixtures/installed-package-identity.js';
 import { PROFILE, RULE_VERSION, judgePrompt } from '../server/daily/rules.js';
 import { CALENDAR_SCHEMA, QUALIFICATION_SCHEMA } from '../server/daily/challenges.js';
+import { openDailyPhysical } from '../server/daily/local-doppler.js';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
 const readJson = async file => JSON.parse(await readFile(file, 'utf8'));
 const write = (file, value) => writeFile(file, JSON.stringify(value) + '\n', {flag:'wx', mode:0o600});
-async function fileHash(file) {
-  const hash = createHash('sha256');
-  for await (const chunk of createReadStream(file)) hash.update(chunk);
-  return hash.digest('hex');
-}
-
 async function measure(directory, bankFile, provider, destination, key) {
   const providerId = provider === '-' ? null : provider;
   if (providerId !== null && !/^peer:[a-f0-9]{24}$/.test(providerId)) throw Error('Expected an enrolled provider identity, or - for reference hardware');
-  const archive = path.join(root,'deploy/artifacts/dopplerx-0.1.5.tgz');
-  await verifyInstalledPackage({packageArchive:{path:archive, sha256:PROFILE.runtimeArchive},
-    installedPackage:path.join(root,'node_modules','dopplerx')});
-  const model = (await readJson(path.join(root,'shared/config/chat-models.json'))).find(item => item.id === PROFILE.modelId);
-  const modelDirectory = await realpath(directory);
-  const manifestFile = path.join(modelDirectory,'manifest.json');
-  const manifest = await readJson(manifestFile);
-  if ('sha256:' + await fileHash(manifestFile) !== PROFILE.modelIdentity || !hasReversePromptTemplate(manifest)) throw Error('Pinned manifest or non-thinking chat template missing');
-  const tokenizer = model.source.files.find(entry => entry.role === 'tokenizer');
-  if (!tokenizer || await fileHash(path.join(modelDirectory,tokenizer.path)) !== tokenizer.hash) throw Error('Pinned tokenizer bytes required');
-  for (const shard of manifest.shards) {
-    if (await fileHash(path.join(modelDirectory, shard.filename)) !== shard.hash) throw Error('Invalid model shard digest');
-  }
   const bank = await readJson(bankFile);
-  const nativeBackend = process.platform === 'darwin' ? 'metal' : 'vulkan';
-  const gpu = createNativeGpuHost(() => import('webgpu'), {backend:nativeBackend});
-  const service = createReploidDopplerRuntimeService({loadModule: () => import('dopplerx/compat')});
-  let session;
-  const measuredService = {...service, async open(options) { session = await service.open(options); return session; }};
-  const whole = createNativeWholeModel({model, modelDirectory, service:measuredService, nativeGpu: () => gpu.open()});
+  const physical = await openDailyPhysical(directory);
   const attempts = [];
   try {
-    if (!(await whole.contribute(true)).ready) throw Error('Model failed to open');
     for (const {target, prompts} of bank) {
       for (const candidate of prompts) {
         let prompt;
         try { prompt = judgePrompt(candidate,target).prompt; } catch { continue; }
-        await session.resetGenerationState();
-        const result = await session.generate([{role:'system',content:PROFILE.system},{role:'user',content:prompt}], REVERSE_PROMPT_GENERATION);
-        const evidence = result.evidence;
-        if (result.outputText !== evidence?.transcript?.outputText) throw Error('Visible text differs from the generation transcript');
-        const {schema,transcript,transcriptHash,runtimeProfile,runtimeProfileHash,generationConfig,generationConfigHash,backendIdentity,backendIdentityHash} = evidence;
-        attempts.push({target, prompt, completion:readWorkGenerationCompletion(result), reusedPrefixTokens:evidence.stats?.reusedPrefixTokens,
-          evidence:{schema,transcript,transcriptHash,runtimeProfile,runtimeProfileHash,generationConfig,generationConfigHash,backendIdentity,backendIdentityHash}});
+        attempts.push({target, prompt, ...await physical.measure(prompt)});
       }
     }
-  } finally { try { await whole.close(); } finally { await gpu.close(); } }
-  const report = {schema:QUALIFICATION_SCHEMA,profile:PROFILE,ruleVersion:RULE_VERSION,providerId,nativeBackend,attempts};
+  } finally { await physical.close(); }
+  const report = {schema:QUALIFICATION_SCHEMA,profile:PROFILE,ruleVersion:RULE_VERSION,providerId,nativeBackend:physical.nativeBackend,attempts};
   await write(destination, key ? await signed(report,key) : report);
 }
 async function signed(body, keyFile) {

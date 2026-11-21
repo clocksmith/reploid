@@ -170,7 +170,7 @@ export default [
       'no-dupe-keys': 'error', 'no-constant-binary-expression': 'error', 'valid-typeof': 'error' }
   },
   { files: ['self/**/*.js', 'shared/**/*.js', 'apps/poolday/**/*.js', 'examples/library-consumer/**/*.js',
-    'docs/diagrams/reploid-diagram/source/**'], ignores: workerFiles, languageOptions: { globals: globals.browser } },
+    'docs/diagrams/reploid-diagram/source/**', 'server/daily/site/**/*.js'], ignores: workerFiles, languageOptions: { globals: globals.browser } },
   // Ownership boundaries for static imports; scripts/verify-browser-boundaries.js checks every reference form.
   { files: ['self/**/*.js'], rules: { 'no-restricted-imports': ['error', { patterns: [
     { group: ['**/apps/poolday/**'], message: 'The substrate does not load Poolday product code.' }] }] } },
@@ -192,7 +192,7 @@ export default [
     'packages/functions/**/*.js', '.github/actions/**/*.js',
     'docs/diagrams/reploid-diagram/{build,server}.mjs',
     'docs/diagrams/reploid-diagram/test/**/*.mjs', 'docs/status/**/verify.js',
-    'reports/local/**/native-control.js'],
+    'reports/local/**/native-control.js'], ignores: ['server/daily/site/**'],
     languageOptions: { globals: globals.node } },
   { files: browserHarnesses, languageOptions: { globals: globals.browser } },
   { files: ['scripts/verify-gpu-startup.js'],
