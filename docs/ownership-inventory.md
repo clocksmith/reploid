@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 383 |
+| apps/poolday | 385 |
 | self | 457 |
 | shared | 2496 |
-| total | 3336 |
+| total | 3338 |
 
 Every file lives in its owner's root.
 
@@ -414,6 +414,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/chat-remote-permission.js` | `apps/poolday/host/chat-remote-permission.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-session.js` | `apps/poolday/host/chat-session.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-view.js` | `apps/poolday/host/chat-view.js` | apps/poolday | Reached only from product entries. |
+| `host/circle-invites.js` | `apps/poolday/host/circle-invites.js` | apps/poolday | Reached only from product entries. |
 | `host/computer-preferences.js` | `apps/poolday/host/computer-preferences.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `apps/poolday/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-resume.js` | `apps/poolday/host/contribution-resume.js` | apps/poolday | Reached only from product entries. |
@@ -826,6 +827,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/app.bundle.js` | `apps/poolday/ui/pool-home/app.bundle.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/capability-controls.js` | `apps/poolday/ui/pool-home/capability-controls.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/circle-invites-view.js` | `apps/poolday/ui/pool-home/circle-invites-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-labels.js` | `apps/poolday/ui/pool-home/computer-labels.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-preferences-view.js` | `apps/poolday/ui/pool-home/computer-preferences-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/constants.js` | `apps/poolday/ui/pool-home/constants.js` | apps/poolday | Reached only from product entries. |

@@ -1,4 +1,5 @@
 import { createPrivateComputers } from './private-computers.js';
+import { createCircleInviteOwner } from './circle-invites.js';
 import { projectComputerUsage } from './contribution-history.js';
 import { availablePartitionRoute } from './partition-release.js';
 /**
@@ -92,11 +93,13 @@ export function createChatSession({
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
   privateComputers = null,
+  getCircleOwnerRequest = () => null,
   // Reads declared adapter evaluation files; only verified passing receipts label an adapter evaluated.
   fetchEvidence = globalThis.fetch?.bind(globalThis),
   now = Date.now,
   id = () => crypto.randomUUID()
 } = {}) {
+  let ownerRequest, inviteControls;
   const store = canonicalHistory || {
     load() {
       try {
@@ -472,6 +475,14 @@ export function createChatSession({
     },
     getModelDownload,
     privateComputers: fleet,
+    get circleInvites() {
+      const current = getCircleOwnerRequest();
+      if (current !== ownerRequest) {
+        ownerRequest = current;
+        inviteControls = current ? createCircleInviteOwner({ request: current }) : null;
+      }
+      return inviteControls;
+    },
     getDraft: drafts.get,
     saveDraft(threadId, value) { assertOpen(); return drafts.save(threadId, value); },
     getDocumentSources: comparisonSources,

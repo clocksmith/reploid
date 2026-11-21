@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { openCircleInvites } from '../../server/circles/invites.js';
+import { handleCircleInviteOwnerCommand } from '../../server/circles/owner-invites.js';
 
 const HOST = 'peer:owner-desktop';
 const GUEST = 'peer:guest-phone';
@@ -70,5 +71,17 @@ describe('single-host invites', () => {
     invites.close();
     invites = await open(HOST);
     expect(invites.lookup(bind(first))).toBeNull();
+  });
+
+  it('authorizes owner controls from the authenticated channel identity only', async () => {
+    const authenticatePeer = async peer => ({ 'owner-channel': 'peer:paired-owner', 'guest-channel': GUEST })[peer];
+    const ownerPairing = { isOwner: identity => identity === 'peer:paired-owner' };
+    const run = (peerId, command) => handleCircleInviteOwnerCommand({ invites, ownerPairing, authenticatePeer, peerId, command });
+    const payload = { op: 'circle-invites.issue', expiresAt: time + 500, maxRequests: 2, maxOutputTokens: 24 };
+    await expect(run('guest-channel', { ...payload, ownerPeerId: 'peer:paired-owner' })).rejects.toThrow('Only a paired owner');
+    const created = await run('owner-channel', payload);
+    await expect(run('owner-channel', { op: 'circle-invites.list' })).resolves.toMatchObject([{ inviteId: created.inviteId }]);
+    await expect(run('guest-channel', { op: 'circle-invites.revoke', inviteId: created.inviteId })).rejects.toThrow('Only a paired owner');
+    await expect(run('owner-channel', { op: 'circle-invites.revoke', inviteId: created.inviteId })).resolves.toMatchObject({ status: 'revoked' });
   });
 });

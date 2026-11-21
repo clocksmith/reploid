@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 383,
+    "apps/poolday": 385,
     "self": 457,
     "shared": 2496
   },
@@ -2283,6 +2283,12 @@
     {
       "served": "host/chat-view.js",
       "source": "apps/poolday/host/chat-view.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/circle-invites.js",
+      "source": "apps/poolday/host/circle-invites.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4755,6 +4761,12 @@
     {
       "served": "ui/pool-home/capability-controls.js",
       "source": "apps/poolday/ui/pool-home/capability-controls.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/circle-invites-view.js",
+      "source": "apps/poolday/ui/pool-home/circle-invites-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
