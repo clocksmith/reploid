@@ -23,7 +23,8 @@ export function registerJobRoutes(router, {
   store,
   asyncRoute,
   requireBoundAnyRole,
-  recoverHostedAssignments
+  recoverHostedAssignments,
+  allowPlaintextJobPrompts = true
 } = {}) {
   if (!router) throw new Error('job routes require an Express router');
   for (const [name, value] of Object.entries({ asyncRoute, requireBoundAnyRole, recoverHostedAssignments })) {
@@ -32,7 +33,13 @@ export function registerJobRoutes(router, {
 
   router.post('/jobs', asyncRoute(async (req, res) => {
     await recoverHostedAssignments({ store });
-    const validation = validateJobRequest(req.body || {});
+    const body = req.body || {};
+    if (!allowPlaintextJobPrompts && (body.inputKind !== 'sequence' || (body.prompt !== undefined && body.prompt !== null && body.prompt !== ''))) {
+      return res.status(400).json({
+        error: 'plaintext coordinator job prompts are disabled; deliver inputs peer-to-peer and submit sequence inputHash only'
+      });
+    }
+    const validation = validateJobRequest(body);
     if (!validation.ok) return res.status(400).json({ error: 'invalid job request', reasons: validation.reasons });
     if (!requireBoundAnyRole(req, res, ['requester', 'agent'], req.body.requesterId)) return null;
     const requesterRole = req.body.identityProof?.role || 'requester';
