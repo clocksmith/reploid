@@ -156,6 +156,9 @@ export async function openCircleInvites({ file, hostPeerId, hostLabel = hostPeer
       const at = now(), row = findLive(scope, at);
       return row ? view(row, at) : null;
     },
+    hasRequest({ guestPeerId, requestId }) {
+      return validId(guestPeerId) && validId(requestId) && !!selectRequest.get(guestPeerId, requestId);
+    },
     admit({ inviteId, guestPeerId, hostPeerId: target, requestId, maxOutputTokens }) {
       if (!validId(requestId) || !bounded(maxOutputTokens, 32768)) return null;
       return transaction(() => {

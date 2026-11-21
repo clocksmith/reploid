@@ -16,8 +16,7 @@ export function createCircleHttpGrants({ invites, admission, ownerPairing, grant
     if (unused.get(entry.token) !== entry) return;
     detach(entry);
     entry.abort.abort(reason);
-    try { entry.lease.settle({ outcome: 'stopped', outputTokens: 0, modelWeightBytes: 0 }); }
-    finally { entry.lease.release(); }
+    entry.lease.release();
   }
   function check(entry) {
     entry.abort.signal.throwIfAborted();
@@ -37,7 +36,7 @@ export function createCircleHttpGrants({ invites, admission, ownerPairing, grant
   return {
     issue(lease, peerId, metadata) {
       const token = randomBytes(32).toString('base64url');
-      const expiresAt = Math.min(now()+grantTtlMs, lease.grant?.expiresAt ?? Infinity);
+      const expiresAt = Math.min(now()+grantTtlMs, lease.expiresAt ?? Infinity);
       const entry = {token,lease,peerId,metadata,expiresAt,reading:false,abort:new AbortController()};
       entry.onStopped = () => abandon(entry,reject('CIRCLE_REVOKED','The prompt admission was withdrawn'));
       entry.timer = setTimeout(() => abandon(entry), Math.max(0,expiresAt-now()));
@@ -63,6 +62,7 @@ export function createCircleHttpGrants({ invites, admission, ownerPairing, grant
     dispatch(entry) {
       check(entry);
       if (!entry.reading || unused.get(entry.token) !== entry) throw reject('CIRCLE_GRANT_USED','This grant is no longer available');
+      entry.lease.beginDisclosure();
       // The executor now owns settlement. Its configured in-flight revocation policy applies.
       detach(entry);
     },

@@ -260,7 +260,7 @@ export function createCirclePublicGateway({
         const {hostPeerId,...metadata} = body;
         // acquire rejects every unknown property (including a prompt). Only these
         // metadata bytes travel to the host while the normal caller waits in queue.
-        const lease = await admission.acquire(metadata,{authenticatedPeerId:peerId,signal});
+        const lease = await admission.acquire(metadata,{authenticatedPeerId:peerId,signal,deferDisclosure:true});
         entry = grants.issue(lease,peerId,metadata);
         ownsEntry = true;
         signal.throwIfAborted();

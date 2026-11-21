@@ -61,6 +61,10 @@ export function createCircleAdmission({
     }
     for (const active of activeLeases.values()) {
       if (active.inviteId !== inviteId) continue;
+      if (!active.disclosed) {
+        active.streamAbort.abort(fail('CIRCLE_REVOKED', 'Invite access was revoked before dispatch'));
+        continue;
+      }
       active.revokedWhileStreaming = true;
       if (onRevokeInFlight === 'stop') {
         active.streamAbort.abort(fail('CIRCLE_REVOKED', 'Invite access was revoked during streaming'));
@@ -103,7 +107,7 @@ export function createCircleAdmission({
 
   return Object.freeze({
     /** The caller obtains authenticatedPeerId from the verified transport, never the request body. */
-    async acquire(request, { authenticatedPeerId, signal, onAdmission = () => {} }) {
+    async acquire(request, { authenticatedPeerId, signal, deferDisclosure = false, onAdmission = () => {} }) {
       if (closed) throw fail('CIRCLE_CLOSED', 'This computer has stopped serving', { state: 'offline', fallback: ['replay', 'host-your-own'] });
       signal?.throwIfAborted();
       if (!request || !Object.keys(request).every(key => fields.includes(key)) || !identity(authenticatedPeerId)
@@ -169,16 +173,14 @@ export function createCircleAdmission({
         waitingSignal.throwIfAborted();
         if (!isReady()) throw fail('CIRCLE_OFFLINE', 'The invited computer is unavailable', { state: 'offline', fallback: ['replay', 'host-your-own'] });
         if (owner && isOwner(authenticatedPeerId) !== true) throw fail('CIRCLE_OWNER', 'Owner access was withdrawn');
-        let admittedGrant = null;
-        if (!owner) {
-          const admitted = invites.admit({ ...binding, requestId, maxOutputTokens });
-          if (admitted?.status !== 'admitted') {
-            throw fail('CIRCLE_INVITE', 'Invite access was exhausted, expired, withdrawn, or already used', { fallback: ['replay', 'host-your-own'] });
-          }
-          admittedGrant = admitted.grant;
+        // This single-host scheduler has one active slot. Holding it reserves the
+        // last allowance provisionally, without writing a request or spending quota.
+        const releaseGrant = !owner ? invites.lookup(binding) : null;
+        if (!owner && (!releaseGrant || releaseGrant.expiresAt <= now()
+          || releaseGrant.maxOutputTokens < maxOutputTokens || releaseGrant.usedRequests >= releaseGrant.maxRequests
+          || invites.hasRequest?.({ guestPeerId: authenticatedPeerId, requestId }))) {
+          throw fail('CIRCLE_INVITE', 'Invite changed or request already used while queued', { fallback: ['replay', 'host-your-own'] });
         }
-        slot.markDisclosed(hostPeerId);
-
         const streamAbort = new AbortController();
         const activeRecord = {
           attemptId,
@@ -190,9 +192,30 @@ export function createCircleAdmission({
           streamAbort,
           revokedWhileStreaming: false,
           settledReceipt: null,
-          released: false
+          released: false,
+          disclosed: false
         };
         activeLeases.set(attemptId, activeRecord);
+
+        let admittedGrant = null;
+        function beginDisclosure() {
+          if (closed || activeRecord.released || activeRecord.disclosed || !isReady()) {
+            throw fail('CIRCLE_CLOSED', 'Disclosure lease is no longer available');
+          }
+          signal?.throwIfAborted();
+          streamAbort.signal.throwIfAborted();
+          if (owner && isOwner(authenticatedPeerId) !== true) throw fail('CIRCLE_OWNER', 'Owner access was withdrawn');
+          if (!owner) {
+            const admitted = invites.admit({ ...binding, requestId, maxOutputTokens });
+            if (admitted?.status !== 'admitted') throw fail('CIRCLE_INVITE', 'Invite access was exhausted, expired, withdrawn, or already used');
+            admittedGrant = admitted.grant;
+          }
+          slot.markDisclosed(hostPeerId);
+          activeRecord.disclosed = true;
+        }
+        if (!deferDisclosure) {
+          try { beginDisclosure(); } catch (error) { release(); throw error; }
+        }
 
         function buildReceipt({ outcome, outputTokens = 0, modelWeightBytes = 0, settledAt = now() }) {
           return Object.freeze({
@@ -214,6 +237,7 @@ export function createCircleAdmission({
         }
 
         function settle({ outcome = 'completed', outputTokens = 0, modelWeightBytes = 0 } = {}) {
+          if (!activeRecord.disclosed) throw fail('CIRCLE_SETTLE', 'An undispatched lease cannot settle');
           if (activeRecord.settledReceipt) {
             return { settled: false, alreadySettled: true, receipt: activeRecord.settledReceipt };
           }
@@ -254,7 +278,9 @@ export function createCircleAdmission({
           role,
           inviteId: activeRecord.inviteId,
           conversationId,
-          grant: admittedGrant,
+          get grant() { return admittedGrant; },
+          expiresAt: releaseGrant?.expiresAt ?? null,
+          beginDisclosure,
           disclosure,
           queuedMs: slot.queuedMs,
           onRevokeInFlight,

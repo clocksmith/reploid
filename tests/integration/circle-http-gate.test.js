@@ -162,8 +162,8 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     expect(disclosedPrompts).toEqual(['hello friend']);
   });
 
-  function newGuest(expiresAt = now()+60_000) {
-    const issued = invites.issue({expiresAt,maxRequests:12,maxOutputTokens:32});
+  function newGuest(expiresAt = now()+60_000, maxRequests = 12) {
+    const issued = invites.issue({expiresAt,maxRequests,maxOutputTokens:32});
     expect(invites.redeem({token:issued.token,guestPeerId:GUEST_ID})).toBeTruthy();
     return issued.inviteId;
   }
@@ -232,7 +232,8 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     // prefix permits forwarding the draft after the owner revokes that invitation.
     expect((await post('/circle/owner',{op:'circle-invites.revoke',inviteId},OWNER_ID)).status).toBe(200);
     expect(await result).toBe(403); stream.end('private"}');
-    expect(invites.getSettlement({guestPeerId:GUEST_ID,requestId:'slow'})).toMatchObject({outcome:'stopped',outputTokens:0});
+    expect(invites.hasRequest({guestPeerId:GUEST_ID,requestId:'slow'})).toBe(false);
+    expect(invites.getSettlement({guestPeerId:GUEST_ID,requestId:'slow'})).toBeNull();
     expect(admission.getActiveCount(inviteId)).toBe(0); expect(disclosedPrompts).toEqual([]);
   });
 
@@ -252,7 +253,33 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     const temporary = newGuest(now()+200);
     expect((await post('/circle/admit',metadata('abandoned',temporary),GUEST_ID)).status).toBe(200);
     await expect.poll(()=>admission.getActiveCount(temporary)).toBe(0);
+    for (const requestId of ['hold','queued','ttl','revoke','abandoned']) {
+      expect(invites.hasRequest({guestPeerId:GUEST_ID,requestId})).toBe(false);
+    }
     expect(disclosedPrompts).toEqual([]);
+  });
+
+  it('returns a cancelled provisional hold and counts only one accepted turn against the final allowance', async () => {
+    const inviteId = newGuest(now()+60_000,1);
+    const scope = { inviteId, guestPeerId:GUEST_ID, hostPeerId:HOST_ID };
+    const first = await post('/circle/admit',metadata('cancelled',inviteId),GUEST_ID);
+    expect(first.status).toBe(200);
+    const observed = [];
+    const blocked = normalChat({...metadata('competitor',inviteId),prompt:'stays on the client'},GUEST_ID,(url,options) => {
+      observed.push(new URL(url).pathname);
+      return fetch(url,options);
+    });
+    await expect.poll(()=>admission.getQueuedCount(inviteId)).toBe(1);
+    expect(invites.lookup(scope).usedRequests).toBe(0);
+    expect(invites.hasRequest({guestPeerId:GUEST_ID,requestId:'cancelled'})).toBe(false);
+    expect((await post('/circle/cancel',{},GUEST_ID,grantHeaders(first.body.grant))).status).toBe(200);
+    const accepted = await blocked;
+    expect(accepted.status).toBe(200);
+    expect(accepted.body.receipt).toMatchObject({requestId:'competitor',outcome:'completed'});
+    expect(invites.lookup(scope).usedRequests).toBe(1);
+    expect(observed).toEqual(['/circle/admit','/circle/chat']);
+    expect((await post('/circle/admit',metadata('excess',inviteId),GUEST_ID)).status).toBe(403);
+    expect(disclosedPrompts).toEqual(['stays on the client']);
   });
 
   it('retains the draft and cancels an admission whose disclosure does not match the expected host', async () => {
