@@ -191,7 +191,8 @@ export function createTextRequester({ participant, authenticate, authorize, stat
           // admitted HTTP request, the disclosure preview, and the service-credit quote.
           const fleetLimit = participant.partitionOutputLimit?.(model);
           const limit = fleetLimit == null ? undefined : Math.min(fleetLimit, model.generation?.maxTokens ?? fleetLimit);
-          if (model.textGeneration && settings?.maxOutputTokens != null && !settings.tools.length && !settings.outputSchema && settings.thinking === null) {
+          if (model.textGeneration && settings?.maxOutputTokens != null && !settings.tools.length
+            && !settings.outputSchema && settings.thinking === null && !settings.reversePrompt) {
             generation = { schema: 'reploid.partition-generation-request/v1', usage: 'raw-model-tokens/v1', maxOutputTokens: settings.maxOutputTokens };
             settings = undefined;
           } else if (!generation && limit != null) {

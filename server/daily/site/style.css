@@ -1,0 +1,33 @@
+* { box-sizing: border-box }
+:root { color-scheme: dark; --paper:#e6efcf; --paper-ink:#17271d; --accent:#c6ef83; --line:var(--pool-color-line,#394039); --muted:var(--pool-color-muted,#a0aaa0); }
+body { margin:0; color:var(--pool-color-ink,#f3f4ee); background:var(--pool-color-page,#101312); font:16px/1.55 var(--pool-font-ui,system-ui,sans-serif); }
+.shell { width:min(1080px, calc(100% - 48px)); margin:auto }
+header, .edition, footer, .meter, nav { display:flex; align-items:center; justify-content:space-between; gap:16px }
+header { padding:22px 0; border-bottom:1px solid var(--line) }
+a { color:inherit; text-underline-offset:.22em }
+header a { text-decoration:none } nav a:hover, nav a:focus { text-decoration:underline }
+.brand { font-size:1.4rem; font-weight:720; letter-spacing:-.05em }.brand b {color:var(--accent);font-weight:500}
+nav { font-size:.86rem; gap:24px } .edition,footer,.meter,small {font: .78rem/1.5 var(--pool-font-mono,monospace); overflow-wrap:anywhere;}
+.edition { color:var(--muted); margin:26px 0 15px }
+.board { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(240px,1fr); align-items:start; gap:42px }
+.puzzle { background:var(--paper); color:var(--paper-ink); padding:clamp(22px,4.8vw,54px); border-radius:12px }
+h1,h2,p,blockquote {margin:0} h1 {font-size:1.05rem;font-weight:550} .target {font:italic clamp(3.3rem,8vw,6.3rem)/1.02 Georgia,serif;letter-spacing:-.065em;overflow-wrap:anywhere;margin:12px 0 19px}
+#banned {margin-bottom:32px} label {display:block;font-weight:650;font-size:.88rem;margin-bottom:6px}
+textarea,input {width:100%;color:var(--paper-ink);background:#f9fbee;border:1px solid #7e8a70;border-radius:6px;padding:12px 14px;font:inherit}
+textarea {resize:vertical;min-height:92px} textarea::placeholder {color:#58654d} .meter {color:#47563e;margin:4px 0 16px}
+button,.button {font:600 .94rem/1.3 var(--pool-font-ui,system-ui,sans-serif);border:1px solid currentColor;background:transparent;color:inherit;padding:9px 14px;border-radius:6px;cursor:pointer}
+button.primary {background:var(--paper-ink);color:var(--paper);border-color:var(--paper-ink);width:100%;padding:13px}
+button:disabled {cursor:default;opacity:.58} :focus-visible {outline:3px solid #7998ff;outline-offset:3px} .muted,.empty {color:var(--muted);font-size:.9rem}.puzzle .muted {color:#4d6047;margin-top:12px}
+.notice {font-size:.92rem; margin-top:14px} #auth { margin-top:16px } #auth button, #code-field {margin-top:9px}
+#feedback:not(:empty) {border-left:3px solid #567347;padding-left:10px;margin-top:15px}
+aside .activity {color:var(--muted);padding:10px 0 20px;font-size:.9rem} aside .activity p {margin-top:10px}
+aside section {border-top:1px solid var(--line);padding:18px 0 22px}
+h2 {font-size:1.06rem;letter-spacing:-.015em;margin-bottom:6px} aside ul {padding-left:19px;color:var(--muted);font-size:.91rem} aside li+li {margin-top:7px} ol {padding-left:25px}
+.replay {border-left:3px solid var(--accent);padding:8px 18px;margin:14px 0 24px}.replay blockquote {white-space:pre-wrap}
+#attempts {border-top:1px solid #a8b59b;margin-top:24px;padding-top:16px}.attempt {padding:12px 0;border-bottom:1px solid #a8b59b}
+.attempt p,.winner {overflow-wrap:anywhere;white-space:pre-wrap}.attempt p {margin:5px 0}.attempt small {display:block}.attempt input[type=checkbox] {width:auto}.attempt input.dare-link {display:block;width:100%;margin-top:9px}#disclosure {overflow-wrap:anywhere}
+.attempt label {font-weight:450;margin:10px 0}.attempt button {margin-top:4px} summary {cursor:pointer}
+footer {color:var(--muted);border-top:1px solid var(--line);margin:35px 0 20px;padding-top:12px}
+.host {max-width:720px;padding:40px 0}.host h1 {font:italic 3.4rem/1.05 Georgia,serif;margin-bottom:25px}.host p,.host ol,.host pre {margin:15px 0}.host pre {padding:12px;background:var(--pool-color-raised,#23252a);overflow-x:auto}
+[hidden] {display:none!important}
+@media(max-width:740px){.shell{width:min(620px,calc(100% - 30px))}.board{grid-template-columns:1fr;gap:25px}header{padding:16px 0} nav{gap:14px}.edition{margin-top:17px}.puzzle{padding:24px}.target{font-size:clamp(3.3rem,13vw,5.7rem)}}

@@ -50,6 +50,7 @@ Open [http://localhost:8000](http://localhost:8000), or expose `/v1/chat/complet
 | I want to… | Start here |
 | --- | --- |
 | Work on chat, contribution, or the network view | [Product UI](apps/poolday), called Poolday internally |
+| Preview or host the daily reverse-prompt game | [Daily game and circle setup](docs/daily-game.md) |
 | Embed conversations or coordinate peers | [Reploid library](packages/reploid/src) |
 | Load or execute a model | [Doppler](https://github.com/clocksmith/doppler) and [Reploid's runtime pin](shared/config/doppler-package.json) |
 | Serve models or supply verified files from a desktop | [Native participant guide](docs/native-participant.md) |

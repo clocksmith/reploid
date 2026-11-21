@@ -10,8 +10,11 @@ const requireValue = (condition, message) => { if (!condition) throw new Error(m
 /** The whole-model gather policy of an operator configuration or a catalog entry, validated and copied. */
 export function validateWholeRuntime(model, wholeRuntime) {
   const gather = wholeRuntime?.gather;
-  requireValue(wholeRuntime && Object.keys(wholeRuntime).every(key => key === 'gather') && gather
-    && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency', 'maxRanges', 'verificationCache'].includes(key))
+  requireValue(wholeRuntime && Object.keys(wholeRuntime).every(key => ['gather', 'reversePromptBackend'].includes(key))
+    && (wholeRuntime.reversePromptBackend === undefined || typeof wholeRuntime.reversePromptBackend === 'string'
+      && /^sha256:[a-f0-9]{64}$/.test(wholeRuntime.reversePromptBackend)), 'Whole-model runtime policy is invalid');
+  if (gather === undefined && wholeRuntime.reversePromptBackend) return structuredClone(wholeRuntime);
+  requireValue(gather && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency', 'maxRanges', 'verificationCache'].includes(key))
     && ['maxPartBytes', 'memoryBudgetBytes', 'concurrency'].every(key => Number.isSafeInteger(gather[key]) && gather[key] > 0)
     && (gather.maxRanges === undefined || Number.isSafeInteger(gather.maxRanges) && gather.maxRanges > 0 && gather.maxRanges <= 32)
     && (gather.verificationCache === undefined || Object.keys(gather.verificationCache).every(key => key === 'directory')
@@ -27,6 +30,7 @@ export function validateWholeRuntime(model, wholeRuntime) {
  * remembered is this machine's choice, beside the provider's identity. */
 export function catalogWholeRuntime(model, stateDirectory) {
   const wholeRuntime = validateWholeRuntime(model, model.wholeRuntime);
+  if (!wholeRuntime.gather) return wholeRuntime;
   requireValue(wholeRuntime.gather.verificationCache === undefined, 'Whole-model runtime in the catalog cannot name a machine directory');
   requireValue(path.isAbsolute(stateDirectory), 'Whole-model verification state requires an absolute directory');
   wholeRuntime.gather.verificationCache = { directory: path.join(stateDirectory, 'piece-state') };

@@ -18,7 +18,13 @@ export const NATIVE_WHOLE_MODEL_SETTINGS = Object.freeze({ ...GENERATION_SETTING
  * provider then renders the conversation and masks tokens so a call names a declared tool with
  * valid arguments. An unknown `toolCallFormat` throws. Output schemas and thinking stay unsupported. */
 const NATIVE_TOOL_MODEL_SETTINGS = Object.freeze({ ...NATIVE_WHOLE_MODEL_SETTINGS, tools: true });
-export const nativeWholeModelSettings = model => modelToolCallFormat(model) ? NATIVE_TOOL_MODEL_SETTINGS : NATIVE_WHOLE_MODEL_SETTINGS;
+export function nativeWholeModelSettings(model) {
+  const base = modelToolCallFormat(model) ? NATIVE_TOOL_MODEL_SETTINGS : NATIVE_WHOLE_MODEL_SETTINGS;
+  const backend = model.wholeRuntime?.reversePromptBackend;
+  if (backend === undefined) return base;
+  if (!/^sha256:[a-f0-9]{64}$/.test(backend)) throw Error('Reverse-prompt contribution requires a qualified backend digest');
+  return Object.freeze({ ...base, reversePromptBackends: Object.freeze([backend]) });
+}
 
 /** `fill({signal})`, when given, completes the model directory from verified peer pieces before
  * the manifest is read (server/native-model-files.js fillWholeModel); stop aborts it. */

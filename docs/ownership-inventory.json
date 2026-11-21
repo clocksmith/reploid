@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 383,
     "self": 457,
-    "shared": 2497
+    "shared": 2498
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2849,6 +2849,12 @@
       "source": "self/infrastructure/replay-engine.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "infrastructure/reverse-prompt-profile.js",
+      "source": "shared/infrastructure/reverse-prompt-profile.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "infrastructure/scoped-model-provider.js",

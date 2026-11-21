@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" class="pool-page" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer"><meta name="color-scheme" content="dark">
+  <title>Reploid Daily · Make it say</title>
+  <link rel="stylesheet" href="/pool-tokens.css"><link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body><div class="shell">
+  <header><a class="brand" href="/" aria-label="Reploid Daily home">Reploid <b>Daily</b></a><nav><a href="#rules">Rules</a><a href="/host.html">Host your own ↗</a></nav></header>
+  <main>
+    <div class="edition"><span id="date"></span><span id="circle"></span></div>
+    <section id="dare" class="replay" hidden><h2>Incoming dare</h2><p id="dare-score"></p><details><summary>View recorded answer</summary><small id="dare-target"></small><blockquote id="dare-output"></blockquote><small id="dare-proof"></small></details></section>
+    <div class="board">
+      <article class="puzzle">
+        <h1>Make it say</h1><blockquote class="target" id="target" aria-live="polite">…</blockquote>
+        <p id="banned"></p>
+        <form id="attempt-form"><label for="prompt">Your prompt</label>
+          <textarea id="prompt" rows="3" maxlength="480" placeholder="What would you ask the model?" aria-describedby="disclosure"></textarea>
+          <div class="meter"><span id="count">0 words · 0 characters</span><span id="tries"></span></div>
+          <button class="primary" id="submit" type="submit" disabled>Submit prompt</button>
+        </form>
+        <p id="disclosure" class="muted"></p>
+        <p id="status" role="status" class="notice"></p>
+        <form id="auth" hidden>
+          <label for="email">Sign in for your three daily tries</label>
+          <input id="email" type="email" autocomplete="email" required placeholder="Email address">
+          <div id="code-field" hidden><label for="code">Email code</label><input id="code" autocomplete="one-time-code" inputmode="numeric" maxlength="10"></div>
+          <button id="auth-button" type="submit">Send code</button>
+        </form>
+        <p id="feedback" role="status"></p>
+        <section id="attempts" hidden><h2>Your attempts</h2><div id="history"></div></section>
+      </article>
+      <aside>
+        <section><h2>Circle leaderboard</h2><p class="muted">Fewest words wins. Characters break ties.</p><ol id="leaderboard"></ol><p id="leader-empty" class="empty">No wins yet.</p></section>
+        <section id="rules"><h2>Rules</h2><ul><li>Three tries per signed-in guest each UTC day.</li><li>Match the whole answer. Case, outside whitespace and one final punctuation mark are ignored.</li><li>After Unicode normalization, runs of letters and digits form words. Hyphens and apostrophes split them. Word ties use the number of characters in the trimmed prompt.</li><li>Write in any language. Translations, riddles and analogies are allowed. Split spellings, listed inflections and lookalikes of banned words are blocked. “I” is banned only as a whole word when listed.</li><li>Each turn starts fresh. Thinking is off. The pinned model gets up to 16 output tokens.</li></ul></section>
+        <details class="activity"><summary>What the circle counts</summary><p>We count opened dares, guests who play or pass on a dare, and players who return the next day. These counts exclude prompts, answers and email addresses.</p></details>
+        <section><h2>Yesterday’s winners</h2><div id="yesterday"></div></section>
+      </aside>
+    </div>
+  </main><footer><span>Reploid Daily</span><span id="model"></span></footer>
+</div></body></html>

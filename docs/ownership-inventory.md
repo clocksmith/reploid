@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 | --- | ---: |
 | apps/poolday | 383 |
 | self | 457 |
-| shared | 2497 |
-| total | 3337 |
+| shared | 2498 |
+| total | 3338 |
 
 Every file lives in its owner's root.
 
@@ -508,6 +508,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `infrastructure/policy-engine.js` | `self/infrastructure/policy-engine.js` | self | Reached only from substrate entries. |
 | `infrastructure/rate-limiter.js` | `self/infrastructure/rate-limiter.js` | self | Reached only from substrate entries. |
 | `infrastructure/replay-engine.js` | `self/infrastructure/replay-engine.js` | self | Reached only from substrate entries. |
+| `infrastructure/reverse-prompt-profile.js` | `shared/infrastructure/reverse-prompt-profile.js` | shared | Reached from native hosts and browser entries. |
 | `infrastructure/scoped-model-provider.js` | `shared/infrastructure/scoped-model-provider.js` | shared | Reached from native hosts and browser entries. |
 | `infrastructure/search-response.js` | `shared/infrastructure/search-response.js` | shared | Reached from native hosts and browser entries. |
 | `infrastructure/stream-parser.js` | `self/infrastructure/stream-parser.js` | self | Reached only from substrate entries. |

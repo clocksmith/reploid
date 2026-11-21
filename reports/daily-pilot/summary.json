@@ -1,0 +1,64 @@
+{
+  "schema": "reploid.daily-pilot-summary/v1",
+  "collectedUtc": "2026-11-21",
+  "ruleVersion": "reploid.daily-english/v1",
+  "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+  "modelIdentity": "sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+  "runtimeArchiveSha256": "514a5d4b94baa610151a4dcea9d5abd79a10b7b60868127d10ee9a925591ab95",
+  "protocol": {
+    "targetCount": 20,
+    "authoredPromptsPerTarget": 3,
+    "attemptsPerPass": 60,
+    "legalPrompts": 60,
+    "freshContext": true,
+    "thinking": false,
+    "temperature": 0,
+    "topK": 1,
+    "maxOutputTokens": 16
+  },
+  "physicalBackend": {
+    "vendor": "apple",
+    "api": "Metal",
+    "deviceFamily": "M3"
+  },
+  "initialStreamedPass": {
+    "exactMatchCount": 15
+  },
+  "measuredGenerationPass": {
+    "exactMatchCount": 15,
+    "targetsByDistinctWinningPromptCount": {
+      "0": 12,
+      "1": 2,
+      "2": 5,
+      "3": 1
+    },
+    "targetsWithTwoOrMore": 6
+  },
+  "coverage": {
+    "physicalApple": true,
+    "physicalAMD": false,
+    "qualifiedForHosting": 0,
+    "humanPlaytestParticipants": 0
+  },
+  "interpretation": "The authored attempts measure target solvability on one physical Apple backend. Hosting requires two independent legal solutions on each required backend and the enrolled circle provider.",
+  "visibleBudgetCheck": {
+    "scope": "Physical Apple Metal only; recorded capped generations. No additional inference.",
+    "referenceDecoder": "Hugging Face tokenizers 0.22.2",
+    "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+    "thinkingDisabledInManifest": true,
+    "specialTokenSkipping": false,
+    "cappedAttempts": 17,
+    "allIdsDecodeToRecordedAndStreamedOutputWithNoFraming": 17,
+    "cappedAttemptsWith16IndividuallyVisiblePieces": 16,
+    "method": "Decode every generated ID including special tokens. Check the entire sequence against both the private Doppler transcript and the separate streamed run. For the witness, each individual ID decodes to bytes containing a visible character and their concatenation matches the displayed UTF-8 output exactly.",
+    "witness": {
+      "generatedTokens": 16,
+      "visibleTokenPieces": 16,
+      "stopReason": "max-tokens",
+      "framingOrAddedTokenIds": 0,
+      "transcriptHash": "sha256:6b011f4e39e304200f9a85e1de401f7fed6fb3b437084ae70fcb112da34de234",
+      "decodedUtf8Sha256": "sha256:b61b92313cb9ba2b187082ee19522d5839943f55ece5d95352a1287a268c8c5c",
+      "orderedTokenIdsJsonSha256": "sha256:d8d187ebda3a61c84dadb6dc26018e45d6b73dc459661a1fe0439bada43a7018"
+    }
+  }
+}

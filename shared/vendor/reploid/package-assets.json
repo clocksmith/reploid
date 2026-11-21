@@ -987,13 +987,13 @@
     },
     {
       "path": "mesh/generation-settings.d.ts",
-      "bytes": 2347,
-      "sha256": "a56ec305ce6575dcb3b6c9688b165255117e34942b02e79aa4fb2de6a59606a3"
+      "bytes": 2480,
+      "sha256": "3c3051a884425194f0c27591e0103c16c0bb50599fa017d8a62312de127f76d9"
     },
     {
       "path": "mesh/generation-settings.js",
-      "bytes": 11877,
-      "sha256": "af37e85b321004bc6e3fe48739b1b423ed84354f42f1d7e6a23c0c94758e0b98"
+      "bytes": 13708,
+      "sha256": "f8ddc198a265afb227362c041c1cf55299881b16c235e9e707b069be786b6fbf"
     },
     {
       "path": "mesh/gpu-signature-shader.js",
