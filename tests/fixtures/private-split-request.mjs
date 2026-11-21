@@ -15,7 +15,8 @@ const [config, snapshot, listing, fixture] = await Promise.all(
 );
 const state = snapshot.result ?? snapshot;
 const model = catalog.find(row => row.id === fixture.modelId);
-assert(model?.partitionPlan?.stageCount === 2 && state.selected?.mode === 'partition'
+const stageCount = model?.partitionRequest ? model.partitionRequest.splitLayers.length + 1 : model?.partitionPlan?.stageCount;
+assert(stageCount === 2 && state.selected?.mode === 'partition'
   && state.selected.modelId === model.id && state.selected.modelIdentity === model.identity,
   'Select the same catalogued two-stage model on the requester');
 assert(config.schema === 'reploid.fleet-native/v1' && config.computerId === state.computerId

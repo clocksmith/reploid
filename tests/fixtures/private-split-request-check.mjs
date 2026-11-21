@@ -1,14 +1,19 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import * as runtime from 'dopplerx/partitions';
+import { createWorkPartitionPlan } from '../../apps/poolday/host/work-partition-plan.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 import { parseTextResponse } from '../../server/responses.js';
 import { fileURLToPath } from 'node:url';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 
 const model = catalog.find(row => row.id === 'qwen-3-8-27b-text-q4k-ef16-af32');
+const manifest = JSON.parse(await readFile(resolveServedFile(model.source.files.find(file => file.role === 'model-manifest').url)));
+const activation = runtime.getPartitionActivationContract(createWorkPartitionPlan(runtime, manifest, model));
 const providers = ['a', 'b'].map(letter => 'peer:' + letter.repeat(24));
 const requester = 'peer:' + 'c'.repeat(24);
 const selectionId = model.id + '/partition/' + model.partitionPlanId;
@@ -20,8 +25,7 @@ function snapshot() {
     index, participantId, transportId: 'rtc-' + index, residentId: 'resident-' + index, executionId: 'executor-' + index
   }));
   const route = { schema: 'reploid.partition-route/v1', modelId: model.id, modelIdentity: model.identity,
-    planId: model.partitionPlanId, stages, activation: { schema: 'doppler.activation-tensor/v1', dtype: 'f32',
-      hiddenSize: model.partitionPlan.hiddenSize, precision: 'f32', components: 1, elementStrideBytes: 4 } };
+    planId: model.partitionPlanId, stages, activation };
   const partition = { schema: 'reploid.partition-selection/v2', planId: model.partitionPlanId,
     coordinatorId: providers[0], route };
   const approval = { modelId: model.id, modelIdentity: model.identity, partition, adapterIdentities: [], evidence: 'fixture://review' };

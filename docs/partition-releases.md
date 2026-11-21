@@ -120,7 +120,7 @@ cover an accepted split, a replaced stage executor, a whole-model-only listing,
 two approved rosters sharing the selection ID, a requester assigned to a
 stage, and a reference bound to a different model or plan. The positive case
 parses the resulting body through the Responses handler. These checks require
-only Node and the repository files.
+Node, the repository files, and the pinned DopplerX dependency for the catalog plan.
 
 The resulting body is for `POST /v1/responses`. Its terminal response includes
 the requested execution evidence in `response.reploid`. The request binds the model,

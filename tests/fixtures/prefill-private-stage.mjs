@@ -5,6 +5,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
+import * as runtime from 'dopplerx/partitions';
+import { createWorkPartitionPlan, isWorkOrderedModel } from '../../apps/poolday/host/work-partition-plan.js';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { ROOM_ID_PATTERN } from '../../server/swarm-protocol.js';
@@ -32,9 +34,10 @@ export function checkedStage({ model, inventoryBytes, expectedInventorySha256, s
   assert.equal(index.manifestIdentity, model.identity);
   assert.equal(hash(indexBytes), inventory.indexSha256);
   assert.equal(inventory.indexSha256, model.source.files.find(f => f.role === 'model-piece-index').hash);
-  const stage = inventory.stages[stageIndex], plan = model.partitionPlan.partitions[stageIndex];
-  assert(plan && stage && plan.index === stageIndex && stage.stageIndex === stageIndex, 'Unknown stage index');
-  assert.deepEqual(stage.layerRange, plan.layerRange);
+  const plan = model.partitionRequest ? createWorkPartitionPlan(runtime, manifest, model) : model.partitionPlan;
+  const stage = inventory.stages[stageIndex], partition = plan.partitions[stageIndex];
+  assert(partition && stage && partition.index === stageIndex && stage.stageIndex === stageIndex, 'Unknown stage index');
+  assert.deepEqual(stage.layerRange, partition.layerRange);
   const pieces = new Map();
   for (const f of index.files) for (const piece of f.pieces) pieces.set(f.path + ':' + piece.offset, piece);
   const seen = new Set();
@@ -76,7 +79,7 @@ export async function runPrefill(config, inventoryFile, transfer, signal, { mode
   assert(['enrolled', 'offline-unenrolled'].includes(config.enrollmentStatus), 'Declare the private enrollment status');
   assert(!transfer || config.enrollmentStatus === 'enrolled', 'An offline, unenrolled profile cannot transfer');
   const model = models.find(row => row.id === config.modelId);
-  assert(model?.partitionPlan && config.modelIdentity === model.identity && config.planId === model.partitionPlanId,
+  assert(isWorkOrderedModel(model) && config.modelIdentity === model.identity && config.planId === model.partitionPlanId,
     'Select the exact catalog model and plan');
   assert(ROOM_ID_PATTERN.test(config.roomId) && config.roomId !== bootstrap.publicRoomId && config.signalingUrl, 'An explicit private room and signaling server are required');
   assert(config.roomTokenFile && path.isAbsolute(config.roomTokenFile) && path.isAbsolute(config.identityFile)
