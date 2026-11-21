@@ -120,7 +120,7 @@ export interface ChatAttempt {
 export interface ChatThread {
   automaticModel?: boolean;
   id: string; model: ChatModel; purpose: string; title?: string; members: string[];
-  privacy?: ExecutionPolicy; permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
+  privacy: ExecutionPolicy; executionSettingsReset?: true; permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
   attempts: ChatAttempt[]; closed: boolean; createdAt: number;
   systemContext?: ChatSystemContext | null;
 }
@@ -239,6 +239,6 @@ export function createChatScheduler(options: {
   close(): Promise<void>;
 };
 
-export { createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from './execution-policy.js';
+export { EXECUTION_POLICY_SCHEMA, EXECUTION_BINDING_SCHEMA, createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding, executionPrivacyReceipt } from './execution-policy.js';
 
 export { validateExecutionOffers, eligibleExecutionOffers } from './execution-offers.js';

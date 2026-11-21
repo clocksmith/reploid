@@ -131,8 +131,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     authorize: async request => !closed && (request.action === 'mesh.connect'
       || request.action === 'mesh.admit' && whole?.getState().ready === true && wholeEarningReady
         // With a credit ledger, the reservation is checked here too, against the request's commitment.
-        && (typeof executionAdmission?.preadmit !== 'function' || await executionAdmission.preadmit({ request: request.request,
-          consumer: await mesh.verifyPeerIdentity(request.peerId) }) !== undefined)
+        && (!executionAdmission || typeof executionAdmission.preadmit === 'function' && await executionAdmission.preadmit({ request: request.request,
+          consumer: await mesh.verifyPeerIdentity(request.peerId) }) === true)
       || request.action === 'mesh.execute' && whole?.getState().ready === true && wholeEarningReady
         && (!executionAdmission || await executionAdmission.whole({ request: request.request,
           consumer: await mesh.verifyPeerIdentity(request.peerId) }))

@@ -3,6 +3,7 @@
 // owners are the shipped modules. Injected: signaling mesh, WebRTC transport, identity storage,
 // model-file IO, the peer-offer tab lock, the browser store (IndexedDB is unavailable here), Web Locks
 // and the Doppler partitions module. Numerical outputs are fixture data, never physical inference.
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import * as runtime from 'dopplerx/partitions';
@@ -123,7 +124,7 @@ async function publishedSend(storage, history) {
     const row = host.chat.getState().models.find(item => item.partition?.coordinatorId === f.identities[0].peerId && item.availability === 'ready');
     expect(row).toBeTruthy(); return row;
   }, { timeout: 5000 });
-  const threadId = await host.chat.createThread({ model });
+  const threadId = await host.chat.createThread({ model, privacy: partitionTestPolicy });
   host.chat.subscribe(state => {
     const message = state.threads.find(row => row.id === threadId)?.messages.at(-1);
     if (message?.role === 'assistant') visible.push([message.content, history.records(threadId)
@@ -143,6 +144,7 @@ it('opens requester-owned history for an ordered catalog and publishes the three
   expect(state.models.filter(row => !row.partition).every(row => row.availability === 'unavailable')).toBe(true);
   const whole = state.models.find(row => !row.partition && !row.adapters?.length);
   ports.peers = [{ peerId: 'whole-provider', model: whole.id, modelIdentity: whole.identity,
+    identityProtocol: 1, admissionProtocol: 2,
     readiness: 'ready', hasInference: true, availableSlots: 1 }];
   ports.connections = [{ id: 'whole-provider', phase: 'connected', channelState: 'open' }];
   host.chat.refreshNetwork();

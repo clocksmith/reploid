@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import policy from '../../packages/reploid/src/chat/policy.json';
 
 const model = { id: 'model-a', name: 'Model A', identity: 'sha256:' + 'a'.repeat(64) };
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+const forRecipients = (request, recipients) => bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients }));
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const fixture = (execute, overrides = {}) => {
   let data;
@@ -58,12 +61,12 @@ describe('conversation workspace', () => {
     const { app, store, options } = fixture(async (request, controls) => {
       const preview = { ...result(request, ''), id: 'preview-' + request.attemptId,
         peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
-        expiresAt: Date.now() + 10000, input: request.messages };
+        expiresAt: Date.now() + 10000, input: request.messages, privacyBinding: await forRecipients(request, [peer]) };
       if (!await controls.requestApproval(preview)) throw Error('Disclosure declined');
       return result(request, 'Peer answer');
     });
     app.subscribe(state => seen.push(state.threads[0]?.attempts.at(-1)?.status));
-    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    const thread = app.createThread({ model, privacy: openPolicy, permissions: { sharingScope: 'mesh' } });
     const attempt = await app.send(thread, 'Question', { authorizeDisclosure: authorize });
     expect(attempt.status).toBe('completed'); expect(seen).not.toContain('approval');
     expect(attempt.authorization).toMatchObject({ kind: 'once', source: 'send', recipientIdentity: peer, modelIdentity: model.identity });
@@ -85,7 +88,7 @@ describe('conversation workspace', () => {
         modelIdentity: 'sha256:' + 'c'.repeat(64), expiresAt: Date.now() + 10000 });
       throw Error('Must not execute');
     });
-    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    const thread = app.createThread({ model, privacy: openPolicy, permissions: { sharingScope: 'mesh' } });
     expect(await app.send(thread, 'Question', { authorizeDisclosure: authorize })).toMatchObject({ status: 'failed' });
     expect(authorize).not.toHaveBeenCalled(); await app.close();
   });
@@ -95,11 +98,12 @@ describe('conversation workspace', () => {
       for (const letter of ['b', 'c']) {
         const peer = 'peer:' + letter.repeat(24);
         await controls.requestApproval({ ...result(request, ''), id: 'preview-' + letter,
-          peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public', expiresAt: Date.now() + 10000 });
+          peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public', expiresAt: Date.now() + 10000,
+          privacyBinding: await forRecipients(request, [peer]) });
       }
       return result(request, 'Must not reach the second recipient');
     });
-    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    const thread = app.createThread({ model, privacy: openPolicy, permissions: { sharingScope: 'mesh' } });
     expect(await app.send(thread, 'Question', { authorizeDisclosure: authorize })).toMatchObject({ status: 'failed', error: 'Execution recipients changed. Retry starts a new authorized attempt.' });
     expect(authorize).toHaveBeenCalledTimes(1); await app.close();
   });
@@ -155,11 +159,13 @@ describe('conversation workspace', () => {
 
   it('requires the exact thread, attempt and disclosure identity for approval', async () => {
     const { app } = fixture(async (request, controls) => {
-      const approval = { ...result(request, ''), id: 'preview-' + request.threadId, peerId: 'bob', expiresAt: Date.now() + 10000 };
+      const peer = 'peer:' + 'b'.repeat(24);
+      const approval = { ...result(request, ''), id: 'preview-' + request.threadId, peerId: peer, recipientIdentity: peer,
+        operation: 'generate', disclosure: 'public', expiresAt: Date.now() + 10000, privacyBinding: await forRecipients(request, [peer]) };
       if (!await controls.requestApproval(approval)) throw new Error('Disclosure declined');
       return result(request, 'Approved answer');
     });
-    const a = app.createThread({ model }), b = app.createThread({ model });
+    const a = app.createThread({ model, privacy: openPolicy, permissions: { sharingScope: 'mesh' } }), b = app.createThread({ model, privacy: openPolicy, permissions: { sharingScope: 'mesh' } });
     const first = app.send(a, 'Private A'), second = app.send(b, 'Private B');
     await vi.waitFor(() => expect(app.getState().threads.every(thread => thread.attempts[0].approval)).toBe(true));
     const attempts = app.getState().threads.map(thread => thread.attempts[0]);
@@ -346,24 +352,23 @@ it('rejects an invalid automatic replacement without changing the model', async 
 
 describe('policy-bound whole-model mesh disclosure', () => {
   const peer = 'peer:' + 'b'.repeat(24), other = 'peer:' + 'c'.repeat(24);
-  async function run({ recipients = [peer], paired = false, delegation = paired, disclosure = 'provider-visible' } = {}) {
-    const { bindExecutionRoute, plaintextExecutionRoute } = await import('../../packages/reploid/src/chat/execution-policy.js');
+  async function run({ recipients = [peer], paired = false, delegation = paired, disclosure = 'public' } = {}) {
     const authorize = vi.fn(() => true);
     const { app } = fixture(async (request, controls) => {
       const route = plaintextExecutionRoute(request, { recipients,
-        ...(paired ? { route: { schema: 'reploid.paired-delegation/v1' } } : {}) });
+        ...(paired ? { route: { schema: 'reploid.paired-whole-route/v1', requester: peer, providerIdentity: other } } : {}) });
       const privacyBinding = await bindExecutionRoute(request, route);
       const preview = { ...result(request, ''), id: 'bound-preview', peerId: peer, recipientIdentity: peer,
         operation: 'generate', disclosure, expiresAt: Date.now() + 10000,
-        privacyBinding, ...(delegation ? { privateDelegation: { poolIdentity: 'pool' } } : {}) };
+        privacyBinding, ...(delegation ? { privateDelegation: { poolIdentity: 'pool' }, inputRecipients: [peer, other] } : {}) };
       if (!await controls.requestApproval(preview)) throw Error('Disclosure declined');
       return result(request, 'Peer answer');
     });
-    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    const thread = app.createThread({ model, privacy: openPolicy, permissions: { sharingScope: 'mesh' } });
     const attempt = await app.send(thread, 'Hello', { authorizeDisclosure: authorize });
     await app.close(); return { attempt, authorize };
   }
-  it('accepts the public host provider-visible binding without paired delegation', async () => {
+  it('accepts the public host plaintext binding without paired delegation', async () => {
     const { attempt, authorize } = await run();
     expect(attempt.status).toBe('completed'); expect(authorize).toHaveBeenCalledTimes(1);
     expect(attempt.authorization).toMatchObject({ disclosure: 'public', recipientIdentity: peer });
@@ -377,7 +382,7 @@ describe('policy-bound whole-model mesh disclosure', () => {
   it('retains paired requester inclusion and delegation requirements', async () => {
     for (const options of [{ recipients: [other] }, { recipients: [peer, other], delegation: false }]) {
       const { attempt, authorize } = await run({ paired: true, disclosure: 'public', ...options });
-      expect(attempt).toMatchObject({ status: 'failed', error: 'Paired route omitted its plaintext requester' });
+      expect(attempt).toMatchObject({ status: 'failed', error: 'Execution binding differs from the complete verified recipient set' });
       expect(authorize).not.toHaveBeenCalled();
     }
     expect((await run({ paired: true, disclosure: 'public', recipients: [peer, other] })).attempt.status).toBe('completed');

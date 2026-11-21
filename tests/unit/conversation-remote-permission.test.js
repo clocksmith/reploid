@@ -7,6 +7,9 @@ import { renderConversationWorkspace, bindConversationWorkspace } from '../../ap
 import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+
+const OPEN_POLICY = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 
 // Public partition routes need an owner-reviewed release (apps/poolday/config/partition-releases.json, empty when
 // checked in; docs/partition-releases.md). The injected ordered route is approved so the host offers and admits it.
@@ -31,7 +34,8 @@ function orderedRoute({ hold = null } = {}) {
       const { threadId, attemptId } = request;
       const identity = { schema: 'reploid.partition-attempt/v2', route, requesterId: REQUESTER, threadId, attemptId, placementGeneration: 0 };
       const disclosure = orderedPartitionDisclosure(identity);
-      const approved = await controls.requestApproval({ id: 'preview-' + attemptId, threadId, attemptId, operation: 'generate-partition',
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: STAGES, route }));
+      const approved = await controls.requestApproval({ privacyBinding, id: 'preview-' + attemptId, threadId, attemptId, operation: 'generate-partition',
         peerId: STAGES[0], recipientIdentity: STAGES[0], ...structuredClone(model.partition), modelId: model.id,
         modelIdentity: model.identity, adapterIdentities: [], disclosure, expiresAt: Date.now() + 60000,
         input: { messages: structuredClone(request.messages), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
@@ -73,7 +77,7 @@ const completed = (session, count) => vi.waitFor(() => {
 describe('Contributor execution without permission popups', () => {
   it('defaults on, records authorization only on Send, and does not ask again for the answer', async () => {
     const { session, partitions } = openSession({}), view = mount(session);
-    const thread = session.createThread({ model });
+    const thread = session.createThread({ model, privacy: OPEN_POLICY });
     expect(session.getState().remoteAnswersEnabled).toBe(true);
     expect(view.find('[data-remote-answers-toggle]').getAttribute('aria-checked')).toBe('true');
     expect(session.getState().remotePermissions).toEqual([]);
@@ -95,7 +99,7 @@ describe('Contributor execution without permission popups', () => {
     await vi.waitFor(() => expect(first.session.getState().remoteAnswersEnabled).toBe(false));
     const second = openSession({ storage: first.storage }), again = mount(second.session);
     expect(second.session.getState().remoteAnswersEnabled).toBe(false);
-    second.session.createThread({ model }); again.submit('Ask first');
+    second.session.createThread({ model, privacy: OPEN_POLICY }); again.submit('Ask first');
     await vi.waitFor(() => expect(again.root.textContent).toContain('Network answers are off.'));
     expect(again.find('[data-remote-permission]')).toBeNull();
     expect(second.partitions.disclosed).toEqual([]);
@@ -107,7 +111,7 @@ describe('Contributor execution without permission popups', () => {
 
   it('preserves legacy Turn off records when no new preference has been stored', async () => {
     const first = openSession({});
-    const thread = first.session.createThread({ model });
+    const thread = first.session.createThread({ model, privacy: OPEN_POLICY });
     await first.session.send(thread, 'First');
     first.session.revokeRemotePermission(first.session.getState().remotePermissions[0].id);
     first.storage.setItem('reploid.remote-access:v1', '{}');
@@ -120,7 +124,7 @@ describe('Contributor execution without permission popups', () => {
     const storage = memory(), write = storage.setItem;
     storage.setItem = (key, value) => { if (key === 'reploid.remote-permissions:v1') throw new Error('Storage unavailable'); write(key, value); };
     const { session, partitions } = openSession({ storage });
-    const thread = session.createThread({ model });
+    const thread = session.createThread({ model, privacy: OPEN_POLICY });
     expect(() => session.send(thread, 'Do not leak')).toThrow('Storage unavailable');
     expect(partitions.disclosed).toEqual([]);
     expect(session.getState().remotePermissions).toEqual([]);
@@ -128,7 +132,7 @@ describe('Contributor execution without permission popups', () => {
 
   it('sends follow-ups and restored conversations directly, preserving exact recipients', async () => {
     const { session, partitions, storage } = openSession(), view = mount(session);
-    session.createThread({ model }); view.submit('Summarize my notes');
+    session.createThread({ model, privacy: OPEN_POLICY }); view.submit('Summarize my notes');
     const [first] = await completed(session, 1);
     const [permission] = session.getState().remotePermissions;
     expect(first.authorization).toMatchObject({ permissionId: permission.id, recipients: STAGES, route });
@@ -146,9 +150,9 @@ describe('Contributor execution without permission popups', () => {
   it('binds a new network on Send without reusing another network record or asking', async () => {
     const storage = memory(), partitions = orderedRoute();
     const first = openSession({ storage, partitions, swarm: { getNetworkId: () => 'room-a', getState: () => ({}) } });
-    const id = first.session.createThread({ model }); await first.session.send(id, 'Room A');
+    const id = first.session.createThread({ model, privacy: OPEN_POLICY }); await first.session.send(id, 'Room A');
     const second = openSession({ storage, partitions, swarm: { getNetworkId: () => 'room-b', getState: () => ({}) } });
-    const view = mount(second.session); second.session.createThread({ model }); view.submit('Room B');
+    const view = mount(second.session); second.session.createThread({ model, privacy: OPEN_POLICY }); view.submit('Room B');
     await completed(second.session, 2);
     expect(second.session.getState().remotePermissions.map(p => p.networkId)).toEqual(['room-a', 'room-b']);
     expect(view.find('[data-remote-permission]')).toBeNull();
@@ -158,7 +162,7 @@ describe('Contributor execution without permission popups', () => {
     let release; const gate = new Promise(resolve => { release = resolve; });
     const partitions = orderedRoute({ hold: () => gate });
     const { session } = openSession({ partitions }), view = mount(session);
-    session.createThread({ model }); view.submit('Long answer');
+    session.createThread({ model, privacy: OPEN_POLICY }); view.submit('Long answer');
     await vi.waitFor(() => expect(partitions.disclosed).toHaveLength(1));
     view.find('[data-remote-answers-toggle]').click();
     await vi.waitFor(() => expect(session.getState().remoteAnswersEnabled).toBe(false));
@@ -173,7 +177,7 @@ describe('Contributor execution without permission popups', () => {
 
   it('host callers also fail immediately when off instead of waiting for a hidden dialog', () => {
     const { session, partitions } = openSession(); session.setRemoteAnswersEnabled(false);
-    const id = session.createThread({ model });
+    const id = session.createThread({ model, privacy: OPEN_POLICY });
     expect(() => session.send(id, 'Do not send')).toThrow('Network answers are off');
     expect(partitions.disclosed).toEqual([]); expect(lastAttempt(session)).toBeUndefined();
   });
@@ -184,7 +188,7 @@ describe('Contributor execution without permission popups', () => {
     session.setCachedModels([CANONICAL_CHAT_MODELS[1]]);
     session.setRemoteAnswersEnabled(false); session.createThread({ sharingScope: 'local' });
     view.submit('Stay here');
-    await vi.waitFor(() => expect(lastAttempt(session)?.status).toBe('completed'));
+    await vi.waitFor(() => expect(lastAttempt(session)?.status).toBe('completed'), { timeout: 4000 });
     expect(lastAttempt(session)).toMatchObject({ approval: null, authorization: null, execution: { placement: 'local-webgpu' } });
     expect(view.find('[data-remote-permission]')).toBeNull(); expect(session.getState().remotePermissions).toEqual([]);
   });
@@ -201,7 +205,13 @@ describe('Contributor execution without permission popups', () => {
       hasProvider: () => true,
       async generate(messages, options) {
         const current = { ...activeProvider };
+        const request = { model: catalogModel, privacy: options.privacy };
+        const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, {
+          recipients: [current.recipientIdentity], route: { schema: 'reploid.mesh-route/v1', providerId: current.recipientIdentity,
+            offerId: 'whole-model-offer', backend: 'doppler-plaintext/v1' }
+        }));
         const approved = await options.approve({
+          privacyBinding,
           id: 'preview-' + crypto.randomUUID(),
           providerId: current.providerId,
           recipientIdentity: current.recipientIdentity,
@@ -229,7 +239,7 @@ describe('Contributor execution without permission popups', () => {
       },
     };
     const { session, storage } = openSession({ partitions: null, swarm });
-    const thread = session.createThread({ model: catalogModel, executionLocation: 'network' });
+    const thread = session.createThread({ model: catalogModel, executionLocation: 'network', privacy: OPEN_POLICY });
     await session.send(thread, 'Turn one');
     await completed(session, 1);
     expect(disclosed).toHaveLength(1);

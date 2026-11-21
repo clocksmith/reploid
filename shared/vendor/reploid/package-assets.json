@@ -162,8 +162,8 @@
     },
     {
       "path": "adapters/resident-execution.js",
-      "bytes": 8135,
-      "sha256": "af62c67790222454ec579a18be5afb7834e1e21d5ef5c80f17ab5bc4022ad8f7"
+      "bytes": 8220,
+      "sha256": "a0f0e3e67e0ed7135a95d13fc7e4413b11deadb7271a98ac1f464a909548ed34"
     },
     {
       "path": "adapters/resident.d.ts",
@@ -567,28 +567,23 @@
     },
     {
       "path": "chat/execution-policy.d.ts",
-      "bytes": 3143,
-      "sha256": "be1f7325c07efced41801a71705ad8bf84b5e04b1450677bf03cea268a075a72"
+      "bytes": 3230,
+      "sha256": "f3b677a22c700742bb9d4be2433dde94f9880d54300193266578b8c4bce2910e"
     },
     {
       "path": "chat/execution-policy.js",
-      "bytes": 10752,
-      "sha256": "34a8740f6983696dab38949b0a73634f55fabf68004595f81081e6aece7090d7"
-    },
-    {
-      "path": "chat/execution-policy.json",
-      "bytes": 856,
-      "sha256": "60d17b1fc031827e262f08f0718db74a8e60c1f6a9e1ba9facdf09a13a78161f"
+      "bytes": 11589,
+      "sha256": "fa95a099cd7a69b8548ff3e1aed548144731a6d9b4abb3bbaab3aaa4dcd44faf"
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 16288,
-      "sha256": "dc19707475c711116359f6947187a2c139077fe19f1d4fc86b7df58d39a9efeb"
+      "bytes": 16391,
+      "sha256": "b67844955d810343666d023c7100bf2a9b8953f4aaa67218f6129ab92e7e3792"
     },
     {
       "path": "chat/index.js",
-      "bytes": 1259,
-      "sha256": "f5ca92a9e1423a0941d680042085f94ffcc83ee3120390b80ab80e53b4f03c51"
+      "bytes": 1332,
+      "sha256": "df4ca5ad3bdf4ba0043caae3a7c6d5d259e73c9182714b06da7266fcc1b472ec"
     },
     {
       "path": "chat/policy.json",
@@ -642,8 +637,8 @@
     },
     {
       "path": "chat/thread-grants.js",
-      "bytes": 7750,
-      "sha256": "3fb7697549713d7d6b4c6f4aa49d00987050be7cdea3f5582368cce145a0a7d3"
+      "bytes": 7554,
+      "sha256": "7a3e8840c3e59fba3d02547222c4b8e2eda3788f54c2f2ec60a03d0cea738674"
     },
     {
       "path": "chat/workspace-history.d.ts",
@@ -667,18 +662,18 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 56881,
-      "sha256": "93eb94310503e1a57125b6c0208c39fcb89583afc2e9323a980829feaf473b67"
+      "bytes": 57779,
+      "sha256": "09203822e6b1a687e4f681f7f2fac3250ebfa702981abde288ef95bd5bc92e5c"
     },
     {
       "path": "config/defaults.json",
-      "bytes": 2501,
-      "sha256": "a4a46405c88623e8e797bc85c407cb21d09db703052d78f5f9d88d4ca74bcc71"
+      "bytes": 2465,
+      "sha256": "be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4"
     },
     {
       "path": "config/index.d.ts",
-      "bytes": 4062,
-      "sha256": "890aef9f5ce65977d381f784fd5bdd73d588100bdb2772dee7057bd97a107f38"
+      "bytes": 3804,
+      "sha256": "87392a5b33eeffb8f67c3a53e52d75077e3ec9498fd20f6929052e793a117d7d"
     },
     {
       "path": "config/index.js",
@@ -697,8 +692,8 @@
     },
     {
       "path": "config/schema.json",
-      "bytes": 11469,
-      "sha256": "126f0dd5260302dd82ff0215ae77f6cf00e0eab5f6107118119313907c03c11e"
+      "bytes": 11367,
+      "sha256": "03a1ba983579670c60a8a3bfa70e02b130f475f4b2f2e705ee148627da351e6c"
     },
     {
       "path": "config/transport-defaults.json",
@@ -853,7 +848,7 @@
     {
       "path": "contracts/pool/peer-pack-job.d.ts",
       "bytes": 6933,
-      "sha256": "acabf72c7fc8ebe8009ec1c4726e667d1649998c54e6393f12b96bdd97694fa6"
+      "sha256": "e5b695377ff8f6be6644071c4eae2a94823dc63a413ff79161ce5d5b9ae0bbdb"
     },
     {
       "path": "contracts/pool/peer-pack-provider.d.ts",
@@ -1068,12 +1063,12 @@
     {
       "path": "mesh/jobs/operation-privacy.d.ts",
       "bytes": 861,
-      "sha256": "24a02191d7d7b140dae7ef7e7713058da8f1ec6cf7671ebdc56aa46ce1c86e57"
+      "sha256": "d877bc5f60a492a29ad587160b6536d3437ac348c55e9b6c5ab70e15c68aab54"
     },
     {
       "path": "mesh/jobs/operation-privacy.js",
-      "bytes": 2659,
-      "sha256": "143411a8325c01a64b118c779e3f1daebc0747af8add1ff9f8831dc7456ccdb6"
+      "bytes": 2684,
+      "sha256": "78b18ba4cf9af50e39960453fca706d8f111e792f07c4db20a38424652995401"
     },
     {
       "path": "mesh/jobs/provider.d.ts",
@@ -1102,8 +1097,8 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 47007,
-      "sha256": "99cc79013fe21a5ff03f958a39e735f45ff57e3cd6a13d4b8af656e23c18509b"
+      "bytes": 47325,
+      "sha256": "d60f07b2d08ef762f3bb83013b4d96e290fd2f4137f82ffdc5cc6bdaeb1b1e5d"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
@@ -1112,8 +1107,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 21059,
-      "sha256": "f51e22b6fde33a3cd93030e0ba00e8bb280f778d45e139a02a3b556762e71a9a"
+      "bytes": 21339,
+      "sha256": "0ff6156cee90d1b92d42b73cb27f09db954a3441f58bc1de30b16c80e0c5118e"
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.d.ts",
@@ -1177,8 +1172,8 @@
     },
     {
       "path": "mesh/partitions/partition-chat.js",
-      "bytes": 10788,
-      "sha256": "5d1fac7e49a15f57ddaa91d04657084668614040a0e05b223433086f6f4ff269"
+      "bytes": 10804,
+      "sha256": "0119deb6c3ea9042a91ba46e7d13101ae4abeba4460423347075793f5b6e1f24"
     },
     {
       "path": "mesh/partitions/partition-contract.d.ts",
@@ -1213,17 +1208,17 @@
     {
       "path": "mesh/partitions/partition-entry-publication.js",
       "bytes": 13313,
-      "sha256": "9a38a052cc6296818e29088120f969da4fbb07bec88dad7f8e7fcf4db397d3d8"
+      "sha256": "a10e322227486526c410fc615e706abb74ebc92dff204417af0abea95f6bbc9c"
     },
     {
       "path": "mesh/partitions/partition-entry.d.ts",
-      "bytes": 5359,
-      "sha256": "1ea1a46dccc1aeceee3863e549b9f93bfe4f7b44d2aceb6c4e213cc80f1a2057"
+      "bytes": 5635,
+      "sha256": "9dde229551f16031885c23b207652503ca14be352d043d06e113dbe100175d49"
     },
     {
       "path": "mesh/partitions/partition-entry.js",
-      "bytes": 32315,
-      "sha256": "2a3b7115e7268814d114af2147c1c719c19d073aec4d4c55e5cc54d0cabfcd6b"
+      "bytes": 34163,
+      "sha256": "cdc853b8909fffc605b7a2be1d70b0d9382100afb3970c306bcaa554456621fa"
     },
     {
       "path": "mesh/partitions/partition-generation-request.d.ts",
@@ -1237,13 +1232,13 @@
     },
     {
       "path": "mesh/partitions/partition-grants.d.ts",
-      "bytes": 5735,
-      "sha256": "7fd4126ecb397c1ce3a8889790850e6b1f8d7b1071f9d555de9e82af4b75923e"
+      "bytes": 5708,
+      "sha256": "0999615654b6f4005bc53d345bce82af8498f8c916bc9e1cd3de7b13bd7f412d"
     },
     {
       "path": "mesh/partitions/partition-grants.js",
-      "bytes": 22567,
-      "sha256": "eb7859ba772a9b5f41d7894959ab50097026c1fab1b8c3541f92f000c3e92693"
+      "bytes": 22994,
+      "sha256": "0b70615486ba8d50e111bf09bb8e5af3a61ad0c981bc8513f8a754ca4202eee8"
     },
     {
       "path": "mesh/partitions/partition-link.d.ts",
@@ -1272,8 +1267,8 @@
     },
     {
       "path": "mesh/partitions/partition-ordered-chat.js",
-      "bytes": 22952,
-      "sha256": "3af964789fc935b5f41f77a15d85ae0c4e6553c5f0b5d6b53dc01b45db8345bf"
+      "bytes": 22968,
+      "sha256": "a064d79cc799a750d16ddb7a8630761b0aa02c02fb1a487872871bcdd608b5c2"
     },
     {
       "path": "mesh/partitions/partition-ordered-peer.d.ts",
@@ -1282,8 +1277,8 @@
     },
     {
       "path": "mesh/partitions/partition-ordered-peer.js",
-      "bytes": 31366,
-      "sha256": "7600299b641b9db328b7b9bfed6b874b33a6ecf904bc7efd6349f98e6f2954d3"
+      "bytes": 31583,
+      "sha256": "ece71df776e75f3100101d481382a91c414d5a8f8e094352aa5860955d11edd5"
     },
     {
       "path": "mesh/partitions/partition-ordered-publication.d.ts",
@@ -1302,8 +1297,8 @@
     },
     {
       "path": "mesh/partitions/partition-peer.js",
-      "bytes": 22883,
-      "sha256": "f20f828eb98875f93e229a4895e29586cd828c958438573ad80a5e9eb22a9868"
+      "bytes": 23305,
+      "sha256": "318453e89943c81afc0b10f3e421547eb115a8cb60a6477b67ddbc198e1b85c5"
     },
     {
       "path": "mesh/partitions/partition-placement.d.ts",
@@ -1472,13 +1467,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 7128,
-      "sha256": "3a56e08e798329df8359420ed8492d681f64594f70e0adf21bcbbb649b07ea90"
+      "bytes": 7110,
+      "sha256": "0589d8e5e17397ac7efa1e673bed83b226b030648b4df282440d3394a5b33673"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 75675,
-      "sha256": "49f0f5fed6642e3a82a686d57abcf4451cd23f50e61ee3ad7d3b19efe7bb4eba"
+      "bytes": 75269,
+      "sha256": "27c19c4a8a57643e1d953b9234e24f86dea3107838a43e328dcfd93b29ca46c9"
     },
     {
       "path": "mesh/peer-identity.js",
@@ -1578,12 +1573,12 @@
     {
       "path": "retrieval/disclosure-path.d.ts",
       "bytes": 440,
-      "sha256": "0c76998f75d0f395edd64a034d1a344d4715f956c963e309f41c793c90af1087"
+      "sha256": "a633f910f080a3012b7a9294f901a9e397e266c1ee9e5c12b2ecaa0a105ce172"
     },
     {
       "path": "retrieval/disclosure-path.js",
       "bytes": 1446,
-      "sha256": "40a3eec2be69ede75ee3669d23f3a4ef87ebe9e2b0e79c0ae86a88f4cf0ea42a"
+      "sha256": "158765d29fe7bac8b1cf94aef54354cfe77c52e96d5ce5fae7e51c7aa41cebc3"
     },
     {
       "path": "retrieval/disclosure-ports.d.ts",
@@ -1593,17 +1588,17 @@
     {
       "path": "retrieval/disclosure-ports.js",
       "bytes": 1559,
-      "sha256": "28f71eaff4f580716032efbe8f96a9563bfbc307d63cd8e915201315f0c401dc"
+      "sha256": "72adf28f18181fb6663fdb04a4de6c198fe2c78f4cdafc9c0165b37668076e3c"
     },
     {
       "path": "retrieval/fixed-provider.js",
-      "bytes": 2335,
-      "sha256": "4c0f26d3047fa5625d551f564b751a7a0455a522810077d4167e21f2c56b2bb2"
+      "bytes": 2520,
+      "sha256": "f0ec8bc515ad24020717a69b5137f9b7af9cdb75611c85465759b5856fdf3591"
     },
     {
       "path": "retrieval/index.d.ts",
       "bytes": 23452,
-      "sha256": "d1be6837a5683100860ac1c52c0ea669e16c87320bc690d81cb597fb12003c8a"
+      "sha256": "4a73fbf638d0463f2e1fe663686be817b8ea99cc384c46ccd087862cc972391b"
     },
     {
       "path": "retrieval/index.js",
@@ -1612,8 +1607,8 @@
     },
     {
       "path": "retrieval/lexical-support.js",
-      "bytes": 1932,
-      "sha256": "333f8772a5a13d911e7293b287ba2014ec450740327ba2561608d54f0aaa5c3e"
+      "bytes": 2043,
+      "sha256": "3c7c2c4933ba65a7b4a203e3e2f12847c12f1b1176129bb17745518f05408262"
     },
     {
       "path": "retrieval/model-reviewer.js",

@@ -69,6 +69,7 @@ async function fixture({ execute, capability = limitOnly, intercept = null, expe
     authorize: async input => {
       authorizations.push(structuredClone(input));
       if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.admit') return admission.preadmit({ request: input.request, consumer: keys[0].peerId });
       if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
       return true;
     },
@@ -163,23 +164,28 @@ it('completes a request with an output limit, binds one digest in the reservatio
   } finally { await f.close(); }
 });
 
-it('keeps a request without settings exactly as before: no settings or digest in the payload, authorization, binding or receipt', async () => {
-  // The provider advertises the capability; a request that does not use it is still the earlier contract.
+it('requires current authorization for a request without adding generation settings or a settings digest', async () => {
+  // Current policy and commitment are mandatory even when generation settings are omitted.
   const f = await fixture({ execute: async (_messages, update) => { update('one'); return answer('one', 4, 'eos-token', { constraintIdentity: otherDigest }); } });
   try {
     const response = await f.post({});
     expect(response.status).toBe(200);
     expect((await response.json()).choices[0].finish_reason).toBe('stop');
     expect(f.executed[0].settings).toBeUndefined();
-    expect(Object.keys(f.sent('reploid:generation-request')[0]).sort()).toEqual(['adapterIdentities', 'consumer', 'contextId', 'messages',
-      'model', 'modelContract', 'modelIdentity', 'provider', 'recoverable', 'requestId']);
-    expect(Object.keys(f.authorizations.find(input => input.action === 'mesh.dispatch')).sort()).toEqual(['action', 'adapterIdentities', 'messages',
-      'modelId', 'modelIdentity', 'offerId', 'peerId', 'placement', 'privacyBinding', 'recipientIdentity', 'requestContext', 'requestId']);
+    const [preflight] = f.sent('reploid:generation-admit');
+    expect(preflight).toMatchObject({ privacy: { schema: 'reploid.execution-policy/v2', recipients: { kind: 'named', ids: [keys[1].peerId] } },
+      promptCommitment: expect.stringMatching(/^sha256:[a-f0-9]{64}$/) });
+    expect(preflight).not.toHaveProperty('messages');
+    expect(preflight).not.toHaveProperty('settings');
+    const [payload] = f.sent('reploid:generation-request');
+    expect(payload).toMatchObject({ messages, privacy: preflight.privacy, privacyBinding: preflight.privacyBinding });
+    expect(payload).not.toHaveProperty('settings');
+    expect(f.authorizations.find(input => input.action === 'mesh.dispatch')).not.toHaveProperty('settings');
     expect(Object.keys(f.admits[0]).sort()).toEqual(['consumer', 'executionId', 'id', 'inputDigest', 'mode', 'model', 'outputLimit']);
     expect(f.admits[0].outputLimit).toBe(16);
     const row = f.row();
-    expect(Object.keys(row.binding).sort()).toEqual(['acceptedQuote', 'admissionVersion', 'computerId', 'consumer', 'createdAt', 'deadline',
-      'executionId', 'id', 'inputDigest', 'maxOutputTokens', 'maximum', 'mode', 'model', 'policyVersion', 'providers', 'requestHash', 'terminalCharge']);
+    expect(row.binding.admission).toEqual({ schema: 'reploid.credit-preadmission/v1', commitment: preflight.promptCommitment });
+    expect(row.binding).not.toHaveProperty('settingsDigest');
     const receipt = f.sent('reploid:receipt')[0].receipt;
     // A host that reports a constraint for a request without settings does not get it into the receipt.
     expect(Object.keys(receipt).sort()).toEqual(['adapterIdentities', 'cleanup', 'consumer', 'consumerKey', 'consumerSignature', 'inputDigest',
@@ -192,14 +198,14 @@ it('keeps a request without settings exactly as before: no settings or digest in
 });
 
 it.each([
-  ['settings altered on the wire', payload => { payload.settings.maxOutputTokens = 3; }, 'Generation settings differ from credit admission'],
-  ['a message altered on the wire', payload => { payload.messages[0].content = 'Count downward from nine.'; }, 'Input differs from credit admission'],
+  ['settings altered on the wire', payload => { payload.settings.maxOutputTokens = 3; }, 'Execution admission rejected'],
+  ['a message altered on the wire', payload => { payload.messages[0].content = 'Count downward from nine.'; }, 'Execution admission rejected'],
   ['the model identity altered on the wire', payload => { payload.modelIdentity = 'sha256:' + 'b'.repeat(64); }, 'Requested model is unavailable'],
-  // Without settings the provider asks for the model ceiling of 16, above the 5 that were reserved.
-  ['settings removed on the wire', payload => { delete payload.settings; }, 'No matching live credit admission'],
+  // Removing settings invalidates the already-approved commitment.
+  ['settings removed on the wire', payload => { delete payload.settings; }, 'Execution admission rejected'],
   ['settings no longer canonical on the wire', payload => { delete payload.settings.thinking; }, 'Generation settings are not canonical'],
-  // The provider's runtime has this adapter loaded, so only credit admission stands before running it.
-  ['the adapter altered on the wire', payload => { payload.adapterIdentities = [loadedAdapter]; }, 'Execution request names another model variant than this provider serves',
+  // The provider has this adapter loaded, but the bound execution route names the base variant.
+  ['the adapter altered on the wire', payload => { payload.adapterIdentities = [loadedAdapter]; }, 'Execution privacy binding rejected',
     { loadedAdapters: [loadedAdapter] }]
 ])('refuses %s before inference and without settlement', async (_label, alter, reason, options = {}) => {
   const execute = vi.fn();

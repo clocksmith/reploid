@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { expect, it, vi } from 'vitest';
 import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
@@ -23,7 +24,7 @@ async function fixture(tamper = false, measured = true, onReceipt) {
     return createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'receipt-test' } } }), ports: {
       instanceId: 'instance-' + i, modelConfig: i ? { id: 'model' } : null,
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
-      authorize: async () => true, events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
+      authorize: async () => true, admitsBeforeDisclosure: true, events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
       identity: { ensure: async () => identities[i], sync: async () => {}, save: async () => {} },
       onReceipt: i ? onReceipt : undefined,
       generate: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'actual output',
@@ -56,7 +57,7 @@ it('identifies whole-model peers for labels before any generation and does not r
 it('transports measured usage across identity proof, provider signing and requester countersigning', async () => {
   const f = await fixture();
   try {
-    const result = await f.meshes[0].generate([{ role: 'user', content: 'not seven characters' }], null, { modelId: 'model', modelIdentity: f.modelIdentity });
+    const result = await f.meshes[0].generate([{ role: 'user', content: 'not seven characters' }], null, { privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), modelId: 'model', modelIdentity: f.modelIdentity });
     expect(result.executionReceipt).toMatchObject({ version: 2, provider: f.identities[1].peerId, consumer: f.identities[0].peerId,
       inputTokens: 7, outputTokens: 3, cleanup: 'settled' });
     expect(await verifyReceipt(result.executionReceipt)).toEqual({ valid: true, providerValid: true, consumerValid: true });
@@ -66,14 +67,14 @@ it('transports measured usage across identity proof, provider signing and reques
 it('rejects transport substitution even when the original provider receipt is valid', async () => {
   const f = await fixture(true);
   try {
-    await expect(f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity: f.modelIdentity }))
+    await expect(f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), modelId: 'model', modelIdentity: f.modelIdentity }))
       .rejects.toThrow('Measured receipt differs');
   } finally { await f.close(); }
 });
 it('keeps a legacy response unmetered instead of estimating tokens from text', async () => {
   const f = await fixture(false, false);
   try {
-    const result = await f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity: f.modelIdentity });
+    const result = await f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), modelId: 'model', modelIdentity: f.modelIdentity });
     expect(result.executionReceipt).toMatchObject({ version: 1, status: 'unmetered', inputTokens: 0, outputTokens: 0 });
   } finally { await f.close(); }
 });
@@ -81,7 +82,7 @@ it('waits for admitted receipt persistence before closing the provider mesh', as
   const began = Promise.withResolvers(), release = Promise.withResolvers();
   const f = await fixture(false, true, async () => { began.resolve(); await release.promise; });
   try {
-    await f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity: f.modelIdentity });
+    await f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), modelId: 'model', modelIdentity: f.modelIdentity });
     await began.promise;
     let closed = false; const closing = f.meshes[1].close().then(() => { closed = true; });
     await Promise.resolve(); expect(closed).toBe(false);

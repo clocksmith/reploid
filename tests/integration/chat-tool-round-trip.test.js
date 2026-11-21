@@ -155,7 +155,7 @@ it.each([
   try {
     const response = await f.post('/chat/completions', { model: f.model.id, messages: [user], tools, tool_choice: 'required' });
     expect(response.status).toBe(502);
-    expect((await response.json()).error.message).toContain('Generation settings differ from credit admission');
+    expect((await response.json()).error.message).toContain('Execution admission rejected');
     expect(f.executed).toEqual([]);
     expect(f.seen).toEqual([]);
     expect(f.sent('reploid:receipt')).toEqual([]);
@@ -284,15 +284,15 @@ it('refuses tools on a route that does not advertise them, before authorization,
   } finally { await f.close(); }
 });
 
-it('keeps a plain chat request exactly as before: no settings on the wire, no rendering, no mask', async () => {
+it('plain chat requires admission without generation settings, rendering or a mask', async () => {
   const f = await trip.open({ plan: roundTripPlan });
   try {
     const response = await f.post('/chat/completions', { model: f.model.id, messages: [user] });
     expect(response.status).toBe(200);
     expect((await response.json()).choices[0]).toEqual({ index: 0, message: { role: 'assistant', content: 'The sum is 5.', refusal: null },
       logprobs: null, finish_reason: 'stop' });
-    expect(Object.keys(f.sent('reploid:generation-request')[0]).sort()).toEqual(['adapterIdentities', 'consumer', 'contextId', 'messages',
-      'model', 'modelContract', 'modelIdentity', 'provider', 'recoverable', 'requestId']);
+    expect(Object.keys(f.sent('reploid:generation-request')[0]).sort()).toEqual(['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'contextId', 'messages',
+      'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'recoverable', 'requestId']);
     expect(f.executed).toEqual([{ messages: [user], settings: undefined }]);
     expect(f.seen[0].messages).toEqual([user]);
     expect(f.seen[0].options).not.toHaveProperty('logitMaskFn');

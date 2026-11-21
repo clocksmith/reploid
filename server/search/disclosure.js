@@ -12,7 +12,6 @@ export function createSearchDisclosure({ search, fetcher, publicOrigin }) {
   }
   return Object.freeze({ description,
     async verify(body, operation, signal) {
-      if (body.auxiliaryBinding === undefined && body.privacy === undefined) return null;
       try {
         if (!description || !body.auxiliaryBinding || typeof body.answer !== 'string') throw Error('Unqualified search disclosure');
         const detail = { operation, id: operation === 'search' ? 'reploid.server-search/brave' : 'reploid.server-page-extract', version: '1', requestId: body.answer,

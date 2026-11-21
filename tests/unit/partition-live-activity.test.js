@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { it, expect, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { projectExecutionActivity } from '../../apps/poolday/ui/pool-home/execution-activity.js';
@@ -13,7 +14,7 @@ it('projects authenticated measured stage timing in the actual requester workspa
         callback=controls.onActivity;
         return f.meshes[5].generate(request,{...controls,onActivity:event=>{last=structuredClone(event);return callback(event);}});
       }});
-    const thread=workspace.createThread({model:f.select(5,0),permissions:{sharingScope:'mesh'}});
+    const thread=workspace.createThread({privacy:partitionTestPolicy,model:f.select(5,0),permissions:{sharingScope:'mesh'}});
     gate=f.gate(0,thread,1);
     const pending=workspace.send(thread,tasks[0].prompt);
     await vi.waitFor(()=>expect(workspace.getState().threads[0].attempts.at(-1).status).toBe('approval'));

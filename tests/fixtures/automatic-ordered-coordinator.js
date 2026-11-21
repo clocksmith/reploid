@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from './partition-execution-policy.js';
 import { vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
@@ -45,7 +46,7 @@ export async function coordinatorFixture({ discoveryOwners, cleanups, orchestrat
           planId: f.route.planId, residentId: port.residentId, executionId: port.executionId, activation: f.route.activation, availability: 'ready' }] } }));
   });
   cleanups.push(() => mesh.close(), () => f.runner.close());
-  const request = id => ({ model: mesh.getModels()[0], messages: [{ role: 'user', content: id }], threadId: id, attemptId: id });
+  const request = id => ({ privacy: partitionTestPolicy, model: mesh.getModels()[0], messages: [{ role: 'user', content: id }], threadId: id, attemptId: id });
   const stageOne = () => mesh.getState().placement?.[1] ?? null, stageAt = index => mesh.getState().placement?.[index] ?? null;
   return { ...f, identity, model, mesh, replica, networks, discovery, loadProgram, capacity, queued, request, stageOne, stageAt,
     generate: (id, controls = {}) => mesh.generate(request(id), { requestApproval: async () => true, ...controls }) };

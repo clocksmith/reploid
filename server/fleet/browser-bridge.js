@@ -64,6 +64,26 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
           && Array.isArray(body.messages) && body.messages.length > 0
           && body.messages.every(row => ['user', 'assistant', 'system'].includes(row.role) && typeof row.content === 'string'),
         'Bound reservation and original messages required');
+        const state = await host.browserState();
+        assert(state.privacyProtocol === 'reploid.paired-route/v3' && body.poolIdentity === state.poolIdentity,
+          'Current paired route required for recovery');
+        assert(body.privacyBinding, 'Original execution binding required for recovery');
+        const { binding: reservation } = await host.receipt(body.reservationId) ?? {};
+        assert(reservation?.consumer === state.requester.participantId, 'Recovery reservation belongs to another coordinator');
+        const model = { id: reservation.model.id, identity: reservation.model.identity,
+          adapters: (reservation.model.adapterIdentities || []).map(identity => ({ identity })),
+          ...(reservation.mode === 'partition' ? { partition: true } : {}) };
+        const route = body.privacyBinding.route;
+        const workers = reservation.providers.map(provider => provider.participantId);
+        const expected = new Set([reservation.consumer, ...workers]);
+        assert(route?.hops?.length === expected.size && new Set(route.hops.map(hop => hop.recipient)).size === expected.size
+          && route.hops.every(hop => hop.placement === 'remote' && expected.has(hop.recipient)),
+        'Recovery binding does not cover the original coordinator and workers');
+        const executionRoute = reservation.mode === 'partition' ? reservation.route?.route
+          : { schema: 'reploid.paired-whole-route/v1', requester: reservation.consumer, providerIdentity: workers[0] };
+        assert(executionRoute && sameExecutionBinding(executionRoute, route.route), 'Recovery attempted to substitute the original route');
+        const checked = await bindExecutionRoute({ model, privacy: body.privacyBinding.policy }, route);
+        assert(sameExecutionBinding(checked, body.privacyBinding), 'Original recovery binding is not current');
         response.setHeader('Content-Type', 'application/json');
         response.end(JSON.stringify(await host.recover({
           reservationId: body.reservationId,
@@ -76,6 +96,28 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       assert(typeof body.attemptId === 'string' && body.attemptId.length <= 128 && typeof body.threadId === 'string'
         && body.threadId.length <= 128 && Array.isArray(body.messages) && body.messages.length > 0
         && body.messages.every(row => ['user', 'assistant', 'system'].includes(row.role) && typeof row.content === 'string'), 'Invalid conversation request');
+      const privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(body));
+      assert(body.privacyBinding, 'Paired execution binding required');
+      const state = await host.browserState();
+      const model = state.models.find(row => row.id === body.model?.id && row.identity === body.model?.identity);
+      assert(model && ['ready', 'busy'].includes(model.availability), 'No private computer is ready for this model');
+      assert(body.poolIdentity === state.poolIdentity, 'Private computer enrollment changed; reconnect before sending');
+      assert(state.privacyProtocol === 'reploid.paired-route/v3', 'Paired execution requires current exact-route preflight');
+      const selected = model.executionRoutes?.find(item => sameExecutionBinding(item.route, body.privacyBinding.route));
+      assert(selected, 'Paired route changed; refresh before sending');
+      const selectedModel = structuredClone(selected.selection);
+      const expected = new Set([state.requester.participantId, ...(selectedModel.partition?.schema === 'reploid.partition-selection/v2'
+        ? selectedModel.partition.route.stages.map(stage => stage.participantId)
+        : [selected.route.route?.providerIdentity])]);
+      const enrolled = new Set(state.computers.flatMap(row => row.participantIds));
+      enrolled.add(state.requester.participantId);
+      assert([...expected].every(id => typeof id === 'string' && enrolled.has(id))
+        && selected.route.hops.length === expected.size
+        && new Set(selected.route.hops.map(hop => hop.recipient)).size === expected.size
+        && selected.route.hops.every(hop => hop.placement === 'remote' && expected.has(hop.recipient)),
+      'Paired route recipient set is incomplete or changed');
+      const privacyBinding = await bindExecutionRoute({ model: selectedModel, privacy }, selected.route);
+      assert(sameExecutionBinding(privacyBinding, body.privacyBinding), 'Paired execution binding mismatch');
       assert(pending.size < maxConcurrent && !seen.has(body.attemptId), 'Request already used or bridge limit reached');
       while (seen.size >= maxSeenAttempts) {
         const oldest = [...seen].find(id => !pending.has(id));
@@ -83,24 +125,6 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
         seen.delete(oldest);
       }
       attemptId = body.attemptId; seen.add(attemptId); pending.set(attemptId, Promise.resolve());
-      const state = await host.browserState();
-      const model = state.models.find(row => row.id === body.model?.id && row.identity === body.model?.identity);
-      assert(model && ['ready', 'busy'].includes(model.availability), 'No private computer is ready for this model');
-      assert(body.poolIdentity === state.poolIdentity, 'Private computer enrollment changed; reconnect before sending');
-      let privacyBinding = null, selectedModel = { id: model.id, identity: model.identity };
-      if (body.privacy) {
-        assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: body.privacy }));
-        assert(body.privacyBinding, 'Paired privacy binding required');
-        if (state.privacyProtocol === 'reploid.paired-route/v2') {
-          const selected = model.executionRoutes?.find(item => sameExecutionBinding(item.route, body.privacyBinding.route));
-          assert(selected, 'Paired route changed; refresh before sending');
-          selectedModel = structuredClone(selected.selection);
-          privacyBinding = await bindExecutionRoute({ model: selectedModel, privacy: body.privacy }, selected.route);
-          assert(sameExecutionBinding(privacyBinding, body.privacyBinding), 'Paired privacy binding mismatch');
-        } else {
-          throw new Error('Policy-bound paired execution requires exact route preflight; legacy delegation is unavailable');
-        }
-      }
       // Sources, adapters and generation settings remain native-owner decisions.
       response.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'X-Accel-Buffering': 'no' });
       const emit = event => { if (!response.destroyed) response.write(JSON.stringify(event) + '\n'); };
@@ -108,7 +132,7 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       let lastAdmission = null;
       const operation = host.generate(
         { threadId: body.threadId, attemptId, model: selectedModel, messages: body.messages,
-          ...(body.privacy ? { privacy: body.privacy, ...(privacyBinding ? { privacyBinding } : {}) } : {}) },
+          privacy, privacyBinding },
         delta => emit({ delta }),
         disclosure => {
           const route = disclosure.route;

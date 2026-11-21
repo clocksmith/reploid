@@ -94,13 +94,14 @@ it.each([false,true,'scalar-fields'])('validates paired headers and preserves lo
       maxPendingRequests:4,maxRequestsPerChannel:8,maxBufferedBytes:65536,maxTransferBytes:131072,timeoutMs:1000}};
   const a=createPartitionPeer({...base,channel:channels[0],localParticipantId:'a',remoteParticipantId:'b'});
   const b=createPartitionPeer({...base,channel:channels[1],localParticipantId:'b',remoteParticipantId:'a',
-    contributor:{id:'b',index:1,canAccept:()=>true,getState:()=>({ready:true}),executeGroup1,closeAttempt:async()=>{}}});
+    contributor:{id:'b',index:1,canAccept:()=>true,getState:()=>({ready:true,descriptor:null}),executeGroup1,closeAttempt:async()=>{}}});
   try{
     const frame={...fixture.frame,buffer:f.original.slice().buffer,step:0,seqOffset:0,
       metadata:{...identity,maxTokens:1,generationDigest,from:'a',to:'b'}};
     if(corrupt)frame.elementStrideBytes=4;
     if(scalar)Object.assign(frame,{schema:legacy.ACTIVATION_TENSOR_SCHEMA,precision:'f32',components:1,
       byteLength:8192,buffer:f.original.slice(0,8192).buffer});
+    await a.refresh();
     const response=a.executeFrame({frame,identity,step:0,tokenPosition:0,inputTokenCount:2,inputTokenIds:[1,2],
       maxTokens:1,generation,generationDigest,executionGrant:grant,outputGrant:grant});
     if(corrupt){await expect(response).rejects.toThrow();expect(executeGroup1).not.toHaveBeenCalled();}

@@ -1,5 +1,8 @@
 // @vitest-environment node
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import http from 'node:http';
+import { createTextApi } from '../../server/text-api.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -151,6 +154,32 @@ it('refuses non-loopback HTTP binding without TLS and unauthenticated requests b
       body: JSON.stringify({ model: model.id, input: 'hi', store: false })
     })).status).toBe(401);
   } finally { await api.close(); }
+});
+
+it('rejects an explicit private network request under a local-only operator policy before accounting', async () => {
+  const run = vi.fn(), generate = vi.fn();
+  const api = createTextApi({
+    participant: { roomId, executionClass: 'private-pool',
+      getState: () => ({ models: [{ ...model, availability: 'ready', providerIds: ['connection'] }] }), generate },
+    authenticate: async () => ({ subject: 'fixture' }), authorize: async () => true,
+    accounting: { run }, executionPolicyFor: () => createExecutionPolicy()
+  });
+  const server = http.createServer(api.handle);
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/v1/responses`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: model.id, store: false, input: 'synthetic private prompt',
+        reploid: { pool_id: roomId, expected_model_identity: model.identity, allowed_recipients: [keys[1].peerId], include_execution: true } })
+    });
+    expect(response.status).toBe(403);
+    expect((await response.json()).error.message).toBe('Network execution is not authorized by this API operator');
+    expect(run).not.toHaveBeenCalled();
+    expect(generate).not.toHaveBeenCalled();
+  } finally {
+    await api.close();
+    await new Promise(resolve => server.close(resolve));
+  }
 });
 
 it('streams authenticated /v1/responses over whole-model fleet capacity and settles non-cash credits', async () => {

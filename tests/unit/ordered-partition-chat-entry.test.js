@@ -1,3 +1,4 @@
+import { partitionTestPolicy, partitionTestBinding } from '../fixtures/partition-execution-policy.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
@@ -63,6 +64,7 @@ async function fixture(count = 3, peerMode = false) {
   const request = { meshId: 'mesh', modelId: 'model', modelIdentity: model.identity, planId: f.route.planId,
     route: f.route, coordinatorId: signer.peerId, threadId: 'thread', attemptId: 'attempt', placementGeneration: 0,
     messages: [{ role: 'user', content: 'Hello' }] };
+  Object.assign(request, { privacy: partitionTestPolicy, privacyBinding: await partitionTestBinding(request) });
   return { f, chat, client, server, pair, request, authority, approvals, authorize, authorizeRequester,
     direct: { ...request, participantId: 'requester', model: chat.getModels()[0], permissions: { sharingScope: 'approved-partition-path' } },
     controls: { signal: new AbortController().signal, onState: vi.fn(), onDelta: vi.fn(), requestApproval: vi.fn(async () => true) },
@@ -102,7 +104,7 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
     } finally { await f.close(); }
   });
 
-  it('connects requester entry through real v4 grants, a remote middle activation and final peer response', async () => {
+  it('connects requester entry through real v7 grants, a remote middle activation and final peer response', async () => {
     const f = await fixture(3, true), deltas = [];
     try {
       const result = await f.client.generate(f.request, {onDelta:text=>deltas.push(text)});
@@ -201,7 +203,7 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
       const requester = createPartitionRequester({ entries:()=>[f.client], requesterId:'requester', meshId:'mesh',
         modelId:'model', modelIdentity:f.f.route.modelIdentity, planId:f.f.route.planId, maxPlacements:1,
         ordered:true, authorize:async placement=>{approvals.push(placement);return true;},newId:()=> 'public-requester'});
-      const result = await requester.generate({messages:f.request.messages,threadId:'thread'},{onDelta:delta=>deltas.push(delta)});
+      const result = await requester.generate({privacy:partitionTestPolicy,messages:f.request.messages,threadId:'thread'},{onDelta:delta=>deltas.push(delta)});
       expect(deltas.map(delta=>delta.text)).toEqual(['0','1','2']);
       expect(deltas.every(delta=>delta.attemptId==='public-requester' && delta.placementGeneration===0)).toBe(true);
       expect(result.content).toBe('012'); expect(result.execution.identity.route).toEqual(f.f.route);
@@ -222,7 +224,7 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
         modelIdentity:first.modelIdentity,planId:first.planId,maxPlacements:2,ordered:true,newId:()=> 'retry-'+next++,
         onAttempt:attempt=>{if(attempt.route)attempt.route.stages[1].residentId='observer-mutation';},
         authorize:async placement=>{reviewed.push(structuredClone(placement));placement.route.stages[1].residentId='mutated-callback';return true;}});
-      const result = await requester.generate({messages:f.request.messages,threadId:'thread'});
+      const result = await requester.generate({privacy:partitionTestPolicy,messages:f.request.messages,threadId:'thread'});
       expect(result.recovery.attempts).toBe(2);
       expect(calls.map(call=>call.route)).toEqual(reviewed.map(value=>value.route));
       expect(calls.map(call=>call.attemptId)).toEqual(['retry-0','retry-1']);
@@ -237,7 +239,7 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
       const requester = createPartitionRequester({entries:()=>[f.client],requesterId:'requester',meshId:'mesh',modelId:'model',
         modelIdentity:f.f.route.modelIdentity,planId:f.f.route.planId,maxPlacements:1,ordered:true,
         authorize:async()=>{entered.resolve();return release.promise;},newId:()=> 'immutable-input'});
-      const pending = requester.generate({messages,threadId:'thread'}); await entered.promise;
+      const pending = requester.generate({privacy:partitionTestPolicy,messages,threadId:'thread'}); await entered.promise;
       messages[0].content='changed after handoff'; release.resolve(true); await pending;
       expect(f.f.stages[0].tokenize.mock.calls[0][0].messages).toEqual(f.request.messages);
     } finally { release.resolve(true); await f.close(); }
@@ -257,7 +259,7 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
     try {
       const requester = createPartitionRequester({entries:()=>[f.client],requesterId:'requester',meshId:'mesh',modelId:'model',
         modelIdentity:f.f.route.modelIdentity,planId:f.f.route.planId,maxPlacements:1,ordered:true,authorize:async()=>true,newId:()=> 'deadline'});
-      const result = await requester.generate({messages:f.request.messages,threadId:'thread',disclosureExpiresAt});
+      const result = await requester.generate({privacy:partitionTestPolicy,messages:f.request.messages,threadId:'thread',disclosureExpiresAt});
       expect(result.content).toBe('012');
       expect(f.approvals.filter(row=>row.action==='execute').every(row=>row.input.disclosureExpiresAt===disclosureExpiresAt)).toBe(true);
       for(const stage of f.f.stages) for(const [request] of stage.executeStage.mock.calls) {
@@ -363,7 +365,7 @@ it.each(['onUsage','onDelta'])('does not splice a fresh retry after %s is publis
   const first={id:f.client.id,refresh:()=>f.client.refresh(),generate:async(_request,controls)=>{await controls[callback](callback==='onUsage'?{schema:'raw-model-tokens/v1',inputTokens:2,outputTokens:0}:'partial');throw Error('first failed');}};
   const second={...first,id:'replacement',generate:async()=>{replacementCalls++;return {content:'incorrect retry'};}};
   try{const requester=createPartitionRequester({entries:()=>[first,second],requesterId:'requester',meshId:'mesh',modelId:'model',modelIdentity:f.request.modelIdentity,planId:f.request.planId,maxPlacements:2,ordered:true,authorize:async()=>true});
-    await expect(requester.generate({threadId:'retry',messages:f.request.messages,generationRequest:callerGeneration(2)},{onUsage:value=>rows.push(value),onDelta:value=>rows.push(value)})).rejects.toThrow('first failed');expect(rows).toHaveLength(1);expect(replacementCalls).toBe(0);
+    await expect(requester.generate({privacy:partitionTestPolicy,threadId:'retry',messages:f.request.messages,generationRequest:callerGeneration(2)},{onUsage:value=>rows.push(value),onDelta:value=>rows.push(value)})).rejects.toThrow('first failed');expect(rows).toHaveLength(1);expect(replacementCalls).toBe(0);
   }finally{await f.close();}
 });
 it('rejects a second semantic usage event before sampling',async()=>{
@@ -465,4 +467,19 @@ it('rejects changed final-only activity before publishing that observation',asyn
   stage.executeStage.mockImplementation(async request=>({...await execute(request),delta:''}));
   f.pair[1].send=function(data){if(typeof data==='string'){const row=JSON.parse(data);if(row.result?.activity){row.result.activity.stepSummary.stages[0].stepMs.total++;data=JSON.stringify(row);}}return send.call(this,data);};
   try{await expect(f.client.generate(f.request,{onActivity:event=>events.push(event)})).rejects.toThrow(/activity/);expect(events).toEqual([]);}finally{await f.close();}
+});
+
+it('rejects missing and stale policies and a named list omitting the coordinator before sending', async () => {
+  const f = await fixture(), send = vi.spyOn(f.pair[0], 'send');
+  try {
+    const { privacy, privacyBinding, ...unbound } = f.request;
+    const named = { ...structuredClone(privacy), recipients: { kind: 'named',
+      ids: f.request.route.stages.slice(1).map(stage => stage.participantId) } };
+    for (const input of [unbound, { ...unbound, privacyBinding, privacy: {schema:'reploid.execution-policy/v1'} },
+      { ...unbound, privacyBinding, privacy: named }]) {
+      await expect(f.client.generate(input)).rejects.toThrow();
+    }
+    expect(send).not.toHaveBeenCalled();
+    expect(f.f.stages[0].tokenize).not.toHaveBeenCalled();
+  } finally { send.mockRestore(); await f.close(); }
 });

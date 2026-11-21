@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 // Generation settings between two meshes joined in memory, without credit admission: what the
 // mesh itself advertises, refuses, signs and recovers. Provider execution is a function.
 import { afterEach, expect, it, vi } from 'vitest';
@@ -14,6 +15,7 @@ import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 
 const cleanup = [];
 afterEach(async () => { for (const close of cleanup.splice(0).reverse()) await close(); });
+const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const modelIdentity = 'sha256:' + 'a'.repeat(64);
 const limitOnly = { ...GENERATION_SETTINGS_CAPABILITY, maxOutputTokens: true };
 const settings = normalizeGenerationSettings({ maxOutputTokens: 4 });
@@ -94,7 +96,7 @@ it('refuses a settings request whose provider returns no measured completion or 
   const unmeasured = await fixture({ execute: async () => ({ model: 'model', modelIdentity, adapterIdentities: [], content: 'answer' }) });
   await expect(unmeasured.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow('Generation settings require a measured completion');
   // The same unmeasured host still serves a request without settings, as an unmetered version 1 receipt.
-  expect((await unmeasured.requesterMesh.generate(unmeasured.messages, null, { modelId: 'model', modelIdentity })).executionReceipt.version).toBe(1);
+  expect((await unmeasured.requesterMesh.generate(unmeasured.messages, null, { modelId: 'model', modelIdentity, privacy })).executionReceipt.version).toBe(1);
   const stripped = await fixture({ intercept: (type, payload) => { if (type === 'reploid:generation-result') delete payload.receipt; } });
   await expect(stripped.run(undefined, { maxOutputTokens: 4 })).rejects.toThrow('Remote execution receipt is missing');
   // A provider that signs a well-formed version 2 receipt for the request, as if it had carried no settings.
@@ -182,7 +184,7 @@ it('binds the digest into replay admission, signed cleanup and recovery', async 
   // The same request id with other settings, or none, is a different binding and is not executed.
   await f.replay({ settings: normalizeGenerationSettings({ maxOutputTokens: 3 }) });
   await f.replay({}, ['settings']);
-  expect(sent(f, 'reploid:generation-error').map(payload => payload.error)).toEqual(['Generation replay binding changed', 'Generation replay binding changed']);
+  expect(sent(f, 'reploid:generation-error').map(payload => payload.error)).toEqual(['Execution admission rejected', 'Execution admission rejected']);
   expect(f.executions).toBe(1);
   await f.restartProvider();
   await expect(f.recover()).rejects.toThrow('Unverified recovered completion');
@@ -243,7 +245,7 @@ async function placement(capabilities) {
       emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
     };
     return createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'settings-placement', generationTimeoutMs: 300 } } }), ports: {
-      instanceId: 'instance-' + i, modelConfig: i ? { id: 'model' } : null,
+      instanceId: 'instance-' + i, modelConfig: i ? { id: 'model' } : null, admitsBeforeDisclosure: true,
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
       ...(i && capabilities[i - 1] ? { getGenerationSettingsCapability: () => capabilities[i - 1] } : {}),
       authorize: async input => { if (input.action === 'mesh.dispatch') disclosures.push(input); return true; },
@@ -262,7 +264,7 @@ async function placement(capabilities) {
   for (const mesh of meshes) await mesh.connect();
   for (const mesh of meshes.slice(1)) mesh.refreshAdvertisement();
   await vi.waitFor(() => expect(meshes[0].getSwarmSnapshot().peers.filter(peer => peer.readiness === 'ready')).toHaveLength(capabilities.length));
-  const ask = requested => meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity, ...(requested ? { settings: requested } : {}) });
+  const ask = requested => meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { modelId: 'model', modelIdentity, privacy, ...(requested ? { settings: requested } : {}) });
   return { ask, requests, disclosures };
 }
 
@@ -297,7 +299,7 @@ it('refuses a request with settings before any disclosure when no single provide
 
 // The early input count: a provider host that knows its prompt token count before its first text
 // reports it, and one update carries it to a requester that asked. No request key is involved.
-const ask = (f, controls = {}, onUpdate = null) => f.requesterMesh.generate(f.messages, onUpdate, { modelId: 'model', modelIdentity, ...controls });
+const ask = (f, controls = {}, onUpdate = null) => f.requesterMesh.generate(f.messages, onUpdate, { modelId: 'model', modelIdentity, privacy, ...controls });
 const mismatch = 'Provider input token count differs from its early observation';
 
 it('sends one early input count ahead of the text, drops any other report, and adds no key to the request', async () => {
@@ -323,7 +325,7 @@ it('sends one early input count ahead of the text, drops any other report, and a
   expect(sent(f, 'reploid:generation-update').filter(update => update.requestId === second.requestId)).toEqual([
     { requestId: second.requestId, usage: { inputTokens: 7 } }, { requestId: second.requestId, chunk: 'actual ' }, { requestId: second.requestId, chunk: 'answer' }]);
   expect(Object.keys(second).sort()).toEqual(Object.keys(first).sort());
-  expect(Object.keys(second).sort()).toEqual(['adapterIdentities', 'consumer', 'messages', 'model', 'modelContract', 'modelIdentity', 'provider', 'requestId']);
+  expect(Object.keys(second).sort()).toEqual(['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'messages', 'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'requestId']);
   expect(f.errors).toEqual([]);
 });
 

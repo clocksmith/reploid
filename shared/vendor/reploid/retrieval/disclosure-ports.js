@@ -15,7 +15,7 @@ export function guardRetrievalPort(port, operation, beforeDisclosure, signal) {
     const path = describe ? await describe(detail) : null;
     current();
     const authorization = await beforeDisclosure(detail, path);
-    if (authorization !== true && authorization?.schema !== 'reploid.auxiliary-binding/v1') throw new Error('Retrieval disclosure was denied');
+    if (authorization !== true && authorization?.schema !== 'reploid.auxiliary-binding/v2') throw new Error('Retrieval disclosure was denied');
     current();
     if (port.privacyProtocol === SEARCH_DISCLOSURE_PROTOCOL && authorization !== true && authorization.path.complete) {
       if (operation === 'search') args[3] = { ...args[3], disclosure: authorization };

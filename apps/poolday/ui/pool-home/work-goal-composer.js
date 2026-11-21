@@ -58,7 +58,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           </div>
             <fieldset class="pool-work-capabilities pool-small"><legend>Agents</legend>
               <label><input type="checkbox" data-work-helpers checked> Delegate subtasks</label>
-              <label><input type="checkbox" data-work-peers checked> Propose peer jobs</label>
+              <label><input type="checkbox" data-work-peers> Allow plaintext work on approved network computers</label>
             </fieldset>
             <label for="work-files">Text or source files</label>
             <input id="work-files" type="file" multiple accept=".txt,.md,.csv,.json,.js,.ts,.html,.css,.wgsl,.xml,.yaml,.yml,.log" data-work-files>

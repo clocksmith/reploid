@@ -2,11 +2,12 @@
 // workspace applies it before every remote disclosure. Injected execution; no inference.
 import { describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
-import { bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import policy from '../../packages/reploid/src/chat/policy.json';
 import { createRemotePermission, remoteDisclosureKind, remotePermissionCovers, remotePermissionNeed,
   validateRemotePermission } from '../../packages/reploid/src/chat/remote-permission.js';
 
+const OPEN_POLICY = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const digest = c => 'sha256:' + c.repeat(64), PEER = 'peer:' + 'b'.repeat(24);
 const modelA = { id: 'model-a', name: 'Model A', identity: digest('a') }, modelB = { id: 'model-b', name: 'Model B', identity: digest('b') };
 const adapter = { id: 'adapter', identity: digest('c') };
@@ -14,7 +15,7 @@ const need = (overrides = {}) => ({ networkId: 'mesh', sharingScope: 'mesh', dis
 const WORDING = { id: 'reploid.remote-contributor-permission', version: '1', text: 'Shown text' };
 const granted = (overrides = {}) => createRemotePermission({ id: 'permission-1', need: need(), catalog: [modelA], wording: WORDING, grantedAt: 1, ...overrides });
 async function boundNeed({ model = modelA, sharingScope = 'mesh', recipients = [PEER], ...overrides } = {}) {
-  const req = { model, permissions: { sharingScope } };
+  const req = { model, privacy: OPEN_POLICY, permissions: { sharingScope } };
   const binding = await bindExecutionRoute(req, plaintextExecutionRoute(req, { recipients }));
   return need({ sharingScope, modelId: model.id, modelIdentity: model.identity,
     adapterIdentities: (model.adapters || []).map(item => item.identity),
@@ -74,6 +75,7 @@ function fixture({ hold = null } = {}) {
     const preview = { id: 'preview-' + request.attemptId, threadId: request.threadId, attemptId: request.attemptId, peerId: PEER, recipientIdentity: PEER,
       operation: 'generate', disclosure: 'public', modelId: request.model.id, modelIdentity: request.model.identity,
       adapterIdentities: (request.model.adapters || []).map(item => item.identity), expiresAt: Date.now() + 10000, input: request.messages };
+    preview.privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [PEER] }));
     if (!await controls.requestApproval(preview)) throw new Error('Disclosure declined');
     disclosed.push(request.messages.at(-1).content);
     if (hold) await hold(request);
@@ -90,7 +92,7 @@ const held = (f, thread) => vi.waitFor(() => { const attempt = f.attempt(thread)
 
 describe('workspace under a remote permission', () => {
   it('sends nothing before permission; granting it releases the held request and cites it', async () => {
-    const f = fixture(), thread = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
+    const f = fixture(), thread = f.app.createThread({ model: modelA, privacy: OPEN_POLICY, permissions: { sharingScope: 'mesh' } });
     const completion = f.app.send(thread, 'First');
     const attempt = await held(f, thread);
     expect(attempt.approval.permissionNeed).toEqual(await boundNeed());
@@ -111,14 +113,15 @@ describe('workspace under a remote permission', () => {
     const app = createChatWorkspace({ meshId: 'mesh', participantId: 'requester', remotePermissions: () => permissions,
       store: { load: () => null, save() {} }, execute: async (request, controls) => {
         for (const peer of [PEER, otherPeer]) {
-          await controls.requestApproval({ id: peer, threadId: request.threadId, attemptId: request.attemptId,
+          const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [peer] }));
+          await controls.requestApproval({ privacyBinding, id: peer, threadId: request.threadId, attemptId: request.attemptId,
             peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
             modelId: modelA.id, modelIdentity: modelA.identity, adapterIdentities: [], expiresAt: Date.now() + 10000 });
         }
         throw Error('Must not reach a replacement recipient');
       } });
     try {
-      const thread = app.createThread({ model: modelA, permissions: {sharingScope:'mesh'} });
+      const thread = app.createThread({ model: modelA, privacy: OPEN_POLICY, permissions: {sharingScope:'mesh'} });
       expect(await app.send(thread, 'Hello')).toMatchObject({status:'failed', error:'Execution recipients changed. Retry starts a new authorized attempt.'});
     } finally { await app.close(); }
   });
@@ -131,14 +134,15 @@ describe('workspace under a remote permission', () => {
     const app = createChatWorkspace({ meshId:'mesh', participantId:'requester', remotePermissions:()=>stored,
       policy:{...policy,attemptTimeoutMs:1000}, store:{load:()=>null,save(){}}, execute:async(request,controls)=>{
         signal = controls.signal;
-        if (!await controls.requestApproval({id:'preview',threadId:request.threadId,attemptId:request.attemptId,
+        const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [PEER] }));
+        if (!await controls.requestApproval({privacyBinding,id:'preview',threadId:request.threadId,attemptId:request.attemptId,
           peerId:PEER,recipientIdentity:PEER,operation:'generate',disclosure:'public',modelId:modelA.id,
           modelIdentity:modelA.identity,adapterIdentities:[],expiresAt:Date.now()+10000,executionTimeoutMs:1000})) throw Error('Expired');
         deadline=controls.authorizationExpiresAt(); await gate;
         return {threadId:request.threadId,attemptId:request.attemptId,modelId:modelA.id,modelIdentity:modelA.identity,adapterIdentities:[],content:'Answer'};
       }});
     try {
-      const thread=app.createThread({model:modelA,permissions:{sharingScope:'mesh'}}), pending=app.send(thread,'Hello');
+      const thread=app.createThread({model:modelA,privacy:OPEN_POLICY,permissions:{sharingScope:'mesh'}}), pending=app.send(thread,'Hello');
       await vi.waitFor(() => expect(app.getState().threads.find(item => item.id === thread).attempts.at(-1).status).toBe('approval'));
       await vi.advanceTimersByTimeAsync(900); stored.push(permitted); expect(app.resumePermitted()).toBe(1);
       await vi.advanceTimersByTimeAsync(900); expect(signal.aborted).toBe(false); expect(deadline).toBeGreaterThan(Date.now());
@@ -149,7 +153,7 @@ describe('workspace under a remote permission', () => {
   });
 
   it('a covered request is sent with no approval state; the record names its recipients', async () => {
-    const f = fixture(), thread = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
+    const f = fixture(), thread = f.app.createThread({ model: modelA, privacy: OPEN_POLICY, permissions: { sharingScope: 'mesh' } });
     f.stored.push(await boundGranted());
     const first = await f.app.send(thread, 'Question'), follow = await f.app.send(thread, 'Follow-up');
     expect(f.statuses).not.toContain('approval');
@@ -162,7 +166,7 @@ describe('workspace under a remote permission', () => {
     const cases = [['another model', modelB, 'mesh'], ['another sharing scope', modelA, 'thread-members'],
       ['an adapter it does not list', { ...modelA, adapters: [adapter] }, 'mesh']];
     for (const [name, model, sharingScope] of cases) {
-      const thread = f.app.createThread({ model, permissions: { sharingScope } }), completion = f.app.send(thread, name);
+      const thread = f.app.createThread({ model, privacy: OPEN_POLICY, permissions: { sharingScope } }), completion = f.app.send(thread, name);
       const attempt = await held(f, thread);
       expect(f.disclosed, name).not.toContain(name);
       f.stored.push(createRemotePermission({ id: 'for-' + name, need: attempt.approval.permissionNeed, wording: WORDING, grantedAt: 2 }));
@@ -174,13 +178,13 @@ describe('workspace under a remote permission', () => {
   it('revocation stops new disclosures and leaves an answer already admitted running', async () => {
     let release; const gate = new Promise(resolve => { release = resolve; });
     const f = fixture({ hold: request => request.messages.at(-1).content === 'Long' ? gate : null });
-    const thread = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
+    const thread = f.app.createThread({ model: modelA, privacy: OPEN_POLICY, permissions: { sharingScope: 'mesh' } });
     f.stored.push(await boundGranted());
     const running = f.app.send(thread, 'Long');
     await vi.waitFor(() => expect(f.disclosed).toEqual(['Long']));
     f.stored[0] = { ...f.stored[0], revokedAt: 2 };
     release(); expect((await running).status).toBe('completed');
-    const other = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } }), next = f.app.send(other, 'After');
+    const other = f.app.createThread({ model: modelA, privacy: OPEN_POLICY, permissions: { sharingScope: 'mesh' } }), next = f.app.send(other, 'After');
     await held(f, other);
     expect(f.disclosed).toEqual(['Long']);
     expect(() => f.app.approve(other, f.attempt(other).id, f.attempt(other).approval.id, true)).toThrow('remote contributor permission');
@@ -197,7 +201,7 @@ describe('workspace under a remote permission', () => {
           operation: 'generate', disclosure: 'public', modelId: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [], expiresAt: Date.now() + 10000 });
         throw new Error('sent');
       } });
-    const thread = app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
-    expect(await app.send(thread, 'x')).toMatchObject({ status: 'failed', error: 'Peer disclosure does not match the selected model and verified recipients' });
+    const thread = app.createThread({ model: modelA, privacy: OPEN_POLICY, permissions: { sharingScope: 'mesh' } });
+    expect(await app.send(thread, 'x')).toMatchObject({ status: 'failed', error: 'Verified, policy-bound execution recipients are required' });
   });
 });

@@ -7,7 +7,8 @@ export async function assessExecutionOffers(providerRows, providers, requirement
   return (await Promise.all(providerRows.map(async row => {
     const capability = providers.get(row.providerId).capabilities;
     if (capability.executionOffers === undefined && requirements.privacy === undefined) return [row];
-    const privacy = requirements.privacy ?? createExecutionPolicy();
+    // This fallback is inventory for separately authorized public inputs only; no binding is emitted.
+    const privacy = requirements.privacy ?? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
     const request = { model: { id: requirements.modelId ?? requirements.operation.name, identity: requirements.modelIdentity,
       adapters: requirements.adapterIdentities.map(identity => ({ identity })) }, privacy, operation: requirements.operation.name };
     const offers = capability.executionOffers ?? [];

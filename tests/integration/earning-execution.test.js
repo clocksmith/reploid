@@ -176,18 +176,19 @@ describe.each(['memory', 'firestore'])('earning with actual execution and delive
       profile: { generation: {}, maxOutcomeCharacters: 1000 }, earning: attempts });
     // The one-time remote contributor permission; no per-request review follows it.
     const hashSync = (value) => 'sha256:' + createHash('sha256').update(canonicalize(value)).digest('hex');
+    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
     const routeSpec = plaintextExecutionRoute({ model: route.model, permissions: { sharingScope: 'mesh' } }, {
       recipients: route.model.partition.route.stages.map((stage) => stage.participantId),
       route: route.model.partition.route
     });
     const need = remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', model: route.model,
-      policyId: hashSync(createExecutionPolicy('provider-visible')), routeId: hashSync(routeSpec) });
+      policyId: hashSync(privacy), routeId: hashSync(routeSpec) });
     const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need, wording: remotePermissionWording(need) });
     let saved = null;
     const app = createChatWorkspace({ meshId: 'mesh', participantId: identity.peerId, remotePermissions: () => [permission],
       store: { load: () => structuredClone(saved), save: (value) => { saved = structuredClone(value); } }, execute: execution.execute });
     cleanups.push(() => app.close());
-    const thread = () => app.createThread({ model: route.model, permissions: { sharingScope: 'mesh' } });
+    const thread = () => app.createThread({ model: route.model, privacy, permissions: { sharingScope: 'mesh' } });
     const latest = (threadId) => app.getState().threads.find((row) => row.id === threadId)?.attempts.at(-1);
     return {
       client, attempts, app, storage, thread, latest,

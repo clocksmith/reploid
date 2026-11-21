@@ -1,7 +1,7 @@
-/** Versioned disclosure authority for direct complete operations. Public legacy consent stays public. */
+/** Versioned disclosure authority for direct complete operations. Intentionally public input uses a separate consent contract. */
 import { assertAvailableExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute, sameExecutionBinding, executionPrivacyReceipt } from '../../chat/execution-policy.js';
 const assert = (ok, message) => { if (!ok) throw new Error(`Operation privacy: ${message}`); };
-export const OPERATION_CONSENT_SCHEMA = 'reploid.peer.execution_consent/v2';
+export const OPERATION_CONSENT_SCHEMA = 'reploid.peer.execution_consent/v3';
 export function operationConsentRequirements(consent) {
   if (consent?.schema !== OPERATION_CONSENT_SCHEMA) {
     assert(consent?.schema === 'reploid.peer.public_operation_consent/v1' && consent.publicInput === true, 'explicit public consent or versioned private execution consent required');
@@ -9,7 +9,7 @@ export function operationConsentRequirements(consent) {
   }
   const binding = consent.privacyBinding;
   assert(consent.publicInput === false && consent.providerIds?.length === 1 && typeof consent.offerId === 'string'
-    && consent.offerId.length > 0 && binding?.schema === 'reploid.execution-binding/v1', 'single selected provider, offer and privacy binding required');
+    && consent.offerId.length > 0 && binding?.schema === 'reploid.execution-binding/v2', 'single selected provider, offer and privacy binding required');
   assertAvailableExecutionPolicy(binding.policy);
   assert(binding.route?.route?.providerId === consent.providerIds[0] && binding.route.route.offerId === consent.offerId,
     'selected route differs from consent');

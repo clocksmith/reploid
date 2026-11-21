@@ -1,3 +1,4 @@
+import { partitionTestPolicy, partitionTestBinding } from '../fixtures/partition-execution-policy.js';
 // Carriage of signed attempt evidence through the ordered route's network hops: the requester's charge
 // binding travels over the requester-to-coordinator entry channel and the coordinator-to-stage peer
 // channels; each final-stage receipt returns with its output to the requester, whose acknowledgment
@@ -102,6 +103,7 @@ async function network(count = 3) {
   const request = { meshId: 'mesh', modelId: 'model', modelIdentity: model.identity, planId: f.route.planId, route: f.route,
     coordinatorId: coordinator.peerId, threadId: 'thread', attemptId: 'attempt', placementGeneration: 0, messages: [{ role: 'user', content: 'Hello' }] };
   const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'thread', attemptId: 'attempt', requesterId: requester.peerId, placementGeneration: 0, route: f.route };
+  Object.assign(request, { privacy: partitionTestPolicy, privacyBinding: await partitionTestBinding(request) });
   return { f, client, request, identity, requester, received, stageIdentities, stagePeers: owners,
     async close() { await Promise.allSettled([client.close(), server.close(), chat.close(), ...owners.map((owner) => owner.close())]); authority.close(); } };
 }

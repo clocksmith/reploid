@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'dopplerx/partitions';
 import { getDevice, getKernelCapabilities } from 'dopplerx/tooling/device';
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
+import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
 import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
@@ -742,7 +742,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
                 route: { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity } }) }));
           }) };
       });
-      return { schema: 'reploid.fleet-browser/v1', privacyProtocol: 'reploid.paired-route/v2', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
+      return { schema: 'reploid.fleet-browser/v1', privacyProtocol: 'reploid.paired-route/v3', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
         models, computers: includeRequesterPresence(network.computers, state(), network.at), at: network.at };
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
@@ -750,7 +750,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
-      if (request.privacy) assertAvailableExecutionPolicy(requestExecutionPolicy(request));
+      request.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(request));
       const configured = config.models.find(entry => entry.model.id === request.model.id && entry.model.identity === request.model.identity);
       assert(configured, 'Model is outside owner preferences');
       request.model = { ...structuredClone(configured.model), ...(request.model.partition ? { partition: request.model.partition } : {}) };
@@ -775,15 +775,18 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         const controls = { signal: controller.signal, onDelta,
           requestApproval: async disclosure => {
             assert(same(disclosure.input?.messages, request.messages), 'Changed prompt disclosure');
+            const workers = [...new Set(disclosure.route
+              ? disclosure.route.stages.map(stage => stage.participantId) : [disclosure.recipientIdentity])];
+            const enrolled = new Set((await credits.call('computers', {})).computers.flatMap(row => row.participantIds || []));
+            assert(workers.length > 0 && workers.every(id => enrolled.has(id)), 'Execution worker is not enrolled; nothing was sent');
+            const recipients = [...new Set([...(request.privacyBinding ? [identity.peerId] : []), ...workers])];
+            const route = plaintextExecutionRoute(request, { recipients, route: disclosure.route
+              ?? { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity: disclosure.recipientIdentity } });
+            const checked = await bindExecutionRoute(request, route);
             if (request.privacyBinding) {
-              const recipients = [...new Set([identity.peerId, ...(disclosure.route
-                ? disclosure.route.stages.map(stage => stage.participantId) : [disclosure.recipientIdentity])])];
-              const route = plaintextExecutionRoute(request, { recipients, route: disclosure.route
-                ?? { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity: disclosure.recipientIdentity } });
-              const checked = await bindExecutionRoute(request, route);
               assert(sameExecutionBinding(checked, request.privacyBinding), 'Paired execution route changed; no prompt was sent to the replacement');
-              controller.signal.throwIfAborted();
             }
+            controller.signal.throwIfAborted();
             slot?.markDisclosed?.([disclosure?.providerId, typeof disclosure?.recipientIdentity === 'string' ? disclosure.recipientIdentity : null].filter(Boolean));
             onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.
@@ -880,13 +883,24 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           else if (command.op === 'reconcile') result = await host.reconcile();
           else if (command.op === 'balances') result = await host.balances();
           // `events: true` also reports the route as soon as it is approved, for callers that must act mid-answer.
-          else if (command.op === 'generate') result = await host.generate(command.request,
-            delta => console.log(JSON.stringify({ id: command.id, delta })),
-            command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
-              // `admission` is present when the prompt waits for the named recipient's decision.
-              route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null,
-                ...(route.admission ? { admission: route.admission } : {}) } })));
-          else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
+          else if (command.op === 'generate') {
+            // Stdin is the owner-command boundary. It supplies an explicit policy for its own
+            // request, never for missing or stale browser/mesh requests.
+            const request = structuredClone(command.request);
+            if (!Object.hasOwn(request, 'privacy')) {
+              const enrolled = await host.enrolledRecipients();
+              const pins = config.textApi?.allowedRecipients;
+              const ids = [...enrolled].filter(id => !pins || pins.includes(id)).sort();
+              request.privacy = createExecutionPolicy({ placement: 'network-allowed',
+                recipients: { kind: 'named', ids } });
+            }
+            result = await host.generate(request,
+              delta => console.log(JSON.stringify({ id: command.id, delta })),
+              command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
+                // `admission` is present when the prompt waits for the named recipient's decision.
+                route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null,
+                  ...(route.admission ? { admission: route.admission } : {}) } })));
+          } else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');

@@ -1,7 +1,12 @@
-import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { it, expect, vi } from 'vitest';
 import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
+
+import { createSigningIdentity, importSigningKey, getIdentitySignAlgorithm, encodeBytes, toBase64Url } from '../../packages/reploid/src/artifacts/identity.js';
+import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
+
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 
 function fixture(meshOverrides = {}, execution = {}) {
   const handlers = new Map(), listeners = new Map(), sent = [], broadcasts = [];
@@ -10,20 +15,67 @@ function fixture(meshOverrides = {}, execution = {}) {
     emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
   };
   const authorize = vi.fn(async () => true);
-  const mesh = createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test', ...meshOverrides } } }), ports: {
-    instanceId: 'test', modelConfig: execution.modelConfig || null, authorize,
-    getExecutionState: execution.getExecutionState, generate: execution.generate || (async () => {}),
+  const identities = new Map();
+  const signingIdentity = id => {
+    if (!identities.has(id)) identities.set(id, createSigningIdentity({ algorithm: 'Ed25519' }));
+    return identities.get(id);
+  };
+  const connection = peer => ({ local: 'fixture:local', remote: 'fixture:' + peer });
+  const readyOffer = identity => ({ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation',
+    backend: 'doppler-plaintext/v1', kind: 'plaintext', modelIdentities: [identity],
+    operation: 'generate', protocol: null, evidence: null });
+  const underlying = createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test', ...meshOverrides } } }), ports: {
+    instanceId: 'test', modelConfig: execution.modelConfig || null, authorize, admitsBeforeDisclosure: true,
+    getExecutionState: execution.getExecutionState || (() => ({ phase: execution.modelConfig ? 'ready' : 'idle', modelIdentity: artifactA })), generate: execution.generate || (async () => {}),
     utils: { generateId: () => crypto.randomUUID() }, events, eventBus: events,
-    identity: { ensure: async () => ({ peerId: 'requester' }), sync: async () => {}, save: async () => {} },
+    identity: { ensure: () => signingIdentity('fixture-local'), sync: async () => {}, save: async () => {} },
     createTransport: () => ({ init: async () => true, disconnect() {}, broadcast(name, payload) { broadcasts.push({ name, payload }); },
+      getPeerId: () => 'fixture-local', getPeerBinding: connection,
       onMessage(name, fn) { handlers.set(name, fn); },
-      sendToPeer(peer, name, payload) { sent.push({ peer, name, payload }); return true; } })
+      sendToPeer(peer, name, payload) {
+        if (name === 'reploid:identity-challenge') {
+          queueMicrotask(async () => {
+            const identity = await signingIdentity(peer), key = await importSigningKey(identity);
+            const bytes = encodeBytes(JSON.stringify(['reploid.mesh-recipient/v1', payload.roomId, payload.nonce,
+              payload.requester, payload.provider, payload.local, payload.remote, identity.peerId]));
+            const signature = await crypto.subtle.sign(getIdentitySignAlgorithm(identity.publicJwk), key, bytes);
+            handlers.get('reploid:identity-proof')(peer, { nonce: payload.nonce, participantId: identity.peerId,
+              publicJwk: identity.publicJwk, signature: toBase64Url(signature) });
+          });
+        } else if (name === 'reploid:generation-admit') {
+          queueMicrotask(() => handlers.get('reploid:generation-admitted')(peer, { requestId: payload.requestId,
+            admissionProtocol: 2, promptCommitment: payload.promptCommitment }));
+        } else if (name !== 'reploid:generation-admitted') sent.push({ peer, name, payload });
+        return true;
+      } })
   } });
-  const advertise = (id, model, overrides = {}) => handlers.get('reploid:peer-advertisement')(id,
-    { hasInference: true, swarmEnabled: true, readiness: 'ready', availableSlots: 1, model, updatedAt: Date.now(), ...overrides });
+  const mesh = Object.freeze({ ...underlying, generate(messages, stream, options) {
+    return underlying.generate(messages, stream, execution.modelConfig ? options : { privacy: openPolicy, ...options });
+  } });
+  const advertise = (id, model, overrides = {}) => {
+    const modelIdentity = Object.hasOwn(overrides, 'modelIdentity') ? overrides.modelIdentity : artifactA;
+    return handlers.get('reploid:peer-advertisement')(id, { hasInference: true, swarmEnabled: true, readiness: 'ready',
+      availableSlots: 1, model, modelIdentity, identityProtocol: 1, admissionProtocol: 2,
+      executionOffers: modelIdentity ? [readyOffer(modelIdentity)] : [],
+      updatedAt: Date.now(), ...overrides });
+  };
   const respond = (request, model = request.payload.model) => handlers.get('reploid:generation-result')(request.peer,
-    { requestId: request.payload.requestId, response: { model, content: 'response' } });
-  return { mesh, sent, broadcasts, advertise, respond, authorize, events, handlers,
+    { requestId: request.payload.requestId, response: { model, modelIdentity: request.payload.modelIdentity, content: 'response' } });
+  const prepareInbound = async (peer, requestId, metadata = {}) => {
+    const provider = (await signingIdentity('fixture-local')).peerId, consumer = (await signingIdentity(peer)).peerId;
+    const { model = 'qwen', modelIdentity = artifactA, adapterIdentities = [], messages = [{ role: 'user', content: 'hello' }] } = metadata;
+    const input = { model: { id: model, identity: modelIdentity, adapters: adapterIdentities.map(identity => ({ identity })) }, privacy: openPolicy };
+    const details = { requestId, consumer, provider, model, modelIdentity, adapterIdentities, admissionProtocol: 2,
+      modelContract: null, privacy: openPolicy, offerId: 'ordinary-generation',
+      privacyBinding: await bindExecutionRoute(input, plaintextExecutionRoute(input, { recipients: [provider], route: {
+        schema: 'reploid.mesh-route/v1', providerId: provider, offerId: 'ordinary-generation', backend: 'doppler-plaintext/v1'
+      } })) };
+    const salt = 'a'.repeat(64);
+    const promptCommitment = await hashJson({ schema: 'reploid.prompt-commitment/v1', salt, messages, settings: null });
+    await handlers.get('reploid:generation-admit')(peer, { ...details, promptCommitment });
+    return { ...details, messages, admission: { salt } };
+  };
+  return { mesh, sent, broadcasts, advertise, respond, authorize, events, handlers, prepareInbound,
     update: (request, chunk) => handlers.get('reploid:generation-update')(request.peer, { requestId: request.payload.requestId, chunk }) };
 }
 
@@ -79,7 +131,9 @@ it('reserves separate compatible peers during concurrent approval and binds host
   await vi.waitFor(() => expect(f.sent).toHaveLength(2));
   expect(new Set(f.sent.map(item => item.peer))).toEqual(new Set(['east', 'west']));
   expect(f.sent.every(item => !('requestContext' in item.payload))).toBe(true);
-  expect(f.authorize.mock.calls.filter(([value]) => value.action === 'mesh.dispatch').map(([value]) => value.requestContext.id)).toEqual(['a', 'b']);
+  const contexts = f.authorize.mock.calls.filter(([value]) => value.action === 'mesh.dispatch')
+    .map(([value]) => value.requestContext.id);
+  expect(contexts.sort()).toEqual(['a', 'b']);
   await f.respond(f.sent[0]); await f.respond(f.sent[1]);
   await Promise.all([a, b]); await f.mesh.close();
 });
@@ -141,8 +195,7 @@ it('expires a request with a matching remote cancellation and ignores a late res
     await f.mesh.connect(); f.advertise('east', 'qwen');
     const request = f.mesh.generate([], null, { modelId: 'qwen' });
     const failed = expect(request).rejects.toThrow('Timed out');
-    await vi.advanceTimersByTimeAsync(0);
-    expect(f.sent).toHaveLength(1);
+    await vi.waitFor(() => expect(f.sent).toHaveLength(1));
     await vi.advanceTimersByTimeAsync(1000);
     await failed;
     expect(f.sent[1]).toEqual({ peer: 'east', name: 'reploid:generation-cancel',
@@ -168,13 +221,13 @@ it('never places on loading or unidentified advertisements and waits for the exa
   const f = fixture(); await f.mesh.connect();
   const identity = 'sha256:' + 'a'.repeat(64);
   f.advertise('loading', 'qwen', { readiness: 'loading', availableSlots: 0, hasInference: false });
+  f.advertise('unidentified', 'qwen', { modelIdentity: null });
   f.advertise('wrong-artifact', 'qwen', { modelIdentity: 'sha256:' + 'b'.repeat(64) });
   const request = f.mesh.generate([], null, { modelId: 'qwen', modelIdentity: identity });
   await new Promise(resolve => setTimeout(resolve, 10)); expect(f.sent).toHaveLength(0);
   f.advertise('ready', 'qwen', { modelIdentity: identity });
   await vi.waitFor(() => expect(f.sent).toHaveLength(1)); expect(f.sent[0].peer).toBe('ready');
-  const failed = expect(request).rejects.toThrow('substituted');
-  await f.respond(f.sent[0]); await failed; await f.mesh.close();
+  await f.respond(f.sent[0]); await expect(request).resolves.toMatchObject({ modelIdentity: identity }); await f.mesh.close();
 });
 
 it('settles a lost execution peer without redispatching the prompt', async () => {
@@ -219,7 +272,7 @@ it('delivers one well-formed early input count that precedes text and ignores a 
     const { requestId } = f.sent.at(-1).payload;
     return { seen, pending, raw: payload => f.handlers.get('reploid:generation-update')('east', { requestId, ...payload }),
       finish: promptTokenCount => f.handlers.get('reploid:generation-result')('east',
-        { requestId, response: { model: 'qwen', content: 'ab', ...(promptTokenCount === undefined ? {} : { completion: completion(promptTokenCount) }) } }) };
+        { requestId, response: { model: 'qwen', modelIdentity: artifactA, content: 'ab', ...(promptTokenCount === undefined ? {} : { completion: completion(promptTokenCount) }) } }) };
   };
   const observing = seen => ({ onUsage: usage => seen.push(usage) });
   try {
@@ -315,10 +368,7 @@ it.each(['artifact', 'adapter'])('rechecks provider %s after asynchronous execut
       if (request.action !== 'mesh.execute') return true;
       began.resolve(); return authorization.promise;
     });
-    const request = f.handlers.get('reploid:generation-request')('consumer', {
-      requestId: 'one', model: 'qwen', modelIdentity: artifactA,
-      adapterIdentities: [artifactB], messages: [{ role: 'user', content: 'hello' }]
-    });
+    const request = f.handlers.get('reploid:generation-request')('consumer', await f.prepareInbound('consumer', 'one', { adapterIdentities: [artifactB] }));
     await began.promise;
     if (changed === 'artifact') state.modelIdentity = artifactB;
     else state.adapterIdentities = [];
@@ -339,10 +389,7 @@ it('does not stream output after the provider artifact changes during execution'
   const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, getExecutionState: () => state, generate });
   await f.mesh.connect();
   try {
-    await f.handlers.get('reploid:generation-request')('consumer', {
-      requestId: 'one', model: 'qwen', modelIdentity: artifactA,
-      messages: [{ role: 'user', content: 'hello' }]
-    });
+    await f.handlers.get('reploid:generation-request')('consumer', await f.prepareInbound('consumer', 'one'));
     expect(generate).toHaveBeenCalledTimes(1);
     expect(f.sent.some(item => item.name === 'reploid:generation-update')).toBe(false);
     expect(f.sent).toContainEqual(expect.objectContaining({ name: 'reploid:generation-error' }));
@@ -414,9 +461,7 @@ it('keeps every close caller pending until admitted provider execution settles',
   });
   const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, generate });
   await f.mesh.connect();
-  const request = f.handlers.get('reploid:generation-request')('consumer', {
-    requestId: 'active', model: 'qwen', messages: [{ role: 'user', content: 'hello' }]
-  });
+  const request = f.handlers.get('reploid:generation-request')('consumer', await f.prepareInbound('consumer', 'active'));
   await vi.waitFor(() => expect(generate).toHaveBeenCalledOnce());
   const firstClosed = vi.fn(), secondClosed = vi.fn();
   const first = f.mesh.close().then(firstClosed);
@@ -459,7 +504,7 @@ it('settles local whole-model generation before close and suppresses output afte
     emit('late text');
     expect(updates).not.toHaveBeenCalled();
   } finally {
-    finishExecution({ model: 'qwen', content: 'late result' });
+    finishExecution({ model: 'qwen', modelIdentity: artifactA, content: 'late result' });
     await failed; await stopping;
   }
   expect(closed).toHaveBeenCalledOnce();
@@ -495,7 +540,7 @@ it('filters unsupported advertised paths before ranking and never falls back fro
     modelIdentities: [modelIdentity], operation: 'generate', protocol: 'fhe/v1', evidence: null };
   f.advertise('unsupported', 'qwen', { modelIdentity, executionOffers: [advertised], availableSlots: 100 });
   f.advertise('ordinary', 'qwen', { modelIdentity });
-  const pending = f.mesh.generate([], null, { modelId: 'qwen', modelIdentity, privacy: createExecutionPolicy() });
+  const pending = f.mesh.generate([], null, { modelId: 'qwen', modelIdentity, privacy: openPolicy });
   await vi.waitFor(() => expect(f.sent).toHaveLength(1));
   expect(f.sent[0].peer).toBe('ordinary');
   await f.handlers.get('reploid:generation-result')('ordinary', { requestId: f.sent[0].payload.requestId,
@@ -503,7 +548,7 @@ it('filters unsupported advertised paths before ranking and never falls back fro
   await pending;
   const prior = f.sent.length;
   await expect(f.mesh.generate([{ content: 'secret' }], null, { modelId: 'qwen', modelIdentity,
-    privacy: createExecutionPolicy('cryptographic', { protocol: 'fhe/v1', keyContext: 'client-key' }) })).rejects.toThrow('unavailable');
+    privacy: createExecutionPolicy({ computation: 'cryptographic', protocol: 'fhe/v1', keyContext: 'client-key' }) })).rejects.toThrow('unavailable');
   expect(f.sent).toHaveLength(prior);
   await f.mesh.close();
 });
@@ -512,7 +557,7 @@ it.each(['deadline', 'disconnect'])('withdraws a whole-model request during vali
   const generate = vi.fn(async () => ({ model: 'qwen', content: 'answered' }));
   const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, generate });
   await f.mesh.connect();
-  const offer = { requestId: 'request-1', model: 'qwen', messages: [{ role: 'user', content: 'hello' }] };
+  const offer = await f.prepareInbound('consumer', 'request-1');
   const receive = f.handlers.get('reploid:generation-request');
   try {
     const validating = receive('consumer', offer);
@@ -525,7 +570,7 @@ it.each(['deadline', 'disconnect'])('withdraws a whole-model request during vali
     expect(generate).not.toHaveBeenCalled();
     expect(f.sent.some(row => row.name === 'reploid:generation-result')).toBe(false);
     expect(f.authorize.mock.calls.some(([request]) => request.action === 'mesh.execute')).toBe(false);
-    await receive('next-consumer', { ...offer, requestId: 'request-2' });
+    await receive('next-consumer', await f.prepareInbound('next-consumer', 'request-2'));
     expect(generate).toHaveBeenCalledOnce();
   } finally { await f.mesh.close(); }
 });

@@ -1,3 +1,4 @@
+import { partitionTestBinding } from './fixtures/partition-execution-policy.js';
 // Explicit source capability; does not change the accepted Doppler package.
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -28,9 +29,9 @@ function context(policy=basePolicy) {
 const current=context();
 const request={identity:binding,canonicalAttempt:current.canonicalAttempt,generationId:current.generation.generationId,
  action:'mesh.execute_partition_b',phase:'admit',step:0,inputTokenCount:2,activationBytes:0};
-const issue=value=>authority.issueCanonical(binding,limits,{approved:true,ttlMs:100,disclosure,...value,vocabSize:100});
+const issue=async value=>authority.issueCanonical(binding,limits,{privacyBinding:await partitionTestBinding(binding),approved:true,ttlMs:100,disclosure,...value,vocabSize:100});
 const grant=await issue(current);
-assert.equal(grant.claim.schema,'reploid.partition-grant/v3');
+assert.equal(grant.claim.schema,'reploid.partition-grant/v6');
 assert.equal(await remote.verify(grant,request),true);
 assert.equal(await remote.verify(grant,{...request,phase:'step',activationBytes:64}),true);
 for(const change of [{phase:'unknown'},{generationId:other},{step:16,phase:'step'},{inputTokenCount:65},

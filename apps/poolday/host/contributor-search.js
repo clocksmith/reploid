@@ -23,5 +23,7 @@ export function createContributorSearch({ network, service = 'google-browser' })
         query, maxCharacters: Math.min(limits.maxSourceCharacters, policy.maxSourceCharacters) }, signal);
     }
   });
-  return Object.freeze({ provider, extractor, available: () => Boolean(selected()) });
+  // The contributor advert does not identify every upstream recipient. Keep this route out of the
+  // product until the contributor can supply a complete, independently pinned disclosure path.
+  return Object.freeze({ provider, extractor, available: () => Boolean(selected()), qualified: () => false });
 }

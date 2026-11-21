@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
@@ -143,7 +144,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
     const f = await fixture(); await f.mesh.contribute('model', true);
     const model = f.mesh.getModels()[0], approval = vi.fn(async () => true), deltas = [];
     expect(model.partition.route).toEqual(f.route);
-    const result = await f.mesh.generate({ model, messages: [{role:'user',content:'hello'}], threadId:'local', attemptId:'local' },
+    const result = await f.mesh.generate({ privacy: partitionTestPolicy, model, messages: [{role:'user',content:'hello'}], threadId:'local', attemptId:'local' },
       { requestApproval: approval, onDelta: event => deltas.push(event.text) });
     expect(result.content).toBe('012'); expect(deltas.join('')).toBe('012');
     expect(f.networks[0].connect).not.toHaveBeenCalled(); expect(approval).toHaveBeenCalledOnce();
@@ -152,7 +153,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
   it('invalidates a failed remote entry observation without dispatching reviewed input', async () => {
     const f = await fixture(null); f.discovery.capabilities = f.capabilities(true);
     f.entry.refresh.mockRejectedValueOnce(Error('connection unavailable'));
-    await expect(f.mesh.generate({ model:f.fullModel(), messages:[{role:'user',content:'hello'}],threadId:'x',attemptId:'x' },
+    await expect(f.mesh.generate({ privacy: partitionTestPolicy, model:f.fullModel(), messages:[{role:'user',content:'hello'}],threadId:'x',attemptId:'x' },
       {requestApproval:async()=>true})).rejects.toThrow('unavailable');
     expect(f.discovery.invalidateModel).toHaveBeenCalledOnce(); expect(f.entry.generate).not.toHaveBeenCalled();
   });
@@ -211,13 +212,13 @@ describe('explicit ordered automatic participation (injected discovery and numer
   it('approves exact recipients and snapshots input for a weightless requester', async () => {
     const f = await fixture(null); f.discovery.capabilities = f.capabilities(true);
     const messages = [{ role: 'user', content: 'original' }], approval = vi.fn(async () => { messages[0].content = 'mutated'; return true; }), deltas = [];
-    const result = await f.mesh.generate({ model: f.fullModel(), messages, threadId: 'thread', attemptId: 'attempt' },
+    const result = await f.mesh.generate({ privacy: partitionTestPolicy, model: f.fullModel(), messages, threadId: 'thread', attemptId: 'attempt' },
       { signal: new AbortController().signal, requestApproval: approval, onDelta: event => deltas.push(event) });
     expect(result.content).toBe('ok'); expect(f.loadProgram).not.toHaveBeenCalled();
     expect(approval.mock.calls[0][0].input.messages).toEqual([{ role: 'user', content: 'original' }]);
     expect(approval.mock.calls[0][0].input.recipients).toEqual([...f.route.stages.map(row => row.participantId), f.identity.peerId]);
     expect(f.entry.generate.mock.calls[0][0].messages).toEqual([{ role: 'user', content: 'original' }]);
-    expect(f.entry.generate.mock.calls[0][0]).toMatchObject({ schema: 'reploid.partition-input/v3', route: f.route, disclosureExpiresAt: approval.mock.calls[0][0].expiresAt });
+    expect(f.entry.generate.mock.calls[0][0]).toMatchObject({ schema: 'reploid.partition-input/v6', route: f.route, disclosureExpiresAt: approval.mock.calls[0][0].expiresAt });
     expect(deltas[0]).toMatchObject({ threadId: 'thread', attemptId: 'attempt', text: 'ok' });
   });
   it('starts the admitted execution deadline after first-use permission, retaining a bounded window', async () => {
@@ -226,7 +227,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
     clock.mockReturnValue(start);
     let preview, deadline;
     try {
-      await f.mesh.generate({ model: f.fullModel(), messages: [{role:'user',content:'Hello'}], threadId:'thread', attemptId:'attempt' }, {
+      await f.mesh.generate({ privacy: partitionTestPolicy, model: f.fullModel(), messages: [{role:'user',content:'Hello'}], threadId:'thread', attemptId:'attempt' }, {
         requestApproval: async value => { preview = value; clock.mockReturnValue(start + 1000); deadline = Date.now() + value.executionTimeoutMs; return true; },
         authorizationExpiresAt: () => deadline
       });
@@ -241,7 +242,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
     const changed = f.fullModel(); changed.partition.route.stages[1].residentId = 'other';
     f.entry.refresh.mockResolvedValueOnce({ ready: true, descriptor: { models: [f.fullModel()] } })
       .mockResolvedValueOnce({ ready: true, descriptor: { models: [changed] } });
-    await expect(f.mesh.generate({ model: f.fullModel(), messages: [{ role: 'user', content: 'secret' }], threadId: 't', attemptId: 'a' },
+    await expect(f.mesh.generate({ privacy: partitionTestPolicy, model: f.fullModel(), messages: [{ role: 'user', content: 'secret' }], threadId: 't', attemptId: 'a' },
       { requestApproval: async () => true })).rejects.toThrow('route changed');
     expect(f.entry.generate).not.toHaveBeenCalled();
   });
@@ -265,7 +266,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
       store: { load: () => structuredClone(saved), save: value => { saved = structuredClone(value); } },
       execute: (request, controls) => f.mesh.generate(request, controls) });
     cleanups.push(() => app.close());
-    const thread = app.createThread({ model: planned, permissions: { sharingScope: 'mesh' } });
+    const thread = app.createThread({ model: planned, privacy: partitionTestPolicy, permissions: { sharingScope: 'mesh' } });
     const attempt = await app.send(thread, 'secret');
     expect(attempt.status).toBe('failed'); expect(attempt.error).toContain('route changed');
     expect(attempt.authorization).toMatchObject({ kind: 'permission', permissionId: 'remote', recipients: ids(planned) });
@@ -290,7 +291,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
       if (request.identity.attemptId === 'first' && request.step === 0) { entered.resolve(); await release.promise; }
       return execute(request);
     });
-    const request = id => ({ model:f.mesh.getModels()[0],messages:[{role:'user',content:id}],threadId:id,attemptId:id });
+    const request = id => ({ privacy: partitionTestPolicy, model:f.mesh.getModels()[0],messages:[{role:'user',content:id}],threadId:id,attemptId:id });
     const controls = { requestApproval:async()=>true }, first = f.mesh.generate(request('first'), controls);
     await entered.promise;
     const controller = new AbortController(), cancelled = f.mesh.generate(request('queued'), {...controls,signal:controller.signal});
@@ -305,7 +306,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
   it('does not retire shared weights while chat cleanup is unknown; explicit stop retries', async () => {
     const f = await fixture(); await f.mesh.contribute('model',true);
     f.stages[0].closeAttempt.mockRejectedValue(Error('private state unknown'));
-    await expect(f.mesh.generate({model:f.mesh.getModels()[0],messages:[{role:'user',content:'hello'}],threadId:'a',attemptId:'a'},
+    await expect(f.mesh.generate({privacy:partitionTestPolicy,model:f.mesh.getModels()[0],messages:[{role:'user',content:'hello'}],threadId:'a',attemptId:'a'},
       {requestApproval:async()=>true})).rejects.toThrow('cleanup');
     await expect(f.mesh.stop()).rejects.toThrow('settlement');
     expect(f.stages[0].close).not.toHaveBeenCalled();
@@ -320,7 +321,7 @@ describe('explicit ordered automatic participation (injected discovery and numer
       const reserve = f.stages[1].reserve.getMockImplementation(), execute = f.stages[1].executeStage.getMockImplementation();
       const lost = () => Object.assign(Error('contributor disconnected'), { code: 'CONNECTION_LOST' });
       f.stages[1].executeStage.mockRejectedValueOnce(lost()); f.stages[1].closeAttempt.mockRejectedValue(lost());
-      const request = id => ({ model: f.mesh.getModels()[0], messages: [{ role: 'user', content: id }], threadId: id, attemptId: id });
+      const request = id => ({ privacy: partitionTestPolicy, model: f.mesh.getModels()[0], messages: [{ role: 'user', content: id }], threadId: id, attemptId: id });
       await expect(f.mesh.generate(request('lost'), { requestApproval: async () => true })).rejects.toMatchObject({ code: 'CONNECTION_LOST' });
       // The killed process is gone; the restarted one joins with a fresh transport session.
       const ready = f.stages[1].getState();
@@ -414,7 +415,7 @@ describe('ordered automatic requester with the requester-owned transactional wri
   it('publishes a local stage-zero route through the same requester scope before any text is delivered', async () => {
     const f = await fixture(); f.runtime.metadataDigest = metadataDigest; await f.mesh.contribute('model', true);
     const w = await writer(), projected = [], deltas = [];
-    const result = await f.mesh.generate({ model: f.mesh.getModels()[0], messages: [{ role: 'user', content: 'hello' }], threadId: 'local', attemptId: 'local' },
+    const result = await f.mesh.generate({ privacy: partitionTestPolicy, model: f.mesh.getModels()[0], messages: [{ role: 'user', content: 'hello' }], threadId: 'local', attemptId: 'local' },
       { requestApproval: async () => true, publication: w.owner, publisherEpoch: writerEpoch,
         onPublished: async record => { projected.push(record.publication.delta.text); }, onDelta: event => deltas.push(event.text) });
     // Under the requester's declared persistence window steps commit in batches, each projected once
@@ -429,7 +430,7 @@ describe('ordered automatic requester with the requester-owned transactional wri
   it('carries the requester context and owner to a remote entry, and refuses publication without its projection port', async () => {
     const f = await fixture(null); f.discovery.capabilities = f.capabilities(true);
     const w = await writer(), onPublished = vi.fn(), approval = vi.fn(async () => true);
-    const request = { model: f.fullModel(), messages: [{ role: 'user', content: 'hello' }], threadId: 'local', attemptId: 'remote' };
+    const request = { privacy: partitionTestPolicy, model: f.fullModel(), messages: [{ role: 'user', content: 'hello' }], threadId: 'local', attemptId: 'remote' };
     await expect(f.mesh.generate(request, { requestApproval: approval, publication: w.owner, publisherEpoch: writerEpoch }))
       .rejects.toThrow('requester-owned writer');
     expect(approval).not.toHaveBeenCalled();

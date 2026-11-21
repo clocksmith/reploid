@@ -33,14 +33,14 @@ export async function createChatPeerLifecycle() {
     return createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: {
       enabled: true, executeJobs: i > 0, roomId: 'track-a-controlled', generationTimeoutMs: 1500
     } } }), ports: {
-      instanceId: endpoint.id, modelConfig: i ? { id: model.id } : null,
+      admitsBeforeDisclosure: true, instanceId: endpoint.id, modelConfig: i ? { id: model.id } : null,
       getExecutionState: () => endpoint.state, events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
       identity: { ensure: async () => endpoint.identity, sync: async () => {}, save: async () => {} },
       async authorize(request) {
         if (request.action !== 'mesh.dispatch') return true;
         const controls = pending.get(request.requestContext?.id);
         if (!controls) return false;
-        const preview = { id: crypto.randomUUID(), operation: 'generate', disclosure: 'public',
+        const preview = { privacyBinding: request.privacyBinding, id: crypto.randomUUID(), operation: 'generate', disclosure: 'public',
           modelId: request.modelId, modelIdentity: request.modelIdentity, adapterIdentities: request.adapterIdentities,
           providerId: request.peerId, recipientIdentity: request.recipientIdentity, input: request.messages, expiresAt: Date.now() + 10000 };
         controls.preview = preview;
@@ -72,7 +72,7 @@ export async function createChatPeerLifecycle() {
       const id = crypto.randomUUID(), item = { ...controls }; pending.set(id, item);
       try {
         const result = await meshes[0].generate(messages, controls.onPartial, { signal: controls.signal,
-          modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: controls.adapterIdentities, requestContext: { id } });
+          modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: controls.adapterIdentities, privacy: controls.privacy, requestContext: { id } });
         results.push(structuredClone(result));
         return { ...result, peerId: item.preview.providerId };
       } finally { pending.delete(id); }

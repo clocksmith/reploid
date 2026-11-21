@@ -4,6 +4,7 @@
  * server's search tool runs before the model and its results become the numbered sources. */
 import { parseSearchJson } from '../../../shared/infrastructure/search-response.js';
 import { createMcpClient } from './mcp-client.js';
+import { disclosureOrigin } from '../../../shared/vendor/reploid/retrieval/disclosure-path.js';
 
 export const WEB_SEARCH_STORAGE_KEY = 'reploid.web-search:v1';
 const QUERY_ARGUMENTS = ['query', 'q', 'search', 'search_query', 'searchQuery', 'term', 'text', 'input'];
@@ -118,6 +119,11 @@ export function createWebSearch({ storage = globalThis.localStorage, fetch, now 
     get id() { return `mcp-web-search:${host(settings.url) || 'unset'}`; },
     // The query leaves this device for the person's own search server.
     version: '1', supply: 'device',
+    describeDisclosure({ operation, id, version }) {
+      assert(operation === 'search' && id === provider.id && version === provider.version && settings.enabled, 'Search recipient changed');
+      return { schema: 'reploid.auxiliary-path/v1', id, version,
+        hops: [{ recipient: disclosureOrigin(settings.url), placement: 'remote', disclosure: 'plaintext' }] };
+    },
     async search(query, limits, signal) {
       assert(settings.enabled && settings.url, 'Web search is off');
       const consent = settings, mcp = connection();

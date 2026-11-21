@@ -119,6 +119,6 @@ it('waits for the selected browser service after reload instead of silently usin
   const service = createContributorSearch({ network: () => ({ getOffers: () => offers }) });
   expect(service.available()).toBe(false);
   offers.push({ service: 'google-browser', version: '1', participantId: 'browser' });
-  expect(service.available()).toBe(true); expect(service.provider.searchPeer).toBe('browser');
+  expect(service.available()).toBe(true); expect(service.qualified()).toBe(false); expect(service.provider.searchPeer).toBe('browser');
   offers = [offers[0]]; expect(service.available()).toBe(false);
 });

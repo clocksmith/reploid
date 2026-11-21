@@ -12,18 +12,19 @@ export function bindResearchPlugins(root, host, { storage = localStorage, locks 
   const render = () => {
     if (detached) return;
     const view = session?.view(), content = view?.content;
-    let body;
+    let body, reviewed;
     if (!session) {
       const models = service.models();
-      const available = id => models.some(model => model.id === id && service.recipients(model).length);
-      const ready = available(targetId) && available(imitatorId) && targetId !== imitatorId;
-      const options = preferred => models.map(model => `<option value="${e(model.id)}"${model.id === preferred ? ' selected' : ''}>${e(model.name)}${service.recipients(model).length ? '' : ' · waiting for capacity'}</option>`).join('');
+      const offers = models.map(model => ({ id: model.id, name: model.name, identity: model.identity, recipients: service.recipients(model) }));
+      reviewed = { target: offers.find(model => model.id === targetId), imitator: offers.find(model => model.id === imitatorId) };
+      const ready = reviewed.target?.recipients.length && reviewed.imitator?.recipients.length && targetId !== imitatorId;
+      const options = preferred => offers.map(model => `<option value="${e(model.id)}"${model.id === preferred ? ' selected' : ''}>${e(model.name)}${model.recipients.length ? '' : ' · waiting for capacity'}</option>`).join('');
       body = `<p>Can you distinguish a small model from a larger model imitating it?</p>
         <div class="pool-plugin-grid"><label>Target<select class="pool-input" data-study-target>${options(targetId)}</select></label>
         <label>Imitator<select class="pool-input" data-study-imitator>${options(imitatorId)}</select></label></div>
         <p class="pool-muted">Four blind rounds, including a same-model control. Two separate examples calibrate the imitation. All answers and follow-ups are prepared before judging, to hide execution speed.</p>
         <p class="pool-small pool-muted">Starting sends the public study prompts and responses to connected contributors serving these models. Up to 18 sequential requests; each has a 120-second deadline. Existing provider output limits apply. Results stay in this browser.</p>
-        <details class="pool-small"><summary>Connected recipients</summary><ul>${models.flatMap(model => service.recipients(model).map(id => `<li>${e(model.name)}: ${e(id)}</li>`)).join('')}</ul></details>
+        <details class="pool-small"><summary>Connected recipients</summary><ul>${Object.values(reviewed).filter(Boolean).flatMap(model => model.recipients.map(id => `<li>${e(model.name)}: ${e(id)}</li>`)).join('')}</ul></details>
         ${!ready ? `<p class="pool-small" role="status">${targetId === imitatorId ? 'Choose two different models.' : 'Waiting for available capacity for both selected models.'}</p>` : ''}
         <button class="pool-button" data-study-start${owned && ready && !opening ? '' : ' disabled'}>Allow and start</button>
         ${latest ? `<button class="pool-button" data-study-restore${owned && !opening ? '' : ' disabled'}>Open saved study</button>` : ''}`;
@@ -55,7 +56,7 @@ export function bindResearchPlugins(root, host, { storage = localStorage, locks 
       if (opening || !owned) return;
       opening = true; surface.querySelector('[data-study-start]').disabled = true;
       void run(async () => { try {
-        const opened = await service.create({ targetId, imitatorId, approved: true });
+        const opened = await service.create({ targetId, imitatorId, approved: true, reviewed });
         if (detached) { await opened.close(); return; }
         attach(opened); await session.dispatch({ type: 'start' });
       } finally { opening = false; } });

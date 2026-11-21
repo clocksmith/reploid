@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { expect, it, vi } from 'vitest';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
 import { createPartitionNetwork } from '../../packages/reploid/src/mesh/partitions/partition-network.js';
@@ -40,7 +41,7 @@ it('re-forms the same route after its ordered channel is lost while both contrib
     receiver:{maxAttempts:32,maxSteps:10},inputChannel:channelPolicy,executionChannel:channelPolicy,controlChannel:channelPolicy,
     inputLimits:{maxInputCharacters:4096,maxOutputCharacters:128,maxAttempts:32,maxConcurrentAttempts:2,descriptorTtlMs:60000}};
   const local = () => meshes[0].getModels().find(model=>model.partition?.route.stages.length===count);
-  const ask = attemptId => meshes[0].generate({model:local(),messages:[{role:'user',content:'Synthetic request'}],threadId:attemptId,attemptId},
+  const ask = attemptId => meshes[0].generate({privacy:partitionTestPolicy,model:local(),messages:[{role:'user',content:'Synthetic request'}],threadId:attemptId,attemptId},
     {requestApproval:async()=>true});
   try {
     for (let index=0;index<count;index++) {

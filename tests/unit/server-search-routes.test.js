@@ -6,6 +6,8 @@ import path from 'node:path';
 import fs from 'node:fs';
 import express from 'express';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { bindAuxiliaryDisclosure, createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+import { SEARCH_DISCLOSURE_PROTOCOL, serverSearchPath, disclosureOrigin } from '../../packages/reploid/src/retrieval/disclosure-path.js';
 import { createSearchRouter, signFetchToken, verifyFetchToken } from '../../server/search/router.js';
 import { createSearchUsage } from '../../server/search/usage.js';
 import { readSearchConfig } from '../../server/search/config.js';
@@ -14,6 +16,17 @@ import { SearchProviderError, PageFetchError } from '../../server/search/errors.
 import braveFixture from '../fixtures/search/brave-web-search.json';
 
 const SECRET = 'route-test-secret-0123456789abcdef', KEY = 'brave-route-key-0123456789';
+const PUBLIC_ORIGIN = 'https://poolday.example.org', UPSTREAM_ORIGIN = 'https://api.search.brave.com';
+const description = { schema: SEARCH_DISCLOSURE_PROTOCOL, serverOrigin: PUBLIC_ORIGIN, searchOrigin: UPSTREAM_ORIGIN, redirectPolicy: 'same-origin-only' };
+const policy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+async function bound(route, body) {
+  const operation = route.slice(1);
+  if (!['search', 'extract'].includes(operation) || !body?.query?.trim()) return body;
+  const answer = 'test-attempt';
+  const detail = { operation, id: operation === 'search' ? 'reploid.server-search/brave' : 'reploid.server-page-extract', version: '1', requestId: answer,
+    ...(operation === 'extract' ? { resourceOrigin: disclosureOrigin(body.url) } : {}) };
+  return { ...body, answer, auxiliaryBinding: await bindAuxiliaryDisclosure(policy, detail, serverSearchPath(detail, description)) };
+}
 const HTML = '<html><head><title>T</title></head><body><main><p>Paris museums.</p><p>The Eiffel Tower was completed in 1889.</p></main></body></html>';
 const servers = [];
 afterEach(async () => { for (const server of servers.splice(0)) await new Promise(resolve => server.close(resolve)); });
@@ -23,6 +36,7 @@ async function serve(app) {
   await new Promise(resolve => server.once('listening', resolve));
   const base = `http://127.0.0.1:${server.address().port}/api/retrieval`;
   return async (route, body) => {
+    if (body !== undefined) body = await bound(route, body);
     const response = await fetch(base + route, body === undefined ? {} : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     return { status: response.status, headers: response.headers, body: await response.json() };
   };
@@ -38,7 +52,7 @@ function fixture({ search = null, fetcher = null, maxQueriesPerDay = 10, time = 
   const clock = { time };
   const usage = createSearchUsage({ now: () => clock.time, maxQueriesPerDay });
   const app = express();
-  app.use('/api/retrieval', createSearchRouter({ search: provider, fetcher: pages, usage, fetchSecret: SECRET, now: () => clock.time }));
+  app.use('/api/retrieval', createSearchRouter({ search: Object.assign(provider, { privacyProtocol: SEARCH_DISCLOSURE_PROTOCOL, disclosureOrigin: UPSTREAM_ORIGIN }), fetcher: Object.assign(pages, { privacyProtocol: 'reploid.page-fetch/v1' }), usage, fetchSecret: SECRET, publicOrigin: PUBLIC_ORIGIN, now: () => clock.time }));
   return { app, provider, pages, usage, clock };
 }
 
@@ -46,7 +60,7 @@ describe('search route', () => {
   it('reports its provider and returns results with stable ids, content hashes and fetch tokens', async () => {
     const { app, provider, usage, clock } = fixture(), call = await serve(app);
     expect((await call('/status')).body).toEqual({ schema: 'reploid.server-search-status/v1', enabled: true, provider: 'brave',
-      providerId: 'reploid.server-search/brave', unsupportedContentTypes: ['application/pdf'] });
+      providerId: 'reploid.server-search/brave', disclosure: description, unsupportedContentTypes: ['application/pdf'] });
     const { status, body } = await call('/search', { query: '  eiffel tower completed ', count: 3, expectProvider: 'brave' });
     expect(status).toBe(200);
     expect(provider.search).toHaveBeenCalledWith(expect.objectContaining({ query: 'eiffel tower completed', count: 3 }));
@@ -188,13 +202,13 @@ describe('search configuration and mount', () => {
     const upstream = vi.fn(async () => new Response(JSON.stringify(braveFixture), { status: 200, headers: { 'content-type': 'application/json',
       'x-ratelimit-limit': '1, 15000', 'x-ratelimit-policy': '1;w=1, 15000;w=2592000', 'x-ratelimit-remaining': '1, 14000', 'x-ratelimit-reset': '1, 100' } }));
     const authorize = vi.fn((req, res, next) => req.headers.authorization === 'Bearer ok' ? (req.reploidAccessSubject = 'test', next()) : res.status(401).json({ error: 'no' }));
-    const app = express(), env = { REPLOID_BRAVE_SEARCH_API_KEY: KEY, REPLOID_SEARCH_MAX_QUERIES_PER_DAY: '3', REPLOID_SEARCH_FETCH_SECRET: SECRET };
+    const app = express(), env = { REPLOID_BRAVE_SEARCH_API_KEY: KEY, REPLOID_SEARCH_MAX_QUERIES_PER_DAY: '3', REPLOID_SEARCH_FETCH_SECRET: SECRET, REPLOID_SEARCH_PUBLIC_ORIGIN: PUBLIC_ORIGIN };
     expect(mountSearchRoutes(express(), { env: {}, authorize, log })).toEqual({ mounted: false, reason: 'No search provider is configured', provider: null });
     const mounted = mountSearchRoutes(app, { env, authorize, log, fetch: upstream });
     expect(mounted).toMatchObject({ mounted: true, provider: 'brave', prefix: '/api/retrieval' });
     const server = app.listen(0, '127.0.0.1'); servers.push(server); await new Promise(resolve => server.once('listening', resolve));
     const url = `http://127.0.0.1:${server.address().port}/api/retrieval/search`, init = { method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ query: 'eiffel', count: 2, expectProvider: 'brave' }) };
+      body: JSON.stringify(await bound('/search', { query: 'eiffel', count: 2, expectProvider: 'brave' })) };
     expect((await fetch(url, init)).status).toBe(401);
     expect(upstream).not.toHaveBeenCalled();
     const response = await fetch(url, { ...init, headers: { ...init.headers, authorization: 'Bearer ok' } }), text = await response.text();

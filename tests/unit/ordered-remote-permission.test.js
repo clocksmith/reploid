@@ -2,6 +2,7 @@
 // requester, coordinator and stage protocol over synthetic channels (tests/fixtures/automatic-ordered-mesh.js).
 // Numerical outputs are fixture data. The fixture records every frame each participant transmits, so these
 // checks show what left the requester (slot 5) and when.
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
@@ -23,7 +24,7 @@ async function open() {
     store: { load: () => null, save: () => {} }, execute: (request, controls) => f.meshes[REQUESTER].generate(request, controls) });
   cleanups.push(() => app.close());
   app.subscribe(state => statuses.push(...state.threads.map(thread => thread.attempts.at(-1)?.status)));
-  const thread = () => app.createThread({ model: f.select(REQUESTER, 0), permissions: { sharingScope: 'mesh' } });
+  const thread = () => app.createThread({ privacy: partitionTestPolicy, model: f.select(REQUESTER, 0), permissions: { sharingScope: 'mesh' } });
   const last = id => app.getState().threads.find(item => item.id === id).attempts.at(-1);
   return { f, app, stored, statuses, thread, last };
 }
@@ -40,7 +41,7 @@ const held = (app, id) => vi.waitFor(() => {
 const routeIds = route => route.stages.map(stage => stage.participantId);
 const settle = () => new Promise(resolve => setTimeout(resolve, 250));
 async function orderedNeed(selected) {
-  const req = { model: selected, permissions: { sharingScope: 'mesh' } };
+  const req = { privacy: partitionTestPolicy, model: selected, permissions: { sharingScope: 'mesh' } };
   const binding = await bindExecutionRoute(req, plaintextExecutionRoute(req, {
     recipients: routeIds(selected.partition.route),
     route: selected.partition.route
@@ -96,7 +97,7 @@ it('a permitted request is sent with no approval step; each record cites the per
   await vi.waitFor(() => expect(f.select(REQUESTER, 0)?.partition.route.stages[1].participantId).toBe(f.identities[7].peerId), { timeout: 5000 });
   const replaced = f.select(REQUESTER, 0);
   stored.push(createRemotePermission({ id: 'remote-replaced', wording, grantedAt: Date.now(), need: await orderedNeed(replaced) }));
-  const other = app.createThread({ model: replaced, permissions: { sharingScope: 'mesh' } });
+  const other = app.createThread({ privacy: partitionTestPolicy, model: replaced, permissions: { sharingScope: 'mesh' } });
   const second = await app.send(other, prompt);
   expect(second.authorization).toMatchObject({ permissionId: 'remote-replaced', recipients: routeIds(second.execution.identity.route) });
   expect(second.authorization.recipients[1]).toBe(f.identities[7].peerId);

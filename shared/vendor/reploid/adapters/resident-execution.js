@@ -1,5 +1,5 @@
 /** Prepared execution owner shared by browser and native hosts. */
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, sameExecutionBinding } from '../chat/execution-policy.js';
+import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, sameExecutionBinding } from '../chat/execution-policy.js';
 import { hashJson } from '../artifacts/signatures.js';
 import { createPreparationProgressObserver } from '../mesh/preparation-progress.js';
 import { withDevice, getDeviceQueue } from './device-lane.js';
@@ -66,7 +66,7 @@ export function createResidentExecution({ service, model, generation, maxOutcome
   };
   const generate = (messages, onUpdate, { signal, adapters = [], maxOutputTokens, contextOwner, contextId, privacy, privacyBinding, settings, onUsage }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
-    const policy = assertAvailableExecutionPolicy(requestExecutionPolicy({ model, privacy }));
+    const policy = assertAvailableExecutionPolicy(privacy === undefined && !privacyBinding ? createExecutionPolicy() : requestExecutionPolicy({ privacy }));
     const boundPrivacy = privacyBinding ? structuredClone(privacyBinding) : null;
     // Namespace retained KV state by the complete policy and authenticated tenant. Ordinary weights remain shared.
     const contextNamespace = contextId ? hashJson([contextId, model.identity, contextOwner ?? null, policy, boundPrivacy?.route ?? null]) : null;

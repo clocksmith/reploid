@@ -7,6 +7,7 @@ import * as runtime from 'dopplerx/partitions';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createResidentPartition } from '../../packages/reploid/src/mesh/index.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
@@ -38,7 +39,8 @@ import { createProductSession } from '../../apps/poolday/host/product-session.js
 import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
-const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model and verified recipients';
+const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+const DISCLOSURE_MISMATCH = 'Verified, policy-bound execution recipients are required';
 const cleanups = [];
 afterEach(async () => {
   const results = await Promise.allSettled(cleanups.splice(0).reverse().map(close => close()));
@@ -86,7 +88,7 @@ it('admits ordered Send from the shipped product session under the authenticated
   const host = await openProduct(weightlessRequester);
   const model = await readyModel(host.chat, row => row.partition?.coordinatorId === f.identities[0].peerId);
   expect(ports.bound).toEqual([f.identities[5].peerId]);
-  const threadId = host.chat.createThread({ model });
+  const threadId = host.chat.createThread({ model, privacy });
   const dispatched = () => f.states.filter(state => state.resident)
     .reduce((total, state) => total + state.resident.tokenize.mock.calls.length + state.resident.reserve.mock.calls.length, 0);
   const before = dispatched(), stages = model.partition.route.stages.map(stage => stage.participantId);
@@ -119,7 +121,7 @@ it('still rejects ordered Send for a placeholder, unauthenticated or different r
     .reduce((total, state) => total + state.resident.tokenize.mock.calls.length + state.resident.reserve.mock.calls.length, 0);
   const before = dispatched();
   const rejects = async chat => {
-    const threadId = chat.createThread({ model });
+    const threadId = chat.createThread({ model, privacy });
     // Unverified recipients are never offered for review: the attempt fails before any approval state.
     const attempt = await chat.send(threadId, tasks[0].prompt);
     expect(attempt.status).toBe('failed');
@@ -145,7 +147,7 @@ it('opens ordered grants before the swarm authenticates and uses them only for t
     store: { load: () => structuredClone(saved), save: value => { saved = structuredClone(value); } },
     execute: (request, controls) => f.meshes[5].generate(request, controls) };
   const open = () => { const app = createChatWorkspace(options); cleanups.push(() => app.close()); return app; };
-  const first = open(), threadId = first.createThread({ model: f.select(5, 0), permissions: { sharingScope: 'mesh' } });
+  const first = open(), threadId = first.createThread({ model: f.select(5, 0), privacy, permissions: { sharingScope: 'mesh' } });
   const reviewed = first.send(threadId, tasks[0].prompt);
   await vi.waitFor(() => expect(first.getState().threads[0].attempts.at(-1).status).toBe('approval'));
   const review = first.getState().threads[0].attempts.at(-1);
@@ -219,7 +221,7 @@ it('keeps two-stage Send working from the product session; it never relied on a 
   const placeholder = createChatSession({ storage: null, swarm: host.swarm, partitions: host.swarm.partitions });
   cleanups.push(() => placeholder.close());
   for (const chat of [host.chat, placeholder]) {
-    const attempt = await sendConfigured(chat, chat.createThread({ model }), '10');
+    const attempt = await sendConfigured(chat, chat.createThread({ model, privacy }), '10');
     expect(attempt.error).toBeNull();
     expect(attempt.status).toBe('completed');
     expect(attempt.authorization).toMatchObject({ source: 'permission', disclosure: 'partition-activations-and-tokens',

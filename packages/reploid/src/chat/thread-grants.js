@@ -27,8 +27,7 @@ function orderedScope(request, preview, requesterIdentity) {
 
 export function disclosureScope(request, preview, requesterIdentity) {
   const adapters = (request.model.adapters || []).map(adapter => adapter.identity);
-  // Policy-bound plaintext mesh previews use provider-visible; grants retain the public disclosure schema.
-  const disclosure = preview.disclosure === 'provider-visible' && preview.privacyBinding ? 'public' : preview.disclosure;
+  const { disclosure } = preview;
   if (request.model.partition?.schema === 'reploid.partition-selection/v2') {
     const ordered = orderedScope(request, preview, requesterIdentity);
     if (!ordered || typeof request.permissions.sharingScope !== 'string' || request.permissions.sharingScope === 'local'

@@ -47,7 +47,7 @@ export interface PublicPackPeerConsent {
   readonly providerIds: readonly string[];
 }
 export interface PrivatePackPeerConsent {
-  readonly schema: 'reploid.peer.execution_consent/v2'; readonly publicInput: false;
+  readonly schema: 'reploid.peer.execution_consent/v3'; readonly publicInput: false;
   readonly providerIds: readonly string[]; readonly offerId: string;
   readonly privacyBinding: import('../../chat/execution-policy.js').ExecutionBinding;
 }

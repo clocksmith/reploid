@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { renderProductionSurface, bindProductionSurface, projectProduction } from '../../apps/poolday/ui/pool-home/production.js';
 
@@ -108,7 +109,8 @@ it('keeps one composer picker and contribution in Computers, preserving drafts o
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
     createThread: vi.fn(async () => 'new-thread'), downloadLocalModel: vi.fn(), prepareLocalModel: vi.fn(), setSharing: vi.fn(),
     getModelDownload: vi.fn(), saveDraft: vi.fn(), select: vi.fn() };
-  const detach = bindProductionSurface(document.body, session);
+  const detach = bindProductionSurface(document.body, session, { viewState: {
+    privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) } });
   const composer = document.querySelector('[data-composer-area]');
   const device = document.querySelector('[data-production-device]');
   expect(document.querySelector('[data-production-shared]')).toBeNull();

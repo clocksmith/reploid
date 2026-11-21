@@ -143,6 +143,10 @@ var assertPartition = (value, message) => {
   if (!value) throw new Error(message);
 };
 
+// shared/vendor/reploid/chat/execution-policy.js
+var metadata = ["model-id", "timing", "length", "access-patterns"];
+var plaintextLeakage = [...metadata, "plaintext"];
+
 // shared/vendor/reploid/rules/contribution.rules.json
 var contribution_rules_default = {
   outputPointsPer1k: 1,

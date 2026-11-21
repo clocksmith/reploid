@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { describe, expect, it, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
@@ -71,7 +72,7 @@ async function coordinator(promptTokens) {
     authority, plan: f.plan, planId: f.route.planId, limits: f.limits, grantTtlMs: 60000,
     ordered: { route: f.route, stages: f.stages, envelope: measured(f.route) }, authorizeRequester: async () => true });
   const request = { meshId: 'mesh', participantId: signer.peerId, threadId: 'thread', attemptId: 'attempt',
-    model: chat.getModels()[0], messages: [{ role: 'user', content: 'hello' }], permissions: { sharingScope: 'approved-partition-path' } };
+    model: chat.getModels()[0], privacy: partitionTestPolicy, messages: [{ role: 'user', content: 'hello' }], permissions: { sharingScope: 'approved-partition-path' } };
   return { f, chat, request, close: async () => { await chat.close(); authority.close(); } };
 }
 

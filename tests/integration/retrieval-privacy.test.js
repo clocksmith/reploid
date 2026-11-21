@@ -49,9 +49,9 @@ async function fixture({ qualified = true, authorize = () => null } = {}) {
   return { baseUrl, upstream, pages, forbidden, ports, execute, apiQueries, pageRequests, forbiddenRequests, browserRequests, workspace,
     resultPath(value) { resultPath = value; } };
 }
-it.each(['provider-visible', 'restricted'])('completes %s retrieval through actual HTTP ports with every recipient bound', async profile => {
+it.each(['open', 'named'])('completes %s retrieval through actual HTTP ports with every recipient bound', async kind => {
   const f = await fixture();
-  const privacy = createExecutionPolicy(profile, profile === 'restricted' ? { placement: 'network-allowed', allowedRecipients: [f.baseUrl, f.upstream, f.pages] } : {});
+  const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind, ids: kind === 'named' ? [f.baseUrl, f.upstream, f.pages] : [] } });
   const result = await f.workspace(privacy).send();
   expect(result.status, result.error).toBe('completed'); expect(f.execute).toHaveBeenCalledOnce();
   expect(f.apiQueries).toEqual(['private fixture query']); expect(f.pageRequests).toEqual(['/document']);
@@ -63,38 +63,42 @@ it.each(['provider-visible', 'restricted'])('completes %s retrieval through actu
 });
 it('rejects a missing search recipient or local-only policy before sending a query', async () => {
   const f = await fixture();
-  for (const privacy of [createExecutionPolicy('restricted'), createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.baseUrl] })]) {
+  for (const privacy of [createExecutionPolicy(), createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.baseUrl] } })]) {
     expect((await f.workspace(privacy).send()).status).toBe('failed');
   }
   expect(f.apiQueries).toEqual([]); expect(f.browserRequests.filter(row => row.body?.query)).toEqual([]);
 });
 it('checks each result origin before extraction and prevents cross-origin redirect disclosure', async () => {
   const f = await fixture();
-  const searchOnly = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.baseUrl, f.upstream] });
+  const searchOnly = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.baseUrl, f.upstream] } });
   expect((await f.workspace(searchOnly).send()).status).toBe('failed');
   expect(f.pageRequests).toEqual([]); expect(f.browserRequests.filter(row => row.url.endsWith('/extract'))).toEqual([]);
   f.resultPath('/redirect');
-  const complete = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.baseUrl, f.upstream, f.pages] });
+  const complete = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.baseUrl, f.upstream, f.pages] } });
   expect((await f.workspace(complete).send()).status).toBe('failed');
   expect(f.pageRequests).toEqual(['/redirect']); expect(f.forbiddenRequests).toEqual([]);
   f.resultPath('/same-origin');
   expect((await f.workspace(complete).send()).status).toBe('completed');
 });
-it('does not qualify legacy status, while preserving legacy unrestricted search', async () => {
+it('rejects unqualified status and an old HTTP client before upstream work', async () => {
   const f = await fixture({ qualified: false });
-  expect((await f.workspace(createExecutionPolicy()).send()).status).toBe('failed'); expect(f.apiQueries).toEqual([]);
-  expect((await f.workspace(null).send()).status).toBe('completed'); expect(f.apiQueries).toHaveLength(1);
-  expect(f.browserRequests.filter(row => row.body?.query).every(row => row.body.auxiliaryBinding === undefined)).toBe(true);
+  const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+  expect((await f.workspace(privacy).send()).status).toBe('failed');
+  const old = await fetch(f.baseUrl + '/api/retrieval/search', { method: 'POST',
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: 'old client', answer: 'old-attempt', maxResults: 1 }) });
+  expect(old.status).toBe(403);
+  expect(f.apiQueries).toEqual([]);
 });
 it('rechecks cancellation after async credentials and refuses altered server bindings before upstream work', async () => {
   let gate = null, entered;
   const f = await fixture({ authorize: () => { if (gate) { entered(); return gate.promise; } return null; } });
-  const w = f.workspace(createExecutionPolicy()), awaiting = Promise.withResolvers();
+  const open = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+  const w = f.workspace(open), awaiting = Promise.withResolvers();
   gate = Promise.withResolvers(); entered = awaiting.resolve;
   const pending = w.send(); await awaiting.promise; await w.app.cancel(w.thread); gate.resolve(null);
   expect((await pending).status).toBe('cancelled'); expect(f.apiQueries).toEqual([]);
   gate = null;
-  const valid = await f.workspace(createExecutionPolicy()).send(); expect(valid.status).toBe('completed');
+  const valid = await f.workspace(open).send(); expect(valid.status).toBe('completed');
   const original = f.browserRequests.find(row => row.url.endsWith('/search') && row.body?.auxiliaryBinding).body;
   for (const change of [body => { body.auxiliaryBinding.path.hops.pop(); }, body => { body.auxiliaryBinding.policy.publication = true; },
     body => { body.answer = 'another-attempt'; }, body => { body.auxiliaryBinding.policyId = 'sha256:' + 'f'.repeat(64); }]) {

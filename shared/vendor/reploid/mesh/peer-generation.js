@@ -1,5 +1,5 @@
 import { validateExecutionOffers, eligibleExecutionOffers } from '../chat/execution-offers.js';
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../chat/execution-policy.js';
+import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../chat/execution-policy.js';
 import { publicPreparationProgress } from './preparation-progress.js';
 import { publicProviderHardware } from './provider-hardware.js';
 import { identifyComputer } from './computer-identity.js';
@@ -152,17 +152,14 @@ export function createPeerGenerationMesh({ config, ports }) {
   const blockedComputers = () => new Set(ports.getBlockedComputers?.() || []);
   const isBlockedProvider = (peerId, blocked = blockedComputers()) => blocked.size > 0
     && (blocked.has(peerId) || blocked.has(peerIdentity?.getVerified(peerId)));
-  // With requireNamedAdmission, a request that names its recipients is never sent to a provider that
-  // decides only after the prompt has arrived.
-  const requireNamedAdmission = policy.mesh.requireNamedAdmission === true;
+  // Identity and admission versions are compatibility gates, not evidence of protected computation.
   const privacyEligible = (peer, privacy, offerId = null) => {
-    if (!privacy || !/^sha256:[a-f0-9]{64}$/.test(peer.modelIdentity || '')) return !privacy?.allowedRecipients.length;
-    if (requireNamedAdmission && privacy.allowedRecipients.length > 0 && peer.admissionProtocol !== 1) return false;
-    const offers = peer.executionOffers ?? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation',
-      backend: 'doppler-plaintext/v1', kind: 'plaintext', modelIdentities: [peer.modelIdentity],
-      operation: 'generate', protocol: null, evidence: null }];
+    if (peer.identityProtocol !== 1 || peer.admissionProtocol !== 2 || !digestValue(peer.modelIdentity)) return false;
+    if (!privacy) return true; // Readiness observation has no request or disclosure.
+    const verified = peerIdentity?.getVerified(peer.peerId);
+    if (!verified && privacy.recipients.kind !== 'open') return false;
     try { return eligibleExecutionOffers({ model: { id: peer.model, identity: peer.modelIdentity }, privacy },
-      offers, [peerIdentity?.getVerified(peer.peerId) || peer.peerId]).some(offer => !offerId || offer.id === offerId); } catch { return false; }
+      peer.executionOffers ?? [], [verified ?? peer.peerId]).some(offer => !offerId || offer.id === offerId); } catch { return false; }
   };
   // Why a provider was chosen, reported to the host with the disclosure it must approve.
   const placementChoices = new WeakMap();
@@ -174,8 +171,7 @@ export function createPeerGenerationMesh({ config, ports }) {
   };
   const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined) => {
     const blocked = blockedComputers();
-    let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)
-      && (!privacy?.allowedRecipients.length || privacy.allowedRecipients.includes(peerIdentity?.getVerified(peer.peerId)))))
+    let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)))
     .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))
@@ -228,6 +224,14 @@ export function createPeerGenerationMesh({ config, ports }) {
 
   const syncIdentityDocument = async () => ports.identity.sync(identityBundle, { instanceId, swarmEnabled, hasInference: ready() });
 
+  const currentExecutionOffers = modelIdentity => {
+    const declared = executionState().executionOffers;
+    if (declared) return validateExecutionOffers(declared);
+    return digestValue(modelIdentity) ? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation',
+      backend: 'doppler-plaintext/v1', kind: 'plaintext', modelIdentities: [modelIdentity],
+      operation: 'generate', protocol: null, evidence: null }] : [];
+  };
+
   const advertiseSelf = () => {
     if (closed || !swarmEnabled || !swarmTransport || !identityBundle) return null;
     const advertisement = createPeerAdvertisement({
@@ -248,9 +252,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       failure: activity.error ? { phase: activity.phase, message: 'Model preparation or execution failed on this computer.' } : null } : null;
     advertisement.preparation = advertisement.readiness === 'loading' ? publicPreparationProgress(executionState().progress) : null;
     advertisement.modelIdentity = executionState().modelIdentity;
-    advertisement.executionOffers = executionState().executionOffers ? validateExecutionOffers(executionState().executionOffers) : /^sha256:[a-f0-9]{64}$/.test(advertisement.modelIdentity || '')
-      ? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation', backend: 'doppler-plaintext/v1', kind: 'plaintext',
-        modelIdentities: [advertisement.modelIdentity], operation: 'generate', protocol: null, evidence: null }] : [];
+    advertisement.executionOffers = currentExecutionOffers(advertisement.modelIdentity);
     advertisement.hardware = publicProviderHardware(executionState().hardware);
     advertisement.adapterIdentities = executionState().adapterIdentities || [];
     advertisement.availableSlots = ready() ? Math.max(0, policy.mesh.maxInboundJobs - inbound.size) : 0;
@@ -259,7 +261,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     advertisement.identityProtocol = 1;
     // This provider can decide on a request from its details before the prompt is sent. Advertised only
     // by a host that answers `mesh.admit`, so other advertisements are unchanged.
-    if (admitsBeforeDisclosure) advertisement.admissionProtocol = 1;
+    if (admitsBeforeDisclosure) advertisement.admissionProtocol = 2;
     // Advertised only by a host that enforces settings, so other advertisements are unchanged.
     const generationSettings = settingsCapability();
     if (generationSettings) advertisement.generationSettings = generationSettings;
@@ -358,7 +360,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.queuedJobs = Number.isSafeInteger(payload.queuedJobs) && payload.queuedJobs > 0 ? payload.queuedJobs : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
-      next.admissionProtocol = payload.admissionProtocol === 1 ? 1 : null;
+      next.admissionProtocol = payload.admissionProtocol === 2 ? 2 : null;
       const generationSettings = normalizeGenerationSettingsCapability(payload.generationSettings);
       if (generationSettings) next.generationSettings = generationSettings;
       else delete next.generationSettings;
@@ -413,7 +415,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     const pending = remoteRequests.get(payload?.requestId, remotePeerId);
     const admission = pending?.admission;
     if (!admission || admission.sent) return;
-    if (payload.promptCommitment !== admission.commitment) {
+    if (payload.admissionProtocol !== 2 || payload.promptCommitment !== admission.commitment) {
       remoteRequests.settle(pending, { error: new Error('The provider admitted a different request. The prompt was not sent.'), cancel: true });
       return;
     }
@@ -632,6 +634,13 @@ export function createPeerGenerationMesh({ config, ports }) {
     try { adapters = adapterSet(payload.adapterIdentities || []); } catch { return null; }
     if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport.getPeerId?.()) return null;
     const refuse = error => { swarmTransport?.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error }); return null; };
+    if (payload.admissionProtocol !== 2 || !payload.privacy || !payload.privacyBinding
+      || !payload.offerId || !payload.consumer || !targetProvider || !digestValue(payload.modelIdentity)) {
+      return refuse('Current execution policy and admission protocol required');
+    }
+    if (!peerIdentity || (peerIdentity.getVerified(remotePeerId) ?? await peerIdentity.verify(remotePeerId, lifetime.signal).catch(() => null)) !== consumer) {
+      return refuse('Verified requester identity required');
+    }
     const binding = currentModelBinding();
     if (!matchesRequestedModel(binding, payload) || !supportsAdapters(executionState(), adapters)) return refuse('Requested model is unavailable');
     if (policy.models.contract !== null && JSON.stringify(snapshotJson(payload.modelContract ?? null)) !== JSON.stringify(policy.models.contract)) return null;
@@ -645,12 +654,10 @@ export function createPeerGenerationMesh({ config, ports }) {
       } catch (error) { return refuse(`Generation settings rejected: ${error.message}`); }
     }
     const checkPrivacy = async () => {
-      if (!payload.privacy) return null;
       const request = { privacy: payload.privacy, model: { id: binding.model, identity: binding.modelIdentity,
         adapters: adapters.map(identity => ({ identity })) } };
       const recipient = identityBundle.peerId;
-      const currentOffers = executionState().executionOffers ?? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation',
-        backend: 'doppler-plaintext/v1', kind: 'plaintext', modelIdentities: [binding.modelIdentity], operation: 'generate', protocol: null, evidence: null }];
+      const currentOffers = currentExecutionOffers(binding.modelIdentity);
       const offer = eligibleExecutionOffers(request, currentOffers, [recipient]).find(item => item.id === payload.offerId);
       if (!offer) throw Error('Requested execution offer is unavailable');
       const expected = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [recipient], route: {
@@ -663,6 +670,10 @@ export function createPeerGenerationMesh({ config, ports }) {
     return { requestId, consumer, contextId, adapters, binding, settings, checkPrivacy, privacyBinding, refuse, key: `${remotePeerId}:${requestId}` };
   };
   // What an admission binds: the request as sent, without the caller's text and without the admission fields.
+  const canonicalConnection = peerId => {
+    const binding = swarmTransport?.getPeerBinding?.(peerId);
+    return binding ? JSON.stringify([binding.local, binding.remote, swarmTransport.getPeerStates?.().find(peer => peer.id === peerId)?.attemptId ?? null]) : null;
+  };
   const admissionDigest = ({ messages: _messages, settings: _settings, admission: _admission, promptCommitment: _commitment, ...details }) => hashJson(details);
   const forgetAdmission = key => {
     admitting.delete(key);
@@ -690,6 +701,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       return void refuse('Previously admitted execution requires recovery');
     }
     let allowed = false, digest;
+    const channel = canonicalConnection(remotePeerId);
     admitting.add(key);
     try {
       allowed = await ports.authorize({ action: 'mesh.admit', peerId: remotePeerId, request: snapshotJson(payload) }) === true
@@ -698,12 +710,12 @@ export function createPeerGenerationMesh({ config, ports }) {
     } catch { allowed = false; }
     // A cancellation that arrived while the host was deciding withdraws the question.
     if (!admitting.delete(key) || closed) return;
-    if (!allowed || !ready() || !bindingAvailable(request.binding, request.adapters)) return void refuse('The provider declined this request. The prompt was not sent.');
+    if (!allowed || !channel || channel !== canonicalConnection(remotePeerId) || !ready() || !bindingAvailable(request.binding, request.adapters)) return void refuse('The provider declined this request. The prompt was not sent.');
     if (admitted.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
-    const entry = { commitment: payload.promptCommitment, digest,
+    const entry = { commitment: payload.promptCommitment, digest, channel,
       timer: setTimeout(() => { if (admitted.get(key) === entry) admitted.delete(key); }, policy.mesh.generationTimeoutMs) };
     admitted.set(key, entry);
-    swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, promptCommitment: entry.commitment });
+    swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, admissionProtocol: 2, promptCommitment: entry.commitment });
   };
 
   const validateDisclosedRequest = async (remotePeerId, payload, messages, signal) => {
@@ -713,13 +725,13 @@ export function createPeerGenerationMesh({ config, ports }) {
     // An admitted request must arrive exactly as admitted, with the prompt its commitment names. A request
     // that claims an admission this provider did not give, or skips one it did give, is refused.
     const admission = forgetAdmission(key);
-    if (admission || payload.admission !== undefined) {
+    {
       let matches = false;
       try {
-        matches = !!admission && admission.digest === await admissionDigest(payload)
+        matches = !!admission && admission.channel === canonicalConnection(remotePeerId) && admission.digest === await admissionDigest(payload)
           && admission.commitment === await promptCommitment(payload.admission?.salt, messages, payload.settings);
       } catch { matches = false; }
-      if (!matches) { request.refuse('Execution admission rejected'); return; }
+      if (!matches || admission.channel !== canonicalConnection(remotePeerId)) { request.refuse('Execution admission rejected'); return; }
     }
     // The digest is computed here from the received messages, settings and this provider's model.
     let settingsDigest = null;
@@ -1043,8 +1055,8 @@ export function createPeerGenerationMesh({ config, ports }) {
 
   const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined, onUsage = undefined } = {}) => {
     if (closed) throw new Error('Mesh is closed');
-    const explicitPrivacy = privacy !== null;
-    privacy = assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy }));
+    privacy = assertAvailableExecutionPolicy(privacy === null && modelConfig
+      ? createExecutionPolicy() : requestExecutionPolicy({ privacy }));
     signal?.throwIfAborted();
     messages = snapshotJson(messages);
     settings = normalizeGenerationSettings(settings);
@@ -1110,34 +1122,24 @@ export function createPeerGenerationMesh({ config, ports }) {
       if (isBlockedProvider(provider.peerId) || recipientIdentity && blockedComputers().has(recipientIdentity)) {
         throw new Error('The available computer is blocked on this device. Nothing was sent. Retry to use another computer.');
       }
-      if (explicitPrivacy || modelIdentity) validateExecutionRoute(privacy, plaintextExecutionRoute({ model: { id: modelId, identity: modelIdentity }, privacy }, { recipients: [recipientIdentity || provider.peerId] }));
+      if (!recipientIdentity) throw Error('Verified provider identity required; nothing was sent');
       const privacyRequest = { model: { id: modelId, identity: modelIdentity, adapters: adapterIdentities.map(identity => ({ identity })) }, privacy };
-      const offers = provider.executionOffers ?? [{ schema: 'reploid.execution-offer/v1', id: 'ordinary-generation', backend: 'doppler-plaintext/v1',
-        kind: 'plaintext', modelIdentities: [modelIdentity], operation: 'generate', protocol: null, evidence: null }];
-      const selectedOffer = explicitPrivacy ? eligibleExecutionOffers(privacyRequest, offers, [recipientIdentity || provider.peerId])
-        .filter(offer => !offerId || offer.id === offerId).sort((a, b) => a.id.localeCompare(b.id))[0] : null;
-      if (explicitPrivacy && !selectedOffer) throw Error('Selected execution offer is unavailable');
-      const privacyBinding = selectedOffer ? await bindExecutionRoute(privacyRequest, plaintextExecutionRoute(privacyRequest, {
-        recipients: [recipientIdentity || provider.peerId], route: { schema: 'reploid.mesh-route/v1', providerId: recipientIdentity || provider.peerId,
-          offerId: selectedOffer.id, backend: selectedOffer.backend } })) : null;
+      const selectedOffer = eligibleExecutionOffers(privacyRequest, provider.executionOffers ?? [], [recipientIdentity])
+        .filter(offer => !offerId || offer.id === offerId).sort((a, b) => a.id.localeCompare(b.id))[0];
+      if (!selectedOffer) throw Error('Selected execution offer is unavailable');
+      const privacyBinding = await bindExecutionRoute(privacyRequest, plaintextExecutionRoute(privacyRequest, {
+        recipients: [recipientIdentity], route: { schema: 'reploid.mesh-route/v1', providerId: recipientIdentity,
+          offerId: selectedOffer.id, backend: selectedOffer.backend } }));
       const requestId = utils.generateId('swarmreq');
-      // With named recipients, a provider that offers it decides from the request's details first. The
-      // prompt is sent only after that provider admits the request.
-      let admission = null;
-      if (requireNamedAdmission && explicitPrivacy && privacy.allowedRecipients.length > 0 && provider.admissionProtocol !== 1) {
-        throw new Error('The named recipient cannot decide before the prompt is sent. Nothing was sent.');
-      }
-      if (explicitPrivacy && privacy.allowedRecipients.length > 0 && provider.admissionProtocol === 1) {
-        const salt = admissionSalt();
-        admission = { salt, commitment: await promptCommitment(salt, messages, settings ? snapshotJson(settings) : null), sent: false, send: null };
-      }
+      const salt = admissionSalt();
+      const admission = { salt, commitment: await promptCommitment(salt, messages, settings ? snapshotJson(settings) : null), sent: false, send: null };
       const requestPayload = {
         requestId, consumer: identityBundle.peerId, provider: provider.peerId,
         ...(contextId && provider.identityProtocol === 1 ? { contextId } : {}),
         model: modelId || provider.model || null, modelIdentity, adapterIdentities,
-        modelContract: policy.models.contract, ...(explicitPrivacy ? { privacy, privacyBinding, offerId: selectedOffer.id } : {}), messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {}),
+        modelContract: policy.models.contract, admissionProtocol: 2, privacy, privacyBinding, offerId: selectedOffer.id, messages, ...(requestContext?.recoverable === true ? { recoverable: true } : {}),
         ...(settings ? { settings: snapshotJson(settings) } : {}),
-        ...(admission ? { admission: { salt: admission.salt } } : {})
+        admission: { salt: admission.salt }
       };
       if (Number.isSafeInteger(policy.webrtc?.maxMessageBytes) && policy.webrtc.maxMessageBytes > 0
         && new TextEncoder().encode(JSON.stringify(requestPayload)).byteLength > policy.webrtc.maxMessageBytes) {
@@ -1148,27 +1150,34 @@ export function createPeerGenerationMesh({ config, ports }) {
         placement: snapshotJson(placementChoices.get(provider) ?? null), ...(settings ? { settings: snapshotJson(settings) } : {}),
         // The provider will be asked to admit exactly this commitment before the prompt is sent, so a host
         // that reserves credit for the request can bind the same value.
-        ...(admission ? { admission: { schema: 'reploid.generation-admission/v1', promptCommitment: admission.commitment } } : {}) }) !== true) {
+        admission: { schema: 'reploid.generation-admission/v2', promptCommitment: admission.commitment } }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
       }
       signal?.throwIfAborted();
       if (closed) throw new Error('Mesh is closed');
-      const currentProvider = swarmController.listPeers().find(peer => peer.peerId === provider.peerId);
-      if (!currentProvider || currentProvider.readiness !== 'ready' || currentProvider.availableSlots === 0
+      const verifyCurrentRecipient = () => {
+        const currentProvider = swarmController.listPeers().find(peer => peer.peerId === provider.peerId);
+        if (!currentProvider || currentProvider.admissionProtocol !== 2 || currentProvider.identityProtocol !== 1
+        || peerIdentity?.getVerified(provider.peerId) !== recipientIdentity
+        || currentProvider.readiness !== 'ready' || currentProvider.availableSlots === 0
         || JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null) !== connectionBinding
         || currentProvider.model !== provider.model || currentProvider.modelIdentity !== provider.modelIdentity
         || !supportsAdapters(currentProvider, adapterIdentities)
         || JSON.stringify(currentProvider.executionOffers ?? null) !== JSON.stringify(provider.executionOffers ?? null)
         || JSON.stringify(snapshotJson(currentProvider.generationSettings ?? null)) !== JSON.stringify(snapshotJson(provider.generationSettings ?? null))) {
-        throw new Error('Selected contributor is no longer ready; retry requires new placement');
-      }
+          throw new Error('Selected contributor is no longer ready; retry requires new placement');
+        }
+      };
+      verifyCurrentRecipient();
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
         ...(typeof onUsage === 'function' ? { onUsage } : {}),
-        ...(settings ? { settings, settingsDigest } : {}), ...(admission ? { admission } : {}) }, () => {
-        const sendRequest = () => swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload);
-        if (!admission) return sendRequest();
-        admission.send = sendRequest;
+        ...(settings ? { settings, settingsDigest } : {}), admission }, () => {
+        admission.send = () => {
+          signal?.throwIfAborted();
+          verifyCurrentRecipient();
+          return swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload);
+        };
         const { messages: _messages, settings: _settings, admission: _admission, ...details } = requestPayload;
         return swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-admit', { ...details, promptCommitment: admission.commitment });
       });

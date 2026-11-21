@@ -1,3 +1,4 @@
+import { partitionTestBinding } from './fixtures/partition-execution-policy.js';
 // Source-only ordinary two-stage runner integration; numerical dispatch is
 // injected, while cursor transitions, stage signatures and publications are real.
 import assert from './fixtures/canonical-assert.js';
@@ -38,7 +39,7 @@ async function fixture({ zero = false, full = false, forged = false, unknown = f
     maxActivationBytes: limits.maxActivationBytes, maxOutputCharacters: limits.maxOutputCharacters };
   attempt.authorizationScope = grantAuthority.canonicalScope({ identity, limits: grantLimits,
     disclosure: 'partition-activations-and-tokens', generationId: generation.generationId });
-  const grant = await grantAuthority.issueCanonical(identity, grantLimits, { approved: true, ttlMs: 60000,
+  const grant = await grantAuthority.issueCanonical(identity, grantLimits, { privacyBinding: await partitionTestBinding(identity), approved: true, ttlMs: 60000,
     disclosure: 'partition-activations-and-tokens', generation, canonicalAttempt: attempt, vocabSize: 100 });
   const grants = Object.fromEntries(['executionA', 'executionB', 'activation', 'tokenContext', 'output'].map(k => [k, grant]));
   const decoder = () => createBundledIncrementalDecoder({ tokenForId: id => String(id), byteLevel: false,
