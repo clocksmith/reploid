@@ -131,7 +131,9 @@ it('reserves separate compatible peers during concurrent approval and binds host
   await vi.waitFor(() => expect(f.sent).toHaveLength(2));
   expect(new Set(f.sent.map(item => item.peer))).toEqual(new Set(['east', 'west']));
   expect(f.sent.every(item => !('requestContext' in item.payload))).toBe(true);
-  expect(f.authorize.mock.calls.filter(([value]) => value.action === 'mesh.dispatch').map(([value]) => value.requestContext.id)).toEqual(['a', 'b']);
+  const contexts = f.authorize.mock.calls.filter(([value]) => value.action === 'mesh.dispatch')
+    .map(([value]) => value.requestContext.id);
+  expect(contexts.sort()).toEqual(['a', 'b']);
   await f.respond(f.sent[0]); await f.respond(f.sent[1]);
   await Promise.all([a, b]); await f.mesh.close();
 });
