@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 387 |
+| apps/poolday | 389 |
 | self | 457 |
 | shared | 2498 |
-| total | 3342 |
+| total | 3344 |
 
 Every file lives in its owner's root.
 
@@ -440,6 +440,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/model-acquisition.js` | `apps/poolday/host/model-acquisition.js` | apps/poolday | Reached only from product entries. |
 | `host/model-artifact-probe.js` | `apps/poolday/host/model-artifact-probe.js` | apps/poolday | Reached only from product entries. |
 | `host/model-storage.js` | `apps/poolday/host/model-storage.js` | apps/poolday | Reached only from product entries. |
+| `host/owner-pairing.js` | `apps/poolday/host/owner-pairing.js` | apps/poolday | Reached only from product entries. |
 | `host/partition-release.js` | `apps/poolday/host/partition-release.js` | apps/poolday | Reached only from product entries. |
 | `host/peer-execution-config.js` | `apps/poolday/host/peer-execution-config.js` | apps/poolday | Reached only from product entries. |
 | `host/peer-run-session.js` | `apps/poolday/host/peer-run-session.js` | apps/poolday | Reached only from product entries. |
@@ -865,6 +866,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/network-projection.js` | `apps/poolday/ui/pool-home/network-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/operation-sharing.d.ts` | `apps/poolday/ui/pool-home/operation-sharing.d.ts` | apps/poolday | Describes ui/pool-home/operation-sharing.js. Reached only from product entries. |
 | `ui/pool-home/operation-sharing.js` | `apps/poolday/ui/pool-home/operation-sharing.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/owner-pairing-view.js` | `apps/poolday/ui/pool-home/owner-pairing-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/page-identity.js` | `apps/poolday/ui/pool-home/page-identity.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/participation-controls.js` | `apps/poolday/ui/pool-home/participation-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/participation-state-view.js` | `apps/poolday/ui/pool-home/participation-state-view.js` | apps/poolday | Reached only from product entries. |

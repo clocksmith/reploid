@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 387,
+    "apps/poolday": 389,
     "self": 457,
     "shared": 2498
   },
@@ -2439,6 +2439,12 @@
     {
       "served": "host/model-storage.js",
       "source": "apps/poolday/host/model-storage.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/owner-pairing.js",
+      "source": "apps/poolday/host/owner-pairing.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4989,6 +4995,12 @@
     {
       "served": "ui/pool-home/operation-sharing.js",
       "source": "apps/poolday/ui/pool-home/operation-sharing.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/owner-pairing-view.js",
+      "source": "apps/poolday/ui/pool-home/owner-pairing-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

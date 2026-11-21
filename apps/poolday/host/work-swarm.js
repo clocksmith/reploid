@@ -410,6 +410,17 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (closed || paused || consumer !== active) throw new Error('Contributor connection changed during verification');
       return identity;
     },
+    getOwnerPairingChannel() {
+      const active = consumer, transport = consumerTransport;
+      if (closed || paused || !active || !transport) return null;
+      return {
+        transport,
+        verifyPeer: (peerId, signal) => api.verifyPeerIdentity(peerId, signal),
+        currentPeer: peerId => active.getVerifiedPeerIdentity?.(peerId) ?? null,
+        getPeers: () => active.getSwarmSnapshot()?.peers || [],
+        getPeerStates: () => transport.getPeerStates?.() || []
+      };
+    },
     allowIntroductions(allowed) {
       if (closed) throw new Error('Network is closed');
       introductionAssistance = allowed === true;

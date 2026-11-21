@@ -2860,7 +2860,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:b62338b33c33a190afa546d47f9ea497c3ae9f0586ecf2d3c89984233e46d226",
+      "sha256": "sha256:c9a803e117d5cb0b31fdeebeb3aeba43c392857097c3df43c65bf21d68f834a2",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2878,6 +2878,7 @@
         "./contribution-history.js",
         "./document-comparison.js",
         "./model-acquisition.js",
+        "./owner-pairing.js",
         "./partition-release.js",
         "./private-computers.js",
         "./readonly-view.js"
@@ -3098,6 +3099,15 @@
         "../config/doppler-local-models.js",
         "../infrastructure/model-storage-lock.js",
         "./work-model-cache.js"
+      ]
+    },
+    {
+      "path": "self/host/owner-pairing.js",
+      "owner": "self",
+      "sha256": "sha256:9a593ee517ae9acbaa95190aaf48fa4ea2d5e7cf3bb66520ca673fc5542fc1ad",
+      "imports": [
+        "../vendor/reploid/transport/index.js",
+        "./circle-invites.js"
       ]
     },
     {
@@ -3516,7 +3526,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:e0ad7868a852c94d7497fc84cd9038ddab9b748859d60b53d705cf50be9cb0b8",
+      "sha256": "sha256:9875df58fb7c3474b3f1e84d5443ebf6923164fd174c7fe59449aa2ffce4efaf",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4290,7 +4300,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9159f7d3ccc6d7b2f9675934c35a5868ed35d366325b720eab9e5200100c30d6",
+      "sha256": "sha256:0edc3fbdffa8f093632fa9f56f02bed2e30093b4b1f57ea322aad8eb0d39ae1d",
       "imports": []
     },
     {
@@ -4677,7 +4687,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:31e401f90a47a07ece3bbf5a092e1883a64e71aaf08c27f448b9381462201476",
+      "sha256": "sha256:14f233d3bcc1cf0d6d9326e6eec365b28613a1d2ea2046adeb9bfd648c5740ec",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
@@ -4696,6 +4706,7 @@
         "./model-providers.js",
         "./model-storage-view.js",
         "./network-controls.js",
+        "./owner-pairing-view.js",
         "./private-computers-view.js",
         "./remote-permission.js",
         "./shell-view.js",
@@ -4721,6 +4732,14 @@
         "../../pool/operation-model.js",
         "../../pool/pool-config.json",
         "../components/html.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/owner-pairing-view.js",
+      "owner": "ui",
+      "sha256": "sha256:85968bfae18c2f9a8443b42030a4fadce10a24a06fdff315eb4ae9f64c1511f3",
+      "imports": [
+        "../../host/owner-pairing.js"
       ]
     },
     {
