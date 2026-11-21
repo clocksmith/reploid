@@ -176,6 +176,40 @@ describe('daily game ledger', () => {
     expect(store.ownerStats().nextDayReturn.withoutReveal).toEqual({eligibleGuestDays:0,nextDayReturns:0});
   });
 
+  it('excludes evidenced scripted accounts from standings, reveals and acquisition while retaining every paid try and replay', () => {
+    const author=grant('human-a'), script=grant('identified-test'), visitor=grant('human-c');
+    const a=finish(submit(author,'a',{prompt:'please speak kindly',words:3}).attempt);
+    const sharedA=store.publish(author.token,a.id,{allowReveal:true});
+    const b=finish(submit(script,'b',{prompt:'X',words:1,via:sharedA.id}).attempt);
+    const sharedB=store.publish(script.token,b.id,{allowReveal:true});
+    const c=finish(submit(visitor,'c',{prompt:'try this',words:2,via:sharedB.id}).attempt);
+    const sharedC=store.publish(visitor.token,c.id,{allowReveal:true});
+    for (const [entry,share] of [[a,sharedA],[b,sharedB],[c,sharedC]]) {
+      store.reviewReveal(entry.id); store.recordDareOpen(share.id);
+    }
+    expect(store.ownerStats()).toMatchObject({players:3,thirdParticipants:1,playedDares:2});
+    expect(() => store.classifyScripted({attemptId:b.id,receiptDigest:a.receiptDigest,excluded:true})).toThrow('qa_evidence_does_not_match');
+    const classify = excluded => store.classifyScripted({attemptId:b.id,receiptDigest:b.receiptDigest,excluded});
+    expect(classify(true).changed).toBe(true); expect(classify(true).changed).toBe(false);
+    expect(store.leaderboard(day)).toEqual([{rank:1,words:2,characters:8},{rank:2,words:3,characters:19}]);
+    expect(store.ownerStats()).toMatchObject({players:2,scriptedQA:{accounts:1,acceptedTurns:1},openedDares:2,
+      publishedDares:2,playedDares:0,darePlayers:0,thirdParticipants:0});
+    expect(store.capacity(day).used).toBe(3);
+    expect(store.history(script.token,day)[0]).toMatchObject({id:b.id,receipt:b.receipt,receiptDigest:b.receiptDigest,attemptNumber:1});
+    expect(store.readShare(sharedB.id)).toEqual(sharedB);
+    time+=86400000;
+    expect(store.yesterdayWinners().map(x=>x.prompt)).toEqual(['try this']);
+    expect(store.reviewQueue().map(x=>x.attemptId)).toEqual([c.id]);
+    finish(submit(script,'next',{day:'2026-11-22'}).attempt,false); finish(submit(author,'next',{day:'2026-11-22'}).attempt,false);
+    time+=86400000;
+    expect(store.ownerStats()).toMatchObject({players:2,returningPlayers:1,consecutiveDayPlayers:1,scriptedQA:{accounts:1,acceptedTurns:2},
+      nextDayReturn:{total:{eligibleGuestDays:2,nextDayReturns:1}}});
+    expect(classify(false).changed).toBe(true); expect(classify(false).changed).toBe(false);
+    expect(store.leaderboard(day)[0]).toEqual({rank:1,words:1,characters:1});
+    expect(store.ownerStats()).toMatchObject({players:3,returningPlayers:2,consecutiveDayPlayers:2,thirdParticipants:1,playedDares:2,
+      nextDayReturn:{total:{eligibleGuestDays:3,nextDayReturns:2}}});
+  });
+
   it('ranks each guest once using Unicode character length, and reveals only reviewed, consenting yesterday winners', () => {
     const alice = grant('alice'), bob = grant('bob'), cara = grant('cara');
     const win = (g, key, prompt, words) => finish(submit(g, key, { prompt, words }).attempt);

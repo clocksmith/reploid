@@ -211,7 +211,7 @@ async function refresh() {
 }
 async function afterLogin() {
   await refresh();
-  if (!today.authenticated) throw Error('Your browser could not retain your sign-in. Your draft is still here. Check site cookie settings and try again.');
+  if (!today.authenticated) throw Error('Your sign-in expired before your draft was submitted. Your draft is still here. Sign in again to continue.');
   if (el('join').open) el('join').close();
   el('join-status').textContent = '';
   el('prompt').focus();

@@ -383,6 +383,7 @@
     "infrastructure/policy-engine.js",
     "infrastructure/rate-limiter.js",
     "infrastructure/replay-engine.js",
+    "infrastructure/reverse-prompt-profile.js",
     "infrastructure/scoped-model-provider.js",
     "infrastructure/search-response.js",
     "infrastructure/stream-parser.js",

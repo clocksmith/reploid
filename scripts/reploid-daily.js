@@ -9,11 +9,11 @@ import { createDailyStore } from '../server/daily/store.js';
 const staticRoot = fileURLToPath(new URL('../server/daily/site/',import.meta.url));
 const readJson = async path => JSON.parse(await readFile(path,'utf8'));
 const print = value => console.log(JSON.stringify(value,null,2));
-const help = 'npm run daily -- preview [--port 4180] | playtest [--config FILE | --model DIR --backend SHA256] [--state DIR] [--port PORT] [--target TEXT] | serve --config FILE [--also SECOND_CIRCLE] | issue --config FILE --expires ISO_DATE | revoke --config FILE --id INVITE_ID | review|stats --config FILE | approve|reject --config FILE --id ATTEMPT_ID';
+const help = 'npm run daily -- preview [--port 4180] | playtest [--config FILE | --model DIR --backend SHA256] [--state DIR] [--port PORT] [--target TEXT] | serve --config FILE [--also SECOND_CIRCLE] | issue --config FILE --expires ISO_DATE | revoke --config FILE --id INVITE_ID | review|stats --config FILE | exclude-qa|restore-player --config FILE --id ATTEMPT_ID --receipt SHA256 | approve|reject --config FILE --id ATTEMPT_ID';
 async function main() {
   const {values,positionals} = parseArgs({allowPositionals:true,options:{
     model:{type:'string'},backend:{type:'string'},state:{type:'string'},target:{type:'string'},
-    also:{type:'string'},config:{type:'string'},port:{type:'string'},expires:{type:'string'},id:{type:'string'},help:{type:'boolean'}
+    also:{type:'string'},config:{type:'string'},port:{type:'string'},expires:{type:'string'},id:{type:'string'},receipt:{type:'string'},help:{type:'boolean'}
   }});
   if (values.help || !positionals.length) { console.log(help); return; }
   if (positionals.length !== 1) throw Error(help);
@@ -75,6 +75,9 @@ async function main() {
           if (!values.id || !store.reviewQueue().some(row => row.attemptId === values.id)
             || !store.reviewReveal(values.id,command === 'approve')) throw Error('Choose a consenting winning entry from yesterday’s review queue.');
           print({id:values.id,approved:command === 'approve'}); break;
+        case 'exclude-qa':
+        case 'restore-player':
+          print(store.classifyScripted({attemptId:values.id,receiptDigest:values.receipt,excluded:command === 'exclude-qa'})); break;
         case 'stats': print(store.ownerStats()); break;
         default: throw Error(help);
       }

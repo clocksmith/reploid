@@ -69,6 +69,13 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
         share_id TEXT UNIQUE, consent INTEGER NOT NULL DEFAULT 0, approved INTEGER NOT NULL DEFAULT 0,
         UNIQUE(guest, day, request_key)
       );
+      CREATE TABLE IF NOT EXISTS daily_scripted_accounts (
+        guest TEXT PRIMARY KEY, evidence_attempt TEXT NOT NULL REFERENCES daily_attempts(id),
+        evidence_digest TEXT NOT NULL, recorded_at INTEGER NOT NULL
+      );
+      CREATE VIEW IF NOT EXISTS daily_player_attempts AS
+        SELECT a.*, a.rowid AS entry_order FROM daily_attempts a
+        WHERE NOT EXISTS (SELECT 1 FROM daily_scripted_accounts q WHERE q.guest=a.guest);
       CREATE TABLE IF NOT EXISTS daily_reveal_cohorts (
         guest TEXT NOT NULL, day TEXT NOT NULL, available INTEGER NOT NULL CHECK(available IN (0,1)),
         PRIMARY KEY(guest, day)
@@ -194,7 +201,7 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
   // only reads a boolean, even when several winning prompts tied.
   const revealRanks = `WITH winners AS (
     SELECT id, consent, approved, RANK() OVER(ORDER BY words,characters) AS rank
-    FROM daily_attempts WHERE day=? AND won=1
+    FROM daily_player_attempts WHERE day=? AND won=1
   )`;
   function recordFirstPlay(row) {
     const acceptedAt = Number(now());
@@ -258,8 +265,8 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
   }
   function leaderboard(day) {
     return db.prepare(`WITH scores AS (
-      SELECT words,characters,ROW_NUMBER() OVER(PARTITION BY guest ORDER BY words,characters,rowid) AS entry
-      FROM daily_attempts WHERE day=? AND won=1
+      SELECT words,characters,ROW_NUMBER() OVER(PARTITION BY guest ORDER BY words,characters,entry_order) AS entry
+      FROM daily_player_attempts WHERE day=? AND won=1
     ) SELECT RANK() OVER(ORDER BY words,characters) AS rank, words, characters
       FROM scores WHERE entry=1 ORDER BY words,characters`).all(day);
   }
@@ -273,14 +280,14 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
   const yesterday = () => utcDay(Number(now()) - 86400000);
   function metrics(day) {
     const params = day === undefined ? [] : [day];
-    return db.prepare(`SELECT COUNT(DISTINCT c.guest) AS thirdParticipants FROM daily_attempts c
-      JOIN daily_attempts b ON b.share_id=c.via JOIN daily_attempts a ON a.share_id=b.via
+    return db.prepare(`SELECT COUNT(DISTINCT c.guest) AS thirdParticipants FROM daily_player_attempts c
+      JOIN daily_player_attempts b ON b.share_id=c.via JOIN daily_player_attempts a ON a.share_id=b.via
       WHERE c.state IN ('dispatched','completed','unresolved') AND c.guest<>b.guest
       AND c.guest<>a.guest AND a.guest<>b.guest ${params.length ? 'AND c.day=?' : ''}`).get(...params);
   }
   function activity() {
     const totals = db.prepare(`SELECT COUNT(*) AS players, COUNT(*) FILTER(WHERE days>1) AS returningPlayers
-      FROM (SELECT guest,COUNT(DISTINCT day) AS days FROM daily_attempts
+      FROM (SELECT guest,COUNT(DISTINCT day) AS days FROM daily_player_attempts
       WHERE state IN ('dispatched','completed','unresolved') GROUP BY guest)`).get();
     return { ...totals, ...metrics() };
   }
@@ -288,7 +295,7 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
     // Each guest can enter once per play day. Include a denominator only after
     // the entire following UTC day has elapsed, whether or not they returned.
     const counts = db.prepare(`WITH play_days AS (
-      SELECT DISTINCT guest,day FROM daily_attempts WHERE state IN ('dispatched','completed','unresolved')
+      SELECT DISTINCT guest,day FROM daily_player_attempts WHERE state IN ('dispatched','completed','unresolved')
     ), followup AS (
       SELECT guest,day,LEAD(day) OVER(PARTITION BY guest ORDER BY day) AS next_play FROM play_days
     ) SELECT c.available, COUNT(*) AS eligibleGuestDays,
@@ -348,6 +355,22 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
           .run(Number(allowed), Number(allowed), id);
       });
     },
+    classifyScripted({attemptId, receiptDigest, excluded}) {
+      // The browser cannot classify itself or anyone else. An operator must match
+      // both artifacts from a known automation to the very same completed turn.
+      requireValue(typeof attemptId === 'string' && typeof receiptDigest === 'string'
+        && /^sha256:[0-9a-f]{64}$/.test(receiptDigest) && typeof excluded === 'boolean', 400, 'exact_qa_evidence_required');
+      return transaction(() => {
+        const evidence = db.prepare(`SELECT guest FROM daily_attempts WHERE id=?
+          AND state='completed' AND receipt_digest=?`).get(attemptId,receiptDigest);
+        requireValue(evidence, 404, 'qa_evidence_does_not_match');
+        const change = excluded
+          ? db.prepare('INSERT OR IGNORE INTO daily_scripted_accounts(guest,evidence_attempt,evidence_digest,recorded_at) VALUES (?,?,?,?)')
+              .run(evidence.guest,attemptId,receiptDigest,Number(now()))
+          : db.prepare('DELETE FROM daily_scripted_accounts WHERE guest=?').run(evidence.guest);
+        return {attemptId,receiptDigest,excluded,changed:change.changes === 1};
+      });
+    },
     reviewQueue(day = yesterday()) { return revealCandidates(day, false); },
     reviewReveal(id, approved = true) {
       requireValue(typeof approved === 'boolean', 400, 'invalid_review');
@@ -367,17 +390,20 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
         SELECT share_id FROM daily_attempts WHERE share_id=?`).run(id).changes === 1;
     },
     ownerStats() {
-      const { publishedDares } = db.prepare('SELECT COUNT(share_id) AS publishedDares FROM daily_attempts').get();
-      const { openedDares } = db.prepare('SELECT COUNT(*) AS openedDares FROM daily_opened_dares').get();
+      const { publishedDares } = db.prepare('SELECT COUNT(share_id) AS publishedDares FROM daily_player_attempts').get();
+      const { openedDares } = db.prepare('SELECT COUNT(*) AS openedDares FROM daily_opened_dares o JOIN daily_player_attempts a ON a.share_id=o.share_id').get();
       const { playedDares, darePlayers } = db.prepare(`SELECT COUNT(DISTINCT parent.share_id) AS playedDares,
         COUNT(DISTINCT player.guest) AS darePlayers
-        FROM daily_attempts player JOIN daily_attempts parent ON parent.share_id=player.request_share
+        FROM daily_player_attempts player JOIN daily_player_attempts parent ON parent.share_id=player.request_share
         WHERE parent.guest<>player.guest AND player.state IN ('dispatched','completed','unresolved')`).get();
       const { consecutiveDayPlayers } = db.prepare(`WITH play_days AS (
-        SELECT DISTINCT guest,day FROM daily_attempts WHERE state IN ('dispatched','completed','unresolved')
+        SELECT DISTINCT guest,day FROM daily_player_attempts WHERE state IN ('dispatched','completed','unresolved')
       ) SELECT COUNT(DISTINCT a.guest) AS consecutiveDayPlayers FROM play_days a JOIN play_days b
         ON a.guest=b.guest AND b.day=date(a.day,'+1 day')`).get();
-      return { ...activity(), publishedDares, openedDares, playedDares, darePlayers, consecutiveDayPlayers, nextDayReturn: nextDayReturn() };
+      const scriptedQA = db.prepare(`SELECT COUNT(DISTINCT q.guest) AS accounts, COUNT(a.id) AS acceptedTurns
+        FROM daily_scripted_accounts q LEFT JOIN daily_attempts a ON a.guest=q.guest
+        AND a.state IN ('dispatched','completed','unresolved')`).get();
+      return { ...activity(), scriptedQA, publishedDares, openedDares, playedDares, darePlayers, consecutiveDayPlayers, nextDayReturn: nextDayReturn() };
     },
     close() { db.close(); },
   });

@@ -404,7 +404,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `experimental/openclaw-audit/audit-mesh.js` | `self/experimental/openclaw-audit/audit-mesh.js` | self | Reached only from substrate entries. |
 | `experimental/openclaw-audit/index.js` | `self/experimental/openclaw-audit/index.js` | self | Reached only from substrate entries. |
 | `experimental/openclaw-audit/self-audit.js` | `self/experimental/openclaw-audit/self-audit.js` | self | Reached only from substrate entries. |
-| `favicon.svg` | `shared/favicon.svg` | shared | Reached from native hosts and browser entries. |
+| `favicon.svg` | `shared/favicon.svg` | shared | Reached from product and substrate entries. |
 | `host/adapter-evidence.js` | `apps/poolday/host/adapter-evidence.js` | apps/poolday | Reached only from product entries. |
 | `host/bridge-files.js` | `self/host/bridge-files.js` | self | Reached only from substrate entries. |
 | `host/chat-context.js` | `apps/poolday/host/chat-context.js` | apps/poolday | Reached only from product entries. |

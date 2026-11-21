@@ -2230,7 +2230,7 @@
       "served": "favicon.svg",
       "source": "shared/favicon.svg",
       "owner": "shared",
-      "basis": "Reached from native hosts and browser entries."
+      "basis": "Reached from product and substrate entries."
     },
     {
       "served": "host/adapter-evidence.js",

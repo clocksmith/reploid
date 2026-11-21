@@ -2,6 +2,8 @@
 
 A circle gets one target answer per UTC day. Write a prompt that gets its model to say the target without using the listed words. A winning player can send a dare such as “Got it in 12 words. Can you?” A recipient can watch the recorded result immediately and use the host’s invitation to take their own turn.
 
+[Play the public circle](https://reploid-daily.reploid.workers.dev/) · [Three-player playtest](../reports/daily-pilot/public-game.json)
+
 ## Preview
 
 Use the Reploid **source checkout** with its installed dependencies and Node 22.13 or later (SQLite). From the repository root run:
@@ -139,6 +141,8 @@ The packager creates a new local directory. Its `public/` folder contains the ga
 
 If the API tunnel address changes, check the replacement’s credentialed API response, package a fresh directory with the new `--api-origin`, and redeploy under the same Worker name. Players can refresh the page and use their existing passkeys on the stable frontend. Their API session may need a new sign-in.
 
+Browsers that block the API cookie can still play. Verifying a passkey opens a 15-minute session held in that tab’s memory. After a refresh or a tab close, signing in with the same passkey restores the player's history and remaining tries.
+
 ## Review and measure
 
 ~~~sh
@@ -149,5 +153,12 @@ npm run daily -- stats --config /private/circle.json
 ~~~
 
 Review returns yesterday’s consenting first-place prompts. Read them before approval. A signed-in author can withdraw a prompt from the next-day reveal. Stats count published dares, distinct dares opened, dares that led a different guest to play, players who returned, players active on consecutive UTC days, and distinct third players who submitted through a same-day chain of two dares. The owner also sees distinct guests who played through another person’s dare. For next-day retention, group guest-days by whether a reviewed prompt was available at the first accepted turn. Count a return only after the entire following UTC day has elapsed. Historical observations with unknown reveal availability stay in a separate group. These descriptive groups measure availability, not whether the person read a reveal or why they returned. The open count records each link once, without a visitor identifier. A page view alone cannot complete a three-player chain.
+
+The operator can exclude a positively identified scripted account from standings, winning-prompt reveals, and player and referral statistics. Match both the exact attempt ID and receipt digest from the browser automation’s private record. The exclusion applies to the account across dates and can be reversed using the same evidence. Original attempts, signed receipts, share replays, credits and the consumed turn budget stay recorded. `stats` reports excluded accounts and their accepted turns under `scriptedQA`. Opened dares count distinct eligible links; anonymous opens do not identify who viewed them.
+
+~~~sh
+npm run daily -- exclude-qa --config /private/public/circle.json --id "$ATTEMPT_ID" --receipt "$RECEIPT_DIGEST"
+npm run daily -- restore-player --config /private/public/circle.json --id "$ATTEMPT_ID" --receipt "$RECEIPT_DIGEST"
+~~~
 
 The Chrome acceptance journey runs against a local circle with a fixture identity and model. From the checkout run `node tests/fixtures/daily-browser.mjs` with Playwright Chromium installed, or set `PLAYWRIGHT_CHANNEL=chrome` for installed Chrome. The physical qualification tool exercises Doppler separately.
