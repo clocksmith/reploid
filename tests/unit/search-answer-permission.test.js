@@ -226,6 +226,7 @@ describe('host session and conversation view', () => {
     const disclosed = [], verifyPeerIdentity = vi.fn(async id => id === connection ? recipient : null);
     const swarm = {
       getState: () => ({ consumer: { peers: [{ peerId: connection, model: single.id, modelIdentity: single.identity,
+        identityProtocol: 1, admissionProtocol: 2,
         readiness: 'ready', hasInference: true, availableSlots: 1 }] } }),
       verifyPeerIdentity, connect: async () => {}, hasProvider: () => true,
       async generate(messages, controls) {
