@@ -187,13 +187,21 @@ export function createChatSession({
       assert(remoteAccess.enabled(), 'Network answers are off. Turn them on in Settings or choose this device.');
       if (!remotePermissions.some(permission => remotePermissionCovers(permission, need))) {
         const unbound = { ...need, policyId: undefined, routeId: undefined };
-        const hasDifferentBoundMachine = remotePermissions.some(
-          permission => permission.routeId !== undefined
-            && remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, unbound)
+        const completedPermissionIds = new Set(
+          (workspace?.getState?.().threads || []).flatMap(thread =>
+            (thread.attempts || [])
+              .filter(attempt => attempt.status === 'completed' && attempt.authorization?.permissionId)
+              .map(attempt => attempt.authorization.permissionId)
+          )
         );
-        if (!hasDifferentBoundMachine) {
+        const isEstablishedBoundMachine = permission => permission.routeId !== undefined
+          && (completedPermissionIds.has(permission.id) || permission.wording?.id !== remoteAccess.wording.id)
+          && remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, unbound);
+        if (!remotePermissions.some(isEstablishedBoundMachine)) {
           const retained = remotePermissions.filter(
-            permission => !(permission.routeId === undefined && remotePermissionCovers(permission, unbound))
+            permission => !(remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, unbound)
+              && !completedPermissionIds.has(permission.id)
+              && permission.wording?.id === remoteAccess.wording.id)
           );
           savePermissions([...retained, createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
             wording: remoteAccess.wording, grantedAt: now() })].slice(-MAX_PERMISSIONS));
