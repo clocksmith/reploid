@@ -409,8 +409,16 @@ export async function runWireVisibilityVerification() {
 
 const isDirectEntry = Boolean(process.argv[1]) && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isDirectEntry) {
-  const receipt = await runWireVisibilityVerification();
-  const outFile = process.argv[2];
+  const [, , argument, scenario, checkout, fixtureOut] = process.argv;
+  let receipt, outFile = argument;
+  if (argument === '--circle-fixture') {
+    assert.ok(scenario && checkout, 'Usage: --circle-fixture invite|reconnect /absolute/review-checkout [receipt.json]');
+    const { runCircleWireFixture } = await import('./verify-wire-circle-fixtures.js');
+    receipt = await runCircleWireFixture({ scenario, checkout });
+    outFile = fixtureOut;
+  } else {
+    receipt = await runWireVisibilityVerification();
+  }
   if (outFile) {
     await fs.mkdir(path.dirname(path.resolve(outFile)), { recursive: true });
     await fs.writeFile(path.resolve(outFile), JSON.stringify(receipt, null, 2) + '\n');
