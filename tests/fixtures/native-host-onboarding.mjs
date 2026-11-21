@@ -3,15 +3,17 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import os from 'node:os';
 import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { PublicSwarmServer } from '../../server/public-swarm-server.js';
 
-assert.ok(process.argv[2], 'Usage: node tests/fixtures/native-host-onboarding.mjs /path/to/installed/reploid');
+assert.ok(process.argv[2], 'Usage: node tests/fixtures/native-host-onboarding.mjs /path/to/installed/reploid [verified-weights]');
 const installed = resolve(process.argv[2]);
+const existingWeights = process.argv[3] ? resolve(process.argv[3]) : null;
 const { version, dependencies } = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'));
 const cli = join(installed, 'server/native-node.js');
 const state = await mkdtemp(join(os.tmpdir(), 'reploid-onboarding-state-'));
@@ -53,19 +55,25 @@ function launch(args, onEvent = () => {}, timeoutMs = 900_000) {
 try {
   let preflight = null;
   let interruptedAt = null;
-  const first = launch(serve, (event, child) => {
-    if (event.event === 'native-gpu-preflight') preflight = event;
-    if (!interruptedAt && event.event === 'model-fill' && event.phase === 'piece' && event.fetchedBytes > 0) {
-      interruptedAt = event;
-      child.kill('SIGINT');
-    }
-  });
-  const interrupted = await first.exited;
-  assert.ok(interruptedAt, first.error());
-  assert.ok(preflight && preflight.maxStorageBufferBindingSize > 0, 'A real GPU check must precede the first model bytes');
-  assert.notEqual(interrupted.signal, 'SIGKILL', first.error());
-  assert.ok((await readdir(weights)).some(name => name.endsWith('.partial')), 'The interruption must leave partial weights');
-  assert.ok(!(await readdir(weights)).includes('manifest.json'), 'Do not mark an interrupted directory verified');
+  let interrupted = null;
+  if (existingWeights) {
+    await cp(existingWeights, weights, { recursive: true, mode: constants.COPYFILE_FICLONE });
+  } else {
+    const first = launch(serve, (event, child) => {
+      if (event.event === 'native-gpu-preflight') preflight = event;
+      if (!interruptedAt && event.event === 'model-fill' && event.phase === 'piece' && event.fetchedBytes > 0) {
+        interruptedAt = event;
+        child.kill('SIGINT');
+      }
+    });
+    interrupted = await first.exited;
+    assert.ok(interruptedAt, first.error());
+    assert.ok(preflight && preflight.maxStorageBufferBindingSize > 0, 'A real GPU check must precede the first model bytes');
+    assert.notEqual(interrupted.signal, 'SIGKILL', first.error());
+    const partialFiles = await readdir(weights);
+    assert.ok(partialFiles.some(name => name.endsWith('.partial')), 'The interruption must leave partial weights');
+    assert.ok(!partialFiles.includes('manifest.json'), 'Do not mark an interrupted directory verified');
+  }
 
   const ready = Promise.withResolvers();
   let completion = null;
@@ -79,16 +87,19 @@ try {
     if (event.event === 'native-host-ready') ready.resolve(event);
   });
   const host = await Promise.race([ready.promise, resumed.exited.then(() => { throw Error(resumed.error()); })]);
-  assert.ok(completion?.reusedBytes > 0, 'A restart must reuse verified partial bytes');
-  assert.equal(completion.percent, 100);
-  assert.equal(completion.verifiedBytes, completion.bytes);
+  if (existingWeights) assert.equal(completion, null, 'A verified directory must skip acquisition');
+  else {
+    assert.ok(completion?.reusedBytes > 0, 'A restart must reuse verified partial bytes');
+    assert.equal(completion.percent, 100);
+    assert.equal(completion.verifiedBytes, completion.bytes);
+  }
   assert.equal(host.gpu.backend, process.platform === 'darwin' ? 'metal' : 'vulkan');
   const manifestHash = createHash('sha256').update(await readFile(join(weights, 'manifest.json'))).digest('hex');
   assert.equal(host.modelIdentity, `sha256:${manifestHash}`);
 
   // Use the installed participant and its normal ask request without touching the user's default state.
   const ask = `import { pathToFileURL } from 'node:url';
-    const [native, requester, ...args] = process.argv.slice(1);
+    const [native, requester, ...args] = process.argv.slice(2);
     process.argv = [process.execPath, 'onboarding-requester', ...args];
     const { main } = await import(pathToFileURL(native));
     const { askMesh } = await import(pathToFileURL(requester));
@@ -104,7 +115,9 @@ try {
       console.log(JSON.stringify({event:'onboarding-answer', answer, receipt, provider, selected}));
     }});`;
   let answer = null;
-  const requester = launch(['--input-type=module', '--eval', ask, '--', join(installed, 'server/native-participant.js'),
+  const askFile = join(state, 'ask.mjs');
+  await writeFile(askFile, ask, { mode: 0o600 });
+  const requester = launch([askFile, join(installed, 'server/native-participant.js'),
     join(installed, 'server/native-node-ask.js'), '--model', host.modelId, '--connect-only', '--model-directory', state,
     '--identity-file', join(state, 'requester', 'identity.json'), '--rtc-module', '@roamhq/wrtc', '--ws-module', 'ws', ...roomArgs],
   event => { if (event.event === 'onboarding-answer') answer = event; }, 180_000);
@@ -114,11 +127,11 @@ try {
   assert.equal(answer.selected, host.modelIdentity);
   assert.equal(answer.provider, host.participantId);
   assert.ok(answer.receipt, 'The real answer must carry a provider receipt');
+  const acquisition = completion ? { interruptedAfterFetchedBytes: interruptedAt.fetchedBytes, interruptedExitCode: interrupted.code,
+    interruptedProcessMs: Math.round(interrupted.elapsedMs), fetchedBytes: completion.fetchedBytes, reusedBytes: completion.reusedBytes } : null;
   console.log(JSON.stringify({ platform: process.platform, packageVersion: version, dopplerDependency: dependencies.dopplerx,
     modelId: host.modelId, modelIdentity: host.modelIdentity, gpu: host.gpu,
-    interruptedAfterFetchedBytes: interruptedAt.fetchedBytes, interruptedExitCode: interrupted.code,
-    interruptedProcessMs: Math.round(interrupted.elapsedMs), resumedFetchedBytes: completion.fetchedBytes,
-    resumedReusedBytes: completion.reusedBytes, resumedToReadyMs: host.elapsedMs, requestProcessMs: Math.round(result.elapsedMs),
+    acquisition, startupToReadyMs: host.elapsedMs, requestProcessMs: Math.round(result.elapsedMs),
     answer: answer.answer.trim(), receiptSha256: createHash('sha256').update(JSON.stringify(answer.receipt)).digest('hex') }, null, 2));
 } finally {
   await Promise.allSettled(children.map(async ({ child, exited }) => {
