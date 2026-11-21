@@ -30,6 +30,7 @@ import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 
 export async function main({ runOnce } = {}) {
+  const startupAt = performance.now();
   const { values } = parseArgs({ options: participantOptions });
   if (values.help) {
     console.log(participantHelp);
@@ -140,6 +141,15 @@ export async function main({ runOnce } = {}) {
   class HostWebSocket extends Socket { constructor(url) { super(url, { origin: values.origin || 'http://localhost:8000' }); } }
   const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']),
     sourceRuntime ? { loadTooling: async () => sourceRuntime.tooling } : {});
+  const wholeHost = values.contribute && values['execution-mode'] === 'whole-model';
+  async function describeWholeGpu({ initialize = false } = {}) {
+    const { initDevice, getDevice, getKernelCapabilities } = await import('dopplerx/tooling/device');
+    const device = initialize ? await initDevice() : getDevice();
+    const { adapterInfo, hasF16 } = getKernelCapabilities();
+    return { backend: process.platform === 'darwin' ? 'metal' : 'vulkan', adapter: adapterInfo,
+      maxBufferSize: device.limits.maxBufferSize, maxStorageBufferBindingSize: device.limits.maxStorageBufferBindingSize,
+      shaderF16: hasF16 };
+  }
   // Optional readiness records (reploid.readiness-span/v1, reploid.stage-admission/v1) for the utilization CLI;
   // identities, times and slot counts only. The session starts here, before any stage is prepared.
   const readinessLog = values['readiness-log'] === undefined ? null : await openNativeReadinessLog({ file: values['readiness-log'],
@@ -168,11 +178,27 @@ export async function main({ runOnce } = {}) {
     ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
     executionMode: values['execution-mode'] || 'partition',
     onModelFill: (() => {
-      // Piece lines at most every 5 s; every other fill event is logged.
-      let last = 0;
+      // Always report the first verified piece. Throttle only subsequent piece lines.
+      let lastPiece = 0;
       return event => {
-        if (event.phase === 'piece' && Date.now() - last < 5000) return;
-        last = Date.now(); console.log(JSON.stringify({ event: 'model-fill', at: new Date(last).toISOString(), ...event }));
+        const at = Date.now();
+        if (event.phase === 'start') lastPiece = 0;
+        if (event.phase === 'piece') {
+          if (at - lastPiece < 5000) return;
+          lastPiece = at;
+        }
+        const hasTotals = Number.isSafeInteger(event.bytes) && Number.isSafeInteger(event.fetchedBytes)
+          && Number.isSafeInteger(event.reusedBytes);
+        const progress = {};
+        if (hasTotals) {
+          const complete = event.phase === 'complete' || event.bytes === 0;
+          progress.verifiedBytes = complete ? event.bytes : Math.min(event.bytes, event.fetchedBytes + event.reusedBytes);
+          progress.percent = complete ? 100 : Math.floor(100 * progress.verifiedBytes / event.bytes);
+          if (process.stderr.isTTY && ['start', 'piece', 'complete'].includes(event.phase)) {
+            console.error(`Model download ${progress.percent}% verified · ${(event.fetchedBytes / 1e6).toFixed(1)} MB received · ${(event.reusedBytes / 1e6).toFixed(1)} MB reused`);
+          }
+        }
+        console.log(JSON.stringify({ event: 'model-fill', at: new Date(at).toISOString(), ...event, ...progress }));
       };
     })(),
     generationJournalFile: path.join(path.dirname(identityFile), 'generation-journal.sqlite'),
@@ -195,8 +221,13 @@ export async function main({ runOnce } = {}) {
     participant.getCustodyCertificate().catch(error => console.error('Custody certificate renewal failed:', error.message)); }, policy.pollMs);
   const shutdown = createNativeShutdown(participant, gpuHost);
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
-  const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
-    return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
+  let preflight, stopping = false;
+  const stop = () => {
+    stopping = true;
+    clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
+    return Promise.resolve(preflight).catch(() => {}).then(shutdown)
+      .finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); });
+  };
   if (runOnce) {
     const controller = new AbortController();
     const cancel = () => controller.abort(new Error('Request cancelled'));
@@ -221,7 +252,26 @@ export async function main({ runOnce } = {}) {
   try {
     await Promise.all([completion, (async () => {
       if (values['share-files']) await participant.shareFiles(true);
-      if (values.contribute) await participant.contribute(true);
+      if (!values.contribute || stopping) return;
+      let gpu = null;
+      if (wholeHost && !owner) {
+        // Open the same device the resident will use before fetching model weights.
+        // Loading the model and accepting it into the resident is the fit check.
+        preflight = gpuHost.open().then(() => describeWholeGpu({ initialize: true }));
+        gpu = await preflight;
+        if (stopping) return;
+        console.log(JSON.stringify({ event: 'native-gpu-preflight', modelId: model.id, modelIdentity: model.identity, ...gpu }));
+      }
+      await participant.contribute(true);
+      const state = participant.getState();
+      if (wholeHost && !stopping && state.ready && state.modelIdentity === model.identity) {
+        gpu ??= await describeWholeGpu();
+        if (stopping) return;
+        const elapsedMs = Math.round(performance.now() - startupAt);
+        console.log(JSON.stringify({ event: 'native-host-ready', modelId: model.id, modelIdentity: model.identity,
+          participantId: participant.identity, elapsedMs, gpu }));
+        if (process.stderr.isTTY) console.error(`${model.name} is ready on ${gpu.backend} (${(elapsedMs / 1000).toFixed(1)} s).`);
+      }
     })()]);
   } catch (error) {
     try { await stop(); }

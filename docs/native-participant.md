@@ -41,6 +41,16 @@ selected room can read the request. The default is 2B in the public room; use
 `doctor` enumerates a GPU adapter and checks the installed Doppler package version
 and signaling handshake. A successful diagnostic does not establish model fit.
 
+For a first whole-model host, run `npx reploid serve 0.8b`. The command creates
+the model directory and acquires the pinned model weights automatically. The
+default path reports the real WebGPU device and its limits before downloading.
+`native-host-ready` is emitted after the selected model has loaded and can serve
+on that device. A configured owner policy still controls when GPU work may begin.
+
+Download progress shows verified, fetched, and reused bytes. If you interrupt
+the download, run the same command again. Reploid verifies retained pieces and
+requests the remaining ranges before publishing the manifest.
+
 The original positional form still works:
 
 ```sh
