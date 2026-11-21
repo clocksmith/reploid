@@ -63,10 +63,13 @@ export async function openCircleInvites({ file, hostPeerId, now = Date.now }) {
   const selectToken = db.prepare('SELECT * FROM circle_invite WHERE token_hash=?');
   const selectRequest = db.prepare('SELECT invite_id, max_output_tokens FROM circle_request WHERE guest=? AND id=?');
   function view(row, at) {
+    let status = 'active';
+    if (row.revoked_at !== null) status = 'revoked';
+    else if (row.expires_at <= at) status = 'expired';
     return {
       inviteId: row.id, hostPeerId, guestPeerId: row.guest, createdAt: row.created_at, expiresAt: row.expires_at,
       maxRequests: row.max_requests, maxOutputTokens: row.max_output_tokens, usedRequests: row.used_requests,
-      status: row.revoked_at !== null ? 'revoked' : row.expires_at <= at ? 'expired' : 'active'
+      status
     };
   }
   function findLive({ inviteId, guestPeerId, hostPeerId: target }, at) {
