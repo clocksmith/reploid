@@ -2892,7 +2892,7 @@
     {
       "path": "self/host/circle-invites.js",
       "owner": "self",
-      "sha256": "sha256:41cb5d99446cd4f749ae74b93f0d03da5f1cde911f3329f8327598eaa20567de",
+      "sha256": "sha256:a54c4f28f0ad5789d3c4e1fc1264577215b0e11adf8da915aa29479d8450eb07",
       "imports": []
     },
     {
@@ -4282,7 +4282,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:cba1c060c2f8f85a11fc19ab986361690c1aa1415c63b23056f081949894d6cd",
+      "sha256": "sha256:d6e21eeb9a7bc4370a9d192595fba5455617946937340368276a4dd09fe31c51",
       "imports": []
     },
     {
@@ -19937,12 +19937,13 @@
     {
       "path": "vendor/reploid/transport/index.js",
       "owner": "vendor",
-      "sha256": "sha256:583a3077f5f6da18bb491db1618e89ad95f921df332fd1ce834fe289e9b855a2",
+      "sha256": "sha256:139ea7086ad5aa1c7db46d7d595a68ac8431c49c1d16b1ab72a10434482ec878",
       "imports": [
         "./assignment.js",
         "./introduction-admission.js",
         "./introduction-bootstrap.js",
         "./introductions.js",
+        "./owner-pairing.js",
         "./partition-data-channel.js",
         "./retry-policy.js",
         "./room.js",
@@ -19993,10 +19994,17 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:06c1146db2afd0e2cdf94b23f5cc8e6eb53b08f993ad2c737b0b8c00faf1fe2e",
+      "sha256": "sha256:a73090433c3555d843b2faf763ca2f8be3c50887527556f70fc251bda2af60a2",
       "imports": [
-        "./introductions.js"
+        "./introductions.js",
+        "./owner-pairing.js"
       ]
+    },
+    {
+      "path": "vendor/reploid/transport/owner-pairing.js",
+      "owner": "vendor",
+      "sha256": "sha256:288c70f40ad27dd40bb44c29c1fafa539046737afe6d435dbbb299fe80a3ff91",
+      "imports": []
     },
     {
       "path": "vendor/reploid/transport/partition-data-channel.js",

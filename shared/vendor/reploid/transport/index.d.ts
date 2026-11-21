@@ -10,3 +10,4 @@ export * from './partition-data-channel.js';
 export * from './introductions.js';
 export * from './introduction-bootstrap.js';
 export * from './introduction-admission.js';
+export * from './owner-pairing.js';

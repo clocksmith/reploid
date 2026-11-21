@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { randomUUID } from 'node:crypto';
 import { formatHostDisclosure } from './admission.js';
 import { handleCircleInviteOwnerCommand } from './owner-invites.js';
 
@@ -84,6 +85,17 @@ export function createCirclePublicGateway({
     throw new Error('Circle gateway requires invites, admission, ownerPairing, authenticatePeer, recordedDemo, and executeInference');
   }
 
+  const releases = new Map();
+  const releaseTtlMs = 5_000;
+  function retireRelease(token, releaseSlot = true) {
+    const entry = releases.get(token);
+    if (!entry) return null;
+    releases.delete(token);
+    clearTimeout(entry.timer);
+    entry.lease.streamSignal.removeEventListener('abort', entry.cancel);
+    if (releaseSlot) entry.lease.release();
+    return entry;
+  }
   let inferenceCalls = 0;
   let challengeCalls = 0;
   let activeExecutions = 0;
@@ -162,35 +174,53 @@ export function createCirclePublicGateway({
       }
     }
 
-    if (pathname === '/circle/chat') {
+    if (pathname === '/circle/admit' || pathname === '/circle/chat') {
       const peerId = await authenticatePeer(req);
-      if (!peerId) {
-        return sendJson(res, 401, { error: 'Authenticated peer required', code: 'CIRCLE_UNAUTHENTICATED', fallback: ['replay', 'host-your-own'] });
-      }
-      if (body.hostPeerId && body.hostPeerId !== invites.hostPeerId) {
+      if (!peerId) return sendJson(res, 401, { error: 'Authenticated peer required', code: 'CIRCLE_UNAUTHENTICATED' });
+      if (body.hostPeerId !== invites.hostPeerId) {
         return sendJson(res, 403, { error: 'Invite cannot route work to another computer', code: 'CIRCLE_WRONG_HOST', fallback: ['replay', 'host-your-own'] });
       }
-      if (typeof body.prompt !== 'string' || !body.prompt.trim()) {
-        return sendJson(res, 400, { error: 'Non-empty prompt is required', code: 'CIRCLE_REQUEST' });
+      if (pathname === '/circle/admit') {
+        const { hostPeerId, ...metadata } = body;
+        const waiting = new AbortController();
+        const disconnect = () => { if (!res.writableEnded) waiting.abort(Error('Requester disconnected')); };
+        res.once('close', disconnect);
+        let lease;
+        try {
+          lease = await admission.acquire(metadata, { authenticatedPeerId: peerId, signal: waiting.signal, deferDisclosure: true });
+          waiting.signal.throwIfAborted();
+          if (res.destroyed) throw Error('Requester disconnected');
+          const token = randomUUID();
+          const expiresAt = Date.now() + releaseTtlMs;
+          const timer = setTimeout(() => retireRelease(token), releaseTtlMs);
+          timer.unref?.();
+          const cancel = () => retireRelease(token);
+          releases.set(token, { peerId, hostPeerId, metadata, lease, expiresAt, timer, cancel });
+          lease.streamSignal.addEventListener('abort', cancel, { once: true });
+          sendJson(res, 200, { release: token, expiresAt, hostPeerId, requestId: metadata.requestId, disclosure: lease.disclosure });
+        } catch (error) {
+          lease?.release();
+          if (!res.destroyed) return sendJson(res, /queue is full/.test(error.message) ? 429 : errorStatus(error.code, 400), {
+            error: error.message, code: error.code || 'CIRCLE_REJECTED', fallback: ['replay', 'host-your-own']
+          });
+        } finally {
+          res.off('close', disconnect);
+        }
+        return;
       }
-      let lease;
+      const entry = typeof body.release === 'string' ? releases.get(body.release) : null;
+      if (!entry || entry.peerId !== peerId || entry.hostPeerId !== body.hostPeerId || entry.metadata.requestId !== body.requestId
+        || entry.expiresAt <= Date.now() || typeof body.prompt !== 'string' || !body.prompt.trim()
+        || !Object.keys(body).every(key => ['release', 'hostPeerId', 'requestId', 'prompt'].includes(key))) {
+        return sendJson(res, 403, { error: 'A fresh admission release for this computer is required', code: 'CIRCLE_RELEASE' });
+      }
+      retireRelease(body.release, false);
+      const { lease, metadata } = entry;
       try {
-        lease = await admission.acquire({
-          ...(body.inviteId !== undefined ? { inviteId: body.inviteId } : {}),
-          requestId: body.requestId,
-          modelIdentity: body.modelIdentity,
-          maxOutputTokens: body.maxOutputTokens,
-          ...(body.conversationId !== undefined ? { conversationId: body.conversationId } : {})
-        }, { authenticatedPeerId: peerId });
+        lease.beginDisclosure();
       } catch (error) {
-        const statusCode = /queue is full/.test(error.message) ? 429 : errorStatus(error.code, 400);
-        return sendJson(res, statusCode, {
-          error: error.message,
-          code: error.code || (/queue is full/.test(error.message) ? 'CIRCLE_FULL' : 'CIRCLE_REJECTED'),
-          state: error.state || admission.getAvailability().status,
-          expectedWaitMs: error.expectedWaitMs ?? null,
-          fallback: error.fallback || ['replay', 'host-your-own']
-        });
+        lease.release();
+        return sendJson(res, errorStatus(error.code, 403), { error: error.message, code: error.code || 'CIRCLE_RELEASE' });
       }
 
       activeExecutions += 1;
@@ -199,7 +229,7 @@ export function createCirclePublicGateway({
       try {
         const result = await executeInference({
           prompt: body.prompt,
-          maxOutputTokens: body.maxOutputTokens,
+          maxOutputTokens: metadata.maxOutputTokens,
           lease,
           signal: lease.streamSignal
         });
@@ -326,6 +356,7 @@ export function createCirclePublicGateway({
       origin,
       stats,
       async close() {
+        for (const token of releases.keys()) retireRelease(token);
         server.closeIdleConnections?.();
         server.closeAllConnections?.();
         await new Promise(resolve => server.close(resolve));

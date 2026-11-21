@@ -106,18 +106,18 @@ try {
   const wave1Timing = await runPool(WAVE1_VISITS, CONCURRENCY, async index => {
     if (index < 10) {
       // 10 requests from the invited guest against a 5-request quota: exactly 5 must admit, 5 must refuse.
-      const res = await fetch(`${origin}/circle/chat`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-test-peer': GUEST_ID },
-        body: JSON.stringify({
-          inviteId: redeemed.inviteId,
-          hostPeerId: HOST_ID,
-          requestId: `guest-turn-${index}`,
-          modelIdentity: MODEL_ID,
-          maxOutputTokens: 16,
-          prompt: `hello ${index}`
+      const headers = { 'content-type': 'application/json', 'x-test-peer': GUEST_ID };
+      const requestId = `guest-turn-${index}`;
+      const queued = await fetch(`${origin}/circle/admit`, {
+        method: 'POST', headers, body: JSON.stringify({
+          inviteId: redeemed.inviteId, hostPeerId: HOST_ID, requestId, modelIdentity: MODEL_ID, maxOutputTokens: 16
         })
       });
+      const res = queued.ok ? await fetch(`${origin}/circle/chat`, {
+        method: 'POST', headers, body: JSON.stringify({
+          hostPeerId: HOST_ID, requestId, release: (await queued.json()).release, prompt: `hello ${index}`
+        })
+      }) : queued;
       if (res.status === 200) {
         const body = await res.json();
         assert.equal(body.receipt.hostPeerId, HOST_ID);

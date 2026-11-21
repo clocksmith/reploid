@@ -39,7 +39,7 @@ import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxCacheBytes, maxSupplyBytes, supplyTo = undefined, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
-  generationJournalFile = null, executionAdmission = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
+  generationJournalFile = null, executionAdmission = null, ownerPairing = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
   onPartitionReceiveTiming, localStageWitness = null, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
   requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
   if (localStageWitness) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && ordered && !canonical && typeof localStageWitness.wrap === 'function',
@@ -52,6 +52,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     executionMode, canonical, earning, cacheDirectory, resolvePartitionSource, model });
   requireValue(['partition', 'whole-model'].includes(executionMode), 'Unknown native execution mode');
   const wholeMode = executionMode === 'whole-model';
+  requireValue(!ownerPairing || wholeMode && roomId && roomId !== bootstrap.publicRoomId && ownerPairing.hostParticipantId === identity?.peerId,
+    'Owner pairing requires a private whole-model host bound to this desktop identity');
   requireValue(supplyTo === undefined || Array.isArray(supplyTo) && supplyTo.length > 0
     && supplyTo.every(id => typeof id === 'string' && /^peer:[a-f0-9]{24}$/.test(id)),
   'File supply recipients must be signing identities (peer: followed by 24 lowercase hex digits)');
@@ -106,6 +108,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     fill: cacheDirectory ? ({ signal }) => files.fillWholeModel(model, { signal, onProgress: onModelFill }) : null,
     resolveAdapter: createModelAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
+  const allowedOwner = async request => !ownerPairing || ownerPairing.isOwner(await mesh.verifyPeerIdentity(request.peerId));
   const mesh = createPeerGenerationMesh({ config, ports: {
     generationJournal,
     settleGeneration: whole ? async () => {
@@ -130,10 +133,12 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     admitsBeforeDisclosure: true,
     authorize: async request => !closed && (request.action === 'mesh.connect'
       || request.action === 'mesh.admit' && whole?.getState().ready === true && wholeEarningReady
+        && await allowedOwner(request)
         // With a credit ledger, the reservation is checked here too, against the request's commitment.
         && (!executionAdmission || typeof executionAdmission.preadmit === 'function' && await executionAdmission.preadmit({ request: request.request,
           consumer: await mesh.verifyPeerIdentity(request.peerId) }) === true)
       || request.action === 'mesh.execute' && whole?.getState().ready === true && wholeEarningReady
+        && await allowedOwner(request)
         && (!executionAdmission || await executionAdmission.whole({ request: request.request,
           consumer: await mesh.verifyPeerIdentity(request.peerId) }))
       || request.action === 'mesh.dispatch' && await wholeRequester?.authorize(request) === true),
@@ -228,6 +233,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     }
     if (canonical) epochs = await openNativeCanonicalEpochs({ directory: canonical.epochDirectory, participantId: identity.peerId, meshId: roomId });
     await mesh.connect();
+    ownerPairing?.attach({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity });
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {

@@ -2,25 +2,42 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createCircleAdmission } from '../../server/circles/admission.js';
 import { createCirclePublicGateway } from '../../server/circles/http-gate.js';
 import { openCircleInvites } from '../../server/circles/invites.js';
 import { createPublicChallengeGate, derivePublicChallengeCaps } from '../../server/circles/public-challenge-gate.js';
 
-const HOST_ID = 'peer:alex-desktop';
+import { openOwnerPairing } from '../../server/circles/owner-pairing.js';
+import { requestOwnerPairing } from '../../packages/reploid/src/transport/index.js';
+import { createCircleInviteGuest } from '../../apps/poolday/host/circle-invites.js';
+
+const HOST_ID = 'peer:' + 'a'.repeat(24);
 const HOST_LABEL = "Alex's PC";
-const OWNER_ID = 'peer:alex-phone';
-const GUEST_ID = 'peer:friend-phone';
+const OWNER_ID = 'peer:' + 'b'.repeat(24);
+const GUEST_ID = 'peer:' + 'c'.repeat(24);
 const MODEL_ID = `sha256:${'f'.repeat(64)}`;
 
 describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
-  let directory, invites, admission, challengeGate, server, origin;
+  let directory, invites, admission, challengeGate, server, origin, pairing;
   let ready = true;
   const disclosedPrompts = [];
 
   beforeEach(async () => {
     directory = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-circle-http-'));
+    const request = Promise.withResolvers();
+    pairing = await openOwnerPairing({ file: path.join(directory, 'pairing.sqlite'), hostParticipantId: HOST_ID, onRequest: request.resolve });
+    const listeners = [new Map(), new Map()];
+    const endpoint = i => ({ getPeerBinding: () => ({ local: 'fixture:' + i, remote: 'fixture:' + (1-i) }),
+      onMessage: (type, fn) => listeners[i].set(type, fn),
+      sendToPeer: (_peer, type, body) => { queueMicrotask(() => listeners[1-i].get(type)?.(i === 0 ? 'desktop' : 'phone', body)); return true; } });
+    pairing.attach({ transport: endpoint(0), verifyPeer: async () => OWNER_ID, currentPeer: () => OWNER_ID });
+    const pending = requestOwnerPairing({ transport: endpoint(1), verifyPeer: async () => HOST_ID,
+      currentPeer: () => HOST_ID, hostPeer: 'desktop', ...pairing.issue(), signal: AbortSignal.timeout(1000) });
+    const { requestId } = await request.promise;
+    expect(pairing.isOwner(OWNER_ID)).toBe(false);
+    expect(pairing.decide(requestId, true)).toBe(true);
+    expect(await pending).toEqual({ hostParticipantId: HOST_ID });
     ready = true;
     disclosedPrompts.length = 0;
     invites = await openCircleInvites({
@@ -34,7 +51,7 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
       modelIdentity: MODEL_ID,
       isReady: () => ready,
       invites,
-      isOwner: id => id === OWNER_ID,
+      isOwner: pairing.isOwner,
       maxQueuedRequests: 4,
       maxQueuedPerGuest: 2,
       maxWaitMs: 5000
@@ -47,7 +64,7 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     const gateway = createCirclePublicGateway({
       invites,
       admission,
-      ownerPairing: { isOwner: id => id === OWNER_ID },
+      ownerPairing: pairing,
       authenticatePeer: async req => req.headers['x-test-peer'] || null,
       publicChallengeGate: challengeGate,
       recordedDemo: { title: 'Recorded Reploid demo', output: 'Hello from a recorded run.', modelIdentity: MODEL_ID },
@@ -63,6 +80,7 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
   afterEach(async () => {
     await server?.close();
     admission?.close();
+    pairing?.close();
     invites?.close();
     if (directory) await fs.rm(directory, { recursive: true, force: true });
   });
@@ -93,8 +111,8 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
       op: 'circle-invites.issue', expiresAt: Date.now() + 60_000, maxRequests: 5, maxOutputTokens: 32
     }, GUEST_ID);
     expect(guestOwnerAttempt.status).toBe(403);
-    const uninvitedChat = await post('/circle/chat', {
-      inviteId: 'bogus', requestId: 'r0', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'leak me'
+    const uninvitedChat = await post('/circle/admit', {
+      inviteId: 'bogus', hostPeerId: HOST_ID, requestId: 'r0', modelIdentity: MODEL_ID, maxOutputTokens: 16
     }, GUEST_ID);
     expect(uninvitedChat.status).toBe(403);
     expect(server.stats().inferenceCalls).toBe(0);
@@ -114,18 +132,25 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     expect(redeemed.status).toBe(200);
     expect(redeemed.body.disclosure.readableBy).toBe("Readable by: Alex's PC");
 
-    const wrongHostChat = await post('/circle/chat', {
-      inviteId, hostPeerId: 'peer:other-pc', requestId: 'r-other', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'wrong host'
+    const wrongHostChat = await post('/circle/admit', {
+      inviteId, hostPeerId: 'peer:other-pc', requestId: 'r-other', modelIdentity: MODEL_ID, maxOutputTokens: 16
     }, GUEST_ID);
     expect(wrongHostChat.status).toBe(403);
     expect(disclosedPrompts).toEqual([]);
 
     // Valid guest turn returns answer + request-matched receipt with 0 model weight bytes downloaded.
-    const turn1 = await post('/circle/chat', {
-      inviteId, hostPeerId: HOST_ID, requestId: 'r1', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'hello friend'
-    }, GUEST_ID);
-    expect(turn1.status).toBe(200);
-    expect(turn1.body.receipt).toMatchObject({
+    const guestWire = [];
+    const guest = createCircleInviteGuest({ hostPeerId: HOST_ID, inviteId, currentHost: () => HOST_ID,
+      request: async (route, payload) => {
+        guestWire.push({ route, payload });
+        const result = await post(route, payload, GUEST_ID);
+        if (result.status !== 200) throw Error(result.body.code);
+        return result.body;
+      } });
+    const turn1 = await guest.generate({ requestId: 'r1', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'hello friend' });
+    expect(guestWire.map(row => row.route)).toEqual(['/circle/admit', '/circle/chat']);
+    expect(guestWire[0].payload).not.toHaveProperty('prompt');
+    expect(turn1.receipt).toMatchObject({
       requestId: 'r1',
       hostPeerId: HOST_ID,
       hostLabel: HOST_LABEL,
@@ -136,15 +161,21 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
       outcome: 'completed'
     });
 
-    // Owner revokes invite; second turn is blocked before prompt disclosure.
-    const revoked = await post('/circle/owner', { op: 'circle-invites.revoke', inviteId }, OWNER_ID);
-    expect(revoked.status).toBe(200);
-    expect(revoked.body.result.status).toBe('revoked');
-
-    const turn2 = await post('/circle/chat', {
-      inviteId, hostPeerId: HOST_ID, requestId: 'r2', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'must not disclose'
-    }, GUEST_ID);
-    expect(turn2.status).toBe(403);
+    // An owner occupies the only slot. A queued guest sends only metadata and is revoked.
+    const blocker = await admission.acquire({ requestId: 'owner-block', modelIdentity: MODEL_ID, maxOutputTokens: 16 },
+      { authenticatedPeerId: OWNER_ID });
+    try {
+      const queued = guest.generate({ requestId: 'r2', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'never disclosed' });
+      const denied = expect(queued).rejects.toThrow('CIRCLE_REVOKED');
+      await vi.waitFor(() => expect(admission.getQueuedCount(inviteId)).toBe(1));
+      const revoked = await post('/circle/owner', { op: 'circle-invites.revoke', inviteId }, OWNER_ID);
+      expect(revoked.status).toBe(200);
+      await denied;
+      expect(guestWire.map(row => row.route)).toEqual(['/circle/admit', '/circle/chat', '/circle/admit']);
+      expect(guestWire[2].payload).not.toHaveProperty('prompt');
+      expect(invites.getSettlement({ guestPeerId: GUEST_ID, requestId: 'r2' })).toBeNull();
+      expect(admission.getQueuedCount(inviteId)).toBe(0);
+    } finally { blocker.release(); }
     expect(disclosedPrompts).toEqual(['hello friend']);
   });
 

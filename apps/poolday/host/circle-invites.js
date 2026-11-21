@@ -51,3 +51,25 @@ export function createCircleInviteOwner({ request, baseUrl }) {
     revoke: inviteId => request({ op: 'circle-invites.revoke', inviteId })
   });
 }
+
+/** request() must stay on the already verified direct desktop channel, without retry or reroute. */
+export function createCircleInviteGuest({ request, hostPeerId, inviteId, currentHost }) {
+  const assertHost = () => {
+    if (!validHost(hostPeerId) || currentHost() !== hostPeerId) throw Error('Invited computer is unavailable');
+  };
+  return Object.freeze({
+    async generate({ requestId, modelIdentity, maxOutputTokens, conversationId, prompt, signal }) {
+      signal?.throwIfAborted();
+      assertHost();
+      const grant = await request('/circle/admit', { hostPeerId, inviteId, requestId, modelIdentity, maxOutputTokens,
+        ...(conversationId === undefined ? {} : { conversationId }) }, { signal });
+      signal?.throwIfAborted();
+      assertHost();
+      if (!grant || grant.hostPeerId !== hostPeerId || grant.requestId !== requestId
+        || typeof grant.release !== 'string' || !Number.isFinite(grant.expiresAt) || grant.expiresAt <= Date.now()) {
+        throw Error('The invited computer did not grant this request');
+      }
+      return request('/circle/chat', { hostPeerId, requestId, release: grant.release, prompt }, { signal });
+    }
+  });
+}
