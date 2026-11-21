@@ -174,7 +174,7 @@ describe('Conversation workspace', () => {
     const [small, medium, large] = CANONICAL_CHAT_MODELS;
     const publish = models => {
       peers = models.map(model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity,
-        readiness: 'ready', hasInference: true, availableSlots: 1 }));
+        readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
       session.setCachedModels([]);
     };
     publish([small]); expect(find('[data-active-model-select]').value).toBe(small.id);
@@ -206,7 +206,7 @@ describe('Conversation workspace', () => {
     find('[data-open-model]').click();
     const fallback = find('[data-next-model]').value;
     const ready = CANONICAL_CHAT_MODELS.find(model => model.id !== fallback);
-    peers = [{ peerId: 'ready', model: ready.id, modelIdentity: ready.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+    peers = [{ peerId: 'ready', model: ready.id, modelIdentity: ready.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     session.refreshNetwork();
     expect(find('[data-active-model-select]').value).toBe(ready.id);
     expect(find('[data-next-model]').value).toBe(ready.id);
@@ -224,7 +224,7 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     const [small, medium] = CANONICAL_CHAT_MODELS;
     const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity,
-      readiness: 'ready', hasInference: true, availableSlots: 1 });
+      readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 });
     let peers = [peer(small)];
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
     dispose = bindConversationWorkspace(root, session);
@@ -248,7 +248,7 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     const [small, , large] = CANONICAL_CHAT_MODELS;
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers: [
-      { peerId: large.id, model: large.id, modelIdentity: large.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }
+      { peerId: large.id, model: large.id, modelIdentity: large.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }
     ] } }) } });
     session.setCachedModels([small]); dispose = bindConversationWorkspace(root, session);
     expect(find('[data-active-model-select]').value).toBe(large.id);
@@ -297,7 +297,7 @@ describe('Conversation workspace', () => {
     find('[data-execution-choice=network]').click();
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
     expect(find('[data-change-model]').disabled).toBe(true);
-    peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+    peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     session.refreshNetwork();
     find('[data-execution-choice=network]').click();
     expect(session.getState().activeThread.permissions.sharingScope).toBe('local');
@@ -376,7 +376,7 @@ describe('Conversation workspace', () => {
   it('holds Network through model selection and discovery, then reviews a local download only on an explicit switch', async () => {
     dispose(); await session.close();
     const [small, medium] = CANONICAL_CHAT_MODELS;
-    const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 });
+    const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 });
     let peers = [peer(medium)];
     session = createChatSession({ storage: null, service, models: [small, medium], swarm: { getState: () => ({ consumer: { peers } }) } });
     const downloadLocalModel = vi.fn();
@@ -459,7 +459,7 @@ describe('Conversation workspace', () => {
   it('inspects the clicked whole-model variant without selecting it or changing the draft', async () => {
     dispose(); await session.close();
     const [small, medium] = CANONICAL_CHAT_MODELS;
-    const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 });
+    const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 });
     session = createChatSession({ storage: null, service, models: [small, medium], swarm: { getState: () => ({ consumer: { peers: [peer(small), peer(medium)] } }) } });
     const inspector = { open: vi.fn(), close: vi.fn(), openModelComputers: vi.fn() };
     const viewState = { chosenModel: medium, executionLocation: 'network' };
@@ -499,7 +499,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-production-model]')).toBeNull();
     expect(downloadInfo).not.toHaveBeenCalled();
 
-    peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+    peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     session.refreshNetwork();
     expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
     expect(find('[data-execution-choice=network]').disabled).toBe(false);
@@ -599,7 +599,7 @@ describe('Conversation workspace', () => {
       partition: { route: { schema: 'reploid.partition-route/v1', stages: [{ participantId: 'peer-b' }, { participantId: 'peer-c' }] } } };
     const adapted = { ...whole, selectionId: base.id + '/adapter', name: 'Named adapter', adapters: [{ id: 'adapter', identity: 'sha256:adapter', name: 'Named adapter' }],
       availability: 'unavailable', networkAvailability: 'unavailable', providerIds: [] };
-    const peers = [{ peerId: 'peer-a', model: base.id, modelIdentity: base.identity, readiness: 'ready', hasInference: true, availableSlots: 1,
+    const peers = [{ peerId: 'peer-a', model: base.id, modelIdentity: base.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2,
       hardware: { vendor: 'AMD', device: 'Reported GPU A', description: 'Driver string' } }];
     const project = state => ({ ...state, models: [whole, route, adapted], network: { consumer: { peers }, connections: [{ id: 'peer-a', phase: 'connected' }] } });
     dispose = bindConversationWorkspace(root, { ...session,
@@ -670,7 +670,7 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     const [small, large] = CANONICAL_CHAT_MODELS;
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers: [
-      { peerId: 'shared', model: large.id, modelIdentity: large.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }
+      { peerId: 'shared', model: large.id, modelIdentity: large.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }
     ] } }) } });
     session.setCachedModels([small]); dispose = bindConversationWorkspace(root, session);
     session.createThread({ model: small, sharingScope: 'local' });
@@ -730,7 +730,7 @@ describe('Conversation workspace', () => {
     dispose(); await session.close();
     const model = CANONICAL_CHAT_MODELS[0], other = CANONICAL_CHAT_MODELS[1];
     const peers = [model, other].map((item, index) => ({ peerId: 'peer-' + index,
-      model: item.id, modelIdentity: item.identity, readiness: 'loading',
+      model: item.id, modelIdentity: item.identity, readiness: 'loading', identityProtocol: 1, admissionProtocol: 2,
       hasInference: true, availableSlots: 0 }));
     session = createChatSession({ storage: null, service,
       swarm: { getState: () => ({ consumer: { connectionState: 'connected', peers } }) } });
@@ -984,7 +984,7 @@ describe('Conversation workspace', () => {
     const model = CANONICAL_CHAT_MODELS[1];
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, models: [model], swarm: { getState: () => ({ consumer: {
-      peers: [{ peerId: 'peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }]
+      peers: [{ peerId: 'peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }]
     } }) } });
     await session.prepareLocalModel(model.id);
     dispose = bindConversationWorkspace(root, session);
@@ -1001,7 +1001,7 @@ describe('Conversation workspace', () => {
   it('refreshes an open model picker without replacing a choice whose capacity disappears', async () => {
     const first = CANONICAL_CHAT_MODELS[0], second = CANONICAL_CHAT_MODELS[1];
     let peers = [first, second].map((model, index) => ({ peerId: 'peer-' + index, model: model.id,
-      modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }));
+      modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
     dispose = bindConversationWorkspace(root, session);
@@ -1017,7 +1017,7 @@ describe('Conversation workspace', () => {
     expect(session.getState().selectedId).toBe(id);
     expect(find('[data-composer-input]').value).toBe('Keep this draft');
     peers.push({ peerId: 'peer-1', model: second.id, modelIdentity: second.identity,
-      readiness: 'ready', hasInference: true, availableSlots: 1 });
+      readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 });
     session.refreshNetwork();
     expect(next.value).toBe(second.id);
     expect(find('[data-change-model]').disabled).toBe(false);
@@ -1184,7 +1184,7 @@ describe('Conversation workspace', () => {
 
   it('retains a deliberate new-thread model selection when its capacity disappears', async () => {
     const first = CANONICAL_CHAT_MODELS[0], second = CANONICAL_CHAT_MODELS[1];
-    let peers = [first, second].map((model, index) => ({ peerId: 'peer-' + index, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }));
+    let peers = [first, second].map((model, index) => ({ peerId: 'peer-' + index, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
     dispose = bindConversationWorkspace(root, session);
@@ -1207,7 +1207,7 @@ describe('Conversation workspace', () => {
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-open-model]').dataset.activity).toBe('idle');
-    peers = [{ peerId: 'ready-peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+    peers = [{ peerId: 'ready-peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     session.refreshNetwork();
     expect(find('[data-active-model-select]').value).toBe(model.id);
     expect(find('[data-composer-send]').disabled).toBe(false);
@@ -1228,7 +1228,7 @@ describe('Conversation workspace', () => {
 
   it('preserves drafts and attachments when selecting a shared model without initiating downloads or disclosing contents', async () => {
     const [small, medium] = CANONICAL_CHAT_MODELS;
-    const peers = [small, medium].map((model, index) => ({ peerId: 'peer-' + index, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }));
+    const peers = [small, medium].map((model, index) => ({ peerId: 'peer-' + index, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
     const downloadLocalModel = vi.fn();
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ discoveryScope: 'public', consumer: { peers } }) } });

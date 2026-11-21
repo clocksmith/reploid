@@ -23,7 +23,7 @@ function fixture(lock = {}) {
     peers = models.map(model => ({ model: model.id, modelIdentity: model.identity, peerId: model.id,
       participantId: 'signed-' + model.id, identityVerified: true, admissionProtocol: 2,
       role: 'provider', readiness: 'ready', availableSlots: 1 })); notify();
-  }, notify: () => notify() };
+  }, replaceTarget() { peers[0] = { ...peers[0], peerId: 'replacement', participantId: 'signed-replacement' }; }, notify: () => notify() };
 }
 it('waits for contributors, retains selection, prepares then judges without new inference, and restores', async () => {
   const f = fixture();
@@ -57,6 +57,19 @@ it('does not start without exclusive storage ownership', () => {
     f.ready();
     expect(f.root.querySelector('[data-study-start]').disabled).toBe(true);
     expect(f.root.textContent).toContain('already open in another tab');
+    expect(f.swarm.generate).not.toHaveBeenCalled();
+  } finally { f.dispose(); }
+});
+
+it('requires new consent when a rendered recipient is replaced before the click', async () => {
+  const f = fixture();
+  try {
+    f.ready();
+    const start = f.root.querySelector('[data-study-start]');
+    expect(start.disabled).toBe(false);
+    f.replaceTarget();
+    start.click();
+    await vi.waitFor(() => expect(f.root.querySelector('[data-study-error]').textContent).toContain('Reviewed contributors changed'));
     expect(f.swarm.generate).not.toHaveBeenCalled();
   } finally { f.dispose(); }
 });

@@ -3222,7 +3222,7 @@
     {
       "path": "self/host/research-plugins.js",
       "owner": "self",
-      "sha256": "sha256:15e8d9fb29ada99cca6cc44719cdc7221146078756d871f399722f1e61021cbd",
+      "sha256": "sha256:847bd356a5ebe08732ea335757aefc9f5ba1f5e06333fb65760e526bcf3c37cc",
       "imports": [
         "../plugins/model-imitation/plugin.js",
         "../plugins/model-imitation/protocol.json",
@@ -4275,7 +4275,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:2c91f1d853213ebebec702d181c61a1bdc3722700722f0aa68b9ec35c81b0e89",
+      "sha256": "sha256:55f9db4929a1ce0eeb043a07532a734e1dc2bb6e47bf5779ec06200d66445eea",
       "imports": []
     },
     {
@@ -4931,7 +4931,7 @@
     {
       "path": "ui/pool-home/research-plugins.js",
       "owner": "ui",
-      "sha256": "sha256:9785da956e47713bb464d2c2d38ed48ec59efd7e5425a7c37bb3512c01d9853a",
+      "sha256": "sha256:67385ba07a06a7cd9b879035ae27adcb6fe8674cbe4972c4468d35a0172b6943",
       "imports": [
         "../../host/research-plugins.js",
         "../components/attachments.js"
