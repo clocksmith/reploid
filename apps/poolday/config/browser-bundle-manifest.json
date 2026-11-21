@@ -1300,18 +1300,18 @@
     },
     {
       "path": "config/doppler-metadata-contract.js",
-      "byteLength": 16365,
-      "sha256": "sha256:2aea666019b01ab31e396176292eeb1bffc04e257d72ce25982f68445611fc46"
+      "byteLength": 16603,
+      "sha256": "sha256:ea578874c316af4210238d0410f9d6b1c0a01be02bff2d8f175ef58143c2aadb"
     },
     {
       "path": "config/doppler-metadata-contract.provenance.json",
       "byteLength": 239,
-      "sha256": "sha256:c8f530da92002566b4c805cb54457ef3f609d1b5ff5a6ad0e1112a3a386e62b5"
+      "sha256": "sha256:65c4b8293ae4dd625b6b764db5fc1935c4f3b66f5a6341aff0017eba5af0634b"
     },
     {
       "path": "config/doppler-package.json",
       "byteLength": 273,
-      "sha256": "sha256:d8a6243bd3a4f6e80194db0307ab6ac26f3ad2f299dec445c62719f0cf999572"
+      "sha256": "sha256:b103062076e8fa82036bd486fe0aa6eb0534a010eccd36354960b377951890b4"
     },
     {
       "path": "config/file-tool-schemas.json",
@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 688311,
-      "sha256": "sha256:832671e98f5001aaf9361ea57859db7f6be6a1d77cdc42d167fee0ff6f445333"
+      "byteLength": 689420,
+      "sha256": "sha256:4102501cd02ece253138699c59bd01141cb88530940aa8daf6bbd77135e01a46"
     },
     {
       "path": "config/module-registry.json",
@@ -1505,8 +1505,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148513,
-      "sha256": "sha256:449578cbbe56db5270a273992147be4a05a7d6719bcfdc5cbeef7cd0a4ad516f"
+      "byteLength": 148554,
+      "sha256": "sha256:81d66947770ad1cb183eedb0190a0f9705f49d534c0410fd5f167d1969eb5a80"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1865,8 +1865,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 45204,
-      "sha256": "sha256:611f4191ad04a1773531629b4e648bc177c07c41dc793e9a404f462bcb43f7fc"
+      "byteLength": 45414,
+      "sha256": "sha256:9a4d5e340101fa5657418c4dee3332119959418930fb7288c4c796e7f67930f7"
     },
     {
       "path": "host/chat-view.js",
@@ -1887,6 +1887,11 @@
       "path": "host/contribution-resume.js",
       "byteLength": 1397,
       "sha256": "sha256:f04fcaec0adcce51cbefb4d88e6fc3a1208bcdbf22b1783aa7363d09fcaff243"
+    },
+    {
+      "path": "host/contributor-identity.js",
+      "byteLength": 4066,
+      "sha256": "sha256:54f798cd2158c660583125476b0fea88602550621c1ed19a1953715c2d4f7e8c"
     },
     {
       "path": "host/contributor-search.js",
@@ -2165,8 +2170,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 37606,
-      "sha256": "sha256:e6ad75cf78e4d0efd5215d94b5d5d8d52f94096af3b2cb6c1d71974590c8452f"
+      "byteLength": 38400,
+      "sha256": "sha256:9b8d69ac2f38bb7906ed4056dca68974a19d77ee7ce1ace330a0242c966a65d8"
     },
     {
       "path": "host/work-task.js",
@@ -3765,8 +3770,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2673219,
-      "sha256": "sha256:08019293200d629a88ea89e6b8b49649637152fab4494c5caebf62bc7b211fca"
+      "byteLength": 2677455,
+      "sha256": "sha256:b69b4fb666e97d52ae8ed3b4cd288fc21ed1df81b1f9fdba3fba5ceb2a733bd5"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -4400,13 +4405,13 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/doppler-api.js",
-      "byteLength": 3118,
-      "sha256": "sha256:cee0a9de17e35390fb804296c64185ea385a652989819752de5b1b3aa77f778e"
+      "byteLength": 3172,
+      "sha256": "sha256:dedd6ad8ba82cdfb0dc3470994cd10a409a4d06217230b6659f605133482c988"
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/doppler-registry.js",
-      "byteLength": 6110,
-      "sha256": "sha256:62cb3ce64e23c0216e93c10e872222267155911d45d13a82e0ee6981014d4f26"
+      "byteLength": 6260,
+      "sha256": "sha256:26f98ef733cae84afb1ad07f6ad4aece73041007c7a19077c57ca0c4127f6259"
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/failure-taxonomy.js",
@@ -4425,8 +4430,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/model-host/index.js",
-      "byteLength": 25275,
-      "sha256": "sha256:63790531979e3a2dc616c8b150e9ecea2ec71c24d6be0002e842748a78f851bd"
+      "byteLength": 25861,
+      "sha256": "sha256:34771a86758f53efa5b8920775b9adb236ba61dec9d27edc3e41cb0a1aed9a38"
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/model-host/layer-projection.js",
@@ -4440,8 +4445,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/model-host/model-session.js",
-      "byteLength": 31005,
-      "sha256": "sha256:bbed1dd6156b68731a63c02f1fa204566c8aea8ee7f6f62a425d797597ec2579"
+      "byteLength": 31376,
+      "sha256": "sha256:fe5990be9af4a19eb70015d3548dacd3ab51172acef0ab989632d366c9011ac4"
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/model-host/privacy-receipt.js",
@@ -4565,13 +4570,13 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/runtime/model-source.js",
-      "byteLength": 12722,
-      "sha256": "sha256:53a3bc71dbc90907e5c3ee7b1b49e61f15a1dd2b468554ba1c9cecf905ec9836"
+      "byteLength": 13443,
+      "sha256": "sha256:178ba85ec5ccf20f57ac7edf420cdbd565cbbb5f435b150db8d577c37a5851b1"
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/runtime/node-quickstart-cache.js",
-      "byteLength": 10655,
-      "sha256": "sha256:7723c3ddaa738d1a315276a792fad26606b0d0ebf62c17d6b80c0caec828af63"
+      "byteLength": 10669,
+      "sha256": "sha256:0a99b5e7a2b04f03c2a858f1b44f7ad1d33a1d387509543c6583069f7b77028a"
     },
     {
       "path": "vendor/doppler/0.1.5/src/client/runtime/resolution-policy.js",
@@ -4955,8 +4960,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/config/quickstart-registry.json",
-      "byteLength": 11194,
-      "sha256": "sha256:ecc4fbbf504ae7ef67b6520f7f7243381c791f61213ab51f27960505a498448b"
+      "byteLength": 14446,
+      "sha256": "sha256:63bbe85d36906a114146c82c2d2480ddf865f9ead72ce1a242f9abc4c989cbfd"
     },
     {
       "path": "vendor/doppler/0.1.5/src/config/reasoning-output.js",
@@ -5560,13 +5565,13 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/converter/model-naming.js",
-      "byteLength": 6145,
-      "sha256": "sha256:4b1085e20701c66db463a35b2bc02258858c971eb8541a78ec6be8faecd412ee"
+      "byteLength": 7141,
+      "sha256": "sha256:d6ddd05c503d8d8a7b0d6f03f86ed3b00ce0eaac985b67a5ad7a757c37c6c7f4"
     },
     {
       "path": "vendor/doppler/0.1.5/src/converter/quantization-info.js",
-      "byteLength": 23487,
-      "sha256": "sha256:ab0a8c6d95bdbb807b7b0151c4c884b8e40229365bd7b87618e9c4b6164e8ed4"
+      "byteLength": 24144,
+      "sha256": "sha256:727c76d9cd0345ee204045190d911ecf05a3252ee4f68e4d765c58a3719e72b3"
     },
     {
       "path": "vendor/doppler/0.1.5/src/converter/quantizer.js",
@@ -9545,8 +9550,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/expert-loading-stats.js",
-      "byteLength": 1104,
-      "sha256": "sha256:ba0972db50e8a72fc730325fa7fae4e0a69ca99e519ccfab43e0fafbaf4aa0d4"
+      "byteLength": 2612,
+      "sha256": "sha256:43117c0977de75c4a7900b67d860130e23bc084789065af446c9d08e8a4562d6"
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/ffn/activation-observation.js",
@@ -9750,8 +9755,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/generator/prefill/prefill-sequence.js",
-      "byteLength": 3704,
-      "sha256": "sha256:31a2aa36783b4da8a9587057f14c44a76f985befdd1c1951dd519884895d8149"
+      "byteLength": 4721,
+      "sha256": "sha256:5d4d1e6aec57316eecc248fbfe8fdac26fb23e83fb546ea9f963623d3976ae5c"
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/generator/prefill/prefix-embedding.js",
@@ -9830,8 +9835,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/generator/session/sequence-state.js",
-      "byteLength": 24356,
-      "sha256": "sha256:7d2492b4a373c50fb30dfa3d6261cffebfcfdabf74ea7c2e6bc982cd253f8444"
+      "byteLength": 26893,
+      "sha256": "sha256:fb61b10c955fd6393de529d18c493390cb05fe55f3c59039ea7802601fa0dbf6"
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/generator/session/session-context.js",
@@ -10170,8 +10175,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/moe/routed-expert-chunks.js",
-      "byteLength": 10601,
-      "sha256": "sha256:4aa1af9f1150587215d5707bb5f49c9522ba4dd2daa8aa00e516b8b5559b3f32"
+      "byteLength": 11391,
+      "sha256": "sha256:f7a0833740b007994302fdc2283beb7da35ebe76f5e7ca2438794f2c3d08ec9e"
     },
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/ngram/ngram-addresses.js",
@@ -10585,8 +10590,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/loader/experts/mapped-expert-staging.js",
-      "byteLength": 24752,
-      "sha256": "sha256:8b4f9a2c7e590070dbd1d39d7ffdafb17c171ce31f53215a6badbe2204f6f71e"
+      "byteLength": 25019,
+      "sha256": "sha256:7b581280f7ece034b0f0719aed204ca288e09319cee2d114ee140e9693e5fe5c"
     },
     {
       "path": "vendor/doppler/0.1.5/src/loader/experts/mapped-expert-upload-cache.js",
@@ -11005,8 +11010,8 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/hf-resolve-url.js",
-      "byteLength": 830,
-      "sha256": "sha256:bdb4bb73697fbf5e45b72254f46e2ff4e7ef0df47d3c7894d4a3ae81bb4a3e4d"
+      "byteLength": 1320,
+      "sha256": "sha256:928495cb5cd67df6cd99df183e68e559eee7ead3feda87d09cf6a6d5faea899c"
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/inventory.js",
@@ -11095,13 +11100,13 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-gather-worker.js",
-      "byteLength": 34350,
-      "sha256": "sha256:9b7d40a046a4f66095b25622e8c9bded81de53cb1e549f60efe538a27ac41509"
+      "byteLength": 34541,
+      "sha256": "sha256:c2192cde382bbe02ee54d40fea42b2733275122ec15d0333c6290ebad8b87a3c"
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-gather.js",
-      "byteLength": 18332,
-      "sha256": "sha256:b03013c94836bcc84560f758c1e8fc75d19a694074ed8a3ec220c07f81a67648"
+      "byteLength": 18375,
+      "sha256": "sha256:1093afbcd91c4a7fe473f7199a79978677c302d302d2e080d35869b53d9d7102"
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-reader.js",
@@ -11110,13 +11115,13 @@
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-state-cache.js",
-      "byteLength": 17547,
-      "sha256": "sha256:bb4cfe9914885d8c987bb3306148d33650553f68612835e4b75476fe35f7d9e4"
+      "byteLength": 19934,
+      "sha256": "sha256:6137b23775cdadeab2ec5daf931db1c7cc4d67173fe0b90a4a1f33852be57307"
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-storage.js",
-      "byteLength": 16773,
-      "sha256": "sha256:8fc4a48a6607502fae2783cc392dea4521792289f6289ac64ba437a472d9d9bf"
+      "byteLength": 16825,
+      "sha256": "sha256:ae73af9e34f2de1924586a1e19bafc1e01d37e361932797d20df77d77fe3b394"
     },
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-timings.js",
@@ -11790,8 +11795,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
-      "byteLength": 26269,
-      "sha256": "sha256:a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8"
+      "byteLength": 28076,
+      "sha256": "sha256:c5d7cf83988dc3056f355ab5c7bc8ddc0e55320766e8a05b24a6b834dac306bd"
     },
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
@@ -12360,8 +12365,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 73851,
-      "sha256": "sha256:75ebe4c343eed685d3aa39a45d479c434ee2369f8a5ee860bb5f54ce9ef84615"
+      "byteLength": 75675,
+      "sha256": "sha256:49f0f5fed6642e3a82a686d57abcf4451cd23f50e61ee3ad7d3b19efe7bb4eba"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -12411,7 +12416,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 60398,
-      "sha256": "sha256:0dcb2ce01895e98391fa3fd65521a06ba612f695a5fef3f11c0dd59c931daef4"
+      "sha256": "sha256:860c439125bcdcab7bea91c93a95ee331723c3e09f1ce4d176c8a89d31ec4777"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12689,5 +12694,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:c0def48c5912365bd94b7460e852d8f2643f12928a21d445d4ed6b9ee5737cbf"
+  "bundleHash": "sha256:7c7d0b7eb793b3ed06fe3c2a985fb2d1e3adabc47fdc2ae247fe5db1c7f1b337"
 }

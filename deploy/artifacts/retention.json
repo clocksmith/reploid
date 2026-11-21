@@ -240,11 +240,6 @@
       "version": "0.7.8",
       "archive": "deploy/artifacts/doppler-gpu-0.7.8.tgz",
       "integrity": "sha512-5TIWHa6ynfF23Grtcejz4YXOoI/4Mask+nwT0G7KX1X1yl+yiwxOMZiCqeTJPhVgtuDVI7u8OJY54RtQM6gBng=="
-    },
-    {
-      "version": "0.7.9",
-      "archive": "deploy/artifacts/doppler-gpu-0.7.9.tgz",
-      "integrity": "sha512-rzLACVHsnikbjnQjSB78fWGMyOLaGS8XCuXEqEh6Y8EYdEjf1LWVsVOW7vaV48MUaD7M5iybhxovqbcxWxIudg=="
     }
   ]
 }

@@ -11,52 +11,34 @@ import { createGenerationOutputDecoder, decodeGenerationOutput } from '../../inf
 import { formatChatMessages } from "../../inference/pipelines/text/generator/request/chat-format.js";
 import { applyChatTemplate } from "../../inference/pipelines/text/initialization/init-chat-templates.js";
 import { resolveTextGenerationRequest, generationRequestEvidence } from "../../inference/pipelines/text/generator/request/generation-request.js";
+import { estimateGenerationContextMinimumBytes } from "../../inference/pipelines/text/generator/session/sequence-state.js";
 import { scopePipelineShaders, runPipelineOperation } from '../../inference/pipelines/shader-scoped-pipeline.js';
 import { collectModelRerankScores } from '../runtime/model-rerank.js';
 import { scoreModelChoices } from '../../inference/choice-scoring.js';
 import { snapshotChoiceScoringRequest } from '../../config/choice-scoring.js';
 import {
-  MODEL_INSPECTION_RECEIPT_SCHEMA,
-  aggregateWordPerplexity,
-  buildComparisonFingerprint,
-  buildInspectionTokenRecord,
-  buildInspectionTokenRecords,
-  listObservationPolicies,
-  resolveObservationPolicy,
+  MODEL_INSPECTION_RECEIPT_SCHEMA, aggregateWordPerplexity, buildComparisonFingerprint,
+  buildInspectionTokenRecord, buildInspectionTokenRecords, listObservationPolicies, resolveObservationPolicy,
 } from '../inspection.js';
 import { projectLayerOutputs } from './layer-projection.js';
 import {
-  activateLoRAFromTrainingOutputForPipeline,
-  activatePreparedLoRAForPipeline,
-  getActiveLoRAForPipeline,
-  getActiveLoRAIdentityForPipeline,
-  loadLoRAAdapterForPipeline,
-  prepareLoRAAdapterForPipeline,
-  unloadLoRAAdapterForPipeline,
+  activateLoRAFromTrainingOutputForPipeline, activatePreparedLoRAForPipeline,
+  getActiveLoRAForPipeline, getActiveLoRAIdentityForPipeline,
+  loadLoRAAdapterForPipeline, prepareLoRAAdapterForPipeline, unloadLoRAAdapterForPipeline,
 } from '../runtime/lora.js';
 import {
-  assertArtifactVariantAllowed,
-  assertExecutionMayStart,
-  assertUnreceiptedExecutionAllowed,
-  resolveResolutionPolicy,
+  assertArtifactVariantAllowed, assertExecutionMayStart, assertUnreceiptedExecutionAllowed, resolveResolutionPolicy,
 } from '../runtime/resolution-policy.js';
 
 export function assertSupportedGenerationOptions(options = {}) {
   if (Array.isArray(options?.stopTokens) && options.stopTokens.length > 0) {
-    throw new Error(
-      'Doppler generate options do not support stopTokens on this surface. ' +
-      'Use stopSequences instead.'
-    );
+    throw new Error('Doppler generate options do not support stopTokens on this surface. Use stopSequences instead.');
   }
 }
 
 function countTokens(pipeline, text) {
   if (!text || typeof text !== 'string') return 0;
-  try {
-    return pipeline?.tokenizer?.encode(text)?.length ?? 0;
-  } catch {
-    return 0;
-  }
+  try { return pipeline?.tokenizer?.encode(text)?.length ?? 0; } catch { return 0; }
 }
 
 function tokenizeText(pipeline, text) {
@@ -254,6 +236,10 @@ export function createModelHandle(pipeline, resolved) {
         stats,
         resolutionPolicy,
       });
+      const artifact = pipeline.revocationIdentity;
+      if (artifact?.artifactVariantId === evidence.resolution.resolvedArtifactVariantId) {
+        evidence.loadedArtifact = artifact;
+      }
       return { evidence, inputTokenIds };
     }, executionOptions.signal);
   }
@@ -342,6 +328,9 @@ export function createModelHandle(pipeline, resolved) {
       try { assertRaw('createGenerationContext'); }
       catch { return false; }
       return pipeline.supportsGenerationContext === true;
+    },
+    get generationContextMinimumBytes() {
+      return estimateGenerationContextMinimumBytes(pipeline);
     },
     createGenerationContext(options) {
       assertRaw('createGenerationContext');

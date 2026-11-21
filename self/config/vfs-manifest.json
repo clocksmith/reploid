@@ -576,6 +576,7 @@
     "self/host/computer-preferences.js",
     "self/host/contribution-history.js",
     "self/host/contribution-resume.js",
+    "self/host/contributor-identity.js",
     "self/host/contributor-search.js",
     "self/host/credits/browser.js",
     "self/host/credits/local-sign-in.js",

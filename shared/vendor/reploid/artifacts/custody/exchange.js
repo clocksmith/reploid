@@ -15,7 +15,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return state;
   };
   const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
-  const offerWaiters = new Set();
+  const offerWaiters = new Set(), outstandingBytes = new Map();
   // A supplier that delivered nothing (silent past a deadline or disconnected) may answer a later grant.
   const unavailable = message => Object.assign(new Error(message), { code: 'CUSTODY_SUPPLIER_UNAVAILABLE' });
   const lifetime = new AbortController();
@@ -387,8 +387,16 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         let suppliers = eligible;
         while (suppliers.length) {
           combined.throwIfAborted();
-          const peer = suppliers.reduce((best, id) => ((tries.get(id) || 0) < (tries.get(best) || 0) ? id : best));
+          // Try a fresh authorized supplier before retrying. On a tie, avoid queuing another
+          // piece behind bytes already requested from the same supplier.
+          const peer = suppliers.reduce((best, id) => {
+            const attempts = (tries.get(id) || 0) - (tries.get(best) || 0);
+            if (attempts !== 0) return attempts < 0 ? id : best;
+            return (outstandingBytes.get(id) || 0) < (outstandingBytes.get(best) || 0) ? id : best;
+          });
           tries.set(peer, (tries.get(peer) || 0) + 1);
+          const bytesRequested = range?.size ?? descriptor.sizeBytes;
+          outstandingBytes.set(peer, (outstandingBytes.get(peer) || 0) + bytesRequested);
           try {
             const bytes = await acquireFrom(peer, descriptor, combined, range, reserveDownload);
             // Only the participant id that delivered verified bytes; never its address.
@@ -399,6 +407,10 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
             if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED' || error.code?.startsWith('CUSTODY_BUDGET_')) throw error;
             failures.push(error);
             if (error.code !== 'CUSTODY_SUPPLIER_UNAVAILABLE') excluded.add(peer);
+          } finally {
+            const remaining = outstandingBytes.get(peer) - bytesRequested;
+            if (remaining === 0) outstandingBytes.delete(peer);
+            else outstandingBytes.set(peer, remaining);
           }
           if (failures.length >= policy.maxAcquisitionAttempts) break;
           suppliers = candidates(descriptor).filter(peer => !excluded.has(peer));

@@ -359,7 +359,7 @@
     {
       "path": "config/doppler-metadata-contract.js",
       "owner": "config",
-      "sha256": "sha256:2aea666019b01ab31e396176292eeb1bffc04e257d72ce25982f68445611fc46",
+      "sha256": "sha256:ea578874c316af4210238d0410f9d6b1c0a01be02bff2d8f175ef58143c2aadb",
       "imports": []
     },
     {
@@ -2860,7 +2860,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:611f4191ad04a1773531629b4e648bc177c07c41dc793e9a404f462bcb43f7fc",
+      "sha256": "sha256:9a4d5e340101fa5657418c4dee3332119959418930fb7288c4c796e7f67930f7",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2911,6 +2911,14 @@
       "imports": [
         "../pool/model-contract.js",
         "./product-context.js"
+      ]
+    },
+    {
+      "path": "self/host/contributor-identity.js",
+      "owner": "self",
+      "sha256": "sha256:54f798cd2158c660583125476b0fea88602550621c1ed19a1953715c2d4f7e8c",
+      "imports": [
+        "../identity.js"
       ]
     },
     {
@@ -3491,7 +3499,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:e6ad75cf78e4d0efd5215d94b5d5d8d52f94096af3b2cb6c1d71974590c8452f",
+      "sha256": "sha256:9b8d69ac2f38bb7906ed4056dca68974a19d77ee7ce1ace330a0242c966a65d8",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3511,6 +3519,7 @@
         "../vendor/reploid/mesh/web-access-network.js",
         "../vendor/reploid/transport/index.js",
         "./contribution-history.js",
+        "./contributor-identity.js",
         "./work-model-files.js",
         "./work-partition-networks.js",
         "./work-partition-plan.js",
@@ -4264,7 +4273,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:08019293200d629a88ea89e6b8b49649637152fab4494c5caebf62bc7b211fca",
+      "sha256": "sha256:b69b4fb666e97d52ae8ed3b4cd288fc21ed1df81b1f9fdba3fba5ceb2a733bd5",
       "imports": []
     },
     {
@@ -5601,10 +5610,11 @@
     {
       "path": "vendor/doppler/0.1.5/src/cli/cli-model-resolution.js",
       "owner": "vendor",
-      "sha256": "sha256:8b46d1da871596eb82b1cbd2f6cebe57e42b5cec38d53d40d33496fd877fca00",
+      "sha256": "sha256:2f8d67a15a04f3ff124466fbe32a0bf3a0d02400d5ceaeca85b824489ac1fdb1",
       "imports": [
         "../storage/hf-resolve-url.js",
         "../tooling/hf-registry/catalog-io.js",
+        "node:crypto",
         "node:fs/promises",
         "node:path",
         "node:url"
@@ -5680,10 +5690,12 @@
     {
       "path": "vendor/doppler/0.1.5/src/cli/doppler-serve.js",
       "owner": "vendor",
-      "sha256": "sha256:9c1a9514a536e090e6908ed9f1af28ec8202b1a9521aae38dd4de9113ade7151",
+      "sha256": "sha256:4d7df450c0bafc494d2d809b2b17daea024466e5db18acfaeebe14cb21681717",
       "imports": [
+        "../client/doppler-api.js",
         "../client/doppler-registry.js",
         "../index.js",
+        "./serve/prefix-cache.js",
         "./serve/receipt.js",
         "node:fs",
         "node:http",
@@ -5725,9 +5737,17 @@
       ]
     },
     {
+      "path": "vendor/doppler/0.1.5/src/cli/serve/prefix-cache.js",
+      "owner": "vendor",
+      "sha256": "sha256:ecf3945f5db785307dc9af0257332d13875386fe60b2dc4d66cfae78112bc96b",
+      "imports": [
+        "node:crypto"
+      ]
+    },
+    {
       "path": "vendor/doppler/0.1.5/src/cli/serve/receipt.js",
       "owner": "vendor",
-      "sha256": "sha256:cbabc5463e37f2b928adcd5fe1048974048bfdb677920cc11504769296d4bae1",
+      "sha256": "sha256:9580be2bbe1248f7abd8ce2d0e798e52e118de5f96e3cf98caae9f0b25f447ba",
       "imports": [
         "../../index.js",
         "node:crypto"
@@ -5777,7 +5797,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/client/doppler-api.js",
       "owner": "vendor",
-      "sha256": "sha256:cee0a9de17e35390fb804296c64185ea385a652989819752de5b1b3aa77f778e",
+      "sha256": "sha256:dedd6ad8ba82cdfb0dc3470994cd10a409a4d06217230b6659f605133482c988",
       "imports": [
         "../config/generation-contract.js",
         "../storage/runtime-env.js",
@@ -5790,7 +5810,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/client/doppler-registry.js",
       "owner": "vendor",
-      "sha256": "sha256:62cb3ce64e23c0216e93c10e872222267155911d45d13a82e0ee6981014d4f26",
+      "sha256": "sha256:26f98ef733cae84afb1ad07f6ad4aece73041007c7a19077c57ca0c4127f6259",
       "imports": [
         "../config/revocation-policy.js",
         "../formats/load-json.js",
@@ -5858,7 +5878,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/client/model-host/index.js",
       "owner": "vendor",
-      "sha256": "sha256:63790531979e3a2dc616c8b150e9ecea2ec71c24d6be0002e842748a78f851bd",
+      "sha256": "sha256:34771a86758f53efa5b8920775b9adb236ba61dec9d27edc3e41cb0a1aed9a38",
       "imports": [
         "../../config/initial-execution-identity.js",
         "../../config/revocation-policy.js",
@@ -5915,7 +5935,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/client/model-host/model-session.js",
       "owner": "vendor",
-      "sha256": "sha256:bbed1dd6156b68731a63c02f1fa204566c8aea8ee7f6f62a425d797597ec2579",
+      "sha256": "sha256:fe5990be9af4a19eb70015d3548dacd3ab51172acef0ab989632d366c9011ac4",
       "imports": [
         "../../config/choice-scoring.js",
         "../../debug/activation-trace.js",
@@ -5926,6 +5946,7 @@
         "../../inference/pipelines/shader-scoped-pipeline.js",
         "../../inference/pipelines/text/generator/request/chat-format.js",
         "../../inference/pipelines/text/generator/request/generation-request.js",
+        "../../inference/pipelines/text/generator/session/sequence-state.js",
         "../../inference/pipelines/text/initialization/init-chat-templates.js",
         "../../version.js",
         "../inspection.js",
@@ -6241,7 +6262,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/client/runtime/model-source.js",
       "owner": "vendor",
-      "sha256": "sha256:53a3bc71dbc90907e5c3ee7b1b49e61f15a1dd2b468554ba1c9cecf905ec9836",
+      "sha256": "sha256:178ba85ec5ccf20f57ac7edf420cdbd565cbbb5f435b150db8d577c37a5851b1",
       "imports": [
         "../../config/revocation-policy.js",
         "../../debug/index.js",
@@ -6252,7 +6273,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/client/runtime/node-quickstart-cache.js",
       "owner": "vendor",
-      "sha256": "sha256:7723c3ddaa738d1a315276a792fad26606b0d0ebf62c17d6b80c0caec828af63",
+      "sha256": "sha256:0a99b5e7a2b04f03c2a858f1b44f7ad1d33a1d387509543c6583069f7b77028a",
       "imports": [
         "../../formats/rdrr/index.js",
         "../../storage/runtime-env.js",
@@ -7445,7 +7466,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/converter/conversion-plan.js",
       "owner": "vendor",
-      "sha256": "sha256:c18b25fbddf22977de9637f2922793be3494bfb9659a412152e3a4aa65fa39e1",
+      "sha256": "sha256:15b714685a28f21d0926cb0eceef47b35961839f619658de3425fc308eca4092",
       "imports": [
         "../config/schema/index.js",
         "../debug/index.js",
@@ -7578,7 +7599,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/converter/model-naming.js",
       "owner": "vendor",
-      "sha256": "sha256:4b1085e20701c66db463a35b2bc02258858c971eb8541a78ec6be8faecd412ee",
+      "sha256": "sha256:d6ddd05c503d8d8a7b0d6f03f86ed3b00ce0eaac985b67a5ad7a757c37c6c7f4",
       "imports": []
     },
     {
@@ -7610,7 +7631,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/converter/quantization-info.js",
       "owner": "vendor",
-      "sha256": "sha256:ab0a8c6d95bdbb807b7b0151c4c884b8e40229365bd7b87618e9c4b6164e8ed4",
+      "sha256": "sha256:727c76d9cd0345ee204045190d911ecf05a3252ee4f68e4d765c58a3719e72b3",
       "imports": [
         "../config/schema/index.js",
         "../config/schema/manifest/fp8.schema.js",
@@ -11769,6 +11790,14 @@
       ]
     },
     {
+      "path": "vendor/doppler/0.1.5/src/inference/choice-calibration.js",
+      "owner": "vendor",
+      "sha256": "sha256:379ef0fa95c8358b20817e811f7caf0b0825964053b019ebd9936543b64be952",
+      "imports": [
+        "../config/choice-scoring.js"
+      ]
+    },
+    {
       "path": "vendor/doppler/0.1.5/src/inference/choice-scoring.js",
       "owner": "vendor",
       "sha256": "sha256:2f21b337aed1b4f658e7302614e84a0951bd354c3404f764b14aea5641435dd6",
@@ -12835,7 +12864,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/expert-loading-stats.js",
       "owner": "vendor",
-      "sha256": "sha256:ba0972db50e8a72fc730325fa7fae4e0a69ca99e519ccfab43e0fafbaf4aa0d4",
+      "sha256": "sha256:43117c0977de75c4a7900b67d860130e23bc084789065af446c9d08e8a4562d6",
       "imports": []
     },
     {
@@ -13501,14 +13530,16 @@
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/generator/prefill/prefill-sequence.js",
       "owner": "vendor",
-      "sha256": "sha256:31a2aa36783b4da8a9587057f14c44a76f985befdd1c1951dd519884895d8149",
+      "sha256": "sha256:5d4d1e6aec57316eecc248fbfe8fdac26fb23e83fb546ea9f963623d3976ae5c",
       "imports": [
         "../../../../../debug/index.js",
         "../../../../../gpu/device.js",
         "../../../../../memory/buffer-pool.js",
+        "../../expert-loading-stats.js",
         "../session/sequence-state.js",
         "../session/text.js",
-        "./prefill-observation.js"
+        "./prefill-observation.js",
+        "./prefill-policy.js"
       ]
     },
     {
@@ -13674,7 +13705,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/generator/session/sequence-state.js",
       "owner": "vendor",
-      "sha256": "sha256:7d2492b4a373c50fb30dfa3d6261cffebfcfdabf74ea7c2e6bc982cd253f8444",
+      "sha256": "sha256:fb61b10c955fd6393de529d18c493390cb05fe55f3c59039ea7802601fa0dbf6",
       "imports": [
         "../../../../../gpu/device.js",
         "../../../../../memory/buffer-pool.js",
@@ -14566,7 +14597,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/inference/pipelines/text/moe/routed-expert-chunks.js",
       "owner": "vendor",
-      "sha256": "sha256:4aa1af9f1150587215d5707bb5f49c9522ba4dd2daa8aa00e516b8b5559b3f32",
+      "sha256": "sha256:f7a0833740b007994302fdc2283beb7da35ebe76f5e7ca2438794f2c3d08ec9e",
       "imports": [
         "../../../../config/runtime.js",
         "../../../../gpu/device.js",
@@ -14574,6 +14605,7 @@
         "../../../../gpu/tensor.js",
         "../../../../loader/experts/routed-expert-trace.js",
         "../../../../memory/buffer-pool.js",
+        "../expert-loading-stats.js",
         "./qwen-route-executor.js"
       ]
     },
@@ -15592,7 +15624,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/loader/experts/mapped-expert-staging.js",
       "owner": "vendor",
-      "sha256": "sha256:8b4f9a2c7e590070dbd1d39d7ffdafb17c171ce31f53215a6badbe2204f6f71e",
+      "sha256": "sha256:7b581280f7ece034b0f0719aed204ca288e09319cee2d114ee140e9693e5fe5c",
       "imports": [
         "../../debug/index.js",
         "./routed-expert-source.js"
@@ -16481,7 +16513,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/storage/hf-resolve-url.js",
       "owner": "vendor",
-      "sha256": "sha256:bdb4bb73697fbf5e45b72254f46e2ff4e7ef0df47d3c7894d4a3ae81bb4a3e4d",
+      "sha256": "sha256:928495cb5cd67df6cd99df183e68e559eee7ead3feda87d09cf6a6d5faea899c",
       "imports": []
     },
     {
@@ -16656,7 +16688,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-gather-worker.js",
       "owner": "vendor",
-      "sha256": "sha256:9b7d40a046a4f66095b25622e8c9bded81de53cb1e549f60efe538a27ac41509",
+      "sha256": "sha256:c2192cde382bbe02ee54d40fea42b2733275122ec15d0333c6290ebad8b87a3c",
       "imports": [
         "./verified-piece-reader.js",
         "./verified-piece-state-cache.js",
@@ -16670,7 +16702,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-gather.js",
       "owner": "vendor",
-      "sha256": "sha256:b03013c94836bcc84560f758c1e8fc75d19a694074ed8a3ec220c07f81a67648",
+      "sha256": "sha256:1093afbcd91c4a7fe473f7199a79978677c302d302d2e080d35869b53d9d7102",
       "imports": [
         "./verified-piece-direct.js",
         "./verified-piece-gather-lane.js",
@@ -16686,7 +16718,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-state-cache.js",
       "owner": "vendor",
-      "sha256": "sha256:bb4cfe9914885d8c987bb3306148d33650553f68612835e4b75476fe35f7d9e4",
+      "sha256": "sha256:6137b23775cdadeab2ec5daf931db1c7cc4d67173fe0b90a4a1f33852be57307",
       "imports": [
         "node:crypto",
         "node:fs",
@@ -16697,7 +16729,7 @@
     {
       "path": "vendor/doppler/0.1.5/src/storage/verified-piece-storage.js",
       "owner": "vendor",
-      "sha256": "sha256:8fc4a48a6607502fae2783cc392dea4521792289f6289ac64ba437a472d9d9bf",
+      "sha256": "sha256:ae73af9e34f2de1924586a1e19bafc1e01d37e361932797d20df77d77fe3b394",
       "imports": [
         "../formats/source-runtime.js",
         "./artifact-storage-context.js",
@@ -16828,8 +16860,9 @@
     {
       "path": "vendor/doppler/0.1.5/src/tooling-exports/structured.js",
       "owner": "vendor",
-      "sha256": "sha256:78189ac4ec5c95a4a42fb7b5d4d41318a4a18648841d36fd5f639a27e760529e",
+      "sha256": "sha256:740759e09148c6f4d10d7cc79e3558849c3fd6c2cd4093e6f0a6502a3aed885a",
       "imports": [
+        "../inference/choice-calibration.js",
         "../inference/pipelines/structured/json-grammar-mask.js",
         "../inference/pipelines/structured/json-head-pipeline.js"
       ]
@@ -18649,7 +18682,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:a945e25fb354bb361d2ec8791b2ffbfe70858d413494abdf71e1b6af3562f5a8",
+      "sha256": "sha256:c5d7cf83988dc3056f355ab5c7bc8ddc0e55320766e8a05b24a6b834dac306bd",
       "imports": [
         "../../cancellation.js",
         "../delivery-attestation.js"
@@ -19577,7 +19610,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:75ebe4c343eed685d3aa39a45d479c434ee2369f8a5ee860bb5f54ce9ef84615",
+      "sha256": "sha256:49f0f5fed6642e3a82a686d57abcf4451cd23f50e61ee3ad7d3b19efe7bb4eba",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",

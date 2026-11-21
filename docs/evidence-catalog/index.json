@@ -4,11 +4,12 @@
   "sourceCommits": [
     "7de41dccb4e3e6db550e5167a8edf4f856f9a012",
     "8ff5a9807f15b66b180d16090db2bf5cc6e224b9",
+    "e303f6823ecc3623c1279848f6ed3edd1ccc9fd7",
     "e543183bed54dfdf2b6e6139dd4c31c8686f47bd"
   ],
   "retention": "immutable Git history; no expiry for existing qualification evidence",
-  "fileCount": 7153,
-  "bytes": 1221822021,
+  "fileCount": 7154,
+  "bytes": 1225657451,
   "retainedInputs": [
     "artifacts/cleanup-failure-20261012/signed-preflight.js",
     "artifacts/concurrent-memory-observation-20261012/bounded-result/accounting-control.json",
@@ -104,8 +105,8 @@
     },
     {
       "path": "part-0017.json",
-      "count": 353,
-      "sha256": "e0ff7d365490ef31a8dcb2102b2dda91945ab7e7d8cf32bda7b22295ba01dad6"
+      "count": 354,
+      "sha256": "ea3f7c0fbf418d73d2c0056c6ee68c99b41842cfa8179d41de92c7e2fb2d69a6"
     }
   ]
 }

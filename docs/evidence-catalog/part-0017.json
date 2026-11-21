@@ -2176,6 +2176,14 @@
     "sha256": "5c000bcc30c41d2775fe640a2140d63538372652c5ce1035ad45e380b6907566"
   },
   {
+    "path": "deploy/artifacts/doppler-gpu-0.7.7.tgz",
+    "gitBlob": "c71e7303444df5d52a76737622e4482746f51236",
+    "bytes": 3835430,
+    "mode": "100644",
+    "sourceCommit": "e303f6823ecc3623c1279848f6ed3edd1ccc9fd7",
+    "sha256": "e15dd93fac59e5fecad333c473c4f78ff2e197e0dee27e330fe8775e08d581f4"
+  },
+  {
     "path": "reports/local/capacity-failover-20261012/final-state.json",
     "gitBlob": "8b01e2ba75e8c5ff2057764ccd0c26f7ad135b54",
     "bytes": 129277,
