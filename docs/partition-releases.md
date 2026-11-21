@@ -21,6 +21,43 @@ a changed or missing route fails explicitly rather than substituting another mod
 or provider. Completed-answer records remain historical execution evidence.
 
 
+## Catalog and execution ownership
+
+| Field or decision | Source of truth | Reploid's copy or check |
+| --- | --- | --- |
+| Artifact model ID, architecture, context ceiling, quantization layout, tokenizer, tensor/shard layout and kernel/session requirements | Digest-pinned raw Doppler manifest for ordinary execution; verified signed Capsule contract and TargetPlan on the signed path | Catalog ID must match. The display context and quantization are projections, not runtime authority; verify tokenizer and data bytes against their artifact pins. |
+| Artifact identity and distribution | Reploid source descriptor pins manifest, tokenizer and piece-index digests, lengths and origins; the verified piece index identifies individual ranges | Browser and native verify acquisition before use. Origins and peer claims are locators, not identity or authorization. Catalog identity duplicates the manifest digest intentionally and must agree. |
+| Cut and plan | Reploid selects an ordinary cut and pins the expected digest. Installed Doppler derives canonical geometry/activation contracts from the verified manifest and computes the plan hash. A signed Doppler TargetPlan instead remains signed, unchanged contract authority. | 27B no longer duplicates expanded geometry. The laptop 2B still supplies the older single-cut field, not a v3 pin. Reject mismatches rather than refreshing an expected digest at runtime. |
+| Execution controls and adapters | Doppler manifest owns supported execution semantics and compatibility; Reploid catalog/operator owns narrower load or generation choices, memory budgets, and selection of pinned adapter artifacts | A requirement cannot be overridden by a presentation field or an offer. The exact adapter set participates in the plan/route identity where applicable. |
+| Model display, aliases and availability | Reploid owns labels, sizes shown, supersession, recommendations and declared execution modes | Neither a listed mode nor a peer offer is admission authority. A ready stage must first verify manifest and plan; route eligibility and recipient consent are Reploid checks and remain separate from Doppler. |
+
+All five current catalog rows carry model-manifest, tokenizer and piece-index
+pins. The catalog also retains display context and quantization for all five.
+These are projections distinct from the underlying manifest; they must not be
+used as substitute artifact or geometry evidence.
+
+| Catalog row | Current host policy / remaining duplication |
+| --- | --- |
+| Qwen 3.5 0.8B | No declared partition cut; offers a pinned adapter choice. |
+| Qwen 3.5 2B | Legacy `partitionSplitLayer: 4`; no compact v3 contract. |
+| Qwen 3.8 27B | Whole model and partition; compact `splitLayers: [1]`, F32 and pinned `a000b91d…d882c`; explicit generation, load and per-stage budgets. |
+| Qwen 3.6 35B A3B | Whole model; explicit generation and load settings, no cut. |
+| Qwen 3.8 Flash-Next | Whole model; explicit generation, load and gather budgets, no cut. |
+
+### Remaining pre-disclosure qualification
+
+After execution-policy v2 (#164) is integrated on the exact candidate release,
+test both browser and native requesters against an instrumented old-protocol
+peer and a compatible peer that explicitly declines admission. Capture sends at
+the requester and receipt/dispatch at the peers. Use distinct synthetic
+canaries in the prompt, tools and response schema: **none** may appear in
+either negative arm; the declining peer may see only permitted admission
+metadata and a salted commitment. Check there is no retry that widens recipient
+scope or downgrades to plaintext. Use one explicitly authorized, accepting peer
+as a positive control to verify that the capture observes the actual payload
+after admission. Archive exact client/provider versions, routes and traces.
+The compact-plan tests and offline piece inventory are not this live proof.
+
 ## Checking a memory-expanding private split
 
 For the catalogued untied 27B plan, run the offline source qualification on a
