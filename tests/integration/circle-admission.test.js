@@ -103,3 +103,16 @@ it('withdraws an admission if the computer closes just as a queued slot becomes 
   await waiting;
   expect(invites.list()[0].usedRequests).toBe(0);
 });
+
+it('keeps a new owner turn protected from a repeated release of an old lease', async () => {
+  const previous = await request(owner, 'owner-turn');
+  previous.release();
+  const current = await request(owner, 'owner-turn');
+  previous.release();
+  const alice = grant('alice');
+  const waiting = request('alice', 'a1', alice.inviteId);
+  expect(admission.getState().queued).toBe(1);
+  expect(invites.list()[0].usedRequests).toBe(0);
+  current.release();
+  (await waiting).release();
+});

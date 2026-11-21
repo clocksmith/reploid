@@ -134,16 +134,19 @@ export function createFairLaneScheduler({
       if (immediate && freeSlots(immediate, activeProvidersByAttempt, startingDispatches) > 0) {
         recordLaneDispatch(lane);
         startingDispatches += 1;
-        let startingHeld = true;
+        let startingHeld = true, released = false;
         return {
           chosen: immediate,
           queuedMs: 0,
           markDisclosed(providerKey) {
+            if (released) return;
             if (providerKey) activeProvidersByAttempt.set(attemptId, providerKey);
             if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
             drain();
           },
           release() {
+            if (released) return;
+            released = true;
             activeProvidersByAttempt.delete(attemptId);
             if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
             drain();
@@ -184,17 +187,20 @@ export function createFairLaneScheduler({
       notifyQueuePositions();
       drain();
     });
-    let startingHeld = acquired.releaseStarting === true;
+    let startingHeld = acquired.releaseStarting === true, released = false;
     onAdmission?.({ status: 'admitted', queuedMs: acquired.queuedMs });
     return {
       chosen: acquired.chosen,
       queuedMs: acquired.queuedMs,
       markDisclosed(providerKey) {
+        if (released) return;
         if (providerKey) activeProvidersByAttempt.set(attemptId, providerKey);
         if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
         drain();
       },
       release() {
+        if (released) return;
+        released = true;
         activeProvidersByAttempt.delete(attemptId);
         if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
         drain();
