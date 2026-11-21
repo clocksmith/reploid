@@ -37,7 +37,8 @@ it('rechecks availability and the exact route, without silently substituting a s
 });
 it('keeps whole-model replicas visible without advertising an unapproved split', () => {
   const { partition, ...base } = route;
-  const peers = ['a', 'b'].map(peerId => ({ peerId, model: base.id, modelIdentity: base.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }));
+  const peers = ['a', 'b'].map(peerId => ({ peerId, model: base.id, modelIdentity: base.identity, readiness: 'ready', hasInference: true,
+    availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
   const models = projectChatCatalog({ models: [base], peers, partitionModels: [route] });
   expect(models).toHaveLength(1);
   expect(models[0]).toMatchObject({ availability: 'ready', providerIds: ['a', 'b'] });

@@ -486,7 +486,10 @@ The application server can mount `/v1/models`, `/v1/chat/completions`,
 `REPLOID_TEXT_API_COMPOSITION` to an absolute module outside this repository.
 That module exports `createTextApiComposition({env, production})`, returning
 `participant`, `authenticate`, `authorize`, an `accounting.run(request, controls,
-execute)` port, and optional `close()`. `controls.principal` is the authenticated
+execute)` port, and optional `close()`. Production also requires an
+`executionPolicyFor(request, controls)` port that issues a current
+`reploid.execution-policy/v2` from operator authorization. Create the policy
+with the [execution policy contract](execution-privacy.md). `controls.principal` is the authenticated
 caller. Model listing additionally requires authorization for `models.list`.
 Production refuses a `testOnly` composition and requires accounted execution.
 Controlled tests may explicitly opt into `allowUnbilledTest` outside production.

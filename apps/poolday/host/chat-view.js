@@ -26,11 +26,10 @@ export function selectAvailableChatModel(models, preference, location = 'auto') 
 export const compatibleAdapters = model => (model.availableAdapters || []).filter(adapter => typeof adapter?.id === 'string' && adapter.id
   && SHA256_PATTERN.test(adapter.identity) && SHA256_PATTERN.test(model.identity || '') && adapter.baseModelIdentity === model.identity);
 
-export function projectChatCatalog({ models, peers, connections, introductionState, releasedPartitionModels = [] }) {
-  // A retained advert or retired connection alone cannot establish reachability.
+export function projectChatCatalog({ models, peers, connections, releasedPartitionModels = [] }) {
+  // Whole-model admission requires a WebRTC data channel. Signaling-only peers can be discovered but cannot receive requests.
   const openPeers = new Map((connections || []).filter(link => link.phase === 'connected'
-    && (link.channelState === 'open' || link.transport === 'broadcast'
-      || link.transport === 'signaling-relay' && introductionState === 'connected')
+    && link.channelState === 'open'
     && !['disconnected', 'failed', 'closed'].includes(link.iceState)).map(link => [link.id, link]));
   const reachable = peer => {
     const link = openPeers.get(peer.peerId);
@@ -42,7 +41,8 @@ export function projectChatCatalog({ models, peers, connections, introductionSta
   // The host supplies only routes admitted by its release policy.
   return selections.map(model => {
     // A computer blocked on this device is never chosen, so it is not counted as capacity either.
-    const compatible = peers.filter(peer => peer.blocked !== true && (!connections || reachable(peer)) && peer.model === model.id && peer.modelIdentity === model.identity
+    const compatible = peers.filter(peer => peer.blocked !== true && peer.identityProtocol === 1 && peer.admissionProtocol === 2
+      && (!connections || reachable(peer)) && peer.model === model.id && peer.modelIdentity === model.identity
       && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
     const ready = compatible.filter(peer => peer.readiness === 'ready' && peer.hasInference);
     const loading = compatible.some(peer => peer.readiness === 'loading');

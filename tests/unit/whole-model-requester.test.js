@@ -20,7 +20,7 @@ function fixture({ approve = async () => true, result = {}, dispatch = {}, readi
   const controls = { signal: controller.signal, requestApproval: vi.fn(approve), onDelta: vi.fn() };
   const mesh = {
     getSwarmSnapshot: () => ({ peers: [{ peerId: 'peer-1', model: model.id, modelIdentity: model.identity,
-      hasInference: true, readiness, availableSlots: 1 }] }),
+      hasInference: true, readiness, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }] }),
     generate: vi.fn(async (messages, onDelta, options) => {
       if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-1', ...await dispatchProof(options, 'peer-1'), modelId: options.modelId,
         modelIdentity: options.modelIdentity, adapterIdentities: options.adapterIdentities,
@@ -107,7 +107,8 @@ it('binds verified peer signing identity in recipients and enforces prepared who
   let requester;
   const mesh = {
     getSwarmSnapshot: () => ({ peers: [{ peerId: 'transport-uuid', participantId: 'peer:enrolled1234567890abcdef',
-      model: boundedModel.id, modelIdentity: boundedModel.identity, hasInference: true, readiness: 'ready', availableSlots: 1 }] }),
+      model: boundedModel.id, modelIdentity: boundedModel.identity, hasInference: true, readiness: 'ready', availableSlots: 1,
+      identityProtocol: 1, admissionProtocol: 2 }] }),
     generate: vi.fn(async (messages, onDelta, options) => {
       if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'transport-uuid',
         ...await dispatchProof(options, 'peer:enrolled1234567890abcdef'), requestId: 'req-1',
@@ -201,7 +202,8 @@ function settingsFixture({ capabilities = [{ schema: 'reploid.generation-setting
   const controls = { signal: new AbortController().signal, requestApproval: vi.fn(async () => true), onDelta: vi.fn() };
   const mesh = {
     getSwarmSnapshot: () => ({ peers: capabilities.map((generationSettings, index) => ({ peerId: 'peer-' + index, model: bounded.id, modelIdentity: bounded.identity,
-      hasInference: true, readiness: 'ready', availableSlots: 1, ...(generationSettings ? { generationSettings } : {}) })) }),
+      hasInference: true, readiness: 'ready', availableSlots: 1, identityProtocol: 1, admissionProtocol: 2,
+      ...(generationSettings ? { generationSettings } : {}) })) }),
     generate: vi.fn(async (messages, onDelta, options) => {
       if (!await requester.authorize({ action: 'mesh.dispatch', peerId: 'peer-0', ...await dispatchProof(options, 'peer-0'), modelId: options.modelId, modelIdentity: options.modelIdentity,
         adapterIdentities: options.adapterIdentities, requestContext: options.requestContext, messages, ...dispatch(options) })) throw Error('Disclosure denied');

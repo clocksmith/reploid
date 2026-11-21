@@ -10,7 +10,8 @@ function fixture(lock = {}) {
   let notify, peers = [];
   const data = new Map(), storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
   const swarm = { getState: () => ({ consumer: { peers } }), generate: vi.fn(async (messages, controls) => {
-    const preview = { providerId: controls.modelId, modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [] };
+    const preview = { providerId: controls.modelId, recipientIdentity: 'signed-' + controls.modelId,
+      modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [] };
     expect(await controls.approve(preview)).toBe(true);
     await controls.record({ stage: 'approved', preview });
     return { model: controls.modelId, modelIdentity: controls.modelIdentity, peerId: controls.modelId, provider: 'doppler', content: 'fixture answer' };
@@ -20,6 +21,7 @@ function fixture(lock = {}) {
   const dispose = bindResearchPlugins(root, host, { storage, locks: { request: async (name, options, cb) => cb(lock) } });
   return { root, data, swarm, dispose: () => { dispose(); root.remove(); }, ready() {
     peers = models.map(model => ({ model: model.id, modelIdentity: model.identity, peerId: model.id,
+      participantId: 'signed-' + model.id, identityVerified: true, admissionProtocol: 2,
       role: 'provider', readiness: 'ready', availableSlots: 1 })); notify();
   }, notify: () => notify() };
 }

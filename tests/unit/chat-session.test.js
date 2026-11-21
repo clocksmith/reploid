@@ -231,7 +231,8 @@ it('rejects the actual provider artifact rather than copying requested identity 
 
 it('projects loading, available capacity, busy capacity and departed providers from mesh records', async () => {
   const model = CANONICAL_CHAT_MODELS[1];
-  const peer = { peerId: 'contributor', model: model.id, modelIdentity: model.identity, readiness: 'loading', hasInference: false, availableSlots: 0 };
+  const peer = { peerId: 'contributor', model: model.id, modelIdentity: model.identity, readiness: 'loading', hasInference: false, availableSlots: 0,
+    identityProtocol: 1, admissionProtocol: 2 };
   let peers = [peer]; const swarm = { getState: () => ({ consumer: { peers } }) };
   const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
   const available = () => session.getState().models.find(item => item.id === model.id);
@@ -510,7 +511,8 @@ it('resolves an implicit empty thread after discovery and reload, preserving exp
   await session.close();
   const restored = createChatSession({ storage: store, service, swarm });
   const ready = CANONICAL_CHAT_MODELS.find(model => model.id !== initial.id);
-  peers = [{ peerId: 'ready-peer', model: ready.id, modelIdentity: ready.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+  peers = [{ peerId: 'ready-peer', model: ready.id, modelIdentity: ready.identity, readiness: 'ready', hasInference: true, availableSlots: 1,
+    identityProtocol: 1, admissionProtocol: 2 }];
   restored.refreshNetwork();
   await vi.waitFor(() => expect(restored.getState().threads.find(t => t.id === implicit).model.id).toBe(ready.id));
   expect(restored.getState().threads.find(t => t.id === explicit).model.id).toBe(initial.id);
@@ -533,7 +535,8 @@ it('keeps unused automatic choices following ready capacity until explicitly con
   let peers = []; const swarm = { getState: () => ({ consumer: { peers } }) };
   const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
   session.createThread(); const initial = session.getState().activeThread.model;
-  const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 });
+  const peer = model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1,
+    identityProtocol: 1, admissionProtocol: 2 });
   peers = [peer(initial)]; session.refreshNetwork();
   expect(session.getState().activeThread.automaticModel).toBe(true);
   const next = CANONICAL_CHAT_MODELS.find(model => model.id !== initial.id);

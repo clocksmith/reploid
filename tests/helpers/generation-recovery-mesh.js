@@ -54,6 +54,8 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
       ...ports(i),
       generate: async (...args) => { executions++; return execute ? execute(...args) : response; },
       createTransport: () => ({ init: async () => true, disconnect() {}, getPeerId: () => channels[i],
+        getPeerStates: () => [{ id: channels[1-i], attemptId: 'attempt-' + channels[1-i], phase: 'connected',
+          transport: 'webrtc', channelState: 'open' }],
         getPeerBinding: () => ({ local: 'cert-' + channels[i] + ':' + channelEpoch, remote: 'cert-' + channels[1-i] + ':' + channelEpoch }),
         onMessage: (type, fn) => handlers[i].set(type, fn), broadcast: (type, payload) => deliver(i, type, payload),
         sendToPeer: (_peer, type, payload) => deliver(i, type, payload) })

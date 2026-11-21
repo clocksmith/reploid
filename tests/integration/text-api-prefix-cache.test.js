@@ -150,6 +150,8 @@ it('reuses GenerationContext across stateless multi-turn /v1/chat/completions re
         readiness: 'ready',
         hasInference: true,
         availableSlots: 1,
+        identityProtocol: 1,
+        admissionProtocol: 2,
       }],
     }),
     async generate(messages, onDelta, options) {

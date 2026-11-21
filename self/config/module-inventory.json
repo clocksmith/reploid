@@ -2860,7 +2860,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:6b894465790d8fdeb3fdea3c2c136bb7b2cf18ac7efa8366e113c25d9f2a6a4a",
+      "sha256": "sha256:57d284e736afcef0a09fa9e35818cf46b29009c7f3cc972537fc0789fdb8dffd",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2885,7 +2885,7 @@
     {
       "path": "self/host/chat-view.js",
       "owner": "self",
-      "sha256": "sha256:c8e90f3baa4f6c4999a36f8f86ac3c4954f9488e524de29bedf3124c21a68bc2",
+      "sha256": "sha256:aa6ebe417c9519565e9ed5a23afca2009dbf97d90dfcdfc6dd1fda988300b1e0",
       "imports": []
     },
     {
@@ -3222,10 +3222,11 @@
     {
       "path": "self/host/research-plugins.js",
       "owner": "self",
-      "sha256": "sha256:e4f5ee3f86a63f0803bf1b899c6fe39ac35a519fa023c155bc78356d3df17637",
+      "sha256": "sha256:15e8d9fb29ada99cca6cc44719cdc7221146078756d871f399722f1e61021cbd",
       "imports": [
         "../plugins/model-imitation/plugin.js",
         "../plugins/model-imitation/protocol.json",
+        "../vendor/reploid/chat/execution-policy.js",
         "../vendor/reploid/plugins/index.js"
       ]
     },
@@ -4274,7 +4275,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:bafb953ba29e5fb3424af52eb59c41308a03927f0cebb950eceab0f7c99dbb68",
+      "sha256": "sha256:2c91f1d853213ebebec702d181c61a1bdc3722700722f0aa68b9ec35c81b0e89",
       "imports": []
     },
     {

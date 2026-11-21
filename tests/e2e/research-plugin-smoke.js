@@ -12,9 +12,9 @@ try {
  await page.evaluate(async()=>{
   const ui=await import('/ui/pool-home/research-plugins.js');
   const models=[{id:'qwen-3-5-0-8b-q4k-ef16-af32-vf16',name:'Qwen 3.5 0.8B',identity:'fixture-small',provider:'doppler'},{id:'qwen-3-8-27b-text-q4k-ef16-af32',name:'Qwen 3.8 27B',identity:'fixture-large',provider:'doppler'}];
-  const host={chat:{getState:()=>({models}),subscribe:()=>()=>{}},swarm:{getState:()=>({consumer:{peers:models.map(m=>({model:m.id,modelIdentity:m.identity,peerId:m.id,role:'provider',readiness:'ready',availableSlots:1}))}}),generate:async(messages,c)=>{
+  const host={chat:{getState:()=>({models}),subscribe:()=>()=>{}},swarm:{getState:()=>({consumer:{peers:models.map(m=>({model:m.id,modelIdentity:m.identity,peerId:m.id,participantId:'signed-'+m.id,identityVerified:true,admissionProtocol:2,role:'provider',readiness:'ready',availableSlots:1}))}}),generate:async(messages,c)=>{
    window.__calls++;if(window.__wait)await new Promise((resolve,reject)=>c.signal.addEventListener('abort',()=>reject(c.signal.reason),{once:true}));
-   const preview={providerId:c.modelId,modelId:c.modelId,modelIdentity:c.modelIdentity,adapterIdentities:[]};
+   const preview={providerId:c.modelId,recipientIdentity:'signed-'+c.modelId,modelId:c.modelId,modelIdentity:c.modelIdentity,adapterIdentities:[]};
    if(!await c.approve(preview))throw Error('Fixture permission rejected');await c.record({stage:'approved',preview});
    return {content:'13',model:c.modelId,modelIdentity:c.modelIdentity,provider:'doppler',peerId:c.modelId};
   }}};

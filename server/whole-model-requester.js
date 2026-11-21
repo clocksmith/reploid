@@ -48,14 +48,17 @@ export function createWholeModelRequester({ mesh, models }) {
     if (!capability) return {};
     return { generationSettings: { ...capability, maxOutputTokens: capability.maxOutputTokens && settingsOutputCeiling(model) !== null } };
   };
-  const getModels = () => projectChatCatalog({ models, peers: mesh.getSwarmSnapshot().peers || [], partitionModels: [] })
-    .map(model => ({ ...model, ...settingsCapability(model, mesh.getSwarmSnapshot().peers || []),
-      verifiedProviderIdentities: Object.fromEntries((mesh.getSwarmSnapshot().peers || [])
-        .filter(peer => model.providerIds.includes(peer.peerId) && peer.identityVerified && peer.participantId)
-        .map(peer => [peer.peerId, peer.participantId])) }))
-    .filter(model => !model.partition && ['ready', 'busy'].includes(model.availability) && model.providerIds?.length)
-    // The mesh's current protocol enforces only the model's prepared generation ceiling.
-    .map(model => structuredClone({ ...model, textGeneration: supportsModelCeiling(model) ? TEXT_GENERATION_CAPABILITY : undefined }));
+  const getModels = () => {
+    const { peers = [], connections } = mesh.getSwarmSnapshot();
+    return projectChatCatalog({ models, peers, connections })
+      .map(model => ({ ...model, ...settingsCapability(model, peers),
+        verifiedProviderIdentities: Object.fromEntries(peers
+          .filter(peer => model.providerIds.includes(peer.peerId) && peer.identityVerified && peer.participantId)
+          .map(peer => [peer.peerId, peer.participantId])) }))
+      .filter(model => !model.partition && ['ready', 'busy'].includes(model.availability) && model.providerIds?.length)
+      // The mesh's current protocol enforces only the model's prepared generation ceiling.
+      .map(model => structuredClone({ ...model, textGeneration: supportsModelCeiling(model) ? TEXT_GENERATION_CAPABILITY : undefined }));
+  };
   return Object.freeze({
     getModels,
     async authorize(dispatch) {

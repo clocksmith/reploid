@@ -31,7 +31,7 @@ it('offers an adapter only under the base artifact it declares, whatever its nam
     { id: 'other-base', name: 'Base model specialist too', identity: identity('c'), baseModelIdentity: identity('d') },
     { id: 'unidentified', name: 'Base model helper', identity: 'unknown', baseModelIdentity: identity('a') }] };
   const peers = [{ peerId: 'peer', model: 'base', modelIdentity: identity('a'), readiness: 'ready', hasInference: true, availableSlots: 1,
-    adapterIdentities: [identity('b'), identity('c')] }];
+    identityProtocol: 1, admissionProtocol: 2, adapterIdentities: [identity('b'), identity('c')] }];
   const catalog = projectChatCatalog({ models: [base], peers, partitionModels: [] });
   expect(catalog.map(row => row.selectionId || row.id)).toEqual(['base', 'base/declared']);
   expect(catalog[1]).toMatchObject({ availability: 'ready', providerIds: ['peer'], adapters: [{ id: 'declared' }] });
@@ -39,17 +39,15 @@ it('offers an adapter only under the base artifact it declares, whatever its nam
 
 it('only recommends free capacity advertised on the currently reachable connection', () => {
   const peer = { peerId: 'p', attemptId: 'current', model: model.id, modelIdentity: model.identity,
-    hasInference: true, readiness: 'ready', availableSlots: 1 };
+    hasInference: true, readiness: 'ready', availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 };
   const link = { id: 'p', attemptId: 'current', phase: 'connected', channelState: 'open', transport: 'webrtc' };
-  const project = (connections, advert = peer, introductionState = 'connected') =>
-    projectChatCatalog({ models: [model], peers: [advert], connections, introductionState })[0];
+  const project = (connections, advert = peer) => projectChatCatalog({ models: [model], peers: [advert], connections })[0];
   expect(project([link]).reachableProviderIds).toEqual(['p']);
-  expect(project([link], peer, 'retrying').reachableProviderIds).toEqual(['p']);
   expect(project([]).availability).toBe('unavailable');
   expect(project([{ ...link, attemptId: 'replacement' }]).availability).toBe('unavailable');
   expect(project([{ ...link, iceState: 'disconnected' }]).reachableProviderIds).toEqual([]);
   expect(project([link], { ...peer, availableSlots: 0 })).toMatchObject({ availability: 'busy', reachableProviderIds: [] });
   const relay = { ...link, transport: 'signaling-relay', channelState: null };
-  expect(project([relay]).reachableProviderIds).toEqual(['p']);
-  expect(project([relay], peer, 'retrying').availability).toBe('unavailable');
+  expect(project([relay]).availability).toBe('unavailable');
+  expect(project([link], { ...peer, admissionProtocol: 1 }).availability).toBe('unavailable');
 });

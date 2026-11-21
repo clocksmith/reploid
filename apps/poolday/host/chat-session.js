@@ -286,7 +286,6 @@ export function createChatSession({
 
   const getCatalogModels = (network = swarm?.getState?.()) => copy(projectChatCatalog({
     models: [...models, ...peerModels], peers: network?.consumer?.peers || [], connections: network?.connections ?? network?.consumer?.connections,
-    introductionState: network?.introductionState ?? network?.consumer?.connectionState,
     releasedPartitionModels: (partitions?.getModels() || []).filter(model => availablePartitionRoute(model))
   }).map(model => {
     model = { ...model, networkAvailability: model.availability };

@@ -110,7 +110,8 @@ describe('requester provider choice with a block list', () => {
 
   it('does not count a blocked computer as capacity for its model', () => {
     const model = { id: 'model', identity: modelIdentity };
-    const peer = { peerId: 'a', model: 'model', modelIdentity, readiness: 'ready', hasInference: true, availableSlots: 1 };
+    const peer = { peerId: 'a', model: 'model', modelIdentity, readiness: 'ready', hasInference: true, availableSlots: 1,
+      identityProtocol: 1, admissionProtocol: 2 };
     expect(projectChatCatalog({ models: [model], peers: [peer] })[0]).toMatchObject({ availability: 'ready', providerIds: ['a'] });
     expect(projectChatCatalog({ models: [model], peers: [{ ...peer, blocked: true }] })[0])
       .toMatchObject({ availability: 'unavailable', providerIds: [] });
