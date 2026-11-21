@@ -8,6 +8,16 @@ import partitionPolicy from '../config/partition-policy.json' with { type: 'json
 export function snapshotWorkPartitionSelection(selected) {
   const adapters = selectWorkAdapters(selected);
   selected = { ...selected, adapters };
+  if (selected.partitionRequest !== undefined) {
+    const request = selected.partitionRequest;
+    if (selected.partitionPlan !== undefined || selected.partitionSplitLayer !== undefined || selected.capsule !== undefined
+      || !/^sha256:[a-f0-9]{64}$/.test(selected.partitionPlanId)
+      || !Array.isArray(request?.splitLayers) || !request.splitLayers.length
+      || request.splitLayers.some((cut, index) => !Number.isSafeInteger(cut) || cut <= (request.splitLayers[index - 1] ?? 0))) {
+      throw new Error('Compact partition requires an unsigned model, ordered cuts, and one pinned plan digest');
+    }
+    return { ...selected, partitionRequest: freezeJson(structuredClone(request)) };
+  }
   if (selected.partitionPlan === undefined) return selected;
   const plan = selected.partitionPlan;
   if (!plan || plan.modelId !== selected.id
@@ -18,15 +28,17 @@ export function snapshotWorkPartitionSelection(selected) {
 }
 
 /** A catalog model participates in ordered routes only through its declared Doppler plan version. */
-export const isWorkOrderedModel = model => model?.partitionPlan?.schema === 'doppler.layer-partition-contract/v3';
+const orderedStageCount = model => model?.partitionRequest?.splitLayers?.length + 1 || model?.partitionPlan?.stageCount;
+export const isWorkOrderedModel = model => model?.partitionRequest !== undefined
+  || model?.partitionPlan?.schema === 'doppler.layer-partition-contract/v3';
 
 /** Host stage identity is explicit; discovery cannot invent a resident session. */
 export function snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical) {
-  const isOrdered = selected.partitionPlan?.schema === 'doppler.layer-partition-contract/v3';
+  const isOrdered = isWorkOrderedModel(selected);
   if (!isOrdered && !ordered) return null;
   const stage = ordered?.stage;
   if (!isOrdered || canonical || !stage || !Number.isSafeInteger(index) || index < 0
-    || index >= selected.partitionPlan.stageCount || stage.index !== index || stage.participantId !== participantId
+    || index >= orderedStageCount(selected) || stage.index !== index || stage.participantId !== participantId
     || !['participantId', 'transportId', 'residentId', 'executionId'].every(key => typeof stage[key] === 'string' && stage[key].length > 0)
     || Object.keys(stage).some(key => !['index', 'participantId', 'transportId', 'residentId', 'executionId'].includes(key))) {
     throw new Error('Ordered contribution requires an explicit matching host stage and ordinary execution');
@@ -46,6 +58,22 @@ export function workOrderedResidentOptions(runtime, stage) {
 
 export function createWorkPartitionPlan(runtime, manifest, selected, index = 0) {
   selected = snapshotWorkPartitionSelection(selected);
+  if (selected.partitionRequest !== undefined) {
+    if (manifest.modelId !== selected.id || runtime.ORDERED_LAYER_PARTITION_SCHEMA !== 'doppler.layer-partition-contract/v3'
+      || !['createOrderedLayerPartitionPlanFromManifest', 'hashLayerPartitionPlan',
+        'resolveLayerPartition', 'validateOrderedLayerPartitionPlan'].every(key => typeof runtime[key] === 'function')) {
+      throw new Error('Compact partition requires the matching verified manifest and installed Doppler ordered plan runtime');
+    }
+    const plan = runtime.createOrderedLayerPartitionPlanFromManifest(manifest, { ...selected.partitionRequest,
+      ...(selected.adapters.length ? { adapterIdentities: selected.adapters.map(adapter => adapter.identity) } : {}) });
+    if (runtime.hashLayerPartitionPlan(plan) !== selected.partitionPlanId) {
+      throw new Error('Compact partition differs from the pinned Doppler plan digest');
+    }
+    runtime.validateOrderedLayerPartitionPlan(manifest, plan);
+    runtime.resolveLayerPartition(manifest, { plan, index });
+    partitionActivationContract(runtime, plan);
+    return freezeJson(plan);
+  }
   if (selected.partitionPlan === undefined) {
     return runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
       splitLayer: selected.partitionSplitLayer,
@@ -103,7 +131,7 @@ export function snapshotWorkOrderedParticipation(ordered, canonical, models) {
   const budgets = selected?.partitionRuntime?.maxGpuBufferBytes;
   let maxGpuBufferBytes = partitionPolicy.maxGpuBufferBytes;
   if (budgets !== undefined) {
-    if (!Array.isArray(budgets) || budgets.length !== selected.partitionPlan?.stageCount || !budgets.every(positiveInteger)) {
+    if (!Array.isArray(budgets) || budgets.length !== orderedStageCount(selected) || !budgets.every(positiveInteger)) {
       throw new Error('Ordered model requires one explicit positive GPU budget per stage');
     }
     // Automatic reassignment may pick any stage, so its shared admission bound
@@ -127,16 +155,16 @@ export function snapshotWorkOrderedParticipation(ordered, canonical, models) {
   if (isAutoStage(copy.stage)) {
     // The operator authorizes this contributor's own policy to pick a stage of this model.
     const stage = copy.stage, selected = models.find(model => model.id === stage.modelId);
-    if (!selected || selected.partitionPlan?.schema !== 'doppler.layer-partition-contract/v3'
-      || selected.partitionPlan.stageCount > copy.maxStages
+    if (!selected || !isWorkOrderedModel(selected)
+      || orderedStageCount(selected) > copy.maxStages
       || Object.keys(stage).some(key => !['modelId', 'assignment'].includes(key))) {
       throw new Error('Ordered host stage requires a matching declared model plan and allocation identity');
     }
   } else if (copy.stage !== null) {
     const stage = copy.stage, selected = models.find(model => model.id === stage?.modelId);
-    if (!selected || selected.partitionPlan?.schema !== 'doppler.layer-partition-contract/v3'
-      || !Number.isSafeInteger(stage.index) || stage.index < 0 || stage.index >= selected.partitionPlan.stageCount
-      || selected.partitionPlan.stageCount > copy.maxStages
+    if (!selected || !isWorkOrderedModel(selected)
+      || !Number.isSafeInteger(stage.index) || stage.index < 0 || stage.index >= orderedStageCount(selected)
+      || orderedStageCount(selected) > copy.maxStages
       || !['residentId', 'executionId'].every(key => typeof stage[key] === 'string' && stage[key].length > 0)
       || Object.keys(stage).some(key => !['modelId', 'index', 'residentId', 'executionId', 'participantId', 'transportId'].includes(key))) {
       throw new Error('Ordered host stage requires a matching declared model plan and allocation identity');
