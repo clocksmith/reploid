@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 386,
+    "apps/poolday": 387,
     "self": 457,
     "shared": 2498
   },
@@ -2283,6 +2283,12 @@
     {
       "served": "host/chat-view.js",
       "source": "apps/poolday/host/chat-view.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/circle-http-client.js",
+      "source": "apps/poolday/host/circle-http-client.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

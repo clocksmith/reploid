@@ -319,6 +319,21 @@ does not retain prompt text. Signing keys and durable accounting remain native.
 Local model downloads remain a separate reviewed action. Send does not acquire
 weights, even if an older automatic-download preference was stored.
 
+### Invited chat through the circle HTTP gateway
+
+When a host runs the circle gateway, the browser keeps the draft on the requesting
+device while waiting for a turn. It calls `POST /circle/admit` with the invite ID,
+expected desktop identity, request ID, model identity and output limit. A paired
+owner can revoke a waiting guest's invite before any prompt leaves the browser.
+
+After admission, the browser checks the returned host, requester, model and budget.
+It sends the draft to `POST /circle/chat` with the one-use grant and expected host
+in the request headers. An unused grant expires or can be returned through
+`POST /circle/cancel`. The host authenticates the peer at each step. A caller can
+use [sendCircleChat](../apps/poolday/host/circle-invites.js) for this exchange.
+The public challenge uses a separate switch. A successful invited turn leaves
+that switch untouched.
+
 ## Authenticated HTTP text API
 
 An enrolled native requester can also serve `/v1/models`, `/v1/chat/completions`,

@@ -1,3 +1,4 @@
+import { sendCircleChat } from '../../apps/poolday/host/circle-invites.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -106,18 +107,9 @@ try {
   const wave1Timing = await runPool(WAVE1_VISITS, CONCURRENCY, async index => {
     if (index < 10) {
       // 10 requests from the invited guest against a 5-request quota: exactly 5 must admit, 5 must refuse.
-      const res = await fetch(`${origin}/circle/chat`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-test-peer': GUEST_ID },
-        body: JSON.stringify({
-          inviteId: redeemed.inviteId,
-          hostPeerId: HOST_ID,
-          requestId: `guest-turn-${index}`,
-          modelIdentity: MODEL_ID,
-          maxOutputTokens: 16,
-          prompt: `hello ${index}`
-        })
-      });
+      const res = await sendCircleChat({origin, requesterPeerId:GUEST_ID, headers:{'x-test-peer':GUEST_ID},
+        metadata:{inviteId:redeemed.inviteId,hostPeerId:HOST_ID,requestId:`guest-turn-${index}`,
+          modelIdentity:MODEL_ID,maxOutputTokens:16},prompt:`hello ${index}`});
       if (res.status === 200) {
         const body = await res.json();
         assert.equal(body.receipt.hostPeerId, HOST_ID);

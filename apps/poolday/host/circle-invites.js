@@ -1,3 +1,6 @@
+// Browser entry points for host invitations and the guest's admitted HTTP turn.
+export { sendCircleChat } from './circle-http-client.js';
+
 const tokenPattern = /^[A-Za-z0-9_-]{43}$/;
 const validHost = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
 const validLabel = value => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 128;

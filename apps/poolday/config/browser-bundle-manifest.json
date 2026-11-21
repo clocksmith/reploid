@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 690800,
-      "sha256": "sha256:93ae0db21faa4b83663b87302fe23a10cf75d14a1a7083ccd2eeec2d8234435c"
+      "byteLength": 691037,
+      "sha256": "sha256:920479a0b66c52fc9cedc51804755d7ac32e0983be1576045c46a88f50dbc3a8"
     },
     {
       "path": "config/module-registry.json",
@@ -1505,8 +1505,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148673,
-      "sha256": "sha256:4b51368c17e015683915bc3b9e1c599114624ea8084b83d02e258eb76f94db70"
+      "byteLength": 148712,
+      "sha256": "sha256:94cd18d63ce8e0947183e5badf5c7b83397f6049d3d7ece2e25ce68bcd95362f"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1874,9 +1874,14 @@
       "sha256": "sha256:aa6ebe417c9519565e9ed5a23afca2009dbf97d90dfcdfc6dd1fda988300b1e0"
     },
     {
+      "path": "host/circle-http-client.js",
+      "byteLength": 2880,
+      "sha256": "sha256:5786445331e9f2a4dbca47c0e38ea84ac6a94e6b611f527161a31d17f2f71095"
+    },
+    {
       "path": "host/circle-invites.js",
-      "byteLength": 2443,
-      "sha256": "sha256:41cb5d99446cd4f749ae74b93f0d03da5f1cde911f3329f8327598eaa20567de"
+      "byteLength": 2583,
+      "sha256": "sha256:fd6f429e86ebcc6638d3fa03fc6810a120062f60767b8ae12dce9a050ece9154"
     },
     {
       "path": "host/computer-preferences.js",
@@ -3776,7 +3781,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "byteLength": 2692330,
-      "sha256": "sha256:d6e21eeb9a7bc4370a9d192595fba5455617946937340368276a4dd09fe31c51"
+      "sha256": "sha256:ddeffcd2c16d95f6f7b4059c0072eeb15487485330c2426009bc34cc05e24ba4"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12709,5 +12714,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:c19ae3d99e3c08eb8a08d90ddf797c1240b6311f678719b1120c63a29298cf35"
+  "bundleHash": "sha256:9dc11254274ceb89c4b1495f0c0c2b2ce9cedb5a3909f94d0935eb6810d81039"
 }

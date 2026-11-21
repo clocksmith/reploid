@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 386 |
+| apps/poolday | 387 |
 | self | 457 |
 | shared | 2498 |
-| total | 3341 |
+| total | 3342 |
 
 Every file lives in its owner's root.
 
@@ -414,6 +414,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/chat-remote-permission.js` | `apps/poolday/host/chat-remote-permission.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-session.js` | `apps/poolday/host/chat-session.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-view.js` | `apps/poolday/host/chat-view.js` | apps/poolday | Reached only from product entries. |
+| `host/circle-http-client.js` | `apps/poolday/host/circle-http-client.js` | apps/poolday | Reached only from product entries. |
 | `host/circle-invites.js` | `apps/poolday/host/circle-invites.js` | apps/poolday | Reached only from product entries. |
 | `host/computer-preferences.js` | `apps/poolday/host/computer-preferences.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `apps/poolday/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
