@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import os from 'node:os';
 import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
-import SignalingServer from '../../server/signaling-server.js';
+import { PublicSwarmServer } from '../../server/public-swarm-server.js';
 
 assert.ok(process.argv[2], 'Usage: node tests/fixtures/native-host-onboarding.mjs /path/to/installed/reploid');
 const installed = resolve(process.argv[2]);
@@ -16,16 +16,16 @@ const { version, dependencies } = JSON.parse(await readFile(join(installed, 'pac
 const cli = join(installed, 'server/native-node.js');
 const state = await mkdtemp(join(os.tmpdir(), 'reploid-onboarding-state-'));
 const model = '0.8b';
-const room = `onboarding-${randomUUID()}`;
+const room = `reploid-swarm-onboarding-${randomUUID()}`;
 const tokenFile = join(state, 'room-token');
 await writeFile(tokenFile, randomUUID(), { mode: 0o600 });
-const signaling = new SignalingServer({ logger: { log() {} } });
+const signaling = new PublicSwarmServer({ logger: { log() {} } });
 const server = createServer();
 server.on('upgrade', (request, socket, head) => signaling.handleUpgrade(request, socket, head));
 server.listen(0, '127.0.0.1');
 await once(server, 'listening');
 const roomArgs = ['--room', room, '--room-token-file', tokenFile, '--signaling-url',
-  `ws://127.0.0.1:${server.address().port}/signaling`];
+  `ws://127.0.0.1:${server.address().port}${signaling.options.path}`];
 const weights = join(state, 'host', 'weights');
 const serve = [cli, 'serve', model, '--weights', weights, '--identity-file', join(state, 'host', 'identity.json'), ...roomArgs];
 const children = [];
