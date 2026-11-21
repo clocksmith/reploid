@@ -186,10 +186,12 @@ export function createChatSession({
     prepareRemotePermission(need) {
       assert(remoteAccess.enabled(), 'Network answers are off. Turn them on in Settings or choose this device.');
       if (!remotePermissions.some(permission => remotePermissionCovers(permission, need))) {
-        const retained = remotePermissions.filter(permission => !remotePermissionCovers(permission,
-          { ...need, policyId: undefined, routeId: undefined }));
-        savePermissions([...retained, createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
-          wording: remoteAccess.wording, grantedAt: now() })].slice(-MAX_PERMISSIONS));
+        const unbound = { ...need, policyId: undefined, routeId: undefined };
+        if (remotePermissions.some(permission => permission.routeId === undefined && remotePermissionCovers(permission, unbound))) {
+          const retained = remotePermissions.filter(permission => !(permission.routeId === undefined && remotePermissionCovers(permission, unbound)));
+          savePermissions([...retained, createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
+            wording: remoteAccess.wording, grantedAt: now() })].slice(-MAX_PERMISSIONS));
+        }
       }
     },
     // Permissions are bound to the network (room) they were granted on.

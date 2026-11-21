@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CANONICAL_CHAT_MODELS, createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -186,5 +187,80 @@ describe('Contributor execution without permission popups', () => {
     await vi.waitFor(() => expect(lastAttempt(session)?.status).toBe('completed'));
     expect(lastAttempt(session)).toMatchObject({ approval: null, authorization: null, execution: { placement: 'local-webgpu' } });
     expect(view.find('[data-remote-permission]')).toBeNull(); expect(session.getState().remotePermissions).toEqual([]);
+  });
+
+  it('reconnects a returning provider by cryptographic identity without re-asking, and requires fresh consent when another machine would receive the prompt', async () => {
+    const catalogModel = CANONICAL_CHAT_MODELS[1];
+    const providerKeyA = peer('5'), providerKeyB = peer('6');
+    let activeProvider = { providerId: 'rtc-conn-1', recipientIdentity: providerKeyA };
+    const disclosed = [];
+    const swarm = {
+      getNetworkId: () => 'public-room',
+      getState: () => ({}),
+      connect: async () => {},
+      hasProvider: () => true,
+      async generate(messages, options) {
+        const current = { ...activeProvider };
+        const approved = await options.approve({
+          id: 'preview-' + crypto.randomUUID(),
+          providerId: current.providerId,
+          recipientIdentity: current.recipientIdentity,
+          operation: 'generate',
+          disclosure: 'public',
+          modelId: catalogModel.id,
+          modelIdentity: catalogModel.identity,
+          adapterIdentities: [],
+          expiresAt: Date.now() + 60000,
+          input: { messages: structuredClone(messages), recipients: [current.recipientIdentity] },
+        });
+        if (approved !== true) throw new Error('Disclosure declined');
+        await options.record({ stage: 'approved', providerId: current.providerId });
+        disclosed.push({ recipientIdentity: current.recipientIdentity, providerId: current.providerId, messages: structuredClone(messages) });
+        const content = `Reply from ${current.recipientIdentity}`;
+        options.onPartial?.(content);
+        return {
+          provider: 'doppler',
+          model: catalogModel.id,
+          modelIdentity: catalogModel.identity,
+          adapterIdentities: [],
+          peerId: current.providerId,
+          content,
+        };
+      },
+    };
+    const { session, storage } = openSession({ partitions: null, swarm });
+    const thread = session.createThread({ model: catalogModel, executionLocation: 'network' });
+    await session.send(thread, 'Turn one');
+    await completed(session, 1);
+    expect(disclosed).toHaveLength(1);
+    expect(session.getState().remotePermissions).toHaveLength(1);
+
+    // Same cryptographic identity reconnects with a fresh ephemeral WebRTC socket + reloaded session: zero approval prompt.
+    activeProvider = { providerId: 'rtc-conn-2', recipientIdentity: providerKeyA };
+    const reloaded = openSession({ storage, partitions: null, swarm });
+    const statuses = [];
+    reloaded.session.subscribe(state => statuses.push(state.activeThread?.attempts.at(-1)?.status));
+    await reloaded.session.send(thread, 'Turn two after provider reconnect');
+    await completed(reloaded.session, 2);
+    expect(statuses).not.toContain('approval');
+    expect(disclosed).toHaveLength(2);
+    expect(disclosed[1]).toMatchObject({ recipientIdentity: providerKeyA, providerId: 'rtc-conn-2' });
+    expect(reloaded.session.getState().remotePermissions).toHaveLength(1);
+
+    // Another machine (different cryptographic identity) would now receive the user's prompt: fresh consent is required before sending.
+    activeProvider = { providerId: 'rtc-conn-3', recipientIdentity: providerKeyB };
+    const thirdTurn = reloaded.session.send(thread, 'Turn three with another machine');
+    await vi.waitFor(() => expect(lastAttempt(reloaded.session)?.status).toBe('approval'));
+    expect(disclosed).toHaveLength(2);
+    const pending = lastAttempt(reloaded.session);
+    expect(pending.approval).toMatchObject({ recipientIdentity: providerKeyB, peerId: 'rtc-conn-3' });
+    await reloaded.session.grantRemotePermission(pending.approval.permissionNeed, {
+      wording: remotePermissionWording(pending.approval.permissionNeed),
+    });
+    await thirdTurn;
+    await completed(reloaded.session, 3);
+    expect(disclosed).toHaveLength(3);
+    expect(disclosed[2].recipientIdentity).toBe(providerKeyB);
+    expect(reloaded.session.getState().remotePermissions).toHaveLength(2);
   });
 });

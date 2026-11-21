@@ -93,6 +93,8 @@ export async function collectNativeFiles(sourceRoot, { omitModels = [] } = {}) {
   if (integrity !== pin.integrity) throw new Error('Pinned Doppler archive integrity mismatch');
   selected.add(archive);
   retained.set(archive, archiveBytes);
+  selected.add('README.md');
+  selected.add('LICENSE');
   selected.add('docs/native-participant.md');
   selected.add('docs/fleet-service.md');
   const files = [...selected].sort();

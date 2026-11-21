@@ -30,6 +30,8 @@ it('delivers the same native source and all catalog metadata outside the checkou
   expect(files).toContain('server/native-canonical-epochs.js');
   expect(files).toContain('server/fleet/native-host.js');
   expect(files).toContain('server/fleet/service.js');
+  expect(files).toContain('README.md');
+  expect(files).toContain('LICENSE');
   expect(files).toContain('docs/fleet-service.md');
   expect(files.some(name => /shard_.*\.bin$/.test(name))).toBe(false);
   expect(files.filter(name => name.includes('/model-pieces/')).length).toBeGreaterThan(0);
