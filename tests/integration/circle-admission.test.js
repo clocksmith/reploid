@@ -44,6 +44,7 @@ it('limits waiting and fairly rotates guests on one desktop before admitting dis
   const third = request('bob', 'b1', bob.inviteId).then(lease => { admitted.push('b1'); return lease; });
   await expect(request('bob', 'b2', bob.inviteId)).rejects.toThrow('queue is full');
   expect(admission.getState()).toEqual({ ready: true, queued: 3 });
+  expect(admission.getQueuedCount(alice.inviteId)).toBe(2);
   expect(invites.list().map(invite => invite.usedRequests)).toEqual([0, 0]);
 
   ownerLease.release();
@@ -70,6 +71,7 @@ it('removes revoked and expired queued work without a disclosure grant or a spen
   await vi.advanceTimersByTimeAsync(30);
   await expiredResult;
   expect(admission.getState().queued).toBe(0);
+  expect(admission.getQueuedCount(revoked.inviteId)).toBe(0);
   ownerLease.release();
   expect(invites.list().map(invite => invite.usedRequests)).toEqual([0, 0]);
 });
@@ -90,4 +92,14 @@ it('refuses invalid authentication, other hosts and models, offline routes, and 
     await expect(request('alice', 'a1', alice.inviteId)).rejects.toMatchObject({ code: 'CIRCLE_OFFLINE' });
     expect(invites.list()[0].usedRequests).toBe(0);
   } finally { other.close(); }
+});
+
+it('withdraws an admission if the computer closes just as a queued slot becomes free', async () => {
+  const ownerLease = await request(owner, 'owner-turn');
+  const alice = grant('alice');
+  const waiting = expect(request('alice', 'a1', alice.inviteId)).rejects.toMatchObject({ code: 'CIRCLE_CLOSED' });
+  ownerLease.release();
+  admission.close();
+  await waiting;
+  expect(invites.list()[0].usedRequests).toBe(0);
 });

@@ -59,11 +59,13 @@ export function createCircleAdmission({ hostPeerId, modelIdentity, isReady, invi
       const expiry = expiresIn <= maxWaitMs
         ? setTimeout(() => abort.abort(fail('CIRCLE_EXPIRED', 'Invite expired before admission')), expiresIn)
         : null;
-      pending.set(attemptId, { inviteId, abort });
+      const entry = { inviteId, abort, queued: false };
+      pending.set(attemptId, entry);
       let slot;
       try {
         slot = await scheduler.acquire({ attemptId, threadId: authenticatedPeerId, requestedModel: modelIdentity,
           signal: waitingSignal, onAdmission: status => {
+            entry.queued = status.status === 'queued';
             if (status.status === 'queued') {
               void Promise.resolve().then(() => onAdmission(status)).catch(() => {});
             }
@@ -85,10 +87,13 @@ export function createCircleAdmission({ hostPeerId, modelIdentity, isReady, invi
       }
     },
     getState: () => ({ ready: !closed && isReady(), queued: scheduler.queuedCount() }),
+    getQueuedCount: inviteId => identity(inviteId)
+      ? [...pending.values()].filter(entry => entry.inviteId === inviteId && entry.queued).length : 0,
     close() {
       if (closed) return;
       closed = true;
       unsubscribe();
+      for (const entry of pending.values()) entry.abort.abort(fail('CIRCLE_CLOSED', 'This computer has stopped serving'));
       scheduler.close();
     }
   });
