@@ -1717,13 +1717,13 @@
     },
     {
       "path": "transport/index.d.ts",
-      "bytes": 557,
-      "sha256": "daacf058c677f54da39226fbc922e9894e62b42442f1d76b72a5909c2d675648"
+      "bytes": 593,
+      "sha256": "f6c25fc1c67d2355a8f349f034708a569f7ca7cffbf56c7dced58530f1b2bc9c"
     },
     {
       "path": "transport/index.js",
-      "bytes": 706,
-      "sha256": "583a3077f5f6da18bb491db1618e89ad95f921df332fd1ce834fe289e9b855a2"
+      "bytes": 742,
+      "sha256": "139ea7086ad5aa1c7db46d7d595a68ac8431c49c1d16b1ab72a10434482ec878"
     },
     {
       "path": "transport/introduction-admission.d.ts",
@@ -1767,8 +1767,18 @@
     },
     {
       "path": "transport/message-types.js",
-      "bytes": 1665,
-      "sha256": "06c1146db2afd0e2cdf94b23f5cc8e6eb53b08f993ad2c737b0b8c00faf1fe2e"
+      "bytes": 1794,
+      "sha256": "a73090433c3555d843b2faf763ca2f8be3c50887527556f70fc251bda2af60a2"
+    },
+    {
+      "path": "transport/owner-pairing.d.ts",
+      "bytes": 790,
+      "sha256": "878a9851c5733c61a3abcad6c8f126b5c2353637e7fab0928ac7772ad4134ae5"
+    },
+    {
+      "path": "transport/owner-pairing.js",
+      "bytes": 2364,
+      "sha256": "288c70f40ad27dd40bb44c29c1fafa539046737afe6d435dbbb299fe80a3ff91"
     },
     {
       "path": "transport/partition-data-channel.d.ts",

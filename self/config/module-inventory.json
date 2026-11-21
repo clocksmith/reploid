@@ -4274,7 +4274,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:bafb953ba29e5fb3424af52eb59c41308a03927f0cebb950eceab0f7c99dbb68",
+      "sha256": "sha256:2678c0ec8f360cf86987f65d7e51f3cf7941acfcf437b782b667a184dd1d87b6",
       "imports": []
     },
     {
@@ -19911,12 +19911,13 @@
     {
       "path": "vendor/reploid/transport/index.js",
       "owner": "vendor",
-      "sha256": "sha256:583a3077f5f6da18bb491db1618e89ad95f921df332fd1ce834fe289e9b855a2",
+      "sha256": "sha256:139ea7086ad5aa1c7db46d7d595a68ac8431c49c1d16b1ab72a10434482ec878",
       "imports": [
         "./assignment.js",
         "./introduction-admission.js",
         "./introduction-bootstrap.js",
         "./introductions.js",
+        "./owner-pairing.js",
         "./partition-data-channel.js",
         "./retry-policy.js",
         "./room.js",
@@ -19967,10 +19968,17 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:06c1146db2afd0e2cdf94b23f5cc8e6eb53b08f993ad2c737b0b8c00faf1fe2e",
+      "sha256": "sha256:a73090433c3555d843b2faf763ca2f8be3c50887527556f70fc251bda2af60a2",
       "imports": [
-        "./introductions.js"
+        "./introductions.js",
+        "./owner-pairing.js"
       ]
+    },
+    {
+      "path": "vendor/reploid/transport/owner-pairing.js",
+      "owner": "vendor",
+      "sha256": "sha256:288c70f40ad27dd40bb44c29c1fafa539046737afe6d435dbbb299fe80a3ff91",
+      "imports": []
     },
     {
       "path": "vendor/reploid/transport/partition-data-channel.js",

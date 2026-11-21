@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 383,
     "self": 457,
-    "shared": 2496
+    "shared": 2498
   },
   "pendingMoves": 0,
   "violations": [],
@@ -17490,6 +17490,16 @@
     {
       "served": "vendor/reploid/transport/message-types.js",
       "source": "shared/vendor/reploid/transport/message-types.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/owner-pairing.d.ts",
+      "source": "shared/vendor/reploid/transport/owner-pairing.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/owner-pairing.js",
+      "source": "shared/vendor/reploid/transport/owner-pairing.js",
       "owner": "shared"
     },
     {

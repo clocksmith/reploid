@@ -3,6 +3,7 @@
  * embedding application through onMessage(); admission never grants execution.
  */
 import { INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL } from './introductions.js';
+import { OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT } from './owner-pairing.js';
 export const PROTOCOL_VERSION = 1;
 export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'sync-request', 'sync-response',
@@ -24,5 +25,6 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'raft:client-request', 'raft:client-response',
   'fl:hello', 'fl:round-start', 'fl:update', 'fl:round-commit', 'fl:round-failed'
 ]);
-export const RTC_MESSAGE_TYPES = Object.freeze([...APPLICATION_MESSAGE_TYPES, INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL]);
+export const RTC_MESSAGE_TYPES = Object.freeze([...APPLICATION_MESSAGE_TYPES, INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL,
+  OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT]);
 export const ROOM_MESSAGE_TYPES = Object.freeze([...APPLICATION_MESSAGE_TYPES, 'peer-announce', 'peer-leave']);
