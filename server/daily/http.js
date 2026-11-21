@@ -2,19 +2,19 @@ import express from 'express';
 import { dailyPages, poolImports, poolStyles } from './public-assets.js';
 import { createHmac, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { resolveServedFile } from '../browser-roots.js';
 import { dayUTC, judgePrompt, scoreOutput } from './rules.js';
 
 const COOKIE = 'reploid_daily_guest';
-const commonTokens = fileURLToPath(new URL('../../apps/poolday/styles/poolday/tokens.css', import.meta.url));
-const poolStyleRoot = fileURLToPath(new URL('../../apps/poolday/styles/poolday/', import.meta.url));
-const siteIcon = fileURLToPath(new URL('../../shared/favicon.svg',import.meta.url));
+const commonTokens = resolveServedFile('/styles/poolday/tokens.css');
+const siteIcon = resolveServedFile('/favicon.svg');
 const hostGuide = fileURLToPath(new URL('../../docs/daily-game.md', import.meta.url));
 const problems = {
   'needs-invite': [403, 'Open the circle link from its host to play.'],
   'invalid-invite': [403, 'This circle invitation has expired or was revoked. Ask its host for a new link.'],
   'session-storage': [401, 'Your browser could not retain this circle’s secure sign-in cookie. Allow partitioned cookies for this site and try again. Your draft is still here.'],
   'passkey-failed': [401, 'Passkey verification failed. Try signing in again.'],
-  'sign-in': [401, 'Verify your email to play in this circle.'],
+  'sign-in': [401, 'Sign in to play in this circle. Your draft is still here.'],
   'host-full': [429, 'The host has reached its daily turn limit.'],
   'turn-limit': [429, 'You have used all three turns today.'],
   busy: [503, 'The host is serving another turn. Try again shortly.'],
@@ -419,7 +419,9 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
     }
     app.get('/pool.css', (req, res) => res.type('css').send(poolImports));
     for (const file of poolStyles) {
-      app.get('/styles/poolday/' + file, (req, res) => res.sendFile(file, {root:poolStyleRoot}));
+      const route = '/styles/poolday/' + file;
+      const source = resolveServedFile(route);
+      app.get(route, (req, res) => res.sendFile(source));
     }
     app.get('/favicon.svg', (req,res) => res.sendFile(siteIcon));
     app.get('/host-guide.txt', (req, res) => res.type('text/plain').sendFile(hostGuide));

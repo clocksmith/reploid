@@ -182,6 +182,33 @@ describe('daily circle HTTP boundary', () => {
     expect((await read('https://elsewhere.example')).error).toBe('origin-denied');
   });
 
+  it('uses a short-lived in-tab alias after WebAuthn when the browser rejects the partitioned cookie', async () => {
+    const quick = 'https://backend.example', site = 'https://daily.example';
+    const once = 'x'.repeat(43);
+    const stable = {start:vi.fn(async () => ({grant:once,options:{}})),finish:vi.fn(async value => {
+      if (value !== once) throw Error('Unrecognized ceremony');
+      return 'passkey/test-tab-guest';
+    })};
+    await start({origin:quick,passkeys:{},publicInvite:invite.token,trustedFrontends:new Map([[site,{passkeys:stable}]])});
+    expect((await post('auth/passkey/start',{action:'login',tabFallback:true},null,{Origin:quick})).status).toBe(400);
+    const started = await post('auth/passkey/start',{action:'login',tabFallback:true},null,{Origin:site});
+    expect(started.json.ceremony).toBe(once);
+    const finish = (ceremony,cookie) => post('auth/passkey/finish',{response:{},ceremony},cookie,{Origin:site});
+    expect((await finish('wrong')).status).toBe(400);
+    expect((await finish('y'.repeat(43))).status).toBe(401);
+    expect((await finish(once,'__Host-reploid_daily_passkey='+'z'.repeat(43))).status).toBe(401);
+    const {json} = await finish(once);
+    expect(json.tabSession).toMatch(/^[\w-]{43}$/); expect(store.guest(json.tabSession)).toBeFalsy();
+    const read = async (origin,inv = invite.token) => (await fetch(base+'/api/today',{headers:{Origin:origin,'x-circle-invite':inv,'x-daily-tab':json.tabSession}})).json();
+    expect((await read(site)).authenticated).toBe(true);
+    expect((await read(quick)).error).toBe('origin-denied');
+    expect((await read('https://unrelated.example')).error).toBe('origin-denied');
+    expect((await read(site,store.circleInvite({expiresAt:time+86400000}).token)).authenticated).toBe(false);
+    time += 15 * 60_000;
+    expect((await read(site)).authenticated).toBe(false);
+    expect(store.capacity(firstDay).used).toBe(0);
+  });
+
   it('uses the configured external origin and issues a secure session behind a proxy', async () => {
     await start({ origin:'https://circle.example' });
     expect((await post('auth/start',{email:'a@b.example'})).status).toBe(403);

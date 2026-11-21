@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { resolveServedFile } from '../browser-roots.js';
 
-const manifest = new URL('../../apps/poolday/styles/poolday/layers.json', import.meta.url);
+const manifest = resolveServedFile('/styles/poolday/layers.json');
 const layers = JSON.parse(readFileSync(manifest, 'utf8'));
 
 export const dailyPages = Object.freeze(['index.html', 'app.js', 'style.css', 'host.html', 'theme.js']);
