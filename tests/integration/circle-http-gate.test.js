@@ -1,5 +1,7 @@
 // @vitest-environment node
 import fs from 'node:fs/promises';
+import http from 'node:http';
+import { sendCircleChat } from '../../apps/poolday/host/circle-invites.js';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -16,19 +18,21 @@ const MODEL_ID = `sha256:${'f'.repeat(64)}`;
 
 describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
   let directory, invites, admission, challengeGate, server, origin;
-  let ready = true;
+  let ready = true, offset = 0;
+  const now = () => Date.now()+offset;
   const disclosedPrompts = [];
 
   beforeEach(async () => {
     directory = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-circle-http-'));
-    ready = true;
+    ready = true; offset = 0;
     disclosedPrompts.length = 0;
     invites = await openCircleInvites({
-      file: path.join(directory, 'invites.sqlite'),
+      file: path.join(directory, 'invites.sqlite'), now,
       hostPeerId: HOST_ID,
       hostLabel: HOST_LABEL
     });
     admission = createCircleAdmission({
+      now,
       hostPeerId: HOST_ID,
       hostLabel: HOST_LABEL,
       modelIdentity: MODEL_ID,
@@ -45,6 +49,7 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
       caps: derivePublicChallengeCaps({ measuredAttemptsPerMinute: 20, maxTurnsPerVisitor: 2, safetyFactor: 0.5 })
     });
     const gateway = createCirclePublicGateway({
+      now,
       invites,
       admission,
       ownerPairing: { isOwner: id => id === OWNER_ID },
@@ -67,13 +72,22 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     if (directory) await fs.rm(directory, { recursive: true, force: true });
   });
 
-  async function post(route, body, peerId) {
+  async function post(route, body, peerId, headers = {}) {
     const response = await fetch(`${origin}${route}`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', ...(peerId ? { 'x-test-peer': peerId } : {}) },
+      headers: { 'content-type': 'application/json', ...(peerId ? { 'x-test-peer': peerId } : {}), ...headers },
       body: JSON.stringify(body)
     });
     return { status: response.status, body: await response.json() };
+  }
+
+  const metadata = (requestId,inviteId) => ({hostPeerId:HOST_ID,requestId,modelIdentity:MODEL_ID,maxOutputTokens:16,
+    ...(inviteId ? {inviteId} : {})});
+  function grantHeaders(grant) { return {'x-circle-grant':grant,'x-circle-host':HOST_ID}; }
+  async function normalChat(body,peerId,fetchImpl = fetch,signal) {
+    const {prompt,...metadata} = body;
+    const response = await sendCircleChat({origin,metadata,requesterPeerId:peerId,prompt,signal,headers:{'x-test-peer':peerId},fetchImpl});
+    return {status:response.status,body:await response.json()};
   }
 
   it('keeps public demo and invalid/cross-host invites at zero inference capacity while enforcing owner-issued invite limits and revocation', async () => {
@@ -121,7 +135,7 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     expect(disclosedPrompts).toEqual([]);
 
     // Valid guest turn returns answer + request-matched receipt with 0 model weight bytes downloaded.
-    const turn1 = await post('/circle/chat', {
+    const turn1 = await normalChat({
       inviteId, hostPeerId: HOST_ID, requestId: 'r1', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'hello friend'
     }, GUEST_ID);
     expect(turn1.status).toBe(200);
@@ -141,11 +155,115 @@ describe('Circle HTTP invite & capacity gate (#185 / #187)', () => {
     expect(revoked.status).toBe(200);
     expect(revoked.body.result.status).toBe('revoked');
 
-    const turn2 = await post('/circle/chat', {
+    const turn2 = await normalChat({
       inviteId, hostPeerId: HOST_ID, requestId: 'r2', modelIdentity: MODEL_ID, maxOutputTokens: 16, prompt: 'must not disclose'
     }, GUEST_ID);
     expect(turn2.status).toBe(403);
     expect(disclosedPrompts).toEqual(['hello friend']);
+  });
+
+  function newGuest(expiresAt = now()+60_000) {
+    const issued = invites.issue({expiresAt,maxRequests:12,maxOutputTokens:32});
+    expect(invites.redeem({token:issued.token,guestPeerId:GUEST_ID})).toBeTruthy();
+    return issued.inviteId;
+  }
+
+  it('sends only routing metadata while queued and uses the bound grant once for owner and guest', async () => {
+    const inviteId = newGuest();
+    const held = await post('/circle/admit',metadata('holder'),OWNER_ID);
+    expect(held.body).toMatchObject({admitted:true,hostPeerId:HOST_ID,requesterPeerId:OWNER_ID,requestId:'holder'});
+    const headers = grantHeaders(held.body.grant);
+    for (const [peer,scope] of [[GUEST_ID,headers],[OWNER_ID,{...headers,'x-circle-host':'another-host'}]]) {
+      expect((await post('/circle/chat',{prompt:'unauthorized'},peer,scope)).status).toBe(403);
+    }
+    const calls = [];
+    const guest = normalChat({...metadata('queued',inviteId),prompt:'retained local draft'},GUEST_ID,(url,options) => {
+      calls.push([new URL(url).pathname,JSON.parse(options.body)]); return fetch(url,options);
+    });
+    await expect.poll(()=>admission.getQueuedCount(inviteId)).toBe(1);
+    expect(calls).toEqual([['/circle/admit',metadata('queued',inviteId)]]);
+    expect(disclosedPrompts).toEqual([]);
+    const answer = await post('/circle/chat',{prompt:'owner first'},OWNER_ID,headers);
+    expect(answer.body.receipt).toMatchObject({role:'owner',requestId:'holder',modelWeightBytes:0});
+    expect((await guest).body.receipt).toMatchObject({role:'guest',requestId:'queued',modelWeightBytes:0});
+    expect(calls[1]).toEqual(['/circle/chat',{prompt:'retained local draft'}]);
+    expect((await post('/circle/chat',{prompt:'again'},OWNER_ID,headers)).status).toBe(403);
+    expect(disclosedPrompts).toEqual(['owner first','retained local draft']);
+  });
+
+  it('returns bounded per-guest queue pressure without sending the rejected draft', async () => {
+    const inviteId = newGuest();
+    const holding = await post('/circle/admit',metadata('owner-first'),OWNER_ID);
+    const queued = ['one','two'].map(name => normalChat({...metadata(name,inviteId),prompt:name},GUEST_ID));
+    await expect.poll(()=>admission.getQueuedCount(inviteId)).toBe(2);
+    const full = await normalChat({...metadata('beyond-limit',inviteId),prompt:'never transmitted'},GUEST_ID);
+    expect(full).toMatchObject({status:429,body:{code:'CIRCLE_FULL'}});
+    expect(disclosedPrompts).toEqual([]);
+    await post('/circle/cancel',{},OWNER_ID,grantHeaders(holding.body.grant));
+    expect((await Promise.all(queued)).map(result=>result.status)).toEqual([200,200]);
+    expect(disclosedPrompts.sort()).toEqual(['one','two']);
+  });
+
+  it('rejects legacy chat headers before reading a body and rejects prompt-bearing admission metadata', async () => {
+    const status = await new Promise((resolve,reject) => {
+      const req = http.request(origin+'/circle/chat',{method:'POST',headers:{'x-test-peer':GUEST_ID,'content-length':'400'}},res => {
+        resolve(res.statusCode); res.resume(); req.destroy();
+      });
+      req.once('error',reject); req.setTimeout(1500,()=>req.destroy(Error('Gateway waited for an ungranted body')));
+      req.flushHeaders(); // Never supply even one body byte.
+    });
+    expect(status).toBe(403);
+    const denied = await post('/circle/admit',{...metadata('no-text',newGuest()),prompt:'forbidden extra field'},GUEST_ID);
+    expect(denied).toMatchObject({status:400,body:{code:'CIRCLE_REQUEST'}});
+    expect(server.stats().inferenceCalls).toBe(0);
+  });
+
+  it('withdraws an unused grant during body read even under the in-flight finish policy', async () => {
+    const inviteId = newGuest(); const offer = await post('/circle/admit',metadata('slow',inviteId),GUEST_ID);
+    const headers = {...grantHeaders(offer.body.grant),'x-test-peer':GUEST_ID,'content-type':'application/json'};
+    let stream;
+    const result = new Promise((resolve,reject) => {
+      stream = http.request(origin+'/circle/chat',{method:'POST',headers},res => {
+        resolve(res.statusCode); res.resume();
+      });
+      stream.once('error',reject); stream.flushHeaders(); stream.write('{"prompt":"');
+    });
+    // The request is still incomplete. Neither accepting its grant nor receiving a
+    // prefix permits forwarding the draft after the owner revokes that invitation.
+    expect((await post('/circle/owner',{op:'circle-invites.revoke',inviteId},OWNER_ID)).status).toBe(200);
+    expect(await result).toBe(403); stream.end('private"}');
+    expect(invites.getSettlement({guestPeerId:GUEST_ID,requestId:'slow'})).toMatchObject({outcome:'stopped',outputTokens:0});
+    expect(admission.getActiveCount(inviteId)).toBe(0); expect(disclosedPrompts).toEqual([]);
+  });
+
+  it('releases explicitly abandoned, disconnected queued, revoked, and expired admissions', async () => {
+    const a = newGuest(); const offer = await post('/circle/admit',metadata('hold',a),GUEST_ID);
+    const abort = new AbortController(); const queued = normalChat({...metadata('queued',a),prompt:'unsent'},GUEST_ID,fetch,abort.signal);
+    await expect.poll(()=>admission.getQueuedCount(a)).toBe(1); abort.abort(); await expect(queued).rejects.toThrow();
+    await expect.poll(()=>admission.getQueuedCount(a)).toBe(0);
+    expect((await post('/circle/cancel',{},GUEST_ID,grantHeaders(offer.body.grant))).status).toBe(200);
+    expect(admission.getActiveCount(a)).toBe(0);
+    const stale = await post('/circle/admit',metadata('ttl',a),GUEST_ID); offset += 11_000;
+    expect((await post('/circle/chat',{prompt:'expired'},GUEST_ID,grantHeaders(stale.body.grant))).status).toBe(403);
+    expect(admission.getActiveCount(a)).toBe(0);
+    const button = await post('/circle/admit',metadata('revoke',a),GUEST_ID);
+    invites.revoke(a); expect(admission.getActiveCount(a)).toBe(0);
+    expect((await post('/circle/chat',{prompt:'revoked'},GUEST_ID,grantHeaders(button.body.grant))).status).toBe(403);
+    const temporary = newGuest(now()+200);
+    expect((await post('/circle/admit',metadata('abandoned',temporary),GUEST_ID)).status).toBe(200);
+    await expect.poll(()=>admission.getActiveCount(temporary)).toBe(0);
+    expect(disclosedPrompts).toEqual([]);
+  });
+
+  it('retains the draft and cancels an admission whose disclosure does not match the expected host', async () => {
+    const inviteId = newGuest(); const observed=[];
+    await expect(normalChat({...metadata('bad-disclosure',inviteId),prompt:'keep this local'},GUEST_ID,async (url,options) => {
+      observed.push(new URL(url).pathname); const response=await fetch(url,options);
+      if (new URL(url).pathname !== '/circle/admit') return response;
+      const json=await response.json(); return Response.json({...json,disclosure:{hostPeerId:'somebody-else'}});
+    })).rejects.toThrow('admission no longer matches');
+    expect(observed).toEqual(['/circle/admit','/circle/cancel']);
+    expect(admission.getActiveCount(inviteId)).toBe(0); expect(disclosedPrompts).toEqual([]);
   });
 
   it('toggles Wave 2 public challenge lane independently and enforces kill switch back to replay-only', async () => {

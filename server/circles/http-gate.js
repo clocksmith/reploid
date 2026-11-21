@@ -1,10 +1,12 @@
 import http from 'node:http';
+import { createCircleHttpGrants } from './http-grants.js';
 import { formatHostDisclosure } from './admission.js';
 import { handleCircleInviteOwnerCommand } from './owner-invites.js';
 
 const MAX_BODY_BYTES = 16_384;
 
 function sendJson(res, statusCode, payload) {
+  if (res.destroyed || res.writableEnded) return;
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
     'content-type': 'application/json; charset=utf-8',
@@ -15,27 +17,29 @@ function sendJson(res, statusCode, payload) {
   res.end(body);
 }
 
-function readJson(req) {
+function readJson(req, signal) {
+  signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     let total = 0;
     const chunks = [];
-    req.on('data', chunk => {
+    function cleanup() {
+      req.off('data',data); req.off('end',end); req.off('aborted',aborted); req.off('error',fail);
+      signal?.removeEventListener('abort', aborted);
+    }
+    function fail(error) { cleanup(); req.resume(); reject(error); }
+    function aborted() { fail(signal?.reason ?? Error('Client disconnected')); }
+    function data(chunk) {
       total += chunk.length;
-      if (total > MAX_BODY_BYTES) {
-        reject(Object.assign(new Error('Request body exceeds limit'), { statusCode: 413, code: 'BODY_TOO_LARGE' }));
-        req.destroy();
-        return;
-      }
+      if (total > MAX_BODY_BYTES) return fail(Object.assign(Error('Request body exceeds limit'), {statusCode:413,code:'BODY_TOO_LARGE'}));
       chunks.push(chunk);
-    });
-    req.on('end', () => {
-      try {
-        resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {});
-      } catch {
-        reject(Object.assign(new Error('Invalid JSON body'), { statusCode: 400, code: 'INVALID_JSON' }));
-      }
-    });
-    req.on('error', reject);
+    }
+    function end() {
+      cleanup();
+      try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {}); }
+      catch { reject(Object.assign(Error('Invalid JSON body'),{statusCode:400,code:'INVALID_JSON'})); }
+    }
+    signal?.addEventListener('abort',aborted,{once:true});
+    req.on('data',data); req.once('end',end); req.once('aborted',aborted); req.once('error',fail);
   });
 }
 
@@ -77,13 +81,17 @@ export function createCirclePublicGateway({
   recordedDemo,
   executeInference,
   executeChallenge = null,
-  revocationPolicy = 'finish'
+  revocationPolicy = 'finish',
+  grantTtlMs = 10_000,
+  now = Date.now
 }) {
   if (!invites || !admission || !ownerPairing || typeof authenticatePeer !== 'function'
     || typeof executeInference !== 'function' || !recordedDemo) {
     throw new Error('Circle gateway requires invites, admission, ownerPairing, authenticatePeer, recordedDemo, and executeInference');
   }
 
+  const grants = createCircleHttpGrants({invites,admission,ownerPairing,grantTtlMs,now});
+  const shutdown = new AbortController();
   let inferenceCalls = 0;
   let challengeCalls = 0;
   let activeExecutions = 0;
@@ -114,6 +122,10 @@ export function createCirclePublicGateway({
 
     if (req.method !== 'POST') {
       return sendJson(res, 405, { error: 'Method not allowed' });
+    }
+
+    if (['/circle/admit','/circle/chat','/circle/cancel'].includes(pathname)) {
+      return handleChat(req,res,pathname);
     }
 
     let body;
@@ -159,73 +171,6 @@ export function createCirclePublicGateway({
       } catch (error) {
         const statusCode = /Only a paired owner/.test(error.message) ? 403 : 400;
         return sendJson(res, statusCode, { error: error.message });
-      }
-    }
-
-    if (pathname === '/circle/chat') {
-      const peerId = await authenticatePeer(req);
-      if (!peerId) {
-        return sendJson(res, 401, { error: 'Authenticated peer required', code: 'CIRCLE_UNAUTHENTICATED', fallback: ['replay', 'host-your-own'] });
-      }
-      if (body.hostPeerId && body.hostPeerId !== invites.hostPeerId) {
-        return sendJson(res, 403, { error: 'Invite cannot route work to another computer', code: 'CIRCLE_WRONG_HOST', fallback: ['replay', 'host-your-own'] });
-      }
-      if (typeof body.prompt !== 'string' || !body.prompt.trim()) {
-        return sendJson(res, 400, { error: 'Non-empty prompt is required', code: 'CIRCLE_REQUEST' });
-      }
-      let lease;
-      try {
-        lease = await admission.acquire({
-          ...(body.inviteId !== undefined ? { inviteId: body.inviteId } : {}),
-          requestId: body.requestId,
-          modelIdentity: body.modelIdentity,
-          maxOutputTokens: body.maxOutputTokens,
-          ...(body.conversationId !== undefined ? { conversationId: body.conversationId } : {})
-        }, { authenticatedPeerId: peerId });
-      } catch (error) {
-        const statusCode = /queue is full/.test(error.message) ? 429 : errorStatus(error.code, 400);
-        return sendJson(res, statusCode, {
-          error: error.message,
-          code: error.code || (/queue is full/.test(error.message) ? 'CIRCLE_FULL' : 'CIRCLE_REJECTED'),
-          state: error.state || admission.getAvailability().status,
-          expectedWaitMs: error.expectedWaitMs ?? null,
-          fallback: error.fallback || ['replay', 'host-your-own']
-        });
-      }
-
-      activeExecutions += 1;
-      if (activeExecutions > peakExecutions) peakExecutions = activeExecutions;
-      inferenceCalls += 1;
-      try {
-        const result = await executeInference({
-          prompt: body.prompt,
-          maxOutputTokens: body.maxOutputTokens,
-          lease,
-          signal: lease.streamSignal
-        });
-        const outcome = lease.streamSignal.aborted ? 'stopped' : (result?.outcome || 'completed');
-        const settled = lease.settle({
-          outcome,
-          outputTokens: result?.outputTokens ?? 0,
-          modelWeightBytes: result?.modelWeightBytes ?? 0
-        });
-        return sendJson(res, 200, {
-          output: result?.output ?? '',
-          disclosure: lease.disclosure,
-          receipt: settled.receipt,
-          alreadySettled: settled.alreadySettled
-        });
-      } catch (error) {
-        const outcome = lease.streamSignal.aborted ? 'stopped' : 'failed';
-        const settled = lease.settle({ outcome, outputTokens: 0, modelWeightBytes: 0 });
-        return sendJson(res, lease.streamSignal.aborted ? 409 : 500, {
-          error: error.message,
-          code: lease.streamSignal.aborted ? 'CIRCLE_REVOKED' : 'CIRCLE_EXECUTION_FAILED',
-          receipt: settled.receipt
-        });
-      } finally {
-        activeExecutions = Math.max(0, activeExecutions - 1);
-        lease.release();
       }
     }
 
@@ -299,6 +244,70 @@ export function createCirclePublicGateway({
     return sendJson(res, 404, { error: 'Not found' });
   }
 
+  async function handleChat(req,res,pathname) {
+    const peerId = await authenticatePeer(req);
+    if (!peerId) return sendJson(res,401,{error:'Authenticated peer required',code:'CIRCLE_UNAUTHENTICATED',fallback:['replay','host-your-own']});
+    const disconnected = new AbortController();
+    const abort = () => { if (!res.writableEnded) disconnected.abort(Error('Client disconnected')); };
+    res.once('close',abort);
+    const signal = AbortSignal.any([disconnected.signal,shutdown.signal]);
+    let entry, ownsEntry = false, dispatched = false;
+    try {
+      if (res.destroyed) throw Error('Client disconnected');
+      if (pathname === '/circle/admit') {
+        const body = await readJson(req,signal);
+        if (body?.hostPeerId !== invites.hostPeerId) return sendJson(res,403,{error:'Admission requires the exact expected host',code:'CIRCLE_WRONG_HOST'});
+        const {hostPeerId,...metadata} = body;
+        // acquire rejects every unknown property (including a prompt). Only these
+        // metadata bytes travel to the host while the normal caller waits in queue.
+        const lease = await admission.acquire(metadata,{authenticatedPeerId:peerId,signal});
+        entry = grants.issue(lease,peerId,metadata);
+        ownsEntry = true;
+        signal.throwIfAborted();
+        const undelivered = () => { if (!res.writableFinished) grants.abandon(entry); };
+        res.once('close',undelivered);
+        res.once('finish',() => res.off('close',undelivered));
+        return sendJson(res,200,{admitted:true,grant:entry.token,expiresAt:entry.expiresAt,hostPeerId,
+          requesterPeerId:peerId,requestId:metadata.requestId,modelIdentity:metadata.modelIdentity,maxOutputTokens:metadata.maxOutputTokens,
+          disclosure:lease.disclosure});
+      }
+      // Authenticate and validate headers before attaching a body reader. Recheck
+      // the invitation or owner immediately before dispatch, including slow uploads.
+      entry = grants.lookup(req.headers['x-circle-grant'],peerId,req.headers['x-circle-host']);
+      if (pathname === '/circle/cancel') { grants.abandon(entry); return sendJson(res,200,{cancelled:true}); }
+      grants.claim(entry);
+      ownsEntry = true;
+      const body = await readJson(req,AbortSignal.any([signal,entry.abort.signal]));
+      if (typeof body?.prompt !== 'string' || !body.prompt.trim() || Object.keys(body).length !== 1) {
+        throw Object.assign(Error('A single non-empty prompt is required'),{code:'CIRCLE_REQUEST'});
+      }
+      signal.throwIfAborted();
+      grants.dispatch(entry);
+      dispatched = true;
+      const {lease,metadata} = entry;
+      activeExecutions++; peakExecutions = Math.max(peakExecutions,activeExecutions); inferenceCalls++;
+      const result = await executeInference({prompt:body.prompt,maxOutputTokens:metadata.maxOutputTokens,requestId:metadata.requestId,
+        authenticatedPeerId:peerId,lease,signal:AbortSignal.any([signal,lease.streamSignal])});
+      const outcome = lease.streamSignal.aborted || signal.aborted ? 'stopped' : result?.outcome || 'completed';
+      const settled = lease.settle({outcome,outputTokens:result?.outputTokens ?? 0,modelWeightBytes:result?.modelWeightBytes ?? 0});
+      return sendJson(res,200,{output:result?.output ?? '',disclosure:lease.disclosure,receipt:settled.receipt,alreadySettled:settled.alreadySettled});
+    } catch (error) {
+      if (dispatched) {
+        const stopped = entry.lease.streamSignal.aborted || signal.aborted;
+        const settled = entry.lease.settle({outcome:stopped ? 'stopped':'failed',outputTokens:0,modelWeightBytes:0});
+        return sendJson(res,stopped ? 409:500,{error:error.message,code:stopped?'CIRCLE_REVOKED':'CIRCLE_EXECUTION_FAILED',receipt:settled.receipt});
+      }
+      if (ownsEntry) grants.abandon(entry);
+      const full = /queue is full/.test(error.message);
+      return sendJson(res,full ? 429 : errorStatus(error.code,error.statusCode || 400),{error:error.message,
+        code:error.code ?? (full?'CIRCLE_FULL':'CIRCLE_REJECTED'),state:error.state ?? admission.getAvailability().status,
+        expectedWaitMs:error.expectedWaitMs ?? null,fallback:error.fallback ?? ['replay','host-your-own']});
+    } finally {
+      res.off('close',abort);
+      if (dispatched) { activeExecutions--; entry.lease.release(); }
+    }
+  }
+
   function stats() {
     return Object.freeze({
       demoViews,
@@ -310,10 +319,13 @@ export function createCirclePublicGateway({
   }
 
   async function listen({ host = '127.0.0.1', port = 0 } = {}) {
+    const inFlight = new Set();
     const server = http.createServer((req, res) => {
-      void handle(req, res).catch(error => {
+      const task = handle(req, res).catch(error => {
         if (!res.headersSent) sendJson(res, 500, { error: error?.message || 'Internal error' });
       });
+      inFlight.add(task);
+      void task.finally(() => inFlight.delete(task));
     });
     await new Promise((resolve, reject) => {
       server.once('error', reject);
@@ -326,9 +338,12 @@ export function createCirclePublicGateway({
       origin,
       stats,
       async close() {
+        shutdown.abort();
+        grants.close();
         server.closeIdleConnections?.();
         server.closeAllConnections?.();
         await new Promise(resolve => server.close(resolve));
+        await Promise.allSettled(inFlight);
       }
     });
   }

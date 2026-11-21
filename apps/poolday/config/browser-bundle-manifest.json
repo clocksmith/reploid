@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 690800,
-      "sha256": "sha256:0a26970a7e48692466b244030381d5c4b02bd5750d2970a31b004ef2254d485b"
+      "byteLength": 691037,
+      "sha256": "sha256:9f1320cf8b9c62f9e65745515d140ab251cbcb89479d4b80283eac636da4630e"
     },
     {
       "path": "config/module-registry.json",
@@ -1505,8 +1505,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148673,
-      "sha256": "sha256:4b51368c17e015683915bc3b9e1c599114624ea8084b83d02e258eb76f94db70"
+      "byteLength": 148712,
+      "sha256": "sha256:94cd18d63ce8e0947183e5badf5c7b83397f6049d3d7ece2e25ce68bcd95362f"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1874,9 +1874,14 @@
       "sha256": "sha256:aa6ebe417c9519565e9ed5a23afca2009dbf97d90dfcdfc6dd1fda988300b1e0"
     },
     {
+      "path": "host/circle-http-client.js",
+      "byteLength": 3091,
+      "sha256": "sha256:7b76331efc48abd965d4aa01c7ddd732027a58ec9e4b2f175aa8116cca2c5c52"
+    },
+    {
       "path": "host/circle-invites.js",
-      "byteLength": 2443,
-      "sha256": "sha256:41cb5d99446cd4f749ae74b93f0d03da5f1cde911f3329f8327598eaa20567de"
+      "byteLength": 2583,
+      "sha256": "sha256:fd6f429e86ebcc6638d3fa03fc6810a120062f60767b8ae12dce9a050ece9154"
     },
     {
       "path": "host/computer-preferences.js",
@@ -3776,7 +3781,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "byteLength": 2692649,
-      "sha256": "sha256:38930da42c0164368e7c7537c338140a522afa6a95e1de411af8dde1016cc80b"
+      "sha256": "sha256:9159f7d3ccc6d7b2f9675934c35a5868ed35d366325b720eab9e5200100c30d6"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12709,5 +12714,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:006e1786ce98340c935eedfe73c6f662fc78da5e94356afcb8f7c06cb411bc6d"
+  "bundleHash": "sha256:5787c167ed17ce3f9d0255384a188c63752c0fb686eebc72a2727b3c6a903ccd"
 }

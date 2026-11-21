@@ -1,3 +1,4 @@
+import { sendCircleChat } from '../../apps/poolday/host/circle-invites.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -103,33 +104,29 @@ try {
 
   // --- Phase 1: Wave 1 50,000-visit burst (public demo + invalid invites + 5 authorized guest turns) ---
   const wave1Counts = { demo200: 0, invalidInvite403: 0, guestAdmitted200: 0, guestExhausted403: 0 };
+  // The positive control represents one conversation: the guest waits for each
+  // turn before spending the next invite use. The other visitors remain concurrent.
+  let guestConversation = Promise.resolve();
+  async function runGuestTurn(index) {
+    const res = await sendCircleChat({origin, requesterPeerId:GUEST_ID, headers:{'x-test-peer':GUEST_ID},
+      metadata:{inviteId:redeemed.inviteId,hostPeerId:HOST_ID,requestId:`guest-turn-${index}`,
+        modelIdentity:MODEL_ID,maxOutputTokens:16},prompt:`hello ${index}`});
+    if (res.status === 200) {
+      const body = await res.json();
+      assert.equal(body.receipt.hostPeerId, HOST_ID);
+      assert.equal(body.receipt.modelIdentity, MODEL_ID);
+      assert.equal(body.receipt.modelWeightBytes, 0);
+      wave1Counts.guestAdmitted200 += 1;
+    } else {
+      assert.equal(res.status, 403);
+      await res.arrayBuffer();
+      wave1Counts.guestExhausted403 += 1;
+    }
+  }
   const wave1Timing = await runPool(WAVE1_VISITS, CONCURRENCY, async index => {
     if (index < 10) {
-      // 10 requests from the invited guest against a 5-request quota: exactly 5 must admit, 5 must refuse.
-      const res = await fetch(`${origin}/circle/chat`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-test-peer': GUEST_ID },
-        body: JSON.stringify({
-          inviteId: redeemed.inviteId,
-          hostPeerId: HOST_ID,
-          requestId: `guest-turn-${index}`,
-          modelIdentity: MODEL_ID,
-          maxOutputTokens: 16,
-          prompt: `hello ${index}`
-        })
-      });
-      if (res.status === 200) {
-        const body = await res.json();
-        assert.equal(body.receipt.hostPeerId, HOST_ID);
-        assert.equal(body.receipt.modelIdentity, MODEL_ID);
-        assert.equal(body.receipt.modelWeightBytes, 0);
-        wave1Counts.guestAdmitted200 += 1;
-      } else {
-        assert.equal(res.status, 403);
-        await res.arrayBuffer();
-        wave1Counts.guestExhausted403 += 1;
-      }
-      return;
+      guestConversation = guestConversation.then(() => runGuestTurn(index));
+      return guestConversation;
     }
     if (index % 10 === 0) {
       const res = await fetch(`${origin}/circle/redeem`, {

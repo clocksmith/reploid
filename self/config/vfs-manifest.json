@@ -573,6 +573,7 @@
     "self/host/chat-remote-permission.js",
     "self/host/chat-session.js",
     "self/host/chat-view.js",
+    "self/host/circle-http-client.js",
     "self/host/circle-invites.js",
     "self/host/computer-preferences.js",
     "self/host/contribution-history.js",

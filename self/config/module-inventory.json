@@ -2890,10 +2890,18 @@
       "imports": []
     },
     {
+      "path": "self/host/circle-http-client.js",
+      "owner": "self",
+      "sha256": "sha256:7b76331efc48abd965d4aa01c7ddd732027a58ec9e4b2f175aa8116cca2c5c52",
+      "imports": []
+    },
+    {
       "path": "self/host/circle-invites.js",
       "owner": "self",
-      "sha256": "sha256:41cb5d99446cd4f749ae74b93f0d03da5f1cde911f3329f8327598eaa20567de",
-      "imports": []
+      "sha256": "sha256:fd6f429e86ebcc6638d3fa03fc6810a120062f60767b8ae12dce9a050ece9154",
+      "imports": [
+        "./circle-http-client.js"
+      ]
     },
     {
       "path": "self/host/computer-preferences.js",
@@ -4282,7 +4290,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:38930da42c0164368e7c7537c338140a522afa6a95e1de411af8dde1016cc80b",
+      "sha256": "sha256:9159f7d3ccc6d7b2f9675934c35a5868ed35d366325b720eab9e5200100c30d6",
       "imports": []
     },
     {

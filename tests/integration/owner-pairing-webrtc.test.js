@@ -1,13 +1,10 @@
 // @vitest-environment node
 import { it, expect } from 'vitest';
+import { createPairingNetwork } from '../fixtures/owner-pairing-webrtc.js';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import rtcModule from '@roamhq/wrtc';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
-import { resolveConfig } from '../../packages/reploid/src/config/index.js';
-import { createMeshPeerIdentity } from '../../packages/reploid/src/mesh/peer-identity.js';
-import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js';
 import { openOwnerPairing } from '../../server/circles/owner-pairing.js';
 import { requestOwnerPairing } from '../../packages/reploid/src/transport/index.js';
 
@@ -16,39 +13,9 @@ it('pairs only after local approval and preserves the authenticated desktop and 
   const file = path.join(directory, 'owner-pairing.sqlite');
   const desktop = await createSigningIdentity({ algorithm: 'Ed25519' });
   const phone = await createSigningIdentity({ algorithm: 'ECDSA' });
-  const roomId = 'reploid-swarm-pairing-test';
-  const signaling = [], joined = new Map(), connections = [];
   const turn = process.env.REPLOID_OWNER_PAIRING_TURN;
-  const rtcConfig = turn ? { iceTransportPolicy: 'relay', iceServers: [JSON.parse(turn)] } : { iceServers: [] };
-  const config = resolveConfig({ overrides: { mesh: { enabled: true, roomId }, webrtc: { rtcConfig: { iceServers: [] } } } });
-  const rtc = rtcModule.default ?? rtcModule;
-  const logger = Object.fromEntries(['info', 'debug', 'warn', 'error'].map(key => [key, () => {}]));
-  const start = async (peerId, identity) => {
-    let receive;
-    const transport = createWebRTCSwarm({ config, Utils: { logger, generateId: () => crypto.randomUUID() }, EventBus: { emit() {} },
-      peerId, getSessionId: () => roomId, getRoomCredentials: () => ({ roomId, token: '' }), ...rtc,
-      getRtcConfig: async () => rtcConfig,
-      signalingAdapter: {
-        subscribe(handler) { receive = handler; return () => { joined.delete(peerId); }; },
-        publish(message) {
-          signaling.push(message);
-          if (message.type === 'join') {
-            const peers = [...joined.keys()];
-            joined.set(peerId, receive);
-            queueMicrotask(() => void receive({ type: 'joined', roomId, peerId, peers }));
-          } else if (message.targetPeer) {
-            const deliver = joined.get(message.targetPeer);
-            if (deliver) queueMicrotask(() => void deliver(message));
-          }
-        }
-      } });
-    const peerIdentity = createMeshPeerIdentity({ transport, getIdentity: () => identity, roomId, timeoutMs: 2000, maxPending: 4 });
-    const endpoint = { transport, verifyPeer: peerIdentity.verify, currentPeer: peerIdentity.getVerified,
-      close() { peerIdentity.close(); transport.disconnect(); } };
-    connections.push(endpoint);
-    await transport.init();
-    return endpoint;
-  };
+  const network = createPairingNetwork(turn);
+  const { start, signaling } = network;
   let pairing;
   try {
     let request = Promise.withResolvers(), now = Date.now();
@@ -96,7 +63,7 @@ it('pairs only after local approval and preserves the authenticated desktop and 
     await expect(openOwnerPairing({ file, hostParticipantId: phone.peerId })).rejects.toThrow('belongs to another desktop');
   } finally {
     pairing?.close();
-    for (const endpoint of connections) endpoint.close();
+    network.close();
     await rm(directory, { recursive: true, force: true });
   }
 }, 15000);
