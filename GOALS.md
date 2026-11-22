@@ -2,6 +2,28 @@
 
 ## Operating mission
 
+Owner clarification, November 22, 2026: the target is an inference exchange.
+Contributors earn credits by serving others, then spend them from the same
+account on pooled compute they cannot supply alone. From a browser that downloads
+zero weights, a developer runs a private coding task on a pinned model that
+neither participating machine can complete alone at the required context and
+precision, and the output matches a larger single-host reference. Before
+dispatch, Reploid discloses the maximum charge, which host runs which stage, who
+reads the plaintext prompt, and which intermediates or metadata are visible, and
+it refuses routes outside policy. Signed receipts prove the model identity, each
+host's work, the requester's debit and the providers' rewards without exposing
+the prompt. Across retries, cancellations, late receipts or a split host that
+silently disappears, the ledger finalizes by a stated deadline, with no double
+charge, double reward or stranded hold, and it reports host cleanup it could not
+verify.
+
+Implementation boundary: this is a target, not a qualified capability. No split
+route is qualified for public use, the solo-failure and split runs on the pinned
+model have not been performed, and earn-then-spend from one account is not yet
+verified end to end. "Private" means the requester approved a disclosed route
+and Reploid enforced it. The executing hosts read what their stage needs, so do
+not describe a request as confidential from them.
+
 Owner clarification, November 10, 2026: participating computers should retain
 their identities, earn credit for serving and spend credit for requesting;
 negative balances are permitted for now. Pool contribution using hardware limits,
