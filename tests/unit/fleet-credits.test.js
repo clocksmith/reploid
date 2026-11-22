@@ -247,6 +247,45 @@ describe('enrolled fleet service credits', () => {
     expect(result.credits.map(row => row.amount)).toEqual([2, 5]);
     expect(ledger.snapshot().accounts.map(row => row.balance)).toEqual([-7, 2, 5]);
   });
+  it('lets one account earn by serving, then spend that balance on a two-provider split that reconciles exactly', async () => {
+    // Monday: computer 0 serves computer 1 and earns six credits.
+    const monday = request('monday', 1, 0); dispatch(monday);
+    await ledger.settle(monday.id, await evidence(monday, 6, 0, 1));
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 6, held: 0, available: 6 });
+
+    // Tuesday: the same account spends on a split run by the two other enrolled computers, reserving up to ten.
+    const route = { schema: 'reploid.partition-route/v1', modelId: 'model', modelIdentity: hash, planId: hash,
+      stages: identities.slice(1).map((identity, index) => ({ index, participantId: identity.peerId,
+        transportId: `transport-${index}`, residentId: `resident-${index}`, executionId: `stage-${index}` })),
+      activation: { schema: 'doppler.activation-tensor/v1', dtype: 'f32', hiddenSize: 1024, precision: 'f32', components: 1, elementStrideBytes: 4 } };
+    const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'thread', attemptId: 'execution-tuesday',
+      requesterId: identities[0].peerId, placementGeneration: 0, route };
+    const tuesday = { ...request('tuesday'), mode: 'partition', route: identity,
+      providers: [{ participantId: identities[1].peerId, weight: 1 }, { participantId: identities[2].peerId, weight: 2 }] };
+    dispatch(tuesday);
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 6, held: 10, available: -4 });
+    const routeHash = await attemptRouteHash(identity), signedAt = new Date(at).toISOString();
+    const receipts = await Promise.all([1, 2].map(async (owner, index) => createAttemptEvidenceSigner({ identity: identities[owner] }).sign(STAGE_RECEIPT_SCHEMA,
+      { schema: STAGE_RECEIPT_SCHEMA, reservationId: tuesday.id, attemptId: tuesday.executionId, routeHash, partitionIndex: index,
+        participantId: identities[owner].peerId, sequence: 2, status: 'settled', steps: 4, tokens: { prompt: 12, processed: 16 },
+        timing: { reservedAt: signedAt, firstStepAt: signedAt, lastStepAt: signedAt, closedAt: signedAt },
+        output: index === 1 ? { count: 4, chain: other, done: true, stopReason: 'eos' } : null, signedAt })));
+    const acknowledgment = await createAttemptEvidenceSigner({ identity: identities[0] }).sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA,
+      { schema: OUTPUT_ACKNOWLEDGMENT_SCHEMA, reservationId: tuesday.id, attemptId: tuesday.executionId, routeHash,
+        requesterId: identities[0].peerId, count: 4, chain: other, signedAt });
+    ledger.admit(tuesday.id, 0); ledger.admit(tuesday.id, 1);
+    const trade = await ledger.settle(tuesday.id, { identity, receipts, acknowledgment });
+
+    // One debit that equals both rewards, paid from the earned balance, with the unused six credits released.
+    expect(trade.charge).toBe(4);
+    expect(trade.credits.map(row => row.amount)).toEqual([1, 3]);
+    expect(trade.credits.reduce((sum, row) => sum + row.amount, 0)).toBe(trade.charge);
+    const after = ledger.snapshot().accounts.map(row => [row.balance, row.held]);
+    expect(after).toEqual([[2, 0], [-6 + 1, 0], [3, 0]]);
+    // Replaying the same settlement pays nobody twice.
+    await ledger.settle(tuesday.id, { identity, receipts, acknowledgment });
+    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual(after);
+  });
   it('reconciles orphaned requester reservations on process restart without touching active or unresolved admitted holds', async () => {
     ledger.close();
     ledger = await openFleetCredits({
