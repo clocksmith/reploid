@@ -3,7 +3,13 @@ import { createContributorIdentity } from './contributor-identity.js';
 import { operationObserverEvidence } from '../../../shared/vendor/reploid/mesh/jobs/operation-privacy.js';
 import { createWebAccessNetwork } from '../../../shared/vendor/reploid/mesh/web-access-network.js';
 import { createPeerGenerationMesh, createAutomaticPartitions } from '../../../shared/vendor/reploid/mesh/index.js';
-import { createSwarmTransport, createRoomIntroductionAdmission } from '../../../shared/vendor/reploid/transport/index.js';
+import {
+  createSwarmTransport,
+  createRoomIntroductionAdmission,
+  ownerPairingRoomId,
+  ownerPairingRoomMarker
+} from '../../../shared/vendor/reploid/transport/index.js';
+import swarmBootstrap from '../../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { resolveConfig } from '../../../shared/vendor/reploid/config/index.js';
 import { createLegacyNetworkOptions } from '../../../shared/capabilities/communication/library-adapter.js';
 import { ensureIdentityBundle, saveIdentityBundle, rotateIdentityBundle } from '../../../shared/identity.js';
@@ -40,6 +46,33 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
+  let activeOptions = options;
+  function resolveRoomOptions(roomId) {
+    if (!roomId || roomId === options.config.value.mesh.roomId) return options;
+    if (!ownerPairingRoomId(roomId)) throw new Error('Invalid desktop room hint');
+    const isPublic = roomId === swarmBootstrap.publicRoomId;
+    const baseSignaling = options.config.value.webrtc?.signalingUrl || swarmBootstrap.signalingUrl;
+    const nextUrl = new URL(baseSignaling);
+    nextUrl.searchParams.set('scope', isPublic ? 'public' : 'private');
+    nextUrl.searchParams.set('roomId', roomId);
+    const nextConfig = resolveConfig({
+      overrides: {
+        ...options.config.value,
+        mesh: { ...options.config.value.mesh, roomId },
+        webrtc: { ...options.config.value.webrtc, signalingUrl: nextUrl.href, broadcastRoomId: roomId }
+      }
+    });
+    return {
+      ...options,
+      config: nextConfig,
+      discoveryScope: isPublic ? 'public' : 'private',
+      getRoomCredentials() {
+        if (isPublic) return { roomId, token: swarmBootstrap.publicJoinMarker };
+        const storedToken = storage?.getItem?.(`REPLOID_SWARM_TOKEN:${roomId}`);
+        return { roomId, token: storedToken || ownerPairingRoomMarker(roomId) };
+      }
+    };
+  }
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
   let connection = null, introductionAssistance = storage?.getItem('REPLOID_INTRODUCTIONS_ENABLED') !== 'false';
   let computeEnabled = storage?.getItem('REPLOID_CACHED_COMPUTE_ENABLED') !== 'false';
@@ -109,7 +142,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     introductionState: consumerTransport?.getStats?.()?.introductionState ?? consumerTransport?.getConnectionState?.() ?? null,
     connectionFailure: connectionFailure ? { ...connectionFailure } : null,
     error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
-    discoveryScope: options.discoveryScope,
+    discoveryScope: activeOptions.discoveryScope,
     webContributors: webNetwork?.getOffers() || [],
     partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
     contribution: { ...contribution }, contributionHistory: contributionHistory.getState(),
@@ -140,7 +173,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const contributorIdentity = model ? createContributorIdentity({ storage }) : null;
     const events = EventBus.factory({ Utils: utils });
     events.on('swarm-state', notify);
-    const config = resolveConfig({ overrides: { ...options.config.value, mesh: { ...options.config.value.mesh,
+    const currentOptions = activeOptions;
+    const config = resolveConfig({ overrides: { ...currentOptions.config.value, mesh: { ...currentOptions.config.value.mesh,
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
     const mesh = createPeerGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events, getBlockedComputers,
@@ -154,9 +188,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       },
       createTransport: () => {
         if (closed || paused || version !== generation) throw new Error('Text swarm connection stopped');
-        const admission = options.discoveryScope === 'private'
-          ? createRoomIntroductionAdmission(options.getRoomCredentials()) : null;
-        const introductions = options.introductions || (['public', 'private'].includes(options.discoveryScope) ? {
+        const admission = currentOptions.discoveryScope === 'private'
+          ? createRoomIntroductionAdmission(currentOptions.getRoomCredentials()) : null;
+        const introductions = currentOptions.introductions || (['public', 'private'].includes(currentOptions.discoveryScope) ? {
           getIdentity: () => signingIdentity,
           ...(admission ? { createAdmission: admission.create } : {}),
           authorize: async request => !closed && !paused && version === generation
@@ -164,7 +198,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
             && (request.action !== 'forward' || introductionAssistance)
             && (!admission || (!request.contact && !request.from) || await admission.verify(request.contact || request.from))
         } : undefined);
-        const transport = createSwarmTransport({ ...options, config, introductions, ...(peerId ? { peerId } : {}) });
+        const transport = createSwarmTransport({ ...currentOptions, config, introductions, ...(peerId ? { peerId } : {}) });
         if (!model) consumerTransport = transport;
         return transport;
       },
@@ -251,14 +285,14 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         await modelFiles.attach();
         partitionNetworks = createWorkPartitionNetworks({ transport: consumerTransport,
           verifyPeer: (peerId, signal) => active.verifyPeerIdentity(peerId, signal) });
-        if (canonical && (canonical.participantId !== consumerIdentity.peerId || canonical.meshId !== options.config.value.mesh.roomId)) {
+        if (canonical && (canonical.participantId !== consumerIdentity.peerId || canonical.meshId !== activeOptions.config.value.mesh.roomId)) {
           throw new Error('Canonical history identity differs from authenticated participant or mesh');
         }
         partitionRequester = consumerIdentity.peerId;
         const recorder = readiness = readinessStore && createReadinessRecorder({ participantId: consumerIdentity.peerId,
           host: 'browser', write: readinessStore.write });
         const mesh = partitionMesh = createPartitions({ canonical: canonical ? { runtime: canonical.runtime,
-          coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch } : null, identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
+          coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch } : null, identity: consumerIdentity, meshId: activeOptions.config.value.mesh.roomId,
           models: LOCAL_DOPPLER_MODELS.filter(model => model.source?.files.some(file => file.role === 'model-piece-index')),
           ...bindWorkOrderedParticipation(ordered, consumerIdentity.peerId, ordered ? consumerTransport.getPeerId() : null, partitionPolicy),
           peers: () => (consumerTransport?.getConnectedPeers() || []).map(peer => ({ ...peer, localTransportId: consumerTransport.getPeerId() })),
@@ -306,11 +340,20 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     }
     finally { connecting = false; notify(); }
   };
-  const connect = async ({ automatic = false } = {}) => {
+  const connect = async ({ automatic = false, roomId = null } = {}) => {
     if (disconnecting) await disconnecting;
     if (closed) throw new Error('Text swarm is closed');
     if (cleanupDebt.size) throw new Error('Previous connection cleanup remains unsettled; retry disconnect');
     if (automatic && (!automaticAllowed || paused)) return getState();
+    if (roomId !== null && roomId !== undefined) {
+      if (!ownerPairingRoomId(roomId)) throw new Error('Invalid desktop room hint');
+      if (canonical && roomId !== canonical.meshId) throw new Error('Canonical history mesh cannot switch rooms');
+      if (roomId !== activeOptions.config.value.mesh.roomId) {
+        if (consumer || connection) await disconnect({ automatic: true });
+        if (closed) throw new Error('Text swarm is closed');
+        activeOptions = resolveRoomOptions(roomId);
+      }
+    }
     if (!automatic) {
       paused = false; automaticAllowed = true;
       storage?.setItem('REPLOID_NETWORK_ENABLED_V2', 'true');
@@ -414,6 +457,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       const active = consumer, transport = consumerTransport;
       if (closed || paused || !active || !transport) return null;
       return {
+        roomId: activeOptions.config.value.mesh.roomId,
         transport,
         verifyPeer: (peerId, signal) => api.verifyPeerIdentity(peerId, signal),
         currentPeer: peerId => active.getVerifiedPeerIdentity?.(peerId) ?? null,
@@ -436,7 +480,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     /** This browser's readiness records as a CLI input document, or null without storage. */
     exportReadiness: () => readinessStore?.export() ?? null,
     /** The network (room) this swarm joins; remote permissions are bound to it. */
-    getNetworkId: () => options.config.value.mesh.roomId,
+    getNetworkId: () => activeOptions.config.value.mesh.roomId,
     getFileState: () => ({ ...(modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() }), enabled: filesEnabled }),
     async shareFiles(model, approved, controls) {
       if (approved !== true) throw new Error('Approve file contribution before sharing');

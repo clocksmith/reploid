@@ -1,8 +1,18 @@
 export const OWNER_PAIRING_REQUEST = 'reploid:owner-pairing-request';
 export const OWNER_PAIRING_RESULT = 'reploid:owner-pairing-result';
+export const OWNER_PAIRING_ROOM_PATTERN = /^reploid-swarm-[a-z0-9][a-z0-9_-]{0,127}$/i;
 export const ownerParticipantId = value => typeof value === 'string' && /^peer:[0-9a-f]{24}$/.test(value);
 export const ownerPairingCode = value => typeof value === 'string' && /^[A-Za-z0-9_-]{24}$/.test(value);
 export const ownerPairingRequestId = value => typeof value === 'string' && /^[0-9a-f-]{36}$/.test(value);
+export const ownerPairingRoomId = value => typeof value === 'string' && OWNER_PAIRING_ROOM_PATTERN.test(value);
+
+/** Non-secret signaling routing marker for owner-pairing rendezvous rooms; never grants authority. */
+export function ownerPairingRoomMarker(roomId) {
+  if (!ownerPairingRoomId(roomId) || roomId === 'reploid-swarm-public') {
+    throw Error('Owner pairing routing marker requires a valid nondefault room');
+  }
+  return `reploid-pairing-route-not-a-secret-v1:${roomId}`;
+}
 const replies = new WeakMap();
 
 /** Send the single-use code only over a freshly verified channel to the pinned desktop. */

@@ -1772,13 +1772,13 @@
     },
     {
       "path": "transport/owner-pairing.d.ts",
-      "bytes": 790,
-      "sha256": "878a9851c5733c61a3abcad6c8f126b5c2353637e7fab0928ac7772ad4134ae5"
+      "bytes": 972,
+      "sha256": "2374b4fd2e722eeb92f30d36b94b58a19c59877078bffc47e3917f34a604a5a9"
     },
     {
       "path": "transport/owner-pairing.js",
-      "bytes": 2364,
-      "sha256": "288c70f40ad27dd40bb44c29c1fafa539046737afe6d435dbbb299fe80a3ff91"
+      "bytes": 2939,
+      "sha256": "391364c1b5a62695268844b398807d12aa5a3484e22759b02e78745720058890"
     },
     {
       "path": "transport/partition-data-channel.d.ts",

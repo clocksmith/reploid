@@ -5,13 +5,14 @@ import { bindOwnerPairingControls, renderOwnerPairingControls } from '../../apps
 it('prefills from a fragment-only QR link without local address fields, pairs, and shows online/offline states', async () => {
   const hostParticipantId = `peer:${'a'.repeat(24)}`;
   const code = 'B'.repeat(24);
-  const url = createOwnerPairingUrl({ hostParticipantId, code, hostLabel: "Alex's PC", roomId: 'private-room-1' }, 'https://replo.id/');
+  const roomId = 'reploid-swarm-alex-pc';
+  const url = createOwnerPairingUrl({ hostParticipantId, code, hostLabel: "Alex's PC", roomId }, 'https://replo.id/');
   expect(new URL(url).search).toBe('');
   expect(parseOwnerPairingUrl(url)).toEqual({
     hostParticipantId,
     code,
     hostLabel: "Alex's PC",
-    roomId: 'private-room-1'
+    roomId
   });
 
   document.body.innerHTML = renderOwnerPairingControls();
@@ -22,15 +23,17 @@ it('prefills from a fragment-only QR link without local address fields, pairs, a
   let currentState = { status: 'unpaired', paired: false, canSend: false, disclosure: null, error: '' };
   const ownerPairing = {
     state: () => currentState,
-    pair: vi.fn(async ({ hostParticipantId: id, code: entered, hostLabel }) => {
+    pair: vi.fn(async ({ hostParticipantId: id, code: entered, hostLabel, roomId: requestedRoom }) => {
       expect(id).toBe(hostParticipantId);
       expect(entered).toBe(code);
+      expect(requestedRoom).toBe(roomId);
       currentState = {
         status: 'online',
         paired: true,
         canSend: true,
         hostParticipantId: id,
         hostLabel: hostLabel || id,
+        roomId: requestedRoom,
         transportPath: 'relayed',
         readyModel: 'qwen-3-5-0-8b',
         disclosure: {
@@ -39,7 +42,7 @@ it('prefills from a fragment-only QR link without local address fields, pairs, a
         },
         error: ''
       };
-      return { hostParticipantId: id, hostLabel };
+      return { hostParticipantId: id, hostLabel, roomId: requestedRoom };
     }),
     unpair: vi.fn(() => {
       currentState = { status: 'unpaired', paired: false, canSend: false, disclosure: null, error: '' };
@@ -48,11 +51,12 @@ it('prefills from a fragment-only QR link without local address fields, pairs, a
   const session = { ownerPairing, getState: () => ({ ownerPairing: currentState }) };
   const view = bindOwnerPairingControls(document, session, { initialUrl: url });
 
-  // QR link prefilled the form and opened the panel.
+  // QR link prefilled the form including the nondefault room routing hint and opened the panel.
   expect(query('[data-owner-pairing]').open).toBe(true);
   expect(query('input[name="hostParticipantId"]').value).toBe(hostParticipantId);
   expect(query('input[name="code"]').value).toBe(code);
   expect(query('input[name="hostLabel"]').value).toBe("Alex's PC");
+  expect(query('input[name="roomId"]').value).toBe(roomId);
 
   // Submitting requests desktop approval and displays pre-prompt disclosure + relayed path.
   query('[data-owner-pairing-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));

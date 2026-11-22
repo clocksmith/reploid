@@ -176,7 +176,7 @@ export function createChatSession({
   const ownerPairing = createBrowserOwnerPairing({
     storage,
     getChannel: () => swarm?.getOwnerPairingChannel?.() || null,
-    connect: swarm?.connect ? () => swarm.connect({ automatic: false }) : null,
+    connect: swarm?.connect ? (options = {}) => swarm.connect({ automatic: false, ...options }) : null,
     onChange: () => notifyAll(),
     now
   });

@@ -12,6 +12,7 @@ export const renderOwnerPairingControls = () => `
         <label>Pairing link (optional)<input class="pool-input" name="link" type="url" placeholder="https://replo.id/#pair=..." autocomplete="off"></label>
         <label>Desktop ID<input class="pool-input" name="hostParticipantId" type="text" placeholder="peer:..." autocomplete="off" spellcheck="false" required></label>
         <label>Desktop name (optional)<input class="pool-input" name="hostLabel" type="text" placeholder="Alex's PC" autocomplete="off"></label>
+        <label>Desktop room hint (optional, routing only)<input class="pool-input" name="roomId" type="text" placeholder="reploid-swarm-..." autocomplete="off" spellcheck="false"></label>
         <label>One-time pairing code<input class="pool-input" name="code" type="text" autocomplete="off" spellcheck="false" required></label>
         <button class="pool-button btn-primary" type="submit">Request desktop approval</button>
       </form>
@@ -44,6 +45,7 @@ export function bindOwnerPairingControls(root, session, { initialUrl = globalThi
     form.elements.hostParticipantId.value = parsed.hostParticipantId;
     form.elements.code.value = parsed.code;
     if (parsed.hostLabel) form.elements.hostLabel.value = parsed.hostLabel;
+    form.elements.roomId.value = parsed.roomId || '';
     panel.open = true;
     statusNode.textContent = 'Pairing details loaded. Confirm to request desktop approval.';
     return true;
@@ -94,9 +96,15 @@ export function bindOwnerPairingControls(root, session, { initialUrl = globalThi
     if (!form.reportValidity()) return;
     const hostParticipantId = form.elements.hostParticipantId.value.trim();
     const hostLabel = form.elements.hostLabel.value.trim();
+    const roomId = form.elements.roomId.value.trim();
     const code = form.elements.code.value.trim();
     statusNode.textContent = 'Waiting for approval on your desktop terminal…';
-    void port.pair({ hostParticipantId, code, ...(hostLabel ? { hostLabel } : {}) })
+    void port.pair({
+      hostParticipantId,
+      code,
+      ...(hostLabel ? { hostLabel } : {}),
+      ...(roomId ? { roomId } : {})
+    })
       .then(result => {
         if (controller.signal.aborted) return;
         form.elements.code.value = '';
