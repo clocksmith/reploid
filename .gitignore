@@ -21,7 +21,7 @@ __pycache__/
 
 # Only the current integrity-pinned runtime is ordinary source input.
 /deploy/artifacts/*.tgz
-!/deploy/artifacts/dopplerx-0.1.6.tgz
+!/deploy/artifacts/dopplerx-0.1.7.tgz
 
 # Build outputs
 # Forecast packages are built from live sources by prepack, with a source-hash

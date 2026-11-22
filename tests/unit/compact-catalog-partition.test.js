@@ -6,7 +6,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as native from 'dopplerx/partitions';
-import * as browser from '../../shared/vendor/doppler/0.1.6/src/partitions.js';
+import * as browser from '../../shared/vendor/doppler/0.1.7/src/partitions.js';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 import { createWorkPartitionPlan } from '../../apps/poolday/host/work-partition-plan.js';
 import { readNativeModelConfiguration } from '../../server/native-model-config.js';

@@ -1,7 +1,7 @@
 {
   "name": "dopplerx",
-  "version": "0.1.6",
-  "spec": "file:deploy/artifacts/dopplerx-0.1.6.tgz",
-  "resolved": "file:deploy/artifacts/dopplerx-0.1.6.tgz",
-  "integrity": "sha512-NwkqE8Ws4D0ayP8oq4QKyfFQ7Zbrk6zetfefNjaa5s6yiGC6eIgTdAhpkv5S7zM7iMdKgG+DNRwmPv8oAXpewg=="
+  "version": "0.1.7",
+  "spec": "file:deploy/artifacts/dopplerx-0.1.7.tgz",
+  "resolved": "file:deploy/artifacts/dopplerx-0.1.7.tgz",
+  "integrity": "sha512-4oQ3wseowRHzmA/Ekl0AQAg/kuSjqWjJZVO41wEhI1NFSTlciDoA7sO9o0wZYTIMSpJuHQmo98376K7RHvBlzQ=="
 }

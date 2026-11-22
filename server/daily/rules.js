@@ -4,7 +4,7 @@ import { confusableGroups } from './unicode/confusables.js';
 export const PROFILE = Object.freeze({
   modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16',
   modelIdentity: 'sha256:cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d',
-  runtimeArchive: '73de585574bc4a290fb06e923c853b94f061726a446bc8481bdc2de4632f1449',
+  runtimeArchive: '09e9ce2cc27eeacaf3702efc6320882e849d3e0ce027687ebff7f7968e30a0b0',
   system: "Answer the user's prompt directly. Return only the requested answer, without explanation.",
   maxOutputTokens: 16, temperature: 0, topK: 1, topP: 1, thinking: false, context: 'fresh',
 });

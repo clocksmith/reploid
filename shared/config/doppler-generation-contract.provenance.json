@@ -1,7 +1,7 @@
 {
   "schema": "reploid.doppler-generation-contract/v1",
   "packageName": "dopplerx",
-  "packageVersion": "0.1.6",
+  "packageVersion": "0.1.7",
   "publicExport": "./generation-contract",
   "bundleSha256": "02f19b2d203e80f752f84ecd96917c922a6a7bb4c7006fe373252f01fab10ef1"
 }

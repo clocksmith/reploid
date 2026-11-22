@@ -23,7 +23,9 @@ async function fileHash(file) {
 // Both the private physical collector and the direct playtest open these exact
 // bytes. Nothing is downloaded, enrolled, or advertised as a network provider.
 export async function openDailyPhysical(directory) {
-  const archive = path.join(root,'deploy/artifacts/dopplerx-0.1.6.tgz');
+  // The archive Reploid pins (shared/config/doppler-package.json), so a DopplerX bump never needs a Daily edit.
+  const pinned = await readJson(path.join(root,'shared/config/doppler-package.json'));
+  const archive = path.join(root, pinned.resolved.replace(/^file:/,''));
   await verifyInstalledPackage({packageArchive:{path:archive, sha256:PROFILE.runtimeArchive},
     installedPackage:path.join(root,'node_modules','dopplerx')});
   const model = (await readJson(path.join(root,'shared/config/chat-models.json'))).find(item => item.id === PROFILE.modelId);
