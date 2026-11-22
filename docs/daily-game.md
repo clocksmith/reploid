@@ -120,6 +120,8 @@ Set `publicChallenge` to `true`, `auth.type` to `device`, and `bootstrapPlayers`
 
 Public circles sign players in with a device key and need no external sign-in service. On the first sign-in the browser creates a non-extractable signing key (Ed25519, or ECDSA P-256 where the browser lacks Ed25519), stores it in this site’s IndexedDB and sends only the public key. Each sign-in signs a one-time random challenge that names the circle’s exact origin and expires after two minutes. The server keeps the public keys in an owner-only `<database>.devices` file and treats each public key as one player on that origin.
 
+Switching a circle from the retired passkey sign-in to device keys gives every existing player a new identity, because the stored subject changes from `passkey/…` to `device/…`. Recorded attempts, leaderboards, reveal consent and dare links are kept and still open; a returning player starts a fresh personal history and cannot change sharing on an earlier win. Switch at a UTC day boundary: the day in progress stays pinned to the old rules. Owner statistics count a returning player as new.
+
 The identity lives on one device, in one browser profile. Clearing this site’s data, opening the game in another browser, or switching phones starts a new player with its own daily turns; there is no cross-device sync, export or recovery. The key shows only that the same browser profile came back. It does not check a fingerprint, PIN or other user verification, and it does not stop one person from creating several players. Players who signed in with passkeys under an earlier version sign in again as new players; their past turns stay in the score ledger.
 
 ## Host the game files on a stable HTTPS origin
