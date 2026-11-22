@@ -45,9 +45,9 @@
         <div id="code-field" class="pool-stack pool-gap-xs" hidden><label class="pool-small" for="code">Email code</label><input class="pool-input" id="code" autocomplete="one-time-code" inputmode="numeric" maxlength="10"></div>
         <button id="auth-button" class="pool-button btn-primary" type="submit">Send code</button>
       </form>
-      <div id="passkey-join" class="pool-stack pool-gap-sm" hidden>
-        <p class="pool-small">Your passkey keeps your three daily turns across visits.</p>
-        <div class="pool-row"><button id="passkey-register" type="button" class="pool-button btn-primary">Join game</button><button id="passkey-login" type="button" class="pool-button btn-ghost">Use existing passkey</button></div>
+      <div id="device-join-panel" class="pool-stack pool-gap-sm" hidden>
+        <p class="pool-small">This browser keeps a private player key, so your three daily turns carry across visits on this device. Clearing site data starts a new player.</p>
+        <div class="pool-row"><button id="device-join" type="button" class="pool-button btn-primary">Join game</button></div>
       </div>
       <form id="grant-form" class="pool-stack pool-gap-sm" hidden><label class="pool-small" for="grant">Your player pass</label><input class="pool-input" id="grant" type="password" autocomplete="off" required><button class="pool-button btn-primary" type="submit">Join game</button></form>
     <p id="join-status" class="pool-small pool-muted" role="status"></p></div></dialog>

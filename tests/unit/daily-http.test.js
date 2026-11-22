@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createDailyStore } from '../../server/daily/store.js';
 import { createDailyApp } from '../../server/daily/http.js';
+import { openDailyDeviceKeys } from '../../server/daily/device-keys.js';
+import { createTestDeviceKey } from '../fixtures/daily-device-key.mjs';
 
 const firstDay = '2026-11-21';
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { resolve, promise }; };
@@ -155,9 +157,9 @@ describe('daily circle HTTP boundary', () => {
   it('isolates a public static frontend’s CORS, ceremony and partitioned sessions from the direct circle', async () => {
     const quick = 'https://backend.example', site = 'https://daily.example';
     const primary = { start:vi.fn(),finish:vi.fn() };
-    const stable = { start:vi.fn(async () => ({grant:'ceremony',options:{rp:{id:'daily.example'}}})),
-      finish:vi.fn(async () => 'passkey/test-stable-guest') };
-    await start({origin:quick,passkeys:primary,publicInvite:invite.token,trustedFrontends:new Map([[site,{passkeys:stable}]])});
+    const stable = { start:vi.fn(async () => ({grant:'ceremony',challenge:'daily-example-challenge'})),
+      finish:vi.fn(async () => 'device/test-stable-guest') };
+    await start({origin:quick,deviceKeys:primary,publicInvite:invite.token,trustedFrontends:new Map([[site,{deviceKeys:stable}]])});
     const preflight = (origin, headers = 'content-type,x-circle-invite') => fetch(base+'/api/attempt',{method:'OPTIONS',
       headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':headers}});
     const valid = await preflight(site);
@@ -169,34 +171,36 @@ describe('daily circle HTTP boundary', () => {
     const other = await preflight('https://elsewhere.example');
     expect(other.status).toBe(403); expect(other.headers.has('access-control-allow-origin')).toBe(false);
     expect((await post('auth/grant',{grant:'test'},null,{Origin:site})).status).toBe(403);
-    const registration = await post('auth/passkey/start',{action:'register'},null,{Origin:site});
-    expect(registration.json.options.rp.id).toBe('daily.example'); expect(primary.start).not.toHaveBeenCalled();
-    expect(registration.cookie).toMatch(/^__Host-reploid_daily_passkey=ceremony;/);
+    const registration = await post('auth/device/start',{},null,{Origin:site});
+    expect(registration.json).toEqual({challenge:'daily-example-challenge'}); expect(primary.start).not.toHaveBeenCalled();
+    expect(registration.cookie).toMatch(/^__Host-reploid_daily_device=ceremony;/);
     for (const flag of ['HttpOnly','Secure','Partitioned','SameSite=None','Path=/;']) expect(registration.cookie).toContain(flag);
-    expect((await post('auth/passkey/finish',{response:{}},'reploid_daily_passkey=ceremony',{Origin:site})).json.error).toBe('session-storage');
-    const done = await post('auth/passkey/finish',{response:{}},'__Host-reploid_daily_passkey=ceremony',{Origin:site});
+    const signed = {publicKey:'test-key',signature:'test-signature'};
+    expect((await post('auth/device/finish',signed,'reploid_daily_device=ceremony',{Origin:site})).json.error).toBe('session-storage');
+    const done = await post('auth/device/finish',signed,'__Host-reploid_daily_device=ceremony',{Origin:site});
     expect(done.json.authenticated).toBe(true); expect(primary.finish).not.toHaveBeenCalled();
+    expect(stable.finish).toHaveBeenLastCalledWith('ceremony',invite.id,signed);
     const session = done.cookie.match(/__Host-reploid_daily_guest=[^;]+/)[0];
     const read = async origin => (await fetch(base+'/api/today',{headers:{Origin:origin,Cookie:session}})).json();
     expect((await read(site)).authenticated).toBe(true); expect((await read(quick)).authenticated).toBe(false);
     expect((await read('https://elsewhere.example')).error).toBe('origin-denied');
   });
 
-  it('uses a short-lived in-tab alias after WebAuthn when the browser rejects the partitioned cookie', async () => {
+  it('uses a short-lived in-tab alias after device sign-in when the browser rejects the partitioned cookie', async () => {
     const quick = 'https://backend.example', site = 'https://daily.example';
     const once = 'x'.repeat(43);
-    const stable = {start:vi.fn(async () => ({grant:once,options:{}})),finish:vi.fn(async value => {
+    const stable = {start:vi.fn(async () => ({grant:once,challenge:'tab-challenge'})),finish:vi.fn(async value => {
       if (value !== once) throw Error('Unrecognized ceremony');
-      return 'passkey/test-tab-guest';
+      return 'device/test-tab-guest';
     })};
-    await start({origin:quick,passkeys:{},publicInvite:invite.token,trustedFrontends:new Map([[site,{passkeys:stable}]])});
-    expect((await post('auth/passkey/start',{action:'login',tabFallback:true},null,{Origin:quick})).status).toBe(400);
-    const started = await post('auth/passkey/start',{action:'login',tabFallback:true},null,{Origin:site});
-    expect(started.json.ceremony).toBe(once);
-    const finish = (ceremony,cookie) => post('auth/passkey/finish',{response:{},ceremony},cookie,{Origin:site});
+    await start({origin:quick,deviceKeys:{},publicInvite:invite.token,trustedFrontends:new Map([[site,{deviceKeys:stable}]])});
+    expect((await post('auth/device/start',{tabFallback:true},null,{Origin:quick})).status).toBe(400);
+    const started = await post('auth/device/start',{tabFallback:true},null,{Origin:site});
+    expect(started.json).toEqual({challenge:'tab-challenge',ceremony:once});
+    const finish = (ceremony,cookie) => post('auth/device/finish',{publicKey:'test-key',signature:'test-signature',ceremony},cookie,{Origin:site});
     expect((await finish('wrong')).status).toBe(400);
     expect((await finish('y'.repeat(43))).status).toBe(401);
-    expect((await finish(once,'__Host-reploid_daily_passkey='+'z'.repeat(43))).status).toBe(401);
+    expect((await finish(once,'__Host-reploid_daily_device='+'z'.repeat(43))).json.error).toBe('sign-in-failed');
     const {json} = await finish(once);
     expect(json.tabSession).toMatch(/^[\w-]{43}$/); expect(store.guest(json.tabSession)).toBeFalsy();
     const read = async (origin,inv = invite.token) => (await fetch(base+'/api/today',{headers:{Origin:origin,'x-circle-invite':inv,'x-daily-tab':json.tabSession}})).json();
@@ -207,6 +211,54 @@ describe('daily circle HTTP boundary', () => {
     time += 15 * 60_000;
     expect((await read(site)).authenticated).toBe(false);
     expect(store.capacity(firstDay).used).toBe(0);
+  });
+
+  it('signs in with a device key and refuses wrong keys and altered, reused, expired or other-origin challenges', async () => {
+    const circle = 'https://circle.example', headers = {Origin:circle};
+    const deviceKeys = openDailyDeviceKeys({file:':memory:',origin:circle,clock});
+    const finishes = vi.spyOn(deviceKeys,'finish');
+    try {
+      await start({origin:circle,deviceKeys,identity:null});
+      expect((await state()).json.authMode).toBe('device');
+      const begin = async () => {
+        const started = await post('auth/device/start',{},null,headers);
+        expect(started.status).toBe(200); expect(started.json.challenge).toMatch(/^[\w-]{43}$/);
+        expect(started.cookie).toMatch(/^reploid_daily_device=[\w-]{43};.*Path=\/api\/auth\/device/);
+        return {challenge:started.json.challenge,cookie:started.cookie.split(';')[0]};
+      };
+      const finish = (payload,cookie) => post('auth/device/finish',payload,cookie,headers);
+      const player = createTestDeviceKey(), stranger = createTestDeviceKey(), older = createTestDeviceKey('p256');
+
+      const first = await begin();
+      const signedIn = await finish(player.signIn(circle,first.challenge),first.cookie);
+      expect(signedIn.status).toBe(200); expect(signedIn.json).toEqual({authenticated:true});
+      expect((await state(signedIn.cookie.match(/reploid_daily_guest=[^;]+/)[0])).json.authenticated).toBe(true);
+      const reused = await finish(player.signIn(circle,first.challenge),first.cookie);
+      expect(reused.status).toBe(401); expect(reused.json.error).toBe('sign-in-failed');
+
+      const again = await begin();
+      expect((await finish(player.signIn(circle,again.challenge),again.cookie)).status).toBe(200);
+      const subjects = await Promise.all(finishes.mock.results.map(result => result.value.catch(() => null)));
+      expect(subjects[0]).toMatch(/^device\/[\w-]{32}$/); expect(subjects[2]).toBe(subjects[0]);
+
+      const wrongKey = await begin();
+      const forged = {publicKey:player.publicKey,signature:stranger.signIn(circle,wrongKey.challenge).signature};
+      expect((await finish(forged,wrongKey.cookie)).json.error).toBe('sign-in-failed');
+      const altered = await begin();
+      const changed = altered.challenge.slice(0,-1) + (altered.challenge.endsWith('A') ? 'B' : 'A');
+      expect((await finish(player.signIn(circle,changed),altered.cookie)).json.error).toBe('sign-in-failed');
+      const elsewhere = await begin();
+      expect((await finish(player.signIn('https://other.example',elsewhere.challenge),elsewhere.cookie)).json.error).toBe('sign-in-failed');
+      const expired = await begin();
+      time += 120_000;
+      expect((await finish(player.signIn(circle,expired.challenge),expired.cookie)).json.error).toBe('sign-in-failed');
+      const extra = await begin();
+      expect((await finish({...player.signIn(circle,extra.challenge),subject:'forged'},extra.cookie)).json.error).toBe('invalid-request');
+
+      const fallback = await begin();
+      expect((await finish(older.signIn(circle,fallback.challenge),fallback.cookie)).json).toEqual({authenticated:true});
+      expect(await finishes.mock.results.at(-1).value).not.toBe(subjects[0]);
+    } finally { deviceKeys.close(); }
   });
 
   it('uses the configured external origin and issues a secure session behind a proxy', async () => {

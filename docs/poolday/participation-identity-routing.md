@@ -21,6 +21,9 @@ the private key as a non-exportable `CryptoKey`; the explicit fallback is an
 exportable local browser key and is labeled as weaker protection. The device
 root signs short role delegations for requester, provider, publisher, and
 verifier keys. Every delegation binds the active participation-profile hash.
+The device root lives in one browser profile on one device. Clearing site data
+or switching browsers creates a new root; there is no cross-device sync, and the
+device root by itself makes no user-verification claim.
 
 A user may bind the device root to a WebAuthn passkey. A fresh passkey assertion
 then accompanies role delegation. This proves possession of a registered

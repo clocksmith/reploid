@@ -1,36 +1,51 @@
-// Older mobile implementations support WebAuthn before the optional JSON helpers.
-// The circle requests only discovery, verification and ordinary credential IDs.
-function decode(value) {
-  return Uint8Array.from(atob(value.replaceAll('-','+').replaceAll('_','/')),ch => ch.charCodeAt(0));
-}
+// The player identity is a signing key created in this browser. Its private half cannot be
+// exported and never leaves this device; clearing this site's data starts a new player.
+const keyDatabase = 'reploid-daily', keyStoreName = 'device-key', keyName = 'player';
 function encode(buffer) {
   return btoa(String.fromCharCode(...new Uint8Array(buffer))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
 }
-async function obtainPasskey(action,options) {
-  if (!globalThis.PublicKeyCredential || !navigator.credentials) throw Error('Open this link in a browser with passkeys enabled.');
-  const create = action === 'register';
-  const parse = create ? PublicKeyCredential.parseCreationOptionsFromJSON : PublicKeyCredential.parseRequestOptionsFromJSON;
-  let publicKey;
-  if (parse) publicKey = parse.call(PublicKeyCredential,options);
-  else {
-    publicKey = {...options,challenge:decode(options.challenge)};
-    if (create) publicKey.user = {...options.user,id:decode(options.user.id)};
-    const key = create ? 'excludeCredentials' : 'allowCredentials';
-    if (options[key]) publicKey[key] = options[key].map(credential => ({...credential,id:decode(credential.id)}));
-  }
-  const credential = create ? await navigator.credentials.create({publicKey}) : await navigator.credentials.get({publicKey});
-  if (typeof credential.toJSON === 'function') return credential.toJSON();
-  const native = credential.response;
-  const response = {clientDataJSON:encode(native.clientDataJSON)};
-  if (create) {
-    response.attestationObject = encode(native.attestationObject);
-    if (typeof native.getTransports === 'function') response.transports = native.getTransports();
-  } else {
-    response.authenticatorData = encode(native.authenticatorData);response.signature = encode(native.signature);
-    response.userHandle = native.userHandle ? encode(native.userHandle) : null;
-  }
-  return {id:credential.id,rawId:encode(credential.rawId),type:credential.type,response,
-    clientExtensionResults:credential.getClientExtensionResults(),authenticatorAttachment:credential.authenticatorAttachment ?? undefined};
+function keyStore(mode,operation) {
+  return new Promise((resolve,reject) => {
+    const opening = indexedDB.open(keyDatabase,1);
+    opening.onupgradeneeded = () => opening.result.createObjectStore(keyStoreName);
+    opening.onerror = () => reject(opening.error);
+    opening.onsuccess = () => {
+      const db = opening.result;
+      try {
+        const transaction = db.transaction(keyStoreName,mode);
+        const request = operation(transaction.objectStore(keyStoreName));
+        transaction.oncomplete = () => {db.close();resolve(request.result);};
+        transaction.onerror = transaction.onabort = () => {db.close();reject(transaction.error);};
+      } catch (error) {db.close();reject(error);}
+    };
+  });
+}
+async function savedDeviceKey() {
+  try {
+    const keys = await keyStore('readonly',store => store.get(keyName));
+    return keys?.privateKey && keys?.publicKey ? keys : null;
+  } catch {return null;}
+}
+async function rememberDeviceKey(keys) {
+  try {await keyStore('readwrite',store => store.put(keys,keyName)); return true;}
+  catch {return false;}
+}
+async function createDeviceKey() {
+  if (!globalThis.crypto?.subtle) throw Error('Open this link in a current browser over HTTPS to play.');
+  try {return await crypto.subtle.generateKey({name:'Ed25519'},false,['sign','verify']);}
+  catch {return crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']);}
+}
+async function deviceKey() {
+  const saved = await savedDeviceKey();
+  if (saved) return {keys:saved,remembered:true};
+  const keys = await createDeviceKey();
+  return {keys,remembered:await rememberDeviceKey(keys)};
+}
+async function signChallenge(keys,challenge) {
+  const message = new TextEncoder().encode('reploid-daily-device-key/v1\n' + location.origin + '\n' + challenge);
+  const algorithm = keys.privateKey.algorithm.name === 'Ed25519' ? {name:'Ed25519'} : {name:'ECDSA',hash:'SHA-256'};
+  return {publicKey:encode(await crypto.subtle.exportKey('spki',keys.publicKey)),
+    signature:encode(await crypto.subtle.sign(algorithm,keys.privateKey,message))};
 }
 
 const el = id => document.getElementById(id);
@@ -176,7 +191,7 @@ function render() {
   const canJoin = today.inviteValid && !authenticated && ['ready','busy','host-full'].includes(availability);
   el('open-join').hidden = !canJoin;
   el('auth').hidden = !canJoin || (authMode && authMode !== 'email');
-  el('passkey-join').hidden = !canJoin || authMode !== 'passkey';
+  el('device-join-panel').hidden = !canJoin || authMode !== 'device';
   el('grant-form').hidden = !canJoin || authMode !== 'host-grant';
   el('dare').hidden = !share;
   if (share) {
@@ -233,26 +248,22 @@ el('grant-form').onsubmit = async event => {
   try {await join(field.value.trim());field.value = '';feedback('');}
   catch (error) {feedback(error.message);}
 };
-async function usePasskey(action) {
-  const buttons = [el('passkey-register'),el('passkey-login')];
-  buttons.forEach(button => {button.disabled = true;});
+async function useDeviceKey() {
+  const button = el('device-join');
+  button.disabled = true;
   try {
-    const start = apiOrigin === pageUrl.origin ? {action} : {action,tabFallback:true};
-    const {options,ceremony} = await api('auth/passkey/start',start);
-    const response = await obtainPasskey(action,options);
-    const result = await api('auth/passkey/finish',ceremony ? {response,ceremony} : {response});
+    const {challenge,ceremony} = await api('auth/device/start',apiOrigin === pageUrl.origin ? {} : {tabFallback:true});
+    const {keys,remembered} = await deviceKey();
+    const signed = await signChallenge(keys,challenge);
+    const result = await api('auth/device/finish',ceremony ? {...signed,ceremony} : signed);
     tabSession = result.tabSession;
     feedback('');await afterLogin();
+    if (!remembered) feedback('This browser could not save your player key. Your turns count today but may not carry over to another visit.');
   } catch (error) {
-    const messages = {
-      InvalidStateError: 'You already have a passkey. Choose “Use existing passkey”.',
-      NotAllowedError: 'Passkey sign-in was cancelled or unavailable. You can try again.',
-    };
-    el('join-status').textContent = messages[error.name] ?? error.message;
-  } finally {buttons.forEach(button => {button.disabled = false;});}
+    el('join-status').textContent = error.message;
+  } finally {button.disabled = false;}
 }
-el('passkey-register').onclick = () => usePasskey('register');
-el('passkey-login').onclick = () => usePasskey('login');
+el('device-join').onclick = () => useDeviceKey();
 el('auth').onsubmit = async event => {
   event.preventDefault();
   const email = el('email').value.trim();

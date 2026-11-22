@@ -127,7 +127,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@simplewebauthn/server": "14.1.0",
     "acorn": "^8.15.0",
     "dopplerx": "file:deploy/artifacts/dopplerx-0.1.5.tgz",
     "dotenv": "^16.3.1",

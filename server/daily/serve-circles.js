@@ -37,43 +37,44 @@ export function sharedDailyRunner(open, overBudget = () => false) {
 
 async function openRankedCircle({config, directory, database, port}, runner, staticRoot, sharedFull) {
   const file = path => resolve(directory,path);
-  const usePasskeys = config.auth?.type === 'passkey';
+  if (config.auth?.type === 'passkey') throw Error('Passkey sign-in was removed. Set auth.type to "device".');
+  const useDeviceKeys = config.auth?.type === 'device';
   const names = config.bootstrapPlayers ?? [];
   if (!Array.isArray(names) || names.some(name => typeof name !== 'string' || !/^[a-z0-9][a-z0-9-]{0,48}$/i.test(name)
     || Object.hasOwn(Object.prototype,name)) || new Set(names).size !== names.length) throw Error('Invalid private player names.');
-  if (config.publicChallenge === true && (!usePasskeys || names.length || new URL(config.origin).protocol !== 'https:' || config.hostDailyCap < 1)) {
-    throw Error('A public challenge requires HTTPS, passkeys, a positive daily cap and no host bootstrap seats.');
+  if (config.publicChallenge === true && (!useDeviceKeys || names.length || new URL(config.origin).protocol !== 'https:' || config.hostDailyCap < 1)) {
+    throw Error('A public challenge requires HTTPS, device keys, a positive daily cap and no host bootstrap seats.');
   }
   const store = createDailyStore({path:database,hostId:config.providerId,hostDailyCap:config.hostDailyCap});
-  let passkeys, admitStart;
+  let deviceKeys, admitStart;
   const trustedFrontends = new Map();
   const close = () => {
-    for (const frontend of trustedFrontends.values()) frontend.passkeys.close();
-    passkeys?.close(); store.close();
+    for (const frontend of trustedFrontends.values()) frontend.deviceKeys.close();
+    deviceKeys?.close(); store.close();
   };
   try {
     const calendar = createDailyCalendar({schedule:config.signedCalendar ? await readJson(file(config.signedCalendar)) : undefined,
       qualifications:await Promise.all((config.qualifications ?? []).map(path => readJson(file(path)))),
       calendarPublicKey:config.calendarPublicKey ? await readFile(file(config.calendarPublicKey)) : undefined,
       providerId:config.providerId, backendIdentityHash:config.backendIdentityHash, previewTarget:config.previewTarget});
-    if (usePasskeys) {
-      const {openDailyPasskeys, publicPasskeyStartBudget} = await import('./passkeys.js');
-      admitStart = config.publicChallenge === true ? publicPasskeyStartBudget() : undefined;
-      passkeys = openDailyPasskeys({file:database+'.passkeys',origin:config.origin,admitStart});
+    if (useDeviceKeys) {
+      const {openDailyDeviceKeys, publicSignInStartBudget} = await import('./device-keys.js');
+      admitStart = config.publicChallenge === true ? publicSignInStartBudget() : undefined;
+      deviceKeys = openDailyDeviceKeys({file:database+'.devices',origin:config.origin,admitStart});
     }
     const frontends = config.trustedFrontendOrigins ?? [];
-    if (!Array.isArray(frontends) || (frontends.length && (config.publicChallenge !== true || !usePasskeys))) {
-      throw Error('Alternate public frontends require a public, passkey-protected circle.');
+    if (!Array.isArray(frontends) || (frontends.length && (config.publicChallenge !== true || !useDeviceKeys))) {
+      throw Error('Alternate public frontends require a public circle that signs in with device keys.');
     }
     for (const origin of frontends) {
       const url = new URL(origin);
       if (url.protocol !== 'https:' || origin !== url.origin || origin === config.origin || trustedFrontends.has(origin)) {
         throw Error('Use distinct, exact HTTPS frontend origins.');
       }
-      const {openDailyPasskeys} = await import('./passkeys.js');
-      const rp = createHash('sha256').update(origin).digest('hex');
-      const identity = openDailyPasskeys({file:database+'.passkeys.'+rp,origin,admitStart});
-      trustedFrontends.set(origin,{passkeys:identity});
+      const {openDailyDeviceKeys} = await import('./device-keys.js');
+      const scope = createHash('sha256').update(origin).digest('hex');
+      const identity = openDailyDeviceKeys({file:database+'.devices.'+scope,origin,admitStart});
+      trustedFrontends.set(origin,{deviceKeys:identity});
     }
     const accessDirectory = config.accessDirectory ? file(config.accessDirectory) : dirname(database);
     if (names.length) {
@@ -86,8 +87,8 @@ async function openRankedCircle({config, directory, database, port}, runner, sta
       publicInvite = await ensurePublicDailyInvite({store,directory:accessDirectory,origin:config.origin});
     }
     const app = createDailyApp({store,gameForDay:calendar.gameForDay,run:runner.run,staticRoot,origin:config.origin,
-      sharedFull,trustedFrontends,circleName:config.circleName,recipientName:config.recipientName,relayName:config.relayName,passkeys,hostGrants:names.length > 0,publicInvite,
-      identity:usePasskeys ? null : createEmailIdentity(config.auth)});
+      sharedFull,trustedFrontends,circleName:config.circleName,recipientName:config.recipientName,relayName:config.relayName,deviceKeys,hostGrants:names.length > 0,publicInvite,
+      identity:useDeviceKeys ? null : createEmailIdentity(config.auth)});
     return {app,port,capacity:store.capacity,close};
   } catch (error) { close(); throw error; }
 }
