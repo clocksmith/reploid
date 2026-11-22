@@ -69,7 +69,7 @@ it('pairs browser controller to verified desktop over WebRTC, survives reload an
     expect(pairing.pendingRequests()).toEqual([{ requestId: observed.requestId, participantId: phone.peerId, expiresAt: observed.expiresAt }]);
     // The desktop owner answers the single waiting request with y.
     const written = [];
-    createOwnerPairingTerminal({ pairing, write: line => written.push(line) }).handleLine('y');
+    createOwnerPairingTerminal({ pairing, write: line => written.push(line) }).handleLine('approve next');
     expect(written).toEqual(['Phone paired.']);
     expect(pairing.pendingRequests()).toEqual([]);
     const paired = await pairPromise;

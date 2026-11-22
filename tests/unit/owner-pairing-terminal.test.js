@@ -56,12 +56,15 @@ describe('owner pairing link name', () => {
   });
 });
 
-describe('owner pairing y/n answers', () => {
+describe('owner pairing decisions', () => {
   it('prompts with a shortened peer ID', () => {
     expect(ownerPairingPrompt({ participantId: host })).toBe('Pair phone peer:860c…79cd? [y/n]');
   });
 
-  it.each([['y', true], ['yes', true], ['Y', true], ['n', false], ['no', false], [' No ', false]])(
+  it.each([
+    ['y', true], ['yes', true], ['Y', true], ['n', false], ['no', false], [' No ', false],
+    ['approve', true], ['approve next', true], ['approve last', true], [' APPROVE NEXT ', true], ['decline', false]
+  ])(
     '%j decides the single waiting request', (input, approved) => {
       const { lines, pairing, commands } = terminal({ pending: [{ requestId, participantId: phone }], decision: approved });
       commands.handleLine(input);
@@ -69,10 +72,10 @@ describe('owner pairing y/n answers', () => {
       expect(lines).toEqual([approved ? 'Phone paired.' : 'Pairing declined or expired.']);
     });
 
-  it('does not guess when more than one request is waiting', () => {
+  it.each(['y', 'approve', 'approve next', 'approve last'])('%j does not guess between requests', command => {
     const second = '66666666-7777-8888-9999-000000000000';
     const { lines, pairing, commands } = terminal({ pending: [{ requestId, participantId: phone }, { requestId: second, participantId: otherPhone }] });
-    commands.handleLine('y');
+    commands.handleLine(command);
     expect(pairing.decide).not.toHaveBeenCalled();
     expect(lines).toHaveLength(1);
     expect(lines[0]).toContain('2 pairing requests are waiting');
@@ -82,9 +85,16 @@ describe('owner pairing y/n answers', () => {
 
   it('says so when nothing is waiting', () => {
     const { lines, pairing, commands } = terminal();
-    commands.handleLine('n');
+    commands.handleLine('approve next');
     expect(pairing.decide).not.toHaveBeenCalled();
-    expect(lines).toEqual(['No pairing request is waiting. Type pair to issue a code.']);
+    expect(lines).toEqual(['No request yet. Tap Connect on your phone.']);
+  });
+
+  it('does not approve when extra text follows the command', () => {
+    const { pairing, commands } = terminal({ pending: [{ requestId, participantId: phone }] });
+    commands.handleLine('approve next please');
+    commands.handleLine('y pasted text');
+    expect(pairing.decide).not.toHaveBeenCalled();
   });
 
   it('keeps approve <id> and decline <id> for scripts and reports helper errors', () => {
@@ -96,6 +106,6 @@ describe('owner pairing y/n answers', () => {
     commands.handleLine('approve wrong-id');
     commands.handleLine('approve');
     expect(lines.slice(2)).toEqual(['No matching owner pairing request',
-      'Type approve followed by a request ID, or y / n when one request is waiting.']);
+      'No request yet. Tap Connect on your phone.']);
   });
 });
