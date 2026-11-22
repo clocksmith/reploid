@@ -16,17 +16,17 @@ export const renderPrivacyControls = () => `<dialog class="chat-model-setup pool
   <h2 class="pool-heading" id="chat-privacy-title">Execution and disclosure</h2>
   <fieldset class="pool-stack pool-bare pool-gap-sm" data-privacy-controls>
     <legend class="chat-visually-hidden">Execution and disclosure policy</legend>
-    <label>Where inference can run
+    <label>Where it runs
       <select class="pool-input" data-privacy-placement>
         <option value="local-only">This device only</option>
-        <option value="network-allowed">Allow network execution</option>
+        <option value="network-allowed">On the network</option>
       </select>
     </label>
-    <fieldset class="pool-stack pool-bare pool-gap-xs" data-privacy-recipient-controls hidden disabled><legend>Who can receive input</legend>
+    <fieldset class="pool-stack pool-bare pool-gap-xs" data-privacy-recipient-controls hidden disabled><legend>Who can read the prompt</legend>
       <select class="pool-input" data-privacy-recipient-mode aria-label="Eligible recipients">
         <option value="none">No network recipients</option>
         <option value="named">Named recipients only</option>
-        <option value="open">Any eligible recipient, subject to approval</option>
+        <option value="open">Any eligible computer</option>
       </select>
       <label data-privacy-recipients-label hidden>Recipient IDs
         <input class="pool-input" data-privacy-recipients autocomplete="off" spellcheck="false" aria-describedby="privacy-recipient-help">
@@ -40,7 +40,7 @@ export const renderPrivacyControls = () => `<dialog class="chat-model-setup pool
       </select>
     </label>
   </fieldset>
-  <p class="pool-muted">Applies to new messages. Retries keep their original policy.</p>
+  <p class="pool-muted">New messages only.</p>
   <p role="alert" data-privacy-error hidden></p>
   <div class="chat-network-actions"><button type="button" class="pool-button btn-ghost" data-privacy-cancel>Cancel</button><button type="button" class="pool-button btn-primary" data-privacy-apply>Apply</button></div>
 </dialog>`;

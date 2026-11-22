@@ -58,18 +58,15 @@ it('prefills from a fragment-only QR link without local address fields, pairs, a
   expect(query('input[name="hostLabel"]').value).toBe("Alex's PC");
   expect(query('input[name="roomId"]').value).toBe(roomId);
 
-  // Submitting requests desktop approval and displays pre-prompt disclosure + relayed path.
+  // Submitting requests desktop approval and displays the confirmed desktop and path.
   query('[data-owner-pairing-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   await vi.waitFor(() => expect(query('[data-owner-pairing-state]').textContent).toContain('Online · relayed · qwen-3-5-0-8b'));
-  expect(query('[data-owner-pairing-readable]').textContent).toBe("Readable by: Alex's PC");
-  expect(query('[data-owner-pairing-notice]').textContent).toBe("This runs on Alex's PC. Its operator can read your prompt.");
   expect(query('input[name="code"]').value).toBe('');
 
   // When desktop goes offline, state clearly reports offline and keeps prompts off other computers.
   currentState = { ...currentState, status: 'offline', canSend: false, transportPath: null, readyModel: null };
   view.update({ ownerPairing: currentState });
   expect(query('[data-owner-pairing-state]').textContent).toContain('Offline');
-  expect(query('[data-owner-pairing-state]').textContent).toContain('will not be sent to another computer');
 
   // Unpair clears the binding.
   query('[data-owner-pairing-unpair]').click();

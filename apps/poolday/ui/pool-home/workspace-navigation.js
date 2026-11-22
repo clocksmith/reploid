@@ -1,3 +1,5 @@
+import { parseOwnerPairingUrl } from '../../host/owner-pairing.js';
+
 /** URL-backed drawers retain the mounted conversation and each other's state. */
 const views = new Set(['chat', 'threads', 'computers', 'settings', 'conversation']);
 export const workspaceView = () => {
@@ -8,6 +10,7 @@ const hasThreads = () => workspaceView() === 'threads' || new URL(globalThis.loc
 export function workspaceHref(view, { threads = false } = {}) {
   const url = new URL(globalThis.location.href);
   if (!['/', '/network'].includes(url.pathname)) url.pathname = '/';
+  if (parseOwnerPairingUrl(url.href)) url.hash = '';
   if (view === 'chat') url.searchParams.delete('view'); else url.searchParams.set('view', view);
   if (threads && !['chat', 'threads'].includes(view)) url.searchParams.set('threads', 'open'); else url.searchParams.delete('threads');
   return url.pathname + url.search + url.hash;
@@ -35,7 +38,8 @@ export function bindWorkspaceNavigation(root, apply) {
     if (next === 'threads') {
       if ((globalThis.innerWidth || 0) >= 1200 && ['computers', 'settings', 'conversation'].includes(current)) navigate(current, { threads: !hasThreads() });
       else navigate(hasThreads() ? 'chat' : 'threads');
-    } else navigate(next, { threads: hasThreads() });
+    } else if (next === current) navigate(hasThreads() ? 'threads' : 'chat');
+    else navigate(next, { threads: hasThreads() });
   }, options);
   const restore = () => {
     const view = workspaceView();
