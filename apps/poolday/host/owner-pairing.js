@@ -8,6 +8,7 @@ import { describeCircleHost } from './circle-invites.js';
 
 const STORAGE_KEY = 'reploid.owner-paired-desktop:v1';
 const DEFAULT_PEER_WAIT_MS = 6000;
+const APPROVAL_WAIT_MS = 10 * 60 * 1000;
 const PEER_POLL_MS = 40;
 const validLabel = value => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 128;
 
@@ -259,7 +260,7 @@ export function createBrowserOwnerPairing({
         hostPeer: matched.hostPeer,
         hostParticipantId,
         code,
-        signal: requestSignal
+        signal: AbortSignal.any([requestSignal, AbortSignal.timeout(APPROVAL_WAIT_MS)])
       });
       if (closed) throw new Error('Owner pairing is closed');
       const resolvedRoom = targetRoomId || (ownerPairingRoomId(matched.channel.roomId) ? matched.channel.roomId : null);

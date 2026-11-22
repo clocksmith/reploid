@@ -87,7 +87,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const owner = state.ownerPairing, privacy = explicitPrivacy(state);
     if (owner?.status !== 'online' || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
       || privacy.recipients.ids[0] !== owner.hostParticipantId) return null;
-    return `Sending to ${owner.hostLabel}. ${owner.disclosure?.notice || ''}`.trim();
+    return `Sending to ${owner.hostLabel}. Its operator can read your prompt.`;
   };
   const recoveryAlternative = state => recoverySharedModel(state, modelSelect.value,
     effectiveLocation(state), explicitPrivacy(state));
@@ -116,6 +116,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const setThreads = (open, reflect = true) => {
     if (open && !allowBoth()) { const previous = applyingView; applyingView = true; inspector.close?.({ restoreFocus: false }); applyingView = previous; }
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
+    railToggle?.setAttribute('aria-expanded', String(open));
     leftDrawer.setOpen(open);
     if (!open) actionsPanel.setOpen(false);
     if (reflect && !applyingView) workspaceNavigation?.reflect(inspector.isOpen?.() ? rightView() : open ? 'threads' : 'chat', { threads: open });
@@ -326,9 +327,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const acquisition = state.acquisition;
     const acquisitionText = find('[data-acquisition-status]');
     acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
-      : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.' : '';
+      : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error : '';
     if (acquiring && execution.source === 'network' && execution.status === 'ready') {
-      acquisitionText.textContent += ' A computer is ready to answer on the network.';
+      acquisitionText.textContent += ' Network model ready.';
     }
     acquisitionText.hidden = !acquisitionText.textContent;
     const meter = find('[data-acquisition-progress]');
@@ -366,13 +367,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          statusText = execution.status === 'busy' ? 'Sending waits for capacity.' : 'Ready.';
-        } else if (execution.status === 'ready') statusText = 'Ready. This device runs the model.';
-        else if (execution.status === 'cached') statusText = 'Downloaded. Sending loads the model on this device.';
+          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : '';
+        } else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
-      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'This model is unavailable on this device.';
-      else if (phase === 'paused') statusText = 'Network discovery is paused.';
-      else if (phase === 'interrupted') statusText = 'Discovery connection interrupted. Shared capacity is unknown.';
+      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'Model unavailable here.';
+      else if (phase === 'paused') statusText = 'Network paused.';
+      else if (phase === 'interrupted') statusText = 'Connection interrupted.';
       else if (phase === 'searching') statusText = 'Finding computers…';
       else if (phase === 'observed') statusText = state.network?.connectionFailure?.peerId
         ? 'A peer connection failed. No eligible computer found for this model.'
@@ -393,10 +393,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     disclosure.hidden = busy || !!thread?.closed;
     const pairedSummary = pairedDesktopSummary(state);
     if (policy.computation !== 'plaintext') disclosure.textContent = 'The required computation mode is unavailable.';
+    else if (policy.recipients.kind === 'none' && !usable) disclosure.textContent = 'Inference stays on this device.';
+    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'Inference stays on this device.';
     else if (pairedSummary) disclosure.textContent = pairedSummary;
-    else if (policy.recipients.kind === 'none' && !usable) disclosure.textContent = 'No input will be sent to network recipients.';
-    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'This device reads your prompt for inference.';
-    else if (policy.recipients.kind === 'named') disclosure.textContent = 'Only named recipients can receive input. They can read what they receive.';
+    else if (policy.recipients.kind === 'named') disclosure.textContent = 'Named computers can read your prompt.';
     else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
     else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
     else disclosure.textContent = 'A network provider could read your prompt.';
@@ -435,7 +435,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
     emptyList.hidden = !!find('[data-thread-list] [data-thread-item-id]');
-    emptyList.textContent = archived ? 'No archived conversations.' : 'No conversations yet. Choose New thread to start one.';
+    emptyList.textContent = archived ? 'No archived chats.' : 'No chats yet.';
     refreshStartingPrompts();
     find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
     production.update(state);
@@ -895,8 +895,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     applyingView = true;
     try {
       setThreads(view === 'threads' || !!routeState?.threads, false);
-      if (['settings', 'computers', 'conversation'].includes(view)) inspector.open(view === 'computers' ? 'participants' : view);
-      else inspector.close?.({ restoreFocus: false });
+      if (['settings', 'computers', 'conversation'].includes(view)) {
+        inspector.open(view === 'computers' ? 'participants' : view, find(`[data-workspace-view="${view}"]`));
+      } else inspector.close?.({ restoreFocus: false });
     } finally { applyingView = false; }
   });
   container.addEventListener('keydown', event => {

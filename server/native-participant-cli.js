@@ -1,5 +1,6 @@
 import { participantOptions, participantHelp } from './native-participant-options.js';
 import { createNativeRtcConfigReader } from './native-rtc-config.js';
+import { hostname } from 'node:os';
 import { parseArgs } from 'node:util';
 import { createInterface } from 'node:readline';
 import path from 'node:path';
@@ -215,6 +216,8 @@ export async function main({ runOnce } = {}) {
           const { hostParticipantId, code } = ownerPairing.issue();
           const params = new URLSearchParams({ pair: code, host: hostParticipantId });
           if (values.room) params.set('room', values.room);
+          const name = hostname().split('.')[0].slice(0, 128);
+          if (name) params.set('name', name[0].toUpperCase() + name.slice(1));
           console.error(`Owner pairing code for ${hostParticipantId} (10 minutes): ${code}`);
           console.error(`Pairing link (fragment-only, 10 minutes): https://replo.id/#${params.toString()}`);
         } else if (command === 'approve' || command === 'decline') {

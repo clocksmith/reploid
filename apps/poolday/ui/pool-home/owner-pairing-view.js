@@ -1,35 +1,114 @@
 import { parseOwnerPairingUrl } from '../../host/owner-pairing.js';
+import { bindDialog } from '../components/dialog.js';
+
+export function bindOwnerPairingLink(root, port, url) {
+  const target = parseOwnerPairingUrl(url.href);
+  if (!target || !port) return () => {};
+
+  root.insertAdjacentHTML('beforeend', `
+    <dialog class="chat-model-setup pool-surface" data-owner-pairing-link aria-labelledby="owner-pairing-title">
+      <h2 class="pool-heading" id="owner-pairing-title"></h2>
+      <p class="pool-small" role="status" data-pairing-message hidden></p>
+      <button class="pool-button btn-primary" type="button" data-pairing-connect>Connect</button>
+      <details class="pool-small pool-muted">
+        <summary>Details</summary>
+        <div class="pool-stack pool-gap-sm">
+          <p class="pool-caption" data-pairing-identity></p>
+          <p class="pool-caption" data-pairing-connection hidden></p>
+          <button class="pool-button btn-ghost" type="button" data-pairing-close>Close</button>
+        </div>
+      </details>
+    </dialog>`);
+  const dialog = root.querySelector('[data-owner-pairing-link]');
+  const title = dialog.querySelector('h2');
+  const message = dialog.querySelector('[data-pairing-message]');
+  const action = dialog.querySelector('[data-pairing-connect]');
+  const connection = dialog.querySelector('[data-pairing-connection]');
+  const controller = new AbortController();
+  const options = { signal: controller.signal };
+  const modal = bindDialog(dialog);
+  const { location, history } = root.ownerDocument.defaultView;
+  const name = target.hostLabel || 'your desktop';
+  let finished = false;
+
+  title.textContent = `Connect to ${name}`;
+  dialog.querySelector('[data-pairing-identity]').textContent = `Desktop ID: ${target.hostParticipantId}`;
+  function forgetLink() {
+    if (location.hash === url.hash) history.replaceState(history.state, '', location.pathname + location.search);
+  }
+  function showResult(heading, text, detail) {
+    finished = true;
+    title.textContent = heading;
+    message.textContent = text;
+    message.hidden = !text;
+    connection.textContent = detail || '';
+    connection.hidden = !detail;
+    action.textContent = 'Done';
+    action.disabled = false;
+    action.focus({ preventScroll: true });
+    forgetLink();
+  }
+  action.addEventListener('click', async () => {
+    if (finished) { modal.close(); return; }
+    action.disabled = true;
+    title.textContent = 'Approve on your desktop';
+    action.textContent = 'Waiting for approval…';
+    try {
+      const result = await port.pair({ ...target, signal: controller.signal });
+      if (controller.signal.aborted || !dialog.open) return;
+      const path = port.state().transportPath;
+      showResult(target.hostLabel ? `Paired with ${result.hostLabel}` : 'Desktop paired', '', path ? `Connection: ${path}` : '');
+    } catch (error) {
+      if (controller.signal.aborted || !dialog.open) return;
+      showResult('Couldn’t connect', 'Open a new pairing link from your desktop.', error.message);
+    }
+  }, options);
+  dialog.querySelector('[data-pairing-close]').addEventListener('click', () => modal.close(), options);
+  dialog.addEventListener('close', () => {
+    forgetLink();
+    controller.abort();
+    dialog.remove();
+    modal.dispose();
+  }, options);
+  modal.open(action);
+
+  return () => {
+    controller.abort();
+    modal.dispose();
+    dialog.remove();
+  };
+}
 
 export const renderOwnerPairingControls = () => `
   <details class="pool-disclosure" data-owner-pairing hidden>
-    <summary>Pair your desktop (cellular)</summary>
+    <summary>Connect a desktop</summary>
     <div class="pool-stack pool-gap-sm">
       <p class="pool-small" data-owner-pairing-state>Not paired</p>
-      <p class="pool-small" data-owner-pairing-readable hidden></p>
-      <p class="pool-caption" data-owner-pairing-notice hidden></p>
       <form class="pool-stack pool-gap-sm" data-owner-pairing-form>
-        <p class="pool-caption pool-muted">Scan the QR link or paste the one-time code from your desktop terminal, then approve on the desktop. No local address or room-token file is needed.</p>
-        <label>Pairing link (optional)<input class="pool-input" name="link" type="url" placeholder="https://replo.id/#pair=..." autocomplete="off"></label>
-        <label>Desktop ID<input class="pool-input" name="hostParticipantId" type="text" placeholder="peer:..." autocomplete="off" spellcheck="false" required></label>
-        <label>Desktop name (optional)<input class="pool-input" name="hostLabel" type="text" placeholder="Alex's PC" autocomplete="off"></label>
-        <label>Desktop room hint (optional, routing only)<input class="pool-input" name="roomId" type="text" placeholder="reploid-swarm-..." autocomplete="off" spellcheck="false"></label>
-        <label>One-time pairing code<input class="pool-input" name="code" type="text" autocomplete="off" spellcheck="false" required></label>
-        <button class="pool-button btn-primary" type="submit">Request desktop approval</button>
+        <label>Pairing link<input class="pool-input" name="link" type="url" placeholder="Paste from your desktop" autocomplete="off"></label>
+        <details class="pool-disclosure" data-pairing-manual>
+          <summary>Enter code manually</summary>
+          <div class="pool-stack pool-gap-sm">
+            <label>Desktop ID<input class="pool-input" name="hostParticipantId" type="text" placeholder="peer:..." autocomplete="off" spellcheck="false"></label>
+            <label>Desktop name (optional)<input class="pool-input" name="hostLabel" type="text" placeholder="Alex's PC" autocomplete="off"></label>
+            <label>Desktop room hint (optional, routing only)<input class="pool-input" name="roomId" type="text" placeholder="reploid-swarm-..." autocomplete="off" spellcheck="false"></label>
+            <label>One-time pairing code<input class="pool-input" name="code" type="text" autocomplete="off" spellcheck="false"></label>
+          </div>
+        </details>
+        <button class="pool-button btn-primary" type="submit">Connect</button>
       </form>
       <button class="pool-button btn-ghost" type="button" data-owner-pairing-unpair hidden>Unpair desktop</button>
       <p class="pool-caption" role="status" data-owner-pairing-status></p>
     </div>
   </details>`;
 
-export function bindOwnerPairingControls(root, session, { initialUrl = globalThis.location?.href || '' } = {}) {
+export function bindOwnerPairingControls(root, session, { initialUrl = '' } = {}) {
   const panel = root.querySelector('[data-owner-pairing]');
   const port = session?.ownerPairing;
   if (!panel || !port) return { update() {}, dispose() {} };
 
   const find = selector => panel.querySelector(selector);
   const stateNode = find('[data-owner-pairing-state]');
-  const readableNode = find('[data-owner-pairing-readable]');
-  const noticeNode = find('[data-owner-pairing-notice]');
   const form = find('[data-owner-pairing-form]');
   const submit = form.querySelector('button');
   const unpairButton = find('[data-owner-pairing-unpair]');
@@ -44,10 +123,10 @@ export function bindOwnerPairingControls(root, session, { initialUrl = globalThi
     if (!parsed) return false;
     form.elements.hostParticipantId.value = parsed.hostParticipantId;
     form.elements.code.value = parsed.code;
-    if (parsed.hostLabel) form.elements.hostLabel.value = parsed.hostLabel;
+    form.elements.hostLabel.value = parsed.hostLabel || '';
     form.elements.roomId.value = parsed.roomId || '';
     panel.open = true;
-    statusNode.textContent = 'Pairing details loaded. Confirm to request desktop approval.';
+    statusNode.textContent = '';
     return true;
   }
 
@@ -66,21 +145,9 @@ export function bindOwnerPairingControls(root, session, { initialUrl = globalThi
       const modelSuffix = current.readyModel ? ` · ${current.readyModel}` : '';
       stateNode.textContent = `Paired with ${current.hostLabel} · Online${pathSuffix}${modelSuffix}`;
     } else if (current.status === 'offline') {
-      stateNode.textContent = `Paired with ${current.hostLabel} · Offline (prompts will not be sent to another computer)`;
+      stateNode.textContent = `${current.hostLabel} · Offline`;
     } else {
       stateNode.textContent = 'Not paired';
-    }
-
-    if (current.disclosure) {
-      readableNode.hidden = false;
-      noticeNode.hidden = false;
-      readableNode.textContent = current.disclosure.readableBy;
-      noticeNode.textContent = current.disclosure.notice;
-    } else {
-      readableNode.hidden = true;
-      noticeNode.hidden = true;
-      readableNode.textContent = '';
-      noticeNode.textContent = '';
     }
 
     if (current.error) statusNode.textContent = current.error;
@@ -88,17 +155,28 @@ export function bindOwnerPairingControls(root, session, { initialUrl = globalThi
 
   form.elements.link.addEventListener('input', () => {
     const value = form.elements.link.value.trim();
-    if (value) applyPairingLink(value);
+    if (!value || applyPairingLink(value)) return;
+    for (const name of ['hostParticipantId', 'hostLabel', 'roomId', 'code']) form.elements[name].value = '';
   }, options);
 
   form.addEventListener('submit', event => {
     event.preventDefault();
     if (!form.reportValidity()) return;
+    if (form.elements.link.value.trim() && !applyPairingLink(form.elements.link.value)) {
+      statusNode.textContent = 'Paste a valid desktop pairing link.';
+      return;
+    }
     const hostParticipantId = form.elements.hostParticipantId.value.trim();
     const hostLabel = form.elements.hostLabel.value.trim();
     const roomId = form.elements.roomId.value.trim();
     const code = form.elements.code.value.trim();
-    statusNode.textContent = 'Waiting for approval on your desktop terminal…';
+    if (!hostParticipantId || !code) {
+      find('[data-pairing-manual]').open = true;
+      statusNode.textContent = 'Enter the desktop ID and code, or paste a pairing link.';
+      form.elements[hostParticipantId ? 'code' : 'hostParticipantId'].focus();
+      return;
+    }
+    statusNode.textContent = 'Approve on your desktop.';
     void port.pair({
       hostParticipantId,
       code,

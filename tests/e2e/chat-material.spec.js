@@ -969,7 +969,7 @@ test('a model’s computer count opens the matching hardware and returns to the 
   await expect(pane.locator('[data-computer-id]:visible')).toHaveCount(2);
   await expect(pane.locator('[data-computer-id="unrelated"]')).toBeHidden();
   await expect(pane.locator('[data-computer-id="intel"] [data-computer-hardware]')).toContainText(/intel/i);
-  await page.getByRole('button', { name: 'Back to conversation' }).click();
+  await pane.locator('..').getByRole('button', { name: 'Close', exact: true }).click();
   await expect(draft).toHaveValue('Return to this draft');
   await expect(draft).toBeInViewport();
 });
@@ -987,6 +987,8 @@ test('model preview and inference privacy commit independently', async ({ page }
   await picker.locator('label[data-choice-key]').nth(1).click();
   await expect(picker).toBeVisible();
   await expect(picker.locator('[data-execution-location]')).toBeVisible();
+  await expect(picker.locator('label[data-choice-key]').nth(1).locator('.pool-choice-mark')).toBeVisible();
+  await expect(picker.locator('label[data-choice-key]').nth(1).locator('input')).toHaveCSS('opacity', '0');
   await expect(picker.locator('[data-privacy-controls]')).toHaveCount(0);
   await picker.screenshot({ path: info.outputPath('model-picker.png') });
   await picker.locator('[data-model-picker-close]').click();
@@ -994,8 +996,8 @@ test('model preview and inference privacy commit independently', async ({ page }
   expect(await opener.innerText()).toBe(original);
   await page.locator('[data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');
-  await expect(privacy.locator('option[value=cryptographic]')).toBeDisabled();
-  await expect(privacy.locator('option[value=attested]')).toBeDisabled();
+  await expect(privacy.locator('option[value=cryptographic]')).toHaveJSProperty('disabled', true);
+  await expect(privacy.locator('option[value=attested]')).toHaveJSProperty('disabled', true);
   const placement = privacy.locator('[data-privacy-placement]');
   const recipientMode = privacy.locator('[data-privacy-recipient-mode]');
   const recipients = privacy.locator('[data-privacy-recipients]');
@@ -1032,4 +1034,88 @@ test('touch help and model choices work without hover', async ({ browser }, info
     await page.locator('[data-model-picker-close]').tap();
     await expect(page.locator('[data-open-model]')).toBeFocused();
   } finally { await context.close(); }
+});
+
+test('a fresh mobile pairing link opens one action and both drawers have visible controls', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  const fragment = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Mars' });
+  await page.goto('/#' + fragment);
+  const pairing = page.getByRole('dialog', { name: 'Connect to Mars' });
+  await expect(pairing).toBeVisible();
+  await expect(pairing.getByRole('button')).toHaveCount(1);
+  await expect(pairing.getByRole('button', { name: 'Connect' })).toBeFocused();
+  await expect(pairing.getByText('Desktop ID:', { exact: false })).toBeHidden();
+  await expect(page.locator('[data-threads-dialog]')).toBeHidden();
+  await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+  await page.keyboard.press('Escape');
+  await expect(pairing).toBeHidden();
+  await expect(page).not.toHaveURL(/#pair=/);
+
+  const toolbar = page.locator('[data-chat-rail-toolbar]');
+  const chats = toolbar.getByRole('link', { name: 'Chats', exact: true });
+  const computers = toolbar.getByRole('link', { name: /^Computers/ });
+  await expect(chats.getByText('Chats', { exact: true })).toBeVisible();
+  await expect(chats).not.toHaveAttribute('href', /#pair=/);
+  await expect(computers.getByText('Computers', { exact: true })).toBeVisible();
+  await chats.click();
+  await expect(chats).toHaveAttribute('aria-expanded', 'true');
+  await page.locator('[data-threads-dialog]').getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(chats).toHaveAttribute('aria-expanded', 'false');
+  await computers.click();
+  await expect(computers).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByText('Connect a desktop', { exact: true })).toBeVisible();
+  await page.locator('[data-contextual-inspector]').getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(computers).toHaveAttribute('aria-expanded', 'false');
+  await expect(computers).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});
+
+test('the pairing screen handles desktop approval, link failure and cancellation', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await page.evaluate(async () => {
+    const { bindOwnerPairingLink } = await import('/ui/pool-home/owner-pairing-view.js');
+    window.startPairingFixture = () => {
+      const url = new URL(location.href);
+      url.hash = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Mars' }).toString();
+      history.replaceState(history.state, '', url);
+      window.pairingClicks = 0;
+      bindOwnerPairingLink(document.querySelector('.pool-home'), {
+        state: () => ({ transportPath: 'relayed' }),
+        pair: ({ signal }) => {
+          window.pairingSignal = signal;
+          window.pairingClicks++;
+          return new Promise((resolve, reject) => { window.approvePairing = resolve; window.rejectPairing = reject; });
+        }
+      }, url);
+    };
+  });
+  await page.evaluate(() => window.startPairingFixture());
+  const pairing = page.locator('[data-owner-pairing-link]');
+  expect(await page.evaluate(() => window.pairingClicks)).toBe(0);
+  await pairing.getByRole('button', { name: 'Connect' }).click();
+  await expect(pairing.getByRole('heading')).toHaveText('Approve on your desktop');
+  await expect(pairing.getByRole('button', { name: 'Waiting for approval…' })).toBeDisabled();
+  await page.evaluate(() => window.approvePairing({ hostLabel: 'Mars' }));
+  await expect(pairing.getByRole('heading')).toHaveText('Paired with Mars');
+  await pairing.getByText('Details', { exact: true }).click();
+  await expect(pairing.getByText('Connection: relayed')).toBeVisible();
+  await pairing.getByRole('button', { name: 'Done' }).click();
+  await expect(pairing).toHaveCount(0);
+
+  await page.evaluate(() => window.startPairingFixture());
+  await pairing.getByRole('button', { name: 'Connect' }).click();
+  await page.evaluate(() => window.rejectPairing(new Error('Pairing code expired.')));
+  await expect(pairing.getByRole('heading')).toHaveText('Couldn’t connect');
+  await expect(pairing.getByText('Open a new pairing link from your desktop.')).toBeVisible();
+  await expect(pairing.getByText('Pairing code expired.')).toBeHidden();
+  await expect(page).not.toHaveURL(/#pair=/);
+  await pairing.getByRole('button', { name: 'Done' }).click();
+  await expect(pairing).toHaveCount(0);
+
+  await page.evaluate(() => window.startPairingFixture());
+  await pairing.getByRole('button', { name: 'Connect' }).click();
+  await page.keyboard.press('Escape');
+  await expect(pairing).toHaveCount(0);
+  expect(await page.evaluate(() => window.pairingSignal.aborted)).toBe(true);
 });

@@ -135,7 +135,7 @@ for (const [theme, width, height] of [['light', 1440, 1000], ['dark', 390, 844]]
     await page.locator('[data-download-confirm]').click(); await expect(cancel).toBeVisible();
     await expect.poll(() => page.evaluate(() => window.firstVisitor.ready())).toBe(true);
     await page.evaluate(() => window.firstVisitor.peer());
-    await expect(page.locator('[data-acquisition-status]')).toContainText('A computer is ready to answer on the network.');
+    await expect(page.locator('[data-acquisition-status]')).toContainText('Network model ready.');
     await expect(page.locator('[data-composer-send]')).toBeEnabled(); await expect(cancel).toBeVisible();
     await page.evaluate(() => window.firstVisitor.complete());
     await expect(cancel).toBeHidden();

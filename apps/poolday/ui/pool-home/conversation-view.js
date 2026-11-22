@@ -31,11 +31,11 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       <footer class="chat-rail-footer"><div data-network-trigger-slot>${inspector ? renderInspectorNavigation({ workspace: true }) : ''}</div></footer>
       </div>
     </aside>
-    <section class="chat-threads-dialog pool-surface" hidden data-drawer-side="left" data-threads-dialog aria-label="Threads">
-      <header class="chat-network-heading"><button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-new-thread>${interfaceIcon('newThread')}New thread</button><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Back to chat" title="Back to chat">${interfaceIcon('close')}</button></header>
+    <section id="chat-threads-panel" class="chat-threads-dialog pool-surface" hidden data-drawer-side="left" data-threads-dialog aria-label="Threads">
+      <header class="chat-network-heading"><button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-new-thread>${interfaceIcon('newThread')}New chat</button><button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-close-threads>${interfaceIcon('close')}Close</button></header>
       <div class="pool-segmented" role="group" aria-label="Threads"><button class="pool-segment" type="button" data-show-active aria-pressed="true">Active</button><button class="pool-segment" type="button" data-show-archived aria-pressed="false">Archived</button></div>
       <section class="chat-thread-panel" data-thread-panel aria-label="Threads">
-      <p class="pool-small pool-muted" data-thread-empty>No conversations yet. Choose New thread to start one.</p><div class="chat-thread-list" data-thread-list></div>
+      <p class="pool-small pool-muted" data-thread-empty>No chats yet.</p><div class="chat-thread-list" data-thread-list></div>
       </section>
       <div class="chat-rail-controls" data-network-header>
         <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button" aria-label="Conversation actions" title="Conversation actions">${interfaceIcon('more')}<span class="chat-rail-label">Conversation</span></summary><div class="pool-surface">
@@ -69,7 +69,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           <button class="pool-button btn-ghost pool-caption" type="button" data-review-shared-model hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>${renderControlHelp()}
         </div>
         <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p><progress class="pool-progress" data-acquisition-progress aria-label="Model download" hidden></progress><button class="pool-button btn-ghost pool-caption" type="button" data-download-local hidden>Download model</button><button class="pool-button btn-ghost pool-caption" type="button" data-cancel-download hidden>Cancel download</button>
-        <p class="pool-small pool-muted" data-execution-settings-reset role="status" hidden>Execution settings were reset to this device only. Review settings to use the network. To replace an old attempt, send the message again.</p>
+        <p class="pool-small pool-muted" data-execution-settings-reset role="status" hidden>Reset to this device. Send a new message to use updated settings.</p>
         <button class="pool-button btn-ghost pool-caption" type="button" data-review-network-execution hidden>Review network execution</button>
         <p class="chat-attachment-help pool-small pool-muted" data-attachment-help hidden>TXT, Markdown, JSON, JS, TS, HTML and CSS. Up to ${workProfile.files.maxInputs}, ${workProfile.files.maxFileBytes / 1024} KB each, ${workProfile.files.maxInputBytes / 1024} KB total.</p>
         </div>

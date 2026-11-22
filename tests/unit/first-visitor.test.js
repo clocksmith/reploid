@@ -107,7 +107,7 @@ it('names the pre-send destination as the selected model moves between local and
     ...model, localCached: true, availability: 'cached', networkAvailability: 'unavailable'
   }] });
   expect(source.textContent).toMatch(/this device/i);
-  expect(note.textContent).toBe('This device reads your prompt for inference.');
+  expect(note.textContent).toBe('Inference stays on this device.');
   f.publish({ models: [{
     ...model, localCached: false, availability: 'ready', networkAvailability: 'ready',
     providerIds: ['public-peer'], reachableProviderIds: ['public-peer']
@@ -185,7 +185,7 @@ it('keeps downloads cancellable when a usable peer arrives and never fabricates 
   f.publish({ models: [ready], defaultModels: { auto: ready }, defaultModel: ready });
   expect(f.find('[data-composer-send]').disabled).toBe(false); expect(f.find('[data-cancel-download]').hidden).toBe(false);
   const status = f.find('[data-acquisition-status]');
-  expect(status.textContent).toContain('A computer is ready to answer on the network.');
+  expect(status.textContent).toContain('Network model ready.');
   f.publish({ models: [{ ...ready, availability: 'busy', networkAvailability: 'busy', reachableProviderIds: [] }] });
   expect(status.textContent).toBe('Downloading model files.');
   f.publish({ models: [{ ...ready, availability: 'cached', localCached: true, networkAvailability: 'unavailable', reachableProviderIds: [] }] });

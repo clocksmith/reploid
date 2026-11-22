@@ -85,6 +85,12 @@
 .pool-home .pool-button.pool-icon { display: inline-grid; place-items: center; width: var(--pool-size-44); padding: 0; }
 .pool-home .pool-button.btn-ghost { background: transparent; box-shadow: none; }
 .pool-home .pool-button.btn-ghost:is([aria-pressed='true'], [aria-current='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+.pool-choice:has(.pool-choice-mark) { position: relative; }
+.pool-choice:has(.pool-choice-mark) > input[type="radio"] {
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit;
+}
+.pool-choice > .pool-choice-mark { margin-inline-start: auto; flex: none; visibility: hidden; }
+.pool-choice:has(input:checked) > .pool-choice-mark { visibility: visible; }
 .pool-home .pool-choice:has(input:checked) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-home .pool-choice:has(input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
 /* A field inside another field's material (the composer) carries no material of its own;

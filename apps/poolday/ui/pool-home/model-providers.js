@@ -1,3 +1,4 @@
+import { interfaceIcon } from '../components/interface-icons.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { computerLabel } from './computer-labels.js';
 import { projectNetworkPeers } from './network-controls.js';
@@ -84,7 +85,7 @@ export function updateModelProviders(root, state, model, { selectedId = model ? 
     const list = disclosure.querySelector('[data-provider-list]');
     const choose = routes.length > 1 || routes.length === 1 && routes[0].selectionId !== selectedId;
     const markup = routes.map(route => `<div class="chat-model-route pool-stack pool-gap-xs" data-model-route="${escape(route.selectionId)}">${choose
-      ? `<label class="chat-model-choice pool-choice pool-button btn-ghost"><input type="radio" name="${disclosure.dataset.routeName}" value="${escape(route.selectionId)}" data-model-route-choice><span><strong>${escape(route.type)}</strong><small class="pool-muted">${escape(route.status)}</small></span></label>`
+      ? `<label class="chat-model-choice pool-choice pool-button btn-ghost"><input type="radio" name="${disclosure.dataset.routeName}" value="${escape(route.selectionId)}" data-model-route-choice><span><strong>${escape(route.type)}</strong><small class="pool-muted">${escape(route.status)}</small></span><span class="pool-choice-mark">${interfaceIcon('check')}</span></label>`
       : `<div class="chat-model-route-heading"><strong>${escape(route.type)}</strong><span class="pool-muted">${escape(route.status)}</span></div>`}</div>`).join('')
       || '<p class="pool-small pool-muted">No routes available.</p>';
     if (list.dataset.projection !== markup) { list.innerHTML = markup; list.dataset.projection = markup; }
