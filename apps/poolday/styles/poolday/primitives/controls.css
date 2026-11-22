@@ -91,7 +91,8 @@
 }
 .pool-choice > .pool-choice-mark { margin-inline-start: auto; flex: none; visibility: hidden; }
 .pool-choice:has(input:checked) > .pool-choice-mark { visibility: visible; }
-.pool-home .pool-choice:has(input:checked) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
+.pool-choice[aria-pressed='true'] > .pool-choice-mark { visibility: visible; }
+.pool-home .pool-choice:is(:has(input:checked), [aria-pressed='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-home .pool-choice:has(input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
 /* A field inside another field's material (the composer) carries no material of its own;
    the container shows focus with pool-focus-within. */

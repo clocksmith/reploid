@@ -29,10 +29,11 @@ describe('Conversation workspace', () => {
     input.value = original;
   };
   const chooseShared = async id => {
+    // Computer first (the sheet stays open), then the model; Done commits if the model tap has not already.
     find('[data-open-model]').click();
-    if (id) { const select = find('[data-next-model]'); select.value = id; select.dispatchEvent(new Event('change', { bubbles: true })); }
     find('[data-execution-choice=network]').click();
-    find('[data-change-model]').click();
+    if (id) { const select = find('[data-next-model]'); select.value = id; select.dispatchEvent(new Event('change', { bubbles: true })); }
+    if (find('[data-model-picker]').open) find('[data-change-model]').click();
     await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
   };
   beforeEach(() => {
@@ -52,10 +53,10 @@ describe('Conversation workspace', () => {
     const id = session.createThread({ sharingScope: 'mesh' });
     const input = find('[data-composer-input]');
     input.value = 'Keep this question'; input.dispatchEvent(new Event('input', { bubbles: true }));
-    const shield = find('[data-composer-form] [data-open-privacy]');
+    const shield = find('[data-model-picker] [data-open-privacy]');
     expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
-    // The composer opens the one-tap "Answer on" sheet; the detailed policy sits under More options.
-    const advanced = () => { shield.click(); expect(find('[data-destination-dialog]').open).toBe(true); find('[data-destination-more]').click(); };
+    // The composer's one control opens the Answer on sheet; the detailed policy sits under More options.
+    const advanced = () => { find('[data-open-model]').click(); expect(find('[data-model-picker]').open).toBe(true); shield.click(); };
     advanced();
     const dialog = find('[data-privacy-dialog]');
     expect(dialog.open).toBe(true);
@@ -267,7 +268,7 @@ describe('Conversation workspace', () => {
     session.setCachedModels([small]); dispose = bindConversationWorkspace(root, session);
     expect(find('[data-active-model-select]').value).toBe(large.id);
     find('[data-open-model]').click();
-    expect(find('[data-execution-choice=local]').disabled).toBe(true);
+    expect(find('[data-execution-choice=local]').disabled).toBe(false);
     const next = find('[data-next-model]'); next.value = small.id; next.dispatchEvent(new Event('change', { bubbles: true }));
     find('[data-execution-choice=local]').click();
     expect(find('[data-active-model-select]').value).toBe(large.id);
@@ -355,7 +356,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-composer-area] [data-open-model]')).not.toBeNull();
     find('[data-open-model]').click();
     expect(find('[data-model-picker]').open).toBe(true);
-    expect(find('#chat-model-picker-title').textContent).toBe('Choose a model');
+    expect(find('#chat-model-picker-title').textContent).toBe('Answer on');
     find('[data-model-picker-close]').click();
     for (const [section, title] of [['participants', 'Computers'], ['settings', 'Settings']]) {
       navigation.querySelector(`[data-inspector-section="${section}"]`).click();
@@ -434,7 +435,7 @@ describe('Conversation workspace', () => {
     await vi.waitFor(() => expect(find('[data-execution-choice=local]').getAttribute('aria-pressed')).toBe('true'));
     expect(downloadLocalModel).toHaveBeenCalledWith(small.id, true);
     expect(find('[data-next-model]').value).toBe(small.id);
-    expect(find('[data-change-model]').textContent).toBe('Use model');
+    expect(find('[data-change-model]').textContent).toBe('Done');
     expect(find('[data-model-dialog]').open).toBe(false);
     expect(viewState.chosenModel.id).toBe(medium.id);
     find('[data-change-model]').click();
@@ -517,7 +518,7 @@ describe('Conversation workspace', () => {
     session.refreshNetwork();
     expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
     expect(find('[data-execution-choice=network]').disabled).toBe(false);
-    expect(find('[data-change-model]').textContent).toBe('Use model');
+    expect(find('[data-change-model]').textContent).toBe('Done');
     expect(find('[data-change-model]').disabled).toBe(false);
     peers = []; session.setCachedModels([model]);
     expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('local');
@@ -651,8 +652,8 @@ describe('Conversation workspace', () => {
     expect(adapterChoice.hasAttribute('data-choice-adapter')).toBe(false);
     expect(adapterChoice.querySelector('[data-choice-status]').textContent).toBe('No computer serves it now');
     expect(adapterChoice.querySelector('[data-choice-note]').hidden).toBe(true);
-    expect(find('[data-change-model]').disabled).toBe(false);
-    find('[data-change-model]').click();
+    // A route that can answer now applies on tap; Done is only needed if the sheet is still open.
+    if (find('[data-model-picker]').open && !find('[data-change-model]').disabled) find('[data-change-model]').click();
     return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`${base.name} · Public network`));
   });
 
@@ -1012,9 +1013,9 @@ describe('Conversation workspace', () => {
     expect(session.getState().activeThread.permissions.sharingScope).toBe('local');
   });
 
-  it('refreshes an open model picker without replacing a choice whose capacity disappears', async () => {
+  it('applies an available model on tap, keeps the draft and leaves the original thread on its model', async () => {
     const first = CANONICAL_CHAT_MODELS[0], second = CANONICAL_CHAT_MODELS[1];
-    let peers = [first, second].map((model, index) => ({ peerId: 'peer-' + index, model: model.id,
+    const peers = [first, second].map((model, index) => ({ peerId: 'peer-' + index, model: model.id,
       modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
@@ -1024,23 +1025,31 @@ describe('Conversation workspace', () => {
     find('[data-open-model]').click();
     const next = find('[data-next-model]');
     next.value = second.id; next.dispatchEvent(new Event('change'));
-    peers = peers.slice(0, 1); session.refreshNetwork();
-    expect(next.value).toBe(second.id);
-    expect(next.textContent).toContain('Unavailable');
-    expect(find('[data-change-model]').disabled).toBe(true);
-    expect(session.getState().selectedId).toBe(id);
-    expect(find('[data-composer-input]').value).toBe('Keep this draft');
-    peers.push({ peerId: 'peer-1', model: second.id, modelIdentity: second.identity,
-      readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 });
-    session.refreshNetwork();
-    expect(next.value).toBe(second.id);
-    expect(find('[data-change-model]').disabled).toBe(false);
-    find('[data-change-model]').click();
     await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
+    expect(find('[data-model-picker]').open).toBe(false);
     expect(find('[data-active-model-select]').value).toBe(second.id);
     session.select(id);
     expect(session.getState().activeThread.model.id).toBe(first.id);
     expect(find('[data-composer-input]').value).toBe('Keep this draft');
+  });
+
+  it('does not commit a model whose capacity disappears; Done waits until it can answer again', async () => {
+    const first = CANONICAL_CHAT_MODELS[0], second = CANONICAL_CHAT_MODELS[1];
+    let peers = [{ peerId: 'peer-0', model: first.id, modelIdentity: first.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    const id = session.createThread({ model: first, privacy: openPolicy });
+    find('[data-open-model]').click();
+    const next = find('[data-next-model]');
+    next.value = second.id; next.dispatchEvent(new Event('change'));
+    expect(find('[data-model-picker]').open).toBe(true);
+    expect(find('[data-change-model]').disabled).toBe(true);
+    expect(session.getState().selectedId).toBe(id);
+    peers = [...peers, { peerId: 'peer-1', model: second.id, modelIdentity: second.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
+    session.refreshNetwork();
+    expect(next.value).toBe(second.id);
+    expect(find('[data-change-model]').disabled).toBe(false);
   });
 
   it('renames, archives, and restores a thread without changing its purpose or draft', async () => {

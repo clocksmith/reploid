@@ -29,8 +29,21 @@ export function localFitText(model, info, { cached = false, sizeBytes = info?.si
   return `${cached ? 'Stored on this device' : 'Download: ' + size}${space}. ${memory}${fit} Usable context depends on the workload and available memory.`;
 }
 
+const computerState = (choice, { state, selected, locked, canDownload }) => {
+  if (choice === 'desktop') {
+    if (locked?.guest) return 'Invited';
+    return { online: 'Ready', pairing: 'Connecting…', connecting: 'Connecting…', offline: 'Offline' }[locked?.status] || '';
+  }
+  if (choice === 'local') {
+    if (modelExecutionState(selected, 'local').usable) return 'Ready';
+    return selected && canDownloadModelHere(selected, state, canDownload) ? 'Download needed' : '';
+  }
+  if (modelExecutionState(selected, 'network').usable) return 'Ready';
+  return state.discoveryPhase === 'searching' ? 'Finding computers…' : 'None available';
+};
+
 export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
-  touched: pickerTouched, changing: changingModel, selectedId, localOnly, canDownload }) {
+  touched: pickerTouched, changing: changingModel, selectedId, localOnly, canDownload, destination = null, locked = null }) {
   const keyFor = model => model?.selectionId || model?.id;
   if (!pickerTouched) pickerModel = (state.models || []).find(model => keyFor(model) === selectedId) || pickerModel;
   const models = [...(state.models || [])];
@@ -48,15 +61,20 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   find('[data-model-facts]').textContent = (selected || pickerModel) ? describeModelChoice(state)(selected || pickerModel).facts || modelFacts(selected || pickerModel) : '';
   const preview = modelExecutionState(selected, pickerLocation);
   const available = selected && (preview.usable || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(selected) && !state.localDownloadIssue);
+  // One row per computer: this device, the paired or invited computer, and contributors.
+  const pressed = destination === 'desktop' ? 'desktop' : destination === 'contributors' ? 'network'
+    : destination === 'device' ? 'local' : pickerLocation === 'local' ? 'local' : 'network';
   for (const button of find('[data-execution-location]').querySelectorAll('[data-execution-choice]')) {
-    const location = button.dataset.executionChoice;
-    if (location === 'network') {
-      button.textContent = selected?.fleet ? 'Private network' : 'Network';
-      button.setAttribute('aria-label', selected?.fleet ? 'Private network' : 'Public network');
+    const choice = button.dataset.executionChoice;
+    if (choice === 'desktop') {
+      button.hidden = !locked;
+      if (locked) button.querySelector('[data-computer-desktop-name]').textContent = locked.label;
     }
-    button.setAttribute('aria-pressed', String(location === pickerLocation));
+    if (choice === 'network') button.hidden = !!locked?.guest;
+    button.querySelector('[data-computer-state]').textContent = computerState(choice, { state, selected, locked, canDownload });
+    button.setAttribute('aria-pressed', String(choice === pressed));
     button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId)
-      || localOnly && location !== 'local' || location === 'local' && location !== pickerLocation && !modelExecutionState(selected, 'local').usable;
+      || localOnly && choice !== 'local';
   }
   // A model nobody is sharing that this device could store is not a dead end: the same button downloads it.
   const downloadable = !available && !!selected && canDownloadModelHere(selected, state, canDownload);
@@ -65,7 +83,7 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   find('[data-switch-local]').disabled = changingModel || state.acquisition?.phase === 'downloading';
   const reviewDownload = downloadable && pickerLocation !== 'network';
   find('[data-change-model]').disabled = changingModel || !(available || reviewDownload);
-  find('[data-change-model]').textContent = reviewDownload ? 'Download model…' : 'Use model';
+  find('[data-change-model]').textContent = reviewDownload ? 'Download model…' : 'Done';
   const status = find('[data-next-model-status]');
   let statusText = '';
   if (!pickerModel) statusText = 'No model is available right now.';

@@ -61,8 +61,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const currentPolicy = explicitPrivacy;
   const privacyNode = find('[data-privacy-dialog]'), privacyTrigger = find('[data-open-privacy]');
   const privacyDialog = bindDialog(privacyNode);
-  const destinationNode = find('[data-destination-dialog]'), destinationDialog = bindDialog(destinationNode);
-  let sendAfterDestination = false;
+  let sendAfterDestination = false, pickerChoice = null;
+  /** Which computer the current policy sends to: this device, the paired or invited computer, contributors, or named IDs. */
+  const destinationKey = state => {
+    const policy = explicitPrivacy(state), locked = lockedDestination(state);
+    return policy.placement === 'local-only' || policy.recipients.kind === 'none' ? 'device'
+      : policy.recipients.kind === 'open' ? 'contributors'
+        : locked && policy.recipients.ids.length === 1 && policy.recipients.ids[0] === locked.id ? 'desktop' : 'named';
+  };
   let editingThread, applyingPrivacy = false;
   const effectiveLocation = state => {
     const thread = state.activeThread, privacy = explicitPrivacy(state);
@@ -267,11 +273,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   }
   let fitRequest, fitKey, fitInfo;
   const updatePicker = snapshot => {
+    // The pressed computer row follows the sheet's run location (a finished download switches it to this device).
+    if (pickerLocation === 'local') pickerChoice = 'device';
+    else if (pickerLocation === 'network' && pickerChoice === 'device') pickerChoice = null;
     pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
       state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
-      selectedId: modelSelect.value, localOnly: explicitPrivacy(snapshot).placement === 'local-only'
-        || explicitPrivacy(snapshot).recipients.kind === 'none', canDownload: !!inspector.downloadModel });
+      selectedId: modelSelect.value, localOnly: !!snapshot.activeThread && (explicitPrivacy(snapshot).placement === 'local-only'
+        || explicitPrivacy(snapshot).recipients.kind === 'none'),
+      canDownload: !!inspector.downloadModel, destination: pickerChoice || destinationKey(snapshot),
+      locked: (() => { const locked = lockedDestination(snapshot); return locked && { ...locked, guest: !!viewState.guestInvite,
+        status: viewState.guestInvite ? 'online' : snapshot.ownerPairing?.status }; })() });
     const node = find('[data-local-fit]');
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
       && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
@@ -361,16 +373,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const policy = currentPolicy(state);
     privacyTrigger.disabled = busy || !!thread?.closed;
     const locked = lockedDestination(state);
-    const destination = policy.placement === 'local-only' || policy.recipients.kind === 'none' ? 'device'
-      : policy.recipients.kind === 'open' ? 'contributors'
-        : locked && policy.recipients.ids.length === 1 && policy.recipients.ids[0] === locked.id ? 'desktop' : 'named';
-    const destinationName = { device: 'This device', contributors: 'Contributors', desktop: locked?.label, named: 'Named computers' }[destination];
-    find('[data-destination-label]').textContent = destinationName;
-    destinationNode.querySelector('[data-destination-row="desktop"]').hidden = !locked;
-    destinationNode.querySelector('[data-destination-row="contributors"]').hidden = !!viewState.guestInvite;
-    if (locked) find('[data-destination-desktop-name]').textContent = locked.label;
-    for (const input of destinationNode.querySelectorAll('input[name="chat-destination"]')) input.checked = input.value === destination;
-    if (destinationNode.open && privacyTrigger.disabled) destinationDialog.close();
+    const destinationName = { device: 'This device', contributors: 'Contributors', desktop: locked?.label, named: 'Named computers' }[destinationKey(state)];
     const privacyTitle = 'Answer on: ' + destinationName + (busy ? ' · Available after this answer' : '');
     privacyTrigger.title = privacyTitle;
     privacyTrigger.setAttribute('aria-label', privacyTitle);
@@ -574,6 +577,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = alternative || (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
       || state.activeThread?.model || chosenModel || state.defaultModel || null;
     pickerLocation = alternative ? 'network' : effectiveLocation(state);
+    find('[data-picker-title]').textContent = 'Answer on';
+    // The pressed row is where this chat would actually run now ('auto' runs a stored model on this device).
+    pickerChoice = alternative ? 'contributors' : modelExecutionState(pickerModel, pickerLocation).source === 'local' ? 'device' : null;
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
     render(state);
@@ -588,7 +594,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       && modelIdentity(alternative) === event.currentTarget.dataset.identity) openPicker(event, alternative);
     else render(state);
   });
-  on('[data-model-picker-close]', 'click', () => picker.close());
+  on('[data-model-picker-close]', 'click', () => { sendAfterDestination = false; picker.close(); });
   on('[data-model-picker]', 'close', () => render(session.getState()));
   // A route radio under the providers selects that route of the highlighted variant.
   on('[data-model-picker]', 'change', event => {
@@ -604,6 +610,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     updatePicker(session.getState());
     render(session.getState());
+    if (pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice();
   });
   on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts();
     if (input.value.trim()) pinDraftModel(session.getState());
@@ -646,7 +653,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       });
     }
   });
-  on('[data-change-model]', 'click', () => {
+  // Done, or tapping a model or computer that can answer now, commits the sheet and returns to the draft.
+  const resumeAfterChoice = () => { if (sendAfterDestination) { sendAfterDestination = false; submitDraft(); } };
+  function commitPickerChoice() {
     if (changingModel || attachmentReader.pending) return;
     const next = find('[data-next-model]').value;
     const state = session.getState();
@@ -670,7 +679,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         if (controller.signal.aborted || selectedId !== origin || composerRevision !== revision) return;
         if (state.activeThread && (state.activeThread.model.selectionId || state.activeThread.model.id) === next) {
           await session.setExecutionLocation(state.activeThread.id, location);
-          picker.close(); input.focus(); return;
+          picker.close(); input.focus(); resumeAfterChoice(); return;
         }
         // New threads share a single draft slot until their first send. If it is
         // already occupied, give this switch its own thread before copying the draft.
@@ -700,12 +709,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         executionLocation = location;
         viewState.executionLocation = executionLocation;
         modelSelect.value = next; picker.close(); render(session.getState()); input.focus();
+        resumeAfterChoice();
       } finally {
         changingModel = false;
         if (!controller.signal.aborted) render(session.getState());
       }
     });
-  });
+  }
+  on('[data-change-model]', 'click', commitPickerChoice);
   on('[data-retry-connection]', 'click', event => {
     queuedSend = null; render(session.getState());
     const button = event.currentTarget;
@@ -759,38 +770,37 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     privacyDialog.open(privacyNode.querySelector('[data-privacy-placement]'), trigger);
   };
   // One "Answer on" sheet: each row applies on tap. The detailed policy dialog stays under More options.
+  // The model sheet is the one place to choose the computer and the model. Rows apply on tap.
   const openDestination = (trigger, { forSend = false } = {}) => {
     if (privacyTrigger.disabled) return;
     sendAfterDestination = forSend;
-    find('[data-destination-title]').textContent = forSend ? 'Where should this run?' : 'Answer on';
-    const checked = destinationNode.querySelector('input:checked') || destinationNode.querySelector('[data-destination-row]:not([hidden]) input');
-    destinationDialog.open(checked, trigger);
+    openPicker({ currentTarget: trigger });
+    find('[data-picker-title]').textContent = forSend ? 'Where should this run?' : 'Answer on';
   };
-  const applyDestination = async key => {
-    const state = session.getState(), locked = lockedDestination(state);
-    const privacy = key === 'device' ? localPolicy
+  const destinationPolicy = (key, state) => {
+    const locked = lockedDestination(state);
+    return key === 'device' ? localPolicy
       : key === 'desktop' && locked ? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [locked.id] }, computation: 'plaintext' })
         : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+  };
+  // A new chat's destination changes at once, so Done right after a computer tap commits the new choice.
+  const applyDraftDestination = key => {
+    viewState.privacyTouched = true;
+    viewState.privacy = destinationPolicy(key, session.getState());
+    executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'auto';
+  };
+  const applyDestination = async key => {
+    const state = session.getState(), privacy = destinationPolicy(key, state);
     viewState.privacyTouched = true;
     if (state.activeThread) {
       await session.setExecutionPrivacy(state.activeThread.id, privacy);
       if (key !== 'device' && state.activeThread.permissions?.executionLocation === 'local') await session.setExecutionLocation(state.activeThread.id, 'auto');
     } else {
       viewState.privacy = privacy;
-      if (key !== 'device' && executionLocation === 'local') executionLocation = viewState.executionLocation = 'auto';
+      executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'auto';
     }
-    const resume = sendAfterDestination && key !== 'device';
-    sendAfterDestination = false;
-    if (destinationNode.open) destinationDialog.close();
-    render(session.getState());
-    if (resume) submitDraft();
   };
-  on('[data-destination-choices]', 'change', event => {
-    if (event.target.matches('input[name="chat-destination"]')) applyDestination(event.target.value).catch(error);
-  });
-  on('[data-destination-close]', 'click', () => { sendAfterDestination = false; destinationDialog.close(); });
-  on('[data-destination-more]', 'click', event => { sendAfterDestination = false; destinationDialog.close(); openExecutionPolicy(event.currentTarget); });
-  on('[data-open-privacy]', 'click', event => openDestination(event.currentTarget));
+  on('[data-open-privacy]', 'click', event => { if (find('[data-model-picker]').open) picker.close(); openExecutionPolicy(event.currentTarget); });
   on('[data-review-network-execution]', 'click', event => openDestination(event.currentTarget, { forSend: true }));
   on('[data-privacy-controls]', 'change', event => {
     if (event.target.matches('[data-privacy-recipient-mode], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
@@ -825,9 +835,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-execution-location]', 'click' , event => {
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
+    const choice = button.dataset.executionChoice;
     pickerTouched = true;
-    pickerRevision++; pickerLocation = button.dataset.executionChoice;
+    pickerRevision++; pickerLocation = choice === 'local' ? 'local' : 'network';
+    pickerChoice = choice === 'local' ? 'device' : choice === 'desktop' ? 'desktop' : 'contributors';
+    if (!session.getState().activeThread) applyDraftDestination(pickerChoice);
     updatePicker(session.getState());
+    void act(async () => {
+      if (session.getState().activeThread) await applyDestination(pickerChoice);
+      // The sheet stays open on the new computer so its model list can be checked; a model tap closes it.
+      const state = session.getState();
+      render(state); if (find('[data-model-picker]').open) updatePicker(state);
+    });
   });
   on('[data-queue-send]', 'click', () => {
     const state = session.getState(), location = effectiveLocation(state);

@@ -27,23 +27,22 @@ function fixture({ automatic = false, viewState, fresh = false } = {}) {
   return { root, api, find: selector => root.querySelector(selector),
     publish(update) { state = { ...state, ...update }; listeners.forEach(callback => callback(state)); }, state: () => state };
 }
-it('asks once where to run before a first visitor's prompt can reach a network provider', async () => {
+it('asks once where to run before a first visitor prompt can reach a network provider', async () => {
   const f = fixture({ fresh: true });
   const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] };
   f.publish({ ...observedDiscovery, models: [model] });
   const send = f.find('[data-composer-send]');
-  // Send is available, but nothing is sent until the visitor picks a destination.
+  // Send is available, but nothing is sent until the visitor picks a computer in the one sheet.
   expect(send.disabled).toBe(false);
   f.find('[data-composer-input]').value = 'First question';
   f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
-  expect(f.find('[data-destination-dialog]').open).toBe(true);
-  expect(f.find('[data-destination-title]').textContent).toBe('Where should this run?');
+  expect(f.find('[data-model-picker]').open).toBe(true);
+  expect(f.find('[data-picker-title]').textContent).toBe('Where should this run?');
+  expect(f.find('[data-execution-choice=local]').getAttribute('aria-pressed')).toBe('true');
   expect(f.api.connect).not.toHaveBeenCalled();
-  const contributors = f.find('[data-destination-row="contributors"] input');
-  contributors.checked = true; contributors.dispatchEvent(new Event('change', { bubbles: true }));
-  await vi.waitFor(() => expect(f.find('[data-destination-dialog]').open).toBe(false));
-  expect(f.find('[data-destination-label]').textContent).toBe('Contributors');
+  f.find('[data-execution-choice=network]').click();
+  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true'));
 });
 
 it('bounds the host discovery window even when signaling never connects, without acquiring anything', async () => {
