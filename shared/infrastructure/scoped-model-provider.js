@@ -98,6 +98,20 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
         catch (error) { healthy = false; throw error; }
       }
     },
+    /** Teacher-forced log-probability of `target` after `messages` (base model, chat template, non-thinking). */
+    async scoreTarget({ messages, target, signal: attemptSignal }) {
+      const combined = AbortSignal.any([signal, attemptSignal]);
+      combined.throwIfAborted();
+      requireValue(session?.supports?.('targetScoring') === true && typeof session.scoreTargetSequence === 'function',
+        'This runtime cannot score a target sequence; install DopplerX 0.1.6 or later');
+      const identity = executionIdentity();
+      const geometry = session.supports?.('advanced') === false ? null : session.advanced?.getGenerationGeometry?.();
+      const maxSeqLen = Number.isSafeInteger(geometry?.maxSeqLen) && geometry.maxSeqLen > 0 ? geometry.maxSeqLen : 4096;
+      const result = await session.scoreTargetSequence({ messages: structuredClone(messages), target, maxSeqLen }, { signal: combined });
+      requireValue(result?.schema === 'doppler.target-sequence-score/v1' && Number.isFinite(result.roundedTotalLogProb)
+        && Number.isSafeInteger(result.tokenCount) && result.tokenCount > 0, 'Doppler returned an invalid target score');
+      return { ...result, modelIdentity: identity.modelIdentity };
+    },
     async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens, contextOwner, contextId, settings, onUsage }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();

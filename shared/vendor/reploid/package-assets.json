@@ -162,8 +162,8 @@
     },
     {
       "path": "adapters/resident-execution.js",
-      "bytes": 8220,
-      "sha256": "a0f0e3e67e0ed7135a95d13fc7e4413b11deadb7271a98ac1f464a909548ed34"
+      "bytes": 9273,
+      "sha256": "859af22edf67a21ed3f2c34fa2be4c67b8e27b50d5abf879d74ab9b6536ad650"
     },
     {
       "path": "adapters/resident.d.ts",
@@ -1012,13 +1012,13 @@
     },
     {
       "path": "mesh/index.d.ts",
-      "bytes": 2341,
-      "sha256": "928a105766b7b627ffc89764aaa1c2c59002e819d61f9a1b999d2c2a2ac0f29c"
+      "bytes": 2378,
+      "sha256": "1d913ef9a72e8bd82653a16941d6426929d7cfcc917fc5a609a0e69283604188"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 3877,
-      "sha256": "b9b05482e213bb5dfd6893495c463ee59642689bc5e5e06267622ac8a093ae4b"
+      "bytes": 3914,
+      "sha256": "608e78350e3142c8802f3a0ea7b6060adaf1f84943c3054ad2a56c4feef68e44"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
@@ -1521,6 +1521,16 @@
       "sha256": "35cd997e4f20ed6ba78bc8de4788b5cc172d34639aaf4b973f18f91a123db334"
     },
     {
+      "path": "mesh/target-scoring.d.ts",
+      "bytes": 1960,
+      "sha256": "a3a378b717d7c5e38e28902e5e9dcf4fe9184e4c5a112dc9ff465cb60743d456"
+    },
+    {
+      "path": "mesh/target-scoring.js",
+      "bytes": 7946,
+      "sha256": "712b1b536749b1ad04462b074cf324e35e3f865f32535cac4015e0e6fdae8f5e"
+    },
+    {
       "path": "mesh/web-access-network.js",
       "bytes": 7945,
       "sha256": "38472a03e425d53f5804d0c051631f8dd4b591fd13b17cc4e0dc0dec14c0040f"
@@ -1777,8 +1787,8 @@
     },
     {
       "path": "transport/message-types.js",
-      "bytes": 1911,
-      "sha256": "dc033f78fb8940cff3c73255b71f5603b1ec304904bf7f94177883ae64953af9"
+      "bytes": 1974,
+      "sha256": "060daacb6b7a3f1beaf30a1bc8d9df5d06d86a91470d10494eff9e142f1040e2"
     },
     {
       "path": "transport/owner-pairing.d.ts",

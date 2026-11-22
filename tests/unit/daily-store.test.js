@@ -28,6 +28,29 @@ describe('daily game ledger', () => {
   });
   afterEach(() => { store.close(); rmSync(dir, { recursive: true, force: true }); });
 
+  it('breaks ties between equal winners by signed closeness and shows closeness on a miss', () => {
+    const scored = (credential, key, totalLogProbHundredths, won = true) => {
+      const { attempt } = submit(credential, key, { prompt: 'say yes', words: 2 });
+      store.markDispatched(attempt.id);
+      return store.complete(attempt.id, { output: won ? 'Answer.' : 'Other.', won, receipt: { signature: 'test', attempt: attempt.id },
+        score: totalLogProbHundredths === null ? null : { totalLogProbHundredths, tokenCount: 2 } });
+    };
+    const [ana, ben, cal, dee] = ['ana', 'ben', 'cal', 'dee'].map(name => grant(`verified:${name}`));
+    scored(ana, 'a', -200);
+    scored(ben, 'b', -20);
+    scored(cal, 'c', null);
+    const miss = scored(dee, 'd', -140, false);
+    // Same words and characters: the closer prompt ranks first; an unscored win ranks after scored ones.
+    expect(store.leaderboard(day)).toEqual([
+      { rank: 1, words: 2, characters: 7, closeness: 90 }, { rank: 2, words: 2, characters: 7, closeness: 37 },
+      { rank: 3, words: 2, characters: 7, closeness: null },
+    ]);
+    expect(miss).toMatchObject({ won: false, closeness: 50 });
+    // An invalid score is not stored.
+    const { attempt } = submit(dee, 'e'); store.markDispatched(attempt.id);
+    expect(store.complete(attempt.id, { output: 'x', won: false, receipt: { r: 1 }, score: { totalLogProbHundredths: 5, tokenCount: 2 } }).closeness).toBeNull();
+  });
+
   it('enforces the cap across reissued guest credentials, independent database clients, and restarts', () => {
     const alice = grant('verified:alice');
     const second = store.authorizeGuest({ subject: 'verified:alice', expiresAt: until() });
@@ -192,7 +215,7 @@ describe('daily game ledger', () => {
     expect(() => store.classifyScripted({attemptId:b.id,receiptDigest:a.receiptDigest,excluded:true})).toThrow('qa_evidence_does_not_match');
     const classify = excluded => store.classifyScripted({attemptId:b.id,receiptDigest:b.receiptDigest,excluded});
     expect(classify(true).changed).toBe(true); expect(classify(true).changed).toBe(false);
-    expect(store.leaderboard(day)).toEqual([{rank:1,words:2,characters:8},{rank:2,words:3,characters:19}]);
+    expect(store.leaderboard(day)).toEqual([{rank:1,words:2,characters:8,closeness:null},{rank:2,words:3,characters:19,closeness:null}]);
     expect(store.ownerStats()).toMatchObject({players:2,scriptedQA:{accounts:1,acceptedTurns:1},openedDares:2,
       publishedDares:2,playedDares:0,darePlayers:0,thirdParticipants:0});
     expect(store.capacity(day).used).toBe(3);
@@ -206,7 +229,7 @@ describe('daily game ledger', () => {
     expect(store.ownerStats()).toMatchObject({players:2,returningPlayers:1,consecutiveDayPlayers:1,scriptedQA:{accounts:1,acceptedTurns:2},
       nextDayReturn:{total:{eligibleGuestDays:2,nextDayReturns:1}}});
     expect(classify(false).changed).toBe(true); expect(classify(false).changed).toBe(false);
-    expect(store.leaderboard(day)[0]).toEqual({rank:1,words:1,characters:1});
+    expect(store.leaderboard(day)[0]).toEqual({rank:1,words:1,characters:1,closeness:null});
     expect(store.ownerStats()).toMatchObject({players:3,returningPlayers:2,consecutiveDayPlayers:2,thirdParticipants:1,playedDares:2,
       nextDayReturn:{total:{eligibleGuestDays:3,nextDayReturns:2}}});
   });
@@ -219,7 +242,7 @@ describe('daily game ledger', () => {
     const b = win(bob, 'one', 'X', 1);
     const c = win(cara, 'one', 'a b', 2);
     expect(store.leaderboard(day)).toEqual([
-      {rank: 1, words: 1, characters: 1}, {rank: 1, words: 1, characters: 1}, {rank: 3, words: 2, characters: 3},
+      {rank: 1, words: 1, characters: 1, closeness: null}, {rank: 1, words: 1, characters: 1, closeness: null}, {rank: 3, words: 2, characters: 3, closeness: null},
     ]);
     store.publish(alice.token, a.id, {allowReveal: true}); store.reviewReveal(a.id);
     store.publish(alice.token, a2.id, {allowReveal: true});

@@ -78,7 +78,8 @@ let today, retry, deferredTurn, selectedAttempt, submitting = false, sentCode = 
 const turnsPerDay = () => Number.isSafeInteger(today?.turnsPerDay) && today.turnsPerDay > 0 ? today.turnsPerDay : 5;
 const feedback = message => { el('feedback').textContent = message; };
 const words = n => n + (n === 1 ? ' word' : ' words');
-const score = record => words(record.words) + ' · ' + record.characters + ' chars';
+const closeness = record => Number.isSafeInteger(record.closeness) ? record.closeness + '% close' : '';
+const score = record => [words(record.words), record.characters + ' chars', closeness(record)].filter(Boolean).join(' · ');
 const challengeNumber = day => day.replaceAll('-', '');
 function scorecard(record) {
   return 'Reploid Daily #' + challengeNumber(record.day) + ' · Got it in ' + words(record.words)
@@ -135,7 +136,8 @@ function attemptRow(parent,attempt,showPrompt) {
   const row = append(parent,'article','','attempt pool-well pool-stack pool-gap-sm');
   const complete = attempt.status === 'completed';
   let label = 'Waiting for the model';
-  if (complete) label = attempt.won ? 'Matched in ' + words(attempt.words) : 'Miss';
+  // A miss still says how close the prompt came: the model's per-token probability of the target.
+  if (complete) label = attempt.won ? 'Matched in ' + words(attempt.words) : 'Miss' + (closeness(attempt) ? ' · ' + closeness(attempt) : '');
   else if (attempt.status === 'unresolved') label = 'Outcome unresolved';
   append(row,'strong',label,'pool-subheading');
   if (showPrompt) append(row,'p',attempt.prompt,'pool-small pool-muted');

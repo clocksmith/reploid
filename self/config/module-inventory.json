@@ -1034,7 +1034,7 @@
     {
       "path": "infrastructure/scoped-model-provider.js",
       "owner": "infrastructure",
-      "sha256": "sha256:dd223d5d5985f0cd6459a622f9561ccc6deb061ac652f0c042b9612a187ae609",
+      "sha256": "sha256:074f5a0d379fa87436459eea2f69d0ee25bf5aaa7c8a2e21fcbf345970eb7c6c",
       "imports": [
         "../config/doppler-local-models.js",
         "../vendor/reploid/mesh/generation-context-cache.js",
@@ -4329,7 +4329,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:08a6d3168fb1c71bb423061079eae5a606d7aeba2eafb4160493657929312cef",
+      "sha256": "sha256:21cc96e7cfeb8f27e707db425757b666c588ba469e78dd447e624c6f548eac20",
       "imports": []
     },
     {
@@ -18552,7 +18552,7 @@
     {
       "path": "vendor/reploid/adapters/resident-execution.js",
       "owner": "vendor",
-      "sha256": "sha256:a0f0e3e67e0ed7135a95d13fc7e4413b11deadb7271a98ac1f464a909548ed34",
+      "sha256": "sha256:859af22edf67a21ed3f2c34fa2be4c67b8e27b50d5abf879d74ab9b6536ad650",
       "imports": [
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",
@@ -19275,7 +19275,7 @@
     {
       "path": "vendor/reploid/mesh/index.js",
       "owner": "vendor",
-      "sha256": "sha256:b9b05482e213bb5dfd6893495c463ee59642689bc5e5e06267622ac8a093ae4b",
+      "sha256": "sha256:608e78350e3142c8802f3a0ea7b6060adaf1f84943c3054ad2a56c4feef68e44",
       "imports": [
         "../config/index.js",
         "../rules/routing.rules.json",
@@ -19300,7 +19300,8 @@
         "./partitions/signed-resident-factory.js",
         "./peer-generation.js",
         "./placement-beliefs.js",
-        "./swarm-coordination.js"
+        "./swarm-coordination.js",
+        "./target-scoring.js"
       ]
     },
     {
@@ -19812,6 +19813,17 @@
       ]
     },
     {
+      "path": "vendor/reploid/mesh/target-scoring.js",
+      "owner": "vendor",
+      "sha256": "sha256:712b1b536749b1ad04462b074cf324e35e3f865f32535cac4015e0e6fdae8f5e",
+      "imports": [
+        "../artifacts/canonical-json.js",
+        "../artifacts/identity.js",
+        "../artifacts/receipt.js",
+        "../artifacts/signatures.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/mesh/web-access-network.js",
       "owner": "vendor",
       "sha256": "sha256:38472a03e425d53f5804d0c051631f8dd4b591fd13b17cc4e0dc0dec14c0040f",
@@ -20107,7 +20119,7 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:dc033f78fb8940cff3c73255b71f5603b1ec304904bf7f94177883ae64953af9",
+      "sha256": "sha256:060daacb6b7a3f1beaf30a1bc8d9df5d06d86a91470d10494eff9e142f1040e2",
       "imports": [
         "./circle-join.js",
         "./introductions.js",

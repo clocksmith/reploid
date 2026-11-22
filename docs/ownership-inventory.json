@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 391,
     "self": 457,
-    "shared": 2508
+    "shared": 2510
   },
   "pendingMoves": 0,
   "violations": [],
@@ -17324,6 +17324,16 @@
     {
       "served": "vendor/reploid/mesh/swarm-coordination.js",
       "source": "shared/vendor/reploid/mesh/swarm-coordination.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/target-scoring.d.ts",
+      "source": "shared/vendor/reploid/mesh/target-scoring.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/target-scoring.js",
+      "source": "shared/vendor/reploid/mesh/target-scoring.js",
       "owner": "shared"
     },
     {

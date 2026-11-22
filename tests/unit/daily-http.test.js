@@ -87,7 +87,7 @@ describe('daily circle HTTP boundary', () => {
     const published = (await post('share',{attemptId:first.json.attempt.id,allowReveal:true},alice)).json.share;
     const publicGame = (await state(null,{via:published.id,circle:null})).json;
     expect(store.ownerStats().openedDares).toBe(1); expect(publicGame.activity).toBeUndefined();
-    expect(publicGame.share).toEqual(published); expect(publicGame.leaderboard).toEqual([{rank:1,words:2,characters:17}]);
+    expect(publicGame.share).toEqual(published); expect(publicGame.leaderboard).toEqual([{rank:1,words:2,characters:17,closeness:null}]);
     expect(JSON.stringify(publicGame)).not.toContain('Express agreement'); expect(publicGame.yesterdayWinners).toEqual([]);
     store.reviewReveal(first.json.attempt.id); time += 86400000; game.target = 'No.'; game.banned = ['no'];
     const next = (await state(null,{via:published.id,circle:null})).json;

@@ -16,7 +16,7 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'reploid:generation-request', 'reploid:generation-update',
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',
-  'reploid:receipt',
+  'reploid:receipt', 'reploid:target-score-request', 'reploid:target-score-result',
   'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
   'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',

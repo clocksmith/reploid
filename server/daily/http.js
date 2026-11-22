@@ -90,8 +90,8 @@ const externalRoutes = new Map([
   ['/today','GET'], ['/auth/device/start','POST'], ['/auth/device/finish','POST'], ['/attempt','POST'], ['/share','POST'],
 ]);
 function ownAttempt(attempt) {
-  const { id, day, status, prompt, words, characters, attemptNumber, shareId, allowReveal, output, won, receiptDigest } = attempt;
-  return { id, day, status, prompt, words, characters, attemptNumber, shareId, allowReveal, output, won, receiptDigest };
+  const { id, day, status, prompt, words, characters, attemptNumber, shareId, allowReveal, output, won, receiptDigest, closeness = null } = attempt;
+  return { id, day, status, prompt, words, characters, attemptNumber, shareId, allowReveal, output, won, receiptDigest, closeness };
 }
 function projectChallenge(challenge, day) {
   if (!challenge) return null;
@@ -371,7 +371,7 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
     const operation = Promise.resolve().then(async () => {
       try {
         controller.signal.throwIfAborted();
-        const result = await run({ day, prompt: judged.prompt, signal: controller.signal, onDispatch() {
+        const result = await run({ day, prompt: judged.prompt, target: challenge.target, signal: controller.signal, onDispatch() {
           controller.signal.throwIfAborted();
           inviteFor(req);
           if (!store.guest(token)) throw new PublicProblem('sign-in');
@@ -381,7 +381,7 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
         } });
         if (!dispatched) throw new Error('Missing dispatch acknowledgement');
         const completed = store.complete(attempt.id, { output: result.output,
-          won: scoreOutput(result.output, challenge.target), receipt: result.receipt });
+          won: scoreOutput(result.output, challenge.target), receipt: result.receipt, score: result.score ?? null });
         return ownAttempt(completed);
       } catch (error) {
         if (dispatched || error?.dispatched === true) {

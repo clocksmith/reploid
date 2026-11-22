@@ -86,6 +86,11 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
       );
       CREATE INDEX IF NOT EXISTS daily_by_day ON daily_attempts(day, guest);
     `);
+    // Closeness: the provider-signed log-probability of the target after the prompt, in hundredths, with its token count.
+    const columns = new Set(db.prepare('PRAGMA table_info(daily_attempts)').all().map(column => column.name));
+    for (const [name, type] of [['closeness', 'INTEGER'], ['closeness_tokens', 'INTEGER'], ['score_record', 'TEXT']]) {
+      if (!columns.has(name)) db.exec(`ALTER TABLE daily_attempts ADD COLUMN ${name} ${type}`);
+    }
     circle = transaction(() => {
       const added = db.prepare('INSERT OR IGNORE INTO daily_circle VALUES (1, ?, ?)').run(hostId, opaqueToken());
       // A ledger created before playtesting was introduced belongs to ranked play.
@@ -142,12 +147,18 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
     requireValue(row && row.guest === guestId, 404, 'unknown_attempt');
     return row;
   }
+  /** Geometric-mean probability per target token, as a whole percent; null when the turn was not scored. */
+  function closenessPercent(row) {
+    return Number.isSafeInteger(row.closeness) && Number.isSafeInteger(row.closeness_tokens) && row.closeness_tokens > 0
+      ? Math.round(100 * Math.exp(row.closeness / 100 / row.closeness_tokens)) : null;
+  }
   function privateAttempt(row) {
     return {
       id: row.id, day: row.day, status: row.state, prompt: row.prompt, words: row.words,
       characters: row.characters, attemptNumber: row.turn, shareId: row.share_id, allowReveal: row.consent === 1,
       output: row.output, won: row.won === 1, receiptDigest: row.receipt_digest,
       receipt: row.receipt ? JSON.parse(row.receipt) : null,
+      closeness: closenessPercent(row),
     };
   }
   function existingAttempt({ token, day, key, prompt, via = null }) {
@@ -201,7 +212,7 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
   // Use the same winning-rank and consent rules as the public reveal. Analytics
   // only reads a boolean, even when several winning prompts tied.
   const revealRanks = `WITH winners AS (
-    SELECT id, consent, approved, RANK() OVER(ORDER BY words,characters) AS rank
+    SELECT id, consent, approved, RANK() OVER(ORDER BY words,characters,closeness DESC) AS rank
     FROM daily_player_attempts WHERE day=? AND won=1
   )`;
   function recordFirstPlay(row) {
@@ -224,9 +235,11 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
       return true;
     });
   }
-  function complete(id, { output, won, receipt }) {
+  function complete(id, { output, won, receipt, score = null }) {
     requireValue(typeof output === 'string' && typeof won === 'boolean'
       && receipt && typeof receipt === 'object' && !Array.isArray(receipt), 500, 'invalid_result');
+    const closeness = score && Number.isSafeInteger(score.totalLogProbHundredths) && score.totalLogProbHundredths <= 0
+      && Number.isSafeInteger(score.tokenCount) && score.tokenCount > 0 ? score : null;
     const serialized = JSON.stringify(receipt);
     return transaction(() => {
       const row = byId(id);
@@ -238,8 +251,9 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
       }
       recordFirstPlay(row);
       db.prepare(`UPDATE daily_attempts SET state='completed', output=?, won=?, receipt=?,
-        receipt_digest=?, turn=? WHERE id=?`).run(output, Number(won), serialized,
-        'sha256:' + digest(serialized), nextTurn(row), id);
+        receipt_digest=?, turn=?, closeness=?, closeness_tokens=?, score_record=? WHERE id=?`).run(output, Number(won), serialized,
+        'sha256:' + digest(serialized), nextTurn(row), closeness?.totalLogProbHundredths ?? null, closeness?.tokenCount ?? null,
+        closeness ? JSON.stringify(closeness) : null, id);
       return privateAttempt(byId(id));
     });
   }
@@ -266,10 +280,12 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
   }
   function leaderboard(day) {
     return db.prepare(`WITH scores AS (
-      SELECT words,characters,ROW_NUMBER() OVER(PARTITION BY guest ORDER BY words,characters,entry_order) AS entry
+      SELECT words,characters,closeness,closeness_tokens,
+        ROW_NUMBER() OVER(PARTITION BY guest ORDER BY words,characters,closeness DESC,entry_order) AS entry
       FROM daily_player_attempts WHERE day=? AND won=1
-    ) SELECT RANK() OVER(ORDER BY words,characters) AS rank, words, characters
-      FROM scores WHERE entry=1 ORDER BY words,characters`).all(day);
+    ) SELECT RANK() OVER(ORDER BY words,characters,closeness DESC) AS rank, words, characters, closeness, closeness_tokens
+      FROM scores WHERE entry=1 ORDER BY words,characters,closeness DESC`).all(day)
+      .map(({ closeness, closeness_tokens: tokens, ...row }) => ({ ...row, closeness: closenessPercent({ closeness, closeness_tokens: tokens }) }));
   }
   function revealCandidates(day, approvedOnly) {
     // Rank all winners before filtering consent. An unapproved first-place result

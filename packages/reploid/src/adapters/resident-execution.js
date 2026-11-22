@@ -115,6 +115,23 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     operation.finally(() => operations.delete(operation)).catch(() => {});
     return operation;
   };
+  const scoreTarget = ({ messages, target, signal }) => {
+    if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
+    const current = adapter;
+    if (typeof current?.scoreTarget !== 'function') return Promise.reject(new Error('This runtime cannot score a target sequence'));
+    const combined = AbortSignal.any([lifetime.signal, signal]), input = structuredClone(messages);
+    const operation = withDevice(service, combined, async () => {
+      combined.throwIfAborted();
+      if (adapter !== current || error) throw new Error('Resident session was retired before scoring');
+      phase = 'executing'; notify();
+      try { return await current.scoreTarget({ messages: input, target, signal: combined }); }
+      catch (cause) { if (!current.isReady()) await fail(cause); throw cause; }
+      finally { if (!closed && adapter) phase = 'ready'; notify(); }
+    });
+    operations.add(operation);
+    operation.finally(() => operations.delete(operation)).catch(() => {});
+    return operation;
+  };
   const close = () => {
     if (closing) return closing;
     closed = true; phase = 'stopping'; lifetime.abort(new Error('Contribution stopped'));
@@ -128,5 +145,5 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     notify();
     return closing;
   };
-  return Object.freeze({ getState, prepare, generate, close });
+  return Object.freeze({ getState, prepare, generate, scoreTarget, close });
 }

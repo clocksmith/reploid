@@ -174,6 +174,12 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         ...(settings ? { settings } : {}), ...(limit === null ? {} : { maxOutputTokens: limit }) }))
         .then(result => ({ ...result, ownerPolicyDigest }));
     },
+    /** Score a target against the prepared base model; adapters never apply to scoring. */
+    scoreTarget({ messages, target, signal }) {
+      if (!getState().ready) throw Object.assign(new Error('Whole-model capacity unavailable'), { code: 'CAPACITY_UNAVAILABLE' });
+      if (typeof resident?.scoreTarget !== 'function') throw new Error('This runtime cannot score a target sequence');
+      return resident.scoreTarget({ messages, target, signal });
+    },
     stop,
     async close() { closed = true; await stop(); }
   });

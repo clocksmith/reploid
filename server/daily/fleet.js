@@ -83,7 +83,7 @@ export async function openDailyFleet({ configFile, modelId, modelIdentity, provi
 }
 
 // The low-level entry point takes a trusted native host. Tests drive the same approval and verification boundaries.
-export async function runDailyFleet(host, pins, { prompt, signal = AbortSignal.timeout(60_000), onDispatch }) {
+export async function runDailyFleet(host, pins, { prompt, target = null, signal = AbortSignal.timeout(60_000), onDispatch }) {
   const { modelId, modelIdentity, providerId, settings } = pins;
   const threadId = randomUUID(), attemptId = randomUUID();
   let approved = false, dispatched = false, requestId;
@@ -133,7 +133,15 @@ export async function runDailyFleet(host, pins, { prompt, signal = AbortSignal.t
       && await matchesWholeModelReceipt(receipt, messages, { content: result.content, modelIdentity, adapterIdentities: [],
         ownerPolicyDigest: result.ownerPolicyDigest, completion: result.execution.completion }, { settingsDigest }),
     'The daily execution receipt did not verify');
-    return { output: result.content, receipt };
+    // Closeness is scored after the answer exists, by the same provider, bound to this receipt. It never blocks a turn.
+    let score = null;
+    if (typeof target === 'string' && target && typeof host.textParticipant.scoreTarget === 'function') {
+      try {
+        score = await host.textParticipant.scoreTarget({ providerParticipantId: providerId, receipt, messages, target,
+          signal: AbortSignal.timeout(30_000) });
+      } catch { score = null; }
+    }
+    return { output: result.content, receipt, score };
   } catch (error) {
     // After approval the credit service may have received dispatch even when this process never received its reply.
     const outcome = error?.disconnect;

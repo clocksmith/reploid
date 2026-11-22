@@ -11,7 +11,7 @@ import profile from '../shared/config/reploid-library.json' with { type: 'json' 
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { openNativeGenerationJournal } from './native-generation-journal.js';
 import { createModelAdapterResolver } from '../packages/reploid/src/adapters/model-adapter.js';
-import { createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork } from '../packages/reploid/src/mesh/index.js';
+import { attachTargetScoring, createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork, requestTargetScore } from '../packages/reploid/src/mesh/index.js';
 import { createWholeModelRequester } from './whole-model-requester.js';
 import { signGenerationTerminal } from '../packages/reploid/src/artifacts/generation-terminal.js';
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
@@ -242,6 +242,9 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     await mesh.connect();
     ownerPairing?.attach({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity });
     guestAccess?.attach({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity });
+    // Only the consumer of an answer this host produced can ask it to score a target against that answer.
+    if (whole) attachTargetScoring({ transport, identity, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
+      score: request => whole.scoreTarget(request) });
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
@@ -294,6 +297,15 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         requireValue(!closed && !canonical && partitions, 'Native ordinary requester is unavailable');
         requireValue(typeof controls?.requestApproval === 'function', 'Explicit requester disclosure authorization required');
         return request.model.partition ? partitions.generate(request, controls) : wholeRequester.generate(request, controls);
+      },
+      /** Ask the provider that produced `receipt` to sign the target's score against that exact answer. */
+      async scoreTarget({ providerParticipantId, receipt, messages, target, signal }) {
+        requireValue(!closed && transport, 'Native requester is unavailable');
+        const providerPeer = (transport.getConnectedPeers?.() || []).map(peer => peer.id)
+          .find(peerId => mesh.getVerifiedPeerIdentity(peerId) === providerParticipantId);
+        requireValue(providerPeer, 'The scoring provider is not connected');
+        return requestTargetScore({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
+          providerPeer, providerParticipantId, receipt, messages, target, ...(signal ? { signal } : {}) });
       },
       recoverGeneration(request, reference, controls) {
         requireValue(!closed && wholeRequester, 'Native whole-model recovery unavailable');
