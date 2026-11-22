@@ -27,21 +27,23 @@ function fixture({ automatic = false, viewState, fresh = false } = {}) {
   return { root, api, find: selector => root.querySelector(selector),
     publish(update) { state = { ...state, ...update }; listeners.forEach(callback => callback(state)); }, state: () => state };
 }
-it('requires explicit placement and recipient opt-in before a first visitor can send to a network provider', async () => {
+it('asks once where to run before a first visitor's prompt can reach a network provider', async () => {
   const f = fixture({ fresh: true });
   const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] };
   f.publish({ ...observedDiscovery, models: [model] });
   const send = f.find('[data-composer-send]');
-  expect(send.disabled).toBe(true);
-  const review = f.find('[data-review-network-execution]');
-  expect(review.hidden).toBe(false);
-  review.click();
-  f.find('[data-privacy-placement]').value = 'network-allowed'; f.find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
-  expect(f.find('[data-privacy-recipient-mode]').value).toBe('none');
-  f.find('[data-privacy-recipient-mode]').value = 'open'; f.find('[data-privacy-recipient-mode]').dispatchEvent(new Event('change', { bubbles: true }));
-  f.find('[data-privacy-apply]').click();
-  await vi.waitFor(() => expect(send.disabled).toBe(false));
+  // Send is available, but nothing is sent until the visitor picks a destination.
+  expect(send.disabled).toBe(false);
+  f.find('[data-composer-input]').value = 'First question';
+  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
+  expect(f.find('[data-destination-dialog]').open).toBe(true);
+  expect(f.find('[data-destination-title]').textContent).toBe('Where should this run?');
+  expect(f.api.connect).not.toHaveBeenCalled();
+  const contributors = f.find('[data-destination-row="contributors"] input');
+  contributors.checked = true; contributors.dispatchEvent(new Event('change', { bubbles: true }));
+  await vi.waitFor(() => expect(f.find('[data-destination-dialog]').open).toBe(false));
+  expect(f.find('[data-destination-label]').textContent).toBe('Contributors');
 });
 
 it('bounds the host discovery window even when signaling never connects, without acquiring anything', async () => {

@@ -42,4 +42,15 @@ describe('Paired desktop default', () => {
     const { viewState } = setup({ status: 'unpaired', paired: false, canSend: false, hostParticipantId: null });
     expect(viewState.privacy).toBeUndefined();
   });
+
+  it('locks a guest invite to its host, keeps that lock over a manual choice and clears the token from the address', () => {
+    const host = 'peer:860c7025bc31969cada679cd';
+    history.replaceState(null, '', `/#circle=${'T'.repeat(43)}&host=${encodeURIComponent(host)}&name=Mars`);
+    const { viewState } = setup({ status: 'unpaired', paired: false, canSend: false, hostParticipantId: null });
+    expect(location.hash).toBe('');
+    expect(viewState.guestInvite.hostPeerId).toBe(host);
+    expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+    expect(root.textContent).toContain('Sending to Mars.');
+    history.replaceState(null, '', '/');
+  });
 });

@@ -16,6 +16,18 @@ const bindConversationWorkspace = (root, session, options = {}) => {
 describe('Conversation workspace', () => {
   let root, session, dispose, service;
   const find = selector => root.querySelector(selector);
+  // While capacity is missing, Send never dispatches: it is either off or it queues the draft for later.
+  const expectSendDoesNotDispatch = () => {
+    const send = find('[data-composer-send]');
+    if (send.disabled) return;
+    const input = find('[data-composer-input]'), original = input.value, calls = service.calls.length;
+    if (!original.trim()) input.value = 'Probe';
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
+    expect(service.calls).toHaveLength(calls);
+    expect(find('[data-cancel-queued-send]').hidden).toBe(false);
+    find('[data-cancel-queued-send]').click();
+    input.value = original;
+  };
   const chooseShared = async id => {
     find('[data-open-model]').click();
     if (id) { const select = find('[data-next-model]'); select.value = id; select.dispatchEvent(new Event('change', { bubbles: true })); }
@@ -42,7 +54,9 @@ describe('Conversation workspace', () => {
     input.value = 'Keep this question'; input.dispatchEvent(new Event('input', { bubbles: true }));
     const shield = find('[data-composer-form] [data-open-privacy]');
     expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
-    shield.click();
+    // The composer opens the one-tap "Answer on" sheet; the detailed policy sits under More options.
+    const advanced = () => { shield.click(); expect(find('[data-destination-dialog]').open).toBe(true); find('[data-destination-more]').click(); };
+    advanced();
     const dialog = find('[data-privacy-dialog]');
     expect(dialog.open).toBe(true);
     find('[data-privacy-placement]').value = 'network-allowed'; find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
@@ -53,7 +67,7 @@ describe('Conversation workspace', () => {
     expect(ids.value).toBe('peer:a');
     find('[data-privacy-cancel]').click();
     expect(session.getState().activeThread.privacy).toMatchObject({ placement: 'local-only', recipients: { kind: 'none', ids: [] } });
-    shield.click();
+    advanced();
     expect(find('[data-privacy-placement]').value).toBe('local-only');
     expect(ids.value).toBe('');
     find('[data-privacy-placement]').value = 'network-allowed'; find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
@@ -65,7 +79,7 @@ describe('Conversation workspace', () => {
     ids.value = 'peer:b'; find('[data-privacy-apply]').click();
     await vi.waitFor(() => expect(dialog.open).toBe(false));
     expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'named', ids: ['peer:b'] });
-    expect(shield.title).toContain('Named recipients');
+    expect(shield.title).toContain('Named computers');
     expect(input.value).toBe('Keep this question');
     expect(session.getState().activeThread.messages).toHaveLength(0);
   });
@@ -162,7 +176,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-next-model-status]').textContent).toContain('No shared computer');
     session.refreshNetwork();
     expect(choices.querySelector('input:checked')).toBe(small);
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expectSendDoesNotDispatch();
     expect(service.calls).toHaveLength(0);
   });
 
@@ -356,7 +370,7 @@ describe('Conversation workspace', () => {
   });
 
   it('keeps the composer and draft while network capacity is unavailable', () => {
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expectSendDoesNotDispatch();
     expect(find('[data-active-model-select]').textContent).toBe(`${CANONICAL_CHAT_MODELS[1].name} · Download required`);
     expect(find('[data-model-status]').hidden).toBe(false);
     // Within the discovery window an unavailable model reads as still being looked for.
@@ -717,7 +731,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-status]').hidden).toBe(false);
     expect(find('[data-model-status]').textContent).toBe('Model preparing…');
     expect(find('[data-retry-connection]').hidden).toBe(true);
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expectSendDoesNotDispatch();
     expect(service.calls).toHaveLength(0);
     peer.available = false; session.refreshNetwork();
     expect(find('[data-model-status]').hidden).toBe(false);
@@ -739,7 +753,7 @@ describe('Conversation workspace', () => {
     select.value = model.id; select.dispatchEvent(new Event('change'));
     find('[data-composer-input]').value = 'Keep my question';
     expect(find('[data-retry-connection]').hidden).toBe(true);
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expectSendDoesNotDispatch();
 
     peers[0].readiness = 'ready'; peers[0].availableSlots = 1; session.refreshNetwork();
     expect(find('[data-composer-send]').disabled).toBe(false);
@@ -747,7 +761,7 @@ describe('Conversation workspace', () => {
 
     peers.shift(); session.refreshNetwork();
     expect(select.value).toBe(model.id);
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expectSendDoesNotDispatch();
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('Keep my question');
     expect(service.calls).toHaveLength(0);
@@ -856,12 +870,12 @@ describe('Conversation workspace', () => {
       setPhase(value) { phase = value; publish(); } };
   }
 
-  it('sends an explicitly queued draft once when its selected public model has a reachable free slot', async () => {
+  it('queues a draft on Send while computers are being found, then sends it once a reachable slot appears', async () => {
     const f = waitingDraft();
+    expect(find('[data-queue-send]').hidden).toBe(true);
     find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
-    expect(find('[data-cancel-queued-send]').hidden).toBe(true);
-    find('[data-queue-send]').click();
-    expect(find('[data-model-status]').textContent).toContain('Waiting to send');
+    expect(find('[data-cancel-queued-send]').hidden).toBe(false);
+    expect(find('[data-model-status]').textContent).toContain('Waiting for a computer running');
     f.setOffer({ availability: 'ready', networkAvailability: 'ready', reachableProviderIds: [] });
     await Promise.resolve();
     expect(f.send).not.toHaveBeenCalled();
@@ -876,7 +890,7 @@ describe('Conversation workspace', () => {
     const f = waitingDraft(new Promise(resolve => { resume = resolve; }));
     const draft = '  Exact question\n';
     f.write(draft);
-    find('[data-queue-send]').click();
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
     f.setOffer({ availability: 'ready', networkAvailability: 'ready', reachableProviderIds: ['live'] });
     await Promise.resolve();
     f.setOffer({ availability: 'unavailable', networkAvailability: 'unavailable', reachableProviderIds: [] });
@@ -889,7 +903,7 @@ describe('Conversation workspace', () => {
 
   it.each(['edit', 'identity', 'interrupt', 'cancel', 'retry'])('disarms queued delivery after %s and preserves the draft', async change => {
     const f = waitingDraft(), id = CANONICAL_CHAT_MODELS[1].identity;
-    find('[data-queue-send]').click();
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
     if (change === 'edit') { f.write('Edited question'); f.write('Exact question'); }
     if (change === 'identity') { f.setOffer({ identity: id + '-replaced' }); f.setOffer({ identity: id }); }
     if (change === 'interrupt') { f.setPhase('interrupted'); f.setPhase('searching'); }
@@ -1192,7 +1206,7 @@ describe('Conversation workspace', () => {
     find('[data-active-model-select]').dispatchEvent(new Event('change'));
     peers = peers.slice(0, 1); session.refreshNetwork();
     expect(find('[data-active-model-select]').value).toBe(second.id);
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expectSendDoesNotDispatch();
     expect(find('[data-active-model-select]').textContent).toContain('Unavailable');
   });
 
@@ -1205,7 +1219,7 @@ describe('Conversation workspace', () => {
       getState: () => ({ ...session.getState(), localDownloadIssue: null }),
       subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
-    expect(find('[data-composer-send]').disabled).toBe(true);
+    expectSendDoesNotDispatch();
     expect(find('[data-open-model]').dataset.activity).toBe('idle');
     peers = [{ peerId: 'ready-peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     session.refreshNetwork();

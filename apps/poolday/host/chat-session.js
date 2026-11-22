@@ -180,6 +180,8 @@ export function createChatSession({
     onChange: () => notifyAll(),
     now
   });
+  // A phone that paired before returns to its desktop's room on load, so the desktop is online without a tap.
+  if (ownerPairing.state().paired) queueMicrotask(() => { ownerPairing.reconnect().catch(() => {}); });
   const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, fleet, resolveLocalSource, isCached,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => {
       const local = execution.getLocalState();

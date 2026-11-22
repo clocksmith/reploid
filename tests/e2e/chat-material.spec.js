@@ -995,6 +995,11 @@ test('model preview and inference privacy commit independently', async ({ page }
   await expect(picker).toBeHidden();
   expect(await opener.innerText()).toBe(original);
   await page.locator('[data-open-privacy]').click();
+  const destination = page.locator('[data-destination-dialog]');
+  await expect(destination).toBeVisible();
+  await expect(destination.locator('[data-destination-row="device"] input')).toBeChecked();
+  await destination.screenshot({ path: info.outputPath('destination-sheet.png') });
+  await destination.locator('[data-destination-more]').click();
   const privacy = page.locator('[data-privacy-dialog]');
   await expect(privacy.locator('option[value=cryptographic]')).toHaveJSProperty('disabled', true);
   await expect(privacy.locator('option[value=attested]')).toHaveJSProperty('disabled', true);
@@ -1009,7 +1014,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   await expect(recipients).toBeVisible();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
   await privacy.locator('[data-privacy-cancel]').click();
-  await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/This device only/);
+  await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/This device/);
 });
 
 test('touch help and model choices work without hover', async ({ browser }, info) => {

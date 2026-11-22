@@ -1,6 +1,7 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
 import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
-import { allowsOpenPlaintext, privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
+import { describeCircleHost, parseCircleInviteUrl } from '../../host/circle-invites.js';
+import { allowsOpenPlaintext, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
 import { bindWorkspaceNavigation } from './workspace-navigation.js';
@@ -60,34 +61,53 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const currentPolicy = explicitPrivacy;
   const privacyNode = find('[data-privacy-dialog]'), privacyTrigger = find('[data-open-privacy]');
   const privacyDialog = bindDialog(privacyNode);
+  const destinationNode = find('[data-destination-dialog]'), destinationDialog = bindDialog(destinationNode);
+  let sendAfterDestination = false;
   let editingThread, applyingPrivacy = false;
   const effectiveLocation = state => {
     const thread = state.activeThread, privacy = explicitPrivacy(state);
     return thread?.permissions?.sharingScope === 'local' || privacy.placement === 'local-only' || privacy.recipients?.kind === 'none'
       ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
   };
-  // A paired, online desktop is the default destination for a new conversation: only that desktop may
-  // receive the prompt, and the composer picks the model it reports ready. A manual policy choice wins.
-  const applyPairedDesktopDefault = state => {
+  // A host invite link names the only computer that may read this visitor's prompts. Read it once, keep it
+  // in this view, and take the token out of the address bar so a reload or shared tab cannot reuse it.
+  if (viewState.guestInvite === undefined) {
+    let invite = null;
+    try { invite = parseCircleInviteUrl(globalThis.location?.href || ''); } catch { invite = null; }
+    viewState.guestInvite = invite;
+    if (invite) { try { const { history: h, location: l } = globalThis; h.replaceState(h.state, '', l.pathname + l.search); } catch { /* keep going */ } }
+  }
+  /** The one computer a new conversation is locked to: an invite's host, else the paired online desktop. */
+  const lockedDestination = state => {
+    const invite = viewState.guestInvite;
+    if (invite) return { id: invite.hostPeerId, label: describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel, readyModel: null };
     const owner = state.ownerPairing;
-    if (state.activeThread || viewState.privacyTouched || owner?.status !== 'online' || !owner.hostParticipantId) return;
+    if (owner?.status === 'online' && owner.hostParticipantId) {
+      return { id: owner.hostParticipantId, label: owner.hostLabel, readyModel: typeof owner.readyModel === 'string' ? owner.readyModel : owner.readyModel?.id };
+    }
+    return null;
+  };
+  // A locked destination is the default for a new conversation: only that computer may receive the prompt,
+  // and the composer picks the model it reports ready. A manual policy choice wins, except over an invite.
+  const applyPairedDesktopDefault = state => {
+    const destination = lockedDestination(state);
+    if (state.activeThread || !destination || (viewState.privacyTouched && !viewState.guestInvite)) return;
     const current = viewState.privacy;
-    if (current?.recipients?.kind !== 'named' || current.recipients.ids.length !== 1 || current.recipients.ids[0] !== owner.hostParticipantId) {
+    if (current?.recipients?.kind !== 'named' || current.recipients.ids.length !== 1 || current.recipients.ids[0] !== destination.id) {
       viewState.privacy = createExecutionPolicy({ placement: 'network-allowed',
-        recipients: { kind: 'named', ids: [owner.hostParticipantId] }, computation: 'plaintext' });
+        recipients: { kind: 'named', ids: [destination.id] }, computation: 'plaintext' });
       if (executionLocation === 'local') executionLocation = viewState.executionLocation = 'auto';
     }
-    const ready = typeof owner.readyModel === 'string' ? owner.readyModel : owner.readyModel?.id;
-    if (!chosenModel && ready) {
-      const model = (state.models || []).find(item => item.id === ready || modelKey(item) === ready);
+    if (!chosenModel && destination.readyModel) {
+      const model = (state.models || []).find(item => item.id === destination.readyModel || modelKey(item) === destination.readyModel);
       if (model) chosenModel = viewState.chosenModel = model;
     }
   };
   const pairedDesktopSummary = state => {
-    const owner = state.ownerPairing, privacy = explicitPrivacy(state);
-    if (owner?.status !== 'online' || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
-      || privacy.recipients.ids[0] !== owner.hostParticipantId) return null;
-    return `Sending to ${owner.hostLabel}. Its operator can read your prompt.`;
+    const destination = lockedDestination(state), privacy = explicitPrivacy(state);
+    if (!destination || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
+      || privacy.recipients.ids[0] !== destination.id) return null;
+    return `Sending to ${destination.label}. Its operator can read your prompt.`;
   };
   const recoveryAlternative = state => recoverySharedModel(state, modelSelect.value,
     effectiveLocation(state), explicitPrivacy(state));
@@ -229,17 +249,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const permitted = !busy && canWaitForPublicModel(state, model, location);
     if (queuedSend && (!permitted || queuedSend.scope !== queueScope(state, model))) queuedSend = null;
     queueHasText = !!input.value.trim();
-    button.hidden = !queueHasText || !!queuedSend || !permitted || usable || state.discoveryPhase !== 'searching'
-      || preparing;
-    button.disabled = !queueHasText;
+    // Send itself queues while computers are still being found; there is no separate button for it.
+    button.hidden = true;
     cancel.hidden = !queuedSend;
     const status = find('[data-model-status]');
-    if (!queuedSend) {
-      if (!button.hidden) status.textContent += ' Send when ready will share your prompt and attachments with a public computer running this model.';
-      return;
-    }
+    if (!queuedSend) return;
     status.hidden = false;
-    status.textContent = `Waiting to send to ${modelVariantLabel(model)}. A public computer running this model will receive your prompt and any attached files.`;
+    status.textContent = `Waiting for a computer running ${modelVariantLabel(model)}…`;
     const intent = queuedSend;
     if (!intent.scheduled && readyForQueuedSend(state, intent)) {
       intent.scheduled = true;
@@ -344,14 +360,25 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacy = explicitPrivacy(state);
     const policy = currentPolicy(state);
     privacyTrigger.disabled = busy || !!thread?.closed;
-    const privacyTitle = 'Execution and disclosure: ' + privacyLabel(policy)
-      + (busy ? ' · Available after this answer' : '');
+    const locked = lockedDestination(state);
+    const destination = policy.placement === 'local-only' || policy.recipients.kind === 'none' ? 'device'
+      : policy.recipients.kind === 'open' ? 'contributors'
+        : locked && policy.recipients.ids.length === 1 && policy.recipients.ids[0] === locked.id ? 'desktop' : 'named';
+    const destinationName = { device: 'This device', contributors: 'Contributors', desktop: locked?.label, named: 'Named computers' }[destination];
+    find('[data-destination-label]').textContent = destinationName;
+    destinationNode.querySelector('[data-destination-row="desktop"]').hidden = !locked;
+    destinationNode.querySelector('[data-destination-row="contributors"]').hidden = !!viewState.guestInvite;
+    if (locked) find('[data-destination-desktop-name]').textContent = locked.label;
+    for (const input of destinationNode.querySelectorAll('input[name="chat-destination"]')) input.checked = input.value === destination;
+    if (destinationNode.open && privacyTrigger.disabled) destinationDialog.close();
+    const privacyTitle = 'Answer on: ' + destinationName + (busy ? ' · Available after this answer' : '');
     privacyTrigger.title = privacyTitle;
     privacyTrigger.setAttribute('aria-label', privacyTitle);
     const resetNotice = find('[data-execution-settings-reset]');
     resetNotice.hidden = thread?.executionSettingsReset !== true;
     const networkOptIn = find('[data-review-network-execution]');
-    networkOptIn.hidden = busy || usable || preparing || acquiring || !!thread?.closed || (policy.placement !== 'local-only' && policy.recipients.kind !== 'none');
+    // Send asks where to run when it needs to, so this prompt only stays for an existing local-only thread.
+    networkOptIn.hidden = !thread || busy || usable || preparing || acquiring || !!thread?.closed || (policy.placement !== 'local-only' && policy.recipients.kind !== 'none');
     if (privacyNode.open && (privacyTrigger.disabled || editingThread !== state.selectedId)) privacyDialog.close();
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring
       ? recoverySharedModel(state, current, location, privacy) : null;
@@ -451,7 +478,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
-    find('[data-composer-send]').disabled = attachmentReader.pending || !usable || !!thread?.closed || !!state.storageError;
+    const queueable = !busy && !usable && state.discoveryPhase === 'searching' && canWaitForPublicModel(state, selectedModel, location);
+    // With no choice made yet and nothing runnable here, Send asks where to run once instead of staying off.
+    const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
+    find('[data-composer-send]').disabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError;
 
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = 'idle';
@@ -728,8 +758,40 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     updatePrivacyControls(privacyNode, currentPolicy(state));
     privacyDialog.open(privacyNode.querySelector('[data-privacy-placement]'), trigger);
   };
-  on('[data-open-privacy]', 'click', event => openExecutionPolicy(event.currentTarget));
-  on('[data-review-network-execution]', 'click', event => openExecutionPolicy(event.currentTarget));
+  // One "Answer on" sheet: each row applies on tap. The detailed policy dialog stays under More options.
+  const openDestination = (trigger, { forSend = false } = {}) => {
+    if (privacyTrigger.disabled) return;
+    sendAfterDestination = forSend;
+    find('[data-destination-title]').textContent = forSend ? 'Where should this run?' : 'Answer on';
+    const checked = destinationNode.querySelector('input:checked') || destinationNode.querySelector('[data-destination-row]:not([hidden]) input');
+    destinationDialog.open(checked, trigger);
+  };
+  const applyDestination = async key => {
+    const state = session.getState(), locked = lockedDestination(state);
+    const privacy = key === 'device' ? localPolicy
+      : key === 'desktop' && locked ? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [locked.id] }, computation: 'plaintext' })
+        : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+    viewState.privacyTouched = true;
+    if (state.activeThread) {
+      await session.setExecutionPrivacy(state.activeThread.id, privacy);
+      if (key !== 'device' && state.activeThread.permissions?.executionLocation === 'local') await session.setExecutionLocation(state.activeThread.id, 'auto');
+    } else {
+      viewState.privacy = privacy;
+      if (key !== 'device' && executionLocation === 'local') executionLocation = viewState.executionLocation = 'auto';
+    }
+    const resume = sendAfterDestination && key !== 'device';
+    sendAfterDestination = false;
+    if (destinationNode.open) destinationDialog.close();
+    render(session.getState());
+    if (resume) submitDraft();
+  };
+  on('[data-destination-choices]', 'change', event => {
+    if (event.target.matches('input[name="chat-destination"]')) applyDestination(event.target.value).catch(error);
+  });
+  on('[data-destination-close]', 'click', () => { sendAfterDestination = false; destinationDialog.close(); });
+  on('[data-destination-more]', 'click', event => { sendAfterDestination = false; destinationDialog.close(); openExecutionPolicy(event.currentTarget); });
+  on('[data-open-privacy]', 'click', event => openDestination(event.currentTarget));
+  on('[data-review-network-execution]', 'click', event => openDestination(event.currentTarget, { forSend: true }));
   on('[data-privacy-controls]', 'change', event => {
     if (event.target.matches('[data-privacy-recipient-mode], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
   });
@@ -782,6 +844,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!content || attachmentReader.pending || submitting || (state.runningIds || []).includes(state.selectedId)) return;
     if (intent ? !readyForQueuedSend(state, intent) : find('[data-composer-send]').disabled) return;
     const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
+    if (!intent && !state.activeThread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state)
+      && !modelExecutionState(model, effectiveLocation(state)).usable
+      && !(state.discoveryPhase === 'searching' && canWaitForPublicModel(state, model, effectiveLocation(state)))) {
+      openDestination(find('[data-composer-send]'), { forSend: true });
+      return;
+    }
+    if (!intent && state.discoveryPhase === 'searching' && !modelExecutionState(model, effectiveLocation(state)).usable
+      && canWaitForPublicModel(state, model, effectiveLocation(state))) {
+      queuedSend = { scope: queueScope(state, model), scheduled: false };
+      render(state);
+      return;
+    }
     const pinned = state.activeThread?.model || chosenModel || viewState.draftModel;
     if (!model || pinned?.identity && modelIdentity(model) !== modelIdentity(pinned)) return;
     const location = intent ? 'network' : effectiveLocation(state);
