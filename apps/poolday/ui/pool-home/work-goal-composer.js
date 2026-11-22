@@ -33,10 +33,10 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
   const defaultModel = selectWorkModel({ models, defaultModelId });
   return `
     <div class="pool-work-composer-shell">
-      <form class="pool-work-composer${embedded ? ' pool-work-embedded' : ''}" data-work-form>
+      <form class="pool-work-composer${embedded ? ' pool-work-embedded' : ' pool-surface'}" data-work-form>
         <div class="pool-work-field">
           <label for="work-goal" class="pool-work-label pool-subheading">New thread</label>
-          <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
+          <textarea class="pool-input" id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
             placeholder="${escapeHtml(pickGoalPlaceholder())}"></textarea>
         </div>
         <div class="pool-work-actions">
@@ -50,7 +50,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           <div class="pool-work-model-group">
             <div class="pool-work-model-row">
               <label for="work-model">Models</label>
-              <select id="work-model" data-work-model aria-describedby="work-execution-location">
+              <select class="pool-input" id="work-model" data-work-model aria-describedby="work-execution-location">
                 ${models.map(model => `<option value="${escapeHtml(model.id)}"${model.id === defaultModel.id ? ' selected' : ''}>${escapeHtml(model.name)}</option>`).join('')}
               </select>
             </div>
@@ -61,12 +61,12 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
               <label><input type="checkbox" data-work-peers> Allow plaintext work on approved network computers</label>
             </fieldset>
             <label for="work-files">Text or source files</label>
-            <input id="work-files" type="file" multiple accept=".txt,.md,.csv,.json,.js,.ts,.html,.css,.wgsl,.xml,.yaml,.yml,.log" data-work-files>
+            <input class="pool-input" id="work-files" type="file" multiple accept=".txt,.md,.csv,.json,.js,.ts,.html,.css,.wgsl,.xml,.yaml,.yml,.log" data-work-files>
             <ul data-work-input-list></ul>
             <button class="btn btn-ghost" type="button" data-work-clear-inputs hidden>Remove files</button>
 
             <label for="work-criteria">A useful result must... <span class="pool-caption">optional</span></label>
-            <textarea id="work-criteria" data-work-criteria rows="2" maxlength="${policy.maxCriteriaCharacters}"
+            <textarea class="pool-input" id="work-criteria" data-work-criteria rows="2" maxlength="${policy.maxCriteriaCharacters}"
               placeholder="Add checks that matter, or let Reploid propose them."></textarea>
             <label class="pool-consent-row pool-small"><input type="checkbox" data-work-recall><span>Use earlier results I accepted on this device.</span></label>
             <label class="pool-consent-row pool-small"><input type="checkbox" data-work-improvement><span>Test tool improvements. Adoption requires separate approval.</span></label>
@@ -74,7 +74,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
         </details>
         <div data-work-revision hidden>
           <label for="work-feedback">What should change?</label>
-          <textarea id="work-feedback" data-work-feedback rows="2" maxlength="${policy.maxFeedbackCharacters}"></textarea>
+          <textarea class="pool-input" id="work-feedback" data-work-feedback rows="2" maxlength="${policy.maxFeedbackCharacters}"></textarea>
         </div>
       </form>
     </div>`;

@@ -118,6 +118,8 @@
   --pool-color-muted: var(--pool-void-muted);
   --pool-color-ink: var(--pool-void-ink);
   --pool-color-focus: var(--pool-spectrum-cyan);
+  --pool-color-scrim: color-mix(in srgb, var(--pool-gray-0) var(--pool-alpha-48), transparent);
+  --pool-color-field-focus: color-mix(in srgb, var(--pool-gray-44) var(--pool-alpha-32), transparent);
   --pool-color-ink-12: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent);
   --pool-color-switch-on: color-mix(in srgb, var(--pool-spectrum-cyan) var(--pool-alpha-64), transparent);
   --pool-color-on-primary: var(--pool-spectrum-on-light);

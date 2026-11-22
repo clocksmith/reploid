@@ -19,7 +19,7 @@ import { getPoolRecordFacet, readRecordViewState, renderPeerLedgerState, renderR
 import { getPoolReviewTarget, getPoolRoomPanel, renderActiveResearchRoom } from './research-room-route.js';
 
 const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
-  <section class="panel pool-panel pool-route-shell pool-task-card pool-surface" data-pool-route-shell="${escapeHtml(routeId)}">
+  <section class="panel pool-card pool-panel pool-route-shell pool-task-card pool-surface" data-pool-route-shell="${escapeHtml(routeId)}">
     <div class="pool-page-heading">
       <h1 class="pool-title">${escapeHtml(copy.title)}</h1>
       <p class="pool-caption pool-hero-body">${escapeHtml(copy.body)}</p>

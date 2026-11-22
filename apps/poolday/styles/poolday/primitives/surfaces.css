@@ -9,11 +9,8 @@
    pool-bar      proportional bar; each child span sets --pool-param-share
    pool-dot      leading status dot (pool-dot-open: hollow)
    pool-reveal   hidden until its pool-reveal-host is hovered or focused
-   Work selectors in :where() still alias the surface recipe until that screen is converted. */
-.pool-home :is(.pool-surface, :where(
-  .pool-work-composer:not(.pool-work-embedded), .pool-work-output:not(.pool-work-embedded),
-  .pool-work-task-header:not(.pool-work-embedded), .pool-work-task, .pool-thread-list,
-  .pool-work-approval, .pool-control-panel, .pool-agent-network)) {
+ */
+.pool-home .pool-surface {
   border: var(--pool-border-hairline) solid var(--pool-color-line);
   border-radius: var(--pool-radius-panel);
   background: var(--pool-color-raised);
@@ -22,7 +19,7 @@
   -webkit-backdrop-filter: var(--pool-surface-backdrop);
   backdrop-filter: var(--pool-surface-backdrop);
 }
-.pool-home :is(.pool-card, :where(.panel)) {
+.pool-home .pool-card {
   padding: var(--pool-size-24);
   border: var(--pool-border-hairline) solid var(--pool-color-line);
   border-radius: var(--pool-radius-panel);
@@ -64,6 +61,30 @@
 /* Pulse only for observed active work; waiting and attention remain static. */
 .pool-home .pool-dot.pool-dot-pulse::before { animation: pool-dot-pulse var(--pool-motion-time-1500) ease-in-out infinite; }
 @keyframes pool-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: var(--pool-alpha-32); } }
+/* Motion looks used by compositions; compositions reference them by name only. */
+@keyframes pool-pulse-gold {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: var(--pool-alpha-32);
+    transform: scale(var(--pool-scale-0-85));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes pool-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(var(--pool-angle-360)); }
+}
+@keyframes pool-power-rise {
+  0%, 100% { transform: translateY(-35%); opacity: var(--pool-alpha-48); }
+  50% { transform: translate(15%, -65%); opacity: 1; }
+}
+@keyframes pool-inspector-enter { from { opacity: 0; transform: translateX(var(--pool-size-16)); } to { opacity: 1; transform: translateX(0); } }
 @media (prefers-reduced-motion: reduce) {
   .pool-home .pool-dot.pool-dot-pulse::before { animation: none; }
 }

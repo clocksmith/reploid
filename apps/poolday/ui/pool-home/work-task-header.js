@@ -4,7 +4,7 @@
  */
 export function renderTaskHeader({ embedded = false } = {}) {
   return [
-    '<div class="pool-work-task-header' + (embedded ? ' pool-work-embedded' : '') + '" data-work-task-header hidden>',
+    '<div class="pool-work-task-header' + (embedded ? ' pool-work-embedded' : ' pool-surface') + '" data-work-task-header hidden>',
     '  <div class="pool-work-task-summary">',
     '    <p class="pool-work-task-goal pool-subheading" data-work-active-goal></p>',
     '    <div class="pool-work-task-meta">',

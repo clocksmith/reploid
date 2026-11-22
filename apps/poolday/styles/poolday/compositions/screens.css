@@ -926,25 +926,7 @@ body[data-pool-route-id='home'] #app {
   height: var(--pool-size-8);
 }
 
-@keyframes pool-pulse-gold {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: var(--pool-alpha-32);
-    transform: scale(var(--pool-scale-0-85));
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
-@keyframes pool-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(var(--pool-angle-360)); }
-}
 
 .pool-health-loading-text {
   display: inline-flex;
@@ -2067,10 +2049,6 @@ body[data-pool-route-id='home'] #app {
   transition: transform var(--pool-motion-time-240) ease;
 }
 
-@keyframes pool-power-rise {
-  0%, 100% { transform: translateY(-35%); opacity: var(--pool-alpha-48); }
-  50% { transform: translate(15%, -65%); opacity: 1; }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   .pool-primary-brand:hover .pool-power-tower sup,

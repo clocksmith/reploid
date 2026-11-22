@@ -96,7 +96,6 @@
   position: fixed; inset: 0 0 0 auto; width: min(var(--pool-size-480), 100vw);
   height: 100dvh; max-height: 100dvh; margin: 0;
 }
-@keyframes pool-inspector-enter { from { opacity: 0; transform: translateX(var(--pool-size-16)); } to { opacity: 1; transform: translateX(0); } }
 @media (prefers-reduced-motion: reduce) { .network-inspector[open] { animation: none !important; } }
 .network-peer-row { align-items: start; gap: var(--pool-size-8); padding-block: var(--pool-size-16); }
 .network-peer-row details code { display: block; margin-top: var(--pool-size-8); }

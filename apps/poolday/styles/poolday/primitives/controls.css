@@ -45,7 +45,7 @@
 .pool-home :is(.pool-button, :where(.btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-button-pressed); }
 .pool-home details[open] > summary.pool-button { box-shadow: var(--pool-shadow-button-pressed); }
 .pool-home :is(.pool-button, :where(.btn)):disabled { opacity: var(--pool-alpha-48); cursor: not-allowed; }
-.pool-home :is(.pool-input, :where(.pool-work-shell select, .pool-work-shell input[type='file'], .pool-work-composer textarea)) {
+.pool-home .pool-input {
   background: var(--pool-color-inset);
   color: var(--pool-color-ink);
   border: var(--pool-border-hairline) solid transparent;

@@ -167,7 +167,7 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
             row.dataset.choiceRow = entry.key;
             row.innerHTML = '<label class="chat-model-choice pool-button btn-ghost pool-choice"><input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small><small class="pool-muted" data-choice-note hidden></small></span></label>';
             row.querySelector('input').name = name;
-            if (onInspectProviders) row.insertAdjacentHTML('beforeend', '<button type="button" class="pool-button btn-ghost pool-caption" data-inspect-model-providers hidden></button>');
+            if (onInspectProviders) row.insertAdjacentHTML('beforeend', '<button type="button" class="pool-button btn-ghost pool-caption pool-underline" data-inspect-model-providers hidden></button>');
           }
           const label = row.querySelector('label');
           label.dataset.choiceKey = entry.key;
