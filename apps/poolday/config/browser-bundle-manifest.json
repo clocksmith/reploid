@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 695158,
-      "sha256": "sha256:92124682814d2dc50560d4765053eb53cf1ac038fb097934c68a5a7cacff9319"
+      "sha256": "sha256:b617c0c6f9745b5af6090f533a39148b4b39c1f78cfcdef060373dd22bc303b5"
     },
     {
       "path": "config/module-registry.json",
@@ -2195,8 +2195,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 40917,
-      "sha256": "sha256:5710e24efe6a40db08975ee3335bf698b123deb3658b6947cdb297fac736b1e9"
+      "byteLength": 41234,
+      "sha256": "sha256:1e8c53227add0d82291be29ef5797f25ed7769593669ecf955a9f72429c0b78d"
     },
     {
       "path": "host/work-task.js",
@@ -3800,8 +3800,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2723168,
-      "sha256": "sha256:4f7424b6e531fabc2bccddec9cd139b9059a29f5906be0a18dd611ac8b570b95"
+      "byteLength": 2723200,
+      "sha256": "sha256:17fa102e5bfb965de89d88094dbbc78e8366c299ff88753d993df9a6fb6a0050"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12774,5 +12774,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:8bca0f7241ffa6f03bd468083cef130eed9600f6bd5c111d9297b934cf1e6cb0"
+  "bundleHash": "sha256:d61f40db62c4c1dae10ed401c2987a71c4802f2e90d25d09bc534bd94450df30"
 }

@@ -22,7 +22,7 @@ vi.mock('../../shared/config/doppler-local-models.js', async importOriginal => {
     files: base.source.files.filter(file => file.role !== 'model-piece-index') } };
   return { ...actual, LOCAL_DOPPLER_MODELS: [...actual.LOCAL_DOPPLER_MODELS, wholeRequest] };
 });
-import { createWorkSwarm } from '../../apps/poolday/host/work-swarm.js';
+import { REQUESTER_INSTANCE_ID, createWorkSwarm } from '../../apps/poolday/host/work-swarm.js';
 import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
 const wholeModelIdentity = LOCAL_DOPPLER_MODELS.find(model => model.id === 'whole-model-lifecycle-fixture').identity;
 
@@ -52,6 +52,19 @@ it('closes initialization before late identity resolution can open a transport',
   expect(values.get('REPLOID_NETWORK_ENABLED_V2')).toBe('false');
   await swarm.connect({ automatic: true });
   expect(ports.ensure).toHaveBeenCalledOnce();
+  await swarm.close();
+});
+
+it('keeps one requester signing identity across disconnect and reconnect', async () => {
+  ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
+  ports.createTransport.mockReturnValue({ connect: vi.fn(async () => {}), disconnect: vi.fn(async () => {}), close: vi.fn(async () => {}), on: vi.fn(), onMessage: vi.fn() });
+  const swarm = fixture();
+  await swarm.connect({ automatic: true }).catch(() => {});
+  await swarm.disconnect();
+  await swarm.connect().catch(() => {});
+  const instances = ports.ensure.mock.calls.map(([input]) => input?.instanceId);
+  expect(instances.length).toBeGreaterThanOrEqual(2);
+  expect(new Set(instances)).toEqual(new Set([REQUESTER_INSTANCE_ID]));
   await swarm.close();
 });
 

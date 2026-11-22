@@ -39,6 +39,8 @@ export const READINESS_RECORDS_KEY = 'REPLOID_READINESS_RECORDS';
  * registered for its account (host/credits/browser.js); requests, custody certificates and charged
  * attempts then carry that registered participant. Without it, or when it resolves null, each
  * connection keeps its own identity as before. */
+export const REQUESTER_INSTANCE_ID = 'work-swarm:requester';
+
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
   createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [] }) {
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
@@ -169,7 +171,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const build = (model, peerId, execution = null) => {
     const version = generation;
     let signingIdentity = null, registeredBuild = false, contributorClosing = false;
-    const instanceId = 'work-swarm:' + crypto.randomUUID();
+    // A requester keeps one signing identity per browser, so a desktop that approved this phone still recognizes it
+    // after a reload or room reconnect. Each contributor build keeps its own connection-scoped instance.
+    const instanceId = model ? 'work-swarm:' + crypto.randomUUID() : REQUESTER_INSTANCE_ID;
     const contributorIdentity = model ? createContributorIdentity({ storage }) : null;
     const events = EventBus.factory({ Utils: utils });
     events.on('swarm-state', notify);
