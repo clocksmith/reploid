@@ -6,6 +6,7 @@ import { expect, it } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createBrowserOwnerPairing } from '../../apps/poolday/host/owner-pairing.js';
 import { openOwnerPairing } from '../../server/circles/owner-pairing.js';
+import { createOwnerPairingTerminal } from '../../server/circles/owner-pairing-terminal.js';
 import { createPairingNetwork } from '../fixtures/owner-pairing-webrtc.js';
 
 function memoryStorage() {
@@ -65,7 +66,12 @@ it('pairs browser controller to verified desktop over WebRTC, survives reload an
     const observed = await pendingRequest.promise;
     expect(observed.participantId).toBe(phone.peerId);
     expect(browser.state().status).toBe('pairing');
-    expect(pairing.decide(observed.requestId, true)).toBe(true);
+    expect(pairing.pendingRequests()).toEqual([{ requestId: observed.requestId, participantId: phone.peerId, expiresAt: observed.expiresAt }]);
+    // The desktop owner answers the single waiting request with y.
+    const written = [];
+    createOwnerPairingTerminal({ pairing, write: line => written.push(line) }).handleLine('y');
+    expect(written).toEqual(['Phone paired.']);
+    expect(pairing.pendingRequests()).toEqual([]);
     const paired = await pairPromise;
     expect(paired.hostParticipantId).toBe(desktop.peerId);
     expect(paired.disclosure.readableBy).toBe("Readable by: Alex's PC");

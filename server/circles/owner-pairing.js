@@ -49,6 +49,11 @@ export async function openOwnerPairing({ file, hostParticipantId, onRequest = ()
       offer = { code: randomBytes(18).toString('base64url'), expiresAt: now() + PAIRING_TTL_MS };
       return { hostParticipantId, ...offer };
     },
+    /** Requests still waiting for the desktop owner on a live connection; at most one today. */
+    pendingRequests() {
+      return !closed && pending?.isCurrent()
+        ? [{ requestId: pending.requestId, participantId: pending.participantId, expiresAt: pending.expiresAt }] : [];
+    },
     decide(requestId, approved) {
       assertOpen();
       if (!pending || pending.requestId !== requestId) throw Error('No matching owner pairing request');

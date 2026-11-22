@@ -31,6 +31,7 @@ import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 import { openOwnerPairing } from './circles/owner-pairing.js';
+import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
 import { ownerPairingRoomId, ownerPairingRoomMarker } from '../packages/reploid/src/transport/index.js';
 
 export async function main({ runOnce } = {}) {
@@ -170,9 +171,7 @@ export async function main({ runOnce } = {}) {
   let ownerPairing;
   try {
     if (values['owner-pairing']) ownerPairing = await openOwnerPairing({ file: path.join(path.dirname(identityFile), 'owner-pairing.sqlite'),
-      hostParticipantId: identity.peerId, onRequest({ requestId, participantId }) {
-        console.error(`Pair ${participantId}? Type approve ${requestId} or decline ${requestId}.`);
-      } });
+      hostParticipantId: identity.peerId, onRequest: request => console.error(ownerPairingPrompt(request)) });
   } catch (error) {
     owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error;
   }
@@ -208,24 +207,9 @@ export async function main({ runOnce } = {}) {
     .catch(async error => { ownerPairing?.close(); owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
   const pairingTerminal = ownerPairing && createInterface({ input: process.stdin, terminal: false });
   if (pairingTerminal) {
+    const commands = createOwnerPairingTerminal({ pairing: ownerPairing, room: values.room, name: ownerPairingDisplayName(hostname()) });
     console.error('Type pair to issue a one-time owner pairing code.');
-    pairingTerminal.on('line', line => {
-      const [command, requestId] = line.trim().split(/\s+/);
-      try {
-        if (command === 'pair') {
-          const { hostParticipantId, code } = ownerPairing.issue();
-          const params = new URLSearchParams({ pair: code, host: hostParticipantId });
-          if (values.room) params.set('room', values.room);
-          const name = hostname().split('.')[0].slice(0, 128);
-          if (name) params.set('name', name[0].toUpperCase() + name.slice(1));
-          console.error(`Owner pairing code for ${hostParticipantId} (10 minutes): ${code}`);
-          console.error(`Pairing link (fragment-only, 10 minutes): https://replo.id/#${params.toString()}`);
-        } else if (command === 'approve' || command === 'decline') {
-          const approved = ownerPairing.decide(requestId, command === 'approve');
-          console.error(approved ? 'Owner device paired.' : 'Owner pairing was declined or expired.');
-        }
-      } catch (error) { console.error(error.message); }
-    });
+    pairingTerminal.on('line', line => commands.handleLine(line));
   }
   logNetwork = () => statusLog('network', { event: 'network', at: new Date().toISOString(), ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() });
