@@ -1111,6 +1111,7 @@ test('the pairing screen handles desktop approval, link failure and cancellation
   await expect(pairing.getByText('Pairing code expired.')).toBeHidden();
   await expect(page).not.toHaveURL(/#pair=/);
   await pairing.getByRole('button', { name: 'Done' }).click();
+  await expect(pairing).toHaveCount(0);
 
   await page.evaluate(() => window.startPairingFixture());
   await pairing.getByRole('button', { name: 'Connect' }).click();
