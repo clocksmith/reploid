@@ -3,7 +3,7 @@
   "expandedVersions": [
     {
       "name": "dopplerx",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "reason": "Current standard package-lock and browser pin"
     }
   ],
@@ -240,6 +240,11 @@
       "version": "0.7.8",
       "archive": "deploy/artifacts/doppler-gpu-0.7.8.tgz",
       "integrity": "sha512-5TIWHa6ynfF23Grtcejz4YXOoI/4Mask+nwT0G7KX1X1yl+yiwxOMZiCqeTJPhVgtuDVI7u8OJY54RtQM6gBng=="
+    },
+    {
+      "version": "0.1.5",
+      "archive": "deploy/artifacts/dopplerx-0.1.5.tgz",
+      "integrity": "sha512-XX3deQCwcwdZEPJzGvaFy3d9AhKc7FSat6DHPJKqHvpmDOdpDZEEfUb57S+sPYNUD1cfhNE4laHh6RPGppAE0g=="
     }
   ]
 }
