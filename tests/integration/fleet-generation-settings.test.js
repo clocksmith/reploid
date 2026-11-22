@@ -519,6 +519,19 @@ it('scores a named reverse-prompt run only on its countersigned, settled, backen
     expect(dispatch).toHaveBeenCalledOnce();
     expect(f.row().state).toBe('settled');
     expect(f.row().binding.settingsDigest).toBe(result.receipt.settingsDigest);
+    expect(result.score).toBeNull();
+
+    // With today's target, the same provider scores it after the answer, bound to that answer's receipt.
+    const scoreTarget = vi.fn(async ({ receipt }) => ({ receiptId: receipt.receiptId, totalLogProbHundredths: -33, tokenCount: 1 }));
+    const scoring = { ...f.host, textParticipant: { ...f.host.textParticipant, scoreTarget } };
+    const scored = await runDailyFleet(scoring, pins, { prompt, target: 'I resign.' });
+    expect(scoreTarget).toHaveBeenCalledOnce();
+    expect(scoreTarget.mock.calls[0][0]).toMatchObject({ providerParticipantId: keys[1].peerId, receipt: scored.receipt, target: 'I resign.',
+      messages: [{ role: 'system', content: PROFILE.system }, { role: 'user', content: prompt }] });
+    expect(scored.score).toMatchObject({ receiptId: scored.receipt.receiptId, totalLogProbHundredths: -33 });
+    // A failed score never fails the turn.
+    const failing = { ...f.host, textParticipant: { ...f.host.textParticipant, scoreTarget: async () => { throw Error('no scoring'); } } };
+    expect((await runDailyFleet(failing, pins, { prompt, target: 'I resign.' })).score).toBeNull();
 
     await expect(runDailyFleet(f.host, { ...pins, providerId: keys[0].peerId }, { prompt }))
       .rejects.toMatchObject({ dispatched: false });
@@ -527,7 +540,7 @@ it('scores a named reverse-prompt run only on its countersigned, settled, backen
       return { ...result, content: 'Forged result' };
     } };
     await expect(runDailyFleet(tampered, pins, { prompt })).rejects.toMatchObject({ dispatched: true });
-    expect(f.reservations).toHaveLength(2);
+    expect(f.reservations).toHaveLength(4);
 
     // The service can fail after disclosure approval and before dispatch. Conversely, losing
     // the dispatch reply proves neither that the service refused it nor that it completed.
@@ -544,6 +557,6 @@ it('scores a named reverse-prompt run only on its countersigned, settled, backen
       throw Error('Dispatch acknowledgment lost');
     } });
     await expect(runDailyFleet(lostReply, pins, { prompt })).rejects.toMatchObject({ dispatched: true });
-    expect(f.executed).toHaveLength(2);
+    expect(f.executed).toHaveLength(4);
   } finally { await f.close(); }
 });

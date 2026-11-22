@@ -379,6 +379,11 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     recoverGeneration: (request, reference, controls) => {
       assert(participant && !closed && !preparing, 'Requester unavailable');
       return participant.recoverGeneration(request, reference, controls);
+    },
+    /** After an answer: the same provider's signed score of a target, bound to that answer's receipt. */
+    scoreTarget: request => {
+      assert(participant && !closed && !preparing, 'Requester unavailable');
+      return participant.scoreTarget(request);
     }
   });
   const requesterPorts = extra => ({
