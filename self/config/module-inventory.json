@@ -2860,7 +2860,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:c9a803e117d5cb0b31fdeebeb3aeba43c392857097c3df43c65bf21d68f834a2",
+      "sha256": "sha256:4a8eeeea16214d1c2ccaf1e308ab28a886a79e9b876b060e46ab331193aefd33",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -3104,7 +3104,7 @@
     {
       "path": "self/host/owner-pairing.js",
       "owner": "self",
-      "sha256": "sha256:9a593ee517ae9acbaa95190aaf48fa4ea2d5e7cf3bb66520ca673fc5542fc1ad",
+      "sha256": "sha256:b918834b836b2ee8ec668d38225d96ca682e103a271ec817e523f7158c488ff0",
       "imports": [
         "../vendor/reploid/transport/index.js",
         "./circle-invites.js"
@@ -3526,11 +3526,12 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:9875df58fb7c3474b3f1e84d5443ebf6923164fd174c7fe59449aa2ffce4efaf",
+      "sha256": "sha256:5710e24efe6a40db08975ee3335bf698b123deb3658b6947cdb297fac736b1e9",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
         "../config/partition-policy.json",
+        "../config/swarm-bootstrap.json",
         "../config/work-profile.json",
         "../core/utils.js",
         "../identity.js",
@@ -4300,7 +4301,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:0edc3fbdffa8f093632fa9f56f02bed2e30093b4b1f57ea322aad8eb0d39ae1d",
+      "sha256": "sha256:cd814634ccb31f86f5321ec19882c18d2e9d6eabfe05aca5e28710b43e5b9fb8",
       "imports": []
     },
     {
@@ -4737,7 +4738,7 @@
     {
       "path": "ui/pool-home/owner-pairing-view.js",
       "owner": "ui",
-      "sha256": "sha256:85968bfae18c2f9a8443b42030a4fadce10a24a06fdff315eb4ae9f64c1511f3",
+      "sha256": "sha256:ff3b924ac98968c6648754b08d58ca5c8cd5b71bf9a449efbb5f457972d12c1a",
       "imports": [
         "../../host/owner-pairing.js"
       ]
@@ -20030,7 +20031,7 @@
     {
       "path": "vendor/reploid/transport/owner-pairing.js",
       "owner": "vendor",
-      "sha256": "sha256:288c70f40ad27dd40bb44c29c1fafa539046737afe6d435dbbb299fe80a3ff91",
+      "sha256": "sha256:391364c1b5a62695268844b398807d12aa5a3484e22759b02e78745720058890",
       "imports": []
     },
     {
