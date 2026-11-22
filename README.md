@@ -6,6 +6,8 @@ Reploid turns participating computers into shared inference capacity with explic
 
 **[Try Reploid](https://replo.id/)** · [CLI and local setup](#try-it) · [Contribute a computer](docs/native-participant.md) · [Verified evidence](#what-is-verified)
 
+[Play Reploid Daily](https://reploid-daily.reploid.workers.dev/) — get the model to say today's target in three tries, then dare a friend to beat your word count.
+
 <picture>
   <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg">
   <img src="docs/diagrams/readme-architecture.svg" alt="A requester sends a prompt. Two contributors run successive layers of one model with Doppler, and the answer returns to the requester.">
@@ -50,6 +52,7 @@ Open [http://localhost:8000](http://localhost:8000), or expose `/v1/chat/complet
 | I want to… | Start here |
 | --- | --- |
 | Work on chat, contribution, or the network view | [Product UI](apps/poolday), called Poolday internally |
+| Preview or host the daily reverse-prompt game | [Daily game and circle setup](docs/daily-game.md) |
 | Embed conversations or coordinate peers | [Reploid library](packages/reploid/src) |
 | Load or execute a model | [Doppler](https://github.com/clocksmith/doppler) and [Reploid's runtime pin](shared/config/doppler-package.json) |
 | Serve models or supply verified files from a desktop | [Native participant guide](docs/native-participant.md) |

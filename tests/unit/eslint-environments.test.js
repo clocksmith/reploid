@@ -38,6 +38,7 @@ describe('execution environment lint boundaries', () => {
 
   it.each([
     ['self/ui/example.js', 'window.document; process.cwd();', 'process'],
+    ['server/daily/site/example.js', 'window.document; process.cwd();', 'process'],
     ['server/example.js', 'process.cwd(); window.document;', 'window'],
     ['shared/core/verification-worker.js', 'self.postMessage(1); document.title;', 'document'],
     ['packages/reploid/src/agent/example.js', 'new URL("https://example.org"); window.document;', 'window']

@@ -1,0 +1,67 @@
+{
+  "schema": "reploid.daily-http-acceptance/v1",
+  "recordedAt": "2026-11-21T20:55:22.994Z",
+  "mode": "ranked",
+  "method": "Three physical computers opened the public game in automated Chromium with preselected prompts and separate browser test authenticators. Each scored turn ran on the enrolled Apple Metal provider. Each new dare pointed to the same stable public hostname.",
+  "rankedTurns": [
+    {
+      "words": 10,
+      "characters": 51,
+      "try": 1,
+      "outputTokens": 2,
+      "signaturesVerified": true,
+      "holdClosed": true,
+      "dareLinkContainsPlayerCredential": false,
+      "replayViewed": false
+    },
+    {
+      "words": 8,
+      "characters": 47,
+      "try": 1,
+      "outputTokens": 2,
+      "signaturesVerified": true,
+      "holdClosed": true,
+      "dareLinkContainsPlayerCredential": false,
+      "replayViewed": true
+    },
+    {
+      "words": 8,
+      "characters": 39,
+      "try": 1,
+      "outputTokens": 2,
+      "signaturesVerified": true,
+      "holdClosed": true,
+      "dareLinkContainsPlayerCredential": false,
+      "replayViewed": true
+    }
+  ],
+  "distinctPrincipals": 3,
+  "completedReferralEdges": 2,
+  "replaysWithoutGeneration": 2,
+  "thirdPlayerSubmitted": true,
+  "operatorTurnsConsumed": 0,
+  "deniedSpeculativeOverride": 400,
+  "deniedUnapprovedInvite": 403,
+  "turnsUsedForDenials": 0,
+  "directPublicHTTPS": true,
+  "serverReachabilityRequiredSSHForward": false,
+  "totalOutstandingHeldCredits": 0,
+  "controlledBurst": {
+    "script": "tests/fixtures/daily-admission-burst.mjs",
+    "target": "Ephemeral in-memory loopback circle with fixture inference",
+    "concurrentReaders": 24,
+    "plainVisits": 25000,
+    "dareReplays": 25000,
+    "elapsedReadMs": 9598,
+    "generationsForPublicReads": 0,
+    "generationsForUnauthorizedAttempts": 0,
+    "configuredCircleCap": 6,
+    "modelTurnsExecuted": 6,
+    "maxConcurrentTurns": 1
+  },
+  "publicOrigin": "https://reploid-daily.reploid.workers.dev",
+  "tls": [
+    "TLS 1.3"
+  ],
+  "allThreeUsedOriginScopedPasskeys": true
+}

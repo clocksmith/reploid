@@ -1,5 +1,7 @@
 /** Shared scoped Doppler/provider bridge; hosts supply catalog and execution policy. */
 import { createGenerationContextCache } from '../vendor/reploid/mesh/generation-context-cache.js';
+import { REVERSE_PROMPT_GENERATION, REVERSE_PROMPT_GENERATION_HASH, hasReversePromptTemplate } from './reverse-prompt-profile.js';
+import { DOPPLER_PACKAGE_VERSION } from '../config/doppler-local-models.js';
 import { publicProviderHardware } from '../vendor/reploid/mesh/provider-hardware.js';
 import { consumeWorkGenerationStream, readWorkGenerationCompletion, readWorkGenerationTiming } from './generation-completion.js';
 import { createToolCallEnforcement, sessionEndTokenIds } from './tool-call-constraint.js';
@@ -106,8 +108,16 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
       // Tool settings: Doppler's chat templates carry no tools, so the conversation is rendered to
       // plain messages here, and a call that may or must be made is enforced by a token mask whose
       // identity is returned for the receipt. A request without tools or tool messages is untouched.
+      const reversePrompt = settings?.reversePrompt;
       let tooling;
       try {
+        if (reversePrompt) {
+          requireValue(hasReversePromptTemplate(session?.manifest),
+          'Reverse prompting requires a pinned Qwen template with thinking disabled');
+          requireValue(!adapters.length && maxOutputTokens === 16 && requestGeneration.maxTokens === 16,
+            'Reverse prompting requires the base model and a 16-token budget');
+          requestGeneration = { ...requestGeneration, ...REVERSE_PROMPT_GENERATION };
+        }
         tooling = await toolCalls.prepare(messages, settings, { endTokenIds: () => sessionEndTokenIds(session) });
         // A model that declares reasoning output must open every answer with its reasoning marker,
         // which a constraint that starts at the first token forbids.
@@ -157,7 +167,7 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
           await setAdapters(adapters, combined);
           const contextKey = typeof contextOwner === 'string' && contextOwner && typeof contextId === 'string' && contextId
             ? JSON.stringify([contextOwner, contextId, model.identity, adapters.map(item => item.identity)]) : null;
-          lease = contexts?.acquire(contextKey);
+          lease = reversePrompt ? null : contexts?.acquire(contextKey);
           const cachedGeneration = lease ? { ...requestGeneration, generationContext: lease.context } : requestGeneration;
           // Reported once, after tool rendering and before the first token, so a caller can open its
           // stream with the actual input count. Where the prompt was not tokenized nothing is
@@ -166,9 +176,19 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
             await onUsage({ inputTokens: promptTokenCount });
             combined.throwIfAborted();
           }
-          if (adapters.length) {
+          if (adapters.length || reversePrompt) {
             const result = await session.generate(messages, { ...cachedGeneration, signal: combined,
-              onToken: (_token, delta) => { if (typeof delta === 'string') update(delta); } });
+              ...(reversePrompt ? {} : { onToken: (_token, delta) => { if (typeof delta === 'string') update(delta); } }) });
+            if (reversePrompt) {
+              const actual = result.evidence?.generationConfig;
+              const runtime = result.evidence?.runtimeProfile?.runtime;
+              requireValue(runtime?.package === 'dopplerx' && runtime.version === DOPPLER_PACKAGE_VERSION && runtime.surface === 'node'
+                && result.evidence?.backendIdentityHash === reversePrompt.backendIdentityHash
+                && result.evidence.generationConfigHash === REVERSE_PROMPT_GENERATION_HASH
+                && Object.entries(REVERSE_PROMPT_GENERATION).every(([key, value]) => key === 'stopSequences'
+                  ? Array.isArray(actual?.stopSequences) && !actual.stopSequences.length : actual?.[key] === value),
+              'Reverse-prompt execution differed from the qualified backend or decoding policy');
+            }
             // Doppler owns visible output. Older callbacks supply only token IDs;
             // those sessions deliver completion text without decoding IDs here.
             requireValue(typeof result.outputText === 'string' && result.outputText.startsWith(text),

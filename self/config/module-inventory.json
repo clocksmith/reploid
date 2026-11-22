@@ -1026,13 +1026,21 @@
       ]
     },
     {
+      "path": "infrastructure/reverse-prompt-profile.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:3815e4b018873c36c01e5d1d32e64b07f9b3913425bd099ada20385ed3770bde",
+      "imports": []
+    },
+    {
       "path": "infrastructure/scoped-model-provider.js",
       "owner": "infrastructure",
-      "sha256": "sha256:b436de046c441b2623fc9333d4f726e7664243a4b41f289e7fad56a1b9a821f8",
+      "sha256": "sha256:dd223d5d5985f0cd6459a622f9561ccc6deb061ac652f0c042b9612a187ae609",
       "imports": [
+        "../config/doppler-local-models.js",
         "../vendor/reploid/mesh/generation-context-cache.js",
         "../vendor/reploid/mesh/provider-hardware.js",
         "./generation-completion.js",
+        "./reverse-prompt-profile.js",
         "./tool-call-constraint.js"
       ]
     },
@@ -4302,7 +4310,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:e03ed09b801cb0d153164b8e7082d13153d6cf2c0b45281cdca455e979cf255c",
+      "sha256": "sha256:101a7265e0af34251dc0358b15af39560900647e2f65d029ab801abc56bc19cb",
       "imports": []
     },
     {
@@ -19179,7 +19187,7 @@
     {
       "path": "vendor/reploid/mesh/generation-settings.js",
       "owner": "vendor",
-      "sha256": "sha256:af37e85b321004bc6e3fe48739b1b423ed84354f42f1d7e6a23c0c94758e0b98",
+      "sha256": "sha256:f8ddc198a265afb227362c041c1cf55299881b16c235e9e707b069be786b6fbf",
       "imports": [
         "../artifacts/canonical-json.js",
         "../artifacts/signatures.js"

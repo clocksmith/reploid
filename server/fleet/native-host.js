@@ -370,6 +370,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       return Math.min(config.maxOutputTokens, entry?.model.generation?.maxTokens ?? config.maxOutputTokens);
     },
     getState: () => participant?.getState() ?? { models: [] },
+    getNetworkState: () => participant?.getNetworkState() ?? { peers: [] },
+    verifyProviders: signal => participant.verifyProviders(signal),
     generate: (request, controls) => {
       assert(participant && !closed && !preparing, 'Requester unavailable');
       return participant.generate(request, controls);

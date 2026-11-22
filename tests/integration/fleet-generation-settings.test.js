@@ -17,6 +17,8 @@ import { startFleetService, createFleetClient } from '../../server/fleet/service
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
 import { startFleetTextApi } from '../../server/fleet/text-api.js';
+import { runDailyFleet } from '../../server/daily/fleet.js';
+import { PROFILE } from '../../server/daily/rules.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 
@@ -56,7 +58,7 @@ afterEach(async () => {
 });
 
 /** The whole path: HTTP edge, accounted requester, requester mesh, provider mesh, provider credit admission. */
-async function fixture({ execute, capability = limitOnly, intercept = null, expectedConstraintIdentity = null, alterAdmit = null, loadedAdapters = [] } = {}) {
+async function fixture({ execute, capability = limitOnly, intercept = null, expectedConstraintIdentity = null, alterAdmit = null, loadedAdapters = [], namedAdmission = false } = {}) {
   const cleanup = [], admits = [], executed = [], authorizations = [], reservations = [];
   const observedCredits = { ...providerCredits, call: async (operation, payload) => {
     if (operation === 'admit') { if (alterAdmit) payload = alterAdmit(structuredClone(payload)); admits.push(structuredClone(payload)); }
@@ -79,7 +81,7 @@ async function fixture({ execute, capability = limitOnly, intercept = null, expe
     },
     onGenerationTerminal: proof => admission.terminal(proof),
     ports: index => index
-      ? { ...(capability ? { getGenerationSettingsCapability: () => capability } : {}),
+      ? { ...(namedAdmission ? { admitsBeforeDisclosure: true } : {}), ...(capability ? { getGenerationSettingsCapability: () => capability } : {}),
         // Adapters the provider's runtime has loaded beside the base variant its credit admission serves.
         ...(loadedAdapters.length ? { getExecutionState: () => ({ phase: 'ready', modelIdentity: model.identity, adapterIdentities: loadedAdapters }) } : {}) }
       : { ...(expectedConstraintIdentity ? { expectedConstraintIdentity } : {}) }
@@ -93,6 +95,7 @@ async function fixture({ execute, capability = limitOnly, intercept = null, expe
       return new Set((network.computers || []).flatMap(row => row.participantIds || []));
     },
     textParticipant: { roomId, executionClass: 'private-pool', getState: () => ({ models: wholeRequester.getModels() }),
+      getNetworkState: () => mesh.requesterMesh.getSwarmSnapshot(),
       generate: (request, controls) => wholeRequester.generate(request, controls),
       recoverGeneration: (request, reference, controls) => wholeRequester.recover(request, reference, controls) },
     async runAccountedGeneration(request, controls, run) {
@@ -112,7 +115,7 @@ async function fixture({ execute, capability = limitOnly, intercept = null, expe
   const sent = type => mesh.wire.filter(item => item.type === type).map(item => item.payload);
   const recover = body => fetch(`${api.url}/reploid/recover`, { method: 'POST',
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
-  return { mesh, admits, executed, authorizations, reservations, wholeRequester, allowsModel, post, sent, recover, api,
+  return { host, mesh, admits, executed, authorizations, reservations, wholeRequester, allowsModel, post, sent, recover, api,
     row: () => credits.request(reservations.at(-1)),
     close: async () => { for (const close of cleanup.reverse()) await close(); } };
 }
@@ -497,5 +500,50 @@ it('recovers a completed request only for the same effective request, and settle
     expect(f.mesh.executions).toBe(1);
     expect(amounts()).toEqual([{ balance: -3, held: 0 }, { balance: 3, held: 0 }]);
     expect(credits.snapshot().journal).toHaveLength(2);
+  } finally { await f.close(); }
+});
+
+it('scores a named reverse-prompt run only on its countersigned, settled, backend-bound receipt', async () => {
+  const capability = { ...limitOnly, reversePromptBackends: [otherDigest] };
+  const settings = normalizeGenerationSettings({ maxOutputTokens: 16,
+    reversePrompt: { schema: 'reploid.reverse-prompt/v1', backendIdentityHash: otherDigest } });
+  const f = await fixture({ execute: async () => answer('I resign.', 3, 'eos-token'), capability, namedAdmission: true });
+  try {
+    await f.mesh.requesterMesh.verifyPeerIdentity(f.wholeRequester.getModels()[0].providerIds[0]);
+    const pins = { modelId: model.id, modelIdentity: model.identity, settings, providerId: keys[1].peerId };
+    const prompt = 'Offer a brief first person notice of quitting.', dispatch = vi.fn();
+    const result = await runDailyFleet(f.host, pins, { prompt, onDispatch: dispatch });
+    expect(result.output).toBe('I resign.');
+    expect(await verifyReceipt(result.receipt)).toMatchObject({ providerValid: true, consumerValid: true });
+    expect(f.executed).toEqual([{ messages: [{ role: 'system', content: PROFILE.system }, { role: 'user', content: prompt }], settings }]);
+    expect(dispatch).toHaveBeenCalledOnce();
+    expect(f.row().state).toBe('settled');
+    expect(f.row().binding.settingsDigest).toBe(result.receipt.settingsDigest);
+
+    await expect(runDailyFleet(f.host, { ...pins, providerId: keys[0].peerId }, { prompt }))
+      .rejects.toMatchObject({ dispatched: false });
+    const tampered = { ...f.host, async runAccountedGeneration(...args) {
+      const result = await f.host.runAccountedGeneration(...args);
+      return { ...result, content: 'Forged result' };
+    } };
+    await expect(runDailyFleet(tampered, pins, { prompt })).rejects.toMatchObject({ dispatched: true });
+    expect(f.reservations).toHaveLength(2);
+
+    // The service can fail after disclosure approval and before dispatch. Conversely, losing
+    // the dispatch reply proves neither that the service refused it nor that it completed.
+    const withCredits = creditClient => ({ ...f.host,
+      runAccountedGeneration(request, controls, generate) {
+        return createFleetRequester({ participant: { generate }, identity: keys[0], credits: creditClient, maxOutputTokens: 16 })
+          .generate(request, controls);
+      }
+    });
+    const beforeDispatch = withCredits({ ...requesterCredits, reserve: async () => { throw Error('Unable to reserve'); } });
+    await expect(runDailyFleet(beforeDispatch, pins, { prompt })).rejects.toMatchObject({ dispatched: false });
+    const lostReply = withCredits({ ...requesterCredits, dispatch: async (...args) => {
+      await requesterCredits.dispatch(...args);
+      throw Error('Dispatch acknowledgment lost');
+    } });
+    await expect(runDailyFleet(lostReply, pins, { prompt })).rejects.toMatchObject({ dispatched: true });
+    expect(f.executed).toHaveLength(2);
   } finally { await f.close(); }
 });

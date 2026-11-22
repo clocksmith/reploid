@@ -9,11 +9,13 @@ export interface GenerationSettings {
   toolChoice: 'none' | 'auto' | 'required' | { name: string };
   outputSchema: { [key: string]: Json } | null;
   thinking: null | 'on' | 'off';
+  reversePrompt?: { schema: 'reploid.reverse-prompt/v1'; backendIdentityHash: string };
 }
 export type GenerationSettingsInput = Partial<Omit<GenerationSettings, 'tools'>>
   & { tools?: Array<{ name: string; description?: string; parameters: { [key: string]: Json } }> };
 export interface GenerationSettingsCapability {
   schema: 'reploid.generation-settings/v1'; maxOutputTokens: boolean; tools: boolean; outputSchema: boolean; thinking: boolean;
+  reversePromptBackends?: readonly string[];
 }
 export interface GenerationSettingsOptions { assertSchema?(schema: { [key: string]: Json }, path: string): void }
 export const GENERATION_SETTINGS_CAPABILITY: Readonly<GenerationSettingsCapability>;

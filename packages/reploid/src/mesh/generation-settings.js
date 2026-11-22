@@ -13,7 +13,7 @@ export const EFFECTIVE_REQUEST_SCHEMA = 'reploid.effective-request/v1';
 export const GENERATION_SETTINGS_CAPABILITY = Object.freeze({ schema: GENERATION_SETTINGS_SCHEMA,
   maxOutputTokens: false, tools: false, outputSchema: false, thinking: false });
 
-const SETTING_KEYS = ['schema', 'maxOutputTokens', 'tools', 'toolChoice', 'outputSchema', 'thinking'];
+const SETTING_KEYS = ['schema', 'maxOutputTokens', 'tools', 'toolChoice', 'outputSchema', 'thinking', 'reversePrompt'];
 const CAPABILITY_FLAGS = ['maxOutputTokens', 'tools', 'outputSchema', 'thinking'];
 const MAX_TOOLS = 16, MAX_DESCRIPTION_CHARACTERS = 1024, MAX_JSON_DEPTH = 8, MAX_CANONICAL_BYTES = 16384;
 const TOOL_NAME = /^[A-Za-z0-9_-]{1,64}$/;
@@ -64,7 +64,7 @@ const deepFreeze = value => {
  * defaults (`maxOutputTokens: null`, `tools: []`, `toolChoice: 'none'` without tools and
  * `'auto'` with them, `outputSchema: null`, `thinking: null`); a tool's `description`
  * defaults to the empty string. Tool order is kept. The result is deeply frozen, has
- * exactly the six keys, and normalizes to itself.
+ * the six standard keys and any explicitly requested profile, and normalizes to itself.
  * `assertSchema(schema, path)`, when given, is called for each tool's `parameters` and for a
  * non-null `outputSchema`, so a host can refuse schemas outside the subset it supports.
  */
@@ -117,6 +117,16 @@ export function normalizeGenerationSettings(value, { assertSchema } = {}) {
   const thinking = value.thinking ?? null;
   if (![null, 'on', 'off'].includes(thinking)) throw invalid("thinking must be null, 'on' or 'off'", 'thinking');
   const settings = { schema: GENERATION_SETTINGS_SCHEMA, maxOutputTokens, tools, toolChoice, outputSchema: schema, thinking };
+  // This optional profile has a fixed sampler, chat template, fresh context and token limit.
+  // Omit it completely for ordinary requests so their retained digests remain valid.
+  if (Object.hasOwn(value, 'reversePrompt')) {
+    const pin = value.reversePrompt;
+    if (!plainObject(pin) || Object.keys(pin).length !== 2 || pin.schema !== 'reploid.reverse-prompt/v1'
+      || typeof pin.backendIdentityHash !== 'string' || !DIGEST.test(pin.backendIdentityHash) || maxOutputTokens !== 16 || tools.length || schema !== null || thinking !== null) {
+      throw invalid('reversePrompt requires an exact backend and the plain 16-token profile', 'reversePrompt');
+    }
+    settings.reversePrompt = { schema: pin.schema, backendIdentityHash: pin.backendIdentityHash };
+  }
   const bytes = new TextEncoder().encode(canonicalize(settings)).byteLength;
   if (bytes > MAX_CANONICAL_BYTES) throw invalid(`canonical size ${bytes} exceeds ${MAX_CANONICAL_BYTES} bytes`, 'settings');
   return deepFreeze(settings);
@@ -145,10 +155,14 @@ export async function effectiveRequestDigest({ modelIdentity, adapterIdentities,
 /** A well-formed capability, frozen, or `null` for anything else (including an absent one). */
 export function normalizeGenerationSettingsCapability(value) {
   if (!plainObject(value) || value.schema !== GENERATION_SETTINGS_SCHEMA
-    || Object.keys(value).length !== CAPABILITY_FLAGS.length + 1
+    || Object.keys(value).some(key => !['schema', ...CAPABILITY_FLAGS, 'reversePromptBackends'].includes(key))
     || CAPABILITY_FLAGS.some(flag => typeof value[flag] !== 'boolean')) return null;
+  const backends = value.reversePromptBackends;
+  if (backends !== undefined && (!Array.isArray(backends) || backends.length > 32
+    || !backends.every(id => typeof id === 'string' && DIGEST.test(id)))) return null;
   return Object.freeze({ schema: GENERATION_SETTINGS_SCHEMA,
-    ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, value[flag]])) });
+    ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, value[flag]])),
+    ...(backends?.length ? { reversePromptBackends: Object.freeze([...new Set(backends)]) } : {}) });
 }
 
 /** What every listed provider supports: each flag AND-ed, or `null` when the list is empty or
@@ -156,8 +170,10 @@ export function normalizeGenerationSettingsCapability(value) {
 export function intersectGenerationSettingsCapabilities(capabilities) {
   const normalized = capabilities.map(normalizeGenerationSettingsCapability);
   if (!normalized.length || normalized.includes(null)) return null;
+  const backends = normalized[0].reversePromptBackends?.filter(id => normalized.every(cap => cap.reversePromptBackends?.includes(id)));
   return Object.freeze({ schema: GENERATION_SETTINGS_SCHEMA,
-    ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, normalized.every(capability => capability[flag])])) });
+    ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, normalized.every(capability => capability[flag])])),
+    ...(backends?.length ? { reversePromptBackends: Object.freeze(backends) } : {}) });
 }
 
 /** What at least one listed provider supports: each flag OR-ed over the providers that advertise
@@ -166,8 +182,10 @@ export function intersectGenerationSettingsCapabilities(capabilities) {
 export function unionGenerationSettingsCapabilities(capabilities) {
   const normalized = capabilities.map(normalizeGenerationSettingsCapability).filter(Boolean);
   if (!normalized.length) return null;
+  const backends = [...new Set(normalized.flatMap(cap => cap.reversePromptBackends ?? []))].slice(0, 32);
   return Object.freeze({ schema: GENERATION_SETTINGS_SCHEMA,
-    ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, normalized.some(capability => capability[flag])])) });
+    ...Object.fromEntries(CAPABILITY_FLAGS.map(flag => [flag, normalized.some(capability => capability[flag])])),
+    ...(backends.length ? { reversePromptBackends: Object.freeze(backends) } : {}) });
 }
 
 /** Refuse settings a route does not advertise, naming the first unsupported one. A route with
@@ -179,6 +197,9 @@ export function assertSettingsSupported(capability, settings) {
     { code: 'GENERATION_SETTINGS_UNSUPPORTED', status: 400, setting, param: setting });
   const supported = normalizeGenerationSettingsCapability(capability);
   if (!supported) throw unsupported('Generation settings are not supported by this route', null);
+  if (canonical.reversePrompt && !supported.reversePromptBackends?.includes(canonical.reversePrompt.backendIdentityHash)) {
+    throw unsupported('The pinned reverse-prompt backend is unavailable on this route', 'reversePrompt');
+  }
   const used = { maxOutputTokens: canonical.maxOutputTokens !== null, tools: canonical.tools.length > 0,
     outputSchema: canonical.outputSchema !== null, thinking: canonical.thinking !== null };
   for (const flag of CAPABILITY_FLAGS) {

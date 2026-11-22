@@ -26,6 +26,7 @@
     "smoke:swarm-bootstrap": "node scripts/verify-swarm-runtime.js",
     "sync:library": "node scripts/sync-reploid-library.js",
     "verify:library": "node scripts/sync-reploid-library.js --check",
+    "daily": "node scripts/reploid-daily.js",
     "start": "npx tsx scripts/reploid-cli.ts start",
     "dev": "npm start",
     "deploy": "node scripts/deploy.js",
@@ -126,6 +127,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@simplewebauthn/server": "14.1.0",
     "acorn": "^8.15.0",
     "dopplerx": "file:deploy/artifacts/dopplerx-0.1.5.tgz",
     "dotenv": "^16.3.1",

@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 691893,
-      "sha256": "sha256:03aa54743cd86176a5a82b8a83d937d93181233f4580a422282fd7ef0bbbaf72"
+      "byteLength": 692192,
+      "sha256": "sha256:cb9e9f58e9f3bf8b54ae8faa44c11a24275c86f1a3a9e5d3ddcce3194dad1584"
     },
     {
       "path": "config/module-registry.json",
@@ -1505,8 +1505,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148788,
-      "sha256": "sha256:684c3b333c133709b52c6009900e82a01758106288e90dc87150f636bb380999"
+      "byteLength": 148836,
+      "sha256": "sha256:f28a80d4a016f8063a38233b0410f32026641de1b0485ed34d313b5727815ccd"
     },
     {
       "path": "config/vfs-policy.js",
@@ -2339,9 +2339,14 @@
       "sha256": "sha256:83d0a3a6d99fc35256ac39f1f0bf6c89fe641f387bf5d438f481965c3915c6c8"
     },
     {
+      "path": "infrastructure/reverse-prompt-profile.js",
+      "byteLength": 842,
+      "sha256": "sha256:3815e4b018873c36c01e5d1d32e64b07f9b3913425bd099ada20385ed3770bde"
+    },
+    {
       "path": "infrastructure/scoped-model-provider.js",
-      "byteLength": 15866,
-      "sha256": "sha256:b436de046c441b2623fc9333d4f726e7664243a4b41f289e7fad56a1b9a821f8"
+      "byteLength": 17490,
+      "sha256": "sha256:dd223d5d5985f0cd6459a622f9561ccc6deb061ac652f0c042b9612a187ae609"
     },
     {
       "path": "infrastructure/search-response.js",
@@ -3785,8 +3790,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2712524,
-      "sha256": "sha256:e03ed09b801cb0d153164b8e7082d13153d6cf2c0b45281cdca455e979cf255c"
+      "byteLength": 2714589,
+      "sha256": "sha256:101a7265e0af34251dc0358b15af39560900647e2f65d029ab801abc56bc19cb"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12125,8 +12130,8 @@
     },
     {
       "path": "vendor/reploid/mesh/generation-settings.js",
-      "byteLength": 11877,
-      "sha256": "sha256:af37e85b321004bc6e3fe48739b1b423ed84354f42f1d7e6a23c0c94758e0b98"
+      "byteLength": 13708,
+      "sha256": "sha256:f8ddc198a265afb227362c041c1cf55299881b16c235e9e707b069be786b6fbf"
     },
     {
       "path": "vendor/reploid/mesh/gpu-signature-shader.js",
@@ -12441,7 +12446,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 60561,
-      "sha256": "sha256:09d766b13a63f80a899adc4d307eeac05c0efb1cf336b98a8b404f11df2386e0"
+      "sha256": "sha256:6e0d95e317efcf7f0536f46c187ea62c5db74d37867cd52fa4f54f1a26147aae"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12724,5 +12729,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:1ef251ce3bf21076e28283ce5a08fd4688fd9f4f23b156c71b86a4933e5ab1cc"
+  "bundleHash": "sha256:8471692f1415714df9afaff2e8cc75ed58832fc4d0263e2d6ce43e580caa0c91"
 }
