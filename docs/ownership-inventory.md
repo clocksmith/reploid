@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 389 |
+| apps/poolday | 391 |
 | self | 457 |
-| shared | 2499 |
-| total | 3345 |
+| shared | 2501 |
+| total | 3349 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 2062 | shared |
-| `vendor/reploid/` | 352 | shared |
+| `vendor/reploid/` | 354 | shared |
 
 ## Files
 
@@ -431,6 +431,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/earning/client.js` | `apps/poolday/host/earning/client.js` | apps/poolday | Reached only from product entries. |
 | `host/earning/contribution.js` | `apps/poolday/host/earning/contribution.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `host/file-access.js` | `self/host/file-access.js` | self | Reached only from substrate entries. |
+| `host/guest-join.js` | `apps/poolday/host/guest-join.js` | apps/poolday | Reached only from product entries. |
 | `host/history-handover.js` | `apps/poolday/host/history-handover.js` | apps/poolday | Reached only from product entries. |
 | `host/local-data.js` | `apps/poolday/host/local-data.js` | apps/poolday | Reached only from product entries. |
 | `host/lora-training-executor.js` | `apps/poolday/host/lora-training-executor.js` | apps/poolday | Reached only from product entries. |
@@ -458,6 +459,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/supabase-sign-in.js` | `apps/poolday/host/supabase-sign-in.js` | apps/poolday | Reached only from product entries. |
 | `host/sw-module-loader.js` | `self/host/sw-module-loader.js` | self | Reached only from substrate entries. |
 | `host/swarm-autoconnect.js` | `apps/poolday/host/swarm-autoconnect.js` | apps/poolday | Reached only from product entries. |
+| `host/verified-host-peer.js` | `apps/poolday/host/verified-host-peer.js` | apps/poolday | Reached only from product entries. |
 | `host/vfs-bootstrap.js` | `self/host/vfs-bootstrap.js` | self | Reached only from substrate entries. |
 | `host/web-access.d.ts` | `apps/poolday/host/web-access.d.ts` | apps/poolday | Describes host/web-access.js. Reached only from product entries. |
 | `host/web-access.js` | `apps/poolday/host/web-access.js` | apps/poolday | Reached only from product entries. |

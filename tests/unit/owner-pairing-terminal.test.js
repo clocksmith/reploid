@@ -109,3 +109,49 @@ describe('owner pairing decisions', () => {
       'No request yet. Tap Connect on your phone.']);
   });
 });
+
+describe('guest invites from the desktop terminal', () => {
+  const invite = (overrides = {}) => ({ inviteId: '9a8b7c6d-0000-4000-8000-000000000001', hostPeerId: host, token: 'T'.repeat(43),
+    guestPeerId: null, usedRequests: 0, maxRequests: 10, maxOutputTokens: 256, expiresAt: 10 * 3_600_000, status: 'active', ...overrides });
+  function guestTerminal(list = []) {
+    const lines = [];
+    const invites = { issue: vi.fn(options => invite({ expiresAt: options.expiresAt })), list: vi.fn(() => list), revoke: vi.fn() };
+    const pairing = { issue: vi.fn(), pendingRequests: vi.fn(() => []), decide: vi.fn() };
+    const commands = createOwnerPairingTerminal({ pairing, invites, room: 'reploid-swarm-home', name: 'Mars',
+      write: line => lines.push(line), renderQr: link => `QR(${link})`, now: () => 0 });
+    return { lines, invites, commands };
+  }
+
+  it('issues one bounded invite and prints a fragment-only link with host, room, name and a QR code', () => {
+    const t = guestTerminal();
+    t.commands.handleLine('invite');
+    expect(t.invites.issue).toHaveBeenCalledWith({ expiresAt: 24 * 3_600_000, maxRequests: 10, maxOutputTokens: 256 });
+    const link = t.lines[0].match(/https:\/\/replo\.id\/#\S+/)[0];
+    const fragment = new URLSearchParams(new URL(link).hash.slice(1));
+    expect(new URL(link).search).toBe('');
+    expect(Object.fromEntries(fragment)).toEqual({ circle: 'T'.repeat(43), host, room: 'reploid-swarm-home', name: 'Mars' });
+    expect(t.lines[1]).toBe(`QR(${link})`);
+    expect(t.lines[2]).toMatch(/can read them/);
+  });
+
+  it('lists active links and revokes the newest one or a named prefix', () => {
+    const newest = invite({ inviteId: 'aaaaaaaa-0000-4000-8000-000000000002', guestPeerId: phone, usedRequests: 3 });
+    const older = invite({ inviteId: 'bbbbbbbb-0000-4000-8000-000000000003' });
+    const t = guestTerminal([newest, older, invite({ inviteId: 'cccccccc-0000-4000-8000-000000000004', status: 'revoked' })]);
+    t.commands.handleLine('invites');
+    expect(t.lines.at(-1)).toMatch(/aaaaaaaa {2}used by peer:aaaa…aaaa {2}3\/10 messages/);
+    expect(t.lines.at(-1)).not.toMatch(/cccccccc/);
+    t.commands.handleLine('revoke');
+    expect(t.invites.revoke).toHaveBeenLastCalledWith(newest.inviteId);
+    t.commands.handleLine('revoke bbbb');
+    expect(t.invites.revoke).toHaveBeenLastCalledWith(older.inviteId);
+    t.commands.handleLine('revoke zzzz');
+    expect(t.lines.at(-1)).toMatch(/No matching guest link/);
+  });
+
+  it('keeps guest commands off a host without an invite store', () => {
+    const { lines, commands } = terminal();
+    commands.handleLine('invite');
+    expect(lines.at(-1)).toMatch(/Type pair/);
+  });
+});

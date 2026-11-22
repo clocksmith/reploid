@@ -1,3 +1,4 @@
+import { ownerPairingRoomId } from '../../../shared/vendor/reploid/transport/index.js';
 // Browser entry points for host invitations and the guest's admitted HTTP turn.
 export { sendCircleChat } from './circle-http-client.js';
 
@@ -16,10 +17,11 @@ export function describeCircleHost(hostLabel, hostPeerId = '') {
   });
 }
 
-export function createCircleInviteUrl({ token, hostPeerId, hostLabel }, baseUrl = globalThis.location.href) {
+export function createCircleInviteUrl({ token, hostPeerId, hostLabel, roomId }, baseUrl = globalThis.location.href) {
   if (!tokenPattern.test(token) || !validHost(hostPeerId)) throw Error('Invalid host invitation');
   const url = new URL('/', baseUrl);
   const params = new URLSearchParams({ circle: token, host: hostPeerId });
+  if (ownerPairingRoomId(roomId)) params.set('room', roomId);
   if (validLabel(hostLabel) && hostLabel.trim() !== hostPeerId) {
     params.set('name', hostLabel.trim());
   }
@@ -34,9 +36,11 @@ export function parseCircleInviteUrl(value = globalThis.location.href) {
   if (fragment.getAll('name').length > 1) return null;
   const token = fragment.get('circle'), hostPeerId = fragment.get('host');
   if (!tokenPattern.test(token) || !validHost(hostPeerId)) return null;
-  const rawName = fragment.get('name');
+  const rawName = fragment.get('name'), rawRoom = fragment.get('room');
   if (rawName !== null && !validLabel(rawName)) return null;
-  return rawName ? { token, hostPeerId, hostLabel: rawName.trim() } : { token, hostPeerId };
+  // The room is routing only: it says where the host listens and grants nothing.
+  if (fragment.getAll('room').length > 1 || rawRoom !== null && !ownerPairingRoomId(rawRoom)) return null;
+  return { token, hostPeerId, ...(rawName ? { hostLabel: rawName.trim() } : {}), ...(rawRoom ? { roomId: rawRoom } : {}) };
 }
 
 /** request() is the current paired desktop's authenticated owner command port. */

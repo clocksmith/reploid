@@ -5,25 +5,12 @@ import {
   requestOwnerPairing
 } from '../../../shared/vendor/reploid/transport/index.js';
 import { describeCircleHost } from './circle-invites.js';
+import { findVerifiedHostPeer, resolveVerifiedPeer } from './verified-host-peer.js';
 
 const STORAGE_KEY = 'reploid.owner-paired-desktop:v1';
 const DEFAULT_PEER_WAIT_MS = 6000;
 const APPROVAL_WAIT_MS = 10 * 60 * 1000;
-const PEER_POLL_MS = 40;
 const validLabel = value => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 128;
-
-const delay = (ms, signal) => new Promise((resolve, reject) => {
-  if (signal?.aborted) { reject(signal.reason); return; }
-  const timer = setTimeout(() => {
-    signal?.removeEventListener('abort', onAbort);
-    resolve();
-  }, ms);
-  function onAbort() {
-    clearTimeout(timer);
-    reject(signal.reason);
-  }
-  signal?.addEventListener('abort', onAbort, { once: true });
-});
 
 export function createOwnerPairingUrl({ hostParticipantId, code, hostLabel, roomId }, baseUrl = globalThis.location?.href || 'https://replo.id/') {
   if (!ownerParticipantId(hostParticipantId) || !ownerPairingCode(code)) {
@@ -97,61 +84,11 @@ export function createBrowserOwnerPairing({
   let closed = false;
   let activeAbort = null;
 
-  function resolveVerifiedPeer(channel, hostParticipantId) {
-    if (!channel?.transport) return null;
-    const peers = typeof channel.getPeers === 'function' ? channel.getPeers() : [];
-    const states = typeof channel.getPeerStates === 'function' ? channel.getPeerStates() : [];
-    const connected = typeof channel.transport.getConnectedPeers === 'function'
-      ? channel.transport.getConnectedPeers().map(peer => peer.id) : [];
-    const candidateIds = [...new Set([...peers.map(peer => peer.peerId), ...connected])];
-    for (const peerId of candidateIds) {
-      if (!channel.transport.getPeerBinding?.(peerId)) continue;
-      if (channel.currentPeer?.(peerId) !== hostParticipantId) continue;
-      const peerInfo = peers.find(peer => peer.peerId === peerId) || null;
-      const linkState = states.find(item => item.id === peerId) || null;
-      return {
-        hostPeer: peerId,
-        transportPath: linkState?.path || 'connected',
-        readyModel: peerInfo?.readiness === 'ready' ? (peerInfo.model || null) : null
-      };
-    }
-    return null;
-  }
-
-  async function findAndVerifyHostPeer(channel, hostParticipantId, targetRoomId, signal, waitMs) {
-    const deadline = now() + Math.max(0, waitMs);
-    const checkedBindings = new Map();
-    while (!closed) {
-      signal.throwIfAborted();
-      const active = getChannel() || channel;
-      if (!active?.transport) throw new Error('Desktop connection unavailable');
-      if (targetRoomId && active.roomId && active.roomId !== targetRoomId) {
-        throw new Error('Swarm connection moved away from the requested desktop room');
-      }
-      const existing = resolveVerifiedPeer(active, hostParticipantId);
-      if (existing) return { channel: active, hostPeer: existing.hostPeer };
-
-      const peers = typeof active.getPeers === 'function' ? active.getPeers().map(peer => peer.peerId) : [];
-      const connected = typeof active.transport?.getConnectedPeers === 'function'
-        ? active.transport.getConnectedPeers().map(peer => peer.id) : [];
-      const candidates = [...new Set([...peers, ...connected])];
-      for (const peerId of candidates) {
-        signal.throwIfAborted();
-        const binding = active.transport?.getPeerBinding?.(peerId);
-        if (!binding) continue;
-        const bindingKey = JSON.stringify(binding);
-        if (checkedBindings.get(peerId) === bindingKey) continue;
-        checkedBindings.set(peerId, bindingKey);
-        try {
-          const verified = await active.verifyPeer(peerId, signal);
-          if (verified === hostParticipantId) return { channel: active, hostPeer: peerId };
-        } catch { /* Continue checking other connected peers without disclosing the code. */ }
-      }
-      if (now() >= deadline) break;
-      await delay(Math.min(PEER_POLL_MS, Math.max(1, deadline - now())), signal);
-    }
-    throw new Error('Could not find the verified desktop on this connection. Confirm it is online and retry.');
-  }
+  const findAndVerifyHostPeer = (channel, hostParticipantId, targetRoomId, signal, waitMs) => findVerifiedHostPeer({
+    getChannel, channel, hostParticipantId, targetRoomId, signal, waitMs, now, isClosed: () => closed,
+    unavailable: 'Desktop connection unavailable',
+    notFound: 'Could not find the verified desktop on this connection. Confirm it is online and retry.'
+  });
 
   function state() {
     if (pairing && pendingTarget) {

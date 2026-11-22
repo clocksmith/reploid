@@ -1711,19 +1711,29 @@
       "sha256": "059424cb0a89301b8357ee45fc1c8d901fe087a4611c968a399e10c5d07702da"
     },
     {
+      "path": "transport/circle-join.d.ts",
+      "bytes": 860,
+      "sha256": "ae17ff4b1655a2f7b3da7f477b7dcc6cc5f791fcb76521b02d93c2d69a6f9b29"
+    },
+    {
+      "path": "transport/circle-join.js",
+      "bytes": 3195,
+      "sha256": "592f77ec7bd993f53d6f94102825b04349d8952f096955e787f9f0a1e12eb38a"
+    },
+    {
       "path": "transport/connection-path.js",
       "bytes": 1728,
       "sha256": "495948626c84dea131c3ec9555af8322867716e8f11664481823f5001fe6a2d3"
     },
     {
       "path": "transport/index.d.ts",
-      "bytes": 593,
-      "sha256": "f6c25fc1c67d2355a8f349f034708a569f7ca7cffbf56c7dced58530f1b2bc9c"
+      "bytes": 627,
+      "sha256": "368950e1784b3a71d115a1622d9b35ed3a16eada3c8c135f4d4de5af974fa9f6"
     },
     {
       "path": "transport/index.js",
-      "bytes": 742,
-      "sha256": "139ea7086ad5aa1c7db46d7d595a68ac8431c49c1d16b1ab72a10434482ec878"
+      "bytes": 776,
+      "sha256": "dddbf36cc01efa69279d1728e1e16487693ec587e3bf0185f067955e66a70e68"
     },
     {
       "path": "transport/introduction-admission.d.ts",
@@ -1767,8 +1777,8 @@
     },
     {
       "path": "transport/message-types.js",
-      "bytes": 1794,
-      "sha256": "a73090433c3555d843b2faf763ca2f8be3c50887527556f70fc251bda2af60a2"
+      "bytes": 1911,
+      "sha256": "dc033f78fb8940cff3c73255b71f5603b1ec304904bf7f94177883ae64953af9"
     },
     {
       "path": "transport/owner-pairing.d.ts",

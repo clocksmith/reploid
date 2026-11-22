@@ -31,8 +31,8 @@ export function localFitText(model, info, { cached = false, sizeBytes = info?.si
 
 const computerState = (choice, { state, selected, locked, canDownload }) => {
   if (choice === 'desktop') {
-    if (locked?.guest) return 'Invited';
-    return { online: 'Ready', pairing: 'Connecting…', connecting: 'Connecting…', offline: 'Offline' }[locked?.status] || '';
+    return { online: 'Ready', pairing: 'Connecting…', joining: 'Connecting…', connecting: 'Connecting…', offline: 'Offline',
+      invited: 'Tap Join' }[locked?.status] || '';
   }
   if (choice === 'local') {
     if (modelExecutionState(selected, 'local').usable) return 'Ready';

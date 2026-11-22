@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -8,15 +8,15 @@ describe('Paired desktop default', () => {
   let root, session, dispose;
   afterEach(async () => { dispose?.(); await session?.close(); root?.remove(); });
 
-  const setup = ownerPairing => {
+  const setup = (ownerPairing, extra = {}) => {
     const [model] = CANONICAL_CHAT_MODELS;
     const peers = [{ peerId: 'transport-1', model: model.id, modelIdentity: model.identity, readiness: 'ready',
       hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     const real = createChatSession({ storage: null, service: createChatTestService(),
       swarm: { getState: () => ({ consumer: { peers } }), connect: async () => {} } });
-    const inject = state => ({ ...state, ownerPairing });
+    const inject = state => ({ ...state, ownerPairing, ...(extra.guestAccess ? { guestAccess: extra.guestAccess() } : {}) });
     session = { ...real, getState: () => inject(real.getState()),
-      subscribe: listener => real.subscribe(state => listener(inject(state))) };
+      subscribe: listener => real.subscribe(state => listener(inject(state))), ...(extra.guestJoin ? { guestJoin: extra.guestJoin } : {}) };
     root = document.createElement('div'); document.body.append(root);
     root.innerHTML = renderConversationWorkspace();
     const viewState = {};
@@ -51,6 +51,27 @@ describe('Paired desktop default', () => {
     expect(viewState.guestInvite.hostPeerId).toBe(host);
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
     expect(root.textContent).toContain('Sending to Mars.');
+    history.replaceState(null, '', '/');
+  });
+
+  it('offers one Join action for an invite, keeps Send off until joined, then sends only to that host', async () => {
+    const host = 'peer:860c7025bc31969cada679cd', token = 'T'.repeat(43);
+    history.replaceState(null, '', `/#circle=${token}&host=${encodeURIComponent(host)}&name=Mars&room=reploid-swarm-owner-abc`);
+    let guest = { status: 'none', joined: false, hostParticipantId: null, hostLabel: null, error: '' };
+    const guestJoin = { join: vi.fn(async () => { guest = { status: 'online', joined: true, hostParticipantId: host, hostLabel: 'Mars',
+      readyModel: CANONICAL_CHAT_MODELS[0].id, error: '' }; return {}; }) };
+    const { viewState } = setup({ status: 'unpaired', paired: false, canSend: false, hostParticipantId: null },
+      { guestAccess: () => guest, guestJoin });
+    const join = root.querySelector('[data-join-host]');
+    expect(join.hidden).toBe(false);
+    expect(join.textContent).toBe('Join Mars');
+    expect(root.querySelector('[data-composer-send]').disabled).toBe(true);
+    join.click();
+    expect(guestJoin.join).toHaveBeenCalledWith({ hostPeerId: host, token, hostLabel: 'Mars', roomId: 'reploid-swarm-owner-abc' });
+    await vi.waitFor(() => expect(viewState.guestInvite).toBeNull());
+    expect(join.hidden).toBe(true);
+    expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+    expect(root.querySelector('[data-composer-send]').disabled).toBe(false);
     history.replaceState(null, '', '/');
   });
 });

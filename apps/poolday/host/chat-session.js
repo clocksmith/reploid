@@ -1,6 +1,7 @@
 import { createPrivateComputers } from './private-computers.js';
 import { createCircleInviteOwner } from './circle-invites.js';
 import { createBrowserOwnerPairing } from './owner-pairing.js';
+import { createBrowserGuestJoin } from './guest-join.js';
 import { projectComputerUsage } from './contribution-history.js';
 import { availablePartitionRoute } from './partition-release.js';
 /**
@@ -180,8 +181,16 @@ export function createChatSession({
     onChange: () => notifyAll(),
     now
   });
-  // A phone that paired before returns to its desktop's room on load, so the desktop is online without a tap.
+  const guestJoin = createBrowserGuestJoin({
+    storage,
+    getChannel: () => swarm?.getOwnerPairingChannel?.() || null,
+    connect: swarm?.connect ? (options = {}) => swarm.connect({ automatic: false, ...options }) : null,
+    onChange: () => notifyAll(),
+    now
+  });
+  // A phone that paired, or joined an invited computer, returns to that computer's room on load without a tap.
   if (ownerPairing.state().paired) queueMicrotask(() => { ownerPairing.reconnect().catch(() => {}); });
+  else if (guestJoin.state().joined) queueMicrotask(() => { guestJoin.reconnect().catch(() => {}); });
   const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, fleet, resolveLocalSource, isCached,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => {
       const local = execution.getLocalState();
@@ -353,7 +362,7 @@ export function createChatSession({
       closed,
       activeThread,
       comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
-      models: catalog, privateComputers: fleet.state(), ownerPairing: ownerPairing.state(),
+      models: catalog, privateComputers: fleet.state(), ownerPairing: ownerPairing.state(), guestAccess: guestJoin.state(),
       answerLimits: catalog.filter(model => model.partition).map(model => ({
         selectionId: model.selectionId || model.id,
         cells: ROUTE_ENVELOPE_POLICY.routes.find(row => row.modelIdentity === model.identity
@@ -485,6 +494,7 @@ export function createChatSession({
     getModelDownload,
     privateComputers: fleet,
     ownerPairing,
+    guestJoin,
     get circleInvites() {
       const current = getCircleOwnerRequest();
       if (current !== ownerRequest) {
@@ -756,7 +766,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; fleet.close(); ownerPairing.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
+      closed = true; fleet.close(); ownerPairing.close(); guestJoin.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {

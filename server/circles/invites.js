@@ -156,6 +156,14 @@ export async function openCircleInvites({ file, hostPeerId, hostLabel = hostPeer
       const at = now(), row = findLive(scope, at);
       return row ? view(row, at) : null;
     },
+    /** The newest live invite this verified guest has claimed on this host, or null. */
+    liveForGuest(guestPeerId) {
+      if (!validId(guestPeerId)) return null;
+      const at = now();
+      const row = db.prepare('SELECT * FROM circle_invite WHERE guest=? AND revoked_at IS NULL AND expires_at>? ORDER BY created_at DESC, rowid DESC LIMIT 1')
+        .get(guestPeerId, at);
+      return row ? view(row, at) : null;
+    },
     hasRequest({ guestPeerId, requestId }) {
       return validId(guestPeerId) && validId(requestId) && !!selectRequest.get(guestPeerId, requestId);
     },

@@ -66,6 +66,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           <div class="chat-composer-status-line">
         <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p>
         <div class="chat-composer-notices">
+          <button class="pool-button btn-primary pool-caption" type="button" data-join-host hidden>Join</button>
           <button class="pool-button btn-ghost pool-caption" type="button" data-queue-send hidden>Send when ready</button>
           <button class="pool-button btn-ghost pool-caption" type="button" data-cancel-queued-send hidden>Cancel</button>
           <button class="pool-button btn-ghost pool-caption" type="button" data-review-shared-model hidden></button><button class="pool-button btn-ghost pool-caption" type="button" data-retry-connection aria-label="Retry connection" hidden>Retry</button></div>${renderControlHelp()}

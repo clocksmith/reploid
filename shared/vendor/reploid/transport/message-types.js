@@ -4,6 +4,7 @@
  */
 import { INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL } from './introductions.js';
 import { OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT } from './owner-pairing.js';
+import { CIRCLE_JOIN_REQUEST, CIRCLE_JOIN_RESULT } from './circle-join.js';
 export const PROTOCOL_VERSION = 1;
 export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'sync-request', 'sync-response',
@@ -26,5 +27,5 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'fl:hello', 'fl:round-start', 'fl:update', 'fl:round-commit', 'fl:round-failed'
 ]);
 export const RTC_MESSAGE_TYPES = Object.freeze([...APPLICATION_MESSAGE_TYPES, INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL,
-  OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT]);
+  OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT, CIRCLE_JOIN_REQUEST, CIRCLE_JOIN_RESULT]);
 export const ROOM_MESSAGE_TYPES = Object.freeze([...APPLICATION_MESSAGE_TYPES, 'peer-announce', 'peer-leave']);

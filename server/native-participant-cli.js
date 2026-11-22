@@ -31,6 +31,8 @@ import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 import { openOwnerPairing } from './circles/owner-pairing.js';
+import { openCircleInvites } from './circles/invites.js';
+import { createGuestAccess } from './circles/guest-access.js';
 import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
 import { ownerPairingRoomId, ownerPairingRoomMarker } from '../packages/reploid/src/transport/index.js';
 
@@ -168,11 +170,20 @@ export async function main({ runOnce } = {}) {
     await import('./browser-web-worker.js').then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
       .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
   else if (values['web-search']) webWorker = createPublicWebWorker();
-  let ownerPairing;
+  let ownerPairing, guestInvites, guestAccess;
+  const displayName = ownerPairingDisplayName(hostname());
   try {
-    if (values['owner-pairing']) ownerPairing = await openOwnerPairing({ file: path.join(path.dirname(identityFile), 'owner-pairing.sqlite'),
-      hostParticipantId: identity.peerId, onRequest: request => console.error(ownerPairingPrompt(request)) });
+    if (values['owner-pairing']) {
+      ownerPairing = await openOwnerPairing({ file: path.join(path.dirname(identityFile), 'owner-pairing.sqlite'),
+        hostParticipantId: identity.peerId, onRequest: request => console.error(ownerPairingPrompt(request)) });
+      // A paired host can also invite guests; each invite admits one device within its limits.
+      guestInvites = await openCircleInvites({ file: path.join(path.dirname(identityFile), 'circle-invites.sqlite'),
+        hostPeerId: identity.peerId, hostLabel: displayName || identity.peerId });
+      guestAccess = createGuestAccess({ invites: guestInvites, hostParticipantId: identity.peerId,
+        onJoin: () => console.error('A guest opened your link.') });
+    }
   } catch (error) {
+    ownerPairing?.close(); guestInvites?.close();
     owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error;
   }
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
@@ -194,7 +205,7 @@ export async function main({ runOnce } = {}) {
       };
     })(),
     generationJournalFile: path.join(path.dirname(identityFile), 'generation-journal.sqlite'),
-    webWorker, ownerPairing,
+    webWorker, ownerPairing, guestAccess,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       sha256Hex(values.room || bootstrap.publicRoomId)) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
@@ -204,11 +215,11 @@ export async function main({ runOnce } = {}) {
       // A prepared stage is offered for before any route admits it.
       if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
     } })
-    .catch(async error => { ownerPairing?.close(); owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
+    .catch(async error => { ownerPairing?.close(); guestAccess?.close(); guestInvites?.close(); owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
   const pairingTerminal = ownerPairing && createInterface({ input: process.stdin, terminal: false });
   if (pairingTerminal) {
-    const commands = createOwnerPairingTerminal({ pairing: ownerPairing, room: values.room, name: ownerPairingDisplayName(hostname()) });
-    console.error('Type pair to issue a one-time owner pairing code.');
+    const commands = createOwnerPairingTerminal({ pairing: ownerPairing, invites: guestInvites, room: values.room, name: displayName });
+    console.error('Type pair to connect your phone, or invite to share this computer with one guest.');
     pairingTerminal.on('line', line => commands.handleLine(line));
   }
   logNetwork = () => statusLog('network', { event: 'network', at: new Date().toISOString(), ...participant.getNetworkState(),
@@ -220,7 +231,7 @@ export async function main({ runOnce } = {}) {
   const shutdown = createNativeShutdown(participant, gpuHost);
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
   const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
-    pairingTerminal?.close(); ownerPairing?.close();
+    pairingTerminal?.close(); ownerPairing?.close(); guestAccess?.close(); guestInvites?.close();
     return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
   if (runOnce) {
     const controller = new AbortController();

@@ -85,11 +85,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   }
   /** The one computer a new conversation is locked to: an invite's host, else the paired online desktop. */
   const lockedDestination = state => {
-    const invite = viewState.guestInvite;
-    if (invite) return { id: invite.hostPeerId, label: describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel, readyModel: null };
-    const owner = state.ownerPairing;
-    if (owner?.status === 'online' && owner.hostParticipantId) {
-      return { id: owner.hostParticipantId, label: owner.hostLabel, readyModel: typeof owner.readyModel === 'string' ? owner.readyModel : owner.readyModel?.id };
+    const owner = state.ownerPairing, invite = viewState.guestInvite, guest = state.guestAccess;
+    const modelId = model => typeof model === 'string' ? model : model?.id ?? null;
+    if (owner?.status === 'online' && owner.hostParticipantId && !invite) {
+      return { id: owner.hostParticipantId, label: owner.hostLabel, readyModel: modelId(owner.readyModel), status: 'online', guest: false };
+    }
+    // An invite link, or a computer this device already joined as a guest: only that host may receive prompts.
+    if (invite || guest?.hostParticipantId) {
+      const id = invite?.hostPeerId || guest.hostParticipantId, same = guest?.hostParticipantId === id;
+      return { id, label: describeCircleHost(invite?.hostLabel || guest?.hostLabel, id).hostLabel,
+        readyModel: same ? modelId(guest.readyModel) : null, status: same ? guest.status : 'invited', guest: true };
     }
     return null;
   };
@@ -97,7 +102,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   // and the composer picks the model it reports ready. A manual policy choice wins, except over an invite.
   const applyPairedDesktopDefault = state => {
     const destination = lockedDestination(state);
-    if (state.activeThread || !destination || (viewState.privacyTouched && !viewState.guestInvite)) return;
+    if (state.activeThread || !destination || (viewState.privacyTouched && !destination.guest)) return;
     const current = viewState.privacy;
     if (current?.recipients?.kind !== 'named' || current.recipients.ids.length !== 1 || current.recipients.ids[0] !== destination.id) {
       viewState.privacy = createExecutionPolicy({ placement: 'network-allowed',
@@ -282,8 +287,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       selectedId: modelSelect.value, localOnly: !!snapshot.activeThread && (explicitPrivacy(snapshot).placement === 'local-only'
         || explicitPrivacy(snapshot).recipients.kind === 'none'),
       canDownload: !!inspector.downloadModel, destination: pickerChoice || destinationKey(snapshot),
-      locked: (() => { const locked = lockedDestination(snapshot); return locked && { ...locked, guest: !!viewState.guestInvite,
-        status: viewState.guestInvite ? 'online' : snapshot.ownerPairing?.status }; })() });
+      locked: lockedDestination(snapshot) });
     const node = find('[data-local-fit]');
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
       && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
@@ -481,10 +485,22 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
+    // An invite link offers one action: join that computer. Until it is joined, nothing can be sent anywhere.
+    const invite = viewState.guestInvite, guest = state.guestAccess, joinButton = find('[data-join-host]');
+    const inviteJoined = !!invite && guest?.joined && guest.hostParticipantId === invite.hostPeerId;
+    const joiningHost = !!invite && guest?.status === 'joining';
+    joinButton.hidden = !invite || inviteJoined || joiningHost;
+    if (invite) joinButton.textContent = `Join ${describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel}`;
+    if (invite && !inviteJoined) {
+      const status = find('[data-model-status]');
+      status.hidden = false;
+      status.textContent = joiningHost ? `Connecting to ${guest.hostLabel}…` : guest?.error || 'Invited. Join to send messages to this computer.';
+    }
     const queueable = !busy && !usable && state.discoveryPhase === 'searching' && canWaitForPublicModel(state, selectedModel, location);
     // With no choice made yet and nothing runnable here, Send asks where to run once instead of staying off.
     const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
-    find('[data-composer-send]').disabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError;
+    find('[data-composer-send]').disabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError
+      || (!!invite && !inviteJoined);
 
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = 'idle';
@@ -809,6 +825,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'network';
     }
   };
+  on('[data-join-host]', 'click', () => {
+    const invite = viewState.guestInvite;
+    if (!invite || !session.guestJoin) return;
+    void session.guestJoin.join({ hostPeerId: invite.hostPeerId, token: invite.token, hostLabel: invite.hostLabel, roomId: invite.roomId })
+      // Joined: the token is spent; this device now remembers the host, not the link.
+      .then(() => { viewState.guestInvite = null; render(session.getState()); input.focus(); })
+      .catch(() => render(session.getState()));
+  });
   on('[data-open-privacy]', 'click', event => { if (find('[data-model-picker]').open) picker.close(); openExecutionPolicy(event.currentTarget); });
   on('[data-review-network-execution]', 'click', event => openDestination(event.currentTarget, { forSend: true }));
   on('[data-privacy-controls]', 'change', event => {

@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 389,
+    "apps/poolday": 391,
     "self": 457,
-    "shared": 2499
+    "shared": 2501
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2389,6 +2389,12 @@
       "basis": "Reached only from substrate entries."
     },
     {
+      "served": "host/guest-join.js",
+      "source": "apps/poolday/host/guest-join.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "host/history-handover.js",
       "source": "apps/poolday/host/history-handover.js",
       "owner": "apps/poolday",
@@ -2547,6 +2553,12 @@
     {
       "served": "host/swarm-autoconnect.js",
       "source": "apps/poolday/host/swarm-autoconnect.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/verified-host-peer.js",
+      "source": "apps/poolday/host/verified-host-peer.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -17472,6 +17484,16 @@
     {
       "served": "vendor/reploid/transport/bounded-channel-writer.js",
       "source": "shared/vendor/reploid/transport/bounded-channel-writer.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/circle-join.d.ts",
+      "source": "shared/vendor/reploid/transport/circle-join.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/transport/circle-join.js",
+      "source": "shared/vendor/reploid/transport/circle-join.js",
       "owner": "shared"
     },
     {

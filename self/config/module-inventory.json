@@ -2868,7 +2868,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:457da51dbd348dbb1b9d1813bad7c7730be4cf230ad32f444d1bf812cf0c3a1f",
+      "sha256": "sha256:0c87a8f4a4e0fce40b0407825d49cf2aabe726c59b2893b6db8ae104ecc4d91a",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2885,6 +2885,7 @@
         "./circle-invites.js",
         "./contribution-history.js",
         "./document-comparison.js",
+        "./guest-join.js",
         "./model-acquisition.js",
         "./owner-pairing.js",
         "./partition-release.js",
@@ -2907,8 +2908,9 @@
     {
       "path": "self/host/circle-invites.js",
       "owner": "self",
-      "sha256": "sha256:fd6f429e86ebcc6638d3fa03fc6810a120062f60767b8ae12dce9a050ece9154",
+      "sha256": "sha256:79a2716cf66de14dfd4ea35ad2f5fa66eff89a9865d04416996bce36c2d45816",
       "imports": [
+        "../vendor/reploid/transport/index.js",
         "./circle-http-client.js"
       ]
     },
@@ -3036,6 +3038,16 @@
       ]
     },
     {
+      "path": "self/host/guest-join.js",
+      "owner": "self",
+      "sha256": "sha256:e10690527c7c4990cd200c2dd1c8e830bd7215a1475cd7ebf139e6a3e4eda5d4",
+      "imports": [
+        "../vendor/reploid/transport/index.js",
+        "./circle-invites.js",
+        "./verified-host-peer.js"
+      ]
+    },
+    {
       "path": "self/host/history-handover.js",
       "owner": "self",
       "sha256": "sha256:21d83d17937e522d6daadcd1ad71c3809baab5eb1da1cb5b090e5290272f155a",
@@ -3112,10 +3124,11 @@
     {
       "path": "self/host/owner-pairing.js",
       "owner": "self",
-      "sha256": "sha256:8b5aa49875d64fa1b787916b4ba8d3f609a15f85d02aa47d153c20bd5a294158",
+      "sha256": "sha256:a776384dd868a4efb6f0a618d21269c3670a42ad515bd018e57a226673e7581e",
       "imports": [
         "../vendor/reploid/transport/index.js",
-        "./circle-invites.js"
+        "./circle-invites.js",
+        "./verified-host-peer.js"
       ]
     },
     {
@@ -3325,6 +3338,12 @@
       "path": "self/host/swarm-autoconnect.js",
       "owner": "self",
       "sha256": "sha256:77eb03e4da6e17d33bddfd91755f8ae7c904670250cf8281e487ca6caf8149c8",
+      "imports": []
+    },
+    {
+      "path": "self/host/verified-host-peer.js",
+      "owner": "self",
+      "sha256": "sha256:34a2acd97f16f979f89e445b43baff0407040bfce07016f34e81e76799ce9c51",
       "imports": []
     },
     {
@@ -4310,7 +4329,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:101a7265e0af34251dc0358b15af39560900647e2f65d029ab801abc56bc19cb",
+      "sha256": "sha256:091345338541a5a4b1f2ea9a9f12cc566a3931532ae0f3cc7643cd63c660934b",
       "imports": []
     },
     {
@@ -4451,7 +4470,7 @@
     {
       "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:07768c35b9dea99217ad00998134fb9eaa120e990f0635fb73b1b6000c7f52c4",
+      "sha256": "sha256:6b3e7b68b2096d6abbc918a33f5280f7b5e9837296c63d5d7d63c3ac2f81ce63",
       "imports": [
         "../components/model-select.js",
         "./model-adapters.js",
@@ -4462,7 +4481,7 @@
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:1d688b2a8e651db0da934aed5b4af8d70d819c90237d7f5c9c874b8363bde3f0",
+      "sha256": "sha256:34a5fdc66f9d8c90fe2f4476d5706ec1b5e869787841c514cdca3dc4bb16b673",
       "imports": [
         "../../config/chat-context-policy.json",
         "../../config/chat-prompts.json",
@@ -4484,7 +4503,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:d9a58410440e91ff0a250f9b05741d825fbd48fd1e133a66bfb98466af573dcf",
+      "sha256": "sha256:fcc86373098c16d9b08265c3bd974f61574a81fa2c4e2537625c89c5f5d7343f",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",
@@ -19972,6 +19991,14 @@
       "imports": []
     },
     {
+      "path": "vendor/reploid/transport/circle-join.js",
+      "owner": "vendor",
+      "sha256": "sha256:592f77ec7bd993f53d6f94102825b04349d8952f096955e787f9f0a1e12eb38a",
+      "imports": [
+        "./owner-pairing.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/transport/connection-path.js",
       "owner": "vendor",
       "sha256": "sha256:495948626c84dea131c3ec9555af8322867716e8f11664481823f5001fe6a2d3",
@@ -19980,9 +20007,10 @@
     {
       "path": "vendor/reploid/transport/index.js",
       "owner": "vendor",
-      "sha256": "sha256:139ea7086ad5aa1c7db46d7d595a68ac8431c49c1d16b1ab72a10434482ec878",
+      "sha256": "sha256:dddbf36cc01efa69279d1728e1e16487693ec587e3bf0185f067955e66a70e68",
       "imports": [
         "./assignment.js",
+        "./circle-join.js",
         "./introduction-admission.js",
         "./introduction-bootstrap.js",
         "./introductions.js",
@@ -20037,8 +20065,9 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:a73090433c3555d843b2faf763ca2f8be3c50887527556f70fc251bda2af60a2",
+      "sha256": "sha256:dc033f78fb8940cff3c73255b71f5603b1ec304904bf7f94177883ae64953af9",
       "imports": [
+        "./circle-join.js",
         "./introductions.js",
         "./owner-pairing.js"
       ]
