@@ -722,10 +722,25 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
   const input = page.locator('[data-composer-input]'), field = page.locator('[data-composer-field]');
   await input.fill('Keep this draft');
   const before = await field.boundingBox();
+  // Status copy lives outside the field and the model selector keeps one line, so the only state-driven change
+  // inside the field is the pre-send prompt disclosure, which is hidden while an answer runs.
+  const anchors = () => page.evaluate(() => {
+    const box = selector => document.querySelector(selector).getBoundingClientRect();
+    const disclosure = document.querySelector('[data-prompt-disclosure]'), status = document.querySelector('[data-model-status]');
+    const gap = parseFloat(getComputedStyle(document.querySelector('[data-composer-field]')).rowGap);
+    return { text: box('[data-composer-input]').toJSON(), field: box('[data-composer-field]').toJSON(),
+      disclosure: disclosure.hidden ? 0 : disclosure.getBoundingClientRect().height + gap,
+      status: status.hidden ? null : status.getBoundingClientRect().toJSON() };
+  });
+  const start = await anchors();
   for (const mode of ['preparing', 'unavailable', 'completed', 'loading', 'executing']) {
     await page.evaluate(mode => window.setVisualState(mode), mode);
-    const box = await field.boundingBox();
-    expect(box.height).toBe(before.height); expect(box.y + box.height).toBe(before.y + before.height);
+    const box = await field.boundingBox(), now = await anchors();
+    expect(box.y + box.height).toBe(before.y + before.height);
+    expect(now.text.height).toBe(start.text.height);
+    if (now.status) expect(now.status.bottom <= now.field.top || now.status.top >= now.field.bottom).toBe(true);
+    // Field height changes only by the disclosure line; status copy and selector labels never resize it.
+    expect(before.height - box.height).toBeCloseTo(start.disclosure - now.disclosure, 1);
   }
   await input.fill('A deliberately multiline draft\n'.repeat(6));
   expect((await field.boundingBox()).height).toBeGreaterThan(before.height);
