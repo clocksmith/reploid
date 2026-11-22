@@ -224,10 +224,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }, options);
   navigation.addEventListener('keydown', onEscape, options);
   on('[data-close-inspector]', 'click', () => {
-    // Close returns to the conversation draft when there is one, so typing continues where it stopped.
-    const draft = root.ownerDocument.querySelector('[data-composer-input]');
-    dialog.close({ restoreFocus: !draft });
-    draft?.focus({ preventScroll: true });
+    dialog.close();
   });
   on('[data-clear-roster-filter]', 'click', () => {
     clearModelFilter(); find('#network-inspector-title').focus({ preventScroll: true });

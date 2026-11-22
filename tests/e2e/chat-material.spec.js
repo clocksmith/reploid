@@ -740,23 +740,24 @@ for (const width of [1440, 390, 320]) test(`discovered models stay in the sole c
   await page.setViewportSize({ width, height: 844 }); await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
   const field = page.locator('[data-composer-field]'), before = await field.boundingBox();
-  for (const count of [1, 3, 8, 2]) {
+  // Each tap is an explicit choice: it applies, closes the sheet and is kept as more computers appear.
+  for (const count of [1, 3, 8]) {
     await page.evaluate(count => window.setVisualSupply(count), count);
-    await expect(page.locator('[data-active-model-select]')).toHaveValue('ready-0');
-    await expect(page.locator('[data-composer-send]')).toBeEnabled();
+    if (count === 1) await expect(page.locator('[data-active-model-select]')).toHaveValue('ready-0');
     await expect(page.locator('[data-production-shared]')).toHaveCount(0);
     await page.locator('[data-open-model]').click();
     await expect(page.locator('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]')).toHaveCount(count);
     const last = page.locator('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]').last();
     await last.scrollIntoViewIfNeeded();
     await last.click();
-    await expect(page.locator('[data-next-model]')).toHaveValue(`ready-${count - 1}`);
-    await page.locator('[data-model-picker-close]').click();
+    await expect(page.locator('[data-model-picker]')).toBeHidden();
+    await expect(page.locator('[data-active-model-select]')).toHaveValue(`ready-${count - 1}`);
+    await expect(page.locator('[data-composer-send]')).toBeEnabled();
     expect(await field.boundingBox()).toEqual(before);
     if (count === 3) await page.screenshot({ path: info.outputPath(`complete-models-${width}.png`) });
   }
   await page.locator('[data-open-model]').click();
-  await expect(page.locator('[data-next-model]')).toHaveValue('ready-0');
+  await expect(page.locator('[data-next-model]')).toHaveValue('ready-7');
 });
 
 for (const width of [1440, 390]) test(`one brand and one drawer new-thread action at ${width}`, async ({ page }, info) => {
@@ -850,8 +851,11 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(disclosure).toBeVisible();
   await expect(disclosure).toContainText('The answering computer can read your prompt');
   await expect(page.locator('[data-download-local]')).toBeHidden();
+  // A computer tap applies at once and the sheet stays open for the model list.
   await openModel();
   await page.locator('[data-execution-choice=local]').click();
+  await expect(source).toHaveText(' · This device');
+  await page.locator('[data-execution-choice=network]').click();
   await expect(source).toHaveText(' · Public network');
   await page.locator('[data-model-picker-close]').click();
   await expect(source).toHaveText(' · Public network');
@@ -994,12 +998,11 @@ test('model preview and inference privacy commit independently', async ({ page }
   await picker.locator('[data-model-picker-close]').click();
   await expect(picker).toBeHidden();
   expect(await opener.innerText()).toBe(original);
-  await page.locator('[data-open-privacy]').click();
-  const destination = page.locator('[data-destination-dialog]');
-  await expect(destination).toBeVisible();
-  await expect(destination.locator('[data-destination-row="device"] input')).toBeChecked();
-  await destination.screenshot({ path: info.outputPath('destination-sheet.png') });
-  await destination.locator('[data-destination-more]').click();
+  // One sheet chooses the computer and model; the detailed policy is under More options.
+  await page.locator('[data-open-model]').click();
+  await expect(picker.locator('[data-execution-choice=local]')).toHaveAttribute('aria-pressed', 'true');
+  await picker.screenshot({ path: info.outputPath('answer-on-sheet.png') });
+  await picker.locator('[data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');
   await expect(privacy.locator('option[value=cryptographic]')).toHaveJSProperty('disabled', true);
   await expect(privacy.locator('option[value=attested]')).toHaveJSProperty('disabled', true);
@@ -1014,7 +1017,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   await expect(recipients).toBeVisible();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
   await privacy.locator('[data-privacy-cancel]').click();
-  await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/This device/);
+  await expect(picker).toBeHidden();
 });
 
 test('touch help and model choices work without hover', async ({ browser }, info) => {

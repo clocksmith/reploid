@@ -4302,7 +4302,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:6dd2d57ba5f730dd8760918253666b352ba8fa24b945c84589e5bf1ac87f4701",
+      "sha256": "sha256:e03ed09b801cb0d153164b8e7082d13153d6cf2c0b45281cdca455e979cf255c",
       "imports": []
     },
     {
@@ -4476,7 +4476,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:92b37cc4ef5552e4296d4ea8e073b32e6234800b2c228589348e28deb29889ce",
+      "sha256": "sha256:d9a58410440e91ff0a250f9b05741d825fbd48fd1e133a66bfb98466af573dcf",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",
@@ -4692,7 +4692,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:e081e77a44f60a402851bd6ac43ee48d504b517df8609b660c31c71881213267",
+      "sha256": "sha256:17cf37c9b9295349b9e2f585448057083778ce29952eca4122f013a31dc0dbd4",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",

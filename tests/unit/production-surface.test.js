@@ -210,7 +210,8 @@ it('keeps one navigation row and returns focus to the conversation draft', () =>
   expect(find('[data-close-inspector]').textContent).toBe('Close');
   find('[data-close-inspector]').click();
   expect(input.value).toBe('My unsent question');
-  expect(document.activeElement).toBe(input);
+  // Closing returns focus to the control that opened the drawer; the draft is untouched.
+  expect(document.activeElement).toBe(find('[data-workspace-view="computers"]'));
   detach();
 });
 

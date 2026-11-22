@@ -610,8 +610,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     updatePicker(session.getState());
     render(session.getState());
-    if (pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice();
+    if (!arrowBrowsing && pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice();
   });
+  // Arrow keys move through models without committing; a tap, click or Enter applies the highlighted one.
+  let arrowBrowsing = false;
+  on('[data-model-picker]', 'keydown', event => {
+    arrowBrowsing = event.key.startsWith('Arrow');
+    if (event.key === 'Enter' && event.target.matches?.('.chat-model-choice input[type=radio]')) { event.preventDefault(); commitPickerChoice(); }
+  });
+  on('[data-model-picker]', 'pointerdown', () => { arrowBrowsing = false; });
   on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts();
     if (input.value.trim()) pinDraftModel(session.getState());
     if (queuedSend || queueHasText !== !!input.value.trim()) { queuedSend = null; render(session.getState()); }
@@ -671,7 +678,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       updatePicker(session.getState()); return;
     }
     const privacy = explicitPrivacy(state);
-    const location = privacy?.placement === 'local-only' ? 'local' : pickerLocation;
+    // A computer tapped in this sheet decides the location, even before its policy change has been saved.
+    const location = pickerChoice === 'device' ? 'local' : pickerChoice ? 'network'
+      : privacy?.placement === 'local-only' ? 'local' : pickerLocation;
     const origin = selectedId, revision = composerRevision;
     changingModel = true; updatePicker(state);
     void act(async () => {
@@ -787,17 +796,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const applyDraftDestination = key => {
     viewState.privacyTouched = true;
     viewState.privacy = destinationPolicy(key, session.getState());
-    executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'auto';
+    executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'network';
   };
   const applyDestination = async key => {
     const state = session.getState(), privacy = destinationPolicy(key, state);
     viewState.privacyTouched = true;
     if (state.activeThread) {
       await session.setExecutionPrivacy(state.activeThread.id, privacy);
-      if (key !== 'device' && state.activeThread.permissions?.executionLocation === 'local') await session.setExecutionLocation(state.activeThread.id, 'auto');
+      await session.setExecutionLocation(state.activeThread.id, key === 'device' ? 'local' : 'network');
     } else {
       viewState.privacy = privacy;
-      executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'auto';
+      executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'network';
     }
   };
   on('[data-open-privacy]', 'click', event => { if (find('[data-model-picker]').open) picker.close(); openExecutionPolicy(event.currentTarget); });
