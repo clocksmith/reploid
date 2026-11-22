@@ -46,14 +46,14 @@
         <button id="auth-button" class="pool-button btn-primary" type="submit">Send code</button>
       </form>
       <div id="device-join-panel" class="pool-stack pool-gap-sm" hidden>
-        <p class="pool-small">This browser keeps a private player key, so your three daily turns carry across visits on this device. Clearing site data starts a new player.</p>
+        <p class="pool-small">This browser keeps a private player key, so your daily turns carry across visits on this device. Clearing site data starts a new player.</p>
         <div class="pool-row"><button id="device-join" type="button" class="pool-button btn-primary">Join game</button></div>
       </div>
       <form id="grant-form" class="pool-stack pool-gap-sm" hidden><label class="pool-small" for="grant">Your player pass</label><input class="pool-input" id="grant" type="password" autocomplete="off" required><button class="pool-button btn-primary" type="submit">Join game</button></form>
     <p id="join-status" class="pool-small pool-muted" role="status"></p></div></dialog>
   <dialog id="rules" class="pool-card daily-dialog" aria-labelledby="rules-title"><div class="pool-stack">
     <div class="pool-row pool-row-between"><h2 id="rules-title" class="pool-heading">How to play</h2><button class="pool-button btn-ghost" data-close>Close</button></div>
-    <p class="pool-body">Write a prompt that makes the model give the target answer. You get three tries each UTC day. The shortest winning prompt tops your circle’s board.</p>
+    <p class="pool-body">Write a prompt that makes the model give the target answer. You get <span data-turns-per-day>5</span> tries each UTC day. The shortest winning prompt tops your circle’s board.</p>
     <details class="pool-disclosure"><summary>Scoring and banned words</summary><div class="pool-stack pool-gap-sm pool-body">
       <p>We compare the whole answer, ignoring case, surrounding whitespace, and one final punctuation mark.</p><p>Runs of letters or digits count as words after Unicode normalization. Hyphens and apostrophes split them. Characters break ties. Limit: 240 characters.</p>
       <p>Translations, analogies and riddles are fair game. Split spellings, lookalikes and listed word forms are banned. A banned “I” counts only as a whole word.</p></div></details>

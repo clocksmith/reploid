@@ -179,6 +179,7 @@ function renderScoreboard() {
 }
 function render() {
   const {availability,challenge,share,shareChallenge,history,authenticated,authMode} = today;
+  for (const node of document.querySelectorAll('[data-turns-per-day]')) node.textContent = String(turnsPerDay());
   const remaining = Math.max(0, turnsPerDay() - history.length);
   const playable = challenge?.playable ?? challenge?.qualified;
   el('date').textContent = challenge?.day ? new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(challenge.day+'T12:00:00Z')) : '';

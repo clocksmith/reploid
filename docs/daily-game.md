@@ -17,7 +17,7 @@ Open the printed loopback address. The preview displays the rules and a staged t
 
 ## Private physical playtest
 
-Use a source checkout and a private state directory to play before ranked qualification. The default state directory is `~/.local/share/reploid/daily-playtest`. The playtest has its own SQLite ledger, challenge pins, daily host budget and three turns per stable player. It binds only to loopback. Ranked play continues to require the signed calendar and physical qualification.
+Use a source checkout and a private state directory to play before ranked qualification. The default state directory is `~/.local/share/reploid/daily-playtest`. The playtest has its own SQLite ledger, challenge pins, daily host budget and five turns per stable player. It binds only to loopback. Ranked play continues to require the signed calendar and physical qualification.
 
 To use an existing enrolled fleet, save `playtest.json` in that directory with `fleetConfig` (private requester config path), `providerId`, `backendIdentityHash`, `target`, `circleName`, `port` and `hostDailyCap`. Configure `auth` for verified email if desired. A separate operator-provisioned local player grant works without email. Launch the private circle from the source checkout.
 
@@ -120,7 +120,7 @@ Set `publicChallenge` to `true`, `auth.type` to `device`, and `bootstrapPlayers`
 
 Public circles sign players in with a device key and need no external sign-in service. On the first sign-in the browser creates a non-extractable signing key (Ed25519, or ECDSA P-256 where the browser lacks Ed25519), stores it in this site’s IndexedDB and sends only the public key. Each sign-in signs a one-time random challenge that names the circle’s exact origin and expires after two minutes. The server keeps the public keys in an owner-only `<database>.devices` file and treats each public key as one player on that origin.
 
-The identity lives on one device, in one browser profile. Clearing this site’s data, opening the game in another browser, or switching phones starts a new player with its own three daily turns; there is no cross-device sync, export or recovery. The key shows only that the same browser profile came back. It does not check a fingerprint, PIN or other user verification, and it does not stop one person from creating several players. Players who signed in with passkeys under an earlier version sign in again as new players; their past turns stay in the score ledger.
+The identity lives on one device, in one browser profile. Clearing this site’s data, opening the game in another browser, or switching phones starts a new player with its own daily turns; there is no cross-device sync, export or recovery. The key shows only that the same browser profile came back. It does not check a fingerprint, PIN or other user verification, and it does not stop one person from creating several players. Players who signed in with passkeys under an earlier version sign in again as new players; their past turns stay in the score ledger.
 
 ## Host the game files on a stable HTTPS origin
 

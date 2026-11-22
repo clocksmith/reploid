@@ -6,7 +6,7 @@ Reploid turns participating computers into shared inference capacity with explic
 
 **[Try Reploid](https://replo.id/)** · [CLI and local setup](#try-it) · [Contribute a computer](docs/native-participant.md) · [Verified evidence](#what-is-verified)
 
-[Play Reploid Daily](https://reploid-daily.reploid.workers.dev/) — get the model to say today's target in three tries, then dare a friend to beat your word count.
+[Play Reploid Daily](https://reploid-daily.reploid.workers.dev/) — get the model to say today's target in five tries, then dare a friend to beat your word count.
 
 <picture>
   <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg">
