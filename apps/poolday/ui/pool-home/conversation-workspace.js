@@ -424,11 +424,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         : 'Web search recipient is not confirmed.'].filter(Boolean).join(' ');
     }
     const disclosure = find('[data-prompt-disclosure]');
-    disclosure.hidden = busy || !!thread?.closed;
+    disclosure.hidden = !!thread?.closed;
     const pairedSummary = pairedDesktopSummary(state);
     if (policy.computation !== 'plaintext') disclosure.textContent = 'The required computation mode is unavailable.';
-    else if (policy.recipients.kind === 'none' && !usable) disclosure.textContent = 'Inference stays on this device.';
-    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'Inference stays on this device.';
+    else if (policy.recipients.kind === 'none' && !usable) disclosure.textContent = 'Nothing leaves this device.';
+    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'Nothing leaves this device.';
     else if (pairedSummary) disclosure.textContent = pairedSummary;
     else if (policy.recipients.kind === 'named') disclosure.textContent = 'Named computers can read your prompt.';
     else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
@@ -458,13 +458,24 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const activeModel = selectedModel || pinnedModel || models.find(model => keyFor(model) === current)
       || catalogModels.find(model => keyFor(model) === current) || requestedModel;
     find('[data-model-caption]').hidden = !!activeModel;
-    const sourceLabel = execution.usable ? execution.label
-      : preparing ? 'Loading' : location === 'local' ? 'This device' : phase === 'searching' ? 'Searching'
-      : phase === 'interrupted' || phase === 'paused' ? 'Connection unavailable' : 'Unavailable';
-    const modelDigest = activeModel ? `${modelVariantLabel(activeModel)} · ${sourceLabel}` : '';
+    // The selector names where the answer runs and with which model; availability is a separate dot and the status line.
+    const lockedHost = lockedDestination(state), destination = destinationKey(state);
+    const runsHere = destination === 'device' || location === 'local' || execution.usable && execution.source === 'local';
+    const computerName = runsHere ? 'This device' : destination === 'desktop' ? lockedHost?.label
+      : destination === 'named' ? 'Named computers' : selectedModel?.fleet ? execution.label : 'Contributors';
+    const availability = execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';
+    const availabilityText = { ready: 'Ready', waiting: preparing ? 'Loading' : 'Finding computers', unavailable: 'Unavailable' }[availability];
+    const dot = find('[data-composer-availability]');
+    dot.dataset.availability = availability;
+    dot.classList.toggle('pool-dot-open', availability === 'unavailable');
+    dot.classList.toggle('pool-dot-pulse', availability === 'waiting');
+    const modelDigest = activeModel ? `${computerName} · ${modelVariantLabel(activeModel)}` : '';
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
-    find('[data-composer-model-source]').textContent = activeModel ? ` · ${sourceLabel}` : '';
-    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Change model, ${modelDigest}` : 'Change model');
+    find('[data-composer-model-source]').textContent = activeModel ? computerName : '';
+    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Answer on ${modelDigest}, ${availabilityText}` : 'Answer on');
+    find('[data-open-model]').title = 'Answer on';
+    // The box names who receives the message, using the selector's own label; status stays on the dot and status line.
+    input.placeholder = !activeModel ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…' : `Message ${computerName}…`;
     updateContextIndicator(container, state, session);
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');

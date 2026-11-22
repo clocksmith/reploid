@@ -141,7 +141,7 @@ it('keeps one composer picker and contribution in Computers, preserving drafts o
   await vi.waitFor(() => expect(document.activeElement).toBe(input));
   expect(input.value).toBe('Draft question');
   expect(document.querySelector('[data-active-model-select]').value).toBe('m');
-  expect(document.querySelector('[data-model-digest]').textContent).toContain('Public network');
+  expect(document.querySelector('[data-model-digest]').textContent).toContain('Contributors');
   expect(session.createThread).not.toHaveBeenCalled();
   expect(session.downloadLocalModel).not.toHaveBeenCalled();
   expect(session.prepareLocalModel).not.toHaveBeenCalled();

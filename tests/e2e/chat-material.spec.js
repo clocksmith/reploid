@@ -165,7 +165,7 @@ test('compact chat keeps attempt status reachable and composer visible', async (
       // One status line under the composer explains a disabled Send.
       await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
-      await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
+      await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', /^Message/);
     }
     await expect(page.locator('[data-composer-input]')).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -568,8 +568,10 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
     await expect(page.locator('[data-composer-area] [data-starting-prompt]')).toHaveCount(1);
     const input = await page.locator('[data-composer-input]').boundingBox();
     const send = await page.locator('[data-composer-send]').boundingBox();
-    expect(send.x).toBeGreaterThanOrEqual(input.x + input.width - 1);
-    expect(send.y).toBeLessThan(input.y + input.height);
+    // Send sits below the text, at the right end of the controls row.
+    const field = await page.locator('[data-composer-field]').boundingBox();
+    expect(send.y).toBeGreaterThanOrEqual(input.y + input.height - 1);
+    expect(send.x + send.width).toBeGreaterThanOrEqual(field.x + field.width - 24);
     for (const prompt of await page.locator('[data-starting-prompt]').all()) {
       await prompt.scrollIntoViewIfNeeded();
       expect(await prompt.evaluate(node => node.scrollHeight <= node.clientHeight)).toBe(true);
@@ -856,38 +858,47 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   const openModel = async () => { await page.locator('[data-open-model]').click();
     if (!await page.locator('[data-model-details]').evaluate(node => node.open)) await page.locator('[data-model-details] > summary').click(); };
   await input.fill('hi'); const field = await page.locator('[data-composer-field]').boundingBox();
-  await expect(source).toHaveText(' · This device');
+  await expect(source).toHaveText('This device');
   await openModel();
   await page.locator('[data-execution-choice=network]').click();
   await page.locator('[data-change-model]').click();
-  await expect(source).toHaveText(' · Public network');
+  await expect(source).toHaveText('Contributors');
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
-  const disclosure = page.locator('[data-prompt-disclosure]');
-  await expect(disclosure).toBeVisible();
-  await expect(disclosure).toContainText('The answering computer can read your prompt');
+  // Who can read the prompt is stated in the Answer on sheet, beside the choice, not repeated under the text.
+  const disclosure = page.locator('[data-model-picker] [data-prompt-disclosure]');
+  await expect(page.locator('[data-composer-field] [data-prompt-disclosure]')).toHaveCount(0);
   await expect(page.locator('[data-download-local]')).toBeHidden();
   // A computer tap applies at once and the sheet stays open for the model list.
   await openModel();
+  await expect(disclosure).toBeVisible();
+  await expect(disclosure).toContainText('The answering computer can read your prompt');
   await page.locator('[data-execution-choice=local]').click();
-  await expect(source).toHaveText(' · This device');
+  await expect(source).toHaveText('This device');
   await page.locator('[data-execution-choice=network]').click();
-  await expect(source).toHaveText(' · Public network');
+  await expect(source).toHaveText('Contributors');
   await page.locator('[data-model-picker-close]').click();
-  await expect(source).toHaveText(' · Public network');
+  await expect(source).toHaveText('Contributors');
   await expect(input).toHaveValue('hi');
   const name = page.locator('[data-composer-model-name]');
   await expect(name).toHaveText('Qwen 3.5 0.8B');
+  // On narrow phones the selector stays one line: a long name truncates with an ellipsis and stays complete in its label.
   expect(await name.evaluate(node => {
     const range = document.createRange(); range.selectNodeContents(node);
     const visible = node.getBoundingClientRect(), text = range.getBoundingClientRect();
-    return text.left >= visible.left - 1 && text.right <= visible.right + 1;
+    const fits = text.left >= visible.left - 1 && text.right <= visible.right + 1;
+    return fits || getComputedStyle(node).textOverflow === 'ellipsis';
   })).toBe(true);
+  await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /Contributors · Qwen 3\.5 0\.8B/);
+  const digest = await page.locator('[data-model-digest]').boundingBox();
+  expect(digest.height).toBeLessThanOrEqual(24);
   const bounds = await source.boundingBox(), button = await page.locator('[data-open-model]').boundingBox();
   expect(bounds.x).toBeGreaterThanOrEqual(button.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(button.x + button.width);
   await page.screenshot({ path: info.outputPath(`shared-ready-${width}.png`) });
   await page.evaluate(() => window.setVisualSources({ local: true, shared: false }));
   await expect(page.locator('[data-composer-send]')).toBeDisabled();
-  await expect(source).toHaveText(' · Unavailable');
+  // The selector keeps naming the destination; availability is the separate dot.
+  await expect(source).toHaveText('Contributors');
+  await expect(page.locator('[data-composer-availability]')).toHaveAttribute('data-availability', 'unavailable');
   await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
   await expect(page.locator('[data-download-local]')).toBeHidden();
   await expect(page.locator('[data-retry-connection]')).toHaveText('Search again');
@@ -898,7 +909,7 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(page.locator('[data-choice-group="network-unavailable"]')).toContainText('Qwen 3.5 0.8B');
   await page.locator('[data-execution-choice=local]').click();
   await page.locator('[data-change-model]').click();
-  await expect(source).toHaveText(' · This device');
+  await expect(source).toHaveText('This device');
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
   await expect(input).toHaveValue('hi');
   await page.screenshot({ path: info.outputPath(`this-device-${width}.png`) });
@@ -930,11 +941,11 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
   const opener = page.locator('[data-open-model]');
   await page.locator('[data-composer-input]').focus();
   await opener.hover();
-  await expect(page.getByRole('tooltip')).toHaveText('Change model');
+  await expect(page.getByRole('tooltip')).toHaveText('Answer on');
   await page.mouse.move(1, 1);
   await expect(page.getByRole('tooltip')).toBeHidden();
   await opener.focus();
-  await expect(page.getByRole('tooltip')).toHaveText('Change model');
+  await expect(page.getByRole('tooltip')).toHaveText('Answer on');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('tooltip')).toBeHidden();
   await opener.press('Enter');

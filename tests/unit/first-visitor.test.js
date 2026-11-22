@@ -102,18 +102,20 @@ it('names the pre-send destination as the selected model moves between local and
   expect(f.find('[data-composer-send]').getAttribute('aria-describedby')).toBe(note.id);
   expect(note.hidden).toBe(false);
   expect(note.textContent).toContain('A network provider could read your prompt');
-  expect(switcher.title).toBe('Change model');
+  // One selector, named for what it does; the disclosure lives in the Answer on sheet beside the choice.
+  expect(switcher.getAttribute('aria-label')).toMatch(/^Answer on /);
   expect(switcher.getAttribute('aria-label')).toContain(model.name);
+  expect(f.find('[data-model-picker]').contains(note)).toBe(true);
   f.publish({ ...observedDiscovery, models: [{
     ...model, localCached: true, availability: 'cached', networkAvailability: 'unavailable'
   }] });
   expect(source.textContent).toMatch(/this device/i);
-  expect(note.textContent).toBe('Inference stays on this device.');
+  expect(note.textContent).toBe('Nothing leaves this device.');
   f.publish({ models: [{
     ...model, localCached: false, availability: 'ready', networkAvailability: 'ready',
     providerIds: ['public-peer'], reachableProviderIds: ['public-peer']
   }] });
-  expect(source.textContent).toMatch(/public/i);
+  expect(source.textContent).toBe('Contributors');
   expect(note.hidden).toBe(false);
   expect(note.textContent).toBe('The answering computer can read your prompt.');
 });

@@ -100,7 +100,7 @@
   padding: calc((var(--pool-size-44) - var(--pool-text-base) * var(--pool-leading-read)) / 2) var(--pool-size-8); resize: none; overflow-y: auto;
 }
 .chat-composer-field:focus-within { outline-offset: var(--pool-border-thick); }
-.chat-input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.chat-input-row { display: grid; grid-template-columns: minmax(0, 1fr); }
 .chat-composer-submit { flex: none; display: flex; align-items: center; gap: var(--pool-size-4); }
 .chat-composer-submit > button, .chat-composer-field .chat-file-label {
   display: grid; place-items: center; flex: none; width: var(--pool-size-44); height: var(--pool-size-44);
@@ -111,8 +111,15 @@
 .chat-file-label input { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
 .chat-composer-notices { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--pool-size-4); min-width: 0; }
 .chat-composer-notices > * { flex: none; white-space: nowrap; }
-.chat-composer-toolbar { width: 100%; min-width: 0; justify-content: flex-start; gap: var(--pool-size-4); }
-.pool-home .chat-composer-toolbar .chat-composer-model { flex: 1; min-width: 0; padding-inline: var(--pool-size-8); }
+/* Below the text: attach, Answer on (fills and truncates), context, then Send at the right edge. */
+.chat-composer-toolbar { width: 100%; min-width: 0; justify-content: flex-start; align-items: center; flex-wrap: nowrap; gap: var(--pool-size-4); }
+.pool-home .chat-composer-toolbar .chat-composer-model { flex: 1; min-width: 0; padding-inline: var(--pool-size-8); justify-content: center; }
+.chat-composer-model [data-model-digest] { display: flex; align-items: center; justify-content: center; gap: var(--pool-size-4); min-width: 0; }
+.chat-composer-model [data-composer-model-source], .chat-composer-model [data-composer-model-name] {
+  min-width: 0; flex: 0 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.chat-composer-model [data-model-separator], .chat-composer-model [data-composer-availability] { flex: none; }
+.chat-composer-toolbar .chat-composer-submit { margin-inline-start: auto; }
 .pool-home .chat-search-toggle { display: inline-flex; align-items: center; justify-content: center; gap: var(--pool-size-4); padding-inline: var(--pool-size-8); flex: none; min-width: var(--pool-size-44); }
 @media (max-width: 480px) {
   .chat-search-toggle [data-web-search-on], .chat-composer-model svg { display: none; }
@@ -376,16 +383,6 @@
 .chat-composer-model > [data-model-chevron] { flex: none; margin-left: auto; }
 .chat-composer-model > [data-model-chevron] svg { display: block; }
 @media (max-width: 480px) {
-  .chat-composer-toolbar { flex-wrap: wrap; }
-  .pool-home .chat-composer-toolbar .chat-composer-model {
-    flex: 1 1 min-content;
-    min-width: min(100%, var(--pool-size-128));
-    height: auto;
-  }
-  .chat-composer-model [data-model-digest] { flex-direction: column; align-items: flex-start; text-align: start; }
-  .chat-composer-model [data-composer-model-name], .chat-composer-model [data-composer-model-source] {
-    white-space: normal; overflow-wrap: anywhere; overflow: visible;
-  }
   .chat-composer-status-line { height: auto; min-height: var(--pool-size-44); }
   .chat-composer-status-line > [data-model-status] { max-height: none; }
 }

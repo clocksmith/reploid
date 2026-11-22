@@ -4261,7 +4261,7 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:436945698bb5ef15a9ba4de8a3ba02c2dfea35bfa2f13729ef6524520ebdffff",
+      "sha256": "sha256:68315f6a547baa1e30d81db63d56ec684d52092a202af709063550f38590f6b7",
       "imports": []
     },
     {
@@ -4329,7 +4329,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:091345338541a5a4b1f2ea9a9f12cc566a3931532ae0f3cc7643cd63c660934b",
+      "sha256": "sha256:23311997726098ef221ed020dc5ce0d3eb4ec7775a83bcd412dd2a62b0d463be",
       "imports": []
     },
     {
@@ -4481,7 +4481,7 @@
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:34a5fdc66f9d8c90fe2f4476d5706ec1b5e869787841c514cdca3dc4bb16b673",
+      "sha256": "sha256:4db08b042727258e2c3587251e4f8c75b197a1199b92c0a617084d97a174924f",
       "imports": [
         "../../config/chat-context-policy.json",
         "../../config/chat-prompts.json",
@@ -4503,7 +4503,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:fcc86373098c16d9b08265c3bd974f61574a81fa2c4e2537625c89c5f5d7343f",
+      "sha256": "sha256:ae2acccb447cdcbf1e689159114ff017b106e8e4d11578c949774a3c5bf2e564",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",

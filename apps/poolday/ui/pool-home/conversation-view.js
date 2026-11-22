@@ -19,7 +19,7 @@ const renderModelControl = () => '<span data-model-control hidden><select class=
 
 const computerRow = (choice, name) => `<button class="pool-button btn-ghost pool-choice chat-model-choice" type="button" data-execution-choice="${choice}" aria-pressed="false"><span class="pool-stack"><span${name}</span><small class="pool-muted" data-computer-state></small></span><span class="pool-choice-mark" aria-hidden="true">${interfaceIcon('check')}</span></button>`;
 // Computer and model are separate choices in one sheet; each row applies on tap.
-const renderLocationControl = () => `<div class="pool-stack pool-gap-xs" data-execution-location role="group" aria-labelledby="chat-computer-label"><span class="pool-caption pool-muted" id="chat-computer-label">Computer</span>${computerRow('local', '>This device')}${computerRow('desktop', ' data-computer-desktop-name>Your desktop')}${computerRow('network', '>Contributors')}</div>`;
+const renderLocationControl = () => `<div class="pool-stack pool-gap-xs" data-execution-location role="group" aria-labelledby="chat-computer-label"><span class="pool-caption pool-muted" id="chat-computer-label">Computer</span>${computerRow('local', '>This device')}${computerRow('desktop', ' data-computer-desktop-name>Your desktop')}${computerRow('network', '>Contributors')}<p class="pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p></div>`;
 
 const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><p class="pool-small pool-muted" data-local-fit hidden></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p></div></details>`;
 
@@ -78,20 +78,19 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         </div>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge pool-focus-within" data-composer-field>
           <div class="chat-attachments" data-attachments-preview hidden></div>
-          <div class="chat-composer-toolbar">
-            <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach text files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
-            <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
-            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Change model" title="Change model" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Choose model</span><span class="pool-small" data-model-digest><span data-composer-model-name></span><span class="pool-caption pool-muted" data-composer-model-source></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
-            ${renderContextIndicator()}
-          </div>
           <div class="chat-input-row">
-            <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
+            <textarea class="pool-bare pool-body" id="chat-message" data-composer-input rows="1" required placeholder="Message…"></textarea>
+          </div>
+          <div class="chat-composer-toolbar">
+            <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within" title="Attach text files">${interfaceIcon('plus')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
+            <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" title="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
+            <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Answer on" title="Answer on" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Answer on</span><span class="pool-small" data-model-digest><span class="pool-dot" data-composer-availability aria-hidden="true"></span><span data-composer-model-source></span><span data-model-separator aria-hidden="true"> · </span><span data-composer-model-name></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
+            ${renderContextIndicator()}
             <div class="chat-composer-submit">
               <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-describedby="chat-prompt-disclosure" aria-label="Send" title="Send">${interfaceIcon('send')}</button>
               <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
             </div>
           </div>
-          <p class="chat-setup-hint pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p>
         </div>
       </form></footer>
       ${renderPrivacyControls()}

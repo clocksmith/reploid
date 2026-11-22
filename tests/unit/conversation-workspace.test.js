@@ -96,7 +96,8 @@ describe('Conversation workspace', () => {
     find('[data-composer-input]').value = 'Keep this question';
     find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     expect(find('[data-composer-send]').disabled).toBe(true);
-    expect(find('[data-composer-model-source]').textContent).toContain('Unavailable');
+    // Availability is its own indicator; the selector keeps naming the destination.
+    expect(find('[data-composer-availability]').dataset.availability).toBe('unavailable');
     expect(downloadLocalModel).not.toHaveBeenCalled(); expect(send).not.toHaveBeenCalled();
     find('[data-download-local]').click();
     await vi.waitFor(() => expect(find('[data-download-size]').textContent).toContain('123 MB'));
@@ -273,7 +274,7 @@ describe('Conversation workspace', () => {
     find('[data-execution-choice=local]').click();
     expect(find('[data-active-model-select]').value).toBe(large.id);
     find('[data-model-picker-close]').click();
-    expect(find('[data-model-digest]').textContent).toContain('Public network');
+    expect(find('[data-model-digest]').textContent).toContain('Contributors');
     find('[data-open-model]').click(); next.value = small.id; next.dispatchEvent(new Event('change', { bubbles: true }));
     find('[data-execution-choice=local]').click(); find('[data-change-model]').click();
     await vi.waitFor(() => expect(find('[data-active-model-select]').value).toBe(small.id));
@@ -320,7 +321,7 @@ describe('Conversation workspace', () => {
     find('[data-change-model]').click();
     await vi.waitFor(() => expect(session.getState().activeThread.permissions.executionLocation).toBe('network'));
     expect(session.getState().activeThread.id).toBe(id);
-    expect(find('[data-model-digest]').textContent).toContain('Public network');
+    expect(find('[data-model-digest]').textContent).toContain('Contributors');
     expect(service.calls).toHaveLength(0);
   });
 
@@ -376,8 +377,9 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-status]').hidden).toBe(false);
     // Within the discovery window an unavailable model reads as still being looked for.
     expect(find('[data-model-status]').textContent).toBe('Finding computers…');
-    expect(find('[data-model-digest]').textContent).toBe(CANONICAL_CHAT_MODELS[1].name + ' · Searching');
-    expect(find('[data-open-model]').textContent).toContain('Searching');
+    expect(find('[data-model-digest]').textContent).toBe('Contributors · ' + CANONICAL_CHAT_MODELS[1].name);
+    expect(find('[data-composer-availability]').dataset.availability).toBe('waiting');
+    expect(find('[data-open-model]').getAttribute('aria-label')).toContain('Finding computers');
     expect(find('[data-model-control]').hidden).toBe(false);
     expect(find('[data-toggle-contribution]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
@@ -654,7 +656,7 @@ describe('Conversation workspace', () => {
     expect(adapterChoice.querySelector('[data-choice-note]').hidden).toBe(true);
     // A route that can answer now applies on tap; Done is only needed if the sheet is still open.
     if (find('[data-model-picker]').open && !find('[data-change-model]').disabled) find('[data-change-model]').click();
-    return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`${base.name} · Public network`));
+    return vi.waitFor(() => expect(find('[data-model-digest]').textContent).toBe(`Contributors · ${base.name}`));
   });
 
   it('selects the ready shared route through the composer picker without claiming an unavailable route is selected', async () => {
@@ -671,7 +673,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-active-model-select]').value).toBe(route.selectionId);
     expect(find('[data-composer-send]').disabled).toBe(false);
     expect(find('[data-prompt-disclosure]').textContent).toContain('Computers on this route can read the input for their own stages');
-    expect(find('[data-open-model]').getAttribute('aria-label')).toContain('Public network · Split model');
+    expect(find('[data-open-model]').getAttribute('aria-label')).toContain(`Contributors · ${base.name}`);
     expect(find('[data-download-local]').hidden).toBe(true);
     expect(find('[data-composer-input]').value).toBe('hi');
     state = { ...state, models: [base, { ...route, availability: 'unavailable', networkAvailability: 'unavailable' }] }; emit(state);
@@ -703,8 +705,8 @@ describe('Conversation workspace', () => {
     dispose = bindConversationWorkspace(root, { ...session, getState: () => state, subscribe(fn) { fn(state); return () => {}; } });
     expect(find('[data-model-digest]').textContent).toContain('This device');
     await chooseShared(model.id);
-    expect(find('[data-model-digest]').textContent).toContain('Public network');
-    expect(find('[data-open-model]').textContent).toContain('Public network');
+    expect(find('[data-model-digest]').textContent).toContain('Contributors');
+    expect(find('[data-open-model]').textContent).toContain('Contributors');
     expect(service.calls).toHaveLength(0);
   });
 
