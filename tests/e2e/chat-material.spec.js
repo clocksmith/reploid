@@ -588,10 +588,15 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await input.evaluate(node => node.setSelectionRange(5, 9));
     const field = await page.locator('[data-composer-field]').boundingBox();
     const text = await input.boundingBox();
+    // One field holds every composer control: the toolbar row sits above the text and Send shares the text row.
     for (const selector of ['.chat-file-label', '[data-open-model]', '[data-context-indicator]', '[data-composer-send]']) {
       const rect = await page.locator(selector).boundingBox();
-      expect(rect.y).toBeGreaterThanOrEqual(text.y + text.height);
+      if (selector === '[data-composer-send]') {
+        expect(rect.x).toBeGreaterThanOrEqual(text.x + text.width - 1);
+        expect(rect.y).toBeLessThan(text.y + text.height); expect(rect.y + rect.height).toBeGreaterThan(text.y);
+      } else expect(rect.y + rect.height).toBeLessThanOrEqual(text.y);
       expect(rect.x).toBeGreaterThanOrEqual(field.x); expect(rect.x + rect.width).toBeLessThanOrEqual(field.x + field.width);
+      expect(rect.y).toBeGreaterThanOrEqual(field.y); expect(rect.y + rect.height).toBeLessThanOrEqual(field.y + field.height);
       expect(rect.height).toBeGreaterThanOrEqual(44);
     }
     await page.locator('[data-context-indicator]').click();
@@ -722,10 +727,27 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
   const input = page.locator('[data-composer-input]'), field = page.locator('[data-composer-field]');
   await input.fill('Keep this draft');
   const before = await field.boundingBox();
+  // Status copy lives above the field; inside it only the pre-send prompt disclosure (one line under the text,
+  // hidden while an answer runs) and the toolbar (which can wrap upward on narrow screens) change with state.
+  const anchors = () => page.evaluate(() => {
+    const box = selector => document.querySelector(selector).getBoundingClientRect();
+    const disclosure = document.querySelector('[data-prompt-disclosure]'), status = document.querySelector('[data-model-status]');
+    const gap = parseFloat(getComputedStyle(document.querySelector('[data-composer-field]')).rowGap);
+    return { text: box('[data-composer-input]').toJSON(), field: box('[data-composer-field]').toJSON(),
+      disclosure: disclosure.hidden ? 0 : disclosure.getBoundingClientRect().height + gap,
+      status: status.hidden ? null : status.getBoundingClientRect().toJSON() };
+  });
+  const start = await anchors();
   for (const mode of ['preparing', 'unavailable', 'completed', 'loading', 'executing']) {
     await page.evaluate(mode => window.setVisualState(mode), mode);
-    const box = await field.boundingBox();
-    expect(box.height).toBe(before.height); expect(box.y + box.height).toBe(before.y + before.height);
+    const box = await field.boundingBox(), now = await anchors();
+    expect(box.y + box.height).toBe(before.y + before.height);
+    expect(now.text.height).toBe(start.text.height);
+    if (now.status) expect(now.status.bottom).toBeLessThanOrEqual(now.field.top);
+    // Discovery and preparation change only status copy, so the field keeps its exact size.
+    if (['preparing', 'unavailable'].includes(mode)) expect(box.height).toBe(before.height);
+    // The text row moves only by the disclosure line that leaves while an answer runs.
+    expect(now.text.top - start.text.top).toBeCloseTo(start.disclosure - now.disclosure, 1);
   }
   await input.fill('A deliberately multiline draft\n'.repeat(6));
   expect((await field.boundingBox()).height).toBeGreaterThan(before.height);
