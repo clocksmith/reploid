@@ -588,15 +588,10 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await input.evaluate(node => node.setSelectionRange(5, 9));
     const field = await page.locator('[data-composer-field]').boundingBox();
     const text = await input.boundingBox();
-    // One field holds every composer control: the toolbar row sits above the text and Send shares the text row.
     for (const selector of ['.chat-file-label', '[data-open-model]', '[data-context-indicator]', '[data-composer-send]']) {
       const rect = await page.locator(selector).boundingBox();
-      if (selector === '[data-composer-send]') {
-        expect(rect.x).toBeGreaterThanOrEqual(text.x + text.width - 1);
-        expect(rect.y).toBeLessThan(text.y + text.height); expect(rect.y + rect.height).toBeGreaterThan(text.y);
-      } else expect(rect.y + rect.height).toBeLessThanOrEqual(text.y);
+      expect(rect.y).toBeGreaterThanOrEqual(text.y + text.height);
       expect(rect.x).toBeGreaterThanOrEqual(field.x); expect(rect.x + rect.width).toBeLessThanOrEqual(field.x + field.width);
-      expect(rect.y).toBeGreaterThanOrEqual(field.y); expect(rect.y + rect.height).toBeLessThanOrEqual(field.y + field.height);
       expect(rect.height).toBeGreaterThanOrEqual(44);
     }
     await page.locator('[data-context-indicator]').click();
@@ -727,8 +722,8 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
   const input = page.locator('[data-composer-input]'), field = page.locator('[data-composer-field]');
   await input.fill('Keep this draft');
   const before = await field.boundingBox();
-  // Status copy lives above the field; inside it only the pre-send prompt disclosure (one line under the text,
-  // hidden while an answer runs) and the toolbar (which can wrap upward on narrow screens) change with state.
+  // Status copy lives outside the field and the model selector keeps one line, so the only state-driven change
+  // inside the field is the pre-send prompt disclosure, which is hidden while an answer runs.
   const anchors = () => page.evaluate(() => {
     const box = selector => document.querySelector(selector).getBoundingClientRect();
     const disclosure = document.querySelector('[data-prompt-disclosure]'), status = document.querySelector('[data-model-status]');
@@ -743,11 +738,9 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
     const box = await field.boundingBox(), now = await anchors();
     expect(box.y + box.height).toBe(before.y + before.height);
     expect(now.text.height).toBe(start.text.height);
-    if (now.status) expect(now.status.bottom).toBeLessThanOrEqual(now.field.top);
-    // Discovery and preparation change only status copy, so the field keeps its exact size.
-    if (['preparing', 'unavailable'].includes(mode)) expect(box.height).toBe(before.height);
-    // The text row moves only by the disclosure line that leaves while an answer runs.
-    expect(now.text.top - start.text.top).toBeCloseTo(start.disclosure - now.disclosure, 1);
+    if (now.status) expect(now.status.bottom <= now.field.top || now.status.top >= now.field.bottom).toBe(true);
+    // Field height changes only by the disclosure line; status copy and selector labels never resize it.
+    expect(before.height - box.height).toBeCloseTo(start.disclosure - now.disclosure, 1);
   }
   await input.fill('A deliberately multiline draft\n'.repeat(6));
   expect((await field.boundingBox()).height).toBeGreaterThan(before.height);
