@@ -6,6 +6,7 @@ import { sha256Digest } from './hashing.js';
 import { createReploidDopplerRuntimeService } from '../shared/infrastructure/doppler-runtime-service.js';
 import { createNativeResidentProvider } from './native-resident-provider.js';
 import { openNativeModelSource } from './native-model-source.js';
+import { withGpuMemoryCheck } from './native-gpu-host.js';
 import { createModelAdapterResolver, selectModelAdapters } from '../packages/reploid/src/adapters/model-adapter.js';
 import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
@@ -102,7 +103,7 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
           throw new Error('Native whole-model manifest differs from the catalog');
         }
         if (!enabled || closed) throw new Error('Whole-model contribution stopped');
-        await nativeGpu();
+        const gpu = await nativeGpu();
         if (!enabled || closed) throw new Error('Whole-model contribution stopped');
         const loadOptions = structuredClone(model.loadOptions || {});
         const budget = loadOptions.runtimeConfig?.shared?.bufferPool?.budget;
@@ -143,7 +144,8 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         }
         resident = createResident({ service, model, resolveAdapter, generation, providerPolicy,
           maxOutcomeCharacters: providerPolicy.maxOutcomeCharacters, loadOptions, source, onChange: notify });
-        await resident.prepare();
+        // A refused weight allocation leaves the runtime reporting ready; that load is a failure here.
+        await withGpuMemoryCheck(gpu, () => resident.prepare());
         return getState();
       })().catch(async error => {
         enabled = false;

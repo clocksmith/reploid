@@ -11,6 +11,7 @@ import { assertWorkResidentCapsule } from '../apps/poolday/host/work-partition-c
 import { createModelAdapterResolver } from '../packages/reploid/src/adapters/model-adapter.js';
 import { requireValue } from './native-host-utils.js';
 import { openNativeModelSource } from './native-model-source.js';
+import { withGpuMemoryCheck } from './native-gpu-host.js';
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {},
@@ -37,7 +38,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     'Canonical native contribution requires declared generation, provider capability and durable epochs');
     canonical.epochs.assertCurrent();
   }
-  await nativeGpu(); signal.throwIfAborted();
+  const gpu = await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes ?? selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes });
   const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files, resolveSource,
     gather: sourceRuntime?.gather ?? null });
@@ -94,7 +95,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     cleanupOwner.resident = resident;
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     if (canonical) { canonical.epochs.begin(ownerId); ownershipRecorded = true; }
-    const prepared = await resident.prepare({ approved: true, signal });
+    const prepared = await withGpuMemoryCheck(gpu, () => resident.prepare({ approved: true, signal }));
     tokenizer.assertAvailable();
     // A complete preparation lets the process seal its shader cache; the outcome is reported, never thrown.
     shaderCache?.seal({ ...prepared?.descriptor?.pipelinePreparation, planId, index, modelIdentity: selected.identity });

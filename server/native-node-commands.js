@@ -45,15 +45,15 @@ for all participant flags. With no arguments, Reploid serves the default 2B
 model in the public room. Model files are stored under ~/.reploid/weights.
 Press Ctrl+C to stop.`;
 const details = {
-  ask: 'npx reploid ask [model] "Your question"\nSend one ordinary request. The selected provider can read the prompt. Defaults to 2B and the public room. Private room options: --room NAME --room-token-file PATH --signaling-url URL.',
+  ask: 'npx reploid ask [model] "Your question"\nSend one ordinary request. The selected provider can read the prompt. Defaults to 2B and the public room. Private room options: --room reploid-swarm-NAME --room-token-file PATH --signaling-url URL.',
   doctor: 'npx reploid doctor [--signaling-url URL] [--origin URL]\nCheck Node, host RAM, the installed Doppler version, GPU adapter and signaling connectivity.',
   serve: 'npx reploid serve [model] [--weights DIRECTORY]\nServe the whole model. Missing weights can come from authorized peers or a pinned origin.',
   split: `npx reploid split <model> --stage 0|1 [--weights DIRECTORY]
 Start one contributor on each computer, using a different stage on each.
 For a private room, pass these options on both computers and the requester:
-  --room NAME --signaling-url URL --room-token-file /absolute/path/to/token
+  --room reploid-swarm-NAME --signaling-url URL --room-token-file /absolute/path/to/token
 Use a token file owned by you with mode 0600. Both stages and a requester are needed to answer.`,
-  connect: 'npx reploid connect [model] [--room NAME]\nJoin discovery without starting a GPU or sharing files.',
+  connect: 'npx reploid connect [model] [--room reploid-swarm-NAME]\nJoin discovery without starting a GPU or sharing files.',
   share: 'npx reploid share [model] [--weights DIRECTORY] [--supply-limit-gib GiB] [--supply-to COMPUTER_ID]\nOffer verified files to room peers. Repeat --supply-to to restrict uploads to named computers.',
   models: 'npx reploid models\nList the bundled model IDs, shortcuts, supported modes and whole-model weight sources.',
   completion: `npx reploid completion bash|zsh|fish

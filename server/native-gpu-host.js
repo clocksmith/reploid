@@ -8,6 +8,38 @@ export function createNativeGpuHost(loadProvider, { backend = process.platform =
   requireValue(['metal', 'vulkan'].includes(backend), 'Native GPU backend must be metal or vulkan');
   let opening = null, closing = null, restore = null, retirement = null, stopped = false;
   let ownedDevice = null, lost = null, queueSettled = false, queueRejected = false, lossResolved = false, poolDestroyed = false, deviceDestroyed = false;
+  // Dawn reports a refused allocation as an uncaptured device error and still returns a buffer object, so a
+  // model load can finish with weights missing. Every device this provider creates is watched from creation.
+  const memory = { count: 0, message: null }, watched = new Set(), adapters = new WeakSet();
+  const watchDevice = device => {
+    if (typeof device?.addEventListener !== 'function' || watched.has(device)) return device;
+    watched.add(device);
+    device.addEventListener('uncapturederror', event => {
+      if (event?.error?.constructor?.name !== 'GPUOutOfMemoryError') return;
+      memory.count += 1;
+      memory.message = String(event.error.message || 'out of memory').split('\n').find(line => line.trim())?.trim().slice(0, 200) ?? 'out of memory';
+    });
+    return device;
+  };
+  const watchProvider = gpu => {
+    if (typeof gpu?.requestAdapter !== 'function') return gpu;
+    const requestAdapter = gpu.requestAdapter.bind(gpu);
+    gpu.requestAdapter = async (...args) => {
+      const adapter = await requestAdapter(...args);
+      if (typeof adapter?.requestDevice === 'function' && !adapters.has(adapter)) {
+        adapters.add(adapter);
+        const requestDevice = adapter.requestDevice.bind(adapter);
+        adapter.requestDevice = async (...options) => watchDevice(await requestDevice(...options));
+      }
+      return adapter;
+    };
+    return gpu;
+  };
+  const access = Object.freeze({
+    outOfMemory: () => ({ ...memory }),
+    // Errors for submitted work are delivered by the time the queue reports that work done.
+    async settle() { for (const device of watched) await device.queue?.onSubmittedWorkDone?.().catch(() => {}); }
+  });
   const retire = () => retirement ||= (async () => {
     await opening?.catch(() => {});
     if (!restore) return;
@@ -46,11 +78,13 @@ export function createNativeGpuHost(loadProvider, { backend = process.platform =
         } };
         try {
           Object.assign(globalThis, provider.globals);
-          Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { gpu: provider.create(['backend=' + backend]) } });
+          Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { gpu: watchProvider(provider.create(['backend=' + backend])) } });
         } catch (error) { restore(); restore = null; throw error; }
+        return access;
       })().catch(error => { opening = null; throw error; });
       return opening;
     },
+    outOfMemory: access.outOfMemory,
     close() {
       if (closing) return closing;
       stopped = true;
@@ -66,4 +100,16 @@ export function createNativeGpuHost(loadProvider, { backend = process.platform =
       return closing;
     }
   });
+}
+
+/** Runs one model load and fails it when the device refused an allocation meanwhile. `gpu` is what `open()` resolved to. */
+export async function withGpuMemoryCheck(gpu, load) {
+  const before = gpu?.outOfMemory?.().count ?? 0;
+  const result = await load();
+  await gpu?.settle?.();
+  const after = gpu?.outOfMemory?.();
+  if (after && after.count > before) {
+    throw Object.assign(new Error('This computer\'s GPU ran out of memory while loading the model'), { code: 'GPU_OUT_OF_MEMORY', detail: after.message });
+  }
+  return result;
 }

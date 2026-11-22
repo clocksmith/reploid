@@ -42,6 +42,14 @@ describe('native --room-token-file', () => {
     expect(stdout).toContain('exposes the token in process');
   });
 
+  it('refuses a room name signaling would reject, before the token is read or an identity is made', async () => {
+    const failure = await cli(['--room', 'lab', '--room-token-file', path.join(root, 'missing-token')]);
+    expect(failure.code).not.toBe(0);
+    expect(failure.stderr).toContain('--room must start with reploid-swarm-');
+    expect(failure.stderr).not.toContain('--room-token-file does not exist');
+    await noIdentity();
+  });
+
   it('fails on an absent file before identity, module or connection side effects', async () => {
     const failure = await cli(['--room-token-file', path.join(root, 'missing-token')]);
     expect(failure.code).not.toBe(0);

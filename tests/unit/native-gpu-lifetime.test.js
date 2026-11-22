@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ device: null, destroyPool: vi.fn() }));
 vi.mock('dopplerx/tooling', () => ({ getDevice: () => state.device, destroyBufferPool: state.destroyPool }));
 import { createNativeGpuHost } from '../../server/native-participant.js';
+import { withGpuMemoryCheck } from '../../server/native-gpu-host.js';
 const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
 afterEach(() => {
   vi.useRealTimers(); state.device = null; state.destroyPool.mockReset();
@@ -66,4 +67,27 @@ it('retains the first queue failure but explicit retry can retire the confirmed 
   expect(navigator.hostMarker).toBe(true);
   expect(f.device.queue.onSubmittedWorkDone).toHaveBeenCalledOnce();
   expect(f.device.destroy).toHaveBeenCalledOnce(); expect(state.destroyPool).toHaveBeenCalledOnce();
+});
+
+it('records an allocation the device refused, from the first device the provider creates', async () => {
+  Object.defineProperty(globalThis, 'navigator', {configurable:true,value:{}});
+  class GPUOutOfMemoryError extends Error {}
+  class GPUValidationError extends Error {}
+  const device = Object.assign(new EventTarget(), {queue:{onSubmittedWorkDone:vi.fn(async()=>{})}});
+  const adapter = {requestDevice: async () => device};
+  const provider = {requestAdapter: async () => adapter};
+  const host = createNativeGpuHost(async()=>({globals:{},create:()=>provider}));
+  const gpu = await host.open();
+  expect(navigator.gpu).toBe(provider);
+  expect(await (await navigator.gpu.requestAdapter()).requestDevice()).toBe(device);
+  await (await navigator.gpu.requestAdapter()).requestDevice(); // The same device is watched once.
+  const report = error => device.dispatchEvent(Object.assign(new Event('uncapturederror'), {error}));
+  // The invalid-buffer errors that follow a refusal are consequences, not memory failures.
+  report(new GPUValidationError('[Invalid Buffer] is invalid due to a previous error.'));
+  await expect(withGpuMemoryCheck(gpu, async () => 'loaded')).resolves.toBe('loaded');
+  await expect(withGpuMemoryCheck(gpu, async () => {
+    report(new GPUOutOfMemoryError('\nvkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY\n - While calling [Device].CreateBuffer'));
+  })).rejects.toMatchObject({ code: 'GPU_OUT_OF_MEMORY', detail: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY' });
+  expect(host.outOfMemory()).toEqual({ count: 1, message: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY' });
+  expect(device.queue.onSubmittedWorkDone).toHaveBeenCalledTimes(2);
 });

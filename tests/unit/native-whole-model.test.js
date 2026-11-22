@@ -8,7 +8,7 @@ import { createNativeWholeModel } from '../../server/native-whole-model.js';
 
 const roots = [];
 afterEach(async () => { for (const root of roots.splice(0)) await fs.rm(root, { recursive: true, force: true }); });
-async function fixture({ prepare, owner, adapter = false, omitBudget = false, fill = null } = {}) {
+async function fixture({ prepare, owner, adapter = false, omitBudget = false, fill = null, gpu = undefined } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-whole-')); roots.push(root);
   const bytes = JSON.stringify({ modelId: 'model' }); await fs.writeFile(path.join(root, 'manifest.json'), bytes);
   const model = { id: 'model', identity: 'sha256:' + createHash('sha256').update(bytes).digest('hex'),
@@ -22,7 +22,7 @@ async function fixture({ prepare, owner, adapter = false, omitBudget = false, fi
   const resident = { getState: () => ({ phase: ready ? 'ready' : 'loading', ready, modelIdentity: model.identity, adapterIdentities: ready ? (model.adapters || []).map(item => item.identity) : [] }),
     prepare: vi.fn(async () => { await prepare?.(); ready = true; }),
     close: vi.fn(async () => { ready = false; }), generate: vi.fn(async () => ({ content: 'answer' })) };
-  const nativeGpu = vi.fn(), createResident = vi.fn(() => resident), configureMemory = vi.fn();
+  const nativeGpu = vi.fn(async () => gpu), createResident = vi.fn(() => resident), configureMemory = vi.fn();
   const participant = createNativeWholeModel({ model, modelDirectory: root, nativeGpu, createResident, configureMemory, owner, fill });
   return { participant, model, nativeGpu, resident, createResident, configureMemory, root };
 }
@@ -183,4 +183,21 @@ it('keeps the plain file loader for a model with no gather policy', async () => 
   expect(options.source.baseUrl).toMatch(/^file:/);
   expect(options.source.storageContext).toBeUndefined();
   expect(options.loadOptions.isolatedLoader).toBeUndefined();
+});
+
+it('fails the load and offers nothing when the GPU refused an allocation while the runtime still reports ready', async () => {
+  // Recorded on an integrated GPU: the driver refused the last weight buffers, and the runtime finished its load as ready.
+  const memory = { count: 0, message: null }, settle = vi.fn(async () => {});
+  const gpu = { outOfMemory: () => ({ ...memory }), settle };
+  const f = await fixture({ gpu, prepare: () => { memory.count += 2; memory.message = 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY'; } });
+  const failure = await f.participant.contribute(true).catch(error => error);
+  expect(failure).toMatchObject({ code: 'GPU_OUT_OF_MEMORY', detail: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY' });
+  expect(failure.message).toBe("This computer's GPU ran out of memory while loading the model");
+  expect(settle).toHaveBeenCalledOnce();
+  expect(f.resident.close).toHaveBeenCalledOnce();
+  expect(f.participant.getState()).toMatchObject({ ready: false, offering: false });
+  // An earlier refusal on the same device does not fail a later load that fits.
+  const later = await fixture({ gpu });
+  await later.participant.contribute(true);
+  expect(later.participant.getState().ready).toBe(true);
 });

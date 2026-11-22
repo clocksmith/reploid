@@ -57,6 +57,9 @@ export async function main({ runOnce } = {}) {
       '--supply-limit-gib requires --share-files and a positive whole GiB allowance');
   }
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
+  // Signaling refuses any other name with a bare 400, which the client would retry forever.
+  requireValue(values.room === undefined || values.room === bootstrap.publicRoomId || ownerPairingRoomId(values.room),
+    '--room must start with reploid-swarm- followed by letters, digits, hyphens or underscores, for example reploid-swarm-lab');
   // A model reissued under a new name is still selected by the name it replaced.
   values.model = findCatalogModel(models, values.model)?.id ?? values.model;
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
