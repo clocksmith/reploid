@@ -50,7 +50,9 @@ export function creditPolicy(source) {
     && typeof policy.allowSameOwner === 'boolean'
     && (policy.wholeModelTerminalCharge === undefined || policy.wholeModelTerminalCharge === 0)
     && (policy.wholeModelUnclaimedReleaseMs === undefined
-      || integer(policy.wholeModelUnclaimedReleaseMs) && policy.wholeModelUnclaimedReleaseMs > 0),
+      || integer(policy.wholeModelUnclaimedReleaseMs) && policy.wholeModelUnclaimedReleaseMs > 0)
+    && (policy.partitionUnclaimedReleaseMs === undefined
+      || integer(policy.partitionUnclaimedReleaseMs) && policy.partitionUnclaimedReleaseMs > 0),
   'Explicit non-cash credit policy required');
   assert(Number.isSafeInteger(policy.maxOutputTokens * policy.creditsPerOutputToken + policy.maxDebt), 'Credit policy exceeds integer precision');
   return Object.freeze(policy);

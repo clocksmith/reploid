@@ -96,6 +96,22 @@ and a later claim for that request is refused. A provider that did the work but
 returns after the window is therefore not paid for it. The field is part of the
 frozen credit policy, so adding it to an existing ledger needs an explicit
 migration; omitted, such holds stay open as before.
+
+A split request has the same gap, and a wider one: settlement needs every
+stage's signed closure, so one stage host that disappears for good strands the
+hold even when the other stages signed. `creditPolicy.partitionUnclaimedReleaseMs`
+bounds it. After the request deadline plus this window, a split request whose
+proof is still incomplete reaches one final outcome: status `expired`, reason
+`stage-unclaimed-after-window`, no charge, and no credit to any stage, including
+stages that did sign. The outcome records the acknowledged output count and
+lists each stage that never signed with `cleanup: "unverified"` (or
+`"never-admitted"`); it asserts nothing about what a silent host did. A later
+claim or late receipt for that request is refused and pays nobody, and the
+outcome survives a restart. A requester that retries does so as a new request,
+charged once. A request whose proof is already complete is settled normally and
+is never expired. Like the whole-model window, the field is part of the frozen
+credit policy and is off unless set. Whether a stage that signed should be paid
+when another stage vanishes is an open policy question; today it is not.
 `acceptFleetTerminalPolicy` in `server/fleet/terminal-policy.js` records an
 operator-approved zero-charge policy migration and an explicit list of unresolved
 whole-model reservations to which it applies. It cannot change metered rates,

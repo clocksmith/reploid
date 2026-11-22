@@ -286,6 +286,86 @@ describe('enrolled fleet service credits', () => {
     await ledger.settle(tuesday.id, { identity, receipts, acknowledgment });
     expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual(after);
   });
+  /** A two-stage split request from computer 0, run by computers 1 and 2, with every signed proof component. */
+  async function splitRequest(id, count) {
+    const route = { schema: 'reploid.partition-route/v1', modelId: 'model', modelIdentity: hash, planId: hash,
+      stages: identities.slice(1).map((identity, index) => ({ index, participantId: identity.peerId,
+        transportId: `transport-${index}`, residentId: `resident-${index}`, executionId: `stage-${index}` })),
+      activation: { schema: 'doppler.activation-tensor/v1', dtype: 'f32', hiddenSize: 1024, precision: 'f32', components: 1, elementStrideBytes: 4 } };
+    const identity = { schema: 'reploid.partition-attempt/v2', threadId: 'thread', attemptId: `execution-${id}`,
+      requesterId: identities[0].peerId, placementGeneration: 0, route };
+    const input = { ...request(id), mode: 'partition', route: identity,
+      providers: [{ participantId: identities[1].peerId, weight: 1 }, { participantId: identities[2].peerId, weight: 2 }] };
+    const routeHash = await attemptRouteHash(identity), signedAt = new Date(at).toISOString();
+    const receipts = await Promise.all([1, 2].map(async (owner, index) => createAttemptEvidenceSigner({ identity: identities[owner] }).sign(STAGE_RECEIPT_SCHEMA,
+      { schema: STAGE_RECEIPT_SCHEMA, reservationId: input.id, attemptId: input.executionId, routeHash, partitionIndex: index,
+        participantId: identities[owner].peerId, sequence: 2, status: 'settled', steps: count, tokens: { prompt: 12, processed: 12 + count },
+        timing: { reservedAt: signedAt, firstStepAt: signedAt, lastStepAt: signedAt, closedAt: signedAt },
+        output: index === 1 ? { count, chain: other, done: true, stopReason: 'eos' } : null, signedAt })));
+    const acknowledgment = await createAttemptEvidenceSigner({ identity: identities[0] }).sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA,
+      { schema: OUTPUT_ACKNOWLEDGMENT_SCHEMA, reservationId: input.id, attemptId: input.executionId, routeHash,
+        requesterId: identities[0].peerId, count, chain: other, signedAt });
+    return { input, identity, receipts, acknowledgment };
+  }
+  it('gives a split request one final outcome when a stage host never returns, and refuses its late receipt', async () => {
+    ledger.close();
+    let clock = at;
+    const bounded = { ...options, file: path.join(directory, 'split-finality.sqlite'), now: () => clock,
+      policy: { ...policy, partitionUnclaimedReleaseMs: 5000 } };
+    ledger = await openFleetCredits(bounded);
+    const balances = () => ledger.snapshot().accounts.map(row => [row.balance, row.held]);
+    const { input, identity, receipts, acknowledgment } = await splitRequest('lost', 7);
+    dispatch(input); ledger.admit(input.id, 0); ledger.admit(input.id, 1);
+    // The first stage's host disappears mid-generation. The requester's stream breaks and it fences the request;
+    // only the final stage and the requester ever sign.
+    expect(await ledger.fence(input.id, input.consumer)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0, 1] });
+    expect(await ledger.collect(input.id, { identity, receipts: [receipts[1]], acknowledgment })).toMatchObject({
+      status: 'pending', heldCredits: 10, acknowledgedOutputTokens: 7, awaitingStages: [0] });
+
+    // Past the request deadline the hold is still there: the silent host has its claim window.
+    clock = at + policy.maxRequestMs + 1;
+    expect(await ledger.recover(input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
+    expect(balances()).toEqual([[0, 10], [0, 0], [0, 0]]);
+
+    // After the stated window the request is final: nobody is charged or paid, and the hold is gone.
+    clock = at + policy.maxRequestMs + 5000;
+    const final = await ledger.recover(input.id);
+    expect(final).toMatchObject({ status: 'expired', reason: 'stage-unclaimed-after-window', charge: 0, credits: [],
+      acknowledgedOutputTokens: 7, unclaimedStages: [{ stage: 0, participantId: identities[1].peerId, cleanup: 'unverified' }] });
+    expect(balances()).toEqual([[0, 0], [0, 0], [0, 0]]);
+
+    // The host comes back late with a valid receipt. Neither a claim nor new evidence can reopen or pay the request.
+    await expect(ledger.settle(input.id, { identity, receipts, acknowledgment })).rejects.toThrow('Claim window closed');
+    await expect(ledger.collect(input.id, { identity, receipts, acknowledgment })).rejects.toThrow();
+    // The outcome survives a restart, and repeated recovery or claims change nothing.
+    ledger.close(); ledger = await openFleetCredits(bounded);
+    expect(await ledger.recover(input.id)).toEqual(final);
+    await expect(ledger.settle(input.id, { identity, receipts, acknowledgment })).rejects.toThrow('Claim window closed');
+    expect(balances()).toEqual([[0, 0], [0, 0], [0, 0]]);
+    expect(ledger.snapshot().journal).toHaveLength(0);
+
+    // The requester retries as a new request with both hosts present: charged once, both stages paid once.
+    clock = at;
+    const retry = await splitRequest('retry', 7);
+    dispatch(retry.input); ledger.admit(retry.input.id, 0); ledger.admit(retry.input.id, 1);
+    const paid = await ledger.settle(retry.input.id, { identity: retry.identity, receipts: retry.receipts, acknowledgment: retry.acknowledgment });
+    expect(paid.charge).toBe(7);
+    expect(paid.credits.map(row => row.amount)).toEqual([2, 5]);
+    expect(balances()).toEqual([[-7, 0], [2, 0], [5, 0]]);
+  });
+  it('keeps a split hold open indefinitely when no split claim window is set', async () => {
+    ledger.close();
+    let clock = at;
+    const unbounded = { ...options, file: path.join(directory, 'split-open.sqlite'), now: () => clock };
+    ledger = await openFleetCredits(unbounded);
+    const lost = await splitRequest('lost', 7);
+    dispatch(lost.input); ledger.admit(lost.input.id, 0); ledger.admit(lost.input.id, 1);
+    await ledger.fence(lost.input.id, lost.input.consumer);
+    await ledger.collect(lost.input.id, { identity: lost.identity, receipts: [lost.receipts[1]], acknowledgment: lost.acknowledgment });
+    clock = at + policy.maxRequestMs + 10 * 86_400_000;
+    expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 10 });
+  });
   it('reconciles orphaned requester reservations on process restart without touching active or unresolved admitted holds', async () => {
     ledger.close();
     ledger = await openFleetCredits({

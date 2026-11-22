@@ -14,6 +14,30 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
   const pieces = id => Object.fromEntries(db.prepare('SELECT kind,payload FROM fleet_components WHERE request_id=?').all(id)
     .map(row => [row.kind, JSON.parse(row.payload)]));
   const store = (id, key, value) => db.prepare('INSERT OR REPLACE INTO fleet_components VALUES (?,?,?)').run(id, key, JSON.stringify(value));
+  const unadmittedOf = id => {
+    const row = read(id);
+    // Old requests have no complete admission journal. Never infer zero work for those.
+    return ['closing', 'settled'].includes(row?.state) && row.binding.admissionVersion === 1
+      ? row.binding.providers.map((_, index) => index).filter(index => !admitted(id).includes(index)) : [];
+  };
+  const interruptedOf = id => db.prepare('SELECT stage,closure FROM fleet_stage_owners WHERE request_id=? AND closure IS NOT NULL').all(id)
+    .map(row => ({ stage: row.stage, closure: JSON.parse(row.closure) }));
+  /** Split request: the retained proof components and the stages that still owe signed completion. */
+  const splitProgress = (id, request) => {
+    const data = pieces(id), missing = unadmittedOf(id), interrupted = interruptedOf(id);
+    const acknowledgedOutputTokens = data.ack?.acknowledgment.count ?? null;
+    const stages = request.providers.map((_, index) => data[`stage:${index}`]);
+    const awaitingStages = [];
+    for (const [index, receipt] of stages.entries()) {
+      if (!receipt && missing.includes(index) && (acknowledgedOutputTokens ?? 0) === 0) continue;
+      const exited = interrupted.find(row => row.stage === index);
+      if (exited && (exited.closure.payload.receipt?.steps ?? 0) >= (acknowledgedOutputTokens ?? 0)
+        && (receipt?.steps ?? 0) >= (acknowledgedOutputTokens ?? 0)) continue;
+      if (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
+        || receipt.steps < (acknowledgedOutputTokens ?? 0)) awaitingStages.push(index);
+    }
+    return { data, missing, interrupted, acknowledgedOutputTokens, stages, awaitingStages };
+  };
   const expiry = () => transaction(() => {
     for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state IN ('reserved','dispatched')").all()) {
       const request = read(row.id);
@@ -26,28 +50,35 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
     // Opt-in bound on a whole-model hold whose provider never returned. The provider has the request deadline
     // plus this window to sign completion or cleanup evidence; after it the unused hold is released with no
     // charge and no credit, and a later claim for this request is refused. Absent, such a hold stays open.
-    if (!Number.isSafeInteger(policy.wholeModelUnclaimedReleaseMs)) return;
+    //
+    // `partitionUnclaimedReleaseMs` is the same opt-in bound for a split request. A stage host that disappears
+    // for good would otherwise strand the hold forever, because settlement needs every stage's signed closure.
+    // After the window the request reaches one final outcome: expired, no charge, no credit to any stage. The
+    // outcome names the stages that never signed and reports their cleanup as unverified: nothing here asserts
+    // what a silent host did. A request whose proof is already complete is left for recover() to settle.
     for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state='closing'").all()) {
-      const request = read(row.id);
-      if (request.binding.mode !== 'whole-model' || now() < request.binding.deadline + policy.wholeModelUnclaimedReleaseMs) continue;
-      const outcome = { id: row.id, unit: policy.unit, charge: 0, ownComputeUnits: 0, outputTokens: 0, status: 'expired', usage: null,
+      const request = read(row.id), split = request.binding.mode !== 'whole-model';
+      const window = split ? policy.partitionUnclaimedReleaseMs : policy.wholeModelUnclaimedReleaseMs;
+      if (!Number.isSafeInteger(window) || now() < request.binding.deadline + window) continue;
+      let outcome = { id: row.id, unit: policy.unit, charge: 0, ownComputeUnits: 0, outputTokens: 0, status: 'expired', usage: null,
         reason: 'provider-unclaimed-after-window', credits: [], evidenceHash: null, economicHash: null, settledAt: now() };
+      if (split) {
+        const progress = splitProgress(row.id, request.binding);
+        if (progress.acknowledgedOutputTokens !== null && progress.awaitingStages.length === 0) continue;
+        const unsigned = progress.stages.map((receipt, index) => (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
+          || progress.awaitingStages.includes(index)) ? index : null).filter(index => index !== null);
+        outcome = { ...outcome, reason: 'stage-unclaimed-after-window', acknowledgedOutputTokens: progress.acknowledgedOutputTokens,
+          unclaimedStages: unsigned.map(stage => ({ stage, participantId: request.binding.providers[stage].participantId,
+            cleanup: progress.missing.includes(stage) ? 'never-admitted' : 'unverified' })) };
+      }
       db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.binding.maximum, request.binding.computerId);
       db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), row.id);
     }
   });
   return {
     expire: expiry,
-    unadmitted(id) {
-      const row = read(id);
-      // Old requests have no complete admission journal. Never infer zero work for those.
-      return ['closing', 'settled'].includes(row?.state) && row.binding.admissionVersion === 1
-        ? row.binding.providers.map((_, index) => index).filter(index => !admitted(id).includes(index)) : [];
-    },
-    interrupted(id) {
-      return db.prepare('SELECT stage,closure FROM fleet_stage_owners WHERE request_id=? AND closure IS NOT NULL').all(id)
-        .map(row => ({ stage: row.stage, closure: JSON.parse(row.closure) }));
-    },
+    unadmitted: unadmittedOf,
+    interrupted: interruptedOf,
     async closeStageOwner(envelope) {
       const { signature, ...signed } = envelope;
       const { id, partitionIndex: stage, owner, receipt } = signed.payload;
@@ -116,6 +147,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
         assert(proof.acknowledgedReceipt, 'Acknowledgment needs its signed output prefix');
       }
       if (row.state === 'settled') {
+        assert(row.outcome.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
         const ack = proof.acknowledgment;
         assert(!ack || ack.count <= row.outcome.outputTokens, 'Conflicting completed evidence');
         if (ack?.count === row.outcome.outputTokens && row.evidence?.acknowledgment) {
@@ -219,18 +251,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
           return outcome;
         });
       }
-      const acknowledgedOutputTokens = data.ack?.acknowledgment.count ?? null;
-      const stages = request.providers.map((_, index) => data[`stage:${index}`]);
-      const interrupted = this.interrupted(id);
-      const awaitingStages = [];
-      for (const [index, receipt] of stages.entries()) {
-        if (!receipt && missing.includes(index) && (acknowledgedOutputTokens ?? 0) === 0) continue;
-        const exited = interrupted.find(row => row.stage === index);
-        if (exited && (exited.closure.payload.receipt?.steps ?? 0) >= (acknowledgedOutputTokens ?? 0)
-          && (receipt?.steps ?? 0) >= (acknowledgedOutputTokens ?? 0)) continue;
-        if (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
-          || receipt.steps < (acknowledgedOutputTokens ?? 0)) awaitingStages.push(index);
-      }
+      const { acknowledgedOutputTokens, stages, interrupted, awaitingStages } = splitProgress(id, request);
       if (acknowledgedOutputTokens === null || awaitingStages.length) {
         return { id, status: 'pending', heldCredits: request.maximum, acknowledgedOutputTokens, awaitingStages };
       }
