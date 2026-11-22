@@ -8,6 +8,7 @@ import {expect} from '@playwright/test';
 import {createDailyApp} from '../../server/daily/http.js';
 import {openDailyDeviceKeys} from '../../server/daily/device-keys.js';
 import {createDailyStore} from '../../server/daily/store.js';
+import {TURNS_PER_DAY} from '../../server/daily/rules.js';
 const server = createServer().listen(0,'127.0.0.1');
 await once(server,'listening');
 const origin = 'http://localhost:' + server.address().port;
@@ -38,7 +39,7 @@ try {
   await expect(page.locator('#join')).toBeVisible();
   await page.getByRole('button',{name:'Join game'}).click();
   await expect(page.locator('#history')).toContainText('Matched in 1 word');
-  await expect(page.locator('#tries')).toHaveText('2 of 3 tries left');
+  await expect(page.locator('#tries')).toHaveText((TURNS_PER_DAY - 1) + ' of ' + TURNS_PER_DAY + ' tries left');
   assert.equal(runs,1);
   const algorithm = await page.evaluate(() => new Promise((resolve,reject) => {
     const open = indexedDB.open('reploid-daily');
@@ -53,7 +54,7 @@ try {
   await page.reload();
   await page.getByRole('button',{name:'Sign in',exact:true}).click();
   await page.getByRole('button',{name:'Join game'}).click();
-  await expect(page.locator('#tries')).toHaveText('2 of 3 tries left');
+  await expect(page.locator('#tries')).toHaveText((TURNS_PER_DAY - 1) + ' of ' + TURNS_PER_DAY + ' tries left');
   assert.equal(runs,1);
   // A browser without Ed25519 falls back to a non-extractable ECDSA P-256 key.
   const older = await browser.newContext({viewport:{width:390,height:844}});
@@ -68,7 +69,7 @@ try {
   await olderPage.getByLabel('Your prompt').fill('Sky');
   await olderPage.getByRole('button',{name:'Submit prompt'}).click();
   await olderPage.getByRole('button',{name:'Join game'}).click();
-  await expect(olderPage.locator('#tries')).toHaveText('2 of 3 tries left');
+  await expect(olderPage.locator('#tries')).toHaveText((TURNS_PER_DAY - 1) + ' of ' + TURNS_PER_DAY + ' tries left');
   assert.equal(runs,2);
   await older.close();
   store.revokeCircle(grant.id);

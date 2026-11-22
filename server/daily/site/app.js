@@ -78,7 +78,8 @@ let today, retry, deferredTurn, selectedAttempt, submitting = false, sentCode = 
 const turnsPerDay = () => Number.isSafeInteger(today?.turnsPerDay) && today.turnsPerDay > 0 ? today.turnsPerDay : 5;
 const feedback = message => { el('feedback').textContent = message; };
 const words = n => n + (n === 1 ? ' word' : ' words');
-const closeness = record => Number.isSafeInteger(record.closeness) ? record.closeness + '% close' : '';
+// A stored score is a finite log-probability, so 0 here is always a nonzero probability that rounded down.
+const closeness = record => !Number.isSafeInteger(record.closeness) ? '' : record.closeness === 0 ? 'Under 1% close' : record.closeness + '% close';
 const score = record => [words(record.words), record.characters + ' chars', closeness(record)].filter(Boolean).join(' · ');
 const challengeNumber = day => day.replaceAll('-', '');
 function scorecard(record) {
@@ -188,7 +189,7 @@ function render() {
   el('target').textContent = challenge?.target || 'Next puzzle pending';
   el('banned').textContent = challenge?.banned.length ? 'Without ' + challenge.banned.map(w => '“' + w + '”').join(', ') + '.' : '';
   el('model').textContent = challenge?.modelId || 'No model assigned.';
-  let tries = playable ? '3 tries today' : '';
+  let tries = playable ? turnsPerDay() + ' tries today' : '';
   if (authenticated) tries = remaining + ' of ' + turnsPerDay() + ' tries left';
   el('tries').textContent = tries;
   el('disclosure').textContent = 'Readable by ' + (today.relayName ? today.relayName + ' and ' : '') + (today.recipientName || today.circle) + '.';
