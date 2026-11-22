@@ -5,7 +5,8 @@ import path from 'node:path';
 import { OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT, ownerPairingCode, ownerPairingRequestId, ownerParticipantId }
   from '../../packages/reploid/src/transport/index.js';
 
-const PAIRING_TTL_MS = 120000;
+// Long enough to scan the link on a phone, switch networks and confirm; codes stay single-use.
+const PAIRING_TTL_MS = 10 * 60 * 1000;
 
 /** Local desktop approval survives restarts. Codes and pending approvals do not. */
 export async function openOwnerPairing({ file, hostParticipantId, onRequest = () => {}, now = Date.now }) {

@@ -215,8 +215,8 @@ export async function main({ runOnce } = {}) {
           const { hostParticipantId, code } = ownerPairing.issue();
           const params = new URLSearchParams({ pair: code, host: hostParticipantId });
           if (values.room) params.set('room', values.room);
-          console.error(`Owner pairing code for ${hostParticipantId} (2 minutes): ${code}`);
-          console.error(`Pairing link (fragment-only, 2 minutes): https://replo.id/#${params.toString()}`);
+          console.error(`Owner pairing code for ${hostParticipantId} (10 minutes): ${code}`);
+          console.error(`Pairing link (fragment-only, 10 minutes): https://replo.id/#${params.toString()}`);
         } else if (command === 'approve' || command === 'decline') {
           const approved = ownerPairing.decide(requestId, command === 'approve');
           console.error(approved ? 'Owner device paired.' : 'Owner pairing was declined or expired.');
