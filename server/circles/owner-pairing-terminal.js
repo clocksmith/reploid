@@ -22,15 +22,25 @@ const shortPeer = participantId => participantId.length > 16 ? `${participantId.
 
 export const ownerPairingPrompt = ({ participantId }) => `Pair phone ${shortPeer(participantId)}? [y/n]`;
 
-/** Desktop terminal commands: pair, y/yes, n/no, and approve <id> / decline <id> for scripts. */
+/** Shorthand decisions apply only to the single request waiting when the owner presses Enter. */
 export function createOwnerPairingTerminal({ pairing, room, name, write = line => console.error(line), renderQr = renderQrForTerminal }) {
   const decide = (requestId, approved) => {
     write(pairing.decide(requestId, approved) ? 'Phone paired.' : 'Pairing declined or expired.');
   };
   const listPending = pending => pending.map(({ requestId, participantId }) => `  ${requestId}  ${participantId}`).join('\n');
+  const decidePending = approved => {
+    const pending = pairing.pendingRequests();
+    if (pending.length === 0) {
+      write('No request yet. Tap Connect on your phone.');
+    } else if (pending.length > 1) {
+      write(`${pending.length} pairing requests are waiting. Type approve <id> or decline <id>:\n${listPending(pending)}`);
+    } else {
+      decide(pending[0].requestId, approved);
+    }
+  };
   return Object.freeze({
     handleLine(line) {
-      const [word = '', requestId] = line.trim().split(/\s+/);
+      const [word = '', requestId, extra] = line.trim().split(/\s+/);
       const command = word.toLowerCase();
       try {
         if (command === 'pair') {
@@ -40,16 +50,14 @@ export function createOwnerPairingTerminal({ pairing, room, name, write = line =
           write(`Pairing link: ${link}`);
           write(renderQr(link));
           write('Scan the code with your phone camera, or open the link on your phone. You approve the request here.');
-        } else if (['y', 'yes', 'n', 'no'].includes(command)) {
-          const pending = pairing.pendingRequests();
-          if (pending.length === 0) write('No pairing request is waiting. Type pair to issue a code.');
-          else if (pending.length > 1) {
-            write(`${pending.length} pairing requests are waiting. Type approve <id> or decline <id>:\n${listPending(pending)}`);
-          } else decide(pending[0].requestId, command.startsWith('y'));
+        } else if (['y', 'yes', 'n', 'no'].includes(command) && !requestId) {
+          decidePending(command.startsWith('y'));
         } else if (command === 'approve' || command === 'decline') {
-          if (!requestId) write(`Type ${command} followed by a request ID, or y / n when one request is waiting.`);
-          else decide(requestId, command === 'approve');
-        } else if (command) write('Type pair to issue a code, then y or n when your phone asks.');
+          const approved = command === 'approve';
+          if (extra) write(`Type ${command} with one request ID, or use y / n.`);
+          else if (!requestId || ['last', 'next'].includes(requestId.toLowerCase())) decidePending(approved);
+          else decide(requestId, approved);
+        } else if (command) write('Type pair for a code, then approve next when your phone asks.');
       } catch (error) { write(error.message); }
     }
   });
