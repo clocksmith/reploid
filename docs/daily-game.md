@@ -107,24 +107,30 @@ Once qualified, the first submitted turn opens the requester. Discovery allows 2
 
 ## Isolated public and private circles on one GPU
 
-An operator can serve two ranked circles together. Prepare a second config with its own origin, loopback port, score database, and access directory. Both configs must select the exact same fleet requester file, provider identity and backend digest. Each has its own passkeys, board, receipts and daily budget. Set `sharedHostDailyCap` to the same finite number in both files to limit their combined daily workload. Otherwise the combined limit is the sum of their individual caps. The public invitation allows twelve passkey ceremonies per minute without recording IP addresses. Both listeners share one requester identity and admit only one physical turn at a time. A second simultaneous request receives a busy response and keeps its try.
+An operator can serve two ranked circles together. Prepare a second config with its own origin, loopback port, score database, and access directory. Both configs must select the exact same fleet requester file, provider identity and backend digest. Each has its own device-key players, board, receipts and daily budget. Set `sharedHostDailyCap` to the same finite number in both files to limit their combined daily workload. Otherwise the combined limit is the sum of their individual caps. The public invitation allows twelve sign-in starts per minute without recording IP addresses or visitor identifiers. Both listeners share one requester identity and admit only one physical turn at a time. A second simultaneous request receives a busy response and keeps its try.
 
 ~~~sh
 npm run daily -- serve --config /private/friends/circle.json --also /private/public/circle.json
 ~~~
 
-Set `publicChallenge` to `true`, `auth.type` to `passkey`, and `bootstrapPlayers` to an empty array in the public config. Set its `origin` to the exact HTTPS address of the tunnel or reverse proxy and send that endpoint to the public loopback port. Keep the private circle on its original origin and separate port. Visitors register on the public origin. The private owner launcher and its three-turn allowance remain attached to the private circle. The databases persist across a coordinated restart; a new public hostname changes the WebAuthn relying party.
+Set `publicChallenge` to `true`, `auth.type` to `device`, and `bootstrapPlayers` to an empty array in the public config. Set its `origin` to the exact HTTPS address of the tunnel or reverse proxy and send that endpoint to the public loopback port. Keep the private circle on its original origin and separate port. Visitors register on the public origin. The private owner launcher and its three-turn allowance remain attached to the private circle. The databases persist across a coordinated restart; a new public hostname starts a new set of players, because device keys are stored per origin and each signature names its origin.
+
+### Device-key sign-in
+
+Public circles sign players in with a device key and need no external sign-in service. On the first sign-in the browser creates a non-extractable signing key (Ed25519, or ECDSA P-256 where the browser lacks Ed25519), stores it in this site’s IndexedDB and sends only the public key. Each sign-in signs a one-time random challenge that names the circle’s exact origin and expires after two minutes. The server keeps the public keys in an owner-only `<database>.devices` file and treats each public key as one player on that origin.
+
+The identity lives on one device, in one browser profile. Clearing this site’s data, opening the game in another browser, or switching phones starts a new player with its own three daily turns; there is no cross-device sync, export or recovery. The key shows only that the same browser profile came back. It does not check a fingerprint, PIN or other user verification, and it does not stop one person from creating several players. Players who signed in with passkeys under an earlier version sign in again as new players; their past turns stay in the score ledger.
 
 ## Host the game files on a stable HTTPS origin
 
-A phone opens the static site on its permanent hostname. The browser makes credentialed requests directly to the ranked API over HTTPS. The static site’s hostname is the passkey relying party and the address used in shared dares. In the public circle config, set the API `origin` and allow the exact frontend under `trustedFrontendOrigins`. Public sign-in requires `publicChallenge` and passkey authentication.
+A phone opens the static site on its permanent hostname. The browser makes credentialed requests directly to the ranked API over HTTPS. The static site’s hostname holds the players’ device keys and is the address used in shared dares. In the public circle config, set the API `origin` and allow the exact frontend under `trustedFrontendOrigins`. Public sign-in requires `publicChallenge` and device-key sign-in. Each trusted frontend needs its own exact HTTPS origin.
 
 ~~~json
 {
   "origin": "https://api.example.org",
   "trustedFrontendOrigins": ["https://my-daily.example.workers.dev"],
   "publicChallenge": true,
-  "auth": {"type": "passkey"}
+  "auth": {"type": "device"}
 }
 ~~~
 
@@ -139,9 +145,9 @@ npx --no-install wrangler deploy --dry-run --config "$bundle/site/wrangler.json"
 
 The packager creates a new local directory. Its `public/` folder contains the game interface, styles, icon, public host guide and HTTP headers. The HTML and its content security policy both pin the API origin. The accompanying `wrangler.json` configures an assets-only Worker. With an authenticated deployment account and an unused Worker name, publish it using `npx --no-install wrangler deploy --config "$bundle/site/wrangler.json"`. For another static host, serve the contents of `public/` and apply the response headers in `_headers`. [Cloudflare static asset billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
 
-If the API tunnel address changes, check the replacement’s credentialed API response, package a fresh directory with the new `--api-origin`, and redeploy under the same Worker name. Players can refresh the page and use their existing passkeys on the stable frontend. Their API session may need a new sign-in.
+If the API tunnel address changes, check the replacement’s credentialed API response, package a fresh directory with the new `--api-origin`, and redeploy under the same Worker name. Players can refresh the page and keep their device keys on the stable frontend. Their API session may need a new sign-in.
 
-Browsers that block the API cookie can still play. Verifying a passkey opens a 15-minute session held in that tab’s memory. After a refresh or a tab close, signing in with the same passkey restores the player's history and remaining tries.
+Browsers that block the API cookie can still play. Signing in with the device key opens a 15-minute session held in that tab’s memory. After a refresh or a tab close, signing in again from the same browser restores the player's history and remaining tries.
 
 ## Review and measure
 

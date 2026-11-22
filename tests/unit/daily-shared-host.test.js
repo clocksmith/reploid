@@ -40,15 +40,22 @@ it('serializes dispatch from independent circle ledgers and refunds pre-admissio
   expect(fleet.close).toHaveBeenCalledTimes(1);
 });
 
-it('shares twelve public passkey starts per minute across independent RP origins', async () => {
-  const {openDailyPasskeys,publicPasskeyStartBudget} = await import('../../server/daily/passkeys.js');
+it('shares twelve public device sign-in starts per minute across independent origins', async () => {
+  const {openDailyDeviceKeys,publicSignInStartBudget} = await import('../../server/daily/device-keys.js');
+  const {createTestDeviceKey} = await import('../fixtures/daily-device-key.mjs');
   let time = 100_000;
-  const clock = () => time, admitStart = publicPasskeyStartBudget(clock);
-  const stores = ['https://first.example','https://second.example'].map(origin => openDailyPasskeys({file:':memory:',origin,clock,admitStart}));
+  const clock = () => time, admitStart = publicSignInStartBudget(clock);
+  const origins = ['https://first.example','https://second.example'];
+  const stores = origins.map(origin => openDailyDeviceKeys({file:':memory:',origin,clock,admitStart}));
   try {
-    for (let i=0;i<12;i++) await stores[i%2].start('login','same-invitation');
-    await expect(stores[0].start('login','another-invitation')).rejects.toMatchObject({code:'passkey_rate_limit'});
+    for (let i=0;i<12;i++) await stores[i%2].start('same-invitation');
+    await expect(stores[0].start('another-invitation')).rejects.toMatchObject({code:'sign_in_rate_limit'});
     time += 60000;
-    expect((await stores[1].start('login','another-invitation')).options.rpId).toBe('second.example');
+    const {grant,challenge} = await stores[1].start('another-invitation');
+    // A signature for the second origin does not sign in at the first one.
+    const crossed = await stores[0].start('another-invitation');
+    const key = createTestDeviceKey();
+    await expect(stores[0].finish(crossed.grant,'another-invitation',key.signIn(origins[1],crossed.challenge))).rejects.toThrow();
+    expect(await stores[1].finish(grant,'another-invitation',key.signIn(origins[1],challenge))).toMatch(/^device\//);
   } finally { for (const store of stores) store.close(); }
 });

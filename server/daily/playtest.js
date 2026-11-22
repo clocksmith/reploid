@@ -91,7 +91,7 @@ export async function openPlaytest({config, configDirectory, values, staticRoot}
     || new Set(names).size !== names.length) throw Error('Choose up to 128 distinct, simple player names.');
   const gameForDay = playtestCalendar({target,backendIdentityHash,providerId:fleet ? config.providerId : null});
   const store = createDailyStore({path:join(directory,'playtest.sqlite'), mode:'playtest',hostId:'private-playtest',hostDailyCap:config.hostDailyCap ?? 24});
-  let opening, passkeys;
+  let opening, deviceKeys;
   const run = async input => {
     if (!opening) {
       opening = (fleet ? import('./fleet.js').then(({openDailyFleet}) => openDailyFleet({configFile:resolve(configDirectory,fleet),
@@ -105,12 +105,12 @@ export async function openPlaytest({config, configDirectory, values, staticRoot}
   };
   try {
     if (!identity) {
-      const {openDailyPasskeys} = await import('./passkeys.js');
-      passkeys = openDailyPasskeys({file:join(directory,'passkeys.sqlite'),origin});
+      const {openDailyDeviceKeys} = await import('./device-keys.js');
+      deviceKeys = openDailyDeviceKeys({file:join(directory,'devices.sqlite'),origin});
     }
-    const app = createDailyApp({store,gameForDay,run,identity,passkeys,circleName:config.circleName ?? 'Private playtest',mode:'playtest',
+    const app = createDailyApp({store,gameForDay,run,identity,deviceKeys,circleName:config.circleName ?? 'Private playtest',mode:'playtest',
       evidenceKind:fleet ? 'fleet-receipt' : 'local-doppler',origin,staticRoot,timeoutMs:120_000});
     const links = await privatePlayerLinks({store,directory,origin,names,expiresAt:Date.now()+7*86400_000});
-    return {app, port, links, async close() { try { if (opening) await (await opening).close(); } finally { store.close(); } }};
-  } catch (error) {passkeys?.close();store.close(); throw error;}
+    return {app, port, links, async close() { try { if (opening) await (await opening).close(); } finally { deviceKeys?.close(); store.close(); } }};
+  } catch (error) {deviceKeys?.close();store.close(); throw error;}
 }

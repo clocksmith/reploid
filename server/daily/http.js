@@ -13,7 +13,7 @@ const problems = {
   'needs-invite': [403, 'Open the circle link from its host to play.'],
   'invalid-invite': [403, 'This circle invitation has expired or was revoked. Ask its host for a new link.'],
   'session-storage': [401, 'Your browser could not retain this circle’s secure sign-in cookie. Allow partitioned cookies for this site and try again. Your draft is still here.'],
-  'passkey-failed': [401, 'Passkey verification failed. Try signing in again.'],
+  'sign-in-failed': [401, 'Sign-in did not work. Try again. Your draft is still here.'],
   'sign-in': [401, 'Sign in to play in this circle. Your draft is still here.'],
   'host-full': [429, 'The host has reached its daily turn limit.'],
   'turn-limit': [429, 'You have used all three turns today.'],
@@ -42,7 +42,7 @@ const problems = {
   unavailable: [503, 'This circle is temporarily unavailable.'],
 };
 const storeProblems = {
-  passkey_rate_limit: 'rate-limit', circle_invite_required: 'invalid-invite', guest_grant_required: 'sign-in',
+  sign_in_rate_limit: 'rate-limit', circle_invite_required: 'invalid-invite', guest_grant_required: 'sign-in',
   host_daily_limit: 'host-full', daily_attempt_limit: 'turn-limit', invalid_request_key: 'invalid-request',
   request_key_conflict: 'request-conflict', challenge_closed: 'day-closed', invalid_share: 'invalid-share',
   unknown_attempt: 'unknown-attempt', winning_attempt_required: 'winning-attempt-required',
@@ -87,7 +87,7 @@ function cookieOptions(req, origin, path = '/') {
     : { httpOnly:true, secure:(origin ?? req.get('origin')).startsWith('https:'), sameSite:'strict', path };
 }
 const externalRoutes = new Map([
-  ['/today','GET'], ['/auth/passkey/start','POST'], ['/auth/passkey/finish','POST'], ['/attempt','POST'], ['/share','POST'],
+  ['/today','GET'], ['/auth/device/start','POST'], ['/auth/device/finish','POST'], ['/attempt','POST'], ['/share','POST'],
 ]);
 function ownAttempt(attempt) {
   const { id, day, status, prompt, words, characters, attemptNumber, shareId, allowReveal, output, won, receiptDigest } = attempt;
@@ -114,11 +114,11 @@ function authLimits(clock) {
 }
 
 export function createDailyApp({ store, gameForDay, run, identity, circleName, hostGuideUrl = '/host.html',
-  clock = Date.now, staticRoot, origin, mode = 'ranked', evidenceKind, passkeys, hostGrants = false, publicInvite, trustedFrontends = new Map(), sharedFull = () => false, recipientName = circleName, relayName, timeoutMs = 60_000 }) {
+  clock = Date.now, staticRoot, origin, mode = 'ranked', evidenceKind, deviceKeys, hostGrants = false, publicInvite, trustedFrontends = new Map(), sharedFull = () => false, recipientName = circleName, relayName, timeoutMs = 60_000 }) {
   if (!['ranked','playtest'].includes(mode) || (store.mode ?? 'ranked') !== mode) throw Error('Use a separate matching score database for this mode.');
   const playtest = mode === 'playtest';
   let authMode = 'email';
-  if (passkeys) authMode = 'passkey';
+  if (deviceKeys) authMode = 'device';
   else if (playtest && !identity) authMode = 'host-grant';
   let expectedOrigin;
   if (origin) {
@@ -133,10 +133,10 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
   if (!(trustedFrontends instanceof Map) || trustedFrontends.size > 1) throw Error('Configure one exact trusted game frontend.');
   for (const [frontend, config] of trustedFrontends) {
     const url = new URL(frontend);
-    if (playtest || !expectedOrigin?.startsWith('https:') || !publicInvite || !passkeys || url.origin !== frontend
+    if (playtest || !expectedOrigin?.startsWith('https:') || !publicInvite || !deviceKeys || url.origin !== frontend
       || url.protocol !== 'https:' || url.origin === expectedOrigin || url.hostname.includes('*') || loopback(url.hostname)
-      || !config?.passkeys || config.passkeys === passkeys || typeof config.passkeys.start !== 'function' || typeof config.passkeys.finish !== 'function') {
-      throw Error('A trusted frontend needs its own exact HTTPS passkey origin and a public ranked circle.');
+      || !config?.deviceKeys || config.deviceKeys === deviceKeys || typeof config.deviceKeys.start !== 'function' || typeof config.deviceKeys.finish !== 'function') {
+      throw Error('Each trusted frontend needs its own exact HTTPS origin for device keys and a public ranked circle.');
     }
   }
   const app = express();
@@ -144,7 +144,7 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
   app.set('query parser', 'simple');
   const limitAuth = authLimits(clock);
   let busy = false;
-  // Tab sessions exist only for the configured public origin when WebAuthn succeeded
+  // Tab sessions exist only for the configured public origin when a device key signed in
   // but the browser withheld its partitioned cookie. The alias never leaves this audience.
   const tabSessions = new Map();
   function issueTab(req, grant, invitation, expires) {
@@ -275,29 +275,29 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
       return session(res, req, grant, Math.min(credential.expiresAt, invitation.expiresAt));
     }));
   }
-  if (passkeys) {
-    const ceremonyCookie = req => req.dailyFrontend ? '__Host-reploid_daily_passkey' : 'reploid_daily_passkey';
-    app.post('/api/auth/passkey/start',route(async (req,res) => {
-      const {action,tabFallback} = fields(req,['action'],req.dailyFrontend ? ['tabFallback'] : []);
-      if ((tabFallback !== undefined && tabFallback !== true) || !['login','register'].includes(action)) throw new PublicProblem('invalid-request');
+  if (deviceKeys) {
+    const ceremonyCookie = req => req.dailyFrontend ? '__Host-reploid_daily_device' : 'reploid_daily_device';
+    app.post('/api/auth/device/start',route(async (req,res) => {
+      const {tabFallback} = fields(req,[],req.dailyFrontend ? ['tabFallback'] : []);
+      if (tabFallback !== undefined && tabFallback !== true) throw new PublicProblem('invalid-request');
       const invite = inviteFor(req);
-      const verifier = req.dailyFrontend?.passkeys ?? passkeys;
-      const {grant,options} = await verifier.start(action,invite.id);
-      res.cookie(ceremonyCookie(req),grant,{...cookieOptions(req,expectedOrigin,'/api/auth/passkey'),maxAge:120000});
-      res.json(tabFallback ? {options,ceremony:grant} : {options});
+      const verifier = req.dailyFrontend?.deviceKeys ?? deviceKeys;
+      const {grant,challenge} = await verifier.start(invite.id);
+      res.cookie(ceremonyCookie(req),grant,{...cookieOptions(req,expectedOrigin,'/api/auth/device'),maxAge:120000});
+      res.json(tabFallback ? {challenge,ceremony:grant} : {challenge});
     }));
-    app.post('/api/auth/passkey/finish',route(async (req,res) => {
-      const {response,ceremony} = fields(req,['response'],req.dailyFrontend ? ['ceremony'] : []);
+    app.post('/api/auth/device/finish',route(async (req,res) => {
+      const {publicKey,signature,ceremony} = fields(req,['publicKey','signature'],req.dailyFrontend ? ['ceremony'] : []);
       if (ceremony !== undefined && (typeof ceremony !== 'string' || !/^[\w-]{43}$/.test(ceremony))) throw new PublicProblem('invalid-request');
       const token = readCookie(req,ceremonyCookie(req));
       const invite = inviteFor(req);
-      res.clearCookie(ceremonyCookie(req),cookieOptions(req,expectedOrigin,'/api/auth/passkey'));
+      res.clearCookie(ceremonyCookie(req),cookieOptions(req,expectedOrigin,'/api/auth/device'));
       if (req.dailyFrontend && !token && !ceremony) throw new PublicProblem('session-storage');
-      if (token && ceremony && token !== ceremony) throw new PublicProblem('passkey-failed');
-      const verifier = req.dailyFrontend?.passkeys ?? passkeys;
+      if (token && ceremony && token !== ceremony) throw new PublicProblem('sign-in-failed');
+      const verifier = req.dailyFrontend?.deviceKeys ?? deviceKeys;
       let subject;
-      try {subject = await verifier.finish(token ?? ceremony,invite.id,response);}
-      catch {throw new PublicProblem('passkey-failed');}
+      try {subject = await verifier.finish(token ?? ceremony,invite.id,{publicKey,signature});}
+      catch {throw new PublicProblem('sign-in-failed');}
       const useTab = req.dailyFrontend && !token && ceremony;
       const expiresAt = Math.min(invite.expiresAt,clock()+(useTab ? tabLifetime : 30*86400_000));
       const grant = store.authorizeGuest({subject,expiresAt});
