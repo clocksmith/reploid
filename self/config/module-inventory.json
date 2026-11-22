@@ -4279,7 +4279,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:f736daa0686af6d422393de52ba23089b8874f3305ccfad72eb5ddcc867542c5",
+      "sha256": "sha256:7bf578cd05ddbb446db555e84c09ef7d01057cb9c973967afe31e6672c9c4628",
       "imports": [
         "./attachments.js",
         "./interface-icons.js"
@@ -4329,7 +4329,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:d9dbcacea2ec3f2b27be0f4458763856ce187ca2e4ae50cdd70c18edc83219ef",
+      "sha256": "sha256:22985626ecc35d67193dd6276fa5722355d0e0f6323d78c56271b1ea768c4eb6",
       "imports": []
     },
     {

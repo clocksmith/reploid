@@ -144,3 +144,27 @@ it('states how many computers serve a shared whole model, and nothing for a dist
   expect(document.querySelector('input[value="two"]').closest('label').querySelector('[data-choice-status]').textContent).toContain('2 computers');
   choices.dispose();
 });
+
+it('folds models nobody can run under their count, but never the current choice or the whole list', () => {
+  const gone = [{ id: 'gone-a', name: 'Gone A', availability: 'unavailable' }, { id: 'gone-b', name: 'Gone B', availability: 'unavailable' }];
+  const select = document.querySelector('select'), choices = bindModelChoices(select);
+  const show = (list, value) => { updateModelSelect(select, list, { grouped: true, value }); choices.update(list, { grouped: true }); };
+  show([...models, ...gone], 'ready');
+  const folded = document.querySelector('[data-choice-group="unavailable"]');
+  expect(folded.tagName).toBe('DETAILS');
+  expect(folded.open).toBe(false);
+  expect(folded.querySelector('summary').textContent).toBe('Unavailable · 2');
+  // Usable groups are plain sections, always shown.
+  expect(document.querySelector('[data-choice-group="shared"]').tagName).toBe('DIV');
+  // The chosen model is never hidden, and the count follows the list.
+  show([...models, ...gone, { id: 'gone-c', name: 'Gone C', availability: 'unavailable' }], 'gone-b');
+  expect(folded.open).toBe(true);
+  expect(folded.querySelector('summary').textContent).toBe('Unavailable · 3');
+  choices.dispose();
+  // With nothing else to show, the unavailable models are the list.
+  document.body.innerHTML = '<select></select>';
+  const only = document.querySelector('select'), bare = bindModelChoices(only);
+  updateModelSelect(only, gone, { grouped: true }); bare.update(gone, { grouped: true });
+  expect(document.querySelector('[data-choice-group="unavailable"]').open).toBe(true);
+  bare.dispose();
+});

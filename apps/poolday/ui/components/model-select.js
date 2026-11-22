@@ -148,12 +148,20 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
       const parents = new Map();
       for (const [sectionIndex, section] of sections.entries()) {
         let parent = grouped ? group.querySelector(`[data-choice-group="${section.id}"]`) : group;
+        // Models nobody can run right now stay listed, folded under their count, so the usable ones lead.
+        const folded = grouped && /unavailable$/.test(section.id);
         if (!parent) {
-          parent = document.createElement('div'); parent.dataset.choiceGroup = section.id;
+          parent = document.createElement(folded ? 'details' : 'div'); parent.dataset.choiceGroup = section.id;
           parent.className = 'pool-stack pool-gap-xs'; parent.setAttribute('role', 'group');
           parent.setAttribute('aria-label', section.label);
-          const heading = document.createElement('p'); heading.className = 'pool-caption pool-muted';
+          const heading = document.createElement(folded ? 'summary' : 'p'); heading.className = 'pool-caption pool-muted';
+          heading.dataset.choiceGroupLabel = '';
           heading.textContent = section.label; parent.append(heading); group.append(parent);
+        }
+        if (folded) {
+          parent.querySelector('[data-choice-group-label]').textContent = `${section.label} · ${section.models.length}`;
+          // Never fold away the current choice, and never leave the list looking empty.
+          if (sections.length === 1 || section.models.some(lead => byLead.get(lead).members.some(entry => entry.ids.includes(select.value)))) parent.open = true;
         }
         parents.set(section.id, parent);
         if (grouped) {
