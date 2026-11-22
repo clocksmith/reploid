@@ -35,7 +35,7 @@ Open `open-owner.html` in the printed private directory to play with the operato
 
 ## Rules
 
-- Three submitted turns per verified account per UTC day across cookies, browsers and invitations. The host also sets a finite daily turn budget. A failed admission before dispatch returns the turn. An ambiguous dispatch keeps its place in the budget; retrying the same submission key retrieves its record.
+- Five submitted turns per verified account per UTC day across cookies, browsers and invitations. The host also sets a finite daily turn budget. A failed admission before dispatch returns the turn. An ambiguous dispatch keeps its place in the budget; retrying the same submission key retrieves its record.
 - Players see the forbidden words before play. Prompts can use any language. Translations, riddles and analogies are legal. For banned words, the judge folds case, accents and Unicode-to-Latin lookalikes and detects adjacent fragments. It rejects invisible formatting and controls. For “I resign.” the explicit ban also covers resigns, resigned, resigning, resignation and resignations. “I” is forbidden as a standalone word. For the word count, apply Unicode NFKC and count consecutive runs of letters or digits. Hyphens and apostrophes separate words.
 - Prompts have a 240-character limit. Trim and normalize to NFC before counting Unicode code points. Rank a guest’s best winning submission by fewest words, then fewest characters. Equal scores share rank.
 - The judge compares the entire recorded answer after trimming surrounding whitespace, normalizing to NFC, lowercasing and removing one final punctuation character from each side. Extra words, extra internal spaces and a second trailing punctuation mark count.

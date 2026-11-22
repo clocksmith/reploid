@@ -8,6 +8,8 @@ export const PROFILE = Object.freeze({
   system: "Answer the user's prompt directly. Return only the requested answer, without explanation.",
   maxOutputTokens: 16, temperature: 0, topK: 1, topP: 1, thinking: false, context: 'fresh',
 });
+/** Submitted turns per verified player per UTC day: room to learn from each answer without brute-force search. */
+export const TURNS_PER_DAY = 5;
 export const RULE_VERSION = 'reploid.daily-english/v1';
 
 export function normalizeAnswer(output) {

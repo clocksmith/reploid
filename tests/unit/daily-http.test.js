@@ -17,7 +17,7 @@ describe('daily circle HTTP boundary', () => {
   const clock = () => time;
   beforeEach(() => {
     time = Date.parse(firstDay + 'T12:00:00Z');
-    store = createDailyStore({ path: ':memory:', hostId: 'test-host', hostDailyCap: 5, now: clock });
+    store = createDailyStore({ path: ':memory:', hostId: 'test-host', hostDailyCap: 7, now: clock });
     invite = store.circleInvite({ expiresAt: time + 4 * 86400000 });
     game = { qualified: true, target: 'Fine.', banned: ['fine'], modelId:'local-model', ruleVersion:'v1', digest:'pin-1', solution:'do not disclose' };
     runner = vi.fn(async ({ onDispatch }) => { onDispatch(); return { output: 'FINE!', receipt: { signature:'private-provider-evidence' } }; });
@@ -78,7 +78,7 @@ describe('daily circle HTTP boundary', () => {
     expect((await turn(alice, 'a', {prompt:'fine'})).status).toBe(400);
     expect((await turn(alice, 'a', {won:true})).status).toBe(400);
     const first = await turn(alice, 'a');
-    expect(first).toMatchObject({ status:201, json:{ created:true, remaining:2, attempt:{status:'completed',won:true,words:2}} });
+    expect(first).toMatchObject({ status:201, json:{ created:true, remaining:4, attempt:{status:'completed',won:true,words:2}} });
     expect(first.json.attempt.receiptDigest).toMatch(/^sha256:/); expect(JSON.stringify(first)).not.toContain('private-provider-evidence');
     expect((await turn(alice,'a')).json).toMatchObject({created:false,attempt:first.json.attempt});
     expect((await turn(alice,'a',{prompt:'try again'})).json.error).toBe('request-conflict');
@@ -94,7 +94,7 @@ describe('daily circle HTTP boundary', () => {
     expect(next.shareChallenge).toMatchObject({day:firstDay,target:'Fine.'}); expect(next.challenge.target).toBe('No.');
     const stale = { day:firstDay, digest:'pin-1' };
     expect((await turn(alice,'new-key', stale)).json.error).toBe('day-closed');
-    expect((await turn(alice,'a',stale)).json).toMatchObject({created:false,attempt:{id:first.json.attempt.id},remaining:2});
+    expect((await turn(alice,'a',stale)).json).toMatchObject({created:false,attempt:{id:first.json.attempt.id},remaining:4});
     expect((await turn(alice,'a',{...stale,prompt:'a different request'})).json.error).toBe('request-conflict');
     expect(store.capacity(next.challenge.day).used).toBe(0);
     expect(next.share).toEqual(published); expect(next.yesterdayWinners).toEqual([{prompt:'Express agreement',words:2,characters:17}]);
@@ -111,10 +111,11 @@ describe('daily circle HTTP boundary', () => {
     expect((await turn(alice,'two')).json.error).toBe('busy'); expect(store.capacity(firstDay).used).toBe(1);
     finish.resolve(); expect((await one).status).toBe(201); expect((await turn(alice,'two')).status).toBe(201);
     const newCookie = await login(); expect(newCookie).not.toBe(alice); expect((await turn(newCookie,'three')).status).toBe(201);
-    expect((await turn(newCookie,'four')).json.error).toBe('turn-limit');
+    expect((await turn(newCookie,'four')).status).toBe(201); expect((await turn(newCookie,'five')).status).toBe(201);
+    expect((await turn(newCookie,'six')).json.error).toBe('turn-limit');
     const bob = await login('bob@example.test'); await turn(bob,'one'); await turn(bob,'two');
     expect((await state(bob)).json.availability).toBe('host-full'); expect((await turn(bob,'three')).json.error).toBe('host-full');
-    expect((await turn(bob,'one')).status).toBe(200); expect(runner).toHaveBeenCalledTimes(5);
+    expect((await turn(bob,'one')).status).toBe(200); expect(runner).toHaveBeenCalledTimes(7);
   });
 
   it('keeps possibly dispatched turns and frees definitely declined ones, blocks stale qualifications and revoked invites', async () => {

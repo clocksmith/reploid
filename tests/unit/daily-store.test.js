@@ -39,8 +39,9 @@ describe('daily game ledger', () => {
     const other = open();
     try {
       other.reserve({ token: second.token, invite: circle.token, day, key: '2', prompt: 'try', words: 1 });
-      submit(alice, '3');
-      expect(() => other.reserve({ token: second.token, invite: circle.token, day, key: '4', prompt: 'try', words: 1 }))
+      // The cap is TURNS_PER_DAY (5) across credentials, clients and restarts.
+      submit(alice, '3'); submit(alice, '4'); submit(alice, '5');
+      expect(() => other.reserve({ token: second.token, invite: circle.token, day, key: '6', prompt: 'try', words: 1 }))
         .toThrow('daily_attempt_limit');
     } finally { other.close(); }
     const done = finish(first.attempt);
@@ -48,7 +49,7 @@ describe('daily game ledger', () => {
     expect(() => finish(first.attempt, false)).toThrow('result_conflict');
     store.close(); store = open();
     expect(submit(second, '1')).toEqual({ created: false, attempt: done });
-    expect(store.history(second.token, day)).toHaveLength(3);
+    expect(store.history(second.token, day)).toHaveLength(5);
     expect(() => open({ hostId: 'different-host' })).toThrow('store_host_mismatch');
     expect(() => open({ mode:'playtest' })).toThrow('store_mode_mismatch');
     const file = readFileSync(path);

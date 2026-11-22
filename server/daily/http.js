@@ -3,7 +3,7 @@ import { dailyPages, poolImports, poolStyles } from './public-assets.js';
 import { createHmac, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolveServedFile } from '../browser-roots.js';
-import { dayUTC, judgePrompt, scoreOutput } from './rules.js';
+import { TURNS_PER_DAY, dayUTC, judgePrompt, scoreOutput } from './rules.js';
 
 const COOKIE = 'reploid_daily_guest';
 const commonTokens = resolveServedFile('/styles/poolday/tokens.css');
@@ -16,7 +16,7 @@ const problems = {
   'sign-in-failed': [401, 'Sign-in did not work. Try again. Your draft is still here.'],
   'sign-in': [401, 'Sign in to play in this circle. Your draft is still here.'],
   'host-full': [429, 'The host has reached its daily turn limit.'],
-  'turn-limit': [429, 'You have used all three turns today.'],
+  'turn-limit': [429, `You have used all ${TURNS_PER_DAY} turns today.`],
   busy: [503, 'The host is serving another turn. Try again shortly.'],
   staged: [503, 'Ranked play is waiting for host qualification.'],
   'origin-denied': [403, 'Submit from this circle’s own page.'],
@@ -259,7 +259,7 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
       .map(({id, prompt}) => ({id, prompt})) : [];
     res.json({ mode, authMode, recipientName, relayName, ...(publicJoin ? {publicInvite:publicJoin} : {}), evidenceKind: evidenceKind ?? 'fleet-receipt', challenge, shareChallenge, revealChoices, circle: circleName, hostGuideUrl, capacity, availability, inviteValid,
       authenticated, leaderboard: (challenge?.playable || challenge?.qualified || paused) ? store.leaderboard(day) : [], yesterdayWinners: store.yesterdayWinners(),
-      history: authenticated ? store.history(token, day).map(ownAttempt) : [], share });
+      history: authenticated ? store.history(token, day).map(ownAttempt) : [], turnsPerDay: TURNS_PER_DAY, share });
   }));
 
   function session(res, req, token, expiresAt) {
@@ -338,7 +338,7 @@ export function createDailyApp({ store, gameForDay, run, identity, circleName, h
     }
     const token = tokenOf(req), invite = req.get('x-circle-invite');
     if (!store.guest(token)) throw new PublicProblem('sign-in');
-    const remaining = () => Math.max(0, 3 - store.history(token, day).length);
+    const remaining = () => Math.max(0, TURNS_PER_DAY - store.history(token, day).length);
     const replay = attempt => {
       const pending = ['pending', 'dispatched'].includes(attempt.status);
       return res.status(pending ? 202 : 200).json({ attempt: ownAttempt(attempt), created: false, remaining: remaining() });

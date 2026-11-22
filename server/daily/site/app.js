@@ -74,13 +74,15 @@ if (playerPass) {
 }
 const incoming = pageUrl.searchParams.get('share');
 let today, retry, deferredTurn, selectedAttempt, submitting = false, sentCode = false;
+// The server states the daily turn allowance; 5 matches the current rule if an older payload omits it.
+const turnsPerDay = () => Number.isSafeInteger(today?.turnsPerDay) && today.turnsPerDay > 0 ? today.turnsPerDay : 5;
 const feedback = message => { el('feedback').textContent = message; };
 const words = n => n + (n === 1 ? ' word' : ' words');
 const score = record => words(record.words) + ' · ' + record.characters + ' chars';
 const challengeNumber = day => day.replaceAll('-', '');
 function scorecard(record) {
   return 'Reploid Daily #' + challengeNumber(record.day) + ' · Got it in ' + words(record.words)
-    + ' · ' + record.attemptNumber + '/3 tries';
+    + ' · ' + record.attemptNumber + '/' + turnsPerDay() + ' tries';
 }
 function dareLink(id) {
   const url = new URL('/',location.origin);
@@ -118,7 +120,7 @@ function updateForm() {
   const characters = [...value].length;
   el('count').textContent = characters > 220 ? characters + '/240 characters' : words(count);
   el('submit').disabled = submitting || !today || today.availability !== 'ready'
-    || today.history.length >= 3 || count === 0 || characters > 240;
+    || today.history.length >= turnsPerDay() || count === 0 || characters > 240;
   el('submit').textContent = submitting ? 'Running…' : 'Submit prompt';
 }
 function showShare(attempt) {
@@ -175,7 +177,7 @@ function renderScoreboard() {
 }
 function render() {
   const {availability,challenge,share,shareChallenge,history,authenticated,authMode} = today;
-  const remaining = Math.max(0,3 - history.length);
+  const remaining = Math.max(0, turnsPerDay() - history.length);
   const playable = challenge?.playable ?? challenge?.qualified;
   el('date').textContent = challenge?.day ? new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(challenge.day+'T12:00:00Z')) : '';
   el('mode').textContent = today.mode === 'playtest' ? 'Playtest' : '';
@@ -184,7 +186,7 @@ function render() {
   el('banned').textContent = challenge?.banned.length ? 'Without ' + challenge.banned.map(w => '“' + w + '”').join(', ') + '.' : '';
   el('model').textContent = challenge?.modelId || 'No model assigned.';
   let tries = playable ? '3 tries today' : '';
-  if (authenticated) tries = remaining + ' of 3 tries left';
+  if (authenticated) tries = remaining + ' of ' + turnsPerDay() + ' tries left';
   el('tries').textContent = tries;
   el('disclosure').textContent = 'Readable by ' + (today.relayName ? today.relayName + ' and ' : '') + (today.recipientName || today.circle) + '.';
   el('attempt-form').hidden = !playable || !today.inviteValid || !remaining || availability !== 'ready';

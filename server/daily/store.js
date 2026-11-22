@@ -1,4 +1,5 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { TURNS_PER_DAY } from './rules.js';
 import { closeSync, constants, fstatSync, mkdirSync, openSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -181,7 +182,7 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
       }
       const prior = db.prepare('SELECT via FROM daily_attempts WHERE guest = ? AND day = ? ORDER BY rowid')
         .all(guestId, day);
-      requireValue(prior.length < 3, 429, 'daily_attempt_limit');
+      requireValue(prior.length < TURNS_PER_DAY, 429, 'daily_attempt_limit');
       const { used } = db.prepare('SELECT COUNT(*) AS used FROM daily_attempts WHERE day = ?').get(day);
       requireValue(used < hostDailyCap, 429, 'host_daily_limit');
       const id = randomUUID();
