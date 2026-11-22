@@ -66,6 +66,29 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     return thread?.permissions?.sharingScope === 'local' || privacy.placement === 'local-only' || privacy.recipients?.kind === 'none'
       ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
   };
+  // A paired, online desktop is the default destination for a new conversation: only that desktop may
+  // receive the prompt, and the composer picks the model it reports ready. A manual policy choice wins.
+  const applyPairedDesktopDefault = state => {
+    const owner = state.ownerPairing;
+    if (state.activeThread || viewState.privacyTouched || owner?.status !== 'online' || !owner.hostParticipantId) return;
+    const current = viewState.privacy;
+    if (current?.recipients?.kind !== 'named' || current.recipients.ids.length !== 1 || current.recipients.ids[0] !== owner.hostParticipantId) {
+      viewState.privacy = createExecutionPolicy({ placement: 'network-allowed',
+        recipients: { kind: 'named', ids: [owner.hostParticipantId] }, computation: 'plaintext' });
+      if (executionLocation === 'local') executionLocation = viewState.executionLocation = 'auto';
+    }
+    const ready = typeof owner.readyModel === 'string' ? owner.readyModel : owner.readyModel?.id;
+    if (!chosenModel && ready) {
+      const model = (state.models || []).find(item => item.id === ready || modelKey(item) === ready);
+      if (model) chosenModel = viewState.chosenModel = model;
+    }
+  };
+  const pairedDesktopSummary = state => {
+    const owner = state.ownerPairing, privacy = explicitPrivacy(state);
+    if (owner?.status !== 'online' || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
+      || privacy.recipients.ids[0] !== owner.hostParticipantId) return null;
+    return `Sending to ${owner.hostLabel}. ${owner.disclosure?.notice || ''}`.trim();
+  };
   const recoveryAlternative = state => recoverySharedModel(state, modelSelect.value,
     effectiveLocation(state), explicitPrivacy(state));
   const matchesRecovery = state => {
@@ -254,6 +277,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
+    applyPairedDesktopDefault(state);
     if (selectedId !== state.selectedId) {
       pickerRevision++;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
@@ -367,7 +391,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const disclosure = find('[data-prompt-disclosure]');
     disclosure.hidden = busy || !!thread?.closed;
+    const pairedSummary = pairedDesktopSummary(state);
     if (policy.computation !== 'plaintext') disclosure.textContent = 'The required computation mode is unavailable.';
+    else if (pairedSummary) disclosure.textContent = pairedSummary;
     else if (policy.recipients.kind === 'none' && !usable) disclosure.textContent = 'No input will be sent to network recipients.';
     else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'This device reads your prompt for inference.';
     else if (policy.recipients.kind === 'named') disclosure.textContent = 'Only named recipients can receive input. They can read what they receive.';
@@ -715,6 +741,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     applyingPrivacy = apply.disabled = true;
     try {
       const privacy = readPrivacyControls(privacyNode);
+      viewState.privacyTouched = true;
       if (state.activeThread) {
         await session.setExecutionPrivacy(state.activeThread.id, privacy);
         if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none'
