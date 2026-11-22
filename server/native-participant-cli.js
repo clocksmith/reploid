@@ -30,7 +30,7 @@ import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 import { openOwnerPairing } from './circles/owner-pairing.js';
-import { ownerPairingRoomMarker } from '../packages/reploid/src/transport/index.js';
+import { ownerPairingRoomId, ownerPairingRoomMarker } from '../packages/reploid/src/transport/index.js';
 
 export async function main({ runOnce } = {}) {
   const { values } = parseArgs({ options: participantOptions });
@@ -178,7 +178,9 @@ export async function main({ runOnce } = {}) {
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId,
-    roomToken: roomToken || (values['owner-pairing'] && values.room ? ownerPairingRoomMarker(values.room) : bootstrap.publicJoinMarker),
+    // Only a nondefault pairing room gets the routing marker; any other room keeps the public marker as before.
+    roomToken: roomToken || (values['owner-pairing'] && values.room && values.room !== bootstrap.publicRoomId && ownerPairingRoomId(values.room)
+      ? ownerPairingRoomMarker(values.room) : bootstrap.publicJoinMarker),
     maxSupplyBytes, supplyTo, cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
     ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
