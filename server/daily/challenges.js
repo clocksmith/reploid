@@ -1,4 +1,5 @@
 import { createHash, createPublicKey, verify } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { canonicalize, canonicalizeWith } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { REVERSE_PROMPT_GENERATION_HASH } from '../../shared/infrastructure/reverse-prompt-profile.js';
 import { PROFILE, RULE_VERSION, bannedFor, dayUTC, judgePrompt, scoreOutput } from './rules.js';
@@ -10,6 +11,9 @@ const dopplerJson = canonicalizeWith((a, b) => a.localeCompare(b));
 export const dopplerHash = value => hash(dopplerJson(value));
 const same = (a, b) => a !== undefined && b !== undefined && canonicalize(a) === canonicalize(b);
 const peer = /^peer:[a-f0-9]{24}$/;
+// The DopplerX release Reploid pins; qualifications must come from that exact runtime (its archive is PROFILE.runtimeArchive).
+const PINNED_RUNTIME = Object.freeze({package: 'dopplerx', surface: 'node',
+  version: JSON.parse(readFileSync(new URL('../../shared/config/doppler-package.json', import.meta.url), 'utf8')).version});
 const digest = /^sha256:[a-f0-9]{64}$/;
 
 function validatedDay(value) {
@@ -53,7 +57,7 @@ function pinnedRuntime(evidence) {
   const {runtimeProfile, generationConfig, backendIdentity} = evidence;
   const model = runtimeProfile?.model;
   return runtimeProfile?.schema === 'doppler_runtime_profile/v1'
-    && same(runtimeProfile.runtime, {package: 'dopplerx', version: '0.1.5', surface: 'node'})
+    && same(runtimeProfile.runtime, PINNED_RUNTIME)
     && model?.modelId === PROFILE.modelId && model.manifestHash === PROFILE.modelIdentity
     && model.activeAdapter == null && model.activeAdapterId == null && model.activeAdapterDigest == null
     && same(runtimeProfile.backendIdentity, backendIdentity)

@@ -6,6 +6,8 @@ import {canonicalize} from '../../packages/reploid/src/artifacts/canonical-json.
 import {CALENDAR_SCHEMA, QUALIFICATION_SCHEMA, createDailyCalendar, dopplerHash} from '../../server/daily/challenges.js';
 import {PROFILE, RULE_VERSION} from '../../server/daily/rules.js';
 import {REVERSE_PROMPT_GENERATION} from '../../shared/infrastructure/reverse-prompt-profile.js';
+import {readFileSync} from 'node:fs';
+const PINNED_VERSION = JSON.parse(readFileSync(new URL('../../shared/config/doppler-package.json', import.meta.url), 'utf8')).version;
 
 const key = generateKeyPairSync('ed25519');
 const calendarPublicKey = key.publicKey.export({type:'spki',format:'pem'});
@@ -22,7 +24,7 @@ const generationConfig = {...REVERSE_PROMPT_GENERATION, suppressTokenIds:[],gree
   speculation:{mode:'self',tokens:1,verify:'greedy',threshold:null,rollbackOnReject:true},seed:null};
 function attempt(vendor, prompt, outputText = target) {
   const backendIdentity = backend(vendor);
-  const runtimeProfile = {schema:'doppler_runtime_profile/v1',runtime:{package:'dopplerx',version:'0.1.5',surface:'node'},
+  const runtimeProfile = {schema:'doppler_runtime_profile/v1',runtime:{package:'dopplerx',version:PINNED_VERSION,surface:'node'},
     model:{modelId:PROFILE.modelId,manifestHash:PROFILE.modelIdentity,activeAdapter:null,activeAdapterId:null,activeAdapterDigest:null},backendIdentity};
   const transcript = {schema:'doppler_generation_transcript/v1',outputText,tokenIds:[1,2]};
   return {target,prompt,reusedPrefixTokens:0, completion:{schema:'doppler.generation-completion/v1',stopReason:'stop-token',
