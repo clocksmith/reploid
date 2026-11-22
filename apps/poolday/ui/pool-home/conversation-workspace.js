@@ -288,6 +288,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         || explicitPrivacy(snapshot).recipients.kind === 'none'),
       canDownload: !!inspector.downloadModel, destination: pickerChoice || destinationKey(snapshot),
       locked: lockedDestination(snapshot) });
+    // Opened by Send, the sheet's button sends the waiting message; it says so instead of Done.
+    const commit = find('[data-change-model]');
+    if (sendAfterDestination && commit.textContent === 'Done') commit.textContent = 'Send';
     const node = find('[data-local-fit]');
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
       && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
@@ -409,7 +412,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (state.ownerPairing?.status === 'offline' && state.ownerPairing.hostLabel && pickerChoice !== 'device'
         && phase !== 'paused' && phase !== 'searching') {
         statusText = `${state.ownerPairing.hostLabel} is offline. Open Reploid on ${state.ownerPairing.hostLabel}.`;
-      } else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'Model unavailable here.';
+      } else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue
+        // Before any choice is made, a shared model that is ready is a way to an answer, not a dead end. Send asks where to run.
+        || (!thread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state)
+          && modelExecutionState(selectedModel, 'network').usable ? 'Not on this device. A public computer can answer.' : 'Model unavailable here.');
       else if (phase === 'paused') statusText = 'Network paused.';
       else if (phase === 'interrupted') statusText = 'Connection interrupted.';
       else if (phase === 'searching') statusText = 'Finding computers…';
