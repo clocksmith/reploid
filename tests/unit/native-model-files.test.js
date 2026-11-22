@@ -385,6 +385,23 @@ it('fills a whole-model directory from an authorized peer and drops the duplicat
   f.owners[1].stopSupply();
   expect(await f.owners[0].fillWholeModel(f.model)).toEqual({ complete: true, filled: false });
 });
+it('adopts a directory that still holds the manifest of the name this model replaced', async () => {
+  // Recorded on a provider upgraded across a model rename: its weights folder held the earlier manifest, a
+  // different size, and reading that file as this model's manifest stopped the load before adoption could run.
+  const f = await fixture();
+  const earlier = Buffer.from(JSON.stringify({ modelId: 'native-fixture-earlier-name', hashAlgorithm: 'sha256',
+    shards: [{ filename: 'weights.bin', size: 8, hash: hash(Buffer.concat(f.chunks)) }] }));
+  const model = { ...f.model, supersedes: [{ id: 'native-fixture-earlier-name', identity: 'sha256:' + hash(earlier) }] };
+  await fs.writeFile(path.join(f.directories[0], 'manifest.json'), earlier);
+  await fs.rm(path.join(f.directories[0], 'pieces.json'));
+  await fs.writeFile(path.join(f.directories[0], 'weights.bin'), Buffer.concat(f.chunks));
+  await f.share();
+  const result = await f.owners[0].fillWholeModel(model);
+  // The weights already present are kept after their hash is checked; only metadata is replaced.
+  expect(result).toMatchObject({ filled: true, fetchedPieces: 0 });
+  expect(hash(await fs.readFile(path.join(f.directories[0], 'manifest.json')))).toBe(model.identity.slice(7));
+  expect(await fs.readFile(path.join(f.directories[0], 'weights.bin'))).toEqual(Buffer.concat(f.chunks));
+});
 function fakeOrigin(bytesFor, { corrupt = false } = {}) {
   const requests = [];
   const fetch = async (url, init) => {

@@ -169,7 +169,12 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const readAvailableMetadata = async (file, signal) => {
     signal.throwIfAborted(); let bytes = await cache.get(file);
     // Capsule metadata paths are logical names, not paths inside the weight directory.
-    if (!bytes && /^[a-zA-Z0-9_.-]+$/.test(file.path)) bytes = await readLocal(file.path, { signal });
+    if (!bytes && /^[a-zA-Z0-9_.-]+$/.test(file.path)) {
+      // A folder kept across a model rename still holds the earlier name's metadata under the same file names.
+      // Only bytes that are this pinned file count as available; anything else falls through to the pinned copy.
+      const local = await readLocal(file.path, { signal });
+      if (local && local.byteLength === file.sizeBytes && digest(local) === file.hash) bytes = local;
+    }
     if (!bytes && /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '')) {
       bytes = new Uint8Array(await fs.readFile(resolveServedFile(file.url)));
     }
