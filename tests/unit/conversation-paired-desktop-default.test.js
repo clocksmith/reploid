@@ -10,11 +10,11 @@ describe('Paired desktop default', () => {
 
   const setup = (ownerPairing, extra = {}) => {
     const [model] = CANONICAL_CHAT_MODELS;
-    const peers = [{ peerId: 'transport-1', model: model.id, modelIdentity: model.identity, readiness: 'ready',
+    const peers = extra.peers ?? [{ peerId: 'transport-1', model: model.id, modelIdentity: model.identity, readiness: 'ready',
       hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     const real = createChatSession({ storage: null, service: createChatTestService(),
       swarm: { getState: () => ({ consumer: { peers } }), connect: async () => {} } });
-    const inject = state => ({ ...state, ownerPairing, ...(extra.guestAccess ? { guestAccess: extra.guestAccess() } : {}) });
+    const inject = state => ({ ...state, ownerPairing, ...(extra.guestAccess ? { guestAccess: extra.guestAccess() } : {}), ...(extra.state ?? {}) });
     session = { ...real, getState: () => inject(real.getState()),
       subscribe: listener => real.subscribe(state => listener(inject(state))), ...(extra.guestJoin ? { guestJoin: extra.guestJoin } : {}) };
     root = document.createElement('div'); document.body.append(root);
@@ -36,6 +36,13 @@ describe('Paired desktop default', () => {
     expect(viewState.chosenModel?.id).toBe(model.id);
     expect(root.querySelector('[data-composer-send]').disabled).toBe(false);
     expect(root.textContent).toContain(`Sending to ${host}.`);
+  });
+
+  it('names an unreachable paired desktop and says how to bring it back, without promising to wake it', () => {
+    setup({ status: 'offline', paired: true, canSend: false, hostParticipantId: 'peer:91d1d9293ca2d973191156dc', hostLabel: 'Mars' },
+      { peers: [], state: { discoveryPhase: 'observed' } });
+    expect(root.querySelector('[data-model-status]').textContent).toBe('Mars is offline. Open Reploid on Mars.');
+    expect(root.textContent).not.toMatch(/wake/i);
   });
 
   it('leaves the default policy alone when no desktop is paired', () => {

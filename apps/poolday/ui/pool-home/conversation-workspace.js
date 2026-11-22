@@ -404,7 +404,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
           statusText = execution.status === 'busy' ? 'Waiting for capacity.' : '';
         } else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
-      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'Model unavailable here.';
+      // A paired desktop that cannot be reached: name it and say what brings it back. Nothing here can wake it.
+      // It outranks the generic local message unless the person deliberately chose this device or paused the network.
+      else if (state.ownerPairing?.status === 'offline' && state.ownerPairing.hostLabel && pickerChoice !== 'device'
+        && phase !== 'paused' && phase !== 'searching') {
+        statusText = `${state.ownerPairing.hostLabel} is offline. Open Reploid on ${state.ownerPairing.hostLabel}.`;
+      } else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'Model unavailable here.';
       else if (phase === 'paused') statusText = 'Network paused.';
       else if (phase === 'interrupted') statusText = 'Connection interrupted.';
       else if (phase === 'searching') statusText = 'Finding computers…';
