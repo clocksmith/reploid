@@ -46,6 +46,11 @@ describe('daily game ledger', () => {
       { rank: 3, words: 2, characters: 7, closeness: null },
     ]);
     expect(miss).toMatchObject({ won: false, closeness: 50 });
+    // A far miss keeps a positive fraction below one percent; even an underflowing score never becomes exactly 0.
+    const far = scored(dee, 'far', -1552, false), farthest = scored(dee, 'farthest', -9_000_000, false);
+    expect(far.closeness).toBeCloseTo(0.043, 3);
+    expect(farthest.closeness).toBeGreaterThan(0);
+    expect(farthest.closeness).toBeLessThan(1);
     // An invalid score is not stored.
     const { attempt } = submit(dee, 'e'); store.markDispatched(attempt.id);
     expect(store.complete(attempt.id, { output: 'x', won: false, receipt: { r: 1 }, score: { totalLogProbHundredths: 5, tokenCount: 2 } }).closeness).toBeNull();

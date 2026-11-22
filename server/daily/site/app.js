@@ -78,8 +78,8 @@ let today, retry, deferredTurn, selectedAttempt, submitting = false, sentCode = 
 const turnsPerDay = () => Number.isSafeInteger(today?.turnsPerDay) && today.turnsPerDay > 0 ? today.turnsPerDay : 5;
 const feedback = message => { el('feedback').textContent = message; };
 const words = n => n + (n === 1 ? ' word' : ' words');
-// A stored score is a finite log-probability, so 0 here is always a nonzero probability that rounded down.
-const closeness = record => !Number.isSafeInteger(record.closeness) ? '' : record.closeness === 0 ? 'Under 1% close' : record.closeness + '% close';
+// Below one percent the server sends the positive fraction, so an exact 0 stays distinguishable from a rounded-down score.
+const closeness = record => typeof record.closeness !== 'number' || !Number.isFinite(record.closeness) || record.closeness < 0 ? '' : record.closeness === 0 ? '0% close' : record.closeness < 1 ? 'Under 1% close' : Math.round(record.closeness) + '% close';
 const score = record => [words(record.words), record.characters + ' chars', closeness(record)].filter(Boolean).join(' · ');
 const challengeNumber = day => day.replaceAll('-', '');
 function scorecard(record) {

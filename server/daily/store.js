@@ -147,10 +147,15 @@ export function createDailyStore({ path, hostId, hostDailyCap = 100, now = Date.
     requireValue(row && row.guest === guestId, 404, 'unknown_attempt');
     return row;
   }
-  /** Geometric-mean probability per target token, as a whole percent; null when the turn was not scored. */
+  /**
+   * Geometric-mean probability per target token as a percent; null when the turn was not scored. One percent and
+   * above is a whole number. Below that the value stays a positive fraction, never 0: a stored score is a finite
+   * log-probability, so its probability is nonzero, and the page must be able to tell that from an exact zero.
+   */
   function closenessPercent(row) {
-    return Number.isSafeInteger(row.closeness) && Number.isSafeInteger(row.closeness_tokens) && row.closeness_tokens > 0
-      ? Math.round(100 * Math.exp(row.closeness / 100 / row.closeness_tokens)) : null;
+    if (!Number.isSafeInteger(row.closeness) || !Number.isSafeInteger(row.closeness_tokens) || row.closeness_tokens <= 0) return null;
+    const percent = 100 * Math.exp(row.closeness / 100 / row.closeness_tokens);
+    return Math.round(percent) >= 1 ? Math.round(percent) : Math.max(Number(percent.toPrecision(2)), Number.MIN_VALUE);
   }
   function privateAttempt(row) {
     return {
