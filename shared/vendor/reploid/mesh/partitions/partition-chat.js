@@ -60,6 +60,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
       assert(!closed && request.meshId === authority.meshId && request.model.id === selection.id
         && request.model.identity === selection.identity && samePartitionAdapters(request.model, selection)
         && request.model.partition && canonicalPartitionJson(request.model.partition) === canonicalPartitionJson(selection.partition), 'Partition chat selection mismatch');
+      const privacyBinding = await partitionPrivacyBinding(request, [selection.partition.participantA, selection.partition.participantB], selection.partition);
       if (delegated) assert(typeof authorizeRequester === 'function'
         && await authorizeRequester(request, controls.signal) === true
         && Number.isSafeInteger(request.placementGeneration) && request.placementGeneration >= 0,
@@ -72,12 +73,11 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
         threadId: request.threadId, attemptId: request.attemptId,
         ...(delegated || canonicalBinding ? { requesterId: request.participantId, placementGeneration: request.placementGeneration ?? 0 } : {}) };
       const context = canonicalBinding?.check(request.canonical, identity, controls.publication);
-      const privacyBinding = await partitionPrivacyBinding(request, [selection.partition.participantA, selection.partition.participantB], selection.partition);
       controls.signal.throwIfAborted();
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, peerId: remote.id, recipientIdentity: remote.id,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: partitionAdapterIdentities(selection),
-        operation: 'generate-partition', disclosure: 'partition-activations-and-tokens', ...selection.partition,
+        operation: 'generate-partition', privacyBinding, disclosure: 'partition-activations-and-tokens', ...selection.partition,
         expiresAt: now() + grantTtlMs,
         input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}),
           disclosure: 'Intermediate model activations and prompt token context are disclosed to the selected participant for sampling.' } });

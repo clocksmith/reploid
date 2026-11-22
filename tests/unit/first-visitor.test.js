@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -10,7 +11,8 @@ const observedDiscovery = {
 };
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); localStorage.removeItem(AUTO_DOWNLOAD_STORAGE_KEY); });
 // Legacy automatic-download preferences cannot bypass the explicit size-and-consent path.
-function fixture({ automatic = false, viewState } = {}) {
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+function fixture({ automatic = false, viewState, fresh = false } = {}) {
   localStorage.setItem(AUTO_DOWNLOAD_STORAGE_KEY, automatic ? 'on' : 'off');
   const session = createChatSession({ storage: null, service: createChatTestService(), models: [CANONICAL_CHAT_MODELS[0]] });
   cleanups.push(() => session.close());
@@ -21,10 +23,28 @@ function fixture({ automatic = false, viewState } = {}) {
     getModelDownload: vi.fn(async id => ({ id, sizeBytes: 123000000 })), downloadLocalModel: vi.fn(async () => {}),
     cancelModelDownload: vi.fn(), connect: vi.fn(async () => {}) };
   const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-  const dispose = bindConversationWorkspace(root, api, { viewState }); cleanups.push(() => { dispose(); root.remove(); });
+  const dispose = bindConversationWorkspace(root, api, { viewState: { ...(fresh ? {} : { privacy: openPolicy }), ...viewState } }); cleanups.push(() => { dispose(); root.remove(); });
   return { root, api, find: selector => root.querySelector(selector),
     publish(update) { state = { ...state, ...update }; listeners.forEach(callback => callback(state)); }, state: () => state };
 }
+it('asks once where to run before a first visitor prompt can reach a network provider', async () => {
+  const f = fixture({ fresh: true });
+  const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
+    providerIds: ['peer'], reachableProviderIds: ['peer'] };
+  f.publish({ ...observedDiscovery, models: [model] });
+  const send = f.find('[data-composer-send]');
+  // Send is available, but nothing is sent until the visitor picks a computer in the one sheet.
+  expect(send.disabled).toBe(false);
+  f.find('[data-composer-input]').value = 'First question';
+  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
+  expect(f.find('[data-model-picker]').open).toBe(true);
+  expect(f.find('[data-picker-title]').textContent).toBe('Where should this run?');
+  expect(f.find('[data-execution-choice=local]').getAttribute('aria-pressed')).toBe('true');
+  expect(f.api.connect).not.toHaveBeenCalled();
+  f.find('[data-execution-choice=network]').click();
+  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true'));
+});
+
 it('bounds the host discovery window even when signaling never connects, without acquiring anything', async () => {
   vi.useFakeTimers();
   const session = createChatSession({ storage: null, service: createChatTestService(), swarm: { getState: () => ({ connecting: true }) } });
@@ -88,7 +108,7 @@ it('names the pre-send destination as the selected model moves between local and
     ...model, localCached: true, availability: 'cached', networkAvailability: 'unavailable'
   }] });
   expect(source.textContent).toMatch(/this device/i);
-  expect(note.textContent).toBe('This device reads your prompt for inference.');
+  expect(note.textContent).toBe('Inference stays on this device.');
   f.publish({ models: [{
     ...model, localCached: false, availability: 'ready', networkAvailability: 'ready',
     providerIds: ['public-peer'], reachableProviderIds: ['public-peer']
@@ -100,7 +120,7 @@ it('names the pre-send destination as the selected model moves between local and
 
 it.each([
   ['local execution', { executionLocation: 'local' }],
-  ['restricted recipients', { privacy: { profile: 'restricted', placement: 'network-allowed', allowedRecipients: ['private-device'] } }]
+  ['named recipients', { privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['private-device'] } }) }]
 ])('keeps an unrelated public provider out of recovery for %s', (_name, policy) => {
   const [requested, other] = CANONICAL_CHAT_MODELS;
   const f = fixture({ viewState: { chosenModel: requested, ...policy } });
@@ -166,7 +186,7 @@ it('keeps downloads cancellable when a usable peer arrives and never fabricates 
   f.publish({ models: [ready], defaultModels: { auto: ready }, defaultModel: ready });
   expect(f.find('[data-composer-send]').disabled).toBe(false); expect(f.find('[data-cancel-download]').hidden).toBe(false);
   const status = f.find('[data-acquisition-status]');
-  expect(status.textContent).toContain('A computer is ready to answer on the network.');
+  expect(status.textContent).toContain('Network model ready.');
   f.publish({ models: [{ ...ready, availability: 'busy', networkAvailability: 'busy', reachableProviderIds: [] }] });
   expect(status.textContent).toBe('Downloading model files.');
   f.publish({ models: [{ ...ready, availability: 'cached', localCached: true, networkAvailability: 'unavailable', reachableProviderIds: [] }] });

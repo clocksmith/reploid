@@ -20,7 +20,7 @@ describe('Conversation Send authorization', () => {
   });
   it('Send never authorizes disclosure and rendering never approves a held request', async () => {
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
-    const model = { id: 'model', name: 'Model', availability: 'ready' };
+    const model = { id: 'model', name: 'Model', availability: 'ready', localReady: true };
     const thread = { id: 'thread', model, messages: [], attempts: [], grants: [] };
     const state = { selectedId: thread.id, activeThread: thread, threads: [thread], models: [model], runningIds: [], network: {} };
     const approve = vi.fn(), send = vi.fn(async () => ({ status: 'completed' }));
@@ -41,7 +41,7 @@ describe('Conversation Send authorization', () => {
   });
   it('With web search on, Send opts the request into retrieval and shows that search is on', async () => {
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
-    const model = { id: 'model', name: 'Model', availability: 'ready' };
+    const model = { id: 'model', name: 'Model', availability: 'ready', localReady: true };
     const thread = { id: 'thread', model, messages: [], attempts: [], grants: [] };
     const state = { selectedId: thread.id, activeThread: thread, threads: [thread], models: [model], runningIds: [], network: {} };
     const send = vi.fn(async () => ({ status: 'completed' }));

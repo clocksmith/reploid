@@ -29,6 +29,8 @@
   padding: var(--pool-size-24); overflow-y: auto;
 }
 .chat-model-setup[open] { display: grid; gap: var(--pool-size-16); }
+.pool-home:has([data-owner-pairing-link][open]) > :is(.pool-route-content, .pool-primary-nav) { visibility: hidden; }
+[data-owner-pairing-link] { overflow-wrap: anywhere; }
 .pool-home [data-model-picker] { width: min(var(--pool-size-480), calc(100vw - var(--pool-space-page-gutter) * 2)); }
 .chat-model-setup h2, .chat-model-setup p { margin: 0; }
 .chat-model-setup label:not(.chat-model-choice) { display: grid; gap: var(--pool-size-8); }
@@ -96,7 +98,6 @@
   position: fixed; inset: 0 0 0 auto; width: min(var(--pool-size-480), 100vw);
   height: 100dvh; max-height: 100dvh; margin: 0;
 }
-@keyframes pool-inspector-enter { from { opacity: 0; transform: translateX(var(--pool-size-16)); } to { opacity: 1; transform: translateX(0); } }
 @media (prefers-reduced-motion: reduce) { .network-inspector[open] { animation: none !important; } }
 .network-peer-row { align-items: start; gap: var(--pool-size-8); padding-block: var(--pool-size-16); }
 .network-peer-row details code { display: block; margin-top: var(--pool-size-8); }
@@ -114,10 +115,10 @@
 }
 .pool-home .chat-network-rail[data-mounted] .network-inspector:not([hidden]) { display: block; animation: none; }
 .chat-network-rail .network-inspector-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.pool-home .network-inspector :is(.network-inspector-tabs > .pool-button, [data-close-inspector]) {
+.pool-home .network-inspector .network-inspector-tabs > .pool-button {
   display: grid; place-items: center; min-width: 0; height: var(--pool-size-44); padding: 0;
 }
-.pool-home .network-inspector [data-close-inspector] { min-width: var(--pool-size-44); padding-inline: var(--pool-size-8); flex: none; }
+.pool-home .network-inspector [data-close-inspector] { flex: none; padding-inline: var(--pool-size-8); }
 
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail { display: contents; }
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail > :is(.chat-rail-heading, .chat-network-toggle) { display: none; }

@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { renderProductionSurface, bindProductionSurface, projectProduction } from '../../apps/poolday/ui/pool-home/production.js';
 
@@ -108,7 +109,8 @@ it('keeps one composer picker and contribution in Computers, preserving drafts o
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
     createThread: vi.fn(async () => 'new-thread'), downloadLocalModel: vi.fn(), prepareLocalModel: vi.fn(), setSharing: vi.fn(),
     getModelDownload: vi.fn(), saveDraft: vi.fn(), select: vi.fn() };
-  const detach = bindProductionSurface(document.body, session);
+  const detach = bindProductionSurface(document.body, session, { viewState: {
+    privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) } });
   const composer = document.querySelector('[data-composer-area]');
   const device = document.querySelector('[data-production-device]');
   expect(document.querySelector('[data-production-shared]')).toBeNull();
@@ -153,7 +155,8 @@ it('puts network computers first and keeps usage and contribution in the owner d
     setComputeContribution: vi.fn(), setSharing: vi.fn() };
   const detach = bindProductionSurface(document.body, session);
   const pane = document.querySelector('[data-inspector-pane="participants"]');
-  expect(pane.firstElementChild.querySelector('[data-insp-device-list]')).not.toBeNull();
+  // Connecting a desktop leads the Computers pane; the network computer list follows it.
+  expect(pane.querySelector('[data-insp-device-list]')).not.toBeNull();
   expect(pane.querySelector('[data-production-device]').open).toBe(false);
   expect(document.querySelector('[data-device-supplied]').textContent).toBe('14 + unmeasured');
   expect(document.querySelector('[data-device-consumed]').textContent).toBe('9');
@@ -204,10 +207,11 @@ it('keeps one navigation row and returns focus to the conversation draft', () =>
     expect(link.getAttribute('aria-current')).toBe('page');
     expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
   }
-  expect(find('[data-close-inspector]').textContent).toBe('Back to conversation');
+  expect(find('[data-close-inspector]').textContent).toBe('Close');
   find('[data-close-inspector]').click();
   expect(input.value).toBe('My unsent question');
-  expect(document.activeElement).toBe(input);
+  // Closing returns focus to the control that opened the drawer; the draft is untouched.
+  expect(document.activeElement).toBe(find('[data-workspace-view="computers"]'));
   detach();
 });
 

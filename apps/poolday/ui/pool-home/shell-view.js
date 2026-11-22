@@ -39,7 +39,7 @@ export const INSPECTOR_SETTINGS_ROUTES = Object.freeze(['home', 'network']);
 /** The home link with the brand mark; a toolbar sizes it as one of its buttons. */
 export const renderBrandLink = ({ toolbar = false, drawer = false, href = null } = {}) => {
   const home = escapeHtml(href || roomHref('/', getPeerRoomId()));
-  return `<a class="pool-primary-brand${toolbar ? ' pool-button btn-ghost' : ''} pool-heading pool-plain" aria-label="${escapeHtml(POOLDAY_NAME)} ${drawer ? 'threads' : 'home'}" href="${home}" ${drawer ? 'data-workspace-view="threads" data-toggle-thread-rail' : `data-pool-route-link="${home}"`}>${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>`;
+  return `<a class="pool-primary-brand${toolbar ? ' pool-button btn-ghost' : ''} pool-heading pool-plain" aria-label="${drawer ? 'Chats' : escapeHtml(POOLDAY_NAME) + ' home'}" href="${home}" ${drawer ? 'data-workspace-view="threads" data-toggle-thread-rail aria-controls="chat-threads-panel" aria-expanded="false"' : `data-pool-route-link="${home}"`}>${renderPowerTower()}<span class="pool-primary-wordmark${drawer ? ' pool-body' : ''}">${drawer ? 'Chats' : escapeHtml(POOLDAY_NAME)}</span></a>`;
 };
 
 /** The Settings menu's app shortcuts, rendered once wherever the route shows its menu. */

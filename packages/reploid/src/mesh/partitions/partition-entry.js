@@ -1,3 +1,4 @@
+import { partitionPrivacyBinding, requestExecutionPolicy, assertAvailableExecutionPolicy } from '../../chat/execution-policy.js';
 import { generationRequest, requireGenerationCapability, tokenUsage } from './partition-generation-request.js';
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { assertPartition as assert, assertCapacity, canonicalPartitionJson, canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partition-contract.js';
@@ -17,6 +18,7 @@ import { isChargeBindingShape } from './partition-attempt-evidence.js';
  * state (`queued` while it waits for route capacity, `executing` once admitted); nothing else.
  */
 export const ATTEMPT_STATE_SCHEMA = 'reploid.partition-attempt-state/v1';
+const ENTRY_POLICY_PROTOCOL = 'reploid.partition-entry-policy/v1';
 const ATTEMPT_STATES = Object.freeze(['queued', 'executing']);
 export function createPartitionEntry({ channel, localParticipantId, remoteParticipantId,
   service = null, canonical = false, ordered = false, authorize, limits, inputLimits, now = Date.now }) {
@@ -28,13 +30,13 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
   const policy = structuredClone(inputLimits), active = new Map(), retired = new Set();
   const deliveries = new Map(), unsettledPublications = new Set();
   let draining = false, closed = false, descriptor = null, observedAt = 0;
-  const orderedInput = m => m?.schema === 'reploid.partition-input/v3';
+  const orderedInput = m => m?.schema === 'reploid.partition-input/v6';
   const coordinator = m => orderedInput(m) ? m.coordinatorId : m.participantA;
   const attempt = m => canonicalRouteAttemptBinding({ schema: 'reploid.partition-attempt/v2',
     route: m.route, threadId: m.threadId, attemptId: m.attemptId,
     requesterId: m.requesterId, placementGeneration: m.placementGeneration });
   function validGeneration(m) {
-    try { return !generationRequest(m.generationRequest) || m.schema !== 'reploid.partition-input/v2'; } catch { return false; }
+    try { return !generationRequest(m.generationRequest) || m.schema !== 'reploid.partition-input/v5'; } catch { return false; }
   }
   function validMode(m) {
     if (m.activity !== undefined && (!orderedInput(m) || m.activity !== 'reploid.partition-activity/v1')) return false;
@@ -47,8 +49,8 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           && m.route.modelId === m.modelId && m.route.modelIdentity === m.modelIdentity && m.route.planId === m.planId;
       } catch { return false; }
     }
-    return (m?.schema === 'reploid.partition-input/v1' && m.canonical === undefined && m.route === undefined
-      || canonical && m?.schema === 'reploid.partition-input/v2' && !!validateEntryPublicationContext(m.canonical, m))
+    return (m?.schema === 'reploid.partition-input/v4' && m.canonical === undefined && m.route === undefined
+      || canonical && m?.schema === 'reploid.partition-input/v5' && !!validateEntryPublicationContext(m.canonical, m))
       && m.participantA !== m.participantB;
   }
   const validCharge = m => m.charge === undefined || orderedInput(m) && isChargeBindingShape(m.charge, m);
@@ -59,6 +61,14 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
     && Array.isArray(m.messages) && m.messages.length > 0
     && m.messages.every(row => ['system', 'user', 'assistant'].includes(row.role) && typeof row.content === 'string')
     && JSON.stringify(m.messages).length <= policy.maxInputCharacters;
+  async function verifyInputBinding(m, model = null) {
+    assert(m.privacyBinding, 'Partition entry requires an explicit execution binding');
+    const route = orderedInput(m) ? m.route : { planId: m.planId, participantA: m.participantA, participantB: m.participantB };
+    const recipients = orderedInput(m) ? m.route.stages.map(stage => stage.participantId) : [m.participantA, m.participantB];
+    const selection = model ?? { id: m.modelId, identity: m.modelIdentity, partition: route,
+      adapters: m.privacyBinding.route.adapterIdentities.map(identity => ({ identity })) };
+    return partitionPrivacyBinding({model: selection, privacy: m.privacy, privacyBinding: m.privacyBinding}, recipients, route);
+  }
   const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits,
     async authorize({ action, metadata, byteLength }) {
       if (byteLength !== 0) return false;
@@ -98,7 +108,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       if (metadata.operation === 'delta' || metadata.operation === 'usage') {
         const sending = action === 'send' || action === 'accept';
         const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
-        return !!request && request.schema !== 'reploid.partition-input/v2'
+        return !!request && request.schema !== 'reploid.partition-input/v5'
           && (!orderedInput(request) || request.disclosureExpiresAt === undefined || request.disclosureExpiresAt > now()) && metadata.requesterId === request.requesterId
           && (orderedInput(request) ? metadata.coordinatorId === request.coordinatorId
             && sameRouteAttemptIdentity(metadata.identity, attempt(request)) : metadata.participantA === request.participantA) && metadata.threadId === request.threadId
@@ -115,6 +125,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       const outgoing = action === 'send' || action === 'accept';
       if (!valid(metadata) || metadata.requesterId !== (outgoing ? localParticipantId : remoteParticipantId)
         || coordinator(metadata) !== (outgoing ? remoteParticipantId : localParticipantId)) return false;
+      try { await verifyInputBinding(metadata); } catch { return false; }
       // Recheck input permission before transfer and output disclosure, not readiness
       // after completion: draining must still let admitted work finish.
       return await authorize(structuredClone(metadata), { action }) === true;
@@ -164,7 +175,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       if (m.operation === 'describe') {
         if (service && !draining && !closed) await service.refresh({ signal });
         const models = service?.getModels() || [];
-        return { models: structuredClone(models), accepting: !!service && !draining && !closed,
+        return { policyProtocol: ENTRY_POLICY_PROTOCOL, models: structuredClone(models), accepting: !!service && !draining && !closed,
           slots: draining || closed ? 0 : policy.maxConcurrentAttempts - active.size };
       }
       // A draining, closed or full entry is unavailable capacity for this requester, never a generic failure.
@@ -178,8 +189,9 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           : model.partition.participantA === m.participantA && model.partition.participantB === m.participantB)
         && model.availability === 'ready');
       assertCapacity(model);
-      const requested = requireGenerationCapability(model, m.generationRequest, m.schema === 'reploid.partition-input/v2');
-      const isCanonical = m.schema === 'reploid.partition-input/v2';
+      await verifyInputBinding(m, model); signal.throwIfAborted();
+      const requested = requireGenerationCapability(model, m.generationRequest, m.schema === 'reploid.partition-input/v5');
+      const isCanonical = m.schema === 'reploid.partition-input/v5';
       if (isCanonical) {
         assert(model.canonical && ['coordinatorEpoch', 'routeId', 'generation', 'stages', 'vocabSize'].every(key =>
           canonicalPartitionJson(model.canonical[key]) === canonicalPartitionJson(m.canonical[key])),
@@ -198,7 +210,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         threadId: m.threadId, attemptId: m.attemptId, placementGeneration: m.placementGeneration,
         model, ...(requested ? {generationRequest: requested} : {}), ...(orderedInput(m) && m.disclosureExpiresAt !== undefined ? {disclosureExpiresAt:m.disclosureExpiresAt} : {}), ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}),
         ...(orderedPublished ? { publication: structuredClone(m.publication) } : {}), ...(m.charge !== undefined ? { charge: structuredClone(m.charge) } : {}),
-        messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
+        messages: structuredClone(m.messages), privacy: m.privacy, privacyBinding: m.privacyBinding, permissions: { sharingScope: 'approved-partition-path' } },
       { signal, publication, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
         ...(m.charge !== undefined ? { onOutput(record) {
           if (!acceptingCallbacks) return null;
@@ -262,11 +274,11 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
   return Object.freeze({
     id: remoteParticipantId,
     getState() { return { ready: !closed && unsettledPublications.size === 0 && now() - observedAt < policy.descriptorTtlMs
-      && descriptor?.accepting === true && descriptor.slots > 0,
+      && descriptor?.policyProtocol === ENTRY_POLICY_PROTOCOL && descriptor.accepting === true && descriptor.slots > 0,
     descriptor: structuredClone(descriptor), observedAt, receipt: endpoint.getReceipt() }; },
     async refresh({ signal } = {}) {
       descriptor = await endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal });
-      assert(Array.isArray(descriptor.models) && Number.isSafeInteger(descriptor.slots) && descriptor.slots >= 0,
+      assert(descriptor.policyProtocol === ENTRY_POLICY_PROTOCOL && Array.isArray(descriptor.models) && Number.isSafeInteger(descriptor.slots) && descriptor.slots >= 0,
         'Invalid entry descriptor');
       observedAt = now(); return this.getState();
     },
@@ -279,12 +291,13 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       assert((publication !== undefined) === (isCanonical || isOrdered && request.publication !== undefined),
         'Publication owner requires its explicit canonical or ordered requester context');
       const metadata = { ...structuredClone(request), operation: 'generate',
-        schema: isOrdered ? 'reploid.partition-input/v3' : isCanonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1',
+        schema: isOrdered ? 'reploid.partition-input/v6' : isCanonical ? 'reploid.partition-input/v5' : 'reploid.partition-input/v4',
         ...(isOrdered && typeof onActivity === 'function' ? {activity:'reploid.partition-activity/v1'} : {}),
         ...(isOrdered && typeof onState === 'function' ? { attemptState: ATTEMPT_STATE_SCHEMA } : {}),
         requesterId: localParticipantId, ...(isOrdered ? { coordinatorId: remoteParticipantId } : { participantA: remoteParticipantId }) };
       assert(!deliveries.has(metadata.attemptId), 'Entry attempt already streaming');
       assert(valid(metadata), 'Invalid partition entry input');
+      await verifyInputBinding(metadata); signal?.throwIfAborted();
       const scope = publication !== undefined ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
         authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
         maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
@@ -376,9 +389,10 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
   assert(typeof ordered === 'boolean' && typeof entries === 'function' && typeof authorize === 'function'
     && Number.isSafeInteger(maxPlacements) && maxPlacements > 0, 'Explicit requester placement policy required');
   return Object.freeze({
-    async generate({ messages, threadId, disclosureExpiresAt, generationRequest: requested }, { signal, onDelta, onUsage, onActivity } = {}) {
+    async generate({ messages, threadId, disclosureExpiresAt, privacy, generationRequest: requested }, { signal, onDelta, onUsage, onActivity } = {}) {
       assert(disclosureExpiresAt === undefined || ordered && Number.isSafeInteger(disclosureExpiresAt) && disclosureExpiresAt > Date.now(),
         'Requester disclosure deadline expired or invalid');
+      privacy = assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy }));
       messages = structuredClone(messages);
       requested = generationRequest(requested);
       const attempted = new Set(), failures = [], started = now();
@@ -406,6 +420,10 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
               assert(binding.route.stages[0].participantId === entry.id && binding.route.modelId === modelId
                 && binding.route.modelIdentity === modelIdentity && binding.route.planId === planId, 'Requester route model or coordinator mismatch');
             }
+            const route = ordered ? placement.route : { planId, participantA: placement.participantA, participantB: placement.participantB };
+            const recipients = ordered ? route.stages.map(stage => stage.participantId) : [placement.participantA, placement.participantB];
+            placement.privacy = privacy;
+            placement.privacyBinding = await partitionPrivacyBinding({model, privacy}, recipients, route);
             if (await authorize(structuredClone(placement)) === true) { selected = { entry, placement }; break; }
           } catch (error) { signal?.throwIfAborted(); failures.push({ ...(ordered ? {coordinatorId:entry.id} : {participantA:entry.id}), error: String(error.message) }); }
         }

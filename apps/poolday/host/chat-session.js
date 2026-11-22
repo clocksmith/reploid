@@ -1,4 +1,6 @@
 import { createPrivateComputers } from './private-computers.js';
+import { createCircleInviteOwner } from './circle-invites.js';
+import { createBrowserOwnerPairing } from './owner-pairing.js';
 import { projectComputerUsage } from './contribution-history.js';
 import { availablePartitionRoute } from './partition-release.js';
 /**
@@ -92,11 +94,13 @@ export function createChatSession({
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
   privateComputers = null,
+  getCircleOwnerRequest = () => null,
   // Reads declared adapter evaluation files; only verified passing receipts label an adapter evaluated.
   fetchEvidence = globalThis.fetch?.bind(globalThis),
   now = Date.now,
   id = () => crypto.randomUUID()
 } = {}) {
+  let ownerRequest, inviteControls;
   const store = canonicalHistory || {
     load() {
       try {
@@ -169,6 +173,15 @@ export function createChatSession({
   };
 
   const fleet = privateComputers || createPrivateComputers({ onChange: () => notifyAll() });
+  const ownerPairing = createBrowserOwnerPairing({
+    storage,
+    getChannel: () => swarm?.getOwnerPairingChannel?.() || null,
+    connect: swarm?.connect ? (options = {}) => swarm.connect({ automatic: false, ...options }) : null,
+    onChange: () => notifyAll(),
+    now
+  });
+  // A phone that paired before returns to its desktop's room on load, so the desktop is online without a tap.
+  if (ownerPairing.state().paired) queueMicrotask(() => { ownerPairing.reconnect().catch(() => {}); });
   const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, fleet, resolveLocalSource, isCached,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => {
       const local = execution.getLocalState();
@@ -187,20 +200,22 @@ export function createChatSession({
       assert(remoteAccess.enabled(), 'Network answers are off. Turn them on in Settings or choose this device.');
       if (!remotePermissions.some(permission => remotePermissionCovers(permission, need))) {
         const unbound = { ...need, policyId: undefined, routeId: undefined };
-        const completedPermissionIds = new Set(
+        // A failed attempt can already have disclosed its input. Keep that route
+        // established so the startup preference cannot authorize a replacement.
+        const usedPermissionIds = new Set(
           (workspace?.getState?.().threads || []).flatMap(thread =>
             (thread.attempts || [])
-              .filter(attempt => attempt.status === 'completed' && attempt.authorization?.permissionId)
+              .filter(attempt => attempt.authorization?.permissionId)
               .map(attempt => attempt.authorization.permissionId)
           )
         );
         const isEstablishedBoundMachine = permission => permission.routeId !== undefined
-          && (completedPermissionIds.has(permission.id) || permission.wording?.id !== remoteAccess.wording.id)
+          && (usedPermissionIds.has(permission.id) || permission.wording?.id !== remoteAccess.wording.id)
           && remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, unbound);
         if (!remotePermissions.some(isEstablishedBoundMachine)) {
           const retained = remotePermissions.filter(
             permission => !(remotePermissionCovers({ ...permission, policyId: undefined, routeId: undefined }, unbound)
-              && !completedPermissionIds.has(permission.id)
+              && !usedPermissionIds.has(permission.id)
               && permission.wording?.id === remoteAccess.wording.id)
           );
           savePermissions([...retained, createRemotePermission({ id: crypto.randomUUID(), need, catalog: [],
@@ -284,7 +299,6 @@ export function createChatSession({
 
   const getCatalogModels = (network = swarm?.getState?.()) => copy(projectChatCatalog({
     models: [...models, ...peerModels], peers: network?.consumer?.peers || [], connections: network?.connections ?? network?.consumer?.connections,
-    introductionState: network?.introductionState ?? network?.consumer?.connectionState,
     releasedPartitionModels: (partitions?.getModels() || []).filter(model => availablePartitionRoute(model))
   }).map(model => {
     model = { ...model, networkAvailability: model.availability };
@@ -339,7 +353,7 @@ export function createChatSession({
       closed,
       activeThread,
       comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
-      models: catalog, privateComputers: fleet.state(),
+      models: catalog, privateComputers: fleet.state(), ownerPairing: ownerPairing.state(),
       answerLimits: catalog.filter(model => model.partition).map(model => ({
         selectionId: model.selectionId || model.id,
         cells: ROUTE_ENVELOPE_POLICY.routes.find(row => row.modelIdentity === model.identity
@@ -363,7 +377,7 @@ export function createChatSession({
   // Automatic failover. When the computer chosen for a shared answer drops out, the answer is tried again
   // on another computer as a new attempt, the same thing the Retry control does, at most
   // MAX_AUTOMATIC_FAILOVERS times per question. The failed attempt stays in the record. Each attempt has its
-  // own request identity, and this requester countersigns a receipt only for the attempt that completes, so
+  // own request identity and needs existing or new approval for its recipient before disclosure; this requester countersigns a receipt only for the attempt that completes, so
   // a dropped attempt never receives its countersignature.
   const failovers = new Map(), failedOver = new Set();
   const considerFailover = () => {
@@ -470,6 +484,15 @@ export function createChatSession({
     },
     getModelDownload,
     privateComputers: fleet,
+    ownerPairing,
+    get circleInvites() {
+      const current = getCircleOwnerRequest();
+      if (current !== ownerRequest) {
+        ownerRequest = current;
+        inviteControls = current ? createCircleInviteOwner({ request: current }) : null;
+      }
+      return inviteControls;
+    },
     getDraft: drafts.get,
     saveDraft(threadId, value) { assertOpen(); return drafts.save(threadId, value); },
     getDocumentSources: comparisonSources,
@@ -733,7 +756,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; fleet.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
+      closed = true; fleet.close(); ownerPairing.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {

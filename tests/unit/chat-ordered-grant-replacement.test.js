@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
@@ -13,7 +14,7 @@ it('requires a new remembered disclosure after automatic middle-replica replacem
     app = createChatWorkspace({ meshId: 'mesh', participantId: f.identities[5].peerId,
       store: { load: () => null, save: () => {} },
       execute: (request, controls) => f.meshes[5].generate(request, controls) });
-    const threadId = app.createThread({ model: f.select(5,0), permissions: { sharingScope: 'mesh' } });
+    const threadId = app.createThread({ privacy: partitionTestPolicy, model: f.select(5,0), permissions: { sharingScope: 'mesh' } });
     const first = app.send(threadId, tasks[0].prompt);
     await vi.waitFor(() => expect(app.getState().threads[0].attempts.at(-1).status).toBe('approval'));
     const initial = app.getState().threads[0].attempts.at(-1);

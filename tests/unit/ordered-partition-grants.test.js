@@ -1,3 +1,4 @@
+import { partitionTestBinding } from '../fixtures/partition-execution-policy.js';
 import { createExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
@@ -16,7 +17,7 @@ async function fixture() {
   const identity = { schema: 'reploid.partition-attempt/v2', route, threadId: 'thread', attemptId: 'attempt', requesterId: 'requester', placementGeneration: 0 };
   const disclosure = orderedPartitionDisclosure(identity);
   const limits = { maxTokens: 4, maxPromptTokens: 32, maxActivationBytes: 4096, maxOutputCharacters: 100 };
-  const controls = { approved: true, ttlMs: 100, disclosure, generationDigest: sha };
+  const controls = { approved: true, ttlMs: 100, disclosure, generationDigest: sha, privacyBinding: await partitionTestBinding(identity) };
   const grant = await authority.issueOrdered(identity, limits, controls);
   const request = { identity, coordinatorId: signer.peerId, action: 'mesh.transfer_intermediate_activation',
     fromStage: 1, toStage: 2, recipients: ['middle', signer.peerId, 'final'], step: 0, inputTokenCount: 2, generationDigest: sha, activationBytes: 64 };
@@ -25,7 +26,7 @@ async function fixture() {
 describe('explicit ordinary ordered route grants', () => {
   it('signs and verifies complete coordinator-mediated recipient closure with actual WebCrypto', async () => {
     const f = await fixture();
-    expect(f.grant.claim.schema).toBe('reploid.partition-grant/v4');
+    expect(f.grant.claim.schema).toBe('reploid.partition-grant/v7');
     expect(await f.authority.verify(f.grant, f.request)).toBe(true);
     expect(await f.authority.verify(f.grant, { ...f.request, action: 'mesh.transfer_token_context', partitionIndex: 1,
       recipients: [f.request.coordinatorId, 'middle'] })).toBe(true);
@@ -61,13 +62,13 @@ describe('explicit ordinary ordered route grants', () => {
   });
 });
 
-it('runs the existing ordered runner under genuine signed v4 grants (injected numerical ports)', async () => {
+it('runs the existing ordered runner under genuine signed v7 grants (injected numerical ports)', async () => {
   const f = runnerFixture(3);
   const signer = await createSigningIdentity({ algorithm: 'ECDSA' });
   f.route.stages[0].participantId = signer.peerId; f.stages[0].id = signer.peerId;
   const authority = createPartitionGrantAuthority({ identity: signer, meshId: 'mesh', maxGrants: 4, maxTtlMs: 1000 });
   const grant = await authority.issueOrdered(f.request.identity, f.limits, { approved: true, ttlMs: 1000,
-    disclosure: orderedPartitionDisclosure(f.request.identity), generationDigest: await f.runtime.hashPartitionGeneration(f.request.generation) });
+    privacyBinding: await partitionTestBinding(f.request.identity), disclosure: orderedPartitionDisclosure(f.request.identity), generationDigest: await f.runtime.hashPartitionGeneration(f.request.generation) });
   const runner = createLayerPartitionRunner({ ...f, authorize: request => authority.verify(request.grant, request) });
   try {
     const result = await runner.execute({ ...f.request, grants: { execution: Array(3).fill(grant),
@@ -127,17 +128,27 @@ it('signs the privacy binding and rejects policy or recipient substitutions', as
   const f = await fixture();
   const model = { id: f.identity.route.modelId, identity: f.identity.route.modelIdentity, partition: { route: f.identity.route } };
   const recipients = f.identity.route.stages.map(stage => stage.participantId);
-  const privacy = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: recipients });
+  const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: recipients } });
   const privacyBinding = await bindExecutionRoute({ model, privacy }, plaintextExecutionRoute({ model }, { recipients, route: f.identity.route }));
   const grant = await f.authority.issueOrdered(f.identity, f.limits, { ...f.controls, privacyBinding });
   expect(await f.authority.verify(grant, f.request)).toBe(true);
   const digest = vi.spyOn(crypto.subtle, 'digest');
   try { expect(await f.authority.verify(grant, f.request)).toBe(true); expect(digest).not.toHaveBeenCalled(); }
   finally { digest.mockRestore(); }
-  const changedPolicy = structuredClone(grant); changedPolicy.claim.privacyBinding.policy.allowedRecipients.pop();
+  const changedPolicy = structuredClone(grant); changedPolicy.claim.privacyBinding.policy.recipients.ids.pop();
   expect(await f.authority.verify(changedPolicy, f.request)).toBe(false);
   const omittedHop = structuredClone(privacyBinding); omittedHop.route.hops.pop();
   await expect(f.authority.issueOrdered(f.identity, f.limits, { ...f.controls, privacyBinding: omittedHop })).rejects.toThrow('omitted');
   const changedDigest = structuredClone(grant); changedDigest.claim.privacyBinding.policyId = 'sha256:' + 'b'.repeat(64);
   expect(await f.authority.verify(changedDigest, f.request)).toBe(false);
+});
+
+it('rejects a missing binding and a route whose coordinator is not authorized', async () => {
+  const f = await fixture();
+  await expect(f.authority.issueOrdered(f.identity, f.limits, { ...f.controls, privacyBinding: undefined })).rejects.toThrow('binding required');
+  const noBinding = structuredClone(f.grant); delete noBinding.claim.privacyBinding;
+  expect(await f.authority.verify(noBinding, f.request)).toBe(false);
+  const changed = structuredClone(f.grant);
+  changed.claim.privacyBinding.policy.recipients = { kind: 'named', ids: ['middle', 'final'] };
+  expect(await f.authority.verify(changed, f.request)).toBe(false);
 });

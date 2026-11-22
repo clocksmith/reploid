@@ -169,6 +169,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       return cancellation;
     };
     try {
+      const privacyBinding = await partitionPrivacyBinding(request, route.stages.map(stage => stage.participantId), route);
       if (identity.requesterId !== coordinatorId) assert(typeof authorizeRequester === 'function'
         && await authorizeRequester(request, signal) === true, 'Requester has not authorized this route');
       assert(request.permissions?.sharingScope && request.permissions.sharingScope !== 'local', 'Partition disclosure is disabled');
@@ -185,12 +186,11 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       signal.throwIfAborted();
       const disclosure = orderedPartitionDisclosure(identity), expiresAt = Math.min(now() + grantTtlMs, request.disclosureExpiresAt ?? Infinity);
       assert(expiresAt > now(), 'Requester disclosure expired during preparation');
-      const privacyBinding = await partitionPrivacyBinding(request, route.stages.map(stage => stage.participantId), route);
       signal.throwIfAborted();
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: identity.threadId,
         attemptId: identity.attemptId, peerId: coordinatorId, recipientIdentity: coordinatorId,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: partitionAdapterIdentities(selection),
-        operation: 'generate-partition', ...structuredClone(selection.partition), disclosure,
+        operation: 'generate-partition', ...structuredClone(selection.partition), disclosure, privacyBinding,
         expiresAt, input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}),
           recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
       signal.throwIfAborted(); assert(approved === true && !closed, 'Ordered disclosure declined or chat closed');

@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { openNativeGenerationJournal } from '../../server/native-generation-journal.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 const cleanup = [];
 afterEach(async () => { for (const close of cleanup.splice(0).reverse()) await close(); });
@@ -17,12 +18,13 @@ it('binds retained context selection to the verified requester and rejects imper
       completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 1, generatedTokenCount: 1, stopReason: 'eos-token' } };
   } });
   await f.requesterMesh.generate(f.messages, null, { modelId: 'model', modelIdentity: 'sha256:' + 'a'.repeat(64),
+    privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }),
     requestContext: { contextId: 'thread-a' } });
   expect(owners).toEqual([[f.identities[0].peerId, 'thread-a']]);
   await f.replay({ requestId: 'forged-consumer', consumer: 'someone-else' });
   expect(owners).toHaveLength(1);
   expect(f.wire).toContainEqual(expect.objectContaining({ type: 'reploid:generation-error',
-    payload: expect.objectContaining({ error: expect.stringContaining('consumer identity changed') }) }));
+    payload: expect.objectContaining({ error: expect.stringContaining('Verified requester identity required') }) }));
 });
 
 it('recovers a lost completion after provider restart, verifies it, and never executes the replay', async () => {

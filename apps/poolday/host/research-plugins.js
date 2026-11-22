@@ -1,4 +1,5 @@
 import { openPluginSession } from '../../../shared/vendor/reploid/plugins/index.js';
+import { assertAvailableExecutionPolicy, createExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
 import { modelImitationPlugin } from '../plugins/model-imitation/plugin.js';
 import protocol from '../plugins/model-imitation/protocol.json' with { type: 'json' };
 
@@ -21,10 +22,11 @@ export function createResearchPlugins({ chat, swarm, storage }) {
     async save(id, value) { storage.setItem(PREFIX + id, JSON.stringify(value)); storage.setItem(LAST, id); }
   };
   const models = () => chat.getState().models.filter(model => !model.partition && !model.adapters?.length && model.provider === 'doppler');
-  const recipients = model => (swarm.getState().consumer?.peers || []).filter(peer => peer.model === model.id
+  const recipients = (model, peers = swarm.getState().consumer?.peers || []) => [...new Set(peers.filter(peer => peer.model === model.id
     && peer.modelIdentity === model.identity && peer.role === 'provider' && peer.readiness === 'ready'
-    && peer.availableSlots > 0 && !peer.adapterIdentities?.length && peer.blocked !== true)
-    .map(peer => peer.peerId);
+    && peer.availableSlots > 0 && !peer.adapterIdentities?.length && peer.blocked !== true
+    && peer.identityVerified === true && peer.admissionProtocol === 2 && peer.participantId)
+    .map(peer => peer.participantId))];
   const open = async (sessionId, config) => {
     // The saved consent/configuration, not mutable UI controls, owns each capability invocation.
     const frozen = config || (await store.load(sessionId))?.config;
@@ -33,11 +35,15 @@ export function createResearchPlugins({ chat, swarm, storage }) {
       assert(frozen.approved === true && frozen.models.some(model => model.id === input.model.id && model.identity === input.model.identity), 'Study model is outside consent');
       assert(input.maxOutputTokens === protocol.maxOutputTokens && input.messages.length <= 4
         && JSON.stringify(input.messages).length <= 48000, 'Study request exceeds its declared bounds');
+      const scope = frozen.authorizedModels?.find(entry => entry.id === input.model.id && entry.identity === input.model.identity);
+      assert(scope, 'Saved study needs fresh approval for its verified recipients. Start a new study.');
+      const privacy = assertAvailableExecutionPolicy(scope.privacy);
+      assert(privacy.placement === 'network-allowed' && privacy.recipients.kind === 'named', 'Study requires named recipient approval');
       const permissions = [];
       const started = performance.now();
       const result = await swarm.generate(input.messages, { signal, modelId: input.model.id, modelIdentity: input.model.identity,
-        adapterIdentities: [], onPartial: () => {},
-        approve: async preview => frozen.recipients.includes(preview.providerId) && preview.modelId === input.model.id
+        adapterIdentities: [], privacy, onPartial: () => {},
+        approve: async preview => privacy.recipients.ids.includes(preview.recipientIdentity) && preview.modelId === input.model.id
           && preview.modelIdentity === input.model.identity && preview.adapterIdentities.length === 0,
         record: async value => { permissions.push(structuredClone(value)); await observe(value); }
       });
@@ -55,11 +61,22 @@ export function createResearchPlugins({ chat, swarm, storage }) {
     models,
     recipients,
     async restore() { const id = storage.getItem(LAST); return id ? open(id) : null; },
-    async create({ targetId, imitatorId, approved }) {
+    async create({ targetId, imitatorId, approved, reviewed }) {
       assert(approved === true, 'Approve the study disclosure before starting');
       const target = models().find(model => model.id === targetId), imitator = models().find(model => model.id === imitatorId);
       assert(target && imitator && target.identity !== imitator.identity, 'Choose two different catalog models');
-      assert(recipients(target).length && recipients(imitator).length, 'Both models need connected contributors');
+      const peers = swarm.getState().consumer?.peers || [];
+      const confirmed = (model, selection) => {
+        assert(selection?.id === model.id && selection.identity === model.identity && Array.isArray(selection.recipients),
+          'Review the current models and recipients before starting');
+        const connected = new Set(recipients(model, peers));
+        return selection.recipients.filter(id => connected.has(id));
+      };
+      const targetRecipients = confirmed(target, reviewed?.target), imitatorRecipients = confirmed(imitator, reviewed?.imitator);
+      assert(targetRecipients.length && imitatorRecipients.length, 'Reviewed contributors changed. Review the currently connected recipients before starting.');
+      const bindModel = (model, ids) => ({ ...modelBinding(model), privacy: createExecutionPolicy({ placement: 'network-allowed',
+        recipients: { kind: 'named', ids: [...new Set(ids)] } }) });
+      const authorizedModels = [bindModel(target, targetRecipients), bindModel(imitator, imitatorRecipients)];
       const shuffle = () => {
         const result = [0, 1, 2, 3];
         for (let i = result.length - 1; i > 0; i--) { const j = randomBelow(i + 1); [result[i], result[j]] = [result[j], result[i]]; }
@@ -68,7 +85,7 @@ export function createResearchPlugins({ chat, swarm, storage }) {
       const order = shuffle();
       const config = { target: modelBinding(target), imitator: modelBinding(imitator), models: [target, imitator].map(modelBinding),
         protocol: structuredClone(protocol), order, conditionOrder: shuffle(), sides: order.map(() => randomBelow(2)), approved,
-        recipients: [...new Set([...recipients(target), ...recipients(imitator)])], consentAt: Date.now(),
+        authorizedModels, consentAt: Date.now(),
         consent: 'Send the frozen public study prompts, calibration examples and trial follow-ups to these contributors. Keep results on this browser until exported.' };
       return open(crypto.randomUUID(), config);
     }

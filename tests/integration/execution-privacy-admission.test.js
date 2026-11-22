@@ -11,7 +11,8 @@ afterEach(async () => { for (const close of cleanup.splice(0).reverse()) await c
 // Real requester and provider meshes with a real journal; the transport and the generator are test-owned.
 const PROMPT = 'original prompt';
 const modelIdentity = 'sha256:' + 'a'.repeat(64);
-const named = f => createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [f.identities[1].peerId] });
+const named = f => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.identities[1].peerId] } });
+const open = () => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const run = (f, privacy, signal) => f.requesterMesh.generate(f.messages, null, { modelId: 'model', modelIdentity, privacy, signal });
 const of = (f, type) => f.wire.filter(row => row.type === type);
 const carryingPrompt = f => f.wire.filter(row => JSON.stringify(row.payload).includes(PROMPT)).map(row => row.type);
@@ -75,13 +76,16 @@ it('the caller\'s settings are withheld with the prompt and bound by the same co
   expect(swapped.executions).toBe(0);
 });
 
-it('a request without named recipients is sent as before, with no admission round trip', async () => {
+it('open recipients still require admission; missing or legacy policy sends nothing', async () => {
   const f = await createRecoveryMesh(cleanup);
-  await run(f, createExecutionPolicy('provider-visible'), AbortSignal.timeout(5000));
-  await run(f, null, AbortSignal.timeout(5000));
+  await expect(run(f, null, AbortSignal.timeout(5000))).rejects.toThrow();
+  await expect(run(f, { schema: 'reploid.execution-policy/v1', profile: 'provider-visible' }, AbortSignal.timeout(5000))).rejects.toThrow();
   expect(of(f, 'reploid:generation-admit')).toEqual([]);
-  expect(of(f, 'reploid:generation-request')).toHaveLength(2);
-  expect(f.executions).toBe(2);
+  expect(carryingPrompt(f)).toEqual([]);
+  await run(f, open(), AbortSignal.timeout(5000));
+  expect(of(f, 'reploid:generation-admit')).toHaveLength(1);
+  expect(carryingPrompt(f)).toEqual(['reploid:generation-request']);
+  expect(f.executions).toBe(1);
 });
 
 it('a provider refuses a prompt other than the one it admitted, and an admission it never gave', async () => {
@@ -96,7 +100,7 @@ it('a provider refuses a prompt other than the one it admitted, and an admission
   const altered = await createRecoveryMesh(cleanup, { intercept(type, payload) {
     if (type === 'reploid:generation-request') payload.consumer = 'somebody-else';
   } });
-  await expect(run(altered, named(altered), AbortSignal.timeout(5000))).rejects.toThrow('Execution admission rejected');
+  await expect(run(altered, named(altered), AbortSignal.timeout(5000))).rejects.toThrow('Verified requester identity required');
   expect(altered.executions).toBe(0);
 
   // A request claims an admission that was never asked for, and an admitted request is replayed.
@@ -127,6 +131,61 @@ it('a requester keeps the prompt when the provider admits something else or carr
   expect(leaking.executions).toBe(0);
 });
 
+it('must not reveal a prompt to a provider whose negotiated admission version changes after approval', async () => {
+  let f;
+  f = await createRecoveryMesh(cleanup, {
+    intercept(type, payload, sender) {
+      if (sender === 1 && type === 'reploid:generation-admitted') payload.admissionProtocol = 1;
+    }
+  });
+  await expect(run(f, open(), AbortSignal.timeout(5000))).rejects.toThrow('The prompt was not sent.');
+  expect(of(f, 'reploid:generation-request')).toEqual([]);
+  expect(carryingPrompt(f)).toEqual([]);
+  expect(f.executions).toBe(0);
+});
+
+it('blocks an old admission when the same signing identity reconnects on a fresh channel scope', async () => {
+  let f, changed = false;
+  const approvedIdentities = [];
+  f = await createRecoveryMesh(cleanup, {
+    authorize: async input => {
+      if (input.action === 'mesh.dispatch') approvedIdentities.push(input.recipientIdentity);
+      return true;
+    },
+    intercept(type, _payload, sender) {
+      if (!changed && sender === 1 && type === 'reploid:generation-admitted') {
+        changed = true;
+        f.changeChannelScope();
+      }
+    }
+  });
+  await expect(run(f, named(f), AbortSignal.timeout(5000))).rejects.toThrow(/retry requires new placement/);
+  expect(changed).toBe(true);
+  expect(of(f, 'reploid:generation-admit')).toHaveLength(1);
+  expect(carryingPrompt(f)).toEqual([]);
+  expect(f.executions).toBe(0);
+
+  // The same enrolled identity may serve a new attempt, after proof and exact admission in that scope.
+  f.readvertise();
+  expect((await run(f, named(f), AbortSignal.timeout(5000))).content).toBe('actual answer');
+  expect(approvedIdentities).toEqual([f.identities[1].peerId, f.identities[1].peerId]);
+  expect(of(f, 'reploid:generation-admit')).toHaveLength(2);
+  expect(carryingPrompt(f)).toEqual(['reploid:generation-request']);
+  expect(f.executions).toBe(1);
+});
+
+it('does not accept remote generation without a current policy and route binding', async () => {
+  const f = await createRecoveryMesh(cleanup);
+  await run(f, open(), AbortSignal.timeout(5000));
+  await f.replay({ requestId: 'absent-policy' }, ['privacy']);
+  await f.replay({ requestId: 'legacy-policy', admissionProtocol: 1,
+    privacy: { schema: 'reploid.execution-policy/v1', profile: 'provider-visible' } });
+  expect(of(f, 'reploid:generation-error').filter(row => ['absent-policy', 'legacy-policy'].includes(row.payload.requestId))
+    .every(row => row.payload.error === 'Current execution policy and admission protocol required')).toBe(true);
+  expect(of(f, 'reploid:generation-error').map(row => row.payload.requestId)).toEqual(['absent-policy', 'legacy-policy']);
+  expect(f.executions).toBe(1);
+});
+
 it('cancelling while waiting for admission discloses nothing and withdraws the admission', async () => {
   const cancel = new AbortController(), asked = Promise.withResolvers(), release = Promise.withResolvers();
   const f = await createRecoveryMesh(cleanup, { authorize: async input => {
@@ -147,41 +206,20 @@ it('cancelling while waiting for admission discloses nothing and withdraws the a
   expect(f.executions).toBe(0);
 });
 
-it('with admission required, a named recipient that cannot decide first is not used and nothing is sent', async () => {
-  const required = index => index === 0 ? { requireNamedAdmission: true } : {};
-  // The named provider's host predates admission. The request waits for a provider that can admit, finds
-  // none before the caller's deadline, and has disclosed nothing: no question and no request.
-  const legacy = await createRecoveryMesh(cleanup, { admitsBeforeDisclosure: false, meshConfig: required });
+it('a stale provider can receive neither named nor open plaintext prompts', async () => {
+  const legacy = await createRecoveryMesh(cleanup, { admitsBeforeDisclosure: false });
   await expect(run(legacy, named(legacy), AbortSignal.timeout(200))).rejects.toThrow();
+  await expect(run(legacy, open(), AbortSignal.timeout(200))).rejects.toThrow();
   expect(of(legacy, 'reploid:generation-admit')).toEqual([]);
   expect(of(legacy, 'reploid:generation-request')).toEqual([]);
   expect(carryingPrompt(legacy)).toEqual([]);
   expect(legacy.executions).toBe(0);
-  // The same requester still uses that provider for a request that names nobody.
-  await run(legacy, createExecutionPolicy('provider-visible'), AbortSignal.timeout(5000));
-  expect(legacy.executions).toBe(1);
-  // A provider that admits first is served as usual.
-  const current = await createRecoveryMesh(cleanup, { meshConfig: required });
+  const current = await createRecoveryMesh(cleanup);
   expect((await run(current, named(current), AbortSignal.timeout(5000))).content).toBe('actual answer');
   expect(of(current, 'reploid:generation-admit')).toHaveLength(1);
 });
 
-// Known limits, pinned so that a change is deliberate.
-it('a provider host that predates admission, or one that changes its mind after admitting, has received the prompt', async () => {
-  // A host that does not answer `mesh.admit` does not advertise it; the request is sent as before.
-  const refused = Promise.withResolvers(), cancel = new AbortController();
-  const legacy = await createRecoveryMesh(cleanup, { admitsBeforeDisclosure: false, authorize: async input => {
-    if (input.action !== 'mesh.execute') return true;
-    refused.resolve(input.request.messages); return false;
-  } });
-  const waiting = expect(run(legacy, named(legacy), cancel.signal)).rejects.toThrow('fixture cancelled');
-  try {
-    expect(await refused.promise).toEqual(legacy.messages);
-    expect(of(legacy, 'reploid:generation-admit')).toEqual([]);
-    expect(of(legacy, 'reploid:generation-request')).toHaveLength(1);
-    expect(legacy.executions).toBe(0);
-  } finally { cancel.abort(Error('fixture cancelled')); await waiting; }
-
+it('a host that changes its mind after admitting received the prompt but executes nothing', async () => {
   // A host that admits and then declines to execute has the prompt. It runs nothing.
   const late = Promise.withResolvers(), stop = new AbortController();
   const fickle = await createRecoveryMesh(cleanup, { authorize: async input => {

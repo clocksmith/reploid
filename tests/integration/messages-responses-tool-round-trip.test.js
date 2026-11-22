@@ -102,7 +102,7 @@ const whileHeld = async reading => {
   try { return await Promise.race([reading, new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Nothing reached the client while the provider was held open')), 2000); })]); }
   finally { clearTimeout(timer); }
 };
-const requestKeys = ['adapterIdentities', 'consumer', 'contextId', 'messages', 'model', 'modelContract', 'modelIdentity', 'provider', 'recoverable', 'requestId'];
+const requestKeys = ['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'contextId', 'messages', 'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'recoverable', 'requestId'];
 
 it('streams a Messages answer on a whole-model route while the provider is still generating, opening with its reported input count', async () => {
   // The scripted model stops before its third token until the test has read the first text from HTTP.
@@ -119,7 +119,7 @@ it('streams a Messages answer on a whole-model route while the provider is still
     // The first text reached the client while the provider was held open: it has sent no result, and nothing is signed.
     expect(f.sent('reploid:generation-result')).toEqual([]);
     expect(f.sent('reploid:receipt')).toEqual([]);
-    // One observation went ahead of the text, and the request itself carries no new key.
+    // One observation went ahead of the text, and the request itself carries no generation setting.
     expect(f.sent('reploid:generation-update')[0]).toEqual({ requestId: expect.any(String), usage: { inputTokens: Math.ceil(question.length / 4) } });
     expect(f.sent('reploid:generation-update').filter(update => 'usage' in update)).toHaveLength(1);
     expect(Object.keys(f.sent('reploid:generation-request')[0]).sort()).toEqual(requestKeys);

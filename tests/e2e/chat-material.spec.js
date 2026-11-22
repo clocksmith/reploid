@@ -3,8 +3,10 @@ import { openParticipantControls } from '../fixtures/signaling-interruption.js';
 import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 // Explicit host-state fixtures exercise presentation, not model inference.
-async function installConversation(page, theme) {
-  await page.evaluate(async theme => {
+async function installConversation(page, theme, { network = true } = {}) {
+  await page.evaluate(async ({ theme, network }) => {
+    const { createExecutionPolicy } = await import('/vendor/reploid/chat/execution-policy.js');
+    const privacy = network ? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) : createExecutionPolicy();
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const { bindExecutionRibbon } = await import('/ui/pool-home/execution-ribbon.js');
     const root = document.querySelector('.pool-home');
@@ -80,7 +82,7 @@ async function installConversation(page, theme) {
       const busy = ['queued', 'loading', 'executing', 'approval', 'cancelling'].includes(mode);
       const empty = ['empty', 'unavailable', 'preparing'].includes(mode);
       const thread = { id: 'thread', purpose: 'Review the formatter', model,
-        permissions: { sharingScope: 'mesh' }, grants: [],
+        permissions: { sharingScope: 'mesh' }, privacy, grants: [],
         messages: [{ id: 'question', role: 'user', content: 'Check the formatter against malformed JSON.' },
           { id: 'response', role: 'assistant', attemptId: 'attempt', content: mode === 'completed' ? 'Valid values are preserved. Two malformed inputs need a clearer error.' : 'Checking edge cases…' }],
         attempts: [{ id: 'attempt', status: mode, execution: { placement: 'two-device-layer-partition', participantA: 'fixture-A', participantB: 'fixture-B', requesterId: 'requester', splitLayer: 12, ...(mode === 'completed' ? { completion: { promptTokenCount: 768, generatedTokenCount: 256 } } : {}) },
@@ -93,10 +95,10 @@ async function installConversation(page, theme) {
       listeners.forEach(callback => callback(state));
     };
     window.setVisualState('empty');
-    window.disposeVisual = bindConversationWorkspace(fixture, session);
+    window.disposeVisual = bindConversationWorkspace(fixture, session, { viewState: { privacy } });
     // Home renders no app bar; the execution ribbon exists only on routes that keep one.
     if (fixture.querySelector('[data-execution-ribbon]')) { const ribbon = bindExecutionRibbon(fixture, { labelSession: session }); session.subscribe(state => ribbon.update(state)); }
-  }, theme);
+  }, { theme, network });
 }
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
@@ -720,10 +722,25 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
   const input = page.locator('[data-composer-input]'), field = page.locator('[data-composer-field]');
   await input.fill('Keep this draft');
   const before = await field.boundingBox();
+  // Status copy lives outside the field and the model selector keeps one line, so the only state-driven change
+  // inside the field is the pre-send prompt disclosure, which is hidden while an answer runs.
+  const anchors = () => page.evaluate(() => {
+    const box = selector => document.querySelector(selector).getBoundingClientRect();
+    const disclosure = document.querySelector('[data-prompt-disclosure]'), status = document.querySelector('[data-model-status]');
+    const gap = parseFloat(getComputedStyle(document.querySelector('[data-composer-field]')).rowGap);
+    return { text: box('[data-composer-input]').toJSON(), field: box('[data-composer-field]').toJSON(),
+      disclosure: disclosure.hidden ? 0 : disclosure.getBoundingClientRect().height + gap,
+      status: status.hidden ? null : status.getBoundingClientRect().toJSON() };
+  });
+  const start = await anchors();
   for (const mode of ['preparing', 'unavailable', 'completed', 'loading', 'executing']) {
     await page.evaluate(mode => window.setVisualState(mode), mode);
-    const box = await field.boundingBox();
-    expect(box.height).toBe(before.height); expect(box.y + box.height).toBe(before.y + before.height);
+    const box = await field.boundingBox(), now = await anchors();
+    expect(box.y + box.height).toBe(before.y + before.height);
+    expect(now.text.height).toBe(start.text.height);
+    if (now.status) expect(now.status.bottom <= now.field.top || now.status.top >= now.field.bottom).toBe(true);
+    // Field height changes only by the disclosure line; status copy and selector labels never resize it.
+    expect(before.height - box.height).toBeCloseTo(start.disclosure - now.disclosure, 1);
   }
   await input.fill('A deliberately multiline draft\n'.repeat(6));
   expect((await field.boundingBox()).height).toBeGreaterThan(before.height);
@@ -738,23 +755,24 @@ for (const width of [1440, 390, 320]) test(`discovered models stay in the sole c
   await page.setViewportSize({ width, height: 844 }); await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
   const field = page.locator('[data-composer-field]'), before = await field.boundingBox();
-  for (const count of [1, 3, 8, 2]) {
+  // Each tap is an explicit choice: it applies, closes the sheet and is kept as more computers appear.
+  for (const count of [1, 3, 8]) {
     await page.evaluate(count => window.setVisualSupply(count), count);
-    await expect(page.locator('[data-active-model-select]')).toHaveValue('ready-0');
-    await expect(page.locator('[data-composer-send]')).toBeEnabled();
+    if (count === 1) await expect(page.locator('[data-active-model-select]')).toHaveValue('ready-0');
     await expect(page.locator('[data-production-shared]')).toHaveCount(0);
     await page.locator('[data-open-model]').click();
     await expect(page.locator('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]')).toHaveCount(count);
     const last = page.locator('[data-next-model] + .chat-model-choices label[data-choice-key] > input[type=radio]').last();
     await last.scrollIntoViewIfNeeded();
     await last.click();
-    await expect(page.locator('[data-next-model]')).toHaveValue(`ready-${count - 1}`);
-    await page.locator('[data-model-picker-close]').click();
+    await expect(page.locator('[data-model-picker]')).toBeHidden();
+    await expect(page.locator('[data-active-model-select]')).toHaveValue(`ready-${count - 1}`);
+    await expect(page.locator('[data-composer-send]')).toBeEnabled();
     expect(await field.boundingBox()).toEqual(before);
     if (count === 3) await page.screenshot({ path: info.outputPath(`complete-models-${width}.png`) });
   }
   await page.locator('[data-open-model]').click();
-  await expect(page.locator('[data-next-model]')).toHaveValue('ready-0');
+  await expect(page.locator('[data-next-model]')).toHaveValue('ready-7');
 });
 
 for (const width of [1440, 390]) test(`one brand and one drawer new-thread action at ${width}`, async ({ page }, info) => {
@@ -848,8 +866,11 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(disclosure).toBeVisible();
   await expect(disclosure).toContainText('The answering computer can read your prompt');
   await expect(page.locator('[data-download-local]')).toBeHidden();
+  // A computer tap applies at once and the sheet stays open for the model list.
   await openModel();
   await page.locator('[data-execution-choice=local]').click();
+  await expect(source).toHaveText(' · This device');
+  await page.locator('[data-execution-choice=network]').click();
   await expect(source).toHaveText(' · Public network');
   await page.locator('[data-model-picker-close]').click();
   await expect(source).toHaveText(' · Public network');
@@ -967,7 +988,7 @@ test('a model’s computer count opens the matching hardware and returns to the 
   await expect(pane.locator('[data-computer-id]:visible')).toHaveCount(2);
   await expect(pane.locator('[data-computer-id="unrelated"]')).toBeHidden();
   await expect(pane.locator('[data-computer-id="intel"] [data-computer-hardware]')).toContainText(/intel/i);
-  await page.getByRole('button', { name: 'Back to conversation' }).click();
+  await pane.locator('..').getByRole('button', { name: 'Close', exact: true }).click();
   await expect(draft).toHaveValue('Return to this draft');
   await expect(draft).toBeInViewport();
 });
@@ -976,7 +997,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-  await installConversation(page, 'dark');
+  await installConversation(page, 'dark', { network: false });
   await page.evaluate(() => window.setVisualSupply(4));
   const opener = page.locator('[data-open-model]');
   const original = await opener.innerText();
@@ -985,23 +1006,33 @@ test('model preview and inference privacy commit independently', async ({ page }
   await picker.locator('label[data-choice-key]').nth(1).click();
   await expect(picker).toBeVisible();
   await expect(picker.locator('[data-execution-location]')).toBeVisible();
+  await expect(picker.locator('label[data-choice-key]').nth(1).locator('.pool-choice-mark')).toBeVisible();
+  await expect(picker.locator('label[data-choice-key]').nth(1).locator('input')).toHaveCSS('opacity', '0');
   await expect(picker.locator('[data-privacy-controls]')).toHaveCount(0);
   await picker.screenshot({ path: info.outputPath('model-picker.png') });
   await picker.locator('[data-model-picker-close]').click();
   await expect(picker).toBeHidden();
   expect(await opener.innerText()).toBe(original);
-  await page.locator('[data-open-privacy]').click();
+  // One sheet chooses the computer and model; the detailed policy is under More options.
+  await page.locator('[data-open-model]').click();
+  await expect(picker.locator('[data-execution-choice=local]')).toHaveAttribute('aria-pressed', 'true');
+  await picker.screenshot({ path: info.outputPath('answer-on-sheet.png') });
+  await picker.locator('[data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');
-  await expect(privacy.locator('input[value=cryptographic]')).toBeDisabled();
-  await privacy.locator('input[value=restricted]').check();
+  await expect(privacy.locator('option[value=cryptographic]')).toHaveJSProperty('disabled', true);
+  await expect(privacy.locator('option[value=attested]')).toHaveJSProperty('disabled', true);
+  const placement = privacy.locator('[data-privacy-placement]');
+  const recipientMode = privacy.locator('[data-privacy-recipient-mode]');
   const recipients = privacy.locator('[data-privacy-recipients]');
-  await expect(privacy.getByLabel('This device only', { exact: true })).toBeChecked();
+  await expect(placement).toHaveValue('local-only');
   await expect(recipients).toBeHidden();
-  await privacy.getByLabel('Named computers', { exact: true }).check();
+  await placement.selectOption('network-allowed');
+  await expect(recipientMode).toHaveValue('none');
+  await recipientMode.selectOption('named');
   await expect(recipients).toBeVisible();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
   await privacy.locator('[data-privacy-cancel]').click();
-  await expect(page.locator('[data-open-privacy]')).toHaveAccessibleName(/Provider-visible/);
+  await expect(picker).toBeHidden();
 });
 
 test('touch help and model choices work without hover', async ({ browser }, info) => {
@@ -1026,4 +1057,88 @@ test('touch help and model choices work without hover', async ({ browser }, info
     await page.locator('[data-model-picker-close]').tap();
     await expect(page.locator('[data-open-model]')).toBeFocused();
   } finally { await context.close(); }
+});
+
+test('a fresh mobile pairing link opens one action and both drawers have visible controls', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  const fragment = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Mars' });
+  await page.goto('/#' + fragment);
+  const pairing = page.getByRole('dialog', { name: 'Connect to Mars' });
+  await expect(pairing).toBeVisible();
+  await expect(pairing.getByRole('button')).toHaveCount(1);
+  await expect(pairing.getByRole('button', { name: 'Connect' })).toBeFocused();
+  await expect(pairing.getByText('Desktop ID:', { exact: false })).toBeHidden();
+  await expect(page.locator('[data-threads-dialog]')).toBeHidden();
+  await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+  await page.keyboard.press('Escape');
+  await expect(pairing).toBeHidden();
+  await expect(page).not.toHaveURL(/#pair=/);
+
+  const toolbar = page.locator('[data-chat-rail-toolbar]');
+  const chats = toolbar.getByRole('link', { name: 'Chats', exact: true });
+  const computers = toolbar.getByRole('link', { name: /^Computers/ });
+  await expect(chats.getByText('Chats', { exact: true })).toBeVisible();
+  await expect(chats).not.toHaveAttribute('href', /#pair=/);
+  await expect(computers.getByText('Computers', { exact: true })).toBeVisible();
+  await chats.click();
+  await expect(chats).toHaveAttribute('aria-expanded', 'true');
+  await page.locator('[data-threads-dialog]').getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(chats).toHaveAttribute('aria-expanded', 'false');
+  await computers.click();
+  await expect(computers).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByText('Connect a desktop', { exact: true })).toBeVisible();
+  await page.locator('[data-contextual-inspector]').getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(computers).toHaveAttribute('aria-expanded', 'false');
+  await expect(computers).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});
+
+test('the pairing screen handles desktop approval, link failure and cancellation', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await page.evaluate(async () => {
+    const { bindOwnerPairingLink } = await import('/ui/pool-home/owner-pairing-view.js');
+    window.startPairingFixture = () => {
+      const url = new URL(location.href);
+      url.hash = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Mars' }).toString();
+      history.replaceState(history.state, '', url);
+      window.pairingClicks = 0;
+      bindOwnerPairingLink(document.querySelector('.pool-home'), {
+        state: () => ({ transportPath: 'relayed' }),
+        pair: ({ signal }) => {
+          window.pairingSignal = signal;
+          window.pairingClicks++;
+          return new Promise((resolve, reject) => { window.approvePairing = resolve; window.rejectPairing = reject; });
+        }
+      }, url);
+    };
+  });
+  await page.evaluate(() => window.startPairingFixture());
+  const pairing = page.locator('[data-owner-pairing-link]');
+  expect(await page.evaluate(() => window.pairingClicks)).toBe(0);
+  await pairing.getByRole('button', { name: 'Connect' }).click();
+  await expect(pairing.getByRole('heading')).toHaveText('Approve on your desktop');
+  await expect(pairing.getByRole('button', { name: 'Waiting for approval…' })).toBeDisabled();
+  await page.evaluate(() => window.approvePairing({ hostLabel: 'Mars' }));
+  await expect(pairing.getByRole('heading')).toHaveText('Paired with Mars');
+  await pairing.getByText('Details', { exact: true }).click();
+  await expect(pairing.getByText('Connection: relayed')).toBeVisible();
+  await pairing.getByRole('button', { name: 'Done' }).click();
+  await expect(pairing).toHaveCount(0);
+
+  await page.evaluate(() => window.startPairingFixture());
+  await pairing.getByRole('button', { name: 'Connect' }).click();
+  await page.evaluate(() => window.rejectPairing(new Error('Pairing code expired.')));
+  await expect(pairing.getByRole('heading')).toHaveText('Couldn’t connect');
+  await expect(pairing.getByText('Open a new pairing link from your desktop.')).toBeVisible();
+  await expect(pairing.getByText('Pairing code expired.')).toBeHidden();
+  await expect(page).not.toHaveURL(/#pair=/);
+  await pairing.getByRole('button', { name: 'Done' }).click();
+  await expect(pairing).toHaveCount(0);
+
+  await page.evaluate(() => window.startPairingFixture());
+  await pairing.getByRole('button', { name: 'Connect' }).click();
+  await page.keyboard.press('Escape');
+  await expect(pairing).toHaveCount(0);
+  expect(await page.evaluate(() => window.pairingSignal.aborted)).toBe(true);
 });

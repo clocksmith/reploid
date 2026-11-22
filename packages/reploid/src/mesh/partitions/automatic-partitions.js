@@ -1,3 +1,4 @@
+import { partitionPrivacyBinding } from '../../chat/execution-policy.js';
 import { partitionAdapterIdentities, samePartitionAdapters, selectPartitionContribution } from './partition-contract.js';
 import { publicPreparationProgress, createPreparationProgressObserver } from '../preparation-progress.js';
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
@@ -241,13 +242,14 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       assert(refreshed.ready && model, 'No prepared cooperative partition path is available');
       assert(!!model.canonical === !!canonical, 'Prepared route has a different publication capability');
       requireGenerationCapability(model, requested, !!canonical);
+      const privacyBinding = await partitionPrivacyBinding(request, [model.partition.participantA, model.partition.participantB], model.partition);
       const messages = structuredClone(request.messages);
       let expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, operation: 'generate-partition',
         peerId: model.partition.participantA, recipientIdentity: model.partition.participantA,
         ...model.partition, modelId: model.id, modelIdentity: model.identity,
-        disclosure: 'partition-activations-and-tokens', adapterIdentities: partitionAdapterIdentities(model), expiresAt, executionTimeoutMs: config.grantMs,
+        disclosure: 'partition-activations-and-tokens', privacyBinding, adapterIdentities: partitionAdapterIdentities(model), expiresAt, executionTimeoutMs: config.grantMs,
         input: { messages: structuredClone(messages), ...(requested ? {generationRequest: requested} : {}), recipients: [model.partition.participantA, model.partition.participantB] } });
       assert(approved === true, 'Partition input disclosure declined'); controls.signal.throwIfAborted();
       expiresAt = Math.min(controls.authorizationExpiresAt?.() ?? expiresAt, Date.now() + config.grantMs);
@@ -261,10 +263,10 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
         && canonicalPartitionJson(candidate.canonical ?? null) === canonicalPartitionJson(model.canonical ?? null));
       assert(current.ready && same, 'Approved partition placement changed; review a new attempt');
       assert(Date.now() < expiresAt, 'Partition input disclosure expired'); controls.signal.throwIfAborted();
-      const input = { schema: canonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1', operation: 'generate', meshId,
+      const input = { schema: canonical ? 'reploid.partition-input/v5' : 'reploid.partition-input/v4', operation: 'generate', meshId,
         requesterId: identity.peerId, ...model.partition, modelId: model.id, modelIdentity: model.identity,
         threadId: request.threadId, attemptId: request.attemptId, placementGeneration: 0,
-        messages, ...(requested ? {generationRequest: requested} : {}), ...(canonical ? { canonical: { schema: 'reploid.partition-publication-context/v1',
+        messages, privacy: request.privacy, privacyBinding, ...(requested ? {generationRequest: requested} : {}), ...(canonical ? { canonical: { schema: 'reploid.partition-publication-context/v1',
           ...structuredClone(model.canonical), publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}) };
       admissions.set(request.attemptId, input);
       let sequence = 0;

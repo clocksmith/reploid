@@ -10,15 +10,39 @@ async function localOnly(page, baseURL) {
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
 }
 
-test('fresh public route reports interrupted discovery and offers local recovery', async ({ page, baseURL }, info) => {
+// The composer's "Answer on" sheet holds the Computer rows; each row applies on tap and the sheet stays open.
+async function chooseComputer(page, choice) {
+  await page.locator('[data-open-model]').click();
+  await expect(page.locator('[data-picker-title]')).toHaveText('Answer on');
+  await page.locator(`[data-execution-choice=${choice}]`).click();
+  await expect(page.locator(`[data-execution-choice=${choice}]`)).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-model-picker-close]').click();
+  await expect(page.locator('[data-model-picker]')).toBeHidden();
+}
+
+// More options opens the detailed policy dialog from that sheet; "any eligible computer" keeps automatic placement.
+async function allowOpenNetwork(page) {
+  await page.locator('[data-open-model]').click();
+  await page.locator('[data-model-picker] [data-open-privacy]').click();
+  await expect(page.locator('[data-model-picker]')).toBeHidden();
+  const policy = page.locator('[data-privacy-dialog]');
+  await expect(policy).toBeVisible();
+  await policy.locator('[data-privacy-placement]').selectOption('network-allowed');
+  await policy.locator('[data-privacy-recipient-mode]').selectOption('open');
+  await policy.locator('[data-privacy-apply]').click();
+  await expect(policy).toBeHidden();
+}
+
+test('fresh public route starts on this device, offers local recovery and reports interrupted discovery', async ({ page, baseURL }, info) => {
   await localOnly(page, baseURL);
-  // Discovery owns the composer status; acquisition status starts only after a download.
+  // A first visitor runs on this device until they choose a computer; discovery status follows that choice.
   const message = page.locator('[data-model-status]');
-  await expect(message).toContainText('Discovery connection interrupted', { timeout: 12000 });
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('Inference stays on this device.');
   await expect(page.locator('[data-review-shared-model]')).toBeHidden();
-  await expect(page.locator('[data-retry-connection]')).toHaveText('Retry connection');
+  await expect(page.locator('[data-retry-connection]')).toBeHidden();
   const download = page.locator('[data-download-local]');
   if (await page.evaluate(() => !!navigator.gpu && !!navigator.storage?.getDirectory && !!navigator.locks)) {
+    await expect(message).toContainText('Model unavailable here.');
     await expect(download).toBeVisible();
     await download.click();
     // The catalog's local, verified manifest supplies size without weight downloads.
@@ -27,6 +51,11 @@ test('fresh public route reports interrupted discovery and offers local recovery
     await expect(page.locator('[data-download-confirm]')).toHaveText('Download model');
     await page.locator('[data-download-cancel]').click();
   } else await expect(message).toContainText(/WebGPU|storage|Web Locks/);
+  await chooseComputer(page, 'network');
+  await expect(message).toContainText('Connection interrupted.', { timeout: 12000 });
+  await expect(page.locator('[data-review-shared-model]')).toBeHidden();
+  await expect(page.locator('[data-retry-connection]')).toHaveText('Retry connection');
+  await expect(download).toBeHidden();
   await page.screenshot({ path: info.outputPath('actual-empty-route.png') });
 });
 
@@ -75,17 +104,30 @@ async function installFixture(page, theme) {
   }, theme);
 }
 
-test('opts into waiting for a public computer and cancels back to an editable draft', async ({ page, baseURL }) => {
+test('queues Send while public computers are found and cancels back to an editable draft', async ({ page, baseURL }) => {
   await localOnly(page, baseURL); await installFixture(page, 'light');
   await page.evaluate(() => window.firstVisitor.search());
-  const queued = page.locator('[data-queue-send]'), keep = page.locator('[data-cancel-queued-send]');
+  const cancel = page.locator('[data-cancel-queued-send]'), send = page.locator('[data-composer-send]');
   const input = page.locator('[data-composer-input]'), status = page.locator('[data-model-status]');
-  await expect(queued).toBeHidden();
+  // Send itself queues; there is no separate opt-in button.
+  await expect(page.locator('[data-queue-send]')).toBeHidden();
   await input.fill('Explain ocean tides.');
-  await expect(status).toContainText('public computer');
-  await queued.click();
-  await expect(status).toContainText('Waiting to send');
-  await keep.click();
+  // A first Send with no computer chosen asks where to run before anything can leave this device.
+  await send.click();
+  await expect(page.locator('[data-model-picker]')).toBeVisible();
+  await expect(page.locator('[data-picker-title]')).toHaveText('Where should this run?');
+  await expect(page.locator('[data-execution-choice=local]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-execution-choice=network]').click();
+  await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-model-picker-close]').click();
+  await expect(status).toContainText('Finding computers');
+  await expect(cancel).toBeHidden();
+  await send.click();
+  await expect(status).toContainText('Waiting for a computer running');
+  await expect(cancel).toHaveText('Cancel');
+  await cancel.click();
+  await expect(cancel).toBeHidden();
+  await expect(status).toContainText('Finding computers');
   await page.evaluate(() => window.firstVisitor.peer());
   await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
   await expect(input).toHaveValue('Explain ocean tides.');
@@ -97,6 +139,7 @@ test('reviews a reachable alternate model before changing the public destination
   const status = page.locator('[data-model-status]'), review = page.locator('[data-review-shared-model]');
   const picker = page.locator('[data-model-picker]'), apply = page.locator('[data-change-model]');
   const source = page.locator('[data-composer-model-source]');
+  await chooseComputer(page, 'network');
   await expect(status).toContainText('No eligible computer found');
   await page.evaluate(() => window.firstVisitor.alternate(false));
   await expect(review).toBeHidden();
@@ -118,6 +161,8 @@ test('reviews a reachable alternate model before changing the public destination
 for (const [theme, width, height] of [['light', 1440, 1000], ['dark', 390, 844]]) {
   test(`${theme} ${width}px download, unknown total, cancellation and late peer controls`, async ({ page, baseURL }, info) => {
     await page.setViewportSize({ width, height }); await localOnly(page, baseURL); await installFixture(page, theme);
+    // Automatic placement downloads to this device and still lets a late network peer answer.
+    await allowOpenNetwork(page);
     const download = page.locator('[data-download-local]'), cancel = page.locator('[data-cancel-download]');
     await expect(download).toBeVisible(); await page.screenshot({ path: info.outputPath('empty.png') });
     await download.click(); await expect(page.locator('[data-download-confirm]')).toBeEnabled();
@@ -135,7 +180,7 @@ for (const [theme, width, height] of [['light', 1440, 1000], ['dark', 390, 844]]
     await page.locator('[data-download-confirm]').click(); await expect(cancel).toBeVisible();
     await expect.poll(() => page.evaluate(() => window.firstVisitor.ready())).toBe(true);
     await page.evaluate(() => window.firstVisitor.peer());
-    await expect(page.locator('[data-acquisition-status]')).toContainText('A computer is ready to answer on the network.');
+    await expect(page.locator('[data-acquisition-status]')).toContainText('Network model ready.');
     await expect(page.locator('[data-composer-send]')).toBeEnabled(); await expect(cancel).toBeVisible();
     await page.evaluate(() => window.firstVisitor.complete());
     await expect(cancel).toBeHidden();

@@ -60,7 +60,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
-  historyPorts = {}, earning = null, participantIdentity = null, webAccess = null, webContribution = null,
+  historyPorts = {}, earning = null, participantIdentity = null, webAccess = null, webContribution = null, getCircleOwnerRequest,
   search = createServerSearch({ authorization: getPoolAuthToken }) }) {
   let notifySearch = () => {};
   let training, runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
@@ -109,15 +109,15 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   });
   notifySearch = () => { for (const listener of searchListeners) listener(searchStatus.state()); };
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
-  const chatOptions = { service, storage, swarm,
+  const chatOptions = { service, storage, swarm, getCircleOwnerRequest,
     resolveLocalSource: (model, controls) => localFiles.prepareSource(model, { ...controls, cacheOnly: true }),
     partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
     // Search-backed answers use the server's Brave route or the device-side route, each answer under its own
     // per-answer search permission; the device-side route's permission names the person's search server.
-    retrieval: { routes: { [CONTRIBUTOR_SEARCH_ROUTE]: { ...contributorSearch, permission: 'search-answer' }, default: { provider: webSearch.provider },
+    retrieval: { routes: { [CONTRIBUTOR_SEARCH_ROUTE]: { ...contributorSearch, permission: 'search-answer', available: contributorSearch.qualified }, default: { provider: webSearch.provider },
       [SEARCH_ROUTE]: { provider: search.provider, extractor: search.extractor, permission: 'search-answer' },
       [DEVICE_SEARCH_ROUTE]: { provider: deviceSearch.provider, extractor: deviceSearch.extractor, permission: 'search-answer',
-        available: deviceSearch.available } } }, earning };
+        available: deviceSearch.qualified } } }, earning };
   const failOpening = async error => {
     modelCache?.close();
     const settled = await Promise.allSettled([() => computers.close(), () => swarm.close(), () => chat?.close(), () => localFiles.close()].map(close => Promise.resolve().then(close)));

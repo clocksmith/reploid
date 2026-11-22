@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
 import { renderTraining, bindTraining } from './lora-training.js';
 import { updatePermissionSummary } from '../components/permission-card.js';
 import { participantLabel } from './computer-labels.js';
@@ -34,9 +35,9 @@ export function renderWorkSurface() {
     renderTextSwarm(),
     '</details>',
     '<div class="pool-connected-layout">',
-    '<aside class="pool-thread-list" aria-label="Threads"><div class="pool-network-heading"><h2>Threads</h2>',
+    '<aside class="pool-thread-list pool-surface" aria-label="Threads"><div class="pool-network-heading"><h2>Threads</h2>',
     '<button class="btn btn-ghost" type="button" data-work-new>New thread</button></div><div data-work-history></div></aside>',
-    '  <section class="pool-work-task" id="reploid-activity" aria-label="Selected thread">',
+    '  <section class="pool-work-task pool-surface" id="reploid-activity" aria-label="Selected thread">',
     renderTaskHeader({ embedded: true }),
     renderApprovalPanel(),
     renderGoalComposer({ models: DEFAULT_WORK_MODELS, embedded: true }),
@@ -87,7 +88,7 @@ export function bindWorkSurface(root, application, services = {}) {
     }
   };
   const act = operation => { Promise.resolve().then(operation).catch(error); };
-  let inputs = [], parentId = null, reading = false, fileRevision = 0, approvalId = null;
+  let inputs = [], parentId = null, revisionPolicy = null, reading = false, fileRevision = 0, approvalId = null;
   let historyIdentity = '', resultIdentity = '', approvalIdentity = '', lastState = null;
   let progressRecordId = null, progressBusy = false;
   let showSelected = true;
@@ -112,14 +113,14 @@ export function bindWorkSurface(root, application, services = {}) {
   };
   const fillDraft = draft => {
     if (!form) return;
-    parentId = draft.parentId; inputs = draft.inputs;
+    parentId = draft.parentId; inputs = draft.inputs; revisionPolicy = draft.privacy;
     find('[data-work-goal]').value = draft.goal;
     find('[data-work-criteria]').value = draft.criteria;
     find('[data-work-model]').value = draft.modelId;
     find('[data-work-feedback]').value = draft.feedback;
     find('[data-work-feedback]').required = !!parentId;
     find('[data-work-revision]').hidden = !parentId;
-    find('[data-work-peers]').checked = true; find('[data-work-recall]').checked = false;
+    find('[data-work-peers]').checked = false; find('[data-work-recall]').checked = false;
     find('[data-work-helpers]').checked = true; find('[data-work-improvement]').checked = false;
     showInputs(inputs);
     updateModelDescription(draft.modelId);
@@ -402,9 +403,12 @@ export function bindWorkSurface(root, application, services = {}) {
   form?.addEventListener('submit', event => {
     event.preventDefault(); error('');
     if (reading) return;
+    const allowPeers = find('[data-work-peers]').checked;
+    const privacy = allowPeers ? (revisionPolicy?.recipients.kind === 'named' ? revisionPolicy
+      : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } })) : createExecutionPolicy();
     const request = { goal: find('[data-work-goal]').value, criteria: find('[data-work-criteria]').value,
       modelId: find('[data-work-model]').value, inputs, parentId, feedback: find('[data-work-feedback]').value,
-      allowPeers: find('[data-work-peers]').checked, recallAccepted: find('[data-work-recall]').checked,
+      privacy, allowPeers, recallAccepted: find('[data-work-recall]').checked,
       allowHelpers: find('[data-work-helpers]').checked, allowImprovement: find('[data-work-improvement]').checked };
     act(() => application.start(request));
   }, options);

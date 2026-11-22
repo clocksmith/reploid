@@ -86,7 +86,7 @@ export function createBraveSearch({ apiKey, fetch = globalThis.fetch, now = Date
   }
 
   return Object.freeze({
-    kind: 'brave', privacyProtocol: 'reploid.search-disclosure/v1', disclosureOrigin: new URL(endpointUrl).origin,
+    kind: 'brave', privacyProtocol: 'reploid.search-disclosure/v2', disclosureOrigin: new URL(endpointUrl).origin,
     async search({ query, count = 10, signal = null }) {
       if (typeof query !== 'string' || !query.trim()) throw new SearchProviderError('invalid-request', { detail: 'Query is empty' });
       if (!Number.isSafeInteger(count) || count < 1 || count > BRAVE_MAX_COUNT) {

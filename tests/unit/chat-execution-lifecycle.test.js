@@ -8,6 +8,9 @@ vi.mock('../../shared/vendor/reploid/chat/index.js', async importOriginal => ({
 }));
 import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
 
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+
+const LOCAL_POLICY = createExecutionPolicy();
 const options = () => ({ service: {}, models: [], getModels: () => [], profile: {} });
 afterEach(() => { createScheduler.mockReset(); });
 
@@ -40,7 +43,7 @@ function localFixture({ policy, profile = {} } = {}) {
   const execution = createChatExecution({ ...options(), policy, profile, models: [model],
     getModels: () => [model], scheduler: { schedule } });
   const run = maxOutputTokens => execution.execute({ threadId: 'thread', attemptId: 'attempt', model,
-    messages: [{ role: 'user', content: 'Hello' }], permissions: { executionLocation: 'local' },
+    messages: [{ role: 'user', content: 'Hello' }], permissions: { executionLocation: 'local' }, privacy: LOCAL_POLICY,
     ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) },
   { signal: new AbortController().signal, onState() {}, onDelta() {} });
   return { schedule, run };

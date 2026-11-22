@@ -5,7 +5,7 @@ import { renderPermissionSummary } from '../components/permission-card.js';
  */
 export function renderApprovalPanel() {
   return [
-    '<section class="pool-work-approval" data-work-approval hidden aria-labelledby="work-approval-title">',
+    '<section class="pool-work-approval pool-surface" data-work-approval hidden aria-labelledby="work-approval-title">',
     '  <div class="pool-work-section-heading">',
     '    <h2 id="work-approval-title" class="pool-heading">Review before sending</h2>',
     '    <span class="pool-work-badge pool-caption pool-mono pool-work-badge--approval">&#9675; Approval required</span>',

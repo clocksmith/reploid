@@ -1,6 +1,8 @@
 import { participantOptions, participantHelp } from './native-participant-options.js';
 import { createNativeRtcConfigReader } from './native-rtc-config.js';
+import { hostname } from 'node:os';
 import { parseArgs } from 'node:util';
+import { createInterface } from 'node:readline';
 import path from 'node:path';
 import models from '../shared/config/chat-models.json' with { type: 'json' };
 import { findCatalogModel } from './native-model-names.js';
@@ -28,6 +30,9 @@ import { createNativeParticipant } from './native-participant-runtime.js';
 import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
 import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native-runtime-source.js';
+import { openOwnerPairing } from './circles/owner-pairing.js';
+import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
+import { ownerPairingRoomId, ownerPairingRoomMarker } from '../packages/reploid/src/transport/index.js';
 
 export async function main({ runOnce } = {}) {
   const { values } = parseArgs({ options: participantOptions });
@@ -55,6 +60,9 @@ export async function main({ runOnce } = {}) {
   requireValue(values['execution-mode'] === undefined || ['partition', 'whole-model'].includes(values['execution-mode']), 'Unknown native execution mode');
   requireValue(values['execution-mode'] !== 'whole-model' || !values.canonical && !values['ordered-config'] && !values['readiness-log'],
     'Whole-model execution cannot inherit ordered, canonical or stage-readiness configuration');
+  if (values['owner-pairing']) requireValue(!runOnce && process.stdin.isTTY && process.stderr.isTTY
+    && values.contribute && values['execution-mode'] === 'whole-model' && values.room && values.room !== bootstrap.publicRoomId,
+  'Owner pairing requires an interactive terminal and a private whole-model host');
   // Before source-runtime, identity, provider or connection side effects; read once.
   const roomToken = await resolveNativeRoomToken(values);
   const getRtcConfig = values['rtc-config-file'] === undefined ? null : createNativeRtcConfigReader(values['rtc-config-file']);
@@ -160,9 +168,19 @@ export async function main({ runOnce } = {}) {
     await import('./browser-web-worker.js').then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
       .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
   else if (values['web-search']) webWorker = createPublicWebWorker();
+  let ownerPairing;
+  try {
+    if (values['owner-pairing']) ownerPairing = await openOwnerPairing({ file: path.join(path.dirname(identityFile), 'owner-pairing.sqlite'),
+      hostParticipantId: identity.peerId, onRequest: request => console.error(ownerPairingPrompt(request)) });
+  } catch (error) {
+    owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error;
+  }
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
-    roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
+    roomId: values.room || bootstrap.publicRoomId,
+    // Only a nondefault pairing room gets the routing marker; any other room keeps the public marker as before.
+    roomToken: roomToken || (values['owner-pairing'] && values.room && values.room !== bootstrap.publicRoomId && ownerPairingRoomId(values.room)
+      ? ownerPairingRoomMarker(values.room) : bootstrap.publicJoinMarker),
     maxSupplyBytes, supplyTo, cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
     ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
@@ -176,7 +194,7 @@ export async function main({ runOnce } = {}) {
       };
     })(),
     generationJournalFile: path.join(path.dirname(identityFile), 'generation-journal.sqlite'),
-    webWorker,
+    webWorker, ownerPairing,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       sha256Hex(values.room || bootstrap.publicRoomId)) } : null,
     nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
@@ -186,7 +204,13 @@ export async function main({ runOnce } = {}) {
       // A prepared stage is offered for before any route admits it.
       if (earning && state.descriptor?.planId) earning.ensureOffer(state.descriptor).catch(error => console.error('Earning offer deferred:', error.code || error.message));
     } })
-    .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
+    .catch(async error => { ownerPairing?.close(); owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
+  const pairingTerminal = ownerPairing && createInterface({ input: process.stdin, terminal: false });
+  if (pairingTerminal) {
+    const commands = createOwnerPairingTerminal({ pairing: ownerPairing, room: values.room, name: ownerPairingDisplayName(hostname()) });
+    console.error('Type pair to issue a one-time owner pairing code.');
+    pairingTerminal.on('line', line => commands.handleLine(line));
+  }
   logNetwork = () => statusLog('network', { event: 'network', at: new Date().toISOString(), ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }), owner: participant.getOwnerState() });
   if (readiness) observeReadiness = () => readiness.observe(participant.getState());
@@ -196,6 +220,7 @@ export async function main({ runOnce } = {}) {
   const shutdown = createNativeShutdown(participant, gpuHost);
   // Readiness ends when shutdown begins and admission closes; admissions settled by shutdown are still recorded.
   const stop = () => { clearInterval(timer); logNetwork = () => {}; observeReadiness = () => {}; readiness?.end('shutdown');
+    pairingTerminal?.close(); ownerPairing?.close();
     return shutdown().finally(async () => { owner?.close(); await shaderCache?.close(); await closeReadiness('shutdown'); await webWorker?.close?.(); }); };
   if (runOnce) {
     const controller = new AbortController();

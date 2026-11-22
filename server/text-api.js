@@ -6,12 +6,15 @@ import { createResponses } from './responses.js';
 import { createMessages } from './messages.js';
 import { createTextRecovery, TEXT_RECOVERY_PATH } from './text-recovery.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { createExecutionPolicy, assertAvailableExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 export const TEXT_API_PATHS = Object.freeze(['/v1/chat/completions', '/v1/responses', '/v1/messages', '/v1/models', TEXT_RECOVERY_PATH]);
-export function createTextApi({ participant, authenticate, authorize, accounting, production = true, allowUnbilledTest = false, statelessPrefixCache = undefined, privatePartitionApprovals }) {
+export function createTextApi({ participant, authenticate, authorize, accounting, production = true, allowUnbilledTest = false, statelessPrefixCache = undefined, privatePartitionApprovals, executionPolicyFor = null }) {
   if (!participant || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text API requires requester authentication and authorization');
   if (typeof accounting?.run !== 'function' && (production || !allowUnbilledTest)) throw Error('Text API requires accounted execution; unbilled tests must be explicit');
+  if (executionPolicyFor !== null && typeof executionPolicyFor !== 'function') throw Error('Invalid text API execution policy port');
+  if (production && executionPolicyFor === null) throw Error('Production text API requires an explicit operator execution policy port');
   if (accounting && typeof accounting.run !== 'function') throw Error('Invalid text API accounting port');
   if (privatePartitionApprovals !== undefined && (participant.executionClass !== 'private-pool'
     || !Array.isArray(privatePartitionApprovals) || typeof accounting?.run !== 'function')) {
@@ -30,8 +33,27 @@ export function createTextApi({ participant, authenticate, authorize, accounting
       const state = participant.getState();
       return { ...state, models: (state.models || []).filter(model => !model.partition || availablePartitionRoute(model, approvals)) };
     },
-    generate(request, controls) {
+    async generate(request, controls) {
       assertRoute(request);
+      // Standard wire requests do not carry internal policy. Only the authenticated API owner can mint it.
+      let privacy = assertAvailableExecutionPolicy(executionPolicyFor === null ? createExecutionPolicy()
+        : await executionPolicyFor(structuredClone(request), controls));
+      if (request.privacy !== undefined) {
+        // The private HTTP extension names recipients only. Reject any other
+        // request policy rather than replacing its placement or protections.
+        const caller = request.privacy;
+        const named = caller?.recipients;
+        if (named?.kind !== 'named' || !Array.isArray(named.ids) || canonicalPartitionJson(caller) !== canonicalPartitionJson(
+          createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: named.ids } }))) {
+          throw Object.assign(Error('Unsupported caller execution policy'), { status: 403 });
+        }
+        if (privacy.placement !== 'network-allowed') throw Object.assign(Error('Network execution is not authorized by this API operator'), { status: 403 });
+        const ids = named.ids.filter(id => privacy.recipients.kind === 'open' || privacy.recipients.ids.includes(id));
+        if (!ids.length) throw Object.assign(Error('Requested recipients are not authorized by this API operator'), { status: 403 });
+        privacy = assertAvailableExecutionPolicy({ ...privacy, recipients: { kind: 'named', ids } });
+      }
+      controls.signal.throwIfAborted();
+      request = { ...request, privacy };
       return accounting ? accounting.run(request, controls, (nextRequest = request, nextControls = controls) => execute(nextRequest, nextControls))
         : execute(request, controls);
     }

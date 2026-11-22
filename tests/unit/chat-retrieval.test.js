@@ -2,6 +2,7 @@
 // deterministic fixed-document provider. These are software contract checks, not answer-quality evidence.
 import { createHash } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { createFixedSearchProvider, createLexicalSupportChecker, renderSourceContext } from '../../packages/reploid/src/retrieval/index.js';
 import { createChatSession } from '../../apps/poolday/host/chat-session.js';
@@ -21,6 +22,8 @@ const DOCUMENTS = [
 const QUESTION = 'When was the Eiffel Tower in Paris completed?';
 const ANSWER = 'The Eiffel Tower was completed in 1889 [1]. It is the tallest structure in Paris.';
 const model = { id: 'model-a', name: 'Model A', identity: 'sha256:' + 'a'.repeat(64) };
+const localDisclosure = ({ id, version }) => ({ schema: 'reploid.auxiliary-path/v1', id, version, hops: [] });
+const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const fixedPorts = () => {
   const provider = createFixedSearchProvider({ documents: DOCUMENTS, now: () => 1760000000000 });
   return { provider, extractor: provider, supportChecker: createLexicalSupportChecker() };
@@ -120,7 +123,7 @@ describe('retrieval-backed chat requests', () => {
   });
 
   it('fails the attempt explicitly when retrieval fails, invents no source and dispatches nothing', async () => {
-    const throwing = { id: 'test.provider', version: '1', search: async () => { throw new Error('HTTP 503'); } };
+    const throwing = { id: 'test.provider', version: '1', describeDisclosure: localDisclosure, search: async () => { throw new Error('HTTP 503'); } };
     for (const [retrieval, code, error] of [
       [{ provider: throwing }, 'provider-error', 'Could not retrieve sources: the search provider failed.'],
       [fixedPorts(), 'no-results', 'Could not retrieve sources: the search returned no results.']]) {
@@ -139,7 +142,7 @@ describe('retrieval-backed chat requests', () => {
   it('streams retrieval stages before execution and dispatches only the pages completed within the deadline', async () => {
     const fixed = createFixedSearchProvider({ documents: DOCUMENTS, now: () => 1760000000000 });
     let release;
-    const { app, execute, executed } = fixture({ retrieval: { provider: fixed, extractor: { id: 'partial', version: '1',
+    const { app, execute, executed } = fixture({ retrieval: { provider: fixed, extractor: { id: 'partial', version: '1', describeDisclosure: localDisclosure,
       async extract(input) {
         const value = await fixed.extract(input);
         return input.source.sourceId === 'fixed:eiffel' ? value : new Promise(resolve => { release = () => resolve(value); });
@@ -164,7 +167,7 @@ describe('retrieval-backed chat requests', () => {
   });
 
   it('marks a retrieval pending at reload as interrupted, and a stop during retrieval cancels only that attempt', async () => {
-    const hanging = { id: 'test.provider', version: '1', search: (query, limits, signal) => new Promise((_, reject) =>
+    const hanging = { id: 'test.provider', version: '1', describeDisclosure: localDisclosure, search: (query, limits, signal) => new Promise((_, reject) =>
       signal.addEventListener('abort', () => reject(signal.reason), { once: true })) };
     const { app, options, store, execute } = fixture({ retrieval: { provider: hanging } });
     const thread = app.createThread({ model });
@@ -221,7 +224,7 @@ describe('retrieval-backed chat requests', () => {
   it('retries with a fresh retrieval in a new attempt and refuses retrieval without configured ports', async () => {
     let fail = true;
     const provider = createFixedSearchProvider({ documents: DOCUMENTS, now: () => 1760000000000 });
-    const flaky = { id: provider.id, version: provider.version, search: (...input) => fail ? Promise.reject(new Error('down')) : provider.search(...input) };
+    const flaky = { id: provider.id, version: provider.version, describeDisclosure: localDisclosure, search: (...input) => fail ? Promise.reject(new Error('down')) : provider.search(...input) };
     const { app } = fixture({ retrieval: { provider: flaky } });
     const thread = app.createThread({ model });
     const first = await app.send(thread, QUESTION, { retrieval: {} });
@@ -247,7 +250,7 @@ describe('retrieval-backed chat requests', () => {
     let release;
     const check = vi.fn(() => new Promise(resolve => { release = resolve; }));
     const { app, options, store, execute } = fixture({ retrieval: { ...fixedPorts(),
-      supportChecker: { id: 'held-checker', version: '1', check } } });
+      supportChecker: { id: 'held-checker', version: '1', describeDisclosure: localDisclosure, check } } });
     let restored;
     try {
       const thread = app.createThread({ model });
@@ -299,7 +302,8 @@ function orderedRoute() {
       const disclosure = orderedPartitionDisclosure(identity);
       const approved = await controls.requestApproval({ id: 'preview-' + attemptId, threadId, attemptId, operation: 'generate-partition',
         peerId: STAGES[0], recipientIdentity: STAGES[0], ...structuredClone(ordered.partition), modelId: ordered.id,
-        modelIdentity: ordered.identity, adapterIdentities: [], disclosure, expiresAt: Date.now() + 60000,
+        modelIdentity: ordered.identity, adapterIdentities: [], disclosure, privacyBinding: await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: STAGES, route })),
+        expiresAt: Date.now() + 60000,
         input: { messages: structuredClone(request.messages), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
       if (approved !== true) throw Error('Ordered disclosure declined or expired');
       disclosed.push(structuredClone(request.messages));
@@ -320,7 +324,7 @@ describe('host retrieval plumbing and disclosure', () => {
       requesterIdentity: () => REQUESTER });
     sessions.push(session);
     session.setRemoteAnswersEnabled(false);
-    const thread = session.createThread({ model: ordered });
+    const thread = session.createThread({ model: ordered, privacy: openPolicy });
     expect(() => session.send(thread, QUESTION, [], { retrieval: {} })).toThrow('Network answers are off');
     expect(partitions.disclosed).toEqual([]);
     expect(session.getState().threads[0].attempts).toEqual([]);

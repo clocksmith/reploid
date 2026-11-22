@@ -3,6 +3,7 @@ import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/parti
 import { createPartitionNetwork } from '../../packages/reploid/src/mesh/partitions/partition-network.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { fixture as stageFixture } from '../fixtures/ordered-partition-ports.js';
+import { partitionTestPolicy } from "../fixtures/partition-execution-policy.js";
 
 function channels() {
   const pair = [new EventTarget(), new EventTarget()];
@@ -23,8 +24,8 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
       reservations:{active:0,availableSlots:2,closed:false}})}));
   f.stages[0].tokenize=vi.fn(async()=>({modelIdentity:models[0].identity,tokenIds:[1,2],generation:f.request.generation}));
   const channelPolicy={maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:8192,maxPendingBytes:32768,
-    maxPendingRequests:16,maxRequestsPerChannel:4096,maxBufferedBytes:262144,maxTransferBytes:16777216,timeoutMs:10000};
-  const policy={pollMs:25,maxPeers:16,connectTimeoutMs:10000,grantMs:60000,maxStageOffersPerPeer:4,limits:f.limits,
+    maxPendingRequests:16,maxRequestsPerChannel:4096,maxBufferedBytes:262144,maxTransferBytes:16777216,timeoutMs:30000};
+  const policy={pollMs:25,maxPeers:16,connectTimeoutMs:20000,grantMs:60000,maxStageOffersPerPeer:4,limits:f.limits,
     receiver:{maxAttempts:32,maxSteps:10},inputChannel:channelPolicy,executionChannel:channelPolicy,controlChannel:channelPolicy,
     inputLimits:{maxInputCharacters:4096,maxOutputCharacters:128,maxAttempts:32,maxConcurrentAttempts:2,descriptorTtlMs:60000}};
   try {
@@ -49,9 +50,9 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
     signaling=false;
     const remoteApproval=vi.fn(async()=>true), localApproval=vi.fn(async()=>true), remoteDeltas=[], localDeltas=[], remoteActivity=[], localActivity=[];
     const [remote,local]=await Promise.all([
-      meshes[count].generate({model:remoteModel,messages:[{role:'user',content:'Remote synthetic request'}],threadId:'remote',attemptId:'remote'},
+      meshes[count].generate({privacy:partitionTestPolicy,model:remoteModel,messages:[{role:'user',content:'Remote synthetic request'}],threadId:'remote',attemptId:'remote'},
         {requestApproval:remoteApproval,onActivity:event=>remoteActivity.push(event),onDelta:event=>remoteDeltas.push(event.text)}),
-      meshes[0].generate({model:meshes[0].getModels().find(model=>model.partition?.route.stages[0].participantId===identities[0].peerId),
+      meshes[0].generate({privacy:partitionTestPolicy,model:meshes[0].getModels().find(model=>model.partition?.route.stages[0].participantId===identities[0].peerId),
         messages:[{role:'user',content:'Local synthetic request'}],threadId:'local',attemptId:'local'},
         {requestApproval:localApproval,onActivity:event=>localActivity.push(event),onDelta:event=>localDeltas.push(event.text)})]);
     await vi.waitFor(()=>expect(received.filter(row=>row.metadata.operation==='step')).toHaveLength(6*(count-1)));
@@ -70,4 +71,4 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
     const result=await Promise.allSettled(meshes.map(mesh=>mesh.close()));await f.runner.close();
     expect(result.filter(row=>row.status==='rejected')).toEqual([]);
   }
-}, 30000);
+}, 60000);

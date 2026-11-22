@@ -8,7 +8,7 @@ import { renderComputerRename, renderComputerBlock, bindComputerPreferences } fr
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 
 export const renderConnectionControl = () => `<div class="network-sharing-row">
-  <div><strong class="pool-small">Network connection</strong><span class="pool-small pool-muted" data-connection-label>Disconnected</span></div>
+  <div><strong class="pool-small">Public network</strong><span class="pool-small pool-muted" data-connection-label>Disconnected</span></div>
   <button class="network-switch pool-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
 </div><p class="pool-small pool-muted" data-connection-detail role="status"></p>`;
 

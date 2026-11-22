@@ -1,3 +1,4 @@
+import type { ExecutionBinding, ExecutionPolicy } from '../../chat/execution-policy.js';
 import type { PartitionActivity } from './partition-summary.js';
 import type { PartitionGenerationRequest, PartitionTokenUsage } from './partition-generation-request.js';
 import type { PartitionRoute, RouteAttemptBinding } from './partition-contract.js';
@@ -8,14 +9,14 @@ import type { PartitionChat } from './partition-chat.js';
 import type { PartitionBinding } from './partition-runner.js';
 import type { PartitionChannelLimits } from '../../transport/partition-data-channel.js';
 export interface PartitionInput extends PartitionBinding {
- generationRequest?:PartitionGenerationRequest;canonical?:EntryPublicationContext;meshId:string;requesterId:string;placementGeneration:number;messages:Array<{role:string;content:string}>;
+ privacy:ExecutionPolicy;privacyBinding:ExecutionBinding;generationRequest?:PartitionGenerationRequest;canonical?:EntryPublicationContext;meshId:string;requesterId:string;placementGeneration:number;messages:Array<{role:string;content:string}>;
 }
 export const ATTEMPT_STATE_SCHEMA:'reploid.partition-attempt-state/v1';
 export interface OrderedPartitionInput {
  activity?:'reploid.partition-activity/v1';
  /** Opt-in: the coordinator reports this attempt's admission state (queued, then executing). */
  attemptState?:'reploid.partition-attempt-state/v1';
- generationRequest?:PartitionGenerationRequest;
+ privacy:ExecutionPolicy;privacyBinding:ExecutionBinding;generationRequest?:PartitionGenerationRequest;
  meshId:string;requesterId?:string;coordinatorId:string;route:PartitionRoute;modelId:string;modelIdentity:string;planId:string;
  threadId:string;attemptId:string;placementGeneration:number;disclosureExpiresAt?:number;messages:Array<{role:string;content:string}>;
  /** The requester's signed binding of a charged attempt to its reservation; the coordinator gives it to every stage. */
@@ -25,7 +26,7 @@ export interface OrderedPartitionInput {
 }
 export interface PartitionEntry {
  readonly id:string;
- getState():{ready:boolean;descriptor:{models:any[];accepting:boolean;slots:number}|null;observedAt:number;receipt:object};
+ getState():{ready:boolean;descriptor:{policyProtocol:'reploid.partition-entry-policy/v1';models:any[];accepting:boolean;slots:number}|null;observedAt:number;receipt:object};
  refresh(options?:{signal?:AbortSignal}):Promise<ReturnType<PartitionEntry['getState']>>;
  generate(input:OrderedPartitionInput,options?:{signal?:AbortSignal;onActivity?:(activity:PartitionActivity)=>void|Promise<void>;onUsage?:(usage:PartitionTokenUsage)=>void|Promise<void>;onDelta?:(text:string)=>void;
   /** Opts in to the coordinator's admission state for this attempt. */
@@ -47,4 +48,4 @@ export function createPartitionEntry(options:OrderedPartitionEntryOptions):Parti
 export function createPartitionEntry(options:PartitionEntryOptions):PartitionEntry;
 export function createPartitionRequester(options:{entries:()=>PartitionEntry[];requesterId:string;meshId:string;modelId:string;modelIdentity:string;planId:string;
  maxPlacements:number;ordered?:boolean;authorize(placement:object):Promise<boolean>;onAttempt?(attempt:object):void;newId?:()=>string;now?:()=>number}):{
- generate(input:{generationRequest?:PartitionGenerationRequest;messages:Array<{role:string;content:string}>;threadId:string;disclosureExpiresAt?:number},options?:{signal?:AbortSignal;onActivity?:(activity:PartitionActivity)=>void|Promise<void>;onUsage?:(usage:PartitionTokenUsage)=>void|Promise<void>;onDelta?:(delta:{text:string;threadId:string;attemptId:string;placementGeneration:number})=>void}):Promise<{content:string;usage?:PartitionTokenUsage;execution:object;recovery:object}>};
+ generate(input:{privacy:ExecutionPolicy;generationRequest?:PartitionGenerationRequest;messages:Array<{role:string;content:string}>;threadId:string;disclosureExpiresAt?:number},options?:{signal?:AbortSignal;onActivity?:(activity:PartitionActivity)=>void|Promise<void>;onUsage?:(usage:PartitionTokenUsage)=>void|Promise<void>;onDelta?:(delta:{text:string;threadId:string;attemptId:string;placementGeneration:number})=>void}):Promise<{content:string;usage?:PartitionTokenUsage;execution:object;recovery:object}>};

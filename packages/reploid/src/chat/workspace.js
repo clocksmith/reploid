@@ -4,7 +4,7 @@ import { partitionActivity } from '../contracts/partition-activity.js';
 import { canonicalPartitionJson } from '../contracts/partition.js';
 import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../contracts/partition-publication.js';
 import defaults from './policy.json' with { type: 'json' };
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, executionPrivacyReceipt, bindAuxiliaryDisclosure } from './execution-policy.js';
+import { createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, sameExecutionBinding, executionPrivacyReceipt, bindAuxiliaryDisclosure } from './execution-policy.js';
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
@@ -58,9 +58,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     return valid;
   };
   const covering = need => need && (remotePermissions?.() || []).find(permission => remotePermissionCovers(permission, need)) || null;
+  const approvedRecipients = preview => preview.privacyBinding.route.hops.map(hop => hop.recipient);
   // The authorization cites the permission and names the verified route this attempt is dispatched to.
   const permitted = (scope, preview, permission) => ({ kind: 'permission', grantId: null, permissionId: permission.id,
-    peerId: preview.peerId, ...copy(scope), source: 'permission', recipients: disclosureRecipients(scope, preview),
+    peerId: preview.peerId, ...copy(scope), source: 'permission', recipients: approvedRecipients(preview),
     expiresAt: preview.executionTimeoutMs === undefined ? preview.expiresAt : now() + preview.executionTimeoutMs });
   const requester = () => {
     const value = requesterIdentity();
@@ -106,12 +107,22 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   selectedId = threads.some(thread => thread.id === loaded?.selectedId && !thread.closed) ? loaded.selectedId : null;
   let durableThreads = copy(threads);
   assert(threads.length <= limits.maxThreads && new Set(threads.map(thread => thread.id)).size === threads.length, 'Invalid stored threads');
+  const resetUnrecognizedSecurity = thread => {
+    try { thread.privacy = validateExecutionPolicy(thread.privacy); }
+    catch {
+      // Histories remain readable. This is a local-only reset, never inherited network permission.
+      thread.privacy = createExecutionPolicy();
+      thread.executionSettingsReset = true;
+      thread.grants = [];
+    }
+  };
   const loadedRequester = threads.length ? requester() : null;
   for (const thread of threads) {
     assert(typeof thread.id === 'string' && Array.isArray(thread.messages) && Array.isArray(thread.attempts)
       && Array.isArray(thread.members) && thread.messages.length <= limits.maxMessagesPerThread, 'Invalid stored conversation');
     assert(thread.automaticModel === undefined || typeof thread.automaticModel === 'boolean', 'Invalid stored model selection');
     thread.grants ??= [];
+    resetUnrecognizedSecurity(thread);
     thread.systemContext = validateSystemContext(thread.systemContext);
     validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants, loadedRequester);
     for (const attempt of thread.attempts) if (activeStatuses.has(attempt.status)) {
@@ -126,6 +137,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       attempt.provenance = answerProvenance(thread, attempt, { localIds: [loadedRequester, participantId].filter(Boolean) });
     }
   }
+  durableThreads = copy(threads);
   // Canonical text is already durable in the publication journal. Keep its verified
   // projection separate from full-history save acknowledgements, which may arrive later.
   const publishedResponses = new Map();
@@ -226,6 +238,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     thread.systemContext = validateSystemContext(thread.systemContext);
     thread.members = [...new Set([participantId, ...(Array.isArray(thread.members) ? thread.members.filter(short) : [])])];
     thread.grants = [];
+    resetUnrecognizedSecurity(thread);
     thread.closed = thread.closed === true;
     thread.createdAt = Number.isSafeInteger(thread.createdAt) ? thread.createdAt : now();
     for (const attempt of thread.attempts) {
@@ -242,7 +255,6 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   };
   const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null, searchPermission = null, sourceHistory = []) => {
     current();
-    const legacyPrivacy = !thread.privacy && (!request.privacy || request.privacy.profile === 'provider-visible' && !request.privacy.allowedRecipients.length);
     request = copy({ ...request, privacy: requestExecutionPolicy(request) });
     assertAvailableExecutionPolicy(request.privacy);
     assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
@@ -293,8 +305,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         if (auxiliary.has(key)) return auxiliary.get(key);
         auxiliaryOperations.set(detail.operation, implementation);
         const pending = (async () => {
-          const declared = installedPath ?? routeFor(request.retrieval).disclosures[detail.operation] ?? null;
-          const binding = await bindAuxiliaryDisclosure(request.privacy, { ...detail, requestId: attempt.id }, declared, { allowUnqualifiedLegacy: legacyPrivacy });
+          const declared = routeFor(request.retrieval).disclosures[detail.operation] ?? installedPath;
+          const binding = await bindAuxiliaryDisclosure(request.privacy, { ...detail, requestId: attempt.id }, declared);
           controller.signal.throwIfAborted();
           attempt.auxiliaryBindings = [...(attempt.auxiliaryBindings || []), copy(binding)];
           await persist(); controller.signal.throwIfAborted(); return binding;
@@ -389,25 +401,27 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             'Invalid execution authorization window');
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview, requester());
-            assert(scope || request.privacy.profile === 'provider-visible' && !request.privacy.allowedRecipients.length,
-              'Privacy requires verified execution recipients');
-            const recipients = scope ? disclosureRecipients(scope, preview) : [preview.peerId];
-            if (preview.privacyBinding) {
-              const hops = preview.privacyBinding.route?.hops || [];
-              const paired = request.model.fleet || preview.privateDelegation
-                || preview.privacyBinding.route?.route?.schema === 'reploid.paired-delegation/v1';
-              if (paired) assert(preview.privateDelegation
-                && hops.some(hop => hop.placement === 'remote' && hop.recipient === preview.recipientIdentity),
-              'Paired route omitted its plaintext requester');
-              else {
-                assert(scope && recipients.every(recipient => hops.some(hop => hop.placement === 'remote'
-                  && hop.recipient === recipient)), 'Execution binding omitted a verified recipient');
-                if (!request.model.partition) assert(hops.every(hop => hop.placement === 'remote'
-                  && recipients.includes(hop.recipient)), 'Execution binding substituted a verified recipient');
-              }
+            assert(scope && preview.privacyBinding, 'Verified, policy-bound execution recipients are required');
+            const recipients = disclosureRecipients(scope, preview);
+            const hops = preview.privacyBinding.route?.hops || [];
+            const paired = request.model.fleet || preview.privateDelegation;
+            let required = recipients;
+            if (paired) {
+              const route = preview.privacyBinding.route.route, coordinator = preview.recipientIdentity;
+              assert(preview.privateDelegation && (!request.model.fleet || request.model.fleet.requester.participantId === coordinator),
+                'Paired route omitted its coordinator');
+              const workers = route?.schema === 'reploid.paired-whole-route/v1' && route.requester === coordinator
+                ? [route.providerIdentity] : route?.schema === 'reploid.partition-route/v1' ? route.stages?.map(stage => stage.participantId) : null;
+              assert(workers?.length && workers.every(id => typeof id === 'string' && id), 'Current exact paired route required');
+              required = [coordinator, ...workers];
+              assert(Array.isArray(preview.inputRecipients) && new Set(preview.inputRecipients).size === new Set(required).size
+                && required.every(id => preview.inputRecipients.includes(id)), 'Paired preview omitted execution recipients');
             }
-            const binding = await bindExecutionRoute(request, preview.privacyBinding?.route ?? plaintextExecutionRoute(request, {
-              recipients: [...new Set(preview.inputRecipients ?? recipients)], route: scope?.route ?? request.model.partition ?? null }));
+            const expected = new Set(required);
+            assert(hops.length === expected.size && hops.every(hop => hop.placement === 'remote' && expected.has(hop.recipient)),
+              'Execution binding differs from the complete verified recipient set');
+            const binding = await bindExecutionRoute(request, preview.privacyBinding.route);
+            assert(sameExecutionBinding(binding, preview.privacyBinding), 'Execution binding changed before approval');
             controller.signal.throwIfAborted();
             assert(!attempt.privacyBinding || attempt.privacyBinding.policyId === binding.policyId
               && attempt.privacyBinding.routeId === binding.routeId, 'Execution recipients changed. Retry starts a new authorized attempt.');
@@ -417,7 +431,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             const grant = matchingThreadGrant(thread.grants, scope);
             if (published) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
             // Retrieved passages go only to verified recipients the per-answer search permission listed.
-            if (attempt.searchPermission) assert(scope && disclosureRecipients(scope, preview)
+            if (attempt.searchPermission) assert(approvedRecipients(preview)
               .every(recipient => attempt.searchPermission.recipients.includes(recipient)), SEARCH_RECIPIENTS_CHANGED);
             if (attempt.authorization?.kind === 'permission') {
               assert(scope && attempt.authorization.peerId === preview.peerId && Object.keys(scope).every(key =>
@@ -567,7 +581,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       assert(typeof purpose === 'string' && purpose.length <= limits.maxMessageCharacters, 'Invalid conversation purpose');
       assert(Array.isArray(members) && members.every(member => typeof member === 'string' && member), 'Invalid conversation members');
       const thread = { id: id(), ...(automaticModel ? { automaticModel: true } : {}), model: modelIdentity(model), purpose, systemContext: validateSystemContext(systemContext), members: [...new Set([participantId, ...members])],
-        ...(privacy === null ? {} : { privacy: requestExecutionPolicy({ model, permissions, privacy }) }), permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
+        privacy: privacy === null ? createExecutionPolicy() : requestExecutionPolicy({ privacy }), permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
       threads.push(thread); selectedId = thread.id; const saved = persist();
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
@@ -618,9 +632,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       assert(!thread.closed && !runs.has(threadId), 'Change privacy only in an open idle conversation');
       const privacy = requestExecutionPolicy({ model: thread.model, permissions: thread.permissions, privacy: value });
       assertAvailableExecutionPolicy(privacy);
-      const previous = thread.privacy;
+      const previous = thread.privacy, reset = thread.executionSettingsReset;
       thread.privacy = copy(privacy);
-      try { return persist(); } catch (error) { thread.privacy = previous; notify(); throw error; }
+      delete thread.executionSettingsReset;
+      try { return persist(); } catch (error) { thread.privacy = previous; if (reset) thread.executionSettingsReset = true; notify(); throw error; }
     },
     setSystemContext(threadId, value) {
       current(); const thread = find(threadId);
@@ -659,7 +674,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         messages.unshift({ role: 'system', content: system });
         sourceHistory.forEach(item => item.index++);
       }
-      try { return start(thread, { model: thread.model, permissions: thread.permissions, ...(thread.privacy ? { privacy: thread.privacy } : {}), members: thread.members, messages,
+      try { return start(thread, { model: thread.model, permissions: thread.permissions, privacy: thread.privacy, members: thread.members, messages,
         ...(searched ? { retrieval: searched } : {}) }, message.id, null, select, authorizeDisclosure, permission, sourceHistory); }
       catch (error) { thread.messages.pop(); throw error; }
     },
@@ -669,6 +684,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
       const route = attempt.request.retrieval ? routeFor(attempt.request.retrieval) : null;
       const request = copy(attempt.request);
+      validateExecutionPolicy(request.privacy); // Old attempts are readable, never executable.
       if (retrievalQuery !== null) {
         assert(route && searchPermission, 'Changing a retry query requires fresh search permission');
         request.retrieval = { ...request.retrieval, ...route.retriever.request({ query: retrievalQuery, limits: request.retrieval.limits }, retrievalQuery) };
@@ -696,7 +712,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         }
         attempt.authorization = { kind: remember ? 'thread-grant' : 'once', grantId: grant?.id || null,
           peerId: attempt.approval.peerId, recipientIdentity: attempt.approval.recipientIdentity || null,
-          ...copy(scope), source: 'approval', recipients: disclosureRecipients(scope, attempt.approval), expiresAt: attempt.approval.expiresAt };
+          ...copy(scope), source: 'approval', recipients: approvedRecipients(attempt.approval), expiresAt: attempt.approval.expiresAt };
         run.deciding = true;
         const fail = error => { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); run.deciding = false; throw error; };
         try {

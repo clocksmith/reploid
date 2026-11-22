@@ -1,6 +1,8 @@
 import { sameModelVariant } from './model-providers.js';
 import { localFitText } from './conversation-model-picker.js';
 import { renderPrivateComputers, bindPrivateComputers } from './private-computers-view.js';
+import { renderOwnerPairingControls, bindOwnerPairingControls } from './owner-pairing-view.js';
+import { renderCircleInviteControls, bindCircleInviteControls } from './circle-invites-view.js';
 import { updateExecutionDetail } from './execution-activity.js';
 import { projectContextIndicator } from './context-indicator.js';
 import { bindDrawer } from '../components/drawer.js';
@@ -26,8 +28,8 @@ export function renderInspectorNavigation({ workspace = false } = {}) {
   const tag = workspace ? 'a' : 'button';
   const destination = view => workspace ? `href="${escape(workspaceHref(view))}" data-workspace-view="${view}"` : 'type="button"';
   return `<nav class="pool-stack pool-gap-sm" data-inspector-navigation aria-label="Network sections">
-      ${workspace ? `<a class="pool-button btn-ghost chat-rail-icon" ${destination('conversation')} data-inspector-section="conversation" aria-label="Conversation details" title="Conversation details" hidden>${interfaceIcon('activity')}<span class="chat-rail-label">Conversation details</span></a>` : ''}
-      <${tag} class="pool-button btn-ghost chat-network-toggle" ${destination('computers')} data-inspector-section="participants" data-toggle-inspector aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></${tag}>
+      ${workspace ? `<a class="pool-button btn-ghost chat-rail-icon" ${destination('conversation')} data-inspector-section="conversation" aria-label="Conversation details" title="Conversation details" hidden>${interfaceIcon('activity')}<span class="chat-rail-label">Activity</span></a>` : ''}
+      <${tag} class="pool-button btn-ghost chat-network-toggle" ${destination('computers')} data-inspector-section="participants" data-toggle-inspector aria-controls="network-inspector-panel" aria-expanded="false" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></${tag}>
       <${tag} class="pool-button btn-ghost chat-rail-icon" ${destination('settings')} data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></${tag}>
     </nav>`;
 }
@@ -43,8 +45,8 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
   const material = mounted ? '' : ' pool-surface';
   return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Network and settings">
     ${navigation ? renderInspectorNavigation() : ''}
-    <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading">${mounted ? `<span data-drawer-mark>${renderPowerTower(true)}</span>` : ''}<h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button btn-ghost" type="button" data-close-inspector${mounted ? '' : ' aria-label="Close" title="Close"'}>${mounted ? 'Back to conversation' : interfaceIcon('close')}</button></header>
+    <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" id="network-inspector-panel" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
+    <header class="chat-network-heading">${mounted ? `<span data-drawer-mark>${renderPowerTower(true)}</span>` : ''}<h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-close-inspector>${interfaceIcon('close')}Close</button></header>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-inspector-context-detail></p><div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
@@ -53,7 +55,10 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
-      <section class="pool-stack pool-gap-sm" aria-label="Network computers"><h3 class="pool-subheading">Public network</h3>
+      ${renderOwnerPairingControls()}
+      ${renderPrivateComputers()}
+      ${renderCircleInviteControls()}
+      <section class="pool-stack pool-gap-sm" aria-label="Public network">
         ${renderConnectionControl()}<div class="pool-row pool-row-between pool-gap-sm" data-roster-filter hidden><span data-roster-filter-label></span><button class="pool-button btn-ghost" type="button" data-clear-roster-filter>Show all computers</button></div><p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
         <ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
@@ -79,7 +84,6 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
           </div>
         </div>
       </details>
-      ${renderPrivateComputers()}
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
       <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
@@ -129,7 +133,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const drawer = mounted ? bindDrawer(panel.closest('[data-chat-inspector-slot]') || panel, { side: 'right', onSettled: open => { panel.hidden = !open; } }) : null;
   const isOpen = () => mounted ? drawer.isOpen() : panel.open;
   const buttonState = (node, name, value) => {
-    if (node?.tagName === 'A') node.removeAttribute(name); else node?.setAttribute(name, String(value));
+    if (node?.tagName === 'A' && name === 'aria-pressed') node.removeAttribute(name); else node?.setAttribute(name, String(value));
   };
   const hide = () => { if (mounted) drawer.setOpen(false); else if (panel.open) panel.close(); };
   let opener, modelFilter = null;
@@ -179,6 +183,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };
   const act = operation => Promise.resolve().then(operation).catch(error);
   const privateComputers = bindPrivateComputers(panel, session);
+  const ownerPairingView = bindOwnerPairingControls(panel, session);
+  const circleInvites = bindCircleInviteControls(panel, () => session.circleInvites);
   const storagePanel = bindModelStorage(panel, modelStorage);
   const localData = bindLocalData(panel, session, computers);
   if (modelStorage) find('[data-settings-storage-summary]').hidden = true;
@@ -218,9 +224,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }, options);
   navigation.addEventListener('keydown', onEscape, options);
   on('[data-close-inspector]', 'click', () => {
-    const input = mounted && root.querySelector('[data-composer-input]');
-    dialog.close({ restoreFocus: !input });
-    if (input) input.focus({ preventScroll: true });
+    dialog.close();
   });
   on('[data-clear-roster-filter]', 'click', () => {
     clearModelFilter(); find('#network-inspector-title').focus({ preventScroll: true });
@@ -235,6 +239,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     privateComputers.update(state);
+    ownerPairingView.update(state);
+    circleInvites.update();
     if (inspected?.threadId !== state.selectedId) inspected = null;
     const attempt = state.activeThread?.attempts?.find(item => item.id === inspected?.attemptId);
     const inspectedState = attempt ? { ...state, activeThread: { ...state.activeThread, attempts: [attempt] } } : state;
@@ -417,6 +423,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { clearModelFilter(); if (section === 'conversation') { inspected = null; render(session.getState()); } select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); ownerPairingView.dispose(); circleInvites.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

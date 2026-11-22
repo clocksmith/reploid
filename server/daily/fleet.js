@@ -24,7 +24,7 @@ function promptRoute(host, pins) {
   if (!route) return null;
   const peer = host.textParticipant.getNetworkState().peers?.find(row => row.identityVerified
     && row.participantId === pins.providerId && route.providerIds.includes(row.peerId));
-  requireValue(peer?.admissionProtocol === 1, 'Named provider must admit the pinned attempt before prompt disclosure');
+  requireValue(peer?.admissionProtocol === 2, 'Named provider must admit the pinned attempt before prompt disclosure');
   assertSettingsSupported(peer.generationSettings, pins.settings);
   assertSettingsSupported(route.generationSettings, pins.settings);
   return route;
@@ -95,7 +95,7 @@ export async function runDailyFleet(host, pins, { prompt, signal = AbortSignal.t
     requireValue(model, 'The qualified daily provider is unavailable');
     const messages = [{ role: 'system', content: PROFILE.system }, { role: 'user', content: prompt }];
     const request = { threadId, attemptId, model, messages, settings,
-      privacy: createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [providerId] }) };
+      privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [providerId] }, computation: 'plaintext' }) };
     const result = await host.runAccountedGeneration(request, { signal,
       requestApproval(preview) {
         signal.throwIfAborted();
@@ -104,7 +104,7 @@ export async function runDailyFleet(host, pins, { prompt, signal = AbortSignal.t
           && preview.recipientIdentity === providerId && same(preview.recipients, [providerId])
           && model.verifiedProviderIdentities[preview.providerId] === providerId && same(preview.adapterIdentities, [])
           && typeof preview.requestId === 'string' && preview.requestId.length > 0
-          && preview.admission?.schema === 'reploid.generation-admission/v1' && digest.test(preview.admission.promptCommitment)
+          && preview.admission?.schema === 'reploid.generation-admission/v2' && digest.test(preview.admission.promptCommitment)
           && same(preview.input?.messages, messages) && same(preview.input?.settings, settings),
         'Disclosure differed from the authorized daily attempt');
         approved = true;

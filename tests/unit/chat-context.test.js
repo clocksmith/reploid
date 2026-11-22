@@ -4,6 +4,9 @@ import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.j
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+const OPEN_POLICY = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+
 const model = { id: 'verified-model', name: 'Verified model', identity: 'sha256:' + 'a'.repeat(64) };
 const result = request => ({ threadId: request.threadId, attemptId: request.attemptId, modelId: model.id,
   modelIdentity: model.identity, adapterIdentities: [], content: 'A useful answer longer than the compact context word cap is still allowed.' });
@@ -36,21 +39,24 @@ describe('optional application context', () => {
     const store = { load: () => saved, save: data => { saved = structuredClone(data); } };
     const app = createChatWorkspace({ meshId: 'mesh', participantId: 'user', store,
       execute: async (request, controls) => {
-        preview = { ...result(request), id: 'preview', peerId: 'peer', expiresAt: Date.now() + 10000, input: request.messages };
+        const recipient = 'peer:' + 'a'.repeat(24);
+        const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [recipient] }));
+        preview = { ...result(request), id: 'preview', peerId: recipient, recipientIdentity: recipient,
+          operation: 'generate', disclosure: 'public', expiresAt: Date.now() + 10000, input: request.messages, privacyBinding };
         await controls.requestApproval(preview);
         return result(request);
       } });
     const context = createChatContext({ enabled: true, maxWords: 16 }, model, [model]);
     const purpose = 'User purpose '.repeat(30);
-    const thread = app.createThread({ model, purpose, systemContext: context });
+    const thread = app.createThread({ model, privacy: OPEN_POLICY, permissions: { sharingScope: 'mesh' }, purpose, systemContext: context });
     const other = app.createThread({ model });
     const pending = app.send(thread, 'Original question');
     const attempt = app.getState().threads[0].attempts[0];
+    await vi.waitFor(() => expect(app.getState().threads[0].attempts[0].approval?.id).toBe('preview'));
     expect(preview.input).toEqual([{ role: 'system', content: context.content + '\n\n' + purpose }, { role: 'user', content: 'Original question' }]);
     expect(attempt.request.messages).toEqual(preview.input);
     expect(attempt.systemContext).toEqual(context);
     expect(() => app.setSystemContext(thread, null)).toThrow(/idle/);
-    await vi.waitFor(() => expect(app.getState().threads[0].attempts[0].approval?.id).toBe('preview'));
     app.approve(thread, attempt.id, 'preview', true);
     expect((await pending).status).toBe('completed');
     expect(app.getState().threads[1].systemContext).toBeNull();

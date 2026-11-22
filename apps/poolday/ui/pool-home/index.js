@@ -8,6 +8,7 @@ import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import { getRouteId, renderNav, renderAppShortcuts, updateChangesControl } from './shell-view.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from './conversation-workspace.js';
 import { renderNetworkInspector, renderInspectorNavigation, renderInspectorRail, renderModelSetupDialog, bindNetworkInspector } from './network-inspector.js';
+import { bindOwnerPairingLink } from './owner-pairing-view.js';
 import { renderProductionContribution } from './contribution-models.js';
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
@@ -24,7 +25,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
   if (ordered === undefined) ordered = getOrderedParticipation(storage);
   disposeWorkspace?.();
   let disposed = false, revision = 0, changesRevision = 0;
-  let detachView = () => {}, detachRibbon = () => {}, disposeSpecialists = () => {};
+  let detachView = () => {}, detachPairing = () => {}, detachRibbon = () => {}, disposeSpecialists = () => {};
   let specialists, sharingView, inspector, host;
   const viewState = {}, documentViewState = {};
   const theme = bindThemeSelector(mount);
@@ -89,6 +90,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       renderedLocation = location.href;
       const current = ++revision;
       detachView(); detachView = () => {};
+      detachPairing(); detachPairing = () => {};
       detachRibbon(); detachRibbon = () => {}; inspector?.dispose();
       mount.querySelector('[data-shell-inspector]')?.remove();
       const routeId = getRouteId();
@@ -163,6 +165,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
           }
         }
         bindNavigation();
+        if (workspaceRoute) detachPairing = bindOwnerPairingLink(inspectorRoot, host.chat.ownerPairing, location);
         if (options.restoreNavigationFocus || options.type === 'popstate') {
           (mount.querySelector('.pool-nav-link[aria-current="page"]') || mount.querySelector('.pool-primary-brand'))?.focus({ preventScroll: true });
         }
@@ -190,7 +193,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       if (disposed) return;
       disposed = true; revision++; changesRevision++;
       unsubscribeHandover(); if (!keepHandover) handover?.close();
-      detachView(); detachRibbon(); inspector?.dispose(); theme.dispose(); disposeButtonFeedback(); disposeSpecialists();
+      detachView(); detachPairing(); detachRibbon(); inspector?.dispose(); theme.dispose(); disposeButtonFeedback(); disposeSpecialists();
       window.removeEventListener('popstate', render); window.removeEventListener('pagehide', onPageHide); window.removeEventListener('pageshow', onPageShow);
       if (window.REPLOID_POOL_CONNECT_OPERATIONS === connectOperations) delete window.REPLOID_POOL_CONNECT_OPERATIONS;
       void host.close();

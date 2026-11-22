@@ -45,6 +45,9 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ -z "$BASE_SHA" ]; then
+            BASE_SHA=$(git rev-parse HEAD^)
+          fi
           if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] && ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
             git fetch --no-tags --depth=1 origin "$BASE_SHA"
           fi
@@ -57,6 +60,8 @@ jobs:
           npx vitest run --config tests/vitest.config.js tests/unit/browser-boundaries.test.js tests/unit/layer-verification.test.js tests/unit/eslint-environments.test.js tests/integration/fleet-browser-bridge.test.js tests/unit/work-resident-provider.test.js tests/unit/network-controls.test.js tests/unit/execution-privacy.test.js tests/unit/auxiliary-privacy.test.js tests/integration/execution-privacy-routes.test.js tests/integration/retrieval-privacy.test.js tests/integration/privacy-native-webrtc.test.js tests/unit/doppler-runtime-service.test.js tests/unit/work-generation-completion.test.js tests/unit/pool-peer-operation-planning.test.js tests/unit/pool-peer-pack-job.test.js tests/unit/work-threads.test.js tests/unit/operation-participation-lifecycle.test.js tests/unit/privacy-controls.test.js tests/unit/peer-generation-threads.test.js tests/unit/chat-workspace.test.js tests/unit/chat-thread-grants.test.js tests/unit/conversation-remote-permission.test.js tests/unit/ordered-partition-grants.test.js tests/unit/ordered-partition-chat-entry.test.js
       - name: Check complete-request lifecycle and owned process boundaries
         run: npx vitest run --config tests/vitest.config.js tests/unit/native-complete-request.test.js tests/unit/native-complete-lifecycle.test.js tests/unit/complete-request-timing.test.js tests/unit/complete-worker-protocol.test.js tests/unit/native-piece-cache-source.test.js tests/unit/native-diagnostic-source.test.js
+      - name: Check execution policy at CLI and research entrypoints
+        run: npx vitest run --config tests/vitest.config.js tests/unit/chat-catalog-modes.test.js tests/unit/native-node-ask.test.js tests/unit/research-plugin-host.test.js tests/unit/research-plugin-ui.test.js
       - name: Verify committed generated contracts and inventories
         run: |
           npm run lint

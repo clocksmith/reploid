@@ -10,7 +10,8 @@ function fixture(lock = {}) {
   let notify, peers = [];
   const data = new Map(), storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
   const swarm = { getState: () => ({ consumer: { peers } }), generate: vi.fn(async (messages, controls) => {
-    const preview = { providerId: controls.modelId, modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [] };
+    const preview = { providerId: controls.modelId, recipientIdentity: 'signed-' + controls.modelId,
+      modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [] };
     expect(await controls.approve(preview)).toBe(true);
     await controls.record({ stage: 'approved', preview });
     return { model: controls.modelId, modelIdentity: controls.modelIdentity, peerId: controls.modelId, provider: 'doppler', content: 'fixture answer' };
@@ -20,8 +21,9 @@ function fixture(lock = {}) {
   const dispose = bindResearchPlugins(root, host, { storage, locks: { request: async (name, options, cb) => cb(lock) } });
   return { root, data, swarm, dispose: () => { dispose(); root.remove(); }, ready() {
     peers = models.map(model => ({ model: model.id, modelIdentity: model.identity, peerId: model.id,
+      participantId: 'signed-' + model.id, identityVerified: true, admissionProtocol: 2,
       role: 'provider', readiness: 'ready', availableSlots: 1 })); notify();
-  }, notify: () => notify() };
+  }, replaceTarget() { peers[0] = { ...peers[0], peerId: 'replacement', participantId: 'signed-replacement' }; }, notify: () => notify() };
 }
 it('waits for contributors, retains selection, prepares then judges without new inference, and restores', async () => {
   const f = fixture();
@@ -55,6 +57,19 @@ it('does not start without exclusive storage ownership', () => {
     f.ready();
     expect(f.root.querySelector('[data-study-start]').disabled).toBe(true);
     expect(f.root.textContent).toContain('already open in another tab');
+    expect(f.swarm.generate).not.toHaveBeenCalled();
+  } finally { f.dispose(); }
+});
+
+it('requires new consent when a rendered recipient is replaced before the click', async () => {
+  const f = fixture();
+  try {
+    f.ready();
+    const start = f.root.querySelector('[data-study-start]');
+    expect(start.disabled).toBe(false);
+    f.replaceTarget();
+    start.click();
+    await vi.waitFor(() => expect(f.root.querySelector('[data-study-error]').textContent).toContain('Reviewed contributors changed'));
     expect(f.swarm.generate).not.toHaveBeenCalled();
   } finally { f.dispose(); }
 });

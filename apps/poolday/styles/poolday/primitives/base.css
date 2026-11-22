@@ -96,7 +96,7 @@
 :where(.pool-home) textarea { resize: vertical; min-height: var(--pool-size-80); }
 :where(.pool-home) ::placeholder { color: var(--pool-color-muted); opacity: 1; }
 :where(.pool-home) dialog { border: 0; color: var(--pool-color-ink); }
-:where(.pool-home) dialog::backdrop { background: color-mix(in srgb, var(--pool-gray-0) var(--pool-alpha-48), transparent); }
+:where(.pool-home) dialog::backdrop { background: var(--pool-color-scrim); }
 .pool-home dialog:not([open]) { display: none; }
 .pool-home dialog[open] { animation: pool-dialog-enter var(--pool-motion-time-180) ease-out; }
 @keyframes pool-dialog-enter { from { opacity: 0; transform: translateY(var(--pool-size-4)); } to { opacity: 1; transform: translateY(0); } }
@@ -216,7 +216,7 @@
 .pool-home input:focus,
 .pool-home select:focus,
 .pool-home textarea:focus {
-  outline: var(--pool-border-thick) solid color-mix(in srgb, var(--pool-gray-44) var(--pool-alpha-32), transparent);
+  outline: var(--pool-border-thick) solid var(--pool-color-field-focus);
   outline-offset: var(--pool-border-thick);
 }
 

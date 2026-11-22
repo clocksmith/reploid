@@ -13,6 +13,11 @@
  *                        radius, type, opacity, filter): the look comes from primitive
  *                        classes in the markup. Compositions listed under "legacy" in
  *                        layers.json may only lower their remaining visual count.
+ * - Raw palette tokens (gray, charcoal, silica, void, spectrum ramps) stay inside tokens.css;
+ *   primitives and compositions consume semantic tokens, so a theme change reaches them.
+ * - Keyframes are looks and live in primitives; compositions reference them by name only.
+ * - A primitive does not style composition markup through :where() aliases: the markup
+ *   carries the primitive class instead (only the .pool-home scope and the .btn alias remain).
  * - Literals in primitives and compositions are structural only: 0, 1, grid/flex
  *   counts and fr, calc multipliers, and percentages or viewport units in geometry.
  * - pool-entry.html loads only the Poolday layers. index.html can host Poolday
@@ -65,6 +70,8 @@ const namedColors = (value, context) => {
     .filter((word) => NAMED_COLORS.has(word) || (SYSTEM_COLORS.has(word) && !forced));
 };
 const POOL_EXCLUSION = ':where(:not(.pool-home, .pool-home *))';
+const RAW_PALETTE = /^--pool-(gray|charcoal|silica|void|spectrum)-/;
+const PRIMITIVE_ALIASES = new Set(['pool-home', 'btn']);
 
 /* Literal policy for component values. Everything a designer tunes is a primitive;
    what remains is structure. */
@@ -271,13 +278,31 @@ const main = () => {
     const layer = readLayer(file);
     const converted = manifest.compositions.includes(file) && !(file in legacy);
     let visuals = 0;
+    const isComposition = manifest.compositions.includes(file);
+    const seenKeyframes = new Set(), seenAliases = new Set();
     walkDeclarations(layer.clean, ({ property, value, line, context }) => {
+      const keyframes = context.find((c) => /^@(-[a-z]+-)?keyframes/.test(c));
+      if (isComposition && keyframes && !seenKeyframes.has(keyframes)) {
+        seenKeyframes.add(keyframes);
+        report(layer.file, line, `composition defines ${keyframes}; keyframes are looks and belong in a primitive`);
+      }
+      if (!isComposition) {
+        for (const entry of context) {
+          for (const [, name] of entry.matchAll(/:where\(\s*\.([\w-]+)/g)) {
+            if (!PRIMITIVE_ALIASES.has(name) && !seenAliases.has(name)) {
+              seenAliases.add(name);
+              report(layer.file, line, `primitive styles .${name} through a :where() alias; put the primitive class in that markup`);
+            }
+          }
+        }
+      }
       if (property.startsWith('--') && !JS_CONTRACT_VARS.has(property) && !PARAMETER_VAR.test(property)) {
         report(layer.file, line, `custom property defined outside tokens: ${property}`);
       }
       if (COLOR_LITERAL.test(value) || namedColors(value, context).length) report(layer.file, line, `color literal (${property}): ${value}`);
       for (const ref of varRefs(value)) {
         if (!JS_CONTRACT_VARS.has(ref) && !PARAMETER_VAR.test(ref) && !tokenNames.has(ref)) report(layer.file, line, `${ref} is not a token (${property})`);
+        if (RAW_PALETTE.test(ref)) report(layer.file, line, `raw palette token ${ref} outside tokens.css; use a semantic token (${property})`);
       }
       if (!property.startsWith('--') || PARAMETER_VAR.test(property)) {
         const literals = literalViolations(property, value);

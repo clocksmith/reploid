@@ -141,7 +141,7 @@ describe('Self Bridge', () => {
     );
   });
 
-  it('routes generation through a remote executor slot when no local model exists', async () => {
+  it('refuses an obsolete executor slot without disclosing the prompt', async () => {
     const transportHandlers = new Map();
     const swarmTransport = {
       init: vi.fn(async () => true),
@@ -170,7 +170,8 @@ describe('Self Bridge', () => {
       }),
       broadcast: vi.fn(() => 1),
       getConnectionState: vi.fn(() => 'connected'),
-      getTransportType: vi.fn(() => 'mock')
+      getTransportType: vi.fn(() => 'mock'),
+      disconnect: vi.fn()
     };
 
     const bridge = createSelfBridge({
@@ -192,23 +193,10 @@ describe('Self Bridge', () => {
       }
     });
 
-    const updates = [];
-    const result = await bridge.generate(
-      [{ role: 'user', content: 'Say hello' }],
-      (chunk) => updates.push(chunk)
-    );
-
-    expect(bridge.hasAvailableProvider()).toBe(true);
-    expect(result.content).toBe('remote final');
-    expect(updates).toEqual(['remote partial']);
-    expect(swarmTransport.sendToPeer).toHaveBeenCalledWith(
-      'peer-provider',
-      'reploid:generation-request',
-      expect.objectContaining({
-        consumer: expect.stringMatching(/^peer:/),
-        messages: [{ role: 'user', content: 'Say hello' }]
-      })
-    );
+    await expect(bridge.generate([{ role: 'user', content: 'Say hello' }], vi.fn())).rejects.toThrow('current layered policy required');
+    expect(bridge.hasAvailableProvider()).toBe(false);
+    expect(swarmTransport.sendToPeer.mock.calls.some(([, type]) => type === 'reploid:generation-request')).toBe(false);
+    await bridge.close();
   });
 
   it('reads projected self source without eagerly materializing mirrors', async () => {

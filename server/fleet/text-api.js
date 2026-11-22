@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import http from 'node:http';
 import https from 'node:https';
 import { createTextApi } from '../text-api.js';
@@ -52,6 +53,10 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
   const api = createTextApi({
     participant: host.textParticipant,
     production: true,
+    async executionPolicyFor() {
+      const ids = [...await host.enrolledRecipients()].filter(id => !pinned || pinned.has(id)).sort();
+      return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: ids.length ? 'named' : 'none', ids } });
+    },
     privatePartitionApprovals,
     authenticate: async req => tokensEqual(req.headers.authorization, expectedHeader)
       || (isMessagesRoute(req) && tokensEqual(req.headers['x-api-key'], token))

@@ -41,6 +41,8 @@ try {
     `--substitutions=COMMIT_SHA=${revision}`, '.'], checkout);
   await run('firebase', ['deploy', '--config', preparedConfig, '--project', 'reploid', '--only',
     'functions,firestore:indexes,firestore:rules,hosting:reploid', '--non-interactive'], checkout);
+  // Release qualification requires a clean tree; the prepared config is deploy-only scratch.
+  await rm(resolve(checkout, preparedConfig), { force: true });
   await run('npm', ['run', 'verify:pool:release', '--', '--url', 'https://replo.id', '--channel=chrome'], checkout);
   console.log(`[deploy] verified https://replo.id at ${revision}`);
 } catch (error) {

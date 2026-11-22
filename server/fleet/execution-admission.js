@@ -34,22 +34,17 @@ export function createFleetExecutionAdmission({ credits, model, stageOwner = nul
     },
     /**
      * Before the prompt is sent: the request's details and its salted commitment, no messages. Resolves true
-     * when the ledger holds a live reservation for exactly this request and commitment, and false when the
-     * ledger predates the check, in which case credit is checked with the request as before. Rejects when the
-     * ledger refuses: the provider then declines and the prompt is never sent.
+     * only when the ledger holds a live reservation for exactly this request and commitment. An
+     * unsupported ledger or refusal stops the attempt before disclosure.
      */
     async preadmit({ request, consumer }) {
       assert(request.consumer === consumer, 'Execution consumer differs from authenticated peer');
       assert(request.messages === undefined && request.settings === undefined, 'Pre-disclosure admission carries no prompt');
       assert(request.modelIdentity === exact.identity && same(request.adapterIdentities ?? [], exact.adapterIdentities),
         'Execution request names another model variant than this provider serves');
-      try {
-        await credits.call('preadmit', { id: `service:${consumer}:${request.requestId}`, executionId: request.requestId,
-          consumer, mode: 'whole-model', model: exact, commitment: request.promptCommitment });
-      } catch (error) {
-        if (error?.message === 'Unknown fleet operation') return false;
-        throw error;
-      }
+      const result = await credits.call('preadmit', { id: `service:${consumer}:${request.requestId}`, executionId: request.requestId,
+        consumer, mode: 'whole-model', model: exact, commitment: request.promptCommitment });
+      assert(result?.preadmitted === true, 'Exact credit preadmission is required before disclosure');
       return true;
     },
     async partition(request) {

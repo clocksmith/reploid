@@ -1,3 +1,4 @@
+import { partitionTestPolicy } from '../fixtures/partition-execution-policy.js';
 import { expect, it, vi } from 'vitest';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 
@@ -6,7 +7,7 @@ it('isolates distinct tasks through cancellation, replica join, middle withdrawa
   const f = await automaticOrderedMesh();
   const run = (requester, coordinator, task, threadId, controls = {}) => {
     const approve = vi.fn(async () => true), deltas = [];
-    const input = { model: f.select(requester, coordinator), messages: [{ role: 'user', content: tasks[task].prompt }], threadId, attemptId: threadId };
+    const input = { privacy: partitionTestPolicy, model: f.select(requester, coordinator), messages: [{ role: 'user', content: tasks[task].prompt }], threadId, attemptId: threadId };
     const promise = f.meshes[requester].generate(input, { requestApproval: approve, onDelta: event => deltas.push(event), ...controls });
     // Retain rejections promptly while the other route remains deliberately paused.
     return { input, approve, deltas, outcome: promise.then(value => ({ value }), error => ({error})) };

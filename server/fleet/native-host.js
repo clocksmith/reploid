@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'dopplerx/partitions';
 import { getDevice, getKernelCapabilities } from 'dopplerx/tooling/device';
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
+import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
 import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
@@ -25,6 +25,8 @@ import { createStageHistory } from './stage-history.js';
 import { openStageOwner } from './stage-owner.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
 import { openStageTokenWitness } from './stage-token-witness.js';
+import { createFairLaneScheduler } from './fair-lane-scheduler.js';
+export { createFairLaneScheduler } from './fair-lane-scheduler.js';
 import { assert, text, same } from './contract.js';
 import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
@@ -105,213 +107,6 @@ export function includeRequesterPresence(computers, state, at) {
     ...(state.queuedRequests > 0 ? { queuedRequests: state.queuedRequests } : {}),
     preparing: state.preparing,
     ...(!computer.online ? { resident: null, freeHostBytes: state.hardware.freeHostBytes } : {})
-  });
-}
-
-/** Fair round-robin admission scheduler across conversation lanes, including fast-path dispatches. */
-export function createFairLaneScheduler({
-  enabled = true,
-  capacityWaitMs = 30000,
-  canDrain = () => true,
-  findRoute,
-  freeSlots,
-  onPoll = () => {}
-}) {
-  const queuedEntries = new Map(), laneBuckets = new Map(), laneLastDispatched = new Map();
-  const activeProvidersByAttempt = new Map();
-  let startingDispatches = 0, dispatchSequence = 0, queuePollTimer = null, closed = false;
-
-  function recordLaneDispatch(lane) {
-    laneLastDispatched.set(lane, ++dispatchSequence);
-    if (laneLastDispatched.size > 256) {
-      for (const key of laneLastDispatched.keys()) {
-        if (!laneBuckets.has(key)) {
-          laneLastDispatched.delete(key);
-          if (laneLastDispatched.size <= 192) break;
-        }
-      }
-    }
-  }
-
-  function computeFairOrder() {
-    const copies = new Map();
-    const virtualLast = new Map();
-    let virtualSeq = dispatchSequence;
-    for (const [lane, items] of laneBuckets.entries()) {
-      if (items?.length) {
-        copies.set(lane, [...items]);
-        virtualLast.set(lane, laneLastDispatched.get(lane) ?? 0);
-      }
-    }
-    const order = [];
-    while (copies.size > 0) {
-      let bestLane = null, bestSeq = Infinity, bestQueuedAt = Infinity;
-      for (const [lane, items] of copies.entries()) {
-        const seq = virtualLast.get(lane) ?? 0, queuedAt = items[0].queuedAt;
-        if (seq < bestSeq || (seq === bestSeq && queuedAt < bestQueuedAt)) {
-          bestLane = lane; bestSeq = seq; bestQueuedAt = queuedAt;
-        }
-      }
-      if (bestLane === null) break;
-      const items = copies.get(bestLane);
-      order.push(items.shift());
-      virtualLast.set(bestLane, ++virtualSeq);
-      if (items.length === 0) copies.delete(bestLane);
-    }
-    return order;
-  }
-
-  function notifyQueuePositions() {
-    const ordered = computeFairOrder();
-    const total = ordered.length;
-    ordered.forEach((entry, index) => {
-      const position = index + 1;
-      if (entry.lastPosition !== position || entry.lastTotal !== total) {
-        entry.lastPosition = position;
-        entry.lastTotal = total;
-        entry.onAdmission?.({ status: 'queued', queuePosition: position, queuedCount: total, queuedAt: entry.queuedAt });
-      }
-    });
-  }
-
-  function removeQueuedEntry(entry) {
-    queuedEntries.delete(entry.attemptId);
-    clearTimeout(entry.timer);
-    entry.signal?.removeEventListener('abort', entry.onAbort);
-    const items = laneBuckets.get(entry.lane);
-    if (items) {
-      const index = items.indexOf(entry);
-      if (index >= 0) items.splice(index, 1);
-      if (!items.length) laneBuckets.delete(entry.lane);
-    }
-    if (queuedEntries.size === 0 && queuePollTimer) {
-      clearInterval(queuePollTimer);
-      queuePollTimer = null;
-    }
-  }
-
-  function drain() {
-    if (closed || !canDrain() || !queuedEntries.size) return;
-    let progressed = true;
-    while (progressed && laneBuckets.size > 0) {
-      progressed = false;
-      const candidates = [...laneBuckets.entries()]
-        .filter(([, items]) => items?.length > 0)
-        .sort(([laneA, itemsA], [laneB, itemsB]) => {
-          const seqDiff = (laneLastDispatched.get(laneA) ?? 0) - (laneLastDispatched.get(laneB) ?? 0);
-          return seqDiff !== 0 ? seqDiff : itemsA[0].queuedAt - itemsB[0].queuedAt;
-        });
-      for (const [lane, items] of candidates) {
-        const entry = items[0];
-        const chosen = findRoute(entry.requestedModel, entry.allowPartitionFallback);
-        if (chosen && freeSlots(chosen, activeProvidersByAttempt, startingDispatches) > 0) {
-          items.shift();
-          if (items.length === 0) laneBuckets.delete(lane);
-          queuedEntries.delete(entry.attemptId);
-          clearTimeout(entry.timer);
-          entry.signal?.removeEventListener('abort', entry.onAbort);
-          recordLaneDispatch(lane);
-          startingDispatches += 1;
-          entry.resolve({ chosen, queuedMs: Math.max(0, Date.now() - entry.queuedAt), releaseStarting: true });
-          progressed = true;
-          break;
-        }
-      }
-    }
-    if (queuedEntries.size === 0 && queuePollTimer) {
-      clearInterval(queuePollTimer);
-      queuePollTimer = null;
-    }
-    notifyQueuePositions();
-  }
-
-  async function acquire({ attemptId, threadId, requestedModel, allowPartitionFallback = false, signal, onAdmission }) {
-    signal.throwIfAborted();
-    if (!enabled) {
-      const immediate = findRoute(requestedModel, allowPartitionFallback);
-      return { chosen: immediate, queuedMs: 0, markDisclosed() {}, release() {} };
-    }
-    assert(Number.isSafeInteger(capacityWaitMs) && capacityWaitMs > 0, 'Explicit capacity wait bound required');
-    const lane = typeof threadId === 'string' && threadId ? threadId : attemptId;
-    if (queuedEntries.size === 0) {
-      const immediate = findRoute(requestedModel, allowPartitionFallback);
-      if (immediate && freeSlots(immediate, activeProvidersByAttempt, startingDispatches) > 0) {
-        recordLaneDispatch(lane);
-        startingDispatches += 1;
-        let startingHeld = true;
-        return {
-          chosen: immediate,
-          queuedMs: 0,
-          markDisclosed(providerKey) {
-            if (providerKey) activeProvidersByAttempt.set(attemptId, providerKey);
-            if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-            drain();
-          },
-          release() {
-            activeProvidersByAttempt.delete(attemptId);
-            if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-            drain();
-          }
-        };
-      }
-    }
-    const queuedAt = Date.now();
-    const acquired = await new Promise((resolve, reject) => {
-      const entry = {
-        attemptId, lane, requestedModel, allowPartitionFallback, signal, onAdmission, queuedAt,
-        lastPosition: 0, lastTotal: 0, resolve, reject,
-        timer: setTimeout(() => {
-          removeQueuedEntry(entry);
-          notifyQueuePositions();
-          reject(Error('No ready capacity within the configured wait'));
-        }, capacityWaitMs),
-        onAbort: () => {
-          removeQueuedEntry(entry);
-          notifyQueuePositions();
-          reject(signal.reason || new DOMException('Aborted', 'AbortError'));
-        }
-      };
-      signal.addEventListener('abort', entry.onAbort, { once: true });
-      let items = laneBuckets.get(lane);
-      if (!items) { items = []; laneBuckets.set(lane, items); }
-      items.push(entry);
-      queuedEntries.set(attemptId, entry);
-      if (!queuePollTimer) {
-        queuePollTimer = setInterval(() => {
-          void Promise.resolve(onPoll()).catch(() => {});
-          drain();
-        }, 500);
-        queuePollTimer.unref?.();
-      }
-      notifyQueuePositions();
-      drain();
-    });
-    let startingHeld = acquired.releaseStarting === true;
-    onAdmission?.({ status: 'admitted', queuedMs: acquired.queuedMs });
-    return {
-      chosen: acquired.chosen,
-      queuedMs: acquired.queuedMs,
-      markDisclosed(providerKey) {
-        if (providerKey) activeProvidersByAttempt.set(attemptId, providerKey);
-        if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-        drain();
-      },
-      release() {
-        activeProvidersByAttempt.delete(attemptId);
-        if (startingHeld) { startingHeld = false; startingDispatches = Math.max(0, startingDispatches - 1); }
-        drain();
-      }
-    };
-  }
-
-  return Object.freeze({
-    acquire,
-    drain,
-    queuedCount: () => queuedEntries.size,
-    close() {
-      closed = true;
-      if (queuePollTimer) { clearInterval(queuePollTimer); queuePollTimer = null; }
-    }
   });
 }
 
@@ -744,7 +539,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
                 route: { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity } }) }));
           }) };
       });
-      return { schema: 'reploid.fleet-browser/v1', privacyProtocol: 'reploid.paired-route/v2', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
+      return { schema: 'reploid.fleet-browser/v1', privacyProtocol: 'reploid.paired-route/v3', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
         models, computers: includeRequesterPresence(network.computers, state(), network.at), at: network.at };
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
@@ -752,7 +547,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
-      if (request.privacy) assertAvailableExecutionPolicy(requestExecutionPolicy(request));
+      request.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(request));
       const configured = config.models.find(entry => entry.model.id === request.model.id && entry.model.identity === request.model.identity);
       assert(configured, 'Model is outside owner preferences');
       request.model = { ...structuredClone(configured.model), ...(request.model.partition ? { partition: request.model.partition } : {}) };
@@ -777,15 +572,18 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         const controls = { signal: controller.signal, onDelta,
           requestApproval: async disclosure => {
             assert(same(disclosure.input?.messages, request.messages), 'Changed prompt disclosure');
+            const workers = [...new Set(disclosure.route
+              ? disclosure.route.stages.map(stage => stage.participantId) : [disclosure.recipientIdentity])];
+            const enrolled = new Set((await credits.call('computers', {})).computers.flatMap(row => row.participantIds || []));
+            assert(workers.length > 0 && workers.every(id => enrolled.has(id)), 'Execution worker is not enrolled; nothing was sent');
+            const recipients = [...new Set([...(request.privacyBinding ? [identity.peerId] : []), ...workers])];
+            const route = plaintextExecutionRoute(request, { recipients, route: disclosure.route
+              ?? { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity: disclosure.recipientIdentity } });
+            const checked = await bindExecutionRoute(request, route);
             if (request.privacyBinding) {
-              const recipients = [...new Set([identity.peerId, ...(disclosure.route
-                ? disclosure.route.stages.map(stage => stage.participantId) : [disclosure.recipientIdentity])])];
-              const route = plaintextExecutionRoute(request, { recipients, route: disclosure.route
-                ?? { schema: 'reploid.paired-whole-route/v1', requester: identity.peerId, providerIdentity: disclosure.recipientIdentity } });
-              const checked = await bindExecutionRoute(request, route);
               assert(sameExecutionBinding(checked, request.privacyBinding), 'Paired execution route changed; no prompt was sent to the replacement');
-              controller.signal.throwIfAborted();
             }
+            controller.signal.throwIfAborted();
             slot?.markDisclosed?.([disclosure?.providerId, typeof disclosure?.recipientIdentity === 'string' ? disclosure.recipientIdentity : null].filter(Boolean));
             onRoute(disclosure);
             return true; // Explicit generate command is the local owner's disclosure instruction.
@@ -882,13 +680,24 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           else if (command.op === 'reconcile') result = await host.reconcile();
           else if (command.op === 'balances') result = await host.balances();
           // `events: true` also reports the route as soon as it is approved, for callers that must act mid-answer.
-          else if (command.op === 'generate') result = await host.generate(command.request,
-            delta => console.log(JSON.stringify({ id: command.id, delta })),
-            command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
-              // `admission` is present when the prompt waits for the named recipient's decision.
-              route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null,
-                ...(route.admission ? { admission: route.admission } : {}) } })));
-          else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
+          else if (command.op === 'generate') {
+            // Stdin is the owner-command boundary. It supplies an explicit policy for its own
+            // request, never for missing or stale browser/mesh requests.
+            const request = structuredClone(command.request);
+            if (!Object.hasOwn(request, 'privacy')) {
+              const enrolled = await host.enrolledRecipients();
+              const pins = config.textApi?.allowedRecipients;
+              const ids = [...enrolled].filter(id => !pins || pins.includes(id)).sort();
+              request.privacy = createExecutionPolicy({ placement: 'network-allowed',
+                recipients: { kind: 'named', ids } });
+            }
+            result = await host.generate(request,
+              delta => console.log(JSON.stringify({ id: command.id, delta })),
+              command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
+                // `admission` is present when the prompt waits for the named recipient's decision.
+                route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null,
+                  ...(route.admission ? { admission: route.admission } : {}) } })));
+          } else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');

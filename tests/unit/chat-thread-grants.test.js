@@ -2,6 +2,9 @@ import { it, expect, vi } from 'vitest';
 import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+const OPEN_POLICY = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+
 const model = { id: 'base', name: 'Base', identity: 'sha256:' + 'a'.repeat(64) };
 const bob = 'peer:' + 'b'.repeat(24), carol = 'peer:' + 'c'.repeat(24);
 function fixture() {
@@ -13,6 +16,7 @@ function fixture() {
       const preview = { id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
         peerId: 'connection', recipientIdentity: recipient, operation: 'generate', disclosure: 'public',
         modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], expiresAt: Date.now() + 10000 };
+      preview.privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [recipient ?? bob] }));
       calls.push({ request, controls, preview });
       if (!await controls.requestApproval(preview)) throw new Error('Disclosure declined');
       controls.signal.throwIfAborted();
@@ -21,7 +25,7 @@ function fixture() {
         modelIdentity: model.identity, adapterIdentities: [], content: 'Answer' };
     } };
   const app = createChatWorkspace(options);
-  const create = target => target.createThread({ model, permissions: { sharingScope: 'invited-mesh' } });
+  const create = target => target.createThread({ model, privacy: OPEN_POLICY, permissions: { sharingScope: 'invited-mesh' } });
   const approve = async (target, threadId, remember = false) => {
     await vi.waitFor(() => expect(target.getState().threads.find(t => t.id === threadId).attempts.at(-1).approval).not.toBeNull());
     const attempt = target.getState().threads.find(t => t.id === threadId).attempts.at(-1);
@@ -49,15 +53,15 @@ it('persists explicit thread grants, reuses them after refresh, and requires app
   await f.approve(restored, b); await other; await restored.close();
 });
 
-it('does not remember one-time approval or accept an unverified recipient for a reusable grant', async () => {
+it('does not remember one-time approval or admit an unverified recipient', async () => {
   const f = fixture(), a = f.create(f.app);
   const first = f.app.send(a, 'Once'); await f.approve(f.app, a); await first;
   expect(f.app.getState().threads[0].grants).toEqual([]);
   f.recipient(null);
   const second = f.app.send(a, 'Unverified');
-  await vi.waitFor(() => expect(f.app.getState().threads[0].attempts.at(-1).approval?.reusable).toBe(false));
-  await expect(f.approve(f.app, a, true)).rejects.toThrow('verified recipient');
-  await f.approve(f.app, a); await second; await f.app.close();
+  expect(await second).toMatchObject({ status: 'failed', error: 'Verified, policy-bound execution recipients are required', authorization: null });
+  expect(f.app.getState().threads[0].grants).toEqual([]);
+  await f.app.close();
 });
 
 it('revokes active and future use without cancelling another conversation', async () => {
@@ -67,6 +71,7 @@ it('revokes active and future use without cancelling another conversation', asyn
   const active = f.app.send(a, 'Running');
   await vi.waitFor(() => expect(f.app.getState().threads[0].attempts.at(-1).authorization?.kind).toBe('thread-grant'));
   const other = f.app.send(b, 'Pending approval');
+  await vi.waitFor(() => expect(f.app.getState().threads.find(thread => thread.id === b).attempts.at(-1)?.status).toBe('approval'));
   const grant = f.app.getState().threads[0].grants[0];
   f.app.revokeGrant(a, grant.id);
   expect((await active).status).toBe('cancelled');
@@ -120,7 +125,8 @@ it('remembers the ordinary partition entry preview and revokes its active follow
   let nextOutput = output, pending = false;
   const app = createChatWorkspace({ meshId: 'mesh', participantId: 'alice', store: { load: () => null, save() {} },
     async execute(request, controls) {
-      const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [input, nextOutput] }));
+      const approved = await controls.requestApproval({ privacyBinding, id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
         peerId: input, recipientIdentity: input, operation: 'generate-partition', disclosure: 'partition-activations-and-tokens',
         modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], planId: 'plan', participantA: input, participantB: nextOutput,
         input: { messages: request.messages, recipients: [input, nextOutput] }, expiresAt: Date.now() + 10000 });
@@ -128,7 +134,7 @@ it('remembers the ordinary partition entry preview and revokes its active follow
       if (pending) await new Promise(resolve => controls.signal.addEventListener('abort', resolve, { once: true }));
       return { threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'Answer' };
     } });
-  const id = app.createThread({ model: partitionModel, permissions: { sharingScope: 'mesh' } });
+  const id = app.createThread({ model: partitionModel, privacy: OPEN_POLICY, permissions: { sharingScope: 'mesh' } });
   const first = app.send(id, 'Approved question');
   await vi.waitFor(() => expect(app.getState().threads[0].attempts.at(-1).approval).not.toBeNull());
   const approval = app.getState().threads[0].attempts.at(-1);

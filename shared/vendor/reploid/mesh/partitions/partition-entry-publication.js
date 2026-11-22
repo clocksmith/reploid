@@ -7,7 +7,7 @@ const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 const epoch = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value);
 const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
 const methods = ['head', 'admit', 'publish', 'publish-batch', 'cancel'];
-const orderedInput = request => request?.schema === 'reploid.partition-input/v3';
+const orderedInput = request => request?.schema === 'reploid.partition-input/v6';
 const orderedKeys = ['meshId', 'requesterId', 'coordinatorId', 'modelId', 'modelIdentity', 'planId', 'threadId',
   'attemptId', 'placementGeneration'];
 /** The owner interface a coordinator calls; the requester's scope answers it. */
@@ -61,7 +61,7 @@ export function matchingEntryPublication(message, request) {
         && same(message.route, request.route) && same(message.publication, request.publication);
     } catch { return false; }
   }
-  return request?.schema === 'reploid.partition-input/v2' && message.schema === ENTRY_PUBLICATION_SCHEMA
+  return request?.schema === 'reploid.partition-input/v5' && message.schema === ENTRY_PUBLICATION_SCHEMA
     && message.operation === 'publication' && methods.includes(message.method)
     && message.meshId === request.meshId && samePartitionIdentity(message, request)
     && same(message.canonical, request.canonical);

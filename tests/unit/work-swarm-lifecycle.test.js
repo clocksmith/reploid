@@ -1,4 +1,6 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 
 const ports = vi.hoisted(() => ({ ensure: vi.fn(), createTransport: vi.fn() }));
@@ -131,8 +133,10 @@ it('disconnect immediately after share cannot deadlock or create a late contribu
 });
 
 async function supplierFixture(modelId = 'whole-model-lifecycle-fixture') {
-  const { createSigningIdentity } = await import('../../packages/reploid/src/artifacts/identity.js');
+  const { createSigningIdentity, importSigningKey, encodeBytes, getIdentitySignAlgorithm, toBase64Url } = await import('../../packages/reploid/src/artifacts/identity.js');
   const identity = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const consumer = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const consumerKey = await importSigningKey(consumer);
   ports.ensure.mockResolvedValue(identity);
   vi.stubGlobal('navigator', { gpu: {} });
   const handlers = new Map(), ads = [], sent = [], load = deferred(), settlement = deferred();
@@ -144,14 +148,37 @@ async function supplierFixture(modelId = 'whole-model-lifecycle-fixture') {
     } };
   const service = { open: vi.fn(() => load.promise), close: vi.fn() };
   ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(),
+    getPeerId: () => 'supplier', getPeerBinding: () => ({ local: 'supplier-certificate', remote: 'consumer-certificate' }),
     onMessage: (name, fn) => handlers.set(name, fn), broadcast: (_, ad) => ads.push(ad),
-    sendToPeer: (peer, name, payload) => { sent.push({ peer, name, payload }); return true; } });
+    sendToPeer(peer, name, payload) {
+      if (name === 'reploid:identity-challenge') queueMicrotask(async () => {
+        const data = encodeBytes(JSON.stringify(['reploid.mesh-recipient/v1', payload.roomId, payload.nonce, payload.requester,
+          payload.provider, payload.local, payload.remote, consumer.peerId]));
+        const signature = await crypto.subtle.sign(getIdentitySignAlgorithm(consumer.publicJwk), consumerKey, data);
+        handlers.get('reploid:identity-proof')(peer, { nonce: payload.nonce, participantId: consumer.peerId,
+          publicJwk: consumer.publicJwk, signature: toBase64Url(signature) });
+      });
+      sent.push({ peer, name, payload }); return true;
+    } });
   const swarm = fixture(service);
   const share = swarm.share(session.modelId, true);
   await vi.waitFor(() => expect(service.open).toHaveBeenCalledOnce());
   return { swarm, share, service, session, load, settlement, handlers, ads, sent,
-    request: (requestId, content) => handlers.get('reploid:generation-request')('consumer',
-      { requestId, model: session.modelId, messages: [{ role: 'user', content }] }) };
+    async request(requestId, content) {
+      const messages = [{ role: 'user', content }], ad = ads.at(-1);
+      const offer = ad.executionOffers?.[0];
+      if (!offer) return handlers.get('reploid:generation-request')('consumer', { requestId, model: session.modelId, messages });
+      const model = { id: session.modelId, identity: wholeModelIdentity };
+      const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [identity.peerId] } });
+      const privacyBinding = await bindExecutionRoute({ model, privacy }, plaintextExecutionRoute({ model }, { recipients: [identity.peerId],
+        route: { schema: 'reploid.mesh-route/v1', providerId: identity.peerId, offerId: offer.id, backend: offer.backend } }));
+      const detail = { requestId, model: model.id, modelIdentity: model.identity, modelContract: ad.modelContract, adapterIdentities: [],
+        consumer: consumer.peerId, provider: 'supplier', offerId: offer.id, admissionProtocol: 2, privacy, privacyBinding };
+      const salt = 'a'.repeat(64);
+      const promptCommitment = await hashJson({ schema: 'reploid.prompt-commitment/v1', salt, messages, settings: null });
+      await handlers.get('reploid:generation-admit')('consumer', { ...detail, promptCommitment });
+      return handlers.get('reploid:generation-request')('consumer', { ...detail, messages, admission: { salt } });
+    } };
 }
 
 it('advertises loading without slots, prepares once and reuses reset resident weights', async () => {

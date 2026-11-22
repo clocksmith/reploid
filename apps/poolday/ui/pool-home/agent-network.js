@@ -53,7 +53,7 @@ export function refreshAgentNetwork(root, work, swarm = {}) {
 }
 
 export const renderAgentNetwork = ({ footer = '' } = {}) => `
-  <section class="pool-agent-network" id="reploid-agents" aria-label="Agents and models">
+  <section class="pool-agent-network pool-surface" id="reploid-agents" aria-label="Agents and models">
     <div class="pool-network-heading"><h2 class="pool-heading">Agents</h2>
       <button class="btn btn-ghost" type="button" data-swarm-invite>Invite</button></div>
     <ul class="pool-agent-list" data-agent-list></ul>

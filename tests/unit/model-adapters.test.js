@@ -10,7 +10,7 @@ const catalogAdapter = catalogBase.availableAdapters[0];
 const project = peers => projectChatCatalog({ models: [catalogBase], peers, partitionModels: [] })
   .map(model => ({ ...model, networkAvailability: model.availability }));
 const peer = { peerId: 'peer-a', model: catalogBase.id, modelIdentity: catalogBase.identity, readiness: 'ready', hasInference: true,
-  availableSlots: 1, adapterIdentities: [catalogAdapter.identity] };
+  identityProtocol: 1, admissionProtocol: 2, availableSlots: 1, adapterIdentities: [catalogAdapter.identity] };
 beforeEach(() => { document.body.innerHTML = '<div data-root><div data-model-adapter-details></div></div><select></select>'; });
 
 it('shows the catalog adapter’s declared purpose and source, version, identities and no evaluation evidence', () => {

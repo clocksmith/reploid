@@ -5,7 +5,7 @@
  */
 export function renderResultView({ embedded = false } = {}) {
   return [
-    '<section class="pool-work-output pool-body' + (embedded ? ' pool-work-embedded' : '') + '" data-work-output aria-label="Task result">',
+    '<section class="pool-work-output pool-body' + (embedded ? ' pool-work-embedded' : ' pool-surface') + '" data-work-output aria-label="Task result">',
     '  <div class="pool-work-section-heading">',
     '    <div class="pool-work-heading-group">',
     '      <h2 class="pool-heading" data-work-result-title>Results</h2>',

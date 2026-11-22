@@ -1,9 +1,18 @@
 // @vitest-environment node
 import http from 'node:http';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createMessages, parseTextMessage } from '../../server/messages.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
 const capability={schema:'reploid.text-generation/v1',usage:'raw-model-tokens/v1'};
+const orderedParticipant = mesh => ({
+  ...mesh.meshes[5],
+  generate(request, controls) {
+    const ids = request.model.partition?.route?.stages?.map(stage => stage.participantId) ?? mesh.identities.map(key => key.peerId);
+    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [...new Set(ids)] } });
+    return mesh.meshes[5].generate({ ...request, privacy }, controls);
+  }
+});
 const preview = (request, recipients=['stage']) => ({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
 const model={id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true},textGeneration:capability};
 const input={model:model.id,messages:[{role:'user',content:'hello'}],max_tokens:2},owners=[];
@@ -41,7 +50,7 @@ it('actual HTTP/automatic/grant/peer chain enforces a smaller cap and reports to
   const mesh=await automaticOrderedMesh();owners.push(()=>mesh.close());await mesh.prepare();await vi.waitFor(()=>expect(mesh.select(5,0)).toBeTruthy());
   const last=mesh.states[2].resident,execute=last.executeStage.getMockImplementation();
   last.executeStage.mockImplementation(async request=>({...await execute(request),done:request.step+1===request.maxTokens,stopReason:'max-tokens'}));
-  const f=await boot({participant:mesh.meshes[5]}),response=await f.post({model:mesh.model.id,messages:[{role:'user',content:tasks[0].prompt}],max_tokens:2,stream:true});
+  const f=await boot({participant:orderedParticipant(mesh)}),response=await f.post({model:mesh.model.id,messages:[{role:'user',content:tasks[0].prompt}],max_tokens:2,stream:true});
   expect(response.status).toBe(200);const rows=events(await response.text());expect(rows[0].message.usage).toEqual({input_tokens:2,output_tokens:0});
   expect(rows.at(-2)).toMatchObject({type:'message_delta',delta:{stop_reason:'max_tokens'},usage:{output_tokens:2}});expect(last.executeStage).toHaveBeenCalledTimes(2);
   expect(last.executeStage.mock.calls.every(([r])=>r.maxTokens===2&&r.generation.maxTokens===2)).toBe(true);expect(mesh.states.every(row=>row.attempts.size===0)).toBe(true);
@@ -49,7 +58,7 @@ it('actual HTTP/automatic/grant/peer chain enforces a smaller cap and reports to
 });
 it('recipient denial after execution approval dispatches no stages',async()=>{
   const mesh=await automaticOrderedMesh();owners.push(()=>mesh.close());await mesh.prepare();await vi.waitFor(()=>expect(mesh.select(5,0)).toBeTruthy());
-  const f=await boot({participant:mesh.meshes[5],authorize:async({action})=>action==='chat.execute'});
+  const f=await boot({participant:orderedParticipant(mesh),authorize:async({action})=>action==='chat.execute'});
   expect((await f.post({model:mesh.model.id,messages:[{role:'user',content:tasks[0].prompt}],max_tokens:2})).status).toBe(403);
   expect(mesh.states.filter(row=>row.resident).every(row=>row.resident.executeStage.mock.calls.length===0)).toBe(true);
 });

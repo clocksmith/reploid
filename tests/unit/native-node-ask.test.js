@@ -2,6 +2,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { nativeCommand } from '../../server/native-node-commands.js';
 import { askMesh } from '../../server/native-node-ask.js';
+import { createWholeModelRequester } from '../../server/whole-model-requester.js';
+import { bindExecutionRoute, plaintextExecutionRoute, requestExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
 
 const approvals = vi.hoisted(() => []);
 vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals } }));
@@ -38,6 +41,34 @@ it('selects the exact whole route ahead of a split and binds disclosure to the r
   expect(report).toHaveBeenCalledTimes(1);
 });
 
+it('runs normal ask through the whole-model requester with current explicit policy', async () => {
+  const model = { id: 'small', identity: 'sha256:' + 'a'.repeat(64), name: 'Small', provider: 'doppler' };
+  const provider = { peerId: 'connection', participantId: 'signing-id', identityVerified: true, model: model.id,
+    modelIdentity: model.identity, hasInference: true, readiness: 'ready', availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 };
+  const report = vi.fn();
+  const mesh = {
+    getSwarmSnapshot: () => ({ peers: [provider] }),
+    async generate(messages, onDelta, options) {
+      expect(options.privacy).toMatchObject({ schema: 'reploid.execution-policy/v2', placement: 'network-allowed',
+        recipients: { kind: 'open', ids: [] } });
+      const request = { model, privacy: options.privacy };
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [provider.participantId] }));
+      expect(await requester.authorize({ action: 'mesh.dispatch', messages, privacyBinding,
+        peerId: provider.peerId, recipientIdentity: provider.participantId, admission: { schema: 'reploid.generation-admission/v2' },
+        modelId: options.modelId, modelIdentity: options.modelIdentity, adapterIdentities: options.adapterIdentities,
+        requestContext: options.requestContext })).toBe(true);
+      expect(report).toHaveBeenCalledWith(expect.stringContaining(provider.participantId));
+      onDelta('answer');
+      return { model: model.id, modelIdentity: model.identity, content: 'answer',
+        completion: { schema: GENERATION_CONTRACT.completionSchema, stopReason: 'eos-token', promptTokenCount: 1, generatedTokenCount: 1 } };
+    }
+  };
+  const requester = createWholeModelRequester({ mesh, models: [model] });
+  const participant = { roomId: 'test-room', executionClass: 'public-pool',
+    getState: () => ({ models: requester.getModels() }), generate: requester.generate };
+  await expect(askMesh(participant, model, 'query', { signal: new AbortController().signal, report })).resolves.toBe('answer');
+});
+
 it('exits discovery without sending the prompt if the requested model is unavailable', async () => {
   const generate = vi.fn();
   await expect(askMesh({ getState: () => ({}), generate, roomId: 'team' }, { name: 'Small' }, 'hello',
@@ -62,6 +93,7 @@ it.each(['public-pool', 'private-pool'])('sends to a matching %s split and binds
   let present = true;
   const participant = { executionClass, roomId: 'test-room', getState: () => ({ models: present ? [route] : [] }),
     async generate(request, controls) {
+      expect(requestExecutionPolicy(request).recipients).toEqual({ kind: 'named', ids: ['first', 'last'] });
       const preview = { ...route.partition, modelId: route.id, modelIdentity: route.identity, threadId: request.threadId,
         attemptId: request.attemptId, input: { messages: request.messages, recipients: ['first', 'last'] } };
       expect(controls.requestApproval({ ...preview, participantB: 'replacement' })).toBe(false);

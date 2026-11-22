@@ -1,6 +1,7 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
-import { requestExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
-import { privacyLabel, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
+import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
+import { describeCircleHost, parseCircleInviteUrl } from '../../host/circle-invites.js';
+import { allowsOpenPlaintext, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
 import { bindWorkspaceNavigation } from './workspace-navigation.js';
@@ -55,17 +56,64 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
-  const explicitPrivacy = state => state.activeThread ? state.activeThread.privacy : viewState.privacy;
-  const currentPolicy = state => explicitPrivacy(state) ?? requestExecutionPolicy({
-    permissions: state.activeThread?.permissions ?? { executionLocation }
-  });
+  const localPolicy = createExecutionPolicy();
+  const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy) ?? localPolicy;
+  const currentPolicy = explicitPrivacy;
   const privacyNode = find('[data-privacy-dialog]'), privacyTrigger = find('[data-open-privacy]');
   const privacyDialog = bindDialog(privacyNode);
+  let sendAfterDestination = false, pickerChoice = null;
+  /** Which computer the current policy sends to: this device, the paired or invited computer, contributors, or named IDs. */
+  const destinationKey = state => {
+    const policy = explicitPrivacy(state), locked = lockedDestination(state);
+    return policy.placement === 'local-only' || policy.recipients.kind === 'none' ? 'device'
+      : policy.recipients.kind === 'open' ? 'contributors'
+        : locked && policy.recipients.ids.length === 1 && policy.recipients.ids[0] === locked.id ? 'desktop' : 'named';
+  };
   let editingThread, applyingPrivacy = false;
   const effectiveLocation = state => {
     const thread = state.activeThread, privacy = explicitPrivacy(state);
-    return thread?.permissions?.sharingScope === 'local' || privacy?.placement === 'local-only'
+    return thread?.permissions?.sharingScope === 'local' || privacy.placement === 'local-only' || privacy.recipients?.kind === 'none'
       ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
+  };
+  // A host invite link names the only computer that may read this visitor's prompts. Read it once, keep it
+  // in this view, and take the token out of the address bar so a reload or shared tab cannot reuse it.
+  if (viewState.guestInvite === undefined) {
+    let invite = null;
+    try { invite = parseCircleInviteUrl(globalThis.location?.href || ''); } catch { invite = null; }
+    viewState.guestInvite = invite;
+    if (invite) { try { const { history: h, location: l } = globalThis; h.replaceState(h.state, '', l.pathname + l.search); } catch { /* keep going */ } }
+  }
+  /** The one computer a new conversation is locked to: an invite's host, else the paired online desktop. */
+  const lockedDestination = state => {
+    const invite = viewState.guestInvite;
+    if (invite) return { id: invite.hostPeerId, label: describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel, readyModel: null };
+    const owner = state.ownerPairing;
+    if (owner?.status === 'online' && owner.hostParticipantId) {
+      return { id: owner.hostParticipantId, label: owner.hostLabel, readyModel: typeof owner.readyModel === 'string' ? owner.readyModel : owner.readyModel?.id };
+    }
+    return null;
+  };
+  // A locked destination is the default for a new conversation: only that computer may receive the prompt,
+  // and the composer picks the model it reports ready. A manual policy choice wins, except over an invite.
+  const applyPairedDesktopDefault = state => {
+    const destination = lockedDestination(state);
+    if (state.activeThread || !destination || (viewState.privacyTouched && !viewState.guestInvite)) return;
+    const current = viewState.privacy;
+    if (current?.recipients?.kind !== 'named' || current.recipients.ids.length !== 1 || current.recipients.ids[0] !== destination.id) {
+      viewState.privacy = createExecutionPolicy({ placement: 'network-allowed',
+        recipients: { kind: 'named', ids: [destination.id] }, computation: 'plaintext' });
+      if (executionLocation === 'local') executionLocation = viewState.executionLocation = 'auto';
+    }
+    if (!chosenModel && destination.readyModel) {
+      const model = (state.models || []).find(item => item.id === destination.readyModel || modelKey(item) === destination.readyModel);
+      if (model) chosenModel = viewState.chosenModel = model;
+    }
+  };
+  const pairedDesktopSummary = state => {
+    const destination = lockedDestination(state), privacy = explicitPrivacy(state);
+    if (!destination || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
+      || privacy.recipients.ids[0] !== destination.id) return null;
+    return `Sending to ${destination.label}. Its operator can read your prompt.`;
   };
   const recoveryAlternative = state => recoverySharedModel(state, modelSelect.value,
     effectiveLocation(state), explicitPrivacy(state));
@@ -94,6 +142,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const setThreads = (open, reflect = true) => {
     if (open && !allowBoth()) { const previous = applyingView; applyingView = true; inspector.close?.({ restoreFocus: false }); applyingView = previous; }
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
+    railToggle?.setAttribute('aria-expanded', String(open));
     leftDrawer.setOpen(open);
     if (!open) actionsPanel.setOpen(false);
     if (reflect && !applyingView) workspaceNavigation?.reflect(inspector.isOpen?.() ? rightView() : open ? 'threads' : 'chat', { threads: open });
@@ -189,8 +238,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacy = explicitPrivacy(state);
     const pinned = state.activeThread?.model || chosenModel || viewState.draftModel;
     return !!model?.identity && (!pinned?.identity || modelIdentity(model) === modelIdentity(pinned)) && !model.partition && !model.fleet && location !== 'local'
-      && (!state.activeThread || location === 'network') && (!privacy || privacy.profile === 'provider-visible')
-      && !privacy?.allowedRecipients?.length && !searching() && !attachmentReader.pending
+      && (!state.activeThread || location === 'network') && allowsOpenPlaintext(privacy)
+      && !searching() && !attachmentReader.pending
       && !state.storageError && !state.activeThread?.closed && !state.comparisonPhase
       && !(state.runningIds || []).includes(state.selectedId) && !submitting
       && ['observed', 'searching'].includes(state.discoveryPhase);
@@ -206,17 +255,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const permitted = !busy && canWaitForPublicModel(state, model, location);
     if (queuedSend && (!permitted || queuedSend.scope !== queueScope(state, model))) queuedSend = null;
     queueHasText = !!input.value.trim();
-    button.hidden = !queueHasText || !!queuedSend || !permitted || usable || state.discoveryPhase !== 'searching'
-      || preparing;
-    button.disabled = !queueHasText;
+    // Send itself queues while computers are still being found; there is no separate button for it.
+    button.hidden = true;
     cancel.hidden = !queuedSend;
     const status = find('[data-model-status]');
-    if (!queuedSend) {
-      if (!button.hidden) status.textContent += ' Send when ready will share your prompt and attachments with a public computer running this model.';
-      return;
-    }
+    if (!queuedSend) return;
     status.hidden = false;
-    status.textContent = `Waiting to send to ${modelVariantLabel(model)}. A public computer running this model will receive your prompt and any attached files.`;
+    status.textContent = `Waiting for a computer running ${modelVariantLabel(model)}…`;
     const intent = queuedSend;
     if (!intent.scheduled && readyForQueuedSend(state, intent)) {
       intent.scheduled = true;
@@ -228,10 +273,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   }
   let fitRequest, fitKey, fitInfo;
   const updatePicker = snapshot => {
+    // The pressed computer row follows the sheet's run location (a finished download switches it to this device).
+    if (pickerLocation === 'local') pickerChoice = 'device';
+    else if (pickerLocation === 'network' && pickerChoice === 'device') pickerChoice = null;
     pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
       state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
-      selectedId: modelSelect.value, localOnly: explicitPrivacy(snapshot)?.placement === 'local-only', canDownload: !!inspector.downloadModel });
+      selectedId: modelSelect.value, localOnly: !!snapshot.activeThread && (explicitPrivacy(snapshot).placement === 'local-only'
+        || explicitPrivacy(snapshot).recipients.kind === 'none'),
+      canDownload: !!inspector.downloadModel, destination: pickerChoice || destinationKey(snapshot),
+      locked: (() => { const locked = lockedDestination(snapshot); return locked && { ...locked, guest: !!viewState.guestInvite,
+        status: viewState.guestInvite ? 'online' : snapshot.ownerPairing?.status }; })() });
     const node = find('[data-local-fit]');
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
       && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
@@ -254,6 +306,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
+    applyPairedDesktopDefault(state);
     if (selectedId !== state.selectedId) {
       pickerRevision++;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
@@ -278,7 +331,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!thread && !chosenModel && !viewState.draftModel && (input.value.trim() || files.length)) viewState.draftModel = selectedModel;
     const execution = modelExecutionState(selectedModel, location);
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
-    const usable = execution.usable || prepareHere;
+    const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
     find('[data-composer-field]').dataset.executionSource = execution.source;
     const modelStatus = find('[data-model-status]');
     const localPreparing = state.localModel?.phase === 'loading';
@@ -302,9 +355,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const acquisition = state.acquisition;
     const acquisitionText = find('[data-acquisition-status]');
     acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
-      : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error + ' Retry reuses verified files where supported.' : '';
+      : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error : '';
     if (acquiring && execution.source === 'network' && execution.status === 'ready') {
-      acquisitionText.textContent += ' A computer is ready to answer on the network.';
+      acquisitionText.textContent += ' Network model ready.';
     }
     acquisitionText.hidden = !acquisitionText.textContent;
     const meter = find('[data-acquisition-progress]');
@@ -319,11 +372,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacy = explicitPrivacy(state);
     const policy = currentPolicy(state);
     privacyTrigger.disabled = busy || !!thread?.closed;
-    const privacyTitle = 'Inference privacy: ' + privacyLabel(policy.profile)
-      + (policy.placement === 'local-only' ? ' · This device only' : '')
-      + (busy ? ' · Available after this answer' : '');
+    const locked = lockedDestination(state);
+    const destinationName = { device: 'This device', contributors: 'Contributors', desktop: locked?.label, named: 'Named computers' }[destinationKey(state)];
+    const privacyTitle = 'Answer on: ' + destinationName + (busy ? ' · Available after this answer' : '');
     privacyTrigger.title = privacyTitle;
     privacyTrigger.setAttribute('aria-label', privacyTitle);
+    const resetNotice = find('[data-execution-settings-reset]');
+    resetNotice.hidden = thread?.executionSettingsReset !== true;
+    const networkOptIn = find('[data-review-network-execution]');
+    // Send asks where to run when it needs to, so this prompt only stays for an existing local-only thread.
+    networkOptIn.hidden = !thread || busy || usable || preparing || acquiring || !!thread?.closed || (policy.placement !== 'local-only' && policy.recipients.kind !== 'none');
     if (privacyNode.open && (privacyTrigger.disabled || editingThread !== state.selectedId)) privacyDialog.close();
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring
       ? recoverySharedModel(state, current, location, privacy) : null;
@@ -339,13 +397,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          statusText = execution.status === 'busy' ? 'Sending waits for capacity.' : 'Ready.';
-        } else if (execution.status === 'ready') statusText = 'Ready. This device runs the model.';
-        else if (execution.status === 'cached') statusText = 'Downloaded. Sending loads the model on this device.';
+          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : '';
+        } else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
-      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'This model is unavailable on this device.';
-      else if (phase === 'paused') statusText = 'Network discovery is paused.';
-      else if (phase === 'interrupted') statusText = 'Discovery connection interrupted. Shared capacity is unknown.';
+      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue || 'Model unavailable here.';
+      else if (phase === 'paused') statusText = 'Network paused.';
+      else if (phase === 'interrupted') statusText = 'Connection interrupted.';
       else if (phase === 'searching') statusText = 'Finding computers…';
       else if (phase === 'observed') statusText = state.network?.connectionFailure?.peerId
         ? 'A peer connection failed. No eligible computer found for this model.'
@@ -364,9 +421,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const disclosure = find('[data-prompt-disclosure]');
     disclosure.hidden = busy || !!thread?.closed;
-    if (policy.profile === 'cryptographic') disclosure.textContent = 'Cryptographic chat is unavailable.';
-    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'This device reads your prompt for inference.';
-    else if (privacy?.profile === 'restricted') disclosure.textContent = 'Only the named computers can receive and read the inference data sent to them.';
+    const pairedSummary = pairedDesktopSummary(state);
+    if (policy.computation !== 'plaintext') disclosure.textContent = 'The required computation mode is unavailable.';
+    else if (policy.recipients.kind === 'none' && !usable) disclosure.textContent = 'Inference stays on this device.';
+    else if (location === 'local' || execution.usable && execution.source === 'local') disclosure.textContent = 'Inference stays on this device.';
+    else if (pairedSummary) disclosure.textContent = pairedSummary;
+    else if (policy.recipients.kind === 'named') disclosure.textContent = 'Named computers can read your prompt.';
     else if (selectedModel?.partition) disclosure.textContent = 'Computers on this route can read the input for their own stages.';
     else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
     else disclosure.textContent = 'A network provider could read your prompt.';
@@ -405,7 +465,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
     emptyList.hidden = !!find('[data-thread-list] [data-thread-item-id]');
-    emptyList.textContent = archived ? 'No archived conversations.' : 'No conversations yet. Choose New thread to start one.';
+    emptyList.textContent = archived ? 'No archived chats.' : 'No chats yet.';
     refreshStartingPrompts();
     find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
     production.update(state);
@@ -421,7 +481,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
     }
     find('[data-composer-send]').hidden = busy;
-    find('[data-composer-send]').disabled = attachmentReader.pending || !usable || !!thread?.closed || !!state.storageError;
+    const queueable = !busy && !usable && state.discoveryPhase === 'searching' && canWaitForPublicModel(state, selectedModel, location);
+    // With no choice made yet and nothing runnable here, Send asks where to run once instead of staying off.
+    const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
+    find('[data-composer-send]').disabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError;
 
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = 'idle';
@@ -514,6 +577,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = alternative || (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
       || state.activeThread?.model || chosenModel || state.defaultModel || null;
     pickerLocation = alternative ? 'network' : effectiveLocation(state);
+    find('[data-picker-title]').textContent = 'Answer on';
+    // The pressed row is where this chat would actually run now ('auto' runs a stored model on this device).
+    pickerChoice = alternative ? 'contributors' : modelExecutionState(pickerModel, pickerLocation).source === 'local' ? 'device' : null;
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
     render(state);
@@ -528,7 +594,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       && modelIdentity(alternative) === event.currentTarget.dataset.identity) openPicker(event, alternative);
     else render(state);
   });
-  on('[data-model-picker-close]', 'click', () => picker.close());
+  on('[data-model-picker-close]', 'click', () => { sendAfterDestination = false; picker.close(); });
   on('[data-model-picker]', 'close', () => render(session.getState()));
   // A route radio under the providers selects that route of the highlighted variant.
   on('[data-model-picker]', 'change', event => {
@@ -544,7 +610,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     updatePicker(session.getState());
     render(session.getState());
+    if (!arrowBrowsing && pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice();
   });
+  // Arrow keys move through models without committing; a tap, click or Enter applies the highlighted one.
+  let arrowBrowsing = false;
+  on('[data-model-picker]', 'keydown', event => {
+    arrowBrowsing = event.key.startsWith('Arrow');
+    if (event.key === 'Enter' && event.target.matches?.('.chat-model-choice input[type=radio]')) { event.preventDefault(); commitPickerChoice(); }
+  });
+  on('[data-model-picker]', 'pointerdown', () => { arrowBrowsing = false; });
   on('[data-composer-input]', 'input', () => { composerRevision++; resizeInput(); refreshStartingPrompts();
     if (input.value.trim()) pinDraftModel(session.getState());
     if (queuedSend || queueHasText !== !!input.value.trim()) { queuedSend = null; render(session.getState()); }
@@ -586,7 +660,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       });
     }
   });
-  on('[data-change-model]', 'click', () => {
+  // Done, or tapping a model or computer that can answer now, commits the sheet and returns to the draft.
+  const resumeAfterChoice = () => { if (sendAfterDestination) { sendAfterDestination = false; submitDraft(); } };
+  function commitPickerChoice() {
     if (changingModel || attachmentReader.pending) return;
     const next = find('[data-next-model]').value;
     const state = session.getState();
@@ -602,7 +678,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       updatePicker(session.getState()); return;
     }
     const privacy = explicitPrivacy(state);
-    const location = privacy?.placement === 'local-only' ? 'local' : pickerLocation;
+    // A computer tapped in this sheet decides the location, even before its policy change has been saved.
+    const location = pickerChoice === 'device' ? 'local' : pickerChoice ? 'network'
+      : privacy?.placement === 'local-only' ? 'local' : pickerLocation;
     const origin = selectedId, revision = composerRevision;
     changingModel = true; updatePicker(state);
     void act(async () => {
@@ -610,7 +688,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         if (controller.signal.aborted || selectedId !== origin || composerRevision !== revision) return;
         if (state.activeThread && (state.activeThread.model.selectionId || state.activeThread.model.id) === next) {
           await session.setExecutionLocation(state.activeThread.id, location);
-          picker.close(); input.focus(); return;
+          picker.close(); input.focus(); resumeAfterChoice(); return;
         }
         // New threads share a single draft slot until their first send. If it is
         // already occupied, give this switch its own thread before copying the draft.
@@ -640,12 +718,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         executionLocation = location;
         viewState.executionLocation = executionLocation;
         modelSelect.value = next; picker.close(); render(session.getState()); input.focus();
+        resumeAfterChoice();
       } finally {
         changingModel = false;
         if (!controller.signal.aborted) render(session.getState());
       }
     });
-  });
+  }
+  on('[data-change-model]', 'click', commitPickerChoice);
   on('[data-retry-connection]', 'click', event => {
     queuedSend = null; render(session.getState());
     const button = event.currentTarget;
@@ -688,7 +768,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { queuedSend = null; try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
   on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
-  on('[data-open-privacy]', 'click', () => {
+  const openExecutionPolicy = trigger => {
     if (submitting || applyingPrivacy) return;
     const state = session.getState();
     queuedSend = null;
@@ -696,10 +776,43 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (privacyTrigger.disabled) return;
     editingThread = state.selectedId;
     updatePrivacyControls(privacyNode, currentPolicy(state));
-    privacyDialog.open(privacyNode.querySelector('input:checked'), privacyTrigger);
-  });
+    privacyDialog.open(privacyNode.querySelector('[data-privacy-placement]'), trigger);
+  };
+  // One "Answer on" sheet: each row applies on tap. The detailed policy dialog stays under More options.
+  // The model sheet is the one place to choose the computer and the model. Rows apply on tap.
+  const openDestination = (trigger, { forSend = false } = {}) => {
+    if (privacyTrigger.disabled) return;
+    sendAfterDestination = forSend;
+    openPicker({ currentTarget: trigger });
+    find('[data-picker-title]').textContent = forSend ? 'Where should this run?' : 'Answer on';
+  };
+  const destinationPolicy = (key, state) => {
+    const locked = lockedDestination(state);
+    return key === 'device' ? localPolicy
+      : key === 'desktop' && locked ? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [locked.id] }, computation: 'plaintext' })
+        : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+  };
+  // A new chat's destination changes at once, so Done right after a computer tap commits the new choice.
+  const applyDraftDestination = key => {
+    viewState.privacyTouched = true;
+    viewState.privacy = destinationPolicy(key, session.getState());
+    executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'network';
+  };
+  const applyDestination = async key => {
+    const state = session.getState(), privacy = destinationPolicy(key, state);
+    viewState.privacyTouched = true;
+    if (state.activeThread) {
+      await session.setExecutionPrivacy(state.activeThread.id, privacy);
+      await session.setExecutionLocation(state.activeThread.id, key === 'device' ? 'local' : 'network');
+    } else {
+      viewState.privacy = privacy;
+      executionLocation = viewState.executionLocation = key === 'device' ? 'local' : 'network';
+    }
+  };
+  on('[data-open-privacy]', 'click', event => { if (find('[data-model-picker]').open) picker.close(); openExecutionPolicy(event.currentTarget); });
+  on('[data-review-network-execution]', 'click', event => openDestination(event.currentTarget, { forSend: true }));
   on('[data-privacy-controls]', 'change', event => {
-    if (event.target.matches('[data-privacy-profile], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
+    if (event.target.matches('[data-privacy-recipient-mode], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
   });
   on('[data-privacy-cancel]', 'click', () => privacyDialog.close());
   on('[data-privacy-apply]', 'click', async () => {
@@ -709,8 +822,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     applyingPrivacy = apply.disabled = true;
     try {
       const privacy = readPrivacyControls(privacyNode);
-      if (state.activeThread) await session.setExecutionPrivacy(state.activeThread.id, privacy);
-      else viewState.privacy = privacy;
+      viewState.privacyTouched = true;
+      if (state.activeThread) {
+        await session.setExecutionPrivacy(state.activeThread.id, privacy);
+        if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none'
+          && state.activeThread.permissions?.executionLocation === 'local') await session.setExecutionLocation(state.activeThread.id, 'auto');
+      } else {
+        viewState.privacy = privacy;
+        if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none' && executionLocation === 'local') {
+          executionLocation = viewState.executionLocation = 'auto';
+        }
+      }
       if (privacyNode.open) privacyDialog.close();
       render(session.getState());
     } catch (cause) {
@@ -722,9 +844,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-execution-location]', 'click' , event => {
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
+    const choice = button.dataset.executionChoice;
     pickerTouched = true;
-    pickerRevision++; pickerLocation = button.dataset.executionChoice;
+    pickerRevision++; pickerLocation = choice === 'local' ? 'local' : 'network';
+    pickerChoice = choice === 'local' ? 'device' : choice === 'desktop' ? 'desktop' : 'contributors';
+    if (!session.getState().activeThread) applyDraftDestination(pickerChoice);
     updatePicker(session.getState());
+    void act(async () => {
+      if (session.getState().activeThread) await applyDestination(pickerChoice);
+      // The sheet stays open on the new computer so its model list can be checked; a model tap closes it.
+      const state = session.getState();
+      render(state); if (find('[data-model-picker]').open) updatePicker(state);
+    });
   });
   on('[data-queue-send]', 'click', () => {
     const state = session.getState(), location = effectiveLocation(state);
@@ -741,6 +872,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (!content || attachmentReader.pending || submitting || (state.runningIds || []).includes(state.selectedId)) return;
     if (intent ? !readyForQueuedSend(state, intent) : find('[data-composer-send]').disabled) return;
     const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
+    if (!intent && !state.activeThread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state)
+      && !modelExecutionState(model, effectiveLocation(state)).usable
+      && !(state.discoveryPhase === 'searching' && canWaitForPublicModel(state, model, effectiveLocation(state)))) {
+      openDestination(find('[data-composer-send]'), { forSend: true });
+      return;
+    }
+    if (!intent && state.discoveryPhase === 'searching' && !modelExecutionState(model, effectiveLocation(state)).usable
+      && canWaitForPublicModel(state, model, effectiveLocation(state))) {
+      queuedSend = { scope: queueScope(state, model), scheduled: false };
+      render(state);
+      return;
+    }
     const pinned = state.activeThread?.model || chosenModel || viewState.draftModel;
     if (!model || pinned?.identity && modelIdentity(model) !== modelIdentity(pinned)) return;
     const location = intent ? 'network' : effectiveLocation(state);
@@ -755,7 +898,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         const target = state.activeThread || { model, permissions: { sharingScope, executionLocation: location } };
         const personalSearch = searched && webSearch?.enabled() && !!webSearch.state().url;
         const allowed = searched && !personalSearch ? await prepareSearch(target.model, target.permissions?.sharingScope, searchRouteNow(), location, content) : null;
-        const created = state.selectedId || session.createThread({ model, sharingScope, executionLocation: location, privacy: viewState.privacy ?? null, contextPrompt: contextPrompt || undefined });
+        const created = state.selectedId || session.createThread({ model, sharingScope, executionLocation: location, privacy: explicitPrivacy(state), contextPrompt: contextPrompt || undefined });
         const threadId = typeof created?.then === 'function' ? await created : created;
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: draftText, files: attachments } : drafts.get(origin);
@@ -768,8 +911,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
             || latest.remoteNetworkId !== state.remoteNetworkId || latest.remoteAnswersEnabled !== state.remoteAnswersEnabled
             || !['observed', 'searching'].includes(latest.discoveryPhase)
             || latest.activeThread?.permissions?.executionLocation !== 'network' || searching()
-            || latest.activeThread?.privacy?.profile && latest.activeThread.privacy.profile !== 'provider-visible'
-            || latest.activeThread?.privacy?.allowedRecipients?.length
+            || !allowsOpenPlaintext(latest.activeThread?.privacy)
             || modelIdentity(current) !== modelIdentity(model)
             || current?.networkAvailability !== 'ready' || !current.reachableProviderIds?.length) {
             if (!controller.signal.aborted && selectedId === threadId && composerRevision === revision) await saveDraft();
@@ -855,8 +997,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     applyingView = true;
     try {
       setThreads(view === 'threads' || !!routeState?.threads, false);
-      if (['settings', 'computers', 'conversation'].includes(view)) inspector.open(view === 'computers' ? 'participants' : view);
-      else inspector.close?.({ restoreFocus: false });
+      if (['settings', 'computers', 'conversation'].includes(view)) {
+        inspector.open(view === 'computers' ? 'participants' : view, find(`[data-workspace-view="${view}"]`));
+      } else inspector.close?.({ restoreFocus: false });
     } finally { applyingView = false; }
   });
   container.addEventListener('keydown', event => {

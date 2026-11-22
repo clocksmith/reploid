@@ -1,3 +1,4 @@
+import { partitionTestBinding } from './fixtures/partition-execution-policy.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -72,7 +73,7 @@ const {createResidentCursorMirror}=await import(pathToFileURL(root+'/src/inferen
 const auth=keys.map(identity=>createPartitionGrantAuthority({identity,meshId:'mesh',maxGrants:8,maxTtlMs:60000,canonicalRuntime:runtime}));
 const caps={maxTokens:16,maxPromptTokens:64,maxActivationBytes:4096,maxOutputCharacters:4096};
 const scoped={...attempt,authorizationScope:auth[0].canonicalScope({identity,limits:caps,disclosure:'partition-activations-and-tokens',generationId:generation.generationId})};
-const approved=await auth[0].issueCanonical(identity,caps,{approved:true,ttlMs:60000,disclosure:'partition-activations-and-tokens',generation,canonicalAttempt:scoped,vocabSize:100});
+const approved=await auth[0].issueCanonical(identity,caps,{privacyBinding:await partitionTestBinding(identity),approved:true,ttlMs:60000,disclosure:'partition-activations-and-tokens',generation,canonicalAttempt:scoped,vocabSize:100});
 const pair=[new EventTarget(),new EventTarget()];
 pair.forEach((channel,index)=>Object.assign(channel,{readyState:'open',ordered:true,maxRetransmits:null,maxPacketLifeTime:null,bufferedAmount:0,
  send(data){queueMicrotask(()=>{if(pair[1-index].readyState==='open')pair[1-index].dispatchEvent(new MessageEvent('message',{data:structuredClone(data)}));});},

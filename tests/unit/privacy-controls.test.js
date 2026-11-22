@@ -1,29 +1,34 @@
 import { it, expect } from 'vitest';
-import { renderPrivacyControls, readPrivacyControls, updatePrivacyControls, answerPrivacy } from '../../apps/poolday/ui/pool-home/privacy-controls.js';
+import { renderPrivacyControls, readPrivacyControls, showPrivacyChoices, updatePrivacyControls, answerPrivacy } from '../../apps/poolday/ui/pool-home/privacy-controls.js';
 
-it('shows all tiers and maps named recipients or this device to the existing execution policy', () => {
+it('keeps placement, recipient eligibility and computation separate and never opens remote recipients implicitly', () => {
   const root = document.createElement('div'); document.body.append(root); root.innerHTML = renderPrivacyControls();
-  expect(root.querySelector('input[value="cryptographic"]').disabled).toBe(true);
-  root.querySelector('input[value="restricted"]').checked = true;
-  expect(readPrivacyControls(root).placement).toBe('local-only');
-  root.querySelector('[data-privacy-placement][value="named"]').checked = true;
-  expect(() => readPrivacyControls(root)).toThrow('at least one computer ID');
-  root.querySelector('[data-privacy-recipients]').value = 'peer:a, peer:b, peer:a';
+  const find = selector => root.querySelector(selector);
+  expect(find('option[value="cryptographic"]').disabled).toBe(true);
+  expect(find('option[value="attested"]').disabled).toBe(true);
+  expect(readPrivacyControls(root)).toMatchObject({ placement: 'local-only', recipients: { kind: 'none', ids: [] }, computation: 'plaintext' });
+  find('[data-privacy-placement]').value = 'network-allowed';
+  showPrivacyChoices(root);
+  expect(readPrivacyControls(root)).toMatchObject({ placement: 'network-allowed', recipients: { kind: 'none', ids: [] } });
+  find('[data-privacy-recipient-mode]').value = 'named';
+  expect(() => readPrivacyControls(root)).toThrow('at least one recipient ID');
+  find('[data-privacy-recipients]').value = 'peer:a, peer:b, peer:a';
+  expect(() => readPrivacyControls(root)).toThrow(/unique list/);
+  find('[data-privacy-recipients]').value = 'peer:a, peer:b';
   const policy = readPrivacyControls(root);
-  expect(policy.allowedRecipients).toEqual(['peer:a', 'peer:b']);
-  expect(policy.placement).toBe('network-allowed');
+  expect(policy.recipients).toEqual({ kind: 'named', ids: ['peer:a', 'peer:b'] });
   updatePrivacyControls(root, policy);
-  expect(root.querySelector('[data-privacy-recipients-label]').hidden).toBe(false);
+  expect(find('[data-privacy-recipients-label]').hidden).toBe(false);
   expect(readPrivacyControls(root)).toEqual(policy);
   updatePrivacyControls(root, { ...policy, retention: 'ephemeral' });
-  expect(root.querySelector('[data-privacy-apply]').disabled).toBe(true);
-  expect(root.querySelector('[data-privacy-error]').textContent).toContain('read-only');
+  expect(find('[data-privacy-apply]').disabled).toBe(true);
+  expect(find('[data-privacy-error]').textContent).toContain('read-only');
   root.remove();
 });
 
-it('labels only the recipients in the returned receipt, including multi-computer routes', () => {
-  const privacy = { schema: 'reploid.privacy-receipt/v1', profile: 'restricted', recipients: ['a', 'b'] };
+it('labels only the actual recipients in a current disclosure receipt', () => {
+  const privacy = { schema: 'reploid.privacy-receipt/v2', computation: 'plaintext', recipients: ['a', 'b'] };
   const state = { computerLabels: new Map([['a', 'Mars'], ['b', 'Jupiter']]) };
-  expect(answerPrivacy({ privacy }, state)).toEqual(['Restricted recipients · 2 computers', 'Restricted recipients · Mars · Jupiter']);
-  expect(answerPrivacy({ privacy: { ...privacy, schema: 'reploid.legacy-privacy-observation/v1' } }, state)[0]).toBe('Privacy unrecorded');
+  expect(answerPrivacy({ privacy }, state)).toEqual(['Plaintext · 2 computers', 'Plaintext · Mars · Jupiter']);
+  expect(answerPrivacy({ privacy: { ...privacy, schema: 'reploid.privacy-receipt/v1' } }, state)[0]).toBe('Disclosure unrecorded');
 });

@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
 import { createHttpRequestOwner } from './http-request-owner.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
@@ -206,7 +207,15 @@ export function createTextRequester({ participant, authenticate, authorize, stat
         assertSettingsSupported(model.generationSettings, settings);
       } catch (error) { throw fail(400, error.message, error.param ?? null); }
       const requested = requireGenerationCapability(model, generation);
-      const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}),
+      // The authenticated private API names its recipients explicitly; this is a translation
+      // at the HTTP owner, never a default accepted at the execution wire boundary.
+      let privacy;
+      if (input.reploid) {
+        try { privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: input.reploid.allowed_recipients } }); }
+        catch (error) { throw fail(400, error.message, 'reploid.allowed_recipients'); }
+      }
+      const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(privacy ? { privacy } : {}),
+        ...(requested ? {generationRequest:requested} : {}),
         ...(settings ? { settings } : {}) });
       // A partition route always observes its input tokens before text. A whole-model provider may
       // report its own count before its first token: the edge asks for that only where it publishes

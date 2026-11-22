@@ -1,3 +1,5 @@
+import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { expect, it } from 'vitest';
 import { createChatSession, MAX_AUTOMATIC_FAILOVERS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -6,15 +8,18 @@ import { createChatTestService } from '../fixtures/chat-service.js';
 const DROPPED = 'Execution peer disconnected; retry requires a new attempt';
 const peerId = index => 'peer:' + String(index).repeat(24);
 function fixture(outcome) {
-  const calls = [];
+  const calls = [], disclosed = [], reviewed = [];
   const swarm = {
     getState: () => ({ sharing: false }), connect: async () => {}, hasProvider: () => true,
     async generate(messages, controls) {
       const index = calls.length, peer = peerId(index + 1);
       calls.push({ peer, question: messages.at(-1).content });
-      const preview = { id: crypto.randomUUID(), providerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
+      const request = { model: { id: controls.modelId, identity: controls.modelIdentity }, privacy: controls.privacy };
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [peer] }));
+      const preview = { privacyBinding, id: crypto.randomUUID(), providerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
         modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], input: messages, expiresAt: Date.now() + 10000 };
       if (!await controls.approve(preview)) throw new Error('Declined');
+      disclosed.push(peer);
       await controls.record({ stage: 'approved', preview });
       controls.onPartial('Answer from ' + peer);
       if (outcome(index) === 'drop') throw new Error(DROPPED);
@@ -23,24 +28,35 @@ function fixture(outcome) {
     }
   };
   const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
-  const threadId = session.createThread({ executionLocation: 'network' });
+  session.setRemoteAnswersEnabled(true);
+  const threadId = session.createThread({ executionLocation: 'network',
+    privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) });
   const settled = async count => {
     for (let turn = 0; turn < 200; turn++) {
       const state = session.getState();
+      const attempt = state.activeThread.attempts.at(-1);
+      if (attempt?.status === 'approval') {
+        const { permissionNeed, recipientIdentity } = attempt.approval;
+        expect(disclosed).not.toContain(recipientIdentity);
+        reviewed.push(recipientIdentity);
+        await session.grantRemotePermission(permissionNeed, { wording: remotePermissionWording(permissionNeed) });
+      }
       if (calls.length >= count && !state.runningIds?.includes(threadId)
         && !['queued', 'loading', 'executing', 'approval'].includes(state.activeThread.attempts.at(-1).status)) return state.activeThread;
       await new Promise(resolve => setTimeout(resolve, 5));
     }
     throw new Error('Conversation did not settle');
   };
-  return { session, threadId, calls, settled };
+  return { session, threadId, calls, reviewed, disclosed, settled };
 }
 
-it('answers on another computer as a new attempt after the chosen computer drops, keeping the failed attempt', async () => {
+it('requires replacement recipient approval after the chosen computer drops, keeping the failed attempt', async () => {
   const f = fixture(index => index === 0 ? 'drop' : 'complete');
   expect((await f.session.send(f.threadId, 'Public question')).status).toBe('failed');
   const thread = await f.settled(2);
   expect(f.calls.map(call => call.question)).toEqual(['Public question', 'Public question']);
+  expect(f.reviewed).toEqual([peerId(2)]);
+  expect(f.disclosed).toEqual([peerId(1), peerId(2)]);
   expect(thread.attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
   expect(thread.attempts[0].error).toBe(DROPPED);
   expect(new Set(thread.attempts.map(attempt => attempt.id)).size).toBe(2);
@@ -58,6 +74,7 @@ it('stops after the bounded number of automatic attempts and leaves the last fai
   const thread = await f.settled(1 + MAX_AUTOMATIC_FAILOVERS);
   await new Promise(resolve => setTimeout(resolve, 50));
   expect(f.calls).toHaveLength(1 + MAX_AUTOMATIC_FAILOVERS);
+  expect(f.reviewed).toEqual([peerId(2), peerId(3)]);
   expect(thread.attempts.map(attempt => attempt.status)).toEqual(Array(1 + MAX_AUTOMATIC_FAILOVERS).fill('failed'));
   expect(f.session.getState().activeThread.attempts).toHaveLength(1 + MAX_AUTOMATIC_FAILOVERS);
   await f.session.close();

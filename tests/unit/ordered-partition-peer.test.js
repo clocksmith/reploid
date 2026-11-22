@@ -1,3 +1,4 @@
+import { partitionTestBinding } from '../fixtures/partition-execution-policy.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
@@ -33,7 +34,7 @@ async function fixture({ stageClockOffsetMs = 0, onReceiveTiming } = {}) {
       remoteParticipantId: identities[index].peerId, authority: authorities[0] });
     await client.refresh(); peers.push({ server, client }); pairs.push(pair);
   }
-  const grant = await authorities[0].issueOrdered(f.request.identity, f.limits, { approved: true, ttlMs: 10000,
+  const grant = await authorities[0].issueOrdered(f.request.identity, f.limits, { privacyBinding: await partitionTestBinding(f.request.identity), approved: true, ttlMs: 10000,
     generationDigest: await f.runtime.hashPartitionGeneration(f.request.generation), disclosure: orderedPartitionDisclosure(f.request.identity) });
   const runner = createLayerPartitionRunner({ ...f, stages: [f.stages[0], ...peers.map(p => p.client)],
     authorize: request => authorities[0].verify(request.grant, request) });
@@ -165,7 +166,7 @@ it('a cancelled blocked middle stage preserves an unrelated remote conversation'
     const pending = f.runner.execute({ ...f.request, signal: controller.signal });
     const failed = expect(pending).rejects.toThrow(); await entered.promise;
     const identity = { ...f.request.identity, attemptId: 'survivor', threadId: 'survivor' };
-    const grant = await f.authorities[0].issueOrdered(identity, f.f.limits, { approved: true, ttlMs: 10000,
+    const grant = await f.authorities[0].issueOrdered(identity, f.f.limits, { privacyBinding: await partitionTestBinding(identity), approved: true, ttlMs: 10000,
       generationDigest: await f.f.runtime.hashPartitionGeneration(f.request.generation), disclosure: orderedPartitionDisclosure(identity) });
     const survivor = f.runner.execute({ ...f.request, identity, grants: { execution: Array(3).fill(grant), tokenContext: Array(3).fill(grant), activation: Array(2).fill(grant), output: grant } });
     controller.abort(Error('cancel selected')); release.resolve(); await failed;
@@ -428,7 +429,7 @@ describe('per-token wire cost on a three-stage route (in-process channels; not p
 });
 
 describe('one deadline outcome in either order (in-process channels, injected computation)', () => {
-  const grantFor = async (f, ttlMs) => f.authorities[0].issueOrdered(f.f.request.identity, f.f.limits, { approved: true, ttlMs,
+  const grantFor = async (f, ttlMs) => f.authorities[0].issueOrdered(f.f.request.identity, f.f.limits, { privacyBinding: await partitionTestBinding(f.f.request.identity), approved: true, ttlMs,
     generationDigest: await f.f.runtime.hashPartitionGeneration(f.request.generation), disclosure: orderedPartitionDisclosure(f.f.request.identity) });
   const grants = grant => ({ execution: Array(3).fill(grant), tokenContext: Array(3).fill(grant), activation: Array(2).fill(grant), output: grant });
   const deadline = { code: 'ANSWER_DEADLINE_EXCEEDED', message: 'Response timed out. Retry starts a new attempt.' };

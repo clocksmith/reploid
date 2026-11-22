@@ -16,7 +16,7 @@ it('after the named provider is lost mid-answer, a retry under the same policy d
   const { hub, model, requester, credits } = fixture;
   const named = fixture.seatOf('named'), other = fixture.seatOf('other');
   const messages = [{ role: 'user', content: 'Public fixture for privacy after provider loss.' }];
-  const restricted = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [named.identity.peerId] });
+  const restricted = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [named.identity.peerId] } });
   const held = () => credits.snapshot().accounts.find(row => row.id === 'computer-requester').held;
   // Everything the transport carries to the provider that is not named, from the first message on.
   const toOther = [];
@@ -53,8 +53,7 @@ it('after the named provider is lost mid-answer, a retry under the same policy d
   expect(other.executions).toBe(0);
 
   // Control: the same provider serves the same prompt once a policy names it, so the refusal above was the policy.
-  const control = await attempt('separately-authorized', createExecutionPolicy('restricted', {
-    placement: 'network-allowed', allowedRecipients: [other.identity.peerId] }), 5000);
+  const control = await attempt('separately-authorized', createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [other.identity.peerId] } }), 5000);
   expect(control.completed).toBe(true);
   expect(other.executions).toBe(1);
   expect(control.charge).toBeGreaterThan(0);
@@ -76,7 +75,7 @@ it('a provider checks the requester\'s credit from the commitment, and declines 
   const { hub, model, requester, credits } = fixture;
   const named = fixture.seatOf('named');
   const messages = [{ role: 'user', content: 'Public fixture for credit before disclosure.' }];
-  const restricted = createExecutionPolicy('restricted', { placement: 'network-allowed', allowedRecipients: [named.identity.peerId] });
+  const restricted = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [named.identity.peerId] } });
   // Everything the transport carries to the provider. While `forge` is set, the commitment in the admission
   // question is changed in transit, so the provider asks the ledger about a commitment nobody reserved.
   const toProvider = [];

@@ -19,7 +19,7 @@ export function createWorkNetworkProvider(options) {
         const provider = await openWorkProvider({ ...options, signal: combined });
         return provider.generate(messages, onUpdate, { signal: combined });
       }
-      if (swarm?.generate && privacy?.placement !== 'local-only') {
+      if (swarm?.generate && privacy?.placement === 'network-allowed' && privacy.recipients.kind !== 'none') {
         await swarm.connect({ automatic: true });
         combined.throwIfAborted();
         onProgress?.(swarm.hasProvider(model.id) ? 'Awaiting peer approval' : 'Waiting for a ready contributor');

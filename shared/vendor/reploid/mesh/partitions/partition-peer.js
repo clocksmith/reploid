@@ -7,6 +7,8 @@ import { createPartitionStepReceiver } from './partition-step-receiver.js';
 import { assertPartition as assert, samePartitionIdentity, partitionFingerprint,
   partitionActivationContract, matchingPartitionActivation } from './partition-contract.js';
 
+const STAGE_POLICY_PROTOCOL = 'reploid.partition-stage-policy/v1';
+
 /** Authenticated A-to-B partition RPC. Hosts establish channel identities before constructing it. */
 export function createPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan, planId,
   modelIdentity, authority, contributor = null, limits, receiverLimits, canonical = false, ordered = null, onReceiveTiming }) {
@@ -23,7 +25,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     'Canonical serving requires the bound stage signing authority');
   const active = new Map(), outputCharacters = new Map(), listeners = new Set();
   const reservations = new Map();
-  let remoteDescriptor = null, remoteCanonical = null, closing = null;
+  let remoteDescriptor = null, remoteCanonical = null, closing = null, policyProtocolVerified = false;
   const canonicalRequest = metadata => canonicalContract !== null && metadata.schema === canonicalContract.schema;
   const binding = identity => identity?.modelId === plan.modelId && identity.modelIdentity === modelIdentity
     && identity.planId === planId;
@@ -130,6 +132,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       if (metadata.operation === 'describe') return byteLength === 0;
       if (!binding(metadata.identity)) return false;
       const outbound = action === 'send' || action === 'accept';
+      if (outbound && !policyProtocolVerified) return false;
       if (metadata.identity.participantA !== (outbound ? localParticipantId : remoteParticipantId)
         || metadata.identity.participantB !== (outbound ? remoteParticipantId : localParticipantId)) return false;
       if (metadata.schema !== undefined) {
@@ -163,7 +166,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       return true;
     },
     async serve(metadata, payload, { signal }) {
-      if (metadata.operation === 'describe') return { descriptor: contributor?.getState().ready ? contributor.getState().descriptor : null,
+      if (metadata.operation === 'describe') return { policyProtocol: STAGE_POLICY_PROTOCOL, descriptor: contributor?.getState().ready ? contributor.getState().descriptor : null,
         ...(canonical ? { canonical: contributor?.getState().ready ? { stage: canonicalStage,
           generation: contributor.getCanonicalGeneration() } : null } : {}) };
       if (metadata.operation === 'reserve') {
@@ -194,7 +197,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
         : receiver.receive({ ...metadata, payload }, { signal });
     },
   });
-  const getState = () => ({ ready: channel.readyState === 'open' && remoteDescriptor?.ready === true && (!canonical || remoteCanonical !== null),
+  const getState = () => ({ ready: channel.readyState === 'open' && policyProtocolVerified && remoteDescriptor?.ready === true && (!canonical || remoteCanonical !== null),
     descriptor: structuredClone(remoteDescriptor), participantId: remoteParticipantId, receipt: endpoint.getReceipt() });
   const close = () => {
     if (closing) return closing;
@@ -272,7 +275,9 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     },
     subscribe(listener) { listeners.add(listener); listener(getState()); return () => listeners.delete(listener); },
     async refresh({ signal } = {}) {
-      const { descriptor, canonical: observedCanonical } = await endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal });
+      const { descriptor, policyProtocol, canonical: observedCanonical } = await endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal });
+      policyProtocolVerified = policyProtocol === STAGE_POLICY_PROTOCOL;
+      assert(policyProtocolVerified, 'Remote partition stage does not bind the current execution policy');
       assert(!descriptor || descriptor.schema === 'doppler.resident-partition/v1' && descriptor.ready === true
         && descriptor.index === 1 && descriptor.modelId === plan.modelId && descriptor.modelIdentity === modelIdentity
         && descriptor.planId === planId && JSON.stringify(descriptor.layerRange) === JSON.stringify(plan.partitions[1].layerRange),

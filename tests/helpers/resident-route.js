@@ -7,6 +7,7 @@
 // Proves orchestration, admission and settlement records, not GPU execution or model quality.
 import * as codecs from 'dopplerx/partitions';
 
+import { bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { TEXT_GENERATION_CAPABILITY, tokenUsage } from '../../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 import { canonicalPartitionRoute } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
@@ -140,7 +141,10 @@ export async function residentRoute({ participants, requesterId, signers = [], s
       const identity = { schema: 'reploid.partition-attempt/v2', route, requesterId, threadId: request.threadId, attemptId: request.attemptId, placementGeneration: 0 };
       const disclosure = orderedPartitionDisclosure(identity);
       const coordinator = route.stages[0].participantId;
+      const privacyBinding = request.privacy ? await bindExecutionRoute({ ...request, model },
+        plaintextExecutionRoute({ model }, { recipients: route.stages.map((stage) => stage.participantId), route })) : null;
       const approved = await controls.requestApproval({
+        ...(privacyBinding ? { privacyBinding } : {}),
         id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId, operation: 'generate-partition',
         peerId: coordinator, recipientIdentity: coordinator, ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity,
         adapterIdentities: [], disclosure, expiresAt: Date.now() + 60_000, executionTimeoutMs: 60_000,

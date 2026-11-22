@@ -117,6 +117,7 @@ function createHub() {
         init: async () => true, disconnect() {}, getPeerId: () => id, getTransportType: () => 'in-memory-test-hub',
         getConnectionState: () => connected(id).length ? 'connected' : 'disconnected',
         getConnectedPeers: () => connected(id).map(peer => ({ id: peer })),
+        getPeerStates: () => connected(id).map(peer => ({ id: peer, phase: 'connected', channelState: 'open', iceState: 'connected' })),
         getPeerBinding: remote => live(remote) ? { local: 'cert-' + id, remote: 'cert-' + remote } : null,
         onMessage(type, handler) {
           if (!node.handlers.has(type)) node.handlers.set(type, new Set());
