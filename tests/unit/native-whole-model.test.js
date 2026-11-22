@@ -190,7 +190,12 @@ it('fails the load and offers nothing when the GPU refused an allocation while t
   const memory = { count: 0, message: null }, settle = vi.fn(async () => {});
   const gpu = { outOfMemory: () => ({ ...memory }), settle };
   const f = await fixture({ gpu, prepare: () => { memory.count += 2; memory.message = 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY'; } });
+  // The runtime's own ready arrives before the check; nobody outside may see it.
+  const seen = [];
+  settle.mockImplementation(async () => { seen.push(f.participant.getState(), f.participant.getExecutionState()); });
   const failure = await f.participant.contribute(true).catch(error => error);
+  expect(seen).toHaveLength(2);
+  for (const state of seen) expect(state).toMatchObject({ phase: 'loading', ready: false });
   expect(failure).toMatchObject({ code: 'GPU_OUT_OF_MEMORY', detail: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY' });
   expect(failure.message).toBe("This computer's GPU ran out of memory while loading the model");
   expect(settle).toHaveBeenCalledOnce();

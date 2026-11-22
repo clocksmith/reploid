@@ -41,6 +41,9 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
   model.adapters = selectModelAdapters(model);
   const settingsCapability = nativeWholeModelSettings(model);
   let resident = null, preparing = null, stopping = null, closed = false, enabled = false, filling = null;
+  // The runtime reports ready when its own load returns, before this host has confirmed that the GPU
+  // accepted every allocation. Until then the model is still loading to everyone outside.
+  let confirmed = false;
   // Owned authenticated storage of a gathered whole model. It outlives preparation and is closed only
   // after the resident that reads from it has closed.
   let gathered = null;
@@ -51,7 +54,8 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
       || decision.action === 'reduce' && decision.limits.maxConcurrentAttempts > 0;
   };
   const getState = () => {
-    const state = resident?.getState() || { phase: filling ? 'acquiring-model' : 'idle', ready: false };
+    let state = resident?.getState() || { phase: filling ? 'acquiring-model' : 'idle', ready: false };
+    if (resident && !confirmed && (state.ready || state.phase === 'ready')) state = { ...state, phase: 'loading', ready: false };
     return { ...state, mode: 'whole-model', offering: enabled,
       ready: enabled && !closed && ownerAllows() && state.ready,
       modelId: model.id, modelIdentity: state.modelIdentity ?? null };
@@ -66,7 +70,7 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
     enabled = false; filling?.abort(new Error('Whole-model contribution stopped')); notify();
     await resident?.close();
     await preparing?.catch(() => {});
-    resident = null;
+    resident = null; confirmed = false;
     await closeGathered();
     notify();
   })().finally(() => { stopping = null; });
@@ -146,9 +150,10 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
           maxOutcomeCharacters: providerPolicy.maxOutcomeCharacters, loadOptions, source, onChange: notify });
         // A refused weight allocation leaves the runtime reporting ready; that load is a failure here.
         await withGpuMemoryCheck(gpu, () => resident.prepare());
+        confirmed = true; notify();
         return getState();
       })().catch(async error => {
-        enabled = false;
+        enabled = false; confirmed = false;
         await resident?.close(); resident = null;
         await closeGathered().catch(() => {});
         notify(); throw error;
