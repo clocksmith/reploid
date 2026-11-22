@@ -45,6 +45,10 @@ try {
   await rm(resolve(checkout, preparedConfig), { force: true });
   await run('npm', ['run', 'verify:pool:release', '--', '--url', 'https://replo.id', '--channel=chrome'], checkout);
   console.log(`[deploy] verified https://replo.id at ${revision}`);
+  // A catalog change disconnects every provider still on an older package and no other check sees it. The site is
+  // already deployed and correct at this point, so an unanswered question is reported, not treated as a failed deploy.
+  try { await run('npm', ['run', '--silent', 'verify:public-answer', '--', '--channel=chrome'], checkout); }
+  catch { console.error('[deploy] WARNING: no public computer answered a first-visitor question on https://replo.id. Compare the providers\' packages with the deployed model catalog.'); }
 } catch (error) {
   console.error(`[deploy] ${error.message}`); process.exitCode = 1;
 } finally {
