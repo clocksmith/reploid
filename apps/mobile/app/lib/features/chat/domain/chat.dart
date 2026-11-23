@@ -78,6 +78,7 @@ final class Turn {
     required this.role,
     required this.text,
     this.phase,
+    this.attemptId,
     this.recipient,
     this.promptSent = false,
     this.receiptVerified = false,
@@ -90,6 +91,11 @@ final class Turn {
 
   /// Set for assistant turns only.
   final AnswerPhase? phase;
+
+  /// The execution attempt that produced this answer. Asking again keeps
+  /// the conversation and the prompt but is a new attempt, and nothing
+  /// from an earlier attempt can change a later one.
+  final String? attemptId;
 
   /// The proven signing identity of the computer that answers this turn.
   final String? recipient;
@@ -115,6 +121,7 @@ final class Turn {
     role: role,
     text: text ?? this.text,
     phase: phase ?? this.phase,
+    attemptId: attemptId,
     recipient: recipient ?? this.recipient,
     promptSent: promptSent ?? this.promptSent,
     receiptVerified: receiptVerified ?? this.receiptVerified,

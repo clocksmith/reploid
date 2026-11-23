@@ -34,9 +34,15 @@ ownership and lifecycle contract is [docs/architecture.md](docs/architecture.md)
 | `tool` | Formatting, analysis, boundary checks, tests, independent consumer verification. |
 
 A session is one device signing identity. Start creates it on first use and
-keeps it in the platform keystore; Forget this device ends the session,
-deletes the key and clears every conversation. Conversations are held in
-memory only.
+keeps it in the platform keystore; Forget this device ends the session and
+deletes the key and every conversation.
+
+Conversations are kept on the device, in one file per identity sealed with
+AES-256-GCM under a key held in the platform keystore. An answer that was
+under way when the app stopped is shown as ended, with whether its prompt
+had been sent; it is never resumed or resent on its own. Each answer is an
+attempt with its own identity, so asking again cannot be overwritten by an
+earlier attempt.
 
 ## One source of truth for the API
 
@@ -82,7 +88,8 @@ After changing the contract or the model catalog, run
   device, and iOS and Android have not been built.
 - The public network. Relay credentials for computers behind strict
   firewalls are not fetched, so only direct connections are tried.
-- Durable conversations. They are lost when the app closes.
+- Excluding the encrypted history file from device backups. The key is
+  never backed up, so a backup alone cannot be read.
 - Pairing with your own desktop, split routes, credits, attachments, file
   sharing and local models, which the web product has and this app does not.
 - Recovery of an answer after a lost connection. A lost answer is asked for

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:reploid_mobile/app/network_config.dart';
-import 'package:reploid_mobile/infrastructure/identity_store.dart';
+import 'package:reploid_mobile/infrastructure/device_stores.dart';
 import 'package:reploid_mobile/l10n/strings.dart';
 import 'package:reploid_mobile/main.dart';
 
@@ -66,7 +66,9 @@ void main() {
       isNotNull,
       reason: 'run through tool/e2e_macos.sh, which supplies the room',
     );
-    await tester.pumpWidget(ReploidRoot(identityStore: MemoryIdentityStore()));
+    await tester.pumpWidget(
+      ReploidRoot(secrets: MemorySecretStore(), files: MemoryFileStore()),
+    );
     await tester.pump();
     expect(find.text(Strings.demoNetwork), findsNothing);
     await _tap(tester, find.text(Strings.start));

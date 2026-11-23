@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:core/core.dart';
 
 import '../domain/chat.dart';
+import 'conversation_archive.dart';
 import 'requester_api.dart';
 
 final class _Thread {
@@ -28,15 +29,24 @@ final class SessionChatRepository implements ChatRepository {
     required this.session,
     required this.api,
     required this.newId,
+    this.archive,
     this.diagnostics = const Diagnostics(),
   }) {
     session.registerCleanup(close);
+    if (archive != null) _restoring = _restore();
   }
 
   final SessionHandle session;
   final RequesterApi api;
   final String Function() newId;
+
+  /// Where conversations are kept between runs; none keeps them in memory.
+  final ConversationArchive? archive;
   final Diagnostics diagnostics;
+  Future<void>? _restoring;
+  bool _restored = false;
+  Future<void> _saved = Future.value();
+  bool _saveQueued = false;
 
   final _events = StreamController<void>.broadcast();
   final Map<String, _Thread> _threads = {};
@@ -82,6 +92,71 @@ final class SessionChatRepository implements ChatRepository {
         ensure?.call();
         controller.addSync(snapshot());
       });
+
+  // Persistence ---------------------------------------------------------------
+
+  /// Brings back this identity's conversations. Ones made while loading
+  /// stay, after the restored ones.
+  Future<void> _restore() async {
+    final List<ArchivedConversation> stored;
+    try {
+      stored = await archive!.load();
+    } catch (_) {
+      return; // unreadable storage: nothing is written over it this run
+    }
+    if (!_active) return;
+    _restored = true;
+    if (stored.isEmpty) return;
+    final made = Map.of(_threads);
+    _threads.clear();
+    for (final conversation in stored) {
+      if (made.containsKey(conversation.id)) continue;
+      _threads[conversation.id] = _Thread(conversation.id)
+        ..title = conversation.title
+        ..modelId = conversation.modelId
+        ..turns.addAll(conversation.turns);
+    }
+    _threads.addAll(made);
+    _emit();
+  }
+
+  /// Writes the current conversations, once, after any write under way.
+  /// Text still streaming in is written when its answer ends.
+  void _persist() {
+    if (archive == null || _saveQueued || _closed) return;
+    _saveQueued = true;
+    _saved = _saved.then((_) async {
+      await _restoring;
+      _saveQueued = false;
+      if (!_closed) await _write(_snapshot());
+    });
+  }
+
+  List<ArchivedConversation> _snapshot() => [
+    for (final thread in _threads.values)
+      if (thread.turns.isNotEmpty)
+        ArchivedConversation(
+          id: thread.id,
+          title: thread.title,
+          modelId: thread.modelId,
+          turns: List.of(thread.turns),
+        ),
+  ];
+
+  /// Never writes before the stored conversations were read: an early
+  /// write would replace them with whatever this run has so far.
+  Future<void> _write(List<ArchivedConversation> conversations) async {
+    if (archive == null || !_restored) return;
+    try {
+      await archive!.save(conversations);
+    } catch (_) {
+      // A failed write loses durability, not the conversation in memory.
+    }
+  }
+
+  /// Completes when everything queued so far is on disk. For tests and for
+  /// an orderly shutdown.
+  Future<void> get saved => _saved;
 
   // Network -----------------------------------------------------------------
 
@@ -194,6 +269,7 @@ final class SessionChatRepository implements ChatRepository {
     final thread = _threads.remove(id);
     if (thread == null) return;
     unawaited(_cancel(thread));
+    _persist();
     _emit();
   }
 
@@ -206,6 +282,7 @@ final class SessionChatRepository implements ChatRepository {
       throw const AppFailure(FailureKind.validation);
     }
     thread.modelId = modelId;
+    _persist();
     _emit();
   }
 
@@ -266,8 +343,10 @@ final class SessionChatRepository implements ChatRepository {
         role: TurnRole.assistant,
         text: '',
         phase: AnswerPhase.finding,
+        attemptId: newId(),
       ),
     );
+    _persist();
     final running = thread.running = Completer<void>();
     thread.stopping = false;
     final answer = thread.answer = api.ask(
@@ -301,6 +380,7 @@ final class SessionChatRepository implements ChatRepository {
           failure: failure,
         ),
       );
+      _persist();
       _emit();
       running.complete();
     }
@@ -314,10 +394,15 @@ final class SessionChatRepository implements ChatRepository {
             phase: AnswerPhase.admitting,
           ),
         ),
-        PromptSent() => update(
-          (turn) =>
-              turn.copyWith(promptSent: true, phase: AnswerPhase.streaming),
-        ),
+        PromptSent() => () {
+          update(
+            (turn) =>
+                turn.copyWith(promptSent: true, phase: AnswerPhase.streaming),
+          );
+          // Recorded at once: after a crash the person must still be told
+          // that this prompt had left the device.
+          _persist();
+        }(),
         AnswerChunk(:final text) => update(
           (turn) => turn.copyWith(text: turn.text + text),
         ),
@@ -361,10 +446,16 @@ final class SessionChatRepository implements ChatRepository {
 
   Future<void> close() {
     if (_closing != null) return _closing!;
+    // An answer cut off by closing is written as it stands; the next run
+    // shows it as ended, with what had arrived.
+    final last = _snapshot();
+    final pending = _saved;
     _closed = true;
     final threads = _threads.values.toList();
-    _threads.clear();
     return _closing = () async {
+      await pending;
+      await _write(last);
+      _threads.clear();
       for (final thread in threads) {
         await thread.subscription?.cancel();
         await thread.answer?.cancel();

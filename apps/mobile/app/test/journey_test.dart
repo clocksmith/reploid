@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reploid_mobile/app/providers.dart';
 import 'package:reploid_mobile/features/chat/infrastructure/memory_network.dart';
+import 'package:reploid_mobile/infrastructure/device_stores.dart';
 import 'package:reploid_mobile/infrastructure/identity_store.dart';
 import 'package:reploid_mobile/l10n/strings.dart';
 import 'package:reploid_mobile/main.dart';
@@ -14,7 +15,8 @@ MemoryNetwork _network() => MemoryNetwork(latency: _step, chunkDelay: _step);
 Future<void> _launch(
   WidgetTester tester,
   MemoryNetwork network, {
-  IdentityStore? store,
+  MemorySecretStore? store,
+  MemoryFileStore? files,
   Size size = const Size(390, 844),
 }) async {
   // A phone-sized surface; the test default is a wide desktop window.
@@ -24,7 +26,8 @@ Future<void> _launch(
   await tester.pumpWidget(
     ReploidRoot(
       key: UniqueKey(),
-      identityStore: store ?? MemoryIdentityStore(),
+      secrets: store ?? MemorySecretStore(),
+      files: files ?? MemoryFileStore(),
       overrides: [memoryNetworkProvider.overrideWithValue(network)],
     ),
   );
@@ -200,10 +203,11 @@ void main() {
     tester,
   ) async {
     final network = _network();
-    final store = MemoryIdentityStore();
-    await _launch(tester, network, store: store);
+    final store = MemorySecretStore();
+    final files = MemoryFileStore();
+    await _launch(tester, network, store: store, files: files);
     await _start(tester);
-    final first = await store.read();
+    final first = await IdentityStore(store).read();
     expect(first, isNotNull);
     await _openNewChat(tester);
     await _type(tester, 'remember me');
@@ -219,28 +223,57 @@ void main() {
     await _settle(tester);
     expect(find.text(Strings.start), findsOneWidget);
     expect(find.text('remember me'), findsNothing);
-    expect(await store.read(), isNull);
+    expect(await IdentityStore(store).read(), isNull);
+    expect(files.files, isEmpty, reason: 'the saved history is erased');
 
     await _start(tester);
     expect(find.text('remember me'), findsNothing);
     expect(find.text(Strings.noChats), findsOneWidget);
-    expect(await store.read(), isNot(first));
+    expect(await IdentityStore(store).read(), isNot(first));
     await _close(tester);
   });
 
   testWidgets('a device with a stored identity resumes without a tap', (
     tester,
   ) async {
-    final store = MemoryIdentityStore();
+    final store = MemorySecretStore();
     await _launch(tester, _network(), store: store);
     await _start(tester);
-    final identity = await store.read();
+    final identity = await IdentityStore(store).read();
     await _close(tester);
 
     await _launch(tester, _network(), store: store);
     await _settle(tester);
     expect(find.text(Strings.chatsHeading), findsOneWidget);
-    expect(await store.read(), identity);
+    expect(await IdentityStore(store).read(), identity);
+    await _close(tester);
+  });
+
+  testWidgets('conversations are still there after the app restarts', (
+    tester,
+  ) async {
+    final network = _network();
+    final store = MemorySecretStore();
+    final files = MemoryFileStore();
+    await _launch(tester, network, store: store, files: files);
+    await _start(tester);
+    await _openNewChat(tester);
+    await _type(tester, 'keep this one');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(seconds: 1));
+    await _settle(tester);
+    await _close(tester);
+    await _settle(tester);
+    expect(files.files, hasLength(1));
+
+    await _launch(tester, network, store: store, files: files);
+    await _settle(tester);
+    expect(find.text(Strings.chatsHeading), findsOneWidget);
+    expect(find.text('keep this one'), findsOneWidget);
+    await _tap(tester, find.text('keep this one'));
+    await tester.pumpAndSettle(_step);
+    expect(find.text('You asked: keep this one'), findsOneWidget);
+    expect(network.requests, 1, reason: 'reopening a thread sends nothing');
     await _close(tester);
   });
 

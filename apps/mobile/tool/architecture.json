@@ -64,7 +64,8 @@
         "pointycastle/ecc/curves/secp256r1.dart",
         "pointycastle/signers/ecdsa_signer.dart",
         "flutter_secure_storage/flutter_secure_storage.dart",
-        "flutter_webrtc/flutter_webrtc.dart"
+        "flutter_webrtc/flutter_webrtc.dart",
+        "path_provider/path_provider.dart"
       ],
       "deviceAccess": true
     },

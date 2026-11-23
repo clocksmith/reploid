@@ -7,8 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/chat/domain/chat.dart';
 import '../features/chat/infrastructure/chat_repository.dart';
+import '../features/chat/infrastructure/conversation_archive.dart';
 import '../features/chat/infrastructure/memory_network.dart';
 import '../features/chat/infrastructure/requester_api.dart';
+import '../infrastructure/device_stores.dart';
 import '../infrastructure/identity_store.dart';
 import '../infrastructure/reploid_api/identity.dart';
 
@@ -18,9 +20,26 @@ final sessionCoordinatorProvider = Provider<SessionCoordinator>(
   (ref) => throw StateError('Bootstrap must supply SessionCoordinator'),
 );
 
-final identityStoreProvider = Provider<IdentityStore>(
-  (ref) => throw StateError('Bootstrap must supply IdentityStore'),
+/// The platform keystore, supplied by bootstrap.
+final secretStoreProvider = Provider<SecretStore>(
+  (ref) => throw StateError('Bootstrap must supply SecretStore'),
 );
+
+/// The app's private files, supplied by bootstrap.
+final fileStoreProvider = Provider<FileStore>(
+  (ref) => throw StateError('Bootstrap must supply FileStore'),
+);
+
+final identityStoreProvider = Provider<IdentityStore>(
+  (ref) => IdentityStore(ref.watch(secretStoreProvider)),
+);
+
+ConversationArchive _archive(Ref ref, String participantId) =>
+    ConversationArchive(
+      files: ref.read(fileStoreProvider),
+      secrets: ref.read(secretStoreProvider),
+      participantId: participantId,
+    );
 
 /// The synthetic network of the demo build and the tests.
 final memoryNetworkProvider = Provider<MemoryNetwork>((ref) => MemoryNetwork());
@@ -115,9 +134,10 @@ class SessionController extends Notifier<SessionState> {
     if (ref.mounted && state.status == SessionStatus.signedOut) await start();
   }
 
-  /// Ends the session, then deletes the key. A later Start is a new
-  /// participant with no conversations.
+  /// Ends the session, then deletes its conversations and the key. A later
+  /// Start is a new participant with no history.
   Future<void> forget() async {
+    final identity = ref.read(deviceIdentityProvider).current;
     try {
       await ref.read(sessionCoordinatorProvider).signOut();
     } on AppFailure {
@@ -125,6 +145,7 @@ class SessionController extends Notifier<SessionState> {
     }
     ref.read(deviceIdentityProvider).current = null;
     try {
+      if (identity != null) await _archive(ref, identity.peerId).erase();
       await ref.read(identityStoreProvider).delete();
     } catch (_) {
       ref.read(startStatusProvider.notifier).set(StartStatus.failed);
@@ -146,6 +167,7 @@ ChatRepository? createChatRepository(Ref ref) {
     session: session,
     api: ref.watch(requesterApiFactoryProvider)(identity),
     newId: ref.watch(operationIdProvider),
+    archive: _archive(ref, identity.peerId),
   );
   ref.onDispose(() => unawaited(repository.close()));
   return repository;

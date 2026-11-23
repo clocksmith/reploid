@@ -9,16 +9,25 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'app/app.dart';
 import 'app/network_config.dart';
 import 'app/providers.dart';
-import 'infrastructure/identity_store.dart';
+import 'infrastructure/device_stores.dart';
 
 void main() => runApp(const ReploidRoot());
 
 class ReploidRoot extends StatefulWidget {
-  const ReploidRoot({super.key, this.identityStore, this.overrides = const []});
+  const ReploidRoot({
+    super.key,
+    this.secrets,
+    this.files,
+    this.overrides = const [],
+  });
 
-  /// Where the device key is kept; the platform keystore unless a test or
-  /// an environment without one supplies another store.
-  final IdentityStore? identityStore;
+  /// Where keys are kept; the platform keystore unless a test or an
+  /// environment without one supplies another store.
+  final SecretStore? secrets;
+
+  /// Where encrypted history is kept; the app's private directory by
+  /// default.
+  final FileStore? files;
 
   /// Further provider overrides, applied last: the network adapter for a
   /// build that reaches real computers, or fakes in a test.
@@ -31,6 +40,8 @@ class ReploidRoot extends StatefulWidget {
 /// Owns the external coordinator, including its asynchronous shutdown.
 class _ReploidRootState extends State<ReploidRoot> {
   final coordinator = SessionCoordinator();
+  late final SecretStore _secrets = widget.secrets ?? const SecureSecretStore();
+  late final FileStore _files = widget.files ?? DirectoryFileStore();
 
   @override
   void dispose() {
@@ -42,9 +53,8 @@ class _ReploidRootState extends State<ReploidRoot> {
   Widget build(BuildContext context) => ProviderScope(
     overrides: [
       sessionCoordinatorProvider.overrideWithValue(coordinator),
-      identityStoreProvider.overrideWithValue(
-        widget.identityStore ?? const SecureIdentityStore(),
-      ),
+      secretStoreProvider.overrideWithValue(_secrets),
+      fileStoreProvider.overrideWithValue(_files),
       chatRepositoryProvider.overrideWith(createChatRepository),
       ...NetworkConfig.overrides(),
       ...widget.overrides,
