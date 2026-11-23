@@ -8,8 +8,10 @@ rendering surface.
 
 **Status.** The requester protocol is implemented in Dart and tested against
 the web client's own code. On macOS the app has asked a real provider over
-real signaling and real WebRTC and shown a verified answer; that provider ran
-a stand-in model on the same machine. The default build still answers from a
+real signaling and real WebRTC and shown a verified answer, and has paired
+with one as the owner's desktop and been answered by it alone; that provider
+ran a stand-in model on the same machine, and its owner's approval was given
+by the test. The default build still answers from a
 synthetic network inside the app, and says so on screen. Nothing here has run
 on a phone, on a simulator, across real networks, or against a computer
 serving a real model.
@@ -71,6 +73,7 @@ this directory:
 flutter pub get
 bash tool/check.sh          # format, analysis, boundaries, generated code, all tests, consumer
 bash tool/e2e_macos.sh      # the app on macOS against a real local provider over WebRTC
+bash tool/e2e_macos.sh --pairing   # the same, pairing with it as the owner's desktop
 cd app && flutter run       # the demo network; pick a device with -d
 ```
 
@@ -112,8 +115,6 @@ constants). What needs a new binary: any change to native code or plugins
   firewalls are not fetched, so only direct connections are tried.
 - Excluding the encrypted history file from device backups. The key is
   never backed up, so a backup alone cannot be read.
-- Pairing over real WebRTC and across two rooms on a device; it is tested
-  against the web client's desktop code over a text link only.
 - Split routes, credits, attachments, file sharing and local models, which
   the web product has and this app does not.
 - Recovery of an answer after a lost connection. A lost answer is asked for
