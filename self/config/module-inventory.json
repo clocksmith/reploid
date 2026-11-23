@@ -2868,7 +2868,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:0c87a8f4a4e0fce40b0407825d49cf2aabe726c59b2893b6db8ae104ecc4d91a",
+      "sha256": "sha256:1cb1539117131e3f9da03af6290ff9f030f3b1746a922d91fcf43945f821f8c3",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -3553,7 +3553,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:1e8c53227add0d82291be29ef5797f25ed7769593669ecf955a9f72429c0b78d",
+      "sha256": "sha256:5c2eff26cd340b81052faad67317f2b977a12b2f5b98842824e4f295e25592fc",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4329,7 +4329,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:0b01807533ecf4a52c4c44849857a7c0ba92ed6e5980aed10ba00748b45d1f36",
+      "sha256": "sha256:5cc7af5891e964bee81aa212a580b789a6b4af55c6e25e117e685a95fd31dcc1",
       "imports": []
     },
     {
@@ -4642,7 +4642,7 @@
     {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:a2619fd257deaa5b6e141dfed070fff8f4c8d5cf8ec6768c169695f609977141",
+      "sha256": "sha256:91ac2141552dd7f6a854c552cc730364f322d1cae0fff915921b53f550a726d1",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
