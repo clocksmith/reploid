@@ -16,10 +16,16 @@ final class ArchivedConversation {
     required this.modelId,
     required this.turns,
     this.target,
+    this.modelName,
+    this.modelIdentity,
   });
   final String id;
   final String title;
   final String? modelId;
+
+  /// Kept for a conversation imported with a model outside the catalog.
+  final String? modelName;
+  final String? modelIdentity;
 
   /// Where the person chose to have this conversation answered, if they did.
   final AnswerTarget? target;
@@ -36,8 +42,8 @@ final class ArchivedConversation {
 /// which removes the file and the key. Each identity has its own file and
 /// key, so one identity can never read another's history.
 ///
-/// The file is not yet excluded from device backups; the key is, because
-/// the keystore is. A backup alone therefore cannot be read.
+/// The file is excluded from device backups, and so is its key, because
+/// keystore items here are device-only. A copied file alone cannot be read.
 base class ConversationArchive {
   ConversationArchive({
     required this.files,
@@ -125,6 +131,8 @@ base class ConversationArchive {
               'id': conversation.id,
               'title': conversation.title,
               'modelId': conversation.modelId,
+              'modelName': conversation.modelName,
+              'modelIdentity': conversation.modelIdentity,
               'target': conversation.target?.name,
               'turns': [for (final turn in conversation.turns) _turn(turn)],
             },
@@ -155,6 +163,9 @@ base class ConversationArchive {
     'promptSent': turn.promptSent,
     'receiptVerified': turn.receiptVerified,
     'failure': turn.failure?.name,
+    'requestId': turn.requestId,
+    'requestModelId': turn.requestModelId,
+    'recoverable': turn.recoverable,
   };
 
   static ArchivedConversation _conversation(Map<String, Object?> item) =>
@@ -162,6 +173,8 @@ base class ConversationArchive {
         id: item['id']! as String,
         title: item['title']! as String,
         modelId: item['modelId'] as String?,
+        modelName: item['modelName'] as String?,
+        modelIdentity: item['modelIdentity'] as String?,
         target: AnswerTarget.values
             .where((t) => t.name == item['target'])
             .firstOrNull,
@@ -187,6 +200,9 @@ base class ConversationArchive {
       failure: FailureKind.values
           .where((k) => k.name == raw['failure'])
           .firstOrNull,
+      requestId: raw['requestId'] as String?,
+      requestModelId: raw['requestModelId'] as String?,
+      recoverable: raw['recoverable'] == true,
     );
     // An answer that was under way when the app stopped is over. It is
     // never resumed or resent on its own; the person may ask again.
@@ -194,6 +210,8 @@ base class ConversationArchive {
         ? turn.copyWith(
             phase: AnswerPhase.failed,
             failure: FailureKind.unavailable,
+            // Cut off with the prompt sent: the recipient may have finished.
+            recoverable: turn.promptSent && turn.requestId != null,
           )
         : turn;
   }

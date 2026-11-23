@@ -336,6 +336,56 @@ String rowAvailability(CatalogRow row, Iterable<Advertisement> reachable) {
 
 /// Procedure `receiptVerification`, steps 1 to 11. Returns the signed
 /// payload in contract field order.
+/// Procedure `generationTerminalVerification`. The status the provider
+/// signed, or null when this terminal is not evidence about this request.
+Future<String?> verifyTerminal({
+  required Object? terminal,
+  required String requestId,
+  required String modelId,
+  required String modelIdentity,
+  required List<Json> messages,
+  required String provenProvider,
+  required String ownParticipantId,
+}) async {
+  if (terminal is! Map<String, Object?> ||
+      terminal.containsKey('settingsDigest')) {
+    return null;
+  }
+  final signed = <String, Object?>{};
+  for (final field in Contract.terminalSignedFields) {
+    if (!terminal.containsKey(field)) return null;
+    signed[field] = terminal[field];
+  }
+  final key = terminal['publicJwk'];
+  final signature = terminal['signature'];
+  final adapters = signed['adapterIdentities'];
+  final status = signed['status'];
+  if (key is! Map<String, Object?> ||
+      signature is! String ||
+      adapters is! List ||
+      adapters.isNotEmpty ||
+      (status != 'failed' && status != 'cancelled') ||
+      signed['requestId'] != requestId ||
+      signed['provider'] != provenProvider ||
+      signed['consumer'] != ownParticipantId ||
+      signed['model'] != modelId ||
+      signed['modelIdentity'] != modelIdentity ||
+      signed['inputDigest'] != hashJson(messages)) {
+    return null;
+  }
+  try {
+    if (peerIdFromPublicJwk(key) != signed['provider']) return null;
+    final valid = await verifySignature(
+      key,
+      utf8Bytes(canonicalJson(signed)),
+      fromBase64Url(signature),
+    );
+    return valid ? status! as String : null;
+  } on Object {
+    return null;
+  }
+}
+
 Future<Json> verifyResult({
   required String requestId,
   required String modelId,

@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:core/core.dart';
 import 'package:flutter/widgets.dart'
-    show BuildContext, Widget, VoidCallback, ValueChanged;
+    show BuildContext, Widget, VoidCallback, ValueChanged, ValueKey;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui/ui.dart';
@@ -172,12 +173,29 @@ class ConversationScreen extends ConsumerWidget {
         if (repository == null || !session.isActive) return;
         repository.setDraft(conversationId, text);
       },
+      attach: () async {
+        final picked = await ref.read(documentPickerProvider).pickAttachments();
+        if (picked.isEmpty) return;
+        ref
+            .read(chatRepositoryProvider)
+            ?.addAttachments(conversationId, picked);
+      },
+      removeFile: (index) => ref
+          .read(chatRepositoryProvider)
+          ?.removeAttachment(conversationId, index),
       send: (text, disclosed) => run(
         (r) => r.send(conversationId, text, disclosedRecipient: disclosed),
       ),
       stop: () => run((r) => r.stop(conversationId)),
       retry: (disclosed) =>
           run((r) => r.retry(conversationId, disclosedRecipient: disclosed)),
+      recover: () async {
+        final repository = ref.read(chatRepositoryProvider);
+        if (repository == null || !session.isActive) {
+          return RecoverResult.notYet;
+        }
+        return repository.recover(conversationId);
+      },
       remove: () {
         ref.read(chatRepositoryProvider)?.remove(conversationId);
         closed();
@@ -194,18 +212,24 @@ class _Thread extends HookWidget {
     required this.network,
     required this.openModels,
     required this.setDraft,
+    required this.attach,
+    required this.removeFile,
     required this.send,
     required this.stop,
     required this.retry,
+    required this.recover,
     required this.remove,
   });
   final Conversation? conversation;
   final NetworkResource? network;
   final VoidCallback openModels;
   final ValueChanged<String> setDraft;
+  final Future<void> Function() attach;
+  final ValueChanged<int> removeFile;
   final Future<void> Function(String text, String? disclosed) send;
   final Future<void> Function() stop;
   final Future<void> Function(String? disclosed) retry;
+  final Future<RecoverResult> Function() recover;
   final VoidCallback remove;
 
   @override
@@ -213,6 +237,10 @@ class _Thread extends HookWidget {
     final input = useTextEditingController(text: conversation?.draft ?? '');
     final hydrated = useRef(conversation != null);
     final refusal = useState<FailureKind?>(null);
+    final attachRefused = useState(false);
+    final detailsOpen = useState<String?>(null);
+    final recovery = useState<RecoverResult?>(null);
+    final recovering = useState(false);
     useListenable(input);
     useEffect(() {
       if (!hydrated.value && conversation != null) {
@@ -232,6 +260,7 @@ class _Thread extends HookWidget {
       return () => input.removeListener(syncDraft);
     }, [input]);
     final turns = conversation?.turns ?? const <Turn>[];
+    final files = conversation?.draftFiles ?? const <AttachedFile>[];
 
     final allowed = network?.networkAnswersAllowed ?? true;
     final models = network?.models ?? const <ModelOption>[];
@@ -247,7 +276,10 @@ class _Thread extends HookWidget {
     final readyPeers = chosen == null
         ? const <Computer>[]
         : (network?.computers ?? const <Computer>[])
-              .where((c) => c.modelId == chosen.id && c.ready && !c.busy)
+              .where(
+                (c) =>
+                    c.modelId == chosen.id && c.ready && !c.busy && !c.blocked,
+              )
               .toList();
     // Named by the same rule that places the request, and bound to it.
     final disclosed = desktop == null ? conversation?.nextRecipient : null;
@@ -285,10 +317,33 @@ class _Thread extends HookWidget {
                   : '${Strings.answerOn}: ${chosen.name}',
               onPressed: busy ? null : openModels,
             ),
+            SecondaryAction(
+              label: Strings.attach,
+              onPressed: busy
+                  ? null
+                  : () => unawaited(() async {
+                      attachRefused.value = false;
+                      try {
+                        await attach();
+                      } on AppFailure {
+                        if (context.mounted) attachRefused.value = true;
+                      }
+                    }()),
+            ),
+            for (final (index, file) in files.indexed)
+              SecondaryAction(
+                label: Strings.removeFile(file.name),
+                onPressed: busy ? null : () => removeFile(index),
+              ),
           ],
         ),
-        note: !allowed
+        note: attachRefused.value
+            ? Strings.attachLimits
+            : !allowed
             ? Strings.discloseOff
+            : files.isNotEmpty && desktop == null && disclosed != null
+            ? '${Strings.discloseComputer(disclosed)} '
+                  '${Strings.attachDisclosure}'
             : desktop != null
             ? desktop.status == DesktopStatus.online
                   ? Strings.discloseDesktop(desktop.label)
@@ -322,8 +377,15 @@ class _Thread extends HookWidget {
       children: [
         for (final turn in turns)
           if (turn.role == TurnRole.user)
-            MessageBubble(text: turn.text, author: Strings.you, outgoing: true)
-          else
+            MessageBubble(
+              text: turn.shownText,
+              author: Strings.you,
+              outgoing: true,
+              caption: turn.attachments == null
+                  ? null
+                  : Strings.attached(turn.attachments!.names),
+            )
+          else ...[
             MessageBubble(
               text: turn.text,
               author: Strings.assistant,
@@ -338,13 +400,81 @@ class _Thread extends HookWidget {
               caption: _turnCaption(turn),
               actions: [
                 if (identical(turn, turns.last) &&
+                    (conversation?.canRecover ?? false))
+                  SecondaryAction(
+                    label: Strings.checkAnswer,
+                    onPressed: recovering.value
+                        ? null
+                        : () => unawaited(() async {
+                            recovering.value = true;
+                            recovery.value = null;
+                            try {
+                              final found = await recover();
+                              if (context.mounted) recovery.value = found;
+                            } on AppFailure {
+                              if (context.mounted) {
+                                recovery.value = RecoverResult.notYet;
+                              }
+                            } finally {
+                              if (context.mounted) recovering.value = false;
+                            }
+                          }()),
+                  ),
+                if (identical(turn, turns.last) &&
                     (conversation?.canRetry ?? false))
                   SecondaryAction(
                     label: Strings.retryAnswer,
                     onPressed: () => unawaited(guard(() => retry(disclosed))),
                   ),
+                if (!turn.inProgress)
+                  SecondaryAction(
+                    label: detailsOpen.value == turn.id
+                        ? Strings.hideDetails
+                        : Strings.details,
+                    onPressed: () => detailsOpen.value =
+                        detailsOpen.value == turn.id ? null : turn.id,
+                  ),
               ],
             ),
+            if (detailsOpen.value == turn.id)
+              ContentCard(
+                children: [
+                  LabeledValue(
+                    label: Strings.identity,
+                    value: turn.recipient ?? Strings.unproven,
+                  ),
+                  if (conversation?.modelId case final model?)
+                    LabeledValue(
+                      label: Strings.model,
+                      value:
+                          models
+                              .where((m) => m.id == model)
+                              .firstOrNull
+                              ?.name ??
+                          model,
+                    ),
+                  if (turn.attemptId case final attempt?)
+                    LabeledValue(label: Strings.attempt, value: attempt),
+                  LabeledValue(
+                    label: Strings.promptLeft,
+                    value: turn.promptSent ? Strings.yes : Strings.no,
+                  ),
+                  LabeledValue(
+                    label: Strings.receipt,
+                    value: turn.receiptVerified
+                        ? Strings.receiptOk
+                        : Strings.receiptNone,
+                  ),
+                ],
+              ),
+          ],
+        if (recovery.value case final found?
+            when found != RecoverResult.answered)
+          Notice(
+            text: found == RecoverResult.ended
+                ? Strings.recoverEnded
+                : Strings.recoverNotYet,
+          ),
         if (refusal.value case final kind?)
           Notice(
             // Here a conflict can only mean the named computer changed.
@@ -666,13 +796,19 @@ class ComputersScreen extends ConsumerWidget {
                       ContentCard(
                         children: [
                           StatusBadge(
-                            label: !computer.ready
+                            label: computer.blocked
+                                ? Strings.blockedLabel
+                                : !computer.ready
                                 ? Strings.notReady
                                 : computer.busy
                                 ? Strings.busy
                                 : Strings.ready,
-                            highlighted: computer.ready && !computer.busy,
+                            highlighted:
+                                computer.ready &&
+                                !computer.busy &&
+                                !computer.blocked,
                           ),
+                          if (computer.label case final label?) BodyCopy(label),
                           LabeledValue(
                             label: Strings.identity,
                             value: computer.participantId ?? Strings.unproven,
@@ -681,11 +817,219 @@ class ComputersScreen extends ConsumerWidget {
                             label: Strings.model,
                             value: names[computer.modelId] ?? computer.modelId,
                           ),
+                          if (computer.participantId case final id?)
+                            _NameForm(
+                              key: ValueKey('name-$id'),
+                              initial: computer.label ?? '',
+                              save: (name) => unawaited(
+                                ref
+                                    .read(chatRepositoryProvider)
+                                    ?.renameComputer(id, name)
+                                    .catchError((Object _) {}),
+                              ),
+                            ),
+                          SecondaryAction(
+                            label: computer.blocked
+                                ? Strings.unblock
+                                : Strings.block,
+                            onPressed: () {
+                              final repository = ref.read(
+                                chatRepositoryProvider,
+                              );
+                              unawaited(
+                                computer.blocked
+                                    ? repository?.unblockComputer(
+                                        computer.participantId ??
+                                            computer.address,
+                                      )
+                                    : repository?.blockComputer(computer),
+                              );
+                            },
+                          ),
                         ],
                       ),
                   ],
                 ),
         ),
+        if (network != null && network.blockedComputers.isNotEmpty) ...[
+          const SectionHeading(
+            title: Strings.blockedHeading,
+            description: Strings.blockedDetail,
+          ),
+          for (final blocked in network.blockedComputers)
+            ContentCard(
+              children: [
+                if (blocked.label case final label?) BodyCopy(label),
+                LabeledValue(label: Strings.identity, value: blocked.id),
+                SecondaryAction(
+                  label: Strings.unblock,
+                  onPressed: () => unawaited(
+                    ref
+                        .read(chatRepositoryProvider)
+                        ?.unblockComputer(blocked.id),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _NameForm extends HookWidget {
+  const _NameForm({super.key, required this.initial, required this.save});
+  final String initial;
+  final ValueChanged<String> save;
+
+  @override
+  Widget build(BuildContext context) {
+    final input = useTextEditingController(text: initial);
+    useListenable(input);
+    return Section(
+      children: [
+        NoteInput(
+          controller: input,
+          label: Strings.computerName,
+          hint: Strings.computerNameHint,
+        ),
+        SecondaryAction(
+          label: Strings.saveName,
+          onPressed: input.text.trim() == initial.trim()
+              ? null
+              : () => save(input.text),
+        ),
+      ],
+    );
+  }
+}
+
+/// Export and import of this phone's conversations and computer preferences.
+class _DataCard extends HookWidget {
+  const _DataCard({required this.session, required this.ref});
+  final SessionHandle session;
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = useState<String?>(null);
+    final preview = useState<ImportPreview?>(null);
+
+    Future<void> guarded(Future<void> Function() work) async {
+      status.value = null;
+      try {
+        await work();
+      } on AppFailure catch (failure) {
+        if (context.mounted) {
+          status.value = failure.kind == FailureKind.validation
+              ? Strings.importInvalid
+              : Strings.dataFailed;
+        }
+      } catch (_) {
+        if (context.mounted) status.value = Strings.dataFailed;
+      }
+    }
+
+    final plan = preview.value;
+    return ContentCard(
+      children: [
+        const SectionHeading(
+          title: Strings.yourData,
+          description: Strings.yourDataDetail,
+        ),
+        if (plan != null) ...[
+          BodyCopy(
+            Strings.importSummary(
+              plan.conversations,
+              plan.names,
+              plan.blocked,
+              plan.conversationsSkipped +
+                  plan.namesSkipped +
+                  plan.blockedSkipped,
+            ),
+          ),
+          const BodyCopy(Strings.importNote),
+          ActionGroup(
+            children: [
+              ActionButton(
+                label: Strings.importConfirm,
+                pendingLabel: Strings.importConfirm,
+                onPressed: () => unawaited(
+                  guarded(() async {
+                    final repository = ref.read(chatRepositoryProvider);
+                    if (repository == null || !session.isActive) return;
+                    final done = await repository.confirmImport();
+                    if (!context.mounted) return;
+                    preview.value = null;
+                    status.value = Strings.imported(
+                      done.conversations,
+                      done.names,
+                      done.blocked,
+                    );
+                  }),
+                ),
+              ),
+              SecondaryAction(
+                label: Strings.cancel,
+                onPressed: () {
+                  ref.read(chatRepositoryProvider)?.cancelImport();
+                  preview.value = null;
+                },
+              ),
+            ],
+          ),
+        ] else
+          ActionGroup(
+            children: [
+              SecondaryAction(
+                label: Strings.exportData,
+                onPressed: () => unawaited(
+                  guarded(() async {
+                    final repository = ref.read(chatRepositoryProvider);
+                    if (repository == null || !session.isActive) return;
+                    final file = await repository.exportData();
+                    final saved = await ref
+                        .read(documentPickerProvider)
+                        .save('reploid-data.json', file.text);
+                    if (saved && context.mounted) {
+                      status.value = Strings.exported(
+                        file.conversations,
+                        file.omitted,
+                      );
+                    }
+                  }),
+                ),
+              ),
+              SecondaryAction(
+                label: Strings.importData,
+                onPressed: () => unawaited(
+                  guarded(() async {
+                    final picked = await ref
+                        .read(documentPickerProvider)
+                        .pickDataFile();
+                    if (picked == null) return;
+                    final repository = ref.read(chatRepositoryProvider);
+                    if (repository == null || !session.isActive) return;
+                    final String text;
+                    try {
+                      text = utf8.decode(picked.bytes);
+                    } on FormatException {
+                      throw const AppFailure(FailureKind.validation);
+                    }
+                    final next = await repository.previewImport(text);
+                    if (!context.mounted) return;
+                    if (next.empty) {
+                      repository.cancelImport();
+                      status.value = Strings.importNothing;
+                    } else {
+                      preview.value = next;
+                    }
+                  }),
+                ),
+              ),
+            ],
+          ),
+        if (status.value case final text?) Notice(text: text),
       ],
     );
   }
@@ -696,11 +1040,15 @@ class SettingsScreen extends ConsumerWidget {
     super.key,
     required this.session,
     required this.forget,
+    this.appearance = Appearance.system,
+    this.onAppearance,
     this.networkPreference = const NetworkPreference(),
     this.onSaveNetwork,
   });
   final SessionHandle session;
   final VoidCallback forget;
+  final Appearance appearance;
+  final ValueChanged<Appearance>? onAppearance;
   final NetworkPreference networkPreference;
   final ValueChanged<NetworkPreference>? onSaveNetwork;
 
@@ -730,8 +1078,25 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
+        if (onAppearance case final choose?)
+          ContentCard(
+            children: [
+              const SectionHeading(title: Strings.appearance),
+              for (final (choice, label) in const [
+                (Appearance.system, Strings.appearanceSystem),
+                (Appearance.light, Strings.appearanceLight),
+                (Appearance.dark, Strings.appearanceDark),
+              ])
+                ChoiceTile(
+                  title: label,
+                  selected: appearance == choice,
+                  onPressed: () => choose(choice),
+                ),
+            ],
+          ),
         if (onSaveNetwork case final save?)
           _NetworkSettingsCard(initial: networkPreference, onSave: save),
+        _DataCard(session: session, ref: ref),
         ContentCard(
           children: [
             const SectionHeading(title: Strings.thisDevice),

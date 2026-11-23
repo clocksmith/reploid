@@ -8,6 +8,13 @@ import 'package:ui/ui.dart';
 /// The web tokens name no container roles. The container colours here are
 /// this app's choice, mixed from the page and accent tokens so that text on
 /// them keeps the token ink colour.
+/// Null follows the system.
+ThemeMode themeModeFor({bool? dark}) => dark == null
+    ? ThemeMode.system
+    : dark
+    ? ThemeMode.dark
+    : ThemeMode.light;
+
 ThemeData appTheme({bool dark = false}) => createUiTheme(
   seedColor: dark ? _Dark.focus : _Light.focus,
   brightness: dark ? Brightness.dark : Brightness.light,

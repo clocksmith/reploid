@@ -15,7 +15,7 @@ const _output = 'app/lib/infrastructure/reploid_api/contract.g.dart';
 
 String _lit(Object? value) => switch (value) {
   String() =>
-    "'${value.replaceAll(r'\', r'\\').replaceAll("'", r"\'").replaceAll(r'$', r'\$')}'",
+    "'${value.replaceAll(r'\', r'\\').replaceAll("'", r"\'").replaceAll(r'$', r'\$').replaceAll('\n', r'\n')}'",
   _ => '$value',
 };
 
@@ -112,6 +112,29 @@ String render(Map<String, Object?> contract, Object? catalog) {
     '  static const pairingRoomIdPattern = '
     '${_lit((pairing['roomIdPattern']! as Map<String, Object?>)['source'])};',
   );
+  final attachments = constants['attachments']! as Map<String, Object?>;
+  group('attachments', attachments, [
+    'startMarker',
+    'endMarker',
+    'instruction',
+    'maxFiles',
+    'maxNameCharacters',
+    'maxFileBytes',
+    'maxInputBytes',
+  ]);
+  out.writeln(
+    '  static const attachmentsExtensions = '
+    '{${(attachments['extensions']! as List<Object?>).map(_lit).join(', ')}};',
+  );
+  group('localData', constants['localData']! as Map<String, Object?>, [
+    'schema',
+    'version',
+    'maxBytes',
+    'maxComputerNames',
+    'maxLabelLength',
+    'maxBlocked',
+    'maxComputerIdLength',
+  ]);
   for (final entry in ids.entries) {
     out.writeln(
       '  static const ${_camel('id ${entry.key}')} = '
@@ -122,6 +145,10 @@ String render(Map<String, Object?> contract, Object? catalog) {
     ..writeln(
       '  static const receiptSignedFields = '
       '[${(receipt['x-signedPayloadFields']! as List<Object?>).map(_lit).join(', ')}];',
+    )
+    ..writeln(
+      '  static const terminalSignedFields = '
+      '[${((objects['generationTerminal']! as Map<String, Object?>)['x-signedPayloadFields']! as List<Object?>).map(_lit).join(', ')}];',
     )
     ..writeln(
       '  static const knownTypes = '

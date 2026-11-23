@@ -43,7 +43,8 @@ final class ContractRequesterApi implements RequesterApi {
 
   @override
   List<CatalogModel> get catalog => [
-    for (final row in modelCatalog) CatalogModel(id: row.id, name: row.name),
+    for (final row in modelCatalog)
+      CatalogModel(id: row.id, name: row.name, identity: row.identity),
   ];
 
   /// The network the paired desktop is met on.
@@ -306,6 +307,12 @@ final class ContractRequesterApi implements RequesterApi {
   }
 
   @override
+  void setBlocked(Set<String> ids) {
+    _network.blocked = Set.unmodifiable(ids);
+    _notify();
+  }
+
+  @override
   String? nextRecipient({required String modelId, String? contextId}) {
     final row = modelCatalog.where((row) => row.id == modelId).firstOrNull;
     return row == null ? null : _network.nextRecipient(row, contextId);
@@ -317,16 +324,60 @@ final class ContractRequesterApi implements RequesterApi {
           ProviderProven(:final participantId) => RecipientProven(
             participantId,
           ),
-          PromptDispatched() => const PromptSent(),
+          PromptDispatched(:final requestId, :final modelId) => PromptSent(
+            requestId: requestId,
+            modelId: modelId,
+          ),
           TextChunk(:final text) => AnswerChunk(text),
           GenerationCompleted(:final content) => AnswerCompleted(
             content,
             receiptVerified: true,
           ),
         }),
-        handleError: (error, stack, sink) =>
-            sink.addError(_failure(error), stack),
+        handleError: (error, stack, sink) {
+          if (error is ProtocolFailure &&
+              error.promptSent &&
+              _lost.contains(error.message)) {
+            sink.add(const AnswerLost());
+          }
+          sink.addError(_failure(error), stack);
+        },
       );
+
+  /// The result may exist on the other computer; these did not say it failed.
+  static const _lost = {
+    'Execution peer disconnected; retry requires a new attempt',
+    'Remote generation timed out',
+  };
+
+  @override
+  Future<RecoveredAnswer> recover({
+    required String requestId,
+    required String modelId,
+    required List<PromptMessage> messages,
+    required String recipient,
+  }) async {
+    final row = modelCatalog.where((row) => row.id == modelId).firstOrNull;
+    if (row == null) throw const AppFailure(FailureKind.validation);
+    final network = _desk.proven(recipient) != null ? _desk : _network;
+    try {
+      return switch (await network.recover(
+        requestId: requestId,
+        model: row,
+        messages: _messages(messages),
+        providerParticipantId: recipient,
+      )) {
+        RecoveryAnswered(:final content) => RecoveredAnswer(
+          RecoverResult.answered,
+          text: content,
+        ),
+        RecoveryEnded() => const RecoveredAnswer(RecoverResult.ended),
+        RecoveryUnresolved() => const RecoveredAnswer(RecoverResult.notYet),
+      };
+    } on ProtocolFailure {
+      return const RecoveredAnswer(RecoverResult.notYet);
+    }
+  }
 
   /// The other computer's words never become user-facing copy; only the
   /// category crosses this boundary.

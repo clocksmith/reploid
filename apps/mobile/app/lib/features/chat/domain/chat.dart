@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:core/core.dart';
 
 /// A model the network offers, with how many computers can answer now.
@@ -26,6 +28,8 @@ final class Computer {
     required this.ready,
     required this.busy,
     this.participantId,
+    this.label,
+    this.blocked = false,
   });
 
   final String address;
@@ -33,6 +37,111 @@ final class Computer {
   final bool ready;
   final bool busy;
   final String? participantId;
+
+  /// The name the person gave this computer on this device.
+  final String? label;
+
+  /// Blocked on this device: it never receives this device's prompts.
+  final bool blocked;
+
+  Computer withPreferences({String? label, required bool blocked}) => Computer(
+    address: address,
+    modelId: modelId,
+    ready: ready,
+    busy: busy,
+    participantId: participantId,
+    label: label,
+    blocked: blocked,
+  );
+}
+
+/// A blocked computer, shown even while it is not on the network.
+final class BlockedComputer {
+  const BlockedComputer({required this.id, this.label});
+  final String id;
+  final String? label;
+}
+
+/// A file chosen on the device, before it is read as text.
+final class PickedFile {
+  const PickedFile({required this.name, required this.bytes});
+  final String name;
+  final Uint8List bytes;
+}
+
+/// A text file waiting to go with the next prompt.
+final class AttachedFile {
+  const AttachedFile({
+    required this.name,
+    required this.text,
+    required this.bytes,
+  });
+  final String name;
+  final String text;
+  final int bytes;
+}
+
+/// What a stored user message shows when files went with it.
+final class TurnAttachments {
+  const TurnAttachments({required this.question, required this.names});
+  final String question;
+  final List<String> names;
+}
+
+/// The system's file dialogs.
+abstract interface class DocumentPicker {
+  /// Empty when the person cancels.
+  Future<List<PickedFile>> pickAttachments();
+  Future<PickedFile?> pickDataFile();
+
+  /// False when the person cancels.
+  Future<bool> save(String name, String text);
+}
+
+enum Appearance { system, light, dark }
+
+/// What asking about a lost answer found.
+enum RecoverResult {
+  /// The answer arrived and its signed receipt verified.
+  answered,
+
+  /// The computer signed that the request ended without an answer.
+  ended,
+
+  /// Unknown for now: it is offline, still working, or no longer has it.
+  notYet,
+}
+
+/// What an import would add. Nothing has changed yet.
+final class ImportPreview {
+  const ImportPreview({
+    required this.conversations,
+    required this.conversationsSkipped,
+    required this.names,
+    required this.namesSkipped,
+    required this.blocked,
+    required this.blockedSkipped,
+  });
+  final int conversations;
+  final int conversationsSkipped;
+  final int names;
+  final int namesSkipped;
+  final int blocked;
+  final int blockedSkipped;
+
+  bool get empty => conversations + names + blocked == 0;
+}
+
+/// An exported file, and how many conversations could not be written.
+final class DataExport {
+  const DataExport({
+    required this.text,
+    required this.conversations,
+    required this.omitted,
+  });
+  final String text;
+  final int conversations;
+  final int omitted;
 }
 
 enum NetworkStatus { offline, connecting, online }
@@ -135,13 +244,16 @@ final class NetworkResource {
     this.desktop,
     this.pairingFailure,
     this.failure,
+    List<BlockedComputer> blockedComputers = const [],
   }) : models = List.unmodifiable(models),
-       computers = List.unmodifiable(computers);
+       computers = List.unmodifiable(computers),
+       blockedComputers = List.unmodifiable(blockedComputers);
 
   final SessionKey sessionKey;
   final NetworkStatus status;
   final List<ModelOption> models;
   final List<Computer> computers;
+  final List<BlockedComputer> blockedComputers;
 
   /// The standing permission to send prompts to other people's computers.
   final bool networkAnswersAllowed;
@@ -179,11 +291,33 @@ final class Turn {
     this.promptSent = false,
     this.receiptVerified = false,
     this.failure,
+    this.attachments,
+    this.requestId,
+    this.requestModelId,
+    this.recoverable = false,
   });
+
+  /// The wire request, once its prompt was sent.
+  final String? requestId;
+
+  /// The model that request named, which a desktop may choose.
+  final String? requestModelId;
+
+  /// The connection was lost with the prompt sent, so the recipient may
+  /// still hold the answer.
+  final bool recoverable;
 
   final String id;
   final TurnRole role;
+
+  /// Exactly what was sent or received, including any attached files.
   final String text;
+
+  /// Set on a user turn that carried files.
+  final TurnAttachments? attachments;
+
+  /// What the person wrote, without the attached files' text.
+  String get shownText => attachments?.question ?? text;
 
   /// Set for assistant turns only.
   final AnswerPhase? phase;
@@ -212,6 +346,10 @@ final class Turn {
     bool? promptSent,
     bool? receiptVerified,
     FailureKind? failure,
+    TurnAttachments? attachments,
+    String? requestId,
+    String? requestModelId,
+    bool? recoverable,
   }) => Turn(
     id: id,
     role: role,
@@ -222,6 +360,24 @@ final class Turn {
     promptSent: promptSent ?? this.promptSent,
     receiptVerified: receiptVerified ?? this.receiptVerified,
     failure: failure ?? this.failure,
+    attachments: attachments ?? this.attachments,
+    requestId: requestId ?? this.requestId,
+    requestModelId: requestModelId ?? this.requestModelId,
+    recoverable: recoverable ?? this.recoverable,
+  );
+
+  /// The answer, recovered from the recipient and verified.
+  Turn recovered(String answer) => Turn(
+    id: id,
+    role: role,
+    text: answer,
+    phase: AnswerPhase.complete,
+    attemptId: attemptId,
+    recipient: recipient,
+    promptSent: true,
+    receiptVerified: true,
+    requestId: requestId,
+    requestModelId: requestModelId,
   );
 }
 
@@ -234,7 +390,9 @@ final class Conversation {
     this.target = AnswerTarget.contributors,
     this.draft = '',
     this.nextRecipient,
-  }) : turns = List.unmodifiable(turns);
+    List<AttachedFile> draftFiles = const [],
+  }) : turns = List.unmodifiable(turns),
+       draftFiles = List.unmodifiable(draftFiles);
 
   final String id;
 
@@ -253,7 +411,23 @@ final class Conversation {
   /// answer. Null when none is ready or the best one is not yet proven.
   final String? nextRecipient;
 
+  /// Files waiting to go with the next prompt, for this session only.
+  final List<AttachedFile> draftFiles;
+
   bool get busy => turns.isNotEmpty && turns.last.inProgress;
+
+  /// The last answer was lost in transit and its recipient can be asked.
+  bool get canRecover {
+    if (turns.isEmpty) return false;
+    final last = turns.last;
+    return last.role == TurnRole.assistant &&
+        last.phase == AnswerPhase.failed &&
+        last.recoverable &&
+        last.promptSent &&
+        last.requestId != null &&
+        last.requestModelId != null &&
+        last.recipient != null;
+  }
 
   /// A stopped or failed last answer can be asked for again.
   bool get canRetry =>
@@ -305,6 +479,25 @@ abstract interface class ChatRepository {
   void remove(String id);
   void selectModel(String id, String modelId);
   void setDraft(String id, String text);
+
+  /// Adds files to the next prompt. Throws [FailureKind.validation] and adds
+  /// none when any is over the limits, of another type, or not UTF-8 text.
+  void addAttachments(String id, List<PickedFile> files);
+  void removeAttachment(String id, int index);
+
+  /// An empty [name] removes the name.
+  Future<void> renameComputer(String participantId, String name);
+  Future<void> blockComputer(Computer computer);
+  Future<void> unblockComputer(String id);
+
+  Future<DataExport> exportData();
+
+  /// Reads a data file and says what it would add, changing nothing.
+  Future<ImportPreview> previewImport(String text);
+
+  /// Applies the last preview. Nothing is sent, resumed or overwritten.
+  Future<ImportPreview> confirmImport();
+  void cancelImport();
   Future<void> flush();
 
   /// Adds the prompt and starts its answer. Completes when the answer ends;
@@ -316,4 +509,8 @@ abstract interface class ChatRepository {
   Future<void> send(String id, String text, {String? disclosedRecipient});
   Future<void> stop(String id);
   Future<void> retry(String id, {String? disclosedRecipient});
+
+  /// Asks the recipient what became of the lost last answer. Sends no
+  /// prompt and runs nothing again.
+  Future<RecoverResult> recover(String id);
 }

@@ -65,6 +65,7 @@
         "pointycastle/signers/ecdsa_signer.dart",
         "flutter_secure_storage/flutter_secure_storage.dart",
         "flutter_webrtc/flutter_webrtc.dart",
+        "file_picker/file_picker.dart",
         "path_provider/path_provider.dart"
       ],
       "deviceAccess": true

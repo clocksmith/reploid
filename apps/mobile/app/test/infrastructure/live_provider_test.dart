@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reploid_mobile/infrastructure/reploid_api/contract.g.dart';
 import 'package:reploid_mobile/infrastructure/reploid_api/identity.dart';
+import 'package:reploid_mobile/infrastructure/reploid_api/peer_link.dart';
 import 'package:reploid_mobile/infrastructure/reploid_api/peer_session.dart';
 import 'package:reploid_mobile/infrastructure/reploid_api/requester_protocol.dart';
 
@@ -63,6 +64,85 @@ const _prompt = [
     'content': 'What is the capital of France?',
   },
 ];
+
+/// A channel that goes quiet: while [quiet], the answer's frames are lost
+/// and a cancel never reaches the provider, as on a dropped connection.
+final class _LossyLink implements PeerLink {
+  _LossyLink(this.inner);
+  final PeerLink inner;
+  bool quiet = false;
+  static const _answerFrames = [
+    '"type":"reploid:generation-update"',
+    '"type":"reploid:generation-result"',
+    '"type":"reploid:generation-error"',
+  ];
+
+  @override
+  String get roomId => inner.roomId;
+  @override
+  String get selfId => inner.selfId;
+  @override
+  String get peerId => inner.peerId;
+  @override
+  ({String local, String remote})? get binding => inner.binding;
+  @override
+  bool get isOpen => inner.isOpen;
+  @override
+  Future<void> get closed => inner.closed;
+  @override
+  Stream<String> get texts =>
+      inner.texts.where((text) => !quiet || !_answerFrames.any(text.contains));
+  @override
+  void send(String text) {
+    if (quiet && text.contains('"type":"reploid:generation-cancel"')) return;
+    inner.send(text);
+  }
+}
+
+/// Sends the prompt, loses the answer, and returns what recovery needs.
+Future<(ProcessLink, PeerSession, CatalogRow, String)> _lose(
+  SigningIdentity identity, [
+  List<String> arguments = const [],
+]) async {
+  final process = await ProcessLink.start(arguments);
+  final link = _LossyLink(process);
+  final session = PeerSession(
+    link: link,
+    identity: identity,
+    clock: LamportClock(),
+    timeout: const Duration(milliseconds: 1500),
+  );
+  final model = process.ready['model']! as Json;
+  final row = CatalogRow(
+    id: model['id']! as String,
+    identity: model['identity']! as String,
+    name: model['name']! as String,
+  );
+  for (var i = 0; i < 200 && session.advertisement == null; i++) {
+    await Future<void>.delayed(const Duration(milliseconds: 25));
+  }
+  String? requestId;
+  final ended = Completer<Object?>();
+  session
+      .ask(model: row, messages: _prompt)
+      .listen(
+        (event) {
+          if (event is PromptDispatched) {
+            link.quiet = true;
+            requestId = event.requestId;
+          }
+        },
+        onError: (Object error) => ended.complete(error),
+        onDone: () {
+          if (!ended.isCompleted) ended.complete(null);
+        },
+      );
+  final error = await ended.future;
+  expect(error, isA<ProtocolFailure>());
+  expect((error! as ProtocolFailure).promptSent, isTrue);
+  link.quiet = false;
+  return (process, session, row, requestId!);
+}
 
 void main() {
   final skip = providerUnavailable();
@@ -118,6 +198,61 @@ void main() {
     expect(events.last, isA<GenerationCompleted>());
     await session.close();
     await link.stop();
+  }, skip: skip);
+
+  test('a lost answer is recovered and verified, without rerunning', () async {
+    final (process, session, row, requestId) = await _lose(identity);
+    final provider =
+        (process.ready['provider']! as Json)['participantId']! as String;
+    final found = await session.recover(
+      requestId: requestId,
+      model: row,
+      messages: _prompt,
+      providerParticipantId: provider,
+    );
+    expect(found, isA<RecoveryAnswered>());
+    expect(
+      (found as RecoveryAnswered).content,
+      (process.ready['answer']! as Json)['content'],
+    );
+
+    // A request this provider never saw stays unresolved.
+    final unknown = await session.recover(
+      requestId: 'c0c0c0c0-0000-4000-8000-000000000001',
+      model: row,
+      messages: _prompt,
+      providerParticipantId: provider,
+    );
+    expect(unknown, isA<RecoveryUnresolved>());
+
+    // Someone else's identity is refused before anything is asked.
+    final wrong = await session.recover(
+      requestId: requestId,
+      model: row,
+      messages: _prompt,
+      providerParticipantId: 'peer:000000000000000000000000',
+    );
+    expect(wrong, isA<RecoveryUnresolved>());
+    await session.close();
+    await process.stop();
+  }, skip: skip);
+
+  test('a lost request that failed reports its signed ending', () async {
+    final (process, session, row, requestId) = await _lose(identity, [
+      '--fail-after-chunks',
+      '1',
+    ]);
+    final found = await session.recover(
+      requestId: requestId,
+      model: row,
+      messages: _prompt,
+      providerParticipantId:
+          (process.ready['provider']! as Json)['participantId']! as String,
+    );
+    expect(found, isA<RecoveryEnded>());
+    expect((found as RecoveryEnded).status, 'failed');
+    await session.close();
+    await process.stop();
   }, skip: skip);
 
   test('a prompt bound to one computer is not sent to another', () async {

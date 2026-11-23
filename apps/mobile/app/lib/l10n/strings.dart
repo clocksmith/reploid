@@ -48,6 +48,75 @@ abstract final class Strings {
   static String disclosePool(int count, String participantId) =>
       'Sending to ${shortId(participantId)}, the best of $count ready '
       'computers. It can read your prompt.';
+  static const checkAnswer = 'Check for the answer';
+  static const recoverNotYet =
+      'No answer yet. That computer is offline, still working, or no longer '
+      'has it. Nothing was sent again.';
+  static const recoverEnded =
+      'That computer says the request ended without an answer.';
+  static const attach = 'Attach text file';
+  static String removeFile(String name) => 'Remove $name';
+  static String attached(List<String> names) => 'Attached: ${names.join(', ')}';
+  static const attachLimits =
+      'Attach up to 8 text files (.txt, .md, .json, .js, .ts, .html, .css), '
+      '64 KB each and 128 KB in total. Nothing was added.';
+  static const attachDisclosure =
+      'The whole text of attached files goes with the prompt.';
+  static const details = 'Details';
+  static const hideDetails = 'Hide details';
+  static const attempt = 'Attempt';
+  static const receipt = 'Signed receipt';
+  static const receiptOk = 'Verified on this device';
+  static const receiptNone = 'None verified';
+  static const promptLeft = 'Prompt left this device';
+  static const yes = 'Yes';
+  static const no = 'No';
+  static const appearance = 'Appearance';
+  static const appearanceSystem = 'System';
+  static const appearanceLight = 'Light';
+  static const appearanceDark = 'Dark';
+  static const yourData = 'Your data';
+  static const yourDataDetail =
+      'Conversations, computer names and blocked computers on this phone, '
+      'as one file the web app can also read. The file is not encrypted. It '
+      'holds no private keys, room tokens or pairings.';
+  static const exportData = 'Export my data';
+  static const importData = 'Import data';
+  static const importConfirm = 'Import';
+  static const importNote =
+      'Imported conversations are added to this phone. Nothing is sent, and '
+      'sharing permissions are not imported.';
+  static const importInvalid = 'This file is not a Reploid data export.';
+  static const dataFailed = 'That did not work. Nothing was changed.';
+  static const importNothing = 'Nothing in this file is new here.';
+  static String _count(int count, String one, [String? many]) =>
+      '$count ${count == 1 ? one : many ?? '${one}s'}';
+  static String exported(int count, int omitted) =>
+      'Exported ${_count(count, 'conversation')}.'
+      '${omitted == 0 ? '' : ' ${_count(omitted, 'conversation')} could not be written.'}';
+  static String importSummary(
+    int conversations,
+    int names,
+    int blocked,
+    int skipped,
+  ) =>
+      'This file adds ${_count(conversations, 'conversation')}, '
+      '${_count(names, 'computer name')} and '
+      '${_count(blocked, 'blocked computer')}.'
+      '${skipped == 0 ? '' : ' Skipped, nothing overwritten: $skipped already here.'}';
+  static String imported(int conversations, int names, int blocked) =>
+      'Imported ${_count(conversations, 'conversation')}, '
+      '${_count(names, 'computer name')} and '
+      '${_count(blocked, 'blocked computer')}.';
+  static const block = 'Block';
+  static const unblock = 'Unblock';
+  static const blockedLabel = 'Blocked';
+  static const blockedHeading = 'Blocked computers';
+  static const blockedDetail =
+      'This phone never sends a prompt to a blocked computer.';
+  static const computerName = 'Your name for this computer';
+  static const computerNameHint = 'Workbench';
+  static const saveName = 'Save name';
   static const recipientChanged =
       'The computer that would answer just changed, so nothing was sent. '
       'Check the name and send again.';

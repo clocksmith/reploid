@@ -2,8 +2,12 @@ import 'dart:async';
 
 import 'package:core/core.dart';
 
+import '../../../infrastructure/reploid_api/contract.g.dart';
 import '../domain/chat.dart';
+import 'attachments.dart';
+import 'computer_preferences.dart';
 import 'conversation_archive.dart';
+import 'local_data.dart';
 import 'preferences_store.dart';
 import 'requester_api.dart';
 
@@ -13,11 +17,15 @@ final class _Thread {
   String title = '';
   String draft = '';
   String? modelId;
+  String? modelName;
+  String? modelIdentity;
   AnswerTarget? target;
+  List<AttachedFile> draftFiles = const [];
   final List<Turn> turns = [];
   Answer? answer;
   StreamSubscription<AnswerEvent>? subscription;
   Completer<void>? running;
+  Future<RecoverResult>? recovering;
   bool stopping = false;
 }
 
@@ -34,10 +42,15 @@ final class SessionChatRepository implements ChatRepository {
     required this.newId,
     this.archive,
     this.preferences,
+    this.computerPreferences,
+    this.participantId = '',
+    DateTime Function()? now,
     this.diagnostics = const Diagnostics(),
-  }) {
+  }) : _now = now ?? DateTime.now {
     session.registerCleanup(close);
-    if (archive != null || preferences != null) _restoring = _restore();
+    if (archive != null || preferences != null || computerPreferences != null) {
+      _restoring = _restore();
+    }
   }
 
   final SessionHandle session;
@@ -49,11 +62,24 @@ final class SessionChatRepository implements ChatRepository {
 
   /// Where per-identity settings (such as Allow network answers) persist.
   final DevicePreferencesStore? preferences;
+
+  /// Where names and blocks for computers persist.
+  final ComputerPreferencesStore? computerPreferences;
+
+  /// This device's identity, written into exported data files.
+  final String participantId;
+  final DateTime Function() _now;
   final Diagnostics diagnostics;
   Future<void>? _restoring;
   bool _restored = false;
   bool _prefsRestored = false;
   bool _allowedExplicitlySet = false;
+  ComputerPreferences _computers = const ComputerPreferences();
+
+  /// A stored block list that cannot be read must not become an empty one:
+  /// contributors are refused until this device is forgotten.
+  bool _blocksUnreadable = false;
+  LocalDataPlan? _pendingImport;
   Future<void> _saved = Future.value();
   bool _saveQueued = false;
 
@@ -108,6 +134,21 @@ final class SessionChatRepository implements ChatRepository {
   /// Brings back this identity's settings and conversations. Ones made while
   /// loading stay, after the restored ones.
   Future<void> _restore() async {
+    if (computerPreferences != null) {
+      try {
+        final stored = await computerPreferences!.read();
+        if (_active) {
+          _computers = ComputerPreferences(
+            names: {...stored.names, ..._computers.names},
+            blocked: {...stored.blocked, ..._computers.blocked}.toList(),
+          );
+          api.setBlocked(_computers.blocked.toSet());
+          _emit();
+        }
+      } catch (_) {
+        _blocksUnreadable = true;
+      }
+    }
     if (preferences != null) {
       try {
         final allowed = await preferences!.readNetworkAnswersAllowed();
@@ -144,11 +185,19 @@ final class SessionChatRepository implements ChatRepository {
       _threads[conversation.id] = _Thread(conversation.id)
         ..title = conversation.title
         ..modelId = conversation.modelId
+        ..modelName = conversation.modelName
+        ..modelIdentity = conversation.modelIdentity
         ..target = conversation.target
-        ..turns.addAll(conversation.turns);
+        ..turns.addAll(conversation.turns.map(_withDisplay));
     }
     _threads.addAll(made);
     _emit();
+  }
+
+  static Turn _withDisplay(Turn turn) {
+    if (turn.role != TurnRole.user) return turn;
+    final shown = readAttachmentDisplay(turn.text);
+    return shown == null ? turn : turn.copyWith(attachments: shown);
   }
 
   /// Writes the current conversations, once, after any write under way.
@@ -170,6 +219,8 @@ final class SessionChatRepository implements ChatRepository {
           id: thread.id,
           title: thread.title,
           modelId: thread.modelId,
+          modelName: thread.modelName,
+          modelIdentity: thread.modelIdentity,
           target: thread.target,
           turns: List.of(thread.turns),
         ),
@@ -193,7 +244,15 @@ final class SessionChatRepository implements ChatRepository {
   // Network -----------------------------------------------------------------
 
   NetworkResource _networkResource() {
-    final computers = _network.computers;
+    final computers = [
+      for (final computer in _network.computers)
+        computer.withPreferences(
+          label: _computers.names[computer.participantId],
+          blocked:
+              _computers.blocked.contains(computer.address) ||
+              _computers.blocked.contains(computer.participantId),
+        ),
+    ];
     return NetworkResource(
       sessionKey: session.key,
       status: _connecting && _network.status == NetworkStatus.offline
@@ -205,14 +264,24 @@ final class SessionChatRepository implements ChatRepository {
             id: model.id,
             name: model.name,
             readyComputers: computers
-                .where((c) => c.modelId == model.id && c.ready && !c.busy)
+                .where(
+                  (c) =>
+                      c.modelId == model.id && c.ready && !c.busy && !c.blocked,
+                )
                 .length,
             busyComputers: computers
-                .where((c) => c.modelId == model.id && c.ready && c.busy)
+                .where(
+                  (c) =>
+                      c.modelId == model.id && c.ready && c.busy && !c.blocked,
+                )
                 .length,
           ),
       ],
       computers: computers,
+      blockedComputers: [
+        for (final id in _computers.blocked)
+          BlockedComputer(id: id, label: _computers.names[id]),
+      ],
       networkAnswersAllowed: _allowed,
       desktop: _network.desktop,
       pairingFailure: _pairingFailure,
@@ -333,11 +402,21 @@ final class SessionChatRepository implements ChatRepository {
     target: _target(thread),
     draft: thread.draft,
     nextRecipient: _nextRecipient(thread),
+    draftFiles: thread.draftFiles,
   );
+
+  /// The conversation's model, or the default when an imported conversation
+  /// names one this app does not offer. The screen shows the same choice.
+  String? _usableModel(_Thread thread) {
+    final id = thread.modelId;
+    return id != null && api.catalog.any((model) => model.id == id)
+        ? id
+        : _defaultModel();
+  }
 
   String? _nextRecipient(_Thread thread) {
     if (_target(thread) != AnswerTarget.contributors) return null;
-    final modelId = thread.modelId ?? _defaultModel();
+    final modelId = _usableModel(thread);
     return modelId == null
         ? null
         : api.nextRecipient(modelId: modelId, contextId: thread.id);
@@ -398,7 +477,10 @@ final class SessionChatRepository implements ChatRepository {
     if (!api.catalog.any((model) => model.id == modelId)) {
       throw const AppFailure(FailureKind.validation);
     }
-    thread.modelId = modelId;
+    thread
+      ..modelId = modelId
+      ..modelName = null
+      ..modelIdentity = null;
     _persist();
     _emit();
   }
@@ -410,6 +492,165 @@ final class SessionChatRepository implements ChatRepository {
     if (thread == null || thread.draft == text) return;
     thread.draft = text;
     _emit();
+  }
+
+  @override
+  void addAttachments(String id, List<PickedFile> files) {
+    _checkActive();
+    final thread = _require(id);
+    if (thread.running != null) throw const AppFailure(FailureKind.conflict);
+    thread.draftFiles = [
+      ...thread.draftFiles,
+      ...readAttachments(files, thread.draftFiles),
+    ];
+    _emit();
+  }
+
+  @override
+  void removeAttachment(String id, int index) {
+    _checkActive();
+    final thread = _require(id);
+    if (index < 0 || index >= thread.draftFiles.length) return;
+    thread.draftFiles = [...thread.draftFiles]..removeAt(index);
+    _emit();
+  }
+
+  // Computers -----------------------------------------------------------------
+
+  Future<void> _saveComputers(ComputerPreferences next) async {
+    _computers = next;
+    api.setBlocked(next.blocked.toSet());
+    _emit();
+    await computerPreferences?.write(next);
+  }
+
+  @override
+  Future<void> renameComputer(String participantId, String name) async {
+    _checkActive();
+    await _restoring;
+    final trimmed = name.trim();
+    final names = {..._computers.names};
+    if (trimmed.isEmpty) {
+      names.remove(participantId);
+    } else {
+      if (!validComputerName(participantId, trimmed) ||
+          (!names.containsKey(participantId) &&
+              names.length >= Contract.localDataMaxComputerNames)) {
+        throw const AppFailure(FailureKind.validation);
+      }
+      names[participantId] = trimmed;
+    }
+    await _saveComputers(
+      ComputerPreferences(names: names, blocked: _computers.blocked),
+    );
+  }
+
+  @override
+  Future<void> blockComputer(Computer computer) async {
+    _checkActive();
+    await _restoring;
+    // The signing identity survives a reconnect; a connection name does not.
+    final id = computer.participantId ?? computer.address;
+    if (_computers.blocked.contains(id)) return;
+    if (!validComputerId(id) ||
+        _computers.blocked.length >= Contract.localDataMaxBlocked) {
+      throw const AppFailure(FailureKind.validation);
+    }
+    await _saveComputers(
+      ComputerPreferences(
+        names: _computers.names,
+        blocked: [..._computers.blocked, id],
+      ),
+    );
+  }
+
+  @override
+  Future<void> unblockComputer(String id) async {
+    _checkActive();
+    await _restoring;
+    await _saveComputers(
+      ComputerPreferences(
+        names: _computers.names,
+        blocked: [
+          for (final item in _computers.blocked)
+            if (item != id) item,
+        ],
+      ),
+    );
+  }
+
+  // Your data -----------------------------------------------------------------
+
+  @override
+  Future<DataExport> exportData() async {
+    _checkActive();
+    await _restoring;
+    _checkActive();
+    final conversations = _snapshot();
+    final encoded = encodeLocalData(
+      participantId: participantId,
+      conversations: conversations,
+      catalog: api.catalog,
+      names: _computers.names,
+      blocked: _computers.blocked,
+      now: _now(),
+    );
+    return DataExport(
+      text: encoded.file,
+      conversations: conversations.length - encoded.omitted,
+      omitted: encoded.omitted,
+    );
+  }
+
+  @override
+  Future<ImportPreview> previewImport(String text) async {
+    _checkActive();
+    await _restoring;
+    _checkActive();
+    // History that could not be read must not be overwritten by a save.
+    if (archive != null && !_restored) {
+      throw const AppFailure(FailureKind.unavailable);
+    }
+    final plan = readLocalData(
+      text,
+      knownConversations: _threads.keys.toSet(),
+      knownNames: _computers.names,
+      knownBlocked: _computers.blocked.toSet(),
+    );
+    _pendingImport = plan;
+    return plan.preview;
+  }
+
+  @override
+  void cancelImport() => _pendingImport = null;
+
+  @override
+  Future<ImportPreview> confirmImport() async {
+    _checkActive();
+    final plan = _pendingImport;
+    if (plan == null) throw const AppFailure(FailureKind.validation);
+    _pendingImport = null;
+    for (final conversation in plan.conversations) {
+      if (_threads.containsKey(conversation.id)) continue;
+      _threads[conversation.id] = _Thread(conversation.id)
+        ..title = conversation.title
+        ..modelId = conversation.modelId
+        ..modelName = conversation.modelName
+        ..modelIdentity = conversation.modelIdentity
+        ..turns.addAll(conversation.turns.map(_withDisplay));
+    }
+    if (plan.names.isNotEmpty || plan.blocked.isNotEmpty) {
+      await _saveComputers(
+        ComputerPreferences(
+          names: {...plan.names, ..._computers.names},
+          blocked: {..._computers.blocked, ...plan.blocked}.toList(),
+        ),
+      );
+    }
+    _persist();
+    _emit();
+    await _saved;
+    return plan.preview;
   }
 
   @override
@@ -434,10 +675,14 @@ final class SessionChatRepository implements ChatRepository {
     final thread = _require(id);
     // A second tap joins the answer already under way; it never sends twice.
     if (thread.running case final running?) return running.future;
+    if (thread.recovering != null) {
+      throw const AppFailure(FailureKind.unavailable);
+    }
     final prompt = text.trim();
     if (prompt.isEmpty) throw const AppFailure(FailureKind.validation);
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
-    if (preferences != null && !_prefsRestored) {
+    if ((preferences != null || computerPreferences != null) &&
+        !_prefsRestored) {
       return _sendAfterRestore(thread, prompt, disclosedRecipient);
     }
     return _acceptPrompt(thread, prompt, disclosedRecipient);
@@ -454,20 +699,32 @@ final class SessionChatRepository implements ChatRepository {
     return _acceptPrompt(thread, prompt, disclosed);
   }
 
+  void _requireReadableBlocks(_Thread thread) {
+    if (_blocksUnreadable && _target(thread) == AnswerTarget.contributors) {
+      throw const AppFailure(FailureKind.forbidden);
+    }
+  }
+
   Future<void> _acceptPrompt(_Thread thread, String prompt, String? disclosed) {
+    _requireReadableBlocks(thread);
     _requireDisclosed(thread, disclosed);
     // The destination is fixed when the prompt is sent and kept with the
     // conversation; pairing or unpairing later does not move it.
     thread.target ??= _target(thread);
-    final modelId = thread.modelId ??= _defaultModel();
+    final modelId = _usableModel(thread);
     if (modelId == null) throw const AppFailure(FailureKind.unavailable);
+    thread.modelId = modelId;
     thread.draft = '';
+    final content = attachmentInput(prompt, thread.draftFiles);
+    thread.draftFiles = const [];
     if (thread.title.isEmpty) {
       thread.title = prompt.length > 48
           ? '${prompt.substring(0, 48)}…'
           : prompt;
     }
-    thread.turns.add(Turn(id: newId(), role: TurnRole.user, text: prompt));
+    thread.turns.add(
+      _withDisplay(Turn(id: newId(), role: TurnRole.user, text: content)),
+    );
     return _start(thread, modelId, disclosed);
   }
 
@@ -476,23 +733,73 @@ final class SessionChatRepository implements ChatRepository {
     _checkActive();
     final thread = _require(id);
     if (thread.running case final running?) return running.future;
+    if (thread.recovering != null) {
+      throw const AppFailure(FailureKind.unavailable);
+    }
     if (!_conversation(thread).canRetry) {
       throw const AppFailure(FailureKind.validation);
     }
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
+    _requireReadableBlocks(thread);
     _requireDisclosed(thread, disclosedRecipient);
+    final modelId = _usableModel(thread);
+    if (modelId == null) throw const AppFailure(FailureKind.unavailable);
+    thread.modelId = modelId;
     thread.turns.removeLast();
-    return _start(thread, thread.modelId!, disclosedRecipient);
+    return _start(thread, modelId, disclosedRecipient);
+  }
+
+  /// The prompt messages for an answer that follows [turns].
+  static List<PromptMessage> _promptMessages(Iterable<Turn> turns) => [
+    for (final turn in turns)
+      if (turn.role == TurnRole.user ||
+          (turn.phase == AnswerPhase.complete && turn.text.isNotEmpty))
+        PromptMessage(turn.role, turn.text),
+  ];
+
+  @override
+  Future<RecoverResult> recover(String id) {
+    _checkActive();
+    final thread = _require(id);
+    if (thread.recovering case final recovering?) return recovering;
+    if (thread.running != null || !_conversation(thread).canRecover) {
+      throw const AppFailure(FailureKind.validation);
+    }
+    final lost = thread.turns.last;
+    _ensureOpen();
+    Future<RecoverResult> ask() async {
+      try {
+        final found = await api.recover(
+          requestId: lost.requestId!,
+          modelId: lost.requestModelId!,
+          messages: _promptMessages(thread.turns.take(thread.turns.length - 1)),
+          recipient: lost.recipient!,
+        );
+        if (!_active || thread.turns.lastOrNull?.id != lost.id) {
+          return RecoverResult.notYet;
+        }
+        switch (found.result) {
+          case RecoverResult.answered:
+            thread.turns.last = lost.recovered(found.text!);
+          case RecoverResult.ended:
+            thread.turns.last = lost.copyWith(recoverable: false);
+          case RecoverResult.notYet:
+            break;
+        }
+        if (found.result != RecoverResult.notYet) _persist();
+        return found.result;
+      } finally {
+        thread.recovering = null;
+        _emit();
+      }
+    }
+
+    return thread.recovering = ask();
   }
 
   Future<void> _start(_Thread thread, String modelId, String? disclosed) {
     _ensureOpen();
-    final messages = [
-      for (final turn in thread.turns)
-        if (turn.role == TurnRole.user ||
-            (turn.phase == AnswerPhase.complete && turn.text.isNotEmpty))
-          PromptMessage(turn.role, turn.text),
-    ];
+    final messages = _promptMessages(thread.turns);
     final answerId = newId();
     thread.turns.add(
       Turn(
@@ -556,10 +863,15 @@ final class SessionChatRepository implements ChatRepository {
             phase: AnswerPhase.admitting,
           ),
         ),
-        PromptSent() => () {
+        AnswerLost() => update((turn) => turn.copyWith(recoverable: true)),
+        PromptSent(:final requestId, :final modelId) => () {
           update(
-            (turn) =>
-                turn.copyWith(promptSent: true, phase: AnswerPhase.streaming),
+            (turn) => turn.copyWith(
+              promptSent: true,
+              phase: AnswerPhase.streaming,
+              requestId: requestId,
+              requestModelId: modelId,
+            ),
           );
           // Recorded at once: after a crash the person must still be told
           // that this prompt had left the device.

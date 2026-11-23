@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui/ui.dart';
 
 import '../design_system/branding.dart';
+import '../features/chat/domain/chat.dart' show Appearance;
 import '../features/chat/presentation/chat_screens.dart';
 import '../l10n/strings.dart';
 import 'providers.dart';
@@ -29,6 +30,13 @@ class ReploidApp extends ConsumerWidget {
     title: Strings.title,
     theme: appTheme(),
     darkTheme: appTheme(dark: true),
+    themeMode: themeModeFor(
+      dark: switch (ref.watch(appearanceProvider)) {
+        Appearance.system => null,
+        Appearance.light => false,
+        Appearance.dark => true,
+      },
+    ),
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
     supportedLocales: const [Locale('en')],
     home: SessionGate(
@@ -104,6 +112,9 @@ class _SettingsRoute extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => SettingsScreen(
     session: session,
     forget: forget,
+    appearance: ref.watch(appearanceProvider),
+    onAppearance: (next) =>
+        unawaited(ref.read(appearanceProvider.notifier).select(next)),
     networkPreference: ref.watch(networkPreferenceProvider),
     onSaveNetwork: (next) =>
         unawaited(ref.read(networkPreferenceProvider.notifier).select(next)),

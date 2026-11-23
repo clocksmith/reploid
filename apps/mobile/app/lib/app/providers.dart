@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/chat/domain/chat.dart';
 import '../features/chat/infrastructure/chat_repository.dart';
+import '../features/chat/infrastructure/computer_preferences.dart';
 import '../features/chat/infrastructure/conversation_archive.dart';
 import '../features/chat/infrastructure/memory_network.dart';
 import '../features/chat/infrastructure/pairing_store.dart';
@@ -76,6 +77,37 @@ class NetworkPreferenceController extends Notifier<NetworkPreference> {
       await ref.read(networkPreferenceStoreProvider).write(next);
     } catch (_) {
       // Runtime selection stays active for this run even if persistence fails.
+    }
+  }
+}
+
+final appearanceProvider = NotifierProvider<AppearanceController, Appearance>(
+  AppearanceController.new,
+);
+
+/// Light, dark or the system's choice. Not tied to an identity.
+class AppearanceController extends Notifier<Appearance> {
+  static const _key = 'reploid.appearance.v1';
+
+  @override
+  Appearance build() => Appearance.system;
+
+  Future<void> load() async {
+    try {
+      final stored = await ref.read(secretStoreProvider).read(_key);
+      final saved = Appearance.values.where((a) => a.name == stored);
+      if (ref.mounted && saved.isNotEmpty) state = saved.first;
+    } catch (_) {
+      // Appearance is a convenience; the system's choice stands.
+    }
+  }
+
+  Future<void> select(Appearance next) async {
+    state = next;
+    try {
+      await ref.read(secretStoreProvider).write(_key, next.name);
+    } catch (_) {
+      // It still applies for this run.
     }
   }
 }
@@ -217,6 +249,7 @@ class SessionController extends Notifier<SessionState> {
         ).erase();
         await DevicePreferencesStore(secrets, identity.peerId).delete();
         await PairingStore(secrets, identity.peerId).delete();
+        await ComputerPreferencesStore(secrets, identity.peerId).delete();
       }
       await ref.read(networkPreferenceProvider.notifier).reset();
       await identityStore.delete();
@@ -247,6 +280,11 @@ ChatRepository? createChatRepository(Ref ref) {
     newId: ref.watch(operationIdProvider),
     archive: _archive(ref, identity.peerId),
     preferences: _preferences(ref, identity.peerId),
+    computerPreferences: ComputerPreferencesStore(
+      ref.read(secretStoreProvider),
+      identity.peerId,
+    ),
+    participantId: identity.peerId,
   );
   ref.onDispose(() => unawaited(repository.close()));
   return repository;

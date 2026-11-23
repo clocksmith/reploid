@@ -4,9 +4,16 @@ import 'package:core/core.dart';
 
 import '../../../infrastructure/reploid_api/pairing.dart';
 import '../domain/chat.dart';
+import 'attachments.dart';
 import 'requester_api.dart';
 
-enum AnswerBehavior { answer, decline, failMidStream, badReceipt }
+enum AnswerBehavior {
+  answer,
+  decline,
+  failMidStream,
+  badReceipt,
+  loseMidStream,
+}
 
 enum PairingBehavior { approve, decline, silent, missing }
 
@@ -28,8 +35,16 @@ final class MemoryNetwork {
   static const largeModel = 'qwen-3-8-27b-text-q4k-ef16-af32';
 
   final List<CatalogModel> catalog = const [
-    CatalogModel(id: smallModel, name: 'Qwen 3.5 2B'),
-    CatalogModel(id: largeModel, name: 'Qwen 3.8 27B'),
+    CatalogModel(
+      id: smallModel,
+      name: 'Qwen 3.5 2B',
+      identity: 'sha256:1111111111111111111111111111111111111111111111111111111111111111',
+    ),
+    CatalogModel(
+      id: largeModel,
+      name: 'Qwen 3.8 27B',
+      identity: 'sha256:2222222222222222222222222222222222222222222222222222222222222222',
+    ),
   ];
 
   List<Computer> computers = const [
@@ -76,6 +91,14 @@ final class MemoryNetwork {
   final List<String?> contextIds = [];
   int requests = 0;
   int cancels = 0;
+  int recoveries = 0;
+
+  /// The next recovery finds that the computer ended the request.
+  bool recoveryEnds = false;
+  final Map<String, String> _lost = {};
+
+  /// Makes the answers of lost requests unavailable for now.
+  void forgetLostAnswers() => _lost.clear();
   AnswerBehavior _next = AnswerBehavior.answer;
   final _changes = StreamController<void>.broadcast();
 
@@ -115,6 +138,24 @@ final class _MemoryApi implements RequesterApi {
           )
         : null,
   );
+
+  @override
+  Future<RecoveredAnswer> recover({
+    required String requestId,
+    required String modelId,
+    required List<PromptMessage> messages,
+    required String recipient,
+  }) async {
+    network.recoveries++;
+    await Future<void>.delayed(network.latency);
+    if (network.recoveryEnds) {
+      return const RecoveredAnswer(RecoverResult.ended);
+    }
+    final text = network._lost[requestId];
+    return text == null || !_open
+        ? const RecoveredAnswer(RecoverResult.notYet)
+        : RecoveredAnswer(RecoverResult.answered, text: text);
+  }
 
   @override
   DesktopInvite? readInvite(String link) {
@@ -214,10 +255,24 @@ final class _MemoryApi implements RequesterApi {
     );
   }
 
+  Set<String> _blocked = const {};
+
+  bool _allowed(Computer computer) =>
+      !_blocked.contains(computer.address) &&
+      !_blocked.contains(computer.participantId);
+
+  @override
+  void setBlocked(Set<String> ids) {
+    _blocked = Set.unmodifiable(ids);
+    _status.add(null);
+  }
+
   @override
   String? nextRecipient({required String modelId, String? contextId}) => _open
       ? network.computers
-            .where((c) => c.modelId == modelId && c.ready && !c.busy)
+            .where(
+              (c) => c.modelId == modelId && c.ready && !c.busy && _allowed(c),
+            )
             .firstOrNull
             ?.participantId
       : null;
@@ -273,6 +328,7 @@ final class _MemoryAnswer implements Answer {
                   c.modelId == modelId &&
                   c.ready &&
                   !c.busy &&
+                  api._allowed(c) &&
                   (expectedRecipient == null ||
                       c.participantId == expectedRecipient),
             )
@@ -290,13 +346,20 @@ final class _MemoryAnswer implements Answer {
       }
       final prompt = messages.last.text;
       network.delivered.add((api.identity, computer.participantId!, prompt));
-      _controller.add(const PromptSent());
-      final words = 'You asked: $prompt'.split(' ');
+      final requestId = 'memory-request-${network.delivered.length}';
+      _controller.add(PromptSent(requestId: requestId, modelId: modelId));
+      final asked = readAttachmentDisplay(prompt)?.question ?? prompt;
+      final words = 'You asked: $asked'.split(' ');
       final text = StringBuffer();
       for (var i = 0; i < words.length; i++) {
         await Future<void>.delayed(network.chunkDelay);
         if (_stopped) return;
         if (behavior == AnswerBehavior.failMidStream && i == 2) {
+          throw const AppFailure(FailureKind.unavailable);
+        }
+        if (behavior == AnswerBehavior.loseMidStream && i == 1) {
+          network._lost[requestId] = 'You asked: $asked';
+          _controller.add(const AnswerLost());
           throw const AppFailure(FailureKind.unavailable);
         }
         final chunk = i == 0 ? words[i] : ' ${words[i]}';

@@ -383,14 +383,20 @@ void main() {
     expect(find.text(Strings.thisPhone), findsOneWidget);
 
     // A link that is not one is refused before anything is sent.
-    await tester.enterText(find.byType(TextField), 'https://example.com/');
+    await tester.enterText(
+      find.byType(TextField).first,
+      'https://example.com/',
+    );
     await tester.pump();
     await _tap(tester, find.text(Strings.pairCheck));
     await tester.pump();
     expect(find.text(Strings.invalidLink), findsOneWidget);
 
     // A real link first shows which desktop it names.
-    await tester.enterText(find.byType(TextField), MemoryNetwork.pairingLink);
+    await tester.enterText(
+      find.byType(TextField).first,
+      MemoryNetwork.pairingLink,
+    );
     await tester.pump();
     await _tap(tester, find.text(Strings.pairCheck));
     await tester.pump();

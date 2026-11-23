@@ -16,9 +16,14 @@ final class NetworkSnapshot {
 }
 
 final class CatalogModel {
-  const CatalogModel({required this.id, required this.name});
+  const CatalogModel({
+    required this.id,
+    required this.name,
+    required this.identity,
+  });
   final String id;
   final String name;
+  final String identity;
 }
 
 final class PromptMessage {
@@ -40,7 +45,17 @@ final class RecipientProven extends AnswerEvent {
 
 /// The recipient admitted the request and the prompt has now left the device.
 final class PromptSent extends AnswerEvent {
-  const PromptSent();
+  const PromptSent({required this.requestId, required this.modelId});
+
+  /// Enough to ask later what became of this request.
+  final String requestId;
+  final String modelId;
+}
+
+/// The connection was lost after the prompt was sent, so the recipient may
+/// still hold an answer. The error that ends the stream follows.
+final class AnswerLost extends AnswerEvent {
+  const AnswerLost();
 }
 
 final class AnswerChunk extends AnswerEvent {
@@ -54,6 +69,15 @@ final class AnswerCompleted extends AnswerEvent {
   const AnswerCompleted(this.text, {required this.receiptVerified});
   final String text;
   final bool receiptVerified;
+}
+
+/// What a recipient says about a lost request.
+final class RecoveredAnswer {
+  const RecoveredAnswer(this.result, {this.text});
+  final RecoverResult result;
+
+  /// The verified answer, with [RecoverResult.answered].
+  final String? text;
 }
 
 /// One request in flight. [events] ends after [AnswerCompleted], or with an
@@ -87,6 +111,19 @@ abstract interface class RequesterApi {
   /// The proven identity a contributor request for [modelId] would go to
   /// right now, or null when none is ready or the best is not yet proven.
   String? nextRecipient({required String modelId, String? contextId});
+
+  /// Computers, by proven identity or connection name, that never receive
+  /// a contributor request from this device.
+  void setBlocked(Set<String> ids);
+
+  /// Asks the proven [recipient] what became of a request. Never runs it
+  /// again and never sends the prompt.
+  Future<RecoveredAnswer> recover({
+    required String requestId,
+    required String modelId,
+    required List<PromptMessage> messages,
+    required String recipient,
+  });
 
   DesktopInvite? readInvite(String link);
 

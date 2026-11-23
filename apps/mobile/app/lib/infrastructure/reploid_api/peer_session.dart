@@ -61,7 +61,11 @@ final class ProviderProven extends GenerationEvent {
 
 /// `reploid:generation-request` was sent: the provider now has the prompt.
 final class PromptDispatched extends GenerationEvent {
-  const PromptDispatched();
+  const PromptDispatched(this.requestId, this.modelId);
+
+  /// What procedure `recovery` needs if the result never arrives.
+  final String requestId;
+  final String modelId;
 }
 
 final class TextChunk extends GenerationEvent {
@@ -73,6 +77,30 @@ final class TextChunk extends GenerationEvent {
 /// and returned to the provider.
 final class GenerationCompleted extends GenerationEvent {
   const GenerationCompleted(this.content, this.receipt);
+  final String content;
+  final Json receipt;
+}
+
+/// What became of a request whose result did not arrive (procedure
+/// `recovery`). Asking never runs the request again.
+sealed class RecoveryOutcome {
+  const RecoveryOutcome();
+}
+
+/// Unknown, still running, or no longer kept: ask again later.
+final class RecoveryUnresolved extends RecoveryOutcome {
+  const RecoveryUnresolved();
+}
+
+/// The provider signed that the request ended without an answer.
+final class RecoveryEnded extends RecoveryOutcome {
+  const RecoveryEnded(this.status);
+  final String status;
+}
+
+/// The answer, verified against its signed receipt and countersigned.
+final class RecoveryAnswered extends RecoveryOutcome {
+  const RecoveryAnswered(this.content, this.receipt);
   final String content;
   final Json receipt;
 }
@@ -362,6 +390,7 @@ final class PeerSession {
     String? contextId,
     String? namedRecipient,
     String? expectedRecipient,
+    Set<String> blockedRecipients = const {},
   }) {
     late final StreamController<GenerationEvent> controller;
     String? requestId;
@@ -380,7 +409,8 @@ final class PeerSession {
           throw const ProtocolFailure('Could not verify the paired desktop');
         }
         // The person was told this computer would read the prompt.
-        if (expectedRecipient != null && proven != expectedRecipient) {
+        if (expectedRecipient != null && proven != expectedRecipient ||
+            namedRecipient == null && blockedRecipients.contains(proven)) {
           throw const ProtocolFailure(
             'Selected contributor is no longer ready; '
             'retry requires new placement',
@@ -509,7 +539,7 @@ final class PeerSession {
         }, onTimeout: 'Remote generation timed out');
         _send(ChannelType.generationRequest, request);
         sent = true;
-        controller.add(const PromptDispatched());
+        controller.add(PromptDispatched(id, model.id));
         final Json result;
         try {
           result = await finished;
@@ -574,6 +604,80 @@ final class PeerSession {
       },
     );
     return controller.stream;
+  }
+
+  /// Procedure `recovery`. Proves the provider again and must find the same
+  /// identity; anything that cannot be verified stays unresolved.
+  Future<RecoveryOutcome> recover({
+    required String requestId,
+    required CatalogRow model,
+    required List<Json> messages,
+    required String providerParticipantId,
+  }) async {
+    if (await proveProvider() != providerParticipantId) {
+      return const RecoveryUnresolved();
+    }
+    final queryId = entropy.uuid();
+    final answered = _expect(
+      (type, payload) =>
+          type == ChannelType.generationRecovery &&
+              payload['queryId'] == queryId &&
+              payload['requestId'] == requestId
+          ? payload
+          : null,
+      onTimeout: 'Remote generation timed out',
+    );
+    _send(ChannelType.generationRecover, {
+      'queryId': queryId,
+      'requestId': requestId,
+    });
+    final reply = await answered;
+    final outcome = reply['outcome'];
+    if (outcome is! Map<String, Object?>) return const RecoveryUnresolved();
+    final data = outcome['payload'];
+    if (data is! Map<String, Object?>) return const RecoveryUnresolved();
+    if (outcome['type'] == ChannelType.generationError) {
+      final status = await verifyTerminal(
+        terminal: data['terminal'],
+        requestId: requestId,
+        modelId: model.id,
+        modelIdentity: model.identity,
+        messages: messages,
+        provenProvider: providerParticipantId,
+        ownParticipantId: identity.peerId,
+      );
+      return status == null
+          ? const RecoveryUnresolved()
+          : RecoveryEnded(status);
+    }
+    if (outcome['type'] != ChannelType.generationResult) {
+      return const RecoveryUnresolved();
+    }
+    final receipt = data['receipt'];
+    final Json signedPayload;
+    try {
+      signedPayload = await verifyResult(
+        requestId: requestId,
+        modelId: model.id,
+        modelIdentity: model.identity,
+        messages: messages,
+        provenProvider: providerParticipantId,
+        ownParticipantId: identity.peerId,
+        earlyInputTokens: null,
+        response: data['response'],
+        receipt: receipt,
+      );
+    } on ProtocolFailure {
+      return const RecoveryUnresolved();
+    }
+    final countersigned = await countersign(
+      signedPayload,
+      receipt! as Json,
+      identity,
+    );
+    _trySend(ChannelType.receipt, {'receipt': countersigned});
+    final response = data['response']! as Json;
+    return RecoveryAnswered(response['content']! as String, countersigned);
   }
 
   Future<void> close() async => _closed();

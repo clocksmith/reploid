@@ -203,6 +203,15 @@ final class RequesterNetwork {
     );
   }
 
+  /// Identities and connection names this device never sends a contributor
+  /// request to. A named recipient is the person's own choice and is exempt.
+  Set<String> blocked = const {};
+
+  bool _isBlocked(String name, PeerSession session) =>
+      blocked.contains(name) ||
+      (session.provenParticipantId != null &&
+          blocked.contains(session.provenParticipantId));
+
   /// Procedure `providerSelectionRule`: the best candidate now, or null.
   /// With [namedRecipient], only the connection proven to be that identity
   /// (procedure `pairedDesktopRequest`); never anyone else.
@@ -217,6 +226,7 @@ final class RequesterNetwork {
       for (final entry in _sessions.entries)
         if (entry.value.usable &&
             !entry.value.reserved &&
+            (namedRecipient != null || !_isBlocked(entry.key, entry.value)) &&
             (namedRecipient == null ||
                 entry.value.provenParticipantId == namedRecipient) &&
             (expectedRecipient == null ||
@@ -246,6 +256,24 @@ final class RequesterNetwork {
   String? nextRecipient(CatalogRow model, String? contextId) =>
       _select(model, contextId, null)?.provenParticipantId;
 
+  /// Procedure `recovery`, on the connection now proven to be the provider.
+  /// With no such connection the request simply stays unresolved.
+  Future<RecoveryOutcome> recover({
+    required String requestId,
+    required CatalogRow model,
+    required List<Json> messages,
+    required String providerParticipantId,
+  }) async {
+    final session = proven(providerParticipantId);
+    if (session == null) return const RecoveryUnresolved();
+    return session.recover(
+      requestId: requestId,
+      model: model,
+      messages: messages,
+      providerParticipantId: providerParticipantId,
+    );
+  }
+
   /// One whole-model request to the best ready computer. Waits up to
   /// [discoveryTimeout] for one to appear; nothing is sent while waiting.
   Stream<GenerationEvent> ask({
@@ -270,6 +298,7 @@ final class RequesterNetwork {
             contextId: contextId,
             namedRecipient: namedRecipient,
             expectedRecipient: expectedRecipient,
+            blockedRecipients: blocked,
           )
           .listen(
             controller.add,

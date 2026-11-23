@@ -9,7 +9,9 @@ import 'package:ui/ui.dart';
 
 import 'app/app.dart';
 import 'app/providers.dart';
+import 'features/chat/domain/chat.dart' show DocumentPicker;
 import 'infrastructure/device_stores.dart';
+import 'infrastructure/document_picker.dart';
 
 void main() => runApp(const ReploidRoot());
 
@@ -18,6 +20,7 @@ class ReploidRoot extends StatefulWidget {
     super.key,
     this.secrets,
     this.files,
+    this.picker,
     this.overrides = const [],
   });
 
@@ -28,6 +31,9 @@ class ReploidRoot extends StatefulWidget {
   /// Where encrypted history is kept; the app's private directory by
   /// default on IO platforms, or memory on web.
   final FileStore? files;
+
+  /// The file dialogs; the system's unless a test supplies its own.
+  final DocumentPicker? picker;
 
   /// Further provider overrides, applied last: fakes or custom adapters in tests.
   final List<Override> overrides;
@@ -54,6 +60,9 @@ class _ReploidRootState extends State<ReploidRoot> {
       sessionCoordinatorProvider.overrideWithValue(coordinator),
       secretStoreProvider.overrideWithValue(_secrets),
       fileStoreProvider.overrideWithValue(_files),
+      documentPickerProvider.overrideWithValue(
+        widget.picker ?? const PlatformDocumentPicker(),
+      ),
       chatRepositoryProvider.overrideWith(createChatRepository),
       ...widget.overrides,
     ],
@@ -76,6 +85,8 @@ class _ResumeState extends ConsumerState<_Resume> {
   void initState() {
     super.initState();
     unawaited(() async {
+      await ref.read(appearanceProvider.notifier).load();
+      if (!mounted) return;
       await ref.read(networkPreferenceProvider.notifier).load();
       if (mounted) await ref.read(sessionStateProvider.notifier).resume();
     }());

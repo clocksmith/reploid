@@ -21,6 +21,32 @@ void main() {
     }
   });
 
+  test('a signed terminal verifies, and an altered one does not', () async {
+    final section = vectors['generationTerminal']! as Json;
+    final terminal = section['terminal']! as Json;
+    final binding = section['binding']! as Json;
+    final messages = (cases('promptCommitment').first['messages']! as List)
+        .cast<Json>();
+    Future<String?> check(Object? value, {String? provider}) => verifyTerminal(
+      terminal: value,
+      requestId: binding['requestId']! as String,
+      modelId: binding['model']! as String,
+      modelIdentity: binding['modelIdentity']! as String,
+      messages: messages,
+      provenProvider: provider ?? binding['provider']! as String,
+      ownParticipantId: binding['consumer']! as String,
+    );
+    expect(hashJson(messages), binding['inputDigest']);
+    expect(await check(terminal), terminal['status']);
+    expect(await check({...terminal, 'status': 'cancelled'}), isNull);
+    expect(await check({...terminal, 'settingsDigest': 'x'}), isNull);
+    expect(
+      await check(terminal, provider: 'peer:000000000000000000000000'),
+      isNull,
+    );
+    expect(await check('not an object'), isNull);
+  });
+
   test('participant ids from public keys', () {
     for (final key in cases('identity', 'keys')) {
       expect(

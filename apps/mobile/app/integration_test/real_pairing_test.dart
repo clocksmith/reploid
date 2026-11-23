@@ -51,7 +51,8 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
 /// A desktop window that is not in front has no keyboard focus, so the
 /// draft is written through the field's controller.
 Future<void> _type(WidgetTester tester, String text) async {
-  tester.widget<TextField>(find.byType(TextField)).controller!.text = text;
+  tester.widget<TextField>(find.byType(TextField).first).controller!.text =
+      text;
   await tester.pump();
 }
 
