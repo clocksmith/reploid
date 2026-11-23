@@ -14,6 +14,7 @@ import { bindDrawer } from '../components/drawer.js';
 import { renderAttachments, createTextAttachmentReader } from '../components/attachments.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
+import { routeAlternatives, updateRouteAlternatives } from './route-alternatives.js';
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
 import { webSearchRecipient } from './web-search-settings.js';
@@ -66,6 +67,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     return policy.placement === 'local-only' || policy.recipients.kind === 'none' ? 'device'
       : policy.recipients.kind === 'open' ? 'contributors'
         : locked && policy.recipients.ids.length === 1 && policy.recipients.ids[0] === locked.id ? 'desktop' : 'named';
+  };
+  // The paired desktop whether or not it is online, because an offline desktop is still the conversation's pin.
+  const pairedDesktop = state => lockedDestination(state) ?? (state.ownerPairing?.hostParticipantId
+    ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop', status: state.ownerPairing.status } : null);
+  const currentRoute = state => {
+    const key = destinationKey(state), ids = explicitPrivacy(state).recipients?.ids;
+    return key === 'named' && ids?.length === 1 && ids[0] === state.ownerPairing?.hostParticipantId ? 'desktop' : key;
   };
   let editingThread, applyingPrivacy = false;
   const effectiveLocation = state => {
@@ -437,6 +445,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     else disclosure.textContent = 'A network provider could read your prompt.';
     modelStatus.textContent = statusText;
     modelStatus.hidden = !statusText || !acquisitionText.hidden;
+    updateRouteAlternatives(find('[data-route-alternatives]'), routeAlternatives({ current: currentRoute(state), model: requestedModel,
+      desktop: pairedDesktop(state), busy, closed: !!thread?.closed, searching: phase === 'searching', fresh: freshVisitor }));
     renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
     if (!acquisitionText.hidden && !queuedSend) modelStatus.hidden = true;
     const answerLimit = find('[data-answer-limit]');
@@ -915,6 +925,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       const state = session.getState();
       render(state); if (find('[data-model-picker]').open) updatePicker(state);
     });
+  });
+  // Taking an offer changes where this conversation runs. It sends nothing; the person still presses Send.
+  on('[data-route-alternatives]', 'click', event => {
+    const key = event.target.closest('[data-route-alternative]')?.dataset.routeAlternative;
+    if (!key) return;
+    pickerChoice = null;
+    void act(async () => { await applyDestination(key); render(session.getState()); input.focus(); });
   });
   on('[data-queue-send]', 'click', () => {
     const state = session.getState(), location = effectiveLocation(state);

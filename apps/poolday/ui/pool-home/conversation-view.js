@@ -51,6 +51,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
           <div class="chat-starting-prompts" data-starting-prompts role="group" aria-label="Example question" hidden>
             <button class="pool-chip chat-starting-prompt" type="button" data-starting-prompt>${escape(chatPrompts[Math.floor(Math.random() * chatPrompts.length)])}</button>
           </div>
+          <div class="pool-stack pool-gap-xs" data-route-alternatives hidden></div>
           <div class="chat-composer-status-line" data-composer-status-row hidden>
             <p class="pool-small pool-muted" id="chat-model-status" data-model-status role="status" hidden></p>
             <p class="pool-small pool-muted" data-acquisition-status role="status" hidden></p>
