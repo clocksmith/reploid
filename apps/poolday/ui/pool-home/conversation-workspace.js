@@ -832,11 +832,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     openPicker({ currentTarget: trigger });
     find('[data-picker-title]').textContent = forSend ? 'Where should this run?' : 'Answer on';
   };
+  // The desktop stays the only recipient while it is offline. With no desktop left, the choice is refused:
+  // it never becomes "any contributor".
+  const desktopRecipient = state => lockedDestination(state)?.id ?? state.ownerPairing?.hostParticipantId ?? null;
   const destinationPolicy = (key, state) => {
-    const locked = lockedDestination(state);
-    return key === 'device' ? localPolicy
-      : key === 'desktop' && locked ? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [locked.id] }, computation: 'plaintext' })
-        : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+    if (key === 'device') return localPolicy;
+    if (key !== 'desktop') return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+    const recipient = desktopRecipient(state);
+    if (!recipient) throw new Error('That desktop is no longer available. Nothing was changed.');
+    return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [recipient] }, computation: 'plaintext' });
   };
   // A new chat's destination changes at once, so Done right after a computer tap commits the new choice.
   const applyDraftDestination = key => {
@@ -899,6 +903,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
     const choice = button.dataset.executionChoice;
+    if (choice === 'desktop' && !desktopRecipient(session.getState())) { error('That desktop is no longer available. Nothing was changed.'); return; }
     pickerTouched = true;
     pickerRevision++; pickerLocation = choice === 'local' ? 'local' : 'network';
     pickerChoice = choice === 'local' ? 'device' : choice === 'desktop' ? 'desktop' : 'contributors';

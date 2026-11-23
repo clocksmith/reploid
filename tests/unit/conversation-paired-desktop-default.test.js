@@ -45,6 +45,35 @@ describe('Paired desktop default', () => {
     expect(root.textContent).not.toMatch(/wake/i);
   });
 
+  describe('a stale tap on the desktop row', () => {
+    const host = 'peer:91d1d9293ca2d973191156dc';
+    const tapDesktop = () => {
+      // The row as it was drawn before the desktop's state changed.
+      const row = root.querySelector('[data-execution-choice="desktop"]');
+      row.disabled = false;
+      row.setAttribute('aria-pressed', 'false');
+      row.click();
+    };
+    const online = () => ({ status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Mars',
+      readyModel: CANONICAL_CHAT_MODELS[0].id, disclosure: { readableBy: `Readable by: ${host}`, notice: `This runs on ${host}.` } });
+
+    it('keeps the conversation on the desktop while it is offline', () => {
+      const pairing = online();
+      const { viewState } = setup(pairing);
+      Object.assign(pairing, { status: 'offline', canSend: false });
+      tapDesktop();
+      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+    });
+
+    it('never opens the conversation to any contributor once the desktop is gone', () => {
+      const pairing = online();
+      const { viewState } = setup(pairing);
+      Object.assign(pairing, { status: 'unpaired', paired: false, canSend: false, hostParticipantId: null });
+      tapDesktop();
+      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+    });
+  });
+
   it('leaves the default policy alone when no desktop is paired', () => {
     const { viewState } = setup({ status: 'unpaired', paired: false, canSend: false, hostParticipantId: null });
     expect(viewState.privacy).toBeUndefined();
