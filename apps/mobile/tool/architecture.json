@@ -56,7 +56,15 @@
       ],
       "packages": [
         "flutter/services.dart",
-        "flutter/foundation.dart"
+        "flutter/foundation.dart",
+        "cryptography/cryptography.dart",
+        "pointycastle/api.dart",
+        "pointycastle/digests/sha256.dart",
+        "pointycastle/ecc/api.dart",
+        "pointycastle/ecc/curves/secp256r1.dart",
+        "pointycastle/signers/ecdsa_signer.dart",
+        "flutter_secure_storage/flutter_secure_storage.dart",
+        "flutter_webrtc/flutter_webrtc.dart"
       ],
       "deviceAccess": true
     },
@@ -98,7 +106,8 @@
         "flutter/material.dart",
         "flutter/widgets.dart",
         "flutter_localizations/flutter_localizations.dart",
-        "flutter_riverpod/flutter_riverpod.dart"
+        "flutter_riverpod/flutter_riverpod.dart",
+        "flutter_riverpod/misc.dart"
       ]
     },
     "design": {

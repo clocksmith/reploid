@@ -1,109 +1,271 @@
-import 'package:core/core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reploid_mobile/app/app.dart';
 import 'package:reploid_mobile/app/providers.dart';
+import 'package:reploid_mobile/features/chat/infrastructure/memory_network.dart';
+import 'package:reploid_mobile/infrastructure/identity_store.dart';
 import 'package:reploid_mobile/l10n/strings.dart';
-import 'package:reploid_mobile/features/tasks/infrastructure/memory_task_server.dart';
+import 'package:reploid_mobile/main.dart';
+import 'package:ui/ui.dart';
 
-Future<void> tapText(WidgetTester tester, String text) async {
-  final target = find.text(text);
-  await tester.ensureVisible(target);
-  await tester.tap(target);
+const _step = Duration(milliseconds: 20);
+
+MemoryNetwork _network() => MemoryNetwork(latency: _step, chunkDelay: _step);
+
+Future<void> _launch(
+  WidgetTester tester,
+  MemoryNetwork network, {
+  IdentityStore? store,
+  Size size = const Size(390, 844),
+}) async {
+  // A phone-sized surface; the test default is a wide desktop window.
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    ReploidRoot(
+      key: UniqueKey(),
+      identityStore: store ?? MemoryIdentityStore(),
+      overrides: [memoryNetworkProvider.overrideWithValue(network)],
+    ),
+  );
+  await tester.pump();
+}
+
+/// Lets identity generation, which is real asynchronous work, finish.
+Future<void> _settle(WidgetTester tester) async {
+  for (var i = 0; i < 40; i++) {
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump(_step);
+  }
+}
+
+Future<void> _tap(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pump();
+  await tester.tap(finder);
+}
+
+Future<void> _start(WidgetTester tester) async {
+  await _tap(tester, find.text(Strings.start));
+  await _settle(tester);
+  expect(find.text(Strings.chatsHeading), findsOneWidget);
+}
+
+Future<void> _openNewChat(WidgetTester tester) async {
+  await _tap(tester, find.text(Strings.newChat).first);
+  await tester.pumpAndSettle(_step);
+  expect(find.text(Strings.composerHint), findsOneWidget);
+}
+
+Future<void> _type(WidgetTester tester, String text) async {
+  await tester.enterText(find.byType(TextField), text);
+  await tester.pump();
+}
+
+Future<void> _close(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pump(const Duration(seconds: 1));
 }
 
 void main() {
-  testWidgets('list, detail, failure, retry, Back, and account replacement', (
+  testWidgets('ask, see who will read it, and get a verified answer', (
     tester,
   ) async {
-    final coordinator = SessionCoordinator();
-    addTearDown(() async {
-      await tester.pumpWidget(const SizedBox.shrink());
-      final closing = coordinator.dispose();
-      await tester.pump();
-      await closing;
-    });
-    final server = MemoryTaskServer(latency: Duration.zero);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sessionCoordinatorProvider.overrideWithValue(coordinator),
-          taskRepositoryProvider.overrideWith(createTaskRepository),
-          memoryServerProvider.overrideWithValue(server),
-        ],
-        child: const ReploidApp(),
+    final network = MemoryNetwork(
+      latency: const Duration(milliseconds: 100),
+      chunkDelay: _step,
+    );
+    await _launch(tester, network);
+    expect(find.text(Strings.demoNetwork), findsOneWidget);
+    await _start(tester);
+    await _openNewChat(tester);
+    expect(find.text(Strings.discloseRemote), findsOneWidget);
+
+    await _type(tester, 'hello there');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump();
+    expect(find.text(Strings.finding), findsOneWidget);
+    expect(find.text(Strings.stop), findsOneWidget);
+    expect(network.delivered, isEmpty);
+
+    await tester.pump(const Duration(milliseconds: 130));
+    await tester.pump();
+    expect(
+      find.text(Strings.checking('peer:00000000000000000000000a')),
+      findsOneWidget,
+    );
+    expect(network.delivered, isEmpty, reason: 'named before anything is sent');
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(find.text('You asked: hello there'), findsOneWidget);
+    expect(
+      find.text(
+        Strings.answeredBy('peer:00000000000000000000000a', verified: true),
       ),
+      findsOneWidget,
     );
-    await tapText(tester, Strings.accountA);
-    await tester.pumpAndSettle();
-    await tapText(tester, 'A: Plan the first release');
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Keep this draft');
-    await tester.pump();
-    server.simulateNextCompletion(
-      const SessionIdentity('A'),
-      CompletionBehavior.reject,
-    );
-    await tapText(tester, Strings.complete);
-    await tester.pumpAndSettle();
-    expect(find.text('Keep this draft'), findsOneWidget);
-    expect(find.text(Strings.failure(FailureKind.validation)), findsOneWidget);
-    await tapText(tester, Strings.complete);
-    await tester.pumpAndSettle();
-    expect(find.text(Strings.completed), findsOneWidget);
+    expect(find.text(Strings.send), findsOneWidget);
+    expect(network.delivered, hasLength(1));
+
     await tester.pageBack();
-    await tester.pumpAndSettle();
-    expect(find.text(Strings.completed), findsOneWidget);
-    await tapText(tester, 'A: Review the checklist');
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Private A draft');
-    await tapText(tester, Strings.rejectNext);
-    await tester.pump();
-    expect(find.text(Strings.failureArmed), findsOneWidget);
-    await tapText(tester, Strings.accountB);
-    await tester.pumpAndSettle();
-    expect(find.text('Private A draft'), findsNothing);
-    expect(find.text(Strings.failureArmed), findsNothing);
-    expect(find.text('A: Review the checklist'), findsNothing);
-    expect(find.text('B: Plan the first release'), findsOneWidget);
-    expect(find.byType(BackButton), findsNothing);
-    await tapText(tester, Strings.signOut);
-    await tester.pumpAndSettle();
-    expect(find.text(Strings.demo), findsOneWidget);
-    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle(_step);
+    expect(find.text('hello there'), findsOneWidget);
+    await _close(tester);
   });
 
-  testWidgets('pending A read cannot flash when B becomes ready', (
+  testWidgets('a declined request says the prompt was not sent, then retries', (
     tester,
   ) async {
-    final coordinator = SessionCoordinator();
-    addTearDown(() async {
-      await tester.pumpWidget(const SizedBox.shrink());
-      final closing = coordinator.dispose();
-      await tester.pump();
-      await closing;
-    });
-    final server = MemoryTaskServer(latency: const Duration(seconds: 1));
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sessionCoordinatorProvider.overrideWithValue(coordinator),
-          taskRepositoryProvider.overrideWith(createTaskRepository),
-          memoryServerProvider.overrideWithValue(server),
-        ],
-        child: const ReploidApp(),
-      ),
-    );
-    await tapText(tester, Strings.accountA);
+    final network = _network();
+    await _launch(tester, network);
+    await _start(tester);
+    await _openNewChat(tester);
+    network.simulateNext(AnswerBehavior.decline);
+    await _type(tester, 'private question');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(seconds: 1));
     await tester.pump();
+    expect(find.textContaining(Strings.promptNotSent), findsOneWidget);
+    expect(network.delivered, isEmpty);
+
+    await tester.tap(find.text(Strings.retryAnswer));
+    await tester.pump(const Duration(seconds: 1));
     await tester.pump();
-    await tapText(tester, Strings.accountB);
-    for (var frame = 0; frame < 15; frame++) {
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('A: Plan the first release'), findsNothing);
-    }
-    expect(find.text('B: Plan the first release'), findsOneWidget);
-    await tester.pumpWidget(const SizedBox.shrink());
+    expect(find.text('You asked: private question'), findsOneWidget);
+    expect(find.byType(MessageBubble), findsNWidgets(2), reason: 'one prompt');
+    expect(network.delivered, hasLength(1));
+    await _close(tester);
   });
+
+  testWidgets('stop keeps the text that had arrived', (tester) async {
+    final network = MemoryNetwork(
+      latency: _step,
+      chunkDelay: const Duration(milliseconds: 200),
+    );
+    await _launch(tester, network);
+    await _start(tester);
+    await _openNewChat(tester);
+    await _type(tester, 'a b c d e f');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(find.text(Strings.answering), findsOneWidget);
+    await tester.tap(find.text(Strings.stop));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(find.text(Strings.stopped), findsOneWidget);
+    expect(find.textContaining('You asked'), findsOneWidget);
+    expect(find.text('You asked: a b c d e f'), findsNothing);
+    expect(network.cancels, 1);
+    await _close(tester);
+  });
+
+  testWidgets('with network answers off nothing is sent and the draft stays', (
+    tester,
+  ) async {
+    final network = _network();
+    await _launch(tester, network);
+    await _start(tester);
+    await _tap(tester, find.text(Strings.settings));
+    await tester.pumpAndSettle(_step);
+    await _tap(tester, find.text(Strings.allowNetwork));
+    await tester.pump(_step);
+    await tester.pageBack();
+    await tester.pumpAndSettle(_step);
+    await _openNewChat(tester);
+    expect(find.text(Strings.discloseOff), findsOneWidget);
+    await _type(tester, 'keep me');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('keep me'), findsOneWidget);
+    expect(network.requests, 0);
+    await _close(tester);
+  });
+
+  testWidgets('computers lists proven identities and readiness', (
+    tester,
+  ) async {
+    await _launch(tester, _network());
+    await _start(tester);
+    await _tap(tester, find.text(Strings.computers));
+    await tester.pumpAndSettle(_step);
+    expect(find.text('peer:00000000000000000000000a'), findsOneWidget);
+    expect(find.text(Strings.ready), findsOneWidget);
+    expect(find.text(Strings.busy), findsOneWidget);
+    await _close(tester);
+  });
+
+  testWidgets('forgetting this device removes conversations and the key', (
+    tester,
+  ) async {
+    final network = _network();
+    final store = MemoryIdentityStore();
+    await _launch(tester, network, store: store);
+    await _start(tester);
+    final first = await store.read();
+    expect(first, isNotNull);
+    await _openNewChat(tester);
+    await _type(tester, 'remember me');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pageBack();
+    await tester.pumpAndSettle(_step);
+    expect(find.text('remember me'), findsOneWidget);
+
+    await _tap(tester, find.text(Strings.settings));
+    await tester.pumpAndSettle(_step);
+    await _tap(tester, find.text(Strings.forget));
+    await _settle(tester);
+    expect(find.text(Strings.start), findsOneWidget);
+    expect(find.text('remember me'), findsNothing);
+    expect(await store.read(), isNull);
+
+    await _start(tester);
+    expect(find.text('remember me'), findsNothing);
+    expect(find.text(Strings.noChats), findsOneWidget);
+    expect(await store.read(), isNot(first));
+    await _close(tester);
+  });
+
+  testWidgets('a device with a stored identity resumes without a tap', (
+    tester,
+  ) async {
+    final store = MemoryIdentityStore();
+    await _launch(tester, _network(), store: store);
+    await _start(tester);
+    final identity = await store.read();
+    await _close(tester);
+
+    await _launch(tester, _network(), store: store);
+    await _settle(tester);
+    expect(find.text(Strings.chatsHeading), findsOneWidget);
+    expect(await store.read(), identity);
+    await _close(tester);
+  });
+
+  for (final dark in [false, true]) {
+    testWidgets(
+      'a narrow phone with large text shows the thread without overflow '
+      '(${dark ? 'dark' : 'light'})',
+      (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 2;
+        tester.platformDispatcher.platformBrightnessTestValue = dark
+            ? Brightness.dark
+            : Brightness.light;
+        addTearDown(tester.platformDispatcher.clearAllTestValues);
+        final network = _network();
+        await _launch(tester, network, size: const Size(320, 640));
+        await _start(tester);
+        await _openNewChat(tester);
+        await _type(tester, 'a rather long question that wraps on a phone');
+        await _tap(tester, find.text(Strings.send));
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        expect(find.textContaining('You asked'), findsOneWidget);
+        await _close(tester);
+      },
+    );
+  }
 }

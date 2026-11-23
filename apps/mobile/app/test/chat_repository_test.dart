@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reploid_mobile/features/chat/domain/chat.dart';

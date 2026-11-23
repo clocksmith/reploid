@@ -1,0 +1,508 @@
+import 'dart:async';
+
+import 'package:core/core.dart';
+import 'package:flutter/widgets.dart'
+    show BuildContext, Widget, VoidCallback, ValueChanged;
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui/ui.dart';
+
+import '../../../l10n/strings.dart';
+import '../domain/chat.dart';
+import 'chat_providers.dart';
+
+/// Values from another session are never rendered, even for one frame.
+T? _own<T>(T? value, SessionKey Function(T) key, SessionHandle session) =>
+    value != null && key(value) == session.key ? value : null;
+
+String _networkLabel(NetworkStatus status) => switch (status) {
+  NetworkStatus.online => Strings.online,
+  NetworkStatus.connecting => Strings.connecting,
+  NetworkStatus.offline => Strings.offline,
+};
+
+class ConversationListScreen extends ConsumerWidget {
+  const ConversationListScreen({
+    super.key,
+    required this.session,
+    required this.openConversation,
+    required this.openComputers,
+    required this.openSettings,
+    this.banner,
+  });
+  final SessionHandle session;
+  final ValueChanged<String> openConversation;
+  final VoidCallback openComputers;
+  final VoidCallback openSettings;
+
+  /// A standing notice from composition, such as a demo-build label.
+  final String? banner;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(conversationListProvider);
+    final data = _own(async.asData?.value, (v) => v.sessionKey, session);
+    final network = _own(
+      ref.watch(networkProvider).asData?.value,
+      (v) => v.sessionKey,
+      session,
+    );
+    return PageSurface(
+      title: Strings.chats,
+      children: [
+        const SectionHeading(
+          title: Strings.chatsHeading,
+          description: Strings.chatsDetail,
+        ),
+        if (banner != null) Notice(text: banner!),
+        ActionGroup(
+          children: [
+            StatusBadge(
+              label: _networkLabel(network?.status ?? NetworkStatus.offline),
+              highlighted: network?.status == NetworkStatus.online,
+            ),
+            SecondaryAction(label: Strings.computers, onPressed: openComputers),
+            SecondaryAction(label: Strings.settings, onPressed: openSettings),
+          ],
+        ),
+        ActionButton(
+          label: Strings.newChat,
+          pendingLabel: Strings.newChat,
+          onPressed: () {
+            final repository = ref.read(chatRepositoryProvider);
+            if (repository == null || !session.isActive) return;
+            openConversation(repository.create());
+          },
+        ),
+        AsyncContent(
+          loadingLabel: Strings.loading,
+          emptyLabel: Strings.noChats,
+          retryLabel: Strings.retry,
+          loading: data == null && async.isLoading,
+          errorMessage: async.hasError
+              ? Strings.failure(FailureKind.unexpected)
+              : null,
+          content: data == null || data.conversations.isEmpty
+              ? null
+              : Section(
+                  children: [
+                    for (final conversation in data.conversations)
+                      ActionTile(
+                        title: conversation.title.isEmpty
+                            ? Strings.untitled
+                            : conversation.title,
+                        highlighted: conversation.busy,
+                        status: StatusBadge(
+                          label: _listStatus(conversation),
+                          highlighted: conversation.busy,
+                        ),
+                        onPressed: () => openConversation(conversation.id),
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+String _listStatus(Conversation conversation) {
+  if (conversation.turns.isEmpty) return Strings.untitled;
+  final last = conversation.turns.last;
+  return switch (last.phase) {
+    AnswerPhase.complete => Strings.assistant,
+    AnswerPhase.stopped => Strings.stop,
+    AnswerPhase.failed => Strings.retry,
+    null => Strings.you,
+    _ => Strings.answering,
+  };
+}
+
+class ConversationScreen extends ConsumerWidget {
+  const ConversationScreen({
+    super.key,
+    required this.session,
+    required this.conversationId,
+    required this.openModels,
+    required this.closed,
+  });
+  final SessionHandle session;
+  final String conversationId;
+  final VoidCallback openModels;
+
+  /// Called after this conversation is deleted from here.
+  final VoidCallback closed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resource = _own(
+      ref.watch(conversationProvider(conversationId)).asData?.value,
+      (v) => v.sessionKey,
+      session,
+    );
+    final network = _own(
+      ref.watch(networkProvider).asData?.value,
+      (v) => v.sessionKey,
+      session,
+    );
+    if (resource != null && resource.conversation == null) {
+      return const PageSurface(
+        title: Strings.chats,
+        children: [BodyCopy(Strings.missing)],
+      );
+    }
+
+    /// Runs a command for this session; an [AppFailure] reaches the caller.
+    Future<void> run(Future<void> Function(ChatRepository) command) async {
+      final repository = ref.read(chatRepositoryProvider);
+      if (repository == null || !session.isActive) return;
+      await command(repository);
+    }
+
+    return _Thread(
+      conversation: resource?.conversation,
+      network: network,
+      openModels: openModels,
+      send: (text) => run((r) => r.send(conversationId, text)),
+      stop: () => run((r) => r.stop(conversationId)),
+      retry: () => run((r) => r.retry(conversationId)),
+      remove: () {
+        ref.read(chatRepositoryProvider)?.remove(conversationId);
+        closed();
+      },
+    );
+  }
+}
+
+/// Owns the unsent draft, which ends with the route.
+class _Thread extends HookWidget {
+  const _Thread({
+    required this.conversation,
+    required this.network,
+    required this.openModels,
+    required this.send,
+    required this.stop,
+    required this.retry,
+    required this.remove,
+  });
+  final Conversation? conversation;
+  final NetworkResource? network;
+  final VoidCallback openModels;
+  final Future<void> Function(String) send;
+  final Future<void> Function() stop;
+  final Future<void> Function() retry;
+  final VoidCallback remove;
+
+  @override
+  Widget build(BuildContext context) {
+    final input = useTextEditingController();
+    final refusal = useState<FailureKind?>(null);
+    useListenable(input);
+    final turns = conversation?.turns ?? const <Turn>[];
+
+    final allowed = network?.networkAnswersAllowed ?? true;
+    final models = network?.models ?? const <ModelOption>[];
+    final chosen =
+        models.where((m) => m.id == conversation?.modelId).firstOrNull ??
+        models.where((m) => m.available).firstOrNull;
+    final busy = conversation?.busy ?? false;
+
+    /// A command refused before any attempt shows why, in place.
+    Future<void> guard(Future<void> Function() command) async {
+      refusal.value = null;
+      try {
+        await command();
+      } on AppFailure catch (failure) {
+        if (context.mounted) refusal.value = failure.kind;
+      }
+    }
+
+    return ThreadSurface(
+      title: conversation == null || conversation!.title.isEmpty
+          ? Strings.untitled
+          : conversation!.title,
+      actions: [
+        SecondaryAction(label: Strings.remove, onPressed: busy ? null : remove),
+      ],
+      footer: Composer(
+        controller: input,
+        hint: Strings.composerHint,
+        sendLabel: Strings.send,
+        stopLabel: Strings.stop,
+        busy: busy,
+        leading: ActionGroup(
+          children: [
+            SecondaryAction(
+              label: chosen == null
+                  ? Strings.answerOn
+                  : '${Strings.answerOn}: ${chosen.name}',
+              onPressed: busy ? null : openModels,
+            ),
+          ],
+        ),
+        note: !allowed
+            ? Strings.discloseOff
+            : chosen != null && !chosen.available
+            ? Strings.noComputer
+            : Strings.discloseRemote,
+        onSend: input.text.trim().isEmpty || !allowed
+            ? null
+            : () {
+                final text = input.text;
+                input.clear();
+                unawaited(
+                  guard(() async {
+                    try {
+                      await send(text);
+                    } on AppFailure {
+                      // Refused before any attempt: give the draft back.
+                      if (input.text.isEmpty) input.text = text;
+                      rethrow;
+                    }
+                  }),
+                );
+              },
+        onStop: () => unawaited(guard(stop)),
+      ),
+      children: [
+        for (final turn in turns)
+          if (turn.role == TurnRole.user)
+            MessageBubble(text: turn.text, author: Strings.you, outgoing: true)
+          else
+            MessageBubble(
+              text: turn.text,
+              author: Strings.assistant,
+              failed: turn.phase == AnswerPhase.failed,
+              status: _turnStatus(turn),
+              caption: _turnCaption(turn),
+              actions: [
+                if (identical(turn, turns.last) &&
+                    (conversation?.canRetry ?? false))
+                  SecondaryAction(
+                    label: Strings.retryAnswer,
+                    onPressed: () => unawaited(guard(retry)),
+                  ),
+              ],
+            ),
+        if (refusal.value case final kind?)
+          Notice(text: Strings.failure(kind), tone: NoticeTone.warning),
+      ],
+    );
+  }
+}
+
+String? _turnStatus(Turn turn) => switch (turn.phase) {
+  AnswerPhase.finding || AnswerPhase.verifying => Strings.finding,
+  AnswerPhase.admitting => Strings.checking(turn.recipient ?? ''),
+  AnswerPhase.streaming => Strings.answering,
+  AnswerPhase.stopped => Strings.stopped,
+  AnswerPhase.failed =>
+    '${Strings.failure(turn.failure ?? FailureKind.unexpected)} '
+        '${turn.promptSent ? Strings.promptWasSent : Strings.promptNotSent}',
+  AnswerPhase.complete || null => null,
+};
+
+String? _turnCaption(Turn turn) {
+  final recipient = turn.recipient;
+  if (recipient == null) return null;
+  if (turn.phase == AnswerPhase.complete) {
+    return Strings.answeredBy(recipient, verified: turn.receiptVerified);
+  }
+  return turn.promptSent ? Strings.sentTo(recipient) : null;
+}
+
+class ModelsScreen extends ConsumerWidget {
+  const ModelsScreen({
+    super.key,
+    required this.session,
+    required this.conversationId,
+    required this.done,
+  });
+  final SessionHandle session;
+  final String conversationId;
+  final VoidCallback done;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final network = _own(
+      ref.watch(networkProvider).asData?.value,
+      (v) => v.sessionKey,
+      session,
+    );
+    final conversation = _own(
+      ref.watch(conversationProvider(conversationId)).asData?.value,
+      (v) => v.sessionKey,
+      session,
+    )?.conversation;
+    return PageSurface(
+      title: Strings.answerOn,
+      children: [
+        const SectionHeading(
+          title: Strings.models,
+          description: Strings.modelsDetail,
+        ),
+        AsyncContent(
+          loadingLabel: Strings.loading,
+          emptyLabel: Strings.noComputers,
+          retryLabel: Strings.retry,
+          loading: network == null,
+          content: network == null
+              ? null
+              : Section(
+                  children: [
+                    for (final model in network.models)
+                      ChoiceTile(
+                        title: model.name,
+                        detail: Strings.modelDetail(
+                          model.readyComputers,
+                          model.busyComputers,
+                        ),
+                        selected: model.id == conversation?.modelId,
+                        onPressed: () {
+                          final repository = ref.read(chatRepositoryProvider);
+                          if (repository == null || !session.isActive) return;
+                          try {
+                            repository.selectModel(conversationId, model.id);
+                            done();
+                          } on AppFailure {
+                            // An answer started meanwhile; the choice stands.
+                          }
+                        },
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class ComputersScreen extends ConsumerWidget {
+  const ComputersScreen({super.key, required this.session});
+  final SessionHandle session;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(networkProvider);
+    final network = _own(async.asData?.value, (v) => v.sessionKey, session);
+    final names = {
+      for (final model in network?.models ?? const <ModelOption>[])
+        model.id: model.name,
+    };
+    return PageSurface(
+      title: Strings.network,
+      children: [
+        const SectionHeading(
+          title: Strings.networkHeading,
+          description: Strings.networkDetail,
+        ),
+        ActionGroup(
+          children: [
+            StatusBadge(
+              label: _networkLabel(network?.status ?? NetworkStatus.offline),
+              highlighted: network?.status == NetworkStatus.online,
+            ),
+            SecondaryAction(
+              label: Strings.reconnect,
+              onPressed: network?.status == NetworkStatus.connecting
+                  ? null
+                  : () => unawaited(
+                      ref.read(chatRepositoryProvider)?.reconnect(),
+                    ),
+            ),
+          ],
+        ),
+        AsyncContent(
+          loadingLabel: Strings.loading,
+          emptyLabel: Strings.noComputers,
+          retryLabel: Strings.reconnect,
+          loading: network == null && async.isLoading,
+          errorMessage: network?.failure == null
+              ? null
+              : Strings.failure(network!.failure!),
+          onRetry: () =>
+              unawaited(ref.read(chatRepositoryProvider)?.reconnect()),
+          content: network == null || network.computers.isEmpty
+              ? null
+              : Section(
+                  children: [
+                    for (final computer in network.computers)
+                      ContentCard(
+                        children: [
+                          StatusBadge(
+                            label: !computer.ready
+                                ? Strings.notReady
+                                : computer.busy
+                                ? Strings.busy
+                                : Strings.ready,
+                            highlighted: computer.ready && !computer.busy,
+                          ),
+                          LabeledValue(
+                            label: Strings.identity,
+                            value: computer.participantId ?? Strings.unproven,
+                          ),
+                          LabeledValue(
+                            label: Strings.model,
+                            value: names[computer.modelId] ?? computer.modelId,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({
+    super.key,
+    required this.session,
+    required this.forget,
+  });
+  final SessionHandle session;
+  final VoidCallback forget;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final network = _own(
+      ref.watch(networkProvider).asData?.value,
+      (v) => v.sessionKey,
+      session,
+    );
+    return PageSurface(
+      title: Strings.settings,
+      children: [
+        ContentCard(
+          children: [
+            SwitchRow(
+              label: Strings.allowNetwork,
+              description: Strings.allowNetworkDetail,
+              value: network?.networkAnswersAllowed ?? true,
+              onChanged: network == null
+                  ? null
+                  : (value) => unawaited(
+                      ref
+                          .read(chatRepositoryProvider)
+                          ?.setNetworkAnswersAllowed(value),
+                    ),
+            ),
+          ],
+        ),
+        ContentCard(
+          children: [
+            const SectionHeading(title: Strings.thisDevice),
+            const BodyCopy(Strings.thisDeviceDetail),
+            LabeledValue(
+              label: Strings.identity,
+              value: session.key.identity.accountId,
+            ),
+            const BodyCopy(Strings.forgetDetail),
+            SecondaryAction(label: Strings.forget, onPressed: forget),
+          ],
+        ),
+      ],
+    );
+  }
+}

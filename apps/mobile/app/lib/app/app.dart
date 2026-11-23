@@ -15,8 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui/ui.dart';
 
 import '../design_system/branding.dart';
-import '../features/tasks/infrastructure/memory_task_server.dart';
-import '../features/tasks/presentation/task_screens.dart';
+import '../features/chat/presentation/chat_screens.dart';
 import '../l10n/strings.dart';
 import 'providers.dart';
 import 'session_gate.dart';
@@ -33,119 +32,102 @@ class ReploidApp extends ConsumerWidget {
     supportedLocales: const [Locale('en')],
     home: SessionGate(
       state: ref.watch(sessionStateProvider),
-      signedOut: (_) => const _SignIn(),
+      signedOut: (_) => const _Start(),
       transitioning: (_) => const PageSurface(
         title: Strings.title,
         children: [BodyCopy(Strings.switching)],
       ),
-      failure: (_, _) => const _SignIn(failed: true),
+      failure: (_, _) => const _Start(failed: true),
       ready: (_, session) => ScaffoldMessenger(
         child: Navigator(
           onGenerateRoute: (settings) => MaterialPageRoute<void>(
             settings: settings,
-            builder: (context) => TaskListScreen(
-              session: session,
-              actions: _AccountActions(session: session),
-              openTask: (id) => unawaited(
-                Navigator.of(context).push<void>(
-                  MaterialPageRoute(
-                    builder: (context) => TaskDetailScreen(
-                      session: session,
-                      taskId: id,
-                      actions: _AccountActions(session: session),
-                      rejectNext: () => _simulate(
-                        context,
-                        ref,
-                        session,
-                        CompletionBehavior.reject,
-                      ),
-                      loseNext: () => _simulate(
-                        context,
-                        ref,
-                        session,
-                        CompletionBehavior.loseResponse,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            builder: (context) => _Home(session: session),
           ),
         ),
       ),
     ),
   );
-
-  void _simulate(
-    BuildContext context,
-    WidgetRef ref,
-    SessionHandle session,
-    CompletionBehavior behavior,
-  ) {
-    if (!session.isActive) return;
-    ref
-        .read(memoryServerProvider)
-        .simulateNextCompletion(session.key.identity, behavior);
-    showNotice(context, Strings.failureArmed);
-  }
 }
 
-class _AccountActions extends ConsumerWidget {
-  const _AccountActions({required this.session});
+/// The private routes of one session. The whole subtree is replaced when
+/// the session changes, so no route, draft or effect outlives it.
+class _Home extends ConsumerWidget {
+  const _Home({required this.session});
   final SessionHandle session;
+
+  void _push(BuildContext context, Widget Function(BuildContext) builder) =>
+      unawaited(
+        Navigator.of(context).push<void>(MaterialPageRoute(builder: builder)),
+      );
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ConversationListScreen(
+    session: session,
+    banner: ref.watch(demoNetworkProvider) ? Strings.demoNetwork : null,
+    openComputers: () =>
+        _push(context, (_) => ComputersScreen(session: session)),
+    openSettings: () => _push(
+      context,
+      (_) => SettingsScreen(
+        session: session,
+        forget: () =>
+            unawaited(ref.read(sessionStateProvider.notifier).forget()),
+      ),
+    ),
+    openConversation: (id) => _push(
+      context,
+      (context) => ConversationScreen(
+        session: session,
+        conversationId: id,
+        closed: () => Navigator.of(context).maybePop(),
+        openModels: () => _push(
+          context,
+          (context) => ModelsScreen(
+            session: session,
+            conversationId: id,
+            done: () => Navigator.of(context).maybePop(),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _Start extends ConsumerWidget {
+  const _Start({this.failed = false});
+  final bool failed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final other = session.key.identity.accountId == 'A' ? 'B' : 'A';
-    return ActionGroup(
+    final status = ref.watch(startStatusProvider);
+    return PageSurface(
+      title: Strings.title,
       children: [
-        SecondaryAction(
-          label: other == 'A' ? Strings.accountA : Strings.accountB,
-          onPressed: () => unawaited(
-            ref.read(sessionStateProvider.notifier).activate(other),
-          ),
+        const SectionHeading(
+          title: Strings.welcome,
+          description: Strings.welcomeDetail,
         ),
-        SecondaryAction(
-          label: Strings.signOut,
-          onPressed: () =>
-              unawaited(ref.read(sessionStateProvider.notifier).signOut()),
+        ContentCard(
+          children: [
+            const BodyCopy(Strings.startDetail),
+            if (ref.watch(demoNetworkProvider))
+              const Notice(text: Strings.demoNetwork),
+            if (failed || status == StartStatus.failed)
+              const Notice(
+                text: Strings.sessionFailure,
+                tone: NoticeTone.error,
+              ),
+            ActionButton(
+              label: Strings.start,
+              pendingLabel: Strings.starting,
+              pending: status == StartStatus.starting,
+              onPressed: () =>
+                  unawaited(ref.read(sessionStateProvider.notifier).start()),
+            ),
+          ],
         ),
       ],
     );
   }
-}
-
-class _SignIn extends ConsumerWidget {
-  const _SignIn({this.failed = false});
-  final bool failed;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => PageSurface(
-    title: Strings.title,
-    children: [
-      const SectionHeading(
-        title: Strings.welcome,
-        description: Strings.welcomeDetail,
-      ),
-      ContentCard(
-        children: [
-          const SectionHeading(title: Strings.chooseAccount),
-          BodyCopy(failed ? Strings.sessionFailure : Strings.demo),
-          ActionButton(
-            label: Strings.accountA,
-            pendingLabel: Strings.switching,
-            onPressed: () => unawaited(
-              ref.read(sessionStateProvider.notifier).activate('A'),
-            ),
-          ),
-          SecondaryAction(
-            label: Strings.accountB,
-            onPressed: () => unawaited(
-              ref.read(sessionStateProvider.notifier).activate('B'),
-            ),
-          ),
-        ],
-      ),
-    ],
-  );
 }

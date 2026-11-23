@@ -11,13 +11,11 @@ class ThreadSurface extends StatelessWidget {
     required this.children,
     required this.footer,
     this.actions = const [],
-    this.scrollController,
   });
   final String title;
   final List<Widget> children;
   final Widget footer;
   final List<Widget> actions;
-  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -29,29 +27,48 @@ class ThreadSurface extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: spacing.contentWidth),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ListView.separated(
-                    controller: scrollController,
-                    padding: EdgeInsets.all(spacing.inset),
-                    itemCount: children.length,
-                    separatorBuilder: (_, _) => SizedBox(height: spacing.gap),
-                    itemBuilder: (_, index) => children[index],
+            // With large text on a small phone the footer can want more
+            // than the screen. It is capped and scrolls, so the thread
+            // always keeps some room and nothing is clipped.
+            child: LayoutBuilder(
+              builder: (context, constraints) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Reversed and shrink-wrapped: a short thread sits at
+                  // the top, a long one stays pinned to its newest turn
+                  // while text streams in, with no scroll commands.
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ListView.separated(
+                        reverse: true,
+                        shrinkWrap: true,
+                        padding: EdgeInsets.all(spacing.inset),
+                        itemCount: children.length,
+                        separatorBuilder: (_, _) =>
+                            SizedBox(height: spacing.gap),
+                        itemBuilder: (_, index) =>
+                            children[children.length - 1 - index],
+                      ),
+                    ),
                   ),
-                ),
-                const Divider(),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    spacing.inset,
-                    spacing.gap,
-                    spacing.inset,
-                    spacing.gap,
+                  const Divider(),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight * .6,
+                    ),
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(
+                        spacing.inset,
+                        spacing.gap,
+                        spacing.inset,
+                        spacing.gap,
+                      ),
+                      child: footer,
+                    ),
                   ),
-                  child: footer,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
