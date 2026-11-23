@@ -78,9 +78,9 @@ On restart with the same profile, the stage reacquires the exclusive filesystem 
 process lifetime before reporting an interrupted owner to the service. On Linux the check uses the boot,
 PID namespace and process start time. A copied journal, a live predecessor, or an ambiguous PID namespace
 cannot close the admission. This lifecycle report carries the last signed step when one exists. The service
-still requires the requester’s signed output count and all other stages’ closing evidence. It charges only
-the acknowledged prefix and returns `failed` with reason `interrupted-stage-owner` for an interrupted
-execution. `POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
+still requires the requester’s signed output count and all other stages’ closing evidence. An interrupted
+execution charges the requester nothing and pays no stage, and returns `failed` with reason
+`interrupted-stage-owner`. A reservation made before these terms keeps its acknowledged-prefix charge. `POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
 Unpublished work, physical GPU recovery and output text beyond the acknowledged prefix remain unknown.
 
 Both the service and the stage need the owned-admission operation. Legacy stages still use their existing

@@ -7,7 +7,7 @@ import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/pa
 import { assert, creditPolicy, digest, enrollComputers, fleetCreditQuote, integer, same, text } from './contract.js';
 import { createCreditRecovery } from './credit-recovery.js';
 import { verifyCreditEvidence } from './credit-evidence.js';
-import { creditSettlementDeltas } from './credit-shares.js';
+import { creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
 /** Non-redeemable mutual service credit. No purchased lots, issuance, or payout path. */
 export async function openFleetCredits({ file, computers, policy: supplied, now = Date.now }) {
@@ -83,10 +83,14 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         assert(value.route.requesterId === value.consumer && value.route.route.modelId === value.model.id && value.route.route.modelIdentity === value.model.identity,
           'Partition model differs');
       }
+      assert(value.unfinishedTerms === undefined, 'Unfinished-answer terms are set by the ledger');
+      // A retry of a reservation made before these terms existed must still find it.
+      const earlierHash = createHash('sha256').update(canonicalize(value)).digest('hex');
+      if (value.mode === 'partition') value.unfinishedTerms = UNFINISHED_ANSWER_TERMS;
       const requestHash = createHash('sha256').update(canonicalize(value)).digest('hex');
       return transaction(() => {
         const prior = read(value.id);
-        if (prior) { assert(prior.binding.requestHash === requestHash, 'Reservation identity reused with different terms'); return prior.binding; }
+        if (prior) { assert([requestHash, earlierHash].includes(prior.binding.requestHash), 'Reservation identity reused with different terms'); return prior.binding; }
         if (value.acceptedQuote !== undefined) assert(same(value.acceptedQuote, fleetCreditQuote(policy, value.maxOutputTokens, value.mode)),
           'Accepted service-credit quote changed; review terms before retrying');
         const account = db.prepare('SELECT * FROM fleet_accounts WHERE id=?').get(consumer.computerId);
@@ -127,7 +131,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           return current.outcome;
         }
         assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
-        const request = current.binding, totalUnits = observed.fixedCharge ?? observed.outputTokens * policy.creditsPerOutputToken;
+        const request = current.binding, totalUnits = settledCreditUnits(request, observed, policy.creditsPerOutputToken);
         const { credits, ownComputeUnits, charge, deltas } = creditSettlementDeltas(request, totalUnits, peer => accountFor(peer).computerId);
         for (const work of observed.workIds) db.prepare('INSERT INTO fleet_work VALUES (?,?)').run(work, id);
         for (const [computerId, delta] of deltas) {

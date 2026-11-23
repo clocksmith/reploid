@@ -19,7 +19,7 @@ import { verifyParticipantSignature } from '../../packages/reploid/src/artifacts
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import { assert, creditPolicy, digest, enrollComputers, FLEET_SERVICE_REQUEST_SCHEMA, integer, same, text } from './contract.js';
 import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
-import { creditSettlementDeltas } from './credit-shares.js';
+import { creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
 export const FLEET_CREDIT_STATEMENT_SCHEMA = 'reploid.fleet-credit-statement/v1';
 
@@ -79,7 +79,8 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
   assert(typeof requestHash === 'string' && requestHash === expectedHash, 'Request binding hash mismatch');
   assert(Number.isSafeInteger(createdAt) && deadline === createdAt + policy.maxRequestMs
     && maximum === request.maxOutputTokens * policy.creditsPerOutputToken
-    && (terminalCharge === null || request.mode === 'whole-model' && terminalCharge === 0),
+    && (terminalCharge === null || request.mode === 'whole-model' && terminalCharge === 0)
+    && (request.unfinishedTerms === undefined || request.mode === 'partition' && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS),
   'Request ceiling or deadline differs from policy terms');
 }
 
@@ -206,7 +207,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
         assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');
         assert(!seenWorkIds.has(workId), 'Duplicate settled work evidence');
       }
-      const totalUnits = observed.fixedCharge ?? observed.outputTokens * policy.creditsPerOutputToken;
+      const totalUnits = settledCreditUnits(entry.request, observed, policy.creditsPerOutputToken);
       const split = creditSettlementDeltas(entry.request, totalUnits, peer => enrollment.byPeer.get(peer).computerId);
       assert(split.deltas.has(statement.computerId), 'Journal entry account did not participate in settled request');
       recomputedDelta = split.deltas.get(statement.computerId);
