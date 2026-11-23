@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Reploid connects directly to computers that answer your prompts, including ones on your local network.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Reploid does not use the camera. Its connection library includes camera support that this app never turns on.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Reploid does not use the microphone. Its connection library includes microphone support that this app never turns on.</string>
 </dict>
 </plist>
