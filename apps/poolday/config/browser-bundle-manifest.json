@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 694983,
-      "sha256": "sha256:b4599842f65ca8303ccf9b70b36f1c59836881a3701e3df81a086aaf37e295d7"
+      "sha256": "sha256:6e7ec7cf43781112bc4ee4db8a334073af836227f9732ba0314cb1d741bc1925"
     },
     {
       "path": "config/module-registry.json",
@@ -3800,8 +3800,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2721218,
-      "sha256": "sha256:1a6524e205ca66c05db5e3e381a9c0d789a6311edc8628b8a5687b5f5f878082"
+      "byteLength": 2721744,
+      "sha256": "sha256:0b01807533ecf4a52c4c44849857a7c0ba92ed6e5980aed10ba00748b45d1f36"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3885,8 +3885,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 73798,
-      "sha256": "sha256:49ee4155eca25c84f586d3af00f47aef63b67c4d530dc4f577d874f6e44c4976"
+      "byteLength": 74315,
+      "sha256": "sha256:cce5ce79b68d0c9b8851e2bb158b8a6b6ba4a94d31a80fd01c50bf5f5e7adcf6"
     },
     {
       "path": "ui/pool-home/dashboard-controls.js",
@@ -12430,8 +12430,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 75269,
-      "sha256": "sha256:27c19c4a8a57643e1d953b9234e24f86dea3107838a43e328dcfd93b29ca46c9"
+      "byteLength": 76233,
+      "sha256": "sha256:fb4343a93bdf7667e795256cae3b37278ed4a3816744373b96a7f9a8e6638cdc"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -12486,7 +12486,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 61196,
-      "sha256": "sha256:988fb489a1318edca7952869f8033ca18f1bbfd2ad6a6b455092cf010fd044e0"
+      "sha256": "sha256:bf21e430bf81d99864bcb7b97b7aa9fdc583efea8e29c57235e428cbafe79202"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12705,8 +12705,8 @@
     },
     {
       "path": "vendor/reploid/transport/swarm.js",
-      "byteLength": 49147,
-      "sha256": "sha256:9b1a330ad7419b68d29a5427df4bf6c1d9683ecb24964674f8a09545554befda"
+      "byteLength": 49403,
+      "sha256": "sha256:7932d21c548af830c5fbcb58cd9f38f7996a40280ca29ed79285f4e11a56cc3e"
     },
     {
       "path": "vendor/reploid/transport/tool-offer-channel.js",
@@ -12774,5 +12774,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:d29e6859b4a4fb4d8a247e61cbb5f6c43c86f490c584470d974c5f2d081f0df3"
+  "bundleHash": "sha256:d056d8a899906e2042095b5caf9a2c1190bd4e0b68dc354c2d7b56291a51abd7"
 }

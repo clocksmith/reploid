@@ -1472,8 +1472,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 75269,
-      "sha256": "27c19c4a8a57643e1d953b9234e24f86dea3107838a43e328dcfd93b29ca46c9"
+      "bytes": 76233,
+      "sha256": "fb4343a93bdf7667e795256cae3b37278ed4a3816744373b96a7f9a8e6638cdc"
     },
     {
       "path": "mesh/peer-identity.js",
@@ -1857,8 +1857,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 49147,
-      "sha256": "9b1a330ad7419b68d29a5427df4bf6c1d9683ecb24964674f8a09545554befda"
+      "bytes": 49403,
+      "sha256": "7932d21c548af830c5fbcb58cd9f38f7996a40280ca29ed79285f4e11a56cc3e"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",
