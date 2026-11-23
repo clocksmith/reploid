@@ -54,7 +54,7 @@ repository, its network connection and every conversation belong to that
 session and end with it.
 
 The requester wire protocol is not defined here. Its single definition is the
-contract in `packages/reploid/src/contracts/requester/` at the repository root;
+contract in `packages/reploid/contracts/requester/` at the repository root;
 `app/lib/infrastructure/reploid_api/` implements it and is tested against the
 contract's vectors. External packages for cryptography, secure storage and
 WebRTC are allowlisted for infrastructure only.

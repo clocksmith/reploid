@@ -8,6 +8,7 @@ dart_bin="$(dirname "$flutter_path")/dart"
 "$dart_bin" format --output=none --set-exit-if-changed packages app/lib app/test app/integration_test tool
 "$flutter_bin" analyze --no-pub
 "$dart_bin" run tool/check_boundaries.dart
+"$dart_bin" run tool/generate_contract.dart --check
 "$dart_bin" test tool/test --reporter expanded
 (cd packages/core && "$dart_bin" test --reporter expanded)
 (cd packages/ui && "$flutter_path" test --no-pub --reporter expanded)

@@ -39,9 +39,9 @@ memory only.
 ## One source of truth for the API
 
 The requester wire protocol is defined once, in
-`packages/reploid/src/contracts/requester/` at the repository root: a
-machine-readable contract and test vectors generated from the web client's
-own modules. The web code is checked against that contract, and this app's
+`packages/reploid/contracts/requester/` at the repository root, as a
+machine-readable contract. Its test vectors, generated from the web client's
+own modules, are in `tests/fixtures/requester-conformance/`. The web code is checked against that contract, and this app's
 protocol code is tested against the same vectors. A change to the protocol
 is a change to the contract first.
 

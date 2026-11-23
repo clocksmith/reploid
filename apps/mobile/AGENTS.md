@@ -9,7 +9,7 @@ specific to the Flutter app.
 - `packages/core` is pure Dart. `packages/ui` holds every visual decision;
   feature presentation composes ui components and imports no visual symbols.
 - The wire protocol has one definition:
-  `packages/reploid/src/contracts/requester/` at the repository root. Change
+  `packages/reploid/contracts/requester/` at the repository root. Change
   the contract and its vectors first, then this app's protocol code. Never
   hand-copy a constant or message shape that the contract already states.
 - A prompt may leave the device only after the recipient has proven its

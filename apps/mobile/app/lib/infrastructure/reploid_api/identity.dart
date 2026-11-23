@@ -33,6 +33,27 @@ String peerIdFromPublicJwk(Jwk publicJwk) {
 
 bool _isEd25519(Jwk publicJwk) => publicJwk['crv'] == 'Ed25519';
 
+/// Whether the web platform would import [jwk] as a verification key. A key
+/// it would refuse proves nothing here either, so both clients agree on
+/// which computers have a usable identity.
+bool importablePublicJwk(Jwk jwk) {
+  final ed = _isEd25519(jwk);
+  final ops = jwk['key_ops'];
+  bool text(String name) => jwk[name] is String;
+  return !jwk.containsKey('d') &&
+      (jwk['use'] == null || jwk['use'] == 'sig') &&
+      (ops == null || (ops is List && ops.contains('verify'))) &&
+      (ed
+          ? jwk['kty'] == 'OKP' &&
+                text('x') &&
+                const {null, 'Ed25519', 'EdDSA'}.contains(jwk['alg'])
+          : jwk['kty'] == 'EC' &&
+                jwk['crv'] == 'P-256' &&
+                text('x') &&
+                text('y') &&
+                const {null, 'ES256'}.contains(jwk['alg']));
+}
+
 /// True only for a well-formed signature by the key in [publicJwk].
 /// Ed25519, or ECDSA P-256 with SHA-256 and a raw `r || s` signature.
 Future<bool> verifySignature(
@@ -41,6 +62,7 @@ Future<bool> verifySignature(
   List<int> signature,
 ) async {
   try {
+    if (!importablePublicJwk(publicJwk)) return false;
     if (_isEd25519(publicJwk)) {
       final key = fromBase64Url(publicJwk['x']! as String);
       if (key.length != 32 || signature.length != 64) return false;
@@ -52,7 +74,6 @@ Future<bool> verifySignature(
         ),
       );
     }
-    if (publicJwk['kty'] != 'EC' || publicJwk['crv'] != 'P-256') return false;
     if (signature.length != 64) return false;
     final curve = ECCurve_secp256r1();
     final point = curve.curve.createPoint(
