@@ -133,8 +133,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
       contentType: filename.endsWith('.json') ? 'application/json' : 'application/octet-stream' });
   });
   // Current controls: the model to seed is chosen under Computers → Download options;
-  // compute contribution lives under Computers → Contribute this computer. Both switches are
-  // on by default (cached sharing), so a switch is turned off before a model is chosen.
+  // compute contribution lives under Computers → Contribute this computer. Both switches start
+  // off; one that a previous step turned on is turned off before a model is chosen.
   const openContribution = async page => {
     await openFileSharing(page);
     const selection = page.locator('[data-contribution-model]');

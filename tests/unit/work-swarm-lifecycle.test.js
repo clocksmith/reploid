@@ -367,7 +367,7 @@ it('storage modes and stopping remain independent of partition compute participa
   } finally {await swarm.close();}
 });
 
-it('defaults to cached sharing, prepares without downloads, and persists separate off switches', async () => {
+it('serves nothing until the producer chooses, prepares without downloads, and persists separate switches', async () => {
   const { createSigningIdentity } = await import('../../packages/reploid/src/artifacts/identity.js');
   ports.ensure.mockResolvedValue(await createSigningIdentity({ algorithm: 'Ed25519' }));
   ports.createTransport.mockReturnValue({ init: async () => true, disconnect() {}, onMessage() {}, broadcast() {} });
@@ -377,10 +377,20 @@ it('defaults to cached sharing, prepares without downloads, and persists separat
     resetGenerationState() {}, async *stream() {} })), close: vi.fn() };
   const prepareSource = vi.fn(async () => model.id), share = vi.fn(), stop = vi.fn();
   const swarm = fixture(service, {}, { prepareSource, share, stop });
-  expect(swarm.getState()).toMatchObject({ introductionAssistance: true, computeEnabled: true, filesEnabled: true });
-  await swarm.shareCachedModels([]);
-  expect(service.open).not.toHaveBeenCalled();
+  // A value the old automatic sharing wrote is not a choice anyone made.
+  values.set('REPLOID_CACHED_COMPUTE_ENABLED', 'true'); values.set('REPLOID_CACHED_FILES_ENABLED', 'true');
+  const untouched = fixture(service, {}, { prepareSource, share, stop });
+  expect(untouched.getState()).toMatchObject({ introductionAssistance: true, computeEnabled: false, filesEnabled: false });
+  await untouched.shareCachedModels([{ id: model.id, identity: model.identity }]);
+  expect(service.open).not.toHaveBeenCalled(); expect(prepareSource).not.toHaveBeenCalled(); expect(share).not.toHaveBeenCalled();
+  expect(untouched.getState().sharing).toBe(false);
+  await untouched.close();
+  expect(swarm.getState()).toMatchObject({ computeEnabled: false, filesEnabled: false });
   await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
+  expect(service.open).not.toHaveBeenCalled();
+  await swarm.allowCachedFiles(true);
+  await swarm.stop();
+  await swarm.allowCachedCompute(true);
   expect(prepareSource.mock.calls[0][1].cacheOnly).toBe(true);
   expect(share.mock.calls[0][2]).toEqual({ mode: 'cached-only' });
   expect(swarm.getState().sharing).toBe(true);
@@ -389,8 +399,9 @@ it('defaults to cached sharing, prepares without downloads, and persists separat
   expect(swarm.getState().sharing).toBe(true);
   expect(prepareSource.mock.calls[1][1].cacheOnly).toBe(true);
   await swarm.stop(); await swarm.stopFiles(); swarm.allowIntroductions(false);
+  const opened = service.open.mock.calls.length, shared = share.mock.calls.length;
   await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
-  expect(service.open).toHaveBeenCalledTimes(2); expect(share).toHaveBeenCalledTimes(2);
+  expect(service.open).toHaveBeenCalledTimes(opened); expect(share).toHaveBeenCalledTimes(shared);
   await swarm.close();
   const restored = fixture();
   expect(restored.getState()).toMatchObject({ introductionAssistance: false, computeEnabled: false, filesEnabled: false });
