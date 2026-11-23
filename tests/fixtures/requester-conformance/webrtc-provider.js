@@ -25,6 +25,16 @@
  *     --identity ed25519|ecdsa   fixed test key the provider signs with (default ed25519)
  *     --fail-after-chunks <n>    the model fails after n chunks
  *     --chunk-delay-ms <n>       pause before each chunk (default 20)
+ *
+ * Owner-desktop mode (the contract's owner pairing), as the native host runs with --owner-pairing:
+ *     --pairing                  issue one pairing code and add "pairing" (link, code, hostParticipantId, hostLabel,
+ *                                roomId, roomToken, expiresAt) to the ready line; pair the phone that sends the code;
+ *                                answer only requests from a paired phone. The room token is the pairing routing
+ *                                marker, so --token is not allowed with it.
+ *     --pairing-name <label>     the label in the link (default Workbench)
+ *     --pairing-expired          the code in the link has already expired
+ *     --pairing-decline          the desktop owner answers no
+ *     --pairing-forget-after-requests <n>  after n answered requests the desktop's pairing state is deleted
  */
 import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
@@ -39,17 +49,27 @@ import bootstrap from '../../../shared/config/swarm-bootstrap.json' with { type:
 import { createNativeParticipant, createNativeRtcAdapter } from '../../../server/native-participant.js';
 import { PublicSwarmServer } from '../../../server/public-swarm-server.js';
 import { ROOM_ID_PATTERN } from '../../../server/swarm-protocol.js';
-import { FIXED, fixedIdentity, fixedModel } from '../../../scripts/requester-contract/fixed-inputs.js';
+import { FIXED, FIXED_PAIRING, fixedIdentity, fixedModel } from '../../../scripts/requester-contract/fixed-inputs.js';
 import { createStubWholeModel } from '../../../scripts/requester-contract/harness.js';
+import { openPairingDesktop } from '../../../scripts/requester-contract/pairing-desktop.js';
 
 const log = text => process.stderr.write(`webrtc-provider: ${text}\n`);
 const { values } = parseArgs({ strict: true, options: { port: { type: 'string' }, host: { type: 'string' }, room: { type: 'string' },
-  token: { type: 'string' }, identity: { type: 'string' }, 'fail-after-chunks': { type: 'string' }, 'chunk-delay-ms': { type: 'string' } } });
+  token: { type: 'string' }, identity: { type: 'string' }, 'fail-after-chunks': { type: 'string' }, 'chunk-delay-ms': { type: 'string' },
+  pairing: { type: 'boolean' }, 'pairing-name': { type: 'string' }, 'pairing-expired': { type: 'boolean' },
+  'pairing-decline': { type: 'boolean' }, 'pairing-forget-after-requests': { type: 'string' } } });
 const need = (ok, message) => { if (!ok) { log(message); process.exit(1); } };
 const port = values.port === undefined ? 0 : Number(values.port);
 const host = values.host ?? '127.0.0.1';
 const roomId = values.room ?? `reploid-swarm-${randomUUID()}`;
-const token = values.token ?? `${randomUUID()}${randomUUID()}`;
+const pairingMode = values.pairing === true;
+const pairingName = (values['pairing-name'] ?? FIXED_PAIRING.desktopLabel).trim();
+const forgetAfterRequests = values['pairing-forget-after-requests'] === undefined ? null : Number(values['pairing-forget-after-requests']);
+need(pairingMode || !values['pairing-expired'] && !values['pairing-decline'] && forgetAfterRequests === null && values['pairing-name'] === undefined, 'the --pairing-... options need --pairing');
+need(!pairingMode || values.token === undefined, '--pairing uses the pairing routing marker as room token; do not pass --token');
+need(pairingName.length > 0 && pairingName.length <= 128, '--pairing-name must be 1 to 128 characters');
+need(forgetAfterRequests === null || Number.isSafeInteger(forgetAfterRequests) && forgetAfterRequests > 0, '--pairing-forget-after-requests must be a whole number above zero');
+let token = values.token ?? `${randomUUID()}${randomUUID()}`;
 const failAfterChunks = values['fail-after-chunks'] === undefined ? null : Number(values['fail-after-chunks']);
 const chunkDelayMs = values['chunk-delay-ms'] === undefined ? 20 : Number(values['chunk-delay-ms']);
 need(Number.isInteger(port) && port >= 0 && port <= 65535, '--port must be a port number');
@@ -66,11 +86,12 @@ const home = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-conformance-provid
 const swarm = new PublicSwarmServer({ logger });
 const server = http.createServer();
 server.on('upgrade', (request, socket, head) => swarm.handleUpgrade(request, socket, head));
-let provider = null, stopping = false;
+let provider = null, desktop = null, stopping = false;
 const stop = async code => {
   if (stopping) return;
   stopping = true;
   try { await provider?.close(); } catch (error) { log(`Provider close failed: ${error.message}`); }
+  try { await desktop?.close(); } catch (error) { log(`Pairing close failed: ${error.message}`); }
   swarm.close();
   await new Promise(resolve => server.close(resolve));
   await fs.rm(home, { recursive: true, force: true });
@@ -86,13 +107,21 @@ try {
   const rtcConfig = { iceTransportPolicy: 'all', iceServers: [] };
   let ready = false, requests = 0;
   const getState = () => ({ ready, phase: ready ? 'ready' : 'idle', modelIdentity: model.identity, adapterIdentities: [] });
-  const generate = createStubWholeModel({ model, chunks: FIXED.answerChunks, completion: FIXED.completion, failAfterChunks,
+  const answer = createStubWholeModel({ model, chunks: FIXED.answerChunks, completion: FIXED.completion, failAfterChunks,
     pause: () => new Promise(resolve => setTimeout(resolve, chunkDelayMs)),
     onCall: messages => log(`Request ${++requests}: generating for ${messages.length} message(s).`) });
+  if (pairingMode) {
+    desktop = await openPairingDesktop({ identity, roomId, label: pairingName, expired: values['pairing-expired'] === true,
+      decline: values['pairing-decline'] === true, forgetAfterRequests, log });
+    // As the native command does for a pairing room: the token is the routing marker, not a secret.
+    token = desktop.roomToken;
+  }
+  const generate = async (...args) => { const result = await answer(...args); desktop?.requestAnswered(); return result; };
   class HostWebSocket extends Socket { constructor(url) { super(url, { origin }); } }
   provider = await createNativeParticipant({ model, modelDirectory: home, identity, rtc: createNativeRtcAdapter(rtcModule),
     WebSocket: HostWebSocket, signalingUrl, roomId, roomToken: token, logger, executionMode: 'whole-model',
     getRtcConfig: async () => rtcConfig,
+    ...(desktop ? { ownerPairing: desktop.ownerPairing } : {}),
     nativeGpu: async () => { throw new Error('The conformance provider uses no GPU'); },
     createWholeModel: ({ onChange }) => ({
       getState, getExecutionState: getState,
@@ -106,7 +135,8 @@ try {
     model: { id: model.id, identity: model.identity, name: model.name },
     provider: { participantId: identity.peerId, algorithm: identity.algorithm, publicJwk: identity.publicJwk },
     answer: { chunks: [...FIXED.answerChunks], content: FIXED.answerChunks.join(''), completion: { ...FIXED.completion } },
-    mode: { failAfterChunks, chunkDelayMs } })}\n`);
+    mode: { failAfterChunks, chunkDelayMs },
+    ...(desktop ? { pairing: desktop.issue() } : {}) })}\n`);
   log(`Serving ${model.id} in ${roomId}. Stop with SIGTERM.`);
 } catch (error) {
   log(error.stack || error.message);

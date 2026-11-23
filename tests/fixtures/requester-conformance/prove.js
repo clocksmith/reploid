@@ -19,7 +19,14 @@
  *           over the line framing, and over real signaling and real WebRTC
  *           using only ws and @roamhq/wrtc.
  *
- *   node tests/fixtures/requester-conformance/prove.js [stdio|webrtc|minimal]
+ *   pairing owner pairing against both providers in --pairing mode: the real
+ *           phone-side code (apps/poolday/host/owner-pairing.js) and
+ *           minimal-requester.js each read the link, are refused while
+ *           unpaired, pair, and then ask the desktop by name; plus an expired
+ *           code, an owner who says no, a used code and a desktop that drops
+ *           the phone.
+ *
+ *   node tests/fixtures/requester-conformance/prove.js [stdio|webrtc|minimal|pairing]
  */
 import assert from 'node:assert/strict';
 import { spawn, execFile } from 'node:child_process';
@@ -34,7 +41,8 @@ import { verifyReceipt } from '../../../packages/reploid/src/artifacts/receipt.j
 import { fixedIdentity, fixedModel, FIXED } from '../../../scripts/requester-contract/fixed-inputs.js';
 import { createFakeNetwork, createInProcessSignaling, createRequesterStack, offerFromExternalPeer, quietLogger } from '../../../scripts/requester-contract/harness.js';
 import { validate } from '../../../scripts/requester-contract/schema-validator.js';
-import { createMinimalRequester, sdpFingerprint } from './minimal-requester.js';
+import { createMinimalRequester, sdpFingerprint, parsePairingLink, pairingRoomToken } from './minimal-requester.js';
+import { createBrowserOwnerPairing, parseOwnerPairingUrl } from '../../../apps/poolday/host/owner-pairing.js';
 
 const here = import.meta.dirname, root = path.resolve(here, '../../..');
 const contract = JSON.parse(await fs.readFile(path.join(root, 'packages/reploid/contracts/requester/requester-contract.json'), 'utf8'));
@@ -198,9 +206,9 @@ async function withMinimalOverStdio(args, run) {
 }
 
 /** minimal-requester.js over real signaling and real WebRTC, written from the contract's signaling section. */
-async function withMinimalOverWebrtc(run) {
+async function withMinimalOverWebrtc(run, args = []) {
   const [{ default: WebSocket }, { default: wrtc }] = await Promise.all([import('ws'), import('@roamhq/wrtc')]);
-  const provider = await startChild('webrtc-provider.js', []);
+  const provider = await startChild('webrtc-provider.js', args);
   const { ready } = provider;
   const selfId = crypto.randomUUID();
   const socket = new WebSocket(ready.wsUrl, { origin: ready.origin });
@@ -296,11 +304,131 @@ async function proveMinimal() {
   });
 }
 
+const DECLINED = /The provider declined this request\. The prompt was not sent\./;
+const memoryStorage = () => {
+  const data = new Map();
+  return { getItem: key => data.get(key) ?? null, setItem: (key, value) => { data.set(key, String(value)); }, removeItem: key => { data.delete(key); }, size: () => data.size };
+};
+const named = id => ({ kind: 'named', ids: [id] });
+
+async function provePairing() {
+  const vectors = JSON.parse(await fs.readFile(path.join(here, 'vectors.json'), 'utf8'));
+  for (const item of vectors.pairing.link.cases) assert.deepEqual(parsePairingLink(item.url), item.parsed, `link case "${item.name}"`);
+  for (const item of vectors.pairing.roomToken.cases) if (item.token) assert.equal(pairingRoomToken(item.roomId), item.token);
+  console.log(`pairing links: the from-the-contract parser agrees with the real one on ${vectors.pairing.link.cases.length} cases.`);
+
+  // The real phone-side code against the line provider.
+  await withStdioProvider(['--pairing'], async ({ stack, ready, seen }) => {
+    const storage = memoryStorage();
+    const phone = createBrowserOwnerPairing({ storage, getChannel: () => stack.pairingChannel(), connect: null, peerWaitMs: 2000 });
+    const target = parseOwnerPairingUrl(ready.pairing.link);
+    assert.deepEqual(target, { code: ready.pairing.code, hostParticipantId: ready.provider.participantId, hostLabel: ready.pairing.hostLabel, roomId: ready.roomId });
+    await assert.rejects(ask(stack, { recipients: named(target.hostParticipantId) }), DECLINED);
+    assert.ok(!seen.requester.includes('reploid:generation-request'), 'an unpaired phone must not have sent its prompt');
+    const record = await phone.pair(target);
+    assert.deepEqual(validate(contract.objects.pairingRecord, JSON.parse(storage.getItem(contract.constants.pairing.storageKey)), contract), []);
+    assert.equal(record.hostParticipantId, ready.provider.participantId);
+    assert.equal(phone.state().status, 'online');
+    for (let round = 0; round < 2; round++) {
+      const { result, privacy } = await ask(stack, { recipients: named(record.hostParticipantId) });
+      assert.equal(result.content, ready.answer.content);
+      assert.deepEqual(privacy.recipients, named(ready.provider.participantId));
+    }
+    // The code was single use.
+    await assert.rejects(phone.pair({ ...target, signal: AbortSignal.timeout(400) }), { name: 'TimeoutError' });
+    phone.unpair();
+    assert.equal(storage.size(), 0);
+    phone.close();
+    console.log('pairing over stdio (real phone-side code): refused while unpaired, paired, 2 named-recipient requests answered, used code got no answer.');
+  });
+  await withStdioProvider(['--pairing', '--pairing-expired'], async ({ stack, ready }) => {
+    const phone = createBrowserOwnerPairing({ storage: memoryStorage(), getChannel: () => stack.pairingChannel(), connect: null, peerWaitMs: 2000 });
+    assert.equal(ready.pairing.expired, true);
+    await assert.rejects(phone.pair({ ...parseOwnerPairingUrl(ready.pairing.link), signal: AbortSignal.timeout(400) }), { name: 'TimeoutError' });
+    assert.equal(phone.state().status, 'unpaired');
+    phone.close();
+    console.log('pairing over stdio --pairing-expired: no answer, nothing stored.');
+  });
+  await withStdioProvider(['--pairing', '--pairing-decline'], async ({ stack, ready }) => {
+    const phone = createBrowserOwnerPairing({ storage: memoryStorage(), getChannel: () => stack.pairingChannel(), connect: null, peerWaitMs: 2000 });
+    await assert.rejects(phone.pair(parseOwnerPairingUrl(ready.pairing.link)), /Desktop declined owner pairing/);
+    await assert.rejects(ask(stack, { recipients: named(ready.provider.participantId) }), DECLINED);
+    phone.close();
+    console.log('pairing over stdio --pairing-decline: declined, and requests stay refused.');
+  });
+  await withStdioProvider(['--pairing', '--pairing-forget-after-requests', '1'], async ({ stack, ready }) => {
+    const phone = createBrowserOwnerPairing({ storage: memoryStorage(), getChannel: () => stack.pairingChannel(), connect: null, peerWaitMs: 2000 });
+    const record = await phone.pair(parseOwnerPairingUrl(ready.pairing.link));
+    assert.equal((await ask(stack, { recipients: named(record.hostParticipantId) })).result.content, ready.answer.content);
+    await assert.rejects(ask(stack, { recipients: named(record.hostParticipantId) }), DECLINED);
+    assert.equal(phone.state().status, 'online', 'the phone still recognises the desktop that dropped it');
+    phone.close();
+    console.log('pairing over stdio --pairing-forget-after-requests 1: one answer, then refused before the prompt while the desktop still shows online.');
+  });
+
+  // The from-the-contract requester against both providers.
+  const minimalFlow = async ({ requester, ready }, where) => {
+    const link = parsePairingLink(ready.pairing.link);
+    assert.equal(link.hostParticipantId, ready.provider.participantId);
+    const refused = await requester.ask({ model: ready.model, messages: question, recipient: link.hostParticipantId }).then(() => null, error => error);
+    assert.match(refused?.message ?? '', DECLINED);
+    assert.equal(refused.promptSent, false);
+    // A link naming another desktop: the code must not leave.
+    await assert.rejects(requester.pair({ ...link, hostParticipantId: 'peer:000000000000000000000000' }), /Could not find the verified desktop/);
+    const record = await requester.pair(link);
+    assert.deepEqual(validate(contract.objects.pairingRecord, record, contract), []);
+    assert.equal(await requester.desktopStatus(record), 'online');
+    assert.equal(await requester.desktopStatus({ ...record, hostParticipantId: 'peer:000000000000000000000000' }), 'offline');
+    await requester.waitUntilReady(ready.model, 5000);
+    for (let round = 0; round < 2; round++) {
+      const answer = await requester.ask({ model: ready.model, messages: question, recipient: record.hostParticipantId });
+      assert.equal(answer.content, ready.answer.content);
+      assert.equal(answer.providerId, record.hostParticipantId);
+      assert.deepEqual(await verifyReceipt(answer.receipt), { providerValid: true, consumerValid: true, valid: true });
+      await requester.waitUntilReady(ready.model, 5000);
+    }
+    // A request pinned to another identity sends nothing.
+    const pinnedElsewhere = await requester.ask({ model: ready.model, messages: question, recipient: 'peer:000000000000000000000000' }).then(() => null, error => error);
+    assert.equal(pinnedElsewhere?.promptSent, false);
+    // The code was single use.
+    const replay = await requester.pair(link, { waitMs: 400 }).then(() => null, error => error);
+    assert.equal(replay?.noAnswer, true);
+    console.log(`pairing, minimal requester over ${where}: refused while unpaired, paired from the link, 2 named-recipient requests answered and countersigned, used code got no answer.`);
+  };
+  await withMinimalOverStdio(['--pairing'], context => minimalFlow(context, 'stdio'));
+  await withMinimalOverStdio(['--pairing', '--pairing-expired'], async ({ requester, ready }) => {
+    const expired = await requester.pair(parsePairingLink(ready.pairing.link), { waitMs: 400 }).then(() => null, error => error);
+    assert.equal(expired?.noAnswer, true);
+    console.log('pairing, minimal requester over stdio --pairing-expired: no answer.');
+  });
+  await withMinimalOverStdio(['--pairing', '--pairing-decline'], async ({ requester, ready }) => {
+    await assert.rejects(requester.pair(parsePairingLink(ready.pairing.link)), /Desktop declined owner pairing/);
+    console.log('pairing, minimal requester over stdio --pairing-decline: declined.');
+  });
+  await withMinimalOverWebrtc(async context => {
+    const { ready } = context;
+    assert.equal(ready.token, pairingRoomToken(ready.pairing.roomId), 'the room token is the routing marker the contract describes');
+    assert.equal(ready.pairing.roomId, ready.roomId);
+    await minimalFlow(context, 'webrtc');
+  }, ['--pairing']);
+  await withMinimalOverWebrtc(async ({ requester, ready }) => {
+    const record = await requester.pair(parsePairingLink(ready.pairing.link));
+    assert.equal((await requester.ask({ model: ready.model, messages: question, recipient: record.hostParticipantId })).content, ready.answer.content);
+    await requester.waitUntilReady(ready.model, 5000);
+    const dropped = await requester.ask({ model: ready.model, messages: question, recipient: record.hostParticipantId }).then(() => null, error => error);
+    assert.match(dropped?.message ?? '', DECLINED);
+    assert.equal(dropped.promptSent, false);
+    assert.equal(await requester.desktopStatus(record), 'online');
+    console.log('pairing, minimal requester over webrtc --pairing-forget-after-requests 1: one answer, then refused before the prompt; the desktop still proves its identity.');
+  }, ['--pairing', '--pairing-forget-after-requests', '1']);
+}
+
 const which = process.argv[2] ?? 'all';
-if (!['all', 'stdio', 'webrtc', 'minimal'].includes(which)) throw new Error('Usage: prove.js [stdio|webrtc|minimal]');
+if (!['all', 'stdio', 'webrtc', 'minimal', 'pairing'].includes(which)) throw new Error('Usage: prove.js [stdio|webrtc|minimal|pairing]');
 if (['all', 'stdio'].includes(which)) await proveStdio();
 if (['all', 'webrtc'].includes(which)) await proveWebrtc();
 if (['all', 'minimal'].includes(which)) await proveMinimal();
-console.log(which === 'all' ? 'Both conformance providers work with the real JavaScript requester and with a requester written from the contract alone.' : `The ${which} proof passed.`);
+if (['all', 'pairing'].includes(which)) await provePairing();
+console.log(which === 'all' ? 'Both conformance providers work with the real JavaScript requester and with a requester written from the contract alone, for public requests and for owner pairing.' : `The ${which} proof passed.`);
 // The WebRTC library keeps its own threads alive; everything this script started has been stopped.
 process.exit(process.exitCode ?? 0);

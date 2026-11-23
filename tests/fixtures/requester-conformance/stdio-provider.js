@@ -29,6 +29,16 @@
  *     --decline                          the provider host refuses every admission
  *     --fail-after-chunks <n>            the model fails after n chunks
  *     --chunk-delay-ms <n>               pause before each chunk (default 20)
+ *
+ * Owner-desktop mode (the contract's owner pairing):
+ *     --pairing                          behave as an owner's desktop: issue one pairing code, put the pairing link in
+ *                                        the ready line ("pairing"), pair the phone that sends the code, then answer
+ *                                        only requests from a paired phone and refuse everyone else before the prompt
+ *     --pairing-name <label>             the label in the link (default Workbench)
+ *     --pairing-expired                  the code in the link has already expired
+ *     --pairing-decline                  the desktop owner answers no
+ *     --pairing-forget-after-requests <n>  after n answered requests the desktop's pairing state is deleted (the only
+ *                                        way the current code drops a paired phone); later requests are refused
  */
 import path from 'node:path';
 import readline from 'node:readline';
@@ -37,14 +47,18 @@ import { fileURLToPath } from 'node:url';
 import bootstrap from '../../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { PEER_ID_PATTERN, ROOM_ID_PATTERN } from '../../../server/swarm-protocol.js';
 import { FIXED, fixedIdentity, fixedModel } from '../../../scripts/requester-contract/fixed-inputs.js';
+import { FIXED_PAIRING } from '../../../scripts/requester-contract/fixed-inputs.js';
 import { createFakeNetwork, createInProcessSignaling, createProviderStack, createStubWholeModel,
   offerFromExternalPeer } from '../../../scripts/requester-contract/harness.js';
+import { openPairingDesktop } from '../../../scripts/requester-contract/pairing-desktop.js';
 
 const FINGERPRINT = /^sha-256 (?:[a-f0-9]{2}:){31}[a-f0-9]{2}$/;
 const options = {
   room: { type: 'string' }, 'provider-transport-id': { type: 'string' }, 'requester-transport-id': { type: 'string' },
   'provider-fingerprint': { type: 'string' }, 'requester-fingerprint': { type: 'string' }, identity: { type: 'string' },
-  decline: { type: 'boolean' }, 'fail-after-chunks': { type: 'string' }, 'chunk-delay-ms': { type: 'string' }
+  decline: { type: 'boolean' }, 'fail-after-chunks': { type: 'string' }, 'chunk-delay-ms': { type: 'string' },
+  pairing: { type: 'boolean' }, 'pairing-name': { type: 'string' }, 'pairing-expired': { type: 'boolean' },
+  'pairing-decline': { type: 'boolean' }, 'pairing-forget-after-requests': { type: 'string' }
 };
 
 export function parseStdioProviderArgs(argv) {
@@ -58,7 +72,12 @@ export function parseStdioProviderArgs(argv) {
     identity: values.identity ?? 'ed25519',
     decline: values.decline === true,
     failAfterChunks: values['fail-after-chunks'] === undefined ? null : Number(values['fail-after-chunks']),
-    chunkDelayMs: values['chunk-delay-ms'] === undefined ? 20 : Number(values['chunk-delay-ms'])
+    chunkDelayMs: values['chunk-delay-ms'] === undefined ? 20 : Number(values['chunk-delay-ms']),
+    pairing: values.pairing === true,
+    pairingName: values['pairing-name'] ?? FIXED_PAIRING.desktopLabel,
+    pairingExpired: values['pairing-expired'] === true,
+    pairingDecline: values['pairing-decline'] === true,
+    pairingForgetAfterRequests: values['pairing-forget-after-requests'] === undefined ? null : Number(values['pairing-forget-after-requests'])
   };
   const need = (ok, message) => { if (!ok) throw new Error(message); };
   need(ROOM_ID_PATTERN.test(settings.roomId) && settings.roomId !== bootstrap.publicRoomId, '--room must be a private room id starting with reploid-swarm-');
@@ -68,6 +87,11 @@ export function parseStdioProviderArgs(argv) {
   need(['ed25519', 'ecdsa'].includes(settings.identity), '--identity must be ed25519 or ecdsa');
   need(settings.failAfterChunks === null || Number.isSafeInteger(settings.failAfterChunks) && settings.failAfterChunks >= 0, '--fail-after-chunks must be a whole number');
   need(Number.isSafeInteger(settings.chunkDelayMs) && settings.chunkDelayMs >= 0, '--chunk-delay-ms must be a whole number');
+  need(settings.pairing || !settings.pairingExpired && !settings.pairingDecline && settings.pairingForgetAfterRequests === null && values['pairing-name'] === undefined,
+    'the --pairing-... options need --pairing');
+  need(settings.pairingName.trim().length > 0 && settings.pairingName.trim().length <= 128, '--pairing-name must be 1 to 128 characters');
+  need(settings.pairingForgetAfterRequests === null || Number.isSafeInteger(settings.pairingForgetAfterRequests) && settings.pairingForgetAfterRequests > 0,
+    '--pairing-forget-after-requests must be a whole number above zero');
   return settings;
 }
 
@@ -79,8 +103,10 @@ export async function startStdioProvider({ settings, input, output, log = () => 
   const post = deliver => setImmediate(deliver);
   const logger = { debug() {}, info() {}, log() {}, warn: (...parts) => log(parts.join(' ')), error: (...parts) => log(parts.join(' ')) };
   const model = fixedModel(), identity = fixedIdentity(settings.identity === 'ecdsa' ? 'providerEcdsa' : 'providerEd25519');
+  const desktop = settings.pairing ? await openPairingDesktop({ identity, roomId: settings.roomId, label: settings.pairingName.trim(), expired: settings.pairingExpired,
+    decline: settings.pairingDecline, forgetAfterRequests: settings.pairingForgetAfterRequests, log }) : null;
   // A local room capability; the requester never sees signaling in this fixture.
-  const roomToken = `stdio-provider-${crypto.randomUUID()}`;
+  const roomToken = desktop?.roomToken ?? `stdio-provider-${crypto.randomUUID()}`;
   let attached = null, closed = false;
   const opened = Promise.withResolvers();
   const external = {
@@ -92,21 +118,24 @@ export async function startStdioProvider({ settings, input, output, log = () => 
   const network = createFakeNetwork({ post });
   const rtc = network.createRtc({ name: 'provider', fingerprint: settings.providerFingerprint, external });
   let requests = 0;
-  const provider = createProviderStack({ signalingUrl: FIXED.signalingUrl, roomId: settings.roomId, roomToken, publicRoomId: bootstrap.publicRoomId,
+  const answer = createStubWholeModel({ model, chunks: FIXED.answerChunks, completion: FIXED.completion, failAfterChunks: settings.failAfterChunks,
+    pause: () => new Promise(resolve => setTimeout(resolve, settings.chunkDelayMs)),
+    onCall: messages => log(`Request ${++requests}: generating for ${messages.length} message(s).`) });
+  const provider = createProviderStack({ ownerPairing: desktop?.ownerPairing ?? null, signalingUrl: FIXED.signalingUrl, roomId: settings.roomId, roomToken, publicRoomId: bootstrap.publicRoomId,
     identity, transportId: settings.providerTransportId, model, logger, generateId: () => crypto.randomUUID(),
     WebSocket: signaling.webSocketFor({ name: 'provider', origin: FIXED.origin }), RTCPeerConnection: rtc.RTCPeerConnection,
     decline: request => { if (settings.decline) log(`Declining admission of ${request.request?.requestId}.`); return settings.decline; },
-    generate: createStubWholeModel({ model, chunks: FIXED.answerChunks, completion: FIXED.completion, failAfterChunks: settings.failAfterChunks,
-      pause: () => new Promise(resolve => setTimeout(resolve, settings.chunkDelayMs)),
-      onCall: messages => log(`Request ${++requests}: generating for ${messages.length} message(s).`) }) });
-  await provider.mesh.connect();
+    generate: async (...args) => { const result = await answer(...args); desktop?.requestAnswered(); return result; } });
+  await provider.connect();
   const ready = { ready: true, framing: 'one envelope as JSON text per line, both directions', roomId: settings.roomId,
     provider: { transportId: settings.providerTransportId, fingerprint: settings.providerFingerprint, participantId: identity.peerId,
       algorithm: identity.algorithm, publicJwk: identity.publicJwk },
     requester: { transportId: settings.requesterTransportId, fingerprint: settings.requesterFingerprint },
     model: { id: model.id, identity: model.identity, name: model.name },
     answer: { chunks: [...FIXED.answerChunks], content: FIXED.answerChunks.join(''), completion: { ...FIXED.completion } },
-    mode: { decline: settings.decline, failAfterChunks: settings.failAfterChunks, chunkDelayMs: settings.chunkDelayMs } };
+    mode: { decline: settings.decline, failAfterChunks: settings.failAfterChunks, chunkDelayMs: settings.chunkDelayMs },
+    // Owner-desktop mode: what the desktop would show its owner as a link and QR code.
+    ...(desktop ? { pairing: desktop.issue() } : {}) };
   // The first line must precede every envelope, so it is written before the channel opens.
   output.write(`${JSON.stringify(ready)}\n`);
   offerFromExternalPeer({ signaling, signalingUrl: FIXED.signalingUrl, roomId: settings.roomId, roomToken, origin: FIXED.origin,
@@ -121,6 +150,7 @@ export async function startStdioProvider({ settings, input, output, log = () => 
     lines.close();
     await provider.mesh.close();
     signaling.close();
+    await desktop?.close();
   };
   lines.on('close', () => { close().catch(error => log(`Close failed: ${error.message}`)); });
   return { ready, close };

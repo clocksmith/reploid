@@ -53,6 +53,23 @@ export function sdpFingerprint(description) {
   const values = [...new Set((description?.sdp || '').split(/\r?\n/).filter(line => /^a=fingerprint:sha-256 /i.test(line)).map(line => line.slice(14).trim().toLowerCase()))];
   return values.length === 1 && /^sha-256 (?:[a-f0-9]{2}:){31}[a-f0-9]{2}$/.test(values[0]) ? values[0] : null;
 }
+// procedures.pairingLinkParse
+export function parsePairingLink(text) {
+  const pairing = constants.pairing;
+  if (typeof text !== 'string' || !text.trim()) return null;
+  let url;
+  try { url = new URL(text); } catch { return null; }
+  const pairs = new URLSearchParams(url.hash.slice(1));
+  if (pairs.getAll('pair').length !== 1 || pairs.getAll('host').length !== 1 || pairs.getAll('name').length > 1 || pairs.getAll('room').length > 1) return null;
+  const code = pairs.get('pair'), hostParticipantId = pairs.get('host'), name = pairs.get('name'), room = pairs.get('room');
+  if (!new RegExp(pairing.codePattern).test(code) || !new RegExp(pairing.participantIdPattern).test(hostParticipantId)) return null;
+  if (name !== null && (name.trim().length < 1 || name.trim().length > pairing.labelMaxLength)) return null;
+  if (room !== null && !new RegExp(pairing.roomIdPattern.source, pairing.roomIdPattern.flags).test(room.trim())) return null;
+  return { code, hostParticipantId, ...(name !== null ? { hostLabel: name.trim() } : {}), ...(room !== null ? { roomId: room.trim() } : {}) };
+}
+// procedures.pairingRoom
+export const pairingRoomToken = roomId => constants.pairing.roomTokenPrefix + roomId;
+
 const isDigest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
 const count = value => Number.isSafeInteger(value) && value >= 0;
 const fail = message => { throw new Error(message); };
@@ -168,6 +185,32 @@ export function createMinimalRequester({ link, identity, timeoutMs = constants.g
 
   return {
     seenTypes,
+    /**
+     * procedures.pairingExchange steps 4 to 10 on this one connection. `link` is a parsed pairing link.
+     * Returns the objects.pairingRecord to store. `waitMs` bounds the wait for the owner's answer.
+     */
+    async pair(link, { waitMs = constants.pairing.approvalWaitMs } = {}) {
+      const pairing = constants.pairing;
+      if (!new RegExp(pairing.codePattern).test(link?.code ?? '') || !new RegExp(pairing.participantIdPattern).test(link?.hostParticipantId ?? '')) {
+        fail('Enter a valid desktop ID and 24-character pairing code');
+      }
+      if (link.roomId !== undefined && link.roomId !== this.roomId) fail('Could not reach the desktop room specified in the pairing link');
+      // Steps 4 and 5: the code goes only to a connection that has just proven to be the link's host.
+      if (await proveProvider() !== link.hostParticipantId) fail('Could not find the verified desktop on this connection. Confirm it is online and retry.');
+      const requestId = crypto.randomUUID();
+      const answered = expect('owner pairing result', (type, payload) => type === pairing.resultType && payload.requestId === requestId ? payload : undefined);
+      const limit = new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error('Open a new pairing link from your desktop.'), { noAnswer: true })), waitMs).unref());
+      answered.catch(() => {});
+      send(pairing.requestType, { requestId, code: link.code });
+      const result = await Promise.race([answered, limit]);
+      if (result.approved !== true) fail('Desktop declined owner pairing');
+      return { hostParticipantId: link.hostParticipantId, hostLabel: link.hostLabel ?? link.hostParticipantId, roomId: link.roomId ?? this.roomId ?? null, pairedAt: Date.now() };
+    },
+    roomId: link.roomId,
+    /** procedures.pairedDesktopRecognition for this one connection: "online" only when it proves to be the pinned desktop. */
+    async desktopStatus(record) {
+      try { return await proveProvider() === record.hostParticipantId ? 'online' : 'offline'; } catch { return 'offline'; }
+    },
     /** Resolves when the connected provider is ready for `model` (procedures.readyPeerRule). */
     async waitUntilReady(model, ms = constants.generation.discoveryTimeoutMs) {
       for (const deadline = Date.now() + ms; !usable(model);) {
@@ -175,15 +218,22 @@ export function createMinimalRequester({ link, identity, timeoutMs = constants.g
         await new Promise(resolve => setTimeout(resolve, 20));
       }
     },
-    /** One whole-model request (contract.sequence steps 7 to 15). Returns { content, chunks, receipt, providerId, promptSent }. */
-    async ask({ model, messages, onChunk = () => {}, signal = null }) {
+    /**
+     * One whole-model request (contract.sequence steps 7 to 15). Returns { content, chunks, receipt, providerId, promptSent }.
+     * With `recipient` (a pairingRecord's hostParticipantId) it is procedures.pairedDesktopRequest: named
+     * recipients, and nothing is sent unless this connection proves to be that desktop.
+     */
+    async ask({ model, messages, onChunk = () => {}, signal = null, recipient = null }) {
       const state = { promptSent: false };
       try {
         if (!usable(model)) fail('No remote host slot available');
         const provenProvider = await proveProvider();
+        // procedures.pairedDesktopOffline: never substitute another recipient.
+        if (recipient !== null && provenProvider !== recipient) fail('The paired desktop is offline. Nothing was sent.');
         const offer = offerFor(model) ?? fail('Selected execution offer is unavailable');
         // procedures.privacyBinding
-        const privacy = { schema: ids.executionPolicy, placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext', collusion: 'none',
+        const privacy = { schema: ids.executionPolicy, placement: 'network-allowed',
+          recipients: recipient === null ? { kind: 'open', ids: [] } : { kind: 'named', ids: [recipient] }, computation: 'plaintext', collusion: 'none',
           leakage: ['model-id', 'timing', 'length', 'access-patterns', 'plaintext'], protocol: null, attestation: null, keyContext: null,
           retention: 'execution-and-recovery', publication: false, reuse: false, allowDowngrade: false };
         const route = { schema: ids.executionRoute, modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], backend: constants.generation.backend, protocol: null,

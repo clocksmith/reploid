@@ -11,6 +11,7 @@ import { createFakeNetwork, createInProcessSignaling, createRequesterStack, offe
 import { validate } from '../../scripts/requester-contract/schema-validator.js';
 import { parseStdioProviderArgs, startStdioProvider } from '../fixtures/requester-conformance/stdio-provider.js';
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
+import { createBrowserOwnerPairing, parseOwnerPairingUrl } from '../../apps/poolday/host/owner-pairing.js';
 
 const contract = JSON.parse(await fs.readFile(CONTRACT_FILE, 'utf8'));
 const committedVectors = await fs.readFile(VECTORS_FILE, 'utf8');
@@ -68,6 +69,16 @@ describe('requester contract', () => {
       ['vectors.json differs from a fresh build. Run: npm run build:requester-vectors']);
   });
 
+  it('notices drift in the owner-pairing code', async () => {
+    expect((await failuresAfter(c => { c.constants.pairing.codeTtlMs = 300000; })).join('\n')).toContain('constants.pairing.codeTtlMs is 300000');
+    expect((await failuresAfter(c => { c.constants.pairing.codePattern = '^[A-Za-z0-9_-]{22}$'; })).join('\n')).toContain('constants.pairing.codePattern');
+    expect((await failuresAfter(c => { c.constants.pairing.roomTokenPrefix = 'reploid-pairing-route:'; })).join('\n')).toContain('constants.pairing.roomTokenPrefix');
+    expect((await failuresAfter(c => { delete c.channelMessages['reploid:owner-pairing-result'].payload.properties.approved; })).join('\n'))
+      .toContain('reploid:owner-pairing-result: payload $: "approved" is not allowed');
+    expect((await failuresAfter(c => { c.objects.pairingRecord.required.push('token'); })).join('\n')).toContain('objects.pairingRecord rejects the record the real pairing code stored');
+    expect((await failuresAfter(c => { delete c.channelMessages['reploid:owner-pairing-request']; })).join('\n')).toContain('reploid:owner-pairing-request');
+  });
+
   it('notices an error text that left the source', async () => {
     expect((await failuresAfter(c => { c.failures[0].text = 'The provider said no.'; })).join('\n')).toContain('no longer contains "The provider said no."');
   });
@@ -103,7 +114,7 @@ describe('stdio conformance provider', () => {
       await expect.poll(() => stack.requester.getModels().some(model => model.availability === 'ready')).toBe(true);
       const ask = (extra = {}) => stack.ask({ messages: structuredClone(FIXED.messages), threadId: crypto.randomUUID(), attemptId: crypto.randomUUID(),
         signal: new AbortController().signal, ...extra });
-      return await run({ ready, ask, sent, received });
+      return await run({ ready, ask, sent, received, stack });
     } finally {
       await stack.mesh.close();
       signaling.close();
@@ -155,7 +166,46 @@ describe('stdio conformance provider', () => {
     });
   });
 
+  it('acts as an owner desktop with --pairing: one pairing with the code, then only the paired phone is answered', async () => {
+    await withProvider(['--pairing', '--chunk-delay-ms', '0'], async ({ ready, ask, sent, stack }) => {
+      const target = parseOwnerPairingUrl(ready.pairing.link);
+      expect(target).toEqual({ code: ready.pairing.code, hostParticipantId: ready.provider.participantId, hostLabel: 'Workbench', roomId: ready.roomId });
+      expect(validate(contract.objects.pairingLink, target, contract)).toEqual([]);
+      const toDesktop = { recipients: { kind: 'named', ids: [target.hostParticipantId] } };
+      // Unpaired: refused before the prompt.
+      await expect(ask(toDesktop)).rejects.toThrow('The provider declined this request. The prompt was not sent.');
+      expect(sent.some(envelope => envelope.type === 'reploid:generation-request')).toBe(false);
+      const data = new Map();
+      const storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => { data.set(key, String(value)); }, removeItem: key => { data.delete(key); } };
+      const phone = createBrowserOwnerPairing({ storage, getChannel: () => stack.pairingChannel(), connect: null, peerWaitMs: 2000 });
+      try {
+        await phone.pair(target);
+        expect(validate(contract.objects.pairingRecord, JSON.parse(data.get(contract.constants.pairing.storageKey)), contract)).toEqual([]);
+        expect(phone.state()).toMatchObject({ status: 'online', hostParticipantId: ready.provider.participantId, hostPeer: ready.provider.transportId });
+        const { result, privacy } = await ask(toDesktop);
+        expect(result.content).toBe(ready.answer.content);
+        expect(validate(contract.objects.pairedDesktopPolicy, privacy, contract)).toEqual([]);
+        // The code was single use: the desktop stays silent.
+        await expect(phone.pair({ ...target, signal: AbortSignal.timeout(150) })).rejects.toMatchObject({ name: 'TimeoutError' });
+      } finally { phone.close(); }
+    });
+  });
+
+  it('gives an expired code no answer and reports the owner saying no', async () => {
+    await withProvider(['--pairing', '--pairing-expired'], async ({ ready, stack }) => {
+      const phone = createBrowserOwnerPairing({ storage: null, getChannel: () => stack.pairingChannel(), connect: null, peerWaitMs: 2000 });
+      await expect(phone.pair({ ...parseOwnerPairingUrl(ready.pairing.link), signal: AbortSignal.timeout(150) })).rejects.toMatchObject({ name: 'TimeoutError' });
+      phone.close();
+    });
+    await withProvider(['--pairing', '--pairing-decline'], async ({ ready, stack }) => {
+      const phone = createBrowserOwnerPairing({ storage: null, getChannel: () => stack.pairingChannel(), connect: null, peerWaitMs: 2000 });
+      await expect(phone.pair(parseOwnerPairingUrl(ready.pairing.link))).rejects.toThrow('Desktop declined owner pairing');
+      phone.close();
+    });
+  });
+
   it('rejects arguments it cannot serve', () => {
+    expect(() => parseStdioProviderArgs(['--pairing-expired'])).toThrow('need --pairing');
     expect(() => parseStdioProviderArgs(['--room', bootstrap.publicRoomId])).toThrow('private room');
     expect(() => parseStdioProviderArgs(['--provider-fingerprint', 'sha-256 AA'])).toThrow('fingerprints');
     expect(() => parseStdioProviderArgs(['--requester-transport-id', FIXED.providerTransportId])).toThrow('two different');
