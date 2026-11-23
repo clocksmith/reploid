@@ -1,10 +1,9 @@
 # Architecture contract
 
-**Status:** Canonical ownership and lifecycle contract for this starter. The task
-reference is implemented with synthetic accounts and an in-memory server. The
-broader production capabilities described in the [architecture guide](guide.md)
-require their own adapters and device evidence; they are not implied by the
-starter's tests.
+**Status:** Canonical ownership and lifecycle contract for the Reploid mobile
+app, adopted from flutter-starter (revision in `.starter-revision`). The chat
+feature runs against a synthetic in-memory network; the adapter for real
+computers and any device evidence are not implied by these tests.
 
 ## Enforced ownership in this repository
 
@@ -20,7 +19,7 @@ starter's tests.
 | Localization | `app/lib/l10n/` | Labels and safe failure-to-text mapping |
 
 The root `AGENTS.md` links this component map; leaf directories do not repeat
-the same architecture and verification instructions. The current task flow needs no
+the same architecture and verification instructions. The chat flow needs no
 application use-case class: presentation invokes the repository contract and
 infrastructure owns reconciliation. Add orchestration only when a business rule
 requires it.
@@ -47,12 +46,18 @@ accommodate misplaced code.
 
 The reusable ui package has no core, account, repository, or provider dependency.
 `SessionGate` now belongs to `app/lib/app/session_gate.dart`; applications
-copy that composition boundary instead of importing it from ui. Task screens
-receive navigation and optional demo controls as callbacks. Their
-`taskRepositoryProvider` exposes `TaskRepository`, and app composition creates,
-registers, and closes the concrete implementation. Fake failure controls are
-account-bound so an action for one account cannot affect another account's next
-request.
+copy that composition boundary instead of importing it from ui. Chat screens
+receive navigation as callbacks. Their `chatRepositoryProvider` exposes
+`ChatRepository`, and app composition creates, registers, and closes the
+concrete implementation. A session is one device signing identity: the
+repository, its network connection and every conversation belong to that
+session and end with it.
+
+The requester wire protocol is not defined here. Its single definition is the
+contract in `packages/reploid/src/contracts/requester/` at the repository root;
+`app/lib/infrastructure/reploid_api/` implements it and is tested against the
+contract's vectors. External packages for cryptography, secure storage and
+WebRTC are allowlisted for infrastructure only.
 
 `tool/` owns deterministic architecture enforcement, its negative fixtures and
 the validation command. Change `tool/architecture.json` and this guide together
@@ -65,5 +70,6 @@ draft disposal, keyboard actions, semantics, narrow layouts, and enlarged text
 are regression targets. Native-device runs remain a separate acceptance step.
 
 The design rationale behind these rules, the layer-by-layer guidance and the
-source notes are in the [architecture guide](guide.md). This file is the
-enforced contract; the guide does not add rules.
+source notes are in flutter-starter's
+[architecture guide](https://github.com/clocksmith/flutter-starter/blob/main/docs/guide.md).
+This file is the enforced contract; the guide does not add rules.
