@@ -10,6 +10,7 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
+import { verifyCreditStatement } from '../../server/fleet/credit-statement.js';
 import { startFleetTextApi } from '../../server/fleet/text-api.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
@@ -70,6 +71,13 @@ it('meters a request through signed HTTP admission, disclosure and countersigned
   expect(credits.request(result.serviceCredit.id).binding.acceptedQuote.maximum).toBe(10);
   expect(dispatched).toBe(true); expect(result.serviceCredit.charge).toBe(3);
   expect((await client.call('snapshot', {})).accounts.map(row => row.balance)).toEqual([-3, 3, 0]);
+  const consumerStatement = await client.statement();
+  const providerClient = createFleetClient({ url: service.url, identity: keys[1] });
+  const providerStatement = await providerClient.statement();
+  expect(await verifyCreditStatement(consumerStatement, { participantIds: [keys[0].peerId] }))
+    .toMatchObject({ ok: true, computerId: 'machine-0', statedBalance: -3, recomputedBalance: -3, uncheckedCount: 0 });
+  expect(await verifyCreditStatement(providerStatement, { participantIds: [keys[1].peerId] }))
+    .toMatchObject({ ok: true, computerId: 'machine-1', statedBalance: 3, recomputedBalance: 3, uncheckedCount: 0 });
 });
 
 it('rejects a changed accepted credit ceiling before reserving or dispatching', async () => {
@@ -1026,6 +1034,8 @@ it.each([
       outcome: { ...firstRecovery.body.outcome, recordedAt: expect.any(Number) } } });
     expect(await client.call('recover', { id })).toEqual(result);
     expect(await client.call('snapshot', {})).toEqual(snapshot);
+    expect(await verifyCreditStatement(await client.statement(), { participantIds: [keys[0].peerId] }))
+      .toMatchObject({ ok: true, computerId: 'machine-0', statedBalance: spent, recomputedBalance: spent, uncheckedCount: 0 });
   } finally {
     if (child.exitCode === null && child.signalCode === null) { const dead = once(child, 'exit'); child.kill('SIGKILL'); await dead; }
     await api?.close(); await requesterHost?.close(); await host?.close(); await route.close();

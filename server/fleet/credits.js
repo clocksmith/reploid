@@ -7,6 +7,7 @@ import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/pa
 import { assert, creditPolicy, digest, enrollComputers, fleetCreditQuote, integer, same, text } from './contract.js';
 import { createCreditRecovery } from './credit-recovery.js';
 import { verifyCreditEvidence } from './credit-evidence.js';
+import { creditSettlementDeltas } from './credit-shares.js';
 
 /** Non-redeemable mutual service credit. No purchased lots, issuance, or payout path. */
 export async function openFleetCredits({ file, computers, policy: supplied, now = Date.now }) {
@@ -125,21 +126,8 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         }
         assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
         const request = current.binding, totalUnits = observed.fixedCharge ?? observed.outputTokens * policy.creditsPerOutputToken;
-        const totalWeight = request.providers.reduce((sum, row) => sum + row.weight, 0);
-        let remaining = totalUnits, ownComputeUnits = 0;
-        const credits = request.providers.map((provider, index) => {
-          // Integer arithmetic, stable stage-order remainder; every credited unit has a matching debit.
-          const amount = index === request.providers.length - 1 ? remaining
-            : Number(BigInt(totalUnits) * BigInt(provider.weight) / BigInt(totalWeight));
-          remaining -= amount;
-          const computerId = accountFor(provider.participantId).computerId;
-          if (computerId === request.computerId) ownComputeUnits += amount;
-          return { participantId: provider.participantId, computerId, amount };
-        }).filter(row => row.computerId !== request.computerId);
-        const charge = totalUnits - ownComputeUnits;
+        const { credits, ownComputeUnits, charge, deltas } = creditSettlementDeltas(request, totalUnits, peer => accountFor(peer).computerId);
         for (const work of observed.workIds) db.prepare('INSERT INTO fleet_work VALUES (?,?)').run(work, id);
-        const deltas = new Map([[request.computerId, -charge]]);
-        for (const credit of credits) deltas.set(credit.computerId, (deltas.get(credit.computerId) || 0) + credit.amount);
         for (const [computerId, delta] of deltas) {
           const account = db.prepare('SELECT balance FROM fleet_accounts WHERE id=?').get(computerId);
           assert(Number.isSafeInteger(account.balance + delta), 'Credit balance exceeds integer precision');
@@ -178,6 +166,20 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       });
     },
     request: read,
+    /** Everything one computer needs to check its own balance without this ledger: each journal entry with the
+     * request's accepted terms, its outcome and the signed evidence it was settled on (credit-statement.js). */
+    statement(computerId) {
+      recovery.expire();
+      const account = db.prepare('SELECT * FROM fleet_accounts WHERE id=?').get(computerId);
+      assert(account, 'Unknown service-credit account');
+      const entries = db.prepare('SELECT * FROM fleet_journal WHERE account_id=? ORDER BY sequence').all(computerId).map(row => {
+        const request = read(row.request_id);
+        return { sequence: row.sequence, requestId: row.request_id, delta: row.delta, at: row.at,
+          request: request.binding, outcome: request.outcome, evidence: request.evidence };
+      });
+      return { schema: 'reploid.fleet-credit-statement/v1', computerId, unit: policy.unit, policy: structuredClone(policy),
+        computers: structuredClone(computers), balance: account.balance, held: account.held, issuedAt: now(), entries };
+    },
     snapshot() {
       recovery.expire();
       const accounts = db.prepare('SELECT * FROM fleet_accounts ORDER BY id').all().map(row => ({ ...row,

@@ -94,6 +94,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
       case 'recoverMine': return credits.recoverFor(signer);
       case 'providerOpenMine': return credits.providerOpenRequests(signer);
       case 'reconcileMine': return credits.reconcileConsumer(signer, payload?.activeIds ?? []);
+      case 'statementMine': return credits.statement(owner.computerId);
       case 'snapshot': return credits.snapshot();
       case 'computers': return { at: now(), computers: [...credits.enrollment.byId.values()].map(computer => {
         const observation = observations.get(computer.id);
@@ -315,6 +316,7 @@ export function createFleetClient({ url, identity, fetchImpl = null, ca = null, 
   return { call, collect: (id, evidence) => recoverable('collect', { id, evidence }),
     fence: id => recoverable('fence', { id }), reserve: payload => call('reserve', payload), dispatch: id => call('dispatch', { id }), settle,
     abandonBeforeDispatch: id => call('abandonBeforeDispatch', { id }),
+    statement: () => call('statementMine', {}),
     async reconcile({ activeIds = null } = {}) {
       await Promise.all([writes, recoveryWrites]);
       const pending = storage ? await storage.get('settlements') || [] : [], outcomes = [];

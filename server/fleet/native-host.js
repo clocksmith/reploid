@@ -549,6 +549,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
     async balances() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('snapshot', {}); },
+    async statement() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('statementMine', {}); },
     async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
@@ -684,6 +685,7 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           else if (command.op === 'state') result = host.state();
           else if (command.op === 'reconcile') result = await host.reconcile();
           else if (command.op === 'balances') result = await host.balances();
+          else if (command.op === 'statement') result = await host.statement();
           // `events: true` also reports the route as soon as it is approved, for callers that must act mid-answer.
           else if (command.op === 'generate') {
             // Stdin is the owner-command boundary. It supplies an explicit policy for its own
