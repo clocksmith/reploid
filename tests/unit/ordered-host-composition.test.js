@@ -179,3 +179,17 @@ it('native ordinary requester forwards approved controls to its existing automat
   expect(ports.automatic.generate).toHaveBeenCalledWith(request,controls);expect(gpu).not.toHaveBeenCalled();
   await participant.close();expect(()=>participant.generate(request,controls)).toThrow('unavailable');
 });
+it('native participant binds stage-less ordered limits by default for an ordered model, matching browser context', async () => {
+  await setup(); const gpu = vi.fn();
+  const participant = await createNativeParticipant({ identity: ports.identity, model, modelDirectory: '/unused', nativeGpu: gpu,
+    rtc: { RTCPeerConnection() {} }, WebSocket() {}, signalingUrl: 'ws://localhost:1', roomId: 'mesh', roomToken: 't'.repeat(32) });
+  cleanups.push(() => participant.close());
+  expect(ports.options.ordered).toEqual({
+    stage: null,
+    maxRouteBytes: orderedPolicy.limits.maxRouteBytes,
+    maxSelectionSteps: orderedPolicy.limits.maxSelectionSteps,
+    maxRoutes: orderedPolicy.limits.maxRoutes,
+  });
+  expect(ports.options.policy.maxStageOffersPerPeer).toBe(orderedPolicy.limits.maxStageOffersPerPeer);
+  expect(gpu).not.toHaveBeenCalled();
+});

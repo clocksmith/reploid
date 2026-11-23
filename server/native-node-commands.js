@@ -28,7 +28,7 @@ const shortNames = {
 };
 const canSplit = model => !model.executionModes || model.executionModes.includes('partition');
 const modelNames = models => models.flatMap(m => [shortNames[m.id], m.id].filter(Boolean));
-const askOptions = ['model', 'room', 'room-token-file', 'rtc-config-file', 'signaling-url', 'origin', 'identity-file'];
+const askOptions = ['model', 'model-config', 'ordered-config', 'room', 'room-token-file', 'rtc-config-file', 'signaling-url', 'origin', 'identity-file'];
 const doctorOptions = ['origin', 'signaling-url'];
 const subset = names => Object.fromEntries(names.map(name => [name, participantOptions[name]]));
 const commandNames = [...Object.keys(commands), 'help'];

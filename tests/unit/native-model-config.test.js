@@ -56,6 +56,22 @@ it('rejects altered manifest bytes before importing the runtime', async () => {
   await expect(f.read()).rejects.toThrow('actual manifest');
   expect(f.loadRuntime).not.toHaveBeenCalled();
 });
+it('lets a weightless requester use a catalog --model-config with an empty model directory, while requiring manifest.json for custom descriptors', async () => {
+  const catalog = (await import('../../shared/config/chat-models.json', { with: { type: 'json' } })).default;
+  const model27 = catalog.find(row => row.id === 'qwen-3-8-27b-text-q4k-ef16-af32');
+  const empty = await fs.mkdtemp(path.join(os.tmpdir(), 'native-model-empty-'));
+  directories.push(empty);
+  const configDir = await fs.mkdtemp(path.join(os.tmpdir(), 'native-model-cfg-'));
+  directories.push(configDir);
+  const file = path.join(configDir, 'model.json');
+  await fs.writeFile(file, JSON.stringify({ schema: 'reploid.native-model/v1', model: model27.id }));
+  const loaded = await readNativeModelConfiguration(file, { modelId: model27.id, modelDirectory: empty, models: catalog });
+  expect(loaded.id).toBe(model27.id);
+  expect(loaded.partitionPlanId).toBe(model27.partitionPlanId);
+  const f = await fixture();
+  await fs.unlink(path.join(f.directory, 'manifest.json'));
+  await expect(f.read()).rejects.toThrow('manifest.json in the model directory');
+});
 it('uses catalog generation and runtime settings with explicit private split and budget overrides', async () => {
   const f = await fixture();
   const base = structuredClone(f.configuration.model);

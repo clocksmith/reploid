@@ -2,6 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { sha256Digest } from './hashing.js';
+import { resolveServedFile } from './browser-roots.js';
 import { resolveGenerationOptions } from '../shared/config/doppler-generation-contract.js';
 import { createWorkPartitionPlan } from '../apps/poolday/host/work-partition-plan.js';
 import { modelToolCallFormat } from '../shared/infrastructure/tool-call-constraint.js';
@@ -53,9 +54,23 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
   // An optional `toolCallFormat` makes a whole-model provider advertise tools; an unknown one is refused here.
   modelToolCallFormat(model);
   const root = await fs.realpath(modelDirectory);
-  const manifestPath = await fs.realpath(path.join(root, 'manifest.json'));
-  requireValue(path.dirname(manifestPath) === root, 'Native model manifest escapes the approved directory');
-  const bytes = await fs.readFile(manifestPath);
+  const candidatePath = path.join(root, 'manifest.json');
+  let localStat = null;
+  try { localStat = await fs.lstat(candidatePath); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  let bytes;
+  if (localStat !== null) {
+    const manifestPath = await fs.realpath(candidatePath);
+    requireValue(path.dirname(manifestPath) === root, 'Native model manifest escapes the approved directory');
+    bytes = await fs.readFile(manifestPath);
+  } else {
+    // A weightless requester holds an empty model directory; catalog entries already carry their pinned manifest.
+    const bundled = catalogReference ? model.source?.files?.find(row => row.role === 'model-manifest') : null;
+    requireValue(bundled?.hashAlgorithm === 'sha256' && /^[a-f0-9]{64}$/.test(bundled.hash)
+      && bundled.url === `/config/model-manifests/${bundled.hash}.json`,
+      'Native model configuration requires manifest.json in the model directory');
+    bytes = await fs.readFile(resolveServedFile(bundled.url, { roots: ['shared'] }));
+  }
   requireValue(sha256Digest(bytes) === model.identity,
     'Native model configuration differs from the actual manifest');
   const manifest = JSON.parse(bytes);

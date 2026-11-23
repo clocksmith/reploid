@@ -3,6 +3,7 @@ import { createHostRequesterRule } from './circles/guest-access.js';
 import { randomUUID } from 'node:crypto';
 import { createNativeWholeModel } from './native-whole-model.js';
 import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../apps/poolday/host/work-partition-plan.js';
+import { shortcutOrderedParticipation } from './native-ordered-shortcut.js';
 import { createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { createAttemptEvidenceSigner } from '../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
@@ -69,6 +70,9 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     'Whole-model earning requires admission and receipt persistence');
   requireValue(readiness === null || typeof readiness.observe === 'function' && typeof readiness.watchResident === 'function',
     'Native readiness recording requires a readiness recorder');
+  if (ordered === null && !wholeMode && !canonical && model) {
+    ordered = shortcutOrderedParticipation({ model, models: [model], stageIndex: null });
+  }
   if (ordered !== null) model = structuredClone(model);
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,

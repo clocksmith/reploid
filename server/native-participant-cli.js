@@ -37,8 +37,8 @@ import { createGuestAccess } from './circles/guest-access.js';
 import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
 import { ownerPairingRoomId, ownerPairingRoomMarker } from '../packages/reploid/src/transport/index.js';
 
-export async function main({ runOnce } = {}) {
-  const { values } = parseArgs({ options: participantOptions });
+export async function main({ argv, runOnce } = {}) {
+  const { values } = parseArgs({ ...(argv === undefined ? {} : { args: argv }), options: participantOptions });
   if (values.help) {
     console.log(participantHelp);
     return;

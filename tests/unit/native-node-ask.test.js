@@ -15,6 +15,10 @@ it('defaults to 2B, accepts a quoted prompt and keeps compute flags out of ask',
   expect(nativeCommand(['ask', '--model', '2b', '--room', 'my-team', '--', '--help'])).toMatchObject({
     args: ['qwen-3-5-2b-q4k-ef16-af32', '--connect-only', '--room', 'my-team'], prompt: '--help'
   });
+  expect(nativeCommand(['ask', '27b', 'hello', '--model-config', '/abs/model.json', '--ordered-config', '/abs/host.json'])).toMatchObject({
+    args: ['qwen-3-8-27b-text-q4k-ef16-af32', '--connect-only', '--model-config', '/abs/model.json', '--ordered-config', '/abs/host.json'],
+    prompt: 'hello',
+  });
   expect(() => nativeCommand(['ask', '2b', 'hello', '--contribute'])).toThrow('Unknown option');
   expect(() => nativeCommand(['ask'])).toThrow('Your question');
 });

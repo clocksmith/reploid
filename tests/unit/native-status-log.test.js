@@ -55,5 +55,42 @@ it('stamps each status line with its observation time in ISO 8601 UTC', () => {
 it('keeps unknown cleanup state unknown and safely summarizes idle status', () => {
   const log = summarizeNativePartitionState({ phase: 'idle', offering: false, unsettledOwners: 0 });
   expect(log).toMatchObject({ phase: 'idle', offering: false, unsettledOwners: 0, descriptor: null, acquisition: null, reservations: null });
+  expect(log.routes).toEqual({ count: 0, omitted: 0, records: [] });
   expect(log.attempts).toEqual({ count: 0, omitted: 0, records: [] });
+});
+
+it('reports discovered split and whole-model routes so connect-only logs show ready routes', () => {
+  const log = summarizeNativePartitionState({
+    phase: 'idle',
+    offering: false,
+    unsettledOwners: 0,
+    models: [
+      {
+        id: 'qwen-3-8-27b-text-q4k-ef16-af32',
+        identity: 'sha256:model',
+        availability: 'ready',
+        placement: 'ordered-layer-partition',
+        partition: {
+          schema: 'reploid.partition-selection/v2',
+          planId: 'sha256:plan',
+          route: { stages: [{ participantId: 'peer:a' }, { participantId: 'peer:b' }] },
+        },
+      },
+      {
+        id: 'qwen-3-5-2b-q4k-ef16-af32',
+        identity: 'sha256:whole',
+        availability: 'ready',
+        placement: 'whole-model',
+        providerIds: ['peer:c'],
+      },
+    ],
+  });
+  expect(log.routes).toEqual({
+    count: 2,
+    omitted: 0,
+    records: [
+      { id: 'qwen-3-8-27b-text-q4k-ef16-af32', identity: 'sha256:model', availability: 'ready', placement: 'ordered-layer-partition', planId: 'sha256:plan', stages: ['peer:a', 'peer:b'] },
+      { id: 'qwen-3-5-2b-q4k-ef16-af32', identity: 'sha256:whole', availability: 'ready', placement: 'whole-model', planId: null, stages: ['peer:c'] },
+    ],
+  });
 });

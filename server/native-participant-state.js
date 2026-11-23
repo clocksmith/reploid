@@ -31,6 +31,14 @@ export function summarizeNativePartitionState(state, { at = Date.now() } = {}) {
     reservations: state.reservations ? { ...pick(state.reservations, ['active', 'availableSlots', 'closed']),
       ...rows(state.reservations.records, record => ({ attemptId: text(record.identity?.attemptId),
         ...pick(record, ['phase', 'failure', 'reservedAt', 'settlingAt', 'settledAt']) })) } : null,
+    routes: rows(state.models, route => {
+      const stages = Array.isArray(route?.partition?.route?.stages)
+        ? route.partition.route.stages.slice(0, 16).map(stage => text(stage?.participantId))
+        : route?.partition ? [text(route.partition.participantA), text(route.partition.participantB)].filter(Boolean)
+          : Array.isArray(route?.providerIds) ? route.providerIds.slice(0, 16).map(value => text(value)) : [];
+      return { ...pick(route, ['id', 'identity', 'availability', 'placement']),
+        planId: text(route?.partition?.planId ?? null), stages };
+    }),
     attempts: rows(state.attempts, record => pick(record, ['attemptId', 'threadId', 'status', 'phase'])),
     acquisition: acquisition ? { openingMode: text(acquisition.openingMode),
       memory: pick(acquisition.memory, ['liveBytes', 'allocatedBytes', 'maxBytes', 'peakBytes', 'allocations', 'rejected', 'lost']),

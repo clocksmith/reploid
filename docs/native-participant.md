@@ -208,14 +208,14 @@ Doppler package (0.6.36 or newer with the manifest-driven plan API).
 ```json
 {
   "schema": "reploid.native-model/v1",
-  "model": "qwen-3-8-27b-text-q4k-ef16-af32",
+  "model": "qwen-3-5-2b-q4k-ef16-af32",
   "partition": {
-    "splitLayers": [32],
+    "splitLayers": [12],
     "activationDtype": "f32",
     "activationPrecision": "f32"
   },
   "partitionRuntime": {
-    "maxGpuBufferBytes": [17179869184, 17179869184],
+    "maxGpuBufferBytes": [4294967296, 4294967296],
     "runtimeConfig": "model"
   }
 }
@@ -223,11 +223,16 @@ Doppler package (0.6.36 or newer with the manifest-driven plan API).
 
 `model` can be a catalog ID or a complete model descriptor with `id`, `name`,
 `provider: "doppler"`, exact manifest `identity`, explicit `generation`,
-`executionModes`, and the ordinary pinned `source.files` metadata. Local source
-files include the manifest and SHA-256-bound verified piece index; creating a
-descriptor does not download or copy weights. The actual manifest bytes and
-model ID must match before the runtime is imported. Geometry comes from that
-manifest, not an operator-supplied hidden width or layer count.
+`executionModes`, and the ordinary pinned `source.files` metadata. A catalog entry
+that already pins a compact ordered cut (such as `qwen-3-8-27b-text-q4k-ef16-af32`)
+uses that pinned plan and omits `partition`; supply a complete model descriptor to
+test different cuts. Local source files include the manifest and SHA-256-bound
+verified piece index; creating a descriptor does not download or copy weights. A
+weightless requester referencing a catalog ID may keep an empty `--model-directory`,
+which verifies the bundled catalog manifest; any `manifest.json` present in
+`--model-directory` (and every non-catalog descriptor) must match `identity` before
+the runtime is imported. Geometry comes from that manifest, not an operator-supplied
+hidden width or layer count.
 
 `partitionRuntime.runtimeConfig` is a complete runtime overlay object, or the
 explicit string `"model"` to reuse `model.loadOptions.runtimeConfig`. One positive
