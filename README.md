@@ -79,7 +79,7 @@ Configured fleet services quote a request, reserve non-cash service credits, and
 
 ## Read next
 
-[Documentation](docs/INDEX.md) · [Hash-verified historical evidence](docs/evidence-catalog/README.md) · [Goals](GOALS.md) · [Contributing](AGENTS.md)
+[Documentation](docs/INDEX.md) · [Governance](GOVERNANCE.md) · [Hash-verified historical evidence](docs/evidence-catalog/README.md) · [Goals](GOALS.md) · [Contributing](AGENTS.md)
 
 ## License
 
