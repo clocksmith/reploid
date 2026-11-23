@@ -85,6 +85,19 @@ describe('Stable message presentation', () => {
     expect(root.textContent).toContain('A computer disconnected. Retry this answer.');
     expect(root.querySelector('[data-retry-attempt]').disabled).toBe(false);
   });
+  it('marks a dropped pinned computer as interrupted, keeps its text and offers Retry', () => {
+    for (const error of ['Execution peer disconnected; retry requires a new attempt',
+      'The connection to this computer changed. The request ended and nothing further was accepted.']) {
+      const root = document.createElement('div'), view = createMessageList(root), thread = conversation();
+      thread.attempts[0] = { id: 'attempt', status: 'failed', error, request: { privacy: { recipients: { kind: 'named', ids: ['peer:desktop'] } } } };
+      view.update(thread, { usable: true, busy: false });
+      expect(root.textContent).toContain('First words');
+      expect(root.textContent).toContain('Interrupted.');
+      expect(root.textContent).toContain('unverified');
+      expect(root.textContent).not.toContain('A computer disconnected');
+      expect(root.querySelector('[data-retry-attempt]').disabled).toBe(false);
+    }
+  });
   it('presents declined sharing as not sent rather than a network failure', () => {
     const root = document.createElement('div'), view = createMessageList(root), thread = conversation();
     thread.messages[1].content = '';

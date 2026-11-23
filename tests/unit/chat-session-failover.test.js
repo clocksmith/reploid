@@ -7,7 +7,7 @@ import { createChatTestService } from '../fixtures/chat-service.js';
 // Injected swarm port, not actual inference or a physical peer loss.
 const DROPPED = 'Execution peer disconnected; retry requires a new attempt';
 const peerId = index => 'peer:' + String(index).repeat(24);
-function fixture(outcome) {
+function fixture(outcome, recipients = { kind: 'open', ids: [] }) {
   const calls = [], disclosed = [], reviewed = [];
   const swarm = {
     getState: () => ({ sharing: false }), connect: async () => {}, hasProvider: () => true,
@@ -30,7 +30,7 @@ function fixture(outcome) {
   const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
   session.setRemoteAnswersEnabled(true);
   const threadId = session.createThread({ executionLocation: 'network',
-    privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) });
+    privacy: createExecutionPolicy({ placement: 'network-allowed', recipients }) });
   const settled = async count => {
     for (let turn = 0; turn < 200; turn++) {
       const state = session.getState();
@@ -49,6 +49,16 @@ function fixture(outcome) {
   };
   return { session, threadId, calls, reviewed, disclosed, settled };
 }
+
+it('a conversation pinned to one computer is not resent when that computer drops', async () => {
+  const f = fixture(() => 'drop', { kind: 'named', ids: [peerId(1)] });
+  expect((await f.session.send(f.threadId, 'Pinned question')).status).toBe('failed');
+  await new Promise(resolve => setTimeout(resolve, 40));
+  const thread = f.session.getState().activeThread;
+  expect(f.calls).toHaveLength(1);
+  expect(f.disclosed).toEqual([peerId(1)]);
+  expect(thread.attempts.map(attempt => attempt.status)).toEqual(['failed']);
+});
 
 it('requires replacement recipient approval after the chosen computer drops, keeping the failed attempt', async () => {
   const f = fixture(index => index === 0 ? 'drop' : 'complete');

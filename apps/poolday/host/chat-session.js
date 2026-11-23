@@ -59,12 +59,15 @@ export const CONTRIBUTOR_SEARCH_ROUTE = 'contributor-search';
 export const MAX_AUTOMATIC_FAILOVERS = 2;
 // Failures that mean the chosen computer went away, before or during the answer. Anything else
 // (a refusal, a limit, a model error) is not a reason to send the question to someone else.
-const PROVIDER_DROPPED = /Execution peer disconnected; retry requires a new attempt|Selected contributor is no longer ready; retry requires new placement|Failed to send swarm generation request/;
+const PROVIDER_DROPPED = /Execution peer disconnected; retry requires a new attempt|Selected contributor is no longer ready; retry requires new placement|Failed to send swarm generation request|The connection to this computer changed/;
 /** Whether a thread's latest attempt should be retried on another computer without being asked. */
 export function shouldFailover(thread, runningIds = [], used = 0) {
   const attempt = thread?.attempts?.at(-1);
   return !!attempt && !thread.closed && attempt.status === 'failed' && PROVIDER_DROPPED.test(String(attempt.error || ''))
     && thread.permissions?.sharingScope !== 'local'
+    // Only a conversation open to any eligible computer may move. A pinned one ends this attempt and waits for
+    // the reader: it is not resent on its own, even to the same computer.
+    && thread.privacy?.recipients?.kind === 'open'
     // A search-backed answer discloses again on retry and needs fresh permission for it.
     && !attempt.request?.retrieval
     && !(runningIds || []).includes(thread.id) && used < MAX_AUTOMATIC_FAILOVERS;

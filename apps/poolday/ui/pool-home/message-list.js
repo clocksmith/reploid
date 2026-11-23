@@ -17,7 +17,12 @@ function failureLabel(attempt) {
   }
   if (attempt.error === 'Disclosure declined') return 'Not sent. You declined sharing this request.';
   if (attempt.status === 'cancelled') return 'Stopped. Your partial answer is saved.';
-  if (/disconnect|peer.*lost|contributor.*lost/i.test(attempt.error || '')) return 'A computer disconnected. Retry this answer.';
+  if (/disconnect|peer.*lost|contributor.*lost|no longer ready|Failed to send swarm|connection to this computer changed/i.test(attempt.error || '')) {
+    // A pinned conversation does not move on its own. Its partial text is kept but was never signed.
+    return attempt.request?.privacy?.recipients?.kind === 'named'
+      ? 'Interrupted. That computer went away before finishing, so any text above is unverified. Retry when it is back, or change where this conversation runs.'
+      : 'A computer disconnected. Retry this answer.';
+  }
   if (/memory|allocation|resource.*exhaust|budget/i.test(attempt.error || '')) return 'This answer exceeded the available resources.';
   if (/quoted terms were not accepted/i.test(attempt.error || '')) return 'Not sent. The quote is above your spending limit, or no limit is set (Settings, Credits).';
   if (/Community Access (is not available|refused)/i.test(attempt.error || '')) return 'Not sent. Community Access cannot take this answer now.';
