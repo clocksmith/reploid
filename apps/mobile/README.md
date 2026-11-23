@@ -6,11 +6,13 @@ is sent, and keep a signed receipt check for every answer. It is the same
 product as the web client in `apps/poolday` with a different interface and
 rendering surface.
 
-**Status.** The app runs end to end against a synthetic network that lives
-inside the app, and every screen says so. The adapter that reaches real
-computers is being built against the shared requester contract; until it
-lands, no prompt leaves the device. Nothing here has run on a physical
-phone.
+**Status.** The requester protocol is implemented in Dart and tested against
+the web client's own code. On macOS the app has asked a real provider over
+real signaling and real WebRTC and shown a verified answer; that provider ran
+a stand-in model on the same machine. The default build still answers from a
+synthetic network inside the app, and says so on screen. Nothing here has run
+on a phone, on a simulator, across real networks, or against a computer
+serving a real model.
 
 ## How it is put together
 
@@ -52,17 +54,36 @@ this directory:
 
 ```sh
 flutter pub get
-bash tool/check.sh          # format, analysis, boundaries, all tests, consumer
-cd app && flutter run       # pick a device with -d
+bash tool/check.sh          # format, analysis, boundaries, generated code, all tests, consumer
+bash tool/e2e_macos.sh      # the app on macOS against a real local provider over WebRTC
+cd app && flutter run       # the demo network; pick a device with -d
 ```
 
 `flutter test` in `app`, `packages/ui` or `packages/core` runs one package.
+The tests that need the web client's provider code are skipped when Node or
+the repository's `node_modules` is missing.
+
+Which network a build uses is fixed at build time:
+
+```sh
+flutter run --dart-define=REPLOID_NETWORK=public
+flutter run --dart-define=REPLOID_NETWORK=room \
+  --dart-define=REPLOID_SIGNALING_URL=ws://127.0.0.1:8000/swarm \
+  --dart-define=REPLOID_ROOM=reploid-swarm-example \
+  --dart-define=REPLOID_TOKEN=<at least 32 characters>
+```
+
+After changing the contract or the model catalog, run
+`dart run tool/generate_contract.dart` and commit the result.
 
 ## Not done
 
-- The real-network adapter (signaling, WebRTC, the contract engine).
-- Any run on a physical phone or simulator; the secure key store and
-  WebRTC are untested on devices.
+- Any run on a phone or simulator. The secure key store is untested on a
+  device, and iOS and Android have not been built.
+- The public network. Relay credentials for computers behind strict
+  firewalls are not fetched, so only direct connections are tried.
 - Durable conversations. They are lost when the app closes.
-- Split routes, credits, owner pairing and local models, which the web
-  product has and this app does not.
+- Pairing with your own desktop, split routes, credits, attachments, file
+  sharing and local models, which the web product has and this app does not.
+- Recovery of an answer after a lost connection. A lost answer is asked for
+  again as a new request.

@@ -55,7 +55,7 @@ String render(Map<String, Object?> contract, Object? catalog) {
         throw StateError('The contract no longer has $prefix.$key');
       }
       out.writeln(
-        '  static const ${_camel('$prefix ${key}')} = ${_lit(values[key])};',
+        '  static const ${_camel('$prefix $key')} = ${_lit(values[key])};',
       );
     }
   }

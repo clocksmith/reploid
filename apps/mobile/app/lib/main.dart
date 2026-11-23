@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 
 import 'app/app.dart';
+import 'app/network_config.dart';
 import 'app/providers.dart';
 import 'infrastructure/identity_store.dart';
 
@@ -45,6 +46,7 @@ class _ReploidRootState extends State<ReploidRoot> {
         widget.identityStore ?? const SecureIdentityStore(),
       ),
       chatRepositoryProvider.overrideWith(createChatRepository),
+      ...NetworkConfig.overrides(),
       ...widget.overrides,
     ],
     child: const _Resume(child: ReploidApp()),
