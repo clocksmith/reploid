@@ -17,12 +17,12 @@ tested from it.
 | File | What it is |
 | --- | --- |
 | `requester-contract.json` | The contract. Edited by hand. |
-| `vectors.json` | Test vectors. Generated from the real JavaScript modules; never edited. |
-| [`scripts/build-requester-contract-vectors.js`](../../../../../scripts/build-requester-contract-vectors.js) | Builds `vectors.json`. |
-| [`scripts/verify-requester-contract.js`](../../../../../scripts/verify-requester-contract.js) | Checks the contract against the code. |
-| [`scripts/requester-contract/`](../../../../../scripts/requester-contract/) | Shared pieces: fixed test inputs, the capture harness, the schema validator. |
-| [`tests/fixtures/requester-conformance/`](../../../../../tests/fixtures/requester-conformance/) | Providers a client in another language can test against. |
-| [`tests/unit/requester-contract.test.js`](../../../../../tests/unit/requester-contract.test.js) | Runs the verifier and the stdio provider under vitest. |
+| [`tests/fixtures/requester-conformance/vectors.json`](../../../../tests/fixtures/requester-conformance/vectors.json) | Test vectors. Generated from the real JavaScript modules; never edited. They sit with the test fixtures because they hold test private keys. |
+| [`scripts/build-requester-contract-vectors.js`](../../../../scripts/build-requester-contract-vectors.js) | Builds `vectors.json`. |
+| [`scripts/verify-requester-contract.js`](../../../../scripts/verify-requester-contract.js) | Checks the contract against the code. |
+| [`scripts/requester-contract/`](../../../../scripts/requester-contract/) | Shared pieces: fixed test inputs, the capture harness, the schema validator. |
+| [`tests/fixtures/requester-conformance/`](../../../../tests/fixtures/requester-conformance/) | Providers a client in another language can test against. |
+| [`tests/unit/requester-contract.test.js`](../../../../tests/unit/requester-contract.test.js) | Runs the verifier and the stdio provider under vitest. |
 
 ## Reading the contract
 
@@ -130,9 +130,9 @@ pairing and guest invitations, per-request generation settings and the receipts
 that bind them, adapters, peer introductions, being a provider, and how to get
 the sign-in token for relay credentials.
 
-## Library assets
+## Where the files live
 
-Files with a `.json` extension in this directory are library assets:
-`npm run sync:library` copies them to `shared/vendor/reploid/`, and
-`npm run verify:library` and `npm run verify:layers` fail until that copy and
-the generated inventories are refreshed (`npm run build`).
+The contract is in `packages/reploid/contracts/`, beside the library source and
+outside `packages/reploid/src/`. Everything under `src/` is copied into the
+served browser tree by `npm run sync:library`; the contract and its vectors are
+read by tools and tests, not by the browser, so they stay out of it.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Checks packages/reploid/src/contracts/requester/requester-contract.json
+ * Checks packages/reploid/contracts/requester/requester-contract.json
  * against the code the web and native clients run. It fails when:
  *
  *   - a constant in the contract differs from the value the code uses;
@@ -34,7 +34,7 @@ import { FIXED_IDENTITIES } from './requester-contract/fixed-inputs.js';
 import { buildVectorsText, VECTORS_FILE } from './build-requester-contract-vectors.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const CONTRACT_FILE = path.join(root, 'packages/reploid/src/contracts/requester/requester-contract.json');
+export const CONTRACT_FILE = path.join(root, 'packages/reploid/contracts/requester/requester-contract.json');
 
 const TOP_LEVEL = ['schema', 'scope', 'notCovered', 'constants', 'sources', 'signalingMessages', 'envelope', 'channelMessages',
   'objects', 'procedures', 'sequence', 'failures'];

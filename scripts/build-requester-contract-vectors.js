@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Builds packages/reploid/src/contracts/requester/vectors.json.
+ * Builds tests/fixtures/requester-conformance/vectors.json, the test vectors of the
+ * requester contract (packages/reploid/contracts/requester/requester-contract.json).
  *
  * Every expected value comes from the real modules: canonical JSON, hashing,
  * identities, signatures, the identity proof, the SDP fingerprint, the execution
@@ -22,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 import { canonicalize } from '../packages/reploid/src/artifacts/canonical-json.js';
-import { hashJson, sha256Hex } from '../packages/reploid/src/artifacts/signatures.js';
+import { hashJson } from '../packages/reploid/src/artifacts/signatures.js';
 import { createPeerIdFromPublicJwk, importSigningKey, importVerificationKey, getIdentitySignAlgorithm,
   encodeBytes, toBase64Url, fromBase64Url } from '../packages/reploid/src/artifacts/identity.js';
 import { fingerprint } from '../packages/reploid/src/transport/sdp-fingerprint.js';
@@ -38,7 +39,7 @@ import { createScheduler, withDeterministicRuntime, sessionDescription } from '.
 import { captureExchange, probeInboundFrames, probeAdvertisement } from './requester-contract/capture.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const VECTORS_FILE = path.join(root, 'packages/reploid/src/contracts/requester/vectors.json');
+export const VECTORS_FILE = path.join(root, 'tests/fixtures/requester-conformance/vectors.json');
 
 /**
  * Pre-generated ECDSA P-256 signatures by the fixed providerEcdsa test key, base64url of r||s.

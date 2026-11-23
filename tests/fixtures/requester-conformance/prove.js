@@ -37,7 +37,7 @@ import { validate } from '../../../scripts/requester-contract/schema-validator.j
 import { createMinimalRequester, sdpFingerprint } from './minimal-requester.js';
 
 const here = import.meta.dirname, root = path.resolve(here, '../../..');
-const contract = JSON.parse(await fs.readFile(path.join(root, 'packages/reploid/src/contracts/requester/requester-contract.json'), 'utf8'));
+const contract = JSON.parse(await fs.readFile(path.join(root, 'packages/reploid/contracts/requester/requester-contract.json'), 'utf8'));
 const exec = promisify(execFile);
 const waitFor = async (probe, message, ms = 10000) => {
   const deadline = Date.now() + ms;

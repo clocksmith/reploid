@@ -12,7 +12,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const contract = JSON.parse(await fs.readFile(path.resolve(import.meta.dirname, '../../../packages/reploid/src/contracts/requester/requester-contract.json'), 'utf8'));
+const contract = JSON.parse(await fs.readFile(path.resolve(import.meta.dirname, '../../../packages/reploid/contracts/requester/requester-contract.json'), 'utf8'));
 const { constants } = contract;
 const ids = constants.generation.schemaIds;
 const utf8 = text => new TextEncoder().encode(text);
