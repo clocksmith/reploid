@@ -206,6 +206,11 @@ class _Thread extends HookWidget {
         models.where((m) => m.id == conversation?.modelId).firstOrNull ??
         models.where((m) => m.available).firstOrNull;
     final busy = conversation?.busy ?? false;
+    // A conversation aimed at the desktop names it, online or not; it is
+    // never quietly answered by someone else.
+    final desktop = conversation?.target == AnswerTarget.desktop
+        ? network?.desktop
+        : null;
 
     /// A command refused before any attempt shows why, in place.
     Future<void> guard(Future<void> Function() command) async {
@@ -233,7 +238,9 @@ class _Thread extends HookWidget {
         leading: ActionGroup(
           children: [
             SecondaryAction(
-              label: chosen == null
+              label: desktop != null
+                  ? '${Strings.answerOn}: ${desktop.label}'
+                  : chosen == null
                   ? Strings.answerOn
                   : '${Strings.answerOn}: ${chosen.name}',
               onPressed: busy ? null : openModels,
@@ -242,6 +249,10 @@ class _Thread extends HookWidget {
         ),
         note: !allowed
             ? Strings.discloseOff
+            : desktop != null
+            ? desktop.status == DesktopStatus.online
+                  ? Strings.discloseDesktop(desktop.label)
+                  : Strings.desktopOffline(desktop.label)
             : chosen != null && !chosen.available
             ? Strings.noComputer
             : Strings.discloseRemote,
@@ -273,7 +284,13 @@ class _Thread extends HookWidget {
               text: turn.text,
               author: Strings.assistant,
               failed: turn.phase == AnswerPhase.failed,
-              status: _turnStatus(turn),
+              status:
+                  turn.phase == AnswerPhase.failed &&
+                      turn.failure == FailureKind.forbidden &&
+                      desktop != null &&
+                      turn.recipient == desktop.participantId
+                  ? '${Strings.pairAgain} ${Strings.promptNotSent}'
+                  : _turnStatus(turn),
               caption: _turnCaption(turn),
               actions: [
                 if (identical(turn, turns.last) &&
@@ -322,6 +339,17 @@ class ModelsScreen extends ConsumerWidget {
   final String conversationId;
   final VoidCallback done;
 
+  void _choose(WidgetRef ref, AnswerTarget target) {
+    final repository = ref.read(chatRepositoryProvider);
+    if (repository == null || !session.isActive) return;
+    try {
+      repository.selectTarget(conversationId, target);
+      if (target == AnswerTarget.desktop) done();
+    } on AppFailure {
+      // An answer started meanwhile, or the desktop was unpaired.
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final network = _own(
@@ -337,6 +365,23 @@ class ModelsScreen extends ConsumerWidget {
     return PageSurface(
       title: Strings.answerOn,
       children: [
+        if (network?.desktop case final desktop? when desktop.paired) ...[
+          const SectionHeading(title: Strings.whereToAnswer),
+          ChoiceTile(
+            title: Strings.targetDesktop(desktop.label),
+            detail: desktop.status == DesktopStatus.online
+                ? Strings.desktopDetailOnline
+                : Strings.desktopOffline(desktop.label),
+            selected: conversation?.target == AnswerTarget.desktop,
+            onPressed: () => _choose(ref, AnswerTarget.desktop),
+          ),
+          ChoiceTile(
+            title: Strings.targetContributors,
+            detail: Strings.contributorsDetail,
+            selected: conversation?.target == AnswerTarget.contributors,
+            onPressed: () => _choose(ref, AnswerTarget.contributors),
+          ),
+        ],
         const SectionHeading(
           title: Strings.models,
           description: Strings.modelsDetail,
@@ -377,6 +422,146 @@ class ModelsScreen extends ConsumerWidget {
   }
 }
 
+/// The paired desktop, or the way to pair one.
+class _DesktopSection extends ConsumerWidget {
+  const _DesktopSection({required this.session, required this.network});
+  final SessionHandle session;
+  final NetworkResource? network;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final desktop = network?.desktop;
+    Future<void> run(Future<void> Function(ChatRepository) command) async {
+      final repository = ref.read(chatRepositoryProvider);
+      if (repository == null || !session.isActive) return;
+      try {
+        await command(repository);
+      } on AppFailure {
+        // The repository publishes why; the section shows it.
+      }
+    }
+
+    return ContentCard(
+      children: [
+        const SectionHeading(title: Strings.yourDesktop),
+        if (desktop != null && desktop.paired) ...[
+          StatusBadge(
+            label: desktop.status == DesktopStatus.online
+                ? Strings.online
+                : Strings.offline,
+            highlighted: desktop.status == DesktopStatus.online,
+          ),
+          BodyCopy(desktop.label),
+          LabeledValue(label: Strings.identity, value: desktop.participantId),
+          if (desktop.status == DesktopStatus.offline)
+            Notice(text: Strings.desktopOffline(desktop.label)),
+          const BodyCopy(Strings.unpairDetail),
+          SecondaryAction(
+            label: Strings.unpair,
+            onPressed: () => unawaited(run((r) => r.unpair())),
+          ),
+        ] else if (desktop != null) ...[
+          BodyCopy(desktop.label),
+          LabeledValue(label: Strings.identity, value: desktop.participantId),
+          Notice(
+            text: desktop.status == DesktopStatus.awaitingApproval
+                ? Strings.approveOnDesktop
+                : Strings.findingDesktop,
+          ),
+          LabeledValue(
+            label: Strings.thisPhone,
+            value: session.key.identity.accountId,
+          ),
+        ] else ...[
+          const BodyCopy(Strings.pairIntro),
+          if (network?.pairingFailure case final kind?)
+            Notice(text: Strings.pairFailure(kind), tone: NoticeTone.warning),
+          _PairForm(
+            readInvite: (link) =>
+                ref.read(chatRepositoryProvider)?.readInvite(link),
+            pair: (link) => unawaited(run((r) => r.pair(link))),
+          ),
+          LabeledValue(
+            label: Strings.thisPhone,
+            value: session.key.identity.accountId,
+          ),
+          const BodyCopy(Strings.thisPhoneDetail),
+        ],
+      ],
+    );
+  }
+}
+
+/// Owns the pasted link. The person first sees which desktop the link
+/// names, and only Connect sends anything.
+class _PairForm extends HookWidget {
+  const _PairForm({required this.readInvite, required this.pair});
+  final DesktopInvite? Function(String link) readInvite;
+  final ValueChanged<String> pair;
+
+  @override
+  Widget build(BuildContext context) {
+    final input = useTextEditingController();
+    final invite = useState<DesktopInvite?>(null);
+    final invalid = useState(false);
+    useListenable(input);
+    final found = invite.value;
+    if (found != null) {
+      return Section(
+        children: [
+          SectionHeading(title: Strings.connectTo(found.label)),
+          LabeledValue(label: Strings.identity, value: found.participantId),
+          const BodyCopy(Strings.pairWarn),
+          ActionGroup(
+            children: [
+              ActionButton(
+                label: Strings.connect,
+                pendingLabel: Strings.connect,
+                onPressed: () {
+                  final link = input.text;
+                  // The code is single use; it is not kept on screen.
+                  input.clear();
+                  invite.value = null;
+                  pair(link);
+                },
+              ),
+              SecondaryAction(
+                label: Strings.cancel,
+                onPressed: () {
+                  input.clear();
+                  invite.value = null;
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+    return Section(
+      children: [
+        NoteInput(
+          controller: input,
+          label: Strings.pairingLink,
+          hint: Strings.pairingLinkHint,
+        ),
+        if (invalid.value)
+          const Notice(text: Strings.invalidLink, tone: NoticeTone.warning),
+        ActionButton(
+          label: Strings.pairCheck,
+          pendingLabel: Strings.pairCheck,
+          onPressed: input.text.trim().isEmpty
+              ? null
+              : () {
+                  final read = readInvite(input.text);
+                  invalid.value = read == null;
+                  invite.value = read;
+                },
+        ),
+      ],
+    );
+  }
+}
+
 class ComputersScreen extends ConsumerWidget {
   const ComputersScreen({super.key, required this.session});
   final SessionHandle session;
@@ -392,6 +577,7 @@ class ComputersScreen extends ConsumerWidget {
     return PageSurface(
       title: Strings.network,
       children: [
+        _DesktopSection(session: session, network: network),
         const SectionHeading(
           title: Strings.networkHeading,
           description: Strings.networkDetail,

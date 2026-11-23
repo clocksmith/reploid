@@ -15,10 +15,14 @@ final class ArchivedConversation {
     required this.title,
     required this.modelId,
     required this.turns,
+    this.target,
   });
   final String id;
   final String title;
   final String? modelId;
+
+  /// Where the person chose to have this conversation answered, if they did.
+  final AnswerTarget? target;
   final List<Turn> turns;
 }
 
@@ -121,6 +125,7 @@ base class ConversationArchive {
               'id': conversation.id,
               'title': conversation.title,
               'modelId': conversation.modelId,
+              'target': conversation.target?.name,
               'turns': [for (final turn in conversation.turns) _turn(turn)],
             },
         ],
@@ -157,6 +162,9 @@ base class ConversationArchive {
         id: item['id']! as String,
         title: item['title']! as String,
         modelId: item['modelId'] as String?,
+        target: AnswerTarget.values
+            .where((t) => t.name == item['target'])
+            .firstOrNull,
         turns: [
           for (final raw in item['turns']! as List)
             _restore(raw as Map<String, Object?>),

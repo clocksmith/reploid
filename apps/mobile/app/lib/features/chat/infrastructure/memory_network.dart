@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:core/core.dart';
 
+import '../../../infrastructure/reploid_api/pairing.dart';
 import '../domain/chat.dart';
 import 'requester_api.dart';
 
 enum AnswerBehavior { answer, decline, failMidStream, badReceipt }
+
+enum PairingBehavior { approve, decline, silent, missing }
 
 /// A synthetic network for tests and the demo build. It outlives sessions,
 /// as the real network does, and records which identity sent what to whom so
@@ -46,6 +49,28 @@ final class MemoryNetwork {
     ),
   ];
 
+  /// The synthetic desktop a device can pair with through [pairingLink].
+  static const desktopId = 'peer:0000000000000000000000d1';
+  static const desktopLabel = 'Workbench';
+  static const pairingLink =
+      'https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR'
+      '&host=peer%3A0000000000000000000000d1'
+      '&room=reploid-swarm-demo&name=Workbench';
+  bool desktopOnline = true;
+
+  /// True once the desktop has dropped every phone it had paired.
+  bool desktopForgot = false;
+  final Set<SessionIdentity> _paired = {};
+  PairingBehavior _nextPairing = PairingBehavior.approve;
+  int pairingRequests = 0;
+
+  void simulateNextPairing(PairingBehavior behavior) => _nextPairing = behavior;
+
+  void setDesktopOnline(bool online) {
+    desktopOnline = online;
+    _changes.add(null);
+  }
+
   /// Every prompt that left a device: (sender, recipient, last user text).
   final List<(SessionIdentity, String, String)> delivered = [];
   int requests = 0;
@@ -78,7 +103,63 @@ final class _MemoryApi implements RequesterApi {
   NetworkSnapshot _snapshot() => NetworkSnapshot(
     status: _open ? NetworkStatus.online : NetworkStatus.offline,
     computers: _open ? network.computers : const [],
+    desktop: network._paired.contains(identity)
+        ? Desktop(
+            participantId: MemoryNetwork.desktopId,
+            label: MemoryNetwork.desktopLabel,
+            status: _open && network.desktopOnline
+                ? DesktopStatus.online
+                : DesktopStatus.offline,
+            modelId: MemoryNetwork.smallModel,
+          )
+        : null,
   );
+
+  @override
+  DesktopInvite? readInvite(String link) {
+    final parsed = PairingLink.parse(link);
+    return parsed == null
+        ? null
+        : DesktopInvite(
+            participantId: parsed.hostParticipantId,
+            label: parsed.hostLabel ?? parsed.hostParticipantId,
+          );
+  }
+
+  @override
+  Future<void> pair(String link, {void Function()? onAsked}) async {
+    final parsed = PairingLink.parse(link);
+    if (parsed == null) throw const AppFailure(FailureKind.validation);
+    network.pairingRequests++;
+    final behavior = network._nextPairing;
+    network._nextPairing = PairingBehavior.approve;
+    await Future<void>.delayed(network.latency);
+    if (_closed) throw const AppFailure(FailureKind.sessionExpired);
+    if (behavior == PairingBehavior.missing ||
+        !network.desktopOnline ||
+        parsed.hostParticipantId != MemoryNetwork.desktopId) {
+      throw const AppFailure(FailureKind.unavailable);
+    }
+    onAsked?.call();
+    await Future<void>.delayed(network.latency);
+    if (_closed) throw const AppFailure(FailureKind.sessionExpired);
+    switch (behavior) {
+      case PairingBehavior.decline:
+        throw const AppFailure(FailureKind.forbidden);
+      case PairingBehavior.silent:
+        throw const AppFailure(FailureKind.unavailable);
+      default:
+        network._paired.add(identity);
+        network.desktopForgot = false;
+        network._changes.add(null);
+    }
+  }
+
+  @override
+  Future<void> unpair() async {
+    network._paired.remove(identity);
+    network._changes.add(null);
+  }
 
   @override
   Stream<NetworkSnapshot> watch() => Stream.multi((controller) {
@@ -111,22 +192,33 @@ final class _MemoryApi implements RequesterApi {
   }
 
   @override
-  Answer ask({required String modelId, required List<PromptMessage> messages}) {
+  Answer ask({
+    required String modelId,
+    required List<PromptMessage> messages,
+    AnswerTarget target = AnswerTarget.contributors,
+  }) {
     network.requests++;
     final behavior = network._next;
     network._next = AnswerBehavior.answer;
-    return _MemoryAnswer(this, modelId, messages, behavior);
+    return _MemoryAnswer(this, modelId, messages, behavior, target);
   }
 }
 
 final class _MemoryAnswer implements Answer {
-  _MemoryAnswer(this.api, this.modelId, this.messages, this.behavior) {
+  _MemoryAnswer(
+    this.api,
+    this.modelId,
+    this.messages,
+    this.behavior,
+    this.target,
+  ) {
     _controller.onListen = () => unawaited(_run());
   }
   final _MemoryApi api;
   final String modelId;
   final List<PromptMessage> messages;
   final AnswerBehavior behavior;
+  final AnswerTarget target;
   final _controller = StreamController<AnswerEvent>();
   bool _cancelled = false;
 
@@ -140,16 +232,32 @@ final class _MemoryAnswer implements Answer {
     try {
       await Future<void>.delayed(network.latency);
       if (_stopped) return;
-      final computer = network.computers
-          .where((c) => c.modelId == modelId && c.ready && !c.busy)
-          .firstOrNull;
+      final Computer? computer;
+      if (target == AnswerTarget.desktop) {
+        // Only the paired desktop, and never a stand-in for it.
+        final paired = network._paired.contains(api.identity);
+        computer = paired && network.desktopOnline
+            ? const Computer(
+                address: 'memory-desktop',
+                participantId: MemoryNetwork.desktopId,
+                modelId: MemoryNetwork.smallModel,
+                ready: true,
+                busy: false,
+              )
+            : null;
+      } else {
+        computer = network.computers
+            .where((c) => c.modelId == modelId && c.ready && !c.busy)
+            .firstOrNull;
+      }
       if (!api._open || computer == null) {
         throw const AppFailure(FailureKind.unavailable);
       }
       _controller.add(RecipientProven(computer.participantId!));
       await Future<void>.delayed(network.latency);
       if (_stopped) return;
-      if (behavior == AnswerBehavior.decline) {
+      if (behavior == AnswerBehavior.decline ||
+          (target == AnswerTarget.desktop && network.desktopForgot)) {
         throw const AppFailure(FailureKind.forbidden);
       }
       final prompt = messages.last.text;

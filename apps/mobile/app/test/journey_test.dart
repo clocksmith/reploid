@@ -249,6 +249,82 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('pair with a desktop, ask it, and see it go offline', (
+    tester,
+  ) async {
+    final network = _network();
+    await _launch(tester, network);
+    await _start(tester);
+    await _tap(tester, find.text(Strings.computers));
+    await tester.pumpAndSettle(_step);
+    expect(find.text(Strings.yourDesktop), findsOneWidget);
+    expect(find.text(Strings.thisPhone), findsOneWidget);
+
+    // A link that is not one is refused before anything is sent.
+    await tester.enterText(find.byType(TextField), 'https://example.com/');
+    await tester.pump();
+    await _tap(tester, find.text(Strings.pairCheck));
+    await tester.pump();
+    expect(find.text(Strings.invalidLink), findsOneWidget);
+
+    // A real link first shows which desktop it names.
+    await tester.enterText(find.byType(TextField), MemoryNetwork.pairingLink);
+    await tester.pump();
+    await _tap(tester, find.text(Strings.pairCheck));
+    await tester.pump();
+    expect(
+      find.text(Strings.connectTo(MemoryNetwork.desktopLabel)),
+      findsOneWidget,
+    );
+    expect(find.text(MemoryNetwork.desktopId), findsOneWidget);
+    expect(network.pairingRequests, 0, reason: 'nothing sent before Connect');
+
+    await _tap(tester, find.text(Strings.connect));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(network.pairingRequests, 1);
+    expect(find.text(Strings.unpair), findsOneWidget);
+    expect(find.text(MemoryNetwork.desktopId), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle(_step);
+    await _openNewChat(tester);
+    expect(
+      find.text('${Strings.answerOn}: ${MemoryNetwork.desktopLabel}'),
+      findsOneWidget,
+    );
+    expect(
+      find.text(Strings.discloseDesktop(MemoryNetwork.desktopLabel)),
+      findsOneWidget,
+    );
+    await _type(tester, 'for my desk');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(
+      find.text(Strings.answeredBy(MemoryNetwork.desktopId, verified: true)),
+      findsOneWidget,
+    );
+    expect(network.delivered.single.$2, MemoryNetwork.desktopId);
+
+    // The desktop goes away: the composer says so, and a prompt sent now
+    // goes to no one, although a contributor is ready.
+    network.setDesktopOnline(false);
+    await tester.pump(_step);
+    await tester.pump();
+    expect(
+      find.text(Strings.desktopOffline(MemoryNetwork.desktopLabel)),
+      findsOneWidget,
+    );
+    await _type(tester, 'are you there');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(find.textContaining(Strings.promptNotSent), findsOneWidget);
+    expect(network.delivered, hasLength(1));
+    await _close(tester);
+  });
+
   testWidgets('conversations are still there after the app restarts', (
     tester,
   ) async {

@@ -9,6 +9,7 @@ import '../features/chat/domain/chat.dart';
 import '../features/chat/infrastructure/chat_repository.dart';
 import '../features/chat/infrastructure/conversation_archive.dart';
 import '../features/chat/infrastructure/memory_network.dart';
+import '../features/chat/infrastructure/pairing_store.dart';
 import '../features/chat/infrastructure/requester_api.dart';
 import '../infrastructure/device_stores.dart';
 import '../infrastructure/identity_store.dart';
@@ -45,11 +46,12 @@ ConversationArchive _archive(Ref ref, String participantId) =>
 final memoryNetworkProvider = Provider<MemoryNetwork>((ref) => MemoryNetwork());
 
 /// Builds the network adapter for one device identity. The default is the
-/// synthetic network; bootstrap overrides it to reach real computers.
+/// synthetic network; bootstrap overrides it to reach real computers. The
+/// secret store is where an adapter keeps its paired desktop.
 final requesterApiFactoryProvider =
-    Provider<RequesterApi Function(SigningIdentity)>(
+    Provider<RequesterApi Function(SigningIdentity, SecretStore)>(
       (ref) =>
-          (identity) => ref
+          (identity, _) => ref
               .watch(memoryNetworkProvider)
               .forIdentity(SessionIdentity(identity.peerId)),
     );
@@ -145,7 +147,13 @@ class SessionController extends Notifier<SessionState> {
     }
     ref.read(deviceIdentityProvider).current = null;
     try {
-      if (identity != null) await _archive(ref, identity.peerId).erase();
+      if (identity != null) {
+        await _archive(ref, identity.peerId).erase();
+        await PairingStore(
+          ref.read(secretStoreProvider),
+          identity.peerId,
+        ).delete();
+      }
       await ref.read(identityStoreProvider).delete();
     } catch (_) {
       ref.read(startStatusProvider.notifier).set(StartStatus.failed);
@@ -165,7 +173,10 @@ ChatRepository? createChatRepository(Ref ref) {
   }
   final repository = SessionChatRepository(
     session: session,
-    api: ref.watch(requesterApiFactoryProvider)(identity),
+    api: ref.watch(requesterApiFactoryProvider)(
+      identity,
+      ref.watch(secretStoreProvider),
+    ),
     newId: ref.watch(operationIdProvider),
     archive: _archive(ref, identity.peerId),
   );

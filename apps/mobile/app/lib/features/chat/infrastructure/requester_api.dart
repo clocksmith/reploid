@@ -2,11 +2,17 @@ import '../domain/chat.dart';
 
 /// What the network reports, before repository projection.
 final class NetworkSnapshot {
-  NetworkSnapshot({required this.status, required List<Computer> computers})
-    : computers = List.unmodifiable(computers);
+  NetworkSnapshot({
+    required this.status,
+    required List<Computer> computers,
+    this.desktop,
+  }) : computers = List.unmodifiable(computers);
 
   final NetworkStatus status;
   final List<Computer> computers;
+
+  /// The paired desktop as the adapter knows it now.
+  final Desktop? desktop;
 }
 
 final class CatalogModel {
@@ -66,5 +72,19 @@ abstract interface class RequesterApi {
   Stream<NetworkSnapshot> watch();
   Future<void> open();
   Future<void> close();
-  Answer ask({required String modelId, required List<PromptMessage> messages});
+
+  /// An answer from a contributor with [modelId], or, with
+  /// [AnswerTarget.desktop], from the paired desktop and no one else.
+  Answer ask({
+    required String modelId,
+    required List<PromptMessage> messages,
+    AnswerTarget target = AnswerTarget.contributors,
+  });
+
+  DesktopInvite? readInvite(String link);
+
+  /// Completes when the desktop's owner approved and the pairing is kept.
+  /// [onAsked] runs once the code has gone to the proven desktop.
+  Future<void> pair(String link, {void Function()? onAsked});
+  Future<void> unpair();
 }

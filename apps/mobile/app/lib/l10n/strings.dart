@@ -99,6 +99,53 @@ abstract final class Strings {
   static const identity = 'Signing identity';
   static const model = 'Model';
 
+  static const yourDesktop = 'Your desktop';
+  static const pairIntro =
+      'Pair this phone with your own computer and it can answer you. On '
+      'the desktop, start Reploid, type pair, and paste the link it shows.';
+  static const pairingLink = 'Pairing link';
+  static const pairingLinkHint = 'https://replo.id/#pair=…';
+  static const pairCheck = 'Read link';
+  static const invalidLink = 'That is not a pairing link.';
+  static String connectTo(String label) => 'Connect to $label?';
+  static const pairWarn =
+      'Check that this is the identity your desktop shows. Whoever opens a '
+      'pairing link first can use it, so the desktop also asks its owner.';
+  static const connect = 'Connect';
+  static const cancel = 'Cancel';
+  static const thisPhone = 'This phone';
+  static const thisPhoneDetail =
+      'Your desktop will ask whether to pair this identity.';
+  static const findingDesktop =
+      'Looking for your desktop. The pairing code has not been sent.';
+  static const approveOnDesktop = 'Approve on your desktop.';
+  static String pairFailure(FailureKind kind) => switch (kind) {
+    FailureKind.unavailable =>
+      'The desktop was not found or did not answer. Check that it is '
+          'online, get a fresh link, and try again.',
+    FailureKind.forbidden => 'The desktop declined the pairing.',
+    FailureKind.unauthenticated =>
+      'A computer answered that is not the desktop in the link. Nothing '
+          'was paired.',
+    FailureKind.validation => invalidLink,
+    _ => failure(kind),
+  };
+  static String desktopOffline(String label) =>
+      '$label is offline. Open Reploid on $label.';
+  static const unpair = 'Unpair desktop';
+  static const unpairDetail =
+      'This phone forgets the desktop. The desktop keeps listing this '
+      'phone until its own pairing data is removed.';
+  static String discloseDesktop(String label) =>
+      'Sending to $label. Its operator can read your prompt.';
+  static const whereToAnswer = 'Where to answer';
+  static String targetDesktop(String label) => 'Your desktop: $label';
+  static const targetContributors = 'Contributors';
+  static const contributorsDetail = 'A participating computer you do not know.';
+  static const desktopDetailOnline = 'Online. Only this computer is asked.';
+  static const pairAgain =
+      'Your desktop no longer lists this phone. Pair again in Computers.';
+
   static const allowNetwork = 'Allow network answers';
   static const allowNetworkDetail =
       'When on, Send gives your prompt to the computer named under it. '

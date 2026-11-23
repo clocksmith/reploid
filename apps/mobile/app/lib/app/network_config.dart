@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/misc.dart' show Override;
 
 import '../features/chat/infrastructure/contract_requester_api.dart';
+import '../features/chat/infrastructure/pairing_store.dart';
 import '../infrastructure/reploid_api/requester_network.dart';
 import '../infrastructure/reploid_api/webrtc_transport.dart';
 import 'providers.dart';
@@ -50,18 +51,31 @@ abstract final class NetworkConfig {
     if (config == null) return const [];
     return [
       demoNetworkProvider.overrideWithValue(false),
-      requesterApiFactoryProvider.overrideWithValue(
-        (identity) => ContractRequesterApi(
-          RequesterNetwork(
-            transport: WebRtcMeshTransport(
-              config: config,
-              // ignore: avoid_print
-              trace: _trace ? (line) => print('transport: $line') : null,
-            ),
-            identity: identity,
+      requesterApiFactoryProvider.overrideWithValue((identity, secrets) {
+        RequesterNetwork join(SignalingConfig room) => RequesterNetwork(
+          transport: WebRtcMeshTransport(
+            config: room,
+            // ignore: avoid_print
+            trace: _trace ? (line) => print('transport: $line') : null,
           ),
-        ),
-      ),
+          identity: identity,
+        );
+        return ContractRequesterApi(
+          join(config),
+          pairings: PairingStore(secrets, identity.peerId),
+          // A paired desktop waits in a private room of its own, on the
+          // same signaling service.
+          joinRoom: (roomId, token) => join(
+            SignalingConfig(
+              url: config.url,
+              roomId: roomId,
+              token: token,
+              origin: config.origin,
+              iceServerUrls: config.iceServerUrls,
+            ),
+          ),
+        );
+      }),
     ];
   }
 }

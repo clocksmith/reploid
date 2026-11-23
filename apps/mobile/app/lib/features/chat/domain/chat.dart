@@ -37,6 +37,48 @@ final class Computer {
 
 enum NetworkStatus { offline, connecting, online }
 
+/// Where an answer runs. The person chooses; the app never changes it.
+enum AnswerTarget { contributors, desktop }
+
+/// What a pairing link says before anything is sent, so the person can
+/// check which desktop they are about to pair with.
+final class DesktopInvite {
+  const DesktopInvite({required this.participantId, required this.label});
+  final String participantId;
+  final String label;
+}
+
+enum DesktopStatus {
+  /// Looking for the desktop; the pairing code has not been sent.
+  finding,
+
+  /// The code was sent to the proven desktop; its owner must approve.
+  awaitingApproval,
+  online,
+  offline,
+}
+
+/// The person's own desktop, pinned by its signing identity. It is online
+/// only while a connection has proven that identity; nothing else, such as
+/// a name or what a computer says about itself, counts.
+final class Desktop {
+  const Desktop({
+    required this.participantId,
+    required this.label,
+    required this.status,
+    this.modelId,
+  });
+  final String participantId;
+  final String label;
+  final DesktopStatus status;
+
+  /// The model the desktop is ready to answer with, if any.
+  final String? modelId;
+
+  bool get paired =>
+      status == DesktopStatus.online || status == DesktopStatus.offline;
+}
+
 final class NetworkResource {
   NetworkResource({
     required this.sessionKey,
@@ -44,6 +86,8 @@ final class NetworkResource {
     required List<ModelOption> models,
     required List<Computer> computers,
     required this.networkAnswersAllowed,
+    this.desktop,
+    this.pairingFailure,
     this.failure,
   }) : models = List.unmodifiable(models),
        computers = List.unmodifiable(computers);
@@ -55,6 +99,12 @@ final class NetworkResource {
 
   /// The standing permission to send prompts to other people's computers.
   final bool networkAnswersAllowed;
+
+  /// The paired desktop, or one being paired; null when there is none.
+  final Desktop? desktop;
+
+  /// Why the last pairing attempt ended without a pairing.
+  final FailureKind? pairingFailure;
   final FailureKind? failure;
 }
 
@@ -135,9 +185,13 @@ final class Conversation {
     required this.title,
     required this.modelId,
     required List<Turn> turns,
+    this.target = AnswerTarget.contributors,
   }) : turns = List.unmodifiable(turns);
 
   final String id;
+
+  /// Where this conversation's answers run.
+  final AnswerTarget target;
 
   /// Empty until the first prompt; presentation supplies the fallback label.
   final String title;
@@ -179,6 +233,16 @@ abstract interface class ChatRepository {
   Stream<NetworkResource> watchNetwork();
   Future<void> reconnect();
   Future<void> setNetworkAnswersAllowed(bool allowed);
+
+  /// Reads a pairing link without sending anything; null when it is not one.
+  DesktopInvite? readInvite(String link);
+
+  /// Pairs with the desktop the link names. Completes once its owner has
+  /// approved; throws [AppFailure] when it was not found, did not answer,
+  /// or declined.
+  Future<void> pair(String link);
+  Future<void> unpair();
+  void selectTarget(String id, AnswerTarget target);
 
   Stream<ConversationListResource> watchList();
   Stream<ConversationResource> watch(String id);

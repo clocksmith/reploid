@@ -103,7 +103,7 @@ final class ProcessLink implements PeerLink {
 }
 
 /// A transport with exactly one connection: the provider process.
-final class ProcessTransport implements MeshTransport {
+base class ProcessTransport implements MeshTransport {
   ProcessTransport([this.arguments = const []]);
   final List<String> arguments;
   final _links = StreamController<PeerLink>();
@@ -134,6 +134,7 @@ final class ProcessTransport implements MeshTransport {
   @override
   Future<void> close() async {
     await link?.stop();
+    if (_status.isClosed) return;
     _set(TransportStatus.offline);
     await _links.close();
     await _status.close();

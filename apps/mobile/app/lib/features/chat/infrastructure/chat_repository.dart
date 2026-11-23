@@ -11,6 +11,7 @@ final class _Thread {
   final String id;
   String title = '';
   String? modelId;
+  AnswerTarget? target;
   final List<Turn> turns = [];
   Answer? answer;
   StreamSubscription<AnswerEvent>? subscription;
@@ -56,6 +57,7 @@ final class SessionChatRepository implements ChatRepository {
   );
   StreamSubscription<NetworkSnapshot>? _networkSubscription;
   FailureKind? _networkFailure;
+  FailureKind? _pairingFailure;
   bool _connecting = false;
   bool _allowed = true;
   bool _closed = false;
@@ -114,6 +116,7 @@ final class SessionChatRepository implements ChatRepository {
       _threads[conversation.id] = _Thread(conversation.id)
         ..title = conversation.title
         ..modelId = conversation.modelId
+        ..target = conversation.target
         ..turns.addAll(conversation.turns);
     }
     _threads.addAll(made);
@@ -139,6 +142,7 @@ final class SessionChatRepository implements ChatRepository {
           id: thread.id,
           title: thread.title,
           modelId: thread.modelId,
+          target: thread.target,
           turns: List.of(thread.turns),
         ),
   ];
@@ -182,6 +186,8 @@ final class SessionChatRepository implements ChatRepository {
       ],
       computers: computers,
       networkAnswersAllowed: _allowed,
+      desktop: _network.desktop,
+      pairingFailure: _pairingFailure,
       failure: _networkFailure,
     );
   }
@@ -224,6 +230,69 @@ final class SessionChatRepository implements ChatRepository {
     _emit();
   }
 
+  // The paired desktop -------------------------------------------------------
+
+  @override
+  DesktopInvite? readInvite(String link) => api.readInvite(link);
+
+  @override
+  Future<void> pair(String link) async {
+    _checkActive();
+    _pairingFailure = null;
+    _ensureOpen();
+    _emit();
+    try {
+      await api.pair(link);
+    } catch (error) {
+      if (_active) _pairingFailure = _kind(error);
+      rethrow;
+    } finally {
+      await _refreshNetwork();
+    }
+  }
+
+  @override
+  Future<void> unpair() async {
+    _checkActive();
+    _pairingFailure = null;
+    await api.unpair();
+    await _refreshNetwork();
+  }
+
+  /// Reads the adapter's state now, so a caller that awaited a pairing
+  /// sees its result at once and not one event later.
+  Future<void> _refreshNetwork() async {
+    if (!_active) return;
+    final snapshot = await api.watch().first;
+    if (!_active) return;
+    _network = snapshot;
+    _emit();
+  }
+
+  /// A conversation with no choice of its own answers on the desktop when
+  /// one is paired. A conversation whose desktop is gone falls back only
+  /// because there is no desktop to ask, never while one is merely offline.
+  AnswerTarget _target(_Thread thread) {
+    final paired = _network.desktop?.paired ?? false;
+    final chosen = thread.target;
+    if (!paired) return AnswerTarget.contributors;
+    return chosen ?? AnswerTarget.desktop;
+  }
+
+  @override
+  void selectTarget(String id, AnswerTarget target) {
+    _checkActive();
+    final thread = _require(id);
+    if (thread.running != null) throw const AppFailure(FailureKind.conflict);
+    if (target == AnswerTarget.desktop &&
+        !(_network.desktop?.paired ?? false)) {
+      throw const AppFailure(FailureKind.validation);
+    }
+    thread.target = target;
+    _persist();
+    _emit();
+  }
+
   // Conversations -----------------------------------------------------------
 
   Conversation _conversation(_Thread thread) => Conversation(
@@ -231,6 +300,7 @@ final class SessionChatRepository implements ChatRepository {
     title: thread.title,
     modelId: thread.modelId,
     turns: thread.turns,
+    target: _target(thread),
   );
 
   @override
@@ -304,6 +374,9 @@ final class SessionChatRepository implements ChatRepository {
     final prompt = text.trim();
     if (prompt.isEmpty) throw const AppFailure(FailureKind.validation);
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
+    // The destination is fixed when the prompt is sent and kept with the
+    // conversation; pairing or unpairing later does not move it.
+    thread.target ??= _target(thread);
     final modelId = thread.modelId ??= _defaultModel();
     if (modelId == null) throw const AppFailure(FailureKind.unavailable);
     if (thread.title.isEmpty) {
@@ -352,6 +425,7 @@ final class SessionChatRepository implements ChatRepository {
     final answer = thread.answer = api.ask(
       modelId: modelId,
       messages: messages,
+      target: _target(thread),
     );
     _emit();
 

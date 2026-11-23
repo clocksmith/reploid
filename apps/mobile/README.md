@@ -37,6 +37,15 @@ A session is one device signing identity. Start creates it on first use and
 keeps it in the platform keystore; Forget this device ends the session and
 deletes the key and every conversation.
 
+The phone can be paired with the person's own desktop from a pairing link.
+The link is read first and shows which desktop it names; only Connect sends
+anything, and the desktop's owner must approve. The pairing pins the
+desktop's signing identity: it counts as online only while a connection has
+proven that identity, a conversation aimed at it is never answered by
+another computer, and an offline desktop is shown as offline. Each
+conversation says where it is answered, on the desktop or by contributors,
+and only the person changes that.
+
 Conversations are kept on the device, in one file per identity sealed with
 AES-256-GCM under a key held in the platform keystore. An answer that was
 under way when the app stopped is shown as ended, with whether its prompt
@@ -103,7 +112,9 @@ constants). What needs a new binary: any change to native code or plugins
   firewalls are not fetched, so only direct connections are tried.
 - Excluding the encrypted history file from device backups. The key is
   never backed up, so a backup alone cannot be read.
-- Pairing with your own desktop, split routes, credits, attachments, file
-  sharing and local models, which the web product has and this app does not.
+- Pairing over real WebRTC and across two rooms on a device; it is tested
+  against the web client's desktop code over a text link only.
+- Split routes, credits, attachments, file sharing and local models, which
+  the web product has and this app does not.
 - Recovery of an answer after a lost connection. A lost answer is asked for
   again as a new request.
