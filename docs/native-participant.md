@@ -257,7 +257,11 @@ Use the same model JSON on every contributor and requester. Supply a separate
 ```
 
 The next host uses index 1 and its own allocation identities; a weightless
-requester uses `"stage": null`. For contributor-chosen placement use
+requester uses `"stage": null`. For a catalog model, `reploid split <model>
+--stage N` and `reploid ask <model>` stand for this configuration with the
+application's limits and identities made for the process, so no host file is
+needed; pass `--ordered-config` only to choose different limits or automatic
+placement. For contributor-chosen placement use
 `"stage": { "modelId": "...", "assignment": "auto" }` together with
 `"orchestration": { "autoStage": { "dwellMs": 60000 } }`.
 [Additional orchestration controls](launch-3-orchestration.md) remain opt-in.
