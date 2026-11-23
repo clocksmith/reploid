@@ -162,7 +162,7 @@ const checkNetworkInspector = async (routePage) => {
   if (!panel.open || !(panel.area > 0) || !(panel.slot.width > 0) || panel.slot.right > panel.width) {
     failures.push('/network: the open inspector does not preserve the conversation within the viewport: ' + JSON.stringify(panel));
   }
-  // Computers owns both sharing controls. Storage links to file sharing.
+  // Computers owns contribution and Settings owns file sharing.
   // Both default on, but an idle visitor has nothing
   // cached to share.
   await participants.locator('details:has([data-toggle-contribution]) > summary').click();
@@ -173,10 +173,9 @@ const checkNetworkInspector = async (routePage) => {
   await expect(settings).toBeVisible();
   await expect(participants).toBeHidden();
   await expect(routePage.locator('#network-inspector-title')).toHaveText('Settings');
-  await settings.locator('[data-settings-storage] [data-manage-file-sharing]').click();
-  await expect(participants).toBeVisible();
-  const fileSharing = participants.locator('[data-toggle-file-contribution]');
+  const fileSharing = settings.locator('[data-toggle-file-contribution]');
   await expect(fileSharing).toBeVisible();
+  await expect(participants.locator('[data-toggle-file-contribution]')).toHaveCount(0);
   await expect(fileSharing).toHaveAttribute('aria-checked', 'true');
   await inspector.locator('[data-close-inspector]').click();
   await expect(inspector).toBeHidden();
