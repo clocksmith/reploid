@@ -3,7 +3,7 @@ import { availablePartitionRoute, currentPartitionRoute, matchesPartitionDisclos
 import { createExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
 import { setTimeout as delay } from 'node:timers/promises';
 
-export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000 } = {}) {
+export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000 } = {}) {
   const discovery = AbortSignal.timeout(discoveryMs);
   const waiting = AbortSignal.any([signal, discovery]);
   let route;
@@ -28,7 +28,7 @@ export async function askMesh(participant, model, prompt, { signal, report = con
   const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: stages
     ? { kind: 'named', ids: [...new Set(stages)] } : { kind: 'open', ids: [] } });
   const result = await participant.generate({ model: route, threadId, attemptId, privacy, messages: [{ role: 'user', content: prompt }] }, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(120000)]),
+    signal: AbortSignal.any([signal, AbortSignal.timeout(generationMs)]),
     requestApproval(preview) {
       if (route.partition && (!matchesPartitionDisclosure(route.partition, preview)
         || (participant.executionClass !== 'private-pool' && !currentPartitionRoute(route, participant.getState().models || [])))) return false;

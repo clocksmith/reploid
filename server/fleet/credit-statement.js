@@ -4,14 +4,16 @@
  * Recomputes one enrolled computer's balance directly from signed execution
  * receipts, output acknowledgments, terminal cleanup proofs and accepted
  * request bindings, without trusting the operator's running total or SQLite
- * tables. Any journal entry whose evidence is missing, unsigned, replayed or
- * inconsistent with its stated delta is reported in `unchecked`.
+ * tables. Verifies expired unclaimed holds, enforces policy claim-release
+ * windows so late receipts cannot reopen settlement, and reports any journal
+ * entry whose proof is missing, unsigned, replayed or mismatched in `unchecked`.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { realpathSync } from 'node:fs';
+import { parseArgs } from 'node:util';
 import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
 import { verifyParticipantSignature } from '../../packages/reploid/src/artifacts/participant-proofs.js';
 import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -20,6 +22,16 @@ import { verifyCreditEvidence, verifyPartitionComponents } from './credit-eviden
 import { creditSettlementDeltas } from './credit-shares.js';
 
 export const FLEET_CREDIT_STATEMENT_SCHEMA = 'reploid.fleet-credit-statement/v1';
+
+const releaseWindowFor = (request, policy) => (
+  request.mode === 'whole-model' ? policy.wholeModelUnclaimedReleaseMs : policy.partitionUnclaimedReleaseMs
+);
+
+const requestWorkIds = request => (
+  request.mode === 'whole-model'
+    ? [`whole:${request.providers[0].participantId}:${request.consumer}:request:${request.executionId}`]
+    : request.providers.map((provider, index) => `stage:${provider.participantId}:${request.id}:${request.executionId}:${index}`)
+);
 
 function verifyRequestBinding(request, requestId, enrollment, policy) {
   assert(request && typeof request === 'object' && !Array.isArray(request)
@@ -104,12 +116,14 @@ async function verifyInterruptedOwners(request, evidence, enrollment, settledAt,
 /**
  * Recompute an account's service-credit balance offline from signed evidence.
  *
- * Pass `computers` to pin an external enrollment file, or `participantIds` to
- * pin the contributor's own signing identities without needing the full fleet
- * registry. Entries that lack complete cryptographic proof or disagree with
+ * Pass `computers` to pin an external enrollment file, `participantIds` to pin
+ * the contributor's own signing identities without needing the full fleet
+ * registry, or `lateClaims` (`[{ requestId, evidence, at, request? }]`) to
+ * verify offline that late receipts arriving after hold expiry cannot reopen
+ * settlement. Entries that lack complete cryptographic proof or disagree with
  * the stated journal delta are reported in `unchecked`.
  */
-export async function verifyCreditStatement(statement, { computers, participantIds } = {}) {
+export async function verifyCreditStatement(statement, { computers, participantIds, lateClaims } = {}) {
   assert(statement?.schema === FLEET_CREDIT_STATEMENT_SCHEMA, 'Explicit fleet credit statement required');
   assert(text(statement.computerId), 'Explicit statement computer ID required');
   const policy = creditPolicy(statement.policy);
@@ -117,6 +131,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
   assert(Number.isSafeInteger(statement.balance) && integer(statement.held) && Number.isSafeInteger(statement.issuedAt),
     'Explicit integer statement balance, hold and issue time required');
   assert(Array.isArray(statement.entries), 'Statement entries array required');
+  assert(statement.expired === undefined || Array.isArray(statement.expired), 'Statement expired list must be an array');
   const enrolledSource = computers ?? statement.computers;
   assert(enrolledSource, 'Computer enrollment required to verify credit statement');
   const enrollment = await enrollComputers(enrolledSource);
@@ -133,9 +148,37 @@ export async function verifyCreditStatement(statement, { computers, participantI
     assert(same(actualPeers, expectedPeers), 'Statement account keys differ from expected participant identities');
   }
 
+  const expiredRequests = new Set(), expiredWorkIds = new Set(), expiredById = new Map();
   const seenRequests = new Set(), seenWorkIds = new Set();
-  const verified = [], unchecked = [];
+  const expiredVerified = [], verified = [], unchecked = [];
   let previousSequence = 0, recomputedBalance = 0;
+
+  for (const item of statement.expired ?? []) {
+    const requestId = typeof item?.requestId === 'string' ? item.requestId : null;
+    try {
+      assert(text(requestId) && !expiredRequests.has(requestId), 'Duplicate or invalid expired request ID');
+      verifyRequestBinding(item.request, requestId, enrollment, policy);
+      const participates = item.request.computerId === statement.computerId
+        || item.request.providers.some(provider => enrollment.byPeer.get(provider.participantId)?.computerId === statement.computerId);
+      assert(participates, 'Statement account did not participate in expired request');
+      const window = releaseWindowFor(item.request, policy);
+      assert(Number.isSafeInteger(window) && window > 0, 'Expired unclaimed hold requires an explicit policy release window');
+      const outcome = item.outcome;
+      assert(outcome && outcome.id === requestId && outcome.status === 'expired'
+        && outcome.charge === 0 && outcome.ownComputeUnits === 0 && outcome.outputTokens === 0
+        && Array.isArray(outcome.credits) && outcome.credits.length === 0
+        && Number.isSafeInteger(outcome.settledAt)
+        && outcome.settledAt >= item.request.deadline + window
+        && outcome.settledAt <= statement.issuedAt + policy.maxClockSkewMs,
+      'Invalid expired hold outcome');
+      expiredRequests.add(requestId);
+      expiredById.set(requestId, item.request);
+      for (const workId of requestWorkIds(item.request)) expiredWorkIds.add(workId);
+      expiredVerified.push({ requestId, mode: item.request.mode, expiredAt: outcome.settledAt, charge: 0 });
+    } catch (error) {
+      unchecked.push({ sequence: null, requestId, statedDelta: 0, recomputedDelta: null, reason: error.message });
+    }
+  }
 
   for (const entry of statement.entries) {
     const sequence = Number.isSafeInteger(entry?.sequence) ? entry.sequence : null;
@@ -146,15 +189,21 @@ export async function verifyCreditStatement(statement, { computers, participantI
       assert(sequence !== null && sequence > previousSequence, 'Non-monotonic or invalid journal sequence');
       previousSequence = sequence;
       assert(text(requestId) && !seenRequests.has(requestId), 'Duplicate or invalid request ID');
+      assert(!expiredRequests.has(requestId), 'Claim window closed; expired hold cannot reopen settlement');
       assert(statedDelta !== null && Number.isSafeInteger(entry.at), 'Explicit integer journal delta and timestamp required');
       verifyRequestBinding(entry.request, requestId, enrollment, policy);
+      const window = releaseWindowFor(entry.request, policy);
       assert(entry.at >= entry.request.createdAt - policy.maxClockSkewMs
         && entry.at <= statement.issuedAt + policy.maxClockSkewMs, 'Journal timestamp is outside request or statement bounds');
+      if (Number.isSafeInteger(window)) {
+        assert(entry.at < entry.request.deadline + window, 'Claim window closed before settlement');
+      }
       assert(entry.evidence !== null && entry.evidence !== undefined, 'Missing signed settlement evidence');
       const interrupted = await verifyInterruptedOwners(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs);
       const observed = await verifyCreditEvidence(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs, { interrupted });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
       for (const workId of observed.workIds) {
+        assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');
         assert(!seenWorkIds.has(workId), 'Duplicate settled work evidence');
       }
       const totalUnits = observed.fixedCharge ?? observed.outputTokens * policy.creditsPerOutputToken;
@@ -189,9 +238,42 @@ export async function verifyCreditStatement(statement, { computers, participantI
     }
   }
 
+  let lateClaimResults;
+  if (lateClaims !== undefined) {
+    assert(Array.isArray(lateClaims), 'Late claims list must be an array');
+    lateClaimResults = [];
+    for (const claim of lateClaims) {
+      const requestId = typeof claim?.requestId === 'string' ? claim.requestId : null;
+      const at = Number.isSafeInteger(claim?.at) ? claim.at : statement.issuedAt;
+      try {
+        assert(text(requestId), 'Late claim requestId required');
+        assert(!expiredRequests.has(requestId), 'Claim window closed; expired hold cannot reopen settlement');
+        assert(!seenRequests.has(requestId), 'Request already settled');
+        const request = claim.request ?? expiredById.get(requestId);
+        assert(request, 'Late claim request binding required');
+        verifyRequestBinding(request, requestId, enrollment, policy);
+        const window = releaseWindowFor(request, policy);
+        if (Number.isSafeInteger(window)) {
+          assert(at < request.deadline + window, 'Claim window closed before settlement');
+        }
+        assert(claim.evidence !== null && claim.evidence !== undefined, 'Missing signed settlement evidence');
+        const interrupted = await verifyInterruptedOwners(request, claim.evidence, enrollment, at, policy.maxClockSkewMs);
+        const observed = await verifyCreditEvidence(request, claim.evidence, enrollment, at, policy.maxClockSkewMs, { interrupted });
+        for (const workId of observed.workIds) {
+          assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');
+          assert(!seenWorkIds.has(workId), 'Duplicate settled work evidence');
+        }
+        lateClaimResults.push({ requestId, reopenAllowed: true, reason: null });
+      } catch (error) {
+        lateClaimResults.push({ requestId, reopenAllowed: false, reason: error.message });
+      }
+    }
+  }
+
   const balanceMatches = recomputedBalance === statement.balance;
+  const lateClaimsBlocked = lateClaimResults ? lateClaimResults.every(row => row.reopenAllowed === false) : true;
   return {
-    ok: unchecked.length === 0 && balanceMatches,
+    ok: unchecked.length === 0 && balanceMatches && lateClaimsBlocked,
     computerId: statement.computerId,
     unit: policy.unit,
     statedBalance: statement.balance,
@@ -200,9 +282,12 @@ export async function verifyCreditStatement(statement, { computers, participantI
     held: statement.held,
     entryCount: statement.entries.length,
     verifiedCount: verified.length,
+    expiredCount: expiredVerified.length,
     uncheckedCount: unchecked.length,
     verified,
+    expired: expiredVerified,
     unchecked,
+    ...(lateClaimResults ? { lateClaims: lateClaimResults } : {}),
   };
 }
 
@@ -210,12 +295,29 @@ const entered = typeof import.meta.main === 'boolean' ? import.meta.main
   : (() => { try { return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); } catch { return false; } })();
 
 if (entered) {
-  const [statementFile, enrollmentFile] = process.argv.slice(2);
+  const { values, positionals } = parseArgs({
+    args: process.argv.slice(2),
+    allowPositionals: true,
+    options: { 'late-claim': { type: 'string', multiple: true } },
+  });
+  const [statementFile, enrollmentFile] = positionals;
   assert(statementFile && path.isAbsolute(statementFile),
-    'Usage: node server/fleet/credit-statement.js /absolute/statement.json [/absolute/enrollment.json]');
+    'Usage: node server/fleet/credit-statement.js /absolute/statement.json [/absolute/enrollment.json] [--late-claim /absolute/late-claim.json]');
   const statement = JSON.parse(await fs.readFile(statementFile, 'utf8'));
   const computers = enrollmentFile ? JSON.parse(await fs.readFile(path.resolve(enrollmentFile), 'utf8')) : undefined;
-  const result = await verifyCreditStatement(statement, { ...(computers ? { computers } : {}) });
+  let lateClaims;
+  if (values['late-claim']?.length) {
+    lateClaims = [];
+    for (const claimFile of values['late-claim']) {
+      assert(path.isAbsolute(claimFile), 'Absolute --late-claim path required');
+      const parsed = JSON.parse(await fs.readFile(claimFile, 'utf8'));
+      lateClaims.push(...(Array.isArray(parsed) ? parsed : [parsed]));
+    }
+  }
+  const result = await verifyCreditStatement(statement, {
+    ...(computers ? { computers } : {}),
+    ...(lateClaims ? { lateClaims } : {}),
+  });
   console.log(JSON.stringify(result, null, 2));
   if (!result.ok) process.exitCode = 1;
 }

@@ -403,4 +403,132 @@ describe('offline service-credit statement verification', () => {
     expect(next.policy.creditsPerOutputToken).toBe(policy.creditsPerOutputToken);
     expect(next.computers[0].name).toBe('Computer 0');
   });
+
+  it('blocks late split receipts after hold expiry on an idle ledger, verifies non-reopening offline, and charges only a fresh retry', async () => {
+    const releaseWindow = 30000;
+    const boundedPolicy = { ...policy, version: 'test/window2', partitionUnclaimedReleaseMs: releaseWindow };
+    const boundedFile = path.join(directory, 'window2.sqlite');
+    let clock = at;
+    ledger.close();
+    ledger = await openFleetCredits({ file: boundedFile, computers, policy: boundedPolicy, now: () => clock });
+
+    // Attempt 1: stage 0 disconnects after admission; stage 1 and requester acknowledgment arrive before deadline.
+    const attempt1 = await partitionBundle('split-attempt-1', [1, 2], [1, 2], 7, 0);
+    dispatch(attempt1.input);
+    ledger.admit(attempt1.input.id, 0);
+    ledger.admit(attempt1.input.id, 1);
+    await ledger.collect(attempt1.input.id, {
+      identity: attempt1.identity,
+      receipts: [attempt1.receipts[1]],
+      acknowledgment: attempt1.acknowledgment,
+    });
+
+    // Advance past deadline + partitionUnclaimedReleaseMs with NO intermediate snapshot/reserve calls.
+    const lateAt = at + boundedPolicy.maxRequestMs + releaseWindow + 5000;
+    clock = lateAt;
+    const lateSignedIso = new Date(lateAt).toISOString();
+    const lateStage0 = await createAttemptEvidenceSigner({ identity: identities[1] }).sign(
+      STAGE_RECEIPT_SCHEMA,
+      {
+        ...attempt1.receipts[0],
+        sequence: 3,
+        timing: { ...attempt1.receipts[0].timing, closedAt: lateSignedIso },
+        signedAt: lateSignedIso,
+      },
+    );
+    const lateEvidence = {
+      identity: attempt1.identity,
+      receipts: [lateStage0, attempt1.receipts[1]],
+      acknowledgment: attempt1.acknowledgment,
+    };
+
+    // Late receipt arriving on an idle ledger expires the hold first and refuses to reopen settlement.
+    await expect(ledger.collect(attempt1.input.id, { identity: attempt1.identity, receipts: [lateStage0] }))
+      .rejects.toThrow('Claim window closed; this hold was released unclaimed');
+    await expect(ledger.settle(attempt1.input.id, lateEvidence))
+      .rejects.toThrow('Claim window closed; this hold was released unclaimed');
+    expect(ledger.request(attempt1.input.id).outcome).toMatchObject({ status: 'expired', charge: 0 });
+    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
+
+    // Attempt 2: retry as a brand-new request at lateAt; completes cleanly and charges only the successful retry.
+    const retry = await partitionBundle('split-retry-2', [1, 2], [1, 2], 7, 0);
+    // Re-sign retry components at lateAt so timestamps match the retry window.
+    const retryIso = new Date(lateAt).toISOString();
+    const retryReceipts = await Promise.all([1, 2].map((ownerIndex, index) => createAttemptEvidenceSigner({ identity: identities[ownerIndex] }).sign(
+      STAGE_RECEIPT_SCHEMA,
+      {
+        ...retry.receipts[index],
+        timing: { reservedAt: retryIso, firstStepAt: retryIso, lastStepAt: retryIso, closedAt: retryIso },
+        signedAt: retryIso,
+      },
+    )));
+    const retryAck = await createAttemptEvidenceSigner({ identity: identities[0] }).sign(
+      OUTPUT_ACKNOWLEDGMENT_SCHEMA,
+      { ...retry.acknowledgment, signedAt: retryIso },
+    );
+    dispatch(retry.input);
+    ledger.admit(retry.input.id, 0);
+    ledger.admit(retry.input.id, 1);
+    await ledger.settle(retry.input.id, { identity: retry.identity, receipts: retryReceipts, acknowledgment: retryAck });
+
+    // Offline verification across requester and both stage hosts: 1 expired attempt (0 charge), 1 settled retry (-7, +2, +5).
+    for (const [index, expected] of [[-7, 2, 5][0], [-7, 2, 5][1], [-7, 2, 5][2]].map((val, idx) => [idx, val])) {
+      const statement = ledger.statement(`computer-${index}`);
+      const report = await verifyCreditStatement(statement, {
+        lateClaims: [{ requestId: attempt1.input.id, evidence: lateEvidence, at: lateAt }],
+      });
+      expect(report).toMatchObject({
+        ok: true,
+        statedBalance: expected,
+        recomputedBalance: expected,
+        held: 0,
+        verifiedCount: 1,
+        expiredCount: 1,
+        uncheckedCount: 0,
+        verified: [expect.objectContaining({ requestId: 'split-retry-2', delta: expected })],
+        expired: [expect.objectContaining({ requestId: 'split-attempt-1', charge: 0 })],
+        lateClaims: [{ requestId: 'split-attempt-1', reopenAllowed: false, reason: expect.stringMatching(/Claim window closed/i) }],
+      });
+    }
+
+    // CLI --late-claim check + tamper check: even if an operator strips `expired` and injects the late receipt into `entries`,
+    // offline verification catches `entry.at >= deadline + partitionUnclaimedReleaseMs` and keeps recomputedBalance at -7.
+    const requesterStatement = ledger.statement('computer-0');
+    const statementPath = path.join(directory, 'window2-statement.json');
+    const lateClaimPath = path.join(directory, 'window2-late-claim.json');
+    await writeFile(statementPath, JSON.stringify(requesterStatement, null, 2));
+    await writeFile(lateClaimPath, JSON.stringify({ requestId: attempt1.input.id, evidence: lateEvidence, at: lateAt }, null, 2));
+    const cliChecked = JSON.parse((await runFile(process.execPath, [cliScript, statementPath, '--late-claim', lateClaimPath])).stdout);
+    expect(cliChecked).toMatchObject({
+      ok: true,
+      recomputedBalance: -7,
+      verifiedCount: 1,
+      expiredCount: 1,
+      lateClaims: [{ requestId: 'split-attempt-1', reopenAllowed: false }],
+    });
+
+    const reopenedTamper = structuredClone(requesterStatement);
+    reopenedTamper.expired = [];
+    reopenedTamper.entries.unshift({
+      sequence: 0,
+      requestId: attempt1.input.id,
+      delta: -7,
+      at: lateAt,
+      request: requesterStatement.expired[0].request,
+      outcome: null,
+      evidence: lateEvidence,
+    });
+    // Fix sequence monotonicity (1, 2) so only the claim-window rule rejects attempt 1.
+    reopenedTamper.entries[0].sequence = 1;
+    reopenedTamper.entries[1].sequence = 2;
+    reopenedTamper.balance = -14;
+    const tamperReport = await verifyCreditStatement(reopenedTamper);
+    expect(tamperReport).toMatchObject({
+      ok: false,
+      statedBalance: -14,
+      recomputedBalance: -7,
+      uncheckedCount: 1,
+      unchecked: [expect.objectContaining({ requestId: 'split-attempt-1', reason: expect.stringMatching(/Claim window closed/i) })],
+    });
+  });
 });

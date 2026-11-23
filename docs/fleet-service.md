@@ -133,20 +133,24 @@ native host control stream) and verify its balance offline without trusting the
 service operator:
 
 ```sh
-node server/fleet/credit-statement.js /absolute/statement.json [/absolute/enrollment.json]
+node server/fleet/credit-statement.js /absolute/statement.json [/absolute/enrollment.json] [--late-claim /absolute/late-claim.json]
 ```
 
 `verifyCreditStatement` in `server/fleet/credit-statement.js` checks every
 journal entry's request-binding digest, participant signatures (whole-model
 countersigned receipts, whole-model terminal cleanup proofs, ordered stage
 closing receipts, interrupted stage-owner closures and requester output
-acknowledgments), duplicate-work replay rules and integer stage shares
+acknowledgments), duplicate-work replay rules, claim-release windows
+(`wholeModelUnclaimedReleaseMs`, `partitionUnclaimedReleaseMs`), expired
+unclaimed holds (`statement.expired`) and integer stage shares
 (`server/fleet/credit-shares.js`), then compares the recomputed balance against
-the stated balance. Pass `computers` to pin an external enrollment file or
+the stated balance. Pass `computers` to pin an external enrollment file,
 `participantIds` to pin the contributor's own signing keys without the full
-registry. Any entry whose proof is missing, unsigned (for example a split
-cancellation relying only on the operator's local admission table) or
-mismatched is listed in `unchecked` and causes the CLI check to exit non-zero.
+registry, or `lateClaims` (`--late-claim`) to confirm offline that a late
+receipt arriving after hold expiry cannot reopen settlement. Any entry whose
+proof is missing, unsigned (for example a split cancellation relying only on the
+operator's local admission table) or mismatched is listed in `unchecked` and
+causes the CLI check to exit non-zero.
 
 ## Placement
 

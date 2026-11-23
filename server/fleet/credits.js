@@ -107,8 +107,10 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       });
     },
     async settle(id, evidence) {
+      recovery.expire();
       evidence = structuredClone(evidence);
       const row = read(id); assert(row, 'Unknown credit reservation');
+      assert(row.state !== 'settled' || row.outcome?.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
       const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id), interrupted: recovery.interrupted(id) });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
       const { interruptedStages, ...economics } = observed;
@@ -177,8 +179,14 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         return { sequence: row.sequence, requestId: row.request_id, delta: row.delta, at: row.at,
           request: request.binding, outcome: request.outcome, evidence: request.evidence };
       });
+      const expired = db.prepare("SELECT id FROM fleet_requests WHERE state='settled' ORDER BY rowid").all()
+        .map(row => read(row.id))
+        .filter(row => row.outcome?.status === 'expired'
+          && (row.binding.computerId === computerId
+            || row.binding.providers.some(provider => accountFor(provider.participantId).computerId === computerId)))
+        .map(row => ({ requestId: row.id, request: row.binding, outcome: row.outcome }));
       return { schema: 'reploid.fleet-credit-statement/v1', computerId, unit: policy.unit, policy: structuredClone(policy),
-        computers: structuredClone(computers), balance: account.balance, held: account.held, issuedAt: now(), entries };
+        computers: structuredClone(computers), balance: account.balance, held: account.held, issuedAt: now(), entries, expired };
     },
     snapshot() {
       recovery.expire();

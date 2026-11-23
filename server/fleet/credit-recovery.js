@@ -80,6 +80,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
     unadmitted: unadmittedOf,
     interrupted: interruptedOf,
     async closeStageOwner(envelope) {
+      expiry();
       const { signature, ...signed } = envelope;
       const { id, partitionIndex: stage, owner, receipt } = signed.payload;
       const enrolled = enrollment.byPeer.get(signed.participantId);
@@ -93,6 +94,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       const row = read(id);
       assert(row?.binding.mode === 'partition' && row.binding.providers[stage]?.participantId === envelope.participantId,
         'Unmatched partition stage owner');
+      assert(row.state !== 'settled' || row.outcome?.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
       assert(receipt === null || receipt?.partitionIndex === stage && receipt.status === 'executing', 'Invalid recovered step checkpoint');
       if (receipt) await verifyPartitionComponents(row.binding, { identity: row.binding.route, receipts: [receipt] }, enrollment, now(), policy.maxClockSkewMs);
       const result = transaction(() => {
@@ -127,7 +129,9 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       });
     },
     async collect(id, evidence) {
+      expiry();
       const row = read(id); assert(row, 'Unknown credit reservation');
+      assert(row.state !== 'settled' || row.outcome?.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
       if (row.binding.mode === 'whole-model') {
         assert(evidence?.terminal, 'Whole-model terminal cleanup required');
         await verifyCreditEvidence(row.binding, evidence.terminal, enrollment, now(), policy.maxClockSkewMs);
