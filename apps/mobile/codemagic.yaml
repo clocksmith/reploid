@@ -1,0 +1,63 @@
+# Codemagic builds for the Reploid mobile app.
+#
+# NOT YET RUN: this file has never executed on Codemagic. It pins the same
+# Flutter version as .flutter-version, runs the full check before anything is
+# packaged, and produces unsigned builds only. Signing, store upload and
+# Shorebird releases are deliberately absent: they need the owner's accounts
+# and an explicit decision.
+#
+# Point the Codemagic application at this file and set its working directory
+# to apps/mobile.
+definitions:
+  environment: &environment
+    flutter: 3.47.5
+    node: 22
+  scripts:
+    - &install
+      name: Install the repository's JavaScript modules
+      # The protocol tests run against the web client's own provider code.
+      script: cd ../.. && npm ci
+    - &check
+      name: Format, analysis, boundaries, generated code and all tests
+      script: flutter pub get && bash tool/check.sh
+
+workflows:
+  check:
+    name: Check
+    working_directory: apps/mobile
+    max_build_duration: 30
+    environment: *environment
+    triggering:
+      events:
+        - pull_request
+    scripts:
+      - *install
+      - *check
+
+  android-unsigned:
+    name: Android, unsigned debug build
+    working_directory: apps/mobile
+    max_build_duration: 45
+    environment: *environment
+    scripts:
+      - *install
+      - *check
+      - name: Build an unsigned debug APK
+        script: cd app && flutter build apk --debug
+    artifacts:
+      - app/build/app/outputs/flutter-apk/*.apk
+
+  ios-unsigned:
+    name: iOS, unsigned build
+    working_directory: apps/mobile
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      <<: *environment
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - *install
+      - *check
+      - name: Build for a device without signing
+        script: cd app && flutter build ios --debug --no-codesign

@@ -82,6 +82,19 @@ flutter run --dart-define=REPLOID_NETWORK=room \
 After changing the contract or the model catalog, run
 `dart run tool/generate_contract.dart` and commit the result.
 
+## Releases
+
+`codemagic.yaml` describes three builds: the full check on every pull
+request, and unsigned Android and iOS builds that run the same check first.
+It has never run on Codemagic. There is no signing, store upload or Shorebird
+setup; those need the owner's accounts.
+
+What could ship as a code-push patch later, once Shorebird is set up: changes
+to Dart code only (screens, the protocol engine, the generated contract
+constants). What needs a new binary: any change to native code or plugins
+(the WebRTC and keystore libraries), permissions and usage descriptions in
+`Info.plist` or `AndroidManifest.xml`, the Flutter version, and assets.
+
 ## Not done
 
 - Any run on a phone or simulator. The secure key store is untested on a
