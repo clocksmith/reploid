@@ -30,7 +30,7 @@ try {
   await page.locator('[data-composer-input]').fill(PROMPT);
   // Send becomes available once discovery has settled one way or the other.
   result.stage = 'discovery';
-  await page.waitForFunction(() => !document.querySelector('[data-composer-send]')?.disabled, null, { timeout: 60000 });
+  await page.waitForFunction(() => !globalThis.document.querySelector('[data-composer-send]')?.disabled, null, { timeout: 60000 });
   await send.click();
   result.stage = 'choose-computer';
   const picker = page.locator('[data-model-picker]');
@@ -40,7 +40,7 @@ try {
     await contributors.click();
     const commit = page.locator('[data-change-model]');
     await page.waitForFunction(() => {
-      const button = document.querySelector('[data-change-model]');
+      const button = globalThis.document.querySelector('[data-change-model]');
       return button && !button.disabled && button.textContent.trim() === 'Send';
     }, null, { timeout: 30000 }).catch(() => {});
     if (await commit.isDisabled() || (await commit.innerText()).trim() !== 'Send') {
@@ -52,7 +52,7 @@ try {
   result.model = await page.locator('[data-open-model]').getAttribute('aria-label');
   const started = Date.now();
   const stream = page.locator('[data-message-stream]');
-  await page.waitForFunction(() => /\bComplete ·|\bFailed\b|\bInterrupted\b|\bDisconnected\b/.test(document.querySelector('[data-message-stream]')?.innerText || ''),
+  await page.waitForFunction(() => /\bComplete ·|\bFailed\b|\bInterrupted\b|\bDisconnected\b/.test(globalThis.document.querySelector('[data-message-stream]')?.innerText || ''),
     null, { timeout: limitMs });
   const text = (await stream.innerText()).replace(PROMPT, '').replace(/\s+/g, ' ').trim();
   result.seconds = Math.round((Date.now() - started) / 100) / 10;
