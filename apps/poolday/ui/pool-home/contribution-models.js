@@ -9,6 +9,24 @@ const number = value => Number.isFinite(value) && value >= 0 ? value.toLocaleStr
 const bytes = value => Number.isFinite(value) && value >= 0
   ? value < 1048576 ? `${number(value)} B` : `${(value / 1048576).toFixed(1)} MB` : '—';
 
+/** Who serves a model now, from the computers this browser can see. Unknown stays unsaid. */
+export function modelSupplyText(model) {
+  if (!Array.isArray(model?.providerIds)) return '';
+  const count = model.providerIds.length;
+  return count === 0 ? 'No computer serves this now' : count === 1 ? '1 computer serves this' : `${count} computers serve this`;
+}
+
+/**
+ * A suggestion for a producer: a model nobody serves now, preferring one already on this device so that accepting
+ * costs no download. Demand is not measured yet, so it is not claimed. A suggestion starts nothing; the producer
+ * still reviews and chooses.
+ */
+export function suggestedModelId(models = []) {
+  const unserved = models.filter(model => Array.isArray(model.providerIds) && model.providerIds.length === 0);
+  const pick = unserved.find(model => model.localReady || model.localCached) ?? unserved[0];
+  return pick ? pick.selectionId || pick.id : null;
+}
+
 /** Model actions retain their identity across discovery and metadata updates. */
 export function bindContributionModels(container, session, { onChoose }) {
   const entries = new Map();
@@ -17,9 +35,13 @@ export function bindContributionModels(container, session, { onChoose }) {
   const eligible = model => !model.partition && model.provider === 'doppler' && model.source
     && (model.localReady || model.localCached || hasBrowserModelOrigin(model));
   const size = value => value >= 1e9 ? `${(value / 1e9).toFixed(1)} GB ↓` : `${Math.ceil(value / 1e6)} MB ↓`;
-  const paint = (entry, issue) => {
+  const paint = (entry, issue, suggested = entry.suggested) => {
+    entry.suggested = suggested;
     const { model, button, detail, metadata } = entry;
     button.querySelector('[data-model-name]').textContent = model.name || model.id;
+    const supply = button.querySelector('[data-model-supply]');
+    supply.textContent = [suggested ? 'Suggested' : '', modelSupplyText(model)].filter(Boolean).join(' · ');
+    supply.hidden = !supply.textContent;
     detail.textContent = model.localReady ? 'Ready' : model.localCached ? 'Downloaded'
       : metadata ? size(metadata.sizeBytes) : '';
     detail.hidden = !detail.textContent;
@@ -31,6 +53,7 @@ export function bindContributionModels(container, session, { onChoose }) {
     if (disposed) return;
     const models = (state.models || []).filter(eligible);
     const ids = new Set(models.map(model => model.selectionId || model.id));
+    const suggestion = suggestedModelId(models);
     for (const [id, entry] of entries) if (!ids.has(id)) {
       entry.controller.abort(); entry.button.remove(); entries.delete(id);
     }
@@ -44,11 +67,11 @@ export function bindContributionModels(container, session, { onChoose }) {
         const button = document.createElement('button'); button.type = 'button';
         button.className = 'pool-button pool-stack pool-gap-xs';
         button.dataset.productionModel = id;
-        button.innerHTML = '<span data-model-name></span><span class="pool-caption" data-model-detail hidden></span>';
+        button.innerHTML = '<span data-model-name></span><span class="pool-caption" data-model-supply hidden></span><span class="pool-caption" data-model-detail hidden></span>';
         entry = { model, button, detail: button.querySelector('[data-model-detail]'), controller: new AbortController() };
         entries.set(id, entry); container.append(button);
       }
-      entry.model = model; paint(entry, state.localDownloadIssue);
+      entry.model = model; paint(entry, state.localDownloadIssue, id === suggestion);
       if (!model.localCached && !model.localReady && !entry.requested && !state.localDownloadIssue && session.getModelDownload) {
         entry.requested = true;
         const current = entry;
