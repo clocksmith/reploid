@@ -94,7 +94,7 @@ describe('offline service-credit statement verification', () => {
     ledger.dispatch(input.id, input.consumer);
   }
 
-  async function partitionBundle(id, stageIndexes, weights, count, consumer = 0) {
+  async function partitionBundle(id, stageIndexes, weights, count, consumer = 0, signedAtMs = at) {
     const route = {
       schema: 'reploid.partition-route/v1',
       modelId: 'model',
@@ -131,7 +131,7 @@ describe('offline service-credit statement verification', () => {
       providers: stageIndexes.map((ownerIndex, i) => ({ participantId: identities[ownerIndex].peerId, weight: weights[i] })),
     };
     const routeHash = await attemptRouteHash(identity);
-    const signedAt = new Date(at).toISOString();
+    const signedAt = new Date(signedAtMs).toISOString();
     const chain = count === 0 ? await outputChainGenesis({ reservationId: input.id, routeHash }) : other;
     const receipts = await Promise.all(stageIndexes.map(async (ownerIndex, index) => createAttemptEvidenceSigner({ identity: identities[ownerIndex] }).sign(
       STAGE_RECEIPT_SCHEMA,
@@ -427,12 +427,13 @@ describe('offline service-credit statement verification', () => {
     const lateAt = at + boundedPolicy.maxRequestMs + releaseWindow + 5000;
     clock = lateAt;
     const lateSignedIso = new Date(lateAt).toISOString();
+    const { signature: _sig0, publicJwk: _jwk0, ...stage0Body } = attempt1.receipts[0];
     const lateStage0 = await createAttemptEvidenceSigner({ identity: identities[1] }).sign(
       STAGE_RECEIPT_SCHEMA,
       {
-        ...attempt1.receipts[0],
+        ...stage0Body,
         sequence: 3,
-        timing: { ...attempt1.receipts[0].timing, closedAt: lateSignedIso },
+        timing: { ...stage0Body.timing, closedAt: lateSignedIso },
         signedAt: lateSignedIso,
       },
     );
@@ -451,25 +452,11 @@ describe('offline service-credit statement verification', () => {
     expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
 
     // Attempt 2: retry as a brand-new request at lateAt; completes cleanly and charges only the successful retry.
-    const retry = await partitionBundle('split-retry-2', [1, 2], [1, 2], 7, 0);
-    // Re-sign retry components at lateAt so timestamps match the retry window.
-    const retryIso = new Date(lateAt).toISOString();
-    const retryReceipts = await Promise.all([1, 2].map((ownerIndex, index) => createAttemptEvidenceSigner({ identity: identities[ownerIndex] }).sign(
-      STAGE_RECEIPT_SCHEMA,
-      {
-        ...retry.receipts[index],
-        timing: { reservedAt: retryIso, firstStepAt: retryIso, lastStepAt: retryIso, closedAt: retryIso },
-        signedAt: retryIso,
-      },
-    )));
-    const retryAck = await createAttemptEvidenceSigner({ identity: identities[0] }).sign(
-      OUTPUT_ACKNOWLEDGMENT_SCHEMA,
-      { ...retry.acknowledgment, signedAt: retryIso },
-    );
+    const retry = await partitionBundle('split-retry-2', [1, 2], [1, 2], 7, 0, lateAt);
     dispatch(retry.input);
     ledger.admit(retry.input.id, 0);
     ledger.admit(retry.input.id, 1);
-    await ledger.settle(retry.input.id, { identity: retry.identity, receipts: retryReceipts, acknowledgment: retryAck });
+    await ledger.settle(retry.input.id, { identity: retry.identity, receipts: retry.receipts, acknowledgment: retry.acknowledgment });
 
     // Offline verification across requester and both stage hosts: 1 expired attempt (0 charge), 1 settled retry (-7, +2, +5).
     for (const [index, expected] of [[-7, 2, 5][0], [-7, 2, 5][1], [-7, 2, 5][2]].map((val, idx) => [idx, val])) {
