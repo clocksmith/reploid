@@ -233,6 +233,7 @@ final class Conversation {
     required List<Turn> turns,
     this.target = AnswerTarget.contributors,
     this.draft = '',
+    this.nextRecipient,
   }) : turns = List.unmodifiable(turns);
 
   final String id;
@@ -247,6 +248,10 @@ final class Conversation {
 
   /// Unsent prompt text kept for this conversation while the session lives.
   final String draft;
+
+  /// The proven computer the next prompt would go to, when contributors
+  /// answer. Null when none is ready or the best one is not yet proven.
+  final String? nextRecipient;
 
   bool get busy => turns.isNotEmpty && turns.last.inProgress;
 
@@ -304,7 +309,11 @@ abstract interface class ChatRepository {
 
   /// Adds the prompt and starts its answer. Completes when the answer ends;
   /// throws [AppFailure] for a prompt that was refused before any attempt.
-  Future<void> send(String id, String text);
+  ///
+  /// [disclosedRecipient] is the computer the screen named. If another
+  /// would now be chosen this throws [FailureKind.conflict] and sends
+  /// nothing, and the prompt can go only to the named computer.
+  Future<void> send(String id, String text, {String? disclosedRecipient});
   Future<void> stop(String id);
-  Future<void> retry(String id);
+  Future<void> retry(String id, {String? disclosedRecipient});
 }

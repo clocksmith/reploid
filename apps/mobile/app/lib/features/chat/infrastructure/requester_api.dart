@@ -74,13 +74,19 @@ abstract interface class RequesterApi {
   Future<void> close();
 
   /// An answer from a contributor with [modelId], or, with
-  /// [AnswerTarget.desktop], from the paired desktop and no one else.
+  /// [AnswerTarget.desktop], from the paired desktop and no one else. With
+  /// [expectedRecipient], only that proven contributor may get the prompt.
   Answer ask({
     required String modelId,
     required List<PromptMessage> messages,
     String? contextId,
     AnswerTarget target = AnswerTarget.contributors,
+    String? expectedRecipient,
   });
+
+  /// The proven identity a contributor request for [modelId] would go to
+  /// right now, or null when none is ready or the best is not yet proven.
+  String? nextRecipient({required String modelId, String? contextId});
 
   DesktopInvite? readInvite(String link);
 

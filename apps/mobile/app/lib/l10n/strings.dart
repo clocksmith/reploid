@@ -46,8 +46,11 @@ abstract final class Strings {
   static String discloseComputer(String participantId) =>
       'Sending to ${shortId(participantId)}. It can read your prompt.';
   static String disclosePool(int count, String participantId) =>
-      'Sending to ${shortId(participantId)} ($count ready computers). '
-      'The answering computer can read your prompt.';
+      'Sending to ${shortId(participantId)}, the best of $count ready '
+      'computers. It can read your prompt.';
+  static const recipientChanged =
+      'The computer that would answer just changed, so nothing was sent. '
+      'Check the name and send again.';
   static const discloseOff =
       'Network answers are off, so nothing can be sent. Turn them on in '
       'Settings to ask.';

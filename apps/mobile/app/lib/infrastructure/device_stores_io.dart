@@ -42,8 +42,9 @@ final class DirectoryFileStore implements FileStore {
     final file = await _file(name);
     final staging = File('${file.path}.new');
     await staging.writeAsBytes(bytes, flush: true);
+    // Marked before the rename, so the real name is never backup-eligible.
+    await _excludeFromBackup(staging.path);
     await staging.rename(file.path);
-    await _excludeFromBackup(file.path);
   }
 
   @override

@@ -120,6 +120,22 @@ void main() {
     await link.stop();
   }, skip: skip);
 
+  test('a prompt bound to one computer is not sent to another', () async {
+    final (link, session, row) = await _connect(identity);
+    final (events, error) = await _collect(
+      session.ask(
+        model: row,
+        messages: _prompt,
+        expectedRecipient: 'peer:000000000000000000000000',
+      ),
+    );
+    expect(events.whereType<PromptDispatched>(), isEmpty);
+    expect(error, isA<ProtocolFailure>());
+    expect((error! as ProtocolFailure).promptSent, isFalse);
+    await session.close();
+    await link.stop();
+  }, skip: skip);
+
   test('a declined request never carries the prompt', () async {
     final (link, session, row) = await _connect(identity, ['--decline']);
     final (events, error) = await _collect(

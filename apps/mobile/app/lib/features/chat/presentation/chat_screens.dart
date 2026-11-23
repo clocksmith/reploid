@@ -172,9 +172,12 @@ class ConversationScreen extends ConsumerWidget {
         if (repository == null || !session.isActive) return;
         repository.setDraft(conversationId, text);
       },
-      send: (text) => run((r) => r.send(conversationId, text)),
+      send: (text, disclosed) => run(
+        (r) => r.send(conversationId, text, disclosedRecipient: disclosed),
+      ),
       stop: () => run((r) => r.stop(conversationId)),
-      retry: () => run((r) => r.retry(conversationId)),
+      retry: (disclosed) =>
+          run((r) => r.retry(conversationId, disclosedRecipient: disclosed)),
       remove: () {
         ref.read(chatRepositoryProvider)?.remove(conversationId);
         closed();
@@ -200,9 +203,9 @@ class _Thread extends HookWidget {
   final NetworkResource? network;
   final VoidCallback openModels;
   final ValueChanged<String> setDraft;
-  final Future<void> Function(String) send;
+  final Future<void> Function(String text, String? disclosed) send;
   final Future<void> Function() stop;
-  final Future<void> Function() retry;
+  final Future<void> Function(String? disclosed) retry;
   final VoidCallback remove;
 
   @override
@@ -246,17 +249,8 @@ class _Thread extends HookWidget {
         : (network?.computers ?? const <Computer>[])
               .where((c) => c.modelId == chosen.id && c.ready && !c.busy)
               .toList();
-    final lastRecipient = turns
-        .where((t) => t.role == TurnRole.assistant && t.recipient != null)
-        .lastOrNull
-        ?.recipient;
-    final disclosedPeer =
-        readyPeers
-            .where(
-              (c) => lastRecipient != null && c.participantId == lastRecipient,
-            )
-            .firstOrNull ??
-        readyPeers.where((c) => c.participantId != null).firstOrNull;
+    // Named by the same rule that places the request, and bound to it.
+    final disclosed = desktop == null ? conversation?.nextRecipient : null;
 
     /// A command refused before any attempt shows why, in place.
     Future<void> guard(Future<void> Function() command) async {
@@ -301,13 +295,10 @@ class _Thread extends HookWidget {
                   : Strings.desktopOffline(desktop.label)
             : chosen != null && !chosen.available
             ? Strings.noComputer
-            : disclosedPeer != null
+            : disclosed != null
             ? readyPeers.length > 1
-                  ? Strings.disclosePool(
-                      readyPeers.length,
-                      disclosedPeer.participantId!,
-                    )
-                  : Strings.discloseComputer(disclosedPeer.participantId!)
+                  ? Strings.disclosePool(readyPeers.length, disclosed)
+                  : Strings.discloseComputer(disclosed)
             : Strings.discloseRemote,
         onSend: input.text.trim().isEmpty || !allowed
             ? null
@@ -317,7 +308,7 @@ class _Thread extends HookWidget {
                 unawaited(
                   guard(() async {
                     try {
-                      await send(text);
+                      await send(text, disclosed);
                     } on AppFailure {
                       // Refused before any attempt: give the draft back.
                       if (input.text.isEmpty) input.text = text;
@@ -350,12 +341,18 @@ class _Thread extends HookWidget {
                     (conversation?.canRetry ?? false))
                   SecondaryAction(
                     label: Strings.retryAnswer,
-                    onPressed: () => unawaited(guard(retry)),
+                    onPressed: () => unawaited(guard(() => retry(disclosed))),
                   ),
               ],
             ),
         if (refusal.value case final kind?)
-          Notice(text: Strings.failure(kind), tone: NoticeTone.warning),
+          Notice(
+            // Here a conflict can only mean the named computer changed.
+            text: kind == FailureKind.conflict
+                ? Strings.recipientChanged
+                : Strings.failure(kind),
+            tone: NoticeTone.warning,
+          ),
       ],
     );
   }

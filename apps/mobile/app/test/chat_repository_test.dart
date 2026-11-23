@@ -36,6 +36,74 @@ void main() {
   late MemoryNetwork network;
   setUp(() => network = MemoryNetwork(latency: _fast, chunkDelay: _fast));
 
+  test(
+    'the computer named before Send is the one that gets the prompt',
+    () async {
+      const first = 'peer:00000000000000000000000a';
+      const second = 'peer:00000000000000000000000c';
+      final (coordinator, session) = await _session('peer:a');
+      final repository = _repository(session, network);
+      await _online(repository);
+      final id = repository.create();
+      repository.selectModel(id, MemoryNetwork.smallModel);
+      final before = await repository.watch(id).first;
+      expect(before.conversation!.nextRecipient, first);
+
+      // Another computer becomes the best choice after the name was shown.
+      network.setComputers(const [
+        Computer(
+          address: 'memory-c',
+          participantId: second,
+          modelId: MemoryNetwork.smallModel,
+          ready: true,
+          busy: false,
+        ),
+      ]);
+      await pumpEventQueue();
+      expect(
+        () =>
+            repository.send(id, 'private question', disclosedRecipient: first),
+        throwsA(
+          isA<AppFailure>().having((f) => f.kind, 'kind', FailureKind.conflict),
+        ),
+      );
+      expect(network.requests, 0);
+      expect(network.delivered, isEmpty);
+      final after = await repository.watch(id).first;
+      expect(after.conversation!.turns, isEmpty);
+      expect(after.conversation!.nextRecipient, second);
+
+      await repository.send(id, 'private question', disclosedRecipient: second);
+      expect(network.delivered.single.$2, second);
+      await coordinator.dispose();
+    },
+  );
+
+  test('a named computer that leaves mid-request is not replaced', () async {
+    const first = 'peer:00000000000000000000000a';
+    final (coordinator, session) = await _session('peer:a');
+    final repository = _repository(session, network);
+    await _online(repository);
+    final id = repository.create();
+    repository.selectModel(id, MemoryNetwork.smallModel);
+    final sending = repository.send(id, 'question', disclosedRecipient: first);
+    network.setComputers(const [
+      Computer(
+        address: 'memory-c',
+        participantId: 'peer:00000000000000000000000c',
+        modelId: MemoryNetwork.smallModel,
+        ready: true,
+        busy: false,
+      ),
+    ]);
+    await sending;
+    expect(network.delivered, isEmpty);
+    final turn = (await repository.watch(id).first).conversation!.turns.last;
+    expect(turn.phase, AnswerPhase.failed);
+    expect(turn.promptSent, isFalse);
+    await coordinator.dispose();
+  });
+
   test('an answer names its recipient before the prompt leaves', () async {
     final (coordinator, session) = await _session('peer:a');
     final repository = _repository(session, network);

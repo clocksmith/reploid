@@ -353,12 +353,15 @@ final class PeerSession {
   /// Cancelling the subscription sends `reploid:generation-cancel`.
   ///
   /// With [namedRecipient] the request goes only to that signing identity:
-  /// if the fresh proof names anyone else, nothing is sent.
+  /// if the fresh proof names anyone else, nothing is sent. With
+  /// [expectedRecipient] the wire policy stays open, but the prompt is sent
+  /// only if the fresh proof names the computer the person was shown.
   Stream<GenerationEvent> ask({
     required CatalogRow model,
     required List<Json> messages,
     String? contextId,
     String? namedRecipient,
+    String? expectedRecipient,
   }) {
     late final StreamController<GenerationEvent> controller;
     String? requestId;
@@ -375,6 +378,13 @@ final class PeerSession {
         if (done) return;
         if (namedRecipient != null && proven != namedRecipient) {
           throw const ProtocolFailure('Could not verify the paired desktop');
+        }
+        // The person was told this computer would read the prompt.
+        if (expectedRecipient != null && proven != expectedRecipient) {
+          throw const ProtocolFailure(
+            'Selected contributor is no longer ready; '
+            'retry requires new placement',
+          );
         }
         controller.add(ProviderProven(proven));
         final offer = before.eligibleOffers(model.identity).firstOrNull;

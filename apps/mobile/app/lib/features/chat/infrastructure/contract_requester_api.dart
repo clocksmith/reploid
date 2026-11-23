@@ -263,6 +263,7 @@ final class ContractRequesterApi implements RequesterApi {
     required List<PromptMessage> messages,
     String? contextId,
     AnswerTarget target = AnswerTarget.contributors,
+    String? expectedRecipient,
   }) {
     if (target == AnswerTarget.desktop) {
       final record = _record;
@@ -298,9 +299,16 @@ final class ContractRequesterApi implements RequesterApi {
                   model: row,
                   messages: _messages(messages),
                   contextId: contextId,
+                  expectedRecipient: expectedRecipient,
                 )
                 .transform(_events),
     );
+  }
+
+  @override
+  String? nextRecipient({required String modelId, String? contextId}) {
+    final row = modelCatalog.where((row) => row.id == modelId).firstOrNull;
+    return row == null ? null : _network.nextRecipient(row, contextId);
   }
 
   static final _events =

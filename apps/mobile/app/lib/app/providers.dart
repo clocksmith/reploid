@@ -63,6 +63,12 @@ class NetworkPreferenceController extends Notifier<NetworkPreference> {
     }
   }
 
+  /// Back to the build's network, with any saved room token erased.
+  Future<void> reset() async {
+    if (ref.mounted) state = NetworkConfig.buildTimePreference();
+    await ref.read(networkPreferenceStoreProvider).delete();
+  }
+
   Future<void> select(NetworkPreference next) async {
     if (!next.isValid) return;
     if (ref.mounted) state = next;
@@ -212,6 +218,7 @@ class SessionController extends Notifier<SessionState> {
         await DevicePreferencesStore(secrets, identity.peerId).delete();
         await PairingStore(secrets, identity.peerId).delete();
       }
+      await ref.read(networkPreferenceProvider.notifier).reset();
       await identityStore.delete();
     } catch (_) {
       if (ref.mounted) {

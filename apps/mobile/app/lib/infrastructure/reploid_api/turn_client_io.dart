@@ -51,7 +51,10 @@ final class HttpTurnClient implements TurnClient {
       uri,
       headers: {
         'Origin': origin,
-        if (authToken != null && authToken!.trim().isNotEmpty)
+        // A bearer token never crosses the network in the clear.
+        if (authToken != null &&
+            authToken!.trim().isNotEmpty &&
+            _mayCarryCredential(uri))
           'Authorization': 'Bearer ${authToken!.trim()}',
       },
     );
@@ -67,6 +70,12 @@ final class HttpTurnClient implements TurnClient {
     final decoded = await _getJson(url, headers: {'Origin': origin});
     return parseSwarmBootstrapResponse(decoded);
   }
+
+  static bool _mayCarryCredential(Uri uri) =>
+      uri.scheme == 'https' ||
+      uri.host == 'localhost' ||
+      uri.host == '127.0.0.1' ||
+      uri.host == '::1';
 
   Future<Object?> _getJson(
     Uri uri, {

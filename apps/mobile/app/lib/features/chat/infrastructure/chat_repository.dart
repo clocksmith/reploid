@@ -332,7 +332,23 @@ final class SessionChatRepository implements ChatRepository {
     turns: thread.turns,
     target: _target(thread),
     draft: thread.draft,
+    nextRecipient: _nextRecipient(thread),
   );
+
+  String? _nextRecipient(_Thread thread) {
+    if (_target(thread) != AnswerTarget.contributors) return null;
+    final modelId = thread.modelId ?? _defaultModel();
+    return modelId == null
+        ? null
+        : api.nextRecipient(modelId: modelId, contextId: thread.id);
+  }
+
+  /// The prompt goes only to the computer the person was shown.
+  void _requireDisclosed(_Thread thread, String? disclosed) {
+    if (disclosed != null && _nextRecipient(thread) != disclosed) {
+      throw const AppFailure(FailureKind.conflict);
+    }
+  }
 
   @override
   Stream<ConversationListResource> watchList() => _watch(
@@ -413,7 +429,7 @@ final class SessionChatRepository implements ChatRepository {
   }
 
   @override
-  Future<void> send(String id, String text) {
+  Future<void> send(String id, String text, {String? disclosedRecipient}) {
     _checkActive();
     final thread = _require(id);
     // A second tap joins the answer already under way; it never sends twice.
@@ -422,19 +438,24 @@ final class SessionChatRepository implements ChatRepository {
     if (prompt.isEmpty) throw const AppFailure(FailureKind.validation);
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
     if (preferences != null && !_prefsRestored) {
-      return _sendAfterRestore(thread, prompt);
+      return _sendAfterRestore(thread, prompt, disclosedRecipient);
     }
-    return _acceptPrompt(thread, prompt);
+    return _acceptPrompt(thread, prompt, disclosedRecipient);
   }
 
-  Future<void> _sendAfterRestore(_Thread thread, String prompt) async {
+  Future<void> _sendAfterRestore(
+    _Thread thread,
+    String prompt,
+    String? disclosed,
+  ) async {
     await _restoring;
     _checkActive();
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
-    return _acceptPrompt(thread, prompt);
+    return _acceptPrompt(thread, prompt, disclosed);
   }
 
-  Future<void> _acceptPrompt(_Thread thread, String prompt) {
+  Future<void> _acceptPrompt(_Thread thread, String prompt, String? disclosed) {
+    _requireDisclosed(thread, disclosed);
     // The destination is fixed when the prompt is sent and kept with the
     // conversation; pairing or unpairing later does not move it.
     thread.target ??= _target(thread);
@@ -447,11 +468,11 @@ final class SessionChatRepository implements ChatRepository {
           : prompt;
     }
     thread.turns.add(Turn(id: newId(), role: TurnRole.user, text: prompt));
-    return _start(thread, modelId);
+    return _start(thread, modelId, disclosed);
   }
 
   @override
-  Future<void> retry(String id) {
+  Future<void> retry(String id, {String? disclosedRecipient}) {
     _checkActive();
     final thread = _require(id);
     if (thread.running case final running?) return running.future;
@@ -459,11 +480,12 @@ final class SessionChatRepository implements ChatRepository {
       throw const AppFailure(FailureKind.validation);
     }
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
+    _requireDisclosed(thread, disclosedRecipient);
     thread.turns.removeLast();
-    return _start(thread, thread.modelId!);
+    return _start(thread, thread.modelId!, disclosedRecipient);
   }
 
-  Future<void> _start(_Thread thread, String modelId) {
+  Future<void> _start(_Thread thread, String modelId, String? disclosed) {
     _ensureOpen();
     final messages = [
       for (final turn in thread.turns)
@@ -489,6 +511,9 @@ final class SessionChatRepository implements ChatRepository {
       messages: messages,
       contextId: thread.id,
       target: _target(thread),
+      expectedRecipient: _target(thread) == AnswerTarget.contributors
+          ? disclosed
+          : null,
     );
     _emit();
 

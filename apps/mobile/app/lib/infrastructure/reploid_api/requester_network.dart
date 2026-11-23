@@ -209,8 +209,9 @@ final class RequesterNetwork {
   PeerSession? _select(
     CatalogRow model,
     String? contextId,
-    String? namedRecipient,
-  ) {
+    String? namedRecipient, {
+    String? expectedRecipient,
+  }) {
     final nowMs = _now();
     final candidates = [
       for (final entry in _sessions.entries)
@@ -218,6 +219,8 @@ final class RequesterNetwork {
             !entry.value.reserved &&
             (namedRecipient == null ||
                 entry.value.provenParticipantId == namedRecipient) &&
+            (expectedRecipient == null ||
+                entry.value.provenParticipantId == expectedRecipient) &&
             (entry.value.advertisement?.selectable(model) ?? false))
           entry,
     ];
@@ -238,6 +241,11 @@ final class RequesterNetwork {
     return candidates.first.value;
   }
 
+  /// The proven identity [ask] would choose right now, so the screen can
+  /// name it before Send. Null when none is ready, or the best is unproven.
+  String? nextRecipient(CatalogRow model, String? contextId) =>
+      _select(model, contextId, null)?.provenParticipantId;
+
   /// One whole-model request to the best ready computer. Waits up to
   /// [discoveryTimeout] for one to appear; nothing is sent while waiting.
   Stream<GenerationEvent> ask({
@@ -245,6 +253,7 @@ final class RequesterNetwork {
     required List<Json> messages,
     String? contextId,
     String? namedRecipient,
+    String? expectedRecipient,
   }) {
     late final StreamController<GenerationEvent> controller;
     StreamSubscription<GenerationEvent>? inner;
@@ -260,6 +269,7 @@ final class RequesterNetwork {
             messages: messages,
             contextId: contextId,
             namedRecipient: namedRecipient,
+            expectedRecipient: expectedRecipient,
           )
           .listen(
             controller.add,
@@ -270,7 +280,12 @@ final class RequesterNetwork {
 
     void attempt() {
       if (cancelled || inner != null) return;
-      final session = _select(model, contextId, namedRecipient);
+      final session = _select(
+        model,
+        contextId,
+        namedRecipient,
+        expectedRecipient: expectedRecipient,
+      );
       if (session == null) return;
       deadline?.cancel();
       unawaited(waiting?.cancel());

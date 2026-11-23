@@ -198,13 +198,29 @@ final class _MemoryApi implements RequesterApi {
     required List<PromptMessage> messages,
     String? contextId,
     AnswerTarget target = AnswerTarget.contributors,
+    String? expectedRecipient,
   }) {
     network.requests++;
     network.contextIds.add(contextId);
     final behavior = network._next;
     network._next = AnswerBehavior.answer;
-    return _MemoryAnswer(this, modelId, messages, behavior, target);
+    return _MemoryAnswer(
+      this,
+      modelId,
+      messages,
+      behavior,
+      target,
+      expectedRecipient,
+    );
   }
+
+  @override
+  String? nextRecipient({required String modelId, String? contextId}) => _open
+      ? network.computers
+            .where((c) => c.modelId == modelId && c.ready && !c.busy)
+            .firstOrNull
+            ?.participantId
+      : null;
 }
 
 final class _MemoryAnswer implements Answer {
@@ -214,6 +230,7 @@ final class _MemoryAnswer implements Answer {
     this.messages,
     this.behavior,
     this.target,
+    this.expectedRecipient,
   ) {
     _controller.onListen = () => unawaited(_run());
   }
@@ -222,6 +239,7 @@ final class _MemoryAnswer implements Answer {
   final List<PromptMessage> messages;
   final AnswerBehavior behavior;
   final AnswerTarget target;
+  final String? expectedRecipient;
   final _controller = StreamController<AnswerEvent>();
   bool _cancelled = false;
 
@@ -250,7 +268,14 @@ final class _MemoryAnswer implements Answer {
             : null;
       } else {
         computer = network.computers
-            .where((c) => c.modelId == modelId && c.ready && !c.busy)
+            .where(
+              (c) =>
+                  c.modelId == modelId &&
+                  c.ready &&
+                  !c.busy &&
+                  (expectedRecipient == null ||
+                      c.participantId == expectedRecipient),
+            )
             .firstOrNull;
       }
       if (!api._open || computer == null) {
