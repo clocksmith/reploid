@@ -26,6 +26,7 @@ import { requireValue } from './native-host-utils.js';
 import { summarizeNativePartitionState } from './native-participant-state.js';
 import { createNativeRtcAdapter } from './native-rtc-adapter.js';
 import { createNativeGpuHost } from './native-gpu-host.js';
+import { shortcutOrderedParticipation } from './native-ordered-shortcut.js';
 import { createNativeParticipant } from './native-participant-runtime.js';
 import { createNativeShutdown } from './native-shutdown.js';
 import { resolveNativeRoomToken } from './native-room-token.js';
@@ -114,7 +115,13 @@ export async function main({ runOnce } = {}) {
     requireValue(adapter && adapter.baseModelIdentity === model.identity, 'Adapter is not authorized for this exact base artifact');
     model = { ...model, adapters: [structuredClone(adapter)] };
   }
-  if (values['partition-index'] !== undefined) model = { ...model, partitionContributionIndexes: [Number(values['partition-index'])] };
+  // An ordered plan needs a full host configuration; the stage shortcut and the weightless requester supply the documented one.
+  const shortcut = ordered === null && !values.canonical && values['execution-mode'] !== 'whole-model'
+    && (values['partition-index'] !== undefined || values['connect-only'])
+    ? shortcutOrderedParticipation({ model, models: configuredModels,
+      stageIndex: values['partition-index'] === undefined ? null : Number(values['partition-index']) }) : null;
+  if (shortcut) ordered = shortcut;
+  else if (values['partition-index'] !== undefined) model = { ...model, partitionContributionIndexes: [Number(values['partition-index'])] };
   // A catalog entry's whole-model gather policy remembers verified pieces beside this provider's identity.
   if (values['model-config'] === undefined && model.wholeRuntime !== undefined) {
     model = { ...model, wholeRuntime: catalogWholeRuntime(model, path.dirname(identityFile)) };
