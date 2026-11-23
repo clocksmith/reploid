@@ -54,6 +54,42 @@ function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs 
   return { swarm, sockets, connections, events, open };
 }
 
+const relayedEnvelope = (peerId, type, payload) => {
+  const size = JSON.stringify(payload).length;
+  return { protocolVersion: 1, type, peerId, timestamp: 1, payload, payloadSize: size };
+};
+const signalingFrames = f => f.sockets[0].send.mock.calls.map(([value]) => JSON.parse(value)).filter(frame => frame.type === 'relay-message');
+
+it('signaling cannot turn a closing direct connection into a relay route for output', async () => {
+  const f = fixture();
+  try {
+    await f.open();
+    // The control: a peer that is a relay peer is reached through signaling.
+    expect(f.swarm.sendToPeer('relay', 'sync-request', { marker: 'relay-control' })).toBe(true);
+    expect(signalingFrames(f)).toHaveLength(1);
+    f.connections[0].channel.readyState = 'closing';
+    await f.sockets[0].receive({ type: 'peer-joined', peerId: 'direct', metadata: { transport: 'signaling-relay' } });
+    expect(f.swarm.sendToPeer('direct', 'sync-request', { marker: 'conversation' })).toBe(false);
+    expect(signalingFrames(f)).toHaveLength(1);
+  } finally { f.swarm.disconnect(); }
+});
+
+it('a frame relayed in the name of a direct peer is not delivered while its channel is not open', async () => {
+  const f = fixture();
+  try {
+    await f.open();
+    const delivered = [];
+    f.swarm.onMessage('sync-request', (peerId, payload) => delivered.push([peerId, payload.marker]));
+    // The control: the same envelope from a relay peer is delivered, so the refusal below is not a malformed frame.
+    const protocolVersion = JSON.parse((f.swarm.sendToPeer('relay', 'sync-request', {}), f.sockets[0].send.mock.calls.at(-1)[0])).envelope.protocolVersion;
+    await f.sockets[0].receive({ type: 'relay-message', peerId: 'relay', envelope: { ...relayedEnvelope('relay', 'sync-request', { marker: 'control' }), protocolVersion } });
+    expect(delivered).toEqual([['relay', 'control']]);
+    f.connections[0].channel.readyState = 'closing';
+    await f.sockets[0].receive({ type: 'relay-message', peerId: 'direct', envelope: { ...relayedEnvelope('direct', 'sync-request', { marker: 'forged' }), protocolVersion } });
+    expect(delivered).toEqual([['relay', 'control']]);
+  } finally { f.swarm.disconnect(); }
+});
+
 it.each(['close', 'error'])('keeps direct traffic and heartbeats after signaling %s, removes dependent relay routes', async failure => {
   vi.useFakeTimers();
   const f = fixture();

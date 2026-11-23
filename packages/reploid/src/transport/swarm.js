@@ -564,7 +564,8 @@ const WebRTCSwarm = {
           break;
 
         case 'relay-message':
-          if (_peers.get(message.peerId)?.dataChannel?.readyState === 'open') return;
+          // A direct peer speaks only on its own authenticated channel, including while that channel is closing.
+          if (isDirectPeer(_peers.get(message.peerId))) return;
           if (!_peers.has(message.peerId)) {
             registerRelayPeer(message.peerId, { transport: 'signaling-relay' });
           }
@@ -807,12 +808,15 @@ const WebRTCSwarm = {
       };
     };
 
+    const isDirectPeer = peer => !!peer && peer.transport !== 'signaling-relay';
+
     /**
      * Register a relay-backed peer that communicates through the signaling socket.
      */
     const registerRelayPeer = (remotePeerId, metadata = {}) => {
       const existingPeer = _peers.get(remotePeerId);
-      if (existingPeer?.dataChannel?.readyState === 'open') return existingPeer;
+      // Signaling cannot turn a direct peer into a relay route; a failed direct peer is retired first.
+      if (isDirectPeer(existingPeer)) return existingPeer;
       if (existingPeer && existingPeer.transport === 'signaling-relay') {
         existingPeer.metadata = { ...existingPeer.metadata, ...metadata };
         existingPeer.lastSeen = Date.now();
