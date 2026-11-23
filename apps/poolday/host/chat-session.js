@@ -98,6 +98,8 @@ export function createChatSession({
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
   privateComputers = null,
+  // The person's answer preference (route-preference.js). It orders eligible computers and nothing else.
+  routePreference = null,
   getCircleOwnerRequest = () => null,
   // Reads declared adapter evaluation files; only verified passing receipts label an adapter evaluated.
   fetchEvidence = globalThis.fetch?.bind(globalThis),
@@ -734,6 +736,13 @@ export function createChatSession({
       assertOpen();
       assert(swarm?.allowCachedFiles, 'File sharing is unavailable');
       try { await swarm.allowCachedFiles(enabled); } finally { notifyAll(); }
+    },
+    getRoutePreference: () => routePreference?.get() ?? null,
+    setRoutePreference(value) {
+      assertOpen();
+      assert(routePreference, 'Answer preference is unavailable');
+      routePreference.set(value);
+      notifyAll();
     },
     async setComputeContribution(enabled) {
       assertOpen();

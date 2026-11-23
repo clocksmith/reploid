@@ -44,7 +44,7 @@ export const READINESS_RECORDS_KEY = 'REPLOID_READINESS_RECORDS';
 export const REQUESTER_INSTANCE_ID = 'work-swarm:requester';
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [] }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, rankProviders = null, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [] }) {
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
   canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
@@ -186,6 +186,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
     const mesh = createPeerGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events, getBlockedComputers,
+      ...(rankProviders ? { rankProviders } : {}),
       getExecutionState: () => {
         const state = execution?.getState();
         return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',

@@ -23,6 +23,7 @@ import { renderAccountPanel, bindAccountPanel } from './account-panel.js';
 import { renderModelStorage, bindModelStorage } from './model-storage-view.js';
 import { renderLocalData, bindLocalData } from './local-data-view.js';
 import { renderThemeSelector } from './theme.js';
+import { DEFAULT_ROUTE_PREFERENCE, ROUTE_PREFERENCES } from '../../host/route-preference.js';
 
 export function renderInspectorNavigation({ workspace = false } = {}) {
   const tag = workspace ? 'a' : 'button';
@@ -97,6 +98,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
       <section class="pool-stack pool-gap-sm"><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
+      <section class="pool-stack pool-gap-sm" data-settings-routing><h3 class="pool-subheading">Answers</h3><label>When several computers can answer, prefer<select class="pool-input" data-route-preference>${ROUTE_PREFERENCES.map(({ id, label }) => `<option value="${id}">${label}</option>`).join('')}</select></label><p class="pool-small pool-muted">This only orders computers that already meet the conversation's privacy choice. Public computers do not charge yet, so Lower cost works like Balanced.</p></section>
       <section class="pool-stack pool-gap-md" data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-small pool-muted" data-settings-storage-summary>No downloaded models</p>${renderFileSharingControls()}</section>
       ${renderLocalData()}
       ${renderAccountPanel()}
@@ -246,6 +248,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }));
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
+    const routeChoice = find('[data-route-preference]');
+    if (routeChoice) { routeChoice.value = session.getRoutePreference?.() ?? DEFAULT_ROUTE_PREFERENCE; routeChoice.disabled = !session.setRoutePreference; }
     privateComputers.update(state);
     ownerPairingView.update(state);
     circleInvites.update();
@@ -301,6 +305,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
         <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
   };
+  on('[data-route-preference]', 'change', event => session.setRoutePreference?.(event.target.value));
   const unsubscribe = session.subscribe(render);
   let downloadMode = 'contribute', downloadInfo = null, localReview = null;
   const checkDownload = async () => {
