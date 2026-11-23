@@ -437,7 +437,8 @@ it('fills from the pinned origin when no peer is online, by verified ranges and 
   expect(events.at(-1)).toMatchObject({ phase: 'complete', suppliers: result.suppliers });
   expect(events.find(event => event.phase === 'source')).toMatchObject({ source: 'pinned-origin:huggingface',
     origin: `huggingface:owner/repo@${'a'.repeat(40)}/models/native-fixture` });
-  expect(origin.requests.map(request => [request.url, request.range, request.credentials])).toEqual([
+  // Pieces are fetched concurrently, so the order the two requests were issued in is not part of the contract.
+  expect(origin.requests.map(request => [request.url, request.range, request.credentials]).sort((a, b) => a[1].localeCompare(b[1]))).toEqual([
     [`https://huggingface.co/owner/repo/resolve/${'a'.repeat(40)}/models/native-fixture/weights.bin`, 'bytes=0-3', 'omit'],
     [`https://huggingface.co/owner/repo/resolve/${'a'.repeat(40)}/models/native-fixture/weights.bin`, 'bytes=4-7', 'omit']]);
   // The manifest is the bundled pinned copy, never the origin's.
