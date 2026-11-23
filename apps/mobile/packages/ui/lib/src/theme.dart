@@ -31,26 +31,36 @@ final class UiSpacing extends ThemeExtension<UiSpacing> {
 }
 
 /// Apps own font assets and branding; all components share these state styles.
+///
+/// Pass [colorScheme] when the app's design system names every colour role
+/// itself; otherwise the roles are derived from [seedColor].
 ThemeData createUiTheme({
   required Color seedColor,
   Brightness brightness = Brightness.light,
   UiSpacing spacing = const UiSpacing(),
   String? fontFamily,
+  ColorScheme? colorScheme,
+  double controlRadius = 14,
+  double panelRadius = 20,
 }) {
-  final colors = ColorScheme.fromSeed(
-    seedColor: seedColor,
-    brightness: brightness,
-    surface: brightness == Brightness.light
-        ? const Color(0xfff8f8f5)
-        : const Color(0xff151917),
-  );
+  final colors =
+      colorScheme ??
+      ColorScheme.fromSeed(
+        seedColor: seedColor,
+        brightness: brightness,
+        surface: brightness == Brightness.light
+            ? const Color(0xfff8f8f5)
+            : const Color(0xff151917),
+      );
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: colors,
     fontFamily: fontFamily,
     extensions: [spacing],
   );
-  final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+  final shape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(controlRadius),
+  );
   WidgetStateProperty<Color?> overlay(Color color) =>
       WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) return Colors.transparent;
@@ -139,7 +149,7 @@ ThemeData createUiTheme({
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(panelRadius),
         side: BorderSide(color: colors.outlineVariant.withValues(alpha: .6)),
       ),
     ),
@@ -189,13 +199,15 @@ ThemeData createUiTheme({
       fillColor: colors.surfaceContainerLowest,
       hoverColor: colors.primary.withValues(alpha: .03),
       contentPadding: const EdgeInsets.all(20),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(controlRadius),
+      ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(controlRadius),
         borderSide: BorderSide(color: colors.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(controlRadius),
         borderSide: BorderSide(color: colors.primary, width: 2),
       ),
       alignLabelWithHint: true,
