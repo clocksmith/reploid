@@ -13,6 +13,7 @@ import { signAsParticipant } from '../../packages/reploid/src/artifacts/particip
 import { createAttemptEvidenceSigner, attemptRouteHash, outputChainGenesis, STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { FLEET_SERVICE_REQUEST_SCHEMA } from '../../server/fleet/contract.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
+import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
 import { FLEET_CREDIT_STATEMENT_SCHEMA, verifyCreditStatement } from '../../server/fleet/credit-statement.js';
 
 const runFile = promisify(execFile);
@@ -351,5 +352,55 @@ describe('offline service-credit statement verification', () => {
         reason: expect.stringMatching(/stage receipt/i),
       }),
     ]);
+  });
+
+  it('conserves integer shares in creditSettlementDeltas and avoids negative zero on zero-charge entries', () => {
+    const computerOf = peer => ({ p0: 'c0', p1: 'c1', p2: 'c2', p1b: 'c1' })[peer];
+    // 1:1:1 on 10 units assigns stage-order remainder to the final stage (3, 3, 4) and consolidates c1 (3 + 4 = 7).
+    const consolidated = creditSettlementDeltas({
+      computerId: 'c0',
+      providers: [
+        { participantId: 'p1', weight: 1 },
+        { participantId: 'p2', weight: 1 },
+        { participantId: 'p1b', weight: 1 },
+      ],
+    }, 10, computerOf);
+    expect(consolidated.credits.map(row => [row.participantId, row.amount])).toEqual([['p1', 3], ['p2', 3], ['p1b', 4]]);
+    expect([...consolidated.deltas.entries()]).toEqual([['c0', -10], ['c1', 7], ['c2', 3]]);
+
+    // Own-compute work is neither charged nor credited; 100% own-compute produces +0 (never -0).
+    const allOwn = creditSettlementDeltas({
+      computerId: 'c0',
+      providers: [{ participantId: 'p0', weight: 1 }],
+    }, 8, computerOf);
+    expect(allOwn.ownComputeUnits).toBe(8);
+    expect(allOwn.charge).toBe(0);
+    expect(Object.is(allOwn.deltas.get('c0'), 0)).toBe(true);
+  });
+
+  it('expires stale reservations, reports active holds, rejects unknown accounts, and clones statement metadata', async () => {
+    expect(() => ledger.statement('unknown-computer')).toThrow('Unknown service-credit account');
+
+    const stale = wholeRequest('stale-hold', 0, 1);
+    ledger.reserve(stale);
+    expect(ledger.statement('computer-0').held).toBe(10);
+
+    // Reopen past reservation deadline so statement() triggers recovery.expire() before reading held credits.
+    ledger.close();
+    ledger = await openFleetCredits({
+      file: path.join(directory, 'credits.sqlite'),
+      computers,
+      policy,
+      now: () => at + policy.maxRequestMs + 1,
+    });
+    const refreshed = ledger.statement('computer-0');
+    expect(refreshed.held).toBe(0);
+
+    // Mutating returned statement policy or computers does not affect subsequent statements.
+    refreshed.policy.creditsPerOutputToken = 999;
+    refreshed.computers[0].name = 'Tampered';
+    const next = ledger.statement('computer-0');
+    expect(next.policy.creditsPerOutputToken).toBe(policy.creditsPerOutputToken);
+    expect(next.computers[0].name).toBe('Computer 0');
   });
 });

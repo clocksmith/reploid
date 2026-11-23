@@ -72,7 +72,7 @@ Proposed receipt retention, authorized peer replication and verifiable usage vie
 
 ### Vision and Contracts
 - **[GOALS.md](../GOALS.md)** - Repository mission, value, and durable strategic goals
-- **[GOVERNANCE.md](../GOVERNANCE.md)** - Name, `replo.id` domain, non-cash mutual service credit commitments, offline receipt verification, and neutral-holder transfer trigger
+- **[GOVERNANCE.md](../GOVERNANCE.md)** - Current control of the name, `replo.id` domain, and credit ledger; non-cash mutual service credits; offline receipt verification; and the stewardship review threshold
 - **[INTENT.md](../INTENT.md)** - Collective capability, participant control, semantic preservation, and evaluated evolution
 - **[CATSCAN.md](../CATSCAN.md)** - Root component purpose, authority, boundaries, and acceptance contract
 - **[docs/component-index.md](./component-index.md)** - Generated recursive index of component charters
