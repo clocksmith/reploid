@@ -4336,7 +4336,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:eb1bc5394d4dc315df738a140a600cabfb00cad86ed9cd94f3bb3c3582c07bdc",
+      "sha256": "sha256:d31b4a7a2d853a2ef7d3d43b3a03b9384fb9d0e7186fe3b7bffec093d18cf680",
       "imports": []
     },
     {
@@ -4488,7 +4488,7 @@
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:2968bce4ab5ec649d7d2b156a38b261bbfa47f13461211378f4032ea117a2b43",
+      "sha256": "sha256:31baa7924ec725cac892464ac5cb69ed01efa207f917681904ee028184813755",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -4507,7 +4507,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:cce5ce79b68d0c9b8851e2bb158b8a6b6ba4a94d31a80fd01c50bf5f5e7adcf6",
+      "sha256": "sha256:d0fd61bc70ac889a5b219648c4148d8f5865a90a55c17332081ac42766f1b569",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",
@@ -4528,6 +4528,7 @@
         "./network-inspector.js",
         "./privacy-controls.js",
         "./remote-permission.js",
+        "./route-alternatives.js",
         "./web-search-settings.js",
         "./workspace-navigation.js"
       ]
@@ -5235,6 +5236,14 @@
       "imports": [
         "../components/html.js",
         "./room-projection.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/route-alternatives.js",
+      "owner": "ui",
+      "sha256": "sha256:9860b8766b5a32a1453a09c43a5ab519e156a41bc41dd3616d77af4185d7ebc2",
+      "imports": [
+        "../components/model-select.js"
       ]
     },
     {

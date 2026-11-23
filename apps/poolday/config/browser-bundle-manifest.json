@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 695252,
-      "sha256": "sha256:c4a6307d8da0c21d276c9c95a5cee0e0beb51af873e0b043c460e6b51dc9a8bd"
+      "byteLength": 695531,
+      "sha256": "sha256:44383d34649f5e5709fcf0518142a1726c3cb85ae190009f17e0bbbec478d2fe"
     },
     {
       "path": "config/module-registry.json",
@@ -1505,8 +1505,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 149420,
-      "sha256": "sha256:686ae37ebda8310092d4a593d414954865c66c8977d8e0449f38f19e60f17c9b"
+      "byteLength": 149462,
+      "sha256": "sha256:ced28fd7b4701ff038a4171e1527e3a9be225fe94aa369b4ef92c1834de52dce"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3805,8 +3805,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2725206,
-      "sha256": "sha256:eb1bc5394d4dc315df738a140a600cabfb00cad86ed9cd94f3bb3c3582c07bdc"
+      "byteLength": 2727314,
+      "sha256": "sha256:d31b4a7a2d853a2ef7d3d43b3a03b9384fb9d0e7186fe3b7bffec093d18cf680"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3885,13 +3885,13 @@
     },
     {
       "path": "ui/pool-home/conversation-view.js",
-      "byteLength": 11738,
-      "sha256": "sha256:2968bce4ab5ec649d7d2b156a38b261bbfa47f13461211378f4032ea117a2b43"
+      "byteLength": 11822,
+      "sha256": "sha256:31baa7924ec725cac892464ac5cb69ed01efa207f917681904ee028184813755"
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 74315,
-      "sha256": "sha256:cce5ce79b68d0c9b8851e2bb158b8a6b6ba4a94d31a80fd01c50bf5f5e7adcf6"
+      "byteLength": 75681,
+      "sha256": "sha256:d0fd61bc70ac889a5b219648c4148d8f5865a90a55c17332081ac42766f1b569"
     },
     {
       "path": "ui/pool-home/dashboard-controls.js",
@@ -4227,6 +4227,11 @@
       "path": "ui/pool-home/room-view.js",
       "byteLength": 49215,
       "sha256": "sha256:9ed554b629bda25098e6854d676a1a074bf62259f337278618c1c23ae159e9d7"
+    },
+    {
+      "path": "ui/pool-home/route-alternatives.js",
+      "byteLength": 2615,
+      "sha256": "sha256:9860b8766b5a32a1453a09c43a5ab519e156a41bc41dd3616d77af4185d7ebc2"
     },
     {
       "path": "ui/pool-home/route-controls.js",
@@ -12779,5 +12784,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:6708741ba29fce7308227324b4094a770fbb040e264e59cdbeae1a5236fd4424"
+  "bundleHash": "sha256:87cc881891f5566130e423f4ff538c959a995a5c70e5b173eb1ef810e7d30daa"
 }

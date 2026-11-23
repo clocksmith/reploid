@@ -846,6 +846,7 @@
     "ui/pool-home/room-result-projection.js",
     "ui/pool-home/room-timeline-projection.js",
     "ui/pool-home/room-view.js",
+    "ui/pool-home/route-alternatives.js",
     "ui/pool-home/route-controls.js",
     "ui/pool-home/route-detail-view.js",
     "ui/pool-home/run-contribution-evidence.js",
