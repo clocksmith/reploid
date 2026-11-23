@@ -12,6 +12,7 @@
  * real stacks and record them. They hold no protocol rules.
  */
 import { EventEmitter } from 'node:events';
+import { createRequire, syncBuiltinESMExports } from 'node:module';
 import profile from '../../shared/config/reploid-library.json' with { type: 'json' };
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSwarmTransport } from '../../packages/reploid/src/transport/index.js';
@@ -21,6 +22,7 @@ import { createWholeModelRequester } from '../../server/whole-model-requester.js
 import { PublicSwarmServer } from '../../server/public-swarm-server.js';
 import { allowsSwarmOrigin } from '../../server/swarm-protocol.js';
 import { events } from '../../server/native-host-utils.js';
+import { createHostRequesterRule } from '../../server/circles/guest-access.js';
 
 const turn = () => new Promise(resolve => setImmediate(resolve));
 
@@ -76,8 +78,12 @@ export function createScheduler() {
 /**
  * Fix the clock, crypto.randomUUID and crypto.getRandomValues, and let the
  * scheduler see when Web Crypto work is in flight. Restored on exit.
+ *
+ * `now` is a number, or a function when a capture moves the clock.
+ * `randomBytes` fixes node:crypto randomBytes for the listed sizes (the desktop
+ * draws its pairing code from it); other sizes are not touched.
  */
-export async function withDeterministicRuntime({ now, uuids, randomValues, scheduler }, run) {
+export async function withDeterministicRuntime({ now, uuids, randomValues, randomBytes = [], scheduler }, run) {
   const restore = [];
   const patch = (object, name, value) => {
     const previous = Object.getOwnPropertyDescriptor(object, name);
@@ -86,7 +92,17 @@ export async function withDeterministicRuntime({ now, uuids, randomValues, sched
   };
   const used = { uuids: [], randomValues: [] };
   const remainingUuids = [...uuids], remainingRandom = randomValues.map(bytes => [...bytes]);
-  patch(Date, 'now', () => now);
+  patch(Date, 'now', typeof now === 'function' ? now : () => now);
+  if (randomBytes.length) {
+    const nodeCrypto = createRequire(import.meta.url)('node:crypto'), original = nodeCrypto.randomBytes;
+    const remaining = randomBytes.map(bytes => [...bytes]);
+    nodeCrypto.randomBytes = (size, callback) => {
+      if (callback || !remaining.length || remaining[0].length !== size) return original(size, callback);
+      return Buffer.from(remaining.shift());
+    };
+    syncBuiltinESMExports();
+    restore.push(() => { nodeCrypto.randomBytes = original; syncBuiltinESMExports(); });
+  }
   patch(globalThis.crypto, 'randomUUID', () => {
     if (!remainingUuids.length) throw new Error('The fixed UUID list is exhausted');
     used.uuids.push(remainingUuids[0]);
@@ -377,7 +393,7 @@ function transportFor({ config, utils, eventBus, WebSocket, RTCPeerConnection, i
 
 /** The provider side of the real mesh, serving `generate` for one whole model. */
 export function createProviderStack({ signalingUrl, roomId, roomToken, publicRoomId, identity, transportId, model, generate,
-  WebSocket, RTCPeerConnection, logger, generateId, decline = () => false, getRtcConfig = null }) {
+  WebSocket, RTCPeerConnection, logger, generateId, decline = () => false, getRtcConfig = null, ownerPairing = null }) {
   const config = meshConfig({ signalingUrl, roomId, executeJobs: true, publicRoomId });
   const eventBus = events(), bridge = events(), utils = { logger, generateId };
   let transport = null;
@@ -390,13 +406,21 @@ export function createProviderStack({ signalingUrl, roomId, roomToken, publicRoo
     identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
       rotate: async () => { throw new Error('The fixture identity is fixed'); } },
     admitsBeforeDisclosure: true,
+    // With owner pairing, the rule the native host applies (server/native-participant-runtime.js):
+    // only a paired owner's requests are admitted and executed.
     authorize: async request => request.action === 'mesh.connect'
-      || request.action === 'mesh.admit' && decline(request) !== true
-      || request.action === 'mesh.execute',
+      || request.action === 'mesh.admit' && decline(request) !== true && (!allowed || await allowed(request))
+      || request.action === 'mesh.execute' && (!allowed || await allowed(request, 'execute')),
     generate,
     createTransport: () => transport = transportFor({ config, utils, eventBus, WebSocket, RTCPeerConnection, identity, roomId, roomToken, transportId, getRtcConfig })
   } });
-  return { mesh, config, eventBus, get transport() { return transport; } };
+  const allowed = ownerPairing && createHostRequesterRule({ ownerPairing, guestAccess: null, verifyPeer: peer => mesh.verifyPeerIdentity(peer) });
+  /** Join the room and, with owner pairing, start listening for pairing requests as the native host does. */
+  const connect = async () => {
+    await mesh.connect();
+    ownerPairing?.attach({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity });
+  };
+  return { mesh, config, eventBus, connect, get transport() { return transport; } };
 }
 
 /** The requester side: the real mesh plus server/whole-model-requester.js, as server/native-node-ask.js drives it. */
@@ -437,11 +461,11 @@ export function createRequesterStack({ signalingUrl, roomId, roomToken, publicRo
     } finally { direct = false; }
   };
   /** The request server/native-node-ask.js builds: open recipients, one approval, text deltas. */
-  const ask = async ({ messages, threadId, attemptId, signal, onDelta = () => {} }) => {
+  const ask = async ({ messages, threadId, attemptId, signal, onDelta = () => {}, recipients = { kind: 'open', ids: [] } }) => {
     const route = requester.getModels().find(candidate => candidate.id === model.id && candidate.identity === model.identity
       && candidate.availability === 'ready' && !candidate.adapters?.length);
     if (!route) throw new Error('No ready provider for the fixture model');
-    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients });
     const observed = { approvals: [], deltas: [], usage: [], route: null };
     const result = await requester.generate({ model: route, threadId, attemptId, privacy, messages }, {
       signal,
@@ -452,5 +476,13 @@ export function createRequesterStack({ signalingUrl, roomId, roomToken, publicRo
     }).catch(error => { error.observed = observed; throw error; });
     return { result, observed, privacy, route };
   };
-  return { mesh, requester, config, eventBus, dispatches, ask, askDirect, get transport() { return transport; } };
+  /** What the web client hands its owner-pairing code (apps/poolday/host/work-swarm.js getOwnerPairingChannel). */
+  const pairingChannel = () => transport ? {
+    roomId, transport,
+    verifyPeer: (peerId, signal) => mesh.verifyPeerIdentity(peerId, signal),
+    currentPeer: peerId => mesh.getVerifiedPeerIdentity(peerId) ?? null,
+    getPeers: () => mesh.getSwarmSnapshot()?.peers || [],
+    getPeerStates: () => transport.getPeerStates?.() || []
+  } : null;
+  return { mesh, requester, config, eventBus, dispatches, ask, askDirect, pairingChannel, get transport() { return transport; } };
 }

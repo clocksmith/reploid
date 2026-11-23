@@ -1,9 +1,10 @@
 {
   "schema": "reploid.requester-contract/v1",
-  "scope": "The wire protocol a public requester needs to send one whole-model text request to a provider and verify the answer: signaling, the WebRTC data channel envelope, identity proof, admission before disclosure, streaming, the version 2 receipt, cancellation and recovery; the items under notCovered are out of scope.",
+  "scope": "The wire protocol a requester needs to send one whole-model text request to a provider and verify the answer, and to pair a phone with its owner's desktop and ask only that desktop: signaling, the WebRTC data channel envelope, identity proof, admission before disclosure, streaming, the version 2 receipt, cancellation, recovery and owner pairing; the items under notCovered are out of scope.",
   "notCovered": [
     "Split (partition) routes, their auxiliary data channels (reploid-partitions and the other SWARM_AUXILIARY_CHANNELS) and catalog rows with a partition member.",
-    "Credits, earning, the fleet ledger, guest invitations and owner pairing (reploid:owner-pairing-*, reploid:circle-join-*).",
+    "Credits, earning, the fleet ledger and guest invitations (reploid:circle-join-*).",
+    "The desktop side of owner pairing: issuing codes, the owner's approval at the terminal and the stored list of paired phones. The contract covers what the phone sends, receives and stores.",
     "Per-request generation settings (maxOutputTokens, tools, outputSchema, thinking, reversePrompt), the version 3 receipt and the version 2 terminal that bind them.",
     "Adapters: adapterIdentities is always [] here.",
     "Peer introductions (reploid:introduction-contact, reploid:introduction-signal), custody and file supply, web access, tool offers, target scoring, raft and federated-learning messages. A requester ignores these frames.",
@@ -121,6 +122,33 @@
         "totalPerWindow": 128,
         "windowMs": 60000
       }
+    },
+    "pairing": {
+      "linkBase": "https://replo.id/",
+      "linkParameters": {
+        "pair": "the single-use code",
+        "host": "the desktop participantId",
+        "room": "optional: the room the desktop is in",
+        "name": "optional: a label for the desktop"
+      },
+      "codePattern": "^[A-Za-z0-9_-]{24}$",
+      "codeBytes": 18,
+      "codeTtlMs": 600000,
+      "requestIdPattern": "^[0-9a-f-]{36}$",
+      "participantIdPattern": "^peer:[0-9a-f]{24}$",
+      "roomIdPattern": {
+        "source": "^reploid-swarm-[a-z0-9][a-z0-9_-]{0,127}$",
+        "flags": "i"
+      },
+      "roomTokenPrefix": "reploid-pairing-route-not-a-secret-v1:",
+      "labelMaxLength": 128,
+      "hostSearchMs": 6000,
+      "requestTimeoutMs": 120000,
+      "approvalWaitMs": 600000,
+      "phoneProofTimeoutMs": 5000,
+      "storageKey": "reploid.owner-paired-desktop:v1",
+      "requestType": "reploid:owner-pairing-request",
+      "resultType": "reploid:owner-pairing-result"
     }
   },
   "sources": {
@@ -496,6 +524,109 @@
     "constants.turn.rateLimit.windowMs": {
       "file": "server/cloudflare/policy.json",
       "pointer": "/turnWindowMs"
+    },
+    "constants.pairing.linkBase": {
+      "file": "server/circles/owner-pairing-terminal.js",
+      "symbol": "ownerPairingLink",
+      "check": "literal",
+      "literal": "https://replo.id/#"
+    },
+    "constants.pairing.linkParameters": {
+      "file": "apps/poolday/host/owner-pairing.js",
+      "symbol": "parseOwnerPairingUrl",
+      "check": "prose"
+    },
+    "constants.pairing.codePattern": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "ownerPairingCode",
+      "check": "literal",
+      "literal": "/^[A-Za-z0-9_-]{24}$/"
+    },
+    "constants.pairing.codeBytes": {
+      "file": "server/circles/owner-pairing.js",
+      "symbol": "issue",
+      "check": "literal",
+      "literal": "randomBytes(18)"
+    },
+    "constants.pairing.codeTtlMs": {
+      "file": "server/circles/owner-pairing.js",
+      "symbol": "PAIRING_TTL_MS",
+      "check": "literal",
+      "literal": "PAIRING_TTL_MS = 10 * 60 * 1000",
+      "expression": "10 * 60 * 1000",
+      "observed": "pairing.codeTtlMs"
+    },
+    "constants.pairing.requestIdPattern": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "ownerPairingRequestId",
+      "check": "literal",
+      "literal": "/^[0-9a-f-]{36}$/"
+    },
+    "constants.pairing.participantIdPattern": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "ownerParticipantId",
+      "check": "literal",
+      "literal": "/^peer:[0-9a-f]{24}$/"
+    },
+    "constants.pairing.roomIdPattern": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "OWNER_PAIRING_ROOM_PATTERN",
+      "check": "export"
+    },
+    "constants.pairing.roomTokenPrefix": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "ownerPairingRoomMarker",
+      "check": "literal",
+      "literal": "reploid-pairing-route-not-a-secret-v1:",
+      "observed": "pairing.roomTokenPrefix"
+    },
+    "constants.pairing.labelMaxLength": {
+      "file": "apps/poolday/host/owner-pairing.js",
+      "symbol": "validLabel",
+      "check": "literal",
+      "literal": "value.trim().length <= 128"
+    },
+    "constants.pairing.hostSearchMs": {
+      "file": "apps/poolday/host/owner-pairing.js",
+      "symbol": "DEFAULT_PEER_WAIT_MS",
+      "check": "literal",
+      "literal": "DEFAULT_PEER_WAIT_MS = 6000"
+    },
+    "constants.pairing.requestTimeoutMs": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "requestOwnerPairing",
+      "check": "literal",
+      "literal": "AbortSignal.timeout(120000)"
+    },
+    "constants.pairing.approvalWaitMs": {
+      "file": "apps/poolday/host/owner-pairing.js",
+      "symbol": "APPROVAL_WAIT_MS",
+      "check": "literal",
+      "literal": "APPROVAL_WAIT_MS = 10 * 60 * 1000",
+      "expression": "10 * 60 * 1000"
+    },
+    "constants.pairing.phoneProofTimeoutMs": {
+      "file": "server/circles/owner-pairing.js",
+      "symbol": "attach",
+      "check": "literal",
+      "literal": "AbortSignal.timeout(5000)"
+    },
+    "constants.pairing.storageKey": {
+      "file": "apps/poolday/host/owner-pairing.js",
+      "symbol": "STORAGE_KEY",
+      "check": "literal",
+      "literal": "'reploid.owner-paired-desktop:v1'",
+      "observed": "pairing.storageKey"
+    },
+    "constants.pairing.requestType": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "OWNER_PAIRING_REQUEST",
+      "check": "export"
+    },
+    "constants.pairing.resultType": {
+      "file": "packages/reploid/src/transport/owner-pairing.js",
+      "symbol": "OWNER_PAIRING_RESULT",
+      "check": "export"
     }
   },
   "signalingMessages": {
@@ -1511,6 +1642,51 @@
         "additionalProperties": false
       },
       "notes": "The countersigned receipt (procedures.receiptCountersign). consumerSignature and consumerKey are present. Sent only after every check of procedures.receiptVerification passed."
+    },
+    "reploid:owner-pairing-request": {
+      "sentBy": "requester",
+      "payload": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "code"
+        ],
+        "properties": {
+          "requestId": {
+            "allOf": [
+              {
+                "$ref": "#/objects/uuidLike"
+              }
+            ],
+            "description": "A fresh random UUID, lower case."
+          },
+          "code": {
+            "$ref": "#/objects/pairingCode"
+          }
+        }
+      },
+      "notes": "Sent only to the connection whose identity was proven, immediately before, to be the link's host (procedures.pairingExchange). The desktop answers nothing when the code is wrong, expired or already used, when the frame is malformed, or when the phone fails its identity proof: silence is the refusal."
+    },
+    "reploid:owner-pairing-result": {
+      "sentBy": "provider",
+      "payload": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "approved"
+        ],
+        "properties": {
+          "requestId": {
+            "$ref": "#/objects/uuidLike"
+          },
+          "approved": {
+            "type": "boolean"
+          }
+        }
+      },
+      "notes": "The desktop owner's decision. approved true: the desktop now lists the phone's proven participantId as its owner's device. approved false: the owner said no, the approval came after the code expired, the phone's connection changed, or the desktop issued a new code or closed while the request waited. A result for an unknown requestId or from another connection is ignored."
     }
   },
   "objects": {
@@ -2703,6 +2879,109 @@
         "rtcConfig"
       ],
       "description": "Body of a successful TURN credential response. Pass rtcConfig to the peer connection. Ask again when fewer than constants.turn.refreshSkewMs remain before expiresAt."
+    },
+    "pairingCode": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{24}$",
+      "description": "The single-use pairing code: base64url of constants.pairing.codeBytes random bytes. Valid for constants.pairing.codeTtlMs after the desktop issues it. A secret until used; never stored by the phone."
+    },
+    "pairingLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "hostParticipantId"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/objects/pairingCode"
+        },
+        "hostParticipantId": {
+          "$ref": "#/objects/participantId"
+        },
+        "hostLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "The name parameter, trimmed. For display only; it proves nothing."
+        },
+        "roomId": {
+          "allOf": [
+            {
+              "$ref": "#/objects/roomId"
+            }
+          ],
+          "description": "The room parameter, trimmed. A routing hint, never authority."
+        }
+      },
+      "description": "What procedures.pairingLinkParse reads from a pairing link."
+    },
+    "pairingRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hostParticipantId",
+        "hostLabel",
+        "roomId",
+        "pairedAt"
+      ],
+      "properties": {
+        "hostParticipantId": {
+          "$ref": "#/objects/participantId"
+        },
+        "hostLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "The link label, or the hostParticipantId when the link had none."
+        },
+        "roomId": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/objects/roomId"
+            }
+          ],
+          "description": "Where to look for the desktop next time; null = the room the phone is in anyway."
+        },
+        "pairedAt": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Phone clock at approval, milliseconds."
+        }
+      },
+      "description": "Everything the phone keeps about its desktop (the web client stores it as JSON under constants.pairing.storageKey). The only pinned fact is hostParticipantId. No code, token or key of the desktop is stored. The desktop in turn keeps only the phone's participantId, so the phone must keep its own signing key: with another key it is no longer paired."
+    },
+    "pairedDesktopPolicy": {
+      "allOf": [
+        {
+          "$ref": "#/objects/privacyPolicy"
+        },
+        {
+          "properties": {
+            "recipients": {
+              "properties": {
+                "kind": {
+                  "const": "named"
+                },
+                "ids": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": {
+                    "$ref": "#/objects/participantId"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "The privacy policy of a request to the paired desktop: objects.privacyPolicy with recipients { kind: \"named\", ids: [pairingRecord.hostParticipantId] }. The route is an ordinary objects.executionRoute whose route.providerId and hops[0].recipient are that same participantId."
     }
   },
   "procedures": {
@@ -2727,7 +3006,14 @@
     "envelopeValidation": "Sending: payloadText = JSON text of the payload object ({} when there is none). If its length in UTF-16 code units exceeds constants.rtc.maxPayloadSize, fail locally.\n  envelope = { protocolVersion: 1, type, peerId: own connection name, timestamp: next clock value, payload, payloadSize: length of payloadText in UTF-16 code units }.\n  frame = JSON text of envelope. If the channel's buffered bytes plus the UTF-8 length of frame exceed constants.rtc.sendBufferLimitBytes, do not send (the send fails).\nReceiving one text frame from the connection named P:\n  1. if its length in UTF-16 code units exceeds 2 * constants.rtc.maxPayloadSize -> reject.\n  2. parse as JSON; not JSON -> reject.\n  3. reject unless: it is an object; protocolVersion == 1; type is one of envelope.x-knownTypes; peerId is non-empty text; timestamp is a number; payloadSize is not greater than constants.rtc.maxPayloadSize; and peerId == P.\n     (A client that accepts any type text and ignores the types it does not implement behaves the same toward its peers.)\n  4. advance the clock (procedures.lamportTimestamp), record that P is alive now, and handle by type. A known type without a handler is ignored.\nA rejected frame is dropped silently; the connection stays open. payloadSize is not compared with the actual payload. Binary messages are not used.\nA requester must ignore, without error, known types it does not implement: reploid:introduction-contact, reploid:introduction-signal, reploid:tool-offer, reploid:custody-offer, reploid:web-offer and the rest of RTC_MESSAGE_TYPES.",
     "lamportTimestamp": "clock starts at 0 when the transport is created (one clock for all peers of this client).\nSending any envelope: clock = clock + 1; envelope.timestamp = clock.\nReceiving a valid envelope: clock = max(clock, envelope.timestamp) + 1.\nThe value orders nothing in the requester protocol; it must only be a number.",
     "signalingConnect": "url = constants.signaling.publicUrl (or a private deployment's URL) with query scope=<public|private> and roomId=<room id>. scope is \"public\" exactly when roomId == constants.signaling.publicRoomId.\nOpen the WebSocket with an allowed Origin header (constants.signaling.requiredOriginNote). Text frames only, each one JSON object, at most constants.signaling.maxFrameBytes UTF-8 bytes and at most constants.signaling.maxMessagesPerWindow frames per constants.signaling.rateLimitWindowMs.\nOn open send join { type, peerId: own connection name, roomId, token, metadata: { capabilities: [] } }. Before joined, the only acceptable frame is welcome; anything else, or no joined within constants.signaling.connectTimeoutMs, is a failure.\nOn joined (peerId and roomId must echo the join): start the heartbeat; for each name in peers: create a peer connection with the ICE servers (constants.rtc.iceServers, or the rtcConfig of TURN credentials), create the data channel constants.rtc.channelLabel with ordered delivery and no retransmit limit, create an offer, set it as local description, send offer { type, peerId: own name, targetPeer, offer }.\nSend each local ICE candidate as ice-candidate. Apply the answer and candidates addressed to you. A connection attempt whose data channel is not open after constants.signaling.connectTimeoutMs has failed.\nOn an offer from a peer: answer it (see signalingMessages.offer.notes) and take the incoming data channel whose label is constants.rtc.channelLabel. Close incoming channels with other labels unless you implement them.\nOn failure, an error frame, or socket close: keep peers whose data channel is open, drop the others, and reconnect after min(constants.signaling.reconnectBaseMs * 2^(attempt-1), constants.signaling.reconnectMaxMs); a failed or closed peer connection also triggers a rejoin to get a fresh peer list.\nWhen a data channel opens send sync-request {} and, optionally, your reploid:peer-advertisement.",
-    "failureHandling": "The prompt (messages) leaves the device only in reploid:generation-request. So for any failure: the prompt was sent if and only if the requester had already sent reploid:generation-request for that requestId to that provider.\nA failure before that point (no provider, identity proof failed, user declined, admit refused, admit timed out) means nothing the user wrote was disclosed; the request can be retried with a new requestId.\nAfter that point the provider has the prompt. A request sent with recoverable: true must not be resent with the same requestId; use procedures.recovery or start a new request with a new requestId.\nThe request timer (constants.generation.timeoutMs) starts when reploid:generation-admit is sent and covers everything up to the result. On timeout, on user cancel and on a mismatching reploid:generation-admitted, send reploid:generation-cancel.\nWhen the connection to the provider closes, every pending request with it fails with \"Execution peer disconnected; retry requires a new attempt\"."
+    "failureHandling": "The prompt (messages) leaves the device only in reploid:generation-request. So for any failure: the prompt was sent if and only if the requester had already sent reploid:generation-request for that requestId to that provider.\nA failure before that point (no provider, identity proof failed, user declined, admit refused, admit timed out) means nothing the user wrote was disclosed; the request can be retried with a new requestId.\nAfter that point the provider has the prompt. A request sent with recoverable: true must not be resent with the same requestId; use procedures.recovery or start a new request with a new requestId.\nThe request timer (constants.generation.timeoutMs) starts when reploid:generation-admit is sent and covers everything up to the result. On timeout, on user cancel and on a mismatching reploid:generation-admitted, send reploid:generation-cancel.\nWhen the connection to the provider closes, every pending request with it fails with \"Execution peer disconnected; retry requires a new attempt\".",
+    "pairingLinkParse": "parse(text) -> objects.pairingLink or none. The link looks like https://replo.id/#pair=<code>&host=<participantId>&room=<roomId>&name=<label>.\n  1. text must be a non-empty absolute URL, else none. Only its fragment (the part after \"#\") is read. The parser does not check the scheme, host, path or query: any origin carrying a valid fragment parses. Parameters in the query (after \"?\") are not a pairing link.\n  2. Split the fragment as form-urlencoded pairs: \"&\" separates pairs, \"=\" separates name and value, \"+\" is a space, %XX is a UTF-8 byte.\n  3. Require exactly one \"pair\" and exactly one \"host\", and at most one \"name\" and at most one \"room\"; else none. Other parameters are ignored.\n  4. pair must match constants.pairing.codePattern and host must match constants.pairing.participantIdPattern (lower-case hex only); else none.\n  5. name, when present: trimmed of white space it must have 1 to constants.pairing.labelMaxLength characters, else none. hostLabel = the trimmed text.\n  6. room, when present: trimmed it must match constants.pairing.roomIdPattern, else none. roomId = the trimmed text.\n  7. Result: { code: pair, hostParticipantId: host, hostLabel (only when name was present), roomId (only when room was present) }.\nAfter reading the link, remove the code from every place it could be seen again (the web client removes the fragment from the address bar). The code is never stored.\nThe desktop writes the fragment with pair, host, then room and name when it has them; the colon of the participantId is written %3A and a space as \"+\". The link is fragment-only so the code never reaches a web server.",
+    "pairingRoom": "A desktop offers owner pairing only in a private room (not constants.signaling.publicRoomId).\nWhen the link has roomId and the phone is not in that room: leave the current room and connect signaling (procedures.signalingConnect) with scope=private, roomId=<roomId> and\n  token = constants.pairing.roomTokenPrefix + roomId   (for example \"reploid-pairing-route-not-a-secret-v1:reploid-swarm-my-desk\"),\n  unless the user already holds a real token for that room. The marker is not a secret and grants nothing: it only lets both sides meet. Authority comes from the code, the owner's approval and the identity proofs.\nWhen the link has no roomId: stay in the room the phone is in.\nA room that was first joined with another token answers the join with \"Unauthorized room access\"; the link cannot carry a real room token.\nAfter pairing, the phone returns to pairingRecord.roomId the same way whenever it starts.",
+    "pairingExchange": "Inputs from the link (or typed by the user): code, hostParticipantId, optional hostLabel, optional roomId. One attempt at a time.\n  1. Check code against codePattern and hostParticipantId against participantIdPattern, else fail \"Enter a valid desktop ID and 24-character pairing code\". Check roomId against roomIdPattern, else \"Desktop room hint is invalid\".\n  2. Ask the user: \"Connect to <hostLabel, or your desktop>\", showing the desktop ID. Continue only when the user confirms.\n  3. Join the room (procedures.pairingRoom). If the phone ends up in another room than roomId: fail \"Could not reach the desktop room specified in the pairing link\".\n  4. Find the desktop's connection: a connection with a DTLS binding whose PROVEN identity equals hostParticipantId. Use an identity already proven on that binding; otherwise prove each connected peer once per binding (procedures.identityProofVerification). Keep looking for constants.pairing.hostSearchMs. None found: fail \"Could not find the verified desktop on this connection. Confirm it is online and retry.\" Nothing secret was sent.\n  5. Prove that connection once more with a fresh challenge. The participantId must equal hostParticipantId, else fail \"Could not verify the paired desktop\".\n  6. requestId = a fresh random UUID. Send reploid:owner-pairing-request { requestId, code } to that connection and to no other. The code must never leave before step 5 succeeded.\n  7. The desktop now proves the phone: answer its reploid:identity-challenge at once (it waits constants.pairing.phoneProofTimeoutMs). The participantId the phone proves is what gets paired.\n  8. Show \"Approve on your desktop\". The owner sees \"Pair phone <phone participantId, shortened>? [y/n]\" on the desktop and must answer. Wait for reploid:owner-pairing-result with this requestId from this connection for up to constants.pairing.approvalWaitMs (constants.pairing.requestTimeoutMs is the library default when the caller sets no limit).\n  9. When the result arrives: the connection's proven identity must still be hostParticipantId (same binding), else fail \"Desktop connection changed during pairing\". approved other than true: fail \"Desktop declined owner pairing\".\n 10. approved true: store objects.pairingRecord { hostParticipantId, hostLabel: hostLabel or hostParticipantId, roomId: the link's roomId, else the current room id when it is a valid room id, else null, pairedAt: now }. Forget the code.\nNo answer by the time limit means the code cannot be used (wrong, expired, or used before) or the desktop could not prove the phone. Say \"Open a new pairing link from your desktop.\" The desktop never says which.\nA code is spent by the first well-formed request that carries it, whatever happens next (declined, phone unproven, expired before approval). A request with a wrong code does not spend the real one.",
+    "pairedDesktopRecognition": "The record pins one thing: hostParticipantId. A connection is the paired desktop exactly when the identity PROVEN on that connection (procedures.identityProofVerification, valid for that DTLS binding and connection attempt) equals hostParticipantId.\nNothing else identifies it: not the connection name (it changes on every connection), not the DTLS certificate, not the room, not the label, and not the peerId inside reploid:peer-advertisement, which any peer can set to any value.\nstatus = \"online\" when such a connection has an open \"reploid\" data channel; hostPeer = its connection name now; readyModel = the model of its stored advertisement when its readiness is \"ready\".\nstatus = \"offline\" otherwise, including when another computer in the room advertises the desktop's id, name or model.\nTo reach \"online\" after connecting, prove the peers of the room (the background proof after each advertisement does this); do not wait for the user to send first.",
+    "pairedDesktopRequest": "A request to the paired desktop is the ordinary request (sequence steps 7 to 15) with these differences:\n  - privacy.recipients = { \"kind\": \"named\", \"ids\": [hostParticipantId] } (objects.pairedDesktopPolicy); policyId = hashJson of that policy.\n  - Candidates (procedures.providerSelectionRule) are only connections whose proven identity is in ids. With one paired desktop there is at most one.\n  - The fresh proof before the request must give P == hostParticipantId. route.providerId and hops[0].recipient are P. If it gives anything else, send nothing.\n  - The model is the one the desktop advertises (readyModel).\n  - Tell the user before sending: \"Sending to <hostLabel>. Its operator can read your prompt.\"\nOn the wire the frames are the same types in the same order. The desktop proves the phone before admitting and again before running, so expect more reploid:identity-challenge frames than with a public provider; answer each one.\nA desktop started with owner pairing admits only phones it has paired. Any other requester gets reploid:generation-error \"The provider declined this request. The prompt was not sent.\" in answer to reploid:generation-admit.",
+    "pairedDesktopOffline": "While status is \"offline\": send nothing. Never replace the recipient: do not fall back to open recipients, to another provider of the same model, or to a peer that looks like the desktop.\nShow \"<hostLabel> is offline. Open Reploid on <hostLabel>.\" Nothing the phone can do wakes the desktop.\nOnly the user may choose another destination (a public computer or this device); that is a new policy the user picked, shown as such.\nA named-recipient request started while no eligible connection exists sends no frame at all, waits for the desktop until constants.generation.timeoutMs, and then fails \"No remote host slot available\".",
+    "pairingForget": "Phone: to forget the desktop, delete the pairingRecord and cancel a pairing attempt in progress (the web client's \"Unpair desktop\"). No frame is sent. Later requests are no longer limited to that desktop.\nThe desktop still lists the phone's participantId afterwards. Forgetting on the phone does not withdraw the permission on the desktop.\nDesktop: the current code has no command that removes one paired phone. The list lives in the desktop's pairing state file; deleting that file while the desktop is stopped removes every paired phone.\nA phone that the desktop no longer lists still recognises the desktop (status \"online\"), and its requests are refused before the prompt with \"The provider declined this request. The prompt was not sent.\". Treat that refusal from the paired desktop as \"pair again\": offer a new pairing, do not report the desktop as offline, and do not send the request elsewhere."
   },
   "sequence": [
     {
@@ -2736,7 +3022,8 @@
       "channel": "signaling",
       "does": "Open the WebSocket (procedures.signalingConnect).",
       "expects": "welcome",
-      "onFailure": "HTTP 403: the Origin header is missing or not allowed. HTTP 400: scope or roomId is wrong. HTTP 429: capacity; retry later. Otherwise reconnect with backoff."
+      "onFailure": "HTTP 403: the Origin header is missing or not allowed. HTTP 400: scope or roomId is wrong. HTTP 429: capacity; retry later. Otherwise reconnect with backoff.",
+      "flow": "request"
     },
     {
       "step": 2,
@@ -2744,7 +3031,8 @@
       "channel": "signaling",
       "sends": "join",
       "expects": "joined",
-      "onFailure": "An error frame or no joined within connectTimeoutMs: close and reconnect with backoff. See failures for the error texts."
+      "onFailure": "An error frame or no joined within connectTimeoutMs: close and reconnect with backoff. See failures for the error texts.",
+      "flow": "request"
     },
     {
       "step": 3,
@@ -2753,7 +3041,8 @@
       "sends": "offer",
       "expects": "answer",
       "does": "One offer per peer listed in joined. ice-candidate frames flow both ways. Send heartbeat every heartbeatMs from now on.",
-      "onFailure": "No open data channel within connectTimeoutMs: drop that peer and rejoin. peer-unavailable: the peer left; ignore."
+      "onFailure": "No open data channel within connectTimeoutMs: drop that peer and rejoin. peer-unavailable: the peer left; ignore.",
+      "flow": "request"
     },
     {
       "step": 4,
@@ -2761,7 +3050,8 @@
       "channel": "data",
       "sends": "sync-request",
       "does": "Each side sends it once when the \"reploid\" data channel opens. From now on answer every ping with pong and send ping every pingIntervalMs.",
-      "onFailure": "None."
+      "onFailure": "None.",
+      "flow": "request"
     },
     {
       "step": 5,
@@ -2769,7 +3059,8 @@
       "channel": "data",
       "sends": "reploid:peer-advertisement",
       "does": "The requester stores it (procedures.readyPeerRule). The requester may send its own advertisement as a consumer.",
-      "onFailure": "No ready provider within discoveryTimeoutMs: tell the user no computer is serving this model. Nothing was sent."
+      "onFailure": "No ready provider within discoveryTimeoutMs: tell the user no computer is serving this model. Nothing was sent.",
+      "flow": "request"
     },
     {
       "step": 6,
@@ -2778,14 +3069,16 @@
       "sends": "reploid:identity-challenge",
       "expects": "reploid:identity-proof",
       "does": "Background proofs. Each side may challenge the other at any time after the channel opens; always answer (procedures.identityChallengeAnswer).",
-      "onFailure": "A challenge that fails the checks is ignored without an answer."
+      "onFailure": "A challenge that fails the checks is ignored without an answer.",
+      "flow": "request"
     },
     {
       "step": 7,
       "actor": "requester",
       "channel": "local",
       "does": "Choose a provider (procedures.providerSelectionRule).",
-      "onFailure": "No candidate before timeoutMs: \"No remote host slot available\". Nothing was sent."
+      "onFailure": "No candidate before timeoutMs: \"No remote host slot available\". Nothing was sent.",
+      "flow": "request"
     },
     {
       "step": 8,
@@ -2794,14 +3087,16 @@
       "sends": "reploid:identity-challenge",
       "expects": "reploid:identity-proof",
       "does": "Fresh proof of the chosen provider (procedures.identityProofVerification). The result is the provider participantId P.",
-      "onFailure": "Proof invalid or missing: \"Verified provider identity required; nothing was sent\" or the specific proof error. Nothing was sent."
+      "onFailure": "Proof invalid or missing: \"Verified provider identity required; nothing was sent\" or the specific proof error. Nothing was sent.",
+      "flow": "request"
     },
     {
       "step": 9,
       "actor": "requester",
       "channel": "local",
       "does": "Build privacy policy, offer, privacy binding, requestId, salt and prompt commitment. Check the size limit. Show the user who will read the request (model, P) and get approval.",
-      "onFailure": "User declines: \"Host denied remote prompt disclosure\". Nothing was sent."
+      "onFailure": "User declines: \"Host denied remote prompt disclosure\". Nothing was sent.",
+      "flow": "request"
     },
     {
       "step": 10,
@@ -2810,7 +3105,8 @@
       "sends": "reploid:generation-admit",
       "expects": "reploid:generation-admitted",
       "does": "Start the request timer. If the provider has not proven the requester on this connection yet, it first sends reploid:identity-challenge; answer it.",
-      "onFailure": "reploid:generation-error: the provider refused; the prompt was not sent. reploid:generation-admitted with another admissionProtocol or promptCommitment: send reploid:generation-cancel and fail \"The provider admitted a different request. The prompt was not sent.\" Timeout: send reploid:generation-cancel; the prompt was not sent."
+      "onFailure": "reploid:generation-error: the provider refused; the prompt was not sent. reploid:generation-admitted with another admissionProtocol or promptCommitment: send reploid:generation-cancel and fail \"The provider admitted a different request. The prompt was not sent.\" Timeout: send reploid:generation-cancel; the prompt was not sent.",
+      "flow": "request"
     },
     {
       "step": 11,
@@ -2818,7 +3114,8 @@
       "channel": "data",
       "sends": "reploid:generation-request",
       "does": "Re-check the provider (last paragraph of procedures.providerSelectionRule), then send the prompt with admission.salt.",
-      "onFailure": "Re-check fails: send reploid:generation-cancel; the prompt was not sent. Send fails: \"Failed to send swarm generation request\"."
+      "onFailure": "Re-check fails: send reploid:generation-cancel; the prompt was not sent. Send fails: \"Failed to send swarm generation request\".",
+      "flow": "request"
     },
     {
       "step": 12,
@@ -2827,7 +3124,8 @@
       "sends": "reploid:identity-challenge",
       "expects": "reploid:identity-proof",
       "does": "Only when the request has contextId or recoverable: the provider proves the requester again before running. Answer it.",
-      "onFailure": "Without a valid answer the provider ends the request with reploid:generation-error. The prompt was sent."
+      "onFailure": "Without a valid answer the provider ends the request with reploid:generation-error. The prompt was sent.",
+      "flow": "request"
     },
     {
       "step": 13,
@@ -2835,7 +3133,8 @@
       "channel": "data",
       "sends": "reploid:generation-update",
       "does": "Zero or one usage update, then text chunks in order. The provider also re-advertises (availableSlots 0, later 1); those advertisements arrive in between.",
-      "onFailure": "reploid:generation-error at any point ends the request; the prompt was sent; text shown so far is incomplete."
+      "onFailure": "reploid:generation-error at any point ends the request; the prompt was sent; text shown so far is incomplete.",
+      "flow": "request"
     },
     {
       "step": 14,
@@ -2843,7 +3142,8 @@
       "channel": "data",
       "sends": "reploid:generation-result",
       "does": "The requester runs procedures.receiptVerification.",
-      "onFailure": "Any check fails: the request fails with that check's error, no receipt is sent, and the text must not be presented as a verified answer. The prompt was sent."
+      "onFailure": "Any check fails: the request fails with that check's error, no receipt is sent, and the text must not be presented as a verified answer. The prompt was sent.",
+      "flow": "request"
     },
     {
       "step": 15,
@@ -2851,7 +3151,8 @@
       "channel": "data",
       "sends": "reploid:receipt",
       "does": "Countersigned receipt (procedures.receiptCountersign). The request is complete.",
-      "onFailure": "Send fails: the answer is still valid for the user; the provider gets no countersignature."
+      "onFailure": "Send fails: the answer is still valid for the user; the provider gets no countersignature.",
+      "flow": "request"
     },
     {
       "step": 16,
@@ -2859,7 +3160,8 @@
       "channel": "data",
       "sends": "reploid:generation-cancel",
       "does": "Optional, instead of waiting: any time after step 10. Settle locally at once.",
-      "onFailure": "None. Whether the prompt was sent follows procedures.failureHandling."
+      "onFailure": "None. Whether the prompt was sent follows procedures.failureHandling.",
+      "flow": "request"
     },
     {
       "step": 17,
@@ -2868,7 +3170,8 @@
       "sends": "reploid:generation-recover",
       "expects": "reploid:generation-recovery",
       "does": "Optional, for a recoverable request whose outcome is unknown (procedures.recovery).",
-      "onFailure": "outcome null or no answer: unresolved. Do not resend the same requestId."
+      "onFailure": "outcome null or no answer: unresolved. Do not resend the same requestId.",
+      "flow": "request"
     },
     {
       "step": 18,
@@ -2876,7 +3179,90 @@
       "channel": "signaling",
       "sends": "leave",
       "does": "When done: close data channels and peer connections, send leave, close the socket.",
+      "onFailure": "None.",
+      "flow": "request"
+    },
+    {
+      "step": 19,
+      "flow": "pairing",
+      "actor": "requester",
+      "channel": "local",
+      "does": "Read the pairing link (procedures.pairingLinkParse), remove the code from view, and ask the user to confirm the desktop.",
+      "onFailure": "Not a valid link: \"Paste a valid desktop pairing link.\" Nothing was sent."
+    },
+    {
+      "step": 20,
+      "flow": "pairing",
+      "actor": "requester",
+      "channel": "signaling",
+      "sends": "join",
+      "expects": "joined",
+      "does": "Join the desktop's room with the routing marker as token (procedures.pairingRoom), then connect to its peers as in steps 3 and 4.",
+      "onFailure": "An error frame (\"Unauthorized room access\" when the room has a real token) or no joined: \"Could not reach the desktop room specified in the pairing link\"."
+    },
+    {
+      "step": 21,
+      "flow": "pairing",
+      "actor": "requester",
+      "channel": "data",
+      "sends": "reploid:identity-challenge",
+      "expects": "reploid:identity-proof",
+      "does": "Find the connection whose proven identity is the link's host, then prove it once more (procedures.pairingExchange steps 4 and 5).",
+      "onFailure": "No connection proves to be the host: \"Could not find the verified desktop on this connection. Confirm it is online and retry.\" The code was not sent."
+    },
+    {
+      "step": 22,
+      "flow": "pairing",
+      "actor": "requester",
+      "channel": "data",
+      "sends": "reploid:owner-pairing-request",
+      "does": "Send the code to that connection only.",
+      "onFailure": "Send fails: \"Desktop connection unavailable\"."
+    },
+    {
+      "step": 23,
+      "flow": "pairing",
+      "actor": "provider",
+      "channel": "data",
+      "sends": "reploid:identity-challenge",
+      "expects": "reploid:identity-proof",
+      "does": "The desktop proves the phone. Answer at once.",
+      "onFailure": "Without a valid answer within phoneProofTimeoutMs the desktop drops the request silently; the code is spent."
+    },
+    {
+      "step": 24,
+      "flow": "pairing",
+      "actor": "provider",
+      "channel": "data",
+      "sends": "reploid:owner-pairing-result",
+      "does": "After the owner answers at the desktop. The phone shows \"Approve on your desktop\" while it waits.",
+      "onFailure": "approved false: \"Desktop declined owner pairing\". No result before the time limit: the code was wrong, expired or used; \"Open a new pairing link from your desktop.\""
+    },
+    {
+      "step": 25,
+      "flow": "pairing",
+      "actor": "requester",
+      "channel": "local",
+      "does": "Store the pairingRecord and forget the code.",
       "onFailure": "None."
+    },
+    {
+      "step": 26,
+      "flow": "paired-request",
+      "actor": "requester",
+      "channel": "local",
+      "does": "On each start: join pairingRecord.roomId, let the peers prove themselves, and work out the desktop's status (procedures.pairedDesktopRecognition).",
+      "onFailure": "Offline: procedures.pairedDesktopOffline. Send nothing and substitute nobody."
+    },
+    {
+      "step": 27,
+      "flow": "paired-request",
+      "actor": "requester",
+      "channel": "data",
+      "sends": "reploid:generation-admit",
+      "expects": "reploid:generation-admitted",
+      "does": "The request of steps 7 to 15 with the named-recipient policy (procedures.pairedDesktopRequest).",
+      "onFailure": "reploid:generation-error \"The provider declined this request. The prompt was not sent.\" from the paired desktop: it no longer lists this phone (procedures.pairingForget). Other failures as in steps 7 to 15."
     }
   ],
   "failures": [
@@ -2885,7 +3271,7 @@
       "text": "The provider declined this request. The prompt was not sent.",
       "source": "packages/reploid/src/mesh/peer-generation.js",
       "promptSent": "no",
-      "meaning": "The provider host refused admission (owner policy, not ready any more, or its model changed). Try another provider."
+      "meaning": "The provider host refused admission (owner policy, not ready any more, or its model changed). Try another provider. A desktop started with owner pairing gives this answer to every requester it has not paired, and to a phone it no longer lists."
     },
     {
       "channel": "reploid:generation-error",
@@ -3438,6 +3824,121 @@
       "promptSent": "not applicable: no request travels on this path; a request in flight on an open data channel is unaffected",
       "meaning": "Body has retryable: true and retryAfter seconds; code \"turn_not_configured\" (\"TURN relay is not configured\") is not retryable. Connect without relay meanwhile.",
       "match": "status"
+    },
+    {
+      "channel": "pairing",
+      "text": "Enter a valid desktop ID and 24-character pairing code",
+      "source": "apps/poolday/host/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The code or the desktop id is not well formed. Nothing was sent."
+    },
+    {
+      "channel": "pairing",
+      "text": "Desktop room hint is invalid",
+      "source": "apps/poolday/host/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The room in the link is not a valid room id. Nothing was sent."
+    },
+    {
+      "channel": "pairing",
+      "text": "Pairing is already waiting for desktop confirmation",
+      "source": "apps/poolday/host/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "A second attempt was started while one waits for the owner."
+    },
+    {
+      "channel": "pairing",
+      "text": "Connect to the Reploid network before pairing your desktop",
+      "source": "apps/poolday/host/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The phone has no signaling connection."
+    },
+    {
+      "channel": "pairing",
+      "text": "Could not reach the desktop room specified in the pairing link",
+      "source": "apps/poolday/host/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The phone could not join the room named in the link. The code was not sent."
+    },
+    {
+      "channel": "pairing",
+      "text": "Could not find the verified desktop on this connection. Confirm it is online and retry.",
+      "source": "apps/poolday/host/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "No connection in the room proves to be the desktop named in the link: it is offline, in another room, or the link names another desktop. The code was not sent."
+    },
+    {
+      "channel": "pairing",
+      "text": "Invalid owner pairing details",
+      "source": "packages/reploid/src/transport/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The code or the desktop id is not well formed (library check). Nothing was sent."
+    },
+    {
+      "channel": "pairing",
+      "text": "Could not verify the paired desktop",
+      "source": "packages/reploid/src/transport/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The fresh identity proof of the chosen connection did not give the link's host. The code was not sent."
+    },
+    {
+      "channel": "pairing",
+      "text": "Desktop connection unavailable",
+      "source": "packages/reploid/src/transport/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The data channel refused the pairing request."
+    },
+    {
+      "channel": "pairing",
+      "text": "Desktop connection changed during pairing",
+      "source": "packages/reploid/src/transport/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The connection or its proven identity changed while waiting. Start again with a new link."
+    },
+    {
+      "channel": "pairing",
+      "text": "Desktop declined owner pairing",
+      "source": "packages/reploid/src/transport/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "reploid:owner-pairing-result with approved false: the owner said no, or the request lapsed on the desktop. The code is spent."
+    },
+    {
+      "channel": "pairing",
+      "text": "<no answer before the time limit>",
+      "source": "server/circles/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The desktop stays silent for a wrong, expired or already used code, a malformed request, or a phone it could not prove. It never says which. Ask for a new link.",
+      "match": "other"
+    },
+    {
+      "channel": "pairing",
+      "text": "Open a new pairing link from your desktop.",
+      "source": "apps/poolday/ui/pool-home/owner-pairing-view.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "What the web client tells the user after any failed pairing attempt."
+    },
+    {
+      "channel": "pairing",
+      "text": "Owner pairing routing marker requires a valid nondefault room",
+      "source": "packages/reploid/src/transport/owner-pairing.js",
+      "promptSent": "no: pairing carries no prompt",
+      "meaning": "The routing marker was asked for the public room or an invalid room id. Pairing rooms are private rooms."
+    },
+    {
+      "channel": "paired desktop",
+      "text": " is offline. Open Reploid on ",
+      "source": "apps/poolday/ui/pool-home/conversation-workspace.js",
+      "promptSent": "no",
+      "meaning": "Middle of \"<hostLabel> is offline. Open Reploid on <hostLabel>.\": the paired desktop is not connected. Nothing is sent and no other recipient is used.",
+      "match": "infix"
+    },
+    {
+      "channel": "paired desktop",
+      "text": "Its operator can read your prompt.",
+      "source": "apps/poolday/ui/pool-home/conversation-workspace.js",
+      "promptSent": "no",
+      "meaning": "End of the notice shown before sending to the paired desktop: \"Sending to <hostLabel>. Its operator can read your prompt.\"",
+      "match": "suffix"
     }
   ]
 }

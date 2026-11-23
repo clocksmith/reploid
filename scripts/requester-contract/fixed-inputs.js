@@ -26,7 +26,7 @@ export const FIXED_IDENTITIES = Object.freeze({
 });
 
 /** A deep copy, because the mesh updates the contribution summary of the bundle it is given. */
-export const fixedIdentity = name => structuredClone(FIXED_IDENTITIES[name]);
+export const fixedIdentity = name => structuredClone(name === 'lookAlikeEd25519' ? FIXED_PAIRING.lookAlikeIdentity : FIXED_IDENTITIES[name]);
 
 const hexPairs = start => Array.from({ length: 32 }, (_, index) => (start + index).toString(16).padStart(2, '0')).join(':');
 
@@ -58,4 +58,29 @@ export const FIXED = Object.freeze({
   messages: [{ role: 'user', content: 'What is the capital of France?' }],
   answerChunks: ['The capital ', 'of France ', 'is Paris.'],
   completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 9, generatedTokenCount: 7, stopReason: 'eos-token' }
+});
+
+/**
+ * Fixed inputs for the owner-pairing captures. The look-alike key is a TEST key
+ * for a second desktop that is not the paired one.
+ */
+export const FIXED_PAIRING = Object.freeze({
+  lookAlikeIdentity: {
+    version: 1, algorithm: 'Ed25519', peerId: 'peer:2664421a201a6bda7b92f4fd',
+    publicJwk: { key_ops: ['verify'], ext: true, alg: 'Ed25519', crv: 'Ed25519', x: 'AD6lP_qvJXiYVU6Aq8YQdBxfm1sGxgajRRmrFpPmd_Q', kty: 'OKP' },
+    privateJwk: { key_ops: ['sign'], ext: true, alg: 'Ed25519', crv: 'Ed25519', d: 'nr8IyPiFpBCzTWaiO2SKaaw-72DOxM23_K6Xx2BtKFs', x: 'AD6lP_qvJXiYVU6Aq8YQdBxfm1sGxgajRRmrFpPmd_Q', kty: 'OKP' }
+  },
+  // The label a desktop puts in its pairing link. Not a machine name.
+  desktopLabel: 'Workbench',
+  // node:crypto randomBytes(18) for the pairing code: bytes 0x40..0x51, the code QEFCQ0RFRkdISUpLTE1OT1BR.
+  codeBytes: Array.from({ length: 18 }, (_, index) => 0x40 + index),
+  // A well-formed code the desktop never issued.
+  wrongCode: 'oKOmqayvsrW4u77BxMfKzdDT',
+  // Connection names and certificates the same desktop and phone use on a later day.
+  laterDesktopTransportId: 'c0ffee00-0000-4000-8000-000000000012',
+  laterPhoneTransportId: 'c0ffee00-0000-4000-8000-000000000011',
+  laterDesktopFingerprint: `sha-256 ${Array.from({ length: 32 }, (_, index) => (0xc0 + index).toString(16).padStart(2, '0')).join(':')}`,
+  laterPhoneFingerprint: `sha-256 ${Array.from({ length: 32 }, (_, index) => (0x30 + index).toString(16).padStart(2, '0')).join(':')}`,
+  uuids: Array.from({ length: 32 }, (_, index) => `bbbbbbbb-1111-4000-8000-${String(index + 1).padStart(12, '0')}`),
+  requestIds: Array.from({ length: 4 }, (_, index) => `d0d0d0d0-1111-4000-8000-${String(index + 1).padStart(12, '0')}`)
 });

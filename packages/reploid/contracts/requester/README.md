@@ -1,7 +1,8 @@
 # Requester contract
 
-`requester-contract.json` is the wire protocol a public requester speaks to send
-one whole-model text request to a provider and verify the answer. It is the
+`requester-contract.json` is the wire protocol a requester speaks to send one
+whole-model text request to a provider and verify the answer, and to pair a
+phone with its owner's desktop and then ask only that desktop. It is the
 authority for that protocol: signaling frames, the data-channel envelope, every
 message a requester sends or receives, the objects inside them, the procedures
 (canonical JSON, hashing, signatures, identity proof, prompt commitment, privacy
@@ -20,7 +21,7 @@ tested from it.
 | [`tests/fixtures/requester-conformance/vectors.json`](../../../../tests/fixtures/requester-conformance/vectors.json) | Test vectors. Generated from the real JavaScript modules; never edited. They sit with the test fixtures because they hold test private keys. |
 | [`scripts/build-requester-contract-vectors.js`](../../../../scripts/build-requester-contract-vectors.js) | Builds `vectors.json`. |
 | [`scripts/verify-requester-contract.js`](../../../../scripts/verify-requester-contract.js) | Checks the contract against the code. |
-| [`scripts/requester-contract/`](../../../../scripts/requester-contract/) | Shared pieces: fixed test inputs, the capture harness, the schema validator. |
+| [`scripts/requester-contract/`](../../../../scripts/requester-contract/) | Shared pieces: fixed test inputs, the capture harnesses for requests and for pairing, the owner-desktop stand-in, the schema validator. |
 | [`tests/fixtures/requester-conformance/`](../../../../tests/fixtures/requester-conformance/) | Providers a client in another language can test against. |
 | [`tests/unit/requester-contract.test.js`](../../../../tests/unit/requester-contract.test.js) | Runs the verifier and the stdio provider under vitest. |
 
@@ -84,7 +85,7 @@ script and checked on every build; if one stops verifying, run the script with
 Sections: `canonicalJson`, `identity`, `signatures`, `identityProof`,
 `sdpFingerprint`, `promptCommitment`, `privacyBinding`, `admit`, `receipt`,
 `generationTerminal`, `envelope`, `readyPeer`, `signaling`, `transcript`,
-`scenarios`. Each section starts with a `description` of its fields.
+`scenarios`, `pairing`. Each section starts with a `description` of its fields.
 `transcript` is one complete request, frame by frame, with the inputs needed to
 reproduce every requester frame.
 
@@ -100,7 +101,9 @@ Three levels, from fastest to most real:
    node tests/fixtures/requester-conformance/stdio-provider.js \
      [--room ID] [--provider-transport-id NAME] [--requester-transport-id NAME] \
      [--provider-fingerprint "sha-256 .."] [--requester-fingerprint "sha-256 .."] \
-     [--identity ed25519|ecdsa] [--decline] [--fail-after-chunks N] [--chunk-delay-ms N]
+     [--identity ed25519|ecdsa] [--decline] [--fail-after-chunks N] [--chunk-delay-ms N] \
+     [--pairing [--pairing-name LABEL] [--pairing-expired] [--pairing-decline] \
+      [--pairing-forget-after-requests N]]
    ```
 
    Its first line is `{"ready":true,...}` with the room, both connection names,
@@ -112,7 +115,9 @@ Three levels, from fastest to most real:
    ```sh
    node tests/fixtures/requester-conformance/webrtc-provider.js \
      [--port N] [--host ADDRESS] [--room ID] [--token TEXT] \
-     [--identity ed25519|ecdsa] [--fail-after-chunks N] [--chunk-delay-ms N]
+     [--identity ed25519|ecdsa] [--fail-after-chunks N] [--chunk-delay-ms N] \
+     [--pairing [--pairing-name LABEL] [--pairing-expired] [--pairing-decline] \
+      [--pairing-forget-after-requests N]]
    ```
 
    It prints one line with `wsUrl`, `roomId`, `token`, `origin`, `iceServers`,
@@ -121,14 +126,59 @@ Three levels, from fastest to most real:
 `node tests/fixtures/requester-conformance/prove.js` drives both providers from
 Node: with the real JavaScript requester, with the installed `ask` command, and
 with `minimal-requester.js`, a requester written from the contract alone that
-imports no Reploid module.
+imports no Reploid module. It covers public requests and owner pairing.
+
+## Owner pairing
+
+A phone pairs with its owner's desktop once and afterwards asks that desktop,
+not strangers. In the contract: `constants.pairing`, the messages
+`reploid:owner-pairing-request` and `reploid:owner-pairing-result`, the objects
+`pairingCode`, `pairingLink`, `pairingRecord` and `pairedDesktopPolicy`, the
+procedures `pairingLinkParse`, `pairingRoom`, `pairingExchange`,
+`pairedDesktopRecognition`, `pairedDesktopRequest`, `pairedDesktopOffline` and
+`pairingForget`, the `sequence` steps whose `flow` is `pairing` or
+`paired-request`, and the `failures` whose `channel` is `pairing` or
+`paired desktop`.
+
+What it is on the wire:
+
+- The desktop shows a link, `https://replo.id/#pair=<code>&host=<desktop id>&room=<room>&name=<label>`.
+  The code is single use and lasts ten minutes. The link is fragment-only.
+- The phone joins the desktop's private room, finds the connection that proves
+  to be that desktop id, and sends the code to it and to nobody else.
+- The desktop proves the phone's identity and asks its owner. The owner's yes
+  comes back as `reploid:owner-pairing-result`. A wrong, expired or used code
+  gets no answer at all.
+- The phone stores the desktop's id, a label and the room. The desktop stores
+  the phone's id. Nothing else is exchanged: no token, no shared key. The phone
+  must therefore keep its signing key.
+- A request to the desktop is the ordinary request with
+  `recipients: { kind: "named", ids: [desktop id] }`. The desktop refuses every
+  phone it has not paired, before the prompt is sent.
+- The phone recognises the desktop only by its proven identity, never by a
+  connection name or by what an advertisement claims. If the desktop is not
+  there, nothing is sent and nobody else is asked.
+
+Both providers have an owner-desktop mode. `--pairing` issues one code, puts
+`pairing` (`link`, `code`, `hostParticipantId`, `hostLabel`, `roomId`,
+`roomToken`, `expiresAt`, `expired`, `ownerAnswer`, `forgetAfterRequests`) in
+the ready line, pairs the phone that sends the code, and then answers only a
+paired phone. `--pairing-expired` issues a code that has already expired,
+`--pairing-decline` makes the owner say no, and
+`--pairing-forget-after-requests N` deletes the desktop's pairing state after N
+answers. The real pairing store runs behind all of them; only the person at the
+desktop is replaced by these options.
+
+The desktop side has no command that removes one paired phone: its list changes
+only when its pairing state file is deleted. The contract says what the phone
+then sees (`procedures.pairingForget`).
 
 ## Not covered
 
 Listed in the contract under `notCovered`: split routes, credits and earning,
-pairing and guest invitations, per-request generation settings and the receipts
-that bind them, adapters, peer introductions, being a provider, and how to get
-the sign-in token for relay credentials.
+guest invitations, the desktop side of owner pairing, per-request generation
+settings and the receipts that bind them, adapters, peer introductions, being a
+provider, and how to get the sign-in token for relay credentials.
 
 ## Where the files live
 

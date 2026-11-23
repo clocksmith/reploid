@@ -37,6 +37,11 @@ import { allowsSwarmOrigin, discoveryNamespace, joinIdentityError, discoveryJoin
 import { FIXED, FIXED_IDENTITIES, fixedIdentity, fixedModel } from './requester-contract/fixed-inputs.js';
 import { createScheduler, withDeterministicRuntime, sessionDescription } from './requester-contract/harness.js';
 import { captureExchange, probeInboundFrames, probeAdvertisement } from './requester-contract/capture.js';
+import { capturePairing } from './requester-contract/pairing-capture.js';
+import { ownerPairingRoomMarker } from '../packages/reploid/src/transport/owner-pairing.js';
+import { createBrowserOwnerPairing, createOwnerPairingUrl, parseOwnerPairingUrl } from '../apps/poolday/host/owner-pairing.js';
+import { ownerPairingLink, ownerPairingDisplayName } from '../server/circles/owner-pairing-terminal.js';
+import { FIXED_PAIRING } from './requester-contract/fixed-inputs.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const VECTORS_FILE = path.join(root, 'tests/fixtures/requester-conformance/vectors.json');
@@ -649,6 +654,129 @@ function scenarioSection(captures) {
       uuidsInOrder: captured.inputs.uuidsInOrder })) };
 }
 
+// ------------------------------------------------------------------ owner pairing
+async function pairingSection() {
+  const host = FIXED_IDENTITIES.providerEd25519.peerId, room = FIXED.roomId, label = FIXED_PAIRING.desktopLabel;
+  const code = Buffer.from(FIXED_PAIRING.codeBytes).toString('base64url');
+  const fragment = (pairs, base = 'https://replo.id/') => `${base}#${pairs.map(([key, value]) => `${key}=${value}`).join('&')}`;
+  const accented = `B${String.fromCharCode(0xfc)}ro Mac`;
+  const linkCases = [
+    ['as the desktop prints it', ownerPairingLink({ code, hostParticipantId: host, room, name: label })],
+    ['as the web client builds it (name before room)', createOwnerPairingUrl({ hostParticipantId: host, code, hostLabel: label, roomId: room }, 'https://replo.id/')],
+    ['without room and name', ownerPairingLink({ code, hostParticipantId: host })],
+    ['label with a space and a non-ASCII letter', ownerPairingLink({ code, hostParticipantId: host, room, name: accented })],
+    ['colon of the host not percent-encoded', fragment([['pair', code], ['host', host]])],
+    ['label with surrounding spaces is trimmed', fragment([['pair', code], ['host', host], ['name', '+Workbench+']])],
+    ['unknown parameter is ignored', fragment([['pair', code], ['host', host], ['utm', 'x']])],
+    ['another origin and path: only the fragment is read', fragment([['pair', code], ['host', host]], 'https://example.com/open/')],
+    ['room is the public room', fragment([['pair', code], ['host', host], ['room', 'reploid-swarm-public']])],
+    ['parameters in the query instead of the fragment', `https://replo.id/?pair=${code}&host=${host}`],
+    ['no fragment', 'https://replo.id/'],
+    ['fragment without a URL', `#pair=${code}&host=${host}`],
+    ['not a URL', `pair=${code}&host=${host}`],
+    ['empty text', ''],
+    ['code one character short', fragment([['pair', code.slice(1)], ['host', host]])],
+    ['code one character long', fragment([['pair', `${code}A`], ['host', host]])],
+    ['code with a character outside the alphabet', fragment([['pair', `${code.slice(1)}.`], ['host', host]])],
+    ['code missing', fragment([['host', host]])],
+    ['host missing', fragment([['pair', code]])],
+    ['host with upper-case hex', fragment([['pair', code], ['host', host.toUpperCase().replace('PEER', 'peer')]])],
+    ['host one digit short', fragment([['pair', code], ['host', host.slice(0, -1)]])],
+    ['host without the peer: prefix', fragment([['pair', code], ['host', host.slice(5)]])],
+    ['host is a connection name, not an identity', fragment([['pair', code], ['host', FIXED.providerTransportId]])],
+    ['two codes', fragment([['pair', code], ['pair', code], ['host', host]])],
+    ['two hosts', fragment([['pair', code], ['host', host], ['host', host]])],
+    ['two rooms', fragment([['pair', code], ['host', host], ['room', room], ['room', room]])],
+    ['two names', fragment([['pair', code], ['host', host], ['name', 'a'], ['name', 'b']])],
+    ['empty name', fragment([['pair', code], ['host', host], ['name', '']])],
+    ['name of spaces only', fragment([['pair', code], ['host', host], ['name', '++']])],
+    ['name of 128 characters', fragment([['pair', code], ['host', host], ['name', 'n'.repeat(128)]])],
+    ['name of 129 characters', fragment([['pair', code], ['host', host], ['name', 'n'.repeat(129)]])],
+    ['room without the reploid-swarm- prefix', fragment([['pair', code], ['host', host], ['room', 'my-desk']])],
+    ['empty room', fragment([['pair', code], ['host', host], ['room', '']])]
+  ].map(([name, url]) => ({ name, url, parsed: parseOwnerPairingUrl(url) }));
+  assert(linkCases[0].parsed.code === code && linkCases.filter(item => item.parsed === null).length >= 15, 'pairing link cases');
+  const desktopLabels = ['workbench', 'studio.example.com', 'Desk-2', 'ip-10-0-0-5', '192.0.2.7', 'my_desk', '12345', '']
+    .map(hostName => ({ hostName, label: ownerPairingDisplayName(hostName) }));
+  const roomTokens = [room, 'reploid-swarm-my-desk', bootstrap.publicRoomId, 'my-desk'].map(roomId => {
+    try { return { roomId, token: ownerPairingRoomMarker(roomId) }; } catch (error) { return { roomId, token: null, error: error.message }; }
+  });
+
+  // What the real phone-side code makes of a stored record.
+  const storageKey = 'reploid.owner-paired-desktop:v1';
+  const good = { hostParticipantId: host, hostLabel: label, roomId: room, pairedAt: FIXED.now };
+  const readState = stored => {
+    const data = new Map(stored === null ? [] : [[storageKey, stored]]);
+    const storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => { data.set(key, String(value)); }, removeItem: key => { data.delete(key); } };
+    const pairing = createBrowserOwnerPairing({ storage, getChannel: () => null, connect: null });
+    const { status, paired, canSend, hostParticipantId, hostLabel, roomId, pairedAt } = pairing.state();
+    pairing.unpair();
+    const afterForget = { status: pairing.state().status, stored: data.get(storageKey) ?? null };
+    pairing.close();
+    return { state: { status, paired, canSend, hostParticipantId, hostLabel, roomId, pairedAt }, afterForget };
+  };
+  const recordCases = [
+    ['a stored record, desktop not connected', JSON.stringify(good)],
+    ['nothing stored', null],
+    ['record without a label shows the desktop id', JSON.stringify({ ...good, hostLabel: undefined })],
+    ['record with an invalid room keeps the desktop and drops the room', JSON.stringify({ ...good, roomId: 'my-desk' })],
+    ['record without a room', JSON.stringify({ ...good, roomId: null })],
+    ['record with a malformed desktop id is no record', JSON.stringify({ ...good, hostParticipantId: host.toUpperCase() })],
+    ['record with a fractional time', JSON.stringify({ ...good, pairedAt: 1.5 })],
+    ['text that is not JSON is no record', '{not json']
+  ].map(([name, stored]) => ({ name, stored, ...readState(stored) }));
+  assert(recordCases[0].state.status === 'offline' && recordCases[1].state.status === 'unpaired' && recordCases[0].afterForget.stored === null, 'stored record cases');
+
+  const captures = {};
+  for (const scenario of ['pair-and-ask', 'wrong-code', 'expired-code', 'replayed-code', 'declined', 'wrong-desktop',
+    'unpaired-request', 'new-connection-name', 'look-alike', 'desktop-forgot']) captures[scenario] = await capturePairing({ scenario });
+  const main = captures['pair-and-ask'];
+  assert(main.pairing.approved && main.request.completed && main.pairing.storageKey === storageKey && canonicalize(main.pairing.storedRecord) === canonicalize(good),
+    'the pairing exchange pairs, stores the record and answers');
+  assert(main.issued.code === code && main.issued.link === linkCases[0].url, 'the desktop issued the fixed code and link');
+  const shape = (captured, extra) => ({ phases: captured.phases, uuidsInOrder: captured.uuidsInOrder, ...extra });
+  const describeCase = {
+    'wrong-code': ['A well-formed code the desktop never issued. The desktop answers nothing. The real code still works afterwards.',
+      item => ({ attempts: [{ code: FIXED_PAIRING.wrongCode, ...item.wrong }, { code, ...item.right }] })],
+    'expired-code': ['The right code, used at the moment it expires (issued.expiresAt). The desktop answers nothing and its owner is not asked.',
+      item => ({ clockAtAttempt: item.clockAtAttempt, attempts: [{ code, ...item.attempt }], desktopAsked: item.desktopAsked })],
+    'replayed-code': ['The right code, used again after it paired the phone. The desktop answers nothing; its owner was asked once.',
+      item => ({ attempts: [{ code, ...item.first }, { code, ...item.replay }], desktopAsked: item.desktopAsked })],
+    declined: ['The desktop owner answers no. The phone stores nothing, and the same code gets no answer afterwards.',
+      item => ({ attempts: [{ code, ...item.attempt }, { code, ...item.again }], desktopKnowsPhone: item.desktopKnowsPhone })],
+    'wrong-desktop': ['The link names a desktop identity that no connection in the room proves to be. The phone never sends the code.',
+      item => ({ linkHost: item.linkHost, attempts: [{ code, ...item.attempt }], desktopAsked: item.desktopAsked })]
+  };
+  const describeRecognition = {
+    'new-connection-name': ['After pairing, the desktop and the phone reconnect under new connection names and certificates. The phone finds the desktop by its proven identity and the named-recipient request is answered.',
+      item => ({ storedRecord: item.pairing.storedRecord, later: item.later, request: item.request })],
+    'look-alike': ['The room holds another desktop with another key whose advertisement claims the paired desktop\'s id, serving the same model. The phone reports its desktop offline and sends the look-alike nothing, although the public catalog rule shows the model ready.',
+      item => ({ storedRecord: good, lookAlike: item.lookAlike, state: item.state, catalogAvailability: item.catalogAvailability, request: item.request })],
+    'desktop-forgot': ['The desktop\'s pairing state was deleted (the only way the current code drops a phone). The phone still recognises the desktop, and its request is refused before the prompt.',
+      item => ({ storedRecord: good, state: item.state, desktopKnowsPhone: item.desktopKnowsPhone, request: item.request })],
+    'unpaired-request': ['A phone that never paired asks the pairing desktop with a named-recipient request. It is refused before the prompt.',
+      item => ({ storedRecord: null, state: item.stateBefore, request: item.request })]
+  };
+  return {
+    description: 'Owner pairing: a phone pairs with its owner\'s desktop and then asks only that desktop. Frames were captured from the real phone-side code (apps/poolday/host/owner-pairing.js over transport/owner-pairing.js and the requester) and the real desktop-side code (server/circles/owner-pairing.js and its admission rule), with fixed keys, clock, nonces and pairing code. The desktop owner\'s answer at the terminal is given by the capture. direction "requester->provider" is phone to desktop.',
+    link: { description: 'parsed is procedures.pairingLinkParse(url): an object, or null when the text is not a pairing link. desktopLabels: the label a desktop puts in the name parameter for its host name; null = no name parameter.',
+      cases: linkCases, desktopLabels },
+    roomToken: { description: 'The signaling token for a pairing room (procedures.pairingRoom). token null = the marker is refused for that room.', cases: roomTokens },
+    storedRecord: { description: 'stored is the text under storageKey; state is what the real phone-side code reports with no desktop connected (status "offline" = paired but not connected, "unpaired" = no usable record); afterForget is the state and stored text after forgetting (procedures.pairingForget).',
+      storageKey, cases: recordCases },
+    exchange: {
+      description: 'One complete pairing followed by one request to the paired desktop. phases: "connect" (join, advertisements, background proofs), "pairing" (procedures.pairingExchange steps 5 to 9), "request" (procedures.pairedDesktopRequest).',
+      inputs: main.inputs, issued: main.issued, signaling: main.signaling, phases: main.phases, uuidsInOrder: main.uuidsInOrder,
+      stateBefore: main.stateBefore, desktopAsked: main.desktopAsked,
+      result: { approved: main.pairing.approved, storageKey: main.pairing.storageKey, storedRecord: main.pairing.storedRecord, stateAfter: main.pairing.stateAfter,
+        desktopKnowsPhone: main.desktopKnowsPhone },
+      namedRequest: main.request
+    },
+    codeCases: Object.entries(describeCase).map(([name, [description, pick]]) => ({ name, description, issued: captures[name].issued, ...shape(captures[name], pick(captures[name])) })),
+    recognition: Object.entries(describeRecognition).map(([name, [description, pick]]) => ({ name, description, ...shape(captures[name], pick(captures[name])) }))
+  };
+}
+
 // ----------------------------------------------------------------------- build
 export async function buildVectors() {
   const complete = await captureExchange();
@@ -716,7 +844,8 @@ export async function buildVectors() {
     readyPeer: await readyPeerSection(complete.frames.find(frame => frame.direction === 'provider->requester' && frame.envelope.type === 'reploid:peer-advertisement').envelope.payload),
     signaling: signalingSection(complete),
     transcript: transcriptSection(complete),
-    scenarios: scenarioSection(captures)
+    scenarios: scenarioSection(captures),
+    pairing: await pairingSection()
   };
   // The text the real verifier checks the signature over, observed at crypto.subtle.verify.
   const subtle = crypto.subtle, originalVerify = subtle.verify, verifiedTexts = [];

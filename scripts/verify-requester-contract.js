@@ -30,6 +30,9 @@ import { resolveSwarmJoin, resolveSwarmSignalingUrl } from '../shared/capabiliti
 import { DEFAULT_RTC_CONFIG } from '../shared/pool/p2p-transport.js';
 import { assertSupportedSchema, validate, undeclared } from './requester-contract/schema-validator.js';
 import { captureExchange } from './requester-contract/capture.js';
+import { capturePairing, PAIRING_SCENARIOS } from './requester-contract/pairing-capture.js';
+import { ownerPairingCode, ownerPairingRequestId, ownerParticipantId, ownerPairingRoomMarker } from '../packages/reploid/src/transport/owner-pairing.js';
+import { createOwnerPairingUrl } from '../apps/poolday/host/owner-pairing.js';
 import { FIXED_IDENTITIES } from './requester-contract/fixed-inputs.js';
 import { buildVectorsText, VECTORS_FILE } from './build-requester-contract-vectors.js';
 
@@ -41,12 +44,15 @@ const TOP_LEVEL = ['schema', 'scope', 'notCovered', 'constants', 'sources', 'sig
 const REQUIRED_CHANNEL_MESSAGES = ['sync-request', 'ping', 'pong', 'reploid:peer-advertisement', 'reploid:identity-challenge',
   'reploid:identity-proof', 'reploid:generation-admit', 'reploid:generation-admitted', 'reploid:generation-request',
   'reploid:generation-update', 'reploid:generation-result', 'reploid:generation-error', 'reploid:generation-cancel',
-  'reploid:generation-recover', 'reploid:generation-recovery', 'reploid:receipt'];
+  'reploid:generation-recover', 'reploid:generation-recovery', 'reploid:receipt',
+  'reploid:owner-pairing-request', 'reploid:owner-pairing-result'];
 const REQUIRED_OBJECTS = ['identityBundle', 'publicJwk', 'privacyPolicy', 'executionRoute', 'privacyBinding', 'promptCommitmentInput',
-  'receiptV2', 'generationTerminal', 'peerAdvertisement', 'chatModelCatalogRow', 'turnCredentials'];
+  'receiptV2', 'generationTerminal', 'peerAdvertisement', 'chatModelCatalogRow', 'turnCredentials',
+  'pairingCode', 'pairingLink', 'pairingRecord', 'pairedDesktopPolicy'];
 const REQUIRED_PROCEDURES = ['canonicalJson', 'sha256Hex', 'base64url', 'peerIdFromPublicJwk', 'signatureAlgorithms',
   'identityProofSignedBytes', 'sdpFingerprint', 'promptCommitment', 'privacyBinding', 'admitPayloadFromRequest',
-  'receiptVerification', 'receiptCountersign', 'readyPeerRule', 'providerSelectionRule', 'envelopeValidation', 'lamportTimestamp'];
+  'receiptVerification', 'receiptCountersign', 'readyPeerRule', 'providerSelectionRule', 'envelopeValidation', 'lamportTimestamp',
+  'pairingLinkParse', 'pairingRoom', 'pairingExchange', 'pairedDesktopRecognition', 'pairedDesktopRequest', 'pairedDesktopOffline', 'pairingForget'];
 const CAPTURES = [{ scenario: 'complete' }, { scenario: 'decline' }, { scenario: 'provider-failure' }, { scenario: 'cancel' },
   { scenario: 'recovery' }, { scenario: 'complete', direct: true }];
 
@@ -125,6 +131,11 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
   for (const options of CAPTURES) captures.push(await captureExchange(options));
   const [complete] = captures;
   expect(complete.error === null && typeof complete.result?.content === 'string', 'the fresh complete exchange did not finish');
+  // --- fresh owner-pairing exchanges between the real phone-side and desktop-side code
+  const pairings = {};
+  for (const scenario of PAIRING_SCENARIOS) pairings[scenario] = await capturePairing({ scenario });
+  const paired = pairings['pair-and-ask'];
+  expect(paired.pairing?.approved === true && paired.request?.completed === true, 'the fresh pairing exchange did not pair and answer');
 
   // --- constants
   const web = webConfiguration();
@@ -144,7 +155,15 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
     admit, request, result, dispatch: complete.dispatches[0],
     recomputedPromptCommitment: await hashJson({ schema: ids.promptCommitment, salt: request?.admission?.salt, messages: request?.messages, settings: null }) === admit?.promptCommitment
       ? ids.promptCommitment : 'a commitment the real requester did not send',
-    recomputedIdentityProof: proofVerifies ? ids.identityProofDomain : 'a text the real proof was not signed over'
+    recomputedIdentityProof: proofVerifies ? ids.identityProofDomain : 'a text the real proof was not signed over',
+    pairing: {
+      codeTtlMs: paired.issued.expiresAt - paired.inputs.now,
+      storageKey: paired.pairing.storageKey,
+      roomTokenPrefix: (() => {
+        const token = paired.signaling.find(item => item.frame.type === 'join')?.frame.token ?? '';
+        return token.endsWith(paired.inputs.roomId) ? token.slice(0, -paired.inputs.roomId.length) : token;
+      })()
+    }
   };
   const jsonCache = new Map(), textCache = new Map();
   const json = async file => { if (!jsonCache.has(file)) jsonCache.set(file, JSON.parse(await readText(file))); return jsonCache.get(file); };
@@ -169,9 +188,15 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
       }
       if (source.check === 'literal') {
         expect((await text(source.file)).includes(source.literal), `${key}: ${source.file} no longer contains ${JSON.stringify(source.literal)}`);
-        // The literal must be the constant itself, not an unrelated line.
-        const scalars = typeof value === 'object' && value !== null ? Object.values(value).flat() : [value];
-        expect(scalars.some(item => source.literal.includes(String(item))), `${key}: the literal ${JSON.stringify(source.literal)} does not contain the constant`);
+        // The literal must be the constant itself, not an unrelated line. A constant the code writes as a
+        // product ("10 * 60 * 1000") names that product in `expression`.
+        if (source.expression !== undefined) {
+          const product = /^\d+( \* \d+)*$/.test(source.expression) ? source.expression.split(' * ').reduce((total, factor) => total * Number(factor), 1) : NaN;
+          expect(source.literal.includes(source.expression) && product === value, `${key} is ${JSON.stringify(value)} but ${source.file} computes ${source.expression}`);
+        } else {
+          const scalars = typeof value === 'object' && value !== null ? Object.values(value).flat() : [value];
+          expect(scalars.some(item => source.literal.includes(String(item))), `${key}: the literal ${JSON.stringify(source.literal)} does not contain the constant`);
+        }
       }
       if (source.observed !== undefined) {
         const [head, ...rest] = source.observed.split('.');
@@ -200,9 +225,40 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
     expect(samples.every(sample => real.test(sample) === schema.test(sample)), `objects.${object}.pattern disagrees with constants.signaling.${constant}`);
   }
 
+  // --- owner pairing: patterns, the routing marker, the link and the stored record
+  const pairingConstants = contract.constants.pairing;
+  const pairingSamples = ['QEFCQ0RFRkdISUpLTE1OT1BR', 'QEFCQ0RFRkdISUpLTE1OT1B', 'QEFCQ0RFRkdISUpLTE1OT1BRa', 'QEFCQ0RFRkdISUpLTE1OT1B+', 'QEFCQ0RFRkdISUpLTE1OT1B=', '________________________', '',
+    'peer:6a8b857f196de4a859dd669d', 'peer:6A8B857F196DE4A859DD669D', 'peer:6a8b857f196de4a859dd669', 'peer:6a8b857f196de4a859dd669dd', '6a8b857f196de4a859dd669d',
+    'bbbbbbbb-1111-4000-8000-000000000001', 'BBBBBBBB-1111-4000-8000-000000000001', 'bbbbbbbb-1111-4000-8000-00000000000', 'not-a-uuid'];
+  for (const [constant, real] of [['codePattern', ownerPairingCode], ['participantIdPattern', ownerParticipantId], ['requestIdPattern', ownerPairingRequestId]]) {
+    const pattern = new RegExp(pairingConstants[constant]);
+    expect(pairingSamples.every(sample => pattern.test(sample) === real(sample)), `constants.pairing.${constant} disagrees with the real check in transport/owner-pairing.js`);
+  }
+  expect(contract.objects.pairingCode.pattern === pairingConstants.codePattern, 'objects.pairingCode.pattern differs from constants.pairing.codePattern');
+  expect(ownerPairingRoomMarker(paired.inputs.roomId) === pairingConstants.roomTokenPrefix + paired.inputs.roomId, 'the routing marker is no longer roomTokenPrefix followed by the room id');
+  expect(paired.issued.link.startsWith(`${pairingConstants.linkBase}#`) && createOwnerPairingUrl({ hostParticipantId: paired.issued.hostParticipantId, code: paired.issued.code }, pairingConstants.linkBase).startsWith(`${pairingConstants.linkBase}#`),
+    'pairing links no longer start with constants.pairing.linkBase and a fragment');
+  expect(same(Object.keys(pairingConstants.linkParameters), ['pair', 'host', 'room', 'name'])
+    && same([...new URLSearchParams(new URL(paired.issued.link).hash.slice(1)).keys()], ['pair', 'host', 'room', 'name']), 'the desktop no longer writes the link parameters pair, host, room, name');
+  expect(Buffer.from(paired.issued.code, 'base64url').length === pairingConstants.codeBytes, 'the pairing code is no longer codeBytes random bytes');
+  const pairingExpectations = {
+    'wrong-code': item => item.wrong.answered === false && item.right.approved === true,
+    'expired-code': item => item.attempt.answered === false && item.desktopAsked.length === 0,
+    'replayed-code': item => item.first.approved === true && item.replay.answered === false && item.desktopAsked.length === 1,
+    declined: item => item.attempt.answered === true && item.attempt.approved === false && item.attempt.storedRecord === null && item.again.answered === false && item.desktopKnowsPhone === false,
+    'wrong-desktop': item => /Could not find the verified desktop/.test(item.attempt.error?.message ?? '') && item.desktopAsked.length === 0
+      && !item.phases.flatMap(part => part.frames).some(frame => frame.envelope.type === 'reploid:owner-pairing-request'),
+    'unpaired-request': item => /declined/.test(item.request.error?.message ?? '') && item.request.promptReachedDesktop === false,
+    'new-connection-name': item => item.later.state.status === 'online' && item.later.state.hostPeer === item.later.desktopConnectionName && item.request.completed === true,
+    'look-alike': item => item.state.status === 'offline' && item.request.waitedWithoutSending === true && item.phases.find(part => part.name === 'request').frames.length === 0,
+    'desktop-forgot': item => item.state.status === 'online' && /declined/.test(item.request.error?.message ?? '') && item.request.promptReachedDesktop === false
+  };
+  for (const [scenario, holds] of Object.entries(pairingExpectations)) expect(holds(pairings[scenario]), `the real pairing code no longer behaves as the contract says in the "${scenario}" case`);
+
   // --- frames of the fresh exchanges against the contract
   const senders = { 'requester->provider': 'requester', 'provider->requester': 'provider' };
-  for (const captured of captures) {
+  const pairingCaptures = Object.values(pairings).map(item => ({ scenario: `pairing ${item.scenario}`, frames: item.phases.flatMap(part => part.frames), keepalive: [], recovery: [], signaling: item.signaling }));
+  for (const captured of [...captures, ...pairingCaptures]) {
     const label = `${captured.scenario}${captured.direct ? ' (direct)' : ''}`;
     for (const { direction, envelope } of [...captured.frames, ...captured.keepalive, ...captured.recovery]) {
       const where = `${label}: ${direction} ${envelope.type}`;
@@ -228,7 +284,7 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
     }
   }
   // Every message type the contract describes for a request was seen in a real exchange.
-  const seen = new Set(captures.flatMap(captured => [...captured.frames, ...captured.keepalive, ...captured.recovery].map(frame => frame.envelope.type)));
+  const seen = new Set([...captures, ...pairingCaptures].flatMap(captured => [...captured.frames, ...captured.keepalive, ...captured.recovery].map(frame => frame.envelope.type)));
   for (const type of Object.keys(contract.channelMessages)) expect(seen.has(type), `channelMessages.${type} was not exercised by any real exchange`);
   const failureFrame = captures[2].frames.find(frame => frame.envelope.type === 'reploid:generation-error')?.envelope.payload;
   expect(failureFrame?.terminal !== undefined, 'the provider-failure exchange carried no terminal evidence');
@@ -253,6 +309,16 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
   for (const identity of [...Object.values(FIXED_IDENTITIES), await createSigningIdentity({ algorithm: 'Ed25519' }), await createSigningIdentity({ algorithm: 'ECDSA' })]) {
     objectCheck('identityBundle', identity, `a ${identity.algorithm} identity`);
   }
+  objectCheck('pairingLink', paired.issued.target, 'the link the real parser read');
+  objectCheck('pairingRecord', paired.pairing.storedRecord, 'the record the real pairing code stored');
+  const pairedAdmit = paired.phases.find(part => part.name === 'request').frames.find(frame => frame.envelope.type === 'reploid:generation-admit')?.envelope.payload;
+  if (pairedAdmit) {
+    objectCheck('pairedDesktopPolicy', pairedAdmit.privacy, 'the policy of the real request to the paired desktop');
+    expect(same(pairedAdmit.privacy.recipients, { kind: 'named', ids: [paired.issued.hostParticipantId] }) && pairedAdmit.privacyBinding.route.route.providerId === paired.issued.hostParticipantId,
+      'the real request to the paired desktop no longer names exactly that desktop');
+  } else expect(false, 'the paired request sent no admit');
+  expect(validate(contract.objects.pairedDesktopPolicy, createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }), contract).length > 0,
+    'objects.pairedDesktopPolicy must refuse an open-recipients policy');
   objectCheck('turnCredentials', { schema: contract.constants.turn.responseSchemaId, issuedAt: new Date(0).toISOString(), expiresAt: new Date(600000).toISOString(),
     ttlSeconds: contract.constants.turn.ttlSeconds, rtcConfig: { iceTransportPolicy: 'all',
       iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }, { urls: ['turn:turn.cloudflare.com:3478?transport=udp'], username: 'name', credential: 'secret', credentialType: 'password' }] } }, 'a credential response');
