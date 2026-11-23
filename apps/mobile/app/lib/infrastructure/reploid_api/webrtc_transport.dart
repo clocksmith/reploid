@@ -21,31 +21,10 @@ import 'peer_link.dart';
 import 'peer_session.dart' show Entropy;
 import 'requester_network.dart';
 import 'requester_protocol.dart';
+import 'signaling_config.dart';
+import 'turn_client.dart';
 
-/// Where to meet other computers. The defaults are the public network.
-final class SignalingConfig {
-  const SignalingConfig({
-    this.url = Contract.signalingPublicUrl,
-    this.roomId = Contract.signalingPublicRoomId,
-    this.token = Contract.signalingPublicJoinToken,
-    this.origin = Contract.signalingDefaultNativeOrigin,
-    this.iceServerUrls = Contract.rtcIceServerUrls,
-  });
-
-  final String url;
-  final String roomId;
-  final String token;
-
-  /// The signaling service refuses a WebSocket without an allowed Origin.
-  final String origin;
-  final List<String> iceServerUrls;
-
-  bool get public => roomId == Contract.signalingPublicRoomId;
-
-  Uri get uri => Uri.parse(url).replace(
-    queryParameters: {'scope': public ? 'public' : 'private', 'roomId': roomId},
-  );
-}
+export 'signaling_config.dart';
 
 final class _Peer {
   _Peer(this.name, this.connection);
@@ -67,10 +46,23 @@ final class WebRtcMeshTransport implements MeshTransport {
   WebRtcMeshTransport({
     this.config = const SignalingConfig(),
     Entropy? entropy,
+    TurnClient? turnClient,
     this.trace,
-  }) : _name = (entropy ?? Entropy()).uuid();
+  }) : _name = (entropy ?? Entropy()).uuid(),
+       _ownsTurnClient = turnClient == null,
+       _turnClient =
+           turnClient ??
+           (config.rtcConfigUrl == null
+               ? null
+               : createTurnClient(
+                   rtcConfigUrl: config.rtcConfigUrl,
+                   origin: config.origin,
+                   authToken: config.authToken,
+                 ));
 
   final SignalingConfig config;
+  final bool _ownsTurnClient;
+  final TurnClient? _turnClient;
 
   /// Connection state names for a developer, never payloads or identities.
   final void Function(String line)? trace;
@@ -231,12 +223,16 @@ final class WebRtcMeshTransport implements MeshTransport {
   Future<_Peer> _create(String name) async {
     final previous = _peers.remove(name);
     if (previous != null) await _drop(previous);
-    final connection = await createPeerConnection({
-      'iceServers': [
-        for (final url in config.iceServerUrls) {'urls': url},
-      ],
-      'iceTransportPolicy': 'all',
-    });
+    final turnConfig = await _turnClient?.fetchTurnConfig();
+    final rtcConfiguration = turnConfig != null
+        ? turnConfig.toPeerConnectionConfiguration()
+        : {
+            'iceServers': [
+              for (final url in config.iceServerUrls) {'urls': url},
+            ],
+            'iceTransportPolicy': 'all',
+          };
+    final connection = await createPeerConnection(rtcConfiguration);
     final peer = _peers[name] = _Peer(name, connection);
     connection.onIceCandidate = (candidate) {
       if (candidate.candidate == null) return;
@@ -444,6 +440,7 @@ final class WebRtcMeshTransport implements MeshTransport {
     for (final peer in List.of(_peers.values)) {
       await _drop(peer);
     }
+    if (_ownsTurnClient) _turnClient?.close();
     status = TransportStatus.offline;
     await _links.close();
     await _statusChanges.close();

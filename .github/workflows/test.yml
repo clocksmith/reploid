@@ -78,3 +78,21 @@ jobs:
           npm run verify:browser-bundle:local
       - run: npm run build:browser-bundle
       - run: npm run package:hosting
+
+  mobile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci --omit=optional --no-audit --no-fund
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: apps/mobile/.flutter-version
+          cache: true
+      - name: Run mobile verification suite
+        working-directory: apps/mobile
+        run: bash tool/check.sh

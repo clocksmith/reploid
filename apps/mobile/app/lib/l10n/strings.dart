@@ -23,10 +23,11 @@ abstract final class Strings {
   static const chats = 'Chats';
   static const chatsHeading = 'Your conversations';
   static const chatsDetail =
-      'Kept in memory on this device and cleared when you forget this '
-      'device or close the app.';
+      'Encrypted on this device until you delete a chat or forget this device.';
   static const newChat = 'New chat';
   static const untitled = 'New chat';
+  static const emptyChat = 'Empty';
+  static const draft = 'Draft';
   static const noChats = 'No conversations yet';
   static const loading = 'Loading';
   static const retry = 'Retry';
@@ -42,6 +43,11 @@ abstract final class Strings {
   static const assistant = 'Answer';
   static const retryAnswer = 'Ask again';
   static const discloseRemote = 'The answering computer can read your prompt.';
+  static String discloseComputer(String participantId) =>
+      'Sending to ${shortId(participantId)}. It can read your prompt.';
+  static String disclosePool(int count, String participantId) =>
+      'Sending to ${shortId(participantId)} ($count ready computers). '
+      'The answering computer can read your prompt.';
   static const discloseOff =
       'Network answers are off, so nothing can be sent. Turn them on in '
       'Settings to ask.';
@@ -150,6 +156,30 @@ abstract final class Strings {
   static const allowNetworkDetail =
       'When on, Send gives your prompt to the computer named under it. '
       'Turning this off stops new prompts; it cannot recall one already sent.';
+  static const networkSettings = 'Network connection';
+  static const networkSettingsDetail =
+      'Choose where answers come from. Applying reconnects this session.';
+  static const networkModeDemo = 'Demo (synthetic)';
+  static const networkModeDemoDetail =
+      'Runs inside this app with no network traffic.';
+  static const networkModePublic = 'Public Reploid network';
+  static const networkModePublicDetail =
+      'Connects to participating computers on the public room.';
+  static const networkModeRoom = 'Private room';
+  static const networkModeRoomDetail =
+      'Connects to a signaling URL and room token you specify.';
+  static const signalingUrl = 'Signaling URL';
+  static const signalingUrlHint = 'wss://example.com/swarm';
+  static const roomId = 'Room ID';
+  static const roomIdHint = 'reploid-swarm-example';
+  static const roomToken = 'Join token';
+  static const roomTokenHint = 'At least 32 characters';
+  static const rtcConfigUrl = 'TURN config URL (optional)';
+  static const rtcConfigUrlHint = 'https://example.com/rtc-config';
+  static const applyNetwork = 'Apply network';
+  static const networkInvalid =
+      'Enter a ws:// or wss:// URL, a room ID, and a token of at least '
+      '32 characters.';
   static const thisDevice = 'This device';
   static const thisDeviceDetail =
       'Computers that answer you see this identity. It carries no name, '

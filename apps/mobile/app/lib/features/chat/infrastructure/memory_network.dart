@@ -73,6 +73,7 @@ final class MemoryNetwork {
 
   /// Every prompt that left a device: (sender, recipient, last user text).
   final List<(SessionIdentity, String, String)> delivered = [];
+  final List<String?> contextIds = [];
   int requests = 0;
   int cancels = 0;
   AnswerBehavior _next = AnswerBehavior.answer;
@@ -195,9 +196,11 @@ final class _MemoryApi implements RequesterApi {
   Answer ask({
     required String modelId,
     required List<PromptMessage> messages,
+    String? contextId,
     AnswerTarget target = AnswerTarget.contributors,
   }) {
     network.requests++;
+    network.contextIds.add(contextId);
     final behavior = network._next;
     network._next = AnswerBehavior.answer;
     return _MemoryAnswer(this, modelId, messages, behavior, target);

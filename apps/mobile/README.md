@@ -7,14 +7,17 @@ product as the web client in `apps/poolday` with a different interface and
 rendering surface.
 
 **Status.** The requester protocol is implemented in Dart and tested against
-the web client's own code. On macOS the app has asked a real provider over
-real signaling and real WebRTC and shown a verified answer, and has paired
-with one as the owner's desktop and been answered by it alone; that provider
-ran a stand-in model on the same machine, and its owner's approval was given
-by the test. The default build still answers from a
-synthetic network inside the app, and says so on screen. Nothing here has run
-on a phone, on a simulator, across real networks, or against a computer
-serving a real model.
+the web client's own code. On macOS the app has booted with its real Keychain
+store and private archive directory, asked a real provider over real signaling
+and real WebRTC and shown a verified answer, and paired with a provider as the
+owner's desktop and been answered by it alone; that provider ran a stand-in
+model on the same machine, and its owner's approval was given by the test. The
+default build starts in the in-app synthetic demo network (and says so on
+screen) and supports switching at runtime in Settings to the public Reploid
+network or a private signaling room, plus fetching ephemeral TURN credentials
+over HTTPS when configured. `flutter build web` compiles cleanly. Nothing here
+has run on a physical phone, an iOS/Android simulator, across cellular
+networks, or against a computer serving a real model.
 
 ## How it is put together
 
@@ -81,7 +84,8 @@ cd app && flutter run       # the demo network; pick a device with -d
 The tests that need the web client's provider code are skipped when Node or
 the repository's `node_modules` is missing.
 
-Which network a build uses is fixed at build time:
+The initial network can be fixed at build time (or changed at runtime in
+Settings when using the default build):
 
 ```sh
 flutter run --dart-define=REPLOID_NETWORK=public
@@ -109,12 +113,11 @@ constants). What needs a new binary: any change to native code or plugins
 
 ## Not done
 
-- Any run on a phone or simulator. The secure key store is untested on a
-  device, and iOS and Android have not been built.
-- The public network. Relay credentials for computers behind strict
-  firewalls are not fetched, so only direct connections are tried.
-- Excluding the encrypted history file from device backups. The key is
-  never backed up, so a backup alone cannot be read.
+- Any run on a physical phone or iOS/Android simulator (blocked on this Mac by
+  missing Android SDK and Xcode iOS 26.0 platform components).
+- Firebase anonymous sign-in flow for public TURN relay tokens on mobile
+  (the HTTPS `/rtc-config` client is implemented and falls back to direct STUN
+  when unauthenticated or unconfigured).
 - Split routes, credits, attachments, file sharing and local models, which
   the web product has and this app does not.
 - Recovery of an answer after a lost connection. A lost answer is asked for

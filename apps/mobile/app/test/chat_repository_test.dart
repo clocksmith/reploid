@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:reploid_mobile/features/chat/domain/chat.dart';
 import 'package:reploid_mobile/features/chat/infrastructure/chat_repository.dart';
 import 'package:reploid_mobile/features/chat/infrastructure/memory_network.dart';
+import 'package:reploid_mobile/features/chat/infrastructure/preferences_store.dart';
+import 'package:reploid_mobile/infrastructure/device_stores.dart';
 
 const _fast = Duration(milliseconds: 2);
 
@@ -66,6 +68,54 @@ void main() {
     expect(answer.recipient, 'peer:00000000000000000000000a');
     expect(last.conversation!.title, 'hello there');
     expect(network.delivered.single.$3, 'hello there');
+    expect(network.contextIds, [id]);
+    await coordinator.dispose();
+  });
+
+  test('draft persists per thread and clears when sent', () async {
+    final (coordinator, session) = await _session('peer:a');
+    final repository = _repository(session, network);
+    await _online(repository);
+    final id = repository.create();
+    repository.setDraft(id, 'work in progress');
+    expect(
+      (await repository.watch(id).first).conversation!.draft,
+      'work in progress',
+    );
+    await repository.send(id, 'work in progress');
+    expect((await repository.watch(id).first).conversation!.draft, isEmpty);
+    await repository.flush();
+    await coordinator.dispose();
+  });
+
+  test('networkAnswersAllowed persists across repository restarts', () async {
+    final secrets = MemorySecretStore();
+    var (coordinator, session) = await _session('peer:a');
+    var repository = SessionChatRepository(
+      session: session,
+      api: network.forIdentity(session.key.identity),
+      newId: () => 'id-0',
+      preferences: DevicePreferencesStore(secrets, 'peer:a'),
+    );
+    await _online(repository);
+    await repository.setNetworkAnswersAllowed(false);
+    await coordinator.dispose();
+
+    (coordinator, session) = await _session('peer:a');
+    repository = SessionChatRepository(
+      session: session,
+      api: network.forIdentity(session.key.identity),
+      newId: () => 'id-1',
+      preferences: DevicePreferencesStore(secrets, 'peer:a'),
+    );
+    final id = repository.create();
+    await expectLater(
+      () => repository.send(id, 'blocked after restart'),
+      throwsA(
+        isA<AppFailure>().having((f) => f.kind, 'kind', FailureKind.forbidden),
+      ),
+    );
+    expect(network.requests, 0);
     await coordinator.dispose();
   });
 

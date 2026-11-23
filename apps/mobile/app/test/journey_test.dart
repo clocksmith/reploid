@@ -1,4 +1,6 @@
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reploid_mobile/app/providers.dart';
 import 'package:reploid_mobile/features/chat/infrastructure/memory_network.dart';
@@ -17,6 +19,7 @@ Future<void> _launch(
   MemoryNetwork network, {
   MemorySecretStore? store,
   MemoryFileStore? files,
+  List<Override> extraOverrides = const [],
   Size size = const Size(390, 844),
 }) async {
   // A phone-sized surface; the test default is a wide desktop window.
@@ -28,7 +31,10 @@ Future<void> _launch(
       key: UniqueKey(),
       secrets: store ?? MemorySecretStore(),
       files: files ?? MemoryFileStore(),
-      overrides: [memoryNetworkProvider.overrideWithValue(network)],
+      overrides: [
+        memoryNetworkProvider.overrideWithValue(network),
+        ...extraOverrides,
+      ],
     ),
   );
   await tester.pump();
@@ -82,7 +88,11 @@ void main() {
     expect(find.text(Strings.demoNetwork), findsOneWidget);
     await _start(tester);
     await _openNewChat(tester);
-    expect(find.text(Strings.discloseRemote), findsOneWidget);
+    expect(
+      find.text(Strings.discloseComputer('peer:00000000000000000000000a')),
+      findsOneWidget,
+      reason: 'names the concrete answering computer before Send',
+    );
 
     await _type(tester, 'hello there');
     await _tap(tester, find.text(Strings.send));
@@ -193,11 +203,123 @@ void main() {
     await _start(tester);
     await _tap(tester, find.text(Strings.computers));
     await tester.pumpAndSettle(_step);
+    expect(find.text(Strings.computers), findsOneWidget);
     expect(find.text('peer:00000000000000000000000a'), findsOneWidget);
     expect(find.text(Strings.ready), findsOneWidget);
     expect(find.text(Strings.busy), findsOneWidget);
     await _close(tester);
   });
+
+  testWidgets('network answers off persists across an app restart', (
+    tester,
+  ) async {
+    final network = _network();
+    final store = MemorySecretStore();
+    final files = MemoryFileStore();
+    await _launch(tester, network, store: store, files: files);
+    await _start(tester);
+    await _tap(tester, find.text(Strings.settings));
+    await tester.pumpAndSettle(_step);
+    await _tap(tester, find.text(Strings.allowNetwork));
+    await _settle(tester);
+    await _close(tester);
+
+    await _launch(tester, network, store: store, files: files);
+    await _settle(tester);
+    await _openNewChat(tester);
+    expect(find.text(Strings.discloseOff), findsOneWidget);
+    await _type(tester, 'must stay off');
+    await _tap(tester, find.text(Strings.send));
+    await tester.pump(const Duration(seconds: 1));
+    expect(network.requests, 0);
+    await _close(tester);
+  });
+
+  testWidgets(
+    'unsent draft survives back navigation and avoids duplicate title',
+    (tester) async {
+      final network = _network();
+      await _launch(tester, network);
+      await _start(tester);
+      await _openNewChat(tester);
+
+      // Empty chat shows distinct Empty badge, never New chat twice.
+      await tester.pageBack();
+      await tester.pumpAndSettle(_step);
+      expect(find.text(Strings.emptyChat), findsOneWidget);
+      expect(
+        find.text(Strings.untitled),
+        findsNWidgets(2),
+      ); // button + tile title
+
+      await _tap(tester, find.text(Strings.emptyChat));
+      await tester.pumpAndSettle(_step);
+      await _type(tester, 'saved unsent draft');
+      await tester.pageBack();
+      await tester.pumpAndSettle(_step);
+      expect(find.text(Strings.draft), findsOneWidget);
+
+      await _tap(tester, find.text(Strings.draft));
+      await tester.pumpAndSettle(_step);
+      expect(find.text('saved unsent draft'), findsOneWidget);
+      await _close(tester);
+    },
+  );
+
+  testWidgets('runtime network selection switches out of demo and persists', (
+    tester,
+  ) async {
+    final network = _network();
+    final store = MemorySecretStore();
+    final files = MemoryFileStore();
+    final apiOverride = [
+      requesterApiFactoryProvider.overrideWithValue(
+        (identity, _) => network.forIdentity(SessionIdentity(identity.peerId)),
+      ),
+    ];
+    await _launch(
+      tester,
+      network,
+      store: store,
+      files: files,
+      extraOverrides: apiOverride,
+    );
+    await _start(tester);
+    expect(find.text(Strings.demoNetwork), findsOneWidget);
+
+    await _tap(tester, find.text(Strings.settings));
+    await tester.pumpAndSettle(_step);
+    await _tap(tester, find.text(Strings.networkModePublic));
+    await _settle(tester);
+    await tester.pageBack();
+    await tester.pumpAndSettle(_step);
+    expect(find.text(Strings.demoNetwork), findsNothing);
+    await _close(tester);
+
+    await _launch(
+      tester,
+      network,
+      store: store,
+      files: files,
+      extraOverrides: apiOverride,
+    );
+    await _settle(tester);
+    expect(find.text(Strings.demoNetwork), findsNothing);
+    await _close(tester);
+  });
+
+  testWidgets(
+    'corrupt stored identity fails closed on Start without overwrite',
+    (tester) async {
+      final store = MemorySecretStore();
+      await IdentityStore(store).write('{corrupt');
+      await _launch(tester, _network(), store: store);
+      await _settle(tester);
+      expect(find.text(Strings.sessionFailure), findsOneWidget);
+      expect(await IdentityStore(store).read(), '{corrupt');
+      await _close(tester);
+    },
+  );
 
   testWidgets('forgetting this device removes conversations and the key', (
     tester,

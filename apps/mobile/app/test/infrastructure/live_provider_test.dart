@@ -211,7 +211,7 @@ void main() {
   );
 
   test('the generated constants match the contract file', () async {
-    final result = await Process.run('dart', [
+    final result = await Process.run(_dartExecutable(), [
       'run',
       'tool/generate_contract.dart',
       '--check',
@@ -219,4 +219,26 @@ void main() {
     expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
     expect(Contract.schema, 'reploid.requester-contract/v1');
   }, skip: skip);
+}
+
+/// Resolves the Dart binary next to [Platform.resolvedExecutable] (including
+/// inside Flutter's cached dart-sdk when run via `flutter test`) so this test
+/// does not depend on `dart` being on the ambient `PATH`.
+String _dartExecutable() {
+  final executable = File(Platform.resolvedExecutable);
+  final name = Platform.isWindows ? 'dart.exe' : 'dart';
+  var dir = executable.parent;
+  for (var i = 0; i < 6; i++) {
+    final sibling = File('${dir.path}${Platform.pathSeparator}$name');
+    if (sibling.existsSync()) return sibling.path;
+    final sdkDart = File(
+      '${dir.path}${Platform.pathSeparator}dart-sdk'
+      '${Platform.pathSeparator}bin${Platform.pathSeparator}$name',
+    );
+    if (sdkDart.existsSync()) return sdkDart.path;
+    final parent = dir.parent;
+    if (parent.path == dir.path) break;
+    dir = parent;
+  }
+  return name;
 }

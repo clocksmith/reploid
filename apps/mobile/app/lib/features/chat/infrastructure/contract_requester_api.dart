@@ -261,6 +261,7 @@ final class ContractRequesterApi implements RequesterApi {
   Answer ask({
     required String modelId,
     required List<PromptMessage> messages,
+    String? contextId,
     AnswerTarget target = AnswerTarget.contributors,
   }) {
     if (target == AnswerTarget.desktop) {
@@ -282,6 +283,7 @@ final class ContractRequesterApi implements RequesterApi {
             .ask(
               model: row,
               messages: _messages(messages),
+              contextId: contextId,
               namedRecipient: record.hostParticipantId,
             )
             .transform(_events),
@@ -292,7 +294,11 @@ final class ContractRequesterApi implements RequesterApi {
       row == null
           ? Stream.error(const AppFailure(FailureKind.validation))
           : _network
-                .ask(model: row, messages: _messages(messages))
+                .ask(
+                  model: row,
+                  messages: _messages(messages),
+                  contextId: contextId,
+                )
                 .transform(_events),
     );
   }

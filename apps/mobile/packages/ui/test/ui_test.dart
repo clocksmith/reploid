@@ -86,6 +86,8 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pump();
       expect(opened, 1);
+      expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
+      expect(find.byIcon(Icons.radio_button_unchecked_rounded), findsNothing);
       expect(
         tester.getSemantics(find.byType(InkWell)),
         matchesSemantics(
@@ -162,4 +164,29 @@ void main() {
       },
     );
   }
+
+  testWidgets('LifecycleScope forwards pause and resume transitions', (
+    tester,
+  ) async {
+    var paused = 0;
+    var resumed = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LifecycleScope(
+          onPause: () => paused++,
+          onResume: () => resumed++,
+          child: const Text('Alive'),
+        ),
+      ),
+    );
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(paused, greaterThanOrEqualTo(1));
+    expect(resumed, 1);
+  });
 }

@@ -14,19 +14,24 @@ final class IdentityStore {
   Future<void> delete() => _secrets.delete(_key);
 }
 
-/// The stored identity, or a new one when none is stored or the stored one
-/// does not hold together. A replaced identity is a new participant.
+/// Loads the stored identity, or creates one only when none is stored.
+///
+/// Fails closed if a stored bundle exists but cannot be parsed or verified:
+/// silently minting a replacement identity would orphan encrypted history
+/// and desktop pairings tied to the original participant ID.
 Future<SigningIdentity> loadOrCreateIdentity(IdentityStore store) async {
   final stored = await store.read();
   if (stored != null) {
+    final Object? decoded;
     try {
-      final decoded = jsonDecode(stored);
-      if (decoded is Map<String, Object?>) {
-        return await SigningIdentity.fromBundle(decoded);
-      }
+      decoded = jsonDecode(stored);
     } on FormatException {
-      // Fall through and replace the unusable bundle.
+      throw const FormatException('Stored signing identity is unreadable');
     }
+    if (decoded is! Map<String, Object?>) {
+      throw const FormatException('Stored signing identity is not an object');
+    }
+    return SigningIdentity.fromBundle(decoded);
   }
   final identity = await SigningIdentity.generate();
   await store.write(jsonEncode(identity.toBundle()));

@@ -78,6 +78,7 @@ abstract interface class RequesterApi {
   Answer ask({
     required String modelId,
     required List<PromptMessage> messages,
+    String? contextId,
     AnswerTarget target = AnswerTarget.contributors,
   });
 

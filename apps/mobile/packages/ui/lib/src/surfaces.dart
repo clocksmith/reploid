@@ -147,15 +147,19 @@ class ActionTile extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Row(
             children: [
-              ExcludeSemantics(
-                child: Icon(
-                  highlighted
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked_rounded,
-                  color: Theme.of(context).colorScheme.primary,
+              if (highlighted) ...[
+                ExcludeSemantics(
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
+                const SizedBox(width: 12),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

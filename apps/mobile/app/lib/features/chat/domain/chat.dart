@@ -37,6 +37,52 @@ final class Computer {
 
 enum NetworkStatus { offline, connecting, online }
 
+/// Which network the app connects to; configurable at runtime in Settings
+/// unless overridden for a specific build or test harness.
+enum NetworkMode { demo, public, room }
+
+final class NetworkPreference {
+  const NetworkPreference({
+    this.mode = NetworkMode.demo,
+    this.signalingUrl = '',
+    this.roomId = '',
+    this.token = '',
+    this.origin = '',
+    this.rtcConfigUrl = '',
+  });
+
+  final NetworkMode mode;
+  final String signalingUrl;
+  final String roomId;
+  final String token;
+  final String origin;
+  final String rtcConfigUrl;
+
+  bool get isValid {
+    if (mode != NetworkMode.room) return true;
+    final uri = Uri.tryParse(signalingUrl.trim());
+    return uri != null &&
+        (uri.scheme == 'ws' || uri.scheme == 'wss') &&
+        uri.host.isNotEmpty &&
+        roomId.trim().isNotEmpty &&
+        token.trim().length >= 32;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is NetworkPreference &&
+      other.mode == mode &&
+      other.signalingUrl == signalingUrl &&
+      other.roomId == roomId &&
+      other.token == token &&
+      other.origin == origin &&
+      other.rtcConfigUrl == rtcConfigUrl;
+
+  @override
+  int get hashCode =>
+      Object.hash(mode, signalingUrl, roomId, token, origin, rtcConfigUrl);
+}
+
 /// Where an answer runs. The person chooses; the app never changes it.
 enum AnswerTarget { contributors, desktop }
 
@@ -186,6 +232,7 @@ final class Conversation {
     required this.modelId,
     required List<Turn> turns,
     this.target = AnswerTarget.contributors,
+    this.draft = '',
   }) : turns = List.unmodifiable(turns);
 
   final String id;
@@ -197,6 +244,9 @@ final class Conversation {
   final String title;
   final String? modelId;
   final List<Turn> turns;
+
+  /// Unsent prompt text kept for this conversation while the session lives.
+  final String draft;
 
   bool get busy => turns.isNotEmpty && turns.last.inProgress;
 
@@ -249,6 +299,8 @@ abstract interface class ChatRepository {
   String create();
   void remove(String id);
   void selectModel(String id, String modelId);
+  void setDraft(String id, String text);
+  Future<void> flush();
 
   /// Adds the prompt and starts its answer. Completes when the answer ends;
   /// throws [AppFailure] for a prompt that was refused before any attempt.

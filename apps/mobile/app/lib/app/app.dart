@@ -5,6 +5,7 @@ import 'package:flutter/material.dart'
     show
         BuildContext,
         Widget,
+        VoidCallback,
         MaterialApp,
         Locale,
         Navigator,
@@ -69,7 +70,7 @@ class _Home extends ConsumerWidget {
         _push(context, (_) => ComputersScreen(session: session)),
     openSettings: () => _push(
       context,
-      (_) => SettingsScreen(
+      (_) => _SettingsRoute(
         session: session,
         forget: () =>
             unawaited(ref.read(sessionStateProvider.notifier).forget()),
@@ -91,6 +92,21 @@ class _Home extends ConsumerWidget {
         ),
       ),
     ),
+  );
+}
+
+class _SettingsRoute extends ConsumerWidget {
+  const _SettingsRoute({required this.session, required this.forget});
+  final SessionHandle session;
+  final VoidCallback forget;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => SettingsScreen(
+    session: session,
+    forget: forget,
+    networkPreference: ref.watch(networkPreferenceProvider),
+    onSaveNetwork: (next) =>
+        unawaited(ref.read(networkPreferenceProvider.notifier).select(next)),
   );
 }
 

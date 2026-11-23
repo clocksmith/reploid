@@ -4,12 +4,14 @@ import 'package:core/core.dart';
 
 import '../domain/chat.dart';
 import 'conversation_archive.dart';
+import 'preferences_store.dart';
 import 'requester_api.dart';
 
 final class _Thread {
   _Thread(this.id);
   final String id;
   String title = '';
+  String draft = '';
   String? modelId;
   AnswerTarget? target;
   final List<Turn> turns = [];
@@ -31,10 +33,11 @@ final class SessionChatRepository implements ChatRepository {
     required this.api,
     required this.newId,
     this.archive,
+    this.preferences,
     this.diagnostics = const Diagnostics(),
   }) {
     session.registerCleanup(close);
-    if (archive != null) _restoring = _restore();
+    if (archive != null || preferences != null) _restoring = _restore();
   }
 
   final SessionHandle session;
@@ -43,9 +46,14 @@ final class SessionChatRepository implements ChatRepository {
 
   /// Where conversations are kept between runs; none keeps them in memory.
   final ConversationArchive? archive;
+
+  /// Where per-identity settings (such as Allow network answers) persist.
+  final DevicePreferencesStore? preferences;
   final Diagnostics diagnostics;
   Future<void>? _restoring;
   bool _restored = false;
+  bool _prefsRestored = false;
+  bool _allowedExplicitlySet = false;
   Future<void> _saved = Future.value();
   bool _saveQueued = false;
 
@@ -97,9 +105,29 @@ final class SessionChatRepository implements ChatRepository {
 
   // Persistence ---------------------------------------------------------------
 
-  /// Brings back this identity's conversations. Ones made while loading
-  /// stay, after the restored ones.
+  /// Brings back this identity's settings and conversations. Ones made while
+  /// loading stay, after the restored ones.
   Future<void> _restore() async {
+    if (preferences != null) {
+      try {
+        final allowed = await preferences!.readNetworkAnswersAllowed();
+        if (_active && !_allowedExplicitlySet) {
+          _allowed = allowed;
+          _emit();
+        }
+      } catch (_) {
+        // Fail closed when persisted privacy setting cannot be read.
+        if (_active && !_allowedExplicitlySet) {
+          _allowed = false;
+          _emit();
+        }
+      } finally {
+        _prefsRestored = true;
+      }
+    } else {
+      _prefsRestored = true;
+    }
+    if (archive == null) return;
     final List<ArchivedConversation> stored;
     try {
       stored = await archive!.load();
@@ -226,8 +254,10 @@ final class SessionChatRepository implements ChatRepository {
   @override
   Future<void> setNetworkAnswersAllowed(bool allowed) async {
     _checkActive();
+    _allowedExplicitlySet = true;
     _allowed = allowed;
     _emit();
+    await preferences?.writeNetworkAnswersAllowed(allowed);
   }
 
   // The paired desktop -------------------------------------------------------
@@ -301,6 +331,7 @@ final class SessionChatRepository implements ChatRepository {
     modelId: thread.modelId,
     turns: thread.turns,
     target: _target(thread),
+    draft: thread.draft,
   );
 
   @override
@@ -356,6 +387,22 @@ final class SessionChatRepository implements ChatRepository {
     _emit();
   }
 
+  @override
+  void setDraft(String id, String text) {
+    _checkActive();
+    final thread = _threads[id];
+    if (thread == null || thread.draft == text) return;
+    thread.draft = text;
+    _emit();
+  }
+
+  @override
+  Future<void> flush() async {
+    if (_closed) return;
+    _persist();
+    await _saved;
+  }
+
   _Thread _require(String id) =>
       _threads[id] ?? (throw const AppFailure(FailureKind.validation));
 
@@ -374,11 +421,26 @@ final class SessionChatRepository implements ChatRepository {
     final prompt = text.trim();
     if (prompt.isEmpty) throw const AppFailure(FailureKind.validation);
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
+    if (preferences != null && !_prefsRestored) {
+      return _sendAfterRestore(thread, prompt);
+    }
+    return _acceptPrompt(thread, prompt);
+  }
+
+  Future<void> _sendAfterRestore(_Thread thread, String prompt) async {
+    await _restoring;
+    _checkActive();
+    if (!_allowed) throw const AppFailure(FailureKind.forbidden);
+    return _acceptPrompt(thread, prompt);
+  }
+
+  Future<void> _acceptPrompt(_Thread thread, String prompt) {
     // The destination is fixed when the prompt is sent and kept with the
     // conversation; pairing or unpairing later does not move it.
     thread.target ??= _target(thread);
     final modelId = thread.modelId ??= _defaultModel();
     if (modelId == null) throw const AppFailure(FailureKind.unavailable);
+    thread.draft = '';
     if (thread.title.isEmpty) {
       thread.title = prompt.length > 48
           ? '${prompt.substring(0, 48)}…'
@@ -425,6 +487,7 @@ final class SessionChatRepository implements ChatRepository {
     final answer = thread.answer = api.ask(
       modelId: modelId,
       messages: messages,
+      contextId: thread.id,
       target: _target(thread),
     );
     _emit();

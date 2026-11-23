@@ -72,5 +72,18 @@
 	<string>Reploid does not use the camera. Its connection library includes camera support that this app never turns on.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Reploid does not use the microphone. Its connection library includes microphone support that this app never turns on.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>id.replo.mobile</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>reploid</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

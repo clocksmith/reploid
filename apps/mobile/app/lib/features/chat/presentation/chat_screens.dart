@@ -107,7 +107,11 @@ class ConversationListScreen extends ConsumerWidget {
 }
 
 String _listStatus(Conversation conversation) {
-  if (conversation.turns.isEmpty) return Strings.untitled;
+  if (conversation.turns.isEmpty) {
+    return conversation.draft.trim().isNotEmpty
+        ? Strings.draft
+        : Strings.emptyChat;
+  }
   final last = conversation.turns.last;
   return switch (last.phase) {
     AnswerPhase.complete => Strings.assistant,
@@ -163,6 +167,11 @@ class ConversationScreen extends ConsumerWidget {
       conversation: resource?.conversation,
       network: network,
       openModels: openModels,
+      setDraft: (text) {
+        final repository = ref.read(chatRepositoryProvider);
+        if (repository == null || !session.isActive) return;
+        repository.setDraft(conversationId, text);
+      },
       send: (text) => run((r) => r.send(conversationId, text)),
       stop: () => run((r) => r.stop(conversationId)),
       retry: () => run((r) => r.retry(conversationId)),
@@ -174,12 +183,14 @@ class ConversationScreen extends ConsumerWidget {
   }
 }
 
-/// Owns the unsent draft, which ends with the route.
+/// Persists unsent drafts in the repository so they survive navigation within
+/// the session and are cleared on send, delete, or session end.
 class _Thread extends HookWidget {
   const _Thread({
     required this.conversation,
     required this.network,
     required this.openModels,
+    required this.setDraft,
     required this.send,
     required this.stop,
     required this.retry,
@@ -188,6 +199,7 @@ class _Thread extends HookWidget {
   final Conversation? conversation;
   final NetworkResource? network;
   final VoidCallback openModels;
+  final ValueChanged<String> setDraft;
   final Future<void> Function(String) send;
   final Future<void> Function() stop;
   final Future<void> Function() retry;
@@ -195,9 +207,27 @@ class _Thread extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final input = useTextEditingController();
+    final input = useTextEditingController(text: conversation?.draft ?? '');
+    final hydrated = useRef(conversation != null);
     final refusal = useState<FailureKind?>(null);
     useListenable(input);
+    useEffect(() {
+      if (!hydrated.value && conversation != null) {
+        hydrated.value = true;
+        if (input.text.isEmpty && conversation!.draft.isNotEmpty) {
+          input.text = conversation!.draft;
+        }
+      }
+      return null;
+    }, [conversation?.id, conversation != null]);
+    useEffect(() {
+      void syncDraft() {
+        if (hydrated.value) setDraft(input.text);
+      }
+
+      input.addListener(syncDraft);
+      return () => input.removeListener(syncDraft);
+    }, [input]);
     final turns = conversation?.turns ?? const <Turn>[];
 
     final allowed = network?.networkAnswersAllowed ?? true;
@@ -211,6 +241,22 @@ class _Thread extends HookWidget {
     final desktop = conversation?.target == AnswerTarget.desktop
         ? network?.desktop
         : null;
+    final readyPeers = chosen == null
+        ? const <Computer>[]
+        : (network?.computers ?? const <Computer>[])
+              .where((c) => c.modelId == chosen.id && c.ready && !c.busy)
+              .toList();
+    final lastRecipient = turns
+        .where((t) => t.role == TurnRole.assistant && t.recipient != null)
+        .lastOrNull
+        ?.recipient;
+    final disclosedPeer =
+        readyPeers
+            .where(
+              (c) => lastRecipient != null && c.participantId == lastRecipient,
+            )
+            .firstOrNull ??
+        readyPeers.where((c) => c.participantId != null).firstOrNull;
 
     /// A command refused before any attempt shows why, in place.
     Future<void> guard(Future<void> Function() command) async {
@@ -255,6 +301,13 @@ class _Thread extends HookWidget {
                   : Strings.desktopOffline(desktop.label)
             : chosen != null && !chosen.available
             ? Strings.noComputer
+            : disclosedPeer != null
+            ? readyPeers.length > 1
+                  ? Strings.disclosePool(
+                      readyPeers.length,
+                      disclosedPeer.participantId!,
+                    )
+                  : Strings.discloseComputer(disclosedPeer.participantId!)
             : Strings.discloseRemote,
         onSend: input.text.trim().isEmpty || !allowed
             ? null
@@ -575,7 +628,7 @@ class ComputersScreen extends ConsumerWidget {
         model.id: model.name,
     };
     return PageSurface(
-      title: Strings.network,
+      title: Strings.computers,
       children: [
         _DesktopSection(session: session, network: network),
         const SectionHeading(
@@ -646,9 +699,13 @@ class SettingsScreen extends ConsumerWidget {
     super.key,
     required this.session,
     required this.forget,
+    this.networkPreference = const NetworkPreference(),
+    this.onSaveNetwork,
   });
   final SessionHandle session;
   final VoidCallback forget;
+  final NetworkPreference networkPreference;
+  final ValueChanged<NetworkPreference>? onSaveNetwork;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -676,6 +733,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
+        if (onSaveNetwork case final save?)
+          _NetworkSettingsCard(initial: networkPreference, onSave: save),
         ContentCard(
           children: [
             const SectionHeading(title: Strings.thisDevice),
@@ -688,6 +747,120 @@ class SettingsScreen extends ConsumerWidget {
             SecondaryAction(label: Strings.forget, onPressed: forget),
           ],
         ),
+      ],
+    );
+  }
+}
+
+class _NetworkSettingsCard extends HookWidget {
+  const _NetworkSettingsCard({required this.initial, required this.onSave});
+  final NetworkPreference initial;
+  final ValueChanged<NetworkPreference> onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = useState(initial.mode);
+    final url = useTextEditingController(text: initial.signalingUrl);
+    final room = useTextEditingController(text: initial.roomId);
+    final token = useTextEditingController(text: initial.token);
+    final rtcUrl = useTextEditingController(text: initial.rtcConfigUrl);
+    final invalid = useState(false);
+
+    useEffect(() {
+      mode.value = initial.mode;
+      if (url.text != initial.signalingUrl) url.text = initial.signalingUrl;
+      if (room.text != initial.roomId) room.text = initial.roomId;
+      if (token.text != initial.token) token.text = initial.token;
+      if (rtcUrl.text != initial.rtcConfigUrl) {
+        rtcUrl.text = initial.rtcConfigUrl;
+      }
+      invalid.value = false;
+      return null;
+    }, [initial]);
+
+    void apply(NetworkPreference candidate) {
+      if (!candidate.isValid) {
+        invalid.value = true;
+        return;
+      }
+      invalid.value = false;
+      onSave(candidate);
+    }
+
+    return ContentCard(
+      children: [
+        const SectionHeading(
+          title: Strings.networkSettings,
+          description: Strings.networkSettingsDetail,
+        ),
+        ChoiceTile(
+          title: Strings.networkModeDemo,
+          detail: Strings.networkModeDemoDetail,
+          selected: mode.value == NetworkMode.demo,
+          onPressed: () {
+            mode.value = NetworkMode.demo;
+            apply(const NetworkPreference(mode: NetworkMode.demo));
+          },
+        ),
+        ChoiceTile(
+          title: Strings.networkModePublic,
+          detail: Strings.networkModePublicDetail,
+          selected: mode.value == NetworkMode.public,
+          onPressed: () {
+            mode.value = NetworkMode.public;
+            apply(const NetworkPreference(mode: NetworkMode.public));
+          },
+        ),
+        ChoiceTile(
+          title: Strings.networkModeRoom,
+          detail: Strings.networkModeRoomDetail,
+          selected: mode.value == NetworkMode.room,
+          onPressed: () {
+            mode.value = NetworkMode.room;
+            invalid.value = false;
+          },
+        ),
+        if (mode.value == NetworkMode.room) ...[
+          NoteInput(
+            controller: url,
+            label: Strings.signalingUrl,
+            hint: Strings.signalingUrlHint,
+          ),
+          NoteInput(
+            controller: room,
+            label: Strings.roomId,
+            hint: Strings.roomIdHint,
+          ),
+          NoteInput(
+            controller: token,
+            label: Strings.roomToken,
+            hint: Strings.roomTokenHint,
+          ),
+          NoteInput(
+            controller: rtcUrl,
+            label: Strings.rtcConfigUrl,
+            hint: Strings.rtcConfigUrlHint,
+          ),
+          if (invalid.value)
+            const Notice(
+              text: Strings.networkInvalid,
+              tone: NoticeTone.warning,
+            ),
+          ActionButton(
+            label: Strings.applyNetwork,
+            pendingLabel: Strings.applyNetwork,
+            onPressed: () => apply(
+              NetworkPreference(
+                mode: NetworkMode.room,
+                signalingUrl: url.text.trim(),
+                roomId: room.text.trim(),
+                token: token.text.trim(),
+                origin: initial.origin,
+                rtcConfigUrl: rtcUrl.text.trim(),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
