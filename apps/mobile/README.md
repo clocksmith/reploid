@@ -7,17 +7,18 @@ product as the web client in `apps/poolday` with a different interface and
 rendering surface.
 
 **Status.** The requester protocol is implemented in Dart and tested against
-the web client's own code. On macOS the app has booted with its real Keychain
-store and private archive directory, asked a real provider over real signaling
-and real WebRTC and shown a verified answer, and paired with a provider as the
-owner's desktop and been answered by it alone; that provider ran a stand-in
-model on the same machine, and its owner's approval was given by the test. The
-default build starts in the in-app synthetic demo network (and says so on
-screen) and supports switching at runtime in Settings to the public Reploid
-network or a private signaling room, plus fetching ephemeral TURN credentials
-over HTTPS when configured. `flutter build web` compiles cleanly. Nothing here
-has run on a physical phone, an iOS/Android simulator, across cellular
-networks, or against a computer serving a real model.
+the web client's own code. On macOS and on an iOS 26 simulator the app has asked
+a real provider over real signaling and real WebRTC and shown a verified answer,
+and has paired with a provider as the owner's desktop and been answered by it
+alone. In those runs the provider ran a stand-in model on the same machine, and
+its owner's approval was given by the test. On macOS the default build has also
+started with its real Keychain store and private directory and forgotten them
+cleanly. The default build starts in the in-app synthetic demo network (and says
+so on screen) and can switch at runtime in Settings to the public Reploid network
+or a private signaling room, with ephemeral TURN credentials fetched over HTTPS
+when configured. `flutter build web` compiles. Nothing here has run on a physical
+phone, on Android, across cellular networks, through a real TURN relay, or
+against a computer serving a real model.
 
 ## How it is put together
 
@@ -54,9 +55,11 @@ and only the person changes that.
 Conversations are kept on the device, in one file per identity sealed with
 AES-256-GCM under a key held in the platform keystore. An answer that was
 under way when the app stopped is shown as ended, with whether its prompt
-had been sent; it is never resumed or resent on its own. Each answer is an
-attempt with its own identity, so asking again cannot be overwritten by an
-earlier attempt.
+had been sent; it is never resumed or resent on its own. A lost answer can be
+asked for from the computer that was running it: nothing is sent or run again,
+and what comes back is checked against that computer's signed receipt or
+terminal record. Each answer is an attempt with its own identity, so asking
+again cannot be overwritten by an earlier attempt.
 
 ## One source of truth for the API
 
@@ -113,12 +116,10 @@ constants). What needs a new binary: any change to native code or plugins
 
 ## Not done
 
-- Any run on a physical phone or iOS/Android simulator (blocked on this Mac by
-  missing Android SDK and Xcode iOS 26.0 platform components).
-- Firebase anonymous sign-in flow for public TURN relay tokens on mobile
-  (the HTTPS `/rtc-config` client is implemented and falls back to direct STUN
-  when unauthenticated or unconfigured).
-- Split routes, credits, attachments, file sharing and local models, which
-  the web product has and this app does not.
-- Recovery of an answer after a lost connection. A lost answer is asked for
-  again as a new request.
+- Any run on a physical phone. Android has never been built: this Mac has no
+  Android SDK, and its licences are the owner's to accept.
+- Firebase anonymous sign-in for public TURN relay tokens on mobile (the HTTPS
+  `/rtc-config` client is implemented and falls back to direct STUN when
+  unauthenticated or unconfigured), and any run through a real TURN relay.
+- Split routes, credits, file sharing, contribution and local models, which the
+  web product has and this app does not. Attachments are text only.
