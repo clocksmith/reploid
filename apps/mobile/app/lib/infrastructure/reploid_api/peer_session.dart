@@ -299,15 +299,66 @@ final class PeerSession {
     return participantId;
   }
 
+  // Owner pairing ---------------------------------------------------------------
+
+  /// Procedure `pairingExchange`, steps 5 to 9, on this connection. Returns
+  /// whether the owner approved. The code leaves the device only after
+  /// this connection has freshly proven it is [hostParticipantId].
+  ///
+  /// A wrong, expired or used code gets no answer at all, so that case
+  /// ends as a timeout after [wait].
+  Future<bool> requestPairing({
+    required String code,
+    required String hostParticipantId,
+    Duration wait = const Duration(
+      milliseconds: Contract.pairingApprovalWaitMs,
+    ),
+    void Function()? onSent,
+  }) async {
+    if (await proveProvider() != hostParticipantId) {
+      throw const ProtocolFailure('Could not verify the paired desktop');
+    }
+    final binding = link.binding;
+    final requestId = entropy.uuid();
+    final waiter = _Waiter(
+      (type, payload) =>
+          type == ChannelType.ownerPairingResult &&
+              payload['requestId'] == requestId
+          ? payload
+          : null,
+    );
+    _waiters.add(waiter);
+    _send(ChannelType.ownerPairingRequest, {
+      'requestId': requestId,
+      'code': code,
+    });
+    onSent?.call();
+    final Json result;
+    try {
+      result = await waiter.completer.future.timeout(wait);
+    } on TimeoutException {
+      _waiters.remove(waiter);
+      throw const ProtocolFailure('The desktop did not answer the pairing');
+    }
+    if (_isClosed || link.binding != binding || _proven != hostParticipantId) {
+      throw const ProtocolFailure('Desktop connection changed during pairing');
+    }
+    return result['approved'] == true;
+  }
+
   // Generation ----------------------------------------------------------------
 
   /// One whole-model request. The stream ends after [GenerationCompleted]
   /// or with a [ProtocolFailure] that says whether the prompt was sent.
   /// Cancelling the subscription sends `reploid:generation-cancel`.
+  ///
+  /// With [namedRecipient] the request goes only to that signing identity:
+  /// if the fresh proof names anyone else, nothing is sent.
   Stream<GenerationEvent> ask({
     required CatalogRow model,
     required List<Json> messages,
     String? contextId,
+    String? namedRecipient,
   }) {
     late final StreamController<GenerationEvent> controller;
     String? requestId;
@@ -322,6 +373,9 @@ final class PeerSession {
         }
         final proven = await proveProvider();
         if (done) return;
+        if (namedRecipient != null && proven != namedRecipient) {
+          throw const ProtocolFailure('Could not verify the paired desktop');
+        }
         controller.add(ProviderProven(proven));
         final offer = before.eligibleOffers(model.identity).firstOrNull;
         if (offer == null) {
@@ -329,7 +383,7 @@ final class PeerSession {
             'Selected execution offer is unavailable',
           );
         }
-        final policy = privacyPolicy();
+        final policy = privacyPolicy(namedRecipient: namedRecipient);
         final binding = privacyBinding(
           policy,
           executionRoute(

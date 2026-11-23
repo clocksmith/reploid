@@ -30,6 +30,15 @@ abstract final class Contract {
   static const generationAdmissionProtocol = 2;
   static const generationOfferId = 'ordinary-generation';
   static const generationBackend = 'doppler-plaintext/v1';
+  static const pairingCodePattern = '^[A-Za-z0-9_-]{24}\$';
+  static const pairingParticipantIdPattern = '^peer:[0-9a-f]{24}\$';
+  static const pairingRoomTokenPrefix = 'reploid-pairing-route-not-a-secret-v1:';
+  static const pairingLabelMaxLength = 128;
+  static const pairingCodeTtlMs = 600000;
+  static const pairingHostSearchMs = 6000;
+  static const pairingApprovalWaitMs = 600000;
+  static const pairingStorageKey = 'reploid.owner-paired-desktop:v1';
+  static const pairingRoomIdPattern = '^reploid-swarm-[a-z0-9][a-z0-9_-]{0,127}\$';
   static const idExecutionPolicy = 'reploid.execution-policy/v2';
   static const idExecutionBinding = 'reploid.execution-binding/v2';
   static const idExecutionRoute = 'reploid.execution-route/v1';
@@ -69,6 +78,8 @@ abstract final class ChannelType {
   static const generationRecover = 'reploid:generation-recover';
   static const generationRecovery = 'reploid:generation-recovery';
   static const receipt = 'reploid:receipt';
+  static const ownerPairingRequest = 'reploid:owner-pairing-request';
+  static const ownerPairingResult = 'reploid:owner-pairing-result';
 }
 
 /// Signaling frame types the contract defines.

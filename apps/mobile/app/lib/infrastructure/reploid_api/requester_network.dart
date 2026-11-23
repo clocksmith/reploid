@@ -110,9 +110,9 @@ final class RequesterNetwork {
   /// Learns a provider's identity in the background, so the list of
   /// computers can name them. A request never relies on this proof; it
   /// asks for a fresh one.
-  void _observe(String name, PeerSession session) {
+  void _observe(String name, PeerSession session, {bool anyRole = false}) {
     if (session.provenParticipantId != null ||
-        session.advertisement?.role != 'provider' ||
+        (!anyRole && session.advertisement?.role != 'provider') ||
         !session.usable ||
         !_observing.add(name)) {
       return;
@@ -152,13 +152,72 @@ final class RequesterNetwork {
 
   Future<void> open() => transport.open();
 
+  /// Procedure `pairedDesktopRecognition`: the connection whose identity,
+  /// proven on that connection, is [participantId]. Nothing else counts:
+  /// not a name, a label, or what a computer says about itself.
+  PeerSession? proven(String participantId) {
+    for (final session in _sessions.values) {
+      if (session.usable && session.provenParticipantId == participantId) {
+        return session;
+      }
+    }
+    return null;
+  }
+
+  /// Procedure `pairingExchange`, steps 4 to 9. Looks for the desktop for
+  /// [search], then asks it to pair. Returns whether the owner approved.
+  Future<bool> pair({
+    required String code,
+    required String hostParticipantId,
+    Duration search = const Duration(
+      milliseconds: Contract.pairingHostSearchMs,
+    ),
+    Duration wait = const Duration(
+      milliseconds: Contract.pairingApprovalWaitMs,
+    ),
+    void Function()? onAsked,
+  }) async {
+    final end = DateTime.now().add(search);
+    PeerSession? desktop;
+    while ((desktop = proven(hostParticipantId)) == null) {
+      // A computer is proven in the background after it advertises itself;
+      // ones that never advertise are asked here.
+      for (final entry in _sessions.entries) {
+        if (entry.value.usable && entry.value.provenParticipantId == null) {
+          _observe(entry.key, entry.value, anyRole: true);
+        }
+      }
+      if (_closed || DateTime.now().isAfter(end)) {
+        throw const ProtocolFailure(
+          'Could not find the verified desktop on this connection. '
+          'Confirm it is online and retry.',
+        );
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    return desktop!.requestPairing(
+      code: code,
+      hostParticipantId: hostParticipantId,
+      wait: wait,
+      onSent: onAsked,
+    );
+  }
+
   /// Procedure `providerSelectionRule`: the best candidate now, or null.
-  PeerSession? _select(CatalogRow model, String? contextId) {
+  /// With [namedRecipient], only the connection proven to be that identity
+  /// (procedure `pairedDesktopRequest`); never anyone else.
+  PeerSession? _select(
+    CatalogRow model,
+    String? contextId,
+    String? namedRecipient,
+  ) {
     final nowMs = _now();
     final candidates = [
       for (final entry in _sessions.entries)
         if (entry.value.usable &&
             !entry.value.reserved &&
+            (namedRecipient == null ||
+                entry.value.provenParticipantId == namedRecipient) &&
             (entry.value.advertisement?.selectable(model) ?? false))
           entry,
     ];
@@ -185,6 +244,7 @@ final class RequesterNetwork {
     required CatalogRow model,
     required List<Json> messages,
     String? contextId,
+    String? namedRecipient,
   }) {
     late final StreamController<GenerationEvent> controller;
     StreamSubscription<GenerationEvent>? inner;
@@ -195,7 +255,12 @@ final class RequesterNetwork {
     void start(PeerSession session) {
       if (contextId != null) _lastProvider[contextId] = session.link.peerId;
       inner = session
-          .ask(model: model, messages: messages, contextId: contextId)
+          .ask(
+            model: model,
+            messages: messages,
+            contextId: contextId,
+            namedRecipient: namedRecipient,
+          )
           .listen(
             controller.add,
             onError: controller.addError,
@@ -205,7 +270,7 @@ final class RequesterNetwork {
 
     void attempt() {
       if (cancelled || inner != null) return;
-      final session = _select(model, contextId);
+      final session = _select(model, contextId, namedRecipient);
       if (session == null) return;
       deadline?.cancel();
       unawaited(waiting?.cancel());

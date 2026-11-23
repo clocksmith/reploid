@@ -112,11 +112,18 @@ List<int> _decode(String text) {
   }
 }
 
-/// Procedure `privacyBinding`, for a public whole-model request.
-Json privacyPolicy() => {
+/// Procedure `privacyBinding`. With [namedRecipient] the policy admits
+/// only that signing identity (procedure `pairedDesktopRequest`); without
+/// it, any ready provider of the public network.
+Json privacyPolicy({String? namedRecipient}) => {
   'schema': Contract.idExecutionPolicy,
   'placement': 'network-allowed',
-  'recipients': {'kind': 'open', 'ids': <Object?>[]},
+  'recipients': namedRecipient == null
+      ? {'kind': 'open', 'ids': <Object?>[]}
+      : {
+          'kind': 'named',
+          'ids': [namedRecipient],
+        },
   'computation': 'plaintext',
   'collusion': 'none',
   'leakage': ['model-id', 'timing', 'length', 'access-patterns', 'plaintext'],

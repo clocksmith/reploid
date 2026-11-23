@@ -97,6 +97,21 @@ String render(Map<String, Object?> contract, Object? catalog) {
     'offerId',
     'backend',
   ]);
+  final pairing = constants['pairing']! as Map<String, Object?>;
+  group('pairing', pairing, [
+    'codePattern',
+    'participantIdPattern',
+    'roomTokenPrefix',
+    'labelMaxLength',
+    'codeTtlMs',
+    'hostSearchMs',
+    'approvalWaitMs',
+    'storageKey',
+  ]);
+  out.writeln(
+    '  static const pairingRoomIdPattern = '
+    '${_lit((pairing['roomIdPattern']! as Map<String, Object?>)['source'])};',
+  );
   for (final entry in ids.entries) {
     out.writeln(
       '  static const ${_camel('id ${entry.key}')} = '
