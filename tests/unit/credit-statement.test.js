@@ -443,13 +443,48 @@ describe('offline service-credit statement verification', () => {
       acknowledgment: attempt1.acknowledgment,
     };
 
-    // Late receipt arriving on an idle ledger expires the hold first and refuses to reopen settlement.
+    // Late receipt is the VERY FIRST ledger operation after deadline + releaseWindow (no snapshot/reserve/poll).
     await expect(ledger.collect(attempt1.input.id, { identity: attempt1.identity, receipts: [lateStage0] }))
       .rejects.toThrow('Claim window closed; this hold was released unclaimed');
-    await expect(ledger.settle(attempt1.input.id, lateEvidence))
-      .rejects.toThrow('Claim window closed; this hold was released unclaimed');
-    expect(ledger.request(attempt1.input.id).outcome).toMatchObject({ status: 'expired', charge: 0 });
-    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
+
+    // Pre-retry offline check across all 3 accounts: zero debit, zero stage payouts, released hold (held = 0).
+    for (const index of [0, 1, 2]) {
+      const preRetryReport = await verifyCreditStatement(ledger.statement(`computer-${index}`), {
+        lateClaims: [{ requestId: attempt1.input.id, evidence: lateEvidence, at: lateAt }],
+      });
+      expect(preRetryReport).toMatchObject({
+        ok: true,
+        statedBalance: 0,
+        recomputedBalance: 0,
+        held: 0,
+        verifiedCount: 0,
+        expiredCount: 1,
+        uncheckedCount: 0,
+        expired: [expect.objectContaining({ requestId: 'split-attempt-1', charge: 0 })],
+        lateClaims: [{ requestId: 'split-attempt-1', reopenAllowed: false }],
+      });
+    }
+
+    // Also verify direct settle() as the very first post-deadline operation on a second idle ledger.
+    let settleClock = at;
+    const settleOnlyLedger = await openFleetCredits({
+      file: path.join(directory, 'window2-settle-first.sqlite'),
+      computers,
+      policy: boundedPolicy,
+      now: () => settleClock,
+    });
+    try {
+      settleOnlyLedger.reserve(attempt1.input);
+      settleOnlyLedger.dispatch(attempt1.input.id, attempt1.input.consumer);
+      settleOnlyLedger.admit(attempt1.input.id, 0);
+      settleOnlyLedger.admit(attempt1.input.id, 1);
+      settleClock = lateAt;
+      await expect(settleOnlyLedger.settle(attempt1.input.id, lateEvidence))
+        .rejects.toThrow('Claim window closed; this hold was released unclaimed');
+      expect(settleOnlyLedger.statement('computer-0')).toMatchObject({ balance: 0, held: 0, entries: [] });
+    } finally {
+      settleOnlyLedger.close();
+    }
 
     // Attempt 2: retry as a brand-new request at lateAt; completes cleanly and charges only the successful retry.
     const retry = await partitionBundle('split-retry-2', [1, 2], [1, 2], 7, 0, lateAt);
