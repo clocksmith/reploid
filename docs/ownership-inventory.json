@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 391,
+    "apps/poolday": 392,
     "self": 457,
     "shared": 2510
   },
@@ -2511,6 +2511,12 @@
     {
       "served": "host/research-plugins.js",
       "source": "apps/poolday/host/research-plugins.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/route-preference.js",
+      "source": "apps/poolday/host/route-preference.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

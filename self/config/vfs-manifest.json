@@ -612,6 +612,7 @@
     "self/host/readonly-view.js",
     "self/host/reploid-launch.js",
     "self/host/research-plugins.js",
+    "self/host/route-preference.js",
     "self/host/seed-vfs.js",
     "self/host/server-search.js",
     "self/host/start-app.js",

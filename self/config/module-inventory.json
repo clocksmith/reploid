@@ -2868,7 +2868,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:1cb1539117131e3f9da03af6290ff9f030f3b1746a922d91fcf43945f821f8c3",
+      "sha256": "sha256:7ab45adcf04a3a4f2035832ed51cde0f99b74d38c477cf117e982c9e439409a2",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -3194,7 +3194,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:abbcac0d7c22c33aa9ab03a12fd0f7dab5eede13fffcdcb56f744011060124b1",
+      "sha256": "sha256:ebc89969cc1c3cd5d03bec5933fed9512a778a59229b64d9f8e6899f4364e91c",
       "imports": [
         "../config/doppler-metadata-contract.js",
         "../config/ordered-participation.json",
@@ -3216,6 +3216,7 @@
         "./history-handover.js",
         "./lora-training.js",
         "./model-storage.js",
+        "./route-preference.js",
         "./server-search.js",
         "./swarm-autoconnect.js",
         "./web-search.js",
@@ -3275,6 +3276,12 @@
         "../vendor/reploid/chat/execution-policy.js",
         "../vendor/reploid/plugins/index.js"
       ]
+    },
+    {
+      "path": "self/host/route-preference.js",
+      "owner": "self",
+      "sha256": "sha256:485a9748aa1e516f945ad25f152dee20580d870de45ad9a7c696bc2078d183a6",
+      "imports": []
     },
     {
       "path": "self/host/seed-vfs.js",
@@ -3553,7 +3560,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:5c2eff26cd340b81052faad67317f2b977a12b2f5b98842824e4f295e25592fc",
+      "sha256": "sha256:17c2398bdd96b80ea8f96758739b25674bfc365598afc80ca9bd1c0f74e706b9",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4329,7 +4336,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:5cc7af5891e964bee81aa212a580b789a6b4af55c6e25e117e685a95fd31dcc1",
+      "sha256": "sha256:eb1bc5394d4dc315df738a140a600cabfb00cad86ed9cd94f3bb3c3582c07bdc",
       "imports": []
     },
     {
@@ -4714,9 +4721,10 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:1dde5b0962ffc65e3cefe0069b6b7e31935c379eea79c5154818e0428a6ee280",
+      "sha256": "sha256:feddf806bb1f3562cd7a71fb7ce2674eef1b508bc325c361254345b7cfa2db9f",
       "imports": [
         "../../config/chat-context-policy.json",
+        "../../host/route-preference.js",
         "../components/attachments.js",
         "../components/dialog.js",
         "../components/drawer.js",
