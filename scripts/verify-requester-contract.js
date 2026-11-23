@@ -35,6 +35,7 @@ import { ownerPairingCode, ownerPairingRequestId, ownerParticipantId, ownerPairi
 import { createOwnerPairingUrl } from '../apps/poolday/host/owner-pairing.js';
 import { FIXED_IDENTITIES } from './requester-contract/fixed-inputs.js';
 import { buildVectorsText, VECTORS_FILE } from './build-requester-contract-vectors.js';
+import { attachmentInput, comparisonSources } from '../apps/poolday/host/document-comparison.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const CONTRACT_FILE = path.join(root, 'packages/reploid/contracts/requester/requester-contract.json');
@@ -206,6 +207,13 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
       if (source.check !== undefined) expect(['export', 'literal', 'prose'].includes(source.check), `sources["${key}"].check is unknown`);
     });
   }
+  // --- attachments: the markers and instruction are private to the web module, so check what it writes
+  const attached = contract.constants.attachments;
+  const sampleFiles = [{ name: 'a.txt', text: 'one\n\ntwo' }];
+  const sampleDocuments = [{ id: 'D1', name: 'a.txt', passages: [{ id: 'D1:P1', text: 'one' }, { id: 'D1:P2', text: 'two' }] }];
+  expect(attachmentInput('Q', sampleFiles) === `Q${attached.instruction}${attached.startMarker}${JSON.stringify(sampleDocuments)}${attached.endMarker}`,
+    'constants.attachments no longer reproduce what the web client sends');
+  expect(comparisonSources(attachmentInput('Q', sampleFiles))?.question === 'Q', 'the web client no longer reads its own attachment text back');
   // The web client's own join choice for the public room.
   const signaling = contract.constants.signaling;
   expect(web.join.scope === 'public' && web.join.roomId === signaling.publicRoomId && web.join.token === signaling.publicJoinToken,

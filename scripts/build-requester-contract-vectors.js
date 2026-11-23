@@ -43,6 +43,7 @@ import { createBrowserOwnerPairing, createOwnerPairingUrl, parseOwnerPairingUrl 
 import { ownerPairingLink, ownerPairingDisplayName } from '../server/circles/owner-pairing-terminal.js';
 import { FIXED_PAIRING } from './requester-contract/fixed-inputs.js';
 
+import { attachmentInput, comparisonSources } from '../apps/poolday/host/document-comparison.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const VECTORS_FILE = path.join(root, 'tests/fixtures/requester-conformance/vectors.json');
 
@@ -655,6 +656,21 @@ function scenarioSection(captures) {
 }
 
 // ------------------------------------------------------------------ owner pairing
+function attachmentSection() {
+  const inputs = [
+    { name: 'no files', question: 'Plain question', files: [] },
+    { name: 'one file, two paragraphs', question: 'What changed?', files: [{ name: 'notes.txt', text: 'First part.\n\nSecond part.' }] },
+    { name: 'blank lines with spaces, surrounding whitespace', question: 'Q', files: [{ name: 'a.md', text: '\n  one\n  \t\n two\n\n\nthree  \n' }] },
+    { name: 'two files, quotes and non-ASCII', question: 'Compare "these"', files: [{ name: 'caf\u00e9.txt', text: 'She said "caf\u00e9"\n\n\u65e5\u672c\u8a9e \ud800\udf48 \\ end' },
+      { name: 'b.json', text: '{"a": 1}' }] }
+  ];
+  return { description: 'input is what the real attachmentInput returns for question and files. display is what the real comparisonSources reads back, or null for plain text.',
+    cases: inputs.map(({ name, question, files }) => {
+      const input = attachmentInput(question, files), read = comparisonSources(input);
+      return { name, question, files, input, display: read ? { question: read.question, names: read.documents.map(document => document.name) } : null };
+    }) };
+}
+
 async function pairingSection() {
   const host = FIXED_IDENTITIES.providerEd25519.peerId, room = FIXED.roomId, label = FIXED_PAIRING.desktopLabel;
   const code = Buffer.from(FIXED_PAIRING.codeBytes).toString('base64url');
@@ -845,7 +861,8 @@ export async function buildVectors() {
     signaling: signalingSection(complete),
     transcript: transcriptSection(complete),
     scenarios: scenarioSection(captures),
-    pairing: await pairingSection()
+    pairing: await pairingSection(),
+    attachments: attachmentSection()
   };
   // The text the real verifier checks the signature over, observed at crypto.subtle.verify.
   const subtle = crypto.subtle, originalVerify = subtle.verify, verifiedTexts = [];

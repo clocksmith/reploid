@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Runs the app on macOS against a real local provider: the web client's
+# Runs the app (on macOS unless REPLOID_E2E_DEVICE names another) against a real local provider: the web client's
 # signaling server and native participant with a stub model, over real
 # WebRTC. Needs Node with the repository's node_modules, Xcode and CocoaPods.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 root="$(cd ../.. && pwd)"
 flutter_bin="${FLUTTER_BIN:-flutter}"
+# Any device that shares this machine's loopback: macos or an iOS simulator id.
+device="${REPLOID_E2E_DEVICE:-macos}"
 log="$(mktemp)"
 node "$root/tests/fixtures/requester-conformance/webrtc-provider.js" "$@" >"$log" 2>/dev/null &
 provider=$!
@@ -31,7 +33,7 @@ case " $* " in
   *" --pairing "*)
     # The app starts in a room of its own, away from the desktop, so that
     # reaching the desktop means joining its room from the pairing link.
-    "$flutter_bin" test integration_test/real_pairing_test.dart -d macos \
+    "$flutter_bin" test integration_test/real_pairing_test.dart -d "$device" \
       "${common[@]}" \
       --dart-define=REPLOID_ROOM=reploid-swarm-e2e-lobby \
       --dart-define=REPLOID_TOKEN=e2e-lobby-capability-0123456789abcdef \
@@ -39,7 +41,7 @@ case " $* " in
       --dart-define=REPLOID_EXPECT_LABEL="$(read_field pairing.hostLabel)"
     ;;
   *)
-    "$flutter_bin" test integration_test/real_webrtc_test.dart -d macos \
+    "$flutter_bin" test integration_test/real_webrtc_test.dart -d "$device" \
       "${common[@]}" \
       --dart-define=REPLOID_ROOM="$(read_field roomId)" \
       --dart-define=REPLOID_TOKEN="$(read_field token)"
