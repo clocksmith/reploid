@@ -124,10 +124,11 @@ export function renderProductionContribution() {
 
 export function bindProductionControls(container, session, { inspector } = {}) {
   const find = selector => container.querySelector(selector);
-  const controller = new AbortController(), options = { signal: controller.signal };
   const backgroundRoot = container.closest('.pool-home');
   const detachBackground = backgroundRoot && document.documentElement.classList.contains('pool-page') && !backgroundRoot.querySelector('.pool-math-background')
     ? bindMathematicalBackground(backgroundRoot) : () => {};
+  if (!find('[data-production-surface]')) return { update() {}, dispose() { detachBackground(); } };
+  const controller = new AbortController(), options = { signal: controller.signal };
   let last, pending = false, actionError = '', attention = false;
   const modelsDialog = bindDialog(find('[data-production-model-dialog]'));
   const modelButtons = find('[data-production-model-buttons]');

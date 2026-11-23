@@ -56,7 +56,7 @@ export function renderAccountPanel() {
         <div class="pool-row"><button class="pool-button" type="submit" data-earning-limit-save>Save limit</button></div>
       </form>
       <p class="pool-small pool-muted" data-earning-quote></p>
-      <details data-earning-activity><summary>Recent activity</summary><ol class="pool-list pool-small" data-earning-journal></ol></details>
+      <details class="pool-disclosure" data-earning-activity><summary>Recent activity</summary><ol class="pool-list pool-small" data-earning-journal></ol></details>
       <div class="pool-row"><button class="pool-button btn-ghost" type="button" data-earning-sign-out hidden>Sign out</button></div>
     </div>
     <p class="pool-small pool-muted" role="status" data-earning-status></p>

@@ -8,20 +8,16 @@ for (const width of [1440, 320]) test(`optional context controls at ${width}px`,
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const root = document.querySelector('.pool-home');
-    const railToggle = root.querySelector('[data-toggle-thread-rail]').cloneNode(true);
     const fixture = root.cloneNode(false);
-    fixture.innerHTML = root.querySelector('.pool-primary-nav').outerHTML
-      + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>';
-    // The bound page has already moved this control out of the original nav.
-    fixture.querySelector('.pool-primary-nav').append(railToggle);
+    fixture.innerHTML = '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>';
     document.body.replaceChildren(fixture);
     const session = createChatSession({ storage: null, models: [CANONICAL_CHAT_MODELS[1]] });
     session.createThread({ sharingScope: 'local' });
     window.contextSession = session;
     window.disposeContext = bindConversationWorkspace(fixture, session);
   });
-  await page.locator('[data-toggle-thread-rail]').click();
-  await page.locator('[data-conversation-actions] > summary').click();
+  await page.locator('[data-inspector-section="conversation"]').click();
+  await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
   const enabled = page.locator('[data-context-enabled]');
   const cap = page.locator('[data-context-cap]');
   await expect(enabled).toBeChecked();

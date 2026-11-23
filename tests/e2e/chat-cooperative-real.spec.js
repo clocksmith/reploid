@@ -402,14 +402,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     const returningPages = observations[0].physicalHost === 'mac' ? [contributor, second] : [second, contributor];
     const downloadConversation = async () => {
-      const actions = requester.locator('[data-conversation-actions]');
-      if (!await actions.evaluate(element => element.open)) {
-        await actions.locator('summary').click({ timeout: 30000 });
+      if (!await requester.locator('[data-conversation-download]').isVisible()) {
+        await requester.locator('[data-inspector-section="conversation"]').click({ timeout: 30000 });
       }
       await Promise.all([
         requester.waitForEvent('download', { timeout: 30000 }),
         requester.locator('[data-conversation-download]').click({ timeout: 30000 })
       ]);
+      await requester.locator('[data-close-inspector]').click({ timeout: 30000 });
     };
     const runDocuments = async () => {
       if (!await requester.locator('[data-new-thread]').isVisible()) await requester.locator('[data-toggle-thread-rail]').click();

@@ -22,7 +22,7 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
   await page.locator('[data-workspace-view=computers]').click();
   const pane = page.locator('[data-inspector-pane="participants"]');
-  await expect(pane.locator(':scope > :first-child [data-insp-device-list]')).toHaveCount(1);
+  await expect(pane.locator('[data-insp-device-list]')).toHaveCount(1);
   await expect(pane.locator('[data-device-supplied]')).toBeHidden();
   await expect(page.locator('[data-production-device] > summary')).toHaveText('Contribute this computer');
   await page.locator('[data-production-device] > summary').click();

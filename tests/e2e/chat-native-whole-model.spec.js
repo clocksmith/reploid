@@ -104,7 +104,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     await expect(hardwareNode).toBeVisible();
     recordedHardware = (await hardwareNode.textContent())?.trim() || null;
     expect(recordedHardware).toMatch(/^Recorded GPU · .+/);
-    await page.locator('[data-context-indicator]').click();
+    await page.locator('[data-inspector-section="conversation"]').click();
     await expect(page.locator('[data-chat-inspector-slot]')).toBeVisible();
     await expect(page.locator('[data-conversation-area]')).toBeVisible();
     await page.locator('[data-inspector-pane="conversation"] > details > summary').click();

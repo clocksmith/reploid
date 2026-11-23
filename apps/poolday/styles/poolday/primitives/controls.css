@@ -83,6 +83,10 @@
 }
 /* A square icon button at the touch-target size. */
 .pool-home .pool-button.pool-icon { display: inline-grid; place-items: center; width: var(--pool-size-44); padding: 0; }
+.pool-home :is(.pool-button, :where(.btn)):not(.pool-icon) { text-align: start; }
+@media (max-width: 760px) {
+  .pool-home .pool-button > .pool-nav-label { font-size: var(--pool-text-xs); line-height: var(--pool-leading-tight); text-align: center; }
+}
 .pool-home .pool-button.btn-ghost { background: transparent; box-shadow: none; }
 .pool-home .pool-button.btn-ghost:is([aria-pressed='true'], [aria-current='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-choice:has(.pool-choice-mark) { position: relative; }
@@ -105,9 +109,12 @@
 .pool-home .pool-segmented {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  width: auto;
+  justify-content: flex-start;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
   gap: var(--pool-size-4);
   margin: 0;
   padding: var(--pool-size-4);
@@ -192,8 +199,23 @@
 .pool-home .pool-disclosure > summary { display: flex; align-items: center; gap: var(--pool-size-8); min-height: var(--pool-size-48); padding: var(--pool-size-8) var(--pool-size-16); cursor: pointer; list-style: none; font-size: var(--pool-text-sm); font-weight: var(--pool-weight-semibold); }
 .pool-home .pool-disclosure > summary::-webkit-details-marker { display: none; }
 .pool-home .pool-disclosure > summary::before { content: none; }
-.pool-home .pool-disclosure > summary::after { content: '+'; margin-left: auto; font-size: var(--pool-text-lg); color: var(--pool-color-muted); }
-.pool-home .pool-disclosure[open] > summary::after { content: '−'; }
+.pool-home .pool-disclosure > summary::after {
+  content: '';
+  flex: none;
+  width: var(--pool-size-8);
+  height: var(--pool-size-8);
+  margin-left: auto;
+  border-right: var(--pool-border-thick) solid var(--pool-color-muted);
+  border-bottom: var(--pool-border-thick) solid var(--pool-color-muted);
+  transform: translateY(calc(-1 * var(--pool-size-2))) rotate(var(--pool-angle-45));
+  transition: transform var(--pool-transition-fast);
+}
+.pool-home .pool-disclosure[open] > summary::after {
+  transform: translateY(var(--pool-size-2)) rotate(var(--pool-angle-225));
+}
+@media (prefers-reduced-motion: reduce) {
+  .pool-home .pool-disclosure > summary::after { transition: none; }
+}
 .pool-home .pool-disclosure[open] > summary { border-bottom: var(--pool-border-hairline) solid var(--pool-color-line); }
 .pool-home .pool-disclosure > :not(summary) { box-sizing: border-box; max-width: calc(100% - (var(--pool-size-16) * 2)); margin: var(--pool-size-16); }
 .pool-home .pool-disclosure > summary span { font-weight: var(--pool-weight-regular); color: var(--pool-color-muted); }

@@ -80,7 +80,8 @@ describe('Conversation workspace', () => {
     ids.value = 'peer:b'; find('[data-privacy-apply]').click();
     await vi.waitFor(() => expect(dialog.open).toBe(false));
     expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'named', ids: ['peer:b'] });
-    expect(shield.title).toContain('Named computers');
+    expect(find('[data-composer-model-source]').textContent).toBe('Named computers');
+    expect(shield.title).toBe('');
     expect(input.value).toBe('Keep this question');
     expect(session.getState().activeThread.messages).toHaveLength(0);
   });
@@ -337,7 +338,13 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
     expect(find('[data-inspector-pane="model"]')).toBeNull();
     expect(find('[data-threads-dialog] [data-model-control]')).toBeNull();
-    expect(find('[data-inspector-pane="participants"] [data-toggle-file-contribution]')).not.toBeNull();
+    expect(find('[data-threads-dialog] [data-context-controls]')).toBeNull();
+    expect(find('[data-threads-dialog] [data-conversation-download]')).toBeNull();
+    expect(find('[data-inspector-pane="conversation"] [data-context-controls]')).not.toBeNull();
+    expect(find('[data-inspector-pane="conversation"] [data-conversation-download]')).not.toBeNull();
+    expect(find('[data-inspector-pane="participants"] [data-toggle-file-contribution]')).toBeNull();
+    expect(find('[data-inspector-pane="settings"] [data-toggle-file-contribution]')).not.toBeNull();
+    expect(find('[data-inspector-pane="settings"] [data-manage-file-sharing]')).toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-production-device] [data-contribution-limits]')).not.toBeNull();
     expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
     find('[data-toggle-thread-rail]').click();
@@ -351,22 +358,23 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-picker] [data-active-model-select]')).not.toBeNull();
   });
 
-  it('keeps only Computers and Settings in the rail, with model and answer details in context', () => {
+  it('keeps Conversation details, Computers and Settings stable in the rail, with model choice in the composer', () => {
     const navigation = find('[data-chat-rail-toolbar] [data-inspector-navigation]');
-    expect([...navigation.querySelectorAll('[data-inspector-section]:not([hidden])')].map(node => node.dataset.inspectorSection)).toEqual(['participants', 'settings']);
+    expect([...navigation.querySelectorAll('[data-inspector-section]:not([hidden])')].map(node => node.dataset.inspectorSection)).toEqual(['conversation', 'participants', 'settings']);
     expect(find('[data-composer-area] [data-open-model]')).not.toBeNull();
+    expect(find('[data-composer-area] [data-open-control-help]')).toBeNull();
     find('[data-open-model]').click();
     expect(find('[data-model-picker]').open).toBe(true);
     expect(find('#chat-model-picker-title').textContent).toBe('Answer on');
     find('[data-model-picker-close]').click();
-    for (const [section, title] of [['participants', 'Computers'], ['settings', 'Settings']]) {
+    for (const [section, title] of [['conversation', 'Conversation details'], ['participants', 'Computers'], ['settings', 'Settings']]) {
       navigation.querySelector(`[data-inspector-section="${section}"]`).click();
       expect(find('[data-contextual-inspector]').hidden).toBe(false);
       expect(find('#network-inspector-title').textContent).toBe(title);
       expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
     }
-    find('[data-context-indicator]').click();
-    expect(find('#network-inspector-title').textContent).toBe('This conversation');
+    navigation.querySelector('[data-inspector-section="conversation"]').click();
+    expect(find('#network-inspector-title').textContent).toBe('Conversation details');
     expect(new URL(location.href).searchParams.get('view')).toBe('conversation');
     expect(find('[data-inspector-pane="participants"] [data-toggle-contribution]')).not.toBeNull();
   });
@@ -1094,16 +1102,14 @@ describe('Conversation workspace', () => {
     expect(find('[data-thread-sidebar] [data-conversation-actions]')).toBeNull();
   });
 
-  it('opens archived threads from conversation actions in the Threads dialog without losing the draft', () => {
+  it('opens archived threads in the Chats drawer without losing the draft', () => {
     const previous = globalThis.innerWidth;
     Object.defineProperty(globalThis, 'innerWidth', { value: 390, configurable: true });
     try {
       const id = session.createThread({ sharingScope: 'local' });
       session.archiveThread(id);
       find('[data-composer-input]').value = 'Keep my phone draft';
-      find('[data-conversation-actions]').open = true;
       find('[data-show-archived]').click();
-      expect(find('[data-conversation-actions]').open).toBe(false);
       expect(find('[data-chat-workspace]').hasAttribute('data-threads-open')).toBe(true);
       expect(find('[data-threads-dialog]').hidden).toBe(false);
       expect(find('[data-threads-dialog] [data-thread-item-id]').dataset.threadItemId).toBe(id);

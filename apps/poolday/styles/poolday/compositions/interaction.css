@@ -35,7 +35,7 @@
 .chat-model-setup h2, .chat-model-setup p { margin: 0; }
 .chat-model-setup label:not(.chat-model-choice) { display: grid; gap: var(--pool-size-8); }
 .chat-model-setup select { width: 100%; padding: var(--pool-size-8); }
-.chat-model-setup .chat-network-actions { justify-content: flex-end; }
+.chat-model-setup .chat-network-actions { justify-content: flex-start; }
 
 /* Execution path: one quiet strip; details require deliberate activation. */
 .execution-ribbon { position: relative; min-width: 0; }
@@ -102,7 +102,7 @@
 .network-peer-row { align-items: start; gap: var(--pool-size-8); padding-block: var(--pool-size-16); }
 .network-peer-row details code { display: block; margin-top: var(--pool-size-8); }
 .network-status { padding: 0; white-space: nowrap; }
-@media (max-width: 760px) { .network-inspector { width: min(calc(100vw - var(--pool-param-chat-gutter, var(--pool-size-16)) * 2), calc(var(--pool-size-480) * 0.75)); } }
+@media (max-width: 760px) { .network-inspector { left: var(--pool-param-chat-gutter, var(--pool-size-16)); right: var(--pool-param-chat-gutter, var(--pool-size-16)); width: auto; } }
 
 /* Destination content fills the main workspace while its controls stay in the rail. */
 .pool-home .chat-network-rail[data-mounted] {
@@ -110,7 +110,7 @@
 }
 .pool-home .chat-network-rail[data-mounted] .network-inspector {
   position: static; inset: auto; width: 100%; max-width: 100%; height: auto;
-  max-height: none; min-height: 0; margin: 0; padding: var(--pool-size-4);
+  max-height: none; min-height: 0; margin: 0; padding: 0;
   flex: 1; overflow-y: auto;
 }
 .pool-home .chat-network-rail[data-mounted] .network-inspector:not([hidden]) { display: block; animation: none; }
@@ -118,7 +118,7 @@
 .pool-home .network-inspector .network-inspector-tabs > .pool-button {
   display: grid; place-items: center; min-width: 0; height: var(--pool-size-44); padding: 0;
 }
-.pool-home .network-inspector [data-close-inspector] { flex: none; padding-inline: var(--pool-size-8); }
+.pool-home .network-inspector [data-close-inspector] { flex: none; }
 
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail { display: contents; }
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail > :is(.chat-rail-heading, .chat-network-toggle) { display: none; }

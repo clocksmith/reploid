@@ -3,10 +3,10 @@ import { localFitText } from './conversation-model-picker.js';
 import { renderPrivateComputers, bindPrivateComputers } from './private-computers-view.js';
 import { renderOwnerPairingControls, bindOwnerPairingControls } from './owner-pairing-view.js';
 import { renderCircleInviteControls, bindCircleInviteControls } from './circle-invites-view.js';
+import contextPolicy from '../../config/chat-context-policy.json' with { type: 'json' };
 import { updateExecutionDetail } from './execution-activity.js';
 import { projectContextIndicator } from './context-indicator.js';
 import { bindDrawer } from '../components/drawer.js';
-import { renderPowerTower } from './shell-view.js';
 import { workspaceHref } from './workspace-navigation.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
@@ -27,10 +27,10 @@ import { renderThemeSelector } from './theme.js';
 export function renderInspectorNavigation({ workspace = false } = {}) {
   const tag = workspace ? 'a' : 'button';
   const destination = view => workspace ? `href="${escape(workspaceHref(view))}" data-workspace-view="${view}"` : 'type="button"';
-  return `<nav class="pool-stack pool-gap-sm" data-inspector-navigation aria-label="Network sections">
-      ${workspace ? `<a class="pool-button btn-ghost chat-rail-icon" ${destination('conversation')} data-inspector-section="conversation" aria-label="Conversation details" title="Conversation details" hidden>${interfaceIcon('activity')}<span class="chat-rail-label">Activity</span></a>` : ''}
-      <${tag} class="pool-button btn-ghost chat-network-toggle" ${destination('computers')} data-inspector-section="participants" data-toggle-inspector aria-controls="network-inspector-panel" aria-expanded="false" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span class="chat-rail-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants"></small></${tag}>
-      <${tag} class="pool-button btn-ghost chat-rail-icon" ${destination('settings')} data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}<span class="chat-rail-label">Settings</span></${tag}>
+  return `<nav class="chat-inspector-nav" data-inspector-navigation aria-label="Inspector sections">
+      <${tag} class="pool-button btn-ghost chat-rail-icon" ${destination('conversation')} data-inspector-section="conversation" aria-controls="network-inspector-panel" aria-expanded="false">${interfaceIcon('activity')}<span class="chat-rail-label pool-nav-label">Conversation details</span><small class="chat-rail-digest pool-muted" data-rail-digest="conversation" aria-hidden="true"></small></${tag}>
+      <${tag} class="pool-button btn-ghost chat-network-toggle" ${destination('computers')} data-inspector-section="participants" data-toggle-inspector aria-controls="network-inspector-panel" aria-expanded="false">${interfaceIcon('peers')}<span class="chat-rail-label pool-nav-label">Computers</span><small class="chat-rail-digest pool-muted" data-rail-digest="participants" aria-hidden="true"></small></${tag}>
+      <${tag} class="pool-button btn-ghost chat-rail-icon" ${destination('settings')} data-inspector-section="settings" aria-controls="network-inspector-panel" aria-expanded="false">${interfaceIcon('settings')}<span class="chat-rail-label pool-nav-label">Settings</span></${tag}>
     </nav>`;
 }
 
@@ -43,16 +43,27 @@ export function renderInspectorNavigation({ workspace = false } = {}) {
  */
 export function renderInspectorRail({ mounted = false, navigation = !mounted, apps = '', contribution = '' } = {}) {
   const material = mounted ? '' : ' pool-surface';
-  return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Network and settings">
+  return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Inspector">
     ${navigation ? renderInspectorNavigation() : ''}
     <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" id="network-inspector-panel" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading">${mounted ? `<span data-drawer-mark>${renderPowerTower(true)}</span>` : ''}<h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Network</h2><button class="pool-button btn-ghost pool-row pool-gap-sm" type="button" data-close-inspector>${interfaceIcon('close')}Close</button></header>
-    <section data-inspector-pane="conversation" aria-label="This conversation">
+    <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Conversation details</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-inspector aria-label="Close">${interfaceIcon('close')}</button></header>
+    <section class="pool-stack pool-gap-lg" data-inspector-pane="conversation" aria-label="Conversation details">
       <div class="execution-ribbon-route" data-inspector-route></div>
-      <p data-inspector-status role="status"></p><p class="pool-caption pool-muted" data-inspector-context-detail></p><div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
-      <details data-attempt-details><summary>Execution details</summary><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
-      <section data-thread-permissions hidden><h4>Current permissions</h4>
-        <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
+      <p class="pool-small" data-inspector-status role="status"></p>
+      <div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
+      <details class="pool-disclosure" data-attempt-details><summary>Execution details</summary><div class="pool-stack pool-gap-sm"><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details class="pool-disclosure"><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></div></details>
+      <section class="pool-stack pool-gap-sm" data-thread-permissions hidden><h3 class="pool-subheading">Current permissions</h3>
+        <p class="pool-small pool-muted">Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul class="pool-list pool-stack pool-gap-sm" data-thread-grants></ul></section>
+      <section class="pool-stack pool-gap-sm" data-conversation-context aria-label="Context">
+        <h3 class="pool-subheading">Context</h3>
+        <p class="pool-caption pool-muted" data-inspector-context-detail></p>
+        <fieldset class="pool-stack pool-gap-sm" data-context-controls hidden><legend class="pool-small">Context prompt</legend>
+          <label class="pool-row pool-gap-sm"><input type="checkbox" data-context-enabled> <span>Include app context</span></label>
+          <label class="pool-stack pool-gap-xs"><span class="pool-small">Word cap</span><select class="pool-input" data-context-cap aria-label="Context prompt word cap">${contextPolicy.wordLimits.map(limit => `<option value="${limit}">${limit}</option>`).join('')}</select></label>
+          <p class="chat-setup-hint pool-small pool-muted" data-context-count></p><p class="chat-setup-hint pool-small pool-muted" data-context-preview></p>
+        </fieldset>
+      </section>
+      <button class="pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
       ${renderOwnerPairingControls()}
@@ -74,7 +85,6 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
           <p class="pool-caption pool-muted" data-device-usage-scope></p>
           <p class="pool-small pool-muted" data-device-usage-error role="status" hidden></p>
           ${renderComputeSharingControls()}
-          ${renderFileSharingControls()}
           <div class="pool-stack pool-gap-md">
             ${renderComputerDiagnostic()}
             ${contribution}
@@ -86,8 +96,8 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
       </details>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
-      <section><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
-      <section data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-muted" data-settings-storage-summary>No downloaded models</p><button class="pool-button btn-ghost" type="button" data-manage-file-sharing>Manage file sharing</button></section>
+      <section class="pool-stack pool-gap-sm"><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
+      <section class="pool-stack pool-gap-md" data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-small pool-muted" data-settings-storage-summary>No downloaded models</p>${renderFileSharingControls()}</section>
       ${renderLocalData()}
       ${renderAccountPanel()}
       <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
@@ -137,13 +147,11 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   };
   const hide = () => { if (mounted) drawer.setOpen(false); else if (panel.open) panel.close(); };
   let opener, modelFilter = null;
-  const conversationLink = navigation.querySelector('[data-inspector-section="conversation"]');
   const dialog = {
     open(trigger) {
       // A production surface without the workspace opens the inspector as a modal
       // sheet; the workspace and the other routes show it as a panel in their layout.
       const standalone = !!surface?.querySelector('[data-production-surface]') && !surface?.querySelector('[data-chat-workspace]');
-      if (conversationLink) conversationLink.hidden = false;
       if (!standalone) onRailOpen?.(activeSection);
       if (!isOpen() || !panel.contains(trigger)) opener = trigger || toggle;
       buttonState(opener, 'aria-expanded', true);
@@ -161,7 +169,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       }
       find('#network-inspector-title').focus({ preventScroll: true });
     },
-    close({ restoreFocus = true } = {}) { const wasOpen = isOpen(); if (conversationLink) conversationLink.hidden = true; clearModelFilter(); buttonState(opener, 'aria-expanded', false); hide(); surface?.removeAttribute('data-network-panel-open'); if (wasOpen) onRailClose?.(); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { buttonState(button, 'aria-expanded', false); button.removeAttribute('aria-current'); buttonState(button, 'aria-pressed', false); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
+    close({ restoreFocus = true } = {}) { const wasOpen = isOpen(); clearModelFilter(); buttonState(opener, 'aria-expanded', false); hide(); surface?.removeAttribute('data-network-panel-open'); if (wasOpen) onRailClose?.(); delete rail.dataset.expanded; for (const button of navigation.querySelectorAll('[data-inspector-section]')) { buttonState(button, 'aria-expanded', false); button.removeAttribute('aria-current'); buttonState(button, 'aria-pressed', false); } if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
     dispose() { hide(); drawer?.dispose(); surface?.removeAttribute('data-network-panel-open'); }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
@@ -195,7 +203,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (section === 'settings') void storagePanel.refresh();
     if (section === 'device') section = 'participants';
     for (const pane of panel.querySelectorAll('[data-inspector-pane]')) pane.hidden = pane.dataset.inspectorPane !== section;
-    find('#network-inspector-title').textContent = { conversation: 'This conversation', participants: 'Computers', device: 'Sharing', settings: 'Settings' }[section];
+    find('#network-inspector-title').textContent = { conversation: 'Conversation details', participants: 'Computers', device: 'Computers', settings: 'Settings' }[section];
     for (const button of navigation.querySelectorAll('[data-inspector-section]')) buttonState(button, 'aria-pressed', button.dataset.inspectorSection === section);
   };
   panel.addEventListener('click', event => {
@@ -245,14 +253,15 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const attempt = state.activeThread?.attempts?.find(item => item.id === inspected?.attemptId);
     const inspectedState = attempt ? { ...state, activeThread: { ...state.activeThread, attempts: [attempt] } } : state;
     const contextTitle = projectContextIndicator(inspectedState, session).title;
-    find('[data-inspector-context-detail]').textContent = inspected ? contextTitle.replace('Last answer', 'Selected answer').replace('Last execution', 'Selected execution') : contextTitle;
     updateExecutionDetail(find('[data-inspected-activity]'), inspectedState);
     const stored = (state.models || []).filter(model => model.localCached);
     find('[data-settings-storage-summary]').textContent = stored.length ? stored.map(model => model.name || model.id).join(' · ') : 'No downloaded models';
     const view = projectExecutionRibbon(inspectedState), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs, view.executors.map(node => node.label)]);
     find('[data-attempt-details]').hidden = !view.attempt;
     find('[data-inspector-route]').hidden = !view.attempt;
-    find('[data-inspector-context-detail]').hidden = !view.attempt;
+    find('[data-inspector-context-detail]').textContent = view.attempt
+      ? (inspected ? contextTitle.replace('Last answer', 'Selected answer').replace('Last execution', 'Selected execution') : contextTitle)
+      : 'Context usage appears after an answer.';
     creditRequest = view.execution?.serviceCredit?.id || null;
     find('[data-credit-receipt]').hidden = !creditRequest || !state.privateComputers?.connected;
     if (key !== executionKey) {
@@ -276,10 +285,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       const button = navigation.querySelector(`[data-inspector-section="${section}"]`);
       if (!button) continue;
       const digest = button.querySelector('[data-rail-digest]');
-      if (!digest) continue;
-      if (digest.textContent !== summary) digest.textContent = summary;
-      const label = button.querySelector('.chat-rail-label').textContent;
-      button.setAttribute('aria-label', `${label}: ${summary}`); button.title = `${label}: ${summary}`;
+      if (digest && digest.textContent !== summary) digest.textContent = summary;
       button.classList.add('pool-activity-edge');
       button.dataset.activity = (section === 'conversation' && view.status === 'executing')
         || (section === 'device' && state.network?.contribution?.phase === 'executing' && state.network?.sharing) ? 'executing' : 'idle';
@@ -291,15 +297,10 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     if (next !== grantsKey) {
       grantsKey = next;
       find('[data-thread-grants]').innerHTML = grants.map((grant, index) => `<li><strong>Recipient ${index + 1}</strong> · ${escape(state.activeThread.model.name)}
-        <details><summary>Permission details</summary><pre>${escape(JSON.stringify(grant, null, 2))}</pre></details>
+        <details class="pool-disclosure"><summary>Permission details</summary><pre>${escape(JSON.stringify(grant, null, 2))}</pre></details>
         <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
   };
-  on('[data-manage-file-sharing]', 'click', () => {
-    select('participants'); dialog.open();
-    find('[data-production-device]').open = true;
-    find('[data-toggle-file-contribution]').focus();
-  });
   const unsubscribe = session.subscribe(render);
   let downloadMode = 'contribute', downloadInfo = null, localReview = null;
   const checkDownload = async () => {
