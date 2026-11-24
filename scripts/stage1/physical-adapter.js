@@ -28,7 +28,7 @@ const matchesStage = (inventory, stage) => inventory.outsideStageRanges === 0 &&
   && inventory.rangeCount === stage.rangeCount && inventory.bytes === stage.bytes && inventory.rangesDigest === stage.rangesDigest;
 
 export function createPhysicalStage1Adapter({ config, directory, expectations, stageRanges, model, fixture, fixtureBytes,
-  transport, redactor = null, startCoordinator = startPhysicalCoordinator, localDigest = harnessDigest }) {
+  transport, redactor = null, startCoordinator = startPhysicalCoordinator, localDigest = harnessDigest, verifyStageDirectories = false }) {
   if (typeof transport?.run !== 'function' || typeof transport?.open !== 'function') throw Error('A command transport is required');
   const { limits } = config, requesterTarget = { ...config.requester, label: 'requester' }, hosts = config.hosts;
   const earnerTarget = config.earner ? { ...config.earner, label: 'earner' } : null;
@@ -90,6 +90,20 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
   const scan = (host, index, scope, signal) => control(host, 'scan-weights', { roots: scope === 'stage-directory' ? [host.stageDirectory] : hostRoots(host),
     allRanges, stageRanges: stageRanges[index], fullCopyDirectory: host.fullCopyDirectory, scope,
     skipDirectories: locked(host) ? [host.fullCopyDirectory] : [] }, { signal });
+
+  /**
+   * Builds a host's stage directory from its full copy (`build`, never over an existing one), or checks an existing
+   * one's build record against the pin (`verify`; `hash` also re-reads every range). Building reads the whole stage,
+   * so it runs before a run, outside the window. Counts and digests come back, never a path.
+   */
+  async function stageDirectory(label, { action, hash = false, timeoutMs = limits.phaseMs, signal } = {}) {
+    const index = hosts.findIndex(row => row.label === label), host = hosts[index];
+    if (!host) throw stopWith('stage-directory-refused', 'unknown host');
+    if (action === 'build' && !host.fullCopyDirectory) throw stopWith('stage-directory-refused', `${label} has no full copy to build from`);
+    return control(host, 'stage-directory', { action, hash, source: action === 'build' ? host.fullCopyDirectory : null, directory: host.stageDirectory,
+      stageIndex: index, stageRanges: stageRanges[index], otherRanges: stageRanges.filter((_, other) => other !== index).flat(),
+      rangesDigest: expectations.stages[index].rangesDigest, inventorySha256: expectations.inventorySha256 }, { timeoutMs, signal });
+  }
 
   /** Each stage directory holds exactly its stage. Read by the same search as preflight, before and after the split. */
   async function stageDirectories(signal) {
@@ -220,6 +234,7 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
 
   const adapter = {
     describe: () => ({ runtimeClass: 'physical', adapter: 'physical-hosts' }),
+    stageDirectory,
     evidence: () => ({ serviceRestores: [...serviceRows.values()].map(row => ({ ...row })) }),
     processIds: () => [...sessions.values(), ...soloSessions].map(row => row.pid),
     async guard() {
@@ -247,6 +262,9 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
       buyer = earnerTarget ? await createSigningIdentity({ algorithm: 'Ed25519' }) : null;
       coordinator = await startCoordinator({ config, peers, directory, expectations, model, fixture, onSecret: value => redactor?.add(value),
         ...(buyer ? { buyer: { participantId: buyer.peerId, publicJwk: buyer.publicJwk }, earnModel: { id: earnModel.id, identity: earnModel.identity } } : {}) });
+      // Optional: each stage directory's build record names exactly the pinned stage. Nothing is rebuilt here.
+      const records = verifyStageDirectories ? await Promise.all(hosts.map(host => stageDirectory(host.label, { action: 'verify', signal })
+        .catch(error => { throw stopWith('host-stage-check-refused', `${host.label} stage directory record: ${error.code ?? error.message}`); }))) : null;
       const inventories = await Promise.all(hosts.map((host, index) => scan(host, index, 'stage-directory', signal)));
       inventories.forEach((row, index) => {
         if (!matchesStage(row.inventory, expectations.stages[index])) throw stopWith('host-stage-check-refused', `${hosts[index].label} stage directory does not hold exactly its stage`);
@@ -254,7 +272,7 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
       return { requester: { participantId: requesterTarget.participantId, computerId: 'computer-requester', machine: requesterTarget.machineId,
         preflight: await requesterWeights(signal) },
         hosts: hosts.map((host, index) => ({ label: host.label, stageIndex: index, participantId: host.participantId, machine: host.machineId, computerId: `computer-${host.label}`,
-          assignedLayers: null, inventory: { preflight: inventories[index].inventory } })) };
+          assignedLayers: null, inventory: { preflight: inventories[index].inventory }, ...(records ? { stageDirectoryRecord: records[index] } : {}) })) };
     },
     async soloControl(label, { signal }) {
       const host = hosts.find(row => row.label === label), settings = soloSettings();

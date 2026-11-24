@@ -47,7 +47,7 @@ function configuration(change = () => {}) {
 
 /** Scripted machines. `holds` is what each host's search finds; a service is a state the commands really move. */
 function mockHosts(config, scripted = {}) {
-  const log = [], services = {}, holds = {}, running = new Map();
+  const log = [], services = {}, holds = {}, running = new Map(), bodies = [];
   let nextPid = 4000;
   config.hosts.forEach(host => {
     holds[host.label] = { stage: true, fullCopy: true, elsewhere: false, ...(scripted.holds?.[host.label] ?? {}) };
@@ -69,6 +69,12 @@ function mockHosts(config, scripted = {}) {
         outsideInFullCopy: 0, outsideElsewhere: held.length };
     },
     'directory-bytes': () => ({ weightBytes: 0, fileCount: 0 }),
+    'stage-directory'(label, body) {
+      log.push(`stage-directory:${label}:${body.action}`);
+      bodies.push({ label, ...body });
+      if (scripted.stageDirectoryFails?.[label]) throw Object.assign(Error('stage-directory-mismatch: the build record\'s stage differs from the pin'), { code: 'stage-directory-mismatch' });
+      return { verified: 'record', stageIndex: body.stageIndex, ...summarizeRanges(body.stageRanges) };
+    },
     'memory-pressure': label => ({ avg10: scripted.pressure?.[label] ?? 1 }),
     'process-state': (_label, { pid }) => ({ running: running.has(pid) }),
     kill(_label, body) { const child = running.get(body.pid); if (child?.startId === body.startId) { running.delete(body.pid); child.emit('exit', 137); return { killed: true }; } return { killed: false, reason: 'gone' }; },
@@ -130,13 +136,13 @@ function mockHosts(config, scripted = {}) {
       return child;
     }
   };
-  return { transport, log, services, holds, running };
+  return { transport, log, services, holds, running, bodies };
 }
 
 let directory;
 beforeEach(async () => { directory = await fs.mkdtemp(path.join(os.tmpdir(), 'stage1-physical-')); });
 
-async function runAdapter({ config = configuration(), scripted = {}, limits = {} } = {}) {
+async function runAdapter({ config = configuration(), scripted = {}, limits = {}, options = {} } = {}) {
   // An empty ledger file, so cleanup can count open reservations the way it does on a real run.
   const ledgerFile = path.join(directory, 'credits.sqlite'), { DatabaseSync } = await import('node:sqlite');
   const ledger = new DatabaseSync(ledgerFile);
@@ -145,7 +151,7 @@ async function runAdapter({ config = configuration(), scripted = {}, limits = {}
   const hosts = mockHosts(config, scripted), coordinator = { closed: 0, close: async () => { coordinator.closed += 1; }, ledgerFile,
     credits: { snapshot: () => ({ accounts: [{ held: 0 }], journal: [] }) } };
   const adapter = createPhysicalStage1Adapter({ config, directory, expectations, stageRanges, model, fixture, fixtureBytes: Buffer.from(JSON.stringify(fixture)),
-    transport: hosts.transport, localDigest: async () => DIGEST, startCoordinator: async () => coordinator });
+    transport: hosts.transport, localDigest: async () => DIGEST, startCoordinator: async () => coordinator, ...options });
   const receipt = await runStage1Phases({ adapter, expectations, limits: { maxRunMs: 8000, phaseMs: 2000, abortGraceMs: 200, hardStopMs: 1500, ...limits } });
   await fs.rm(directory, { recursive: true, force: true });
   return { ...hosts, receipt, coordinator, verdict: checkStage1Receipt(receipt, expectations) };
@@ -179,6 +185,41 @@ describe('preflight', () => {
     const result = await runAdapter({ scripted: { holds: { 'host-a': { elsewhere: true } } } });
     expect(result.receipt.phases.preflight.reason).toContain('host-stage-check-refused: host-a');
     expect(result.verdict.ok).toBe(false);
+  });
+});
+
+describe('stage directories', () => {
+  const adapterFor = (config, scripted = {}) => {
+    const hosts = mockHosts(config, scripted);
+    return { ...hosts, adapter: createPhysicalStage1Adapter({ config, directory, expectations, stageRanges, model, fixture,
+      fixtureBytes: Buffer.from(JSON.stringify(fixture)), transport: hosts.transport, localDigest: async () => DIGEST }) };
+  };
+  it('builds a host\'s stage directory from its full copy with its pinned ranges, the other stage and the pin', async () => {
+    const { adapter, bodies } = adapterFor(configuration());
+    expect(await adapter.stageDirectory('host-b', { action: 'build', timeoutMs: 1000 })).toMatchObject({ stageIndex: 1, rangeCount: 3 });
+    expect(bodies).toEqual([{ label: 'host-b', action: 'build', hash: false, source: '/data/host-b/tmp/full', directory: '/data/host-b/stage', stageIndex: 1,
+      stageRanges: stageRanges[1], otherRanges: stageRanges[0], rangesDigest: expectations.stages[1].rangesDigest, inventorySha256: expectations.inventorySha256 }]);
+    await adapter.stageDirectory('host-a', { action: 'verify', hash: true });
+    expect(bodies[1]).toMatchObject({ action: 'verify', hash: true, source: null, stageIndex: 0, otherRanges: stageRanges[1] });
+  });
+  it('refuses to build without a full copy', async () => {
+    const { adapter, bodies } = adapterFor(configuration(config => { config.hosts[0].fullCopyDirectory = null; }));
+    await expect(adapter.stageDirectory('host-a', { action: 'build' })).rejects.toMatchObject({ code: 'stage-directory-refused' });
+    expect(bodies).toEqual([]);
+  });
+  it('optionally checks each build record against the pin in preflight, before the search, without rebuilding', async () => {
+    const result = await runAdapter({ options: { verifyStageDirectories: true } });
+    expect(result.log.filter(row => row.startsWith('stage-directory:'))).toEqual(['stage-directory:host-a:verify', 'stage-directory:host-b:verify']);
+    expect(result.receipt.hosts.map(host => host.stageDirectoryRecord)).toEqual(stageRanges.map((ranges, stageIndex) =>
+      ({ verified: 'record', stageIndex, ...summarizeRanges(ranges) })));
+    directory = await fs.mkdtemp(path.join(os.tmpdir(), 'stage1-physical-'));
+    const plain = await runAdapter();
+    expect(plain.log.some(row => row.startsWith('stage-directory:'))).toBe(false);
+  });
+  it('stops preflight when a build record differs from the pin', async () => {
+    const result = await runAdapter({ options: { verifyStageDirectories: true }, scripted: { stageDirectoryFails: { 'host-b': true } } });
+    expect(result.receipt.phases.preflight.reason).toContain('host-stage-check-refused: host-b stage directory record: stage-directory-mismatch');
+    expect(result.log.some(row => row.includes(':solo'))).toBe(false);
   });
 });
 

@@ -17,6 +17,7 @@ import { effectiveRequestDigest, normalizeGenerationSettings } from '../../packa
 import { measureDirectoryBytes, measureHeldRanges } from './inventory.js';
 import { assertCompleteCopy, killExactProcess, lockDirectory, parseMemoryPressure, processStart, scanHostWeights, serviceAction } from './host-control.js';
 import { claimsMemory, classifySoloFailure } from './solo-failure.js';
+import { stageDirectoryOperation } from './build-stage-directory.js';
 import { STAGE1_MODEL_ID } from './expectations.js';
 
 const STAGE1_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
@@ -101,7 +102,9 @@ export function createControlOperations(ports) {
       const current = await (ports.killPorts?.readStart ?? processStart)(pid);
       return { running: current !== null && current === startId };
     },
-    service: body => ports.service(body)
+    service: body => ports.service(body),
+    /** Builds this host's stage directory from its full copy, or checks an existing one against the pin. */
+    'stage-directory': body => (ports.stageDirectory ?? stageDirectoryOperation)(body)
   };
 }
 

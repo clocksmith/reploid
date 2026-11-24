@@ -4,7 +4,13 @@
  *
  *   node scripts/stage1/run.js --adapter local --work DIRECTORY --out RECEIPT.json [--fixture FILE]
  *   node scripts/stage1/run.js --adapter physical --hosts PRIVATE_FILE --window-until ISO_TIME --work DIRECTORY
- *     --out RECEIPT.json [--fixture FILE]
+ *     --out RECEIPT.json [--fixture FILE] [--verify-stage-directories]
+ *   node scripts/stage1/run.js --adapter physical --hosts PRIVATE_FILE --prepare-stage-directories build|verify
+ *     [--host host-a|host-b] [--hash] [--timeout-minutes N]
+ *
+ * `--prepare-stage-directories` runs before a window, never inside one: `build` writes each stage host's stage
+ * directory from its full copy (refusing one that exists), `verify` checks an existing one's build record against
+ * the pin (`--hash` also re-reads every range). `--verify-stage-directories` adds that record check to preflight.
  *
  * The local adapter is three processes on this machine with a fake model runtime. The physical adapter drives real
  * hosts over SSH and refuses to start without a window. The written file holds the receipt and the checker's verdict;
@@ -43,12 +49,12 @@ export async function runLocalStage1({ directory, limits, signal, fixtureFile = 
  * anything is contacted, and everything returned has the host file's private values removed.
  */
 export async function runPhysicalStage1({ config, transport, windowUntil, directory, fixtureFile = null,
-  signal = null, now = Date.now, startCoordinator }) {
+  signal = null, now = Date.now, startCoordinator, verifyStageDirectories = false }) {
   validatePhysicalConfig(config);
   const { maxRunMs } = resolveRunWindow(windowUntil, { now: now(), stopMarginMs: config.limits.stopMarginMs });
   const loaded = await loadWorkload('physical', fixtureFile, config.credit.weights);
   const redactor = createRedactor(config);
-  const adapter = createPhysicalStage1Adapter({ config, directory, transport, redactor, ...loaded,
+  const adapter = createPhysicalStage1Adapter({ config, directory, transport, redactor, ...loaded, verifyStageDirectories,
     ...(startCoordinator ? { startCoordinator } : {}) });
   const { phaseMs, abortGraceMs, hardStopMs } = config.limits;
   const raw = await runStage1Phases({ adapter, expectations: loaded.expectations, signal, now,
@@ -57,9 +63,44 @@ export async function runPhysicalStage1({ config, transport, windowUntil, direct
   return { receipt, verdict: checkStage1Receipt(receipt, loaded.expectations), expectations: loaded.expectations };
 }
 
+/**
+ * Builds or verifies the stage directories on the stage hosts, one host at a time, outside any window. Returns each
+ * host's counts and digest, or its refusal, with the host file's private values removed.
+ */
+export async function prepareStageDirectories({ config, transport, action, labels = null, hash = false, timeoutMs, signal = null }) {
+  validatePhysicalConfig(config);
+  if (!['build', 'verify'].includes(action)) throw Error('The stage directory action is build or verify');
+  const loaded = await loadWorkload('physical', null, config.credit.weights);
+  const redactor = createRedactor(config);
+  const adapter = createPhysicalStage1Adapter({ config, directory: null, transport, redactor, ...loaded });
+  const results = {};
+  for (const host of config.hosts) {
+    if (labels && !labels.includes(host.label)) continue;
+    try { results[host.label] = { ok: true, ...await adapter.stageDirectory(host.label, { action, hash, timeoutMs, signal }) }; }
+    catch (error) { results[host.label] = { ok: false, code: error.code ?? null, error: redactor.text(error.message) }; }
+  }
+  return results;
+}
+
 async function main() {
   const { values } = parseArgs({ options: { adapter: { type: 'string' }, work: { type: 'string' }, out: { type: 'string' },
-    hosts: { type: 'string' }, fixture: { type: 'string' }, 'window-until': { type: 'string' } } });
+    hosts: { type: 'string' }, fixture: { type: 'string' }, 'window-until': { type: 'string' },
+    'verify-stage-directories': { type: 'boolean' }, 'prepare-stage-directories': { type: 'string' }, host: { type: 'string' },
+    hash: { type: 'boolean' }, 'timeout-minutes': { type: 'string' } } });
+  if (values['prepare-stage-directories'] !== undefined) {
+    const minutes = Number(values['timeout-minutes'] ?? 240);
+    if (values.adapter !== 'physical' || !values.hosts || values['window-until'] || !(minutes > 0)) {
+      throw Error('Usage: run.js --adapter physical --hosts PRIVATE_FILE --prepare-stage-directories build|verify [--host LABEL] [--hash] [--timeout-minutes N]');
+    }
+    const stop = new AbortController();
+    for (const name of ['SIGINT', 'SIGTERM']) process.once(name, () => stop.abort(Error(`Received ${name}`)));
+    const results = await prepareStageDirectories({ config: await loadPhysicalConfig(values.hosts), transport: createSshTransport(),
+      action: values['prepare-stage-directories'], labels: values.host ? [values.host] : null, hash: values.hash === true,
+      timeoutMs: Math.round(minutes * 60000), signal: stop.signal });
+    process.stdout.write(JSON.stringify(results, null, 2) + '\n');
+    process.exitCode = Object.values(results).every(row => row.ok) ? 0 : 1;
+    return;
+  }
   if (!['local', 'physical'].includes(values.adapter) || !values.work || !values.out || !path.isAbsolute(values.work) || !path.isAbsolute(values.out)
     || (values.fixture && !path.isAbsolute(values.fixture))) {
     throw Error('Usage: run.js --adapter local|physical --work ABSOLUTE_DIRECTORY --out ABSOLUTE_RECEIPT.json [--fixture ABSOLUTE_FILE]');
@@ -77,7 +118,7 @@ async function main() {
     resolveRunWindow(values['window-until'], { now: Date.now(), stopMarginMs: 0 });
     const config = await loadPhysicalConfig(values.hosts);
     result = await runPhysicalStage1({ config, transport: createSshTransport(), windowUntil: values['window-until'], directory: values.work,
-      fixtureFile: values.fixture ?? null, signal: stop.signal });
+      fixtureFile: values.fixture ?? null, signal: stop.signal, verifyStageDirectories: values['verify-stage-directories'] === true });
   }
   const { receipt, verdict } = result;
   await fs.writeFile(values.out, JSON.stringify({ receipt, verdict }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
