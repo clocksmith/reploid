@@ -28,6 +28,10 @@
       "types": "./src/chat/index.d.ts",
       "import": "./src/chat/index.js"
     },
+    "./inference": {
+      "types": "./src/inference/index.d.ts",
+      "import": "./src/inference/index.js"
+    },
     "./retrieval": {
       "types": "./src/retrieval/index.d.ts",
       "import": "./src/retrieval/index.js"

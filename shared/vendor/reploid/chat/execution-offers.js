@@ -1,5 +1,5 @@
 /** Advertised offers are untrusted inventory. Only implemented paths can become eligible. */
-import { validateExecutionPolicy, assertAvailableExecutionPolicy, validateExecutionRoute, plaintextExecutionRoute } from './execution-policy.js';
+import { validateExecutionPolicy, assertAvailableExecutionPolicy, validateExecutionRoute, plaintextExecutionRoute, executionBackend } from './execution-policy.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(`Execution offer: ${message}`); };
 const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
@@ -19,11 +19,18 @@ export function validateExecutionOffers(input) {
   });
 }
 
-/** Filter every offered path independently. A secure-looking advertisement can never upgrade Doppler plaintext. */
+/**
+ * Filter every offered path independently against the requester's own backend registry. An offer is eligible only
+ * when its backend is registered here and its declared kind and protocol equal that registration exactly, so a
+ * secure-looking advertisement can never upgrade Doppler plaintext, and no unregistered (unavailable) mode qualifies.
+ */
 export function eligibleExecutionOffers(request, offers, recipients) {
   const policy = assertAvailableExecutionPolicy(validateExecutionPolicy(request.privacy));
   return validateExecutionOffers(offers).filter(offer => {
-    if (offer.operation !== (request.operation ?? 'generate') || !offer.modelIdentities.includes(request.model.identity) || offer.kind !== 'plaintext' || offer.protocol !== null) return false;
+    const backend = executionBackend(offer.backend);
+    if (!backend || offer.kind !== backend.computation || offer.protocol !== backend.protocol
+      || backend.computation !== policy.computation) return false;
+    if (offer.operation !== (request.operation ?? 'generate') || !offer.modelIdentities.includes(request.model.identity)) return false;
     const route = plaintextExecutionRoute(request, { recipients });
     if (offer.backend !== route.backend) return false;
     try { validateExecutionRoute(policy, route); return true; } catch { return false; }

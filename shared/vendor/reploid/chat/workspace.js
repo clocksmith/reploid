@@ -4,7 +4,7 @@ import { partitionActivity } from '../contracts/partition-activity.js';
 import { canonicalPartitionJson } from '../contracts/partition.js';
 import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../contracts/partition-publication.js';
 import defaults from './policy.json' with { type: 'json' };
-import { createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, sameExecutionBinding, executionPrivacyReceipt, bindAuxiliaryDisclosure } from './execution-policy.js';
+import { createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, sameExecutionBinding, bindAuxiliaryDisclosure } from './execution-policy.js';
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
 import { SEARCH_RECIPIENTS_CHANGED, validateSearchPermission } from './search-permission.js';
@@ -426,7 +426,6 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             assert(!attempt.privacyBinding || attempt.privacyBinding.policyId === binding.policyId
               && attempt.privacyBinding.routeId === binding.routeId, 'Execution recipients changed. Retry starts a new authorized attempt.');
             attempt.privacyBinding = copy(binding);
-            attempt.privacyReceipt = executionPrivacyReceipt(binding);
             if (scope) { scope.policyId = binding.policyId; scope.routeId = binding.routeId; }
             const grant = matchingThreadGrant(thread.grants, scope);
             if (published) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');

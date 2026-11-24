@@ -230,7 +230,8 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
       expect(descriptions).toBe(2); expect(events.map(row => row.stage)).toEqual(['proposed', 'approved', 'completed']);
       const serialized = JSON.stringify([...events, ...partials]);
       for (const key of ['private host canary', 'mutated after', 'inputHash', 'outputHash', 'requestHash', 'preview', 'question', 'tokenIds']) expect(serialized).not.toContain(key);
-      expect(events[2].privacy.publicationAuthorized).toBe(false);
+      expect(events[2].route).toMatchObject({ backend: 'doppler-plaintext/v1', recipients: [f.providerIdentity.keyId] });
+      expect(events[2]).not.toHaveProperty('privacy');
     } finally { await f.close(); }
   });
   it('stops host disclosure after revocation or disappearing selected providers without choosing another offer', async () => {

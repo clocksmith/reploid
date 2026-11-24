@@ -14,9 +14,35 @@ const freeze = value => {
 
 export const EXECUTION_POLICY_SCHEMA = 'reploid.execution-policy/v2';
 export const EXECUTION_BINDING_SCHEMA = 'reploid.execution-binding/v2';
-const metadata = ['model-id', 'timing', 'length', 'access-patterns'];
+/** Stable refusal codes shared by the inference API, its HTTP adapters and the CLI. */
+export const EXECUTION_ERROR_CODES = Object.freeze({
+  CONFIDENTIAL_EXECUTION_UNAVAILABLE: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE',
+  LEAKAGE_NOT_ALLOWED: 'LEAKAGE_NOT_ALLOWED',
+  EXECUTION_PLAN_EXPIRED: 'EXECUTION_PLAN_EXPIRED',
+  EXECUTION_PLAN_CHANGED: 'EXECUTION_PLAN_CHANGED',
+  RESULT_UNVERIFIED: 'RESULT_UNVERIFIED',
+  EXECUTION_REQUEST_INVALID: 'EXECUTION_REQUEST_INVALID',
+  EXECUTION_ROUTE_UNAVAILABLE: 'EXECUTION_ROUTE_UNAVAILABLE'
+});
+export const executionError = (code, message) => {
+  if (!Object.hasOwn(EXECUTION_ERROR_CODES, code)) throw new Error(`Unknown execution error code ${code}`);
+  return Object.assign(new Error(message), { code });
+};
+/** Metadata names a caller may allow. Content itself is governed by confidentiality, never by this list. */
+export const EXECUTION_METADATA = Object.freeze(['model-id', 'timing', 'length', 'access-patterns']);
+const metadata = [...EXECUTION_METADATA];
 const plaintextLeakage = [...metadata, 'plaintext'];
-const plaintextBackends = ['doppler-plaintext/v1', 'doppler-partition-plaintext/v1'];
+/**
+ * Backends this requester can actually run, keyed by exact identity. A backend is eligible only when its
+ * registered computation and protocol match the offer exactly; an advertisement cannot add a row or upgrade one.
+ * `metadata` is what the backend's route exposes beyond the participants that read content.
+ */
+export const EXECUTION_BACKENDS = freeze({
+  'doppler-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: ['model-id', 'timing', 'length'] },
+  'doppler-partition-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: ['model-id', 'timing', 'length'] }
+});
+export const executionBackend = backend => Object.hasOwn(EXECUTION_BACKENDS, backend) ? EXECUTION_BACKENDS[backend] : null;
+const plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 const exact = (object, keys) => object && typeof object === 'object' && !Array.isArray(object)
   && Object.keys(object).length === keys.length && keys.every(key => Object.hasOwn(object, key));
 
@@ -70,6 +96,58 @@ export function assertAvailableExecutionPolicy(policy) {
   return policy;
 }
 
+const invalid = message => executionError('EXECUTION_REQUEST_INVALID', `Execution requirements: ${message}`);
+
+/**
+ * Compile a caller's execution requirements into the verified peer policy. `requester-only` means no executor
+ * may read the content; no backend qualifies for it, so it fails closed here and is never relaxed to a readable mode.
+ */
+export function compileExecutionRequirements(execution) {
+  if (!exact(execution, ['placement', 'participants', 'confidentiality', 'allowMetadata'])) {
+    throw invalid('placement, participants, confidentiality and allowMetadata are required, with no other fields');
+  }
+  const { placement, participants, confidentiality, allowMetadata } = execution;
+  if (!['local-only', 'network-allowed'].includes(placement)) throw invalid('placement must be local-only or network-allowed');
+  if (!['requester-only', 'executor-readable'].includes(confidentiality)) throw invalid('confidentiality must be requester-only or executor-readable');
+  if (!Array.isArray(allowMetadata) || new Set(allowMetadata).size !== allowMetadata.length
+    || !allowMetadata.every(item => metadata.includes(item))) throw invalid(`allowMetadata must be distinct items of ${metadata.join(', ')}`);
+  const kind = participants?.kind;
+  const shaped = kind === 'named' ? exact(participants, ['kind', 'ids']) && participants.ids?.length > 0 && list(participants.ids)
+    : ['open', 'none'].includes(kind) && exact(participants, ['kind']);
+  if (!shaped) throw invalid('participants must be { kind: "open" }, { kind: "none" } or { kind: "named", ids: [unique ids] }');
+  if ((placement === 'local-only') !== (kind === 'none')) throw invalid('local-only placement takes { kind: "none" } participants, and only it does');
+  if (confidentiality === 'requester-only') {
+    throw executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
+      'No backend that keeps content from its executors is qualified. Nothing was sent; the request is not retried as readable or local.');
+  }
+  return createExecutionPolicy({ placement, recipients: { kind, ids: kind === 'named' ? [...participants.ids] : [] },
+    leakage: [...metadata.filter(item => allowMetadata.includes(item)), 'plaintext'] });
+}
+
+/** The caller requirements a stored policy stands for. Policies outside the API's vocabulary are refused, never widened. */
+export function executionRequirementsFor(policy) {
+  policy = validateExecutionPolicy(policy);
+  const confidential = policy.computation !== 'plaintext' || policy.collusion !== 'none' || !policy.leakage.includes('plaintext');
+  if (!confidential && (policy.retention !== 'execution-and-recovery' || policy.protocol || policy.attestation || policy.keyContext)) {
+    throw invalid('this policy has requirements the inference API cannot express');
+  }
+  return freeze({ placement: policy.placement,
+    participants: policy.recipients.kind === 'named' ? { kind: 'named', ids: [...policy.recipients.ids] } : { kind: policy.recipients.kind },
+    confidentiality: confidential ? 'requester-only' : 'executor-readable',
+    allowMetadata: metadata.filter(item => policy.leakage.includes(item)) });
+}
+
+/** True when `narrowed` grants no recipient, leakage or mode that `base` does not. Used to accept operator narrowing. */
+export function narrowsExecutionPolicy(base, narrowed) {
+  try { base = validateExecutionPolicy(base); narrowed = validateExecutionPolicy(narrowed); } catch { return false; }
+  const recipients = base.recipients.kind === 'open' ? narrowed.recipients.kind !== 'none' || narrowed.placement === 'local-only'
+    : base.recipients.kind === 'named' ? narrowed.recipients.kind === 'named' && narrowed.recipients.ids.every(item => base.recipients.ids.includes(item))
+      : narrowed.recipients.kind === 'none';
+  return recipients && (base.placement === 'network-allowed' || narrowed.placement === 'local-only')
+    && ['computation', 'collusion', 'protocol', 'attestation', 'keyContext', 'retention'].every(key => base[key] === narrowed[key])
+    && narrowed.leakage.every(item => base.leakage.includes(item));
+}
+
 /** Complete explicit route, including requester-visible coordinators. Never use provider claims to construct it. */
 export function plaintextExecutionRoute(request, { recipients = [], local = false, route = null } = {}) {
   assert(id(request.model?.id) && hash(request.model?.identity), 'exact model identity required');
@@ -87,7 +165,7 @@ export function validateExecutionRoute(policy, route) {
   assert(exact(route, ['schema', 'modelId', 'modelIdentity', 'adapterIdentities', 'backend', 'protocol', 'route', 'hops'])
     && route.schema === 'reploid.execution-route/v1' && plaintextBackends.includes(route.backend)
     && route.protocol === null && Array.isArray(route.hops) && route.hops.length <= 128, 'unsupported execution route');
-  validatePlaintextHops(policy, route.hops);
+  validatePlaintextHops(policy, route.hops, EXECUTION_BACKENDS[route.backend].metadata);
   return freeze(structuredClone(route));
 }
 
@@ -99,16 +177,6 @@ export async function bindExecutionRoute(request, route) {
     'execution route substituted the requested model or adapters');
   return freeze({ schema: EXECUTION_BINDING_SCHEMA, policy, route,
     policyId: await hashJson(policy), routeId: await hashJson(route) });
-}
-
-/** A receipt of requester validation, not proof of an honest provider, integrity, availability or erasure. */
-export function executionPrivacyReceipt(binding) {
-  return { schema: 'reploid.privacy-receipt/v2', policyId: binding.policyId, routeId: binding.routeId,
-    computation: binding.policy.computation, placement: binding.policy.placement, recipientAuthorization: binding.policy.recipients.kind, backend: binding.route.backend, protocol: binding.route.protocol,
-    recipients: binding.route.hops.filter(hop => hop.placement === 'remote').map(hop => hop.recipient),
-    permittedLeakage: [...binding.policy.leakage], collusion: binding.policy.collusion, retention: binding.policy.retention,
-    evidence: 'requester-policy-validation', attestation: 'unavailable', cryptographic: 'unavailable',
-    publicationAuthorized: false, reuseAuthorized: false };
 }
 
 export function sameExecutionBinding(a, b) {
@@ -126,7 +194,7 @@ export async function partitionPrivacyBinding(request, recipients, route) {
 }
 
 /** Shared plaintext disclosure requirements for inference and auxiliary operations. */
-export function validatePlaintextHops(policy, hops) {
+export function validatePlaintextHops(policy, hops, exposed = EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata) {
   policy = assertAvailableExecutionPolicy(policy);
   assert(Array.isArray(hops) && hops.length <= 128, 'bounded disclosure hops required');
   assert(new Set(hops.map(hop => hop?.recipient)).size === hops.length, 'duplicate route recipient');
@@ -137,7 +205,7 @@ export function validatePlaintextHops(policy, hops) {
     assert(policy.placement !== 'local-only', 'local-only policy excludes remote hops');
     assert(policy.recipients.kind === 'open' || policy.recipients.kind === 'named'
       && policy.recipients.ids.includes(hop.recipient), 'route contains an unauthorized recipient');
-    assert(policy.leakage.includes('plaintext') && ['model-id', 'timing', 'length', 'access-patterns'].every(item => policy.leakage.includes(item)),
+    assert(policy.leakage.includes('plaintext') && exposed.every(item => policy.leakage.includes(item)),
       'plaintext backend exceeds permitted leakage');
   }
   return freeze(structuredClone(hops));

@@ -1,5 +1,5 @@
 /** Versioned disclosure authority for direct complete operations. Intentionally public input uses a separate consent contract. */
-import { assertAvailableExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute, sameExecutionBinding, executionPrivacyReceipt } from '../../chat/execution-policy.js';
+import { assertAvailableExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute, sameExecutionBinding } from '../../chat/execution-policy.js';
 const assert = (ok, message) => { if (!ok) throw new Error(`Operation privacy: ${message}`); };
 export const OPERATION_CONSENT_SCHEMA = 'reploid.peer.execution_consent/v3';
 export function operationConsentRequirements(consent) {
@@ -29,5 +29,8 @@ export async function verifyOperationConsent(consent, { modelId, modelIdentity, 
 /** Build safe observer evidence before invoking observers; signed payloads remain requester/provider local. */
 export function operationObserverEvidence({ stage, operation, modelId, providerId, offerId, binding, attemptId }) {
   return { schema: 'reploid.operation-observer/v1', stage, attemptId, operation, modelId, providerId, offerId,
-    privacy: executionPrivacyReceipt(binding), evidence: 'requester-policy-validation; execution identity only' };
+    // The bound route only: which recipients were authorized under which policy. Not evidence of conduct or correctness.
+    route: { policyId: binding.policyId, routeId: binding.routeId, backend: binding.route.backend, protocol: binding.route.protocol,
+      recipients: binding.route.hops.filter(hop => hop.placement === 'remote').map(hop => hop.recipient) },
+    evidence: 'requester-route-binding; execution identity only' };
 }

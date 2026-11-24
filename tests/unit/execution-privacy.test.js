@@ -1,7 +1,8 @@
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute,
-  validateExecutionRoute, bindExecutionRoute, executionPrivacyReceipt } from '../../packages/reploid/src/chat/execution-policy.js';
+  validateExecutionRoute, bindExecutionRoute, compileExecutionRequirements, executionRequirementsFor, narrowsExecutionPolicy
+} from '../../packages/reploid/src/chat/execution-policy.js';
 import { eligibleExecutionOffers } from '../../packages/reploid/src/chat/execution-offers.js';
 import { remotePermissionNeed, createRemotePermission, remotePermissionCovers } from '../../packages/reploid/src/chat/remote-permission.js';
 
@@ -62,12 +63,37 @@ describe('request privacy at the disclosure boundary', () => {
     expect(remotePermissionCovers(permission, need)).toBe(true);
     expect(remotePermissionCovers(permission, { ...need, routeId: hash('d') })).toBe(false);
     expect(remotePermissionCovers(permission, { ...need, policyId: hash('d') })).toBe(false);
-    const receipt = executionPrivacyReceipt(binding);
-    expect(receipt.recipients).toEqual(['entry']);
-    expect(receipt).not.toHaveProperty('messages');
-    expect(receipt).not.toHaveProperty('inputHash');
-    expect(receipt.cryptographic).toBe('unavailable');
+    expect(binding.route.hops.map(hop => hop.recipient)).toEqual(['entry']);
+    expect(JSON.stringify(binding)).not.toContain('messages');
     expect(Object.isFrozen(binding.route.hops)).toBe(true);
+  });
+  it('compiles caller requirements into the peer policy and refuses what no backend can meet', () => {
+    const execution = { placement: 'network-allowed', participants: { kind: 'named', ids: ['mine'] },
+      confidentiality: 'executor-readable', allowMetadata: ['length', 'model-id', 'timing'] };
+    const policy = compileExecutionRequirements(execution);
+    expect(policy).toMatchObject({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['mine'] }, computation: 'plaintext',
+      collusion: 'none', leakage: ['model-id', 'timing', 'length', 'plaintext'], allowDowngrade: false });
+    expect(executionRequirementsFor(policy)).toEqual({ ...execution, allowMetadata: ['model-id', 'timing', 'length'] });
+    expect(() => compileExecutionRequirements({ ...execution, confidentiality: 'requester-only' })).toThrow(expect.objectContaining({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' }));
+    for (const bad of [{ ...execution, placement: 'local-only' }, { ...execution, allowMetadata: ['plaintext'] }, { ...execution, extra: true },
+      { ...execution, participants: { kind: 'named', ids: [] } }, { ...execution, confidentiality: 'encrypted' }]) {
+      expect(() => compileExecutionRequirements(bad)).toThrow(expect.objectContaining({ code: 'EXECUTION_REQUEST_INVALID' }));
+    }
+    // A policy the API cannot express is refused, never widened, and a confidential one maps to requester-only.
+    expect(() => executionRequirementsFor(createExecutionPolicy({ retention: 'ephemeral' }))).toThrow('cannot express');
+    expect(executionRequirementsFor(createExecutionPolicy({ computation: 'cryptographic', protocol: 'fhe/v1', keyContext: 'k' })).confidentiality).toBe('requester-only');
+    // Narrowing: fewer recipients and less metadata pass; more of either does not.
+    const open = compileExecutionRequirements({ ...execution, participants: { kind: 'open' } });
+    expect(narrowsExecutionPolicy(open, policy)).toBe(true);
+    expect(narrowsExecutionPolicy(policy, open)).toBe(false);
+    expect(narrowsExecutionPolicy(compileExecutionRequirements({ ...execution, allowMetadata: [] }), policy)).toBe(false);
+  });
+  it('qualifies an offer only by the requester\'s own backend registry, never by its advertised kind', () => {
+    const policy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+    const upgraded = { ...offer('upgraded'), kind: 'attested' };
+    const unregistered = { ...offer('unregistered'), backend: 'doppler-plaintext/v9' };
+    const declaredProtocol = { ...offer('protocol'), protocol: 'masking/v1' };
+    expect(eligibleExecutionOffers(request(policy), [upgraded, unregistered, declaredProtocol, offer('plain')], ['entry']).map(row => row.id)).toEqual(['plain']);
   });
 });
 

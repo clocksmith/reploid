@@ -48,7 +48,7 @@ export function createPartitionRuntimeFixture({ beforeStep = async () => {} } = 
         const tokenId = request.activation.tensorData[0] + 1;
         return { identity: request.identity, step: request.step, tokenPosition: request.tokenPosition,
           tokenId, delta: String(tokenId) + ' ', done: request.step === 2 || request.step + 1 === request.maxTokens,
-          stopReason: request.step === 2 ? 'fixture-eos' : 'max-tokens', logits: [tokenId, -tokenId],
+          stopReason: request.step === 2 ? 'eos-token' : 'max-tokens', logits: [tokenId, -tokenId],
           continuation: { position: request.tokenPosition + request.inputTokenCount } };
       },
       async closeAttempt({ identity }) {

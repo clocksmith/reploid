@@ -2,6 +2,7 @@
 import { afterEach, expect, it } from 'vitest';
 import { createJourneyNetwork } from '../helpers/journey-network.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+import { createInference } from '../../packages/reploid/src/inference/index.js';
 
 const cleanup = [];
 afterEach(async () => { for (const close of cleanup.splice(0).reverse()) await close(); });
@@ -125,4 +126,47 @@ it('a provider checks the requester\'s credit from the commitment, and declines 
   const again = await fixture.requesterClient.fence(refused.reservationId);
   expect(again.charge).toBe(0);
   expect(held()).toBe(0);
+}, 30000);
+
+it('through the inference API, a provider lost mid-answer fails the run: streamed text is never a result and no other provider is asked', async () => {
+  const fixture = await createJourneyNetwork({ providers: [
+    { name: 'named', tokensPerSecond: 40, holdsModel: true },
+    { name: 'other', tokensPerSecond: 40, holdsModel: true }
+  ] });
+  cleanup.push(() => fixture.close());
+  const { hub, model, requester } = fixture;
+  const named = fixture.seatOf('named'), other = fixture.seatOf('other');
+  const messages = [{ role: 'user', content: 'Public fixture for inference after provider loss.' }];
+  const toOther = [];
+  cleanup.push(hub.lose((entry, payload) => {
+    if (entry.to === other.run.id) toOther.push({ type: entry.type, carriesPrompt: JSON.stringify(payload).includes(messages[0].content) });
+    return false;
+  }));
+  await fixture.expectReady(2);
+  let stopping;
+  const inference = createInference({
+    resolveRoute: request => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: request.execution.participants.ids, selection: 'one-of' }),
+    execute: ({ policy, request }, controls) => requester.generate({ model, messages: request.messages, threadId: 'inference-loss',
+      attemptId: request.attemptId, privacy: policy }, { ...controls, onDelta(envelope) { stopping ??= fixture.stop('named'); return controls.onDelta(envelope); } })
+  });
+  const plan = await inference.prepare({ model: { id: model.id, identity: model.identity }, execution: { placement: 'network-allowed',
+    participants: { kind: 'named', ids: [named.identity.peerId] }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } });
+  const run = await inference.run({ planId: plan.id, requestId: 'lost-provider', input: { messages } }, { signal: AbortSignal.timeout(5000) });
+  const events = [];
+  for await (const event of run.events) events.push(event.type);
+  const result = await run.result;
+  await stopping;
+  expect(events[0]).toBe('admitted');
+  expect(events).toContain('output.delta');
+  expect(events.at(-1)).toBe('failed');
+  expect(result).toMatchObject({ requestId: 'lost-provider', status: 'failed', output: null, usage: null });
+  expect(result.executionReceipt).toMatchObject({ status: 'failed', route: { participants: [named.identity.peerId] } });
+  expect(result.executionReceipt.evidence.integrity.verified).toEqual([]);
+  // The plan pinned the named provider. The ready one that was not named received nothing.
+  expect(toOther.filter(row => row.type === 'reploid:generation-request')).toEqual([]);
+  expect(toOther.filter(row => row.carriesPrompt)).toEqual([]);
+  expect(other.executions).toBe(0);
+  // The plan was used once; running it again is refused before anything is sent.
+  await expect(inference.run({ planId: plan.id, requestId: 'lost-provider-again', input: { messages } }))
+    .rejects.toMatchObject({ code: 'EXECUTION_PLAN_EXPIRED' });
 }, 30000);

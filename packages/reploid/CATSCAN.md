@@ -26,7 +26,7 @@ Partition runners require host-supplied Doppler codecs/comparison; mesh imports 
 Outputs: explicit ESM APIs, distinct assignment/swarm protocols and signed
 rsi.improvement-episode/v1 evidence.
 
-Distinct contracts: [weight-shard custody](src/artifacts/custody/CATSCAN.md),
+[Inference](src/inference/CATSCAN.md). Distinct: [weight-shard custody](src/artifacts/custody/CATSCAN.md),
 [whole requests](src/mesh/jobs/CATSCAN.md), Doppler-defined computational partitions,
 and [agent subtasks](src/agent/CATSCAN.md). [Transport](src/transport/CATSCAN.md)
 moves artifacts, intermediate results and messages with bounded recovery.

@@ -14,6 +14,24 @@ export interface ExecutionBinding { schema: 'reploid.execution-binding/v2'; poli
 export interface PrivacyRequest { model: { id: string; identity: string; partition?: unknown; adapters?: Array<{identity: string}> }; privacy?: ExecutionPolicy | null; permissions?: Record<string, unknown> }
 export declare const EXECUTION_POLICY_SCHEMA: 'reploid.execution-policy/v2';
 export declare const EXECUTION_BINDING_SCHEMA: 'reploid.execution-binding/v2';
+export type ExecutionErrorCode = 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' | 'LEAKAGE_NOT_ALLOWED' | 'EXECUTION_PLAN_EXPIRED'
+  | 'EXECUTION_PLAN_CHANGED' | 'RESULT_UNVERIFIED' | 'EXECUTION_REQUEST_INVALID' | 'EXECUTION_ROUTE_UNAVAILABLE';
+export declare const EXECUTION_ERROR_CODES: Readonly<{ [K in ExecutionErrorCode]: K }>;
+export declare function executionError(code: ExecutionErrorCode, message: string): Error & { code: ExecutionErrorCode };
+export type ExecutionMetadata = 'model-id' | 'timing' | 'length' | 'access-patterns';
+export declare const EXECUTION_METADATA: readonly ExecutionMetadata[];
+export interface ExecutionBackend { computation: 'plaintext'; protocol: null; executorsReadContent: boolean; metadata: ExecutionMetadata[] }
+export declare const EXECUTION_BACKENDS: Readonly<Record<string, ExecutionBackend>>;
+export declare function executionBackend(backend: string): ExecutionBackend | null;
+export interface ExecutionRequirements {
+  placement: 'local-only' | 'network-allowed';
+  participants: { kind: 'open' } | { kind: 'none' } | { kind: 'named'; ids: string[] };
+  confidentiality: 'requester-only' | 'executor-readable';
+  allowMetadata: ExecutionMetadata[];
+}
+export declare function compileExecutionRequirements(execution: ExecutionRequirements): ExecutionPolicy;
+export declare function executionRequirementsFor(policy: ExecutionPolicy): ExecutionRequirements;
+export declare function narrowsExecutionPolicy(base: ExecutionPolicy, narrowed: ExecutionPolicy): boolean;
 export declare function createExecutionPolicy(overrides?: Partial<ExecutionPolicy>): ExecutionPolicy;
 export declare function validateExecutionPolicy(input: unknown): ExecutionPolicy;
 export declare function requestExecutionPolicy(request: PrivacyRequest): ExecutionPolicy;
@@ -21,7 +39,6 @@ export declare function assertAvailableExecutionPolicy(policy: ExecutionPolicy):
 export declare function plaintextExecutionRoute(request: PrivacyRequest, options?: { recipients?: string[]; local?: boolean; route?: unknown }): ExecutionRoute;
 export declare function validateExecutionRoute(policy: ExecutionPolicy, route: ExecutionRoute): ExecutionRoute;
 export declare function bindExecutionRoute(request: PrivacyRequest, route: ExecutionRoute): Promise<ExecutionBinding>;
-export declare function executionPrivacyReceipt(binding: ExecutionBinding): Record<string, unknown>;
 export declare function sameExecutionBinding(a: unknown, b: unknown): boolean;
 
 export declare function partitionPrivacyBinding(request: PrivacyRequest & {privacyBinding?: ExecutionBinding}, recipients: string[], route: unknown): Promise<ExecutionBinding>;
@@ -29,5 +46,5 @@ export declare function partitionPrivacyBinding(request: PrivacyRequest & {priva
 export interface AuxiliaryPath {schema: 'reploid.auxiliary-path/v1'; id: string; version: string; hops: ExecutionRoute['hops']}
 export interface AuxiliaryDetail {operation: 'search' | 'extract' | 'check'; id: string; version: string; resourceOrigin?: string; requestId?: string}
 export interface AuxiliaryBinding {schema: 'reploid.auxiliary-binding/v2'; policy: ExecutionPolicy; policyId: string; pathId: string; path: AuxiliaryDetail & {schema: 'reploid.auxiliary-path/v1'; complete: boolean; hops: ExecutionRoute['hops']}}
-export declare function validatePlaintextHops(policy: ExecutionPolicy, hops: ExecutionRoute['hops']): ExecutionRoute['hops'];
+export declare function validatePlaintextHops(policy: ExecutionPolicy, hops: ExecutionRoute['hops'], exposed?: readonly ExecutionMetadata[]): ExecutionRoute['hops'];
 export declare function bindAuxiliaryDisclosure(policy: ExecutionPolicy, detail: AuxiliaryDetail, declared: AuxiliaryPath): Promise<AuxiliaryBinding>;

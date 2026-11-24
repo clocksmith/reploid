@@ -372,7 +372,7 @@ describe('policy-bound whole-model mesh disclosure', () => {
     const { attempt, authorize } = await run();
     expect(attempt.status).toBe('completed'); expect(authorize).toHaveBeenCalledTimes(1);
     expect(attempt.authorization).toMatchObject({ disclosure: 'public', recipientIdentity: peer });
-    expect(attempt.privacyReceipt.recipients).toEqual([peer]);
+    expect(attempt.privacyBinding.route.hops.map(hop => hop.recipient)).toEqual([peer]);
   });
   it.each([[other], [peer, other]])('rejects omitted or additional public recipients %j before authorization', async (...values) => {
     const { attempt, authorize } = await run({ recipients: values });

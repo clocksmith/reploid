@@ -56,7 +56,7 @@ export interface ChatMessage {
   attemptId?: string;
 }
 import type { ExecutionPolicy, ExecutionBinding } from './execution-policy.js';
-export type { ExecutionPolicy, ExecutionBinding, ExecutionRoute } from './execution-policy.js';
+export type { ExecutionPolicy, ExecutionBinding, ExecutionRoute, ExecutionRequirements, ExecutionErrorCode, ExecutionMetadata, ExecutionBackend } from './execution-policy.js';
 export interface ChatRequest {
   privacy?: ExecutionPolicy;
   generationRequest?:PartitionGenerationRequest;
@@ -88,7 +88,7 @@ export interface ChatResult extends ChatEnvelope {
   content: string; usage?:PartitionTokenUsage; execution?: Record<string, unknown>;
 }
 export interface ChatAttempt {
-  auxiliaryBindings?: import('./execution-policy.js').AuxiliaryBinding[]; privacyBinding?: ExecutionBinding; privacyReceipt?: Record<string, unknown>;
+  auxiliaryBindings?: import('./execution-policy.js').AuxiliaryBinding[]; privacyBinding?: ExecutionBinding;
   /** Text is authoritative only in requester-owned publication records (canonical or ordinary ordered). */
   publicationMode?: 'canonical' | 'whole-model';
   id: string;
@@ -239,6 +239,6 @@ export function createChatScheduler(options: {
   close(): Promise<void>;
 };
 
-export { EXECUTION_POLICY_SCHEMA, EXECUTION_BINDING_SCHEMA, createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding, executionPrivacyReceipt } from './execution-policy.js';
+export { EXECUTION_POLICY_SCHEMA, EXECUTION_BINDING_SCHEMA, createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding, EXECUTION_ERROR_CODES, executionError, EXECUTION_METADATA, EXECUTION_BACKENDS, executionBackend, compileExecutionRequirements, executionRequirementsFor, narrowsExecutionPolicy } from './execution-policy.js';
 
 export { validateExecutionOffers, eligibleExecutionOffers } from './execution-offers.js';
