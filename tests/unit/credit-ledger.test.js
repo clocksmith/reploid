@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { PRODUCT_ECONOMICS_CONTRACT_ID, validateAccountingPolicy } from '../../server/ledger/domain.js';
 import { createFirestoreLedgerStore } from '../../server/ledger/firestore-store.js';
@@ -673,5 +676,34 @@ describe.each(Object.keys(harnesses))('credit ledger (%s store)', (kind) => {
       spent: { total: 30, byProvenance: { purchased: 30 } },
       reservations: { open: { count: 0, held: 0 }, underReview: { count: 1, held: 60 } }
     });
+  });
+});
+
+describe('product contract version', () => {
+  const EARLIER = 'reploid.product-economics/1.4.0';
+
+  it('is the version the public contract states', () => {
+    const contract = readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../docs/product-specification.md'), 'utf8');
+    expect(contract.match(/identity `(reploid\.product-economics\/[^`]+)`/)?.[1]).toBe(PRODUCT_ECONOMICS_CONTRACT_ID);
+  });
+
+  it('is required of a new accounting policy', () => {
+    throwsWith(() => validateAccountingPolicy({ ...POLICY, contract: { ...POLICY.contract, id: EARLIER } }), 'invalid_policy');
+  });
+
+  it('does not change on a reservation accepted under an earlier version', async () => {
+    nowMs = START;
+    const state = createMemoryLedgerState();
+    const ledger = createMemoryLedgerStore({ state, ...storeOptions });
+    await ledger.openAccount({ accountId: 'acct_alice', ownerId: 'uid_alice' });
+    await fund(ledger, 'acct_alice', 100);
+    const { reservationId } = await accept(ledger, 'q_earlier');
+    await bind(ledger, reservationId, 'a1');
+    const rows = () => [...state.tables.values()].flatMap(table => [...table.values()]);
+    const reservation = rows().find(row => row.reservationId === reservationId && row.status === 'open' && row.authorizedMax);
+    reservation.contract = { ...reservation.contract, id: EARLIER };
+    await settle(ledger, reservationId);
+    const settlement = rows().find(row => row.billableEventId === `bill:${reservationId}` && row.contract);
+    expect(settlement.contract.id).toBe(EARLIER);
   });
 });

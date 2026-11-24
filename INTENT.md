@@ -45,8 +45,9 @@ acceptance and do not establish demand or mandate concurrent implementation.
   Requesting intelligence and contributing storage or execution are separate grants.
   The participant's device is part of the mesh, not a competing local product.
 - Browser and native hosts participate through the same contracts, qualified
-  separately. Prepared peer execution requires no requester weight downloads;
-  contribution preparation remains separate.
+  separately. A prepared remote route requires no requester weights; a
+  local + peer split loads only the requester's own shard. Contribution preparation
+  remains separate.
 - Model decisions and scores inform choices but cannot grant permission or
   bypass independent evaluation and operator adoption.
 - Doppler owns model computation; Poolday owns peer infrastructure; Reploid owns

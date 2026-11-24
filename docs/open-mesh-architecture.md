@@ -121,8 +121,8 @@ losing a connection cannot prove that the remote GPU stopped. See
 
 The mechanisms below are retained design, not authority to expand the current
 bounded validation cell. Whole-model generation is the default when an eligible
-participant fits the exact model and execution envelope; partition only when none
-fits. A selected partition hypothesis compares whole-model controls where feasible,
+participant fits the exact model and execution envelope. A qualified split runs when
+it is explicitly requested or when no single participant fits. A selected partition hypothesis compares whole-model controls where feasible,
 same-machine partitions and network partitions with the same model, prompts, quality
 requirements, hardware budget and deadlines. These partition controls do not gate
 an otherwise qualified whole-model service. Isolate local
@@ -720,7 +720,8 @@ Consolidated from the former network product-intent document. These are scoped e
 Open Reploid, choose an available model, start an independent conversation,
 authorize the necessary disclosure and receive a complete answer. Public discovery
 uses the configured bootstrap without invitations, manual room setup or selecting
-computers. A prepared execution path requires no requester weight downloads.
+computers. A prepared remote route requires no requester weights. A local + peer
+split loads only the requester's own shard.
 Contribution preparation is separate from consuming prepared capacity.
 
 A requester can keep drafts and completed answers when no eligible path is ready.

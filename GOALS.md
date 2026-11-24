@@ -134,9 +134,10 @@ browser library without inheriting a particular interface or credential system.
    The secondary demo's conversations are concurrent and independently owned: each thread retains its
    purpose, history, permissions and execution state. No global objective owns
    the workspace. Participants use models supplied by the mesh without needing
-   a complete model on every requesting device. Using an available prepared
-   execution path requires no requester weight downloads; contribution preparation
-   happens separately.
+   a complete model on every requesting device. A prepared remote route
+   requires no requester weights. A local + peer split loads only the requester's
+   own shard, and local solo loads the full model. Contribution preparation happens
+   separately.
 
 Model capabilities include generation, retrieval and decision/scoring operations
 through Doppler. A semantic score or model judgment cannot grant permission,

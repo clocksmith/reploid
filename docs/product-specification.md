@@ -2,12 +2,13 @@
 
 **Ask, explore and figure things out. Earn access on your computer, or pay as you go.**
 
-**Reploid Product Economics Contract v1.4**, identity `reploid.product-economics/1.4.0`
-(2026-10-15). These are the public terms that every quote and receipt binds: the
+**Reploid Product Economics Contract v1.5**, identity `reploid.product-economics/1.5.0`
+(2026-11-23). These are the public terms that every quote and receipt binds: the
 service record, Community Access, credits and settlement, answer quality, and
-contribution and disclosure. Version 1.4 adopts the owner's Community Access and
-sensitive-work defaults and states search disclosure as requirements met by approved
-provider templates; v1.3 (`42344207`) and earlier versions remain in Git history.
+contribution and disclosure. Version 1.5 adds the §5 inference routes and their
+physical qualification requirements. A quote or receipt made under an earlier version
+keeps that version; v1.4 (`2cb043c4`), v1.3 (`42344207`) and earlier versions remain
+in Git history.
 Prices, deadlines, bonuses and provider choices are operational policy: they live
 in versioned policy records that quotes and offers bind, not in this contract. [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md)
 hold Reploid's direction and invariants, and the [architecture](open-mesh-architecture.md)
