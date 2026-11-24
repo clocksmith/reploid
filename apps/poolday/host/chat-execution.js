@@ -77,6 +77,10 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       'Network execution requires an explicit network execution policy');
     assert(!(model.partition && (request.permissions?.executionLocation === 'local' || request.permissions?.sharingScope === 'local')), 'This model requires network execution');
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
+    // Only this device's scheduler applies a per-request limit here. Elsewhere it would be dropped without notice.
+    const staysHere = !model.fleet && !model.partition && (request.privacy.placement === 'local-only'
+      || runsHere(model, request.permissions?.sharingScope, request.permissions?.executionLocation));
+    assert(request.maxOutputTokens === undefined || staysHere, 'This route cannot apply an output limit. Nothing was sent.');
     if (model.fleet) { assert(fleet, 'Private computers are not connected'); return fleet.execute(request, controls); }
     const catalogModel = getModels().find(m => m.id === model.id && m.identity === model.identity);
     assert(catalogModel, 'Selected model is not in the verified catalog');

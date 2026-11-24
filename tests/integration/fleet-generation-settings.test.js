@@ -120,6 +120,50 @@ async function fixture({ execute, capability = limitOnly, intercept = null, expe
     close: async () => { for (const close of cleanup.reverse()) await close(); } };
 }
 
+const LIMIT_PROTOCOLS = [
+  ['Chat Completions', 'chat/completions', { messages, max_completion_tokens: 5 }, body => [body.usage.completion_tokens, body.choices[0].finish_reason], 'length'],
+  ['Responses', 'responses', { input: messages, store: false, max_output_tokens: 5 }, body => [body.usage.output_tokens, body.incomplete_details?.reason], 'max_output_tokens'],
+  ['Messages', 'messages', { messages, max_tokens: 5 }, body => [body.usage.output_tokens, body.stop_reason], 'max_tokens']
+];
+const postLimit = (f, route, body) => fetch(`${f.api.url}/${route}`, { method: 'POST',
+  headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify({ model: model.id, ...body }) });
+
+it.each(LIMIT_PROTOCOLS)('%s carries a limit below the ceiling to the executor, which enforces it', async (_name, route, body, read, reason) => {
+  const f = await fixture({ execute: async (_messages, update, controls) => {
+    const text = '1 2 3 4 5 6 7 8'.split(' ').slice(0, controls.settings.maxOutputTokens).join(' ');
+    update(text);
+    return answer(text, controls.settings.maxOutputTokens, 'max-tokens');
+  } });
+  try {
+    const response = await postLimit(f, route, body);
+    expect(response.status).toBe(200);
+    expect(read(await response.json())).toEqual([5, reason]);
+    expect(f.executed.map(row => row.settings.maxOutputTokens)).toEqual([5]);
+    expect(f.row().binding.maxOutputTokens).toBe(5);
+    expect(amounts()[0]).toEqual({ balance: -5, held: 0 });
+  } finally { await f.close(); }
+});
+
+it.each(LIMIT_PROTOCOLS)('%s refuses output beyond the limit and charges nothing', async (_name, route, body) => {
+  const f = await fixture({ execute: async (_messages, update) => { update('1 2 3 4 5 6'); return answer('1 2 3 4 5 6', 6, 'max-tokens'); } });
+  try {
+    const response = await postLimit(f, route, body);
+    expect(response.status).toBeGreaterThanOrEqual(500);
+    expect(await response.text()).not.toContain('1 2 3 4 5 6');
+    expect(amounts()[0].balance).toBe(0);
+  } finally { await f.close(); }
+});
+
+it.each(LIMIT_PROTOCOLS.slice(1))('%s refuses a lower limit, before execution, when no provider can apply it', async (_name, route, body) => {
+  const f = await fixture({ capability: null, execute: async () => { throw Error('A provider that cannot apply the limit was used'); } });
+  try {
+    const response = await postLimit(f, route, body);
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(f.executed).toEqual([]);
+    expect(amounts()[0]).toEqual({ balance: 0, held: 0 });
+  } finally { await f.close(); }
+});
+
 it('completes a request with an output limit, binds one digest in the reservation, admission and receipt, and settles once', async () => {
   const settings = normalizeGenerationSettings({ maxOutputTokens: 5 });
   const expected = await effectiveRequestDigest({ modelIdentity: model.identity, adapterIdentities: [], messages, settings });
