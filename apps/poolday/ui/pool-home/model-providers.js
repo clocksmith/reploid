@@ -13,7 +13,7 @@ export const sameModelVariant = (a, b) => !!a?.identity && a.id === b?.id && a.i
 /** What a provider reports now; an answer's execution details keep what ran. */
 export const hardwareLabel = value => hardwareText(value) ?? 'GPU not reported';
 
-const routeStatus = model => ({ ready: 'Ready', busy: 'At capacity', loading: 'Preparing', preparing: 'Preparing' })[model.networkAvailability ?? model.availability] || 'Unavailable';
+const routeStatus = model => ({ ready: 'Ready', busy: model.capacityUnknown ? 'Capacity not reported' : 'At capacity', loading: 'Preparing', preparing: 'Preparing' })[model.networkAvailability ?? model.availability] || 'Unavailable';
 
 /** Catalog routes are host-owned. Separate providers never imply a distributed route. */
 export function projectModelProviders(state, selected) {

@@ -76,7 +76,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   let computers = null;
   const routePreference = createRoutePreference({ storage });
   const swarm = createWorkSwarm({ storage, evolution, service, getBlockedComputers: () => computers?.getBlocked() || [],
-    rankProviders: candidates => rankRoutes(candidates, routePreference.get(), routeObservations(chat?.getState().threads)), networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
+    rankProviders: (candidates, route) => rankRoutes(candidates, routePreference.get(), routeObservations(chat?.getState().threads, route?.modelIdentity)), networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
     ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { chat?.refreshNetwork(); notifySearch(); } });
   computers = createComputerPreferences({ storage,
     verifyPeer: (id, signal) => swarm.verifyPeerIdentity(id, signal) });

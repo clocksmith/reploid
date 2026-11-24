@@ -15,6 +15,16 @@ it('does not turn catalog declarations or ready peer advertisements into public 
   const select = document.createElement('select'); updateModelSelect(select, catalog, { showAvailability: true });
   expect(select.textContent).not.toContain('Distributed');
 });
+it('does not report a computer as full when it reported no slot count', () => {
+  const peer = availableSlots => ({ peerId: 'p', model: model.id, modelIdentity: model.identity, identityProtocol: 1, admissionProtocol: 2,
+    readiness: 'ready', hasInference: true, availableSlots });
+  const project = slots => projectChatCatalog({ models: [model], peers: [peer(slots)] })[0];
+  expect(project(null)).toMatchObject({ availability: 'busy', capacityUnknown: true, reachableProviderIds: [] });
+  expect(project(0).availability).toBe('busy');
+  expect(project(0).capacityUnknown).toBeUndefined();
+  expect(project(1).availability).toBe('ready');
+  expect(project(1).capacityUnknown).toBeUndefined();
+});
 it('shows an explicitly approved available route without claiming whole-model readiness', () => {
   const catalog = projectChatCatalog({ models: [model], peers: [], releasedPartitionModels: [route].filter(model => availablePartitionRoute(model, [approval])) });
   expect(catalog).toHaveLength(2); expect(catalog[0].availability).toBe('unavailable');

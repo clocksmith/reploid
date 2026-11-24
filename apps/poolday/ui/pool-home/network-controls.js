@@ -161,7 +161,10 @@ export function projectNetworkPeers(state) {
       detail = index === null ? 'Connected. Waiting for another contributor before assigning a model stage.'
         : 'Connected. Waiting for the other model stages to form a complete route.';
     } else if (phase === 'ready') {
-      status = 'Ready'; detail = partition ? 'Model stage prepared; a complete route is required to answer.' : 'Model loaded and ready to answer.';
+      const unreported = !partition && peer.availableSlots === null;
+      status = unreported ? 'Capacity not reported' : 'Ready';
+      detail = partition ? 'Model stage prepared; a complete route is required to answer.'
+        : unreported ? 'Model loaded, but this computer has not reported a free slot, so no request is sent to it.' : 'Model loaded and ready to answer.';
     } else if (phase === 'executing') { status = 'Working'; detail = 'Answering a request.'; }
     else if (phase === 'busy') { status = 'At capacity'; detail = 'Model loaded; all request slots are occupied.'; }
     else if (phase === 'failed') { status = 'Failed'; detail = 'Model preparation or execution failed on this computer.'; }
