@@ -4,6 +4,7 @@
  * the bar", never "is the record honest". Hosts are trusted to report what they measured.
  */
 import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
+import { WEIGHT_ROLES } from './stage-metadata.js';
 
 export const STAGE1_RECEIPT_SCHEMA = 'reploid.stage1-split-receipt/v1';
 export const STAGE1_PHASES = Object.freeze(['preflight', 'solo-a', 'solo-b', 'earn', 'split', 'cancel', 'drop', 'cleanup']);
@@ -138,6 +139,10 @@ function checkLoaded(host, stage, expectations, fail) {
     fail('executor-holds-complete-weights', `${host.label} loaded ${loaded.rangeCount} ranges, ${loaded.bytes} bytes`);
   }
   if (loaded.outsideStageRanges !== 0) fail('loaded-outside-stage', `${host.label} asked for ${loaded.outsideStageRanges} ranges outside its stage`);
+  // Non-weight files (the tokenizer) are recorded apart and never count as ranges; a weight role there is refused.
+  if (loaded.metadata !== undefined && (!Array.isArray(loaded.metadata?.roles) || loaded.metadata.roles.some(role => WEIGHT_ROLES.includes(role)))) {
+    fail('loaded-metadata-invalid', `${host.label} ${canonical(loaded.metadata?.roles)}`);
+  }
   if (loaded.rangeCount !== stage.rangeCount || loaded.bytes !== stage.bytes || loaded.rangesDigest !== stage.rangesDigest) {
     fail('loaded-not-assigned', `${host.label} ${loaded.rangeCount}/${loaded.bytes}/${loaded.rangesDigest}`);
   }

@@ -28,10 +28,9 @@ import { openStageTokenWitness } from '../../server/fleet/stage-token-witness.js
 import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
 import { UNFINISHED_ANSWER_TERMS } from '../../server/fleet/credit-shares.js';
-import { resolveServedFile } from '../../server/browser-roots.js';
-import { sha256Digest } from '../../server/hashing.js';
 import { STAGE1_MODEL_ID } from './expectations.js';
 import { createStageLoader, readPieceBytes } from './stage-loader.js';
+import { metadataPieces, readPieceIndexBytes } from './stage-metadata.js';
 
 const SILENT = { info() {}, log() {}, debug() {}, warn() {}, error() {} };
 
@@ -87,11 +86,8 @@ const loaderSource = loader => async ({ model, modelDirectory, signal }) => {
   const runtime = await import('dopplerx/partitions');
   const root = await fs.realpath(modelDirectory);
   const manifestBytes = new Uint8Array(await fs.readFile(path.join(root, 'manifest.json')));
-  const descriptor = model.source.files.find(row => row.role === 'model-piece-index');
-  const indexBytes = new Uint8Array(await fs.readFile(descriptor.url?.startsWith('/config/model-pieces/')
-    ? resolveServedFile(descriptor.url) : path.join(root, descriptor.path)));
-  if (sha256Digest(indexBytes) !== 'sha256:' + descriptor.hash) throw Error('The stage piece index differs from the catalog');
-  const opened = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,
+  const { bytes: indexBytes, digest } = await readPieceIndexBytes({ model, modelDirectory: root });
+  const opened = await runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: digest,
     signal, nodeGather: null, acquire: piece => loader.read(piece) });
   return { manifestBytes, storage: opened.storage, getReceipt: () => opened.getReceipt() };
 };
@@ -126,7 +122,10 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     stageOwner = await openStageOwner({ file: path.join(config.stateDirectory, 'stage-owner.sqlite'), participantId: identity.peerId,
       roomId: config.roomId, serviceUrl: config.serviceUrl });
     const witness = await openStageTokenWitness(config.witness, { roomId: config.roomId, participantId: identity.peerId });
-    loader = createStageLoader({ directory: config.modelDirectory, assignedRanges: config.assignedRanges, readBytes });
+    // The tokenizer and any other non-weight file the stage opens come through the loader too, recorded as metadata.
+    const index = await readPieceIndexBytes({ model, modelDirectory: config.modelDirectory });
+    loader = createStageLoader({ directory: config.modelDirectory, assignedRanges: config.assignedRanges,
+      metadataPieces: metadataPieces(model, index.bytes), readBytes });
     const fake = typeof sourceRuntime === 'function' ? sourceRuntime(loader) : sourceRuntime;
     const admission = createFleetExecutionAdmission({ credits, model, stageOwner });
     const kept = attemptId => {

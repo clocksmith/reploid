@@ -3,11 +3,13 @@
  * Builds or verifies one Stage 1 stage directory: the directory a stage process opens, holding exactly its assigned
  * piece ranges and nothing of the other stage. The full copy it reads from stays where it is and is never written.
  *
- * Layout, as the stage loader (stage-loader.js) and the stage participant's piece source read it: `manifest.json` is
- * the model manifest byte for byte; each shard keeps its file name, and each assigned range sits at its original
- * offset in it. Bytes outside the assigned ranges are never written, so a shard that also holds the other stage's
- * ranges becomes a sparse file whose other-stage bytes read as zeros. `stage-directory.json`, written last, records
- * the stage, its range count, byte total and ranges digest; a directory without it is an unfinished build.
+ * Layout, as the stage loader (stage-loader.js) and the stage participant's piece source read it: each of the model's
+ * non-weight files (stage-metadata.js: every catalog file role other than weights, here the manifest, the tokenizer
+ * and the piece index) byte for byte, checked against its pinned digest; each shard under its own name, with each
+ * assigned range at its original offset. Bytes outside the assigned ranges are never written, so a shard that also
+ * holds the other stage's ranges becomes a sparse file whose other-stage bytes read as zeros. `stage-directory.json`,
+ * written last, records the stage, its range count, byte total and ranges digest, and the metadata files apart from
+ * them; a directory without it is an unfinished build.
  *
  *   node scripts/stage1/build-stage-directory.js --stage 0|1 --source FULL_COPY --target STAGE_DIRECTORY
  *   node scripts/stage1/build-stage-directory.js --stage 0|1 --target STAGE_DIRECTORY --verify [--hash]
@@ -24,6 +26,8 @@ import catalog from '../../shared/config/chat-models.json' with { type: 'json' }
 import { measureHeldRanges, rangesDigest, summarizeRanges } from './inventory.js';
 import { assertCompleteCopy } from './host-control.js';
 import { readPieceInventory, STAGE1_MODEL_ID, STAGE1_PINS } from './expectations.js';
+import { metadataFiles } from './stage-metadata.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
 
 export const STAGE_DIRECTORY_SCHEMA = 'reploid.stage1-stage-directory/v1';
 export const STAGE_DIRECTORY_MANIFEST = 'stage-directory.json';
@@ -34,10 +38,10 @@ const sha256 = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('h
 const inside = (child, parent) => child === parent || child.startsWith(parent.endsWith(path.sep) ? parent : parent + path.sep);
 
 /** Groups ranges by shard file in offset order, refusing a non-plain name, a negative or overlapping range. */
-function rangesByFile(ranges) {
+function rangesByFile(ranges, reserved = new Set()) {
   const files = new Map();
   for (const range of ranges) {
-    if (typeof range?.path !== 'string' || path.basename(range.path) !== range.path || range.path === STAGE_DIRECTORY_MANIFEST || range.path === MODEL_MANIFEST) {
+    if (typeof range?.path !== 'string' || path.basename(range.path) !== range.path || range.path === STAGE_DIRECTORY_MANIFEST || reserved.has(range.path)) {
       throw coded('stage-directory-refused', 'a range names something other than a plain shard file');
     }
     if (!Number.isSafeInteger(range.offset) || range.offset < 0 || !Number.isSafeInteger(range.size) || range.size <= 0
@@ -83,6 +87,28 @@ const otherInExtent = (files, otherRanges) => otherRanges.filter(range => {
   return rows && range.offset + range.size <= rows.at(-1).offset + rows.at(-1).size;
 });
 
+/** A metadata file from the full copy, or, when the full copy lacks it and the catalog serves it, the served copy. */
+async function readMetadataSource(realSource, row) {
+  try { return await fs.readFile(path.join(realSource, row.path)); }
+  catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    if (row.url?.startsWith('/config/')) return fs.readFile(resolveServedFile(row.url));
+    throw coded('stage-directory-refused', `the full copy has no ${row.role} file ${row.path}`);
+  }
+}
+
+/** The build record's metadata files must be the catalog's, and each file on disk must still match its pin. */
+async function verifyMetadata(directory, record, metadata) {
+  const expected = metadata.map(row => [row.role, row.path, row.digest]);
+  const recorded = Array.isArray(record.metadataFiles) ? record.metadataFiles.map(row => [row.role, row.path, row.digest]) : null;
+  if (JSON.stringify(recorded) !== JSON.stringify(expected)) throw coded('stage-directory-mismatch', 'the build record\'s metadataFiles differ from the pin');
+  for (const row of metadata) {
+    const bytes = await fs.readFile(path.join(directory, row.path)).catch(() => null);
+    if (!bytes || sha256(bytes) !== row.digest) throw coded('stage-directory-mismatch', `the ${row.role} file ${row.path} differs from the pin`);
+  }
+  return record.metadataFiles.map(({ role, path: name, bytes }) => ({ role, path: name, bytes }));
+}
+
 /**
  * Writes `target` from the verified full copy at `source`. `pin` is `{ rangeCount, bytes, rangesDigest? }`;
  * `otherRanges` are the rest of the model's ranges, used only to prove none of them is readable from the result.
@@ -92,7 +118,9 @@ export async function buildStageDirectory({ source, target, stageIndex, stageRan
   if (typeof target !== 'string' || !path.isAbsolute(target) || path.resolve(target) !== target) throw coded('stage-directory-refused', 'the target is not an exact absolute path');
   if (typeof source !== 'string' || !path.isAbsolute(source)) throw coded('stage-directory-refused', 'the source is not an absolute path');
   if (!Number.isSafeInteger(stageIndex) || stageIndex < 0) throw coded('stage-directory-refused', 'no stage index');
-  const summary = assertPinned(stageRanges, pin), files = rangesByFile(stageRanges);
+  const metadata = metadataFiles(model);
+  if (metadata.some(row => row.path === STAGE_DIRECTORY_MANIFEST)) throw coded('stage-directory-refused', 'a metadata file takes the build record name');
+  const summary = assertPinned(stageRanges, pin), files = rangesByFile(stageRanges, new Set(metadata.map(row => row.path)));
   const realSource = await fs.realpath(source);
   await assertCompleteCopy({ directory: realSource, expectedIdentity: model.identity });
   const manifestBytes = await fs.readFile(path.join(realSource, MODEL_MANIFEST));
@@ -105,11 +133,23 @@ export async function buildStageDirectory({ source, target, stageIndex, stageRan
   const realParent = await fs.realpath(path.dirname(target)), realTarget = path.join(realParent, path.basename(target));
   if (inside(realTarget, realSource) || inside(realSource, realTarget)) throw coded('stage-directory-refused', 'the target and the full copy overlap');
   const free = await fs.statfs(realParent).then(stat => stat.bavail * stat.bsize, () => null);
-  if (free !== null && free < summary.bytes + manifestBytes.length) throw coded('stage-directory-no-space', `${summary.bytes} bytes are needed, ${free} are free`);
+  if (metadata.some(row => shardSizes.has(row.path))) throw coded('stage-directory-refused', 'a metadata file is named like a weight shard');
+  const needed = summary.bytes + metadata.reduce((sum, row) => sum + (row.sizeBytes ?? manifestBytes.length), 0);
+  if (free !== null && free < needed) throw coded('stage-directory-no-space', `${needed} bytes are needed, ${free} are free`);
   try { await fs.mkdir(realTarget, { mode: 0o700 }); }
   catch (error) { if (error.code === 'EEXIST') throw coded('stage-directory-exists', 'the stage directory already exists; it is never overwritten'); throw error; }
   try {
-    await fs.writeFile(path.join(realTarget, MODEL_MANIFEST), manifestBytes, { flag: 'wx', mode: 0o600 });
+    const metadataWritten = [];
+    for (const row of metadata) {
+      signal?.throwIfAborted();
+      const bytes = await readMetadataSource(realSource, row);
+      if (sha256(bytes) !== row.digest || (row.sizeBytes !== null && bytes.length !== row.sizeBytes)) {
+        throw coded('stage-directory-digest-mismatch', `the ${row.role} file ${row.path} does not match its pinned digest`);
+      }
+      await fs.writeFile(path.join(realTarget, row.path), bytes, { flag: 'wx', mode: 0o600 });
+      if (sha256(await fs.readFile(path.join(realTarget, row.path))) !== row.digest) throw coded('stage-directory-digest-mismatch', `the written ${row.path} does not match its pinned digest`);
+      metadataWritten.push({ role: row.role, path: row.path, bytes: bytes.length, digest: row.digest });
+    }
     const written = [];
     for (const [name, rows] of files) {
       signal?.throwIfAborted();
@@ -134,7 +174,8 @@ export async function buildStageDirectory({ source, target, stageIndex, stageRan
     }
     const leaked = await measureHeldRanges({ directory: realTarget, ranges: otherInExtent(files, otherRanges), signal });
     if (leaked.length) throw coded('stage-directory-holds-other-stage', `${leaked.length} other-stage ranges read back from the stage directory`);
-    const record = { schema: STAGE_DIRECTORY_SCHEMA, modelId: model.id, modelIdentity: model.identity, inventorySha256, stageIndex, ...summary, files: written };
+    const record = { schema: STAGE_DIRECTORY_SCHEMA, modelId: model.id, modelIdentity: model.identity, inventorySha256, stageIndex, ...summary, files: written,
+      metadataFiles: metadataWritten };
     await fs.writeFile(path.join(realTarget, STAGE_DIRECTORY_MANIFEST), JSON.stringify(record, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
     return { built: true, verified: 'hashed', ...record };
   } catch (error) {
@@ -150,7 +191,8 @@ export async function buildStageDirectory({ source, target, stageIndex, stageRan
  */
 export async function verifyStageDirectory({ directory, stageIndex, stageRanges, otherRanges = [], pin, model, inventorySha256, hash = false, signal }) {
   if (typeof directory !== 'string' || !path.isAbsolute(directory)) throw coded('stage-directory-refused', 'the stage directory is not an absolute path');
-  const summary = assertPinned(stageRanges, pin), files = rangesByFile(stageRanges);
+  const metadata = metadataFiles(model);
+  const summary = assertPinned(stageRanges, pin), files = rangesByFile(stageRanges, new Set(metadata.map(row => row.path)));
   let record;
   try { record = JSON.parse(await fs.readFile(path.join(directory, STAGE_DIRECTORY_MANIFEST), 'utf8')); }
   catch (error) {
@@ -163,8 +205,7 @@ export async function verifyStageDirectory({ directory, stageIndex, stageRanges,
   if (record.inventorySha256 !== inventorySha256) mismatch('inventory');
   if (record.stageIndex !== stageIndex) mismatch('stage');
   for (const key of ['rangeCount', 'bytes', 'rangesDigest']) if (record[key] !== summary[key]) mismatch(key);
-  const manifestBytes = await fs.readFile(path.join(directory, MODEL_MANIFEST)).catch(() => null);
-  if (!manifestBytes || sha256(manifestBytes) !== model.identity) mismatch('model manifest');
+  const metadataSummary = await verifyMetadata(directory, record, metadata);
   for (const [name, rows] of files) {
     const stat = await fs.lstat(path.join(directory, name)).catch(() => null);
     if (!stat?.isFile() || stat.size < rows.at(-1).offset + rows.at(-1).size) throw coded('stage-directory-incomplete', `${name} is missing or short`);
@@ -175,7 +216,7 @@ export async function verifyStageDirectory({ directory, stageIndex, stageRanges,
     const leaked = await measureHeldRanges({ directory, ranges: otherInExtent(files, otherRanges), signal });
     if (leaked.length) throw coded('stage-directory-holds-other-stage', `${leaked.length} other-stage ranges read back from the stage directory`);
   }
-  return { verified: hash ? 'hashed' : 'record', stageIndex, ...summary };
+  return { verified: hash ? 'hashed' : 'record', stageIndex, ...summary, metadataFiles: metadataSummary };
 }
 
 /** Stage 1's own pin: the pinned inventory's ranges for `stageIndex`, checked against its pinned count and bytes. */

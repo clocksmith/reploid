@@ -8,7 +8,9 @@ import { buildStageDirectory, loadPinnedStage, stageDirectoryOperation, STAGE_DI
   from '../../scripts/stage1/build-stage-directory.js';
 import { createStageLoader } from '../../scripts/stage1/stage-loader.js';
 import { measureHeldRanges, summarizeRanges } from '../../scripts/stage1/inventory.js';
-import { STAGE1_PINS } from '../../scripts/stage1/expectations.js';
+import { STAGE1_MODEL_ID, STAGE1_PINS } from '../../scripts/stage1/expectations.js';
+import { metadataFiles, metadataPieces } from '../../scripts/stage1/stage-metadata.js';
+import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 
 const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const INVENTORY = 'f'.repeat(64);
@@ -33,15 +35,25 @@ async function syntheticCopy({ zeroOtherPiece = false } = {}) {
     });
     files[name] = Buffer.concat(parts);
   }
-  const manifest = Buffer.from(JSON.stringify({ modelId: 'synthetic', shards: Object.entries(files).map(([filename, bytes]) => ({ filename, size: bytes.length })) }));
+  const manifest = Buffer.from(JSON.stringify({ modelId: 'synthetic', shards: Object.entries(files).map(([filename, bytes]) => ({ filename, size: bytes.length })),
+    tokenizer: { type: 'bundled', file: 'tokenizer.json' } }));
+  // Non-weight files, as the catalog lists them by role: the tokenizer is split into two index pieces like the real one.
+  const tokenizer = Buffer.from(JSON.stringify({ model: { type: 'BPE', vocab: { a: 0, b: 1 } } }));
+  const index = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', files: [
+    { path: 'tokenizer.json', size: tokenizer.length, pieces: [{ offset: 0, size: 16, identity: sha(tokenizer.subarray(0, 16)) },
+      { offset: 16, size: tokenizer.length - 16, identity: sha(tokenizer.subarray(16)) }] }] }));
   const source = path.join(root, 'full');
   await fs.mkdir(source);
   await fs.writeFile(path.join(source, 'manifest.json'), manifest);
+  await fs.writeFile(path.join(source, 'tokenizer.json'), tokenizer);
+  await fs.writeFile(path.join(source, 'pieces.json'), index);
   for (const [name, bytes] of Object.entries(files)) await fs.writeFile(path.join(source, name), bytes);
-  const model = { id: 'synthetic', identity: sha(manifest) };
+  const file = (role, name, bytes) => ({ path: name, role, sizeBytes: bytes.length, hashAlgorithm: 'sha256', hash: sha(bytes).slice(7) });
+  const model = { id: 'synthetic', identity: sha(manifest), source: { files: [file('model-manifest', 'manifest.json', manifest),
+    file('tokenizer', 'tokenizer.json', tokenizer), file('model-piece-index', 'pieces.json', index)] } };
   const stage = index => ({ stageIndex: index, stageRanges: stageRanges[index], otherRanges: stageRanges[1 - index],
     pin: summarizeRanges(stageRanges[index]), model, inventorySha256: INVENTORY });
-  return { source, files, stageRanges, model, stage };
+  return { source, files, stageRanges, model, stage, tokenizer, index };
 }
 
 const snapshot = async directory => {
@@ -63,7 +75,9 @@ describe('the stage directory builder', () => {
       expect((await measureHeldRanges({ directory: target, ranges: all })).map(row => `${row.path}:${row.offset}`).sort())
         .toEqual(copy.stageRanges[index].map(row => `${row.path}:${row.offset}`).sort());
       const names = await fs.readdir(target);
-      expect(names.sort()).toEqual(['manifest.json', STAGE_DIRECTORY_MANIFEST, ...new Set(copy.stageRanges[index].map(row => row.path))].sort());
+      expect(names.sort()).toEqual(['manifest.json', 'pieces.json', 'tokenizer.json', STAGE_DIRECTORY_MANIFEST,
+        ...new Set(copy.stageRanges[index].map(row => row.path))].sort());
+      expect(await fs.readFile(path.join(target, 'tokenizer.json'))).toEqual(copy.tokenizer);
       // In the shared shard, every byte outside this stage's ranges is zero: nothing of the other stage was copied.
       const shared = await fs.readFile(path.join(target, 's1.bin'));
       const mine = copy.stageRanges[index].filter(row => row.path === 's1.bin');
@@ -74,19 +88,37 @@ describe('the stage directory builder', () => {
       });
       expect(JSON.parse(await fs.readFile(path.join(target, STAGE_DIRECTORY_MANIFEST), 'utf8'))).toMatchObject({
         schema: 'reploid.stage1-stage-directory/v1', modelIdentity: copy.model.identity, inventorySha256: INVENTORY, stageIndex: index,
-        ...summarizeRanges(copy.stageRanges[index]) });
+        ...summarizeRanges(copy.stageRanges[index]),
+        metadataFiles: copy.model.source.files.map(row => ({ role: row.role, path: row.path, bytes: row.sizeBytes, digest: 'sha256:' + row.hash })) });
     }
     expect(await snapshot(copy.source)).toEqual(before);
   });
 
-  it('then serves, through the stage loader, exactly the assigned ranges and refuses the other stage', async () => {
+  it('then serves, through the stage loader, the tokenizer as metadata and exactly the assigned ranges, and refuses the other stage', async () => {
     const copy = await syntheticCopy(), target = path.join(root, 'stage-1');
     await buildStageDirectory({ ...copy.stage(1), source: copy.source, target });
-    const loader = createStageLoader({ directory: target, assignedRanges: copy.stageRanges[1] });
+    const pieces = metadataPieces(copy.model, copy.index);
+    expect(pieces.map(row => row.role)).toEqual(['tokenizer', 'tokenizer']);
+    const loader = createStageLoader({ directory: target, assignedRanges: copy.stageRanges[1], metadataPieces: pieces });
+    for (const piece of pieces) expect(sha(await loader.read(piece))).toBe(piece.identity);
     for (const range of copy.stageRanges[1]) expect(sha(await loader.read(range))).toBe(range.identity);
     for (const range of copy.stageRanges[0]) await expect(loader.read(range)).rejects.toMatchObject({ code: 'stage-loader-refused' });
     expect(loader.accounting()).toEqual({ source: 'stage-loader', ...summarizeRanges(copy.stageRanges[1]),
-      outsideStageRanges: copy.stageRanges[0].length, outsideStageBytes: summarizeRanges(copy.stageRanges[0]).bytes });
+      outsideStageRanges: copy.stageRanges[0].length, outsideStageBytes: summarizeRanges(copy.stageRanges[0]).bytes,
+      metadata: { roles: ['tokenizer'], pieceCount: 2, bytes: copy.tokenizer.length } });
+  });
+
+  it('refuses a tokenizer that differs from its pin or is missing, and never counts it as a weight range', async () => {
+    const copy = await syntheticCopy(), target = path.join(root, 'stage-0');
+    await fs.writeFile(path.join(copy.source, 'tokenizer.json'), Buffer.from('{"changed":true}'));
+    await expect(buildStageDirectory({ ...copy.stage(0), source: copy.source, target })).rejects.toMatchObject({ code: 'stage-directory-digest-mismatch' });
+    await fs.rm(path.join(copy.source, 'tokenizer.json'));
+    await expect(buildStageDirectory({ ...copy.stage(0), source: copy.source, target })).rejects.toMatchObject({ code: 'stage-directory-refused' });
+    await expect(fs.stat(target)).rejects.toMatchObject({ code: 'ENOENT' });
+    await fs.writeFile(path.join(copy.source, 'tokenizer.json'), copy.tokenizer);
+    await buildStageDirectory({ ...copy.stage(0), source: copy.source, target });
+    // The weight inventory a host scan uses sees only tensor ranges: the tokenizer beside them adds nothing.
+    expect(summarizeRanges(await measureHeldRanges({ directory: target, ranges: copy.stageRanges.flat() }))).toEqual(summarizeRanges(copy.stageRanges[0]));
   });
 
   it('refuses a full copy whose bytes differ from a pinned digest, leaving nothing behind and the source untouched', async () => {
@@ -136,12 +168,17 @@ describe('verifying an existing stage directory', () => {
     await expect(verifyStageDirectory({ ...copy.stage(1), directory: target })).rejects.toMatchObject({ code: 'stage-directory-unbuilt' });
     await buildStageDirectory({ ...copy.stage(1), source: copy.source, target });
     const built = await snapshot(target);
-    expect(await verifyStageDirectory({ ...copy.stage(1), directory: target })).toEqual({ verified: 'record', stageIndex: 1, ...summarizeRanges(copy.stageRanges[1]) });
+    expect(await verifyStageDirectory({ ...copy.stage(1), directory: target })).toEqual({ verified: 'record', stageIndex: 1, ...summarizeRanges(copy.stageRanges[1]),
+      metadataFiles: copy.model.source.files.map(row => ({ role: row.role, path: row.path, bytes: row.sizeBytes })) });
     expect(await verifyStageDirectory({ ...copy.stage(1), directory: target, hash: true })).toMatchObject({ verified: 'hashed' });
     expect(await snapshot(target)).toEqual(built);
     // The other stage's pin, another inventory, or a different stage index is a mismatch.
     await expect(verifyStageDirectory({ ...copy.stage(0), directory: target })).rejects.toMatchObject({ code: 'stage-directory-mismatch' });
     await expect(verifyStageDirectory({ ...copy.stage(1), inventorySha256: '0'.repeat(64), directory: target })).rejects.toMatchObject({ code: 'stage-directory-mismatch' });
+    // A changed tokenizer fails even the record check: metadata files are always re-hashed (they are small).
+    await fs.writeFile(path.join(target, 'tokenizer.json'), Buffer.from('{}'));
+    await expect(verifyStageDirectory({ ...copy.stage(1), directory: target })).rejects.toMatchObject({ code: 'stage-directory-mismatch' });
+    await fs.writeFile(path.join(target, 'tokenizer.json'), copy.tokenizer);
     // A changed written byte passes the record check but not the hash check.
     const file = path.join(target, 's2.bin'), bytes = await fs.readFile(file);
     bytes[5] ^= 0xff;
@@ -163,6 +200,17 @@ describe('the Stage 1 pin', () => {
     expect(shared).toHaveLength(3);
     expect(zero.pin).toEqual({ ...STAGE1_PINS.stages[0], rangesDigest: summarizeRanges(zero.stageRanges).rangesDigest });
   }, 60000);
+
+  it('serves the Stage 1 model\'s non-weight files by catalog role: manifest, tokenizer and piece index', async () => {
+    const model = catalog.find(row => row.id === STAGE1_MODEL_ID);
+    expect(metadataFiles(model).map(row => [row.role, row.path])).toEqual([['model-manifest', 'manifest.json'], ['tokenizer', 'tokenizer.json'],
+      ['model-piece-index', 'qwen27b-q4-pieces.json']]);
+    const { readPieceIndexBytes } = await import('../../scripts/stage1/stage-metadata.js');
+    const pieces = metadataPieces(model, (await readPieceIndexBytes({ model, modelDirectory: root })).bytes);
+    expect(pieces).toHaveLength(3);
+    expect(new Set(pieces.map(row => row.path))).toEqual(new Set(['tokenizer.json']));
+    expect(pieces.reduce((sum, row) => sum + row.size, 0)).toBe(metadataFiles(model)[1].sizeBytes);
+  });
 
   it('the host operation refuses an operator inventory other than its own pin, and an unknown stage', async () => {
     const body = { action: 'verify', directory: root, stageIndex: 0, stageRanges: [], rangesDigest: 'x' };

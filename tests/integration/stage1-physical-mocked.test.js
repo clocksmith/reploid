@@ -144,8 +144,9 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
         outsideElsewhere: 0, fullCopy: 'searched' });
       expect(host.hostWeights.afterSplit).toMatchObject({ outsideInFullCopy: 0, outsideElsewhere: 0, fullCopy: 'locked-not-entered' });
       const stage = loaded.expectations.stages[index];
+      // The tokenizer came through the loader as metadata; the loaded weight ranges are exactly the stage's.
       expect(host.loaded).toEqual({ source: 'stage-loader', rangeCount: stage.rangeCount, bytes: stage.bytes, rangesDigest: stage.rangesDigest,
-        outsideStageRanges: 0, outsideStageBytes: 0 });
+        outsideStageRanges: 0, outsideStageBytes: 0, metadata: { roles: ['tokenizer'], pieceCount: 3, bytes: 9089356 } });
     }
     expect(receipt.hosts.map(host => host.assignedLayers)).toEqual([[0, 0], [1, 63]]);
     expect(receipt.requester.machine).toBe(setup.config.requester.machineId);

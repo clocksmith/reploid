@@ -85,12 +85,15 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
     expect(good.receipt.cancel.settlementReplay.stopSigned).toBe(true);
   });
 
-  it('records what each stage process loaded through its loader: its assigned ranges and nothing else', () => {
+  it('records what each stage process loaded through its loader: its assigned ranges, and the tokenizer apart as metadata', () => {
+    // The fake stage opens tokenizer.json through the loader before its weights, as a real stage does. It is recorded
+    // under metadata (its three index pieces, 9,089,356 bytes) and leaves the loaded weight ranges exactly the stage's.
     good.receipt.hosts.forEach((host, index) => {
       const stage = good.expectations.stages[index];
       expect(host.loaded).toEqual({ source: 'stage-loader', rangeCount: stage.rangeCount, bytes: stage.bytes, rangesDigest: stage.rangesDigest,
-        outsideStageRanges: 0, outsideStageBytes: 0 });
+        outsideStageRanges: 0, outsideStageBytes: 0, metadata: { roles: ['tokenizer'], pieceCount: 3, bytes: 9089356 } });
     });
+    expect(good.verdict.reasons).toEqual([]);
     expect(codes(tampered(receipt => { receipt.hosts[0].loaded.outsideStageRanges = 1; }))).toEqual(['loaded-outside-stage']);
     expect(codes(tampered(receipt => { Object.assign(receipt.hosts[1].loaded, { rangeCount: 5512, bytes: good.expectations.totalWeight.bytes }); })))
       .toEqual(['executor-holds-complete-weights', 'loaded-not-assigned']);

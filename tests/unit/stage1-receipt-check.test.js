@@ -303,6 +303,11 @@ describe('rejects', () => {
     expect(codes(judged(receipt => { receipt.requester.preflight = { weightBytes: 0, fileCount: 0 }; }))).toEqual(['requester-weights-unmeasured']);
   });
 
+  it('loaded metadata that names a weight role', () => {
+    expect(codes(judged(receipt => { receipt.hosts[0].loaded.metadata = { roles: ['tokenizer'], pieceCount: 3, bytes: 9089356 }; }))).toEqual([]);
+    expect(codes(judged(receipt => { receipt.hosts[0].loaded.metadata = { roles: ['model-weights'], pieceCount: 1, bytes: 16 }; }))).toEqual(['loaded-metadata-invalid']);
+  });
+
   it('a requester whose weights were never measured', () => {
     expect(codes(judged(receipt => { delete receipt.requester.afterSplit; }))).toEqual(['requester-weights-unmeasured']);
   });
