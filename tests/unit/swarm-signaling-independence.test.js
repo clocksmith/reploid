@@ -1,4 +1,4 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js';
 import { createGenerationRecovery, createMemoryGenerationJournal } from '../../packages/reploid/src/mesh/generation-recovery.js';
 import applicationProfile from '../../shared/config/reploid-library.json' with { type: 'json' };
@@ -6,7 +6,7 @@ import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 afterEach(() => vi.useRealTimers());
 
-function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs = 30000, peerId = 'local', remotePeerId = 'direct' } = {}) {
+function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs = 30000, peerId = 'local', remotePeerId = 'direct', peerTimeoutMs = 500 } = {}) {
   const sockets = [], connections = [], events = [];
   class Socket {
     static OPEN = 1;
@@ -33,7 +33,7 @@ function fixture({ failChannel = false, profile, getRtcConfig, connectTimeoutMs 
     async setRemoteDescription() {}
   }
   const config = resolveConfig({ profile, overrides: { mesh: { enabled: true, roomId: 'test' },
-    webrtc: { signalingUrl: 'wss://fixture.invalid', heartbeatIntervalMs: 100, peerTimeoutMs: 500,
+    webrtc: { signalingUrl: 'wss://fixture.invalid', heartbeatIntervalMs: 100, peerTimeoutMs,
       reconnectBaseMs: 1000, connectTimeoutMs } } });
   const swarm = createWebRTCSwarm({ config, peerId, getSessionId: () => 'session',
     getRoomCredentials: () => ({ roomId: 'test', token: 'x'.repeat(32) }),
@@ -456,4 +456,58 @@ it('keeps actual client signaling and surviving peers after nonfatal missing-tar
     expect(f.connections[0].close).not.toHaveBeenCalled();
     expect(f.sockets[0].send.mock.calls.map(([data]) => JSON.parse(data).type)).toContain('heartbeat');
   } finally { f.swarm.disconnect(); }
+});
+
+describe('a computer ICE reports as disconnected', () => {
+  const channelFrames = f => f.connections[0].channel.send.mock.calls.map(([value]) => JSON.parse(value));
+  const named = (f, name) => f.events.filter(([event]) => event === name);
+  const ice = (f, state) => { f.connections[0].iceConnectionState = state; f.connections[0].oniceconnectionstatechange(); };
+  const inbound = (f, type) => f.connections[0].channel.onmessage({ data: JSON.stringify({
+    ...relayedEnvelope('direct', type, { ts: 1 }), protocolVersion: channelFrames(f)[0].protocolVersion }) });
+  // A long stale-peer deadline, so only the probe can end anything here.
+  const opened = async () => { vi.useFakeTimers(); const f = fixture({ peerTimeoutMs: 600000 }); await f.open(); return f; };
+
+  it('is asked once, and 1.5 seconds of silence ends its requests without closing the connection', async () => {
+    const f = await opened();
+    try {
+      ice(f, 'disconnected'); ice(f, 'disconnected');
+      expect(channelFrames(f).filter(frame => frame.type === 'ping')).toHaveLength(1);
+      await vi.advanceTimersByTimeAsync(1499);
+      expect(named(f, 'swarm:peer-unresponsive')).toHaveLength(0);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(named(f, 'swarm:peer-unresponsive')).toHaveLength(1);
+      expect(f.connections[0].close).not.toHaveBeenCalled();
+      expect(f.swarm.getConnectedPeers().map(peer => peer.id)).toContain('direct');
+    } finally { f.swarm.disconnect(); }
+  });
+
+  it.each([['a reply', f => inbound(f, 'pong')], ['any other message', f => inbound(f, 'sync-response')], ['ICE recovering', f => ice(f, 'connected')]])(
+    'is not failed after %s, however long its next token takes', async (_name, answer) => {
+      const f = await opened();
+      try {
+        ice(f, 'disconnected');
+        await vi.advanceTimersByTimeAsync(1400);
+        answer(f);
+        await vi.advanceTimersByTimeAsync(5000);
+        expect(named(f, 'swarm:peer-unresponsive')).toHaveLength(0);
+      } finally { f.swarm.disconnect(); }
+    });
+
+  it('can take new work again once it answers', async () => {
+    const f = await opened();
+    try {
+      ice(f, 'disconnected');
+      await vi.advanceTimersByTimeAsync(1500);
+      inbound(f, 'pong');
+      expect(named(f, 'swarm:peer-responsive')).toHaveLength(1);
+    } finally { f.swarm.disconnect(); }
+  });
+
+  it('leaves no probe running after it is removed', async () => {
+    const f = await opened();
+    ice(f, 'disconnected');
+    f.swarm.disconnect();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(named(f, 'swarm:peer-unresponsive')).toHaveLength(0);
+  });
 });

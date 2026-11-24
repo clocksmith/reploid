@@ -92,3 +92,24 @@ it('a provider lost while streaming is not replaced, and its hold is released wi
   expect(f.account('computer-requester')).toMatchObject({ balance: 0, held: 0 });
   expect(f.account('computer-faster').balance).toBe(0);
 }, 30000);
+
+it('a provider that stops answering ends the request once, keeps its text, clears the hold and gets no new work', async () => {
+  const f = await network();
+  let partial = '', providerId = null, reported = false;
+  await expect(f.send('silent', { signal: AbortSignal.timeout(5000), requestApproval: async () => true,
+    onRoute: route => { providerId = route.providerId; },
+    onDelta: delta => { partial += delta.text; if (!reported) { reported = true; f.requesterBus.emit('swarm:peer-unresponsive', { peerId: providerId }); } }
+  })).rejects.toThrow('Execution peer disconnected');
+  expect(partial).not.toBe('');
+  expect(f.outcomes.filter(outcome => outcome.attemptId === 'silent')).toHaveLength(1);
+  await waitFor(() => f.account('computer-requester').held === 0, { label: 'hold release after the provider went silent' });
+  expect(f.account('computer-requester').balance).toBe(0);
+  expect(f.account('computer-faster').balance).toBe(0);
+  expect(f.executions()).toEqual([0, 1, 0]);
+  // Its next request goes to the other eligible computer, and an answer from the silent one restores it.
+  const next = await f.send('after-silence', { signal: AbortSignal.timeout(5000), requestApproval: async preview => {
+    expect(preview.recipientIdentity).toBe(f.seatOf('slower').identity.peerId); return true; } });
+  expect(next.usage.outputTokens).toBe(LIMIT);
+  f.requesterBus.emit('swarm:peer-responsive', { peerId: providerId });
+  expect(f.requesterMesh.getSwarmSnapshot().peers.find(peer => peer.peerId === providerId).unresponsive).toBeUndefined();
+}, 30000);

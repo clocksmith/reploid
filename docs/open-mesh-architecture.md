@@ -696,7 +696,10 @@ Every whole-model request follows one order, whichever API it entered through:
    only then does the prompt leave the requester.
 6. **Settle once.** A finished answer is charged for its reported output, up to the
    quote. A cancelled or dropped whole-model answer releases the hold without a
-   charge and does not move to another computer.
+   charge and does not move to another computer. When ICE reports a connection
+   as disconnected, the requester pings that computer. If nothing arrives within
+   1.5 seconds, its requests end and it gets no new work until it answers. The
+   connection stays open, so a slow answer or a brief loss does not end it.
 
 `tests/integration/whole-model-order.test.js` exercises this order on one pinned
 model with in-memory transport and a fixed generator. It does not establish real

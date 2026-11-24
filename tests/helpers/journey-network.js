@@ -332,7 +332,7 @@ export async function createJourneyNetwork({ providers, modelOptions = {}, maxOu
   });
 
   return {
-    model, fixture, hub, credits, requester, requesterClient, requesterIdentity, requesterMesh, whole, outcomes, seats, seatOf, ranking,
+    model, fixture, hub, credits, requester, requesterClient, requesterIdentity, requesterMesh, requesterBus, whole, outcomes, seats, seatOf, ranking,
     readyPeers, expectReady, observe, verifyDirectory, promptTokens,
     /** Moves the ledger's clock past the request deadline and the claim window. Nothing may settle afterwards. */
     passClaimWindow() { ledgerClock.aheadMs += credits.policy.maxRequestMs + credits.policy.wholeModelUnclaimedReleaseMs; return ledgerClock.aheadMs; },

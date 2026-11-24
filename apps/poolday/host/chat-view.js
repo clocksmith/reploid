@@ -41,7 +41,7 @@ export function projectChatCatalog({ models, peers, connections, releasedPartiti
   // The host supplies only routes admitted by its release policy.
   return selections.map(model => {
     // A computer blocked on this device is never chosen, so it is not counted as capacity either.
-    const compatible = peers.filter(peer => peer.blocked !== true && peer.identityProtocol === 1 && peer.admissionProtocol === 2
+    const compatible = peers.filter(peer => peer.blocked !== true && peer.unresponsive !== true && peer.identityProtocol === 1 && peer.admissionProtocol === 2
       && (!connections || reachable(peer)) && peer.model === model.id && peer.modelIdentity === model.identity
       && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
     const ready = compatible.filter(peer => peer.readiness === 'ready' && peer.hasInference);
