@@ -4,7 +4,7 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Define Reploid's network product through voluntary storage, computation, agent
+Poolday is the internal name for Reploid's inference-pool surface. Define the network product through voluntary storage, computation, agent
 work and evaluated improvement. Standalone usefulness belongs to participants.
 
 ## Authority
@@ -19,7 +19,7 @@ This directory and unchartered descendants.
 ## Contracts
 
 Inputs: [goals](../../GOALS.md) and [runtime charter](../../apps/poolday/pool/CATSCAN.md).
-References: [public product contract](../product-specification.md), [bounded claims](claims-and-nonclaims.md), and [compatibility links](product-intent.md).
+Outputs: [public product contract](../product-specification.md), [bounded claims](claims-and-nonclaims.md), and [compatibility links](product-intent.md).
 
 ## Invariants
 
