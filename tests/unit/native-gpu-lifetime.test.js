@@ -4,6 +4,7 @@ const state = vi.hoisted(() => ({ device: null, destroyPool: vi.fn() }));
 vi.mock('dopplerx/tooling', () => ({ getDevice: () => state.device, destroyBufferPool: state.destroyPool }));
 import { createNativeGpuHost } from '../../server/native-participant.js';
 import { withGpuMemoryCheck } from '../../server/native-gpu-host.js';
+import { classifySoloFailure } from '../../scripts/stage1/solo-failure.js';
 const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
 afterEach(() => {
   vi.useRealTimers(); state.device = null; state.destroyPool.mockReset();
@@ -87,7 +88,34 @@ it('records an allocation the device refused, from the first device the provider
   await expect(withGpuMemoryCheck(gpu, async () => 'loaded')).resolves.toBe('loaded');
   await expect(withGpuMemoryCheck(gpu, async () => {
     report(new GPUOutOfMemoryError('\nvkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY\n - While calling [Device].CreateBuffer'));
-  })).rejects.toMatchObject({ code: 'GPU_OUT_OF_MEMORY', detail: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY' });
-  expect(host.outOfMemory()).toEqual({ count: 1, message: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY' });
+  })).rejects.toMatchObject({ code: 'GPU_OUT_OF_MEMORY',
+    detail: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY\n- While calling [Device].CreateBuffer' });
+  expect(host.outOfMemory()).toEqual({ count: 1, message: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_DEVICE_MEMORY\n- While calling [Device].CreateBuffer', liveBytes: null });
   expect(device.queue.onSubmittedWorkDone).toHaveBeenCalledTimes(2);
+});
+
+it('latches the first refusal on a device with every line and the bytes then allocated', async () => {
+  Object.defineProperty(globalThis, 'navigator', {configurable:true,value:{}});
+  class GPUOutOfMemoryError extends Error {}
+  const device = Object.assign(new EventTarget(), {queue:{onSubmittedWorkDone:async()=>{}},
+    createBuffer: descriptor => ({size: descriptor.size, destroy() {}})});
+  const host = createNativeGpuHost(async()=>({globals:{},create:()=>({requestAdapter: async () => ({requestDevice: async () => device})})}));
+  const gpu = await host.open();
+  await (await navigator.gpu.requestAdapter()).requestDevice();
+  const report = message => device.dispatchEvent(Object.assign(new Event('uncapturederror'), {error: new GPUOutOfMemoryError(message)}));
+  const first = 'Out of memory\n - While calling [Device].CreateBuffer([BufferDescriptor "weights"] size: 4096)';
+  await expect(withGpuMemoryCheck(gpu, async () => {
+    device.createBuffer({size: 1024}).destroy();
+    device.createBuffer({size: 2048});
+    device.createBuffer({size: 4096}); // Refused, but Dawn still returns a buffer.
+    report(first);
+    device.createBuffer({size: 1 << 20}); // The loader keeps going; the latch does not move.
+    report('Out of memory\n - a later refusal');
+  })).rejects.toMatchObject({ code: 'GPU_OUT_OF_MEMORY', liveBytesAtFailure: 6144,
+    detail: 'Out of memory\n- While calling [Device].CreateBuffer([BufferDescriptor "weights"] size: 4096)' });
+  expect(host.outOfMemory()).toMatchObject({ count: 2, liveBytes: 6144 });
+  const failure = classifySoloFailure(Object.assign(await withGpuMemoryCheck(gpu, async () => report('again')).catch(error => error),
+    { stage1During: 'whole-model-load', stage1Memory: { peakBytes: 1 << 30 } }), { requiredBytes: 1 << 30 });
+  expect(failure).toMatchObject({ failedBufferBytes: 4096, allocatedBeforeFailureBytes: 2048 });
+  expect(host.outOfMemory().message.length).toBeLessThanOrEqual(500);
 });

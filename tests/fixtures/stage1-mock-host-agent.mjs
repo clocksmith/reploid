@@ -32,7 +32,7 @@ const ports = {
   async loadSolo() {
     throw Object.assign(Error('This computer\'s GPU ran out of memory while loading the model'), { code: 'GPU_OUT_OF_MEMORY',
       detail: 'VK_ERROR_OUT_OF_DEVICE_MEMORY allocating buffer of size 536870912 bytes', stage1During: 'whole-model-load',
-      stage1Memory: { peakBytes: mine.peakBytes ?? 12348030976 } });
+      liveBytesAtFailure: mine.liveBytesAtFailure ?? 12348030976 });
   },
   async openParticipant({ stageIndex, identity, config }) {
     let sourceRuntime = null;

@@ -158,7 +158,8 @@ export function createSessionOperations(ports) {
 const reply = (output, value) => output.write(JSON.stringify(value) + '\n');
 const failure = error => ({ error: String(error?.message ?? error), ...(error?.code ? { code: String(error.code) } : {}) });
 
-export async function runHostAgent({ mode, input = process.stdin, output = process.stdout, ports = realHostPorts(), startId = null }) {
+export async function runHostAgent({ mode, input = process.stdin, output = process.stdout, ports = realHostPorts(), startId = null,
+  exit = code => process.exit(code), settleMs = 10000 }) {
   if (mode === '--control') {
     const chunks = [];
     for await (const chunk of input) chunks.push(chunk);
@@ -185,9 +186,11 @@ export async function runHostAgent({ mode, input = process.stdin, output = proce
     })();
     running.add(task); task.finally(() => running.delete(task));
   }
-  // The operator is gone or finished. Nothing it started on this machine outlives it.
-  await Promise.race([operations['abort-solo']() && operations.close().catch(() => {}), new Promise(resolve => setTimeout(resolve, 10000).unref())]);
-  process.exit(0);
+  // The operator is gone or finished. Nothing it started on this machine outlives it: a solo load owns its own model
+  // and GPU, released only when that load settles, so wait (bounded) for every running operation as well as the close.
+  operations['abort-solo']();
+  await Promise.race([Promise.allSettled([...running, operations.close()]), new Promise(resolve => setTimeout(resolve, settleMs).unref())]);
+  exit(0);
 }
 
 const entered = (() => { try { return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); } catch { return false; } })();

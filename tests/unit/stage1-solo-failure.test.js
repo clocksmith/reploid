@@ -5,7 +5,7 @@ import { classifySoloControl } from '../../scripts/stage1/receipt-check.js';
 
 const requiredBytes = 16941875200, budgetBytes = 25769803776;
 const midLoad = (extra = {}) => Object.assign(Error('This computer\'s GPU ran out of memory while loading the model'),
-  { code: 'GPU_OUT_OF_MEMORY', detail: 'Allocation failed', stage1During: 'whole-model-load', stage1Memory: { peakBytes: 12884901888 }, ...extra });
+  { code: 'GPU_OUT_OF_MEMORY', detail: 'Allocation failed', stage1During: 'whole-model-load', liveBytesAtFailure: 12884901888, ...extra });
 const settings = { modelId: 'm', modelIdentity: 'i', quantization: 'q4k', messagesDigest: 'd', maxOutputTokens: 4, decoding: { temperature: 0 } };
 const expectations = { workload: settings, minimumSoloLoadBytes: requiredBytes, totalWeight: { bytes: 16994352128 } };
 const verdict = failure => classifySoloControl({ outcome: 'failed', settings, failure, claimedFailure: claimsMemory(failure) ? 'memory' : null }, expectations);
@@ -27,13 +27,13 @@ describe('a real device refusal', () => {
   });
 
   it('reports the whole model as required when the device refused partway through', () => {
-    const failure = map(midLoad({ detail: 'Failed to allocate buffer of size 536870912 bytes', stage1Memory: { peakBytes: 12348030976 } }));
+    const failure = map(midLoad({ detail: 'Failed to allocate buffer of size 536870912 bytes', liveBytesAtFailure: 12348030976 }));
     expect(failure).toMatchObject({ requiredBytes, failedBufferBytes: 536870912, allocatedBeforeFailureBytes: 11811160064 });
     expect(verdict(failure).outcome).toBe('memory');
   });
 
   it('keeps a small refusal with nothing loaded inconclusive', () => {
-    const failure = map(midLoad({ detail: 'size 4096 bytes', stage1Memory: { peakBytes: 4096 } }));
+    const failure = map(midLoad({ detail: 'size 4096 bytes', liveBytesAtFailure: 4096 }));
     expect(failure.requiredBytes).toBe(requiredBytes);
     expect(claimsMemory(failure)).toBe(false);
     expect(verdict(failure)).toEqual({ outcome: 'inconclusive', why: 'small-allocation' });
@@ -46,9 +46,28 @@ describe('a real device refusal', () => {
   });
 
   it('keeps a refusal with no memory record inconclusive', () => {
-    const failure = map(midLoad({ stage1Memory: null }));
+    const failure = map(midLoad({ liveBytesAtFailure: null }));
     expect(claimsMemory(failure)).toBe(false);
     expect(verdict(failure)).toEqual({ outcome: 'inconclusive', why: 'load-progress-unknown' });
+  });
+
+  it('uses the bytes latched at the first refusal, not the later peak of a load that kept allocating', () => {
+    const detail = 'Out of memory\n - While calling [Device].CreateBuffer([BufferDescriptor "weights"] size: 536870912)';
+    const failure = map(midLoad({ detail, liveBytesAtFailure: 1610612736, stage1Memory: { peakBytes: requiredBytes } }));
+    expect(failure).toMatchObject({ failedBufferBytes: 536870912, allocatedBeforeFailureBytes: 1073741824 });
+    // A watcher refusal without a latched figure does not fall back to the peak.
+    const unknown = map(midLoad({ liveBytesAtFailure: undefined, stage1Memory: { peakBytes: requiredBytes } }));
+    expect(unknown.allocatedBeforeFailureBytes).toBeNull();
+    expect(verdict(unknown)).toEqual({ outcome: 'inconclusive', why: 'load-progress-unknown' });
+  });
+
+  it('keeps a watcher refusal on the device when Dawn names host memory inside it', () => {
+    const failure = map(midLoad({ detail: 'vkAllocateMemory failed with VK_ERROR_OUT_OF_HOST_MEMORY' }));
+    expect(failure).toMatchObject({ kind: 'out-of-memory', evidence: 'device-out-of-memory' });
+    expect(verdict(failure)).toEqual({ outcome: 'memory', why: 'device-out-of-memory' });
+    // Without the watcher's code, host-memory text stays host memory even next to a device error name.
+    expect(map(Object.assign(Error('GPUOutOfMemoryError: VK_ERROR_OUT_OF_HOST_MEMORY'), { stage1During: 'whole-model-load' })).kind)
+      .toBe('host-out-of-memory');
   });
 
   it('counts a budget below the model as an operator cap', () => {

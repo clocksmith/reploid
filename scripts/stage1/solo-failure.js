@@ -33,13 +33,19 @@ export function classifySoloFailure(error, { stop = null, requiredBytes, budgetB
   if (rows.some(row => row.code === 'RESOURCE_EXHAUSTED') || /GPU memory budget exceeded/.test(text)) {
     return { kind: 'out-of-memory', evidence: 'operator-budget', operatorCapped: true, requiredBytes };
   }
-  if (HOST_MEMORY.test(text)) return { kind: 'host-out-of-memory' };
-  if (!rows.some(row => row.code === 'GPU_OUT_OF_MEMORY') && !DEVICE_MEMORY.test(text)) return { kind: 'load-failed' };
+  // The GPU watcher's refusal is a device error even when its text names host memory: on unified-memory GPUs Dawn
+  // can report VK_ERROR_OUT_OF_HOST_MEMORY inside a GPUOutOfMemoryError. Host-memory text alone stays host memory.
+  const deviceRefused = rows.some(row => row.code === 'GPU_OUT_OF_MEMORY');
+  if (!deviceRefused && HOST_MEMORY.test(text)) return { kind: 'host-out-of-memory' };
+  if (!deviceRefused && !DEVICE_MEMORY.test(text)) return { kind: 'load-failed' };
   const during = rows.find(row => row.stage1During)?.stage1During ?? null;
-  const peak = rows.find(row => Number.isSafeInteger(row.stage1Memory?.peakBytes))?.stage1Memory.peakBytes ?? null;
+  // A watcher refusal uses only the bytes latched when the first refusal arrived: Dawn keeps returning buffers after
+  // it, so the load's later peak can reach the whole model. The peak is used only when a thrown refusal stopped the load.
+  const allocated = deviceRefused ? rows.find(row => Number.isSafeInteger(row.liveBytesAtFailure))?.liveBytesAtFailure ?? null
+    : rows.find(row => Number.isSafeInteger(row.stage1Memory?.peakBytes))?.stage1Memory.peakBytes ?? null;
   const failedBufferBytes = failedBufferBytesFrom(rows.map(row => `${row.detail ?? ''} ${row.message ?? ''}`).join(' '));
-  // Dawn accounts for a refused buffer before reporting it, so the peak can include the failed allocation.
-  const allocatedBeforeFailureBytes = peak === null ? null : Math.max(0, peak - (failedBufferBytes ?? 0));
+  // Dawn accounts for a refused buffer before reporting it, so either figure can include the failed allocation.
+  const allocatedBeforeFailureBytes = allocated === null ? null : Math.max(0, allocated - (failedBufferBytes ?? 0));
   return { kind: 'out-of-memory', evidence: 'device-out-of-memory',
     operatorCapped: Number.isSafeInteger(budgetBytes) && budgetBytes < requiredBytes,
     requiredBytes, during, allocatedBeforeFailureBytes, failedBufferBytes };

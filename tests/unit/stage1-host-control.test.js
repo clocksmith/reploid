@@ -192,7 +192,7 @@ describe('the host agent', () => {
     expect(await runSoloLoad({ body, ports: ports({ loadSolo: async () => {} }), controls: {} })).toEqual({ outcome: 'completed', settings: body.settings });
   });
   it('maps a mid-load device refusal and claims memory', async () => {
-    const loadSolo = async () => { throw Object.assign(Error('oom'), { code: 'GPU_OUT_OF_MEMORY', stage1During: 'whole-model-load', stage1Memory: { peakBytes: 12884901888 } }); };
+    const loadSolo = async () => { throw Object.assign(Error('oom'), { code: 'GPU_OUT_OF_MEMORY', stage1During: 'whole-model-load', liveBytesAtFailure: 12884901888 }); };
     expect(await runSoloLoad({ body, ports: ports({ loadSolo }), controls: {} })).toMatchObject({ outcome: 'failed', claimedFailure: 'memory',
       failure: { evidence: 'device-out-of-memory', operatorCapped: false, requiredBytes: 16941875200, allocatedBeforeFailureBytes: 12884901888 } });
   });
@@ -239,6 +239,38 @@ describe('the host agent', () => {
     await expect(operations.open({ stageIndex: 0, stateDirectory: root, fixtureBase64: Buffer.from('a').toString('base64'), fixtureSha256: '0'.repeat(64), witness: { threadId: 't' } }))
       .rejects.toThrow('changed in transit');
     expect(openParticipant).not.toHaveBeenCalled();
+  });
+
+  it('on end of input, aborts a running solo and exits only after it has released the GPU', async () => {
+    const events = [];
+    const loadSolo = async ({ signal }) => {
+      await hang({ signal }).catch(() => {});
+      events.push('aborted');
+      await new Promise(resolve => setTimeout(resolve, 20)); // Model and device close take time.
+      events.push('gpu-closed');
+      throw Object.assign(Error('Whole-model contribution stopped'), { stage1During: 'whole-model-load' });
+    };
+    const input = new PassThrough(), output = new PassThrough();
+    const exited = new Promise(resolve => {
+      runHostAgent({ mode: '--session', input, output, startId: 's', ports: ports({ loadSolo }), exit: code => { events.push(`exit:${code}`); resolve(); } });
+    });
+    input.write(JSON.stringify({ id: 1, op: 'solo', body }) + '\n');
+    await new Promise(resolve => setTimeout(resolve, 5));
+    input.end();
+    await exited;
+    expect(events).toEqual(['aborted', 'gpu-closed', 'exit:0']);
+  });
+
+  it('exits after the bounded wait when a solo never settles', async () => {
+    const input = new PassThrough(), output = new PassThrough();
+    const exit = vi.fn();
+    const done = runHostAgent({ mode: '--session', input, output, startId: 's', settleMs: 10,
+      ports: ports({ loadSolo: () => new Promise(() => {}) }), exit });
+    input.write(JSON.stringify({ id: 1, op: 'solo', body }) + '\n');
+    await new Promise(resolve => setTimeout(resolve, 5));
+    input.end();
+    await done;
+    expect(exit).toHaveBeenCalledWith(0);
   });
 
   it('answers one control operation and reports a refusal with its code', async () => {

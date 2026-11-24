@@ -9,15 +9,36 @@ export function createNativeGpuHost(loadProvider, { backend = process.platform =
   let opening = null, closing = null, restore = null, retirement = null, stopped = false;
   let ownedDevice = null, lost = null, queueSettled = false, queueRejected = false, lossResolved = false, poolDestroyed = false, deviceDestroyed = false;
   // Dawn reports a refused allocation as an uncaptured device error and still returns a buffer object, so a
-  // model load can finish with weights missing. Every device this provider creates is watched from creation.
-  const memory = { count: 0, message: null }, watched = new Set(), adapters = new WeakSet();
+  // model load can finish with weights missing and keep allocating after the refusal. Every device this provider
+  // creates is watched from creation: the first refusal on a device is latched with the bytes then allocated on it,
+  // and later errors on that device do not replace it.
+  const memory = { count: 0, message: null, liveBytes: null }, watched = new Set(), adapters = new WeakSet();
   const watchDevice = device => {
     if (typeof device?.addEventListener !== 'function' || watched.has(device)) return device;
     watched.add(device);
+    // Unknown, not zero, when the device cannot be counted.
+    let liveBytes = typeof device.createBuffer === 'function' ? 0 : null, first = null;
+    if (liveBytes !== null) {
+      const createBuffer = device.createBuffer.bind(device);
+      device.createBuffer = descriptor => {
+        const buffer = createBuffer(descriptor), size = Number(descriptor?.size);
+        if (!buffer || !Number.isSafeInteger(size) || size < 0) return buffer;
+        liveBytes += size;
+        if (typeof buffer.destroy === 'function') {
+          const destroy = buffer.destroy.bind(buffer);
+          let live = true;
+          buffer.destroy = () => { destroy(); if (live) { live = false; liveBytes -= size; } };
+        }
+        return buffer;
+      };
+    }
     device.addEventListener('uncapturederror', event => {
       if (event?.error?.constructor?.name !== 'GPUOutOfMemoryError') return;
       memory.count += 1;
-      memory.message = String(event.error.message || 'out of memory').split('\n').find(line => line.trim())?.trim().slice(0, 200) ?? 'out of memory';
+      // Keep every line (bounded): the descriptor line that states the refused size follows the first one.
+      first ??= { message: String(event.error.message || '').split('\n').map(line => line.trim()).filter(Boolean).join('\n')
+        .slice(0, 500) || 'out of memory', liveBytes };
+      memory.message = first.message; memory.liveBytes = first.liveBytes;
     });
     return device;
   };
@@ -109,7 +130,10 @@ export async function withGpuMemoryCheck(gpu, load) {
   await gpu?.settle?.();
   const after = gpu?.outOfMemory?.();
   if (after && after.count > before) {
-    throw Object.assign(new Error('This computer\'s GPU ran out of memory while loading the model'), { code: 'GPU_OUT_OF_MEMORY', detail: after.message });
+    // `liveBytesAtFailure` counts the refused buffer itself (Dawn still returns it) and anything created before the
+    // error was delivered; it is the device's allocation when the refusal was reported, not the load's later peak.
+    throw Object.assign(new Error('This computer\'s GPU ran out of memory while loading the model'),
+      { code: 'GPU_OUT_OF_MEMORY', detail: after.message, liveBytesAtFailure: after.liveBytes ?? null });
   }
   return result;
 }
