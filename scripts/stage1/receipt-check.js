@@ -6,7 +6,7 @@
 import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
 
 export const STAGE1_RECEIPT_SCHEMA = 'reploid.stage1-split-receipt/v1';
-export const STAGE1_PHASES = Object.freeze(['preflight', 'solo-a', 'solo-b', 'split', 'cancel', 'cleanup']);
+export const STAGE1_PHASES = Object.freeze(['preflight', 'solo-a', 'solo-b', 'earn', 'split', 'cancel', 'cleanup']);
 export const LABEL_POOLED = 'pooled capacity';
 export const LABEL_SPLIT = 'split correctness';
 const HOST_LABELS = Object.freeze(['host-a', 'host-b']);
@@ -192,6 +192,40 @@ function checkSettlement(trace, name, expectations, fail, hosts) {
   }
 }
 
+/**
+ * The account earns before it spends: a separate device of the requester's account served whole-model answers, each
+ * settled once on the ledger to that account, and the split and the stopped answer were then paid from those earnings
+ * without the account going below zero.
+ */
+function checkEarn(receipt, expectations, fail) {
+  const earn = receipt.earn, account = receipt.requester?.computerId;
+  if (!earn) { fail('earn-missing', 'no whole-model earning before the split'); return; }
+  if (!account || earn.earner?.computerId !== account) fail('earn-other-account', `${earn.earner?.computerId} earned for ${account}`);
+  if (earn.earner?.participantId === receipt.requester?.participantId) fail('earn-by-requester-device', 'the zero-weight requester served the control');
+  if ((receipt.hosts ?? []).some(host => host.computerId === account)) fail('earn-account-is-executor', String(account));
+  let earned = 0;
+  for (const [index, trace] of (earn.settlements ?? []).entries()) {
+    const name = `earn-${index}`;
+    if (trace?.state !== 'settled' || trace.heldAfter !== 0) fail('earn-not-settled', `${name} ${trace?.state}`);
+    const journal = Array.isArray(trace?.journal) ? trace.journal : [];
+    if (journal.reduce((sum, row) => sum + row.delta, 0) !== 0) fail('settlement-not-conserved', name);
+    if (journal.filter(row => row.delta < 0).length !== 1) fail('double-settlement', `${name} debits`);
+    if (trace?.charge !== trace?.outputTokens * expectations.creditsPerOutputToken) fail('settlement-charge', name);
+    const credited = journal.filter(row => row.accountId === account).reduce((sum, row) => sum + row.delta, 0);
+    if (credited !== trace?.charge) fail('earn-not-credited', `${name} credited ${credited} of ${trace?.charge}`);
+    const replay = trace?.replay;
+    if (replay?.attempted !== true || replay.journalAfter !== replay.journalBefore || replay.balancesUnchanged !== true) fail('double-settlement', `${name} replay`);
+    earned += credited;
+  }
+  if (earned <= 0) fail('earn-nothing', 'no credits earned');
+  const split = receipt.split?.account, charge = receipt.split?.settlement?.charge;
+  if (split?.computerId !== account) fail('spend-other-account', String(split?.computerId));
+  if (!Number.isSafeInteger(split?.before) || split.before < earned) fail('spend-before-earning', `balance ${split?.before} after earning ${earned}`);
+  if (!Number.isSafeInteger(charge) || split?.before < charge) fail('spend-in-debt', `balance ${split?.before} for a charge of ${charge}`);
+  if (split?.after !== split?.before - charge) fail('spend-mismatch', `${split?.before} - ${charge} != ${split?.after}`);
+  if (!(receipt.cancel?.accountAfter >= 0)) fail('spend-in-debt', `after the stopped answer ${receipt.cancel?.accountAfter}`);
+}
+
 function checkCancel(receipt, expectations, fail) {
   const cancel = receipt.cancel, answer = expectations.reference.outputIds.length;
   checkSettlement(cancel?.settlement, 'cancel', expectations, fail, receipt.hosts);
@@ -257,6 +291,7 @@ export function checkStage1Receipt(receipt, expectations) {
   if (record.split?.settlement?.outputTokens !== expectations.reference.outputIds.length) {
     fail('split-settled-tokens', String(record.split?.settlement?.outputTokens));
   }
+  checkEarn(record, expectations, fail);
   checkCancel(record, expectations, fail);
   checkCleanup(record, fail);
   checkServices(record, expectations, fail);

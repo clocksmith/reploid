@@ -90,6 +90,23 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
     expect(codes(verdict)).toContain('double-settlement');
   });
 
+  it('earned before spending: the account paid the split and the stopped answer from earnings, never in debt', () => {
+    const { earn, split, cancel, requester } = good.receipt;
+    const earned = earn.settlements.reduce((sum, trace) => sum + trace.charge, 0);
+    expect(earn.earner.computerId).toBe(requester.computerId);
+    expect(earn.earner.participantId).not.toBe(requester.participantId);
+    expect(split.account.before).toBe(earned);
+    expect(split.account.after).toBe(earned - split.settlement.charge);
+    expect(cancel.accountAfter).toBeGreaterThanOrEqual(0);
+  });
+
+  it('rejects the same run without the earning control, or with a split paid in debt', () => {
+    expect(codes(tampered(receipt => { receipt.earn = null; }))).toContain('earn-missing');
+    expect(codes(tampered(receipt => { receipt.split.account.before = 0; receipt.split.account.after = -receipt.split.settlement.charge; })))
+      .toEqual(expect.arrayContaining(['spend-before-earning', 'spend-in-debt']));
+    expect(codes(tampered(receipt => { receipt.earn.earner.participantId = receipt.requester.participantId; }))).toEqual(['earn-by-requester-device']);
+  });
+
   it('refuses a pooled capacity claim on the fake run', () => {
     expect(codes(tampered(receipt => { receipt.claim = LABEL_POOLED; }))).toEqual(['pooled-capacity-unsupported']);
   });

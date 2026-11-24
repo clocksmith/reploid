@@ -12,7 +12,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import SignalingServer from '../../server/signaling-server.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
-import { startFleetService } from '../../server/fleet/service.js';
+import { createFleetClient, startFleetService } from '../../server/fleet/service.js';
+import { createFleetRequester } from '../../server/fleet/requester.js';
+import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { countersignReceipt, createReceiptDraft, signReceiptDraft } from '../../packages/reploid/src/artifacts/receipt.js';
+import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { observeInventory } from './inventory.js';
 import { stage1Decoding } from './expectations.js';
 import { ledgerTrace, openReservationCount, runGatedCancel, until, verifySplitTokens } from './split-evidence.js';
@@ -22,6 +26,9 @@ const ROLES = Object.freeze(['requester', 'stage0', 'stage1']);
 const HOSTS = Object.freeze([{ label: 'host-a', role: 'stage0' }, { label: 'host-b', role: 'stage1' }]);
 const COMMAND_MS = 60000;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+/** The whole-model control the requester's account serves to earn credits. Fake runtime: no model loads. */
+const EARN_MODEL = Object.freeze({ id: 'stage1-earn-control', identity: 'sha256:' + createHash('sha256').update('stage1-earn-control').digest('hex') });
+const EARN_REQUESTS = 2;
 
 function startProcess(role, directory) {
   const child = fork(PROCESS_FILE, [role], { cwd: directory, stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
@@ -64,7 +71,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
   const fixtureSha256 = createHash('sha256').update(fixtureBytes).digest('hex');
   const witnessFile = role => path.join(directory, role, 'state', 'token-witness.json');
   const inventorySource = 'fake-runtime-declared';
-  let credits = null, service = null, signaling = null, httpServer = null, peers = null;
+  let credits = null, service = null, signaling = null, httpServer = null, peers = null, earner = null, buyer = null;
+  const accountBalance = computerId => credits.snapshot().accounts.find(row => row.id === computerId)?.balance ?? null;
 
   const node = role => nodes.get(role);
   // Declared by this fake: it reports each stage's own ranges, so its zero outside-stage count shows nothing.
@@ -80,12 +88,15 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
     httpServer.listen(0, '127.0.0.1');
     await once(httpServer, 'listening');
     credits = await openFleetCredits({ file: path.join(directory, 'credits.sqlite'),
-      computers: ROLES.map(role => ({ id: `computer-${role}`, name: role, ownerId: `owner-${role}`,
-        providers: [{ participantId: peers[role].participantId, publicJwk: peers[role].publicJwk }] })),
+      // The requester's account has two devices: the zero-weight requester and the device that earns by serving.
+      computers: [...ROLES.map(role => ({ id: `computer-${role}`, name: role, ownerId: `owner-${role}`,
+        providers: [{ participantId: peers[role].participantId, publicJwk: peers[role].publicJwk },
+          ...(role === 'requester' ? [{ participantId: earner.peerId, publicJwk: earner.publicJwk }] : [])] })),
+      { id: 'computer-buyer', name: 'buyer', ownerId: 'owner-buyer', providers: [{ participantId: buyer.peerId, publicJwk: buyer.publicJwk }] }],
       policy: { schema: 'reploid.service-credit-policy/v1', version: 'stage1-local/1', unit: 'noncash-service-credit',
         creditsPerOutputToken: expectations.creditsPerOutputToken, maxDebt: 1000, maxOutputTokens: fixture.maxOutputTokens,
         maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0 } });
-    service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: expectations.creditWeights }] }],
+    service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: expectations.creditWeights }] }, { ...EARN_MODEL }],
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   }
 
@@ -107,13 +118,14 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
         nodes.set(role, startProcess(role, path.join(directory, role)));
       }
       peers = Object.fromEntries(await Promise.all(ROLES.map(async role => [role, await node(role).identity])));
+      [earner, buyer] = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
       await startCoordinator();
       const opened = {};
       for (const role of ['stage0', 'stage1']) opened[role] = await node(role).call('open', nodeConfig(role));
       await node('requester').call('open', nodeConfig('requester'));
       await until(async () => (await node('requester').call('state')).ready, { timeoutMs: 30000, label: 'a ready split route', signal });
       return {
-        requester: { participantId: peers.requester.participantId, preflight: await node('requester').call('weights') },
+        requester: { participantId: peers.requester.participantId, computerId: 'computer-requester', preflight: await node('requester').call('weights') },
         hosts: HOSTS.map((host, index) => ({ label: host.label, stageIndex: index, participantId: peers[host.role].participantId,
           machine: 'local-process', computerId: `computer-${host.role}`, assignedLayers: opened[host.role].assignedLayers, inventory: { preflight: hostInventory(index) } }))
       };
@@ -125,7 +137,35 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
         messagesDigest: expectations.workload.messagesDigest, maxOutputTokens: fixture.maxOutputTokens,
         decoding: stage1Decoding(model.generation) } });
     },
+    /**
+     * Whole-model control: the requester's account earns by serving another account, through the real ledger with a
+     * provider-signed, consumer-countersigned receipt. The answer itself is fake here, so this shows the credit path only.
+     */
+    async earnCredits({ signal }) {
+      const buyerClient = createFleetClient({ url: service.url, identity: buyer }), settlements = [];
+      const tokens = fixture.maxOutputTokens;
+      for (let index = 0; index < EARN_REQUESTS; index++) {
+        const requestId = `stage1-earn-${index}-${randomUUID()}`;
+        const participant = { async generate(request, controls) {
+          if (await controls.requestApproval({ requestId, recipientIdentity: earner.peerId, input: { messages: request.messages } }) !== true) throw Error('Earn control was not approved');
+          const completion = { schema: 'doppler.generation-completion/v1', promptTokenCount: 4, generatedTokenCount: tokens, stopReason: 'length' };
+          const output = { model: EARN_MODEL.id, modelIdentity: EARN_MODEL.identity, content: 'Earn control answer.', completion, adapterIdentities: [] };
+          const measured = await measureWholeModelReceipt(request.messages, output);
+          const receipt = await countersignReceipt(await signReceiptDraft(await createReceiptDraft({ ...measured,
+            provider: earner.peerId, consumer: buyer.peerId, model: EARN_MODEL.id, jobHash: `request:${requestId}` }), earner), buyer);
+          return { content: output.content, execution: { receipt } };
+        } };
+        const requester = createFleetRequester({ participant, identity: buyer, credits: buyerClient, maxOutputTokens: tokens });
+        const result = await requester.generate({ model: EARN_MODEL, messages: [{ role: 'user', content: `Earn control ${index}.` }] },
+          { signal, requestApproval: async () => true });
+        await settled(result.serviceCredit.id, signal);
+        settlements.push(await ledgerTrace(credits, result.serviceCredit.id));
+      }
+      return { mode: 'whole-model', modelId: EARN_MODEL.id, runtimeClass: 'fake-runtime', earner: { participantId: earner.peerId, computerId: 'computer-requester' },
+        buyerComputerId: 'computer-buyer', settlements, accountBalanceAfter: accountBalance('computer-requester') };
+    },
     async splitAnswer({ signal }) {
+      const accountBefore = accountBalance('computer-requester');
       const inventoryBeforeSplit = Object.fromEntries(HOSTS.map((host, index) => [host.label, hostInventory(index)]));
       const answer = await node('requester').call('generate', { messages: fixture.messages, threadId: splitThread });
       await settled(answer.reservationId, signal);
@@ -138,7 +178,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
           planIdentity: answer.route.planId, messagesDigest: credits.request(answer.reservationId).binding.inputDigest,
           promptDigest: output.promptDigest, promptCount: output.promptCount, maxOutputTokens: output.generation.maxTokens,
           decoding: stage1Decoding(output.generation) },
-        split: { attemptId: answer.attemptId, text: answer.text, ...evidence, settlement: await ledgerTrace(credits, answer.reservationId) },
+        split: { attemptId: answer.attemptId, text: answer.text, ...evidence, settlement: await ledgerTrace(credits, answer.reservationId),
+          account: { computerId: 'computer-requester', before: accountBefore, after: accountBalance('computer-requester') } },
         requesterAfterSplit: await node('requester').call('weights'),
         inventoryBeforeSplit,
         inventoryAfterSplit: Object.fromEntries(HOSTS.map((host, index) => [host.label, hostInventory(index)]))
@@ -155,7 +196,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       }, { timeoutMs: 10000, label: `${role} to release the stopped attempt`, signal }).catch(() => node(role).call('activity'))));
       return { attemptId: answer.attemptId, stoppedBeforeCompletion: answer.completed === false && answer.stopped === true,
         visibleText: answer.text, residentsActive: activity.map(state => state.active + state.unsettledOwners),
-        settlement: await ledgerTrace(credits, answer.reservationId) };
+        settlement: await ledgerTrace(credits, answer.reservationId), accountAfter: accountBalance('computer-requester') };
     },
     async cleanup() {
       await Promise.allSettled(['requester', 'stage0', 'stage1'].map(role => node(role).call('close', {}, 20000)));

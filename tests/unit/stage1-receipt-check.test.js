@@ -27,18 +27,33 @@ const outOfMemory = (extra = {}) => ({ outcome: 'failed', settings: soloSettings
 function goodReceipt() {
   return { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: 'physical', hardStop: null, claim: null,
     phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'completed' }])), workload: structuredClone(workload),
-    serviceRestores: [], requester: { participantId: 'peer:r', machine: 'machine-r', preflight: { weightBytes: 0, fileCount: 0 }, afterSplit: { weightBytes: 0, fileCount: 0 } },
+    serviceRestores: [], requester: { participantId: 'peer:r', computerId: 'computer-requester', machine: 'machine-r', preflight: { weightBytes: 0, fileCount: 0 }, afterSplit: { weightBytes: 0, fileCount: 0 } },
     hosts: expectations.stages.map((stage, index) => ({ label: ['host-a', 'host-b'][index], stageIndex: index, participantId: `peer:${index}`,
       machine: `machine-${index}`, computerId: ['computer-a', 'computer-b'][index], assignedLayers: [...stage.layerRange], inventory: { preflight: inventory(stage), beforeSplit: inventory(stage), afterSplit: inventory(stage) } })),
     soloControls: { 'host-a': outOfMemory(), 'host-b': outOfMemory() },
-    split: { text: '22', parityExact: true, settlement: settlement(3, 'split'),
+    earn: { earner: { participantId: 'peer:earner', computerId: 'computer-requester' },
+      settlements: [{ reservationId: 'earn', state: 'settled', charge: 4, outputTokens: 4, heldAfter: 0,
+        journal: [{ accountId: 'computer-buyer', delta: -4 }, { accountId: 'computer-requester', delta: 4 }],
+        replay: { attempted: true, journalBefore: 2, journalAfter: 2, balancesUnchanged: true, outcomeUnchanged: true } }] },
+    split: { text: '22', parityExact: true, settlement: settlement(3, 'split'), account: { computerId: 'computer-requester', before: 4, after: 1 },
       tokens: { outputIds: [17, 17, 248046], promptDigest: workload.promptDigest, tokenizerDigest: workload.promptDigest,
         sampleCount: 3, sampleDigest: 'f'.repeat(64), stopReason: 'eos-token' } },
-    cancel: { stoppedBeforeCompletion: true, residentsActive: [0, 0], settlement: settlement(1, 'cancel') },
+    cancel: { stoppedBeforeCompletion: true, residentsActive: [0, 0], settlement: settlement(1, 'cancel'), accountAfter: 0 },
     cleanup: { processesExited: true, heldCredits: 0, openReservations: 0 } };
 }
 const judged = change => { const receipt = goodReceipt(); change(receipt); return checkStage1Receipt(receipt, expectations); };
 const codes = verdict => verdict.reasons.map(reason => reason.code);
+
+describe('earning before spending', () => {
+  it('refuses a receipt whose account spent before earning, went into debt, or earned on its requester device', () => {
+    expect(codes(judged(r => { r.earn = null; }))).toEqual(['earn-missing']);
+    expect(codes(judged(r => { r.split.account = { computerId: 'computer-requester', before: 2, after: -1 }; })))
+      .toEqual(expect.arrayContaining(['spend-before-earning', 'spend-in-debt']));
+    expect(codes(judged(r => { r.earn.earner.participantId = 'peer:r'; }))).toEqual(['earn-by-requester-device']);
+    expect(codes(judged(r => { r.earn.earner.computerId = 'computer-a'; }))).toContain('earn-other-account');
+    expect(codes(judged(r => { r.earn.settlements[0].journal[1].delta = 3; }))).toEqual(expect.arrayContaining(['earn-not-credited']));
+  });
+});
 
 describe('a good receipt', () => {
   it('passes as pooled capacity when both solo controls ran out of device memory at identical settings', () => {

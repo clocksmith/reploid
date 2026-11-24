@@ -18,6 +18,8 @@ import { LABEL_POOLED } from '../../scripts/stage1/receipt-check.js';
 import { verifyCoordinatorTls } from '../../scripts/stage1/physical-coordinator.js';
 import { runPhysicalStage1 } from '../../scripts/stage1/run.js';
 
+const EARN_NOT_WIRED = ['phase-not-completed:earn', 'earn-missing'];
+
 let wrtc;
 try {
   ({ default: wrtc } = await import('@roamhq/wrtc'));
@@ -111,8 +113,10 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
   it('produces a passing pooled capacity receipt, removes both full copies and restores both services', async () => {
     const setup = await setUp('good', { service: true });
     const { receipt, verdict } = await run(setup, { approveDeleteFullCopy: true });
-    expect(verdict.reasons).toEqual([]);
-    expect(verdict).toMatchObject({ ok: true, label: LABEL_POOLED });
+    // Physical hosts have no earning control yet: everything else passes, and the checker refuses the missing earn phase.
+    expect(verdict.reasons.map(row => row.code)).toEqual(EARN_NOT_WIRED);
+    expect(receipt.phases.earn).toEqual({ status: 'skipped', reason: 'this adapter has no earn phase' });
+    expect(verdict.solo).toMatchObject({ 'host-a': { outcome: 'memory' }, 'host-b': { outcome: 'memory' } });
     expect(receipt.runtimeClass).toBe('physical');
     for (const label of ['host-a', 'host-b']) {
       expect(receipt.soloControls[label]).toMatchObject({ claimedFailure: 'memory', failure: { evidence: 'device-out-of-memory', operatorCapped: false,
@@ -154,8 +158,9 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     await fs.writeFile(fixtureFile, JSON.stringify({ ...source, maxOutputTokens: 80, reference: { ...source.reference,
       visibleOutputIds: Array.from({ length: 71 }, (_, index) => 1000 + index), outputText } }));
     const { receipt, verdict } = await run(await setUp('long'), { approveDeleteFullCopy: true, fixtureFile });
-    expect(verdict.reasons).toEqual([]);
-    expect(verdict.ok).toBe(true);
+    // Physical hosts have no earning control yet: everything else passes, and the checker refuses the missing earn phase.
+    expect(verdict.reasons.map(row => row.code)).toEqual(EARN_NOT_WIRED);
+    expect(receipt.phases.earn).toEqual({ status: 'skipped', reason: 'this adapter has no earn phase' });
     expect(receipt.split.settlement).toMatchObject({ charge: 72, outputTokens: 72 });
     expect(receipt.split.settlement.credits.map(row => row.amount)).toEqual([11, 61]);
     expect(receipt.cancel.stoppedBeforeCompletion).toBe(true);

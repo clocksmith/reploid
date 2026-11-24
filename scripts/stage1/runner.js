@@ -4,7 +4,8 @@
  * skipped and can never read as passed.
  *
  * Adapter: describe(), preflight(ctx), soloControl(label, ctx), splitAnswer(ctx), cancelAnswer(ctx), cleanup(ctx),
- * hardStop(reason), and optionally guard(phase), which throws to stop the run before that phase starts, and
+ * hardStop(reason), optionally earnCredits(ctx) (the whole-model control that earns the credits the split spends; an
+ * adapter without it records the phase as skipped, which the checker refuses), and optionally guard(phase), which throws to stop the run before that phase starts, and
  * evidence(), whose service-restore record joins the receipt however the run ended.
  */
 import { STAGE1_PHASES, STAGE1_RECEIPT_SCHEMA } from './receipt-check.js';
@@ -50,7 +51,7 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
 
   const receipt = { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: description.runtimeClass, startedAt: new Date(now()).toISOString(),
     finishedAt: null, hardStop: null, phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'skipped', reason: 'not reached' }])),
-    workload: null, requester: null, hosts: null, soloControls: {}, split: null, cancel: null, cleanup: null, claim: null };
+    workload: null, requester: null, hosts: null, soloControls: {}, earn: null, split: null, cancel: null, cleanup: null, claim: null };
   const context = phaseSignal => ({ signal: phaseSignal, expectations });
   const apply = {
     preflight: value => { receipt.requester = { ...value.requester }; receipt.hosts = value.hosts; },
@@ -64,11 +65,13 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
         if (value.assignedLayers) host.assignedLayers = value.assignedLayers[host.label];
       }
     },
+    earn: value => { receipt.earn = value; },
     cancel: value => { receipt.cancel = value; },
     cleanup: value => { receipt.cleanup = value; }
   };
   const work = {
     preflight: phaseSignal => adapter.preflight(context(phaseSignal)),
+    earn: phaseSignal => adapter.earnCredits(context(phaseSignal)),
     split: phaseSignal => adapter.splitAnswer(context(phaseSignal)),
     cancel: phaseSignal => adapter.cancelAnswer(context(phaseSignal)),
     cleanup: phaseSignal => adapter.cleanup(context(phaseSignal))
@@ -111,6 +114,10 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
       try { await adapter.guard?.(name); }
       catch (error) { requestStop(`Guard before ${name}: ${message(error)}`); break; }
       if (stop.signal.aborted) break;
+      if (name === 'earn' && typeof adapter.earnCredits !== 'function') {
+        receipt.phases.earn = { status: 'skipped', reason: 'this adapter has no earn phase' };
+        continue;
+      }
       if (!await runPhase(name)) { halted = name; break; }
     }
     if (halted) {
