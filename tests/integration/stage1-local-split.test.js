@@ -1,0 +1,118 @@
+// @vitest-environment node
+// Three real OS processes, real WebRTC, signaling and the fleet credit ledger, with a fake model runtime. This proves
+// the harness and its judgment. It is not inference, physical memory, or a two-machine network.
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { runLocalStage1 } from '../../scripts/stage1/run.js';
+import { checkStage1Receipt, LABEL_POOLED, LABEL_SPLIT } from '../../scripts/stage1/receipt-check.js';
+import { loadStage1Expectations } from '../../scripts/stage1/expectations.js';
+import { createLocalStage1Adapter } from '../../scripts/stage1/local-adapter.js';
+import { runStage1Phases } from '../../scripts/stage1/runner.js';
+
+let wrtc;
+try {
+  ({ default: wrtc } = await import('@roamhq/wrtc'));
+} catch (error) {
+  if (error.code !== 'ERR_MODULE_NOT_FOUND' || !error.message.includes('@roamhq/wrtc')) throw error;
+}
+
+describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
+  let root, good;
+  beforeAll(async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'stage1-local-'));
+    good = await runLocalStage1({ directory: path.join(root, 'good'), limits: { maxRunMs: 110000, phaseMs: 60000 } });
+  }, 120000);
+  afterAll(async () => { await fs.rm(root, { recursive: true, force: true }); });
+
+  const tampered = change => {
+    const receipt = structuredClone(good.receipt);
+    change(receipt);
+    return checkStage1Receipt(receipt, good.expectations);
+  };
+  const codes = verdict => verdict.reasons.map(reason => reason.code);
+
+  it('passes the checker as split correctness, because a fake runtime shows nothing about memory', () => {
+    expect(good.verdict).toMatchObject({ ok: true, label: LABEL_SPLIT, reasons: [] });
+    expect(good.receipt.runtimeClass).toBe('fake-runtime');
+    expect(Object.values(good.verdict.solo).map(row => row.why)).toEqual(['no-device-memory-evidence', 'no-device-memory-evidence']);
+  });
+
+  it('carried the frozen token trace and known-wrong answer through both stages', () => {
+    expect(good.receipt.split.tokens.outputIds).toEqual([17, 17, 248046]);
+    expect(good.receipt.split).toMatchObject({ text: '22', parityExact: true });
+    expect(good.receipt.hosts.map(host => host.assignedLayers)).toEqual([[0, 0], [1, 63]]);
+    expect(good.receipt.requester.afterSplit).toEqual({ weightBytes: 0, fileCount: 0 });
+  });
+
+  it('settled the answer and the stopped answer once each on the real ledger', () => {
+    expect(good.receipt.split.settlement).toMatchObject({ state: 'settled', charge: 3, outputTokens: 3, heldAfter: 0 });
+    expect(good.receipt.cancel).toMatchObject({ stoppedBeforeCompletion: true, residentsActive: [0, 0] });
+    expect(good.receipt.cancel.settlement).toMatchObject({ state: 'settled', charge: 1, outputTokens: 1, heldAfter: 0 });
+    for (const trace of [good.receipt.split.settlement, good.receipt.cancel.settlement]) {
+      expect(trace.replay).toMatchObject({ attempted: true, balancesUnchanged: true, outcomeUnchanged: true });
+      expect(trace.replay.journalAfter).toBe(trace.replay.journalBefore);
+    }
+    expect(good.receipt.cleanup).toEqual({ processesExited: true, heldCredits: 0, openReservations: 0 });
+  });
+
+  it('keeps host names, addresses and paths out of the receipt', () => {
+    const text = JSON.stringify(good.receipt);
+    for (const value of [root, os.homedir(), os.hostname(), '127.0.0.1']) expect(text).not.toContain(value);
+  });
+
+  it('rejects the same run with one changed token', () => {
+    expect(codes(tampered(receipt => { receipt.split.tokens.outputIds[1] = 18; }))).toEqual(['tokens-differ']);
+  });
+
+  it('rejects the same run with a host holding the full weights', () => {
+    const verdict = tampered(receipt => {
+      const total = good.expectations.totalWeight;
+      Object.assign(receipt.hosts[0].inventory.afterSplit, { rangeCount: total.rangeCount, bytes: total.bytes });
+    });
+    expect(codes(verdict)).toContain('executor-holds-complete-weights');
+  });
+
+  it('rejects the same run with requester weight bytes', () => {
+    expect(codes(tampered(receipt => { receipt.requester.afterSplit = { weightBytes: 1, fileCount: 1 }; }))).toEqual(['requester-holds-weights']);
+  });
+
+  it('rejects the same run with a stranded hold', () => {
+    expect(codes(tampered(receipt => { receipt.cancel.settlement.state = 'closing'; }))).toEqual(['stranded-hold']);
+  });
+
+  it('rejects the same run with a double settlement', () => {
+    const verdict = tampered(receipt => { receipt.cancel.settlement.journal.push({ accountId: 'computer-requester', delta: -1 }); });
+    expect(codes(verdict)).toContain('double-settlement');
+  });
+
+  it('refuses a pooled capacity claim on the fake run', () => {
+    expect(codes(tampered(receipt => { receipt.claim = LABEL_POOLED; }))).toEqual(['pooled-capacity-unsupported']);
+  });
+
+  it('refuses the fake run against physical expectations', () => {
+    expect(codes(checkStage1Receipt(good.receipt, { ...good.expectations, runtimeClass: 'physical', inventorySource: 'hashed-on-host' })))
+      .toEqual(expect.arrayContaining(['runtime-class', 'inventory-source', 'hosts-not-physically-distinct']));
+  });
+
+  it('kills every process it started on a hard stop and does not pass', async () => {
+    const loaded = await loadStage1Expectations({ runtimeClass: 'fake-runtime' });
+    const adapter = createLocalStage1Adapter({ directory: path.join(root, 'stopped'), ...loaded });
+    await fs.mkdir(path.join(root, 'stopped'), { recursive: true });
+    let started = [];
+    const guarded = { ...adapter, guard: async phase => {
+      if (phase !== 'cancel') return;
+      started = adapter.processIds();
+      throw Error('test guard');
+    } };
+    const receipt = await runStage1Phases({ adapter: guarded, expectations: loaded.expectations, limits: { maxRunMs: 60000, phaseMs: 30000 } });
+    expect(started).toHaveLength(3);
+    expect(receipt.hardStop).toMatchObject({ confirmed: true });
+    expect(receipt.phases.cancel.status).toBe('skipped');
+    for (const pid of started) expect(() => process.kill(pid, 0)).toThrow();
+    const verdict = checkStage1Receipt(receipt, loaded.expectations);
+    expect(verdict.ok).toBe(false);
+    expect(codes(verdict)).toEqual(expect.arrayContaining(['hard-stop', 'phase-not-completed:cancel', 'phase-not-completed:cleanup']));
+  }, 90000);
+});
