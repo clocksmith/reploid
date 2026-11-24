@@ -135,6 +135,9 @@ export function createFleetRequester({
             binding.providers = disclosure.route.stages.map((stage, index) => ({ participantId: stage.participantId, weight: plan.creditWeights[index] }));
             acknowledgments = await openOutputAcknowledgments({ signer: createAttemptEvidenceSigner({ identity }),
               reservationId: binding.id, identity: routeIdentity });
+            // Optional read-only view of the requester's own signed acknowledgments, for a caller that keeps its evidence.
+            const held = acknowledgments;
+            controls.onAcknowledgments?.(Object.freeze({ evidence: () => held.evidence(), count: () => held.state().count }));
             wrapped.charge = acknowledgments.charge;
             wrapped.onOutput = observeOutput = async record => {
               const pair = await acknowledgments.observe(record);
