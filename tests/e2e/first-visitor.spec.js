@@ -36,7 +36,7 @@ test('fresh public route starts on this device, offers local recovery and report
   await localOnly(page, baseURL);
   // A first visitor runs on this device until they choose a computer; discovery status follows that choice.
   const message = page.locator('[data-model-status]');
-  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('Inference stays on this device.');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('Nothing leaves this device.');
   await expect(page.locator('[data-review-shared-model]')).toBeHidden();
   await expect(page.locator('[data-retry-connection]')).toBeHidden();
   const download = page.locator('[data-download-local]');
@@ -137,7 +137,13 @@ test('reviews a reachable alternate model before changing the public destination
   await localOnly(page, baseURL); await installFixture(page, 'light');
   const status = page.locator('[data-model-status]'), review = page.locator('[data-review-shared-model]');
   const picker = page.locator('[data-model-picker]'), apply = page.locator('[data-change-model]');
-  const source = page.locator('[data-composer-model-source]');
+  // The selector names the destination; availability is the separate dot.
+  const source = page.locator('[data-composer-model-source]'), dot = page.locator('[data-composer-availability]');
+  const alternateName = await page.evaluate(async () => {
+    const { CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
+    const { modelVariantLabel } = await import('/ui/components/model-select.js');
+    return modelVariantLabel(CANONICAL_CHAT_MODELS[1]);
+  });
   await chooseComputer(page, 'network');
   await expect(status).toContainText('No eligible computer found');
   await page.evaluate(() => window.firstVisitor.alternate(false));
@@ -146,14 +152,17 @@ test('reviews a reachable alternate model before changing the public destination
   await expect(review).toBeVisible();
   await review.click();
   await expect(picker).toBeVisible();
-  await expect(source).toHaveText(' · Unavailable');
+  await expect(source).toHaveText('Contributors');
+  await expect(dot).toHaveAttribute('data-availability', 'unavailable');
   await page.evaluate(() => window.firstVisitor.alternate(false));
   await expect(apply).toBeDisabled();
   await page.locator('[data-model-picker-close]').click();
   await page.evaluate(() => window.firstVisitor.alternate(true));
   await review.click(); await apply.click();
   await expect(picker).toBeHidden();
-  await expect(source).toHaveText(' · Public network');
+  await expect(source).toHaveText('Contributors');
+  await expect(dot).toHaveAttribute('data-availability', 'ready');
+  await expect(page.locator('[data-composer-model-name]')).toHaveText(alternateName);
   await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
 });
 

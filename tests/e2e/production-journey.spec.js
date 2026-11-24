@@ -69,6 +69,7 @@ async function installExecutionFixture(page, mode) {
     window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { createExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute } = await import('/vendor/reploid/chat/execution-policy.js');
     const model = CANONICAL_CHAT_MODELS[0], peer = 'peer:' + 'b'.repeat(24);
     const evidence = { opens: 0, disclosures: 0, model: model.id };
     const service = { async open() {
@@ -79,11 +80,17 @@ async function installExecutionFixture(page, mode) {
           yield { schema: 'doppler.generation-event/v1', type: 'complete', outputText: 'Controlled local answer' };
         } };
     }, async close() {} };
+    // A ready contributor speaks the current identity and admission protocols over an open data channel.
     const swarm = { getState: () => ({ sharing: false, consumer: { connectionState: 'connected', peers: mode === 'remote'
-      ? [{ peerId: peer, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }] : [] } }),
+      ? [{ peerId: peer, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1,
+        identityProtocol: 1, admissionProtocol: 2 }] : [],
+      connections: mode === 'remote' ? [{ id: peer, phase: 'connected', channelState: 'open' }] : [] } }),
       async connect() {}, hasProvider: () => mode === 'remote',
       async generate(messages, controls) {
-        const preview = { id: crypto.randomUUID(), providerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
+        // The disclosure carries its execution binding: this peer under the conversation's policy.
+        const request = { model: { id: controls.modelId, identity: controls.modelIdentity }, privacy: controls.privacy };
+        const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [peer] }));
+        const preview = { privacyBinding, id: crypto.randomUUID(), providerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
           modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], input: messages, expiresAt: Date.now() + 10000 };
         if (!await controls.approve(preview)) throw Error('Declined');
         evidence.disclosures++; await controls.record({ stage: 'approved', preview });
@@ -95,7 +102,11 @@ async function installExecutionFixture(page, mode) {
     const root = document.createElement('main'); root.className = 'pool-home'; root.dataset.poolRouteId = 'network';
     root.innerHTML = '<nav class="pool-primary-nav"><button data-toggle-thread-rail>Threads</button></nav>' + renderConversationWorkspace();
     document.body.replaceChildren(root);
-    const dispose = bindConversationWorkspace(root, session, { viewState: { executionLocation: mode === 'remote' ? 'network' : 'auto' } });
+    // Choosing the network in "Answer on" sets both the location and who can read it (Standard: any approved computer).
+    const viewState = mode === 'remote'
+      ? { executionLocation: 'network', privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) }
+      : { executionLocation: 'auto' };
+    const dispose = bindConversationWorkspace(root, session, { viewState });
     window.executionFixture = { session, evidence, async close() { dispose(); await session.close(); } };
   }, mode);
 }
