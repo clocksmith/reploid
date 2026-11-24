@@ -493,6 +493,17 @@ describe('a computer ICE reports as disconnected', () => {
       } finally { f.swarm.disconnect(); }
     });
 
+  it.each([['a 45 second prefill with nothing arriving', [45000]], ['32-token batches arriving seconds apart', [8000, 8000, 8000, 8000, 8000]]])(
+    'is not failed during %s while ICE stays connected', async (_name, gaps) => {
+      const f = await opened();
+      try {
+        ice(f, 'connected');
+        for (const gap of gaps) { await vi.advanceTimersByTimeAsync(gap); if (gaps.length > 1) inbound(f, 'sync-response'); }
+        expect(named(f, 'swarm:peer-unresponsive')).toHaveLength(0);
+        expect(f.connections[0].close).not.toHaveBeenCalled();
+      } finally { f.swarm.disconnect(); }
+    });
+
   it('can take new work again once it answers', async () => {
     const f = await opened();
     try {
