@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 393 |
+| apps/poolday | 394 |
 | self | 457 |
 | shared | 2510 |
-| total | 3360 |
+| total | 3361 |
 
 Every file lives in its owner's root.
 
@@ -332,6 +332,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/peer-timing.json` | `apps/poolday/config/peer-timing.json` | apps/poolday | Reached only from product entries. |
 | `config/reploid-environments.js` | `self/config/reploid-environments.js` | self | Reached only from substrate entries. |
 | `config/reploid-library.json` | `shared/config/reploid-library.json` | shared | Reached from native hosts and browser entries. |
+| `config/requester-weights.json` | `apps/poolday/config/requester-weights.json` | apps/poolday | Reached only from product entries. |
 | `config/route-boot.js` | `self/config/route-boot.js` | self | Reached only from substrate entries. |
 | `config/self-source-catalog.json` | `shared/config/self-source-catalog.json` | shared | Reached from product and substrate entries. |
 | `config/self-source-manifest.json` | `self/config/self-source-manifest.json` | self | Reached only from substrate entries. |

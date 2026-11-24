@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 393,
+    "apps/poolday": 394,
     "self": 457,
     "shared": 2510
   },
@@ -1793,6 +1793,12 @@
       "source": "shared/config/reploid-library.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
+    },
+    {
+      "served": "config/requester-weights.json",
+      "source": "apps/poolday/config/requester-weights.json",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "config/route-boot.js",
