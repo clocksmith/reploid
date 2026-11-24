@@ -314,7 +314,7 @@ describe('host session and conversation view', () => {
     await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'));
     expect(partitions.disclosed.at(-1)).toHaveLength(1);
     expect(partitions.disclosed.at(-1)[0].content).not.toContain('Private');
-  });
+  }, 30000); // Its own waits allow 10 s each; the default 5 s test limit failed it under full-suite load.
 
 });
 
