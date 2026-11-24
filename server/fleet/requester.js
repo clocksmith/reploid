@@ -1,8 +1,8 @@
-import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
+import { hashJson } from '../../shared/vendor/reploid/artifacts/signatures.js';
 import { assert, fleetCreditQuote } from './contract.js';
-import { createAttemptEvidenceSigner, openOutputAcknowledgments } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { effectiveRequestDigest, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
+import { createAttemptEvidenceSigner, openOutputAcknowledgments } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { effectiveRequestDigest, normalizeGenerationSettings } from '../../shared/vendor/reploid/mesh/generation-settings.js';
 
 export function buildFleetRequestOutcome({
   attemptId = null, threadId = null, reservationId = null, executionId = null,

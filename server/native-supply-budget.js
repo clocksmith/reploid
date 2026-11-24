@@ -2,7 +2,7 @@
 import fs from 'node:fs/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
-import { custodyBudgetError, reserveCustodyBudget } from '../packages/reploid/src/artifacts/custody/supply-budget.js';
+import { custodyBudgetError, reserveCustodyBudget } from '../shared/vendor/reploid/artifacts/custody/supply-budget.js';
 
 export async function openNativeSupplyBudget(options) {
   try { return await openStore(options); }

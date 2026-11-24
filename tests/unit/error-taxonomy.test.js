@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { expect, it } from 'vitest';
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
-import { RetrievalError } from '../../packages/reploid/src/retrieval/index.js';
-import { TimeoutError, RetryExhaustedError } from '../../packages/reploid/src/agent/tool-operation-retry.js';
-import { ConfigurationError } from '../../packages/reploid/src/config/index.js';
-import { partitionFailure } from '../../packages/reploid/src/contracts/partition.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
+import { RetrievalError } from '../../shared/vendor/reploid/retrieval/index.js';
+import { TimeoutError, RetryExhaustedError } from '../../shared/vendor/reploid/agent/tool-operation-retry.js';
+import { ConfigurationError } from '../../shared/vendor/reploid/config/index.js';
+import { partitionFailure } from '../../shared/vendor/reploid/contracts/partition.js';
 import { AccountError } from '../../server/accounts/domain.js';
 import { LedgerError } from '../../server/ledger/domain.js';
 import { PaymentError } from '../../server/payments/domain.js';

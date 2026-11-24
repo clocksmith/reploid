@@ -7,10 +7,10 @@ import { createReploidDopplerRuntimeService } from '../shared/infrastructure/dop
 import { createNativeResidentProvider } from './native-resident-provider.js';
 import { openNativeModelSource } from './native-model-source.js';
 import { withGpuMemoryCheck } from './native-gpu-host.js';
-import { createModelAdapterResolver, selectModelAdapters } from '../packages/reploid/src/adapters/model-adapter.js';
+import { createModelAdapterResolver, selectModelAdapters } from '../shared/vendor/reploid/adapters/model-adapter.js';
 import profile from '../apps/poolday/config/work-profile.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
-import { GENERATION_SETTINGS_CAPABILITY, assertSettingsSupported, normalizeGenerationSettings } from '../packages/reploid/src/mesh/generation-settings.js';
+import { GENERATION_SETTINGS_CAPABILITY, assertSettingsSupported, normalizeGenerationSettings } from '../shared/vendor/reploid/mesh/generation-settings.js';
 import { hasToolMessages, modelToolCallFormat } from '../shared/infrastructure/tool-call-constraint.js';
 
 /** What this provider applies itself: the caller's output limit reaches the sampler options. */

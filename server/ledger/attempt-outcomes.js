@@ -18,9 +18,9 @@
  * open and raise what an understated one omits.
  */
 
-import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { partitionActivity } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
-import { ATTEMPT_REPORT_SCHEMA, FAILURE_CODE } from '../../packages/reploid/src/contracts/attempt-report.js';
+import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { partitionActivity } from '../../shared/vendor/reploid/mesh/partitions/partition-summary.js';
+import { ATTEMPT_REPORT_SCHEMA, FAILURE_CODE } from '../../shared/vendor/reploid/contracts/attempt-report.js';
 import { cloneJson, fail, hashCanonical, sha256Hex, toMs } from './domain.js';
 
 export const ATTEMPT_OUTCOME_RULES_ID = 'reploid.attempt-outcome-rules/1.0.0';

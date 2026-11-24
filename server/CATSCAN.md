@@ -12,7 +12,7 @@ Owns HTTP, discovery, relay, composition and durable services. Ledger owns credi
 This directory.
 
 ## Contracts
-Inputs: [proxy.js](proxy.js), [signaling](reploid-signaling.js), [admission](public-inference-guard.js), library public entries and [declared wire/host contracts](../scripts/server-library-imports.json), shared browser contracts and Poolday host/pool/config adapters. Product presentation and substrate execution implementations are forbidden dependencies.
+Inputs: [proxy.js](proxy.js), [signaling](reploid-signaling.js), [admission](public-inference-guard.js), library public entries and [declared wire/host contracts](../scripts/server-library-imports.json) from `shared/vendor/reploid`, shared browser contracts and Poolday host/pool/config adapters. Product presentation and substrate execution implementations are forbidden.
 Outputs: bounded responses, accounting and delivery records.
 
 ## Invariants

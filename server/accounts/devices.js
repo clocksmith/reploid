@@ -35,7 +35,7 @@ import {
   put,
   toMs
 } from './domain.js';
-import { checkDeviceRegistrationProof, checkSessionBinding } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { checkDeviceRegistrationProof, checkSessionBinding } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 
 const challengeView = (challenge) => ({
   schema: challenge.schema,

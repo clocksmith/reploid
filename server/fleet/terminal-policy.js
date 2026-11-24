@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { constants } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
+import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { assert, creditPolicy, same, text } from './contract.js';
 
 export async function acceptFleetTerminalPolicy({ file, previousVersion, policy: supplied, requestIds, now = Date.now }) {

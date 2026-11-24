@@ -9,10 +9,10 @@ import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'dopplerx/partitions';
 import { getDevice, getKernelCapabilities } from 'dopplerx/tooling/device';
-import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
-import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
-import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
-import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
+import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../shared/vendor/reploid/chat/execution-policy.js';
+import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../shared/vendor/reploid/artifacts/identity.js';
+import { signGenerationTerminal } from '../../shared/vendor/reploid/artifacts/generation-terminal.js';
+import { hashJson } from '../../shared/vendor/reploid/artifacts/signatures.js';
 import { createNativeParticipant, createNativeRtcAdapter, createNativeGpuHost, readNativeRoomTokenFile } from '../native-participant.js';
 import { openNativeOwnerControls } from '../native-owner/controls.js';
 import custodyPolicy from '../../apps/poolday/config/chat-files.json' with { type: 'json' };
@@ -28,7 +28,7 @@ import { openStageTokenWitness } from './stage-token-witness.js';
 import { createFairLaneScheduler } from './fair-lane-scheduler.js';
 export { createFairLaneScheduler } from './fair-lane-scheduler.js';
 import { assert, fleetCreditQuote, text, same } from './contract.js';
-import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 
 export async function openComputerIdentity(file) {
   assert(path.isAbsolute(file), 'Absolute computer identity path required');

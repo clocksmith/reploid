@@ -11,8 +11,8 @@
  * reservation earns nothing until operational review resolves it.
  */
 
-import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { summarizePartitionExecution } from '../../packages/reploid/src/mesh/partitions/partition-summary.js';
+import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { summarizePartitionExecution } from '../../shared/vendor/reploid/mesh/partitions/partition-summary.js';
 import { hashCanonical, isNonEmptyString, toMs } from '../ledger/domain.js';
 import { checkCounterparty } from './counterparty.js';
 import { CATEGORY_TERMS, acceptedQuoteBacks, claimWindowClosed, computeReward, settledAsCompleted } from './domain.js';

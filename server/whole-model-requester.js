@@ -1,4 +1,4 @@
-import { assertAvailableExecutionPolicy, requestExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
+import { assertAvailableExecutionPolicy, requestExecutionPolicy } from '../shared/vendor/reploid/chat/execution-policy.js';
 /** Native requester projection over the same whole-model mesh used by the browser.
  * Completion counts are provider reports, not independently validated billing evidence.
  * `controls.onUsage`, when given, receives the provider's input token count before any text if the
@@ -8,9 +8,9 @@ import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
 import { projectChatCatalog } from '../apps/poolday/host/chat-view.js';
 import { readWorkGenerationCompletion } from '../shared/infrastructure/generation-completion.js';
-import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { TEXT_GENERATION_CAPABILITY, generationRequest, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
-import { assertSettingsSupported, normalizeGenerationSettings, unionGenerationSettingsCapabilities } from '../packages/reploid/src/mesh/generation-settings.js';
+import { canonicalPartitionJson, partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { TEXT_GENERATION_CAPABILITY, generationRequest, tokenUsage } from '../shared/vendor/reploid/mesh/partitions/partition-generation-request.js';
+import { assertSettingsSupported, normalizeGenerationSettings, unionGenerationSettingsCapabilities } from '../shared/vendor/reploid/mesh/generation-settings.js';
 
 const requireValue = (ok, message) => { if (!ok) throw Error(message); };
 const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);

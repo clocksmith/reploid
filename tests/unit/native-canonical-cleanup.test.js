@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { createSigningIdentity } from '../../shared/vendor/reploid/artifacts/identity.js';
 import { openNativeCanonicalEpochs } from '../../server/native-canonical-epochs.js';
 const ports = vi.hoisted(() => ({ resident: null, mesh: null, networks: [], files: null }));
 vi.mock('dopplerx/partitions', () => ({
@@ -15,14 +15,14 @@ vi.mock('dopplerx/partitions', () => ({
   createLayerPartitionPlan: () => ({ vocabSize: 100 }), hashLayerPartitionPlan: () => 'plan',
   createManifestResidentPartitionFactory: value => value, inspectDeviceMemory: () => ({})
 }));
-vi.mock('../../packages/reploid/src/mesh/partitions/partition-discovery.js', () => ({
+vi.mock('../../shared/vendor/reploid/mesh/partitions/partition-discovery.js', () => ({
   createPartitionDiscovery: ({ catalog }) => ({ getModels: () => [], refresh: async () => {}, close: async () => {},
     getSnapshot: () => [{ available: true, participantId: 'peer:' + '0'.repeat(24), transportId: 'remote',
       description: { phase: 'ready', index: 0, offer: { id: catalog[0].id, identity: catalog[0].identity } } }] })
 }));
-vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
-vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...await original(),
   createPeerGenerationMesh: ({ ports: input }) => { ports.mesh.connect.mockImplementation(async () => { input.createTransport(); }); return ports.mesh; },
   createPartitionNetwork: () => { const network = { close: vi.fn(async () => {}) }; ports.networks.push(network); return network; },
   createResidentPartition: () => ports.resident,

@@ -2,7 +2,7 @@ import globals from 'globals';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findLayerViolations } from './verify-layers.js';
-import { SERVER_LIBRARY_BOUNDARY } from './server-library-imports.js';
+import { SERVER_LIBRARY_BOUNDARY, SERVER_LIBRARY_COPY } from './server-library-imports.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const serverLibraryRule = {
@@ -13,7 +13,7 @@ const serverLibraryRule = {
       const specifier = target?.value ?? (target?.type === 'TemplateLiteral' && !target.expressions.length ? target.quasis[0].value.cooked : null);
       if (typeof specifier !== 'string') return;
       const violations = findLayerViolations({ repoRoot, sourcePath: context.filename, source: '', edges: [{ specifier }] });
-      for (const row of violations.filter(value => value.reason === SERVER_LIBRARY_BOUNDARY)) {
+      for (const row of violations.filter(value => value.reason === SERVER_LIBRARY_BOUNDARY || value.reason === SERVER_LIBRARY_COPY)) {
         context.report({ node: target, message: row.reason + ': ' + specifier });
       }
     };

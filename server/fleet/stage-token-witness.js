@@ -4,7 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
-import { canonicalPartitionJson, canonicalRouteAttemptBinding } from '../../packages/reploid/src/contracts/partition.js';
+import { canonicalPartitionJson, canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/contracts/partition.js';
 
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const digest = value => sha256(canonicalPartitionJson(value));

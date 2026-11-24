@@ -1,7 +1,7 @@
 /* global WebSocketPair */
 import { DurableObject } from 'cloudflare:workers';
 import bootstrap from '../../shared/config/swarm-bootstrap.json';
-import { sha256Bytes as digest } from '../../packages/reploid/src/artifacts/signatures.js';
+import { sha256Bytes as digest } from '../../shared/vendor/reploid/artifacts/signatures.js';
 import {
   DISCOVERY_RELAY_ERROR, NEGOTIATION_FIELDS, allowsSwarmOrigin, boundIdentityError, discoveryJoinError,
   discoveryNamespace, forwardedNegotiation, frameError, joinIdentityError, negotiationError, parseFrame

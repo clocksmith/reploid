@@ -16,9 +16,9 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import { installedPackageDirectory, nativeShaderCacheIdentity, openNativeShaderCache } from './native-shader-cache.js';
 import dopplerPin from '../shared/config/doppler-package.json' with { type: 'json' };
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
-import { createSigningIdentity } from '../packages/reploid/src/artifacts/identity.js';
+import { createSigningIdentity } from '../shared/vendor/reploid/artifacts/identity.js';
 import { openNativeReadinessLog } from './native-readiness-log.js';
-import { createReadinessRecorder } from '../packages/reploid/src/measurement/index.js';
+import { createReadinessRecorder } from '../shared/vendor/reploid/measurement/index.js';
 import { createChangeOnlyLog } from './native-change-log.js';
 import { createPublicWebWorker } from './public-web-worker.js';
 import { sha256Hex } from './hashing.js';
@@ -35,7 +35,7 @@ import { openOwnerPairing } from './circles/owner-pairing.js';
 import { openCircleInvites } from './circles/invites.js';
 import { createGuestAccess } from './circles/guest-access.js';
 import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
-import { ownerPairingRoomId, ownerPairingRoomMarker } from '../packages/reploid/src/transport/index.js';
+import { ownerPairingRoomId, ownerPairingRoomMarker } from '../shared/vendor/reploid/transport/index.js';
 
 export async function main({ argv, runOnce } = {}) {
   const { values } = parseArgs({ ...(argv === undefined ? {} : { args: argv }), options: participantOptions });

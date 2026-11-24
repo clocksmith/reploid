@@ -3,7 +3,7 @@
  */
 
 import { webcrypto } from 'crypto';
-import { ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, compactAgreementForAcceptance } from '../../packages/reploid/src/artifacts/acceptance.js';
+import { ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, compactAgreementForAcceptance } from '../../shared/vendor/reploid/artifacts/acceptance.js';
 import { canonicalize, hashJson, sha256Digest } from './hash.js';
 import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract.js';
 import { getRingPhaseProtocol } from './config.js';

@@ -3,7 +3,7 @@ import { constants } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT, ownerPairingCode, ownerPairingRequestId, ownerParticipantId }
-  from '../../packages/reploid/src/transport/index.js';
+  from '../../shared/vendor/reploid/transport/index.js';
 
 // Long enough to scan the link on a phone, switch networks and confirm; codes stay single-use.
 const PAIRING_TTL_MS = 10 * 60 * 1000;

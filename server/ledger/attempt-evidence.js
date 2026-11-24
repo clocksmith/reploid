@@ -13,14 +13,14 @@
  * Signatures establish who asserted what, not honest or correct computation.
  */
 
-import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import {
   ACKNOWLEDGMENT_OVERDUE,
   ATTEMPT_EVIDENCE_SCHEMA,
   checkAttemptEvidenceBundle,
   verifyOutputAcknowledgment,
   verifyStageReceipt
-} from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+} from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { routeHashOf } from './attempt-outcomes.js';
 import { EVIDENCE_RULES_ID, cloneJson, evaluateFormula, fail, hashCanonical, isIsoTime, sha256Hex, toMs } from './domain.js';
 

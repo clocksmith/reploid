@@ -1,6 +1,6 @@
 /** Validate the installed server's complete auxiliary route before invoking any upstream data port. */
-import { bindAuxiliaryDisclosure, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
-import { disclosureOrigin, serverSearchPath, SEARCH_DISCLOSURE_PROTOCOL } from '../../packages/reploid/src/retrieval/disclosure-path.js';
+import { bindAuxiliaryDisclosure, sameExecutionBinding } from '../../shared/vendor/reploid/chat/execution-policy.js';
+import { disclosureOrigin, serverSearchPath, SEARCH_DISCLOSURE_PROTOCOL } from '../../shared/vendor/reploid/retrieval/disclosure-path.js';
 import { SearchProviderError } from './errors.js';
 export function createSearchDisclosure({ search, fetcher, publicOrigin }) {
   let description = null;

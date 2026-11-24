@@ -9,11 +9,11 @@
  * Keys are self-certifying: a participant ID derives from its public key, so a signature names its signer without
  * an enrollment table. Mapping participant IDs to people or accounts stays outside this module.
  */
-import { canonicalPartitionJson, canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { attemptRouteHash } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { sha256Hex as digestText } from '../../packages/reploid/src/artifacts/signatures.js';
-import { normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature } from '../../packages/reploid/src/artifacts/participant-proofs.js';
-import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
+import { canonicalPartitionJson, canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { attemptRouteHash } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { sha256Hex as digestText } from '../../shared/vendor/reploid/artifacts/signatures.js';
+import { normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
+import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 
 export const SETTLEMENT_TERMS_SCHEMA = 'reploid.settlement-terms/v1';
 export const SETTLEMENT_ACCEPTANCE_SCHEMA = 'reploid.settlement-acceptance/v1';

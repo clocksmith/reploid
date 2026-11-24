@@ -11,12 +11,7 @@ vi.mock('../../shared/vendor/reploid/mesh/index.js', async original => ({ ...awa
   createPeerGenerationMesh: (...args) => meshFactory(...args),
   createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }, createPartitionNetwork(options) { ports.networkOptions = options; return ports.networkOwner; }
 }));
-vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...await original(),
-  createPeerGenerationMesh: (...args) => meshFactory(...args),
-  createAutomaticPartitions: options => { ports.options = options; return ports.automatic; }
-}));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
-vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
 import { createWorkSwarm } from '../../apps/poolday/host/work-swarm.js';
 import { getOrderedParticipation } from '../../apps/poolday/host/product-context.js';

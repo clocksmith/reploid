@@ -13,7 +13,7 @@ import { createKnownKeyValidator } from '../input-validation.js';
  * contributor's offer; it earns nothing by itself.
  */
 
-import { deliveryEvidenceId } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
+import { deliveryEvidenceId } from '../../shared/vendor/reploid/artifacts/delivery-attestation.js';
 import { cloneJson, hashCanonical, isNonEmptyString } from '../ledger/domain.js';
 import { certifiedCustodyKey, verifyCustodyDelivery } from './custody-evidence.js';
 import { fail } from './domain.js';

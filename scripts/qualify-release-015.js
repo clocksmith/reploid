@@ -22,7 +22,7 @@ import { chromium } from 'playwright';
 import SignalingServer from '../server/signaling-server.js';
 import { createProxy } from '../server/proxy-app.js';
 import { buildCoordinatorRuntimeBundle } from '../server/pool/release-identity.js';
-import { createSigningIdentity } from '../packages/reploid/src/artifacts/identity.js';
+import { createSigningIdentity } from '../shared/vendor/reploid/artifacts/identity.js';
 import { openFleetCredits } from '../server/fleet/credits.js';
 import { startFleetService } from '../server/fleet/service.js';
 import { openFleetNativeHost } from '../server/fleet/native-host.js';

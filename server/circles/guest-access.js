@@ -1,5 +1,5 @@
 import { CIRCLE_JOIN_REQUEST, CIRCLE_JOIN_RESULT, circleInviteToken, circleJoinRequestId, ownerParticipantId }
-  from '../../packages/reploid/src/transport/index.js';
+  from '../../shared/vendor/reploid/transport/index.js';
 
 /**
  * Host-side guest access over the mesh. A guest redeems a host invite once over a verified channel; afterwards

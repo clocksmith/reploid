@@ -1,4 +1,4 @@
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
 /**
  * @fileoverview HTTP plumbing for the earning-loop routes: explicit limits,
  * per-key rate limiting, bearer credentials, idempotency keys and the

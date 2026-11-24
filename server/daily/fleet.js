@@ -3,12 +3,12 @@ import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
-import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
-import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
-import { matchesWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
-import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { assertSettingsSupported, effectiveRequestDigest, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
+import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
+import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
+import { verifyReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
+import { matchesWholeModelReceipt } from '../../shared/vendor/reploid/artifacts/whole-model-receipt.js';
+import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { assertSettingsSupported, effectiveRequestDigest, normalizeGenerationSettings } from '../../shared/vendor/reploid/mesh/generation-settings.js';
 import { hasReversePromptTemplate } from '../../shared/infrastructure/reverse-prompt-profile.js';
 import { PROFILE } from './rules.js';
 

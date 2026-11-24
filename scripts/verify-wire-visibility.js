@@ -25,10 +25,10 @@ import wrtc from '@roamhq/wrtc';
 import SignalingServer from '../server/signaling-server.js';
 import createPoolRouter from '../server/pool/routes.js';
 import { createPoolStore } from '../server/pool/store.js';
-import { createSigningIdentity } from '../packages/reploid/src/artifacts/identity.js';
-import { hashJson } from '../packages/reploid/src/artifacts/signatures.js';
-import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../packages/reploid/src/artifacts/receipt.js';
-import { measureWholeModelReceipt } from '../packages/reploid/src/artifacts/whole-model-receipt.js';
+import { createSigningIdentity } from '../shared/vendor/reploid/artifacts/identity.js';
+import { hashJson } from '../shared/vendor/reploid/artifacts/signatures.js';
+import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../shared/vendor/reploid/artifacts/receipt.js';
+import { measureWholeModelReceipt } from '../shared/vendor/reploid/artifacts/whole-model-receipt.js';
 import { openFleetCredits } from '../server/fleet/credits.js';
 import { startFleetService, createFleetClient } from '../server/fleet/service.js';
 

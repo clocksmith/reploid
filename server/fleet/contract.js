@@ -1,5 +1,5 @@
-import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
-import { participantIdFor, normalizeParticipantPublicKey } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
+import { participantIdFor, normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 
 export const FLEET_SERVICE_REQUEST_SCHEMA = 'reploid.fleet-service-request/v1';
 

@@ -1,4 +1,4 @@
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
 import { createKnownKeyValidator } from '../input-validation.js';
 /**
  * @fileoverview Pure account rules: explicit account policy, record schemas,

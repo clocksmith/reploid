@@ -1,4 +1,4 @@
-import { disclosureOrigin } from '../../packages/reploid/src/retrieval/disclosure-path.js';
+import { disclosureOrigin } from '../../shared/vendor/reploid/retrieval/disclosure-path.js';
 /**
  * @fileoverview Bounded server-side page fetch for cited search results. Only http(s) to public addresses:
  * every hop's addresses are checked inside the socket's own DNS lookup, so a rebinding answer cannot reach a
@@ -14,7 +14,7 @@ import zlib from 'node:zlib';
 import { PageFetchError } from './errors.js';
 import { sha256Digest } from '../hashing.js';
 // The limits device-side extractors share (packages/reploid/src/retrieval/page-fetch.json).
-import policy from '../../packages/reploid/src/retrieval/page-fetch.json' with { type: 'json' };
+import policy from '../../shared/vendor/reploid/retrieval/page-fetch.json' with { type: 'json' };
 
 export const DEFAULT_ALLOWED_TYPES = Object.freeze([...policy.contentTypes]);
 const UNSUPPORTED_TYPES = new Set(policy.unsupportedContentTypes);

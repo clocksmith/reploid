@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
+import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { assert, same, FLEET_SERVICE_REQUEST_SCHEMA } from './contract.js';
-import { verifyParticipantSignature } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
 
 /** Durable admission fences and independently verified proof components. No timeout asserts

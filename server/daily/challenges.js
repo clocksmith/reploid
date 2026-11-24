@@ -1,6 +1,6 @@
 import { createHash, createPublicKey, verify } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { canonicalize, canonicalizeWith } from '../../packages/reploid/src/artifacts/canonical-json.js';
+import { canonicalize, canonicalizeWith } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { REVERSE_PROMPT_GENERATION_HASH } from '../../shared/infrastructure/reverse-prompt-profile.js';
 import { PROFILE, RULE_VERSION, bannedFor, dayUTC, judgePrompt, scoreOutput } from './rules.js';
 

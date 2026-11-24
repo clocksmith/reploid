@@ -1,4 +1,4 @@
-import { disclosureOrigin } from '../../packages/reploid/src/retrieval/disclosure-path.js';
+import { disclosureOrigin } from '../../shared/vendor/reploid/retrieval/disclosure-path.js';
 /**
  * @fileoverview Server search configuration. The Brave key comes from
  * REPLOID_BRAVE_SEARCH_API_KEY or a key file outside the repository named by

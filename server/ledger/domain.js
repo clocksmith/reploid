@@ -1,4 +1,4 @@
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
 import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Pure credit-ledger rules: accounting policy, issuance sources,
@@ -10,7 +10,7 @@ import { collectUnknownKeys } from '../input-validation.js';
  */
 
 import { canonicalJson, hashCanonical, sha256Hex } from '../hashing.js';
-import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.5.0';
 export const ACCOUNT_SCHEMA = 'reploid.credit-account/v1';

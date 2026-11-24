@@ -6,13 +6,13 @@ import { afterEach, expect, it, vi } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { createSigningIdentity } from '../../shared/vendor/reploid/artifacts/identity.js';
 import { openNativeReadinessLog } from '../../server/native-readiness-log.js';
 
 const ports = vi.hoisted(() => ({ onChange: null }));
-vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
-vi.mock('../../packages/reploid/src/mesh/index.js', async (original) => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/mesh/index.js', async (original) => ({ ...await original(),
   createPeerGenerationMesh: ({ ports: input }) => ({ connect: async () => { input.createTransport(); }, close: async () => {}, getSwarmSnapshot: () => ({}) }),
   createAutomaticPartitions: ({ onChange }) => {
     ports.onChange = onChange;

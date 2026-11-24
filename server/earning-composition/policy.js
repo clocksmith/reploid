@@ -1,4 +1,4 @@
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
 /**
  * @fileoverview The operator's earning policy file: every price, rate, budget,
  * deadline and limit the composed earning routes use. The file lives outside

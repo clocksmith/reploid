@@ -5,8 +5,8 @@ import { createChatCompletions } from './chat-completions.js';
 import { createResponses } from './responses.js';
 import { createMessages } from './messages.js';
 import { createTextRecovery, TEXT_RECOVERY_PATH } from './text-recovery.js';
-import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { createExecutionPolicy, assertAvailableExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
+import { canonicalPartitionJson, partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { createExecutionPolicy, assertAvailableExecutionPolicy } from '../shared/vendor/reploid/chat/execution-policy.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 export const TEXT_API_PATHS = Object.freeze(['/v1/chat/completions', '/v1/responses', '/v1/messages', '/v1/models', TEXT_RECOVERY_PATH]);

@@ -9,9 +9,9 @@ import { createSearchDisclosure } from './disclosure.js';
 import crypto from 'node:crypto';
 import express from 'express';
 import { sha256Hex } from '../hashing.js';
-import { extractDocumentText } from '../../packages/reploid/src/retrieval/page-text.js';
-import { selectPassage } from '../../packages/reploid/src/retrieval/passage.js';
-import pageFetchPolicy from '../../packages/reploid/src/retrieval/page-fetch.json' with { type: 'json' };
+import { extractDocumentText } from '../../shared/vendor/reploid/retrieval/page-text.js';
+import { selectPassage } from '../../shared/vendor/reploid/retrieval/passage.js';
+import pageFetchPolicy from '../../shared/vendor/reploid/retrieval/page-fetch.json' with { type: 'json' };
 
 export const SERVER_SEARCH_STATUS_SCHEMA = 'reploid.server-search-status/v1';
 export const SERVER_SEARCH_RESULTS_SCHEMA = 'reploid.server-search-results/v1';

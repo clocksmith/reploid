@@ -20,7 +20,7 @@
  *   { ok, method, detail }
  */
 
-import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { toMs } from '../ledger/domain.js';
 
 export const PROBE_RECEIPT_SCHEMA = 'reploid.readiness-probe-receipt/v1';

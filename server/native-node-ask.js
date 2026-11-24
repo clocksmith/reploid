@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { availablePartitionRoute, currentPartitionRoute, matchesPartitionDisclosure } from '../apps/poolday/host/partition-release.js';
-import { createExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
+import { createExecutionPolicy } from '../shared/vendor/reploid/chat/execution-policy.js';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000 } = {}) {

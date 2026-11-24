@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
 import { browserModuleReferences } from '../server/browser-module-references.js';
 import { SURFACE_INTENTS } from '../shared/config/surface-intents.js';
-import { serverLibraryImportAllowed, SERVER_LIBRARY_BOUNDARY } from './server-library-imports.js';
+import { serverLibraryCopyAllowed, serverLibraryImportAllowed, SERVER_LIBRARY_BOUNDARY, SERVER_LIBRARY_COPY } from './server-library-imports.js';
 import { BROWSER_ROOTS, resolveServedFile, servedPathOf } from '../server/browser-roots.js';
 
 const SOURCE_ROOTS = ['packages/reploid/src', 'self/core', 'self/pool', 'self/host', 'self/lab',
@@ -59,6 +59,7 @@ export function findLayerViolations({ repoRoot, sourcePath, source, edges = modu
     if (sourceLayer === 'server' && resolved) {
       const physical = posix(path.relative(repoRoot, resolved));
       if (!serverLibraryImportAllowed(physical)) reason = SERVER_LIBRARY_BOUNDARY;
+      if (!serverLibraryCopyAllowed(physical)) reason = SERVER_LIBRARY_COPY;
       if (physical.startsWith('self/') && !physical.startsWith('self/shared/')) {
         reason = 'hosted services consume substrate contracts only through self/shared';
       }

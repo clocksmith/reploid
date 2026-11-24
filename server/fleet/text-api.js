@@ -1,4 +1,4 @@
-import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import http from 'node:http';
 import https from 'node:https';
 import { createTextApi } from '../text-api.js';

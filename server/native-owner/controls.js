@@ -2,7 +2,7 @@
  * work, contribution preparation and piece supply may start; it never cancels,
  * aborts or closes work that was already admitted. With no owner policy the
  * participant never creates it and behaves exactly as before. */
-import failureMessages from '../../packages/reploid/src/transport/partition-errors.json' with { type: 'json' };
+import failureMessages from '../../shared/vendor/reploid/transport/partition-errors.json' with { type: 'json' };
 import { readNativeOwnerPolicy, validateNativeOwnerPolicy, nativeOwnerPolicyDigest, decideNativeOwnerAdmission, custodySupplyTransfers } from './policy.js';
 import { detectNativeOwnerSupport, createNativeOwnerMonitor, runNativeTool } from './monitor.js';
 import { createByteRateLimiter, createTransferMeter, paceCustodyChannel } from './rate.js';

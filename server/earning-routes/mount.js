@@ -1,4 +1,4 @@
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
 /**
  * @fileoverview Configuration switch and mount for the earning-loop routes.
  *

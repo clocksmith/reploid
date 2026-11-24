@@ -13,7 +13,7 @@ import { readSearchJson } from '../../shared/infrastructure/search-response.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createModelSupportReviewer } from '../../packages/reploid/src/retrieval/model-reviewer.js';
+import { createModelSupportReviewer } from '../../shared/vendor/reploid/retrieval/model-reviewer.js';
 
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const KEYS = ['REPLOID_SUPPORT_REVIEWER_ENDPOINT', 'REPLOID_SUPPORT_REVIEWER_PROVIDER', 'REPLOID_SUPPORT_REVIEWER_MODEL',

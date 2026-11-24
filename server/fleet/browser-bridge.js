@@ -1,6 +1,6 @@
 import http from 'node:http';
 import https from 'node:https';
-import { bindExecutionRoute, requestExecutionPolicy, assertAvailableExecutionPolicy, sameExecutionBinding } from '../../packages/reploid/src/chat/execution-policy.js';
+import { bindExecutionRoute, requestExecutionPolicy, assertAvailableExecutionPolicy, sameExecutionBinding } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { timingSafeEqual } from 'node:crypto';
 
 const assert = (ok, message) => { if (!ok) throw Error(message); };

@@ -1,6 +1,6 @@
 /** Atomic settlement preparation. Historical reputation reads stay outside storage transactions. */
 import { hashJson } from '../hash.js';
-import { ACCEPTANCE_V2, canonicalAcceptanceTerms } from '../../../packages/reploid/src/artifacts/acceptance.js';
+import { ACCEPTANCE_V2, canonicalAcceptanceTerms } from '../../../shared/vendor/reploid/artifacts/acceptance.js';
 import { POOL_SETTLEMENT_STORAGE_BUDGET } from '../store-contract.js';
 import { getPolicy } from '../policy-router.js';
 import { verifyRequesterAcceptance } from '../verifier.js';

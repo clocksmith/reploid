@@ -11,14 +11,15 @@ async function errors(filePath, source) {
 
 describe('execution environment lint boundaries', () => {
   it.each([
-    "import '../packages/reploid/src/chat/workspace.js';",
-    "export * from '../packages/reploid/src/chat/workspace.js';",
-    "export const open = () => import('../packages/reploid/src/chat/workspace.js');",
-    "export const open = () => import(`../packages/reploid/src/chat/workspace.js`);"
-  ])('rejects private hosted-library imports in lint: %s', async source => {
+    "import '../shared/vendor/reploid/chat/workspace.js';",
+    "export * from '../shared/vendor/reploid/chat/workspace.js';",
+    "export const open = () => import('../shared/vendor/reploid/chat/workspace.js');",
+    "export const open = () => import(`../shared/vendor/reploid/chat/workspace.js`);",
+    "export * from '../packages/reploid/src/chat/index.js';"
+  ])('rejects private or second-copy hosted-library imports in lint: %s', async source => {
     const messages = await errors('server/boundary-probe.js', source);
     expect(messages).toEqual([expect.objectContaining({ ruleId: 'architecture/server-library-imports' })]);
-    expect(await errors('server/boundary-probe.js', "export * from '../packages/reploid/src/chat/index.js';")).toEqual([]);
+    expect(await errors('server/boundary-probe.js', "export * from '../shared/vendor/reploid/chat/index.js';")).toEqual([]);
   });
 
   it('checks unused locals and nested choices in new modules without a manual registration', async () => {

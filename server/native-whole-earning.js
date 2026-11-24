@@ -1,6 +1,6 @@
 /** Durable whole-model contribution references. The service owns validation,
  * settlement and issuance; this file retains no prompts or generated text. */
-import { verifyReceipt } from '../packages/reploid/src/artifacts/receipt.js';
+import { verifyReceipt } from '../shared/vendor/reploid/artifacts/receipt.js';
 import { sha256Hex } from './hashing.js';
 
 const STORE = 'whole-model-work';

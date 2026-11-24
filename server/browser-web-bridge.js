@@ -2,7 +2,7 @@
  * Other tabs and frames get no bridge. Public reads use the native guarded worker,
  * not the contributor's cookies or personal browser profile. */
 import { createPublicWebWorker } from './public-web-worker.js';
-import policy from '../packages/reploid/src/mesh/web-access-policy.json' with { type: 'json' };
+import policy from '../shared/vendor/reploid/mesh/web-access-policy.json' with { type: 'json' };
 
 export async function attachBrowserWebBridge({ page, origin, worker = createPublicWebWorker() }) {
   const pending = new Map();

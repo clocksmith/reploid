@@ -6,11 +6,11 @@ import { assertLedgerBackend, assertLedgerStoreContract } from './ledger/store-c
 import { billableEventIdFor } from './ledger/attempt-outcomes.js';
 import { conversionHash } from './ledger/conversion/records.js';
 import { createTrialAdmission } from './trial-admission.js';
-import { verifyGenerationTerminal } from '../packages/reploid/src/artifacts/generation-terminal.js';
-import { verifyReceipt, getReceiptPayload } from '../packages/reploid/src/artifacts/receipt.js';
-import { matchesWholeModelReceipt } from '../packages/reploid/src/artifacts/whole-model-receipt.js';
-import { hashJson } from '../packages/reploid/src/artifacts/signatures.js';
-import { partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { verifyGenerationTerminal } from '../shared/vendor/reploid/artifacts/generation-terminal.js';
+import { verifyReceipt, getReceiptPayload } from '../shared/vendor/reploid/artifacts/receipt.js';
+import { matchesWholeModelReceipt } from '../shared/vendor/reploid/artifacts/whole-model-receipt.js';
+import { hashJson } from '../shared/vendor/reploid/artifacts/signatures.js';
+import { partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 
 export const TEXT_ACCOUNTING_COLLECTIONS = Object.freeze({ jobs: 'text_accounting_jobs', receipts: 'text_accounting_receipts' });
 const assert = (ok, message, status = 409) => { if (!ok) throw Object.assign(Error(message), { status }); };

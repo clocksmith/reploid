@@ -1,6 +1,6 @@
-import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
-import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
+import { hashJson } from '../../shared/vendor/reploid/artifacts/signatures.js';
+import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerationSettings } from '../../shared/vendor/reploid/mesh/generation-settings.js';
 import { assert, same } from './contract.js';
 
 /** Provider-side enforcement: skipping credit admission cannot obtain credited service. */

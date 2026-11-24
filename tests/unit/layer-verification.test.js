@@ -98,9 +98,9 @@ describe('layer verification', () => {
     expect(violations).toEqual([]);
   });
 
-  it.each(['../packages/reploid/src/chat/index.js', '../packages/reploid/src/mesh/index.js',
-    '../packages/reploid/src/contracts/partition.js', '../packages/reploid/src/artifacts/signatures.js',
-    '../packages/reploid/src/chat/execution-policy.js'])(
+  it.each(['../shared/vendor/reploid/chat/index.js', '../shared/vendor/reploid/mesh/index.js',
+    '../shared/vendor/reploid/contracts/partition.js', '../shared/vendor/reploid/artifacts/signatures.js',
+    '../shared/vendor/reploid/chat/execution-policy.js'])(
     'allows the hosted library contract %s', target => {
       expect(findLayerViolations({ repoRoot, sourcePath: path.join(repoRoot, 'server/entry.js'),
         source: `export * from '${target}';` })).toEqual([]);
@@ -116,8 +116,9 @@ describe('layer verification', () => {
   it.each([
     ['packages/reploid/src/chat/probe.js', '../mesh/partitions/partition-contract.js'],
     ['server/entry.js', '../self/tools/Promote.js'],
-    ['server/entry.js', '../packages/reploid/src/chat/workspace.js'],
-    ['server/entry.js', '../packages/reploid/src/mesh/partitions/partition-route-execution.js'],
+    ['server/entry.js', '../shared/vendor/reploid/chat/workspace.js'],
+    ['server/entry.js', '../shared/vendor/reploid/mesh/partitions/partition-route-execution.js'],
+    ['server/entry.js', '../packages/reploid/src/chat/index.js'],
     ['server/entry.js', '../apps/poolday/ui/pool-home/work.js'],
     ['packages/reploid/src/agent/turn.js', '../../../../self/config/models.js'],
     ['packages/reploid/src/agent/turn.js', 'firebase-admin'],

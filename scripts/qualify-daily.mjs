@@ -1,7 +1,7 @@
 // Private operator tooling. No network service, provider enrollment, or production publication.
 import { createPrivateKey, sign } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
-import { canonicalize } from '../packages/reploid/src/artifacts/canonical-json.js';
+import { canonicalize } from '../shared/vendor/reploid/artifacts/canonical-json.js';
 import { PROFILE, RULE_VERSION, judgePrompt } from '../server/daily/rules.js';
 import { CALENDAR_SCHEMA, QUALIFICATION_SCHEMA } from '../server/daily/challenges.js';
 import { openDailyPhysical } from '../server/daily/local-doppler.js';

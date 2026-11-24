@@ -9,7 +9,7 @@ import fs from 'node:fs/promises';
 import { constants, createReadStream } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { countSupplier, supplierLabel, OTHER_SUPPLIERS } from '../packages/reploid/src/artifacts/custody/supplier-summary.js';
+import { countSupplier, supplierLabel, OTHER_SUPPLIERS } from '../shared/vendor/reploid/artifacts/custody/supplier-summary.js';
 import { supersededIdentities } from './native-model-names.js';
 
 const assert = (ok, message, code) => { if (!ok) throw Object.assign(new Error(message), code ? { code } : {}); };

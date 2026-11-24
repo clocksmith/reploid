@@ -1,4 +1,4 @@
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
 import { collectUnknownKeys } from '../input-validation.js';
 /**
  * @fileoverview Contribution reward rules: categories, explicit reward and

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-json.js';
+import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { same } from './contract.js';
 
 // A retired coordinator cannot prove a disappearing peer cleaned up. Its configured

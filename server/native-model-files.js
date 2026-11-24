@@ -1,5 +1,5 @@
 import { fetchPieceIndex, isExternalPieceIndex, retainPieceIndex } from './native-piece-index.js';
-import { fetchAdapterFile } from '../packages/reploid/src/adapters/model-adapter.js';
+import { fetchAdapterFile } from '../shared/vendor/reploid/adapters/model-adapter.js';
 import { resolvePartitionArtifactSource } from '../apps/poolday/host/work-partition-artifact-source.js';
 /** Filesystem host ports for the existing signed custody protocol. Model weights come from the approved local
  * directory, then authorized custody peers, then the model's pinned origin (native-model-origin.js) when one is
@@ -12,8 +12,8 @@ import { constants } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
 import { sha256Hex as digest } from './hashing.js';
-import { createCustodyExchange, createCustodyContracts, createPieceAcquisition } from '../packages/reploid/src/artifacts/custody/runtime.js';
-import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../packages/reploid/src/artifacts/signatures.js';
+import { createCustodyExchange, createCustodyContracts, createPieceAcquisition } from '../shared/vendor/reploid/artifacts/custody/runtime.js';
+import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../shared/vendor/reploid/artifacts/signatures.js';
 import { createPeerPackDataChannel } from '../apps/poolday/pool/peer-pack-data-channel.js';
 import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../shared/pool/executable-pack.js';
 import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' };

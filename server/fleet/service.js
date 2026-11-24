@@ -4,12 +4,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { signAsParticipant, verifyParticipantSignature } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { signAsParticipant, verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, text, FLEET_SERVICE_REQUEST_SCHEMA as DOMAIN } from './contract.js';
 import { planFleetPlacement } from './placement.js';
 import { createNativeEarningStorage } from '../native-earning.js';
 import { openFleetCredits } from './credits.js';
-import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 
 
 /** Private to enrolled signers, using TLS outside loopback. */

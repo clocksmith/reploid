@@ -1,4 +1,4 @@
-import { ReploidError } from '../../packages/reploid/src/contracts/error.js';
+import { ReploidError } from '../../shared/vendor/reploid/contracts/error.js';
 /**
  * @fileoverview Provider configuration from the environment or a secret store
  * mounted as environment variables. Nothing here has a key; the repository

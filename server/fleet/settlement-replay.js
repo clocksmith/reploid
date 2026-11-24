@@ -19,10 +19,10 @@
  * establish that any computation was correct, and it cannot see records a participant withholds; a withheld record
  * can only turn an outcome into `unknown`, `expired` or a smaller acknowledged count, never a larger charge.
  */
-import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { canonicalPartitionJson } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import {
   MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, outputChainGenesis, verifyOutputAcknowledgment, verifyStageReceipt
-} from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+} from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { UNFINISHED_ANSWER_TERMS, creditSettlementDeltas } from './credit-shares.js';
 import {
   SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, policyDigest, termsDigest, verifySettlementAcceptance,

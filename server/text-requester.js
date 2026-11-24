@@ -1,14 +1,14 @@
-import { createExecutionPolicy } from '../packages/reploid/src/chat/execution-policy.js';
+import { createExecutionPolicy } from '../shared/vendor/reploid/chat/execution-policy.js';
 import { createHttpRequestOwner } from './http-request-owner.js';
-import { canonicalPartitionJson, partitionAdapterIdentities } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
-import { assertSettingsSupported, normalizeGenerationSettings } from '../packages/reploid/src/mesh/generation-settings.js';
+import { canonicalPartitionJson, partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { requireGenerationCapability, tokenUsage } from '../shared/vendor/reploid/mesh/partitions/partition-generation-request.js';
+import { assertSettingsSupported, normalizeGenerationSettings } from '../shared/vendor/reploid/mesh/generation-settings.js';
 import { TOOL_CALL_OPEN } from '../shared/infrastructure/output-constraint.js';
 import { parseToolCallOutput, toolCallId } from '../shared/infrastructure/tool-call-format.js';
 /** Text-only HTTP projection of admitted whole-model and partition routes. No model fallback. */
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
-import partitionFailures from '../packages/reploid/src/transport/partition-errors.json' with { type: 'json' };
+import partitionFailures from '../shared/vendor/reploid/transport/partition-errors.json' with { type: 'json' };
 
 const STATELESS_THREAD_SALT = randomBytes(16).toString('hex');
 const activeDerivedThreads = new WeakMap();

@@ -14,7 +14,6 @@ vi.mock('../../shared/config/doppler-local-models.js', () => ({
 }));
 vi.mock('../../apps/poolday/host/work-partition-capsule.js', () => ({ assertWorkResidentCapsule: async () => {} }));
 vi.mock('../../apps/poolday/pool/pack-release-policy.js', () => ({ prepareLocalPackRelease: ports.release }));
-vi.mock('../../shared/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident }));
 vi.mock('dopplerx/partitions', () => ({
   get ORDERED_LAYER_PARTITION_SCHEMA() { return ports.orderedSchema; },
   validateOrderedLayerPartitionPlan: ports.validateOrderedPlan, hashPartitionGeneration: ports.generationHash,
@@ -27,7 +26,8 @@ vi.mock('dopplerx', () => ({ openCapsule() {
   throw new Error('Capsule runtime openCapsule() requires explicit ports: device, programFactory.');
 } }));
 vi.mock('dopplerx/host', () => ({ openCapsule: ports.openCapsule }));
-vi.mock('../../packages/reploid/src/mesh/index.js', async importOriginal => ({
+// Browser and native hosts load the library through its one served mirror.
+vi.mock('../../shared/vendor/reploid/mesh/index.js', async importOriginal => ({
   ...await importOriginal(), createResidentPartition: ports.resident,
 }));
 import { loadWorkPartition as loadBrowserPartition } from '../../apps/poolday/host/work-partitions.js';

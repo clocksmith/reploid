@@ -1,9 +1,9 @@
-import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { describe, expect, it, vi } from 'vitest';
 import { createWorkResidentProvider as createBrowserResidentProvider } from '../../apps/poolday/providers/work-resident-provider.js';
 import { withWorkDevice as withBrowserDevice } from '../../apps/poolday/providers/work-device.js';
 import { createNativeResidentProvider } from '../../server/native-resident-provider.js';
-import { withDevice } from '../../packages/reploid/src/adapters/device-lane.js';
+import { withDevice } from '../../shared/vendor/reploid/adapters/device-lane.js';
 import providerPolicy from '../../apps/poolday/config/work-profile.json' with { type: 'json' };
 
 describe.each([

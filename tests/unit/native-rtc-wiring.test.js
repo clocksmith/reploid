@@ -1,12 +1,12 @@
 // @vitest-environment node
 import { it, expect, vi } from 'vitest';
 const observed = vi.hoisted(() => ({ options: null }));
-vi.mock('../../packages/reploid/src/transport/index.js', async importOriginal => ({
+vi.mock('../../shared/vendor/reploid/transport/index.js', async importOriginal => ({
   ...await importOriginal(),
   createSwarmTransport: options => { observed.options = options; throw new Error('transport-witness'); }
 }));
 import { createNativeParticipant } from '../../server/native-participant-runtime.js';
-import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { createSigningIdentity } from '../../shared/vendor/reploid/artifacts/identity.js';
 import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 it('forwards the live configuration port to transport without opening a GPU', async () => {
   const getRtcConfig = vi.fn(async () => ({ iceServers: [], iceTransportPolicy: 'relay' }));

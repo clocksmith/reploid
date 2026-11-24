@@ -1,5 +1,5 @@
 /** Native composition uses the same resident owner with an explicit disk-storage lifetime. */
-import { createResidentExecution } from '../packages/reploid/src/adapters/resident-execution.js';
+import { createResidentExecution } from '../shared/vendor/reploid/adapters/resident-execution.js';
 import { openScopedModelProvider } from '../shared/infrastructure/scoped-model-provider.js';
 
 export function createNativeResidentProvider({ providerPolicy, ...options }) {

@@ -2,8 +2,8 @@
  * Only URLs returned by this worker's search can be extracted, by the same requester and query.
  * The guarded reader checks DNS/redirects and bounds compressed and decoded bytes. */
 import { createPageFetcher } from './search/page-fetch.js';
-import { extractDocumentText, selectPassage, sha256Text } from '../packages/reploid/src/retrieval/index.js';
-import policy from '../packages/reploid/src/mesh/web-access-policy.json' with { type: 'json' };
+import { extractDocumentText, selectPassage, sha256Text } from '../shared/vendor/reploid/retrieval/index.js';
+import policy from '../shared/vendor/reploid/mesh/web-access-policy.json' with { type: 'json' };
 
 const requireValue = (ok, message) => { if (!ok) throw new Error(message); };
 const text = value => extractDocumentText({ body: new TextEncoder().encode(value), contentType: 'text/html' }).text;

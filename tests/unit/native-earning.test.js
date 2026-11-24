@@ -7,7 +7,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { createSigningIdentity } from '../../shared/vendor/reploid/artifacts/identity.js';
 
 const ports = vi.hoisted(() => ({ onChange: null, records: [], deliveries: [], mesh: null, wholeGenerate: null }));
 vi.mock('../../server/native-whole-model.js', () => ({ createNativeWholeModel: () => {
@@ -17,9 +17,9 @@ vi.mock('../../server/native-whole-model.js', () => ({ createNativeWholeModel: (
     getExecutionState: () => ({ phase: ready ? 'ready' : 'idle', modelIdentity: 'sha256:' + 'a'.repeat(64) }),
     generate: ports.wholeGenerate, contribute: async () => { ready = true; }, stop: async () => { ready = false; }, close: async () => { ready = false; } };
 } }));
-vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage() {}, offMessage() {}, sendToPeer() {}, getConnectedPeers: () => [], disconnect() {} }) }));
-vi.mock('../../packages/reploid/src/mesh/index.js', async (original) => ({ ...await original(),
+vi.mock('../../shared/vendor/reploid/mesh/index.js', async (original) => ({ ...await original(),
   createPeerGenerationMesh: ({ ports: input }) => { ports.mesh = input; return { connect: async () => { input.createTransport(); }, close: async () => {}, refreshAdvertisement() {}, getSwarmSnapshot: () => ({}) }; },
   createAutomaticPartitions: ({ onChange }) => {
     ports.onChange = onChange;

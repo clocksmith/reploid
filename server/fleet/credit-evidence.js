@@ -1,8 +1,8 @@
-import { verifyGenerationTerminal, GENERATION_TERMINAL_SCHEMAS } from '../../packages/reploid/src/artifacts/generation-terminal.js';
-import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
-import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outputChainGenesis } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { canonicalRouteAttemptBinding } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { normalizeParticipantPublicKey } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { verifyGenerationTerminal, GENERATION_TERMINAL_SCHEMAS } from '../../shared/vendor/reploid/artifacts/generation-terminal.js';
+import { verifyReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
+import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outputChainGenesis } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
 
 /** Reuse execution signatures; the credit service never treats a completed counter as evidence. */

@@ -4,7 +4,7 @@
 import { acceptedQuoteBacks, claimWindowClosed, computeReward, settledAsCompleted } from './domain.js';
 import { checkCounterparty } from './counterparty.js';
 import { toMs } from '../ledger/domain.js';
-import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
+import { verifyReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
 
 export const WHOLE_MODEL_CONDITIONS = Object.freeze([
   'accepted_demand: an authenticated requester accepted the exact model and adapter terms',

@@ -12,8 +12,8 @@
  * chunk's bytes, checked against the committed hash.
  */
 
-import { DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody as attestationBody } from '../../packages/reploid/src/artifacts/delivery-attestation.js';
-import { sha256Hex, verifyCanonicalSignature } from '../../packages/reploid/src/artifacts/signatures.js';
+import { DELIVERY_ATTESTATION_SCHEMA, deliveryAttestationBody as attestationBody } from '../../shared/vendor/reploid/artifacts/delivery-attestation.js';
+import { sha256Hex, verifyCanonicalSignature } from '../../shared/vendor/reploid/artifacts/signatures.js';
 import { hashDopplerEvidence } from '../../shared/pool/executable-pack.js';
 import { isIsoTime } from '../ledger/domain.js';
 

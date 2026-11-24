@@ -1,5 +1,5 @@
-import { compactAgreementForAcceptance, canonicalAcceptanceAgreement } from '../../../packages/reploid/src/artifacts/acceptance.js';
-export { compactAgreementForAcceptance } from '../../../packages/reploid/src/artifacts/acceptance.js';
+import { compactAgreementForAcceptance, canonicalAcceptanceAgreement } from '../../../shared/vendor/reploid/artifacts/acceptance.js';
+export { compactAgreementForAcceptance } from '../../../shared/vendor/reploid/artifacts/acceptance.js';
 /**
  * @fileoverview Requester-acceptance summary construction for verified Pool receipts.
  */
