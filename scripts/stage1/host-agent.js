@@ -62,6 +62,8 @@ export function realHostPorts() {
       await whole.contribute(true);
       return { runtime: 'native-whole-model',
         async generate({ messages, settings, signal }) {
+          // The resident refuses a generation it cannot cancel; say so here, before the GPU is touched.
+          if (!(signal instanceof AbortSignal)) throw TypeError('A whole-model generation needs an AbortSignal');
           const result = await whole.generate(messages, () => {}, { signal, ...(settings ? { settings } : {}) });
           return { ...result, modelIdentity: result.modelIdentity ?? model.identity, adapterIdentities: result.adapterIdentities ?? [] };
         },
@@ -143,6 +145,16 @@ async function prepareWitness(config) {
 export function createSessionOperations(ports) {
   let identity = null, participant = null, witnessFile = null, whole = null;
   const controls = { abort: null };
+  /** Each earn request in flight, by request ID: a close, the end of input or the operator's abort cancels it. */
+  const serving = new Map();
+  const abortServing = (requestId, reason) => {
+    let aborted = 0;
+    for (const [id, controller] of serving) {
+      if (requestId !== null && id !== requestId) continue;
+      if (!controller.signal.aborted) { controller.abort(reason); aborted += 1; }
+    }
+    return aborted;
+  };
   const live = () => { if (!participant) throw Error('The participant is not open'); return participant; };
   return {
     async identity({ file }) {
@@ -179,11 +191,23 @@ export function createSessionOperations(ports) {
       whole = { model, served: await ports.openWhole({ model, modelDirectory }) };
       return { modelId: model.id, modelIdentity: model.identity, runtime: whole.served.runtime };
     },
-    /** One whole-model answer for `consumer`, measured and signed by this device; the buyer countersigns it. */
-    async 'serve-whole'({ requestId, consumer, messages, settings }) {
+    /**
+     * One whole-model answer for `consumer`, measured and signed by this device; the buyer countersigns it. The
+     * generation runs under this request's own signal: `abort-whole`, `close`, the end of input or `timeoutMs` stops it.
+     */
+    async 'serve-whole'({ requestId, consumer, messages, settings, timeoutMs = null }) {
       if (!whole) throw Error('No whole model is open');
+      if (typeof requestId !== 'string' || !requestId || serving.has(requestId)) throw Error('An earn request needs a new request ID');
+      if (timeoutMs !== null && (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0)) throw Error('An earn request timeout must be a positive integer');
       const canonical = normalizeGenerationSettings(settings);
-      const output = await whole.served.generate({ messages, settings: canonical });
+      const controller = new AbortController();
+      serving.set(requestId, controller);
+      const timer = timeoutMs === null ? null : setTimeout(() => controller.abort(Error('Earn request timed out on the host')), timeoutMs);
+      let output;
+      try {
+        output = await whole.served.generate({ messages, settings: canonical, signal: controller.signal });
+        controller.signal.throwIfAborted();
+      } finally { clearTimeout(timer); serving.delete(requestId); }
       const bound = canonical ? { settingsDigest: await effectiveRequestDigest({ modelIdentity: whole.model.identity, adapterIdentities: [], messages, settings: canonical }) }
         : undefined;
       const measured = await measureWholeModelReceipt(messages, output, bound);
@@ -192,7 +216,10 @@ export function createSessionOperations(ports) {
         model: whole.model.id, jobHash: `request:${requestId}` }), identity);
       return { content: output.content, receipt, runtime: whole.served.runtime };
     },
+    /** Cancels one earn request, or every one when no ID is given. */
+    'abort-whole': ({ requestId = null } = {}) => ({ aborted: abortServing(requestId, Error('Earn request stopped')) }),
     async close() {
+      abortServing(null, Error('Closing'));
       const open = participant, served = whole?.served;
       participant = null; whole = null;
       await Promise.all([open?.close(), served?.close()]);
@@ -235,6 +262,7 @@ export async function runHostAgent({ mode, input = process.stdin, output = proce
   // The operator is gone or finished. Nothing it started on this machine outlives it: a solo load owns its own model
   // and GPU, released only when that load settles, so wait (bounded) for every running operation as well as the close.
   operations['abort-solo']();
+  operations['abort-whole']();
   await Promise.race([Promise.allSettled([...running, operations.close()]), new Promise(resolve => setTimeout(resolve, settleMs).unref())]);
   exit(0);
 }

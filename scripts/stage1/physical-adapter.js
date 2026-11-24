@@ -397,8 +397,16 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
         if (await controls.requestApproval({ requestId, recipientIdentity: peers.earner.participantId, input: { messages: request.messages } }) !== true) {
           throw Error('Earn request was not approved');
         }
-        const served = await earner.call('serve-whole', { requestId, consumer: buyer.peerId, messages: request.messages, settings: request.settings },
-          { timeoutMs: limits.phaseMs });
+        // The earner's generation is cancelled with the phase: a stop or timeout here aborts it there, and the host
+        // also stops it on its own after the phase budget, so a lost reply cannot leave it running.
+        const stop = () => { earner.call('abort-whole', { requestId }, { timeoutMs: 5000 }).catch(() => {}); };
+        controls.signal.addEventListener('abort', stop, { once: true });
+        let served;
+        try {
+          controls.signal.throwIfAborted();
+          served = await earner.call('serve-whole', { requestId, consumer: buyer.peerId, messages: request.messages, settings: request.settings,
+            timeoutMs: limits.phaseMs }, { timeoutMs: limits.phaseMs + 5000 });
+        } catch (error) { stop(); throw error; } finally { controls.signal.removeEventListener('abort', stop); }
         return { content: served.content, execution: { receipt: await countersignReceipt(served.receipt, buyer) } };
       } };
       const requester = createFleetRequester({ participant, identity: buyer, credits: buyerClient, maxOutputTokens: tokens });

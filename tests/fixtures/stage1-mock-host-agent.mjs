@@ -50,7 +50,10 @@ const ports = {
   /** FAKE whole-model serving for the earn phase: no model, a fixed answer, the request's own token limit as the count. */
   async openWhole({ model: earnModel }) {
     return { runtime: 'fake-whole-model',
-      async generate({ settings }) {
+      async generate({ settings, signal }) {
+        // As the real resident does: a generation that cannot be cancelled is refused.
+        if (!(signal instanceof AbortSignal)) throw TypeError('A whole-model generation needs an AbortSignal');
+        signal.throwIfAborted();
         const generatedTokenCount = settings?.maxOutputTokens ?? 4;
         return { content: 'Fake earn answer.', modelIdentity: earnModel.identity, adapterIdentities: [],
           completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 4, generatedTokenCount, stopReason: 'length' } };

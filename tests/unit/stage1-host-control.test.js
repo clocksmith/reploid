@@ -15,6 +15,8 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 
 const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+/** The real whole-model resident refuses a generation without a cancel signal; the fakes here do the same. */
+const requireSignal = signal => { if (!(signal instanceof AbortSignal)) throw TypeError('A whole-model generation needs an AbortSignal'); };
 let root;
 beforeEach(async () => { root = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'stage1-host-')); });
 afterEach(async () => { await fs.rm(root, { recursive: true, force: true }); });
@@ -218,7 +220,8 @@ describe('the host agent', () => {
     await fs.writeFile(file, JSON.stringify(identity), { mode: 0o600 });
     const served = [];
     const operations = createSessionOperations({ openWhole: async ({ model }) => ({ runtime: 'test-whole',
-      async generate({ messages, settings }) {
+      async generate({ messages, settings, signal }) {
+        requireSignal(signal);
         served.push({ messages, settings });
         return { content: 'answer', modelIdentity: model.identity, adapterIdentities: [],
           completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 3, generatedTokenCount: settings.maxOutputTokens, stopReason: 'length' } };
@@ -232,6 +235,48 @@ describe('the host agent', () => {
     expect((await verifyReceipt(receipt)).providerValid).toBe(true);
     expect(served).toHaveLength(1);
     await operations.close();
+  });
+
+  it('runs each earn generation under its own signal, which abort-whole, a host timeout, close and the end of input abort', async () => {
+    const identity = await createSigningIdentity({ algorithm: 'Ed25519' }), file = path.join(root, 'identity.json');
+    await fs.writeFile(file, JSON.stringify(identity), { mode: 0o600 });
+    const signals = [];
+    const openWhole = async () => ({ runtime: 'test-whole', close: async () => {},
+      generate: ({ signal }) => { requireSignal(signal); signals.push(signal); return hang({ signal }); } });
+    const request = (operations, requestId, extra = {}) => operations['serve-whole']({ requestId, consumer: 'peer:' + 'b'.repeat(24),
+      messages: [{ role: 'user', content: 'hello' }], settings: { maxOutputTokens: 5 }, ...extra });
+    const operations = createSessionOperations({ openWhole });
+    await operations.identity({ file });
+    await operations['open-whole']({ modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', modelDirectory: root });
+
+    const stopped = request(operations, 'r1');
+    await vi.waitFor(() => expect(signals).toHaveLength(1));
+    expect(operations['abort-whole']({ requestId: 'other' })).toEqual({ aborted: 0 });
+    expect(operations['abort-whole']({ requestId: 'r1' })).toEqual({ aborted: 1 });
+    await expect(stopped).rejects.toThrow('Earn request stopped');
+    expect(signals[0].aborted).toBe(true);
+
+    await expect(request(operations, 'r2', { timeoutMs: 20 })).rejects.toThrow('timed out on the host');
+    const closing = request(operations, 'r3');
+    await vi.waitFor(() => expect(signals).toHaveLength(3));
+    await operations.close();
+    await expect(closing).rejects.toThrow('Closing');
+
+    // The session agent: closing its input aborts an earn generation in flight before it exits.
+    const input = new PassThrough(), output = new PassThrough(), lines = [];
+    output.on('data', chunk => lines.push(...String(chunk).split('\n').filter(Boolean).map(line => JSON.parse(line))));
+    const exited = new Promise(resolve => { runHostAgent({ mode: '--session', input, output, startId: 's', ports: { openWhole }, exit: resolve }); });
+    input.write(JSON.stringify({ id: 1, op: 'identity', body: { file } }) + '\n');
+    await vi.waitFor(() => expect(lines.some(line => line.id === 1 && line.result)).toBe(true));
+    input.write(JSON.stringify({ id: 2, op: 'open-whole', body: { modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', modelDirectory: root } }) + '\n');
+    await vi.waitFor(() => expect(lines.some(line => line.id === 2 && line.result)).toBe(true));
+    input.write(JSON.stringify({ id: 3, op: 'serve-whole', body: { requestId: 'r4', consumer: 'peer:' + 'b'.repeat(24),
+      messages: [{ role: 'user', content: 'hello' }] } }) + '\n');
+    await vi.waitFor(() => expect(signals).toHaveLength(4));
+    input.end();
+    await exited;
+    expect(signals[3].aborted).toBe(true);
+    expect(lines.find(line => line.id === 3)).toMatchObject({ error: 'Earn request stopped' });
   });
 
   it('refuses a fixture changed in transit before opening anything', async () => {
