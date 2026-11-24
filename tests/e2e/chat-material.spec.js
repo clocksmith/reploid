@@ -1059,9 +1059,9 @@ test('touch help and model choices work without hover', async ({ browser }, info
 
 test('a fresh mobile pairing link opens one action and both drawers have visible controls', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
-  const fragment = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Mars' });
+  const fragment = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Studio' });
   await page.goto('/#' + fragment);
-  const pairing = page.getByRole('dialog', { name: 'Connect to Mars' });
+  const pairing = page.getByRole('dialog', { name: 'Connect to Studio' });
   await expect(pairing).toBeVisible();
   await expect(pairing.getByRole('button')).toHaveCount(1);
   await expect(pairing.getByRole('button', { name: 'Connect' })).toBeFocused();
@@ -1098,7 +1098,7 @@ test('the pairing screen handles desktop approval, link failure and cancellation
     const { bindOwnerPairingLink } = await import('/ui/pool-home/owner-pairing-view.js');
     window.startPairingFixture = () => {
       const url = new URL(location.href);
-      url.hash = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Mars' }).toString();
+      url.hash = new URLSearchParams({ pair: 'B'.repeat(24), host: 'peer:' + 'a'.repeat(24), name: 'Studio' }).toString();
       history.replaceState(history.state, '', url);
       window.pairingClicks = 0;
       bindOwnerPairingLink(document.querySelector('.pool-home'), {
@@ -1117,8 +1117,8 @@ test('the pairing screen handles desktop approval, link failure and cancellation
   await pairing.getByRole('button', { name: 'Connect' }).click();
   await expect(pairing.getByRole('heading')).toHaveText('Approve on your desktop');
   await expect(pairing.getByRole('button', { name: 'Waiting for approval…' })).toBeDisabled();
-  await page.evaluate(() => window.approvePairing({ hostLabel: 'Mars' }));
-  await expect(pairing.getByRole('heading')).toHaveText('Paired with Mars');
+  await page.evaluate(() => window.approvePairing({ hostLabel: 'Studio' }));
+  await expect(pairing.getByRole('heading')).toHaveText('Paired with Studio');
   await pairing.getByText('Details', { exact: true }).click();
   await expect(pairing.getByText('Connection: relayed')).toBeVisible();
   await pairing.getByRole('button', { name: 'Done' }).click();

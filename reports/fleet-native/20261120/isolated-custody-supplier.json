@@ -1,6 +1,6 @@
 {
   "schema": "reploid.native-custody-cli-qualification/v1",
-  "host": "Jupiter, Linux, nice 19, CPU 22",
+  "host": "Workstation host, Linux, nice 19, CPU 22",
   "candidateSource": "4ddc364ff1a93e77c261e47b71b8e78a2463e432",
   "candidateTarballSha256": "c031152eb0c1cb3a05fed0dbb6fce7da02170afb3bcc6fc2b03061064565683b",
   "transport": "Native Node WebRTC with the real signaling server inside a network namespace with only loopback. No GPU devices. No external origin or public room.",

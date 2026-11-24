@@ -20,14 +20,14 @@ function terminal({ pending = [], decision = true } = {}) {
     pendingRequests: vi.fn(() => pending),
     decide: vi.fn(() => decision)
   };
-  const commands = createOwnerPairingTerminal({ pairing, room: 'reploid-swarm-home', name: 'Mars',
+  const commands = createOwnerPairingTerminal({ pairing, room: 'reploid-swarm-home', name: 'Studio',
     write: line => lines.push(line), renderQr: link => `QR(${link})` });
   return { lines, pairing, commands };
 }
 
 describe('owner pairing link name', () => {
   it('uses the short host name and never a domain or address', () => {
-    expect(ownerPairingDisplayName('mars.local')).toBe('Mars');
+    expect(ownerPairingDisplayName('studio.local')).toBe('Studio');
     expect(ownerPairingDisplayName('alex-mbp.corp.example.com')).toBe('Alex-mbp');
     expect(ownerPairingDisplayName('10.0.0.5')).toBeNull();
     expect(ownerPairingDisplayName('fe80::1')).toBeNull();
@@ -36,9 +36,9 @@ describe('owner pairing link name', () => {
   });
 
   it('puts name, host, room and code in the fragment the browser parses', () => {
-    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home', name: 'Mars' });
+    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home', name: 'Studio' });
     expect(new URL(link).search).toBe('');
-    expect(parseOwnerPairingUrl(link)).toEqual({ code, hostParticipantId: host, hostLabel: 'Mars', roomId: 'reploid-swarm-home' });
+    expect(parseOwnerPairingUrl(link)).toEqual({ code, hostParticipantId: host, hostLabel: 'Studio', roomId: 'reploid-swarm-home' });
     expect(ownerPairingLink({ code, hostParticipantId: host, name: null })).not.toContain('name=');
   });
 
@@ -46,7 +46,7 @@ describe('owner pairing link name', () => {
     const { lines, pairing, commands } = terminal();
     commands.handleLine('pair');
     expect(pairing.issue).toHaveBeenCalledTimes(1);
-    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home', name: 'Mars' });
+    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home', name: 'Studio' });
     expect(lines).toEqual([
       `Owner pairing code for ${host} (one use, 10 minutes): ${code}`,
       `Pairing link: ${link}`,
@@ -117,7 +117,7 @@ describe('guest invites from the desktop terminal', () => {
     const lines = [];
     const invites = { issue: vi.fn(options => invite({ expiresAt: options.expiresAt })), list: vi.fn(() => list), revoke: vi.fn() };
     const pairing = { issue: vi.fn(), pendingRequests: vi.fn(() => []), decide: vi.fn() };
-    const commands = createOwnerPairingTerminal({ pairing, invites, room: 'reploid-swarm-home', name: 'Mars',
+    const commands = createOwnerPairingTerminal({ pairing, invites, room: 'reploid-swarm-home', name: 'Studio',
       write: line => lines.push(line), renderQr: link => `QR(${link})`, now: () => 0 });
     return { lines, invites, commands };
   }
@@ -129,7 +129,7 @@ describe('guest invites from the desktop terminal', () => {
     const link = t.lines[0].match(/https:\/\/replo\.id\/#\S+/)[0];
     const fragment = new URLSearchParams(new URL(link).hash.slice(1));
     expect(new URL(link).search).toBe('');
-    expect(Object.fromEntries(fragment)).toEqual({ circle: 'T'.repeat(43), host, room: 'reploid-swarm-home', name: 'Mars' });
+    expect(Object.fromEntries(fragment)).toEqual({ circle: 'T'.repeat(43), host, room: 'reploid-swarm-home', name: 'Studio' });
     expect(t.lines[1]).toBe(`QR(${link})`);
     expect(t.lines[2]).toMatch(/can read them/);
   });

@@ -6,7 +6,7 @@
   "fixtureSha256": "1c0591bdd9ed92df455a0ca39b7c47a9096373c407522bce5fd99ea38f750e2f",
   "installedDopplerVersion": "0.6.36",
   "measurements": {
-    "jupiter": {
+    "workstation": {
       "warmups": 1,
       "measuredRuns": 3,
       "outputTokensPerRun": 128,
@@ -19,7 +19,7 @@
       "requestMsMedian": 21983.68125699999,
       "firstTokenMsMedian": 1175.782594999997
     },
-    "miles": {
+    "laptop": {
       "outcome": "load_rejected",
       "measuredRuns": 0,
       "throughput": null,
@@ -28,7 +28,7 @@
       "maxBufferSize": 2147483648
     }
   },
-  "milesEnvironment": {
+  "laptopEnvironment": {
     "cpu": "AMD Ryzen 7 6800H",
     "gpuReportedName": "AMD Radeon(TM) Graphics",
     "os": "Windows",
@@ -41,7 +41,7 @@
     "nodeBinarySha256": "dccc52de28d8df2ee22d2062424f8c563070d95d8ad70c54c4bf01d590dec14f"
   },
   "restoration": {
-    "miles": {
+    "laptop": {
       "at": "2026-11-09T17:47:37.8699888-05:00",
       "launchSha256": "696308922554cf4df8356f474e1d4a59438e8c6a04e8cd0e7fb9ad888ab7efab",
       "launcherReturnValue": 0,
@@ -54,7 +54,7 @@
       "gpuLiveBytes": 2129965328,
       "runtimeVersion": "0.6.33"
     },
-    "jupiter": {
+    "workstation": {
       "public27BMainPid": 204246,
       "public27BNodePid": 204252,
       "public27BActive": true,
@@ -66,8 +66,8 @@
   },
   "limits": [
     "Three short resident repetitions, not peak hardware throughput or quality qualification.",
-    "Jupiter public 27B and Flash-Next remained resident; no exclusive GPU lock.",
-    "Miles rejected before generating; no cross-machine speed ratio or numerical equivalence result.",
+    "The workstation's public 27B and Flash-Next remained resident; no exclusive GPU lock.",
+    "The Windows laptop rejected the load before generating; no cross-machine speed ratio or numerical equivalence result.",
     "Model data served over private HTTP with catalog manifest identity and normal shard verification; load time excluded.",
     "No changes to public model identity, sampling, context limits, driver, or memory allocation policy."
   ]

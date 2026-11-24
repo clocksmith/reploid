@@ -15,7 +15,7 @@ const plaintextPolicy = (recipients = { kind: 'open', ids: [] }) => createExecut
 const wholeRoute = plaintextExecutionRoute({ model }, { recipients: [requester, provider],
   route: { schema: 'reploid.paired-whole-route/v1', requester, providerIdentity: provider } });
 const snapshot = { privacyProtocol: currentProtocol, schema: 'reploid.fleet-browser/v1', poolIdentity: 'sha256:' + 'b'.repeat(64), requester: { name: 'Mac', participantId: requester },
-  models: [{ ...model, executionRoutes: [{ selection: { id: model.id, identity: model.identity }, route: wholeRoute }] }], computers: [{ id: 'bee', name: 'Miles', online: true, participantIds: [provider] }] };
+  models: [{ ...model, executionRoutes: [{ selection: { id: model.id, identity: model.identity }, route: wholeRoute }] }], computers: [{ id: 'host-b', name: 'Laptop', online: true, participantIds: [provider] }] };
 const host = () => ({ browserState: vi.fn(async () => structuredClone(snapshot)), balances: vi.fn(async () => ({ accounts: [] })), cancel: vi.fn(),
   generate: vi.fn(async (request, delta, route) => {
     route({ recipientIdentity: provider, requestId: 'work' }); delta('Hello');
@@ -79,7 +79,7 @@ it('requires exact origin and pairing, streams the real host result and retains 
     const onState = vi.fn(), onDelta = vi.fn(), requestApproval = vi.fn(async () => true);
     const result = await client.execute({ threadId: 'thread', attemptId: 'attempt', model: client.models()[0], messages: [{ role: 'user', content: 'Hello' }], permissions: { sharingScope: 'mesh' }, privacy: plaintextPolicy() },
       { signal: new AbortController().signal, onState, onDelta, requestApproval });
-    expect(requestApproval.mock.calls[0][0].privateDelegation.computers[provider]).toBe('Miles');
+    expect(requestApproval.mock.calls[0][0].privateDelegation.computers[provider]).toBe('Laptop');
     expect(onDelta.mock.calls[0][0].text).toBe('Hello');
     expect(result.execution.peerId).toBe(provider); expect(result.execution.serviceCredit.charge).toBe(1);
     expect(native.generate.mock.calls[0][0].model).toEqual({ id: model.id, identity });

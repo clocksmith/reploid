@@ -181,8 +181,8 @@ it('shows live queue position, cached prefix token reuse and service-credit sett
   attempt.execution = {
     provider: 'peer',
     placement: 'peer-whole-request',
-    peerId: 'peer-miles',
-    privateDelegation: { poolIdentity: 'sha256:' + 'a'.repeat(64), computers: { 'peer-miles': 'miles' } },
+    peerId: 'peer-laptop',
+    privateDelegation: { poolIdentity: 'sha256:' + 'a'.repeat(64), computers: { 'peer-laptop': 'laptop' } },
     completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 120, generatedTokenCount: 24, stopReason: 'eos-token' },
     timing: { totalMs: 600, generatedTokenCount: 24, prefillMs: 45, decodeMs: 555, reusedPrefixTokens: 96, prefillComputedTokens: 24 },
     admission: { queuedMs: 410 },

@@ -44,7 +44,7 @@ requests settled six remote units. The requester's own stage share was unbilled;
 all holds and owned test resources were released.
 
 The two modes are separate service checks, not a controlled speed comparison or
-full-logit numerical qualification. No Jupiter GPU job was started and its public
+full-logit numerical qualification. No GPU job was started on the workstation host and its public
 27B provider was not restarted. Private operator paths, tokens and signing secrets
 are excluded from these files.
 

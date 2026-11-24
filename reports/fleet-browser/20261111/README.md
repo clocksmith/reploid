@@ -86,14 +86,14 @@ model identity `sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d
 
 | Placement | Eligible | Greedy `answerSha256` match | Mean complete `wallMs` | Request `tok/s` | Model `loadMs` | Shard & activation transfers | Peak GPU buffers / process RSS | Credit settlement |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Workstation whole-model (`128 GB` unified memory, [jupiter.json](../../native-throughput/20261109/jupiter.json)) | Yes | Reference `f6e8951d...` | `22,005.3 ms` | `5.82` (`6.11` decode) | `104,460.5 ms` | Local SSD only (`0` runtime transfer) | Fits resident without paging | Baseline reference |
+| Workstation whole-model (`128 GB` unified memory, [workstation.json](../../native-throughput/20261109/workstation.json)) | Yes | Reference `f6e8951d...` | `22,005.3 ms` | `5.82` (`6.11` decode) | `104,460.5 ms` | Local SSD only (`0` runtime transfer) | Fits resident without paging | Baseline reference |
 | 2-stage `[32]` partition (`Computer A` Stage 0 + `Computer B` Stage 1 over WebRTC) | Yes | `true` (`f6e8951d...` on both runs) | `106,819.2 ms` (`102,329.0` / `111,309.5`) | `1.20` (`1.25` / `1.15`) | Stage 0: `9,404.0 ms`; Stage 1: `18,136.3 ms` | Shards: `17.00 GB` (`693,349 ms`, `24.52 MB/s`) + `7.61 GB` (`366,426 ms`, `20.76 MB/s`); WebRTC activations: `3,788,800 B` (`3.79 MB`) / request | Stage 0: `9.62 GB` GPU / `778.0 MB` RSS; Stage 1: `7.80 GB` GPU / `6.36 GB` RSS | `64` credits + `64` own units / run (`-128` / `+128`, `held: 0`) |
 | `Computer A` whole-model (`24 GiB` unified memory, Metal) | Yes (pages) | `true` (`f6e8951d...` on both runs) | `338,905.8 ms` (`320,985.0` / `356,826.7`) | `0.38` (`0.74` / `0.37` decode) | `84,100.9 ms` | Shards: `17.00 GB` (`693,349 ms`, `24.52 MB/s`); `0` runtime transfer | `17.62 GB` GPU / `309.2 MB` RSS (`19.83 GB` wired system pages) | Local execution |
 | `Computer B` whole-model (AMD RDNA2 Vulkan) | No | N/A | N/A | N/A | N/A | `embed_tokens.weight` (`2,542,796,800 B`) exceeds Vulkan `maxStorageBufferBindingSize` (`2,147,483,648 B`) | Rejected before buffer allocation | N/A |
 
 Comparative outcome:
 
-- Against a single host with `128 GB` unified memory ([jupiter.json](../../native-throughput/20261109/jupiter.json)),
+- Against a single host with `128 GB` unified memory ([workstation.json](../../native-throughput/20261109/workstation.json)),
   2-stage WebRTC partitioning adds `4.85x` complete request latency (`106,819.2 ms`
   vs `22,005.3 ms`). Whole-model execution remains preferred whenever one eligible
   computer fits the model without memory paging.

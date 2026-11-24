@@ -54,7 +54,7 @@
       "imageBoundToSourceRevision": true
     }
   ],
-  "jupiterLiveFlashContinuity": {
+  "flashHostLiveContinuity": {
     "before": {
       "reachable": true,
       "pid": 1575058,

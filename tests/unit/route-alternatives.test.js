@@ -5,7 +5,7 @@ import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/hos
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 const model = (network, local = false) => ({ id: 'm', networkAvailability: network ? 'ready' : 'unavailable', localReady: local });
-const offline = { id: 'peer:desktop', label: 'Mars', status: 'offline' };
+const offline = { id: 'peer:desktop', label: 'Studio', status: 'offline' };
 const keys = input => routeAlternatives(input).map(offer => offer.key);
 
 describe('routes offered when the chosen tier cannot answer', () => {
@@ -44,7 +44,7 @@ describe('taking an offer', () => {
 
   it('a pinned conversation widens only when the person picks the offer, and nothing is sent', async () => {
     const host = 'peer:91d1d9293ca2d973191156dc', [catalog] = CANONICAL_CHAT_MODELS;
-    const pairing = { status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Mars', readyModel: catalog.id,
+    const pairing = { status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Studio', readyModel: catalog.id,
       disclosure: { readableBy: `Readable by: ${host}`, notice: `This runs on ${host}.` } };
     const peers = [{ peerId: 'transport-1', model: catalog.id, modelIdentity: catalog.identity, readiness: 'ready', role: 'provider',
       hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];

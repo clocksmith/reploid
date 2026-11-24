@@ -56,7 +56,7 @@ if (config.mode === 'pooled-split-host') {
     const started = performance.now();
     room = await createRoom({
       model: 'qwen3.8-flash',
-      name: config.name || 'a1-jupiter-flash',
+      name: config.name || 'a1-workstation-flash',
       pledgeGB: config.gpuGB,
       ramGB: config.ramGB,
       expertDisk: true,

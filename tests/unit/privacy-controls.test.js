@@ -28,7 +28,7 @@ it('keeps placement, recipient eligibility and computation separate and never op
 
 it('labels only the actual recipients in a current disclosure receipt', () => {
   const privacy = { schema: 'reploid.privacy-receipt/v2', computation: 'plaintext', recipients: ['a', 'b'] };
-  const state = { computerLabels: new Map([['a', 'Mars'], ['b', 'Jupiter']]) };
-  expect(answerPrivacy({ privacy }, state)).toEqual(['Plaintext · 2 computers', 'Plaintext · Mars · Jupiter']);
+  const state = { computerLabels: new Map([['a', 'Studio'], ['b', 'Workstation']]) };
+  expect(answerPrivacy({ privacy }, state)).toEqual(['Plaintext · 2 computers', 'Plaintext · Studio · Workstation']);
   expect(answerPrivacy({ privacy: { ...privacy, schema: 'reploid.privacy-receipt/v1' } }, state)[0]).toBe('Disclosure unrecorded');
 });

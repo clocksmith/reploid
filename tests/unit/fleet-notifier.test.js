@@ -42,7 +42,7 @@ describe('fleet feed notifier', () => {
   let directory, credit, creditFile, stateFile, clock, github, feed;
   const open = () => openFleetNotifier({ creditFile, stateFile, now: () => clock });
   const addRequest = (id, state = 'reserved') => credit.prepare('INSERT INTO fleet_requests VALUES (?,?,?,NULL)').run(id, JSON.stringify({
-    computerId: 'mac', mode: 'whole-model', model: { id: 'qwen-test' }, providers: [{ participantId: 'peer:bee', weight: 1 }],
+    computerId: 'mac', mode: 'whole-model', model: { id: 'qwen-test' }, providers: [{ participantId: 'peer:host-b', weight: 1 }],
     inputDigest: 'sha256:' + 'd'.repeat(64), prompt: SECRET }), state);
   const settle = (id, status) => {
     credit.prepare("UPDATE fleet_requests SET state='settled', outcome=? WHERE id=?").run(JSON.stringify({ id, charge: 6, outputTokens: 6,
@@ -50,7 +50,7 @@ describe('fleet feed notifier', () => {
     credit.prepare('INSERT INTO fleet_work VALUES (?,?)').run(`work:${id}`, id);
     credit.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify({ text: SECRET }));
     credit.prepare('INSERT INTO fleet_journal (request_id,account_id,delta,at) VALUES (?,?,?,?)').run(id, 'mac', -6, 1);
-    credit.prepare('INSERT INTO fleet_journal (request_id,account_id,delta,at) VALUES (?,?,?,?)').run(id, 'bee', 6, 1);
+    credit.prepare('INSERT INTO fleet_journal (request_id,account_id,delta,at) VALUES (?,?,?,?)').run(id, 'host-b', 6, 1);
   };
 
   beforeEach(async () => {
@@ -65,7 +65,7 @@ describe('fleet feed notifier', () => {
       CREATE TABLE fleet_metadata (id TEXT PRIMARY KEY, value TEXT NOT NULL);`);
     credit.prepare("INSERT INTO fleet_metadata VALUES ('enrollment',?)").run(JSON.stringify([
       { id: 'mac', name: 'network-name-a', providers: [{ participantId: 'peer:mac', publicJwk: { x: 'key-a' } }] },
-      { id: 'bee', name: 'network-name-b', providers: [{ participantId: 'peer:bee', publicJwk: { x: 'key-b' } }] }]));
+      { id: 'host-b', name: 'network-name-b', providers: [{ participantId: 'peer:host-b', publicJwk: { x: 'key-b' } }] }]));
     clock = Date.UTC(2026, 10, 12, 5, 0, 0);
     github = fakeGitHub(); feed = createGitHubFeed({ repository: 'owner/feed', api: github.api });
   });
@@ -83,7 +83,7 @@ describe('fleet feed notifier', () => {
     const [settled] = lines;
     expect(Object.keys(settled).sort()).toEqual(['event_id', 'event_type', 'notice', 'receipt', 'request_id', 'schema', 'sequence', 'summary', 'timestamp', 'work_ids']);
     expect(settled).toMatchObject({ event_type: 'request.settled', timestamp: '2026-11-12T04:00:00.000Z', work_ids: ['work:inflight'], notice: FEED_NOTICE,
-      summary: { model: 'qwen-test', requester: 'mac', hosts: ['bee'], output_tokens: 6, credits_charged: 6 },
+      summary: { model: 'qwen-test', requester: 'mac', hosts: ['host-b'], output_tokens: 6, credits_charged: 6 },
       receipt: { request_id: 'inflight', evidence_sha256: evidenceHash, journal_sequences: [3, 4] } });
     const published = github.read('events/2026-11-12.jsonl') + github.read('latest.json');
     for (const forbidden of [SECRET, 'key-a', 'network-name', 'inputDigest', 'sha256:ddd']) expect(published).not.toContain(forbidden);

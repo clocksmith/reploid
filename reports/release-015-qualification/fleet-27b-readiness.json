@@ -8,13 +8,13 @@
   "pieceIndexSha256": "39e5875b09b06f4100468abe43eea11552616d7b3ed7540c1ddf056e571e50fb",
   "hosts": [
     {
-      "label": "suby",
+      "label": "host-b",
       "sshReachable": true,
       "arch": "x64",
       "memTotalBytes": 33294401536,
       "memAvailableBytes": 20936048640,
       "soloWholeModelVerdict": "insufficient-ram-alone",
-      "soloReason": "29.2 GB Q4K whole-model files exceed 20.94 GB available host memory on suby alone.",
+      "soloReason": "29.2 GB Q4K whole-model files exceed 20.94 GB available host memory on host-b alone.",
       "stagedSplitStageInventoryPresent": true,
       "stagedStages": [
         {
@@ -33,9 +33,9 @@
       ]
     },
     {
-      "label": "bee",
+      "label": "host-c",
       "sshReachable": false,
-      "blocker": "SSH port 22 connection timed out during qualification window; live two-host Suby + Bee 27B split execution awaits bee returning online."
+      "blocker": "SSH port 22 connection timed out during qualification window; live two-host host-b + host-c 27B split execution awaits host-c returning online."
     }
   ]
 }

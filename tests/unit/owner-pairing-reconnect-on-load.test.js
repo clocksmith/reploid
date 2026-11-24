@@ -10,7 +10,7 @@ const memoryStorage = entries => {
 it('reconnects a previously paired phone to its desktop room when the session opens', async () => {
   const roomId = 'reploid-swarm-owner-cd5dbb69addd22030a3ebd51d41b208c6148';
   const storage = memoryStorage({ 'reploid.owner-paired-desktop:v1': JSON.stringify({
-    hostParticipantId: `peer:${'a'.repeat(24)}`, hostLabel: 'Mars', roomId, pairedAt: 1 }) });
+    hostParticipantId: `peer:${'a'.repeat(24)}`, hostLabel: 'Studio', roomId, pairedAt: 1 }) });
   const connect = vi.fn(async () => {});
   const session = createChatSession({ storage, service: createChatTestService(),
     swarm: { getState: () => ({ consumer: { peers: [] } }), connect, getOwnerPairingChannel: () => null } });

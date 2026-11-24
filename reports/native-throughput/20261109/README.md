@@ -1,12 +1,12 @@
-# Qwen 27B on Miles and Jupiter
+# Qwen 27B on a workstation and a Windows laptop
 
-The current installed Reploid Qwen 27B path runs on Jupiter. It does not load on
-Miles: the declared embedding table needs 2,542,796,800 bytes, exceeding the
-Windows Vulkan adapter's 2,147,483,648-byte buffer/binding limit. No Miles token
+The current installed Reploid Qwen 27B path runs on the workstation. It does not load on
+the Windows laptop: the declared embedding table needs 2,542,796,800 bytes, exceeding the
+Windows Vulkan adapter's 2,147,483,648-byte buffer/binding limit. No laptop token
 rate or cross-machine speed ratio was measured. This is a rejection of this
-configuration, not proof that every 27B implementation is impossible on Miles.
+configuration, not proof that every 27B implementation is impossible on that laptop.
 
-| Resident measurement | Jupiter | Miles |
+| Resident measurement | Workstation | Windows laptop |
 | --- | --- | --- |
 | CPU | Ryzen AI Max+ 395 | Ryzen 7 6800H |
 | GPU/backend | Radeon 8060S, Linux RADV Vulkan | AMD Radeon Graphics, Windows Vulkan |
@@ -32,33 +32,33 @@ measurement. The unchanged catalog profile uses F32 activations, F16 KV,
 batch size 1 and readback interval 1. No adapters were selected.
 
 The prompt asks for a detailed account of transformer execution; its exact text
-and all effective catalog options are in [jupiter.json](jupiter.json). Each
+and all effective catalog options are in [workstation.json](workstation.json). Each
 request computed 58 prompt tokens afresh and generated 128 tokens. One warmup
-preceded three measured repetitions. Every Jupiter answer hash matched across
+preceded three measured repetitions. Every workstation answer hash matched across
 all four requests. This checks repeatability of this output, not independent
 answer quality or full-logit correctness.
 
 Decode rate is `(generatedTokenCount - 1) / decodeSeconds`: the first token comes
 from prefill. Request rate includes prefill and provider work, but excludes model
-loading and mesh transport. Loading took 104.46 seconds on Jupiter through the
+loading and mesh transport. Loading took 104.46 seconds on the workstation through the
 temporary HTTP artifact source with ordinary shard verification. Loading is
 reported separately and is not compared across machines.
 
-Jupiter's public 27B and Flash-Next services remained resident. The test used the
+The workstation's public 27B and Flash-Next services remained resident. The test used the
 shared operator lock, not an exclusive idle-GPU reservation. These are short
 application-profile measurements under that co-residency, not hardware peak
 throughput or a broad benchmark campaign.
 
-## Miles: first failed boundary
+## Windows laptop: first failed boundary
 
 The initial test selected the generic Node installation and failed to open
 `vulkan-1.dll` before model loading. That failure is retained in
-[miles-launch-failure.json](miles-launch-failure.json). The existing serving
+[laptop-launch-failure.json](laptop-launch-failure.json). The existing serving
 directory contains the required DLL beside Node. Repeating with that executable
 opened the physical Vulkan adapter; both Node executables have the same SHA-256.
 
 The actual model attempt then failed at `loadWeights`' embedding-limit preflight;
-[miles.json](miles.json) retains the exact error. The 2B provider was stopped
+[laptop.json](laptop.json) retains the exact error. The 2B provider was stopped
 during both attempts. The rejection happens before generation or a full-model
 allocation attempt, so it does not establish an out-of-memory result.
 
@@ -66,7 +66,7 @@ Doppler contains split embedding gather kernels, but this model's declared
 execution configuration does not select one. A compatible split-table
 configuration would need validation, followed by an actual full-model memory
 and generation test. It would change the tested execution configuration and
-must be recorded separately. Miles's device-local heap budget was only
+must be recorded separately. The laptop's device-local heap budget was only
 10.84 GiB in the pre-test Vulkan snapshot; that is an additional fit concern,
 not the demonstrated failure. Shared/system RAM does not remove a per-binding
 limit. Flash-Next's sparse expert cache is a different loading strategy from
@@ -74,9 +74,9 @@ this dense 27B path.
 
 ## Restoration and reproduction
 
-Miles's original 2B launch command, identity and owner policy were preserved.
+The laptop's original 2B launch command, identity and owner policy were preserved.
 The final provider PID is 21096, model-ready and offering, with a connected mesh
-sample at 22:49:15 UTC. Its existing Doppler 0.6.33 was not upgraded. Jupiter's
+sample at 22:49:15 UTC. Its existing Doppler 0.6.33 was not upgraded. The workstation's
 public provider retained main PID 204246 / Node PID 204252; Flash-Next retained
 PID 1259994 and reported ready with no active request at the final check.
 Both test processes exited with settled GPU cleanup. The temporary artifact

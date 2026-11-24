@@ -9,9 +9,9 @@ const storage = () => {
 
 it('persists a local name by verified key across new connection IDs and never by GPU description', async () => {
   const store = storage(), verifyPeer = vi.fn(async () => participant);
-  const first = await identifyComputer('wire-a', { verifyPeer, storage: store, ownerLabel: 'Jupiter', hardware: { description: 'AMD', hostname: 'private' } });
-  expect(first).toMatchObject({ participantId: participant, label: 'Jupiter', hardware: { description: 'AMD' }, identityBasis: 'signing-key' });
-  expect((await identifyComputer('wire-b', { verifyPeer, storage: store })).label).toBe('Jupiter');
+  const first = await identifyComputer('wire-a', { verifyPeer, storage: store, ownerLabel: 'Workstation', hardware: { description: 'AMD', hostname: 'private' } });
+  expect(first).toMatchObject({ participantId: participant, label: 'Workstation', hardware: { description: 'AMD' }, identityBasis: 'signing-key' });
+  expect((await identifyComputer('wire-b', { verifyPeer, storage: store })).label).toBe('Workstation');
   const other = 'peer:' + 'b'.repeat(24);
   expect((await identifyComputer('wire-a', { verifyPeer: async () => other, storage: store, hardware: first.hardware })).label).toBe(participantLabel(other));
   expect((await identifyComputer('wire-a', { verifyPeer, storage: store, ownerLabel: '' })).label).toBe(participantLabel(participant));

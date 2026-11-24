@@ -43,7 +43,7 @@ retained in Doppler `reports/generation-context/20261109` at `fa18418b`.
 Frozen Reploid `549a801b0c5572c3cc22df9eca1c79f4483abb6c` contains the context
 implementation and the subsequent Doppler 0.6.36 package integration. It was
 deployed to Firebase Hosting and Cloud Run, and installed into a separate native
-release directory on Jupiter. This is the deployed source identity, not a claim
+release directory on the workstation host. This is the deployed source identity, not a claim
 that later commits were deployed.
 
 - [AMD catalog receipt](deployment/amd-catalog.json): actual Qwen 27B, catalog
@@ -93,5 +93,5 @@ public provider. It requires permission to generate there and does not start,
 stop, or reconfigure the provider itself.
 
 Component: whole-model context retention and deployment evidence. Intent:
-preserved. Boundary effects: hosted requester/backend package and Jupiter's
+preserved. Boundary effects: hosted requester/backend package and the workstation host's
 public native 27B process; model bytes, precision and qualification gates unchanged.

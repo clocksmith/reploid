@@ -7,7 +7,7 @@
     "planId": "sha256:0fa7e02c1193dbb15924f558524f3fd10c7c61db275d038bdc341cd4bbba1ea0"
   },
   "startedAt": "2026-11-20T09:51:41.340839+00:00",
-  "compute": "Physical Jupiter and Suby, software SwiftShader. Requester and stage 0 are separate principals in one Jupiter process. Stage 1 runs on Suby.",
+  "compute": "Two physical hosts (host-a and host-b), software SwiftShader. Requester and stage 0 are separate principals in one host-a process. Stage 1 runs on host-b.",
   "executionLimits": "Existing 0.8B artifacts fit either host. This checks lifecycle and accounting. It does not establish a memory-expanding hardware split.",
   "routeTypes": [
     [
@@ -128,11 +128,11 @@
   },
   "afterBothRequestsDurableOwners": [
     {
-      "host": "jupiter",
+      "host": "host-a",
       "openRows": 0
     },
     {
-      "host": "suby",
+      "host": "host-b",
       "openRows": 0
     }
   ],

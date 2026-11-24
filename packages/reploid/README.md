@@ -102,7 +102,7 @@ so these labels do not establish unique physical computers.
 import { captureGpuSignature, compareGpuSignatures } from 'reploid/mesh';
 
 const computer = await mesh.identifyComputer(connectionId, {
-  ownerLabel: 'Jupiter', storage: localStorage, signal
+  ownerLabel: 'Workstation', storage: localStorage, signal
 });
 
 // Separately, on the contributing computer, after the owner opts in:

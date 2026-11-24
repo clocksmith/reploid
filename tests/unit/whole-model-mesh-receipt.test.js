@@ -50,8 +50,8 @@ it('identifies whole-model peers for labels before any generation and does not r
     await new Promise(resolve => setTimeout(resolve, 20));
     expect(f.wire.filter(message => message.type === 'reploid:identity-challenge')).toHaveLength(count);
     expect(f.wire.some(message => message.type === 'reploid:generation-request')).toBe(false);
-    expect(await f.meshes[0].identifyComputer('connection-1', { ownerLabel: 'Jupiter' }))
-      .toMatchObject({ participantId: f.identities[1].peerId, label: 'Jupiter', identityBasis: 'signing-key' });
+    expect(await f.meshes[0].identifyComputer('connection-1', { ownerLabel: 'Workstation' }))
+      .toMatchObject({ participantId: f.identities[1].peerId, label: 'Workstation', identityBasis: 'signing-key' });
   } finally { await f.close(); }
 });
 it('transports measured usage across identity proof, provider signing and requester countersigning', async () => {

@@ -58,7 +58,7 @@ it.each([
 });
 
 it('reports a live requester without inventing local GPU capacity or another computer’s presence', () => {
-  const rows = includeRequesterPresence([{ id: 'mac', online: false }, { id: 'miles', online: false }],
+  const rows = includeRequesterPresence([{ id: 'mac', online: false }, { id: 'laptop', online: false }],
     { computerId: 'mac', activeRequests: 1, preparing: false, hardware: { freeHostBytes: 123 } }, 456);
   expect(rows[0]).toMatchObject({ online: true, requester: true, resident: null, activeRequests: 1, observedAt: 456 });
   expect(rows[0].freeGpuBytes).toBeUndefined(); expect(rows[1].online).toBe(false);

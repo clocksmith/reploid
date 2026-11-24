@@ -45,9 +45,9 @@ describe('Paired desktop default', () => {
   });
 
   it('names an unreachable paired desktop and says how to bring it back, without promising to wake it', () => {
-    setup({ status: 'offline', paired: true, canSend: false, hostParticipantId: 'peer:91d1d9293ca2d973191156dc', hostLabel: 'Mars' },
+    setup({ status: 'offline', paired: true, canSend: false, hostParticipantId: 'peer:91d1d9293ca2d973191156dc', hostLabel: 'Studio' },
       { peers: [], state: { discoveryPhase: 'observed' } });
-    expect(root.querySelector('[data-model-status]').textContent).toBe('Mars is offline. Open Reploid on Mars.');
+    expect(root.querySelector('[data-model-status]').textContent).toBe('Studio is offline. Open Reploid on Studio.');
     expect(root.textContent).not.toMatch(/wake/i);
   });
 
@@ -60,7 +60,7 @@ describe('Paired desktop default', () => {
       row.setAttribute('aria-pressed', 'false');
       row.click();
     };
-    const online = () => ({ status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Mars',
+    const online = () => ({ status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Studio',
       readyModel: CANONICAL_CHAT_MODELS[0].id, disclosure: { readableBy: `Readable by: ${host}`, notice: `This runs on ${host}.` } });
 
     it('keeps the conversation on the desktop while it is offline', () => {
@@ -87,29 +87,29 @@ describe('Paired desktop default', () => {
 
   it('locks a guest invite to its host, keeps that lock over a manual choice and clears the token from the address', () => {
     const host = 'peer:860c7025bc31969cada679cd';
-    history.replaceState(null, '', `/#circle=${'T'.repeat(43)}&host=${encodeURIComponent(host)}&name=Mars`);
+    history.replaceState(null, '', `/#circle=${'T'.repeat(43)}&host=${encodeURIComponent(host)}&name=Studio`);
     const { viewState } = setup({ status: 'unpaired', paired: false, canSend: false, hostParticipantId: null });
     expect(location.hash).toBe('');
     expect(viewState.guestInvite.hostPeerId).toBe(host);
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
-    expect(root.textContent).toContain('Sending to Mars.');
+    expect(root.textContent).toContain('Sending to Studio.');
     history.replaceState(null, '', '/');
   });
 
   it('offers one Join action for an invite, keeps Send off until joined, then sends only to that host', async () => {
     const host = 'peer:860c7025bc31969cada679cd', token = 'T'.repeat(43);
-    history.replaceState(null, '', `/#circle=${token}&host=${encodeURIComponent(host)}&name=Mars&room=reploid-swarm-owner-abc`);
+    history.replaceState(null, '', `/#circle=${token}&host=${encodeURIComponent(host)}&name=Studio&room=reploid-swarm-owner-abc`);
     let guest = { status: 'none', joined: false, hostParticipantId: null, hostLabel: null, error: '' };
-    const guestJoin = { join: vi.fn(async () => { guest = { status: 'online', joined: true, hostParticipantId: host, hostLabel: 'Mars',
+    const guestJoin = { join: vi.fn(async () => { guest = { status: 'online', joined: true, hostParticipantId: host, hostLabel: 'Studio',
       readyModel: CANONICAL_CHAT_MODELS[0].id, error: '' }; return {}; }) };
     const { viewState } = setup({ status: 'unpaired', paired: false, canSend: false, hostParticipantId: null },
       { guestAccess: () => guest, guestJoin });
     const join = root.querySelector('[data-join-host]');
     expect(join.hidden).toBe(false);
-    expect(join.textContent).toBe('Join Mars');
+    expect(join.textContent).toBe('Join Studio');
     expect(root.querySelector('[data-composer-send]').disabled).toBe(true);
     join.click();
-    expect(guestJoin.join).toHaveBeenCalledWith({ hostPeerId: host, token, hostLabel: 'Mars', roomId: 'reploid-swarm-owner-abc' });
+    expect(guestJoin.join).toHaveBeenCalledWith({ hostPeerId: host, token, hostLabel: 'Studio', roomId: 'reploid-swarm-owner-abc' });
     await vi.waitFor(() => expect(viewState.guestInvite).toBeNull());
     expect(join.hidden).toBe(true);
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });

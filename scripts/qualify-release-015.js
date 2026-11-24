@@ -2,7 +2,7 @@
 /**
  * End-to-end physical qualification harness for Reploid 0.1.5 + DopplerX 0.1.5:
  * 1. Multi-peer verified weight transfer benchmark (bytes/sec, receiver backpressure, duplicate reads, acquisition time).
- * 2. Backend source-revision binding, readiness check, and zero-downtime rollback verification (preserving Jupiter Flash).
+ * 2. Backend source-revision binding, readiness check, and zero-downtime rollback verification (preserving the live Flash host).
  * 3. Signed external HTTP API answer, prefix-cache reuse, mid-stream cancellation hold closure, and subsequent independent request.
  * 4. Fresh Chromium browser conversation over real WebRTC + Apple Metal GPU provider with zero weight downloads.
  */
@@ -246,10 +246,14 @@ async function runPeerTransferBenchmark() {
   }
 }
 
-// 2. Backend source-revision binding, readiness check, and rollback while Jupiter serves Flash.
-function probeJupiterFlash() {
+// 2. Backend source-revision binding, readiness check, and rollback while a live host serves Flash.
+// The operator names that host and its Flash process in REPLOID_QUALIFY_FLASH_HOST and REPLOID_QUALIFY_FLASH_PID.
+function probeFlashHost() {
+  const host = process.env.REPLOID_QUALIFY_FLASH_HOST;
+  const pid = process.env.REPLOID_QUALIFY_FLASH_PID;
+  if (!host || !/^\d+$/.test(pid || '')) return { reachable: false, error: 'REPLOID_QUALIFY_FLASH_HOST and REPLOID_QUALIFY_FLASH_PID are not set' };
   try {
-    const out = execFileSync('ssh', ['-o', 'ConnectTimeout=5', 'jupiter', 'ps -o pid=,etimes=,rss= -p 1575058'], { encoding: 'utf8' }).trim();
+    const out = execFileSync('ssh', ['-o', 'ConnectTimeout=5', host, `ps -o pid=,etimes=,rss= -p ${pid}`], { encoding: 'utf8' }).trim();
     const [pid, elapsedSeconds, rssKiB] = out.split(/\s+/).map(Number);
     return { reachable: true, pid, elapsedSeconds, rssBytes: rssKiB * 1024 };
   } catch (error) {
@@ -269,7 +273,7 @@ async function runBackendReadinessAndRollback() {
   const headSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
   const previousSha = 'e303f6823ecc3623c1279848f6ed3edd1ccc9fd7';
   const runtimeBundle = await buildCoordinatorRuntimeBundle({ rootDirectory: REPO_ROOT });
-  const jupiterBefore = probeJupiterFlash();
+  const flashBefore = probeFlashHost();
 
   async function bootBackend(revisionSha, kRevision, badImage = false) {
     const port = await findFreePort();
@@ -359,10 +363,10 @@ async function runBackendReadinessAndRollback() {
     assert.equal(switchoverChecks[2].sourceRevision, previousSha, 'Rollback must serve previous verified revision immediately');
     assert.equal(switchoverChecks[5].sourceRevision, headSha, 'Roll-forward must restore candidate revision cleanly');
 
-    const jupiterAfter = probeJupiterFlash();
-    if (jupiterBefore.reachable && jupiterAfter.reachable) {
-      assert.equal(jupiterAfter.pid, jupiterBefore.pid, 'Jupiter public Flash PID must remain untouched');
-      assert.ok(jupiterAfter.elapsedSeconds >= jupiterBefore.elapsedSeconds, 'Jupiter public Flash uptime must advance monotonically');
+    const flashAfter = probeFlashHost();
+    if (flashBefore.reachable && flashAfter.reachable) {
+      assert.equal(flashAfter.pid, flashBefore.pid, 'Live Flash host PID must remain untouched');
+      assert.ok(flashAfter.elapsedSeconds >= flashBefore.elapsedSeconds, 'Live Flash host uptime must advance monotonically');
     }
 
     return {
@@ -378,10 +382,10 @@ async function runBackendReadinessAndRollback() {
       unboundImageRejected: unboundCheck.release.imageBoundToSourceRevision === false,
       zeroDroppedRequestsDuringRollback: switchoverChecks.every((c) => c.httpStatus === 200 && c.imageBoundToSourceRevision === true),
       switchoverTimeline: switchoverChecks,
-      jupiterLiveFlashContinuity: {
-        before: jupiterBefore,
-        after: jupiterAfter,
-        uninterrupted: jupiterBefore.reachable && jupiterAfter.reachable && jupiterBefore.pid === jupiterAfter.pid,
+      flashHostLiveContinuity: {
+        before: flashBefore,
+        after: flashAfter,
+        uninterrupted: flashBefore.reachable && flashAfter.reachable && flashBefore.pid === flashAfter.pid,
       },
     };
   } finally {
@@ -1052,7 +1056,7 @@ const browserReceipt = await loadOrRun('fresh-browser-conversation.json', '4/4 f
 console.log(JSON.stringify({
   transferBytesPerSecTwoSuppliers: transferReceipt.twoSuppliers.bytesPerSecond,
   backendRollbackZeroDrops: backendReceipt.zeroDroppedRequestsDuringRollback,
-  jupiterFlashUninterrupted: backendReceipt.jupiterLiveFlashContinuity.uninterrupted,
+  flashHostUninterrupted: backendReceipt.flashHostLiveContinuity.uninterrupted,
   apiPrefixCachedTokens: apiReceipt.turn2PrefixCacheFollowUp.cachedTokensReused,
   apiPostCancelResponsesStatus: apiReceipt.subsequentIndependentResponsesApi.httpStatus,
   browserWeightBytesDownloaded: browserReceipt.weightShardBytesDownloaded,

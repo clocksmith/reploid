@@ -7,11 +7,11 @@ import { identifyComputer, captureGpuSignature, compareGpuSignatures,
   type GpuSignatureResult } from '../../packages/reploid/src/mesh/index.js';
 export async function computerIdentityContract(device: GPUDevice, previous: GpuSignatureResult,
   verifyPeer: (id: string, signal?: AbortSignal) => Promise<string | null>) {
-  const computer = await identifyComputer('connection', { verifyPeer, ownerLabel: 'Jupiter' });
+  const computer = await identifyComputer('connection', { verifyPeer, ownerLabel: 'Workstation' });
   const captured = await captureGpuSignature(device, { consent: true });
   const comparison = compareGpuSignatures(previous, captured);
   // @ts-expect-error a reported name is not a channel-bound verifier
-  void identifyComputer('connection', { ownerLabel: 'Jupiter' });
+  void identifyComputer('connection', { ownerLabel: 'Workstation' });
   return { computer, captured, comparison };
 }
 const status: AgentStatus = 'PARKED';
