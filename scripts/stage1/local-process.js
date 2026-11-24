@@ -29,11 +29,14 @@ async function open(config) {
     await fs.mkdir(config.modelDirectory, { recursive: true, mode: 0o700 });
     await fs.writeFile(path.join(config.modelDirectory, 'manifest.json'), manifestBytes);
     await fs.writeFile(path.join(config.modelDirectory, pieces.path), await fs.readFile(resolveServedFile(pieces.url, { roots: ['shared'] })));
-    sourceRuntime = { runtime: createFakeStageRuntime({ model, manifest: JSON.parse(manifestBytes), reference: config.reference }),
-      gather: { maxPartBytes: 4096, memoryBudgetBytes: 8192, concurrency: 1 },
-      receipt: { schema: 'reploid.diagnostic-source-identity/v1' }, assertCurrent: async () => {} };
+    sourceRuntime = loader => ({ runtime: createFakeStageRuntime({ model, manifest: JSON.parse(manifestBytes), reference: config.reference,
+      loader, pieces: config.assignedRanges }),
+    gather: { maxPartBytes: 4096, memoryBudgetBytes: 8192, concurrency: 1 },
+    receipt: { schema: 'reploid.diagnostic-source-identity/v1' }, assertCurrent: async () => {} });
   }
-  participant = await openStage1Participant({ stageIndex, identity, config, nativeGpu: async () => ({}), sourceRuntime });
+  // The stage directory holds no weight bytes here, so the loader's byte reader returns none; its allowlist and record are real.
+  participant = await openStage1Participant({ stageIndex, identity, config, nativeGpu: async () => ({}), sourceRuntime,
+    readBytes: async () => new Uint8Array(0) });
   return { assignedLayers: participant.assignedLayers() };
 }
 
@@ -47,6 +50,9 @@ const operations = {
   cancel: () => participant.cancel(),
   trace: body => participant.trace(body),
   generate: body => participant.generate(body),
+  'settlement-records': body => participant.settlementRecords(body),
+  'accept-terms': body => participant.acceptTerms(body),
+  loaded: () => participant.loaded(),
   weights: () => measureDirectoryBytes([options.modelDirectory]),
   /** No model loads: the requirement is compared to a configured limit, and the result is marked as fake. */
   solo: ({ settings, requiredBytes }) => ({ outcome: 'failed', settings, claimedFailure: null,

@@ -4,7 +4,7 @@
  *
  *   node scripts/stage1/run.js --adapter local --work DIRECTORY --out RECEIPT.json [--fixture FILE]
  *   node scripts/stage1/run.js --adapter physical --hosts PRIVATE_FILE --window-until ISO_TIME --work DIRECTORY
- *     --out RECEIPT.json [--fixture FILE] [--approve-delete-full-copy]
+ *     --out RECEIPT.json [--fixture FILE]
  *
  * The local adapter is three processes on this machine with a fake model runtime. The physical adapter drives real
  * hosts over SSH and refuses to start without a window. The written file holds the receipt and the checker's verdict;
@@ -43,12 +43,12 @@ export async function runLocalStage1({ directory, limits, signal, fixtureFile = 
  * anything is contacted, and everything returned has the host file's private values removed.
  */
 export async function runPhysicalStage1({ config, transport, windowUntil, directory, fixtureFile = null,
-  approveDeleteFullCopy = false, signal = null, now = Date.now, startCoordinator }) {
+  signal = null, now = Date.now, startCoordinator }) {
   validatePhysicalConfig(config);
   const { maxRunMs } = resolveRunWindow(windowUntil, { now: now(), stopMarginMs: config.limits.stopMarginMs });
   const loaded = await loadWorkload('physical', fixtureFile, config.credit.weights);
   const redactor = createRedactor(config);
-  const adapter = createPhysicalStage1Adapter({ config, directory, transport, redactor, approveDeleteFullCopy, ...loaded,
+  const adapter = createPhysicalStage1Adapter({ config, directory, transport, redactor, ...loaded,
     ...(startCoordinator ? { startCoordinator } : {}) });
   const { phaseMs, abortGraceMs, hardStopMs } = config.limits;
   const raw = await runStage1Phases({ adapter, expectations: loaded.expectations, signal, now,
@@ -59,13 +59,13 @@ export async function runPhysicalStage1({ config, transport, windowUntil, direct
 
 async function main() {
   const { values } = parseArgs({ options: { adapter: { type: 'string' }, work: { type: 'string' }, out: { type: 'string' },
-    hosts: { type: 'string' }, fixture: { type: 'string' }, 'window-until': { type: 'string' }, 'approve-delete-full-copy': { type: 'boolean' } } });
+    hosts: { type: 'string' }, fixture: { type: 'string' }, 'window-until': { type: 'string' } } });
   if (!['local', 'physical'].includes(values.adapter) || !values.work || !values.out || !path.isAbsolute(values.work) || !path.isAbsolute(values.out)
     || (values.fixture && !path.isAbsolute(values.fixture))) {
     throw Error('Usage: run.js --adapter local|physical --work ABSOLUTE_DIRECTORY --out ABSOLUTE_RECEIPT.json [--fixture ABSOLUTE_FILE]');
   }
-  if (values.adapter === 'local' && (values.hosts || values['window-until'] || values['approve-delete-full-copy'])) {
-    throw Error('--hosts, --window-until and --approve-delete-full-copy apply only to the physical adapter');
+  if (values.adapter === 'local' && (values.hosts || values['window-until'])) {
+    throw Error('--hosts and --window-until apply only to the physical adapter');
   }
   const stop = new AbortController();
   for (const name of ['SIGINT', 'SIGTERM']) process.once(name, () => stop.abort(Error(`Received ${name}`)));
@@ -77,7 +77,7 @@ async function main() {
     resolveRunWindow(values['window-until'], { now: Date.now(), stopMarginMs: 0 });
     const config = await loadPhysicalConfig(values.hosts);
     result = await runPhysicalStage1({ config, transport: createSshTransport(), windowUntil: values['window-until'], directory: values.work,
-      fixtureFile: values.fixture ?? null, approveDeleteFullCopy: values['approve-delete-full-copy'] === true, signal: stop.signal });
+      fixtureFile: values.fixture ?? null, signal: stop.signal });
   }
   const { receipt, verdict } = result;
   await fs.writeFile(values.out, JSON.stringify({ receipt, verdict }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });

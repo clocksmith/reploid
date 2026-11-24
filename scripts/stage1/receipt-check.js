@@ -6,7 +6,11 @@
 import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
 
 export const STAGE1_RECEIPT_SCHEMA = 'reploid.stage1-split-receipt/v1';
-export const STAGE1_PHASES = Object.freeze(['preflight', 'solo-a', 'solo-b', 'earn', 'split', 'cancel', 'cleanup']);
+export const STAGE1_PHASES = Object.freeze(['preflight', 'solo-a', 'solo-b', 'earn', 'split', 'cancel', 'drop', 'cleanup']);
+/** The harness, not live code, collected the signed settlement records each replay ran on. */
+export const TERMS_COLLECTED_BY = 'stage1-harness';
+/** What a fitting solo control asks of the owner: the claim is unearned until a harder pinned workload refuses both. */
+export const SOLO_FITS_DETAIL = 'choose a harder workload';
 export const LABEL_POOLED = 'pooled capacity';
 export const LABEL_SPLIT = 'split correctness';
 const HOST_LABELS = Object.freeze(['host-a', 'host-b']);
@@ -92,26 +96,50 @@ function checkTokens(receipt, expectations, fail) {
   if (receipt.split?.parityExact !== true) fail('tokens-parity-unverified', 'the stage token witnesses were not verified');
 }
 
+/** The stage directory a stage process opens from holds exactly its stage, searched for every range of the model. */
 function checkInventory(host, when, stage, expectations, fail) {
   const observed = host.inventory?.[when], name = `${host.label}:${when}`;
   if (!observed) { fail('inventory-missing', name); return; }
   if (observed.source !== expectations.inventorySource) fail('inventory-source', `${name} ${observed.source}`);
-  // Around the split a real host must have searched everywhere it keeps weights, not only its stage directory.
-  if (expectations.runtimeClass === 'physical' && when !== 'preflight' && observed.scope !== 'host-weight-directories') {
-    fail('inventory-scope', `${name} ${observed.scope}`);
-  }
+  if (expectations.runtimeClass === 'physical' && observed.scope !== 'stage-directory') fail('inventory-scope', `${name} ${observed.scope}`);
   if (expectations.runtimeClass === 'physical' && observed.scannedRanges !== expectations.totalWeight.rangeCount) {
     fail('inventory-not-exhaustive', `${name} scanned ${observed.scannedRanges} of ${expectations.totalWeight.rangeCount} ranges`);
-  }
-  const total = expectations.totalWeight;
-  if (observed.bytes >= total.bytes || observed.rangeCount >= total.rangeCount) {
-    fail('executor-holds-complete-weights', `${name} ${observed.rangeCount} ranges, ${observed.bytes} bytes`);
   }
   if (observed.outsideStageRanges !== 0 || observed.outsideStageBytes !== 0) {
     fail('inventory-outside-stage', `${name} ${observed.outsideStageRanges} ranges, ${observed.outsideStageBytes} bytes`);
   }
   if (observed.rangeCount !== stage.rangeCount || observed.bytes !== stage.bytes || observed.rangesDigest !== stage.rangesDigest) {
     fail('inventory-mismatch', `${name} ${observed.rangeCount}/${observed.bytes}/${observed.rangesDigest}`);
+  }
+}
+
+/**
+ * Around the split a real host is searched everywhere it keeps weights. A full copy at the declared directory is
+ * allowed and recorded (the solo controls need it); a range of another stage anywhere else is not.
+ */
+function checkHostWeights(host, expectations, fail) {
+  for (const when of ['beforeSplit', 'afterSplit']) {
+    const observed = host.hostWeights?.[when], name = `${host.label}:${when}`;
+    if (!observed) { fail('host-weights-unmeasured', name); continue; }
+    if (observed.scope !== 'host-weight-directories') fail('inventory-scope', `${name} ${observed.scope}`);
+    if (observed.scannedRanges !== expectations.totalWeight.rangeCount) {
+      fail('inventory-not-exhaustive', `${name} scanned ${observed.scannedRanges} of ${expectations.totalWeight.rangeCount} ranges`);
+    }
+    if (observed.outsideElsewhere !== 0) fail('host-weights-outside-full-copy', `${name} ${observed.outsideElsewhere} other-stage ranges`);
+  }
+}
+
+/** The stage process loaded only its assigned ranges, and all of them, by its own loader's record. */
+function checkLoaded(host, stage, expectations, fail) {
+  const loaded = host.loaded, total = expectations.totalWeight;
+  if (!loaded) { fail('loaded-unrecorded', host.label); return; }
+  if (loaded.source !== 'stage-loader') fail('loaded-source', `${host.label} ${loaded.source}`);
+  if (loaded.bytes >= total.bytes || loaded.rangeCount >= total.rangeCount) {
+    fail('executor-holds-complete-weights', `${host.label} loaded ${loaded.rangeCount} ranges, ${loaded.bytes} bytes`);
+  }
+  if (loaded.outsideStageRanges !== 0) fail('loaded-outside-stage', `${host.label} asked for ${loaded.outsideStageRanges} ranges outside its stage`);
+  if (loaded.rangeCount !== stage.rangeCount || loaded.bytes !== stage.bytes || loaded.rangesDigest !== stage.rangesDigest) {
+    fail('loaded-not-assigned', `${host.label} ${loaded.rangeCount}/${loaded.bytes}/${loaded.rangesDigest}`);
   }
 }
 
@@ -124,6 +152,8 @@ function checkHosts(receipt, expectations, fail) {
     if (!same(host.assignedLayers, stage.layerRange)) fail('host-layers', `${host.label} ${canonical(host.assignedLayers)}`);
     // Solo controls run between preflight and the split, so the holding is measured again right before it.
     for (const when of ['preflight', 'beforeSplit', 'afterSplit']) checkInventory(host, when, stage, expectations, fail);
+    if (expectations.runtimeClass === 'physical') checkHostWeights(host, expectations, fail);
+    checkLoaded(host, stage, expectations, fail);
   });
   if (new Set(hosts.map(host => host.participantId)).size !== hosts.length) fail('hosts-not-distinct', 'participant');
   if (hosts.some(host => host.participantId === receipt.requester?.participantId)) fail('requester-is-executor', 'participant');
@@ -200,6 +230,8 @@ function checkSettlement(trace, name, expectations, fail, hosts) {
 function checkEarn(receipt, expectations, fail) {
   const earn = receipt.earn, account = receipt.requester?.computerId;
   if (!earn) { fail('earn-missing', 'no whole-model earning before the split'); return; }
+  // Nothing seeded: the account starts at zero, so everything it spends was earned in this run.
+  if (earn.accountBefore !== 0) fail('earn-seeded-balance', `the account held ${earn.accountBefore} before earning`);
   if (!account || earn.earner?.computerId !== account) fail('earn-other-account', `${earn.earner?.computerId} earned for ${account}`);
   if (earn.earner?.participantId === receipt.requester?.participantId) fail('earn-by-requester-device', 'the zero-weight requester served the control');
   if ((receipt.hosts ?? []).some(host => host.computerId === account)) fail('earn-account-is-executor', String(account));
@@ -238,11 +270,77 @@ function checkCancel(receipt, expectations, fail) {
   }
 }
 
+/**
+ * The forced provider drop: a stage process killed mid-answer. The requester keeps its partial text, nothing is resent,
+ * and under the provider-loss-free terms nobody is charged or paid: the hold is released (expired, or settled at zero).
+ */
+function checkDrop(receipt, expectations, fail) {
+  const drop = receipt.drop, answer = expectations.reference.outputIds.length;
+  if (!drop) { fail('drop-missing', 'no forced provider drop'); return; }
+  if (drop.completed !== false) fail('drop-no-partial-output', 'the answer completed despite the drop');
+  if (!Number.isSafeInteger(drop.outputsReceived) || drop.outputsReceived < 1 || drop.outputsReceived >= answer
+    || typeof drop.partialText !== 'string' || !drop.partialText) {
+    fail('drop-no-partial-output', `${drop.outputsReceived} outputs of ${answer}, ${JSON.stringify(drop.partialText ?? null)}`);
+  }
+  const resend = drop.resend;
+  if (resend?.requesterApprovals !== 1 || resend.requesterAttemptsOnThread !== 1 || resend.ledgerReservations !== 1) {
+    fail('drop-resent', canonical(resend));
+  }
+  const trace = drop.settlement;
+  if (!trace) { fail('drop-stranded-hold', 'no ledger trace'); return; }
+  if (trace.state !== 'settled' || trace.heldAfter !== 0) fail('drop-stranded-hold', `${trace.state}, ${trace.heldAfter} held`);
+  const journal = Array.isArray(trace.journal) ? trace.journal : [];
+  if (trace.charge !== 0 || journal.some(row => row.delta !== 0) || (trace.credits ?? []).some(row => row.amount !== 0)) {
+    fail('drop-charged', `charge ${trace.charge}, journal ${canonical(journal)}`);
+  }
+  const accounts = journal.map(row => row.accountId);
+  if (new Set(accounts).size !== accounts.length) fail('double-settlement', 'drop journal repeats an account');
+  if (!Number.isSafeInteger(drop.accountBefore) || drop.accountAfter !== drop.accountBefore) {
+    fail('drop-charged', `the requester balance moved from ${drop.accountBefore} to ${drop.accountAfter}`);
+  }
+}
+
+/**
+ * The replay over the participants' own signed records must agree with the ledger: the split settled at the ledger's
+ * debit and credits, the stopped answer charged its acknowledged prefix, the dropped one charged nothing, and no
+ * reservation came out in conflict, unknown or invalid. The terms must name the ledger's exact policy.
+ */
+function checkReplay(receipt, name, fail) {
+  const attempt = receipt[name], trace = attempt?.settlement, replay = attempt?.settlementReplay;
+  if (!replay) { fail('replay-missing', name); return; }
+  if (replay.termsCollectedBy !== TERMS_COLLECTED_BY) fail('replay-label', `${name} ${replay.termsCollectedBy}`);
+  if (!replay.ledgerPolicyDigest || replay.termsPolicyDigest !== replay.ledgerPolicyDigest) {
+    fail('replay-policy-mismatch', `${name} terms name ${replay.termsPolicyDigest}, the ledger runs ${replay.ledgerPolicyDigest}`);
+  }
+  const rows = Array.isArray(replay.result?.reservations) ? replay.result.reservations : [];
+  for (const row of rows) {
+    if (['conflict', 'unknown', 'invalid'].includes(row.status)) fail(`replay-${row.status}`, `${name}: ${row.reason}`);
+  }
+  const row = rows.find(item => item.reservationId === trace?.reservationId);
+  if (!row) { fail('replay-reservation-missing', name); return; }
+  if (name === 'drop') {
+    if (!(row.status === 'expired' || row.status === 'settled' && row.debit === 0)) fail('replay-drop-charged', `${row.status} debit ${row.debit}`);
+    return;
+  }
+  if (row.status !== 'settled') {
+    if (!['conflict', 'unknown', 'invalid'].includes(row.status)) fail('replay-not-settled', `${name} ${row.status}`);
+    return;
+  }
+  const amounts = (row.credits ?? []).map(credit => credit.amount), ledger = (trace.credits ?? []).map(credit => credit.amount);
+  if (row.debit !== trace.charge || !same(amounts, ledger)) {
+    fail('replay-differs-from-ledger', `${name} replay ${row.debit} ${canonical(amounts)}, ledger ${trace.charge} ${canonical(ledger)}`);
+  }
+  if (name === 'cancel' && (replay.stopSigned !== true || row.chargedOutputs !== trace.outputTokens)) {
+    fail('replay-differs-from-ledger', `cancel replay charged ${row.chargedOutputs} outputs, ledger ${trace.outputTokens}, stop signed ${replay.stopSigned}`);
+  }
+}
+
 function checkCleanup(receipt, fail) {
   const cleanup = receipt.cleanup;
   if (cleanup?.processesExited !== true) fail('cleanup-processes', 'a started process did not exit');
   if (cleanup?.heldCredits !== 0) fail('stranded-hold', `cleanup found ${cleanup?.heldCredits} credits held`);
   if (cleanup?.openReservations !== 0) fail('stranded-hold', `cleanup found ${cleanup?.openReservations} open reservations`);
+  for (const row of cleanup?.fullCopyLocks ?? []) if (row.locked && row.restored !== true) fail('full-copy-lock-not-restored', String(row.host));
 }
 
 /** A standing service stopped for a solo control must be back and verified active. */
@@ -254,9 +352,13 @@ function checkServices(receipt, expectations, fail) {
   }
 }
 
-/** `pooled capacity` only when both solo controls ran out of device memory at the split's exact settings. */
+/**
+ * `pooled capacity` only when both solo controls ran out of device memory at the split's exact settings. A control
+ * that fits the whole model fails the receipt: the owner's rule is a harder pinned workload and both controls again.
+ */
 function decideLabel(receipt, expectations, fail) {
   const solo = Object.fromEntries(HOST_LABELS.map(label => [label, classifySoloControl(receipt.soloControls?.[label], expectations)]));
+  if (HOST_LABELS.some(label => solo[label].outcome === 'completed')) fail('solo-fits', SOLO_FITS_DETAIL);
   for (const label of HOST_LABELS) {
     const control = receipt.soloControls?.[label];
     if (control?.claimedFailure === 'memory' && solo[label].outcome !== 'memory') {
@@ -293,6 +395,8 @@ export function checkStage1Receipt(receipt, expectations) {
   }
   checkEarn(record, expectations, fail);
   checkCancel(record, expectations, fail);
+  checkDrop(record, expectations, fail);
+  for (const name of ['split', 'cancel', 'drop']) checkReplay(record, name, fail);
   checkCleanup(record, fail);
   checkServices(record, expectations, fail);
   const { label, solo } = decideLabel(record, expectations, fail);

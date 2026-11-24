@@ -3,7 +3,8 @@
  * and stopping; the adapter does the work and reports what it observed. A phase that did not run is recorded as
  * skipped and can never read as passed.
  *
- * Adapter: describe(), preflight(ctx), soloControl(label, ctx), splitAnswer(ctx), cancelAnswer(ctx), cleanup(ctx),
+ * Adapter: describe(), preflight(ctx), soloControl(label, ctx), splitAnswer(ctx), cancelAnswer(ctx), dropAnswer(ctx) (a stage
+ * process killed mid-answer), cleanup(ctx),
  * hardStop(reason), optionally earnCredits(ctx) (the whole-model control that earns the credits the split spends; an
  * adapter without it records the phase as skipped, which the checker refuses), and optionally guard(phase), which throws to stop the run before that phase starts, and
  * evidence(), whose service-restore record joins the receipt however the run ended.
@@ -38,7 +39,7 @@ async function bounded(work, { ms, graceMs, stopSignal }) {
 }
 
 export async function runStage1Phases({ adapter, expectations, limits = {}, signal = null, now = Date.now }) {
-  for (const method of ['describe', 'preflight', 'soloControl', 'splitAnswer', 'cancelAnswer', 'cleanup', 'hardStop']) {
+  for (const method of ['describe', 'preflight', 'soloControl', 'splitAnswer', 'cancelAnswer', 'dropAnswer', 'cleanup', 'hardStop']) {
     if (typeof adapter?.[method] !== 'function') throw Error(`Stage 1 adapter is missing ${method}`);
   }
   const bounds = { ...DEFAULT_STAGE1_LIMITS, ...limits };
@@ -51,7 +52,7 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
 
   const receipt = { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: description.runtimeClass, startedAt: new Date(now()).toISOString(),
     finishedAt: null, hardStop: null, phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'skipped', reason: 'not reached' }])),
-    workload: null, requester: null, hosts: null, soloControls: {}, earn: null, split: null, cancel: null, cleanup: null, claim: null };
+    workload: null, requester: null, hosts: null, soloControls: {}, earn: null, split: null, cancel: null, drop: null, cleanup: null, claim: null };
   const context = phaseSignal => ({ signal: phaseSignal, expectations });
   const apply = {
     preflight: value => { receipt.requester = { ...value.requester }; receipt.hosts = value.hosts; },
@@ -63,10 +64,14 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
         host.inventory.afterSplit = value.inventoryAfterSplit[host.label];
         // A real stage loads only after the solo controls, so its layers are first observed here.
         if (value.assignedLayers) host.assignedLayers = value.assignedLayers[host.label];
+        // What the stage process's own loader served and refused, and (physical) the host-wide search around the split.
+        if (value.loaded) host.loaded = value.loaded[host.label];
+        if (value.hostWeights) host.hostWeights = value.hostWeights[host.label];
       }
     },
     earn: value => { receipt.earn = value; },
     cancel: value => { receipt.cancel = value; },
+    drop: value => { receipt.drop = value; },
     cleanup: value => { receipt.cleanup = value; }
   };
   const work = {
@@ -74,6 +79,7 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
     earn: phaseSignal => adapter.earnCredits(context(phaseSignal)),
     split: phaseSignal => adapter.splitAnswer(context(phaseSignal)),
     cancel: phaseSignal => adapter.cancelAnswer(context(phaseSignal)),
+    drop: phaseSignal => adapter.dropAnswer(context(phaseSignal)),
     cleanup: phaseSignal => adapter.cleanup(context(phaseSignal))
   };
 

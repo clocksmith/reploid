@@ -4,6 +4,8 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
+import { STAGE1_MODEL_ID } from './expectations.js';
 
 export const STAGE1_HOSTS_SCHEMA = 'reploid.stage1-hosts/v1';
 export const STAGE1_HOST_LABELS = Object.freeze(['host-a', 'host-b']);
@@ -73,8 +75,22 @@ function validateHost(host, index) {
   }
 }
 
+/**
+ * The optional earning device: a separate machine enrolled under the requester's account, serving a small catalog
+ * whole model (never the split model) to a coordinator-side buyer, so the account earns before it spends.
+ */
+function validateEarner(earner) {
+  object(earner, 'earner', ['machineId', 'participantId', 'ssh', 'node', 'releaseRoot', 'identityFile', 'stateDirectory', 'modelDirectory', 'modelId']);
+  validateTarget(earner, 'earner');
+  if (earner.ssh === null) refuse('earner.ssh is required: the earning device is a separate machine');
+  directoryPath(earner.modelDirectory, 'earner.modelDirectory');
+  const model = catalog.find(row => row.id === earner.modelId);
+  if (!model || model.partitionPlanId || model.id === STAGE1_MODEL_ID) refuse('earner.modelId must name a whole-model catalog entry other than the split model');
+}
+
 export function validatePhysicalConfig(config) {
-  object(config, 'configuration', ['schema', 'coordinator', 'credit', 'limits', 'requester', 'hosts']);
+  object(config, 'configuration', ['schema', 'coordinator', 'credit', 'limits', 'requester', 'hosts',
+    ...(config && typeof config === 'object' && Object.hasOwn(config, 'earner') ? ['earner'] : [])]);
   if (config.schema !== STAGE1_HOSTS_SCHEMA) refuse('schema');
   const coordinator = object(config.coordinator, 'coordinator', ['listenHost', 'publicHost', 'servicePort', 'signalingPort', 'tls']);
   for (const key of ['listenHost', 'publicHost']) if (typeof coordinator[key] !== 'string' || !NETWORK_HOST.test(coordinator[key])) refuse(`coordinator.${key}`);
@@ -82,15 +98,20 @@ export function validatePhysicalConfig(config) {
   if (coordinator.servicePort === coordinator.signalingPort) refuse('coordinator ports must differ');
   object(coordinator.tls, 'coordinator.tls', ['keyFile', 'certFile', 'caFile']);
   for (const key of ['keyFile', 'certFile', 'caFile']) directoryPath(coordinator.tls[key], `coordinator.tls.${key}`);
-  const credit = object(config.credit, 'credit', ['weights', 'maxDebt', 'maxRequestMs']);
+  // The release window is the ledger's partitionUnclaimedReleaseMs: a dropped split's hold is released that long after
+  // its deadline, and signed settlement terms carry it.
+  const credit = object(config.credit, 'credit', ['weights', 'maxDebt', 'maxRequestMs', 'partitionUnclaimedReleaseMs']);
   if (!Array.isArray(credit.weights) || credit.weights.length !== 2) refuse('credit.weights');
   credit.weights.forEach((weight, index) => positive(weight, `credit.weights[${index}]`));
   positive(credit.maxDebt, 'credit.maxDebt'); positive(credit.maxRequestMs, 'credit.maxRequestMs');
+  positive(credit.partitionUnclaimedReleaseMs, 'credit.partitionUnclaimedReleaseMs');
   const limits = object(config.limits, 'limits', ['phaseMs', 'abortGraceMs', 'hardStopMs', 'stopMarginMs', 'serviceRestoreMs']);
   for (const key of Object.keys(limits)) positive(limits[key], `limits.${key}`);
   if (limits.stopMarginMs < limits.hardStopMs) refuse('limits.stopMarginMs must cover limits.hardStopMs');
   // A hard stop confirms each process is gone, then restores a service, and must finish before the margin runs out.
   if (limits.hardStopMs < 2 * limits.serviceRestoreMs + 3000) refuse('limits.hardStopMs must cover two limits.serviceRestoreMs and the process kills');
+  // The drop phase waits for the ledger to release the dropped hold: the request deadline plus the release window.
+  if (limits.phaseMs <= credit.maxRequestMs + credit.partitionUnclaimedReleaseMs) refuse('limits.phaseMs must cover credit.maxRequestMs and the release window');
   object(config.requester, 'requester', ['machineId', 'participantId', 'ssh', 'node', 'releaseRoot', 'identityFile', 'modelDirectory', 'stateDirectory', 'weightRoots']);
   validateTarget(config.requester, 'requester');
   directoryPath(config.requester.modelDirectory, 'requester.modelDirectory');
@@ -99,9 +120,10 @@ export function validatePhysicalConfig(config) {
   for (const key of ['model', 'cache', 'temporary']) directories(config.requester.weightRoots[key], `requester.weightRoots.${key}`);
   if (!Array.isArray(config.hosts) || config.hosts.length !== 2) refuse('hosts must name exactly two stage hosts');
   config.hosts.forEach(validateHost);
-  const everyone = [config.requester, ...config.hosts];
-  if (new Set(everyone.map(row => row.machineId)).size !== 3) refuse('machineId values must be distinct');
-  if (new Set(everyone.map(row => row.participantId)).size !== 3) refuse('participantId values must be distinct');
+  if (config.earner !== undefined) validateEarner(config.earner);
+  const everyone = [config.requester, ...config.hosts, ...(config.earner ? [config.earner] : [])];
+  if (new Set(everyone.map(row => row.machineId)).size !== everyone.length) refuse('machineId values must be distinct');
+  if (new Set(everyone.map(row => row.participantId)).size !== everyone.length) refuse('participantId values must be distinct');
   const targets = everyone.map(row => row.ssh).filter(Boolean);
   if (new Set(targets).size !== targets.length) refuse('ssh targets must be distinct');
   return config;

@@ -5,13 +5,14 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
-import { assertCompleteCopy, deleteFullCopy, findWeightDirectories, killExactProcess, parseMemoryPressure, scanHostWeights, serviceAction } from '../../scripts/stage1/host-control.js';
+import { assertCompleteCopy, findWeightDirectories, lockDirectory, killExactProcess, parseMemoryPressure, scanHostWeights, serviceAction } from '../../scripts/stage1/host-control.js';
 import { createSessionOperations, harnessDigest, readHostIdentity, runHostAgent, runSoloLoad } from '../../scripts/stage1/host-agent.js';
 import { createCancelGate, createTokenTrace } from '../../scripts/stage1/stage-participant.js';
 import { runGatedCancel, verifySplitTokens } from '../../scripts/stage1/split-evidence.js';
 import { fakeTokenTexts } from '../../scripts/stage1/fake-runtime.js';
 import { witnessDigest } from '../../scripts/stage1/expectations.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 
 const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 let root;
@@ -85,43 +86,24 @@ describe('the full copy', () => {
     await expect(assertCompleteCopy({ directory: path.join(root, 'absent'), expectedIdentity: model.identity })).rejects.toMatchObject({ code: 'MISSING_WEIGHTS' });
   });
 
-  it('is deleted when it is exactly this model', async () => {
+  it('is locked for the split with mode 000 and restored afterwards, and the locked copy is skipped by the search', async () => {
     const model = await smallModel(), copy = await model.writeCopy(path.join(root, 'full'));
-    expect(await deleteFullCopy({ directory: copy, expectedIdentity: model.identity })).toEqual({ deleted: true });
-    await expect(fs.stat(copy)).rejects.toMatchObject({ code: 'ENOENT' });
-  });
-
-  it('is kept when its manifest identity is wrong', async () => {
-    const model = await smallModel(), copy = await model.writeCopy(path.join(root, 'full'));
-    await expect(deleteFullCopy({ directory: copy, expectedIdentity: sha('another model') })).rejects.toMatchObject({ code: 'full-copy-identity-mismatch' });
+    const { mode } = await lockDirectory({ directory: copy, action: 'mode' });
+    expect(await lockDirectory({ directory: copy, action: 'lock' })).toEqual({ locked: true, previousMode: mode });
+    await expect(fs.readdir(copy)).rejects.toMatchObject({ code: 'EACCES' });
+    const scan = await scanHostWeights({ roots: [root], fullCopyDirectory: copy, skipDirectories: [copy], allRanges: model.allRanges,
+      stageRanges: model.stageRanges[0], scope: 'host-weight-directories' });
+    expect(scan).toMatchObject({ outsideInFullCopy: 0, skippedDirectories: 1 });
+    await expect(lockDirectory({ directory: copy, action: 'unlock', mode: 0 })).rejects.toMatchObject({ code: 'lock-refused' });
+    expect(await lockDirectory({ directory: copy, action: 'unlock', mode })).toEqual({ restored: true, mode });
     expect((await fs.readdir(copy)).length).toBe(3);
   });
 
-  it('is kept without a manifest', async () => {
-    const model = await smallModel(), copy = await model.write(path.join(root, 'full'));
-    await expect(deleteFullCopy({ directory: copy, expectedIdentity: model.identity })).rejects.toMatchObject({ code: 'full-copy-identity-mismatch' });
-    expect((await fs.readdir(copy)).length).toBe(2);
-  });
-
-  it.each([
-    ['an unrelated file', async copy => fs.writeFile(path.join(copy, 'notes.txt'), 'keep')],
-    ['a nested directory', async copy => fs.mkdir(path.join(copy, 'nested'))],
-    ['a link', async copy => fs.symlink('/etc/hosts', path.join(copy, 'link'))]
-  ])('is kept when it also holds %s', async (_name, add) => {
-    const model = await smallModel(), copy = await model.writeCopy(path.join(root, 'full'));
-    await add(copy);
-    await expect(deleteFullCopy({ directory: copy, expectedIdentity: model.identity })).rejects.toMatchObject({ code: 'full-copy-unexpected-entry' });
-    expect(await fs.stat(path.join(copy, 'manifest.json'))).toBeTruthy();
-  });
-
-  it('refuses a linked directory, a non-canonical path and any overlap with a protected directory', async () => {
+  it('refuses to lock a linked directory or a non-canonical path', async () => {
     const model = await smallModel(), copy = await model.writeCopy(path.join(root, 'full')), link = path.join(root, 'link');
     await fs.symlink(copy, link);
-    await expect(deleteFullCopy({ directory: link, expectedIdentity: model.identity })).rejects.toMatchObject({ code: 'full-copy-path-refused' });
-    await expect(deleteFullCopy({ directory: copy + '/../full', expectedIdentity: model.identity })).rejects.toMatchObject({ code: 'full-copy-path-refused' });
-    for (const guarded of [copy, path.join(copy, 'inner'), root]) {
-      await expect(deleteFullCopy({ directory: copy, expectedIdentity: model.identity, protectedDirectories: [guarded] })).rejects.toMatchObject({ code: 'full-copy-path-refused' });
-    }
+    await expect(lockDirectory({ directory: link, action: 'lock' })).rejects.toMatchObject({ code: 'lock-refused' });
+    await expect(lockDirectory({ directory: copy + '/../full', action: 'lock' })).rejects.toMatchObject({ code: 'lock-refused' });
     expect((await fs.readdir(copy)).length).toBe(3);
   });
 });
@@ -229,6 +211,27 @@ describe('the host agent', () => {
     await fs.writeFile(file, JSON.stringify({ ...identity, peerId: 'peer:' + '0'.repeat(24) }), { mode: 0o600 });
     await fs.chmod(file, 0o600);
     await expect(readHostIdentity(file)).rejects.toMatchObject({ code: 'identity-unavailable' });
+  });
+
+  it('serves a whole-model answer on the earning device as a provider-signed measured receipt, never the split model', async () => {
+    const identity = await createSigningIdentity({ algorithm: 'Ed25519' }), file = path.join(root, 'identity.json');
+    await fs.writeFile(file, JSON.stringify(identity), { mode: 0o600 });
+    const served = [];
+    const operations = createSessionOperations({ openWhole: async ({ model }) => ({ runtime: 'test-whole',
+      async generate({ messages, settings }) {
+        served.push({ messages, settings });
+        return { content: 'answer', modelIdentity: model.identity, adapterIdentities: [],
+          completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 3, generatedTokenCount: settings.maxOutputTokens, stopReason: 'length' } };
+      }, async close() {} }) });
+    await operations.identity({ file });
+    await expect(operations['open-whole']({ modelId: 'qwen-3-8-27b-text-q4k-ef16-af32', modelDirectory: root })).rejects.toThrow('whole-model catalog entry');
+    expect(await operations['open-whole']({ modelId: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', modelDirectory: root })).toMatchObject({ runtime: 'test-whole' });
+    const messages = [{ role: 'user', content: 'hello' }];
+    const { receipt } = await operations['serve-whole']({ requestId: 'r1', consumer: 'peer:' + 'b'.repeat(24), messages, settings: { maxOutputTokens: 5 } });
+    expect(receipt).toMatchObject({ version: 3, provider: identity.peerId, jobHash: 'request:r1', outputTokens: 5, model: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16' });
+    expect((await verifyReceipt(receipt)).providerValid).toBe(true);
+    expect(served).toHaveLength(1);
+    await operations.close();
   });
 
   it('refuses a fixture changed in transit before opening anything', async () => {

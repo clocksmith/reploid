@@ -35,7 +35,7 @@ function configuration(change = () => {}) {
     releaseRoot: `/srv/${label}/release`, identityFile: `/srv/${label}/id.json`, stateDirectory: `/srv/${label}/state`, stageDirectory: `/data/${label}/stage`,
     fullCopyDirectory: `/data/${label}/tmp/full`, weightRoots: { model: [`/data/${label}/models`], cache: [`/data/${label}/cache`], temporary: [`/data/${label}/tmp`] },
     memoryPressure: { maxAvg10: 10, pollMs: 1000 }, standingService: null });
-  const config = { schema: 'reploid.stage1-hosts/v1', coordinator: {}, credit: { weights: [1, 1], maxDebt: 100, maxRequestMs: 60000 },
+  const config = { schema: 'reploid.stage1-hosts/v1', coordinator: {}, credit: { weights: [1, 1], maxDebt: 100, maxRequestMs: 60000, partitionUnclaimedReleaseMs: 1000 },
     limits: { phaseMs: 2000, abortGraceMs: 200, hardStopMs: 1500, stopMarginMs: 2000, serviceRestoreMs: 300 },
     requester: { machineId: hexId('c'), participantId: identities[0].peerId, ssh: 'mock-requester', node: '/opt/bin/node', releaseRoot: '/srv/r/release',
       identityFile: '/srv/r/id.json', modelDirectory: '/srv/r/empty', stateDirectory: '/srv/r/state',
@@ -72,10 +72,12 @@ function mockHosts(config, scripted = {}) {
     'memory-pressure': label => ({ avg10: scripted.pressure?.[label] ?? 1 }),
     'process-state': (_label, { pid }) => ({ running: running.has(pid) }),
     kill(_label, body) { const child = running.get(body.pid); if (child?.startId === body.startId) { running.delete(body.pid); child.emit('exit', 137); return { killed: true }; } return { killed: false, reason: 'gone' }; },
-    'delete-full-copy'(label, body) {
-      if (scripted.deleteFails?.[label]) throw Object.assign(Error('full-copy-identity-mismatch: manifest differs from the model'), { code: 'full-copy-identity-mismatch' });
-      holds[label].fullCopy = false;
-      return { deleted: true, directory: body.directory };
+    'lock-directory'(label, { action, mode }) {
+      if (action === 'mode') return { mode: 0o755 };
+      if (action === 'lock') { holds[label].locked = true; return { locked: true, previousMode: 0o755 }; }
+      if (scripted.unlockFails?.[label]) throw Object.assign(Error('lock-refused: no readable mode to restore'), { code: 'lock-refused' });
+      holds[label].locked = false;
+      return { restored: true, mode };
     },
     service(label, { action, unit }) {
       if (unit !== config.hosts.find(host => host.label === label).standingService?.unit) throw Error('touched another service');
@@ -134,11 +136,16 @@ function mockHosts(config, scripted = {}) {
 let directory;
 beforeEach(async () => { directory = await fs.mkdtemp(path.join(os.tmpdir(), 'stage1-physical-')); });
 
-async function runAdapter({ config = configuration(), scripted = {}, approveDeleteFullCopy = false, limits = {} } = {}) {
-  const hosts = mockHosts(config, scripted), coordinator = { closed: 0, close: async () => { coordinator.closed += 1; },
+async function runAdapter({ config = configuration(), scripted = {}, limits = {} } = {}) {
+  // An empty ledger file, so cleanup can count open reservations the way it does on a real run.
+  const ledgerFile = path.join(directory, 'credits.sqlite'), { DatabaseSync } = await import('node:sqlite');
+  const ledger = new DatabaseSync(ledgerFile);
+  ledger.exec('CREATE TABLE fleet_requests (id TEXT PRIMARY KEY, binding TEXT NOT NULL, state TEXT NOT NULL, outcome TEXT)');
+  ledger.close();
+  const hosts = mockHosts(config, scripted), coordinator = { closed: 0, close: async () => { coordinator.closed += 1; }, ledgerFile,
     credits: { snapshot: () => ({ accounts: [{ held: 0 }], journal: [] }) } };
   const adapter = createPhysicalStage1Adapter({ config, directory, expectations, stageRanges, model, fixture, fixtureBytes: Buffer.from(JSON.stringify(fixture)),
-    approveDeleteFullCopy, transport: hosts.transport, localDigest: async () => DIGEST, startCoordinator: async () => coordinator });
+    transport: hosts.transport, localDigest: async () => DIGEST, startCoordinator: async () => coordinator });
   const receipt = await runStage1Phases({ adapter, expectations, limits: { maxRunMs: 8000, phaseMs: 2000, abortGraceMs: 200, hardStopMs: 1500, ...limits } });
   await fs.rm(directory, { recursive: true, force: true });
   return { ...hosts, receipt, coordinator, verdict: checkStage1Receipt(receipt, expectations) };
@@ -177,7 +184,7 @@ describe('preflight', () => {
 
 describe('the zero-weight requester', () => {
   it('is searched under the same kinds of weight roots as a stage host, not only its model directory', async () => {
-    const result = await runAdapter({ approveDeleteFullCopy: true });
+    const result = await runAdapter();
     // These mocks never open a participant, so the after-split measurement (the same call) is covered by the integration run.
     expect(result.log.filter(row => row.startsWith('requester-roots:'))).toEqual(['requester-roots:/srv/r/empty,/srv/r/models,/srv/r/cache,/srv/r/tmp']);
     expect(result.receipt.requester.preflight).toEqual({ weightBytes: 0, fileCount: 0, scope: 'requester-weight-directories', scannedRoots: 4,
@@ -185,7 +192,7 @@ describe('the zero-weight requester', () => {
     expect(result.verdict.reasons.filter(reason => reason.code === 'requester-holds-weights')).toEqual([]);
   });
   it('fails the receipt when model ranges sit in a requester cache although its model directory is empty', async () => {
-    const result = await runAdapter({ approveDeleteFullCopy: true, scripted: { requesterHolds: true } });
+    const result = await runAdapter({ scripted: { requesterHolds: true } });
     expect(result.receipt.requester.preflight).toMatchObject({ weightBytes: 32, fileCount: 0, modelDirectory: { weightBytes: 0, fileCount: 0 } });
     expect(codes(result)).toContain('requester-holds-weights');
     expect(result.verdict.ok).toBe(false);
@@ -193,37 +200,26 @@ describe('the zero-weight requester', () => {
 });
 
 describe('solo placement and the split gate', () => {
-  it('stops with a named reason and deletes nothing without the approval flag', async () => {
-    const result = await runAdapter({ approveDeleteFullCopy: false });
-    expect(result.receipt.phases.split).toMatchObject({ status: 'failed' });
-    expect(result.receipt.phases.split.reason).toContain('full-copy-present-delete-not-approved');
-    expect(result.receipt.phases.split.reason).toContain('host-a, host-b');
-    expect(result.log.filter(row => row.includes('delete-full-copy'))).toEqual([]);
-    expect(result.log.filter(row => row.startsWith('open:'))).toEqual([]);
-    expect(result.receipt.phases.cancel.status).toBe('skipped');
-    expect(result.holds['host-a'].fullCopy).toBe(true);
-    noProcessLeft(result);
+  it('keeps each full copy, locks it before any stage opens and restores it at cleanup', async () => {
+    const result = await runAdapter({ scripted: { solo: () => memoryFailure } });
+    const firstLock = result.log.findIndex(row => row.endsWith(':lock-directory')), firstOpen = result.log.findIndex(row => row.startsWith('open:'));
+    expect(firstLock).toBeGreaterThan(-1);
+    expect(firstOpen).toBeGreaterThan(firstLock);
+    expect(result.holds['host-a']).toMatchObject({ fullCopy: true, locked: false });
+    expect(result.receipt.cleanup.fullCopyLocks).toEqual([{ host: 'host-a', locked: true, restored: true }, { host: 'host-b', locked: true, restored: true }]);
+    expect(result.log.some(row => row.includes('delete'))).toBe(false);
   });
-  it('deletes the full copy with the flag and only then opens a stage', async () => {
-    const result = await runAdapter({ approveDeleteFullCopy: true });
-    const firstDelete = result.log.findIndex(row => row.includes('delete-full-copy')), firstOpen = result.log.findIndex(row => row.startsWith('open:'));
-    expect(result.log.filter(row => row.includes('delete-full-copy'))).toHaveLength(2);
-    expect(firstDelete).toBeGreaterThan(-1);
-    expect(firstOpen).toBeGreaterThan(firstDelete);
-    expect(result.holds['host-a'].fullCopy).toBe(false);
+  it('fails the receipt when a lock cannot be restored', async () => {
+    const result = await runAdapter({ scripted: { solo: () => memoryFailure, unlockFails: { 'host-b': true } } });
+    expect(result.receipt.cleanup.fullCopyLocks).toContainEqual({ host: 'host-b', locked: true, restored: false });
+    expect(codes(result)).toContain('full-copy-lock-not-restored');
   });
-  it('keeps a copy with the wrong manifest and does not start the split', async () => {
-    const result = await runAdapter({ approveDeleteFullCopy: true, scripted: { deleteFails: { 'host-a': true } } });
-    expect(result.receipt.phases.split.reason).toContain('full-copy-identity-mismatch');
-    expect(result.holds['host-a'].fullCopy).toBe(true);
-    expect(result.log.filter(row => row.startsWith('open:'))).toEqual([]);
-  });
-  it('refuses a host that holds everything outside its full copy, and deletes nothing even with the flag', async () => {
-    const result = await runAdapter({ approveDeleteFullCopy: true, scripted: {
+  it('refuses a host that holds another stage outside its full copy, before locking or opening anything', async () => {
+    const result = await runAdapter({ scripted: {
       solo: (label, _child, { holds }) => { if (label === 'host-b') holds[label].elsewhere = true; return memoryFailure; } } });
     expect(result.receipt.phases.split.status).toBe('failed');
     expect(result.receipt.phases.split.reason).toContain('host-stage-check-refused: host-b');
-    expect(result.log.filter(row => row.includes('delete-full-copy'))).toEqual([]);
+    expect(result.log.filter(row => row.endsWith(':lock-directory'))).toEqual([]);
     expect(result.log.filter(row => row.startsWith('open:'))).toEqual([]);
     expect(result.verdict.ok).toBe(false);
   });

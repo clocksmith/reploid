@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { checkStage1Receipt, classifySoloControl, LABEL_POOLED, LABEL_SPLIT, STAGE1_PHASES, STAGE1_RECEIPT_SCHEMA } from '../../scripts/stage1/receipt-check.js';
+import { checkStage1Receipt, classifySoloControl, LABEL_POOLED, LABEL_SPLIT, SOLO_FITS_DETAIL, STAGE1_PHASES, STAGE1_RECEIPT_SCHEMA } from '../../scripts/stage1/receipt-check.js';
 
 const digest = letter => 'sha256:' + letter.repeat(64);
 const decoding = { temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 1 };
@@ -13,8 +13,18 @@ const expectations = { schema: 'reploid.stage1-expectations/v1', runtimeClass: '
     { stageIndex: 1, layerRange: [1, 63], rangeCount: 4461, bytes: 14235183680, rangesDigest: digest('2') }],
   totalWeight: { rangeCount: 5512, bytes: 16994352128 }, minimumSoloLoadBytes: 16941875200 };
 
-const inventory = stage => ({ source: 'hashed-on-host', scope: 'host-weight-directories', scannedRanges: 5512, rangeCount: stage.rangeCount, bytes: stage.bytes,
+const inventory = stage => ({ source: 'hashed-on-host', scope: 'stage-directory', scannedRanges: 5512, rangeCount: stage.rangeCount, bytes: stage.bytes,
   rangesDigest: stage.rangesDigest, outsideStageRanges: 0, outsideStageBytes: 0 });
+const hostWeights = stage => ({ scope: 'host-weight-directories', scannedRanges: 5512, heldRanges: 5512, outsideStageRanges: 5512 - stage.rangeCount,
+  outsideInFullCopy: 5512 - stage.rangeCount, outsideElsewhere: 0, fullCopy: 'searched' });
+const loaded = stage => ({ source: 'stage-loader', rangeCount: stage.rangeCount, bytes: stage.bytes, rangesDigest: stage.rangesDigest, outsideStageRanges: 0, outsideStageBytes: 0 });
+const POLICY = 'sha256:' + '7'.repeat(64);
+const replayOf = (trace, status = 'settled', extra = {}) => ({ termsCollectedBy: 'stage1-harness', termsSigned: 'in-approval-before-dispatch',
+  acceptancesSigned: 'after-attempt', ledgerPolicyDigest: POLICY, termsPolicyDigest: POLICY, stopSigned: false, problems: [], records: [],
+  result: { reservations: [{ reservationId: trace.reservationId, status, debit: status === 'expired' ? 0 : trace.charge,
+    credits: trace.credits.map((row, index) => ({ participantId: `peer:${index}`, amount: row.amount })), chargedOutputs: trace.outputTokens }] }, ...extra });
+const dropSettlement = () => ({ reservationId: 'drop', state: 'settled', status: 'expired', charge: 0, outputTokens: 0, credits: [], journal: [], heldAfter: 0,
+  replay: { attempted: false } });
 const settlement = (tokens, id) => ({ reservationId: id, state: 'settled', charge: tokens, outputTokens: tokens,
   credits: [{ computerId: 'computer-a', amount: Math.floor(tokens / 2) }, { computerId: 'computer-b', amount: Math.ceil(tokens / 2) }],
   journal: [{ accountId: 'computer-requester', delta: -tokens }, { accountId: 'computer-a', delta: Math.floor(tokens / 2) }, { accountId: 'computer-b', delta: Math.ceil(tokens / 2) }],
@@ -25,13 +35,16 @@ const outOfMemory = (extra = {}) => ({ outcome: 'failed', settings: soloSettings
     during: 'whole-model-load', allocatedBeforeFailureBytes: 12884901888, failedBufferBytes: 268435456, ...extra } });
 
 function goodReceipt() {
-  return { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: 'physical', hardStop: null, claim: null,
+  const receipt = { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: 'physical', hardStop: null, claim: null,
     phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'completed' }])), workload: structuredClone(workload),
     serviceRestores: [], requester: { participantId: 'peer:r', computerId: 'computer-requester', machine: 'machine-r', preflight: { weightBytes: 0, fileCount: 0 }, afterSplit: { weightBytes: 0, fileCount: 0 } },
     hosts: expectations.stages.map((stage, index) => ({ label: ['host-a', 'host-b'][index], stageIndex: index, participantId: `peer:${index}`,
-      machine: `machine-${index}`, computerId: ['computer-a', 'computer-b'][index], assignedLayers: [...stage.layerRange], inventory: { preflight: inventory(stage), beforeSplit: inventory(stage), afterSplit: inventory(stage) } })),
+      machine: `machine-${index}`, computerId: ['computer-a', 'computer-b'][index], assignedLayers: [...stage.layerRange],
+      inventory: { preflight: inventory(stage), beforeSplit: inventory(stage), afterSplit: inventory(stage) },
+      hostWeights: { beforeSplit: hostWeights(stage), afterSplit: { ...hostWeights(stage), outsideInFullCopy: 0, fullCopy: 'locked-not-entered' } },
+      loaded: loaded(stage) })),
     soloControls: { 'host-a': outOfMemory(), 'host-b': outOfMemory() },
-    earn: { earner: { participantId: 'peer:earner', computerId: 'computer-requester' },
+    earn: { earner: { participantId: 'peer:earner', computerId: 'computer-requester' }, accountBefore: 0,
       settlements: [{ reservationId: 'earn', state: 'settled', charge: 4, outputTokens: 4, heldAfter: 0,
         journal: [{ accountId: 'computer-buyer', delta: -4 }, { accountId: 'computer-requester', delta: 4 }],
         replay: { attempted: true, journalBefore: 2, journalAfter: 2, balancesUnchanged: true, outcomeUnchanged: true } }] },
@@ -39,7 +52,13 @@ function goodReceipt() {
       tokens: { outputIds: [17, 17, 248046], promptDigest: workload.promptDigest, tokenizerDigest: workload.promptDigest,
         sampleCount: 3, sampleDigest: 'f'.repeat(64), stopReason: 'eos-token' } },
     cancel: { stoppedBeforeCompletion: true, residentsActive: [0, 0], settlement: settlement(1, 'cancel'), accountAfter: 0 },
-    cleanup: { processesExited: true, heldCredits: 0, openReservations: 0 } };
+    drop: { completed: false, outputsReceived: 1, partialText: '2', resend: { requesterApprovals: 1, requesterAttemptsOnThread: 1, ledgerReservations: 1 },
+      settlement: dropSettlement(), accountBefore: 0, accountAfter: 0 },
+    cleanup: { processesExited: true, heldCredits: 0, openReservations: 0, fullCopyLocks: [{ host: 'host-a', locked: true, restored: true }] } };
+  receipt.split.settlementReplay = replayOf(receipt.split.settlement);
+  receipt.cancel.settlementReplay = replayOf(receipt.cancel.settlement, 'settled', { stopSigned: true });
+  receipt.drop.settlementReplay = replayOf(receipt.drop.settlement, 'expired', { acceptancesSigned: 'during-attempt' });
+  return receipt;
 }
 const judged = change => { const receipt = goodReceipt(); change(receipt); return checkStage1Receipt(receipt, expectations); };
 const codes = verdict => verdict.reasons.map(reason => reason.code);
@@ -52,6 +71,71 @@ describe('earning before spending', () => {
     expect(codes(judged(r => { r.earn.earner.participantId = 'peer:r'; }))).toEqual(['earn-by-requester-device']);
     expect(codes(judged(r => { r.earn.earner.computerId = 'computer-a'; }))).toContain('earn-other-account');
     expect(codes(judged(r => { r.earn.settlements[0].journal[1].delta = 3; }))).toEqual(expect.arrayContaining(['earn-not-credited']));
+  });
+
+  it('refuses a seeded balance: the account must start at zero before it earns', () => {
+    expect(codes(judged(r => { r.earn.accountBefore = 50; }))).toEqual(['earn-seeded-balance']);
+    expect(codes(judged(r => { delete r.earn.accountBefore; }))).toEqual(['earn-seeded-balance']);
+  });
+});
+
+describe('the forced provider drop', () => {
+  it.each([
+    ['no drop', r => { r.drop = null; }, ['drop-missing', 'replay-missing']],
+    ['a charge after the drop', r => { r.drop.settlement = { ...settlement(1, 'drop'), status: null }; }, ['drop-charged']],
+    ['a requester balance moved by the drop', r => { r.drop.accountAfter = -1; }, ['drop-charged']],
+    ['a stranded hold', r => { r.drop.settlement.state = 'closing'; }, ['drop-stranded-hold']],
+    ['credits still held', r => { r.drop.settlement.heldAfter = 4; }, ['drop-stranded-hold']],
+    ['no partial output', r => { r.drop.outputsReceived = 0; r.drop.partialText = ''; }, ['drop-no-partial-output']],
+    ['every output delivered', r => { r.drop.outputsReceived = 3; }, ['drop-no-partial-output']],
+    ['an automatic resend', r => { r.drop.resend.requesterAttemptsOnThread = 2; }, ['drop-resent']],
+    ['a second reservation on the thread', r => { r.drop.resend.ledgerReservations = 2; }, ['drop-resent']]
+  ])('refuses %s', (_name, change, expected) => {
+    expect(codes(judged(change))).toEqual(expected);
+  });
+});
+
+describe('the settlement replay', () => {
+  it.each([
+    ['a missing replay', r => { r.split.settlementReplay = null; }, ['replay-missing']],
+    ['live-collected terms', r => { r.cancel.settlementReplay.termsCollectedBy = 'live'; }, ['replay-label']],
+    ['terms naming another policy', r => { r.split.settlementReplay.termsPolicyDigest = 'sha256:' + '8'.repeat(64); }, ['replay-policy-mismatch']],
+    ['a split replay debit other than the ledger\'s', r => { r.split.settlementReplay.result.reservations[0].debit = 2; }, ['replay-differs-from-ledger']],
+    ['split credits other than the ledger\'s', r => { r.split.settlementReplay.result.reservations[0].credits[0].amount = 0; }, ['replay-differs-from-ledger']],
+    ['a cancel without the signed stop', r => { r.cancel.settlementReplay.stopSigned = false; }, ['replay-differs-from-ledger']],
+    ['a split that is still open', r => { r.split.settlementReplay.result.reservations[0].status = 'open'; }, ['replay-not-settled']],
+    ['a conflict', r => { r.split.settlementReplay.result.reservations[0].status = 'conflict'; }, ['replay-conflict']],
+    ['an invalid policy match', r => { r.cancel.settlementReplay.result.reservations[0].status = 'invalid'; }, ['replay-invalid']],
+    ['an unknown drop', r => { r.drop.settlementReplay.result.reservations[0].status = 'unknown'; }, ['replay-unknown', 'replay-drop-charged']],
+    ['a charged drop', r => { Object.assign(r.drop.settlementReplay.result.reservations[0], { status: 'settled', debit: 1 }); }, ['replay-drop-charged']],
+    ['another reservation', r => { r.split.settlementReplay.result.reservations[0].reservationId = 'other'; }, ['replay-reservation-missing']]
+  ])('refuses %s', (_name, change, expected) => {
+    expect(codes(judged(change))).toEqual(expected);
+  });
+
+  it('accepts a dropped answer the replay settled at zero', () => {
+    expect(checkStage1Receipt(goodReceipt(), expectations).ok).toBe(true);
+    expect(codes(judged(r => { Object.assign(r.drop.settlementReplay.result.reservations[0], { status: 'settled', debit: 0 }); }))).toEqual([]);
+  });
+});
+
+describe('what a stage process loaded', () => {
+  it.each([
+    ['nothing recorded', r => { delete r.hosts[0].loaded; }, ['loaded-unrecorded']],
+    ['a range outside its stage', r => { r.hosts[1].loaded.outsideStageRanges = 1; }, ['loaded-outside-stage']],
+    ['fewer ranges than assigned', r => { Object.assign(r.hosts[0].loaded, { rangeCount: 1050 }); }, ['loaded-not-assigned']],
+    ['the complete weights', r => { Object.assign(r.hosts[1].loaded, { rangeCount: 5512, bytes: 16994352128, rangesDigest: digest('9') }); },
+      ['executor-holds-complete-weights', 'loaded-not-assigned']],
+    ['a directory listing instead of the loader', r => { r.hosts[0].loaded.source = 'directory-listing'; }, ['loaded-source']]
+  ])('refuses %s', (_name, change, expected) => {
+    expect(codes(judged(change))).toEqual(expected);
+  });
+
+  it('allows and records a full copy elsewhere on the host, but not another stage\'s ranges outside it', () => {
+    expect(checkStage1Receipt(goodReceipt(), expectations).ok).toBe(true);
+    expect(codes(judged(r => { r.hosts[0].hostWeights.afterSplit.outsideElsewhere = 4461; }))).toEqual(['host-weights-outside-full-copy']);
+    expect(codes(judged(r => { delete r.hosts[1].hostWeights; }))).toEqual(['host-weights-unmeasured', 'host-weights-unmeasured']);
+    expect(codes(judged(r => { r.cleanup.fullCopyLocks[0].restored = false; }))).toEqual(['full-copy-lock-not-restored']);
   });
 });
 
@@ -91,9 +175,11 @@ describe('the label', () => {
     expect(classifySoloControl(control, expectations)).toEqual({ outcome: 'inconclusive', why: 'settings-differ' });
   });
 
-  it('is split correctness when one control fits the model and nothing claims more', () => {
-    expect(judged(receipt => { receipt.soloControls['host-a'] = { outcome: 'completed', settings: soloSettings }; }))
-      .toMatchObject({ ok: true, label: LABEL_SPLIT });
+  it('fails with solo-fits when a control fits the model: the claim is unearned until a harder workload refuses both', () => {
+    const verdict = judged(receipt => { receipt.soloControls['host-a'] = { outcome: 'completed', settings: soloSettings }; });
+    expect(verdict).toMatchObject({ ok: false, label: null });
+    expect(verdict.reasons).toEqual([{ code: 'solo-fits', detail: SOLO_FITS_DETAIL }]);
+    expect(`${verdict.reasons[0].code}: ${verdict.reasons[0].detail}`).toBe('solo-fits: choose a harder workload');
   });
 });
 
@@ -134,6 +220,8 @@ describe('rejects', () => {
       trace.credits = [{ computerId: 'computer-a', amount: 0 }, { computerId: 'computer-b', amount: tokens }];
       trace.journal = [{ accountId: 'computer-requester', delta: -tokens }, { accountId: 'computer-a', delta: 0 }, { accountId: 'computer-b', delta: tokens }];
     }
+    receipt.split.settlementReplay = replayOf(receipt.split.settlement);
+    receipt.cancel.settlementReplay = replayOf(receipt.cancel.settlement, 'settled', { stopSigned: true });
     expect(checkStage1Receipt(receipt, weighted).ok).toBe(true);
     expect(codes(checkStage1Receipt(goodReceipt(), weighted))).toContain('settlement-shares');
   });
@@ -146,9 +234,10 @@ describe('rejects', () => {
     expect(codes(judged(receipt => { delete receipt.serviceRestores; }))).toEqual(['service-restore-unrecorded']);
   });
 
-  it('an inventory that searched less than the whole model or only the stage directory', () => {
+  it('an inventory that searched less than the whole model or not the stage directory', () => {
     expect(codes(judged(receipt => { receipt.hosts[0].inventory.beforeSplit.scannedRanges = 1051; }))).toEqual(['inventory-not-exhaustive']);
-    expect(codes(judged(receipt => { receipt.hosts[1].inventory.afterSplit.scope = 'stage-directory'; }))).toEqual(['inventory-scope']);
+    expect(codes(judged(receipt => { receipt.hosts[1].inventory.afterSplit.scope = 'host-weight-directories'; }))).toEqual(['inventory-scope']);
+    expect(codes(judged(receipt => { receipt.hosts[1].hostWeights.afterSplit.scannedRanges = 4461; }))).toEqual(['inventory-not-exhaustive']);
   });
 
   it.each([[0, 18], [1, 18], [2, 248047]])('one changed token at position %i', (position, token) => {
@@ -167,13 +256,13 @@ describe('rejects', () => {
     expect(codes(judged(receipt => { receipt.split.tokens.sampleDigest = '0'.repeat(64); }))).toEqual(['tokens-sample-digest']);
   });
 
-  it.each(['preflight', 'beforeSplit', 'afterSplit'])('a host with the full weights at %s', when => {
+  it.each(['preflight', 'beforeSplit', 'afterSplit'])('a stage directory with the full weights at %s', when => {
     const verdict = judged(receipt => {
       Object.assign(receipt.hosts[1].inventory[when], { rangeCount: 5512, bytes: 16994352128, rangesDigest: digest('9'),
         outsideStageRanges: 1051, outsideStageBytes: 2759168448 });
     });
     expect(verdict.ok).toBe(false);
-    expect(codes(verdict)).toEqual(expect.arrayContaining(['executor-holds-complete-weights', 'inventory-outside-stage', 'inventory-mismatch']));
+    expect(codes(verdict)).toEqual(['inventory-outside-stage', 'inventory-mismatch']);
   });
 
   it('a host holding one range outside its stage', () => {
@@ -231,8 +320,8 @@ describe('rejects', () => {
       receipt.soloControls['host-b'] = { outcome: 'completed', settings: soloSettings };
     });
     expect(verdict.ok).toBe(false);
-    expect(codes(verdict)).toEqual(['pooled-capacity-unsupported']);
-    expect(verdict.reasons[0].detail).toContain('host-b: completed');
+    expect(codes(verdict)).toEqual(['solo-fits', 'pooled-capacity-unsupported']);
+    expect(verdict.reasons[1].detail).toContain('host-b: completed');
   });
 
   it.each([
@@ -272,7 +361,8 @@ describe('rejects', () => {
   it('a cancel that landed after the answer finished', () => {
     expect(codes(judged(receipt => { receipt.cancel.stoppedBeforeCompletion = false; }))).toEqual(['cancel-not-mid-answer']);
     const late = settlement(3, 'cancel');
-    expect(codes(judged(receipt => { receipt.cancel.settlement = late; }))).toEqual(['cancel-not-mid-answer']);
+    expect(codes(judged(receipt => { receipt.cancel.settlement = late; receipt.cancel.settlementReplay = replayOf(late, 'settled', { stopSigned: true }); })))
+      .toEqual(['cancel-not-mid-answer']);
   });
 
   it('a resident still active after the cancel', () => {

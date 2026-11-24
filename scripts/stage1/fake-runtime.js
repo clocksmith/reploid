@@ -17,15 +17,17 @@ const activationValue = step => ACTIVATION_SEED + step;
 
 /**
  * `reference` holds the fixture's prompt and output IDs. Holding an answer for a cancel is the gate's job
- * (stage-participant.js), which is the same on real hosts.
+ * (stage-participant.js), which is the same on real hosts. `loader` is the harness stage loader: the fake asks it for
+ * exactly the `pieces` it was told are its own, so the loaded record shows the loader's accounting, not a real load.
  */
-export function createFakeStageRuntime({ model, manifest, reference }) {
+export function createFakeStageRuntime({ model, manifest, reference, loader = null, pieces = [] }) {
   const outputIds = [...reference.visibleOutputIds, reference.stopId];
   const deltas = [...fakeTokenTexts(reference.outputText, reference.visibleOutputIds.length), ''];
   const openFactory = () => ({
     async openResidentPartition({ model: selected, plan, planId, index }) {
       const generation = selected.generation, generationDigest = await doppler.hashPartitionGeneration(generation);
       const layerRange = plan.partitions[index].layerRange, final = index === plan.stageCount - 1;
+      for (const piece of loader ? pieces : []) await loader.read(piece);
       return {
         getRecoveryCapabilities: () => ({ schema: 'doppler.resident-recovery/v1', inputReplay: false, checkpointExport: false, checkpointImport: false }),
         getDescriptor: () => ({ schema: 'doppler.resident-partition/v2', ready: true, stageCount: plan.stageCount, modelId: model.id,

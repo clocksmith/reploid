@@ -20,7 +20,7 @@ function adapter(overrides = {}) {
     soloControl: vi.fn(async label => { calls.push(`solo:${label}`); return { outcome: 'completed' }; }),
     earnCredits: step('earn', { settlements: [] }),
     splitAnswer: step('split', { workload: {}, split: {}, requesterAfterSplit: {}, inventoryBeforeSplit: { 'host-a': {}, 'host-b': {} }, inventoryAfterSplit: { 'host-a': {}, 'host-b': {} } }),
-    cancelAnswer: step('cancel', { settlement: {} }), cleanup: step('cleanup', { processesExited: true }),
+    cancelAnswer: step('cancel', { settlement: {} }), dropAnswer: step('drop', { settlement: {} }), cleanup: step('cleanup', { processesExited: true }),
     hardStop: step('hardStop'), ...overrides };
 }
 const statuses = receipt => Object.fromEntries(STAGE1_PHASES.map(name => [name, receipt.phases[name].status]));
@@ -32,19 +32,19 @@ describe('runStage1Phases', () => {
   it('records the earn phase as skipped for an adapter without one, and still runs the split', async () => {
     const ports = adapter({ earnCredits: undefined }), receipt = await run(ports);
     expect(receipt.phases.earn).toEqual({ status: 'skipped', reason: 'this adapter has no earn phase' });
-    expect(ports.calls).toEqual(['preflight', 'solo:host-a', 'solo:host-b', 'split', 'cancel', 'cleanup']);
+    expect(ports.calls).toEqual(['preflight', 'solo:host-a', 'solo:host-b', 'split', 'cancel', 'drop', 'cleanup']);
   });
 
   it('runs every phase once, in order, and hard-stops nothing', async () => {
     const ports = adapter(), receipt = await run(ports);
-    expect(ports.calls).toEqual(['preflight', 'solo:host-a', 'solo:host-b', 'earn', 'split', 'cancel', 'cleanup']);
+    expect(ports.calls).toEqual(['preflight', 'solo:host-a', 'solo:host-b', 'earn', 'split', 'cancel', 'drop', 'cleanup']);
     expect(Object.values(statuses(receipt)).every(status => status === 'completed')).toBe(true);
     expect(receipt.hardStop).toBeNull();
   });
 
   it('records later phases as skipped after a failure, and still cleans up', async () => {
     const ports = adapter({ splitAnswer: vi.fn(async () => { throw Error('route lost'); }) }), receipt = await run(ports);
-    expect(statuses(receipt)).toEqual({ preflight: 'completed', 'solo-a': 'completed', 'solo-b': 'completed', earn: 'completed', split: 'failed', cancel: 'skipped', cleanup: 'completed' });
+    expect(statuses(receipt)).toEqual({ preflight: 'completed', 'solo-a': 'completed', 'solo-b': 'completed', earn: 'completed', split: 'failed', cancel: 'skipped', drop: 'skipped', cleanup: 'completed' });
     expect(receipt.phases.split.reason).toBe('route lost');
     expect(ports.cancelAnswer).not.toHaveBeenCalled();
     expect(ports.cleanup).toHaveBeenCalledOnce();
@@ -114,6 +114,19 @@ describe('runStage1Phases', () => {
   it('refuses an adapter missing a phase', async () => {
     const ports = adapter(); delete ports.cancelAnswer;
     await expect(run(ports)).rejects.toThrow('cancelAnswer');
+    const noDrop = adapter(); delete noDrop.dropAnswer;
+    await expect(run(noDrop)).rejects.toThrow('dropAnswer');
+  });
+
+  it('records the drop and, from the split, what each stage loaded and the host-wide search', async () => {
+    const ports = adapter({ splitAnswer: vi.fn(async () => ({ workload: {}, split: {}, requesterAfterSplit: {},
+      inventoryBeforeSplit: { 'host-a': {}, 'host-b': {} }, inventoryAfterSplit: { 'host-a': {}, 'host-b': {} },
+      loaded: { 'host-a': { rangeCount: 1 }, 'host-b': { rangeCount: 2 } }, hostWeights: { 'host-a': { afterSplit: {} }, 'host-b': { afterSplit: {} } } })),
+    dropAnswer: vi.fn(async () => ({ completed: false })) });
+    const receipt = await run(ports);
+    expect(receipt.drop).toEqual({ completed: false });
+    expect(receipt.hosts.map(host => host.loaded.rangeCount)).toEqual([1, 2]);
+    expect(receipt.hosts.every(host => host.hostWeights.afterSplit)).toBe(true);
   });
 });
 function untilAbortedSolo(_label, context) { return untilAborted(context); }

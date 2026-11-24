@@ -11,8 +11,11 @@ import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 import { createPeerIdFromPublicJwk } from '../../packages/reploid/src/artifacts/identity.js';
+import { createReceiptDraft, signReceiptDraft } from '../../packages/reploid/src/artifacts/receipt.js';
+import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
+import { effectiveRequestDigest, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
 import { measureDirectoryBytes, measureHeldRanges } from './inventory.js';
-import { assertCompleteCopy, deleteFullCopy, killExactProcess, parseMemoryPressure, processStart, scanHostWeights, serviceAction } from './host-control.js';
+import { assertCompleteCopy, killExactProcess, lockDirectory, parseMemoryPressure, processStart, scanHostWeights, serviceAction } from './host-control.js';
 import { claimsMemory, classifySoloFailure } from './solo-failure.js';
 import { STAGE1_MODEL_ID } from './expectations.js';
 
@@ -50,6 +53,20 @@ export function realHostPorts() {
       const participant = await openStage1Participant({ stageIndex, identity, config, nativeGpu: () => gpu.open() });
       return { ...participant, async close() { try { await participant.close(); } finally { await gpu.close(); } return {}; } };
     },
+    /** The earning device: one whole model held open for the earn phase's requests. */
+    async openWhole({ model, modelDirectory }) {
+      const [{ createNativeGpuHost }, { createNativeWholeModel }] = await Promise.all([import('../../server/native-gpu-host.js'),
+        import('../../server/native-whole-model.js')]);
+      const gpu = createNativeGpuHost(() => import('webgpu'));
+      const whole = createNativeWholeModel({ model, modelDirectory, nativeGpu: () => gpu.open() });
+      await whole.contribute(true);
+      return { runtime: 'native-whole-model',
+        async generate({ messages, settings, signal }) {
+          const result = await whole.generate(messages, () => {}, { signal, ...(settings ? { settings } : {}) });
+          return { ...result, modelIdentity: result.modelIdentity ?? model.identity, adapterIdentities: result.adapterIdentities ?? [] };
+        },
+        async close() { try { await whole.close(); } finally { await gpu.close(); } } };
+    },
     async loadSolo({ model, directory, messages, maxOutputTokens, signal }) {
       const [{ createNativeGpuHost }, { createNativeWholeModel }, partitions] = await Promise.all([import('../../server/native-gpu-host.js'),
         import('../../server/native-whole-model.js'), import('dopplerx/partitions')]);
@@ -74,7 +91,7 @@ export function realHostPorts() {
 export function createControlOperations(ports) {
   return {
     'scan-weights': body => scanHostWeights({ ...body, measure: ports.measure }),
-    'delete-full-copy': body => deleteFullCopy(body),
+    'lock-directory': body => lockDirectory(body),
     'directory-bytes': ({ directories }) => measureDirectoryBytes(directories),
     'memory-pressure': async () => parseMemoryPressure(await ports.readPressure()),
     kill: ({ pid, startId }) => killExactProcess({ pid, startId, ...(ports.killPorts ?? {}) }),
@@ -124,7 +141,7 @@ async function prepareWitness(config) {
 }
 
 export function createSessionOperations(ports) {
-  let identity = null, participant = null, witnessFile = null;
+  let identity = null, participant = null, witnessFile = null, whole = null;
   const controls = { abort: null };
   const live = () => { if (!participant) throw Error('The participant is not open'); return participant; };
   return {
@@ -149,9 +166,38 @@ export function createSessionOperations(ports) {
     trace: body => live().trace(body),
     generate: body => live().generate(body),
     async witness() { return JSON.parse(await fs.readFile(witnessFile, 'utf8')); },
+    'settlement-records': body => live().settlementRecords(body),
+    'accept-terms': body => live().acceptTerms(body),
+    loaded: () => live().loaded(),
     solo: body => runSoloLoad({ body, ports, controls }),
     'abort-solo': () => { controls.abort?.(); return { aborted: Boolean(controls.abort) }; },
-    async close() { const open = participant; participant = null; await open?.close(); return {}; }
+    /** The earning device opens a small catalog whole model; never the split model, never a partition. */
+    async 'open-whole'({ modelId, modelDirectory }) {
+      if (!identity) throw Error('Identity must be loaded first');
+      const model = catalog.find(row => row.id === modelId && !row.partitionPlanId && row.id !== STAGE1_MODEL_ID);
+      if (!model) throw Error('The earning model must be a whole-model catalog entry');
+      whole = { model, served: await ports.openWhole({ model, modelDirectory }) };
+      return { modelId: model.id, modelIdentity: model.identity, runtime: whole.served.runtime };
+    },
+    /** One whole-model answer for `consumer`, measured and signed by this device; the buyer countersigns it. */
+    async 'serve-whole'({ requestId, consumer, messages, settings }) {
+      if (!whole) throw Error('No whole model is open');
+      const canonical = normalizeGenerationSettings(settings);
+      const output = await whole.served.generate({ messages, settings: canonical });
+      const bound = canonical ? { settingsDigest: await effectiveRequestDigest({ modelIdentity: whole.model.identity, adapterIdentities: [], messages, settings: canonical }) }
+        : undefined;
+      const measured = await measureWholeModelReceipt(messages, output, bound);
+      if (!measured) throw Error('The whole-model answer has no measured completion');
+      const receipt = await signReceiptDraft(await createReceiptDraft({ ...measured, provider: identity.peerId, consumer,
+        model: whole.model.id, jobHash: `request:${requestId}` }), identity);
+      return { content: output.content, receipt, runtime: whole.served.runtime };
+    },
+    async close() {
+      const open = participant, served = whole?.served;
+      participant = null; whole = null;
+      await Promise.all([open?.close(), served?.close()]);
+      return {};
+    }
   };
 }
 

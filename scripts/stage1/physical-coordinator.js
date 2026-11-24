@@ -29,8 +29,13 @@ async function readPrivateKey(file) {
   return fs.readFile(file);
 }
 
-/** `peers` maps requester, host-a and host-b to the verified `{ participantId, publicJwk }` each agent proved. */
-export async function startPhysicalCoordinator({ config, peers, directory, expectations, model, fixture, onSecret = () => {} }) {
+/**
+ * `peers` maps requester, host-a, host-b and, when configured, earner to the verified `{ participantId, publicJwk }`
+ * each agent proved. The earner is enrolled under the requester's computer; `buyer` is the coordinator-side account the
+ * earner serves, and `earnModel` the whole model it serves.
+ */
+export async function startPhysicalCoordinator({ config, peers, directory, expectations, model, fixture, buyer = null, earnModel = null,
+  onSecret = () => {} }) {
   const { coordinator, credit } = config;
   const [key, cert, ca] = await Promise.all([readPrivateKey(coordinator.tls.keyFile), fs.readFile(coordinator.tls.certFile), fs.readFile(coordinator.tls.caFile)]);
   verifyCoordinatorTls({ key, cert, ca, publicHost: coordinator.publicHost });
@@ -38,11 +43,14 @@ export async function startPhysicalCoordinator({ config, peers, directory, expec
   onSecret(roomToken); onSecret(accessToken);
   const ledgerFile = path.join(directory, 'credits.sqlite');
   const credits = await openFleetCredits({ file: ledgerFile,
-    computers: ['requester', 'host-a', 'host-b'].map(label => ({ id: `computer-${label}`, name: label, ownerId: `owner-${label}`,
-      providers: [{ participantId: peers[label].participantId, publicJwk: peers[label].publicJwk }] })),
+    computers: [...['requester', 'host-a', 'host-b'].map(label => ({ id: `computer-${label}`, name: label, ownerId: `owner-${label}`,
+      providers: [{ participantId: peers[label].participantId, publicJwk: peers[label].publicJwk },
+        ...(label === 'requester' && peers.earner ? [{ participantId: peers.earner.participantId, publicJwk: peers.earner.publicJwk }] : [])] })),
+    ...(buyer ? [{ id: 'computer-buyer', name: 'buyer', ownerId: 'owner-buyer', providers: [{ participantId: buyer.participantId, publicJwk: buyer.publicJwk }] }] : [])],
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'stage1-physical/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: expectations.creditsPerOutputToken, maxDebt: credit.maxDebt, maxOutputTokens: fixture.maxOutputTokens,
-      maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: credit.maxRequestMs, allowSameOwner: false, wholeModelTerminalCharge: 0 } });
+      maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: credit.maxRequestMs, allowSameOwner: false, wholeModelTerminalCharge: 0,
+      partitionUnclaimedReleaseMs: credit.partitionUnclaimedReleaseMs } });
   let service = null, server = null, signaling = null;
   const close = async () => {
     await Promise.resolve().then(() => service?.close()).catch(() => {});
@@ -54,7 +62,8 @@ export async function startPhysicalCoordinator({ config, peers, directory, expec
     try { credits.close(); } catch { /* already closed */ }
   };
   try {
-    service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: [...credit.weights] }] }],
+    service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: [...credit.weights] }] },
+      ...(earnModel ? [{ id: earnModel.id, identity: earnModel.identity }] : [])],
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 },
       listenHost: coordinator.listenHost, port: coordinator.servicePort, tls: { key, cert } });
     signaling = new SignalingServer({ path: '/swarm', localOnly: false, allowedOrigins: ['http://localhost:8000'], accessToken, logger: { info() {}, log() {}, debug() {}, warn() {}, error() {} } });

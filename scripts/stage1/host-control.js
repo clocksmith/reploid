@@ -15,13 +15,16 @@ const realOrNull = async directory => {
   try { return await fs.realpath(directory); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
 };
 
-/** Every directory under `roots` holding a file named like a model shard, following links once. Fails closed if huge. */
-export async function findWeightDirectories(roots, shardNames) {
+/**
+ * Every directory under `roots` holding a file named like a model shard, following links once. Fails closed if huge.
+ * `skip` names directories not to enter: a full copy locked for the split is unreadable by design.
+ */
+export async function findWeightDirectories(roots, shardNames, skip = []) {
   const visited = new Set(), found = [];
   let entries = 0;
   const visit = async directory => {
     const real = await realOrNull(directory);
-    if (!real || visited.has(real)) return;
+    if (!real || visited.has(real) || skip.some(row => inside(real, row))) return;
     visited.add(real);
     let hasShard = false;
     for (const entry of await fs.readdir(real, { withFileTypes: true })) {
@@ -41,8 +44,9 @@ export async function findWeightDirectories(roots, shardNames) {
  * Hashes all of the model's ranges wherever the host keeps weights, so a range from the other stage cannot go unseen.
  * `outsideInFullCopy` is what removing the configured copy would clear; `outsideElsewhere` is what it would not.
  */
-export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyDirectory = null, scope, measure = measureHeldRanges, signal }) {
-  const directories = await findWeightDirectories(roots, new Set(allRanges.map(range => range.path)));
+export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyDirectory = null, skipDirectories = [], scope, measure = measureHeldRanges, signal }) {
+  const skip = (await Promise.all(skipDirectories.map(realOrNull))).filter(Boolean);
+  const directories = await findWeightDirectories(roots, new Set(allRanges.map(range => range.path)), skip);
   const fullCopy = fullCopyDirectory ? await realOrNull(fullCopyDirectory) : null;
   const assigned = new Set(stageRanges.map(rangeKey)), held = new Map(), elsewhere = new Set(), inCopy = new Set();
   for (const directory of directories) {
@@ -54,7 +58,29 @@ export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyD
     }
   }
   return { inventory: observeInventory({ held: [...held.values()], stageRanges, source: 'hashed-on-host', scope, scannedRanges: allRanges.length }),
-    outsideInFullCopy: inCopy.size, outsideElsewhere: elsewhere.size };
+    outsideInFullCopy: inCopy.size, outsideElsewhere: elsewhere.size, skippedDirectories: skip.length };
+}
+
+/**
+ * The OS-level restriction a Stage 1 host applies without root while its stage process runs: the full copy's directory
+ * mode is set to 000, so no process of this user can list or open anything in it until the mode is restored. It is
+ * owner permission, not a sandbox: root, or this user deliberately changing the mode back, is not stopped by it.
+ * `mode` reads the current mode, `lock` sets 000, `unlock` restores the mode the caller recorded.
+ */
+export async function lockDirectory({ directory, action, mode = null }) {
+  if (typeof directory !== 'string' || !path.isAbsolute(directory) || path.resolve(directory) !== directory) throw coded('lock-refused', 'not an exact absolute path');
+  const stat = await fs.lstat(directory).catch(() => null);
+  if (!stat?.isDirectory() || await fs.realpath(directory) !== directory) throw coded('lock-refused', 'not a real directory');
+  const current = stat.mode & 0o7777;
+  if (action === 'mode') return { mode: current };
+  if (action === 'lock') { await fs.chmod(directory, 0o000); return { locked: true, previousMode: current }; }
+  if (action === 'unlock') {
+    if (!Number.isSafeInteger(mode) || mode < 0 || mode > 0o7777 || (mode & 0o500) !== 0o500) throw coded('lock-refused', 'no readable mode to restore');
+    await fs.chmod(directory, mode);
+    await fs.access(directory, fs.constants.R_OK | fs.constants.X_OK);
+    return { restored: true, mode: (await fs.stat(directory)).mode & 0o7777 };
+  }
+  throw coded('lock-refused', 'unknown action');
 }
 
 /** Throws MISSING_WEIGHTS or WRONG_WEIGHTS unless the directory is this exact model with every shard at full size. */
@@ -67,28 +93,6 @@ export async function assertCompleteCopy({ directory, expectedIdentity }) {
     const stat = await fs.stat(path.join(directory, shard.filename)).catch(() => null);
     if (!stat?.isFile() || stat.size !== shard.size) throw coded('MISSING_WEIGHTS', 'the full copy is missing a shard');
   }
-}
-
-/** Removes exactly one directory: a real path, holding only this model's files, under this model's manifest identity. */
-export async function deleteFullCopy({ directory, expectedIdentity, allowedExtraFiles = [], protectedDirectories = [] }) {
-  if (!path.isAbsolute(directory) || path.resolve(directory) !== directory) throw coded('full-copy-path-refused', 'not an exact absolute path');
-  const stat = await fs.lstat(directory).catch(() => null);
-  if (!stat?.isDirectory() || await fs.realpath(directory) !== directory) throw coded('full-copy-path-refused', 'not a real directory');
-  for (const guarded of protectedDirectories) {
-    const real = await realOrNull(guarded) ?? path.resolve(guarded);
-    if (inside(real, directory) || inside(directory, real)) throw coded('full-copy-path-refused', 'overlaps a protected directory');
-  }
-  const manifestFile = path.join(directory, 'manifest.json');
-  const manifestStat = await fs.lstat(manifestFile).catch(() => null);
-  if (!manifestStat?.isFile()) throw coded('full-copy-identity-mismatch', 'no regular manifest');
-  const bytes = await fs.readFile(manifestFile);
-  if ('sha256:' + createHash('sha256').update(bytes).digest('hex') !== expectedIdentity) throw coded('full-copy-identity-mismatch', 'manifest differs from the model');
-  const allowed = new Set(['manifest.json', ...allowedExtraFiles, ...JSON.parse(bytes).shards.map(shard => shard.filename)]);
-  for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
-    if (!entry.isFile() || !allowed.has(entry.name)) throw coded('full-copy-unexpected-entry', 'holds something that is not this model');
-  }
-  await fs.rm(directory, { recursive: true });
-  return { deleted: true };
 }
 
 export function parseMemoryPressure(text) {

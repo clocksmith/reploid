@@ -18,10 +18,12 @@ const host = (label, letter, extra = {}) => ({ label, ...target(letter), stageDi
 const config = () => ({ schema: 'reploid.stage1-hosts/v1',
   coordinator: { listenHost: '10.9.8.7', publicHost: '10.9.8.7', servicePort: 18443, signalingPort: 18444,
     tls: { keyFile: '/srv/tls/key.pem', certFile: '/srv/tls/cert.pem', caFile: '/srv/tls/ca.pem' } },
-  credit: { weights: [16, 84], maxDebt: 1000, maxRequestMs: 600000 },
+  credit: { weights: [16, 84], maxDebt: 1000, maxRequestMs: 300000, partitionUnclaimedReleaseMs: 60000 },
   limits: { phaseMs: 600000, abortGraceMs: 15000, hardStopMs: 90000, stopMarginMs: 120000, serviceRestoreMs: 30000 },
   requester: { ...target('c'), modelDirectory: '/srv/requester/empty',
     weightRoots: { model: ['/srv/requester/models'], cache: ['/srv/requester/cache'], temporary: ['/srv/requester/tmp'] } }, hosts: [host('host-a', 'a'), host('host-b', 'b')] });
+const EARN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16';
+const withEarner = (extra = {}) => ({ ...config(), earner: { ...target('e'), modelDirectory: '/srv/earner/model', modelId: EARN_MODEL_ID, ...extra } });
 
 describe('the private host file', () => {
   it('accepts a complete configuration', () => { expect(validatePhysicalConfig(config()).hosts).toHaveLength(2); });
@@ -49,10 +51,29 @@ describe('the private host file', () => {
     ['one credit weight', c => { c.credit.weights = [1]; }, 'weights'],
     ['a zero credit weight', c => { c.credit.weights = [0, 1]; }, 'weights'],
     ['a margin shorter than the hard stop', c => { c.limits.stopMarginMs = 1000; }, 'stopMarginMs'],
-    ['a hard stop shorter than a restore', c => { c.limits.hardStopMs = 1000; }, 'hardStopMs']
+    ['a hard stop shorter than a restore', c => { c.limits.hardStopMs = 1000; }, 'hardStopMs'],
+    ['no release window for a dropped answer', c => { delete c.credit.partitionUnclaimedReleaseMs; }, 'partitionUnclaimedReleaseMs'],
+    ['a phase too short for a dropped hold to expire', c => { c.limits.phaseMs = 360000; }, 'limits.phaseMs must cover']
   ])('refuses %s', (_name, change, field) => {
     const value = config(); change(value);
     expect(() => validatePhysicalConfig(value)).toThrow(field);
+  });
+
+  it('accepts an earning machine distinct from the requester and the stage hosts', () => {
+    expect(validatePhysicalConfig(withEarner()).earner.modelId).toBe(EARN_MODEL_ID);
+  });
+
+  it.each([
+    ['an earner on the requester machine', { machineId: 'm-' + 'c'.repeat(16) }, 'machineId'],
+    ['an earner on a stage host', { machineId: 'm-' + 'a'.repeat(16) }, 'machineId'],
+    ['an earner sharing a stage identity', { participantId: 'peer:' + 'b'.repeat(24) }, 'participantId'],
+    ['an earner without its own machine', { ssh: null }, 'earner.ssh'],
+    ['an earner serving the split model', { modelId: 'qwen-3-8-27b-text-q4k-ef16-af32' }, 'earner.modelId'],
+    ['an earner serving an unknown model', { modelId: 'no-such-model' }, 'earner.modelId'],
+    ['an earner without a model directory', { modelDirectory: 'model' }, 'earner.modelDirectory'],
+    ['an earner with an unknown field', { seed: 100 }, 'unknown field']
+  ])('refuses %s', (_name, extra, field) => {
+    expect(() => validatePhysicalConfig(withEarner(extra))).toThrow(field);
   });
 
   it('never repeats a value in its error', () => {

@@ -1,6 +1,8 @@
 /**
  * The real Stage 1 host agent with its machine-facing ports replaced: no GPU, no weights and no system services.
  * Inventory comes from the directory's role, the runtime is the harness fake, and the device refusal is scripted.
+ * The stage loader's allowlist and record are the real harness code; only its byte reader is replaced (no weight bytes
+ * exist). The earning machine's whole-model answer is FAKE: a fixed text and a declared token count, no model loads.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -39,10 +41,21 @@ const ports = {
     if (stageIndex !== null) {
       const manifest = JSON.parse(await fs.readFile(path.join(config.modelDirectory, 'manifest.json'), 'utf8'));
       const { reference } = JSON.parse(Buffer.from(config.fixtureBase64, 'base64'));
-      sourceRuntime = { runtime: createFakeStageRuntime({ model, manifest, reference }), gather: { maxPartBytes: 4096, memoryBudgetBytes: 8192, concurrency: 1 },
-        receipt: { schema: 'reploid.diagnostic-source-identity/v1' }, assertCurrent: async () => {} };
+      sourceRuntime = loader => ({ runtime: createFakeStageRuntime({ model, manifest, reference, loader, pieces: config.assignedRanges }),
+        gather: { maxPartBytes: 4096, memoryBudgetBytes: 8192, concurrency: 1 },
+        receipt: { schema: 'reploid.diagnostic-source-identity/v1' }, assertCurrent: async () => {} });
     }
-    return openStage1Participant({ stageIndex, identity, config, nativeGpu: async () => ({}), sourceRuntime });
+    return openStage1Participant({ stageIndex, identity, config, nativeGpu: async () => ({}), sourceRuntime, readBytes: async () => new Uint8Array(0) });
+  },
+  /** FAKE whole-model serving for the earn phase: no model, a fixed answer, the request's own token limit as the count. */
+  async openWhole({ model: earnModel }) {
+    return { runtime: 'fake-whole-model',
+      async generate({ settings }) {
+        const generatedTokenCount = settings?.maxOutputTokens ?? 4;
+        return { content: 'Fake earn answer.', modelIdentity: earnModel.identity, adapterIdentities: [],
+          completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 4, generatedTokenCount, stopReason: 'length' } };
+      },
+      async close() {} };
   }
 };
 await runHostAgent({ mode: process.argv[2], ports });

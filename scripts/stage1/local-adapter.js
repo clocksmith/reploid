@@ -19,7 +19,8 @@ import { countersignReceipt, createReceiptDraft, signReceiptDraft } from '../../
 import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { observeInventory } from './inventory.js';
 import { stage1Decoding } from './expectations.js';
-import { ledgerTrace, openReservationCount, runGatedCancel, until, verifySplitTokens } from './split-evidence.js';
+import { collectAcceptances, collectSettlementReplay, dropRecord, ledgerTrace, openReservationCount, reservationsOnThread, runGatedCancel, runGatedDrop, until,
+  verifySplitTokens } from './split-evidence.js';
 
 const PROCESS_FILE = fileURLToPath(new URL('./local-process.js', import.meta.url));
 const ROLES = Object.freeze(['requester', 'stage0', 'stage1']);
@@ -29,6 +30,11 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 /** The whole-model control the requester's account serves to earn credits. Fake runtime: no model loads. */
 const EARN_MODEL = Object.freeze({ id: 'stage1-earn-control', identity: 'sha256:' + createHash('sha256').update('stage1-earn-control').digest('hex') });
 const EARN_REQUESTS = 2;
+/**
+ * A short credit policy so a dropped answer expires within the test: the normal split finishes in a few seconds, well
+ * inside `maxRequestMs`, and the ledger's own expiry releases the dropped hold one window after its deadline.
+ */
+const LOCAL_MAX_REQUEST_MS = 15000, LOCAL_RELEASE_WINDOW_MS = 1000;
 
 function startProcess(role, directory) {
   const child = fork(PROCESS_FILE, [role], { cwd: directory, stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
@@ -67,7 +73,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
   if (!path.isAbsolute(directory)) throw Error('Absolute Stage 1 work directory required');
   const nodes = new Map();
   const roomId = 'reploid-swarm-stage1-' + randomUUID(), roomToken = randomBytes(24).toString('hex');
-  const splitThread = 'stage1-split-' + randomUUID(), cancelThread = 'stage1-cancel-' + randomUUID();
+  const splitThread = 'stage1-split-' + randomUUID(), cancelThread = 'stage1-cancel-' + randomUUID(), dropThread = 'stage1-drop-' + randomUUID();
   const fixtureSha256 = createHash('sha256').update(fixtureBytes).digest('hex');
   const witnessFile = role => path.join(directory, role, 'state', 'token-witness.json');
   const inventorySource = 'fake-runtime-declared';
@@ -95,7 +101,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       { id: 'computer-buyer', name: 'buyer', ownerId: 'owner-buyer', providers: [{ participantId: buyer.peerId, publicJwk: buyer.publicJwk }] }],
       policy: { schema: 'reploid.service-credit-policy/v1', version: 'stage1-local/1', unit: 'noncash-service-credit',
         creditsPerOutputToken: expectations.creditsPerOutputToken, maxDebt: 1000, maxOutputTokens: fixture.maxOutputTokens,
-        maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0 } });
+        maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: LOCAL_MAX_REQUEST_MS, allowSameOwner: false, wholeModelTerminalCharge: 0,
+        partitionUnclaimedReleaseMs: LOCAL_RELEASE_WINDOW_MS } });
     service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: expectations.creditWeights }] }, { ...EARN_MODEL }],
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   }
@@ -104,10 +111,32 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
     signalingUrl: `ws://127.0.0.1:${httpServer.address().port}/swarm`, roomId, roomToken, serviceUrl: service.url,
     maxOutputTokens: fixture.maxOutputTokens, reference: fixture.reference,
     ...(role === 'requester' ? {} : { fakeMemoryBytes: fakeMemoryBytes[HOSTS.find(host => host.role === role).label],
+      assignedRanges: stageRanges[HOSTS.findIndex(host => host.role === role)],
       witness: { fixtureFile, fixtureSha256, receiptFile: witnessFile(role), threadId: splitThread,
         requesterId: peers.requester.participantId, stageParticipants: [peers.stage0.participantId, peers.stage1.participantId] } }) });
 
   const settled = (id, signal) => until(() => credits.request(id)?.state === 'settled', { timeoutMs: 20000, label: 'settlement', signal });
+  const computerOf = id => credits.enrollment.byPeer.get(id)?.computerId ?? id;
+  const stageNodes = () => HOSTS.map(host => node(host.role));
+  const replay = (attemptId, options = {}) => collectSettlementReplay({ requester: node('requester'), stages: stageNodes(), attemptId,
+    policy: credits.policy, computerOf, ...options });
+
+  /** After the kill: the ledger's own expiry releases the hold; then what the requester kept, and the replay. */
+  async function finishDrop({ drop, accountBefore, signal }) {
+    const { attemptId, collected } = drop, requester = node('requester');
+    const { terms } = await requester.call('settlement-records', { attemptId });
+    const reservationId = terms?.reservationId ?? `service:${peers.requester.participantId}:${attemptId}`;
+    const { maxRequestMs, partitionUnclaimedReleaseMs } = credits.policy;
+    // snapshot() runs the ledger's expiry; nothing here releases the hold itself.
+    await until(() => { credits.snapshot(); return credits.request(reservationId)?.state === 'settled'; },
+      { timeoutMs: maxRequestMs + partitionUnclaimedReleaseMs + 15000, label: 'the dropped hold to expire on the ledger', signal, pollMs: 250 });
+    const settlementReplay = await replay(attemptId, { acceptancesSigned: 'during-attempt',
+      prefetched: { acceptances: collected.acceptances, stageRecords: [collected.killedRecords, null] } });
+    const own = await requester.call('settlement-records', { attemptId });
+    return dropRecord({ drop, own, settlementReplay, accountBefore, accountAfter: accountBalance('computer-requester'),
+      settlement: await ledgerTrace(credits, reservationId),
+      ledgerReservations: await reservationsOnThread(path.join(directory, 'credits.sqlite'), dropThread) });
+  }
 
   return Object.freeze({
     describe: () => ({ runtimeClass: 'fake-runtime', adapter: 'local-three-process' }),
@@ -142,6 +171,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
      * provider-signed, consumer-countersigned receipt. The answer itself is fake here, so this shows the credit path only.
      */
     async earnCredits({ signal }) {
+      const accountBefore = accountBalance('computer-requester');
       const buyerClient = createFleetClient({ url: service.url, identity: buyer }), settlements = [];
       const tokens = fixture.maxOutputTokens;
       for (let index = 0; index < EARN_REQUESTS; index++) {
@@ -162,7 +192,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
         settlements.push(await ledgerTrace(credits, result.serviceCredit.id));
       }
       return { mode: 'whole-model', modelId: EARN_MODEL.id, runtimeClass: 'fake-runtime', earner: { participantId: earner.peerId, computerId: 'computer-requester' },
-        buyerComputerId: 'computer-buyer', settlements, accountBalanceAfter: accountBalance('computer-requester') };
+        buyerComputerId: 'computer-buyer', accountBefore, settlements, accountBalanceAfter: accountBalance('computer-requester') };
     },
     async splitAnswer({ signal }) {
       const accountBefore = accountBalance('computer-requester');
@@ -179,7 +209,9 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
           promptDigest: output.promptDigest, promptCount: output.promptCount, maxOutputTokens: output.generation.maxTokens,
           decoding: stage1Decoding(output.generation) },
         split: { attemptId: answer.attemptId, text: answer.text, ...evidence, settlement: await ledgerTrace(credits, answer.reservationId),
-          account: { computerId: 'computer-requester', before: accountBefore, after: accountBalance('computer-requester') } },
+          account: { computerId: 'computer-requester', before: accountBefore, after: accountBalance('computer-requester') },
+          settlementReplay: await replay(answer.attemptId) },
+        loaded: Object.fromEntries(await Promise.all(HOSTS.map(async host => [host.label, await node(host.role).call('loaded')]))),
         requesterAfterSplit: await node('requester').call('weights'),
         inventoryBeforeSplit,
         inventoryAfterSplit: Object.fromEntries(HOSTS.map((host, index) => [host.label, hostInventory(index)]))
@@ -196,7 +228,29 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       }, { timeoutMs: 10000, label: `${role} to release the stopped attempt`, signal }).catch(() => node(role).call('activity'))));
       return { attemptId: answer.attemptId, stoppedBeforeCompletion: answer.completed === false && answer.stopped === true,
         visibleText: answer.text, residentsActive: activity.map(state => state.active + state.unsettledOwners),
-        settlement: await ledgerTrace(credits, answer.reservationId), accountAfter: accountBalance('computer-requester') };
+        settlement: await ledgerTrace(credits, answer.reservationId), accountAfter: accountBalance('computer-requester'),
+        settlementReplay: await replay(answer.attemptId) };
+    },
+    /**
+     * Forced provider drop: SIGKILL of the first stage's process once the requester holds part of the answer. The
+     * dropped hold is then released by the ledger's own expiry, one release window after the request deadline.
+     */
+    async dropAnswer({ signal }) {
+      const accountBefore = accountBalance('computer-requester'), requester = node('requester'), killed = node('stage0');
+      const drop = await runGatedDrop({ requester, killedStage: killed, messages: fixture.messages, threadId: dropThread,
+        outputCount: expectations.reference.outputIds.length, signal,
+        async beforeKill(attemptId) {
+          // The attempt identity is known and both stages are alive: each signs its acceptance now, and the stage about
+          // to be killed hands over the step receipts it holds.
+          const { terms } = await requester.call('settlement-records', { attemptId });
+          return { acceptances: await collectAcceptances(stageNodes(), terms), killedRecords: await killed.call('settlement-records', { attemptId }) };
+        },
+        async kill() {
+          killed.child.kill('SIGKILL');
+          await Promise.race([once(killed.child, 'exit'), delay(5000)]);
+          return { host: 'host-a', how: 'SIGKILL', exited: killed.exited };
+        } });
+      return finishDrop({ drop, accountBefore, signal });
     },
     async cleanup() {
       await Promise.allSettled(['requester', 'stage0', 'stage1'].map(role => node(role).call('close', {}, 20000)));
