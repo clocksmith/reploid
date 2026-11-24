@@ -8,7 +8,7 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import {
   ACKNOWLEDGMENT_OVERDUE, createAttemptEvidenceSigner, openOutputAcknowledgments, openStageReceipts
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { acceptSettlementTerms, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
+import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
 import { UNFINISHED_ANSWER_TERMS } from '../../server/fleet/credit-shares.js';
 
 export const POLICY = Object.freeze({
@@ -43,10 +43,14 @@ const route = (parties, tag) => ({
  *  stopAckingAfter: the requester acknowledges no output after this count (a requester that takes output and stops paying)
  *  vanishStage / vanishAfterStep: that stage signs nothing more after that step and never closes (provider loss)
  *  lateAckDelayMs: sign the final acknowledgment this long after the deadline
+ *  requesterStopAfter: the requester signs a stop after this many outputs and the stages close
+ *  stagesFailAfter: the stages close with a failed receipt after this many outputs, the requester having acknowledged all
+ *  maxOutputTokens: the ceiling in the requester's signed terms
  * Returns the records each party holds, the attempt's terms, and what was actually delivered.
  */
 export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answer', ' is', ' 26', '.'], weights = [1, 3],
   stopAckingAfter = Infinity, vanishStage = null, vanishAfterStep = Infinity, lateAckDelayMs = null, clock = createClock(),
+  requesterStopAfter = null, stagesFailAfter = null, maxOutputTokens = 64,
   unfinishedTerms = UNFINISHED_ANSWER_TERMS, policy = POLICY } = {}) {
   const r = route(parties, tag);
   const identity = { schema: 'reploid.partition-attempt/v2', threadId: `thread-${tag}`, attemptId: `attempt-${tag}`,
@@ -55,7 +59,7 @@ export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answ
   const requesterSigner = createAttemptEvidenceSigner({ identity: parties.requester, now });
   const stageSigners = parties.stages.map(stage => createAttemptEvidenceSigner({ identity: stage, now }));
   const notBefore = now(), deadline = notBefore + 30000;
-  const terms = await signSettlementTerms({ signer: requesterSigner, identity, reservationId, policy, maxOutputTokens: 64,
+  const terms = await signSettlementTerms({ signer: requesterSigner, identity, reservationId, policy, maxOutputTokens,
     weights, notBefore, deadline, unfinishedTerms });
   const acceptances = await Promise.all(stageSigners.map((signer, index) => acceptSettlementTerms({ signer, terms, partitionIndex: index })));
   const acks = await openOutputAcknowledgments({ signer: requesterSigner, identity, reservationId });
@@ -63,7 +67,13 @@ export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answ
   const held = { requester: [terms, acks.charge], stages: parties.stages.map((_, index) => [terms, acceptances[index], acks.charge]) };
   const vanished = new Set();
   let latestPair = null, delivered = 0, refusedAtStep = null;
+  let failedClose = false;
   for (let step = 0; step < outputs.length; step++) {
+    if (requesterStopAfter !== null && step === requesterStopAfter) {
+      held.requester.push(await signSettlementStop({ signer: requesterSigner, terms, acknowledged: latestPair?.acknowledgment.count ?? 0 }));
+      break;
+    }
+    if (stagesFailAfter !== null && step === stagesFailAfter) { failedClose = true; break; }
     clock.advance(500);
     let refused = false;
     for (const [index, tally] of tallies.entries()) {
@@ -91,7 +101,7 @@ export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answ
   for (const [index, tally] of tallies.entries()) {
     if (vanished.has(index)) continue;
     if (latestPair) await tally.acknowledge(latestPair);
-    held.stages[index].push(await tally.close({ failed: refusedAtStep !== null }));
+    held.stages[index].push(await tally.close({ failed: refusedAtStep !== null || failedClose }));
   }
   return { terms, reservationId, identity, held, delivered, acknowledged: latestPair?.acknowledgment.count ?? 0, refusedAtStep,
     deadline, closesAt: deadline + policy.partitionUnclaimedReleaseMs, all: () => [...held.requester, ...held.stages.flat()] };

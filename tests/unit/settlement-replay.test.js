@@ -108,6 +108,45 @@ describe('settlement replay', () => {
     expect(r.late.some(row => row.kind === 'acknowledgment' && row.count === 5)).toBe(true);
   });
 
+  it('never charges past the signed output ceiling, whoever acknowledged the extra outputs', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties, { maxOutputTokens: 3 });
+    expect(a.acknowledged).toBe(5);
+    const r = (await replay(a.all(), a.closesAt + 1)).reservations[0];
+    expect(r).toMatchObject({ status: 'settled', outputs: 5, chargedOutputs: 3, debit: 9, beyondCeiling: 2 });
+  });
+
+  it('charges nothing when a stage closes a fully acknowledged, unfinished answer with a failed receipt', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties, { outputs: Array.from({ length: 12 }, (_, i) => `t${i}`), stagesFailAfter: 6 });
+    expect(a.acknowledged).toBe(6);
+    const r = (await replay(a.all(), a.closesAt + 1)).reservations[0];
+    expect(r).toMatchObject({ status: 'settled', debit: 0, chargedOutputs: 0 });
+    expect(r.credits.every(c => c.amount === 0)).toBe(true);
+  });
+
+  it('charges the acknowledged prefix when the requester signed its own stop', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties, { outputs: Array.from({ length: 12 }, (_, i) => `t${i}`), requesterStopAfter: 6 });
+    const r = (await replay(a.all(), a.closesAt + 1)).reservations[0];
+    expect(r).toMatchObject({ status: 'settled', debit: 18, chargedOutputs: 6 });
+    // Without the requester's stop the same records read as a stage ending the answer early.
+    const unsigned = a.all().filter(row => row.schema !== 'reploid.settlement-stop/v1');
+    expect((await replay(unsigned, a.closesAt + 1)).reservations[0].debit).toBe(0);
+  });
+
+  it('recovers the settled outcome when an operator shows each party a different subset (split-brain withholding)', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties);
+    // The operator hides the final closing receipt from the requester's view and the acknowledgments from the stages' view.
+    const requesterView = a.held.requester;
+    const stageView = a.held.stages.flat().filter(row => row.schema !== OUTPUT_ACKNOWLEDGMENT_SCHEMA);
+    expect(['unknown', 'open', 'expired']).toContain((await replay(requesterView, a.closesAt + 1)).reservations[0].status);
+    expect((await replay(stageView, a.closesAt + 1)).reservations[0].debit ?? 0).toBe(0);
+    const union = await replay([...requesterView, ...stageView, ...a.held.stages.flat()], a.closesAt + 1);
+    expect(union.reservations[0]).toMatchObject({ status: 'settled', debit: 15 });
+  });
+
   it('marks terms that name an unsupplied policy or break it as invalid', async () => {
     const parties = await createParties(2);
     const a = await runAttempt(parties);

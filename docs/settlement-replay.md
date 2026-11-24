@@ -13,6 +13,7 @@ operator's journal or balance.
 | Settlement acceptance (`reploid.settlement-acceptance/v1`) | each stage | before it reserves | the digest of those exact terms and its own stage index |
 | Stage receipt (`reploid.stage-receipt/v1`) | each stage | after every step and at close | steps, tokens, timing, closing status; the final stage also commits a hash chain over its outputs |
 | Output acknowledgment (`reploid.output-acknowledgment/v1`) | requester | for each output it received | the output count and chain value |
+| Settlement stop (`reploid.settlement-stop/v1`) | requester | when it ends an answer early | the reservation, attempt and its acknowledged count |
 
 Participant IDs derive from public keys, so a signature names its signer without an
 enrollment table. A stage does not compute step `s` without the requester's
@@ -26,8 +27,15 @@ therefore receives at most `K + 1` unpaid outputs.
 records and reports each reservation as exactly one of the following.
 
 - **settled:** every stage closed before the deadline. The requester is debited
-  for the outputs it acknowledged in time, and the debit is split by the signed
-  weights using the ledger's own arithmetic (`credit-shares.js`).
+  for the outputs it acknowledged in time, up to the signed output ceiling, and
+  the debit is split by the signed weights using the ledger's own arithmetic
+  (`credit-shares.js`).
+
+  Under provider-loss-free terms an unfinished answer is owed only if the
+  requester ended it. That means either a signed stop, or acknowledgments
+  withheld until a stage refused to continue (more than `K` outputs
+  unacknowledged). A stage that closes early on its own, even with a `failed`
+  receipt, earns nothing and costs the requester nothing.
 - **expired:** the release window passed without every stage closing and without
   a delivered answer. Nobody is charged or paid.
 - **open:** the release window has not passed yet.

@@ -17,10 +17,13 @@ import { canonicalize } from '../../packages/reploid/src/artifacts/canonical-jso
 
 export const SETTLEMENT_TERMS_SCHEMA = 'reploid.settlement-terms/v1';
 export const SETTLEMENT_ACCEPTANCE_SCHEMA = 'reploid.settlement-acceptance/v1';
+/** The requester's own signed stop: it ended the answer, so the outputs it acknowledged are owed. */
+export const SETTLEMENT_STOP_SCHEMA = 'reploid.settlement-stop/v1';
 
 const TERMS_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'routeHash', 'requesterId', 'policyDigest', 'unit',
   'creditsPerOutputToken', 'maxOutputTokens', 'maximum', 'shares', 'unfinishedTerms', 'notBefore', 'deadline', 'releaseWindowMs', 'signedAt']);
 const ACCEPTANCE_KEYS = Object.freeze(['schema', 'termsDigest', 'reservationId', 'attemptId', 'participantId', 'partitionIndex', 'signedAt']);
+const STOP_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'requesterId', 'acknowledged', 'signedAt']);
 const DIGEST = /^sha256:[a-f0-9]{64}$/;
 const exact = (value, keys) => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
@@ -53,6 +56,11 @@ function acceptanceProblem(body) {
     && Number.isSafeInteger(body.partitionIndex) && body.partitionIndex >= 0 && time(body.signedAt) ? null : 'acceptance_malformed';
 }
 
+function stopProblem(body) {
+  return exact(body, STOP_KEYS) && body.schema === SETTLEMENT_STOP_SCHEMA && text(body.reservationId, 160) && text(body.attemptId)
+    && text(body.requesterId) && Number.isSafeInteger(body.acknowledged) && body.acknowledged >= 0 && time(body.signedAt) ? null : 'stop_malformed';
+}
+
 async function verifySelfCertified(record, { domain, problemOf, signerOf }) {
   if (!record || typeof record !== 'object' || Array.isArray(record)) return { ok: false, problem: problemOf(null) };
   const { publicJwk: carried, signature, ...body } = record;
@@ -70,6 +78,16 @@ export const verifySettlementTerms = record => verifySelfCertified(record, {
 
 export const verifySettlementAcceptance = record => verifySelfCertified(record, {
   domain: SETTLEMENT_ACCEPTANCE_SCHEMA, problemOf: body => (body ? acceptanceProblem(body) : 'acceptance_malformed'), signerOf: body => body.participantId });
+
+export const verifySettlementStop = record => verifySelfCertified(record, {
+  domain: SETTLEMENT_STOP_SCHEMA, problemOf: body => (body ? stopProblem(body) : 'stop_malformed'), signerOf: body => body.requesterId });
+
+/** The requester's signed stop of one attempt after `acknowledged` outputs. */
+export async function signSettlementStop({ signer, terms, acknowledged, now = signer?.now ?? Date.now }) {
+  if (signer?.participantId !== terms?.requesterId) throw Error('A stop needs the requester\'s own signing identity');
+  return signer.sign(SETTLEMENT_STOP_SCHEMA, { schema: SETTLEMENT_STOP_SCHEMA, reservationId: terms.reservationId, attemptId: terms.attemptId,
+    requesterId: terms.requesterId, acknowledged, signedAt: new Date(now()).toISOString() });
+}
 
 /**
  * The requester's terms for one attempt, signed with its own identity (`signer` from createAttemptEvidenceSigner).

@@ -21,11 +21,12 @@
  */
 import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 import {
-  OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, outputChainGenesis, verifyOutputAcknowledgment, verifyStageReceipt
+  MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, outputChainGenesis, verifyOutputAcknowledgment, verifyStageReceipt
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { creditSettlementDeltas } from './credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, creditSettlementDeltas } from './credit-shares.js';
 import {
-  SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_TERMS_SCHEMA, policyDigest, termsDigest, verifySettlementAcceptance, verifySettlementTerms
+  SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, policyDigest, termsDigest, verifySettlementAcceptance,
+  verifySettlementStop, verifySettlementTerms
 } from './settlement-terms.js';
 
 export const SETTLEMENT_REPLAY_SCHEMA = 'reploid.settlement-replay/v1';
@@ -36,7 +37,7 @@ const signedBody = record => { const { publicJwk: _key, signature: _signature, .
 async function classify(records) {
   const byReservation = new Map(), rejected = [];
   const slot = id => {
-    if (!byReservation.has(id)) byReservation.set(id, { terms: [], acceptances: [], receipts: [], acknowledgments: [] });
+    if (!byReservation.has(id)) byReservation.set(id, { terms: [], acceptances: [], receipts: [], acknowledgments: [], stops: [] });
     return byReservation.get(id);
   };
   for (const [index, record] of (Array.isArray(records) ? records : []).entries()) {
@@ -46,6 +47,7 @@ async function classify(records) {
     else if (schema === SETTLEMENT_ACCEPTANCE_SCHEMA) { checked = await verifySettlementAcceptance(record); kind = 'acceptances'; }
     else if (schema === STAGE_RECEIPT_SCHEMA) { checked = await verifyStageReceipt(record); kind = 'receipts'; }
     else if (schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA) { checked = await verifyOutputAcknowledgment(record); kind = 'acknowledgments'; }
+    else if (schema === SETTLEMENT_STOP_SCHEMA) { checked = await verifySettlementStop(record); kind = 'stops'; }
     if (!checked?.ok) { rejected.push({ index, schema: typeof schema === 'string' ? schema : null, problem: checked?.problem ?? 'unknown_record' }); continue; }
     slot(checked.body.reservationId)[kind].push(checked.body);
   }
@@ -155,11 +157,25 @@ async function replayOne(reservationId, group, { policies, at, computerOf }) {
       reason: `no signed acceptance of these terms was presented for stage ${missingAcceptance.join(', ')}` };
   }
 
+  // The signed quote is a ceiling: outputs past `maxOutputTokens` are never charged, whoever acknowledged them.
+  const chargeable = Math.min(acknowledged, agreed.maxOutputTokens);
+  const finished = Boolean(delivered?.done && delivered.count === acknowledged);
+  // An unfinished answer under provider-loss-free terms is owed only when the requester ended it: by its own signed
+  // stop, or by withholding acknowledgments until a stage refused to go on (more than K outputs unacknowledged). A
+  // stage that closes early on its own, even with a polite `failed` receipt, earns nothing and costs the requester nothing.
+  const stoppedByRequester = distinct(group.stops).some(row => matches(row) && row.requesterId === agreed.requesterId && inTime(row.signedAt));
+  const withheld = Boolean(delivered) && delivered.count - acknowledged > MAX_UNACKNOWLEDGED_OUTPUTS;
+  const providerEnded = !finished && agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS && !stoppedByRequester && !withheld;
+  const units = providerEnded ? 0 : chargeable * agreed.creditsPerOutputToken;
   const request = { providers: agreed.shares.map(row => ({ participantId: row.participantId, weight: row.weight })), computerId: computerOf(agreed.requesterId) };
-  const split = creditSettlementDeltas(request, acknowledged * agreed.creditsPerOutputToken, computerOf);
+  const split = creditSettlementDeltas(request, units, computerOf);
+  const reason = finished ? 'the answer was completed and acknowledged'
+    : providerEnded ? 'a stage ended the answer before it finished; under these terms nobody is charged or paid'
+      : stoppedByRequester ? 'the requester signed a stop; the outputs it acknowledged are charged'
+        : 'the requester stopped acknowledging; the outputs it acknowledged are charged';
   return { ...base, status: 'settled', debit: split.charge, credits: split.credits.map(row => ({ participantId: row.participantId, amount: row.amount })),
-    outputs: acknowledged, unacknowledgedOutputs: delivered ? delivered.count - acknowledged : null,
-    reason: delivered?.done ? 'the answer was completed and acknowledged' : 'every stage closed before the answer finished; the acknowledged outputs are charged' };
+    outputs: acknowledged, chargedOutputs: providerEnded ? 0 : chargeable, unacknowledgedOutputs: delivered ? delivered.count - acknowledged : null,
+    ...(acknowledged > agreed.maxOutputTokens ? { beyondCeiling: acknowledged - agreed.maxOutputTokens } : {}), reason };
 }
 
 /**
