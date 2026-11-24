@@ -19,15 +19,21 @@ nonempty, unique list of identities. Open authorizes consideration of candidates
 not automatic disclosure: a verified recipient must still be approved for the
 exact attempt. Transport configuration does not change any of these settings.
 
+Callers do not write this policy. They state requirements through
+[`reploid/inference`](confidential-execution.md) (placement, participants,
+confidentiality, allowed metadata), and `compileExecutionRequirements` compiles
+them into it. `requester-only` confidentiality has no qualified backend and is
+refused before disclosure with `CONFIDENTIAL_EXECUTION_UNAVAILABLE`.
+
 Missing or obsolete policy is rejected at protected wire edges. There is no
 old-policy decoder, remote implication from placement, or downgrade retry.
 Older conversation history remains readable: settings reset explicitly to
 local-only/no remote recipients, and old disclosure grants are discarded.
 This does not execute old policy or carry forward permission. A historical
 attempt using an unsupported policy cannot retry; review settings, then send a
-new request. Old receipts are historical records, with unsupported disclosure
-information displayed as unrecorded. The new `reploid.privacy-receipt/v2` records
-requester validation only.
+new request. Answers record a `reploid.execution-receipt/v1` that states what the
+requester checked; older answers with the retired `reploid.privacy-receipt/v2`
+display their disclosure as unrecorded.
 
 ## Request admission
 
@@ -48,9 +54,13 @@ requester validation only.
   the browser and native host validate it and all downstream workers. A fresh
   route check follows consent. Older bridge protocol is not a fallback.
 - **Standard HTTP API:** OpenAI/Responses/Anthropic request shapes do not expose
-  internal fields. An authenticated operator-owned API composition provides
-  explicit execution policy. Native fleet composition binds the enrolled
-  identity set, intersected with the configured recipient list when present.
+  internal fields. They are adapters over `reploid/inference`; the optional
+  `reploid` extension carries the same model pin and requirements on all three
+  and may only narrow the policy that the authenticated operator composition
+  provides. Native fleet composition binds the enrolled identity set,
+  intersected with the configured recipient list when present. Confidential
+  (`requester-only`) requests are refused there, because a JSON body is already
+  plaintext to the server that receives it.
 - **Retrieval:** only host-installed paths with complete recipient disclosures
   can run. A qualified Brave server advertises
   `reploid.search-disclosure/v2` at the configured exact HTTPS origin
@@ -66,7 +76,10 @@ requester validation only.
 ## Unavailable and unproven
 
 No built-in encrypted evaluator or attestation verifier is qualified. Requests
-for these modes fail before disclosure or computation. Ordinary execution
+for these modes fail before disclosure or computation. Backend eligibility is
+decided by the requester's own registry of exact backend identities
+(`EXECUTION_BACKENDS`); an offer whose declared kind or protocol differs from its
+registered backend is ineligible, so an advertisement cannot qualify a mode. Ordinary execution
 allows existing recovery storage but never publication, training or reuse.
 A recipient of plaintext could still copy it; recipient authorization cannot
 enforce their downstream behavior. Ephemeral erasure is not qualified.

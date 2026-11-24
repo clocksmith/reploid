@@ -47,5 +47,6 @@ The gateway reserves the maximum configured cost at admission, based on estimate
 - The anonymous route accepts only plain text `system`, `user`, and `assistant` messages.
 - Each provider request receives the admitted output-token cap.
 - Prompt bodies are not logged by the anonymous admission path.
+- Prompts are plaintext to this gateway and to the configured cloud provider. The gateway takes no execution requirements; [confidential execution](confidential-execution.md) is not available here.
 
 *Last updated: July 2026*

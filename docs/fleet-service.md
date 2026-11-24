@@ -399,7 +399,8 @@ Every request checks the bearer secret in constant time, verifies that the
 requester remains in `private-pool` scope, checks disclosed provider signing
 identities against the coordinator's enrolled computers (and optional
 `allowedRecipients`), and reserves and settles non-cash service credits before
-publishing `reploid.http-execution/v1`. Signing keys and room tokens remain on
+returning the `reploid` record (`executionReceipt` and the executor's `execution`
+report) to a request that carries the [`reploid` extension](confidential-execution.md#http-adapters). Signing keys and room tokens remain on
 the native host.
 
 

@@ -536,11 +536,11 @@ composition must still supply approved terms and those ledger/execution projecti
 | Termination | Stop token/sequence/EOS maps to `stop`; token/context limit maps to `length`; unknown reason fails |
 | Cancellation | HTTP disconnect aborts the existing requester; unresolved HTTP calls remain charged until their promises settle |
 | Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `n`, structured outputs (`response_format`), thinking controls, `logprobs`, `stream_options` and other unrecognized fields |
-| `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions`, boolean `stream`, caller `max_output_tokens`, `text.format.type=json_object`, and function `tools` with `tool_choice` and `parallel_tool_calls` |
+| `POST /v1/responses` | `model`, optional `store` (omitted or false; nothing is stored), string `input` or an array of the text messages above; optional string `instructions`, boolean `stream`, caller `max_output_tokens`, `text.format.type=json_object`, and function `tools` with `tool_choice` and `parallel_tool_calls` |
 | Responses tools | Flat `type:"function"` tools (`name`, `description`, `parameters`, `strict`) under the same schema rules as Chat Completions; `tool_choice` `auto`, `none`, `required` or `{type:"function",name}`. With tools declared, `input` may hold `function_call` items (joined to the assistant turn they follow) and `function_call_output` items with string `output`. A call is a `function_call` output item with the deterministic `call_id`; nothing is stored, so the caller sends the call and its output back. Not combinable with `json_object` |
 | Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response. A validated call is sent as `response.output_item.added`, `response.function_call_arguments.delta`/`.done` and `response.output_item.done` |
 | Responses termination | Stop/EOS completes; output-token limit is `incomplete/max_output_tokens` with `completed_at:null`; context-limit and unknown termination fail explicitly |
-| Responses unsupported state | Rejects omitted/true `store`, previous response IDs, conversations, background, hosted tools, `json_schema`, sampling and unknown fields; no lookup or response persistence |
+| Responses unsupported state | Rejects `store:true`, previous response IDs, conversations, background, hosted tools, `json_schema`, sampling and unknown fields; no lookup or response persistence |
 | `POST /v1/messages` | Messages wire adapter, mounted beside the other routes: `model`, alternating user/assistant `messages` ending in user, optional string `system`, positive `max_tokens`, optional `stream`, client `tools` and `tool_choice` |
 | Messages tools | Client tools (`name`, `description`, `input_schema`) under the same schema rules as Chat Completions; `tool_choice` `{type: auto \| any \| none}` or `{type:"tool",name}`. Only in a request that declares tools, content may be a block list: assistant `text` and `tool_use`, user `tool_result` (string or text-block content, before any `text`). A call is a `tool_use` block with `stop_reason:"tool_use"`. `is_error` results and server tools are rejected |
 | Messages limits | Requires a route advertising caller-limit and raw-token usage support; the requested ceiling must fit its prepared allocation, and a whole-model route refuses one below its prepared ceiling. Zero/cache-only, prefill, content blocks without tools, thinking, structured output, sampling and custom stop sequences are rejected |
@@ -577,35 +577,42 @@ messages and validates that final text parses as an object. It does not supply
 constrained decoding or JSON-schema guarantees. Invalid output cannot publish a
 successful terminal event; streamed text remains provisional.
 
-An optional namespaced `reploid` field narrows, without replacing, the host's
-existing authorization:
+All three routes are adapters over [`reploid/inference`](confidential-execution.md).
+An optional `reploid` field, the same on `/v1/chat/completions`, `/v1/messages`
+and `/v1/responses`, carries the inference API's model pin and execution
+requirements plus the private pool and conversation. It narrows, without
+replacing, the host's existing authorization:
 
 ```json
 {
-  "pool_id": "valera-private-pool-v1",
-  "expected_model_identity": "sha256:REPLACE-WITH-READY-MODEL-IDENTITY",
-  "expected_adapter_identities": [],
-  "expected_plan_identity": null,
-  "allowed_recipients": ["REPLACE-WITH-ADMITTED-PEER-THUMBPRINT"],
-  "include_execution": true
+  "model": { "identity": "sha256:REPLACE-WITH-READY-MODEL-IDENTITY", "adapterIdentities": [], "planIdentity": "REPLACE-OR-OMIT" },
+  "execution": { "placement": "network-allowed", "participants": { "kind": "named", "ids": ["REPLACE-WITH-ADMITTED-PEER-THUMBPRINT"] },
+                 "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length"] },
+  "poolId": "valera-private-pool-v1",
+  "conversationId": "optional-conversation-id"
 }
 ```
 
-The native host exposes its authoritative `roomId` and `executionClass`. Public-pool
-or unknown classes, changed pools, model/adapter/plan mismatches and undeclared
-recipients fail closed. Checks span execution authorization, disclosure authorization
-and completion. Actual recipients include `preview.input.recipients`, route stage
-participant IDs and pair participants; a room name is not a recipient identity.
-Expected adapters must be active on the selected route, not merely available.
+The native host exposes its authoritative `roomId` and `executionClass`. A given
+`poolId` that differs, or a public or unknown class, fails closed, and so do
+model, adapter and plan mismatches and any participant outside `participants`.
+The extension is read before the protocol's messages. `confidentiality:
+"requester-only"` is refused with 422 `confidential_execution_unavailable`,
+because a JSON body is already plaintext to this server. Checks span execution
+authorization, the plan's route admission, disclosure authorization and
+completion. Expected adapters must be active on the selected route, not merely
+available.
 
-The completed Responses object then includes `reploid.http-execution/v1` metadata:
-thread/attempt, model, pool/class, selected adapters/plan, approved recipients and
-the existing native execution result. Headers retain request/attempt/model identity
-and the raw-token usage schema when admitted. This is provider-reported evidence;
-HTTP compatibility does not independently attest remote hardware or model quality.
-The request field grants neither admission nor disclosure rights. Source integration
-tests cover these bindings with injected computation; no physical inference is
-implied by those tests. Mounting remains an explicit host operation.
+With the extension, every route returns a top-level `reploid` record: the
+`reploid.execution-receipt/v1` (requested requirements, admitted route,
+backend, disclosures, and separate confidentiality and integrity evidence), the
+executor's own `execution` report as reported, `poolId` and `conversationId`.
+Headers retain request/attempt/model identity and the raw-token usage schema
+when admitted. The executor report is provider-reported; HTTP compatibility does
+not independently attest remote hardware or model quality. The request field
+grants neither admission nor disclosure rights. Source integration tests cover
+these bindings with injected computation; no physical inference is implied by
+those tests. Mounting remains an explicit host operation.
 
 The [Responses installed consumer evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/stateless-responses-20261013)
 uses OpenAI SDK 7.32.0 for nonstreaming, streaming, terminal errors and cancellation

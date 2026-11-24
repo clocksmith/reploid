@@ -185,6 +185,12 @@ fail at the same settings.
 
 Remote executors receive disclosed text, tokens and intermediate representations;
 tokens, transport encryption and signatures do not establish confidential execution.
+Confidential execution (no executor can read the content) has no qualified
+backend and is refused before anything is sent. The chat offers three presets,
+each stating availability and exposed metadata before Send: Standard, Only your
+devices (this device or the desktop it paired with, which read the content in
+plaintext) and the unavailable confidential mode. See
+[confidential-execution.md](confidential-execution.md).
 Describe prior turns and attached/retrieved context before relying on a grant.
 Model selection does not establish trust in arbitrary computers. Sending a message
 or explicitly retrying authorizes eligible contributors under the app's network-answer

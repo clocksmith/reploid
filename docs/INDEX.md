@@ -20,7 +20,7 @@ lists its contracts first, then designs, then evidence.
 
 ## Start here
 
-[Execution privacy contracts and current limits](execution-privacy.md) · [Wire visibility: who can read what](wire-visibility.md).
+[Execution privacy contracts and current limits](execution-privacy.md) · [Confidential execution and the inference API](confidential-execution.md) · [Wire visibility: who can read what](wire-visibility.md).
 
 Start with [concepts, glossary and code map](glossary.md) to distinguish Reploid,
 Doppler, WebRTC, WebGPU and the internal Poolday name.

@@ -171,7 +171,7 @@ On the requester, build the ordinary request as above, set its conversation ID, 
 
 ```sh
 umask 077
-jq --arg id "$QUALIFICATION_THREAD" '.reploid.conversation_id = $id' request.json > private-request.json
+jq --arg id "$QUALIFICATION_THREAD" '.reploid.conversationId = $id' request.json > private-request.json
 curl --fail-with-body --silent --show-error --no-buffer -D headers.txt \
   -H "Authorization: Bearer $REQUESTER_TOKEN" -H 'Content-Type: application/json' \
   --data-binary @private-request.json "$REQUESTER_URL/v1/responses" > response.sse
