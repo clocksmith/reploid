@@ -2,7 +2,8 @@
 
 `reploid/inference` is Reploid's native inference API. The browser chat, the
 `reploid ask` CLI and the SDK all use it, and the OpenAI- and Anthropic-shaped
-HTTP endpoints are adapters over it. This page describes what each execution
+HTTP endpoints are adapters over it. So are the native fleet host's owner
+`generate` command and the daily game's fleet turn. This page describes what each execution
 mode guarantees and exposes. It also gives the request, plan, event, result and
 receipt shapes, and the stable refusal codes.
 

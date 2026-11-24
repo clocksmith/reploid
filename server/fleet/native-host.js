@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'dopplerx/partitions';
 import { getDevice, getKernelCapabilities } from 'dopplerx/tooling/device';
-import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../shared/vendor/reploid/chat/execution-policy.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../shared/vendor/reploid/chat/execution-policy.js';
+import { createInference, executionError, EXECUTION_ERROR_CODES } from '../../shared/vendor/reploid/inference/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../shared/vendor/reploid/artifacts/identity.js';
 import { signGenerationTerminal } from '../../shared/vendor/reploid/artifacts/generation-terminal.js';
 import { hashJson } from '../../shared/vendor/reploid/artifacts/signatures.js';
@@ -561,7 +562,12 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
     async balances() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('snapshot', {}); },
     async statement() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('statementMine', {}); },
-    async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}) {
+    /**
+     * The peer binding behind two callers: the paired browser bridge (its browser already ran reploid/inference and
+     * sends its execution binding) and the owner's `generate` command, which runs through reploid/inference here and
+     * passes `approve`, the plan's own admission check, and `signal`. With `approve` the route is pinned: no fallback.
+     */
+    async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}, { signal = null, approve = null } = {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
       request.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(request));
@@ -569,6 +575,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       assert(configured, 'Model is outside owner preferences');
       request.model = { ...structuredClone(configured.model), ...(request.model.partition ? { partition: request.model.partition } : {}) };
       const controller = new AbortController(); requests.set(request.attemptId, { controller, request, since: Date.now() });
+      const stop = () => controller.abort(signal.reason);
+      signal?.addEventListener('abort', stop, { once: true });
+      if (signal?.aborted) stop();
       let slot = null;
       try {
         await publishDemand();
@@ -577,7 +586,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
             attemptId: request.attemptId,
             threadId: request.threadId,
             requestedModel: request.model,
-            allowPartitionFallback: request.privacyBinding ? false : true,
+            allowPartitionFallback: !request.privacyBinding && !approve,
             signal: controller.signal,
             onAdmission
           });
@@ -600,10 +609,12 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
             if (request.privacyBinding) {
               assert(sameExecutionBinding(checked, request.privacyBinding), 'Paired execution route changed; no prompt was sent to the replacement');
             }
+            // The owner's command admits only the route its inference plan pinned; a refusal sends nothing.
+            if (approve && await approve(disclosure) !== true) return false;
             controller.signal.throwIfAborted();
             slot?.markDisclosed?.([disclosure?.providerId, typeof disclosure?.recipientIdentity === 'string' ? disclosure.recipientIdentity : null].filter(Boolean));
             onRoute(disclosure);
-            return true; // Explicit generate command is the local owner's disclosure instruction.
+            return true;
           } };
         let placement = null;
         if (credits && config.rankProviders === true && !request.model.partition) {
@@ -629,6 +640,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
           ? { ...result, execution: { ...result.execution, admission: { ...(result.execution?.admission || {}), queuedMs: slot.queuedMs } } }
           : result;
       } finally {
+        signal?.removeEventListener('abort', stop);
         slot?.release?.();
         requests.delete(request.attemptId);
         await publishDemand().catch(error => onChange({ warning: error.message }));
@@ -645,8 +657,74 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   });
 }
 
+/** What the owner's `generate` command allows when it names no requirements: any computer this host pins, readable by it. */
+const OWNER_METADATA = Object.freeze(['model-id', 'timing', 'length']);
+
+/**
+ * The owner's `generate` command through reploid/inference, the same prepare and run as the browser, the CLI and the
+ * HTTP adapters. A command may carry `execution` requirements; without them it names the enrolled computers this host
+ * pins. Either way only those computers can be planned or admitted. The answer carries the API's execution receipt.
+ */
+export function createOwnerInference({ host, config }) {
+  const permitted = async () => {
+    const pins = config.textApi?.allowedRecipients;
+    return [...await host.enrolledRecipients()].filter(id => !pins || pins.includes(id)).sort();
+  };
+  const inference = createInference({
+    resolveRoute({ execution }, { context }) {
+      if (execution.placement !== 'network-allowed') return null; // This host runs prompts on enrolled computers only.
+      const partition = context.request.model?.partition;
+      if (partition) {
+        const stages = [...new Set(partition.route?.stages?.map(stage => stage.participantId)
+          ?? [partition.participantA, partition.participantB].filter(Boolean))];
+        return stages.length && stages.every(id => context.permitted.includes(id))
+          ? { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: stages, selection: 'all', planIdentity: partition.planId ?? null }
+          : null;
+      }
+      const named = execution.participants.kind === 'named' ? execution.participants.ids : null;
+      const participants = context.permitted.filter(id => !named || named.includes(id));
+      return participants.length ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants, selection: 'one-of' } : null;
+    },
+    async execute({ policy, request: run }, controls, context) {
+      // The owner's enrolled set bounds the compiled requirements: an open request still reaches only those computers.
+      const ids = context.permitted.filter(id => policy.recipients.kind === 'open' || policy.recipients.ids.includes(id));
+      const privacy = assertAvailableExecutionPolicy({ ...policy, recipients: { kind: 'named', ids } });
+      try {
+        context.raw = await host.generate({ ...context.request, attemptId: run.attemptId, messages: run.messages, privacy },
+          controls.onDelta, context.onRoute, undefined, { signal: controls.signal, approve: disclosure => controls.requestApproval(disclosure) });
+        return context.raw;
+      } catch (error) { context.failure = error; throw error; }
+    }
+  });
+  return async function generate(input, { onDelta, onRoute } = {}) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) throw executionError('EXECUTION_REQUEST_INVALID', 'generate needs a request object');
+    const { execution: requested, ...request } = structuredClone(input);
+    if (Object.hasOwn(request, 'privacy') || Object.hasOwn(request, 'privacyBinding')) {
+      throw executionError('EXECUTION_REQUEST_INVALID', 'generate takes execution requirements, not a peer policy or binding. Nothing was sent.');
+    }
+    const configured = config.models.find(entry => entry.model.id === request.model?.id && entry.model.identity === request.model?.identity);
+    assert(configured, 'Model is outside owner preferences');
+    const allowed = await permitted();
+    const execution = requested ?? (allowed.length ? { placement: 'network-allowed', participants: { kind: 'named', ids: allowed },
+      confidentiality: 'executor-readable', allowMetadata: [...OWNER_METADATA] } : null);
+    if (!execution) throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'No enrolled computer may receive this prompt. Nothing was sent.');
+    const context = { request, permitted: allowed, onRoute, controls: { onDelta }, raw: null, failure: null };
+    const model = { ...configured.model, ...(request.model.partition ? { partition: request.model.partition } : {}) };
+    const plan = await inference.prepare({ model: { id: model.id, identity: model.identity, adapterIdentities: partitionAdapterIdentities(model) },
+      execution }, { context });
+    const run = await inference.run({ planId: plan.id, requestId: request.attemptId, input: { messages: request.messages } },
+      { context, attemptId: request.attemptId });
+    const result = await run.result;
+    if (result.status === 'completed') return { ...context.raw, executionReceipt: result.executionReceipt };
+    // The executor's own error keeps its credit outcome unless the inference API refused first.
+    if (context.failure && !Object.hasOwn(EXECUTION_ERROR_CODES, result.error.code)) throw context.failure;
+    throw Object.assign(new Error(result.error.message), { code: result.error.code });
+  };
+}
+
 export async function runFleetNativeCommands({ host, config, input = process.stdin, signals = process }) {
   const pending = new Set(); let lines = null;
+  const ownerGenerate = createOwnerInference({ host, config });
   let timer = null, browserBridge = null, textApi = null;
   if (config.auto === true) {
     assert(Number.isSafeInteger(config.pollMs) && config.pollMs >= 1000, 'Explicit bounded placement interval required');
@@ -699,29 +777,20 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           else if (command.op === 'statement') result = await host.statement();
           // `events: true` also reports the route as soon as it is approved, for callers that must act mid-answer.
           else if (command.op === 'generate') {
-            // Stdin is the owner-command boundary. It supplies an explicit policy for its own
-            // request, never for missing or stale browser/mesh requests.
-            const request = structuredClone(command.request);
-            if (!Object.hasOwn(request, 'privacy')) {
-              const enrolled = await host.enrolledRecipients();
-              const pins = config.textApi?.allowedRecipients;
-              const ids = [...enrolled].filter(id => !pins || pins.includes(id)).sort();
-              request.privacy = createExecutionPolicy({ placement: 'network-allowed',
-                recipients: { kind: 'named', ids } });
-            }
-            result = await host.generate(request,
-              delta => console.log(JSON.stringify({ id: command.id, delta })),
-              command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
+            // Stdin is the owner-command boundary. Its request is prepared and run through reploid/inference.
+            result = await ownerGenerate(command.request, {
+              onDelta: delta => console.log(JSON.stringify({ id: command.id, delta })),
+              onRoute: command.events !== true ? undefined : route => console.log(JSON.stringify({ id: command.id, event: 'route',
                 // `admission` is present when the prompt waits for the named recipient's decision.
                 route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null,
-                  ...(route.admission ? { admission: route.admission } : {}) } })));
+                  ...(route.admission ? { admission: route.admission } : {}) } })) });
           } else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');
           console.log(JSON.stringify({ id: command.id, result }));
         } catch (error) {
-          console.log(JSON.stringify({ id: command?.id, error: error.message,
+          console.log(JSON.stringify({ id: command?.id, error: error.message, ...(typeof error?.code === 'string' ? { code: error.code } : {}),
             ...(command?.events === true ? { outcome: error.disconnect ?? null, serviceCredit: error.serviceCredit ?? null } : {}) }));
         }
       })();

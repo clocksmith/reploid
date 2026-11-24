@@ -7,7 +7,7 @@ if (!['whole-model','partition'].includes(config.mode) || !path.isAbsolute(root)
 await fs.mkdir(root,{recursive:true,mode:0o700});
 const reportFile=path.join(root,config.mode+'-physical.json');
 const from=async f=>import(pathToFileURL(pkg.directory+'/'+f));
-const {openFleetNativeHost,openComputerIdentity}=await from('server/fleet/native-host.js');
+const {openFleetNativeHost,openComputerIdentity,createOwnerInference}=await from('server/fleet/native-host.js');
 const {openFleetCredits}=await from('server/fleet/credits.js');const {startFleetService,createFleetClient}=await from('server/fleet/service.js');
 const remoteRoot=config.remote.releaseRoot;
 const ssh=code=>['-o','BatchMode=yes',config.remote.ssh,'node','-e',`"eval(Buffer.from('${Buffer.from(code).toString('base64')}','base64').toString())"`];
@@ -48,6 +48,8 @@ try{
  report.computers=computers;report.policy=credits.policy;
  service=await startFleetService({credits,port:config.coordinator.port,listenHost:config.coordinator.listenHost,tls:{key:await fs.readFile(config.coordinator.keyFile),cert:await fs.readFile(config.coordinator.certFile)},models:[{...model,...(config.mode==='partition'?{plans:[{id:model.partitionPlanId,creditWeights:[1,1],stageCount:2,activationBytesPerToken:model.partitionPlan.hiddenSize*4}]}:{})}],placementPolicy:{maxMeasurementAgeMs:86400000,maxObservationAgeMs:60000,minResidencyMs:60000,maxRouteCandidates:100,queuedRequestsPerReplica:2}});
  local=await openFleetNativeHost({configuration:{...common,computerId:config.local.computerId,name:config.local.name,identityFile:root+'/state/identity.json',roomTokenFile:root+'/room.token',serviceUrl:service.url,models:[{model,mode:'partition',ordered:config.mode==='partition'?ordered(0):null,directory:config.local.modelDirectory}]},onChange:()=>{}});
+ // Requests go through reploid/inference, as the owner's generate command does.
+ const ask=createOwnerInference({host:local,config:{models:[{model}]}});
  await local.select(0,config.mode==='partition');log('local-stage-ready');
  const loadStart=performance.now();await command('select',{index:0,contribute:true});report.remoteLoadMs=performance.now()-loadStart;log('provider-loaded',{ms:report.remoteLoadMs});
  const start=Date.now();let selected;
@@ -61,20 +63,20 @@ try{
   }
   const request={threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:prompt}]};const start=performance.now(),deltas=[];
   let firstUpdateMs=null;
-  const result=await local.generate(request,d=>{if(firstUpdateMs===null)firstUpdateMs=performance.now()-start;deltas.push(d)});report.rows.push({prompt,startedAtMs:performance.timeOrigin+start,endedAtMs:performance.timeOrigin+performance.now(),firstUpdateMs,wallMs:performance.now()-start,deltas,result});log('answer',{content:result.content,usage:result.usage,credit:result.serviceCredit});await save();
+  const result=await ask(request,{onDelta:d=>{if(firstUpdateMs===null)firstUpdateMs=performance.now()-start;deltas.push(d)}});report.rows.push({prompt,startedAtMs:performance.timeOrigin+start,endedAtMs:performance.timeOrigin+performance.now(),firstUpdateMs,wallMs:performance.now()-start,deltas,result});log('answer',{content:result.content,usage:result.usage,credit:result.serviceCredit});await save();
   if(result.serviceCredit?.status==='pending')throw Error(result.serviceCredit.error);
  }
  if(config.exerciseCancellation){
   if(config.mode!=='partition')throw Error('Signed partial cancellation check requires an ordered route');
   const request={threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:'Count from one to twenty, one number per line.'}]};
   let delivered=0,failure;
-  try{await local.generate(request,()=>{if(++delivered===1)local.cancel(request.attemptId)});}catch(error){failure=error;}
+  try{await ask(request,{onDelta:()=>{if(++delivered===1)local.cancel(request.attemptId)}});}catch(error){failure=error;}
   if(!failure||delivered===0)throw Error('Cancellation did not interrupt real streamed output');
   const id='service:'+identity.peerId+':'+request.attemptId;
   const settlement=await credits.recover(id);
   report.cancellation={delivered,error:failure.message,request:credits.request(id),settlement};
   if(settlement.status==='pending'||settlement.outputTokens<1||credits.snapshot().accounts.some(row=>row.held!==0))throw Error('Acknowledged cancellation failed to settle');
-  const result=await local.generate({threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:config.prompts[0]}]});
+  const result=await ask({threadId:randomUUID(),attemptId:randomUUID(),model:selected,messages:[{role:'user',content:config.prompts[0]}]});
   report.cancellation.reuse=result;
   if(result.serviceCredit.status==='pending'||result.content!==report.rows[0].result.content)throw Error('Reuse after cancellation failed');
   log('cancellation-and-reuse-passed',{acknowledged:settlement.outputTokens,charge:settlement.charge});
@@ -105,7 +107,7 @@ try{
   let modelReady; const deadline=Date.now()+90000;
   while(Date.now()<deadline){modelReady=local.state().execution.models.find(m=>m.id===model.id&&m.availability==='ready'&&!m.partition);if(modelReady)break;await new Promise(r=>setTimeout(r,1000));}
   if(!modelReady)throw Error('Automatically prepared provider was not discovered');
-  report.placement.answer=await local.generate({threadId:randomUUID(),attemptId:randomUUID(),model:modelReady,messages:[{role:'user',content:row.prompt}]});
+  report.placement.answer=await ask({threadId:randomUUID(),attemptId:randomUUID(),model:modelReady,messages:[{role:'user',content:row.prompt}]});
   if(report.placement.answer.content!==row.result.content||report.placement.answer.serviceCredit.status==='pending')throw Error('Automatic placement answer or settlement differs');
   observation.preferences.enabled=false;
   await remoteWrite([[remoteRoot+'/observation.json',JSON.stringify(observation)]]);

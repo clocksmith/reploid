@@ -237,7 +237,11 @@ keeps the host running after standard input closes. `initialModel` and
 
 The JSON-lines control interface accepts `select`, `state`, `reconcile`,
 `balances`, `statement`, `generate` and `cancel`. Every command has an `id`; generation emits
-`delta` events followed by the result. `state` includes computer identity,
+`delta` events followed by the result. `generate` is prepared and run through
+[`reploid/inference`](confidential-execution.md): its `request` may carry `execution`
+requirements in the API's shape, and without them it names the enrolled computers this
+host pins. A peer `privacy` policy is refused. The result carries the API's
+`executionReceipt`, and a refusal reports its stable `code`. `state` includes computer identity,
 execution state, adapter information and owned GPU-buffer accounting. The
 identity file, private room token, database and operator configuration stay out
 of source control.
