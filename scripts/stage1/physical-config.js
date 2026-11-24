@@ -91,9 +91,12 @@ export function validatePhysicalConfig(config) {
   if (limits.stopMarginMs < limits.hardStopMs) refuse('limits.stopMarginMs must cover limits.hardStopMs');
   // A hard stop confirms each process is gone, then restores a service, and must finish before the margin runs out.
   if (limits.hardStopMs < 2 * limits.serviceRestoreMs + 3000) refuse('limits.hardStopMs must cover two limits.serviceRestoreMs and the process kills');
-  object(config.requester, 'requester', ['machineId', 'participantId', 'ssh', 'node', 'releaseRoot', 'identityFile', 'modelDirectory', 'stateDirectory']);
+  object(config.requester, 'requester', ['machineId', 'participantId', 'ssh', 'node', 'releaseRoot', 'identityFile', 'modelDirectory', 'stateDirectory', 'weightRoots']);
   validateTarget(config.requester, 'requester');
   directoryPath(config.requester.modelDirectory, 'requester.modelDirectory');
+  // The requester is searched as widely as a stage host: an empty model directory alone does not show it holds no weights.
+  object(config.requester.weightRoots, 'requester.weightRoots', ['model', 'cache', 'temporary']);
+  for (const key of ['model', 'cache', 'temporary']) directories(config.requester.weightRoots[key], `requester.weightRoots.${key}`);
   if (!Array.isArray(config.hosts) || config.hosts.length !== 2) refuse('hosts must name exactly two stage hosts');
   config.hosts.forEach(validateHost);
   const everyone = [config.requester, ...config.hosts];

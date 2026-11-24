@@ -157,7 +157,21 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
   }
   const settled = (id, signal) => until(() => coordinator.credits.request(id)?.state === 'settled',
     { timeoutMs: Math.min(limits.phaseMs, config.credit.maxRequestMs), label: 'settlement', signal, pollMs: 250 });
-  const requesterWeights = () => control(requesterTarget, 'directory-bytes', { directories: [requesterTarget.modelDirectory] });
+  /**
+   * Zero only when the requester's model directory is empty and none of the model's ranges is found under any of its
+   * weight roots, the same roots a stage host is searched under. Counts only: the receipt never carries a private path.
+   */
+  async function requesterWeights(signal) {
+    const roots = [...new Set([requesterTarget.modelDirectory, ...requesterTarget.weightRoots.model,
+      ...requesterTarget.weightRoots.cache, ...requesterTarget.weightRoots.temporary])];
+    const [modelDirectory, scanned] = await Promise.all([
+      control(requesterTarget, 'directory-bytes', { directories: [requesterTarget.modelDirectory] }, { signal }),
+      control(requesterTarget, 'scan-weights', { roots, allRanges, stageRanges: [], fullCopyDirectory: null, scope: 'requester-weight-directories' }, { signal })]);
+    const held = scanned.inventory;
+    return { weightBytes: modelDirectory.weightBytes + held.bytes, fileCount: modelDirectory.fileCount,
+      scope: 'requester-weight-directories', scannedRoots: roots.length, modelDirectory,
+      heldRanges: { rangeCount: held.rangeCount, bytes: held.bytes, scannedRanges: held.scannedRanges } };
+  }
 
   return Object.freeze({
     describe: () => ({ runtimeClass: 'physical', adapter: 'physical-hosts' }),
@@ -189,7 +203,7 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
       inventories.forEach((row, index) => {
         if (!matchesStage(row.inventory, expectations.stages[index])) throw stopWith('host-stage-check-refused', `${hosts[index].label} stage directory does not hold exactly its stage`);
       });
-      return { requester: { participantId: requesterTarget.participantId, machine: requesterTarget.machineId, preflight: await requesterWeights() },
+      return { requester: { participantId: requesterTarget.participantId, machine: requesterTarget.machineId, preflight: await requesterWeights(signal) },
         hosts: hosts.map((host, index) => ({ label: host.label, stageIndex: index, participantId: host.participantId, machine: host.machineId, computerId: `computer-${host.label}`,
           assignedLayers: null, inventory: { preflight: inventories[index].inventory } })) };
     },
@@ -232,7 +246,7 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
           planIdentity: answer.route.planId, messagesDigest: binding.inputDigest, promptDigest: output.promptDigest,
           promptCount: output.promptCount, maxOutputTokens: output.generation.maxTokens, decoding: stage1Decoding(output.generation) },
         split: { attemptId: answer.attemptId, text: answer.text, ...evidence, settlement: await ledgerTrace(coordinator.credits, answer.reservationId) },
-        requesterAfterSplit: await requesterWeights(), inventoryBeforeSplit,
+        requesterAfterSplit: await requesterWeights(signal), inventoryBeforeSplit,
         inventoryAfterSplit: Object.fromEntries(hosts.map((host, index) => [host.label, after[index].inventory])) };
     },
     async cancelAnswer({ signal }) {

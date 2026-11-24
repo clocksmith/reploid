@@ -38,7 +38,8 @@ function configuration(change = () => {}) {
   const config = { schema: 'reploid.stage1-hosts/v1', coordinator: {}, credit: { weights: [1, 1], maxDebt: 100, maxRequestMs: 60000 },
     limits: { phaseMs: 2000, abortGraceMs: 200, hardStopMs: 1500, stopMarginMs: 2000, serviceRestoreMs: 300 },
     requester: { machineId: hexId('c'), participantId: identities[0].peerId, ssh: 'mock-requester', node: '/opt/bin/node', releaseRoot: '/srv/r/release',
-      identityFile: '/srv/r/id.json', modelDirectory: '/srv/r/empty', stateDirectory: '/srv/r/state' },
+      identityFile: '/srv/r/id.json', modelDirectory: '/srv/r/empty', stateDirectory: '/srv/r/state',
+      weightRoots: { model: ['/srv/r/models'], cache: ['/srv/r/cache'], temporary: ['/srv/r/tmp'] } },
     hosts: [host('host-a', 0), host('host-b', 1)] };
   change(config);
   return config;
@@ -60,7 +61,13 @@ function mockHosts(config, scripted = {}) {
       outsideInFullCopy: inCopy.length, outsideElsewhere: elsewhere.length };
   };
   const controlOps = {
-    'scan-weights': (label, body) => scan(label, body),
+    'scan-weights': (label, body) => {
+      if (label !== 'requester') return scan(label, body);
+      log.push(`requester-roots:${body.roots.join(',')}`);
+      const held = scripted.requesterHolds ? stageRanges[0] : [];
+      return { inventory: observeInventory({ held, stageRanges: body.stageRanges, source: 'hashed-on-host', scope: body.scope, scannedRanges: body.allRanges.length }),
+        outsideInFullCopy: 0, outsideElsewhere: held.length };
+    },
     'directory-bytes': () => ({ weightBytes: 0, fileCount: 0 }),
     'memory-pressure': label => ({ avg10: scripted.pressure?.[label] ?? 1 }),
     'process-state': (_label, { pid }) => ({ running: running.has(pid) }),
@@ -164,6 +171,23 @@ describe('preflight', () => {
   it('refuses a host holding everything in its stage directory', async () => {
     const result = await runAdapter({ scripted: { holds: { 'host-a': { elsewhere: true } } } });
     expect(result.receipt.phases.preflight.reason).toContain('host-stage-check-refused: host-a');
+    expect(result.verdict.ok).toBe(false);
+  });
+});
+
+describe('the zero-weight requester', () => {
+  it('is searched under the same kinds of weight roots as a stage host, not only its model directory', async () => {
+    const result = await runAdapter({ approveDeleteFullCopy: true });
+    // These mocks never open a participant, so the after-split measurement (the same call) is covered by the integration run.
+    expect(result.log.filter(row => row.startsWith('requester-roots:'))).toEqual(['requester-roots:/srv/r/empty,/srv/r/models,/srv/r/cache,/srv/r/tmp']);
+    expect(result.receipt.requester.preflight).toEqual({ weightBytes: 0, fileCount: 0, scope: 'requester-weight-directories', scannedRoots: 4,
+      modelDirectory: { weightBytes: 0, fileCount: 0 }, heldRanges: { rangeCount: 0, bytes: 0, scannedRanges: 5 } });
+    expect(result.verdict.reasons.filter(reason => reason.code === 'requester-holds-weights')).toEqual([]);
+  });
+  it('fails the receipt when model ranges sit in a requester cache although its model directory is empty', async () => {
+    const result = await runAdapter({ approveDeleteFullCopy: true, scripted: { requesterHolds: true } });
+    expect(result.receipt.requester.preflight).toMatchObject({ weightBytes: 32, fileCount: 0, modelDirectory: { weightBytes: 0, fileCount: 0 } });
+    expect(codes(result)).toContain('requester-holds-weights');
     expect(result.verdict.ok).toBe(false);
   });
 });

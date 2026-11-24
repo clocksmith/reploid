@@ -94,7 +94,8 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
       credit: { weights: [16, 84], maxDebt: 1000, maxRequestMs: 60000 },
       limits: { phaseMs: 45000, abortGraceMs: 3000, hardStopMs: 20000, stopMarginMs: 25000, serviceRestoreMs: 5000 },
       requester: { machineId: 'm-' + 'c'.repeat(16), participantId: requesterKey.peerId, ssh: 'mock-requester', node: process.execPath, releaseRoot: REPOSITORY,
-        identityFile: path.join(base, 'requester', 'identity.json'), modelDirectory: path.join(base, 'requester', 'empty'), stateDirectory: path.join(base, 'requester', 'state') },
+        identityFile: path.join(base, 'requester', 'identity.json'), modelDirectory: path.join(base, 'requester', 'empty'), stateDirectory: path.join(base, 'requester', 'state'),
+        weightRoots: { model: [path.join(base, 'requester', 'models')], cache: [path.join(base, 'requester', 'cache')], temporary: [path.join(base, 'requester', 'tmp')] } },
       hosts };
     await fs.mkdir(config.requester.modelDirectory, { recursive: true });
     const scenarioRoot = path.join(base, 'scenario');

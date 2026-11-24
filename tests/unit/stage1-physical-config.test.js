@@ -20,7 +20,8 @@ const config = () => ({ schema: 'reploid.stage1-hosts/v1',
     tls: { keyFile: '/srv/tls/key.pem', certFile: '/srv/tls/cert.pem', caFile: '/srv/tls/ca.pem' } },
   credit: { weights: [16, 84], maxDebt: 1000, maxRequestMs: 600000 },
   limits: { phaseMs: 600000, abortGraceMs: 15000, hardStopMs: 90000, stopMarginMs: 120000, serviceRestoreMs: 30000 },
-  requester: { ...target('c'), modelDirectory: '/srv/requester/empty' }, hosts: [host('host-a', 'a'), host('host-b', 'b')] });
+  requester: { ...target('c'), modelDirectory: '/srv/requester/empty',
+    weightRoots: { model: ['/srv/requester/models'], cache: ['/srv/requester/cache'], temporary: ['/srv/requester/tmp'] } }, hosts: [host('host-a', 'a'), host('host-b', 'b')] });
 
 describe('the private host file', () => {
   it('accepts a complete configuration', () => { expect(validatePhysicalConfig(config()).hosts).toHaveLength(2); });
@@ -31,6 +32,9 @@ describe('the private host file', () => {
     ['a readable machine name as its ID', c => { c.hosts[0].machineId = 'my-desktop'; }, 'machineId'],
     ['two hosts on one machine', c => { c.hosts[1].machineId = c.hosts[0].machineId; }, 'machineId'],
     ['the requester on an executing machine', c => { c.requester.machineId = c.hosts[0].machineId; }, 'machineId'],
+    ['a requester without weight roots', c => { delete c.requester.weightRoots; }, 'requester.weightRoots'],
+    ['a requester weight root that is not a list', c => { c.requester.weightRoots.cache = '/srv/requester/cache'; }, 'requester.weightRoots.cache'],
+    ['a relative requester weight root', c => { c.requester.weightRoots.temporary = ['tmp']; }, 'requester.weightRoots.temporary[0]'],
     ['one identity twice', c => { c.hosts[1].participantId = c.hosts[0].participantId; }, 'participantId'],
     ['an option injected as an SSH target', c => { c.hosts[0].ssh = '-oProxyCommand=x'; }, 'ssh'],
     ['a stage host without a target', c => { c.hosts[0].ssh = null; }, 'ssh'],
