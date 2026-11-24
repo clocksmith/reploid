@@ -9,6 +9,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { mountTextApi } from '../../server/text-api-mount.js';
 import { createTrialAdmission, TRIAL_COLLECTIONS } from '../../server/trial-admission.js';
 import { createMemoryLedgerBackend } from '../../server/ledger/memory-store.js';
+import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
+import { bindPreview } from '../helpers/bound-preview.js';
 
 const owners = [];
 afterEach(async () => { for (const close of owners.splice(0).reverse()) await close(); });
@@ -16,14 +18,16 @@ const model = { id: 'whole-fixture', identity: 'sha256:' + 'a'.repeat(64), avail
 const authenticate = async req => req.headers.authorization === 'Bearer fixture' ? { subject: 'account-fixture' } : null;
 async function boot({ generate, accounting } = {}) {
   const participant = { getState: () => ({ models: [model] }), generate: generate || vi.fn(async (request, controls) => {
-    await controls.requestApproval({ threadId: request.threadId, attemptId: request.attemptId, modelId: model.id,
-      modelIdentity: model.identity, providerId: 'peer-fixture', adapterIdentities: [], input: { messages: request.messages } });
+    await controls.requestApproval(await bindPreview(request, { threadId: request.threadId, attemptId: request.attemptId, modelId: model.id,
+      modelIdentity: model.identity, providerId: 'peer-fixture', adapterIdentities: [], input: { messages: request.messages } }));
     return { threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity,
       adapterIdentities: [], content: 'fixture answer', execution: { stopReason: 'eos-token' } };
   }) };
   const app = express();
   const mounted = await mountTextApi(app, { env: { NODE_ENV: 'test', REPLOID_TEXT_API_COMPOSITION: '/tmp/reploid-fixture-composition.mjs' },
     importModule: async () => ({ createTextApiComposition: async () => ({ participant, authenticate,
+      // The operator names the one provider this composition may disclose to; callers can only narrow it.
+      executionPolicyFor: async () => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['peer-fixture'] } }),
       authorize: async () => true, accounting, allowUnbilledTest: true, testOnly: true }) }) });
   const server = http.createServer(app);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

@@ -1,5 +1,6 @@
-import { createExecutionPolicy } from '../shared/vendor/reploid/chat/execution-policy.js';
+import { createInference } from '../shared/vendor/reploid/inference/index.js';
 import { createHttpRequestOwner } from './http-request-owner.js';
+import { parseExecutionExtension, executionFailure, STANDARD_HTTP_EXECUTION, EXECUTION_ERROR_STATUS } from './text-request-options.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../shared/vendor/reploid/mesh/partitions/partition-generation-request.js';
 import { assertSettingsSupported, normalizeGenerationSettings } from '../shared/vendor/reploid/mesh/generation-settings.js';
@@ -35,7 +36,8 @@ export const object = value => value && typeof value === 'object' && !Array.isAr
 export const freeze = value => { if (object(value) || Array.isArray(value)) { for (const item of Object.values(value)) freeze(item); Object.freeze(value); } return value; };
 const json = (res, status, value) => { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(value)); };
 const errorBody = (error, model) => ({ error: { message: error.message, type: error.status < 500 ? 'invalid_request_error' : 'server_error',
-  param: error.param || null, code: error.status === 401 ? 'unauthorized' : error.status === 403 ? 'permission_denied'
+  param: error.param || null, code: Object.hasOwn(EXECUTION_ERROR_STATUS, error.code ?? '') ? error.code.toLowerCase()
+    : error.status === 401 ? 'unauthorized' : error.status === 403 ? 'permission_denied'
     : error.code === 'CONTEXT_LENGTH_EXCEEDED' ? 'context_length_exceeded'
       : model?.partition && Object.hasOwn(partitionFailures, error.code) ? error.code.toLowerCase() : null } });
 // Protocol adapters borrowing the same requester share its HTTP admission budget.
@@ -108,6 +110,41 @@ export function createTextRequester({ participant, authenticate, authorize, stat
   if (!activeDerivedThreads.has(participant)) activeDerivedThreads.set(participant, new Set());
   const admitted = requesterAdmission.get(participant);
   const activeThreads = activeDerivedThreads.get(participant);
+  // The JSON protocols are adapters over reploid/inference: each request is prepared against a pinned
+  // route, then run through the same plan checks and receipt as the browser and the CLI.
+  const inference = createInference({
+    resolveRoute: (_request, { context }) => context.route,
+    async execute({ policy }, controls, context) {
+      try { context.raw = await participant.generate({ ...context.request, privacy: policy }, controls); return context.raw; }
+      catch (error) { context.failure = error; throw error; }
+    }
+  });
+  const routeOf = (model, execution) => {
+    if (model.partition) {
+      const stages = model.partition.route?.stages?.map(stage => stage.participantId)
+        ?? [model.partition.participantA, model.partition.participantB].filter(Boolean);
+      return { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: [...new Set(stages)], selection: 'all',
+        planIdentity: model.partition.planId ?? null };
+    }
+    return execution.participants.kind === 'named'
+      ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...execution.participants.ids], selection: 'one-of' }
+      : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' };
+  };
+  async function runInference({ request, controls, approve, signal, execution, maxOutputTokens }) {
+    const { model } = request;
+    const context = { request, controls, route: routeOf(model, execution), raw: null, failure: null };
+    try {
+      const plan = await inference.prepare({ model: { id: model.id, identity: model.identity, adapterIdentities: partitionAdapterIdentities(model) },
+        ...(Number.isSafeInteger(maxOutputTokens) ? { generation: { maxOutputTokens } } : {}), execution }, { signal, context });
+      const run = await inference.run({ planId: plan.id, requestId: request.attemptId, input: { messages: request.messages } },
+        { signal, approve, context, attemptId: request.attemptId });
+      const result = await run.result;
+      if (result.status === 'completed') return { raw: context.raw, receipt: result.executionReceipt };
+      // The executor's own error keeps its status and credit outcome unless the inference API refused first.
+      if (context.failure && !Object.hasOwn(EXECUTION_ERROR_STATUS, result.error.code)) throw context.failure;
+      throw Object.assign(new Error(result.error.message), { code: result.error.code });
+    } catch (error) { throw executionFailure(error); }
+  }
   const handle = async (req, res) => {
     let pathname;
     try { pathname = new URL(req.url || '/', 'http://localhost').pathname; }
@@ -131,7 +168,6 @@ export function createTextRequester({ participant, authenticate, authorize, stat
     const { controller, signal } = scope;
     admitted.add(scope.item);
     let streaming = false, emitted = '', released = 0, sequence = 0, observedUsage = null, disclosureApproved = false, acceptingCallbacks = true;
-    let approvedRecipients = [];
     const id = protocol.idPrefix + randomUUID().replaceAll('-', ''), created = Math.floor(Date.now() / 1000);
     let threadId = randomUUID().replaceAll('-', '');
     const attemptId = randomUUID().replaceAll('-', '');
@@ -151,10 +187,16 @@ export function createTextRequester({ participant, authenticate, authorize, stat
       const authenticated = await authenticate(req, { signal }); signal.throwIfAborted();
       if (!object(authenticated) || typeof authenticated.subject !== 'string' || !authenticated.subject || authenticated.subject.length > 512) throw fail(401, 'Authentication required');
       const principal = freeze({ subject: authenticated.subject });
-      const input = await readBody(req, signal, protocol.parse); signal.throwIfAborted();
-      if (input.reploid?.conversation_id) threadId = input.reploid.conversation_id;
+      // The Reploid extension is read first, so a request this API refuses is refused before any message is parsed.
+      const input = await readBody(req, signal, body => {
+        const reploid = object(body) ? parseExecutionExtension(body.reploid) : undefined;
+        const rest = object(body) ? Object.fromEntries(Object.entries(body).filter(([key]) => key !== 'reploid')) : body;
+        return freeze({ ...protocol.parse(rest), ...(reploid ? { reploid } : {}) });
+      }); signal.throwIfAborted();
+      const pin = input.reploid?.model;
+      if (input.reploid?.conversationId) threadId = input.reploid.conversationId;
       const requirePrivateScope = () => {
-        if (input.reploid && (participant.roomId !== input.reploid.pool_id
+        if (input.reploid?.poolId !== undefined && (participant.roomId !== input.reploid.poolId
           || !['private-pool', 'local-only'].includes(participant.executionClass))) throw fail(403, 'Requester is not in the permitted private pool');
       };
       requirePrivateScope();
@@ -162,18 +204,18 @@ export function createTextRequester({ participant, authenticate, authorize, stat
       let eligible = models.filter(value => (value.selectionId === input.model || value.id === input.model && !partitionAdapterIdentities(value).length) && !value.canonical
         && (value.partition || ['ready', 'busy'].includes(value.availability) && value.providerIds?.length));
       if (!eligible.length) throw fail(503, 'No ready route for this exact model variant', 'model');
-      if (input.reploid) {
-        eligible = eligible.filter(value => value.identity === input.reploid.expected_model_identity
-          && (input.reploid.expected_adapter_identities === undefined || canonicalPartitionJson(partitionAdapterIdentities(value)) === canonicalPartitionJson(input.reploid.expected_adapter_identities))
-          && (!input.reploid.expected_plan_identity || value.partition?.planId === input.reploid.expected_plan_identity));
+      if (pin) {
+        eligible = eligible.filter(value => value.identity === pin.identity
+          && (pin.adapterIdentities === undefined || canonicalPartitionJson(partitionAdapterIdentities(value)) === canonicalPartitionJson(pin.adapterIdentities))
+          && (!pin.planIdentity || value.partition?.planId === pin.planIdentity));
         if (!eligible.length) throw fail(409, 'Requested model identity changed');
       }
       if (new Set(eligible.map(value => canonicalPartitionJson([value.identity, partitionAdapterIdentities(value)]))).size !== 1) throw fail(409, 'Model id has ambiguous execution identity', 'model');
       eligible.sort((a, b) => Number(!!a.partition) - Number(!!b.partition));
       model = freeze(structuredClone(eligible[0]));
       assert(typeof model.identity === 'string' && model.identity.length > 0, 'Requester model identity missing');
-      if (input.reploid && input.reploid.expected_model_identity !== model.identity) throw fail(409, 'Requested model identity changed');
-      if (!input.reploid?.conversation_id && isStatelessPrefixCacheEnabled()) {
+      if (pin && pin.identity !== model.identity) throw fail(409, 'Requested model identity changed');
+      if (!input.reploid?.conversationId && isStatelessPrefixCacheEnabled()) {
         const derived = deriveStatelessConversationThreadId({ subject: principal.subject, modelIdentity: model.identity, messages: input.messages });
         if (derived && !activeThreads.has(derived)) {
           activeThreads.add(derived);
@@ -211,14 +253,9 @@ export function createTextRequester({ participant, authenticate, authorize, stat
         assertSettingsSupported(model.generationSettings, settings);
       } catch (error) { throw fail(400, error.message, error.param ?? null); }
       const requested = requireGenerationCapability(model, generation);
-      // The authenticated private API names its recipients explicitly; this is a translation
-      // at the HTTP owner, never a default accepted at the execution wire boundary.
-      let privacy;
-      if (input.reploid) {
-        try { privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: input.reploid.allowed_recipients } }); }
-        catch (error) { throw fail(400, error.message, 'reploid.allowed_recipients'); }
-      }
-      const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(privacy ? { privacy } : {}),
+      // This adapter runs every request through the inference API: the caller's requirements (or the standard
+      // ones) compile into the peer policy there, and the operator's composition may only narrow them.
+      const request = freeze({ threadId, attemptId, model, messages: input.messages,
         ...(requested ? {generationRequest:requested} : {}),
         ...(settings ? { settings } : {}) });
       // A partition route always observes its input tokens before text. A whole-model provider may
@@ -245,7 +282,7 @@ export function createTextRequester({ participant, authenticate, authorize, stat
       res.setHeader('x-reploid-model-identity', model.identity);
       if (requested) res.setHeader('x-reploid-token-usage', requested.usage);
       output = protocol.output({ id, created, model: model.id, input, write, end: value => res.end(value), json: value => json(res, 200, value) });
-      const result = await participant.generate(request, {
+      const controls = {
         signal, principal, onState() {},
         onReservation(reservationId) {
           if (!res.headersSent && typeof reservationId === 'string' && reservationId.length > 0 && reservationId.length <= 512) {
@@ -269,13 +306,7 @@ export function createTextRequester({ participant, authenticate, authorize, stat
           try {
             signal.throwIfAborted();
             preview = freeze(structuredClone(preview));
-            const recipients = [...new Set([...(preview.recipients || []), ...(preview.input?.recipients || []),
-              ...(preview.route?.stages?.map(stage => stage.participantId) || []),
-              ...[preview.participantA, preview.participantB, preview.recipientIdentity || preview.providerId].filter(Boolean)])];
-            if (input.reploid && (!recipients.length || recipients.some(id => !input.reploid.allowed_recipients.includes(id)))) {
-              throw fail(403, 'Actual route recipients exceed the permitted private pool');
-            }
-            if (input.reploid && ((input.reploid.expected_plan_identity && preview.planId !== input.reploid.expected_plan_identity)
+            if (pin && ((pin.planIdentity && preview.planId !== pin.planIdentity)
               || canonicalPartitionJson(preview.adapterIdentities || []) !== canonicalPartitionJson(partitionAdapterIdentities(model)))) throw fail(409, 'Disclosure execution identity changed');
             assert(preview?.threadId === threadId && preview.attemptId === attemptId
               && preview.modelId === model.id && preview.modelIdentity === model.identity
@@ -290,7 +321,6 @@ export function createTextRequester({ participant, authenticate, authorize, stat
             requirePrivateScope();
             assert(acceptingCallbacks, 'Requester callback after completion');
             disclosureApproved = true;
-            approvedRecipients = recipients;
             return true;
           } catch (error) { controller.abort(error); throw error; }
         },
@@ -307,7 +337,11 @@ export function createTextRequester({ participant, authenticate, authorize, stat
             if (input.stream) releaseText();
           } catch (error) { controller.abort(error); throw error; }
         }
-      });
+      };
+      const { requestApproval, ...passthrough } = controls;
+      // The adapter's own checks run as the approval step, after the inference API has matched the route to its plan.
+      const { raw: result, receipt } = await runInference({ request, controls: passthrough, approve: requestApproval, signal,
+        execution: input.reploid?.execution ?? STANDARD_HTTP_EXECUTION, maxOutputTokens: settings?.maxOutputTokens ?? requested?.maxOutputTokens });
       acceptingCallbacks = false;
       signal.throwIfAborted();
       assert(disclosureApproved, 'Recipient disclosure must precede completion');
@@ -365,10 +399,10 @@ export function createTextRequester({ participant, authenticate, authorize, stat
           res.setHeader('x-reploid-first-token-ms', String(Math.round(providerTiming.firstTokenMs * 100) / 100));
         }
       }
-      const evidence = input.reploid?.include_execution ? { schema: 'reploid.http-execution/v1',
-        threadId, attemptId, poolId: participant.roomId, executionClass: participant.executionClass,
-        modelIdentity: model.identity, adapterIdentities: partitionAdapterIdentities(model), planIdentity: model.partition?.planId || null, recipients: approvedRecipients,
-        execution: structuredClone(result.execution) } : undefined;
+      // The same record on every protocol: the receipt says what this requester checked, never more; `execution`
+      // is the executor's own report (timing, partition summary), carried as reported and not checked by the receipt.
+      const evidence = input.reploid ? { executionReceipt: receipt, execution: structuredClone(result.execution ?? null),
+        poolId: participant.roomId ?? null, conversationId: threadId } : undefined;
       output.complete(answer.text, finishReason, reason, usage, evidence, answer.toolCalls, providerTiming);
     } catch (cause) {
       const error = cause instanceof Error ? cause : fail(502, 'Requester failed');

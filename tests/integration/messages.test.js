@@ -4,21 +4,22 @@ import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution
 import { afterEach, expect, it, vi } from 'vitest';
 import { createMessages, parseTextMessage } from '../../server/messages.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
+import { bindPreview } from '../helpers/bound-preview.js';
 const capability={schema:'reploid.text-generation/v1',usage:'raw-model-tokens/v1'};
 const orderedParticipant = mesh => ({
   ...mesh.meshes[5],
   generate(request, controls) {
     const ids = request.model.partition?.route?.stages?.map(stage => stage.participantId) ?? mesh.identities.map(key => key.peerId);
-    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [...new Set(ids)] } });
+    const privacy = createExecutionPolicy({ ...request.privacy, recipients: { kind: 'named', ids: [...new Set(ids)] } });
     return mesh.meshes[5].generate({ ...request, privacy }, controls);
   }
 });
-const preview = (request, recipients=['stage']) => ({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
-const model={id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true},textGeneration:capability};
+const preview = (request, recipients=['stage']) => bindPreview(request, {threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
+const model={id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true,participantA:'actual-stage'},textGeneration:capability};
 const input={model:model.id,messages:[{role:'user',content:'hello'}],max_tokens:2},owners=[];
 afterEach(async()=>{for(const close of owners.splice(0).reverse())await close();});
 async function boot(overrides={}){
-  const generate=vi.fn(async(request,controls)=>{await controls.requestApproval(preview(request,['actual-stage']));
+  const generate=vi.fn(async(request,controls)=>{await controls.requestApproval(await preview(request,['actual-stage']));
     await controls.onUsage({threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens:7,outputTokens:0});
     controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'hello'});
     return {threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,content:'hello',
@@ -64,7 +65,7 @@ it('recipient denial after execution approval dispatches no stages',async()=>{
 });
 it.each(['missing','late','different-attempt','duplicate','changed-final','over-cap'])('refuses %s usage rather than inventing protocol counts',async kind=>{
   const f=await boot();f.participant.generate=async(request,controls)=>{
-    await controls.requestApproval(preview(request));
+    await controls.requestApproval(await preview(request));
     const event={threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens:7,outputTokens:0};
     const delta=()=>controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'x'});
     if(kind==='late')delta();if(kind==='different-attempt')event.attemptId='wrong';
@@ -87,7 +88,7 @@ it('does not invent counts for an old route, accepts no unauthorized request and
 it.each(['missing','pending','denied'])('refuses output while disclosure is %s even if borrowed provider violates callback contract',async mode=>{
   const gate=Promise.withResolvers(),f=await boot({authorize:async({action})=>action==='chat.execute'?true:mode==='pending'?gate.promise:false});
   f.participant.generate=async(request,controls)=>{
-    if(mode!=='missing'){const approval=controls.requestApproval(preview(request,['unapproved']));approval.catch(()=>{});if(mode==='denied')await approval.catch(()=>{});}
+    if(mode!=='missing'){const approval=preview(request,['unapproved']).then(value=>controls.requestApproval(value));approval.catch(()=>{});if(mode==='denied')await approval.catch(()=>{});}
     await controls.onUsage({threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens:1,outputTokens:0});
     throw Error('should not get here');
   };
@@ -95,7 +96,7 @@ it.each(['missing','pending','denied'])('refuses output while disclosure is %s e
 });
 it.each(['input','output','schema'])('validates final-only %s usage before emitting fallback text',async field=>{
   const f=await boot();f.participant.generate=async(request,controls)=>{
-    await controls.requestApproval(preview(request,['approved']));await controls.onUsage({threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens:2,outputTokens:0});
+    await controls.requestApproval(await preview(request,['approved']));await controls.onUsage({threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens:2,outputTokens:0});
     return {...request,modelId:model.id,modelIdentity:model.identity,content:'UNVALIDATED_FINAL_TEXT',execution:{stopReason:'stop-token',stepSummary:{count:1}},
       usage:{schema:field==='schema'?'wrong':'raw-model-tokens/v1',inputTokens:field==='input'?3:2,outputTokens:field==='output'?0:1}};
   };
@@ -103,7 +104,7 @@ it.each(['input','output','schema'])('validates final-only %s usage before emitt
 });
 it.each(['thread','attempt','model','messages','cap'])('unrelated disclosure %s cannot unlock output',async field=>{
   const f=await boot();f.participant.generate=async(request,controls)=>{
-    const p=structuredClone(preview(request));if(field==='thread')p.threadId='other';if(field==='attempt')p.attemptId='other';if(field==='model')p.modelIdentity='other';if(field==='messages')p.input.messages[0].content='different';if(field==='cap')p.input.generationRequest.maxOutputTokens++;
+    const p=structuredClone(await preview(request));if(field==='thread')p.threadId='other';if(field==='attempt')p.attemptId='other';if(field==='model')p.modelIdentity='other';if(field==='messages')p.input.messages[0].content='different';if(field==='cap')p.input.generationRequest.maxOutputTokens++;
     await controls.requestApproval(p);throw Error('should not execute');
   };
   const response=await f.post({...input,stream:true});expect(response.status).toBe(502);expect(f.authorize.mock.calls.map(([row])=>row.action)).toEqual(['chat.execute']);
@@ -113,7 +114,7 @@ it('callbacks retained by a completed provider cannot publish late output or app
   f.participant.generate=async(r,c)=>{request=r;controls=c;return generate(r,c);};
   expect((await f.post()).status).toBe(200);await vi.waitFor(()=>expect(f.api.getState().active).toBe(0));
   expect(()=>controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:1,text:'late'})).toThrow();
-  await expect(controls.requestApproval(preview(request))).rejects.toThrow();expect(f.authorize).toHaveBeenCalledTimes(2);
+  await expect(controls.requestApproval(await preview(request))).rejects.toThrow();expect(f.authorize).toHaveBeenCalledTimes(2);
 });
 
 // A whole-model route: no partition, and the provider may report its input count before its first text.
@@ -121,7 +122,7 @@ const whole={id:'whole-model',identity:'sha256:'+'b'.repeat(64),availability:'re
 const wholeResult=(request,content,inputTokens,outputTokens)=>({threadId:request.threadId,attemptId:request.attemptId,modelId:whole.id,modelIdentity:whole.identity,adapterIdentities:[],content,
   usage:{schema:'raw-model-tokens/v1',inputTokens,outputTokens},execution:{stopReason:'stop-token',completion:{promptTokenCount:inputTokens,generatedTokenCount:outputTokens}}});
 const wholeBoot=script=>boot({participant:{getState:()=>({models:[whole]}),generate:async(request,controls)=>{
-  await controls.requestApproval(preview(request,['provider']));let sequence=0;
+  await controls.requestApproval(await preview(request,['provider']));let sequence=0;
   return script({request,controls,usage:inputTokens=>controls.onUsage({threadId:request.threadId,attemptId:request.attemptId,schema:'raw-model-tokens/v1',inputTokens,outputTokens:0}),
     delta:text=>controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:sequence++,text})});}}});
 it('opens a whole-model stream with the early input count and sends text before the provider has finished',async()=>{

@@ -55,9 +55,10 @@ assert(Array.isArray(fixture.messages) && fixture.messages.length > 0
   'Expected text messages from the frozen reference');
 assert(Number.isSafeInteger(fixture.maxOutputTokens) && fixture.maxOutputTokens > 0
   && fixture.maxOutputTokens <= Math.min(config.maxOutputTokens, model.generation.maxTokens), 'Token limit exceeds the serving configuration');
-console.log(JSON.stringify({ model: selection, input: fixture.messages, store: false, stream: true,
-  max_output_tokens: fixture.maxOutputTokens, reploid: { pool_id: config.roomId, expected_model_identity: model.identity,
-    expected_adapter_identities: [], expected_plan_identity: model.partitionPlanId,
+console.log(JSON.stringify({ model: selection, input: fixture.messages, stream: true,
+  max_output_tokens: fixture.maxOutputTokens, reploid: { poolId: config.roomId,
+    model: { identity: model.identity, adapterIdentities: [], planIdentity: model.partitionPlanId },
     // Output is also disclosed back to this requester. The fleet server separately
     // constrains compute recipients to the two providers pinned above.
-    allowed_recipients: [...providers, state.participantId], include_execution: true } }, null, 2));
+    execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...providers, state.participantId] },
+      confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } } }, null, 2));

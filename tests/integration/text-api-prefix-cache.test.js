@@ -1,5 +1,6 @@
 // @vitest-environment node
 import http from 'node:http';
+import { bindPreview } from '../helpers/bound-preview.js';
 import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatCompletions } from '../../server/chat-completions.js';
@@ -176,8 +177,9 @@ it('reuses GenerationContext across stateless multi-turn /v1/chat/completions re
   };
   requester = createWholeModelRequester({ mesh, models: [model] });
   const participant = { getState: () => ({ models: requester.getModels() }),
+    // Narrow the request's own compiled policy to the one provider rather than replacing it with a broader default.
     generate: (request, controls) => requester.generate({ ...request, privacy: createExecutionPolicy({
-      placement: 'network-allowed', recipients: { kind: 'named', ids: ['p1'] }
+      ...request.privacy, recipients: { kind: 'named', ids: ['p1'] }
     }) }, controls) };
   const route = await mountRoute(createChatCompletions, '/v1/chat/completions', participant);
 
@@ -247,7 +249,7 @@ it('falls back to a fresh threadId when two identical stateless requests run con
     async generate(request, controls) {
       const idx = ++callIndex;
       seenThreadIds.push(request.threadId);
-      await controls.requestApproval({
+      await controls.requestApproval(await bindPreview(request, {
         threadId: request.threadId,
         attemptId: request.attemptId,
         modelId: request.model.id,
@@ -258,7 +260,7 @@ it('falls back to a fresh threadId when two identical stateless requests run con
           ...(request.generationRequest ? { generationRequest: request.generationRequest } : {}),
           ...(request.settings ? { settings: request.settings } : {}),
         },
-      });
+      }));
       if (idx === 1) {
         firstEntered.resolve();
         await releaseFirst.promise;

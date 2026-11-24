@@ -121,20 +121,21 @@ export async function openStageTokenWitness(options, { roomId, participantId }) 
 
 export function verifyStageTokenWitnesses({ fixtureBytes, httpAttemptId, response, input, output }) {
   const fixture = JSON.parse(fixtureBytes), capped = fixture.reference.stopReason === 'max-tokens';
-  const evidence = response?.reploid;
+  // The HTTP `reploid` record: the requester's execution receipt, the executor's own report, and the pool and conversation used.
+  const evidence = response?.reploid, receipt = evidence?.executionReceipt;
   assert((capped ? response?.status === 'incomplete' && response.incomplete_details?.reason === 'max_output_tokens'
-    : response?.status === 'completed') && evidence?.attemptId === httpAttemptId && typeof httpAttemptId === 'string'
-    && httpAttemptId.length > 0, 'Require the matching terminal HTTP response and attempt header');
+    : response?.status === 'completed') && receipt?.schema === 'reploid.execution-receipt/v1' && receipt.attemptId === httpAttemptId
+    && typeof httpAttemptId === 'string' && httpAttemptId.length > 0, 'Require the matching terminal HTTP response and attempt header');
   const target = referenceTokens(fixture), execution = evidence.execution;
   const binding = canonicalRouteAttemptBinding(execution.identity), route = binding.route;
-  assert(evidence.executionClass === 'private-pool' && binding.attemptId === httpAttemptId && binding.threadId === evidence.threadId
-    && route.modelId === fixture.modelId && route.modelIdentity === fixture.modelIdentity && evidence.modelIdentity === route.modelIdentity
-    && route.planId === fixture.planIdentity && evidence.planIdentity === route.planId && evidence.adapterIdentities?.length === 0,
+  assert(typeof evidence.poolId === 'string' && binding.attemptId === httpAttemptId && binding.threadId === evidence.conversationId
+    && route.modelId === fixture.modelId && route.modelIdentity === fixture.modelIdentity && receipt.requested.model.identity === route.modelIdentity
+    && route.planId === fixture.planIdentity && receipt.route?.planIdentity === route.planId && receipt.requested.model.adapterIdentities?.length === 0,
   'Unexpected requester route, base model, adapter set, or plan');
   const stageIds = route.stages.map(stage => stage.participantId);
-  assert.deepEqual([...evidence.recipients].sort(), [...stageIds, binding.requesterId].sort(), 'HTTP disclosure differs from the recorded stages and requester');
+  assert.deepEqual([...receipt.route.participants].sort(), [...new Set(stageIds)].sort(), 'HTTP disclosure differs from the recorded stages');
   for (const row of [input, output]) {
-    assert(row?.schema === 'reploid.local-token-parity/v1' && row.attemptId === httpAttemptId && row.threadId === evidence.threadId
+    assert(row?.schema === 'reploid.local-token-parity/v1' && row.attemptId === httpAttemptId && row.threadId === evidence.conversationId
       && row.roomId === evidence.poolId && row.bindingDigest === digest(binding) && row.fixtureSha256 === sha256(fixtureBytes),
     'Witness belongs to a different reference, route, or HTTP attempt');
     assert.equal(row.promptCount, target.promptCount);

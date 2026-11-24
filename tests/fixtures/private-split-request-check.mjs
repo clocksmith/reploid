@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { parseTextResponse } from '../../server/responses.js';
+import { parseExecutionExtension } from '../../server/text-request-options.js';
 import { fileURLToPath } from 'node:url';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 
@@ -57,14 +58,16 @@ test('the approved split produces a streaming request pinned to both stages and 
   const input = snapshot(), result = await run(input);
   assert.equal(result.status, 0, result.stderr);
   const body = JSON.parse(result.stdout);
-  const parsed = parseTextResponse(body);
+  const { reploid, ...protocol } = body;
+  const parsed = parseTextResponse(protocol);
   assert.deepEqual(parsed.messages, input.prompt.messages);
   assert.equal(parsed.generationRequest.maxOutputTokens, 4);
-  assert.deepEqual(parsed.reploid.allowed_recipients, [...providers, requester]);
-  assert.deepEqual(body, { model: selectionId, input: input.prompt.messages, store: false, stream: true,
-    max_output_tokens: 4, reploid: { pool_id: input.config.roomId, expected_model_identity: model.identity,
-      expected_adapter_identities: [], expected_plan_identity: model.partitionPlanId,
-      allowed_recipients: [...providers, requester], include_execution: true } });
+  assert.deepEqual(parseExecutionExtension(reploid).execution.participants.ids, [...providers, requester]);
+  assert.deepEqual(body, { model: selectionId, input: input.prompt.messages, stream: true,
+    max_output_tokens: 4, reploid: { poolId: input.config.roomId,
+      model: { identity: model.identity, adapterIdentities: [], planIdentity: model.partitionPlanId },
+      execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...providers, requester] },
+        confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } } });
 });
 
 const refusals = [

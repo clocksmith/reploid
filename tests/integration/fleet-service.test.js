@@ -415,9 +415,10 @@ it('streams execution evidence and settles once for a Responses request bound to
   const f = await privateSplitApi();
   try {
     const model = f.route.model;
-    const binding = { pool_id: 'private-split-test', expected_model_identity: model.identity,
-      expected_adapter_identities: [], expected_plan_identity: model.partition.planId,
-      allowed_recipients: keys.slice(0, 3).map(key => key.peerId), include_execution: true };
+    const named = keys.slice(0, 3).map(key => key.peerId);
+    const binding = { poolId: 'private-split-test', model: { identity: model.identity, adapterIdentities: [], planIdentity: model.partition.planId },
+      execution: { placement: 'network-allowed', participants: { kind: 'named', ids: named }, confidentiality: 'executor-readable',
+        allowMetadata: ['model-id', 'timing', 'length'] } };
     const response = await fetch(f.url + '/responses', { method: 'POST', headers: f.headers,
       body: JSON.stringify({ model: model.selectionId || model.id, input: [{ role: 'user', content: 'test' }],
         store: false, stream: true, max_output_tokens: 2, reploid: binding }) });
@@ -428,9 +429,14 @@ it('streams execution evidence and settles once for a Responses request bound to
     expect(final.type, stream).toBe('response.completed');
     expect(final.response.usage.output_tokens).toBe(2);
     expect(final.response.output[0].content[0].text).toBe('01');
-    expect(final.response.reploid).toMatchObject({ modelIdentity: model.identity, planIdentity: model.partition.planId,
-      poolId: binding.pool_id, executionClass: 'private-pool', adapterIdentities: [] });
-    expect([...final.response.reploid.recipients].sort()).toEqual([...binding.allowed_recipients].sort());
+    const receipt = final.response.reploid.executionReceipt;
+    expect(receipt).toMatchObject({ schema: 'reploid.execution-receipt/v1', status: 'completed',
+      requested: { model: { identity: model.identity, adapterIdentities: [] }, execution: binding.execution },
+      route: { shape: 'split', backend: 'doppler-partition-plaintext/v1', protocol: null } });
+    // Every stage that read the content is named in the route, and every one of them was named by the caller.
+    expect(receipt.route.participants.length).toBeGreaterThan(0);
+    expect(receipt.route.participants.every(id => named.includes(id))).toBe(true);
+    expect(receipt.evidence.confidentiality.contentReadBy.participants).toEqual(receipt.route.participants);
     const reservation = response.headers.get('x-reploid-reservation-id');
     expect(reservation).toBeTruthy();
     const settled = await client.call('request', { id: reservation });

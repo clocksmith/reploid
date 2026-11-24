@@ -2,6 +2,7 @@
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import { canonicalTextRequest, parseTextChatCompletion, stripDescriptiveKeywords } from './chat-completions.js';
 import { createTextRequester, fail, object, freeze } from './text-requester.js';
+import { EXECUTION_ERROR_STATUS } from './text-request-options.js';
 
 const MAX_TOOL_USE_ID = 128, INPUT_FRAGMENT = 96;
 
@@ -95,7 +96,9 @@ export function parseTextMessage(body) {
     toolParam: index => `tools[${index}].input_schema` }), generationRequest });
 }
 const errorBody = error => ({type:'error',error:{type: error.status===401?'authentication_error':error.status===403?'permission_error'
-  :error.status===429?'rate_limit_error':error.status<500?'invalid_request_error':'api_error', message:String(error.message).slice(0,1024)}});
+  :error.status===429?'rate_limit_error':error.status<500?'invalid_request_error':'api_error', message:String(error.message).slice(0,1024),
+  // The stable inference refusal codes are the same on every protocol.
+  ...(Object.hasOwn(EXECUTION_ERROR_STATUS,error.code??'')?{code:error.code.toLowerCase()}:{})}});
 export function createMessages(options) {
   // wholeModelUsage: a streamed request asks a whole-model provider for its input count before text.
   return createTextRequester(options,{path:'/v1/messages',idPrefix:'msg_',parse:parseTextMessage,errorBody,wholeModelUsage:true,
@@ -133,11 +136,11 @@ export function createMessages(options) {
           if (!textOpen) openText();
           textDelta(text);
         },
-        complete(content,finishReason,reason,counts,_evidence,toolCalls=[]) {
+        complete(content,finishReason,reason,counts,evidence,toolCalls=[]) {
           if (!counts) throw fail(502,'Actual provider token usage unavailable');
           if (reason==='context-limit' || reason==='stop-sequence') throw fail(502,'Requester stopping reason lacks a supported Messages mapping');
           const stopReason=finishReason==='tool_calls'?'tool_use':finishReason==='length'?'max_tokens':'end_turn';
-          if (!input.stream) {json(message(content,stopReason,counts,toolCalls));return;}
+          if (!input.stream) {json({...message(content,stopReason,counts,toolCalls),...(evidence?{reploid:evidence}:{})});return;}
           if (!started) {
             start({inputTokens:counts.inputTokens,outputTokens:0});
             if (held || !tooling) openText();
@@ -151,7 +154,7 @@ export function createMessages(options) {
             for (let at=0; at<encoded.length; at+=INPUT_FRAGMENT) event('content_block_delta',{index,delta:{type:'input_json_delta',partial_json:encoded.slice(at,at+INPUT_FRAGMENT)}});
             event('content_block_stop',{index});
           });
-          event('message_delta',{delta:{stop_reason:stopReason,stop_sequence:null},usage:{output_tokens:counts.outputTokens}});
+          event('message_delta',{delta:{stop_reason:stopReason,stop_sequence:null},usage:{output_tokens:counts.outputTokens},...(evidence?{reploid:evidence}:{})});
           end(frame('message_stop',{}));
         },
         error(error) {end(frame('error',{error}));}

@@ -276,7 +276,12 @@ it('validates every paired v3 route recipient before transmitting prompt message
     const result = await client.execute(input, controls);
     expect(result.content).toBe('Hello');
     expect(native.generate.mock.calls[0][0].privacyBinding.route.hops.map(hop => hop.recipient)).toEqual([requester, provider]);
-    expect(result.execution.privacy.cryptographic).toBe('unavailable');
+    // The receipt now comes from the inference API above this port; the port only describes the route it will bind.
+    expect(result.execution).not.toHaveProperty('privacy');
+    expect(await client.describeRoute(input)).toMatchObject({ shape: 'remote', backend: 'doppler-plaintext/v1',
+      participants: [requester, provider], selection: 'all' });
+    await expect(client.describeRoute({ ...input, privacy: plaintextPolicy({ kind: 'named', ids: [provider] }) }))
+      .rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
   } finally { client.close(); await bridge.close(); }
 });
 

@@ -647,10 +647,10 @@ async function runSignedApiAndCancellation() {
         input: 'Reply with the single word READY.',
         max_output_tokens: 64,
         reploid: {
-          pool_id: room,
-          expected_model_identity: CATALOG_MODEL.identity,
-          allowed_recipients: [providerKey.peerId],
-          include_execution: true,
+          poolId: room,
+          model: { identity: CATALOG_MODEL.identity },
+          execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [providerKey.peerId] },
+            confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] },
         },
       }),
     });

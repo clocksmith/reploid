@@ -3,7 +3,6 @@ import { randomUUID } from 'node:crypto';
 import { canonicalTextRequest, parseTextChatCompletion, stripDescriptiveKeywords } from './chat-completions.js';
 import { createTextRequester, fail, object, freeze } from './text-requester.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
-import { parseRequesterBinding } from './text-request-options.js';
 
 const MAX_CALL_ID = 128, ARGUMENT_FRAGMENT = 96;
 
@@ -68,11 +67,12 @@ function convertItems(items) {
 export function parseTextResponse(body) {
   if (!object(body)) throw fail(400, 'A JSON object is required');
   for (const key of Object.keys(body)) {
-    if (!['model', 'input', 'instructions', 'store', 'stream', 'max_output_tokens', 'text', 'reploid', 'tools', 'tool_choice', 'parallel_tool_calls'].includes(key)) {
+    if (!['model', 'input', 'instructions', 'store', 'stream', 'max_output_tokens', 'text', 'tools', 'tool_choice', 'parallel_tool_calls'].includes(key)) {
       throw fail(400, `Unsupported parameter: ${key}`, key);
     }
   }
-  if (body.store !== false) throw fail(400, 'Stateless Responses requires explicit store:false', 'store');
+  // This server keeps no responses. Omitted or false is that guarantee; true asks for storage it does not offer.
+  if (![undefined, null, false].includes(body.store)) throw fail(400, 'Responses are not stored here; omit store or send store:false', 'store');
   if (body.instructions !== undefined && body.instructions !== null && typeof body.instructions !== 'string') throw fail(400, 'instructions must be text', 'instructions');
   if (body.max_output_tokens !== undefined && (!Number.isSafeInteger(body.max_output_tokens)
     || body.max_output_tokens <= 0 || body.max_output_tokens > policy.limits.maxTokens)) {
@@ -111,7 +111,7 @@ export function parseTextResponse(body) {
     ...(parsed.settings?.tools.length ? { declaredTools: tools, declaredToolChoice: body.tool_choice ?? 'auto', parallelToolCalls: body.parallel_tool_calls ?? true } : {}),
     ...(body.max_output_tokens === undefined ? {} : { generationRequest: {
       schema: 'reploid.partition-generation-request/v1', maxOutputTokens: body.max_output_tokens, usage: 'raw-model-tokens/v1',
-    } }), ...(body.reploid === undefined ? {} : { reploid: parseRequesterBinding(body.reploid) }) });
+    } }) });
 }
 
 export function createResponses(options) {

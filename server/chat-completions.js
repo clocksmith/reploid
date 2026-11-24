@@ -202,11 +202,11 @@ export function createChatCompletions(options) {
   return createTextRequester(options, { path: '/v1/chat/completions', idPrefix: 'chatcmpl-', parse: parseTextChatCompletion,
     output({ id, created, model, input, write, end, json }) {
       let started = false;
-      const chunk = (delta, finishReason = null, usage = undefined) => write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model, ...(usage ? { usage } : {}),
-        choices: [{ index: 0, delta, logprobs: null, finish_reason: finishReason }] })}\n\n`);
+      const chunk = (delta, finishReason = null, usage = undefined, evidence = undefined) => write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model, ...(usage ? { usage } : {}),
+        choices: [{ index: 0, delta, logprobs: null, finish_reason: finishReason }], ...(evidence ? { reploid: evidence } : {}) })}\n\n`);
       return {
         delta(text) { chunk({ ...(started ? {} : { role: 'assistant' }), content: text }); started = true; },
-        complete(content, finishReason, _reason, measured, _evidence, toolCalls = [], timing = null) {
+        complete(content, finishReason, _reason, measured, evidence, toolCalls = [], timing = null) {
           const cachedTokens = Number.isSafeInteger(timing?.reusedPrefixTokens) && timing.reusedPrefixTokens > 0
             ? timing.reusedPrefixTokens : 0;
           const usage = measured ? { prompt_tokens: measured.inputTokens, completion_tokens: measured.outputTokens,
@@ -218,7 +218,7 @@ export function createChatCompletions(options) {
           if (!input.stream) {
             json({ id, object: 'chat.completion', created, model, ...(usage ? { usage } : {}),
               choices: [{ index: 0, message: { role: 'assistant', content: text, refusal: null, ...(calls.length ? { tool_calls: calls } : {}) },
-                logprobs: null, finish_reason: finishReason }] });
+                logprobs: null, finish_reason: finishReason }], ...(evidence ? { reploid: evidence } : {}) });
             return;
           }
           // Calls arrive here whole and validated: each is announced with its id and name, then its
@@ -231,7 +231,7 @@ export function createChatCompletions(options) {
               chunk({ tool_calls: [{ index, function: { arguments: call.function.arguments.slice(at, at + ARGUMENT_FRAGMENT) } }] });
             }
           });
-          chunk({}, finishReason, usage); end('data: [DONE]\n\n');
+          chunk({}, finishReason, usage, evidence); end('data: [DONE]\n\n');
         },
         error(error) { end(`data: ${JSON.stringify({ error })}\n\n`); }
       };

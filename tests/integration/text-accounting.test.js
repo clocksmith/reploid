@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import http from 'node:http';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createTextApi } from '../../server/text-api.js';
+import { bindPreview } from '../helpers/bound-preview.js';
 import { createTextAccounting, TEXT_ACCOUNTING_COLLECTIONS } from '../../server/text-accounting.js';
 import { TRIAL_COLLECTIONS } from '../../server/trial-admission.js';
 import { createMemoryLedgerBackend } from '../../server/ledger/memory-store.js';
@@ -191,11 +192,13 @@ describe.each(['memory', 'firestore'])('whole-model accounting on %s', storage =
     const model = { ...f.request.model, availability: 'ready', providerIds: ['connection-fixture'] };
     const participant = { getState: () => ({ models: [model] }), async generate(request, controls) {
       const ids = { threadId: request.threadId, attemptId: request.attemptId };
-      await controls.requestApproval({ ...f.preview, ...ids });
+      await controls.requestApproval(await bindPreview(request, { ...f.preview, ...ids }, [f.provider.peerId]));
       const value = await f.result();
       return { ...value, ...ids, execution: { ...value.execution, stopReason: 'eos-token' } };
     } };
     const api = createTextApi({ participant, accounting: f.open(), authenticate: async () => f.controls.principal,
+      // The operator names the one provider it may disclose to; the caller's standard requirements narrow nothing further.
+      executionPolicyFor: async () => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [f.provider.peerId] } }),
       authorize: async () => true, production: false });
     const server = http.createServer((req, res) => api.handle(req, res));
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

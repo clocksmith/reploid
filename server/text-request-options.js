@@ -1,23 +1,54 @@
 import { fail, object, freeze } from './text-requester.js';
+import { compileExecutionRequirements, EXECUTION_BACKENDS } from '../shared/vendor/reploid/chat/execution-policy.js';
 
-/** Optional private-pool binding; it narrows the host's disclosure authority. */
-export function parseRequesterBinding(value) {
+/** HTTP status for each stable inference refusal code. The body's error.code is the code in lower case. */
+export const EXECUTION_ERROR_STATUS = Object.freeze({
+  EXECUTION_REQUEST_INVALID: 400, CONFIDENTIAL_EXECUTION_UNAVAILABLE: 422, LEAKAGE_NOT_ALLOWED: 422,
+  EXECUTION_ROUTE_UNAVAILABLE: 503, EXECUTION_PLAN_EXPIRED: 409, EXECUTION_PLAN_CHANGED: 409, RESULT_UNVERIFIED: 502
+});
+// Only refusals of the caller's own extension point at the `reploid` parameter.
+const EXTENSION_CODES = ['EXECUTION_REQUEST_INVALID', 'CONFIDENTIAL_EXECUTION_UNAVAILABLE', 'LEAKAGE_NOT_ALLOWED'];
+export const executionFailure = error => Object.hasOwn(EXECUTION_ERROR_STATUS, error?.code)
+  ? Object.assign(fail(EXECUTION_ERROR_STATUS[error.code], error.message, error.param ?? (EXTENSION_CODES.includes(error.code) ? 'reploid' : null)),
+    { code: error.code }) : error;
+
+/** The requirements a standard JSON request runs under when it carries no extension: any participant the operator allows. */
+export const STANDARD_HTTP_EXECUTION = Object.freeze({ placement: 'network-allowed', participants: Object.freeze({ kind: 'open' }),
+  confidentiality: 'executor-readable', allowMetadata: Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]) });
+
+const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/u.test(value);
+
+/**
+ * The one `reploid` extension of /v1/chat/completions, /v1/messages and /v1/responses: the same `model` pin and
+ * `execution` requirements as `reploid/inference` prepare(), plus the private pool and conversation to use.
+ * It is read before the protocol's messages. A request for requester-only confidentiality is refused here:
+ * an ordinary JSON body is already plaintext to this server, so it can never be protected afterwards.
+ */
+export function parseExecutionExtension(value) {
   if (value === undefined) return undefined;
-  if (!object(value) || Object.keys(value).some(key => !['pool_id', 'expected_model_identity', 'expected_adapter_identities', 'expected_plan_identity', 'allowed_recipients', 'include_execution', 'conversation_id'].includes(key))
-    || typeof value.pool_id !== 'string' || !value.pool_id || value.pool_id.length > 256
-    || typeof value.expected_model_identity !== 'string' || !value.expected_model_identity || value.expected_model_identity.length > 512
-    || value.include_execution !== true || !Array.isArray(value.allowed_recipients) || !value.allowed_recipients.length
-    || value.allowed_recipients.length > 32 || value.allowed_recipients.some(id => typeof id !== 'string' || !id || id.length > 512)
-    || new Set(value.allowed_recipients).size !== value.allowed_recipients.length) {
-    throw fail(400, 'Require exact model identity and permitted recipient identities', 'reploid');
+  const invalid = message => Object.assign(fail(400, message, 'reploid'), { code: 'EXECUTION_REQUEST_INVALID' });
+  if (!object(value) || !Object.keys(value).length
+    || Object.keys(value).some(key => !['model', 'execution', 'poolId', 'conversationId'].includes(key))) {
+    throw invalid('reploid accepts model, execution, poolId and conversationId');
   }
-  if (value.conversation_id !== undefined && (typeof value.conversation_id !== 'string'
-    || !value.conversation_id || value.conversation_id.length > 128 || !/^[A-Za-z0-9._:-]+$/u.test(value.conversation_id))) {
-    throw fail(400, 'Invalid conversation_id', 'reploid');
+  if (value.model !== undefined) {
+    const { model } = value;
+    if (!object(model) || Object.keys(model).some(key => !['identity', 'adapterIdentities', 'planIdentity'].includes(key))
+      || !digest(model.identity) || (model.adapterIdentities !== undefined && (!Array.isArray(model.adapterIdentities)
+        || model.adapterIdentities.length > 1 || !model.adapterIdentities.every(digest)))
+      || (model.planIdentity !== undefined && (typeof model.planIdentity !== 'string' || !model.planIdentity || model.planIdentity.length > 256))) {
+      throw invalid('reploid.model pins a sha256 identity, at most one sha256 adapter identity and an optional plan identity');
+    }
   }
-  if (value.expected_adapter_identities !== undefined && (!Array.isArray(value.expected_adapter_identities)
-    || value.expected_adapter_identities.length > 1 || value.expected_adapter_identities.some(id => !/^sha256:[a-f0-9]{64}$/u.test(id)))) throw fail(400, 'Invalid adapter identities', 'reploid');
-  if (value.expected_plan_identity != null && (typeof value.expected_plan_identity !== 'string' || !value.expected_plan_identity
-    || value.expected_plan_identity.length > 256)) throw fail(400, 'Invalid plan identity', 'reploid');
+  if (value.poolId !== undefined && (typeof value.poolId !== 'string' || !value.poolId || value.poolId.length > 256)) throw invalid('Invalid reploid.poolId');
+  if (value.conversationId !== undefined && (typeof value.conversationId !== 'string' || !value.conversationId
+    || value.conversationId.length > 128 || !/^[A-Za-z0-9._:-]+$/u.test(value.conversationId))) throw invalid('Invalid reploid.conversationId');
+  if (value.execution !== undefined) {
+    try { compileExecutionRequirements(value.execution); }
+    catch (error) {
+      throw executionFailure(Object.hasOwn(EXECUTION_ERROR_STATUS, error.code) ? error : Object.assign(error, { code: 'EXECUTION_REQUEST_INVALID' }));
+    }
+    if (value.execution.placement !== 'network-allowed') throw invalid('This API runs on network participants; local-only placement is not available here');
+  }
   return freeze(structuredClone(value));
 }

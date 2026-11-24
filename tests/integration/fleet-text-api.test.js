@@ -19,6 +19,9 @@ import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 const model = { id: 'qwen-3-5-2b-q4k-ef16-af32', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler', generation: { maxTokens: 16 } };
 const token = 'synthetic-fleet-api-bearer-secret-0123456789abcdef';
 const roomId = 'reploid-swarm-fleet-fixture';
+/** The one `reploid` extension: pinned model, the named participants allowed to read the prompt, and the private pool. */
+const extension = (ids, more = {}) => ({ poolId: roomId, model: { identity: model.identity }, execution: { placement: 'network-allowed',
+  participants: { kind: 'named', ids }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] }, ...more });
 
 let root, keys, credits, service, requesterCredits, providerCredits;
 beforeEach(async () => {
@@ -170,7 +173,7 @@ it('rejects an explicit private network request under a local-only operator poli
     const response = await fetch(`http://127.0.0.1:${server.address().port}/v1/responses`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ model: model.id, store: false, input: 'synthetic private prompt',
-        reploid: { pool_id: roomId, expected_model_identity: model.identity, allowed_recipients: [keys[1].peerId], include_execution: true } })
+        reploid: extension([keys[1].peerId]) })
     });
     expect(response.status).toBe(403);
     expect((await response.json()).error.message).toBe('Network execution is not authorized by this API operator');
@@ -216,7 +219,7 @@ it('streams authenticated /v1/responses over whole-model fleet capacity and sett
       body: JSON.stringify({
         model: model.id, store: false, stream: true, input: [{ role: 'user', content: 'Return JSON only: {"ok":true}' }],
         max_output_tokens: 16, text: { format: { type: 'json_object' } },
-        reploid: { pool_id: roomId, expected_model_identity: model.identity, allowed_recipients: [keys[2].peerId], include_execution: true }
+        reploid: extension([keys[2].peerId])
       })
     });
     expect(denied.status).toBe(403);
@@ -228,11 +231,7 @@ it('streams authenticated /v1/responses over whole-model fleet capacity and sett
       body: JSON.stringify({
         model: model.id, store: false, stream: true, input: [{ role: 'user', content: 'Return JSON only: {"ok":true}' }],
         max_output_tokens: 16, text: { format: { type: 'json_object' } },
-        reploid: {
-          pool_id: roomId, expected_model_identity: model.identity,
-          expected_adapter_identities: [], expected_plan_identity: null,
-          allowed_recipients: [keys[1].peerId], include_execution: true
-        }
+        reploid: extension([keys[1].peerId], { model: { identity: model.identity, adapterIdentities: [] } })
       })
     });
     expect(ok.status).toBe(200);
@@ -242,9 +241,12 @@ it('streams authenticated /v1/responses over whole-model fleet capacity and sett
     expect(events.at(-1).type).toBe('response.completed');
     expect(final.output[0].content[0].text).toBe('{"ok":true}');
     expect(final.usage).toEqual({ input_tokens: 11, output_tokens: 4, total_tokens: 15 });
+    expect(final.reploid.executionReceipt).toMatchObject({
+      schema: 'reploid.execution-receipt/v1', status: 'completed', requested: { model: { id: model.id, identity: model.identity } },
+      route: { shape: 'remote', participants: [keys[1].peerId], backend: 'doppler-plaintext/v1', protocol: null },
+      evidence: { confidentiality: { mode: 'executor-readable', contentReadBy: { participants: [keys[1].peerId] } } }
+    });
     expect(final.reploid).toMatchObject({
-      schema: 'reploid.http-execution/v1', poolId: roomId, executionClass: 'private-pool',
-      modelIdentity: model.identity, recipients: [keys[1].peerId],
       execution: {
         providerIdentity: keys[1].peerId,
         serviceCredit: { unit: 'noncash-service-credit', charge: 4, outputTokens: 4, settledAt: expect.any(Number) }
@@ -293,7 +295,7 @@ it('propagates HTTP stream cancellation to the whole-model provider and releases
       body: JSON.stringify({
         model: model.id, store: false, stream: true, input: [{ role: 'user', content: 'Return JSON only: {"ok":true}' }],
         max_output_tokens: 16, text: { format: { type: 'json_object' } },
-        reploid: { pool_id: roomId, expected_model_identity: model.identity, allowed_recipients: [keys[1].peerId], include_execution: true }
+        reploid: extension([keys[1].peerId])
       })
     });
     const reservationId = response.headers.get('x-reploid-reservation-id');
@@ -379,7 +381,7 @@ it('cancels a queued second request before dispatch when its client disconnects 
   const requestBody = JSON.stringify({
     model: model.id, store: false, stream: true, input: [{ role: 'user', content: 'Return JSON only: {"ok":true}' }],
     max_output_tokens: 16, text: { format: { type: 'json_object' } },
-    reploid: { pool_id: roomId, expected_model_identity: model.identity, allowed_recipients: [keys[1].peerId], include_execution: true }
+    reploid: extension([keys[1].peerId])
   });
   const secondController = new AbortController();
   try {
@@ -469,7 +471,7 @@ it('reconciles a completed in-flight request via /v1/reploid/recover when discon
       body: JSON.stringify({
         model: model.id, store: false, stream: false, input: [{ role: 'user', content: 'Return JSON only: {"ok":true}' }],
         max_output_tokens: 16, text: { format: { type: 'json_object' } },
-        reploid: { pool_id: roomId, expected_model_identity: model.identity, allowed_recipients: [keys[1].peerId], include_execution: true }
+        reploid: extension([keys[1].peerId])
       })
     });
     pending.catch(() => {});
@@ -622,11 +624,7 @@ it('queues concurrent whole-model requests fairly before provider credit admissi
       body: JSON.stringify({
         model: model.id, store: false, stream: false, input: messages, max_output_tokens: 16,
         text: { format: { type: 'json_object' } },
-        reploid: {
-          pool_id: roomId, expected_model_identity: model.identity,
-          allowed_recipients: [keys[1].peerId], include_execution: true,
-          conversation_id: conversationId
-        }
+        reploid: extension([keys[1].peerId], { conversationId })
       })
     });
 

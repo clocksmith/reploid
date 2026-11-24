@@ -9,22 +9,23 @@ import { NATIVE_WHOLE_MODEL_SETTINGS } from '../../server/native-whole-model.js'
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
+import { bindPreview } from '../helpers/bound-preview.js';
 const orderedParticipant = mesh => ({
   ...mesh.meshes[5],
   generate(request, controls) {
     const ids = request.model.partition?.route?.stages?.map(stage => stage.participantId) ?? mesh.identities.map(key => key.peerId);
-    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [...new Set(ids)] } });
+    const privacy = createExecutionPolicy({ ...request.privacy, recipients: { kind: 'named', ids: [...new Set(ids)] } });
     return mesh.meshes[5].generate({ ...request, privacy }, controls);
   }
 });
-const preview = (request, recipients=['stage']) => ({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
-const model = { id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true} };
+const preview = (request, recipients=['stage']) => bindPreview(request, {threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
+const model = { id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true,participantA:'actual-stage'} };
 const input = {model:model.id,messages:[{role:'user',content:'hello'}]};
 const owners=[];
 afterEach(async()=>{for(const close of owners.splice(0).reverse()) await close();});
 async function boot(overrides={}) {
   const generate=vi.fn(async (request,controls)=>{
-    if(!await controls.requestApproval(preview(request,['actual-stage']))) throw Error('Disclosure declined');
+    if(!await controls.requestApproval(await preview(request,['actual-stage']))) throw Error('Disclosure declined');
     for(const [sequence,text] of ['hel','lo'].entries()) controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence,text});
     return {threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,
       content:'hello',execution:{stopReason:'eos-token'}};
@@ -69,7 +70,7 @@ it.each([
   requester = createWholeModelRequester({ mesh, models: [whole] });
   const f = await boot({ participant: { getState: () => ({ models: [model, ...requester.getModels()] }),
     generate: (request, controls) => requester.generate({ ...request, privacy: createExecutionPolicy({
-      placement: 'network-allowed', recipients: { kind: 'named', ids: ['whole-provider'] }
+      ...request.privacy, recipients: { kind: 'named', ids: ['whole-provider'] }
     }) }, controls) } });
   const response = await f.post({ ...input, model: whole.id, stream: true, ...(cap ? { max_completion_tokens: cap } : {}) });
   expect(response.status).toBe(200);
@@ -143,11 +144,11 @@ it('streams ordered deltas and one terminal reason with a stable completion iden
   expect(chunks[0].choices[0].delta.role).toBe('assistant');expect(chunks.at(-1).choices[0].finish_reason).toBe('stop');
 });
 it.each([['stop-token','stop'],['stop-sequence','stop'],['max-tokens','length'],['context-limit','length']])('maps actual %s termination to %s',async(reason,expected)=>{
-  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));return {...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:reason}};}}});
+  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(await preview(request));return {...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:reason}};}}});
   const response=await f.post();expect((await response.json()).choices[0].finish_reason).toBe(expected);
 });
 it('rejects unknown termination and a changed result identity instead of claiming successful completion',async()=>{
-  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));return {...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:'unknown'}};}}});
+  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(await preview(request));return {...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:'unknown'}};}}});
   expect((await f.post()).status).toBe(502);
   f.participant.generate=async request=>({...request,attemptId:'other',modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:'stop-token'}});
   expect((await f.post()).status).toBe(502);
@@ -193,12 +194,12 @@ it('actual mounted handler reaches weightless automatic requester, signed grants
 });
 it('streamed partial output with unknown stopping reason ends in an error without a successful DONE',async()=>{
   const f=await boot({participant:{generate:async(request,controls)=>{
-    await controls.requestApproval(preview(request));
+    await controls.requestApproval(await preview(request));
     controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'partial'});
     return {...request,modelId:model.id,modelIdentity:model.identity,content:'partial',execution:{stopReason:'unknown'}};
   }}});
   const response=await f.post({...input,stream:true}), text=await response.text();
-  expect(text).toContain('partial');expect(text).toContain('termination reason unavailable');expect(text).not.toContain('[DONE]');
+  expect(text).toContain('partial');expect(text).toContain('unrecognized termination reason');expect(text).toContain('"code":"result_unverified"');expect(text).not.toContain('[DONE]');
 });
 it('disconnect while execution authorization awaits cannot dispatch a late approved request',async()=>{
   const entered=Promise.withResolvers(), release=Promise.withResolvers();let approvalSignal;
@@ -253,7 +254,7 @@ it('requires the disclosure preview to carry the admitted settings, and enforces
     generationSettings: { schema: 'reploid.generation-settings/v1', maxOutputTokens: true, tools: false, outputSchema: false, thinking: false } };
   const settings = { schema: 'reploid.generation-settings/v1', maxOutputTokens: 2, tools: [], toolChoice: 'none', outputSchema: null, thinking: null };
   const run = (previewed, outputTokens) => boot({ participant: { getState: () => ({ models: [whole] }), generate: vi.fn(async (request, controls) => {
-    const value = preview(request, ['provider']);
+    const value = await preview(request, ['provider']);
     await controls.requestApproval({ ...value, input: { ...value.input, ...previewed(request) } });
     return { threadId: request.threadId, attemptId: request.attemptId, modelId: whole.id, modelIdentity: whole.identity, adapterIdentities: [], content: 'hi',
       usage: { schema: 'raw-model-tokens/v1', inputTokens: 3, outputTokens }, execution: { stopReason: 'max-tokens' } };
@@ -274,5 +275,6 @@ it('requires the disclosure preview to carry the admitted settings, and enforces
   }
   const exceeded = await (await run(request => ({ settings: request.settings }), 3)).post(body);
   expect(exceeded.status).toBe(502);
-  expect((await exceeded.json()).error.message).toBe('Provider output exceeds the caller output limit');
+  // The inference API checks the reported usage against the planned limit before the adapter's own check.
+  expect((await exceeded.json()).error).toMatchObject({ message: 'The answer exceeds the output limit', code: 'result_unverified' });
 });

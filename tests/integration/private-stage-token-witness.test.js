@@ -100,9 +100,10 @@ async function checkAttempt(link) {
       } });
       const res = await fetch('http://127.0.0.1:' + server.address().port + '/v1/responses', { method: 'POST',
         headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model: choice.selectionId ?? choice.id,
-          input: messages, store: false, stream: true, reploid: { pool_id: participant.roomId, conversation_id: threadId,
-            expected_model_identity: fixture.modelIdentity, expected_plan_identity: fixture.planIdentity,
-            allowed_recipients: [...stageParticipants, requesterId], include_execution: true } }) });
+          input: messages, stream: true, reploid: { poolId: participant.roomId, conversationId: threadId,
+            model: { identity: fixture.modelIdentity, planIdentity: fixture.planIdentity },
+            execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...stageParticipants, requesterId] },
+              confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } } }) });
       const body = await res.text(); expect(res.status, body).toBe(200);
       const event = body.split('\n\n').find(frame => frame.startsWith(capped ? 'event: response.incomplete\n' : 'event: response.completed\n'));
       expect(event, body).toBeTruthy();

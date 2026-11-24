@@ -35,22 +35,22 @@ export function createTextApi({ participant, authenticate, authorize, accounting
     },
     async generate(request, controls) {
       assertRoute(request);
-      // Standard wire requests do not carry internal policy. Only the authenticated API owner can mint it.
-      let privacy = assertAvailableExecutionPolicy(executionPolicyFor === null ? createExecutionPolicy()
+      // The operator's policy bounds every request. The caller's requirements arrive compiled by the inference
+      // API (the standard ones when the body has no extension) and may only narrow it, never widen it.
+      const operator = assertAvailableExecutionPolicy(executionPolicyFor === null ? createExecutionPolicy()
         : await executionPolicyFor(structuredClone(request), controls));
-      if (request.privacy !== undefined) {
-        // The private HTTP extension names recipients only. Reject any other
-        // request policy rather than replacing its placement or protections.
-        const caller = request.privacy;
-        const named = caller?.recipients;
-        if (named?.kind !== 'named' || !Array.isArray(named.ids) || canonicalPartitionJson(caller) !== canonicalPartitionJson(
-          createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: named.ids } }))) {
-          throw Object.assign(Error('Unsupported caller execution policy'), { status: 403 });
-        }
-        if (privacy.placement !== 'network-allowed') throw Object.assign(Error('Network execution is not authorized by this API operator'), { status: 403 });
-        const ids = named.ids.filter(id => privacy.recipients.kind === 'open' || privacy.recipients.ids.includes(id));
-        if (!ids.length) throw Object.assign(Error('Requested recipients are not authorized by this API operator'), { status: 403 });
-        privacy = assertAvailableExecutionPolicy({ ...privacy, recipients: { kind: 'named', ids } });
+      const caller = assertAvailableExecutionPolicy(request.privacy);
+      // The caller's metadata allowance always narrows the operator's, whatever the placement.
+      let privacy = assertAvailableExecutionPolicy({ ...operator, leakage: operator.leakage.filter(item => caller.leakage.includes(item)) });
+      if (operator.placement !== 'network-allowed' && caller.recipients.kind === 'named') {
+        throw Object.assign(Error('Network execution is not authorized by this API operator'), { status: 403 });
+      }
+      if (operator.placement === 'network-allowed') {
+        if (caller.placement !== 'network-allowed') throw Object.assign(Error('This API runs requests on network participants only'), { status: 403 });
+        const allowed = operator.recipients.kind === 'open' ? null : operator.recipients.ids;
+        const ids = caller.recipients.kind === 'open' ? allowed : caller.recipients.ids.filter(id => !allowed || allowed.includes(id));
+        if (ids !== null && !ids.length) throw Object.assign(Error('Requested participants are not authorized by this API operator'), { status: 403 });
+        privacy = assertAvailableExecutionPolicy({ ...privacy, recipients: ids === null ? operator.recipients : { kind: 'named', ids } });
       }
       controls.signal.throwIfAborted();
       request = { ...request, privacy };
