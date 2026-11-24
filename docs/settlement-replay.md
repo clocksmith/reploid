@@ -63,6 +63,16 @@ It does not establish:
 A requester and a stage acting together can make an answer free by having that
 stage withhold its closing receipt. The other stage is then unpaid.
 
+In the Stage 1 harness (`scripts/stage1/`) these records are collected by the
+harness, not by live code: the requester signs its terms inside its own
+disclosure approval, before the reservation and dispatch, and each stage signs
+its acceptance with its own key during or after the attempt, because live code
+does not yet carry terms to a stage before it reserves. Every Stage 1 receipt
+replays the split, stopped and dropped attempts from those records and the
+participants' own stage receipts and acknowledgments, labels the result
+`termsCollectedBy: 'stage1-harness'`, and fails unless the replay matches the
+ledger and the terms name the ledger's exact policy digest.
+
 ## Checking it
 
 ```sh
