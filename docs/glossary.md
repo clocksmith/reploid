@@ -32,9 +32,16 @@ remote model without downloading its weights. WebRTC does not join the GPUs into
 shared memory. Signaling and service APIs also use HTTP/WebSocket paths, so
 Reploid's responsibility extends beyond WebRTC calls.
 
-**Poolday** is the internal name retained in product folders and some older peer
-infrastructure. The site calls the product Reploid. **Zero** and **X** name the
-separate agent workspaces in `self/`.
+**Poolday** is the internal name for Reploid's product code in `apps/poolday`. That
+code includes:
+- the replo.id interface (`ui/`)
+- the browser host that serves and contributes (`host/`)
+- the peer pool that moves authorized data (`pool/`)
+
+It is not a separate product. The site and public docs call the product Reploid.
+This is the one definition. Other documents that use the name mean this.
+
+**Zero** and **X** name the separate agent workspaces in `self/`.
 
 ## 2. One request
 

@@ -9,12 +9,12 @@ capacity without surrendering control of their data, devices, or evolving softwa
 
 ## Target
 
-A visible intelligence network whose agents combine resources and complementary
-approaches to accomplish more and improve their individual and collective methods.
-Independent operation remains possible; the collaborating network remains the
-product. Use uncluttered workflows, brief copy, shared components
-and tokens, accessible light/dark themes, responsive scrolling, and futuristic
-optical styling: glass, spectral edges and a dot grid.
+An inference exchange: participating computers serve exact models for one another,
+earn credits by serving, and spend them on pooled capacity no single computer of
+theirs supplies, over routes their participants can see and control (see
+[GOALS](GOALS.md)). Independent operation remains possible; the collaborating
+network remains the product. The interface follows the
+[Poolday design system](docs/style-guide.md#poolday-design-system).
 
 The service target is dependable access to an exact model through a stable network
 address while prepared providers and routes change. Conversations remain independent;
@@ -56,8 +56,9 @@ for every request.
   remains separate.
 - Model decisions and scores inform choices but cannot grant permission or
   bypass independent evaluation and operator adoption.
-- Doppler owns model computation; Poolday owns peer infrastructure; Reploid owns
-  orchestration and improvement.
+- Doppler owns model computation. Reploid owns orchestration and improvement; its
+  product code, internally called Poolday (see the [glossary](docs/glossary.md)),
+  owns the interface and peer infrastructure.
 - Weight-shard storage, whole-request inference, computational partitions, and
   agent subtasks retain distinct contracts. Custody grants no execution permission.
   Whole jobs prove no partitioning. Intermediate tensors require disclosure grants;
