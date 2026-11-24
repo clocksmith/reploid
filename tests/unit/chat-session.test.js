@@ -391,7 +391,12 @@ it('closing one host preserves another host queued on the same borrowed schedule
   const cancelled = first.send(a, 'Stop this owner');
   const completed = second.send(b, 'Preserve this owner');
   try {
-    await vi.waitFor(() => expect(first.getState().activeThread.attempts[0].status).toBe('executing'));
+    // Each host binds its route asynchronously before scheduling, so the second request can reach
+    // the scheduler after the first has started executing. Wait for both before closing.
+    await vi.waitFor(() => {
+      expect(first.getState().activeThread.attempts[0].status).toBe('executing');
+      expect(scheduler.getState().queued).toBe(1);
+    });
     const closing = first.close();
     expect(scheduler.getState().queued).toBe(1);
     release();
