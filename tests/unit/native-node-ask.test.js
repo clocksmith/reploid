@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest';
 import { nativeCommand } from '../../server/native-node-commands.js';
-import { askMesh } from '../../server/native-node-ask.js';
+import { askMesh, askExecution } from '../../server/native-node-ask.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { bindExecutionRoute, plaintextExecutionRoute, requestExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
@@ -23,8 +23,46 @@ it('defaults to 2B, accepts a quoted prompt and keeps compute flags out of ask',
   expect(() => nativeCommand(['ask'])).toThrow('Your question');
 });
 
+it('turns ask execution flags into inference requirements and never passes them to the participant', () => {
+  const command = nativeCommand(['ask', 'hello', '--participant', 'peer:a', '--participant', 'peer:a', '--participant', 'peer:b',
+    '--allow-metadata', 'model-id,timing', '--room', 'my-team']);
+  expect(command.args).toEqual(['--connect-only', '--room', 'my-team']);
+  expect(command.execution).toEqual({ placement: 'network-allowed', participants: { kind: 'named', ids: ['peer:a', 'peer:b'] },
+    confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing'] });
+  expect(nativeCommand(['ask', 'hello', '--confidentiality', 'requester-only']).execution.confidentiality).toBe('requester-only');
+  expect(() => nativeCommand(['ask', 'hello', '--allow-metadata', 'plaintext'])).toThrow('--allow-metadata');
+  expect(() => nativeCommand(['ask', 'hello', '--confidentiality', 'encrypted'])).toThrow('--confidentiality');
+  expect(nativeCommand(['ask', 'hello'])).not.toHaveProperty('execution');
+});
+
+it('refuses requester-only confidentiality before discovery and sends nothing', async () => {
+  const getState = vi.fn(() => ({ models: [] })), generate = vi.fn();
+  await expect(askMesh({ getState, generate, roomId: 'team' }, { name: 'Small' }, 'secret',
+    { signal: new AbortController().signal, execution: askExecution({ confidentiality: 'requester-only' }) }))
+    .rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' });
+  expect(getState).not.toHaveBeenCalled();
+  expect(generate).not.toHaveBeenCalled();
+});
+
+it('refuses a provider outside the named participants before approval and sends nothing', async () => {
+  const model = { id: 'small', identity: 'sha256:' + 'a'.repeat(64), name: 'Small' };
+  const approvals = [];
+  const participant = { roomId: 'test-room', executionClass: 'public-pool', getState: () => ({ models: [{ ...model, availability: 'ready' }] }),
+    async generate(request, controls) {
+      // The mesh selected a provider the caller did not name.
+      const other = await bindExecutionRoute({ model, privacy: request.privacy },
+        plaintextExecutionRoute({ model }, { recipients: ['peer:other'] })).catch(() => null)
+        ?? { policy: request.privacy, route: plaintextExecutionRoute({ model }, { recipients: ['peer:other'] }) };
+      approvals.push(await controls.requestApproval({ privacyBinding: other }));
+      throw Error('declined');
+    } };
+  await expect(askMesh(participant, model, 'secret', { signal: new AbortController().signal, report: vi.fn(),
+    execution: askExecution({ participants: ['peer:named'] }) })).rejects.toMatchObject({ code: 'EXECUTION_PLAN_CHANGED' });
+  expect(approvals).toEqual([false]);
+});
+
 it('selects the exact whole route ahead of a split and binds disclosure to the requested input', async () => {
-  const model = { id: 'small', identity: 'sha256:expected', name: 'Small' };
+  const model = { id: 'small', identity: 'sha256:' + 'e'.repeat(64), name: 'Small' };
   const whole = { ...model, availability: 'ready' };
   const report = vi.fn();
   const participant = {
@@ -33,12 +71,13 @@ it('selects the exact whole route ahead of a split and binds disclosure to the r
       { ...whole, partition: {} }, whole] }),
     async generate(request, controls) {
       expect(request.model).toBe(whole);
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: ['peer-id'] }));
       const preview = { modelId: model.id, modelIdentity: model.identity, recipients: ['peer-id'], threadId: request.threadId,
-        attemptId: request.attemptId, input: { messages: request.messages } };
-      expect(controls.requestApproval({ ...preview, modelIdentity: 'other' })).toBe(false);
-      expect(controls.requestApproval({ ...preview, input: { messages: [{ role: 'user', content: 'different' }] } })).toBe(false);
-      expect(controls.requestApproval(preview)).toBe(true);
-      return { modelIdentity: model.identity, content: 'answer' };
+        attemptId: request.attemptId, input: { messages: request.messages }, privacyBinding };
+      expect(await controls.requestApproval({ ...preview, modelIdentity: 'other' })).toBe(false);
+      expect(await controls.requestApproval({ ...preview, input: { messages: [{ role: 'user', content: 'different' }] } })).toBe(false);
+      expect(await controls.requestApproval(preview)).toBe(true);
+      return { modelId: model.id, modelIdentity: model.identity, content: 'answer', execution: { stopReason: 'eos-token' } };
     }
   };
   expect(await askMesh(participant, model, 'query', { signal: new AbortController().signal, report })).toBe('answer');
@@ -90,7 +129,7 @@ it('excludes an advertised split from public ask until the exact route has a pub
 
 
 it.each(['public-pool', 'private-pool'])('sends to a matching %s split and binds the exact disclosure', async executionClass => {
-  const route = { id: 'small', identity: 'sha256:small', name: 'Small', availability: 'ready',
+  const route = { id: 'small', identity: 'sha256:' + 'f'.repeat(64), name: 'Small', availability: 'ready',
     partition: { planId: 'plan', participantA: 'first', participantB: 'last' } };
   if (executionClass === 'public-pool') approvals.push({ modelId: route.id, modelIdentity: route.identity,
     adapterIdentities: [], partition: route.partition, evidence: 'fixture://operator-review' });
@@ -98,16 +137,17 @@ it.each(['public-pool', 'private-pool'])('sends to a matching %s split and binds
   const participant = { executionClass, roomId: 'test-room', getState: () => ({ models: present ? [route] : [] }),
     async generate(request, controls) {
       expect(requestExecutionPolicy(request).recipients).toEqual({ kind: 'named', ids: ['first', 'last'] });
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: ['first', 'last'], route: route.partition }));
       const preview = { ...route.partition, modelId: route.id, modelIdentity: route.identity, threadId: request.threadId,
-        attemptId: request.attemptId, input: { messages: request.messages, recipients: ['first', 'last'] } };
-      expect(controls.requestApproval({ ...preview, participantB: 'replacement' })).toBe(false);
-      expect(controls.requestApproval({ ...preview, input: { ...preview.input, recipients: ['first', 'last', 'extra'] } })).toBe(false);
-      expect(controls.requestApproval(preview)).toBe(true);
+        attemptId: request.attemptId, input: { messages: request.messages, recipients: ['first', 'last'] }, privacyBinding };
+      expect(await controls.requestApproval({ ...preview, participantB: 'replacement' })).toBe(false);
+      expect(await controls.requestApproval({ ...preview, input: { ...preview.input, recipients: ['first', 'last', 'extra'] } })).toBe(false);
+      expect(await controls.requestApproval(preview)).toBe(true);
       if (executionClass === 'public-pool') {
         present = false;
-        expect(controls.requestApproval(preview)).toBe(false);
+        expect(await controls.requestApproval(preview)).toBe(false);
       }
-      return { modelIdentity: route.identity, content: 'answer' };
+      return { modelId: route.id, modelIdentity: route.identity, content: 'answer', execution: { stopReason: 'eos-token' } };
     } };
   const report = vi.fn();
   expect(await askMesh(participant, route, 'hello', { signal: new AbortController().signal, report })).toBe('answer');

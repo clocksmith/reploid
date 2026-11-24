@@ -82,7 +82,8 @@ async function main() {
   process.argv = participantProcessArgv(process.argv, node.args);
   const { main: runParticipant } = await import('./native-participant.js');
   if (command.prompt !== undefined) {
-    const response = await runParticipant({ runOnce: (participant, model, signal) => askMesh(participant, model, command.prompt, { signal }) });
+    const response = await runParticipant({ runOnce: (participant, model, signal) => askMesh(participant, model, command.prompt,
+      { signal, ...(command.execution ? { execution: command.execution } : {}) }) });
     console.log(response);
     return;
   }

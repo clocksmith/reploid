@@ -8,6 +8,7 @@ import { resolvePinnedOrigin } from './native-model-origin.js';
 import { findCatalogModel } from './native-model-names.js';
 import { participantHelp, participantOptions } from './native-participant-options.js';
 import { shellCompletion } from './native-node-completion.js';
+import { askExecution } from './native-node-ask.js';
 
 const commands = {
   ask: 'Send one prompt to a ready mesh provider',
@@ -29,6 +30,8 @@ const shortNames = {
 const canSplit = model => !model.executionModes || model.executionModes.includes('partition');
 const modelNames = models => models.flatMap(m => [shortNames[m.id], m.id].filter(Boolean));
 const askOptions = ['model', 'model-config', 'ordered-config', 'room', 'room-token-file', 'rtc-config-file', 'signaling-url', 'origin', 'identity-file'];
+// Execution requirements for ask. They configure the inference request, never the participant process.
+const askExecutionOptions = { participant: { type: 'string', multiple: true }, confidentiality: { type: 'string' }, 'allow-metadata': { type: 'string' } };
 const doctorOptions = ['origin', 'signaling-url'];
 const subset = names => Object.fromEntries(names.map(name => [name, participantOptions[name]]));
 const commandNames = [...Object.keys(commands), 'help'];
@@ -45,7 +48,10 @@ for all participant flags. With no arguments, Reploid serves the default 2B
 model in the public room. Model files are stored under ~/.reploid/weights.
 Press Ctrl+C to stop.`;
 const details = {
-  ask: 'npx reploid ask [model] "Your question"\nSend one ordinary request. The selected provider can read the prompt. Defaults to 2B and the public room. Private room options: --room reploid-swarm-NAME --room-token-file PATH --signaling-url URL.',
+  ask: `npx reploid ask [model] "Your question"
+Send one ordinary request. The selected provider can read the prompt. Defaults to 2B and the public room. Private room options: --room reploid-swarm-NAME --room-token-file PATH --signaling-url URL.
+Execution: --participant ID (repeatable) limits who may read the prompt; --allow-metadata model-id,timing,length lists the metadata the route may expose;
+--confidentiality requester-only asks that no executor can read the prompt. No backend qualifies for that yet, so it is refused before anything is sent.`,
   doctor: 'npx reploid doctor [--signaling-url URL] [--origin URL]\nCheck Node, host RAM, the installed Doppler version, GPU adapter and signaling connectivity.',
   serve: 'npx reploid serve [model] [--weights DIRECTORY]\nServe the whole model. Missing weights can come from authorized peers or a pinned origin.',
   split: `npx reploid split <model> --stage 0|1 [--weights DIRECTORY]
@@ -119,7 +125,7 @@ export function nativeCommand(argv) {
   }
   if (command === 'completion') {
     if (rest.length !== 1 || !['bash', 'zsh', 'fish'].includes(rest[0])) throw Error(details.completion);
-    return { text: shellCompletion(rest[0], { askFlags: [...askOptions.map(k => '--' + k), '--help'],
+    return { text: shellCompletion(rest[0], { askFlags: [...askOptions, ...Object.keys(askExecutionOptions)].map(k => '--' + k).concat('--help'),
       doctorFlags: [...doctorOptions.map(k => '--' + k), '--help'], commands: commandNames, models: modelNames(catalog),
       splitModels: modelNames(catalog.filter(canSplit)), flags: Object.keys(participantOptions).map(k => '--' + k) }) };
   }
@@ -128,7 +134,7 @@ export function nativeCommand(argv) {
     return { doctor: { signalingUrl: values['signaling-url'], origin: values.origin } };
   }
   const { values, positionals, tokens } = parseArgs({ args: command ? rest : argv, allowPositionals: true, tokens: true,
-    options: command === 'ask' ? subset(askOptions) : { ...participantOptions, weights: { type: 'string' }, stage: { type: 'string' } } });
+    options: command === 'ask' ? { ...subset(askOptions), ...askExecutionOptions } : { ...participantOptions, weights: { type: 'string' }, stage: { type: 'string' } } });
   const prompt = command === 'ask' ? positionals.pop() : undefined;
   if (command === 'ask' && !prompt?.trim()) throw Error(details.ask);
   if (positionals.length > 1 || (positionals.length && values.model)) throw Error('Choose one model. Run reploid models for available names.');
@@ -151,7 +157,7 @@ export function nativeCommand(argv) {
   const args = name !== undefined ? [model?.id ?? name] : [];
   if (command) args.push(...modes[command]);
   for (const token of tokens) {
-    if (token.kind !== 'option' || token.name === 'model') continue;
+    if (token.kind !== 'option' || token.name === 'model' || (command === 'ask' && Object.hasOwn(askExecutionOptions, token.name))) continue;
     const key = { weights: 'model-directory', stage: 'partition-index' }[token.name] ?? token.name;
     if (token.inlineValue) args.push(`--${key}=${token.value}`);
     else {
@@ -160,5 +166,8 @@ export function nativeCommand(argv) {
     }
   }
   if (command === 'serve' && model && !values['model-config'] && !resolvePinnedOrigin(model)) return { args, peerFillOnly: true };
-  return prompt === undefined ? { args } : { args, prompt };
+  if (prompt === undefined) return { args };
+  const execution = values.participant || values.confidentiality || values['allow-metadata'] !== undefined
+    ? askExecution({ participants: values.participant ?? [], confidentiality: values.confidentiality, allowMetadata: values['allow-metadata'] }) : undefined;
+  return execution ? { args, prompt, execution } : { args, prompt };
 }
