@@ -15,6 +15,8 @@ export const STAGE1_PINS = Object.freeze({
   quantization: 'q4k',
   decoding: Object.freeze({ temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 1 }),
   inventorySha256: 'fb87f2cd341bb9e3709316d797284cc10606e54305881fe96e2de34e35644b94',
+  // Packed weights and input embedding on the GPU, before context. Slightly below the file bytes of all stages.
+  minimumSoloLoadBytes: 16941875200,
   stages: Object.freeze([Object.freeze({ rangeCount: 1051, bytes: 2759168448 }), Object.freeze({ rangeCount: 4461, bytes: 14235183680 })])
 });
 export const STAGE1_FIXTURE_FILE = fileURLToPath(new URL('../../tests/fixtures/private-split-27b-code-trace.json', import.meta.url));
@@ -36,10 +38,10 @@ const decodingOf = generation => Object.fromEntries(DECODING_KEYS.map(key => [ke
 export const stage1Decoding = decodingOf;
 
 /** `runtimeClass` is `physical` for real hosts. A fake-runtime receipt can never satisfy physical expectations. */
-export async function loadStage1Expectations({ runtimeClass = 'physical' } = {}) {
+export async function loadStage1Expectations({ runtimeClass = 'physical', fixtureFile = STAGE1_FIXTURE_FILE } = {}) {
   if (!['physical', 'fake-runtime'].includes(runtimeClass)) throw Error('Unknown Stage 1 runtime class');
   const model = catalog.find(row => row.id === STAGE1_MODEL_ID);
-  const fixtureBytes = await fs.readFile(STAGE1_FIXTURE_FILE), fixture = JSON.parse(fixtureBytes);
+  const fixtureBytes = await fs.readFile(fixtureFile), fixture = JSON.parse(fixtureBytes);
   if (fixture.modelId !== model.id || fixture.modelIdentity !== model.identity || fixture.planIdentity !== model.partitionPlanId
     || model.partitionPlanId !== STAGE1_PINS.planIdentity || model.quantization !== STAGE1_PINS.quantization
     || canonicalPartitionJson(decodingOf(model.generation)) !== canonicalPartitionJson(STAGE1_PINS.decoding)) {
@@ -57,7 +59,7 @@ export async function loadStage1Expectations({ runtimeClass = 'physical' } = {})
   const expectations = {
     schema: 'reploid.stage1-expectations/v1', runtimeClass,
     inventorySource: runtimeClass === 'physical' ? 'hashed-on-host' : 'fake-runtime-declared',
-    inventorySha256, creditsPerOutputToken: 1,
+    inventorySha256, creditsPerOutputToken: 1, minimumSoloLoadBytes: STAGE1_PINS.minimumSoloLoadBytes,
     workload: { modelId: model.id, modelIdentity: model.identity, quantization: model.quantization,
       planIdentity: model.partitionPlanId, messagesDigest: await hashJson(fixture.messages),
       promptDigest: witnessDigest(reference.inputIds), promptCount: reference.inputIds.length,

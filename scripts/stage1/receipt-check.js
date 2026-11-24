@@ -43,7 +43,7 @@ export function classifySoloControl(control, expectations) {
   if (failure?.kind !== 'out-of-memory') return { outcome: 'inconclusive', why: String(failure?.kind ?? 'unclassified') };
   if (failure.evidence !== DEVICE_MEMORY_EVIDENCE) return { outcome: 'inconclusive', why: 'no-device-memory-evidence' };
   if (failure.operatorCapped !== false) return { outcome: 'inconclusive', why: 'operator-budget' };
-  if (!count(failure.requiredBytes) || failure.requiredBytes < expectations.totalWeight.bytes) {
+  if (!count(failure.requiredBytes) || failure.requiredBytes < expectations.minimumSoloLoadBytes) {
     return { outcome: 'inconclusive', why: 'required-bytes-below-model' };
   }
   return { outcome: 'memory', why: 'device-out-of-memory' };

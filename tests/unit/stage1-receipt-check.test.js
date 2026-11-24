@@ -11,7 +11,7 @@ const expectations = { schema: 'reploid.stage1-expectations/v1', runtimeClass: '
   reference: { outputIds: [17, 17, 248046], sampleDigest: 'f'.repeat(64), outputText: '22', stopReasons: ['eos-token', 'stop-token'] },
   stages: [{ stageIndex: 0, layerRange: [0, 0], rangeCount: 1051, bytes: 2759168448, rangesDigest: digest('1') },
     { stageIndex: 1, layerRange: [1, 63], rangeCount: 4461, bytes: 14235183680, rangesDigest: digest('2') }],
-  totalWeight: { rangeCount: 5512, bytes: 16994352128 } };
+  totalWeight: { rangeCount: 5512, bytes: 16994352128 }, minimumSoloLoadBytes: 16941875200 };
 
 const inventory = stage => ({ source: 'hashed-on-host', rangeCount: stage.rangeCount, bytes: stage.bytes,
   rangesDigest: stage.rangesDigest, outsideStageRanges: 0, outsideStageBytes: 0 });
@@ -52,13 +52,17 @@ describe('a good receipt', () => {
 });
 
 describe('the label', () => {
+  it('counts a device refusal at the packed GPU weight size, below the file bytes', () => {
+    expect(classifySoloControl(outOfMemory({ requiredBytes: 16941875200 }), expectations).outcome).toBe('memory');
+  });
+
   it.each([
     ['a guard stopped it', { guardTripped: true }, 'guard'],
     ['it timed out', { timedOut: true }, 'timeout'],
     ['an operator budget refused it', { operatorCapped: true }, 'operator-budget'],
     ['nothing shows the device refused it', { evidence: 'fake-runtime' }, 'no-device-memory-evidence'],
     ['the weights were missing', { kind: 'missing-weights' }, 'missing-weights'],
-    ['it asked for less than the model', { requiredBytes: 1024 }, 'required-bytes-below-model']
+    ['it asked for less than the model', { requiredBytes: 16941875199 }, 'required-bytes-below-model']
   ])('does not count a solo failure as memory when %s', (_name, failure, why) => {
     const control = outOfMemory(failure);
     expect(classifySoloControl(control, expectations)).toEqual({ outcome: 'inconclusive', why });
