@@ -207,7 +207,8 @@ it('keeps one navigation row and returns focus to the conversation draft', () =>
     expect(link.getAttribute('aria-current')).toBe('page');
     expect(find(`[data-inspector-pane="${section}"]`).hidden).toBe(false);
   }
-  expect(find('[data-close-inspector]').textContent).toBe('Close');
+  expect(find('[data-close-inspector]').getAttribute('aria-label')).toBe('Close');
+  expect(find('[data-close-inspector]').textContent).toBe('');
   find('[data-close-inspector]').click();
   expect(input.value).toBe('My unsent question');
   // Closing returns focus to the control that opened the drawer; the draft is untouched.
@@ -305,12 +306,14 @@ it('blocks local model actions when the host reports missing browser support', (
   expect(inspector.contribute).not.toHaveBeenCalled(); expect(session.getModelDownload).not.toHaveBeenCalled(); detach();
 });
 
-it('groups storage and compute sharing controls under This computer', () => {
+it('places compute sharing under Computers and file sharing under Settings storage', () => {
   const snapshot = { models: [], network: { files: { enabled: true, sharing: true, suppliedBytes: 10, verifiedFiles: [{ artifactId: 'file' }] } } };
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; } };
   const detach = bindProductionSurface(document.body, session, { inspector: {} });
   const device = document.querySelector('[data-inspector-pane="participants"] [data-this-computer]');
-  expect(device.querySelector('[data-toggle-file-contribution]')).not.toBeNull();
+  const storage = document.querySelector('[data-inspector-pane="settings"] [data-settings-storage]');
+  expect(device.querySelector('[data-toggle-file-contribution]')).toBeNull();
+  expect(storage.querySelector('[data-toggle-file-contribution]')).not.toBeNull();
   expect(device.querySelector('[data-toggle-contribution]')).not.toBeNull();
   expect(document.querySelector('[data-production-pause]')).toBeNull();
   expect(document.querySelector('[data-production-file-metric]').hidden).toBe(false); detach();

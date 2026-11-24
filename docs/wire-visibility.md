@@ -13,9 +13,11 @@ Every Reploid chat and game attempt has four distinct vantage points: **your dev
 
 ## Route-by-Route Summary
 
+Placement policy determines where inference may run. The runtime executes the model; transport carries the request between endpoints, if any. WebGPU is a runtime interface, not a request transport.
+
 | Route | Transport | Coordinator sees | Network relay sees | Serving computer sees |
 | --- | --- | --- | --- | --- |
-| **Local browser (`local-only`)** | In-tab WebGPU | Nothing | Nothing | Your own browser tab (plaintext) |
+| **In-tab browser inference** (`local-only` placement; WebGPU runtime) | None. The inference request stays in the browser. | Nothing | Nothing | Your own browser tab (plaintext) |
 | **WebRTC swarm** | DTLS data channel (direct ICE or relay) | Room rendezvous and SDP/ICE. Generic local capture: no prompt or answer canary found. | DTLS ciphertext, IP/port, packet size and timing. Generic UDP-shim capture: no canary found. | Plaintext prompt and answer. Invite and reconnect fixtures below do not qualify a deployed route. |
 | **Credited Fleet settlement (`POST /v1/fleet`)** | HTTPS / loopback signed JSON envelopes | Ed25519 public keys, model SHA-256, token counts, salted SHA-256 commitments & digests (`0` prompt/answer bytes) | TLS ciphertext | Plaintext prompt & answer (via WebRTC DataChannel) |
 | **Local OpenAI / Anthropic API (`server/fleet/text-api.js`)** | `127.0.0.1` HTTP on requester -> WebRTC `RTCDataChannel` to provider | Credit coordination is separate from the native requester, which sees plaintext | DTLS on the WebRTC leg. A TLS-terminating HTTP proxy on the requester leg could read the JSON. | Plaintext prompt & answer |

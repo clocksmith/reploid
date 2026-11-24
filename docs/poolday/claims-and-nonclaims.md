@@ -3,13 +3,25 @@
 Poolday is the internal/docs name for the public Reploid browser inference pool.
 The public UI uses the Reploid name.
 
-The [Poolday product intent](./product-intent.md) owns the user proposition,
-surface hierarchy, and long-term Zero/X promotion boundary. This document owns
-the narrower supported public claim.
+The [public product contract](../product-specification.md) owns requirements;
+[architecture](../open-mesh-architecture.md) owns participation and component
+boundaries. The old [product-intent path](product-intent.md) preserves links.
+This page does not set the roadmap or broaden qualification.
 
 ## Claim
 
-Poolday provides:
+The [claim index](../status/surface-claim-index.json) gives evidence by surface.
+The [route table](../product-specification.md#5-contribution-and-execution)
+distinguishes local solo support, a physically checked remote-solo case, and
+unqualified local + peer and remote-only splits. Do not transfer a result
+across routes, model versions, or deployments. [Wire visibility](../wire-visibility.md)
+explains why transport encryption does not hide input from its executor.
+
+### Retained mechanisms and research evidence
+
+The list below describes scoped mechanisms and specialist or historical evidence,
+not a set of features qualified together in the current public inference service.
+Check the claim index and a route's receipts before calling any of them shipped.
 
 - signed assignment-bound inference receipts
 - deterministic output comparison
@@ -114,7 +126,7 @@ Poolday provides:
   usefulness credit requires independent acceptance and is deduplicated per
   candidate-action and contribution record
 
-The approved product claim is:
+A bounded description of the evidenced inference mechanisms is:
 
 ```text
 receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference
@@ -126,9 +138,8 @@ dimensions. The broader retrieval extension in [Poolday Receipt-Backed
 Retrieval](./receipt-backed-retrieval.md) remains a target until index, query,
 and reranking receipts exist.
 
-The [Discovery Contract](./discovery-contract.md) and active-science objective in
-the [product intent](./product-intent.md) define target product direction. They
-do not expand this supported claim. In particular, the current claim does not
+The [Discovery Contract](./discovery-contract.md) is a scoped research protocol.
+It does not set the inference pool's launch direction or expand public qualification. In particular, the current claim does not
 include calibrated information-gain ranking, independently verified laboratory
 qualification, scientific conclusion, independent biological replication, or
 contract closure. A `poolday.laboratory_capability_claim/v1` record binds the

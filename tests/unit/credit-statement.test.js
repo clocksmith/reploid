@@ -280,7 +280,7 @@ describe('offline service-credit statement verification', () => {
     const closeSignature = await signAsParticipant(identities[1], FLEET_SERVICE_REQUEST_SCHEMA, closeBody);
     await ledger.closeStageOwner({ ...closeBody, signature: closeSignature });
 
-    for (const [index, expected] of [[-4, 2, 2][0], [-4, 2, 2][1], [-4, 2, 2][2]].map((val, idx) => [idx, val])) {
+    for (const [index, expected] of [0, 0, 0].map((val, idx) => [idx, val])) {
       const checked = await verifyCreditStatement(ledger.statement(`computer-${index}`));
       expect(checked).toMatchObject({ ok: true, statedBalance: expected, recomputedBalance: expected, uncheckedCount: 0 });
     }

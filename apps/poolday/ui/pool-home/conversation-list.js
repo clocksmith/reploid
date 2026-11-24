@@ -67,7 +67,6 @@ export function createConversationList(list, seen = new Map(), { getSources, now
           time.textContent = relativeTime(timestamp, now());
         }
         button.setAttribute('aria-label', `${title}: ${summary}${context.percent === null ? '' : `, last answer ${context.text} of advertised context`}`);
-        button.title = [title, summary, time.hidden ? '' : time.title, context.percent === null ? '' : context.usage].filter(Boolean).join('\n');
         button.dataset.activity = status === 'executing' ? 'executing' : 'idle';
         button.setAttribute('aria-current', String(thread.id === selectedId));
         row.querySelector('summary').setAttribute('aria-label', `Actions for ${title}`);

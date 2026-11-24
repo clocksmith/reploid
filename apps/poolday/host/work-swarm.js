@@ -30,6 +30,8 @@ import { createReadinessRecorder, createReadinessRecordStore } from '../../../sh
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 import { createContributionHistory } from './contribution-history.js';
 
+const PRODUCER_COMPUTE_CHOICE = 'REPLOID_PRODUCER_COMPUTE_CHOICE', PRODUCER_FILES_CHOICE = 'REPLOID_PRODUCER_FILES_CHOICE';
+
 /** Storage key of this browser's readiness records. Its value is a reploid.capacity-utilization-input/v1
  * document (bounded, latest copy per span or admission) that scripts/capacity-utilization.js reads as is;
  * `exportReadiness()` returns the same document. Records stay on this device. */
@@ -42,7 +44,7 @@ export const READINESS_RECORDS_KEY = 'REPLOID_READINESS_RECORDS';
 export const REQUESTER_INSTANCE_ID = 'work-swarm:requester';
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [] }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, rankProviders = null, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [] }) {
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
   canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
@@ -77,8 +79,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   }
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
   let connection = null, introductionAssistance = storage?.getItem('REPLOID_INTRODUCTIONS_ENABLED') !== 'false';
-  let computeEnabled = storage?.getItem('REPLOID_CACHED_COMPUTE_ENABLED') !== 'false';
-  let filesEnabled = storage?.getItem('REPLOID_CACHED_FILES_ENABLED') !== 'false';
+  // Serving is the producer's choice, so both start off. These are new keys: the earlier ones were written
+  // 'true' by automatic sharing, so a stored 'true' there does not show that anyone chose it.
+  let computeEnabled = storage?.getItem(PRODUCER_COMPUTE_CHOICE) === 'true';
+  let filesEnabled = storage?.getItem(PRODUCER_FILES_CHOICE) === 'true';
   let cachedSharing = null, cachedModels = [];
 
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
@@ -182,6 +186,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
     const mesh = createPeerGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events, getBlockedComputers,
+      ...(rankProviders ? { rankProviders } : {}),
       getExecutionState: () => {
         const state = execution?.getState();
         return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
@@ -488,12 +493,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     getFileState: () => ({ ...(modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() }), enabled: filesEnabled }),
     async shareFiles(model, approved, controls) {
       if (approved !== true) throw new Error('Approve file contribution before sharing');
-      filesEnabled = true; storage?.setItem('REPLOID_CACHED_FILES_ENABLED', 'true'); notify();
+      filesEnabled = true; storage?.setItem(PRODUCER_FILES_CHOICE, 'true'); notify();
       await connect({ automatic: true });
       if (!filesEnabled || paused || closed) return;
       await modelFiles.share(model, approved, controls);
     },
-    stopFiles: () => { filesEnabled = false; storage?.setItem('REPLOID_CACHED_FILES_ENABLED', 'false'); notify(); return modelFiles?.stop(); },
+    stopFiles: () => { filesEnabled = false; storage?.setItem(PRODUCER_FILES_CHOICE, 'false'); notify(); return modelFiles?.stop(); },
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,
     getInviteUrl: () => options.getInviteUrl(),
     generate,
@@ -516,7 +521,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         if (supplier && contributor?.getState().ready) return;
       }
       if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
-      computeEnabled = true; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'true');
+      computeEnabled = true; storage?.setItem(PRODUCER_COMPUTE_CHOICE, 'true');
       if (ordered && mode === 'partition' && modelId !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
       const base = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!base) throw new Error('Select an available local model');
@@ -581,24 +586,24 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       });
       await sharingConnection;
     },
-    stop: () => { computeEnabled = false; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'false'); return stopContribution(); },
+    stop: () => { computeEnabled = false; storage?.setItem(PRODUCER_COMPUTE_CHOICE, 'false'); return stopContribution(); },
     async allowCachedFiles(enabled) {
       if (closed) throw new Error('Network is closed');
       if (!enabled) return api.stopFiles();
-      filesEnabled = true; storage?.setItem('REPLOID_CACHED_FILES_ENABLED', 'true'); notify();
+      filesEnabled = true; storage?.setItem(PRODUCER_FILES_CHOICE, 'true'); notify();
       return api.shareCachedModels(cachedModels);
     },
     async allowCachedCompute(enabled) {
       if (closed) throw new Error('Network is closed');
       if (!enabled) return api.stop();
-      computeEnabled = true; storage?.setItem('REPLOID_CACHED_COMPUTE_ENABLED', 'true'); notify();
+      computeEnabled = true; storage?.setItem(PRODUCER_COMPUTE_CHOICE, 'true'); notify();
       if (paused || !automaticAllowed) return;
       return api.shareCachedModels(cachedModels);
     },
     shareCachedModels(models) {
       cachedModels = models.map(({ id, identity }) => ({ id, identity }));
       if (cachedSharing) return cachedSharing;
-      if (closed || paused || !automaticAllowed || ordered || canonical) return Promise.resolve();
+      if (closed || paused || !automaticAllowed || ordered || canonical || (!computeEnabled && !filesEnabled)) return Promise.resolve();
       const model = LOCAL_DOPPLER_MODELS.find(item => cachedModels.some(cached => cached.id === item.id && cached.identity === item.identity));
       if (!model) return Promise.resolve();
       cachedSharing = (async () => {

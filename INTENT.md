@@ -28,10 +28,18 @@ acceptance and do not establish demand or mandate concurrent implementation.
 
 ## Invariants
 
+This document does not select work or certify a route. The [product contract](docs/product-specification.md#5-contribution-and-execution)
+defines local solo, remote solo, local + peer split, and remote-only split,
+with separate requester-weight and qualification requirements. The split-capacity
+proof in [GOALS](GOALS.md#operating-mission) is an ambition, not a condition
+for every request.
+
 - Qualification is scoped to the frozen model, audience, service terms and
-  contributor cohort. Whole-model generation is the default when an eligible
-  participant fits the exact model and execution envelope. Partition only when none
-  fits, and require a matched complete-request comparison.
+  contributor cohort. Automatic routing may prefer a qualified whole-model route.
+  An explicitly requested split may use a qualified split route even when a
+  whole-model host fits. Never change the recipient set or route type silently.
+  This is a target policy, not a claim that the chooser already supports it.
+  Split qualification requires a matched complete-request comparison.
   Failed thresholds or exhausted exposure caps close that cell without implicit
   expansion. Actual-use acceptance precedes transaction experiments; promised
   hardware alone establishes no supply. Preserve already accepted obligations.
@@ -43,8 +51,9 @@ acceptance and do not establish demand or mandate concurrent implementation.
   Requesting intelligence and contributing storage or execution are separate grants.
   The participant's device is part of the mesh, not a competing local product.
 - Browser and native hosts participate through the same contracts, qualified
-  separately. Prepared peer execution requires no requester weight downloads;
-  contribution preparation remains separate.
+  separately. A prepared remote route requires no requester weights; a
+  local + peer split loads only the requester's own shard. Contribution preparation
+  remains separate.
 - Model decisions and scores inform choices but cannot grant permission or
   bypass independent evaluation and operator adoption.
 - Doppler owns model computation; Poolday owns peer infrastructure; Reploid owns
@@ -91,4 +100,4 @@ Related: [GOALS.md](GOALS.md), [CATSCAN.md](CATSCAN.md).
 <a id="development-checks"></a>
 <a id="recorded-evidence"></a>
 
-*Last updated: October 2026*
+*Last updated: November 2026*

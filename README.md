@@ -2,7 +2,7 @@
 
 Run an open model on a participating computer, or contribute your own compute and storage, from a browser, CLI, or OpenAI- and Anthropic-compatible HTTP API without downloading model weights on the requesting machine. Today, using open models usually means choosing between a centralized cloud API with opaque routing or downloading gigabytes of weights onto one machine large enough to hold the whole model alone.
 
-Reploid turns participating computers into shared inference capacity with explicit cryptographic trust boundaries. Before any prompt leaves your device, you see which computer will receive it; one eligible machine serves the whole model whenever it fits, and machines combine across ordered layer stages when a single computer cannot hold it. Returning providers are recognized by their Ed25519 identity across reconnects without repeated prompts, while switching to another computer requires fresh consent. [Quick start](docs/QUICK-START.md)
+Reploid turns participating computers into shared inference capacity. The [public route table](docs/product-specification.md#5-contribution-and-execution) distinguishes local solo, remote solo, local + peer split, and remote-only split. A physically checked remote-solo route lets the requester ask without downloading weights. The two split routes are not yet qualified for public use. Serving computers can read the input they execute. [Quick start](docs/QUICK-START.md) · [Who can read what](docs/wire-visibility.md)
 
 **[Try Reploid](https://replo.id/)** · [CLI and local setup](#try-it) · [Contribute a computer](docs/native-participant.md) · [Verified evidence](#what-is-verified)
 
@@ -17,9 +17,9 @@ Reploid turns participating computers into shared inference capacity with explic
 
 ### Browser (zero weight downloads)
 
-1. Open [replo.id](https://replo.id/) and pick a shared model with a ready computer or complete split route.
-2. Check the disclosed recipient computer, then send. The answering computer can read the prompt it executes; returning to that same cryptographic provider reconnects without re-asking, while routing to a different computer pauses for fresh approval.
-3. Watch the answer stream back. If you stop mid-stream or a provider disconnects, your partial answer stays in the thread, any credit hold closes on acknowledged work only, and your draft or next request remains ready.
+1. Open [replo.id](https://replo.id/) and pick a shared model with a ready computer.
+2. Check where the request will run before sending. The serving computer can read the input it executes. The qualification below tested reconnect to the same verified identity and fresh consent for a replacement.
+3. Watch the answer stream. You can stop a response. The [claim index](docs/status/surface-claim-index.json) and [fleet service](docs/fleet-service.md) distinguish cancellation, interruptions, and settlement evidence.
 
 ### Command line (`npx reploid`)
 
@@ -75,7 +75,7 @@ A contributor advertises a prepared model or stage. Reploid selects an eligible 
 
 ## Credits and accounting
 
-Configured fleet services quote a request, reserve non-cash service credits, and settle only acknowledged output against signed execution receipts; retired or cancelled attempts reconcile holds cleanly without stranding requester balances. Public token sales, cash payouts, and open marketplace settlement remain parked goals. [Product contract](docs/product-specification.md) · [Goals](GOALS.md)
+Configured fleet services can quote a request and reserve non-cash service credits. Settlement is bound to accepted terms and verified evidence, with distinct rules for completed, cancelled, and interrupted work. A tested cancellation does not establish that every interruption route settles. Public token sales, cash payouts, and open marketplace settlement are not established features. [Product contract](docs/product-specification.md) · [Fleet service](docs/fleet-service.md) · [Goals](GOALS.md)
 
 ## Read next
 

@@ -7,12 +7,13 @@ async function installFixture(page, createThread = true) {
   await page.route('**/diagnostic-chat-service.js', route => route.fulfill({ contentType: 'application/javascript', body: service }));
   // Explicitly injected execution proves UI and lifecycle, never answer quality.
   await page.evaluate(async createThread => {
-    const [{ createChatSession }, { createChatTestService }, view] = await Promise.all([
+    const [{ createChatSession, CANONICAL_CHAT_MODELS }, { createChatTestService }, view] = await Promise.all([
       import('/host/chat-session.js'), import('/diagnostic-chat-service.js'), import('/ui/pool-home/conversation-workspace.js')
     ]);
     const root = document.querySelector('.pool-home');
     root.innerHTML = view.renderConversationWorkspace();
     globalThis.documentSession = createChatSession({ storage: localStorage, service: createChatTestService() });
+    documentSession.setCachedModels(CANONICAL_CHAT_MODELS);
     if (createThread) documentSession.createThread({ sharingScope: 'local' });
     globalThis.disposeDocumentView = view.bindConversationWorkspace(root, documentSession);
   }, createThread);
@@ -28,12 +29,15 @@ test('ordinary attachments, export and persisted draft without sample controls',
   await page.locator('[data-composer-send]').click();
   await expect.poll(() => page.evaluate(() => documentSession.getState().activeThread.attempts.map(a => a.status))).toEqual(['completed']);
   await expect(page.locator('[data-message-stream]')).toContainText('Keep contributions optional.');
+  await page.locator('[data-inspector-section="conversation"]').click();
   const download = page.waitForEvent('download');
   await page.locator('[data-conversation-download]').click();
   expect(await readFile(await (await download).path(), 'utf8')).toContain('notes.txt');
+  await page.locator('[data-close-inspector]').click();
   await page.locator('[data-composer-input]').fill('Reconsider the deadline.');
   await page.reload(); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installFixture(page, false);
+  if (!await page.locator('[data-thread-item-id]').first().isVisible()) await page.locator('[data-toggle-thread-rail]').click();
   await page.locator('[data-thread-item-id]').first().click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Reconsider the deadline.');
 });

@@ -5,7 +5,6 @@ import { allowsOpenPlaintext, readPrivacyControls, showPrivacyChoices, updatePri
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
 import { bindWorkspaceNavigation } from './workspace-navigation.js';
-import { updateContextIndicator } from './context-indicator.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
@@ -13,9 +12,9 @@ import { hasBrowserModelOrigin, isDownloadableBaseModel, updateModelSelect, bind
 import { bindNetworkInspector } from './network-inspector.js';
 import { bindDrawer } from '../components/drawer.js';
 import { renderAttachments, createTextAttachmentReader } from '../components/attachments.js';
-import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
+import { routeAlternatives, updateRouteAlternatives } from './route-alternatives.js';
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
 import { webSearchRecipient } from './web-search-settings.js';
@@ -27,6 +26,12 @@ export { renderConversationWorkspace } from './conversation-view.js';
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const modelKey = model => model?.selectionId || model?.id;
 const modelIdentity = model => JSON.stringify([modelKey(model), model?.identity, (model?.adapters || []).map(adapter => adapter.identity)]);
+/** The quoted ceiling for a priced route, shown before Send. A free route, or one with no accepted terms, states nothing. */
+export const creditCapText = model => {
+  const maximum = model?.creditCap?.maximum;
+  return Number.isSafeInteger(maximum) && maximum > 0
+    ? `This answer costs at most ${maximum.toLocaleString()} service credit${maximum === 1 ? '' : 's'}.` : '';
+};
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 
 export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null, historyHandover = null } = {}) {
@@ -68,6 +73,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     return policy.placement === 'local-only' || policy.recipients.kind === 'none' ? 'device'
       : policy.recipients.kind === 'open' ? 'contributors'
         : locked && policy.recipients.ids.length === 1 && policy.recipients.ids[0] === locked.id ? 'desktop' : 'named';
+  };
+  // The paired desktop whether or not it is online, because an offline desktop is still the conversation's pin.
+  const pairedDesktop = state => lockedDestination(state) ?? (state.ownerPairing?.hostParticipantId
+    ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop', status: state.ownerPairing.status } : null);
+  const currentRoute = state => {
+    const key = destinationKey(state), ids = explicitPrivacy(state).recipients?.ids;
+    return key === 'named' && ids?.length === 1 && ids[0] === state.ownerPairing?.hostParticipantId ? 'desktop' : key;
   };
   let editingThread, applyingPrivacy = false;
   const effectiveLocation = state => {
@@ -136,8 +148,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     progressVisible = entry.isIntersecting && entry.intersectionRatio >= 1;
     find('[data-composer-stop]').hidden = !answerBusy || progressVisible;
   }, { root: find('[data-chat-transcript]'), threshold: 1 }) : null;
-  const actions = find('[data-conversation-actions]');
-  const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
   const railToggle = find('[data-toggle-thread-rail]');
   let workspaceNavigation = null, applyingView = false;
   const threadsDialogNode = find('[data-threads-dialog]');
@@ -149,9 +159,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
     railToggle?.setAttribute('aria-expanded', String(open));
     leftDrawer.setOpen(open);
-    if (!open) actionsPanel.setOpen(false);
     if (reflect && !applyingView) workspaceNavigation?.reflect(inspector.isOpen?.() ? rightView() : open ? 'threads' : 'chat', { threads: open });
-    if (open) (find('[data-thread-item-id][aria-current="true"]') || find('[data-thread-item-id]') || find('[data-new-thread]')).focus({ preventScroll: true });
+    if (open) (find('#chat-threads-title') || find('[data-new-thread]'))?.focus({ preventScroll: true });
   };
   const detachHandover = bindHistoryHandover(container, historyHandover);
   const detachInspector = inspector.onOpen?.(section => {
@@ -357,8 +366,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const acquiring = state.acquisition?.phase === 'downloading';
     const phase = state.discoveryPhase;
     const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
+    const freshVisitor = !thread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
+    const publicCanAnswer = freshVisitor && modelExecutionState(selectedModel, 'network').usable;
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
-      && location !== 'network' && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel) && (exhausted || location === 'local');
+      && location !== 'network' && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel)
+      && !publicCanAnswer && (phase === 'observed' || (location === 'local' && (!freshVisitor || exhausted)));
     const acquisition = state.acquisition;
     const acquisitionText = find('[data-acquisition-status]');
     acquisitionText.textContent = acquiring ? acquisition.progress?.message || 'Checking model files.'
@@ -372,28 +384,20 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (acquisition?.progress?.totalBytes && acquisition.progress.receivedBytes !== null) {
       meter.max = acquisition.progress.totalBytes; meter.value = acquisition.progress.receivedBytes;
     } else meter.removeAttribute('value');
-    find('[data-cancel-download]').hidden = !acquiring;
-    find('[data-download-local]').hidden = !canAcquire || !!thread?.closed;
-    find('[data-download-local]').textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Review local download';
+    const cancelDownload = find('[data-cancel-download]');
+    const downloadLocal = find('[data-download-local]');
+    downloadLocal.textContent = ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Review local download';
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
     const privacy = explicitPrivacy(state);
     const policy = currentPolicy(state);
     privacyTrigger.disabled = busy || !!thread?.closed;
-    const locked = lockedDestination(state);
-    const destinationName = { device: 'This device', contributors: 'Contributors', desktop: locked?.label, named: 'Named computers' }[destinationKey(state)];
-    const privacyTitle = 'Answer on: ' + destinationName + (busy ? ' · Available after this answer' : '');
-    privacyTrigger.title = privacyTitle;
-    privacyTrigger.setAttribute('aria-label', privacyTitle);
     const resetNotice = find('[data-execution-settings-reset]');
     resetNotice.hidden = thread?.executionSettingsReset !== true;
     const networkOptIn = find('[data-review-network-execution]');
-    // Send asks where to run when it needs to, so this prompt only stays for an existing local-only thread.
-    networkOptIn.hidden = !thread || busy || usable || preparing || acquiring || !!thread?.closed || (policy.placement !== 'local-only' && policy.recipients.kind !== 'none');
     if (privacyNode.open && (privacyTrigger.disabled || editingThread !== state.selectedId)) privacyDialog.close();
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring
       ? recoverySharedModel(state, current, location, privacy) : null;
     const review = find('[data-review-shared-model]');
-    review.hidden = !shared;
     review.dataset.selectionId = shared ? keyFor(shared) : '';
     review.dataset.identity = shared ? modelIdentity(shared) : '';
     review.textContent = shared ? `Review ${modelVariantLabel(shared)}` : '';
@@ -404,7 +408,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : '';
+          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : creditCapText(current);
         } else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
       // A paired desktop that cannot be reached: name it and say what brings it back. Nothing here can wake it.
@@ -412,10 +416,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (state.ownerPairing?.status === 'offline' && state.ownerPairing.hostLabel && pickerChoice !== 'device'
         && phase !== 'paused' && phase !== 'searching') {
         statusText = `${state.ownerPairing.hostLabel} is offline. Open Reploid on ${state.ownerPairing.hostLabel}.`;
-      } else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue
+      } else if (freshVisitor && phase === 'searching') statusText = 'Finding computers…';
+      else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue
         // Before any choice is made, a shared model that is ready is a way to an answer, not a dead end. Send asks where to run.
-        || (!thread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state)
-          && modelExecutionState(selectedModel, 'network').usable ? 'Not on this device. A public computer can answer.' : 'Model unavailable here.');
+        || (publicCanAnswer ? 'Not on this device. A public computer can answer.' : 'Model unavailable here.');
       else if (phase === 'paused') statusText = 'Network paused.';
       else if (phase === 'interrupted') statusText = 'Connection interrupted.';
       else if (phase === 'searching') statusText = 'Finding computers…';
@@ -446,8 +450,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     else if (usable) disclosure.textContent = 'The answering computer can read your prompt.';
     else disclosure.textContent = 'A network provider could read your prompt.';
     modelStatus.textContent = statusText;
-    modelStatus.hidden = !statusText;
+    modelStatus.hidden = !statusText || !acquisitionText.hidden;
+    updateRouteAlternatives(find('[data-route-alternatives]'), routeAlternatives({ current: currentRoute(state), model: requestedModel,
+      desktop: pairedDesktop(state), busy, closed: !!thread?.closed, searching: phase === 'searching', fresh: freshVisitor }));
     renderQueuedSend(state, selectedModel, location, usable, busy, preparing);
+    if (!acquisitionText.hidden && !queuedSend) modelStatus.hidden = true;
     const answerLimit = find('[data-answer-limit]');
     const detailModel = find('[data-model-picker]').open ? pickerModel : requestedModel;
     const cells = state.answerLimits?.find(entry => entry.selectionId === keyFor(detailModel || {}))?.cells || [];
@@ -461,8 +468,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     answerLimit.hidden = !answerLimit.textContent;
     const retry = find('[data-retry-connection]');
     retry.textContent = phase === 'observed' ? 'Search again' : phase === 'paused' ? 'Reconnect' : 'Retry connection';
-    retry.setAttribute('aria-label', retry.textContent);
-    retry.hidden = busy || usable || preparing || location === 'local' || !exhausted || !!thread?.closed;
     find('[data-model-control]').hidden = !models.length;
     find('[data-open-model]').dataset.activity = execution.status === 'ready' ? 'ready' : 'idle';
     find('[data-picker-thread-note]').hidden = !thread;
@@ -484,47 +489,67 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
     find('[data-composer-model-source]').textContent = activeModel ? computerName : '';
     find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Answer on ${modelDigest}, ${availabilityText}` : 'Answer on');
-    find('[data-open-model]').title = 'Answer on';
     // The box names who receives the message, using the selector's own label; status stays on the dot and status line.
     input.placeholder = !activeModel ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…' : `Message ${computerName}…`;
-    updateContextIndicator(container, state, session);
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
     emptyList.hidden = !!find('[data-thread-list] [data-thread-item-id]');
     emptyList.textContent = archived ? 'No archived chats.' : 'No chats yet.';
     refreshStartingPrompts();
-    find('[data-production-surface]').hidden = container.hasAttribute('data-compact');
+    const productionSurface = find('[data-production-surface]');
+    if (productionSurface) productionSurface.hidden = container.hasAttribute('data-compact');
     production.update(state);
     const contextControls = find('[data-context-controls]');
-    contextControls.hidden = !session.previewContextPrompt;
-    if (session.previewContextPrompt) {
-      const context = thread?.systemContext || session.previewContextPrompt(thread ? {} : contextPrompt || {}, thread?.model || requestedModel);
-      find('[data-context-enabled]').checked = context.metadata.enabled;
-      find('[data-context-cap]').value = String(context.metadata.maxWords);
-      find('[data-context-enabled]').disabled = busy || !!thread?.closed;
-      find('[data-context-cap]').disabled = busy || !!thread?.closed || !context.metadata.enabled;
-      find('[data-context-count]').textContent = `${context.metadata.wordCount}/${context.metadata.maxWords} context words. Replies are not limited by this setting.`;
-      find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
+    if (contextControls) {
+      contextControls.hidden = !session.previewContextPrompt;
+      if (session.previewContextPrompt) {
+        const context = thread?.systemContext || session.previewContextPrompt(thread ? {} : contextPrompt || {}, thread?.model || requestedModel);
+        find('[data-context-enabled]').checked = context.metadata.enabled;
+        find('[data-context-cap]').value = String(context.metadata.maxWords);
+        find('[data-context-enabled]').disabled = busy || !!thread?.closed;
+        find('[data-context-cap]').disabled = busy || !!thread?.closed || !context.metadata.enabled;
+        find('[data-context-count]').textContent = `${context.metadata.wordCount}/${context.metadata.maxWords} context words. Replies are not limited by this setting.`;
+        find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
+      }
     }
     find('[data-composer-send]').hidden = busy;
     // An invite link offers one action: join that computer. Until it is joined, nothing can be sent anywhere.
     const invite = viewState.guestInvite, guest = state.guestAccess, joinButton = find('[data-join-host]');
     const inviteJoined = !!invite && guest?.joined && guest.hostParticipantId === invite.hostPeerId;
     const joiningHost = !!invite && guest?.status === 'joining';
-    joinButton.hidden = !invite || inviteJoined || joiningHost;
     if (invite) joinButton.textContent = `Join ${describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel}`;
     if (invite && !inviteJoined) {
-      const status = find('[data-model-status]');
-      status.hidden = false;
-      status.textContent = joiningHost ? `Connecting to ${guest.hostLabel}…` : guest?.error || 'Invited. Join to send messages to this computer.';
+      modelStatus.hidden = false;
+      acquisitionText.hidden = true;
+      modelStatus.textContent = joiningHost ? `Connecting to ${guest.hostLabel}…` : guest?.error || 'Invited. Join to send messages to this computer.';
     }
+    // One status line with at most one next useful action.
+    const nextActions = [
+      [joinButton, !!invite && !inviteJoined && !joiningHost],
+      [cancelDownload, acquiring],
+      [find('[data-cancel-queued-send]'), !!queuedSend],
+      [review, !!shared],
+      [networkOptIn, !busy && !usable && !preparing && !acquiring && !thread?.closed
+        && (publicCanAnswer || (!!thread && (policy.placement === 'local-only' || policy.recipients.kind === 'none')))],
+      [downloadLocal, !busy && canAcquire && !thread?.closed],
+      [retry, !busy && !usable && !preparing && location !== 'local' && exhausted && !thread?.closed]
+    ];
+    let actionShown = false;
+    for (const [button, eligible] of nextActions) {
+      const visible = !actionShown && eligible;
+      button.hidden = !visible;
+      if (visible) actionShown = true;
+    }
+    const statusRow = find('[data-composer-status-row]');
+    if (statusRow) statusRow.hidden = modelStatus.hidden && acquisitionText.hidden && meter.hidden && !actionShown;
     const queueable = !busy && !usable && state.discoveryPhase === 'searching' && canWaitForPublicModel(state, selectedModel, location);
     // With no choice made yet and nothing runnable here, Send asks where to run once instead of staying off.
     const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
     find('[data-composer-send]').disabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError
       || (!!invite && !inviteJoined);
 
-    find('[data-conversation-download]').hidden = !thread?.messages.length;
+    const downloadBtn = find('[data-conversation-download]');
+    if (downloadBtn) downloadBtn.hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = 'idle';
     messages.update(thread, { usable: usable && !thread?.closed, busy, state });
     answerBusy = busy;
@@ -600,8 +625,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else { contextPrompt = selection; viewState.contextPrompt = selection; render(session.getState()); }
     } catch (failure) { error(failure.message); }
   };
-  find('[data-context-enabled]').addEventListener('change', changeContext, options);
-  find('[data-context-cap]').addEventListener('change', changeContext, options);
+  find('[data-context-enabled]')?.addEventListener('change', changeContext, options);
+  find('[data-context-cap]')?.addEventListener('change', changeContext, options);
   showFiles();
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
@@ -668,7 +693,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); actionsPanel.setOpen(false); setThreads(false); render(session.getState()); input.focus(); }));
+  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
   on('[data-switch-local]', 'click', () => {
@@ -781,7 +806,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const showThreads = showArchived => {
     archived = showArchived; find('[data-show-archived]').setAttribute('aria-pressed', String(archived));
     find('[data-show-active]').setAttribute('aria-pressed', String(!archived));
-    actionsPanel.setOpen(false); render(session.getState());
+    render(session.getState());
     setThreads(true);
     (find('[data-thread-item-id]') || find('[data-new-thread]')).focus();
   };
@@ -805,7 +830,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       }); return;
     }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { queuedSend = null; try { observe(after(saveDraft(), () => { const selected = session.select(button.dataset.threadItemId); inspector.close?.({ restoreFocus: false }); setThreads(false); return selected; })); } catch (cause) { error(cause); } } });
-  on('[data-context-indicator]', 'click', event => inspector.open?.('conversation', event.currentTarget));
   const openExecutionPolicy = trigger => {
     if (submitting || applyingPrivacy) return;
     const state = session.getState();
@@ -824,11 +848,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     openPicker({ currentTarget: trigger });
     find('[data-picker-title]').textContent = forSend ? 'Where should this run?' : 'Answer on';
   };
+  // The desktop stays the only recipient while it is offline. With no desktop left, the choice is refused:
+  // it never becomes "any contributor".
+  const desktopRecipient = state => lockedDestination(state)?.id ?? state.ownerPairing?.hostParticipantId ?? null;
   const destinationPolicy = (key, state) => {
-    const locked = lockedDestination(state);
-    return key === 'device' ? localPolicy
-      : key === 'desktop' && locked ? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [locked.id] }, computation: 'plaintext' })
-        : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+    if (key === 'device') return localPolicy;
+    if (key !== 'desktop') return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+    const recipient = desktopRecipient(state);
+    if (!recipient) throw new Error('That desktop is no longer available. Nothing was changed.');
+    return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [recipient] }, computation: 'plaintext' });
   };
   // A new chat's destination changes at once, so Done right after a computer tap commits the new choice.
   const applyDraftDestination = key => {
@@ -891,6 +919,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const button = event.target.closest('[data-execution-choice]');
     if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
     const choice = button.dataset.executionChoice;
+    if (choice === 'desktop' && !desktopRecipient(session.getState())) { error('That desktop is no longer available. Nothing was changed.'); return; }
     pickerTouched = true;
     pickerRevision++; pickerLocation = choice === 'local' ? 'local' : 'network';
     pickerChoice = choice === 'local' ? 'device' : choice === 'desktop' ? 'desktop' : 'contributors';
@@ -902,6 +931,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       const state = session.getState();
       render(state); if (find('[data-model-picker]').open) updatePicker(state);
     });
+  });
+  // Taking an offer changes where this conversation runs. It sends nothing; the person still presses Send.
+  on('[data-route-alternatives]', 'click', event => {
+    const key = event.target.closest('[data-route-alternative]')?.dataset.routeAlternative;
+    if (!key) return;
+    pickerChoice = null;
+    void act(async () => { await applyDestination(key); render(session.getState()); input.focus(); });
   });
   on('[data-queue-send]', 'click', () => {
     const state = session.getState(), location = effectiveLocation(state);
@@ -1048,8 +1084,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       } else inspector.close?.({ restoreFocus: false });
     } finally { applyingView = false; }
   });
-  container.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && !event.defaultPrevented && !event.target.closest('dialog[open]') && container.hasAttribute('data-threads-open')) {
+  container.ownerDocument.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !event.defaultPrevented && !event.target.closest?.('dialog[open]') && container.hasAttribute('data-threads-open')) {
       event.preventDefault(); setThreads(false); railToggle?.focus();
     }
   }, options);
@@ -1060,7 +1096,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     detachHelp(); nextModelChoices.dispose();
     production.dispose();
     detachInspector?.(); leftDrawer.dispose();
-    messages.dispose(); threads.dispose(); actionsPanel.dispose(); workspaceNavigation.dispose(); detachInspectorClose?.(); picker.dispose(); privacyDialog.dispose(); renameDialog.dispose();
+    messages.dispose(); threads.dispose(); workspaceNavigation.dispose(); detachInspectorClose?.(); picker.dispose(); privacyDialog.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');

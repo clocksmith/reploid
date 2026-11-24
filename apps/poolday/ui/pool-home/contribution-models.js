@@ -9,6 +9,29 @@ const number = value => Number.isFinite(value) && value >= 0 ? value.toLocaleStr
 const bytes = value => Number.isFinite(value) && value >= 0
   ? value < 1048576 ? `${number(value)} B` : `${(value / 1048576).toFixed(1)} MB` : '—';
 
+/**
+ * Who serves a model, from the computers this browser can see. A computer seen is a fact at any time. Seeing none
+ * means none only after discovery has finished looking; until then it is unknown. This is supply, not demand.
+ */
+export function modelSupplyText(model, { observed = false } = {}) {
+  if (!Array.isArray(model?.providerIds)) return '';
+  const count = model.providerIds.length;
+  if (count === 0) return observed ? 'No visible computer serves this' : 'Availability not known yet';
+  return count === 1 ? '1 visible computer serves this' : `${count} visible computers serve this`;
+}
+
+/**
+ * A suggestion for a producer: a model no visible computer serves, preferring one already on this device so that
+ * accepting costs no download. It needs finished discovery, since an unfinished search has not shown a gap. Demand
+ * is not measured, so it is not claimed. A suggestion starts nothing; the producer still reviews and chooses.
+ */
+export function suggestedModelId(models = [], { observed = false } = {}) {
+  if (!observed) return null;
+  const unserved = models.filter(model => Array.isArray(model.providerIds) && model.providerIds.length === 0);
+  const pick = unserved.find(model => model.localReady || model.localCached) ?? unserved[0];
+  return pick ? pick.selectionId || pick.id : null;
+}
+
 /** Model actions retain their identity across discovery and metadata updates. */
 export function bindContributionModels(container, session, { onChoose }) {
   const entries = new Map();
@@ -17,9 +40,13 @@ export function bindContributionModels(container, session, { onChoose }) {
   const eligible = model => !model.partition && model.provider === 'doppler' && model.source
     && (model.localReady || model.localCached || hasBrowserModelOrigin(model));
   const size = value => value >= 1e9 ? `${(value / 1e9).toFixed(1)} GB ↓` : `${Math.ceil(value / 1e6)} MB ↓`;
-  const paint = (entry, issue) => {
+  const paint = (entry, issue, suggested = entry.suggested, observed = entry.observed) => {
+    entry.suggested = suggested; entry.observed = observed;
     const { model, button, detail, metadata } = entry;
     button.querySelector('[data-model-name]').textContent = model.name || model.id;
+    const supply = button.querySelector('[data-model-supply]');
+    supply.textContent = [suggested ? 'Suggested' : '', modelSupplyText(model, { observed })].filter(Boolean).join(' · ');
+    supply.hidden = !supply.textContent;
     detail.textContent = model.localReady ? 'Ready' : model.localCached ? 'Downloaded'
       : metadata ? size(metadata.sizeBytes) : '';
     detail.hidden = !detail.textContent;
@@ -31,6 +58,7 @@ export function bindContributionModels(container, session, { onChoose }) {
     if (disposed) return;
     const models = (state.models || []).filter(eligible);
     const ids = new Set(models.map(model => model.selectionId || model.id));
+    const observed = state.discoveryPhase === 'observed', suggestion = suggestedModelId(models, { observed });
     for (const [id, entry] of entries) if (!ids.has(id)) {
       entry.controller.abort(); entry.button.remove(); entries.delete(id);
     }
@@ -44,11 +72,11 @@ export function bindContributionModels(container, session, { onChoose }) {
         const button = document.createElement('button'); button.type = 'button';
         button.className = 'pool-button pool-stack pool-gap-xs';
         button.dataset.productionModel = id;
-        button.innerHTML = '<span data-model-name></span><span class="pool-caption" data-model-detail hidden></span>';
+        button.innerHTML = '<span data-model-name></span><span class="pool-caption" data-model-supply hidden></span><span class="pool-caption" data-model-detail hidden></span>';
         entry = { model, button, detail: button.querySelector('[data-model-detail]'), controller: new AbortController() };
         entries.set(id, entry); container.append(button);
       }
-      entry.model = model; paint(entry, state.localDownloadIssue);
+      entry.model = model; paint(entry, state.localDownloadIssue, id === suggestion, observed);
       if (!model.localCached && !model.localReady && !entry.requested && !state.localDownloadIssue && session.getModelDownload) {
         entry.requested = true;
         const current = entry;
@@ -124,10 +152,11 @@ export function renderProductionContribution() {
 
 export function bindProductionControls(container, session, { inspector } = {}) {
   const find = selector => container.querySelector(selector);
-  const controller = new AbortController(), options = { signal: controller.signal };
   const backgroundRoot = container.closest('.pool-home');
   const detachBackground = backgroundRoot && document.documentElement.classList.contains('pool-page') && !backgroundRoot.querySelector('.pool-math-background')
     ? bindMathematicalBackground(backgroundRoot) : () => {};
+  if (!find('[data-production-surface]')) return { update() {}, dispose() { detachBackground(); } };
+  const controller = new AbortController(), options = { signal: controller.signal };
   let last, pending = false, actionError = '', attention = false;
   const modelsDialog = bindDialog(find('[data-production-model-dialog]'));
   const modelButtons = find('[data-production-model-buttons]');

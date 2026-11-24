@@ -41,13 +41,16 @@ export function projectChatCatalog({ models, peers, connections, releasedPartiti
   // The host supplies only routes admitted by its release policy.
   return selections.map(model => {
     // A computer blocked on this device is never chosen, so it is not counted as capacity either.
-    const compatible = peers.filter(peer => peer.blocked !== true && peer.identityProtocol === 1 && peer.admissionProtocol === 2
+    const compatible = peers.filter(peer => peer.blocked !== true && peer.unresponsive !== true && peer.identityProtocol === 1 && peer.admissionProtocol === 2
       && (!connections || reachable(peer)) && peer.model === model.id && peer.modelIdentity === model.identity
       && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
     const ready = compatible.filter(peer => peer.readiness === 'ready' && peer.hasInference);
     const loading = compatible.some(peer => peer.readiness === 'loading');
-    return { ...model, availability: ready.length ? (ready.some(peer => peer.availableSlots > 0) ? 'ready' : 'busy')
+    const open = ready.some(peer => peer.availableSlots > 0);
+    return { ...model, availability: ready.length ? (open ? 'ready' : 'busy')
       : loading ? 'loading' : 'unavailable', providerIds: ready.map(peer => peer.peerId),
+      // Nothing reports a free slot, and at least one computer reports no count at all: not known to be full.
+      ...(!open && ready.some(peer => !Number.isSafeInteger(peer.availableSlots)) ? { capacityUnknown: true } : {}),
       reachableProviderIds: ready.filter(peer => peer.availableSlots > 0 && reachable(peer)).map(peer => peer.peerId) };
   }).concat(releasedPartitionModels);
 }

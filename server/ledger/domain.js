@@ -12,7 +12,7 @@ import { collectUnknownKeys } from '../input-validation.js';
 import { canonicalJson, hashCanonical, sha256Hex } from '../hashing.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 
-export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.4.0';
+export const PRODUCT_ECONOMICS_CONTRACT_ID = 'reploid.product-economics/1.5.0';
 export const ACCOUNT_SCHEMA = 'reploid.credit-account/v1';
 // v2: donated sources name funderId and funderKind (v1 named only donorId, the
 // commitment's funder id); purchased sources name their conversion record.

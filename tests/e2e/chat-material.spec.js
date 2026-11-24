@@ -295,17 +295,19 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   await expect(page.locator('[data-composer-input]')).toBeInViewport();
   await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
   await expect(page.locator('[data-thread-list]')).toBeHidden();
-  // Threads and their conversation actions open as one dialog over the phone-sized viewport.
+  // Chats opens as a full-width sheet on phones; conversation export lives in Conversation details.
   await page.locator('[data-toggle-thread-rail]').click();
   await expect(page.locator('[data-threads-dialog]')).toBeVisible();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
-  await page.locator('[data-conversation-actions] > summary').click();
-  await expect(page.locator('[data-network-header] [data-conversation-actions]')).toBeVisible();
   await expect(page.locator('[data-show-archived]')).toBeVisible();
-  await expect(page.locator('[data-conversation-download]')).toBeVisible();
-  await expect(page.locator('[data-conversation-download]')).toBeInViewport();
   await page.locator('[data-close-threads]').click();
   await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
+  await page.locator('[data-inspector-section="conversation"]').click();
+  await expect(page.locator('[data-conversation-download]')).toBeVisible();
+  await page.locator('[data-conversation-download]').scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-conversation-download]')).toBeInViewport();
+  await page.locator('[data-close-inspector]').click();
+  await expect(page.locator('[data-inspector-section="conversation"]')).toBeFocused();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
   await page.screenshot({ path: info.outputPath('phone-reading-keyboard.png'), fullPage: true });
 });
@@ -322,10 +324,10 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   });
   const before = await page.locator('[data-composer-area]').boundingBox();
   for (let i = 0; i < 3; i++) {
-    // The conversation pane opens from the composer's context indicator; the rail keeps Computers and Settings.
-    await page.locator('[data-context-indicator]').click();
+    // Conversation details opens from its stable toolbar destination and restores focus on Escape.
+    await page.locator('[data-inspector-section="conversation"]').click();
     await expect(page.locator('[data-inspector-route]')).toContainText(participantLabel('fixture-A'));
-    await page.keyboard.press('Escape'); await expect(page.locator('[data-context-indicator]')).toBeFocused();
+    await page.keyboard.press('Escape'); await expect(page.locator('[data-inspector-section="conversation"]')).toBeFocused();
   }
   expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
   expect(await page.locator('[data-chat-transcript]').evaluate(node => node.scrollTop)).toBe(100);
@@ -590,13 +592,13 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     await input.evaluate(node => node.setSelectionRange(5, 9));
     const field = await page.locator('[data-composer-field]').boundingBox();
     const text = await input.boundingBox();
-    for (const selector of ['.chat-file-label', '[data-open-model]', '[data-context-indicator]', '[data-composer-send]']) {
+    for (const selector of ['.chat-file-label', '[data-open-model]', '[data-composer-send]']) {
       const rect = await page.locator(selector).boundingBox();
       expect(rect.y).toBeGreaterThanOrEqual(text.y + text.height);
       expect(rect.x).toBeGreaterThanOrEqual(field.x); expect(rect.x + rect.width).toBeLessThanOrEqual(field.x + field.width);
       expect(rect.height).toBeGreaterThanOrEqual(44);
     }
-    await page.locator('[data-context-indicator]').click();
+    await page.locator('[data-inspector-section="conversation"]').click();
     await expect(page.locator('[data-conversation-area]')).toBeVisible();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     const chat = await page.locator('[data-conversation-area]').boundingBox(), pane = await page.locator('[data-chat-inspector-slot]').boundingBox();
@@ -605,7 +607,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
     expect(await page.locator('[data-inspector-route]').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath('conversation-inspection.png') });
     await page.keyboard.press('Escape');
-    await expect(page.locator('[data-context-indicator]')).toBeFocused();
+    await expect(page.locator('[data-inspector-section="conversation"]')).toBeFocused();
     await expect(input).toHaveValue('Keep my exact draft');
     expect(await input.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([5, 9]);
     await page.locator('[data-open-model]').click();
@@ -931,22 +933,14 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
   await expect(page.locator('.is-assistant [data-answer-stop]')).toBeHidden();
   await expect(page.locator('.is-assistant [data-system-status]')).toContainText('Stopped');
 
-  await page.locator('.chat-composer-status-line [data-open-control-help]').click();
-  await expect(page.locator('[data-control-help]')).toBeVisible();
-  await expect(page.locator('[data-control-help]')).toContainText('Open answer details');
-  await page.locator('[data-close-control-help]').click();
-  await expect(page.locator('.chat-composer-status-line [data-open-control-help]')).toBeFocused();
+  await expect(page.locator('[data-open-control-help]')).toHaveCount(0);
 
   await page.evaluate(() => { window.setVisualState('empty'); window.setVisualSupply(24); });
   const opener = page.locator('[data-open-model]');
   await page.locator('[data-composer-input]').focus();
   await opener.hover();
-  await expect(page.getByRole('tooltip')).toHaveText('Answer on');
-  await page.mouse.move(1, 1);
   await expect(page.getByRole('tooltip')).toBeHidden();
   await opener.focus();
-  await expect(page.getByRole('tooltip')).toHaveText('Answer on');
-  await page.keyboard.press('Escape');
   await expect(page.getByRole('tooltip')).toBeHidden();
   await opener.press('Enter');
   const picker = page.locator('[data-model-picker]');
@@ -962,9 +956,6 @@ for (const width of [1440, 390, 320]) test(`focused chat controls: help, picker 
   await expect(picker.locator('[data-change-model]')).toBeInViewport();
   await page.screenshot({ path: info.outputPath(`picker-${width}.png`), fullPage: true });
   await picker.locator('[data-model-details] > summary').click();
-  await picker.locator('[data-open-control-help]').click();
-  await expect(page.locator('[data-control-help]')).toBeVisible();
-  await page.locator('[data-close-control-help]').click();
   await picker.locator('[data-model-picker-close]').click();
   await expect(opener).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -1058,10 +1049,6 @@ test('touch help and model choices work without hover', async ({ browser }, info
     await page.locator('.is-assistant [data-execution-trigger]').tap();
     await expect(page.locator('[data-inspected-activity]')).toContainText('Output tokens92');
     await page.locator('[data-close-inspector]').tap();
-    await page.locator('.chat-composer-status-line [data-open-control-help]').tap();
-    await expect(page.locator('[data-control-help]')).toBeVisible();
-    await page.screenshot({ path: info.outputPath('touch-help.png'), fullPage: true });
-    await page.locator('[data-close-control-help]').tap();
     await page.locator('[data-open-model]').tap();
     await expect(page.locator('[data-model-picker]')).toBeVisible();
     await expect(page.locator('[data-model-details]')).not.toHaveAttribute('open');

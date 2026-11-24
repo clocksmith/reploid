@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { creditCapText, renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -25,6 +25,12 @@ describe('Paired desktop default', () => {
     return { model, viewState };
   };
 
+  it('states the most a priced route can cost, and nothing for a route without terms', () => {
+    expect(creditCapText({ creditCap: { maximum: 1600, unit: 'noncash-service-credit' } })).toBe(`This answer costs at most ${(1600).toLocaleString()} service credits.`);
+    expect(creditCapText({ creditCap: { maximum: 1 } })).toBe('This answer costs at most 1 service credit.');
+    for (const route of [{}, null, { creditCap: { maximum: 0 } }, { creditCap: { maximum: 1.5 } }]) expect(creditCapText(route)).toBe('');
+  });
+
   it('restricts a new conversation to the paired desktop and its ready model without opening any dialog', () => {
     const host = 'peer:91d1d9293ca2d973191156dc';
     const { model, viewState } = setup({ status: 'online', paired: true, canSend: true, hostParticipantId: host,
@@ -43,6 +49,35 @@ describe('Paired desktop default', () => {
       { peers: [], state: { discoveryPhase: 'observed' } });
     expect(root.querySelector('[data-model-status]').textContent).toBe('Mars is offline. Open Reploid on Mars.');
     expect(root.textContent).not.toMatch(/wake/i);
+  });
+
+  describe('a stale tap on the desktop row', () => {
+    const host = 'peer:91d1d9293ca2d973191156dc';
+    const tapDesktop = () => {
+      // The row as it was drawn before the desktop's state changed.
+      const row = root.querySelector('[data-execution-choice="desktop"]');
+      row.disabled = false;
+      row.setAttribute('aria-pressed', 'false');
+      row.click();
+    };
+    const online = () => ({ status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Mars',
+      readyModel: CANONICAL_CHAT_MODELS[0].id, disclosure: { readableBy: `Readable by: ${host}`, notice: `This runs on ${host}.` } });
+
+    it('keeps the conversation on the desktop while it is offline', () => {
+      const pairing = online();
+      const { viewState } = setup(pairing);
+      Object.assign(pairing, { status: 'offline', canSend: false });
+      tapDesktop();
+      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+    });
+
+    it('never opens the conversation to any contributor once the desktop is gone', () => {
+      const pairing = online();
+      const { viewState } = setup(pairing);
+      Object.assign(pairing, { status: 'unpaired', paired: false, canSend: false, hostParticipantId: null });
+      tapDesktop();
+      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+    });
   });
 
   it('leaves the default policy alone when no desktop is paired', () => {

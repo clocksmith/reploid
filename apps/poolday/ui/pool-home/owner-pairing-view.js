@@ -97,7 +97,7 @@ export const renderOwnerPairingControls = () => `
         </details>
         <button class="pool-button btn-primary" type="submit">Connect</button>
       </form>
-      <button class="pool-button btn-ghost" type="button" data-owner-pairing-unpair hidden>Unpair desktop</button>
+      <button class="pool-button btn-ghost" type="button" data-owner-pairing-unpair hidden>Forget computer</button>
       <p class="pool-caption" role="status" data-owner-pairing-status></p>
     </div>
   </details>`;
@@ -199,7 +199,7 @@ export function bindOwnerPairingControls(root, session, { initialUrl = '' } = {}
 
   unpairButton.addEventListener('click', () => {
     port.unpair();
-    statusNode.textContent = 'Desktop unpaired. Pair again to authorize a computer.';
+    statusNode.textContent = 'Computer forgotten. Pair again to authorize a computer.';
     render(session?.getState?.());
   }, options);
 

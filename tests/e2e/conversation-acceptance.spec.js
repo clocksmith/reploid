@@ -128,7 +128,7 @@ test('scripted multitasking: Stop is isolated; completed answer and draft surviv
 test('scripted contributor loss: explicit retry keeps the partial response separate', async ({ page }) => {
   await mount(page); await send(page, 'Explain this'); await approve(page); await emit(page, 'Partial before departure.', false);
   await page.evaluate(() => window.journey.jobs.get(window.journey.session.getState().selectedId).fail());
-  await expect(page.locator('.is-assistant')).toContainText('A computer disconnected. Retry this answer.');
+  await expect(page.locator('.is-assistant')).toContainText('Nothing was resent. Retry to ask again');
   await page.locator('[data-retry-attempt]').click();
   await approve(page); await emit(page, 'Complete replacement answer.');
   await expect(page.locator('.is-assistant')).toHaveCount(2);

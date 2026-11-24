@@ -32,6 +32,8 @@ export const heavyTests = [
   'tests/unit/retained-peer-pack-episode.test.js',
   'tests/unit/distributed-reference-contract.test.js',
   'tests/integration/browser-snapshot-server.test.js',
+  'tests/integration/stage1-local-split.test.js',
+  'tests/integration/stage1-physical-mocked.test.js',
   'tests/unit/cli-contract.test.js',
   'tests/unit/doppler-partition-delivery.test.js',
   'tests/unit/native-delivery.test.js',

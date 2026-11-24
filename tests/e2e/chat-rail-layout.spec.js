@@ -49,10 +49,9 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-// Rendered contract: three >=44px controls form one row, a top bar on desktop and a bottom bar on
-// phones. The brand opens the conversation list as a drawer; model selection lives in its own panel.
-// Panel changes preserve draft and focus. Pending computer rows stay visible before ads.
-const railButtons = ['[data-toggle-thread-rail]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
+// Rendered contract: four >=44px icon+label destinations form one stable row, a top bar on desktop
+// and a bottom bar on phones, never shifting on load. Panel changes preserve draft and focus.
+const railButtons = ['[data-toggle-thread-rail]', '[data-inspector-section="conversation"]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
   test(`computer facts stay readable and IDs stay folded: ${theme}, ${width}px`, async ({ page }, info) => {
@@ -134,14 +133,13 @@ async function measureControls(page) {
 }
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
-  test(`${theme} one bar aligns all three controls and opens each panel at ${width}px`, async ({ page }, info) => {
+  test(`${theme} one bar aligns all four destinations and opens each panel at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
     const rail = page.locator('[data-thread-sidebar]');
     await expect(page.locator('.chat-thread-title').first()).toBeHidden();
     await expect(page.locator('[data-thread-list]')).toBeHidden();
-    await expect(page.locator('[data-conversation-actions]')).toBeHidden();
-    await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
+    await expect(page.locator('[data-threads-dialog] [data-conversation-actions]')).toHaveCount(0);
     await expect(page.locator('[data-pool-settings] > summary')).toBeHidden();
     const controls = await measureControls(page);
     expect(controls.every(item => item.visible)).toBe(true);
@@ -153,23 +151,21 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
       if (width <= 760) expect(Math.abs(item.centerX), item.selector).toBeLessThanOrEqual(0.5);
       expect(Math.abs(item.centerY), item.selector).toBeLessThanOrEqual(0.5);
       expect(item.box.y).toBe(controls[0].box.y);
+      expect(item.box.height).toBe(controls[0].box.height);
     }
     const bar = await rail.boundingBox();
     if (width > 760) expect(bar.y).toBeLessThan(844 / 2); else expect(bar.y).toBeGreaterThan(844 / 2);
-    // Check the graphic itself, not only the wrapper around the logo.
-    const brand = await page.locator('.pool-primary-brand').evaluate(node => {
-      const glyph = node.querySelector('.pool-power-tower');
-      const box = glyph.getBoundingClientRect(), parts = [...glyph.querySelectorAll(':scope > *')].map(part => part.getBoundingClientRect());
-      return { dx: (Math.min(...parts.map(b => b.x)) + Math.max(...parts.map(b => b.right))) / 2 - box.x - box.width / 2,
-        dy: (Math.min(...parts.map(b => b.y)) + Math.max(...parts.map(b => b.bottom))) / 2 - box.y - box.height / 2 };
-    });
-    expect(Math.abs(brand.dx)).toBeLessThanOrEqual(2); expect(Math.abs(brand.dy)).toBeLessThanOrEqual(2);
     await page.locator('[data-composer-input]').fill('Keep this draft.');
     await page.screenshot({path:info.outputPath('collapsed.png')});
     await page.locator('[data-toggle-thread-rail]').click();
     await expect(page.locator('[data-threads-dialog]')).toBeVisible();
+    await expect(page.locator('[data-threads-dialog]')).not.toHaveAttribute('data-drawer-moving');
     await expect(page.locator('[data-thread-list]')).toBeVisible();
-    await expect(page.locator('[data-conversation-actions]')).toBeVisible();
+    if (width <= 760) {
+      const sheetBox = await page.locator('[data-threads-dialog]').boundingBox();
+      expect(sheetBox.x).toBeLessThanOrEqual(16);
+      expect(width - (sheetBox.x + sheetBox.width)).toBeLessThanOrEqual(16);
+    }
     await expect(page.locator('[data-open-model]')).toBeVisible();
     await page.screenshot({path:info.outputPath('threads.png')});
     await page.keyboard.press('Escape');
@@ -178,15 +174,22 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(page.locator('.chat-thread-title').first()).toBeHidden();
     await expect(page.locator('[data-thread-list]')).toBeHidden();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
+    if (width <= 760) {
+      const inspectorBox = await page.locator('[data-chat-inspector-slot]').boundingBox();
+      expect(inspectorBox.x).toBeLessThanOrEqual(16);
+      expect(width - (inspectorBox.x + inspectorBox.width)).toBeLessThanOrEqual(16);
+    }
     await expect(page.locator('.network-peer-row strong')).toHaveText(['a', 'b', 'c', 'd'].map(id => participantLabel('participant-' + id)));
     await page.screenshot({path:info.outputPath('network.png')});
     await page.locator('[data-inspector-section="settings"]').click();
     await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
+    await page.locator('[data-inspector-section="conversation"]').click();
+    await expect(page.locator('[data-inspector-pane="conversation"]')).toBeVisible();
     await page.locator('[data-toggle-thread-rail]').click();
     if (width >= 1200) await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     else await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
     await expect(page.locator('[data-thread-list]')).toBeVisible();
-    await page.locator('[data-conversation-actions] > summary').click();
     await page.locator('[data-show-archived]').click();
     await expect(page.locator('[data-chat-workspace]')).toHaveAttribute('data-threads-open','');
     await page.locator('[data-close-threads]').click();
@@ -197,10 +200,13 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await page.locator('[data-model-picker-close]').click();
     await expect(page.locator('[data-open-model]')).toBeFocused();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
-    for (const item of await measureControls(page)) {
+    const afterControls = await measureControls(page);
+    for (let i = 0; i < afterControls.length; i++) {
+      const item = afterControls[i];
       if (width <= 760) expect(Math.abs(item.centerX),item.selector).toBeLessThanOrEqual(0.5);
       expect(Math.abs(item.centerY),item.selector).toBeLessThanOrEqual(0.5);
       expect(item.box.y).toBe(controls[0].box.y);
+      expect(Math.abs(item.box.x - controls[i].box.x)).toBeLessThanOrEqual(0.5);
     }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
     await expect(rail).toBeVisible();
@@ -230,11 +236,12 @@ for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']
         return {stream:box('[data-message-stream]'),gutter:parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),composer:box('[data-composer-area]'),area:box('[data-conversation-area]'),rail:box('[data-thread-sidebar]'),panel:box('[data-chat-inspector-slot]')};
       });
       if(state==='network'){
-        // The open inspector takes the conversation column; transcript and composer yield to it.
-        expect(result.area.width).toBe(0);
+        // Desktop reserves space beside the conversation column; phones overlay the full-width sheet.
         expect(result.panel.width).toBeGreaterThan(0);
         expect(result.panel.right).toBeLessThanOrEqual(width-8);
+        if(width>=1100)expect(result.panel.x).toBeGreaterThanOrEqual(result.area.x+result.area.width-1);
         if(width>760)expect(result.panel.y).toBeGreaterThanOrEqual(result.rail.bottom+8);
+        else{expect(result.panel.x).toBeLessThanOrEqual(16);expect(width-result.panel.right).toBeLessThanOrEqual(16);}
       }else{
         // One column: the transcript is centered on the composer and exceeds it by at most its own inline gutter.
         expect(Math.abs((result.stream.x+result.stream.width/2)-(result.composer.x+result.composer.width/2))).toBeLessThanOrEqual(1);
@@ -249,10 +256,17 @@ for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']
       expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
       await page.screenshot({path:info.outputPath(state+'.png')});
     };
-    await check('collapsed');await page.locator('[data-toggle-thread-rail]').click();await check('threads');
+    await check('collapsed');await page.locator('[data-toggle-thread-rail]').click();
+    await expect(page.locator('[data-threads-dialog]')).not.toHaveAttribute('data-drawer-moving');
+    await check('threads');
     await page.locator('[data-close-threads]').click();
-    await page.locator('[data-toggle-inspector]').click();await check('network');
-    await page.locator('[data-close-inspector]').click();await check('closed');
+    await expect(page.locator('[data-threads-dialog]')).not.toHaveAttribute('data-drawer-moving');
+    await page.locator('[data-toggle-inspector]').click();
+    await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
+    await check('network');
+    await page.locator('[data-close-inspector]').click();
+    await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
+    await check('closed');
   });
 }
 
@@ -341,7 +355,7 @@ for (const width of [1440,320]) test(`shared shell inspector keeps fixed ownersh
   await expect(page.locator('.pool-primary-nav [data-pool-theme-choice="light"]')).toBeVisible();
   await page.evaluate(()=>window.mountSharedRoute('home'));
   await expect(page.locator('[data-composer-input]')).toHaveValue('Preserve my draft across navigation.');
-  await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
+  await expect(page.locator('[data-toggle-thread-rail] svg')).toBeVisible();
   await page.locator('[data-toggle-inspector]').click();
   await page.locator('[data-inspector-section="settings"]').click();
   await expect(page.locator('[data-pool-theme-choice="light"]')).toBeVisible();

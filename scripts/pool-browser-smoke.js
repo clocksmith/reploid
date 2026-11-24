@@ -162,22 +162,20 @@ const checkNetworkInspector = async (routePage) => {
   if (!panel.open || !(panel.area > 0) || !(panel.slot.width > 0) || panel.slot.right > panel.width) {
     failures.push('/network: the open inspector does not preserve the conversation within the viewport: ' + JSON.stringify(panel));
   }
-  // Computers owns both sharing controls. Storage links to file sharing.
-  // Both default on, but an idle visitor has nothing
-  // cached to share.
+  // Computers owns contribution and Settings owns file sharing.
+  // Both start off: serving is the producer's choice.
   await participants.locator('details:has([data-toggle-contribution]) > summary').click();
   await expect(participants.locator('[data-toggle-contribution]')).toBeVisible();
-  await expect(participants.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'true');
+  await expect(participants.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');
   await routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.settings}`).click();
   const settings = inspector.locator('[data-inspector-pane="settings"]');
   await expect(settings).toBeVisible();
   await expect(participants).toBeHidden();
   await expect(routePage.locator('#network-inspector-title')).toHaveText('Settings');
-  await settings.locator('[data-settings-storage] [data-manage-file-sharing]').click();
-  await expect(participants).toBeVisible();
-  const fileSharing = participants.locator('[data-toggle-file-contribution]');
+  const fileSharing = settings.locator('[data-toggle-file-contribution]');
   await expect(fileSharing).toBeVisible();
-  await expect(fileSharing).toHaveAttribute('aria-checked', 'true');
+  await expect(participants.locator('[data-toggle-file-contribution]')).toHaveCount(0);
+  await expect(fileSharing).toHaveAttribute('aria-checked', 'false');
   await inspector.locator('[data-close-inspector]').click();
   await expect(inspector).toBeHidden();
   await expect(routePage.locator('.pool-home')).not.toHaveAttribute('data-network-panel-open', '');
@@ -228,12 +226,12 @@ try {
   await expect(page.locator('[data-chat-approval]')).toBeHidden();
   await expect(page.locator('[data-mesh-invite]')).toBeHidden();
   await page.locator('[data-toggle-inspector]').click();
-  // Cached compute and file sharing default on; an idle visitor waits with nothing to share.
+  // A new visitor serves nothing until they choose to.
   for (const selector of ['[data-toggle-contribution]', '[data-toggle-file-contribution]']) {
-    await expect(page.locator(selector)).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator(selector)).toHaveAttribute('aria-checked', 'false');
   }
-  await expect(page.locator('[data-contrib-label]')).toHaveText('On · waiting for a downloaded model');
-  await expect(page.locator('[data-file-contribution-label]')).toHaveText('On · waiting for cached files');
+  await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
+  await expect(page.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
   await expect(page.locator('[data-contribution-model] option')).not.toHaveCount(0);
   await page.locator('[data-close-inspector]').click();
   const draft = 'Unsent deployment check: retain this draft across reload and navigation.';

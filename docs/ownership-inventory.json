@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 391,
+    "apps/poolday": 394,
     "self": 457,
     "shared": 2510
   },
@@ -1795,6 +1795,12 @@
       "basis": "Reached from native hosts and browser entries."
     },
     {
+      "served": "config/requester-weights.json",
+      "source": "apps/poolday/config/requester-weights.json",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "config/route-boot.js",
       "source": "self/config/route-boot.js",
       "owner": "self",
@@ -2511,6 +2517,12 @@
     {
       "served": "host/research-plugins.js",
       "source": "apps/poolday/host/research-plugins.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/route-preference.js",
+      "source": "apps/poolday/host/route-preference.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -5289,6 +5301,12 @@
     {
       "served": "ui/pool-home/room-view.js",
       "source": "apps/poolday/ui/pool-home/room-view.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/route-alternatives.js",
+      "source": "apps/poolday/ui/pool-home/route-alternatives.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

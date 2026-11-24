@@ -1,9 +1,9 @@
 import { bindDialog } from './dialog.js';
 import { interfaceIcon } from './interface-icons.js';
 
-export const renderHelpButton = () => `<button class="pool-button btn-ghost pool-icon" type="button" data-open-control-help aria-label="Help" title="Help" aria-haspopup="dialog">${interfaceIcon('help')}</button>`;
+export const renderHelpButton = () => `<button class="pool-button btn-ghost pool-icon" type="button" data-open-control-help aria-label="Help" aria-haspopup="dialog">${interfaceIcon('help')}</button>`;
 export const renderControlHelp = () => `${renderHelpButton()}<dialog class="chat-model-setup pool-surface pool-small" data-control-help aria-labelledby="chat-help-title">
-  <header class="chat-network-heading"><h2 class="pool-heading" id="chat-help-title">Help</h2><button class="pool-button btn-ghost" type="button" data-close-control-help>Close</button></header>
+  <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-help-title">Help</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-control-help aria-label="Close">${interfaceIcon('close')}</button></header>
   <dl class="pool-stack pool-gap-sm">
     <div><dt>Model</dt><dd>Choose who answers. Shared uses another computer; This device runs locally. Ready models can answer now. Model details shows providers and execution choices.</dd></div>
     <div><dt>Files</dt><dd>Attach text files to include them with your question. Sending to a shared model also sends that request’s contents to its computer.</dd></div>
@@ -35,6 +35,8 @@ export function bindControlHelp(root) {
     if (!element || !root.contains(element) || element === target) return;
     const text = element.dataset.help || element.title;
     if (!text) return;
+    const visible = element.innerText?.replace(/\s+/g, ' ').trim();
+    if (visible && text.replace(/\s+/g, ' ').trim().toLowerCase() === visible.toLowerCase()) return;
     hide(); target = element; title = element.title; description = element.getAttribute('aria-describedby');
     element.removeAttribute('title'); element.setAttribute('aria-describedby', [description, tip.id].filter(Boolean).join(' '));
     tip.textContent = text; (element.closest('dialog[open]') || root).append(tip); tip.hidden = false;

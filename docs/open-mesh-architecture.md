@@ -121,8 +121,8 @@ losing a connection cannot prove that the remote GPU stopped. See
 
 The mechanisms below are retained design, not authority to expand the current
 bounded validation cell. Whole-model generation is the default when an eligible
-participant fits the exact model and execution envelope; partition only when none
-fits. A selected partition hypothesis compares whole-model controls where feasible,
+participant fits the exact model and execution envelope. A qualified split runs when
+it is explicitly requested or when no single participant fits. A selected partition hypothesis compares whole-model controls where feasible,
 same-machine partitions and network partitions with the same model, prompts, quality
 requirements, hardware budget and deadlines. These partition controls do not gate
 an otherwise qualified whole-model service. Isolate local
@@ -675,6 +675,37 @@ do not become independent counts or automatic failures. Replay reconstructs the
 projection from the admissible window so removed evidence leaves no hidden score.
 Synthetic posterior tests do not establish calibration or useful physical gains.
 
+### Whole-model request order
+
+Every whole-model request follows one order, whichever API it entered through:
+
+1. **Normalize.** Chat Completions, Responses, and Messages keep their own public
+   shapes and supported fields. A limit below the prepared ceiling reaches the
+   provider as the same generation setting. Above the ceiling, Chat Completions
+   refuses the request; Responses and Messages run to the ceiling unless a fleet
+   policy refuses that limit.
+2. **Filter.** Privacy policy, named recipients, exact model identity, readiness, a
+   reported free slot, and provider capability decide who is eligible. A provider
+   that cannot apply a requested limit is not eligible.
+3. **Rank.** The person's preference orders eligible computers only. Speed compares
+   rates for the requested model. An unreported rate or slot count is unknown, not
+   zero. There is no cost ranking until offers carry a price.
+4. **Quote.** A priced route states its maximum before any hold. Declining it holds
+   and sends nothing.
+5. **Admit and stream.** The hold is placed, the provider admits the request, and
+   only then does the prompt leave the requester.
+6. **Settle once.** A finished answer is charged for its reported output, up to the
+   quote. A cancelled or dropped whole-model answer releases the hold without a
+   charge and does not move to another computer. When ICE reports a connection
+   as disconnected, the requester pings that computer. If nothing arrives within
+   1.5 seconds, its requests end and it gets no new work until it answers. The
+   connection stays open, so a slow answer or a brief loss does not end it.
+
+`tests/integration/whole-model-order.test.js` exercises this order on one pinned
+model with in-memory transport and a fixed generator. It does not establish real
+inference, WebRTC, TURN, or physical recovery. Split-layer inference and
+cross-host continuation are separate qualifications.
+
 The [original network design and checkpoints](https://github.com/clocksmith/reploid/blob/342f0760f80f66d851ef33ffaa9b83b482dc2572/docs/poolday/executable-intelligence-network-plan.md) preserve prior whole-job,
 partition, placement, and improvement sequencing. Their historical order cannot
 start another campaign. Transferable improvement and causal recursion retain the
@@ -689,7 +720,8 @@ Consolidated from the former network product-intent document. These are scoped e
 Open Reploid, choose an available model, start an independent conversation,
 authorize the necessary disclosure and receive a complete answer. Public discovery
 uses the configured bootstrap without invitations, manual room setup or selecting
-computers. A prepared execution path requires no requester weight downloads.
+computers. A prepared remote route requires no requester weights. A local + peer
+split loads only the requester's own shard.
 Contribution preparation is separate from consuming prepared capacity.
 
 A requester can keep drafts and completed answers when no eligible path is ready.

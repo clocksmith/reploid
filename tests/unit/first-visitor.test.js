@@ -176,7 +176,7 @@ it('cancels an explicitly confirmed download while preserving the unsent draft',
 it('offers explicit local download after no usable peers and reuses the existing size-and-consent dialog', async () => {
   const f = fixture(); expect(f.find('[data-download-local]').hidden).toBe(true);
   f.publish(observedDiscovery);
-  expect(f.find('[data-download-local]').hidden).toBe(false); expect(f.find('[data-retry-connection]').hidden).toBe(false);
+  expect(f.find('[data-download-local]').hidden).toBe(false); expect(f.find('[data-retry-connection]').hidden).toBe(true);
   f.find('[data-download-local]').click();
   await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled();

@@ -133,8 +133,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
       contentType: filename.endsWith('.json') ? 'application/json' : 'application/octet-stream' });
   });
   // Current controls: the model to seed is chosen under Computers → Download options;
-  // compute contribution lives under Computers → Contribute this computer. Both switches are
-  // on by default (cached sharing), so a switch is turned off before a model is chosen.
+  // compute contribution lives under Computers → Contribute this computer. Both switches start
+  // off; one that a previous step turned on is turned off before a model is chosen.
   const openContribution = async page => {
     await openFileSharing(page);
     const selection = page.locator('[data-contribution-model]');
@@ -402,14 +402,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     const returningPages = observations[0].physicalHost === 'mac' ? [contributor, second] : [second, contributor];
     const downloadConversation = async () => {
-      const actions = requester.locator('[data-conversation-actions]');
-      if (!await actions.evaluate(element => element.open)) {
-        await actions.locator('summary').click({ timeout: 30000 });
+      if (!await requester.locator('[data-conversation-download]').isVisible()) {
+        await requester.locator('[data-inspector-section="conversation"]').click({ timeout: 30000 });
       }
       await Promise.all([
         requester.waitForEvent('download', { timeout: 30000 }),
         requester.locator('[data-conversation-download]').click({ timeout: 30000 })
       ]);
+      await requester.locator('[data-close-inspector]').click({ timeout: 30000 });
     };
     const runDocuments = async () => {
       if (!await requester.locator('[data-new-thread]').isVisible()) await requester.locator('[data-toggle-thread-rail]').click();

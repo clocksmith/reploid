@@ -176,26 +176,26 @@ test('open chat discovers a real contributor, delivers a message sent before cap
     await writeEvidence('queued-before-capacity.json', queued);
     await waitContributionReady(contributor);
 
-    // The contributor leaves during an answer: the attempt fails as a dropped computer and
-    // stays recorded; automatic failover (e7ea7aa6c) starts a new attempt that waits for a
-    // computer and completes once the contributor returns, without the reader pressing Retry.
+    // The contributor leaves during an answer: the attempt fails as a dropped computer, stays
+    // recorded and is not resent. Pressing Retry after the contributor returns starts a new attempt.
     const lostId = await sendNew(requester, 'Count from one to fifty, one number per line.');
     await expect.poll(() => streamed(requester, lostId), { timeout: 120000 }).not.toBe('');
     await openComputers(contributor);
     await contributor.locator('[data-toggle-contribution]').click();
     await expect(contributor.locator('[data-contrib-label]')).toHaveText('Not sharing', { timeout: 60000 });
     const attemptsOf = async () => (await history(requester)).threads.find(thread => thread.id === lostId).attempts;
-    await expect.poll(async () => (await attemptsOf()).length, { timeout: 60000 }).toBeGreaterThan(1);
+    await expect.poll(async () => (await attemptsOf()).at(-1).status, { timeout: 60000 }).toBe('failed');
     const dropped = (await history(requester)).threads.find(thread => thread.id === lostId);
     expect(dropped.attempts[0].status).toBe('failed');
     expect(dropped.attempts[0].error).toMatch(/Execution peer disconnected|no longer ready|Failed to send swarm generation request/);
-    expect(dropped.attempts[1].retryOf).toBe(dropped.attempts[0].id);
-    expect(dropped.attempts.length).toBeLessThanOrEqual(3);
+    expect(dropped.attempts).toHaveLength(1);
     await contributor.locator('[data-toggle-contribution]').click();
     await expect(contributor.locator('[data-model-dialog]')).toBeVisible();
     await expect(contributor.locator('[data-download-confirm]')).toHaveText('Start sharing');
     await contributor.locator('[data-download-confirm]').click();
     await waitContributionReady(contributor, { timeout: 300000 });
+    expect(await attemptsOf()).toHaveLength(1);
+    await requester.locator('[data-retry-attempt]').last().click();
     await expect.poll(async () => (await attemptsOf()).at(-1).status, { timeout: 180000 }).toBe('completed');
     failover = (await history(requester)).threads.find(thread => thread.id === lostId);
     expect(failover.attempts[0]).toEqual(dropped.attempts[0]);

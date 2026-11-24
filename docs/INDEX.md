@@ -15,6 +15,7 @@ The public product documents are:
 
 1. [Product contract](product-specification.md) — the terms quotes and receipts bind: service records, Community Access, credits and settlement, answer quality, contribution and disclosure.
 2. [Architecture](open-mesh-architecture.md) — components, network participation, execution and recovery.
+3. [Four inference routes](product-specification.md#5-contribution-and-execution), [claim index](status/surface-claim-index.json), and [Poolday claims](poolday/claims-and-nonclaims.md) — distinguish route requirements from evidence for specific surfaces.
 
 The business plan, roadmap, acceptance register, economics and planning history
 are maintained privately by the owner. The old network-intent path contains

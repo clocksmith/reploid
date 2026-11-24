@@ -1,0 +1,4 @@
+{
+  "schema": "reploid.requester-weights-policy/v1",
+  "zeroRequesterWeights": false
+}

@@ -30,7 +30,7 @@ Outputs: [product session](product-session.js), [conversations](chat-session.js)
 - Peers require authorization/exact identities/evidence. Uncovered requests wait; revocation spares admitted answers without rerouting. `metadataDigest` catalogs single-tab transactional history.
 - Paired native requesters delegate private service under enrolled identities/credit policy without public/local fallback.
 - Browser contributors retain profile signing slots via Web Locks; copied tabs get distinct slots and fresh session IDs without migrating keys or claiming hardware uniqueness.
-- Connection, introductions, cached sharing default on with separate off controls; downloads need approval; discovery downloads zero weights.
+- Connection and introductions default on. Serving compute and files is opt-in, per switch. Downloads need approval; discovery downloads zero weights.
 - Doppler storage verifies files; resident leases settle adapter application/evidence/removal/cancellation.
 - Candidates cannot read protected tests or self-activate; attempts pin rollback sources; objective edits require reevaluation.
 

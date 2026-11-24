@@ -41,6 +41,7 @@ export function createAutoDownload(session, { storage = globalThis.localStorage,
   connection = () => globalThis.navigator?.connection, estimate = () => globalThis.navigator?.storage?.estimate?.(),
   maxBytes = policy.maxStoredBytes } = {}) {
   const attempted = new Set();
+  const allowed = () => readAutoDownload(storage) && session.getState?.().zeroRequesterWeights !== true;
   let suppressed = false, pending = null, notice = null, started = null, disposed = false;
   const run = async (models, explicit) => {
     if (connection()?.saveData) { notice = autoDownloadBlocker({ saveData: true }); return; }
@@ -66,21 +67,21 @@ export function createAutoDownload(session, { storage = globalThis.localStorage,
     await session.downloadLocalModel(pick.model.id, true).catch(() => {});
   };
   return {
-    enabled: () => readAutoDownload(storage),
+    enabled: allowed,
     /** The model this controller downloaded automatically, if any. */
     started: () => started,
     notice: () => notice,
     /** Whether a sent message may start an automatic download for this choice now. */
     available(explicit = null) {
       const key = explicit ? explicit.selectionId || explicit.id : 'default';
-      return !disposed && !suppressed && !pending && !attempted.has(key) && readAutoDownload(storage);
+      return !disposed && !suppressed && !pending && !attempted.has(key) && allowed();
     },
     /** Whether the controller is still choosing a model or starting its download. */
     pending: () => !!pending,
     /** Start at most one automatic download per choice while eligible. */
     consider({ eligible, models, explicit = null }) {
       const key = explicit ? explicit.selectionId || explicit.id : 'default';
-      if (!eligible || disposed || suppressed || pending || attempted.has(key) || !readAutoDownload(storage)) return;
+      if (!eligible || disposed || suppressed || pending || attempted.has(key) || !allowed()) return;
       attempted.add(key);
       pending = run(models, explicit)
         .catch(cause => { notice = cause?.message || null; })

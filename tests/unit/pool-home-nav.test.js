@@ -94,8 +94,10 @@ describe('poolday home navigation', () => {
     for (const [route, brandLabel] of [['home', 'Chats'], ['compute', 'Reploid home'], ['records', 'Reploid home']]) {
       const host = document.createElement('div');
       host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
-      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe(brandLabel);
-      expect(host.querySelector('.pool-primary-brand .pool-power-tower')).not.toBeNull();
+      // The workspace toggle is named by its visible label; the focused routes' icon-only brand by aria-label.
+      const brand = host.querySelector('.pool-primary-brand');
+      expect(brand.getAttribute('aria-label') ?? brand.textContent.trim()).toBe(brandLabel);
+      if (route !== 'home') expect(brand.querySelector('.pool-power-tower')).not.toBeNull();
       expect(host.textContent).not.toMatch(/\bpoolday\b/i);
       for (const node of host.querySelectorAll('[aria-label]')) expect(node.getAttribute('aria-label')).not.toMatch(/poolday/i);
       for (const summary of host.querySelectorAll('[data-pool-pack-summary]')) {
@@ -207,11 +209,12 @@ describe('poolday home navigation', () => {
     expect(host.querySelector('[data-chat-workspace]')).not.toBeNull();
     // The brand is the Threads drawer toggle: one URL-backed link to the left drawer.
     const brand = host.querySelector('[data-chat-rail-toolbar] .pool-primary-brand');
-    expect(brand.getAttribute('aria-label')).toBe('Chats');
+    expect(brand.textContent.trim()).toBe('Chats');
     expect(new URL(brand.href).searchParams.get('view')).toBe('threads');
     expect(host.querySelectorAll('[data-toggle-thread-rail]')).toHaveLength(1);
     expect(host.querySelector('[data-toggle-thread-rail]')).toBe(brand);
-    expect(host.querySelector('[data-threads-dialog]').getAttribute('aria-label')).toBe('Threads');
+    const threads = host.querySelector('[data-threads-dialog]');
+    expect(host.querySelector(`#${threads.getAttribute('aria-labelledby')}`).textContent).toBe('Chats');
     expect(host.querySelector('[data-inspector-section="settings"]')).not.toBeNull();
   });
 

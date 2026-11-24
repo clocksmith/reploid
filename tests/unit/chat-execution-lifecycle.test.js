@@ -26,6 +26,23 @@ it('retries an owned scheduler after failed close and shares in-flight closure',
   expect(close).toHaveBeenCalledTimes(2);
 });
 
+it('refuses a per-request output limit on a route that would drop it, before anything is sent', async () => {
+  const model = { id: 'model', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler', adapters: [] };
+  const swarm = { generate: vi.fn() }, fleet = { execute: vi.fn() };
+  createScheduler.mockReturnValue({ close: vi.fn() });
+  const execution = createChatExecution({ ...options(), swarm, fleet, getModels: () => [model] });
+  const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+  const controls = { signal: new AbortController().signal, requestApproval: vi.fn(), onState: vi.fn(), onDelta: vi.fn() };
+  const request = { threadId: 't', attemptId: 'a', messages: [{ role: 'user', content: 'x' }], privacy, maxOutputTokens: 5,
+    permissions: { executionLocation: 'network', sharingScope: 'network' } };
+  for (const route of [model, { ...model, fleet: { poolIdentity: 'pool' } }]) {
+    await expect(execution.execute({ ...request, model: route }, controls)).rejects.toThrow('cannot apply an output limit');
+  }
+  expect(swarm.generate).not.toHaveBeenCalled();
+  expect(fleet.execute).not.toHaveBeenCalled();
+  expect(controls.requestApproval).not.toHaveBeenCalled();
+});
+
 it('never closes a borrowed scheduler', async () => {
   const close = vi.fn();
   const execution = createChatExecution({ ...options(), scheduler: { close } });

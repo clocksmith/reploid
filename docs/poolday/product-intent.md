@@ -1,6 +1,6 @@
 # Network product intent consolidated
 
-Compatibility links only. Read the [product contract](../product-specification.md), [architecture](../open-mesh-architecture.md#network-participation-and-lifecycle-contracts), and roadmap (private). There is no separate product plan here.
+Compatibility links only. Read the [product contract](../product-specification.md), [inference routes](../product-specification.md#5-contribution-and-execution), [architecture](../open-mesh-architecture.md#network-participation-and-lifecycle-contracts), [claims and nonclaims](claims-and-nonclaims.md), and roadmap (private). There is no separate product plan here.
 
 <a id="ordinary-network-journey"></a>[Ordinary network journey](../open-mesh-architecture.md#ordinary-network-journey)
 

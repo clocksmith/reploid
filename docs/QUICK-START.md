@@ -30,7 +30,7 @@ Cloud-provider keys are not a prerequisite for prepared peer execution.
    selected model. It creates no future-message grant and authorizes no local
    contribution, candidate evaluation or adoption.
 3. Watch the answer stream into its originating conversation. Using an already
-   prepared path requires no requester weight downloads. Preparation on
+   prepared remote path requires no requester weights. Preparation on
    contributors is separate from the requester’s conversation.
 
 If nothing eligible is ready, leave the draft intact and wait or explicitly

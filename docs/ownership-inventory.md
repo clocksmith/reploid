@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 391 |
+| apps/poolday | 394 |
 | self | 457 |
 | shared | 2510 |
-| total | 3358 |
+| total | 3361 |
 
 Every file lives in its owner's root.
 
@@ -332,6 +332,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/peer-timing.json` | `apps/poolday/config/peer-timing.json` | apps/poolday | Reached only from product entries. |
 | `config/reploid-environments.js` | `self/config/reploid-environments.js` | self | Reached only from substrate entries. |
 | `config/reploid-library.json` | `shared/config/reploid-library.json` | shared | Reached from native hosts and browser entries. |
+| `config/requester-weights.json` | `apps/poolday/config/requester-weights.json` | apps/poolday | Reached only from product entries. |
 | `config/route-boot.js` | `self/config/route-boot.js` | self | Reached only from substrate entries. |
 | `config/self-source-catalog.json` | `shared/config/self-source-catalog.json` | shared | Reached from product and substrate entries. |
 | `config/self-source-manifest.json` | `self/config/self-source-manifest.json` | self | Reached only from substrate entries. |
@@ -452,6 +453,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/readonly-view.js` | `apps/poolday/host/readonly-view.js` | apps/poolday | Reached only from product entries. |
 | `host/reploid-launch.js` | `self/host/reploid-launch.js` | self | Reached only from substrate entries. |
 | `host/research-plugins.js` | `apps/poolday/host/research-plugins.js` | apps/poolday | Reached only from product entries. |
+| `host/route-preference.js` | `apps/poolday/host/route-preference.js` | apps/poolday | Reached only from product entries. |
 | `host/seed-vfs.js` | `self/host/seed-vfs.js` | self | Reached only from substrate entries. |
 | `host/server-search.js` | `apps/poolday/host/server-search.js` | apps/poolday | Reached only from product entries. |
 | `host/start-app.js` | `self/host/start-app.js` | self | Reached only from substrate entries. |
@@ -915,6 +917,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/room-result-projection.js` | `apps/poolday/ui/pool-home/room-result-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-timeline-projection.js` | `apps/poolday/ui/pool-home/room-timeline-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-view.js` | `apps/poolday/ui/pool-home/room-view.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/route-alternatives.js` | `apps/poolday/ui/pool-home/route-alternatives.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/route-controls.js` | `apps/poolday/ui/pool-home/route-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/route-detail-view.js` | `apps/poolday/ui/pool-home/route-detail-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/run-contribution-evidence.js` | `apps/poolday/ui/pool-home/run-contribution-evidence.js` | apps/poolday | Reached only from product entries. |

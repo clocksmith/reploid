@@ -82,8 +82,21 @@ describe('Stable message presentation', () => {
     view.update(thread, { usable: true, busy: false });
     expect(root.querySelector('script')).toBeNull(); expect(root.querySelector('code').textContent).toContain('<script>');
     expect(root.querySelector('[data-copy-code]')).not.toBeNull();
-    expect(root.textContent).toContain('A computer disconnected. Retry this answer.');
+    expect(root.textContent).toContain('Nothing was resent. Retry to ask again');
     expect(root.querySelector('[data-retry-attempt]').disabled).toBe(false);
+  });
+  it('marks a dropped computer as interrupted, keeps its text and offers Retry', () => {
+    for (const error of ['Execution peer disconnected; retry requires a new attempt',
+      'The connection to this computer changed. The request ended and nothing further was accepted.']) {
+      const root = document.createElement('div'), view = createMessageList(root), thread = conversation();
+      thread.attempts[0] = { id: 'attempt', status: 'failed', error, request: { privacy: { recipients: { kind: 'named', ids: ['peer:desktop'] } } } };
+      view.update(thread, { usable: true, busy: false });
+      expect(root.textContent).toContain('First words');
+      expect(root.textContent).toContain('Interrupted.');
+      expect(root.textContent).toContain('unverified');
+      expect(root.textContent).not.toContain('A computer disconnected');
+      expect(root.querySelector('[data-retry-attempt]').disabled).toBe(false);
+    }
   });
   it('presents declined sharing as not sent rather than a network failure', () => {
     const root = document.createElement('div'), view = createMessageList(root), thread = conversation();

@@ -105,8 +105,10 @@ export function createWholeModelRequester({ mesh, models }) {
         throw Error('Whole-model caller token limits are not supported by this mesh protocol');
       }
       const requested = generationRequest(request.generationRequest);
-      requireValue(!requested || requested.maxOutputTokens >= route.generation.maxTokens,
-        'Whole-model caller token limits below the prepared model ceiling are not supported by this mesh protocol');
+      // A lower limit needs a provider that applies it, which is what the same limit in the settings asks for.
+      requireValue(!requested || requested.maxOutputTokens >= route.generation.maxTokens
+        || settings?.maxOutputTokens === requested.maxOutputTokens,
+      'Whole-model caller token limits below the prepared model ceiling are not supported by this mesh protocol');
       if (settings) {
         // Refused here, from the providers' current advertisements, before any provider is asked.
         assertSettingsSupported(route.generationSettings, settings);

@@ -27,7 +27,7 @@ import { createFleetExecutionAdmission } from './execution-admission.js';
 import { openStageTokenWitness } from './stage-token-witness.js';
 import { createFairLaneScheduler } from './fair-lane-scheduler.js';
 export { createFairLaneScheduler } from './fair-lane-scheduler.js';
-import { assert, text, same } from './contract.js';
+import { assert, fleetCreditQuote, text, same } from './contract.js';
 import { partitionAdapterIdentities } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
 export async function openComputerIdentity(file) {
@@ -525,12 +525,23 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       const poolIdentity = 'sha256:' + createHash('sha256').update(JSON.stringify(network.computers.map(row =>
         [row.id, row.participantIds]))).digest('hex');
       const available = participant?.getState()?.models || [];
-      const models = [...new Map(config.models.map(entry => [entry.model.id + entry.model.identity, entry.model])).values()].map(model => {
+      const configured = [...new Map(config.models.map(entry => [entry.model.id + entry.model.identity, entry.model])).values()];
+      // The most one answer can cost, from the same terms and limit the request will be quoted with.
+      const creditCaps = await Promise.all(configured.map(async model => {
+        try {
+          const { policy } = await credits.call('terms', { id: model.id, identity: model.identity });
+          const { maximum, unit } = fleetCreditQuote(policy, Math.min(config.maxOutputTokens, policy.maxOutputTokens,
+            model.generation?.maxTokens ?? config.maxOutputTokens), 'whole-model');
+          return { maximum, unit };
+        } catch { return null; } // No accepted terms: the browser states no price rather than a guessed one.
+      }));
+      const models = configured.map((model, index) => {
         const routes = available.filter(row => row.id === model.id && row.identity === model.identity && !row.adapters?.length);
         const status = routes.some(row => row.availability === 'ready') ? 'ready'
           : routes.some(row => row.availability === 'busy') ? 'busy' : routes.some(row => ['loading', 'preparing'].includes(row.availability)) ? 'loading' : 'unavailable';
         return { id: model.id, identity: model.identity, name: model.name || model.id, provider: 'doppler',
           contextLength: model.contextLength, generation: model.generation, availability: status,
+          ...(creditCaps[index] ? { creditCap: creditCaps[index] } : {}),
           executionRoutes: routes.flatMap(selected => {
             if (selected.partition?.schema === 'reploid.partition-selection/v2') {
               const selection = { id: model.id, identity: model.identity, partition: selected.partition };

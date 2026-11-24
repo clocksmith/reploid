@@ -23,11 +23,10 @@ async function openHome(page) {
 }
 
 async function expectProductionReady(page) {
-  await expect(page.locator('[data-production-surface]')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible({ timeout: 5000 });
   // Exercise a bound control to distinguish a
   // usable production view from markup left behind by incomplete initialization.
-  await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
-  await page.locator('[data-production-settings]').click();
+  await page.locator('[data-workspace-view="settings"]').click();
   await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible({ timeout: 5000 });
   await page.locator('[data-close-inspector]').click();
 }
@@ -130,7 +129,6 @@ test.describe('Route Entry Points', () => {
         await expectProductionReady(page);
         expect(await page.evaluate(() => location.search)).not.toContain('reploidBootRetry');
         // Follow the real requester entry point while inference is unavailable.
-        await page.getByRole('link', { name: 'Chat', exact: true }).click();
         await expect(page.locator('[data-chat-workspace]')).toBeVisible({ timeout: 5000 });
         await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
         const draft = 'Keep this question while inference is unavailable';

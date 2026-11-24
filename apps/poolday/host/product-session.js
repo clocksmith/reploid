@@ -29,6 +29,7 @@ import { createLocalPackExecutor } from '../pool/local-pack-executor.js';
 import { createDocumentAssistant } from '../pool/document-delegation.js';
 import poolConfiguration from '../../../shared/pool/pool-config.json' with { type: 'json' };
 import { createComputerPreferences } from './computer-preferences.js';
+import { createRoutePreference, rankRoutes, routeObservations } from './route-preference.js';
 
 const HISTORY_OWNED_ELSEWHERE = 'Another tab owns this conversation history';
 const ordinaryReason = cause => `History stays ordinary: ${cause}; ordered answers are not published to requester-owned storage.`;
@@ -73,7 +74,9 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   // A host with an earning account requests as its registered participant (credits/browser.js); canonical
   // participation keeps its own configured identity.
   let computers = null;
-  const swarm = createWorkSwarm({ storage, evolution, service, getBlockedComputers: () => computers?.getBlocked() || [], networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
+  const routePreference = createRoutePreference({ storage });
+  const swarm = createWorkSwarm({ storage, evolution, service, getBlockedComputers: () => computers?.getBlocked() || [],
+    rankProviders: (candidates, route) => rankRoutes(candidates, routePreference.get(), routeObservations(chat?.getState().threads, route?.modelIdentity)), networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
     ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { chat?.refreshNetwork(); notifySearch(); } });
   computers = createComputerPreferences({ storage,
     verifyPeer: (id, signal) => swarm.verifyPeerIdentity(id, signal) });
@@ -109,7 +112,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   });
   notifySearch = () => { for (const listener of searchListeners) listener(searchStatus.state()); };
   // `earning` (earning/attempts.js) is off unless the embedding host composes an explicitly configured client.
-  const chatOptions = { service, storage, swarm, getCircleOwnerRequest,
+  const chatOptions = { service, storage, swarm, routePreference, getCircleOwnerRequest,
     resolveLocalSource: (model, controls) => localFiles.prepareSource(model, { ...controls, cacheOnly: true }),
     partitions: swarm.partitions, peers: createWorkPeerJobs({ getNetwork }),
     // Search-backed answers use the server's Brave route or the device-side route, each answer under its own

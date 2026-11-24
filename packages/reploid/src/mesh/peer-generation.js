@@ -150,6 +150,8 @@ export function createPeerGenerationMesh({ config, ports }) {
   // The host's local block list: connection ids, or signing identities this requester verified on the
   // current channel. A requester-side choice only; nothing is sent to or withheld from the network.
   const blockedComputers = () => new Set(ports.getBlockedComputers?.() || []);
+  // Computers that stopped answering on an open connection. They get no new work until they answer again.
+  const unresponsivePeers = new Set();
   const isBlockedProvider = (peerId, blocked = blockedComputers()) => blocked.size > 0
     && (blocked.has(peerId) || blocked.has(peerIdentity?.getVerified(peerId)));
   // Identity and admission versions are compatibility gates, not evidence of protected computation.
@@ -172,7 +174,7 @@ export function createPeerGenerationMesh({ config, ports }) {
   const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined) => {
     const blocked = blockedComputers();
     let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)))
-    .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
+    .filter(peer => !isBlockedProvider(peer.peerId, blocked) && !unresponsivePeers.has(peer.peerId) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots > 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))
       && (!settings || supportsSettings(peer, settings)));
@@ -209,7 +211,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       const participantId = peerIdentity?.getVerified(peer.peerId) || null;
       // Never promote identity fields supplied by an advertisement into verified labels.
       return { ...(observedPeers.get(peer.peerId) || peer), participantId, identityVerified: !!participantId,
-        ...(isBlockedProvider(peer.peerId) ? { blocked: true } : {}) };
+        ...(isBlockedProvider(peer.peerId) ? { blocked: true } : {}),
+        ...(unresponsivePeers.has(peer.peerId) ? { unresponsive: true } : {}) };
     }))
   });
 
@@ -356,7 +359,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       else delete next.executionOffers;
       next.hardware = publicProviderHardware(payload.hardware);
       next.adapterIdentities = payload.adapterIdentities || [];
-      next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots > 0 ? payload.availableSlots : 0;
+      // A missing count is unknown, not zero. Placement still sends work only to a computer that reports a free slot.
+      next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots >= 0 ? payload.availableSlots : null;
       next.queuedJobs = Number.isSafeInteger(payload.queuedJobs) && payload.queuedJobs > 0 ? payload.queuedJobs : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
@@ -394,9 +398,17 @@ export function createPeerGenerationMesh({ config, ports }) {
     }
   };
 
+  // A request belongs to the connection it was admitted on. A frame on any other is not accepted, and the
+  // request ends at once: the provider will not send its output there, so waiting could only time out.
+  const onAdmittedConnection = (pending, peerId) => {
+    if (!pending.admission || (pending.admission.channel && pending.admission.channel === canonicalConnection(peerId))) return true;
+    remoteRequests.settle(pending, { error: new Error('The connection to this computer changed. The request ended and nothing further was accepted.'), cancel: true });
+    return false;
+  };
+
   const handleGenerationUpdate = (remotePeerId, payload = {}) => {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
-    if (!pending || pending.processing || pending.admission?.sent === false) return;
+    if (!pending || pending.processing || pending.admission?.sent === false || !onAdmittedConnection(pending, remotePeerId)) return;
     const chunk = String(payload.chunk || '');
     try {
       if (chunk) { pending.streamed = true; pending.onUpdate?.(chunk); return; }
@@ -427,7 +439,7 @@ export function createPeerGenerationMesh({ config, ports }) {
 
   const handleGenerationResult = async (remotePeerId, payload = {}) => {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
-    if (!pending || pending.processing || pending.admission?.sent === false) return;
+    if (!pending || pending.processing || pending.admission?.sent === false || !onAdmittedConnection(pending, remotePeerId)) return;
     pending.processing = true;
     const current = () => remoteRequests.get(pending.requestId, remotePeerId) === pending;
     try {
@@ -486,7 +498,7 @@ export function createPeerGenerationMesh({ config, ports }) {
 
   const handleGenerationError = async (remotePeerId, payload = {}) => {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
-    if (!pending || pending.processing) return;
+    if (!pending || pending.processing || !onAdmittedConnection(pending, remotePeerId)) return;
     const error = new Error(String(payload.error || 'Remote generation failed'));
     if (payload?.code === 'CONTEXT_LENGTH_EXCEEDED') {
       error.code = 'CONTEXT_LENGTH_EXCEEDED';
@@ -742,7 +754,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (signal.aborted || closed) return;
     // A replay cannot evade the durable fence by downgrading its protocol flag.
     const earlierAdmission = !payload.recoverable && await generationJournal.get({ provider: identityBundle.peerId, consumer, requestId });
-    return { request, settingsDigest, earlierAdmission };
+    return { request, settingsDigest, earlierAdmission, channel: admission.channel };
   };
 
   const handleGenerationRequest = async (remotePeerId, payload = {}) => {
@@ -772,7 +784,11 @@ export function createPeerGenerationMesh({ config, ports }) {
       inboundSettlements.delete(inspection);
     }
     if (!checked || validation.signal.aborted) return;
-    const { request, settingsDigest, earlierAdmission } = checked;
+    const { request, settingsDigest, earlierAdmission, channel } = checked;
+    // Conversation output leaves only on the connection this request was admitted on. If that connection
+    // is gone the output is withheld, and a recoverable answer stays in the journal for a verified query.
+    const sendOutput = (type, body) => canonicalConnection(remotePeerId) === channel
+      && swarmTransport?.sendToPeer(remotePeerId, type, body);
     const { consumer, contextId, adapters, binding, settings, checkPrivacy, privacyBinding } = request;
     if (closed || !ready() || !bindingAvailable(binding, adapters)) return;
     if (earlierAdmission) {
@@ -781,7 +797,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     }
     if (!payload.recoverable && completed.has(key)) {
       const previous = completed.get(key);
-      swarmTransport.sendToPeer(remotePeerId, previous.type, previous.payload);
+      sendOutput(previous.type, previous.payload);
       return;
     }
     if (inbound.has(key) || inboundQueued.has(key)) return;
@@ -828,7 +844,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         const existing = await generationJournal.get(recoveryBinding);
         if (existing) {
           if (JSON.stringify(existing.binding) !== JSON.stringify(recoveryBinding)) throw Error('Generation replay binding changed');
-          if (existing.outcome) swarmTransport.sendToPeer(remotePeerId, existing.outcome.type, existing.outcome.payload);
+          if (existing.outcome) sendOutput(existing.outcome.type, existing.outcome.payload);
           else swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Execution unresolved; query recovery without repeating it' });
           return;
         }
@@ -841,7 +857,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         if (!claimedRecovery) {
           const previous = await generationJournal.get(recoveryBinding);
           if (JSON.stringify(previous?.binding) !== JSON.stringify(recoveryBinding)) throw Error('Generation replay binding changed');
-          if (previous?.outcome) swarmTransport.sendToPeer(remotePeerId, previous.outcome.type, previous.outcome.payload);
+          if (previous?.outcome) sendOutput(previous.outcome.type, previous.outcome.payload);
           else swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Execution unresolved; query recovery without repeating it' });
           return;
         }
@@ -856,10 +872,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       const response = await generateBound(messages, (chunk) => {
         streamed = true;
         if (closed || controller.signal.aborted) return;
-        swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-update', {
-          requestId,
-          chunk
-        });
+        sendOutput('reploid:generation-update', { requestId, chunk });
       }, { signal: controller.signal, adapterIdentities: adapters, requestId, consumer, contextOwner, contextId, privacyBinding, privacy: assertAvailableExecutionPolicy(requestExecutionPolicy({ privacy: payload.privacy })),
         ...(settings ? { settings } : {}),
         // The host's own prompt token count, sent at most once and only before any text. An update
@@ -868,7 +881,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           const inputTokens = usage?.inputTokens;
           if (streamed || usageSent || closed || controller.signal.aborted || !Number.isSafeInteger(inputTokens) || inputTokens <= 0) return;
           usageSent = true;
-          swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-update', { requestId, usage: { inputTokens } });
+          sendOutput('reploid:generation-update', { requestId, usage: { inputTokens } });
         } }, binding);
       controller.signal.throwIfAborted();
       // With settings, the receipt signs the digest and the constraint the host reports it applied.
@@ -903,7 +916,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         retainedResult = true;
       }
       completed.set(key, { type: 'reploid:generation-result', payload: result });
-      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-result', result);
+      sendOutput('reploid:generation-result', result);
     } catch (error) {
       const payload = {
         requestId,
@@ -924,7 +937,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       if (!closed) {
         completed.set(key, { type: 'reploid:generation-error', payload });
-        swarmTransport?.sendToPeer(remotePeerId, 'reploid:generation-error', payload);
+        sendOutput('reploid:generation-error', payload);
       }
     } finally {
       while (completed.size > policy.mesh.maxRetainedJobs) completed.delete(completed.keys().next().value);
@@ -1006,6 +1019,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           swarmController.removePeer(peerId);
           observedPeers.delete(peerId);
           identificationAttempts.delete(peerId);
+          unresponsivePeers.delete(peerId);
           remoteRequests.retirePeer(peerId);
           for (const key of [...admitted.keys(), ...admitting]) if (key.startsWith(`${peerId}:`)) forgetAdmission(key);
           for (const [key, controller] of validatingInbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
@@ -1015,6 +1029,16 @@ export function createPeerGenerationMesh({ config, ports }) {
         };
         subscriptions.push(eventBus.on('swarm:peer-left', retirePeer, 'self-bridge'));
         subscriptions.push(eventBus.on('swarm:peer-disconnected', retirePeer, 'self-bridge'));
+        // Ends only the requests waiting on this computer. Its signed work is not reinterpreted, and it is told to stop.
+        subscriptions.push(eventBus.on('swarm:peer-unresponsive', ({ peerId }) => {
+          unresponsivePeers.add(peerId);
+          remoteRequests.retirePeer(peerId, { cancel: true });
+          emitSwarmState();
+        }, 'self-bridge'));
+        subscriptions.push(eventBus.on('swarm:peer-responsive', ({ peerId }) => {
+          unresponsivePeers.delete(peerId);
+          emitSwarmState();
+        }, 'self-bridge'));
         subscriptions.push(eventBus.on('swarm:state-change', () => {
           emitSwarmState();
         }, 'self-bridge'));
@@ -1159,7 +1183,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         const currentProvider = swarmController.listPeers().find(peer => peer.peerId === provider.peerId);
         if (!currentProvider || currentProvider.admissionProtocol !== 2 || currentProvider.identityProtocol !== 1
         || peerIdentity?.getVerified(provider.peerId) !== recipientIdentity
-        || currentProvider.readiness !== 'ready' || currentProvider.availableSlots === 0
+        || currentProvider.readiness !== 'ready' || !(currentProvider.availableSlots > 0)
         || JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null) !== connectionBinding
         || currentProvider.model !== provider.model || currentProvider.modelIdentity !== provider.modelIdentity
         || !supportsAdapters(currentProvider, adapterIdentities)
@@ -1169,6 +1193,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         }
       };
       verifyCurrentRecipient();
+      admission.channel = canonicalConnection(provider.peerId);
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
         ...(typeof onUsage === 'function' ? { onUsage } : {}),

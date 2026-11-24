@@ -22,7 +22,7 @@ function chatResult({ threadId, attemptId }, result, placement) {
       timing: result.timing ?? null, hardware: publicProviderHardware(result.hardware) } };
 }
 
-export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, earning = null, fleet = null, resolveLocalSource, isCached = () => false, onChange = () => {}, policy = executionPolicy }) {
+export function createChatExecution({ localExecution = true, service, swarm, partitions, scheduler, models, getModels, profile, earning = null, fleet = null, resolveLocalSource, isCached = () => false, onChange = () => {}, policy = executionPolicy }) {
   const limits = structuredClone(policy);
   assert(limits && Object.keys(limits).length === 2
     && Number.isSafeInteger(limits.defaultOutputTokens) && limits.defaultOutputTokens > 0
@@ -31,7 +31,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
   Object.freeze(limits);
   let local = null;
   // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
-  const runsHere = (model, sharingScope, location = 'auto') => !model.partition && location !== 'network'
+  const runsHere = (model, sharingScope, location = 'auto') => localExecution && !model.partition && location !== 'network'
     && (location === 'local' || sharingScope === 'local' || isCached(model) || (local?.ready && local.modelIdentity === model.identity));
   const resolveAdapter = createWorkAdapterResolver({ models });
 
@@ -76,7 +76,13 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     assert(!(request.permissions?.executionLocation === 'network' && request.privacy.placement === 'local-only'),
       'Network execution requires an explicit network execution policy');
     assert(!(model.partition && (request.permissions?.executionLocation === 'local' || request.permissions?.sharingScope === 'local')), 'This model requires network execution');
+    assert(localExecution || (request.privacy.placement !== 'local-only' && request.permissions?.executionLocation !== 'local'
+      && request.permissions?.sharingScope !== 'local'), 'This deployment answers on network computers only. Nothing was run on this device.');
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
+    // Only this device's scheduler applies a per-request limit here. Elsewhere it would be dropped without notice.
+    const staysHere = !model.fleet && !model.partition && (request.privacy.placement === 'local-only'
+      || runsHere(model, request.permissions?.sharingScope, request.permissions?.executionLocation));
+    assert(request.maxOutputTokens === undefined || staysHere, 'This route cannot apply an output limit. Nothing was sent.');
     if (model.fleet) { assert(fleet, 'Private computers are not connected'); return fleet.execute(request, controls); }
     const catalogModel = getModels().find(m => m.id === model.id && m.identity === model.identity);
     assert(catalogModel, 'Selected model is not in the verified catalog');

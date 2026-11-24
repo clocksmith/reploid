@@ -1006,9 +1006,11 @@ it.each([
     host = await boot(); // Normal startup recovers before connecting to peers or starting the model.
     await host.reconcileCredits();
     const result = await client.call('recover', { id });
-    expect(result).toMatchObject({ charge: acknowledged, outputTokens: acknowledged });
+    // A stage owner that vanished leaves an unfinished answer, which is free. With only the reply lost, the stage closed normally.
+    const charged = lostReply ? acknowledged : 0, spent = charged ? -charged : 0;
+    expect(result).toMatchObject({ charge: charged, outputTokens: acknowledged });
     expect(await httpRecover()).toMatchObject({ status: 200, body: { status: lostReply ? 'completed' : 'failed',
-      serviceCredit: { charge: acknowledged, outputTokens: acknowledged }, outcome: { acknowledged: { acknowledgedOutputTokens: acknowledged } } } });
+      serviceCredit: { charge: charged, outputTokens: acknowledged }, outcome: { acknowledged: { acknowledgedOutputTokens: acknowledged } } } });
     expect((await httpRecover('different input')).status).toBe(409);
     const proof = credits.request(id).evidence;
     if (lostReply) expect(proof.receipts[1]).toMatchObject({ status: 'settled', steps: executed });
@@ -1020,12 +1022,11 @@ it.each([
     }
     const snapshot = await client.call('snapshot', {});
     // Equal stage weights split one indivisible credit by the existing stage-order rule.
-    const spent = acknowledged ? -acknowledged : 0;
     expect(snapshot.accounts.map(({ id, balance, held }) => [id, balance, held])).toEqual([
-      ['machine-0', spent, 0], ['machine-1', 0, 0], ['machine-2', acknowledged, 0]
+      ['machine-0', spent, 0], ['machine-1', 0, 0], ['machine-2', charged, 0]
     ]);
     expect(snapshot.journal.map(({ account_id, delta }) => [account_id, delta])).toEqual([
-      ['machine-0', spent], ['machine-1', 0], ['machine-2', acknowledged]
+      ['machine-0', spent], ['machine-1', 0], ['machine-2', charged]
     ]);
     const firstRecovery = await httpRecover();
     await host.close(); host = await boot(); await host.reconcileCredits();

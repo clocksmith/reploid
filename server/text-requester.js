@@ -203,6 +203,10 @@ export function createTextRequester({ participant, authenticate, authorize, stat
           if (limit != null && generation?.maxOutputTokens > limit) {
             throw fail(400, 'Caller output limit exceeds the prepared model or fleet policy', 'maxOutputTokens');
           }
+        } else if (generation && generation.maxOutputTokens < model.generation?.maxTokens && model.generationSettings?.maxOutputTokens) {
+          // Messages and Responses state their limit as a generation request. A whole-model provider applies a
+          // limit below the prepared ceiling only as a setting, so every protocol reaches it the same way.
+          settings = normalizeGenerationSettings({ ...settings, maxOutputTokens: generation.maxOutputTokens });
         }
         assertSettingsSupported(model.generationSettings, settings);
       } catch (error) { throw fail(400, error.message, error.param ?? null); }

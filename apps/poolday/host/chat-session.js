@@ -23,6 +23,7 @@ import { createAdapterEvidence } from './adapter-evidence.js';
 import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
+import requesterWeights from '../config/requester-weights.json' with { type: 'json' };
 import { DOPPLER_MODULE_URL, LOCAL_DOPPLER_MODELS } from '../../../shared/config/doppler-local-models.js';
 import { openCanonicalChatHistory } from './chat-history.js';
 export { openChatHistory } from './chat-history.js';
@@ -56,21 +57,11 @@ export const SEARCH_ROUTE = 'search';
 export const DEVICE_SEARCH_ROUTE = 'device-search';
 export const CONTRIBUTOR_SEARCH_ROUTE = 'contributor-search';
 
-export const MAX_AUTOMATIC_FAILOVERS = 2;
-// Failures that mean the chosen computer went away, before or during the answer. Anything else
-// (a refusal, a limit, a model error) is not a reason to send the question to someone else.
-const PROVIDER_DROPPED = /Execution peer disconnected; retry requires a new attempt|Selected contributor is no longer ready; retry requires new placement|Failed to send swarm generation request/;
-/** Whether a thread's latest attempt should be retried on another computer without being asked. */
-export function shouldFailover(thread, runningIds = [], used = 0) {
-  const attempt = thread?.attempts?.at(-1);
-  return !!attempt && !thread.closed && attempt.status === 'failed' && PROVIDER_DROPPED.test(String(attempt.error || ''))
-    && thread.permissions?.sharingScope !== 'local'
-    // A search-backed answer discloses again on retry and needs fresh permission for it.
-    && !attempt.request?.retrieval
-    && !(runningIds || []).includes(thread.id) && used < MAX_AUTOMATIC_FAILOVERS;
-}
+// A deployment can require that requesters load no model weights: answers then run only on other computers.
+const ZERO_WEIGHT_NOTICE = 'This deployment answers on network computers only, so no model is stored or run on this device.';
 
 export function createChatSession({
+  zeroRequesterWeights = requesterWeights.zeroRequesterWeights === true,
   storage = globalThis.localStorage,
   service = createReploidDopplerRuntimeService(),
   peers = null,
@@ -95,6 +86,8 @@ export function createChatSession({
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
   privateComputers = null,
+  // The person's answer preference (route-preference.js). It orders eligible computers and nothing else.
+  routePreference = null,
   getCircleOwnerRequest = () => null,
   // Reads declared adapter evaluation files; only verified passing receipts label an adapter evaluated.
   fetchEvidence = globalThis.fetch?.bind(globalThis),
@@ -132,7 +125,7 @@ export function createChatSession({
   let cachedModels = [], failedLocalModel = null;
   const downloadSizes = new Map();
   let fitRegistry;
-  const isCached = model => failedLocalModel !== model.id && !model.partition && !model.adapters?.length
+  const isCached = model => !zeroRequesterWeights && failedLocalModel !== model.id && !model.partition && !model.adapters?.length
     && cachedModels.some(item => item.id === model.id && item.identity === model.identity);
   let discovering = false, peerDiscoveryTimedOut = false;
   let observationTimer, observationState;
@@ -159,6 +152,7 @@ export function createChatSession({
   };
   const acquisition = createModelAcquisition({ onChange: () => notifyAll() });
   const acquireApprovedModel = model => {
+    assert(!zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
     assert(downloadSizes.has(model.id), 'Check the model download size first');
     return acquisition.start(model, true, downloadSizes.get(model.id)).then(cached => {
       if (!closed) { failedLocalModel = null; cachedModels = [...cachedModels.filter(item => item.id !== cached.id), cached]; notifyAll(); }
@@ -191,7 +185,7 @@ export function createChatSession({
   // A phone that paired, or joined an invited computer, returns to that computer's room on load without a tap.
   if (ownerPairing.state().paired) queueMicrotask(() => { ownerPairing.reconnect().catch(() => {}); });
   else if (guestJoin.state().joined) queueMicrotask(() => { guestJoin.reconnect().catch(() => {}); });
-  const execution = createChatExecution({ service, swarm, partitions, scheduler, models, earning, fleet, resolveLocalSource, isCached,
+  const execution = createChatExecution({ localExecution: !zeroRequesterWeights, service, swarm, partitions, scheduler, models, earning, fleet, resolveLocalSource, isCached,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => {
       const local = execution.getLocalState();
       if (local?.phase === 'failed') failedLocalModel = local.modelId;
@@ -370,7 +364,7 @@ export function createChatSession({
       })).filter(entry => entry.cells.length),
       defaultModels,
       defaultModel: defaultModels.auto || preferred(catalog) || null,
-      discoveryPhase: discoveryPhase(network), discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: acquisition.supportError(),
+      discoveryPhase: discoveryPhase(network), discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: zeroRequesterWeights ? ZERO_WEIGHT_NOTICE : acquisition.supportError(), zeroRequesterWeights,
       localModel: execution.getLocalState(),
       network,
       computerUsage: projectComputerUsage({ threads: wsState.threads, network,
@@ -383,30 +377,8 @@ export function createChatSession({
     });
   };
 
-  // Automatic failover. When the computer chosen for a shared answer drops out, the answer is tried again
-  // on another computer as a new attempt, the same thing the Retry control does, at most
-  // MAX_AUTOMATIC_FAILOVERS times per question. The failed attempt stays in the record. Each attempt has its
-  // own request identity and needs existing or new approval for its recipient before disclosure; this requester countersigns a receipt only for the attempt that completes, so
-  // a dropped attempt never receives its countersignature.
-  const failovers = new Map(), failedOver = new Set();
-  const considerFailover = () => {
-    if (closed) return;
-    const state = workspace.getState();
-    for (const thread of state.threads || []) {
-      const attempt = thread.attempts?.at(-1), key = `${thread.id}:${attempt?.userMessageId}`;
-      if (!attempt || failedOver.has(attempt.id) || !shouldFailover(thread, state.runningIds, failovers.get(key) || 0)) continue;
-      failedOver.add(attempt.id); failovers.set(key, (failovers.get(key) || 0) + 1);
-      queueMicrotask(() => {
-        if (closed) return;
-        try { allowConfiguredRemote(thread.id); Promise.resolve(workspace.retry(thread.id, attempt.id)).catch(() => {}); }
-        catch { /* The failed attempt stays as it is; Retry remains available to the reader. */ }
-      });
-    }
-  };
-
   // Re-emit workspace updates
   const unsubscribeWorkspace = workspace.subscribe(() => {
-    considerFailover();
     notifyAll();
   });
 
@@ -458,6 +430,7 @@ export function createChatSession({
       return workspace.setSystemContext(threadId, createChatContext(selection, thread.model, models));
     },
     async prepareLocalModel(modelId) {
+      assert(!zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
       assertOpen();
       const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
       assert(model, 'Choose a catalog model');
@@ -731,6 +704,13 @@ export function createChatSession({
       assertOpen();
       assert(swarm?.allowCachedFiles, 'File sharing is unavailable');
       try { await swarm.allowCachedFiles(enabled); } finally { notifyAll(); }
+    },
+    getRoutePreference: () => routePreference?.get() ?? null,
+    setRoutePreference(value) {
+      assertOpen();
+      assert(routePreference, 'Answer preference is unavailable');
+      routePreference.set(value);
+      notifyAll();
     },
     async setComputeContribution(enabled) {
       assertOpen();
