@@ -13,26 +13,15 @@ import { fileURLToPath } from 'node:url';
 import SignalingServer from '../../server/signaling-server.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { startFleetService } from '../../server/fleet/service.js';
-import { verifyStageTokenWitnesses } from '../../server/fleet/stage-token-witness.js';
 import { observeInventory } from './inventory.js';
-import { STAGE1_FIXTURE_FILE, stage1Decoding } from './expectations.js';
+import { stage1Decoding } from './expectations.js';
+import { ledgerTrace, openReservationCount, runGatedCancel, until, verifySplitTokens } from './split-evidence.js';
 
 const PROCESS_FILE = fileURLToPath(new URL('./local-process.js', import.meta.url));
 const ROLES = Object.freeze(['requester', 'stage0', 'stage1']);
 const HOSTS = Object.freeze([{ label: 'host-a', role: 'stage0' }, { label: 'host-b', role: 'stage1' }]);
 const COMMAND_MS = 60000;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-async function until(check, { timeoutMs, label, signal }) {
-  const deadline = Date.now() + timeoutMs;
-  for (;;) {
-    signal?.throwIfAborted();
-    const value = await check();
-    if (value) return value;
-    if (Date.now() > deadline) throw Error(`Timed out waiting for ${label}`);
-    await delay(50);
-  }
-}
 
 function startProcess(role, directory) {
   const child = fork(PROCESS_FILE, [role], { cwd: directory, stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
@@ -66,7 +55,7 @@ function startProcess(role, directory) {
   return node;
 }
 
-export function createLocalStage1Adapter({ directory, expectations, stageRanges, model, fixture, fixtureBytes,
+export function createLocalStage1Adapter({ directory, expectations, stageRanges, model, fixture, fixtureBytes, fixtureFile,
   fakeMemoryBytes = { 'host-a': 6442450944, 'host-b': 15032385536 } }) {
   if (!path.isAbsolute(directory)) throw Error('Absolute Stage 1 work directory required');
   const nodes = new Map();
@@ -78,6 +67,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
   let credits = null, service = null, signaling = null, httpServer = null, peers = null;
 
   const node = role => nodes.get(role);
+  // Declared by this fake: it reports each stage's own ranges, so its zero outside-stage count shows nothing.
+  // A real host searches for all ranges (host-control.js), and physical expectations refuse this source.
   const hostInventory = index => observeInventory({ held: stageRanges[index], stageRanges: stageRanges[index], source: inventorySource });
 
   async function startCoordinator() {
@@ -94,7 +85,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       policy: { schema: 'reploid.service-credit-policy/v1', version: 'stage1-local/1', unit: 'noncash-service-credit',
         creditsPerOutputToken: expectations.creditsPerOutputToken, maxDebt: 1000, maxOutputTokens: fixture.maxOutputTokens,
         maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0 } });
-    service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: [1, 1] }] }],
+    service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: expectations.creditWeights }] }],
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   }
 
@@ -102,25 +93,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
     signalingUrl: `ws://127.0.0.1:${httpServer.address().port}/swarm`, roomId, roomToken, serviceUrl: service.url,
     maxOutputTokens: fixture.maxOutputTokens, reference: fixture.reference,
     ...(role === 'requester' ? {} : { fakeMemoryBytes: fakeMemoryBytes[HOSTS.find(host => host.role === role).label],
-      witness: { fixtureFile: STAGE1_FIXTURE_FILE, fixtureSha256, receiptFile: witnessFile(role), threadId: splitThread,
+      witness: { fixtureFile, fixtureSha256, receiptFile: witnessFile(role), threadId: splitThread,
         requesterId: peers.requester.participantId, stageParticipants: [peers.stage0.participantId, peers.stage1.participantId] } }) });
-
-  /** The ledger's own record of one reservation, including what presenting its evidence a second time changes. */
-  async function ledgerTrace(reservationId) {
-    const row = credits.request(reservationId), before = credits.snapshot();
-    const entries = before.journal.filter(entry => entry.request_id === reservationId);
-    let replay = { attempted: false };
-    if (row?.state === 'settled' && row.evidence) {
-      const outcome = await credits.settle(reservationId, row.evidence), after = credits.snapshot();
-      replay = { attempted: true, journalBefore: before.journal.length, journalAfter: after.journal.length,
-        balancesUnchanged: JSON.stringify(after.accounts) === JSON.stringify(before.accounts),
-        outcomeUnchanged: JSON.stringify(outcome) === JSON.stringify(row.outcome) };
-    }
-    return { reservationId, state: row?.state ?? 'missing', charge: row?.outcome?.charge ?? null, outputTokens: row?.outcome?.outputTokens ?? null,
-      credits: (row?.outcome?.credits ?? []).map(credit => ({ computerId: credit.computerId, amount: credit.amount })),
-      journal: entries.map(entry => ({ accountId: entry.account_id, delta: entry.delta })),
-      heldAfter: before.accounts.reduce((sum, account) => sum + account.held, 0), replay };
-  }
 
   const settled = (id, signal) => until(() => credits.request(id)?.state === 'settled', { timeoutMs: 20000, label: 'settlement', signal });
 
@@ -141,7 +115,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       return {
         requester: { participantId: peers.requester.participantId, preflight: await node('requester').call('weights') },
         hosts: HOSTS.map((host, index) => ({ label: host.label, stageIndex: index, participantId: peers[host.role].participantId,
-          machine: 'local-process', assignedLayers: opened[host.role].assignedLayers, inventory: { preflight: hostInventory(index) } }))
+          machine: 'local-process', computerId: `computer-${host.role}`, assignedLayers: opened[host.role].assignedLayers, inventory: { preflight: hostInventory(index) } }))
       };
     },
     soloControl(label) {
@@ -156,30 +130,23 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       const answer = await node('requester').call('generate', { messages: fixture.messages, threadId: splitThread });
       await settled(answer.reservationId, signal);
       const [input, output] = await Promise.all(['stage0', 'stage1'].map(async role => JSON.parse(await fs.readFile(witnessFile(role), 'utf8'))));
-      const trace = await node('stage1').call('trace', { attemptId: answer.attemptId });
-      // The production parity verifier, given the same evidence an HTTP run would hand it.
-      const parity = verifyStageTokenWitnesses({ fixtureBytes, httpAttemptId: answer.attemptId,
-        input, output, response: { status: 'completed', output: [{ content: [{ text: answer.text }] }],
-          reploid: { attemptId: answer.attemptId, threadId: splitThread, poolId: roomId, executionClass: 'private-pool',
-            modelIdentity: answer.route.modelIdentity, planIdentity: answer.route.planId, adapterIdentities: [],
-            recipients: [...answer.route.stages, peers.requester.participantId],
-            execution: answer.execution } } });
+      const { tokenIds } = await node('stage1').call('trace', { attemptId: answer.attemptId });
+      const evidence = verifySplitTokens({ fixtureBytes, answer, input, output, tokenIds, roomId, threadId: splitThread,
+        requesterId: peers.requester.participantId });
       return {
         workload: { modelId: answer.route.modelId, modelIdentity: answer.route.modelIdentity, quantization: answer.route.quantization,
           planIdentity: answer.route.planId, messagesDigest: credits.request(answer.reservationId).binding.inputDigest,
           promptDigest: output.promptDigest, promptCount: output.promptCount, maxOutputTokens: output.generation.maxTokens,
           decoding: stage1Decoding(output.generation) },
-        split: { attemptId: answer.attemptId, text: answer.text, parityExact: parity.exact === true, settlement: await ledgerTrace(answer.reservationId),
-          tokens: { outputIds: trace.tokenIds, promptDigest: output.promptDigest, tokenizerDigest: input.tokenizerDigest,
-            sampleCount: output.sampleCount, sampleDigest: output.sampleDigest, stopReason: output.stopReason } },
+        split: { attemptId: answer.attemptId, text: answer.text, ...evidence, settlement: await ledgerTrace(credits, answer.reservationId) },
         requesterAfterSplit: await node('requester').call('weights'),
         inventoryBeforeSplit,
         inventoryAfterSplit: Object.fromEntries(HOSTS.map((host, index) => [host.label, hostInventory(index)]))
       };
     },
     async cancelAnswer({ signal }) {
-      await node('stage1').call('hold', { threadId: cancelThread });
-      const answer = await node('requester').call('generate', { messages: fixture.messages, threadId: cancelThread, cancelAfterDeltas: 1 });
+      const answer = await runGatedCancel({ requester: node('requester'), finalStage: node('stage1'), messages: fixture.messages,
+        threadId: cancelThread, outputCount: expectations.reference.outputIds.length, signal });
       if (!answer.reservationId) throw Error('The stopped answer has no reservation');
       await settled(answer.reservationId, signal);
       const activity = await Promise.all(['stage0', 'stage1'].map(role => until(async () => {
@@ -188,7 +155,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       }, { timeoutMs: 10000, label: `${role} to release the stopped attempt`, signal }).catch(() => node(role).call('activity'))));
       return { attemptId: answer.attemptId, stoppedBeforeCompletion: answer.completed === false && answer.stopped === true,
         visibleText: answer.text, residentsActive: activity.map(state => state.active + state.unsettledOwners),
-        settlement: await ledgerTrace(answer.reservationId) };
+        settlement: await ledgerTrace(credits, answer.reservationId) };
     },
     async cleanup() {
       await Promise.allSettled(['requester', 'stage0', 'stage1'].map(role => node(role).call('close', {}, 20000)));
@@ -196,7 +163,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
         : Promise.race([once(item.child, 'exit'), delay(5000)])));
       const processesExited = [...nodes.values()].every(item => item.exited);
       const heldCredits = credits.snapshot().accounts.reduce((sum, account) => sum + account.held, 0);
-      const result = { processesExited, heldCredits, openReservations: await openReservationCount() };
+      const result = { processesExited, heldCredits, openReservations: await openReservationCount(path.join(directory, 'credits.sqlite')) };
       await closeCoordinator();
       return result;
     },
@@ -206,14 +173,6 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       await closeCoordinator();
     }
   });
-
-  /** Read from the ledger file itself: a reservation that never settled has no journal entry to find it by. */
-  async function openReservationCount() {
-    const { DatabaseSync } = await import('node:sqlite');
-    const database = new DatabaseSync(path.join(directory, 'credits.sqlite'), { readOnly: true });
-    try { return database.prepare("SELECT COUNT(*) AS count FROM fleet_requests WHERE state IN ('reserved','dispatched','closing')").get().count; }
-    finally { database.close(); }
-  }
 
   async function closeCoordinator() {
     await Promise.resolve().then(() => service?.close()).catch(() => {});

@@ -3,6 +3,8 @@
  * crypto. Every digest was computed by whoever produced the receipt, so this answers "does the record meet
  * the bar", never "is the record honest". Hosts are trusted to report what they measured.
  */
+import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
+
 export const STAGE1_RECEIPT_SCHEMA = 'reploid.stage1-split-receipt/v1';
 export const STAGE1_PHASES = Object.freeze(['preflight', 'solo-a', 'solo-b', 'split', 'cancel', 'cleanup']);
 export const LABEL_POOLED = 'pooled capacity';
@@ -10,6 +12,12 @@ export const LABEL_SPLIT = 'split correctness';
 const HOST_LABELS = Object.freeze(['host-a', 'host-b']);
 // Only the device refusing the allocation shows a physical limit. An operator budget or a fake does not.
 const DEVICE_MEMORY_EVIDENCE = 'device-out-of-memory';
+/**
+ * A device can refuse partway through the upload, so `requiredBytes` is the whole model the load asked for and these
+ * record how far it got. A refusal before this much was placed says the device was already occupied, not that the
+ * model does not fit.
+ */
+export const MINIMUM_LOAD_PROGRESS_BYTES = 1073741824;
 
 const same = (a, b) => canonical(a) === canonical(b);
 function canonical(value) {
@@ -46,6 +54,10 @@ export function classifySoloControl(control, expectations) {
   if (!count(failure.requiredBytes) || failure.requiredBytes < expectations.minimumSoloLoadBytes) {
     return { outcome: 'inconclusive', why: 'required-bytes-below-model' };
   }
+  if (failure.during !== 'whole-model-load') return { outcome: 'inconclusive', why: 'outside-model-load' };
+  const failed = failure.failedBufferBytes ?? 0;
+  if (!count(failure.allocatedBeforeFailureBytes) || !count(failed)) return { outcome: 'inconclusive', why: 'load-progress-unknown' };
+  if (failure.allocatedBeforeFailureBytes + failed < MINIMUM_LOAD_PROGRESS_BYTES) return { outcome: 'inconclusive', why: 'small-allocation' };
   return { outcome: 'memory', why: 'device-out-of-memory' };
 }
 
@@ -84,6 +96,13 @@ function checkInventory(host, when, stage, expectations, fail) {
   const observed = host.inventory?.[when], name = `${host.label}:${when}`;
   if (!observed) { fail('inventory-missing', name); return; }
   if (observed.source !== expectations.inventorySource) fail('inventory-source', `${name} ${observed.source}`);
+  // Around the split a real host must have searched everywhere it keeps weights, not only its stage directory.
+  if (expectations.runtimeClass === 'physical' && when !== 'preflight' && observed.scope !== 'host-weight-directories') {
+    fail('inventory-scope', `${name} ${observed.scope}`);
+  }
+  if (expectations.runtimeClass === 'physical' && observed.scannedRanges !== expectations.totalWeight.rangeCount) {
+    fail('inventory-not-exhaustive', `${name} scanned ${observed.scannedRanges} of ${expectations.totalWeight.rangeCount} ranges`);
+  }
   const total = expectations.totalWeight;
   if (observed.bytes >= total.bytes || observed.rangeCount >= total.rangeCount) {
     fail('executor-holds-complete-weights', `${name} ${observed.rangeCount} ranges, ${observed.bytes} bytes`);
@@ -116,7 +135,14 @@ function checkHosts(receipt, expectations, fail) {
   }
 }
 
-function checkRequester(receipt, fail) {
+function checkRequester(receipt, expectations, fail) {
+  // An empty directory on an executing machine is not a zero-weight requester.
+  if (expectations.runtimeClass === 'physical') {
+    const machine = receipt.requester?.machine;
+    if (typeof machine !== 'string' || !machine || (receipt.hosts ?? []).some(host => host.machine === machine)) {
+      fail('requester-not-separate-machine', String(machine));
+    }
+  }
   for (const when of ['preflight', 'afterSplit']) {
     const observed = receipt.requester?.[when];
     if (!observed || !count(observed.weightBytes) || !count(observed.fileCount)) fail('requester-weights-unmeasured', when);
@@ -126,7 +152,24 @@ function checkRequester(receipt, fail) {
   }
 }
 
-function checkSettlement(trace, name, expectations, fail) {
+/**
+ * Each stage's share, from the ledger's own rounding at the operator's weights. A small charge can legitimately pay a
+ * stage nothing (weights 1:5 on 3 credits pay 0 and 3), so "every stage was paid" would be the wrong test.
+ */
+function checkShares(trace, name, hosts, expectations, fail) {
+  const weights = expectations.creditWeights;
+  if (!Array.isArray(weights) || weights.length !== expectations.stages.length) { fail('credit-weights-missing', name); return; }
+  if (!Array.isArray(hosts) || hosts.length !== weights.length || !Number.isSafeInteger(trace.charge)) return;
+  const request = { computerId: '\0requester', providers: hosts.map((host, index) => ({ participantId: host.computerId, weight: weights[index] })) };
+  const expected = creditSettlementDeltas(request, trace.charge, id => id).credits.map(row => ({ computerId: row.computerId, amount: row.amount }));
+  if (!same(trace.credits, expected)) fail('settlement-shares', `${name} paid ${canonical(trace.credits)}, expected ${canonical(expected)}`);
+  for (const row of expected) {
+    const entry = (trace.journal ?? []).find(item => item.accountId === row.computerId);
+    if ((entry?.delta ?? 0) !== row.amount) fail('settlement-shares', `${name} journal for ${row.computerId} differs from its share`);
+  }
+}
+
+function checkSettlement(trace, name, expectations, fail, hosts) {
   if (!trace) { fail(`${name}-settlement-missing`, 'no ledger trace'); return; }
   if (trace.state !== 'settled') fail('stranded-hold', `${name} reservation is ${trace.state}`);
   if (trace.heldAfter !== 0) fail('stranded-hold', `${name} left ${trace.heldAfter} credits held`);
@@ -141,6 +184,7 @@ function checkSettlement(trace, name, expectations, fail) {
   if (trace.charge !== trace.outputTokens * expectations.creditsPerOutputToken) {
     fail('settlement-charge', `${name} charge ${trace.charge} for ${trace.outputTokens} tokens`);
   }
+  checkShares(trace, name, hosts, expectations, fail);
   const replay = trace.replay;
   if (replay?.attempted !== true) fail('settlement-replay-missing', name);
   else if (replay.journalAfter !== replay.journalBefore || replay.balancesUnchanged !== true || replay.outcomeUnchanged !== true) {
@@ -150,7 +194,7 @@ function checkSettlement(trace, name, expectations, fail) {
 
 function checkCancel(receipt, expectations, fail) {
   const cancel = receipt.cancel, answer = expectations.reference.outputIds.length;
-  checkSettlement(cancel?.settlement, 'cancel', expectations, fail);
+  checkSettlement(cancel?.settlement, 'cancel', expectations, fail, receipt.hosts);
   if (cancel?.stoppedBeforeCompletion !== true) fail('cancel-not-mid-answer', 'the answer completed before the stop');
   const tokens = cancel?.settlement?.outputTokens;
   if (!Number.isSafeInteger(tokens) || tokens < 1 || tokens >= answer) fail('cancel-not-mid-answer', `${tokens} settled tokens of ${answer}`);
@@ -165,6 +209,15 @@ function checkCleanup(receipt, fail) {
   if (cleanup?.processesExited !== true) fail('cleanup-processes', 'a started process did not exit');
   if (cleanup?.heldCredits !== 0) fail('stranded-hold', `cleanup found ${cleanup?.heldCredits} credits held`);
   if (cleanup?.openReservations !== 0) fail('stranded-hold', `cleanup found ${cleanup?.openReservations} open reservations`);
+}
+
+/** A standing service stopped for a solo control must be back and verified active. */
+function checkServices(receipt, expectations, fail) {
+  const rows = receipt.serviceRestores;
+  if (expectations.runtimeClass === 'physical' && !Array.isArray(rows)) { fail('service-restore-unrecorded', 'no service record'); return; }
+  for (const row of rows ?? []) {
+    if (row.stopped && (row.restored !== true || row.verifiedActive !== true || row.failedAttempts)) fail('service-restore-failed', String(row.host));
+  }
 }
 
 /** `pooled capacity` only when both solo controls ran out of device memory at the split's exact settings. */
@@ -199,13 +252,14 @@ export function checkStage1Receipt(receipt, expectations) {
   checkWorkload(record, expectations, fail);
   checkTokens(record, expectations, fail);
   checkHosts(record, expectations, fail);
-  checkRequester(record, fail);
-  checkSettlement(record.split?.settlement, 'split', expectations, fail);
+  checkRequester(record, expectations, fail);
+  checkSettlement(record.split?.settlement, 'split', expectations, fail, record.hosts);
   if (record.split?.settlement?.outputTokens !== expectations.reference.outputIds.length) {
     fail('split-settled-tokens', String(record.split?.settlement?.outputTokens));
   }
   checkCancel(record, expectations, fail);
   checkCleanup(record, fail);
+  checkServices(record, expectations, fail);
   const { label, solo } = decideLabel(record, expectations, fail);
   const ok = reasons.length === 0;
   return { ok, label: ok ? label : null, solo, reasons };

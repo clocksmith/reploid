@@ -4,7 +4,8 @@
  * skipped and can never read as passed.
  *
  * Adapter: describe(), preflight(ctx), soloControl(label, ctx), splitAnswer(ctx), cancelAnswer(ctx), cleanup(ctx),
- * hardStop(reason), and optionally guard(phase), which throws to stop the run before that phase starts.
+ * hardStop(reason), and optionally guard(phase), which throws to stop the run before that phase starts, and
+ * evidence(), whose service-restore record joins the receipt however the run ended.
  */
 import { STAGE1_PHASES, STAGE1_RECEIPT_SCHEMA } from './receipt-check.js';
 
@@ -59,6 +60,8 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
       for (const host of receipt.hosts) {
         host.inventory.beforeSplit = value.inventoryBeforeSplit[host.label];
         host.inventory.afterSplit = value.inventoryAfterSplit[host.label];
+        // A real stage loads only after the solo controls, so its layers are first observed here.
+        if (value.assignedLayers) host.assignedLayers = value.assignedLayers[host.label];
       }
     },
     cancel: value => { receipt.cancel = value; },
@@ -131,6 +134,7 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
     clearTimeout(deadline);
     signal?.removeEventListener('abort', outside);
   }
+  receipt.serviceRestores = adapter.evidence?.().serviceRestores ?? [];
   receipt.finishedAt = new Date(now()).toISOString();
   return receipt;
 }

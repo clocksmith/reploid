@@ -17,12 +17,15 @@ export function summarizeRanges(ranges) {
   return { rangeCount: ranges.length, bytes: ranges.reduce((sum, range) => sum + range.size, 0), rangesDigest: rangesDigest(ranges) };
 }
 
-/** What one host holds, compared to its stage. `source` says how the holding was established. */
-export function observeInventory({ held, stageRanges, source }) {
+/**
+ * What one host holds, compared to its stage. `source` says how the holding was established. `outsideStage*` can only
+ * be nonzero when `held` came from a search of more than the stage's own ranges: `scannedRanges` records how many.
+ */
+export function observeInventory({ held, stageRanges, source, scope = null, scannedRanges = null }) {
   const assigned = new Set(stageRanges.map(rangeKey));
   const outside = held.filter(range => !assigned.has(rangeKey(range)));
-  return { source, ...summarizeRanges(held), outsideStageRanges: outside.length,
-    outsideStageBytes: outside.reduce((sum, range) => sum + range.size, 0) };
+  return { source, ...(scope ? { scope } : {}), ...(scannedRanges === null ? {} : { scannedRanges }), ...summarizeRanges(held),
+    outsideStageRanges: outside.length, outsideStageBytes: outside.reduce((sum, range) => sum + range.size, 0) };
 }
 
 /**

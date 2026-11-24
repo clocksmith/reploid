@@ -7,28 +7,29 @@ const decoding = { temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, repet
 const workload = { modelId: 'model', modelIdentity: digest('a'), quantization: 'q4k', planIdentity: digest('b'),
   messagesDigest: digest('c'), promptDigest: 'd'.repeat(64), promptCount: 85, maxOutputTokens: 4, decoding };
 const expectations = { schema: 'reploid.stage1-expectations/v1', runtimeClass: 'physical', inventorySource: 'hashed-on-host',
-  inventorySha256: 'e'.repeat(64), creditsPerOutputToken: 1, workload,
+  inventorySha256: 'e'.repeat(64), creditsPerOutputToken: 1, creditWeights: [1, 1], workload,
   reference: { outputIds: [17, 17, 248046], sampleDigest: 'f'.repeat(64), outputText: '22', stopReasons: ['eos-token', 'stop-token'] },
   stages: [{ stageIndex: 0, layerRange: [0, 0], rangeCount: 1051, bytes: 2759168448, rangesDigest: digest('1') },
     { stageIndex: 1, layerRange: [1, 63], rangeCount: 4461, bytes: 14235183680, rangesDigest: digest('2') }],
   totalWeight: { rangeCount: 5512, bytes: 16994352128 }, minimumSoloLoadBytes: 16941875200 };
 
-const inventory = stage => ({ source: 'hashed-on-host', rangeCount: stage.rangeCount, bytes: stage.bytes,
+const inventory = stage => ({ source: 'hashed-on-host', scope: 'host-weight-directories', scannedRanges: 5512, rangeCount: stage.rangeCount, bytes: stage.bytes,
   rangesDigest: stage.rangesDigest, outsideStageRanges: 0, outsideStageBytes: 0 });
 const settlement = (tokens, id) => ({ reservationId: id, state: 'settled', charge: tokens, outputTokens: tokens,
-  credits: [{ computerId: 'computer-a', amount: tokens - 1 }, { computerId: 'computer-b', amount: 1 }],
-  journal: [{ accountId: 'computer-requester', delta: -tokens }, { accountId: 'computer-a', delta: tokens - 1 }, { accountId: 'computer-b', delta: 1 }],
+  credits: [{ computerId: 'computer-a', amount: Math.floor(tokens / 2) }, { computerId: 'computer-b', amount: Math.ceil(tokens / 2) }],
+  journal: [{ accountId: 'computer-requester', delta: -tokens }, { accountId: 'computer-a', delta: Math.floor(tokens / 2) }, { accountId: 'computer-b', delta: Math.ceil(tokens / 2) }],
   heldAfter: 0, replay: { attempted: true, journalBefore: 3, journalAfter: 3, balancesUnchanged: true, outcomeUnchanged: true } });
 const soloSettings = { modelId: 'model', modelIdentity: digest('a'), quantization: 'q4k', messagesDigest: digest('c'), maxOutputTokens: 4, decoding };
 const outOfMemory = (extra = {}) => ({ outcome: 'failed', settings: soloSettings, claimedFailure: 'memory',
-  failure: { kind: 'out-of-memory', evidence: 'device-out-of-memory', operatorCapped: false, requiredBytes: 16994352128, ...extra } });
+  failure: { kind: 'out-of-memory', evidence: 'device-out-of-memory', operatorCapped: false, requiredBytes: 16994352128,
+    during: 'whole-model-load', allocatedBeforeFailureBytes: 12884901888, failedBufferBytes: 268435456, ...extra } });
 
 function goodReceipt() {
   return { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: 'physical', hardStop: null, claim: null,
     phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'completed' }])), workload: structuredClone(workload),
-    requester: { participantId: 'peer:r', preflight: { weightBytes: 0, fileCount: 0 }, afterSplit: { weightBytes: 0, fileCount: 0 } },
+    serviceRestores: [], requester: { participantId: 'peer:r', machine: 'machine-r', preflight: { weightBytes: 0, fileCount: 0 }, afterSplit: { weightBytes: 0, fileCount: 0 } },
     hosts: expectations.stages.map((stage, index) => ({ label: ['host-a', 'host-b'][index], stageIndex: index, participantId: `peer:${index}`,
-      machine: `machine-${index}`, assignedLayers: [...stage.layerRange], inventory: { preflight: inventory(stage), beforeSplit: inventory(stage), afterSplit: inventory(stage) } })),
+      machine: `machine-${index}`, computerId: ['computer-a', 'computer-b'][index], assignedLayers: [...stage.layerRange], inventory: { preflight: inventory(stage), beforeSplit: inventory(stage), afterSplit: inventory(stage) } })),
     soloControls: { 'host-a': outOfMemory(), 'host-b': outOfMemory() },
     split: { text: '22', parityExact: true, settlement: settlement(3, 'split'),
       tokens: { outputIds: [17, 17, 248046], promptDigest: workload.promptDigest, tokenizerDigest: workload.promptDigest,
@@ -81,7 +82,60 @@ describe('the label', () => {
   });
 });
 
+describe('a device that refuses partway through the upload', () => {
+  it('counts when the record names the whole model it asked for and how far it got', () => {
+    const control = outOfMemory({ requiredBytes: 16941875200, allocatedBeforeFailureBytes: 11811160064, failedBufferBytes: 536870912 });
+    expect(classifySoloControl(control, { ...expectations, minimumSoloLoadBytes: 16941875200 })).toEqual({ outcome: 'memory', why: 'device-out-of-memory' });
+  });
+
+  it.each([
+    ['only the failing buffer as required', { requiredBytes: 536870912 }, 'required-bytes-below-model'],
+    ['a small refusal with nothing loaded', { allocatedBeforeFailureBytes: 0, failedBufferBytes: 4096 }, 'small-allocation'],
+    ['an allocation outside the load', { during: 'generation' }, 'outside-model-load'],
+    ['no record of how far it got', { allocatedBeforeFailureBytes: null }, 'load-progress-unknown']
+  ])('stays inconclusive with %s', (_name, change, why) => {
+    expect(classifySoloControl(outOfMemory(change), { ...expectations, minimumSoloLoadBytes: 16941875200 })).toEqual({ outcome: 'inconclusive', why });
+  });
+});
+
 describe('rejects', () => {
+  it('a requester without a machine of its own', () => {
+    expect(codes(judged(receipt => { receipt.requester.machine = receipt.hosts[1].machine; }))).toEqual(['requester-not-separate-machine']);
+    expect(codes(judged(receipt => { delete receipt.requester.machine; }))).toEqual(['requester-not-separate-machine']);
+  });
+
+  it('shares that differ from the operator weights', () => {
+    const verdict = judged(receipt => {
+      receipt.split.settlement.credits = [{ computerId: 'computer-a', amount: 2 }, { computerId: 'computer-b', amount: 1 }];
+      receipt.split.settlement.journal = [{ accountId: 'computer-requester', delta: -3 }, { accountId: 'computer-a', delta: 2 }, { accountId: 'computer-b', delta: 1 }];
+    });
+    expect(codes(verdict)).toContain('settlement-shares');
+  });
+
+  it('accepts a stage legitimately paid nothing by rounding at its weight', () => {
+    const weighted = { ...expectations, creditWeights: [1, 5] };
+    const receipt = goodReceipt();
+    for (const [trace, tokens] of [[receipt.split.settlement, 3], [receipt.cancel.settlement, 1]]) {
+      trace.credits = [{ computerId: 'computer-a', amount: 0 }, { computerId: 'computer-b', amount: tokens }];
+      trace.journal = [{ accountId: 'computer-requester', delta: -tokens }, { accountId: 'computer-a', delta: 0 }, { accountId: 'computer-b', delta: tokens }];
+    }
+    expect(checkStage1Receipt(receipt, weighted).ok).toBe(true);
+    expect(codes(checkStage1Receipt(goodReceipt(), weighted))).toContain('settlement-shares');
+  });
+
+  it('a failed service restore', () => {
+    const verdict = judged(receipt => { receipt.serviceRestores = [{ host: 'host-a', stopped: true, restored: false, verifiedActive: false }]; });
+    expect(codes(verdict)).toEqual(['service-restore-failed']);
+    expect(codes(judged(receipt => { receipt.serviceRestores = [{ host: 'host-a', stopped: true, restored: true, verifiedActive: true, failedAttempts: 1 }]; })))
+      .toEqual(['service-restore-failed']);
+    expect(codes(judged(receipt => { delete receipt.serviceRestores; }))).toEqual(['service-restore-unrecorded']);
+  });
+
+  it('an inventory that searched less than the whole model or only the stage directory', () => {
+    expect(codes(judged(receipt => { receipt.hosts[0].inventory.beforeSplit.scannedRanges = 1051; }))).toEqual(['inventory-not-exhaustive']);
+    expect(codes(judged(receipt => { receipt.hosts[1].inventory.afterSplit.scope = 'stage-directory'; }))).toEqual(['inventory-scope']);
+  });
+
   it.each([[0, 18], [1, 18], [2, 248047]])('one changed token at position %i', (position, token) => {
     const verdict = judged(receipt => { receipt.split.tokens.outputIds[position] = token; });
     expect(verdict.ok).toBe(false);

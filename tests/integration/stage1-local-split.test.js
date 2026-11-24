@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { runLocalStage1 } from '../../scripts/stage1/run.js';
 import { checkStage1Receipt, LABEL_POOLED, LABEL_SPLIT } from '../../scripts/stage1/receipt-check.js';
-import { loadStage1Expectations } from '../../scripts/stage1/expectations.js';
+import { loadStage1Expectations, STAGE1_FIXTURE_FILE } from '../../scripts/stage1/expectations.js';
 import { createLocalStage1Adapter } from '../../scripts/stage1/local-adapter.js';
 import { runStage1Phases } from '../../scripts/stage1/runner.js';
 
@@ -49,7 +49,10 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
   it('settled the answer and the stopped answer once each on the real ledger', () => {
     expect(good.receipt.split.settlement).toMatchObject({ state: 'settled', charge: 3, outputTokens: 3, heldAfter: 0 });
     expect(good.receipt.cancel).toMatchObject({ stoppedBeforeCompletion: true, residentsActive: [0, 0] });
-    expect(good.receipt.cancel.settlement).toMatchObject({ state: 'settled', charge: 1, outputTokens: 1, heldAfter: 0 });
+    // The gate holds the final token, so the stop lands with one or two of the three tokens acknowledged.
+    const stopped = good.receipt.cancel.settlement;
+    expect(stopped).toMatchObject({ state: 'settled', charge: stopped.outputTokens, heldAfter: 0 });
+    expect([1, 2]).toContain(stopped.outputTokens);
     for (const trace of [good.receipt.split.settlement, good.receipt.cancel.settlement]) {
       expect(trace.replay).toMatchObject({ attempted: true, balancesUnchanged: true, outcomeUnchanged: true });
       expect(trace.replay.journalAfter).toBe(trace.replay.journalBefore);
@@ -95,6 +98,23 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
     expect(codes(checkStage1Receipt(good.receipt, { ...good.expectations, runtimeClass: 'physical', inventorySource: 'hashed-on-host' })))
       .toEqual(expect.arrayContaining(['runtime-class', 'inventory-source', 'hosts-not-physically-distinct']));
   });
+
+  it('runs a 72-token multi-character reference and stops it before its final token', async () => {
+    const source = JSON.parse(await fs.readFile(STAGE1_FIXTURE_FILE, 'utf8'));
+    const visibleOutputIds = Array.from({ length: 71 }, (_, index) => 1000 + index);
+    const outputText = Array.from({ length: 71 }, (_, index) => `word${index} `).join('');
+    const fixtureFile = path.join(root, 'long-reference.json');
+    await fs.writeFile(fixtureFile, JSON.stringify({ ...source, maxOutputTokens: 80,
+      reference: { ...source.reference, visibleOutputIds, outputText } }));
+    const long = await runLocalStage1({ directory: path.join(root, 'long'), fixtureFile, limits: { maxRunMs: 100000, phaseMs: 60000 } });
+    expect(long.verdict).toMatchObject({ ok: true, label: LABEL_SPLIT, reasons: [] });
+    expect(long.receipt.split.text).toBe(outputText);
+    expect(long.receipt.split.tokens.outputIds).toHaveLength(72);
+    expect(long.receipt.split.settlement).toMatchObject({ charge: 72, outputTokens: 72 });
+    const stopped = long.receipt.cancel.settlement.outputTokens;
+    expect(stopped).toBeGreaterThanOrEqual(1);
+    expect(stopped).toBeLessThan(72);
+  }, 110000);
 
   it('kills every process it started on a hard stop and does not pass', async () => {
     const loaded = await loadStage1Expectations({ runtimeClass: 'fake-runtime' });

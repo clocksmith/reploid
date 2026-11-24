@@ -5,38 +5,33 @@
  */
 import * as doppler from 'dopplerx/partitions';
 
+/** Divides the answer across its visible tokens, whatever their number, so the deltas concatenate to it exactly. */
+export function fakeTokenTexts(outputText, tokenCount) {
+  const characters = Array.from(outputText);
+  return Array.from({ length: tokenCount }, (_, index) => characters
+    .slice(Math.floor(index * characters.length / tokenCount), Math.floor((index + 1) * characters.length / tokenCount)).join(''));
+}
+
 const ACTIVATION_SEED = 7;
 const activationValue = step => ACTIVATION_SEED + step;
 
 /**
- * `reference` holds the fixture's prompt and output IDs. `holds` is the set of thread IDs whose final stage waits
- * before its second token until the attempt is stopped, so a mid-answer cancel cannot race the short answer.
+ * `reference` holds the fixture's prompt and output IDs. Holding an answer for a cancel is the gate's job
+ * (stage-participant.js), which is the same on real hosts.
  */
-export function createFakeStageRuntime({ model, manifest, reference, holds = new Set(), observed = {} }) {
+export function createFakeStageRuntime({ model, manifest, reference }) {
   const outputIds = [...reference.visibleOutputIds, reference.stopId];
-  const deltas = outputIds.map((id, index) => (index < reference.visibleOutputIds.length ? reference.outputText[index] ?? '' : ''));
+  const deltas = [...fakeTokenTexts(reference.outputText, reference.visibleOutputIds.length), ''];
   const openFactory = () => ({
     async openResidentPartition({ model: selected, plan, planId, index }) {
       const generation = selected.generation, generationDigest = await doppler.hashPartitionGeneration(generation);
       const layerRange = plan.partitions[index].layerRange, final = index === plan.stageCount - 1;
-      observed.assignedLayers = [...layerRange];
-      const waiters = new Map();
-      const release = attemptId => { for (const finish of waiters.get(attemptId) ?? []) finish(); waiters.delete(attemptId); };
-      async function holdUntilStopped(attemptId, signal) {
-        await new Promise((resolve, reject) => {
-          const timer = setTimeout(() => reject(Error('Fake stage hold was never stopped')), 30000);
-          const finish = () => { clearTimeout(timer); reject(signal?.reason ?? Error('Fake stage attempt closed')); };
-          if (signal?.aborted) { finish(); return; }
-          signal?.addEventListener('abort', finish, { once: true });
-          waiters.set(attemptId, [...(waiters.get(attemptId) ?? []), finish]);
-        });
-      }
       return {
         getRecoveryCapabilities: () => ({ schema: 'doppler.resident-recovery/v1', inputReplay: false, checkpointExport: false, checkpointImport: false }),
         getDescriptor: () => ({ schema: 'doppler.resident-partition/v2', ready: true, stageCount: plan.stageCount, modelId: model.id,
           modelIdentity: model.identity, generationDigest, planId, index, layerRange, residentWeightBytes: 1024 }),
         tokenize: async () => ({ modelIdentity: model.identity, tokenIds: [...reference.inputIds], generation }),
-        async executeStage({ identity, partitionIndex, step, tokenPosition, inputTokenIds, activation, signal }) {
+        async executeStage({ identity, partitionIndex, step, tokenPosition, inputTokenIds, activation }) {
           const base = { identity, partitionIndex, step, tokenPosition, continuation: { step } };
           if (!final) {
             const hiddenSize = plan.hiddenSize;
@@ -49,12 +44,11 @@ export function createFakeStageRuntime({ model, manifest, reference, holds = new
           if (!received?.length || received[0] !== activationValue(step) || received.at(-1) !== activationValue(step)) {
             throw Error('Fake final stage received an unexpected activation');
           }
-          if (step === 1 && holds.has(identity.threadId)) await holdUntilStopped(identity.attemptId, signal);
           const done = step === outputIds.length - 1;
           return { ...base, tokenId: outputIds[step], delta: deltas[step], done, ...(done ? { stopReason: 'eos-token' } : {}) };
         },
-        closeAttempt: async ({ identity }) => { release(identity.attemptId); },
-        close: async () => { for (const attemptId of [...waiters.keys()]) release(attemptId); }
+        closeAttempt: async () => {},
+        close: async () => {}
       };
     }
   });

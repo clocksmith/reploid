@@ -38,7 +38,7 @@ const decodingOf = generation => Object.fromEntries(DECODING_KEYS.map(key => [ke
 export const stage1Decoding = decodingOf;
 
 /** `runtimeClass` is `physical` for real hosts. A fake-runtime receipt can never satisfy physical expectations. */
-export async function loadStage1Expectations({ runtimeClass = 'physical', fixtureFile = STAGE1_FIXTURE_FILE } = {}) {
+export async function loadStage1Expectations({ runtimeClass = 'physical', fixtureFile = STAGE1_FIXTURE_FILE, creditWeights = [1, 1] } = {}) {
   if (!['physical', 'fake-runtime'].includes(runtimeClass)) throw Error('Unknown Stage 1 runtime class');
   const model = catalog.find(row => row.id === STAGE1_MODEL_ID);
   const fixtureBytes = await fs.readFile(fixtureFile), fixture = JSON.parse(fixtureBytes);
@@ -59,7 +59,7 @@ export async function loadStage1Expectations({ runtimeClass = 'physical', fixtur
   const expectations = {
     schema: 'reploid.stage1-expectations/v1', runtimeClass,
     inventorySource: runtimeClass === 'physical' ? 'hashed-on-host' : 'fake-runtime-declared',
-    inventorySha256, creditsPerOutputToken: 1, minimumSoloLoadBytes: STAGE1_PINS.minimumSoloLoadBytes,
+    inventorySha256, creditsPerOutputToken: 1, creditWeights: [...creditWeights], minimumSoloLoadBytes: STAGE1_PINS.minimumSoloLoadBytes,
     workload: { modelId: model.id, modelIdentity: model.identity, quantization: model.quantization,
       planIdentity: model.partitionPlanId, messagesDigest: await hashJson(fixture.messages),
       promptDigest: witnessDigest(reference.inputIds), promptCount: reference.inputIds.length,
@@ -68,5 +68,5 @@ export async function loadStage1Expectations({ runtimeClass = 'physical', fixtur
     stages,
     totalWeight: { rangeCount: stages.reduce((sum, stage) => sum + stage.rangeCount, 0), bytes: stages.reduce((sum, stage) => sum + stage.bytes, 0) }
   };
-  return { expectations, stageRanges, model, fixture, fixtureBytes };
+  return { expectations, stageRanges, model, fixture, fixtureBytes, fixtureFile };
 }

@@ -18,8 +18,8 @@ import { runStage1Phases } from './runner.js';
 import { createLocalStage1Adapter } from './local-adapter.js';
 
 /** Runs the phases on the local adapter and returns `{ receipt, verdict }`. */
-export async function runLocalStage1({ directory, limits, signal }) {
-  const loaded = await loadStage1Expectations({ runtimeClass: 'fake-runtime' });
+export async function runLocalStage1({ directory, limits, signal, fixtureFile = null }) {
+  const loaded = await loadStage1Expectations({ runtimeClass: 'fake-runtime', ...(fixtureFile ? { fixtureFile } : {}) });
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
   const adapter = createLocalStage1Adapter({ directory, ...loaded });
   const receipt = await runStage1Phases({ adapter, expectations: loaded.expectations, limits, signal });
