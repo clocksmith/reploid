@@ -1,7 +1,7 @@
 import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { expect, it } from 'vitest';
-import { createChatSession, MAX_AUTOMATIC_FAILOVERS } from '../../apps/poolday/host/chat-session.js';
+import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 // Injected swarm port, not actual inference or a physical peer loss.
@@ -60,33 +60,32 @@ it('a conversation pinned to one computer is not resent when that computer drops
   expect(thread.attempts.map(attempt => attempt.status)).toEqual(['failed']);
 });
 
-it('requires replacement recipient approval after the chosen computer drops, keeping the failed attempt', async () => {
-  const f = fixture(index => index === 0 ? 'drop' : 'complete');
+it('an open conversation is not resent when its computer drops, and keeps the partial answer', async () => {
+  const f = fixture(() => 'drop');
   expect((await f.session.send(f.threadId, 'Public question')).status).toBe('failed');
-  const thread = await f.settled(2);
-  expect(f.calls.map(call => call.question)).toEqual(['Public question', 'Public question']);
-  expect(f.reviewed).toEqual([peerId(2)]);
-  expect(f.disclosed).toEqual([peerId(1), peerId(2)]);
-  expect(thread.attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
+  await new Promise(resolve => setTimeout(resolve, 60));
+  const thread = f.session.getState().activeThread;
+  expect(f.calls).toHaveLength(1);
+  expect(f.disclosed).toEqual([peerId(1)]);
+  expect(thread.attempts.map(attempt => attempt.status)).toEqual(['failed']);
   expect(thread.attempts[0].error).toBe(DROPPED);
-  expect(new Set(thread.attempts.map(attempt => attempt.id)).size).toBe(2);
-  expect(thread.attempts[1].userMessageId).toBe(thread.attempts[0].userMessageId);
-  expect(thread.messages.filter(message => message.role === 'user')).toHaveLength(1);
-  expect(thread.messages.at(-1).content).toBe('Answer from ' + peerId(2));
-  // The dropped attempt stays in the record as failed; only the new attempt completes.
-  expect(thread.messages.filter(message => message.role !== 'user').map(message => message.status)).toEqual(['failed', 'completed']);
+  expect(thread.messages.at(-1).content).toBe('Answer from ' + peerId(1));
   await f.session.close();
 });
 
-it('stops after the bounded number of automatic attempts and leaves the last failure for the reader', async () => {
-  const f = fixture(() => 'drop');
+it('an explicit Retry is a new attempt and a new computer still needs approval', async () => {
+  const f = fixture(index => index === 0 ? 'drop' : 'complete');
   await f.session.send(f.threadId, 'Public question');
-  const thread = await f.settled(1 + MAX_AUTOMATIC_FAILOVERS);
-  await new Promise(resolve => setTimeout(resolve, 50));
-  expect(f.calls).toHaveLength(1 + MAX_AUTOMATIC_FAILOVERS);
-  expect(f.reviewed).toEqual([peerId(2), peerId(3)]);
-  expect(thread.attempts.map(attempt => attempt.status)).toEqual(Array(1 + MAX_AUTOMATIC_FAILOVERS).fill('failed'));
-  expect(f.session.getState().activeThread.attempts).toHaveLength(1 + MAX_AUTOMATIC_FAILOVERS);
+  const failed = f.session.getState().activeThread.attempts[0];
+  const retried = f.session.retry(f.threadId, failed.id);
+  const thread = await f.settled(2);
+  await retried;
+  expect(f.reviewed).toEqual([peerId(2)]);
+  expect(f.disclosed).toEqual([peerId(1), peerId(2)]);
+  expect(thread.attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
+  expect(thread.attempts[1].userMessageId).toBe(thread.attempts[0].userMessageId);
+  expect(thread.messages.filter(message => message.role === 'user')).toHaveLength(1);
+  expect(thread.messages.at(-1).content).toBe('Answer from ' + peerId(2));
   await f.session.close();
 });
 
