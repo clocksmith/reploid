@@ -172,7 +172,7 @@ export function createPeerGenerationMesh({ config, ports }) {
   const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined) => {
     const blocked = blockedComputers();
     let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)))
-    .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
+    .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots > 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))
       && (!settings || supportsSettings(peer, settings)));
@@ -356,7 +356,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       else delete next.executionOffers;
       next.hardware = publicProviderHardware(payload.hardware);
       next.adapterIdentities = payload.adapterIdentities || [];
-      next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots > 0 ? payload.availableSlots : 0;
+      // A missing count is unknown, not zero. Placement still sends work only to a computer that reports a free slot.
+      next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots >= 0 ? payload.availableSlots : null;
       next.queuedJobs = Number.isSafeInteger(payload.queuedJobs) && payload.queuedJobs > 0 ? payload.queuedJobs : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
@@ -1168,7 +1169,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         const currentProvider = swarmController.listPeers().find(peer => peer.peerId === provider.peerId);
         if (!currentProvider || currentProvider.admissionProtocol !== 2 || currentProvider.identityProtocol !== 1
         || peerIdentity?.getVerified(provider.peerId) !== recipientIdentity
-        || currentProvider.readiness !== 'ready' || currentProvider.availableSlots === 0
+        || currentProvider.readiness !== 'ready' || !(currentProvider.availableSlots > 0)
         || JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null) !== connectionBinding
         || currentProvider.model !== provider.model || currentProvider.modelIdentity !== provider.modelIdentity
         || !supportsAdapters(currentProvider, adapterIdentities)
