@@ -682,7 +682,8 @@ Every whole-model request follows one order, whichever API it entered through:
 1. **Normalize.** Chat Completions, Responses, and Messages keep their own public
    shapes and supported fields. A limit below the prepared ceiling reaches the
    provider as the same generation setting. Above the ceiling, Chat Completions
-   refuses the request; Responses and Messages run to the ceiling.
+   refuses the request; Responses and Messages run to the ceiling unless a fleet
+   policy refuses that limit.
 2. **Filter.** Privacy policy, named recipients, exact model identity, readiness, a
    reported free slot, and provider capability decide who is eligible. A provider
    that cannot apply a requested limit is not eligible.
