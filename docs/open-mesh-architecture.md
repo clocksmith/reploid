@@ -675,6 +675,33 @@ do not become independent counts or automatic failures. Replay reconstructs the
 projection from the admissible window so removed evidence leaves no hidden score.
 Synthetic posterior tests do not establish calibration or useful physical gains.
 
+### Whole-model request order
+
+Every whole-model request follows one order, whichever API it entered through:
+
+1. **Normalize.** Chat Completions, Responses, and Messages keep their own public
+   shapes and supported fields. A limit below the prepared ceiling reaches the
+   provider as the same generation setting. Above the ceiling, Chat Completions
+   refuses the request; Responses and Messages run to the ceiling.
+2. **Filter.** Privacy policy, named recipients, exact model identity, readiness, a
+   reported free slot, and provider capability decide who is eligible. A provider
+   that cannot apply a requested limit is not eligible.
+3. **Rank.** The person's preference orders eligible computers only. Speed compares
+   rates for the requested model. An unreported rate or slot count is unknown, not
+   zero. There is no cost ranking until offers carry a price.
+4. **Quote.** A priced route states its maximum before any hold. Declining it holds
+   and sends nothing.
+5. **Admit and stream.** The hold is placed, the provider admits the request, and
+   only then does the prompt leave the requester.
+6. **Settle once.** A finished answer is charged for its reported output, up to the
+   quote. A cancelled or dropped whole-model answer releases the hold without a
+   charge and does not move to another computer.
+
+`tests/integration/whole-model-order.test.js` exercises this order on one pinned
+model with in-memory transport and a fixed generator. It does not establish real
+inference, WebRTC, TURN, or physical recovery. Split-layer inference and
+cross-host continuation are separate qualifications.
+
 The [original network design and checkpoints](https://github.com/clocksmith/reploid/blob/342f0760f80f66d851ef33ffaa9b83b482dc2572/docs/poolday/executable-intelligence-network-plan.md) preserve prior whole-job,
 partition, placement, and improvement sequencing. Their historical order cannot
 start another campaign. Transferable improvement and causal recursion retain the

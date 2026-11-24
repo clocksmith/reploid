@@ -21,6 +21,7 @@ import { startFleetService, createFleetClient } from '../../server/fleet/service
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
+import { GENERATION_SETTINGS_CAPABILITY } from '../../packages/reploid/src/mesh/generation-settings.js';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const sleep = (ms, signal) => new Promise((resolve, reject) => {
@@ -172,7 +173,7 @@ function events() {
 }
 
 /**
- * providers: [{ name, tokensPerSecond, holdsModel }] in connection-id order. The requester never has model files.
+ * providers: [{ name, tokensPerSecond, holdsModel, appliesOutputLimit }] in connection-id order. The requester never has model files.
  */
 export async function createJourneyNetwork({ providers, modelOptions = {}, maxOutputTokens = 16 }) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'network-journey-')), cleanup = [];
@@ -256,14 +257,16 @@ export async function createJourneyNetwork({ providers, modelOptions = {}, maxOu
       generate: async (messages, update, controls) => {
         seat.executions += 1;
         const signal = AbortSignal.any([controls.signal, run.abort.signal]);
-        for (const token of JOURNEY_ANSWER) {
+        const tokens = JOURNEY_ANSWER.slice(0, controls.settings?.maxOutputTokens ?? JOURNEY_ANSWER.length);
+        for (const token of tokens) {
           await sleep(1000 / seat.tokensPerSecond, signal);
           seat.tokensEmitted += 1; update(token);
         }
-        return { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: JOURNEY_ANSWER.join(''),
+        return { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: tokens.join(''),
           completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: promptTokens(messages),
-            generatedTokenCount: JOURNEY_ANSWER.length, stopReason: 'eos-token' } };
+            generatedTokenCount: tokens.length, stopReason: tokens.length < JOURNEY_ANSWER.length ? 'max-tokens' : 'eos-token' } };
       },
+      ...(seat.appliesOutputLimit ? { getGenerationSettingsCapability: () => ({ ...GENERATION_SETTINGS_CAPABILITY, maxOutputTokens: true }) } : {}),
       createTransport: () => transport
     } });
     await mesh.connect();
