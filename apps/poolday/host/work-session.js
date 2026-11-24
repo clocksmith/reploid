@@ -3,7 +3,7 @@
  * objective grants, network placement, local records and per-thread lifetime.
  * Whole-request compatibility execution does not imply signed Pack admission.
  */
-import { assertAvailableExecutionPolicy, validateExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
+import { assertAvailableExecutionPolicy, validateExecutionPolicy, executionRequirementsFor, compileExecutionRequirements } from '../../../shared/vendor/reploid/chat/execution-policy.js';
 import { createReploid } from '../../../shared/vendor/reploid/agent/index.js';
 import { resolveConfig } from '../../../shared/vendor/reploid/config/index.js';
 import protocol from '../../../shared/vendor/reploid/agent/protocol.json' with { type: 'json' };
@@ -16,6 +16,7 @@ import { readonlyView, projectWorkRecord } from './work-view.js';
 import { createWorkRepository } from './work-repository.js';
 import { selectWorkModel } from '../providers/work-provider.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
+import { createPeerInference } from '../providers/peer-inference.js';
 import { runWorkHelper } from './work-helpers.js';
 import helperPolicy from '../config/work-evolution.json' with { type: 'json' };
 export { extractProposedCriteria } from './work-task.js';
@@ -35,6 +36,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
   let records = [], selectedId = null, closed = false, storageError = '';
   let peerModels = [], discovering = false, peerDiscoveryCompleted = false, revisionDraft = null;
   const discoveryController = new AbortController();
+  const peerInference = createPeerInference({ swarm });
   const repository = createWorkRepository({ storage, locks, policy });
   const read = repository.read;
   try {
@@ -101,7 +103,12 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     const parentRecord = taskContract.parent;
     const model = selectWorkModel({ models, modelId, defaultModelId: policy.defaultModelId });
     const isDopplerModel = model.provider === 'doppler';
-    privacy = privacy === null ? null : assertAvailableExecutionPolicy(privacy);
+    if (privacy !== null) {
+      // The inference API's compiler refuses requester-only (CONFIDENTIAL_EXECUTION_UNAVAILABLE) before anything is saved or sent.
+      privacy = validateExecutionPolicy(privacy);
+      compileExecutionRequirements(executionRequirementsFor(privacy));
+      privacy = assertAvailableExecutionPolicy(privacy);
+    }
     allowPeers = Boolean(allowPeers && privacy?.placement === 'network-allowed' && privacy.recipients.kind !== 'none');
     requireValue(!privacy || isDopplerModel, 'This provider has no qualified complete privacy route');
     const row = {
@@ -110,7 +117,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
       status: 'loading', output: '', review: null, error: null, revision: 0, checkpoint: null,
       criteria: taskContract.criteria, feedback: taskContract.feedback, inputs: taskContract.inputs,
       ...(privacy ? { privacy: copy(privacy) } : {}),
-      artifacts: [], events: [], peerJobs: [], helpers: [], improvements: [], allowPeers, recallAccepted, allowHelpers, allowImprovement
+      artifacts: [], events: [], peerJobs: [], peerSteps: [], helpers: [], improvements: [], allowPeers, recallAccepted, allowHelpers, allowImprovement
     };
     const controller = new AbortController();
     const scope = 'reploid:work:' + row.id;
@@ -143,17 +150,28 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
             notify();
           }
         });
+        // Each Reploid peer step keeps its execution receipt with its result; local and cloud steps have none.
+        const peerStep = async (kind, operation) => {
+          requireValue(row.peerSteps.length < policy.peers.maxStepReceipts, 'Peer step allowance reached');
+          const generation = operation();
+          run.inference.add(generation);
+          const retain = (receipt, peerId = null) => {
+            if (receipt) row.peerSteps.push({ kind, at: new Date().toISOString(), peerId, receipt: copy(receipt) });
+          };
+          try {
+            const result = await generation;
+            retain(result.executionReceipt, result.peerId || null);
+            return result;
+          } catch (error) { retain(error.executionReceipt); throw error; }
+          finally { run.inference.delete(generation); }
+        };
         const provider = {
           async generate(...args) {
-            const generation = adapter.generate(...args);
-            run.inference.add(generation);
-            try {
-              const result = await generation;
-              row.execution = { provider: result.provider, requestedModel: result.requestedModel,
-                actualModel: result.model, kind: result.execution, peerId: result.peerId || null,
-                connectionError: result.connectionError || null };
-              return result;
-            } finally { run.inference.delete(generation); }
+            const result = await peerStep('step', () => adapter.generate(...args));
+            row.execution = { provider: result.provider, requestedModel: result.requestedModel,
+              actualModel: result.model, kind: result.execution, peerId: result.peerId || null,
+              connectionError: result.connectionError || null, receipt: result.executionReceipt ? copy(result.executionReceipt) : null };
+            return result;
           }
         };
         const profile = copy(policy.profile);
@@ -231,10 +249,17 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
             } catch (error) { helper.error = error.message; helper.status = 'failed'; throw error; }
             finally { await save(row); notify(); }
           },
-          AskPeer(args) {
+          async AskPeer({ task }) {
             requireValue(!run.peerDeclined, 'Peer assistance was withdrawn for this attempt');
-            return swarm.execute(args, { signal: controller.signal, approve, record: recordPeer, privacy, modelId: model.id, modelIdentity: model.identity,
-              onPartial: () => { run.activity = 'Receiving a peer response.'; notify(); } });
+            requireValue(typeof task === 'string' && task.trim() && new TextEncoder().encode(task).byteLength <= policy.peers.maxPayloadBytes,
+              'Peer helper task exceeds the disclosure allowance');
+            // Reploid peer inference: prepared and run through reploid/inference, never a local fallback.
+            const result = await peerStep('ask-peer', () => peerInference.generate({ model, privacy, messages: [{ role: 'user', content: task }],
+              approve, record: recordPeer, signal: controller.signal,
+              onPartial: () => { run.activity = 'Receiving a peer response.'; notify(); } }));
+            await save(row); notify();
+            return { output: String(result.content || '').slice(0, policy.peers.maxToolResultCharacters), model: result.model,
+              claim: 'legacy-compatibility-result', authority: 'Untrusted peer response; not independently verified correctness or signed Pack qualification' };
           },
           RecallWork({ query }) {
             requireValue(typeof query === 'string' && query.trim(), 'RecallWork requires a query');

@@ -4,7 +4,7 @@ import { currentPartitionRoute } from './partition-release.js';
 import { createChatScheduler, remoteDisclosureKind } from '../../../shared/vendor/reploid/chat/index.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
-import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
+import { generateOnPeer } from '../providers/peer-inference.js';
 import { readWorkGenerationCompletion } from '../providers/work-generation-completion.js';
 import executionPolicy from '../config/chat-execution-policy.json' with { type: 'json' };
 import { publicProviderHardware } from '../../../shared/vendor/reploid/mesh/provider-hardware.js';
@@ -130,34 +130,24 @@ export function createChatExecution({ localExecution = true, service, swarm, par
 
     assert(swarm?.generate, 'No connected participant can execute this model');
     let approvedProviderId = null;
-    const provider = createWorkNetworkProvider({
-      model, privacy: request.privacy, service, scope: 'chat:' + attemptId, signal: controls.signal,
-      swarm,
-      generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters,
-      controls: {
-        async approve(preview) {
-          const approved = await controls.requestApproval({ ...preview, peerId: preview.providerId, threadId, attemptId });
-          if (approved === true) approvedProviderId = preview.providerId;
-          return approved;
-        },
-        async record(record) {
-          if (record.stage === 'approved') {
-            assert(approvedProviderId, 'Peer execution metadata preceded disclosure approval');
-            state('executing', { provider: 'peer', placement: 'peer-whole-request', peerId: approvedProviderId });
-          }
+    state('queued', null);
+    // This port runs inside the conversation's reploid/inference run, so it calls the internal peer binding directly.
+    const result = await generateOnPeer({
+      swarm, model, privacy: request.privacy, messages: request.messages, signal: controls.signal, contextId: threadId,
+      async approve(preview) {
+        const approved = await controls.requestApproval({ ...preview, peerId: preview.providerId, threadId, attemptId });
+        if (approved === true) approvedProviderId = preview.providerId;
+        return approved;
+      },
+      async record(record) {
+        if (record.stage === 'approved') {
+          assert(approvedProviderId, 'Peer execution metadata preceded disclosure approval');
+          state('executing', { provider: 'peer', placement: 'peer-whole-request', peerId: approvedProviderId });
         }
       },
-      onProgress(progress) {
-        // The network provider emits text; Doppler's loader emits progress records.
-        const loading = progress !== null && typeof progress === 'object';
-        const local = loading || (typeof progress === 'string' && /executing on this device/i.test(progress));
-        state(local ? 'loading' : 'queued', local ? { provider: 'doppler', placement: 'local-webgpu' } : null);
-      }
+      onPartial: text => controls.onDelta({ threadId, attemptId, sequence: sequence++, text }),
+      onProgress: () => state('queued', null)
     });
-    state('queued', null);
-    const result = await provider.generate(request.messages, text => {
-      controls.onDelta({ threadId, attemptId, sequence: sequence++, text });
-    }, { signal: controls.signal, contextId: threadId });
     const execution = result.peerId
       ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
       : { provider: 'doppler', placement: 'local-webgpu' };

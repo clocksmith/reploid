@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 394 |
+| apps/poolday | 395 |
 | self | 457 |
 | shared | 2514 |
-| total | 3365 |
+| total | 3366 |
 
 Every file lives in its owner's root.
 
@@ -712,6 +712,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `prompts/kernel.md` | `self/prompts/kernel.md` | self | Reached only from substrate entries. |
 | `providers/doppler-reploid.js` | `self/providers/doppler-reploid.js` | self | Reached only from substrate entries. |
 | `providers/external-brain.js` | `self/providers/external-brain.js` | self | Reached only from substrate entries. |
+| `providers/peer-inference.js` | `apps/poolday/providers/peer-inference.js` | apps/poolday | Reached only from product entries. |
 | `providers/work-adapter.js` | `apps/poolday/providers/work-adapter.js` | apps/poolday | Reached only from product entries. |
 | `providers/work-device.js` | `apps/poolday/providers/work-device.js` | apps/poolday | Reached only from product entries. |
 | `providers/work-generation-completion.js` | `apps/poolday/providers/work-generation-completion.js` | apps/poolday | Reached only from product entries. |

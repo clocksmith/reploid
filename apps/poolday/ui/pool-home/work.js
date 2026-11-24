@@ -2,6 +2,7 @@ import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/ex
 import { renderTraining, bindTraining } from './lora-training.js';
 import { updatePermissionSummary } from '../components/permission-card.js';
 import { participantLabel } from './computer-labels.js';
+import { answerPrivacy } from './privacy-controls.js';
 /**
  * Views request host actions; task execution and disclosure enforcement live in the host.
  * Refactored into decomposed sub-components within a centered reading layout.
@@ -167,7 +168,8 @@ export function bindWorkSurface(root, application, services = {}) {
       taskHeader.hidden = !state.busy && !row;
       setText('[data-work-active-goal]', row?.goal || (state.busy ? 'Active task' : ''));
       setText('[data-work-active-model]', row ? row.modelName + (row.execution?.peerId
-        ? ' · Peer ' + row.execution.peerId.slice(0, 8) : row.execution?.kind === 'local-scoped-session' ? ' · This device' : '') : '');
+        ? ' · Peer ' + row.execution.peerId.slice(0, 8) : row.execution?.kind === 'local-scoped-session' ? ' · This device' : '')
+        + (row.execution?.receipt ? ' · ' + answerPrivacy(row.execution)[0] : '') : '');
     }
 
     if (form) {
@@ -221,7 +223,7 @@ export function bindWorkSurface(root, application, services = {}) {
       setText('[data-work-draft]', state.draft);
       const progress = find('[data-work-progress]');
       if (progress) {
-        progress.hidden = !(row?.events?.length || row?.helpers?.length || row?.peerJobs?.length || state.draft);
+        progress.hidden = !(row?.events?.length || row?.helpers?.length || row?.peerJobs?.length || row?.peerSteps?.length || state.draft);
         if (progressRecordId !== row?.id || progressBusy !== state.busy) {
           progress.open = !!state.busy || !!row?.events?.some(event => event.error)
             || !!row?.helpers?.some(helper => helper.error);
@@ -316,6 +318,12 @@ export function bindWorkSurface(root, application, services = {}) {
             const p = document.createElement('p');
             p.textContent = 'Helper · ' + helper.location + ' · ' + helper.status + ': ' + helper.goal
               + (helper.error ? ' — ' + helper.error : ''); team.append(p);
+          }
+          // Each Reploid peer step's execution receipt: who could read it, and only what this browser checked.
+          for (const step of row?.peerSteps || []) {
+            const [summary, detail] = answerPrivacy({ receipt: step.receipt });
+            const p = document.createElement('p'); p.textContent = 'Peer step · ' + step.receipt.status + ' · ' + summary;
+            p.title = detail; team.append(p);
           }
           for (const job of row?.peerJobs || []) {
             const p = document.createElement('p'); p.textContent = 'Peer · ' + job.stage + ' · '

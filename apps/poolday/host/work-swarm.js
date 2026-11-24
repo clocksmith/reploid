@@ -620,12 +620,6 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       })().catch(cause => { error = cause.message; notify(); }).finally(() => { cachedSharing = null; });
       return cachedSharing;
     },
-    async execute({ task }, controls) {
-      if (typeof task !== 'string' || !task.trim() || new TextEncoder().encode(task).byteLength > profile.peers.maxPayloadBytes) throw new Error('Peer helper task exceeds the disclosure allowance');
-        const result = await generate([{ role: 'user', content: task }], controls);
-        return { output: String(result.content || '').slice(0, profile.peers.maxToolResultCharacters),
-          model: result.model, claim: 'legacy-compatibility-result', authority: 'Untrusted peer response; not independently verified correctness or signed Pack qualification' };
-    },
     async close() { closed = true; await disconnect({ automatic: true }); await cachedSharing; }
   });
   return api;

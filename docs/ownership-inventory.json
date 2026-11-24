@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 394,
+    "apps/poolday": 395,
     "self": 457,
     "shared": 2514
   },
@@ -4073,6 +4073,12 @@
       "source": "self/providers/external-brain.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "providers/peer-inference.js",
+      "source": "apps/poolday/providers/peer-inference.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "providers/work-adapter.js",

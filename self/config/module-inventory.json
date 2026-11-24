@@ -2668,6 +2668,16 @@
       ]
     },
     {
+      "path": "providers/peer-inference.js",
+      "owner": "providers",
+      "sha256": "sha256:3340c074953130f7331e0f0327a3de34fb52320271fa2bf138bff9c8dfe6f529",
+      "imports": [
+        "../vendor/reploid/chat/execution-policy.js",
+        "../vendor/reploid/inference/index.js",
+        "./work-generation-completion.js"
+      ]
+    },
+    {
       "path": "providers/work-adapter.js",
       "owner": "providers",
       "sha256": "sha256:4b7b4d34c5350e540bcaacdcef466ffd70bd303385a71932ba1cb6df14f49f33",
@@ -2694,10 +2704,11 @@
     {
       "path": "providers/work-network-provider.js",
       "owner": "providers",
-      "sha256": "sha256:56d0bcc63ada485c68219280aabb1fe972f7aba22a3d4396a2b219cb8d14e50e",
+      "sha256": "sha256:be5fbb3334a1694d7f90e7bf1764a423fa2ea2b69bdaccc8689cce12047f7635",
       "imports": [
         "../infrastructure/model-storage-lock.js",
         "../vendor/reploid/chat/execution-policy.js",
+        "./peer-inference.js",
         "./work-device.js",
         "./work-provider.js"
       ]
@@ -2835,12 +2846,12 @@
     {
       "path": "self/host/chat-execution.js",
       "owner": "self",
-      "sha256": "sha256:5a538fcd73f226aee3ef837647162603653b97211eafb291429076d604dc8213",
+      "sha256": "sha256:b400803ce2a42e74f67344a3fc91590f6936908520c0a3f5b65489139438adb9",
       "imports": [
         "../config/chat-execution-policy.json",
+        "../providers/peer-inference.js",
         "../providers/work-adapter.js",
         "../providers/work-generation-completion.js",
-        "../providers/work-network-provider.js",
         "../providers/work-resident-provider.js",
         "../vendor/reploid/chat/index.js",
         "../vendor/reploid/mesh/provider-hardware.js",
@@ -3271,10 +3282,11 @@
     {
       "path": "self/host/research-plugins.js",
       "owner": "self",
-      "sha256": "sha256:847bd356a5ebe08732ea335757aefc9f5ba1f5e06333fb65760e526bcf3c37cc",
+      "sha256": "sha256:f60acd346e8f43e33ecaffa8b3083ab9e67447ac73c1b2150a03366c0f1ed902",
       "imports": [
         "../plugins/model-imitation/plugin.js",
         "../plugins/model-imitation/protocol.json",
+        "../providers/peer-inference.js",
         "../vendor/reploid/chat/execution-policy.js",
         "../vendor/reploid/plugins/index.js"
       ]
@@ -3540,12 +3552,13 @@
     {
       "path": "self/host/work-session.js",
       "owner": "self",
-      "sha256": "sha256:7186763874c3316785d827f8648737499cae79fd63f5a19d1178495955c51a08",
+      "sha256": "sha256:c5c7c6505142574e5e7924c39dc0a0cac3d5157baf35f28a362a5049f21b6fe3",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-evolution.json",
         "../config/work-profile.json",
         "../infrastructure/doppler-runtime-service.js",
+        "../providers/peer-inference.js",
         "../providers/work-network-provider.js",
         "../providers/work-provider.js",
         "../vendor/reploid/agent/index.js",
@@ -3562,7 +3575,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:17c2398bdd96b80ea8f96758739b25674bfc365598afc80ca9bd1c0f74e706b9",
+      "sha256": "sha256:aec319c6cd9beb597529b95026cc075288438a7bf27b7222869545998ca2edb3",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3602,7 +3615,7 @@
     {
       "path": "self/host/work-view.js",
       "owner": "self",
-      "sha256": "sha256:bd26e8e82c06b5b34f942aab567f56f2f8cf3cfafc611d504a580c7af1513d59",
+      "sha256": "sha256:bbf9f526089055d5b4ab842386246f6cbe4a835ed56f11b77ef449aa5362f995",
       "imports": [
         "./readonly-view.js"
       ]
@@ -4338,7 +4351,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f5afbb5873f8bf01652f8ec163523c5bc05969e589cbdb3ea701c49998990a54",
+      "sha256": "sha256:a2437cb3b25c704fd07b5d5fc3c00fa76b0266b0d3bb56c0ed18dbf32ca8eb6a",
       "imports": []
     },
     {
@@ -5022,7 +5035,7 @@
     {
       "path": "ui/pool-home/research-plugins.js",
       "owner": "ui",
-      "sha256": "sha256:67385ba07a06a7cd9b879035ae27adcb6fe8674cbe4972c4468d35a0172b6943",
+      "sha256": "sha256:ca8cb8b96873039dbefe2b38d90d681ab661ab685dbf442a8e7bd7d8bb1b8a4a",
       "imports": [
         "../../host/research-plugins.js",
         "../components/attachments.js"
@@ -5485,7 +5498,7 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:a738e711eb5dd47fafad1e4650cc89f701f4f9d0429869ce4af89b083568a483",
+      "sha256": "sha256:e6c34b0775073b9b0e4c75fa8c8595144d0e86c364d8396d95902b25ca01c483",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -5494,6 +5507,7 @@
         "./computer-labels.js",
         "./lora-training.js",
         "./network-inspector.js",
+        "./privacy-controls.js",
         "./work-activity-list.js",
         "./work-approval-panel.js",
         "./work-capabilities.js",

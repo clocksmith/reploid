@@ -1,16 +1,19 @@
 import { it, expect, vi } from 'vitest';
 import { bindResearchPlugins, renderResearchPlugins } from '../../apps/poolday/ui/pool-home/research-plugins.js';
+import { bindExecutionRoute, plaintextExecutionRoute } from '../../shared/vendor/reploid/chat/execution-policy.js';
 
 function fixture(lock = {}) {
   const models = [
-    { id: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', name: 'Target', identity: 's', provider: 'doppler' },
-    { id: 'qwen-3-5-2b-q4k-ef16-af32', name: 'Alternative', identity: 'm', provider: 'doppler' },
-    { id: 'qwen-3-8-27b-text-q4k-ef16-af32', name: 'Imitator', identity: 'l', provider: 'doppler' }
+    { id: 'qwen-3-5-0-8b-q4k-ef16-af32-vf16', name: 'Target', identity: 'sha256:' + 'a'.repeat(64), provider: 'doppler' },
+    { id: 'qwen-3-5-2b-q4k-ef16-af32', name: 'Alternative', identity: 'sha256:' + 'b'.repeat(64), provider: 'doppler' },
+    { id: 'qwen-3-8-27b-text-q4k-ef16-af32', name: 'Imitator', identity: 'sha256:' + 'c'.repeat(64), provider: 'doppler' }
   ];
   let notify, peers = [];
   const data = new Map(), storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
   const swarm = { getState: () => ({ consumer: { peers } }), generate: vi.fn(async (messages, controls) => {
-    const preview = { providerId: controls.modelId, recipientIdentity: 'signed-' + controls.modelId,
+    const request = { model: { id: controls.modelId, identity: controls.modelIdentity }, privacy: controls.privacy };
+    const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: ['signed-' + controls.modelId] }));
+    const preview = { privacyBinding, providerId: controls.modelId, recipientIdentity: 'signed-' + controls.modelId,
       modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [] };
     expect(await controls.approve(preview)).toBe(true);
     await controls.record({ stage: 'approved', preview });

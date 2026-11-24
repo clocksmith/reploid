@@ -1,5 +1,6 @@
 import { openPluginSession } from '../../../shared/vendor/reploid/plugins/index.js';
-import { assertAvailableExecutionPolicy, createExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
+import { validateExecutionPolicy, createExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
+import { createPeerInference } from '../providers/peer-inference.js';
 import { modelImitationPlugin } from '../plugins/model-imitation/plugin.js';
 import protocol from '../plugins/model-imitation/protocol.json' with { type: 'json' };
 
@@ -14,9 +15,10 @@ const randomBelow = limit => {
   return value % limit;
 };
 
-/** Exact-model host port, reusing the existing authenticated whole-request transport.
+/** Exact-model host port: each study request is Reploid peer inference, prepared and run through reploid/inference.
  * No plugin receives a swarm, credential, arbitrary fetch, or storage handle. */
 export function createResearchPlugins({ chat, swarm, storage }) {
+  const peerInference = createPeerInference({ swarm });
   const store = {
     async load(id) { const value = storage.getItem(PREFIX + id); return value ? JSON.parse(value) : null; },
     async save(id, value) { storage.setItem(PREFIX + id, JSON.stringify(value)); storage.setItem(LAST, id); }
@@ -37,12 +39,15 @@ export function createResearchPlugins({ chat, swarm, storage }) {
         && JSON.stringify(input.messages).length <= 48000, 'Study request exceeds its declared bounds');
       const scope = frozen.authorizedModels?.find(entry => entry.id === input.model.id && entry.identity === input.model.identity);
       assert(scope, 'Saved study needs fresh approval for its verified recipients. Start a new study.');
-      const privacy = assertAvailableExecutionPolicy(scope.privacy);
+      // Availability is the inference API's decision: a requester-only policy is refused there, with nothing sent.
+      const privacy = validateExecutionPolicy(scope.privacy);
       assert(privacy.placement === 'network-allowed' && privacy.recipients.kind === 'named', 'Study requires named recipient approval');
       const permissions = [];
       const started = performance.now();
-      const result = await swarm.generate(input.messages, { signal, modelId: input.model.id, modelIdentity: input.model.identity,
-        adapterIdentities: [], privacy, onPartial: () => {},
+      // Peer inference through reploid/inference: the plan names only the reviewed recipients, the study's own
+      // checks run after the disclosure matched the plan, and the receipt stays with the answer in the record.
+      const result = await peerInference.generate({ model: { ...input.model, provider: 'doppler', adapters: [] }, privacy,
+        messages: input.messages, signal, onPartial: () => {},
         approve: async preview => privacy.recipients.ids.includes(preview.recipientIdentity) && preview.modelId === input.model.id
           && preview.modelIdentity === input.model.identity && preview.adapterIdentities.length === 0,
         record: async value => { permissions.push(structuredClone(value)); await observe(value); }
@@ -52,7 +57,7 @@ export function createResearchPlugins({ chat, swarm, storage }) {
       assert(typeof result.content === 'string' && result.content.length <= protocol.maxAnswerCharacters, 'Study response exceeds text budget');
       return { content: result.content, model: modelBinding(input.model), peerId: result.peerId,
         elapsedMs: performance.now() - started, timing: result.timing ?? null, completion: result.completion ?? null,
-        usage: result.usage ?? null, permissions };
+        usage: result.usage ?? null, permissions, executionReceipt: result.executionReceipt };
     };
     return openPluginSession({ definition: modelImitationPlugin, config, sessionId, store,
       capabilities: { 'model.generate': generate } });

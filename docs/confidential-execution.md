@@ -3,7 +3,8 @@
 `reploid/inference` is Reploid's native inference API. The browser chat, the
 `reploid ask` CLI and the SDK all use it, and the OpenAI- and Anthropic-shaped
 HTTP endpoints are adapters over it. So are the native fleet host's owner
-`generate` command and the daily game's fleet turn. This page describes what each execution
+`generate` command, the daily game's fleet turn, Work's network steps and AskPeer
+tool, and the model-imitation study. This page describes what each execution
 mode guarantees and exposes. It also gives the request, plan, event, result and
 receipt shapes, and the stable refusal codes.
 
@@ -296,6 +297,38 @@ npx reploid ask 2b "Hello" --confidentiality requester-only   # refused before d
 lists the metadata the route may expose. `--confidentiality` defaults to
 `executor-readable`. The flags configure the inference request and never the
 participant process.
+
+## Work and the model-imitation study
+
+Every Poolday call that runs inference on a Reploid peer outside a conversation
+goes through
+[`providers/peer-inference.js`](../apps/poolday/providers/peer-inference.js),
+which prepares and runs it through `reploid/inference`:
+
+- Work's network steps (the agent's own model steps and helper steps on a peer)
+  and its AskPeer tool. The plan carries the thread's stored policy as
+  requirements. Each step's execution receipt is kept on the saved thread
+  (`peerSteps`, and `execution.receipt` for the latest step) and summarized in
+  the task header and the thread's activity list.
+- The model-imitation study. Each call names only the recipients reviewed when
+  the study started. The study's own recipient and identity checks run after the
+  disclosure matched the plan. Each answer keeps its receipt in the study
+  record and its export.
+
+The refusals are the API's: a requester-only policy is
+`CONFIDENTIAL_EXECUTION_UNAVAILABLE` before anything is sent, and is never run on
+this device instead. A Work thread with such a policy is refused before it is
+saved. A second recipient proposed after the first approval is
+`EXECUTION_PLAN_CHANGED`, and nothing more is sent.
+
+**Not Reploid peer inference.** Work's local steps, which run on this device's
+Doppler runtime, and non-Doppler cloud adapters injected by other hosts keep their own
+paths in [`work-network-provider.js`](../apps/poolday/providers/work-network-provider.js).
+They carry no execution receipt. Work's RequestPeerJob tool runs signed Pack
+operations under its own operation-consent protocol, not this API.
+`generateOnPeer` in `peer-inference.js` is the internal peer binding. Only
+inference execute ports call it: the one in `peer-inference.js`, and the
+conversation port in `host/chat-execution.js`.
 
 ## Threat model per mode
 

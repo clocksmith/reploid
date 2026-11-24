@@ -110,7 +110,8 @@
     "maxPayloadBytes": 16384,
     "maxInferencePayloadBytes": 61440,
     "maxPreviewMs": 30000,
-    "maxToolResultCharacters": 8192
+    "maxToolResultCharacters": 8192,
+    "maxStepReceipts": 48
   },
   "defaultModelId": "qwen-3-5-2b-q4k-ef16-af32",
   "chatModelPreference": [

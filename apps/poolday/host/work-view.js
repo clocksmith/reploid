@@ -47,7 +47,7 @@ export const projectWorkRecord = row => readonlyView({
     output: row.output, review: row.review, error: row.error,
     checkpointAvailable: !!row.checkpoint, criteria: row.criteria, feedback: row.feedback,
     inputs: row.inputs, artifacts: row.artifacts, events: row.events,
-    peerJobs: row.peerJobs, allowPeers: row.allowPeers, recallAccepted: row.recallAccepted,
+    peerJobs: row.peerJobs, peerSteps: row.peerSteps || [], allowPeers: row.allowPeers, recallAccepted: row.recallAccepted,
     helpers: row.helpers || [], improvements: row.improvements || [], allowHelpers: row.allowHelpers,
     allowImprovement: row.allowImprovement,
     outcomeTags: row.outcomeTags || deriveOutcomeTags(row)

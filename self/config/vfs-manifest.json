@@ -550,6 +550,7 @@
     "prompts/kernel.md",
     "providers/doppler-reploid.js",
     "providers/external-brain.js",
+    "providers/peer-inference.js",
     "providers/work-adapter.js",
     "providers/work-device.js",
     "providers/work-generation-completion.js",

@@ -33,7 +33,7 @@ export function bindResearchPlugins(root, host, { storage = localStorage, locks 
       const controls = content.results.filter(row => row.condition === 'same-model');
       body = `<h2>Study complete</h2><p>${trials.filter(row => row.correct).length}/${trials.length} imitation rounds identified.</p>
         <p>${controls.filter(row => !['same', 'unsure'].includes(row.judgment.choice)).length}/${controls.length} controls incorrectly called an imitation.</p>
-        <p class="pool-muted">A four-round pilot cannot establish general detectability. Errors, identities and timing are included in the export.</p>
+        <p class="pool-muted">A four-round pilot cannot establish general detectability. Errors, identities, timing and each answer's execution receipt are included in the export.</p>
         <table><thead><tr><th>Task</th><th>Condition</th><th>Your choice</th><th>Actual</th></tr></thead><tbody>${content.results.map(row => `<tr><td>${e(row.task)}</td><td>${e(row.condition)}</td><td>${e(row.judgment.choice)}</td><td>${e(row.actual)}</td></tr>`).join('')}</tbody></table>`;
     } else if (view.status !== 'ready' && !view.busy) {
       body = `<h2>Study ${e(view.status)}</h2><p>The attempt is retained. It will not replay automatically.</p>`;
