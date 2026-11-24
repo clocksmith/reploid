@@ -1,6 +1,11 @@
 # Network product intent consolidated
 
-Compatibility links only. Read the [product contract](../product-specification.md), [architecture](../open-mesh-architecture.md#network-participation-and-lifecycle-contracts), and roadmap (private). There is no separate product plan here.
+This page preserves old links; it does not own a separate product plan. Poolday
+is the internal name for Reploid's inference-pool surface. Read the [product
+contract](../product-specification.md) for terms and [inference routes](../product-specification.md#5-contribution-and-execution),
+[architecture](../open-mesh-architecture.md#network-participation-and-lifecycle-contracts)
+for participation and lifecycle, and [claims and nonclaims](claims-and-nonclaims.md)
+for the evidence boundary. The owner maintains the roadmap privately.
 
 <a id="ordinary-network-journey"></a>[Ordinary network journey](../open-mesh-architecture.md#ordinary-network-journey)
 

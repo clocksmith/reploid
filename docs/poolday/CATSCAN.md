@@ -19,7 +19,7 @@ This directory and unchartered descendants.
 ## Contracts
 
 Inputs: [goals](../../GOALS.md) and [runtime charter](../../apps/poolday/pool/CATSCAN.md).
-Outputs: [product direction](product-intent.md) and [bounded claims](claims-and-nonclaims.md).
+References: [public product contract](../product-specification.md), [bounded claims](claims-and-nonclaims.md), and [compatibility links](product-intent.md).
 
 ## Invariants
 

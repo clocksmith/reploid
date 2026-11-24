@@ -2,6 +2,13 @@
 
 ## Operating mission
 
+This document states the public ambition, not implementation status or launch
+order. The [product contract](docs/product-specification.md#5-contribution-and-execution)
+defines the four routes and their respective qualification: local solo, remote
+solo, local + peer split, and remote-only split. See [INTENT](INTENT.md#invariants)
+for invariants and the [claim index](docs/status/surface-claim-index.json) for
+evidence.
+
 Owner clarification, November 22, 2026: the target is an inference exchange.
 Contributors earn credits by serving others, then spend them from the same
 account on pooled compute they cannot supply alone.

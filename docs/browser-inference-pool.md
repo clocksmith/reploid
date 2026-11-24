@@ -3,9 +3,11 @@
 Poolday is the docs/internal name for the receipt-backed browser inference pool.
 The public UI for this surface uses the Reploid name. Do not expose Poolday as user-facing product copy unless that naming decision changes.
 
-The [Poolday product intent](./poolday/product-intent.md) defines the product
-outcome, surface hierarchy, P2P boundary, and long-term Zero/X promotion path.
-This document owns current runtime, protocol, and deployment behavior.
+The [public product contract](product-specification.md) defines requirements and
+[four inference routes](product-specification.md#5-contribution-and-execution).
+The [claims page](poolday/claims-and-nonclaims.md) and [claim index](status/surface-claim-index.json)
+bound evidence by surface. This is a runtime, protocol, and deployment reference;
+its examples do not add public qualification or set a separate product plan.
 
 Reploid supplies the governed browser substrate underneath the pool surface.
 
@@ -19,11 +21,11 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 The target retrieval extension is documented in [Poolday Receipt-Backed Retrieval](./poolday/receipt-backed-retrieval.md). That document covers embeddings, vector indexes, query receipts, reranking receipts, and the competitive retrieval strategy. It is not a replacement for this current browser inference claim.
 
-The enabled launch lane is documented in [Poolday Biological Sequence
+The specialist sequence lane is documented in [Poolday Biological Sequence
 Lane](./poolday/biological-sequence-lane.md). The current catalog selects ESM-2
-35M for public protein-sequence embeddings. Other biological models remain
-candidates until they pass the lane's artifact, Doppler, parity, browser, and
-peer-room promotion gates.
+35M for public protein-sequence embeddings. Catalog selection is not public
+browser qualification; see the [claim index](status/surface-claim-index.json).
+Other models need their own artifact, runtime, parity, browser, and peer-room evidence.
 
 Participation modes, device-root and passkey identity, adapter authority, route
 selection, and the model-shard boundary are specified in [Poolday Participation,

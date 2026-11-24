@@ -28,6 +28,12 @@ acceptance and do not establish demand or mandate concurrent implementation.
 
 ## Invariants
 
+This document does not select work or certify a route. The [product contract](docs/product-specification.md#5-contribution-and-execution)
+defines local solo, remote solo, local + peer split, and remote-only split,
+with separate requester-weight and qualification requirements. The split-capacity
+proof in [GOALS](GOALS.md#operating-mission) is an ambition, not a condition
+for every request.
+
 - Qualification is scoped to the frozen model, audience, service terms and
   contributor cohort. Automatic routing may prefer a qualified whole-model route.
   An explicitly requested split may use a qualified split route even when a
