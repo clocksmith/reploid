@@ -129,6 +129,8 @@ own output. Its key therefore also appears in the request's disclosure list.
 The qualified route and server allowlist bind just the two compute providers.
 The normal API checks the route again when it dispatches the request.
 
+The Stage 1 physical proof uses the [27B copy-task fixture](../tests/fixtures/private-split-27b-copy-task.json). It asks the model to reproduce an 87-token passage exactly. The independent Transformers CPU control over the retained Q4 tensors emits those 87 tokens plus the stop token, with the passage as `correctTaskAnswer`. Its smallest top-two logit margin is 9.18, so every step has a wide numerical margin. Before any output was seen, the prompt was selected by a fixed rule: a stop within 64–128 tokens, and every margin at least 0.25. Five earlier natural prompts failed that rule and are recorded with the fixture's provenance. The code-trace fixture below stays as the short parity test.
+
 The [27B code-trace fixture](../tests/fixtures/private-split-27b-code-trace.json)
 includes the exact messages and greedy tokens measured by the independent
 Transformers reference over the retained Q4 weights. The reference prints 22
