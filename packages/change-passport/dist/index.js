@@ -144,8 +144,30 @@ var assertPartition = (value, message) => {
 };
 
 // shared/vendor/reploid/chat/execution-policy.js
-var metadata = ["model-id", "timing", "length", "access-patterns"];
+var freeze = (value) => {
+  if (value && typeof value === "object") {
+    Object.values(value).forEach(freeze);
+    Object.freeze(value);
+  }
+  return value;
+};
+var EXECUTION_ERROR_CODES = Object.freeze({
+  CONFIDENTIAL_EXECUTION_UNAVAILABLE: "CONFIDENTIAL_EXECUTION_UNAVAILABLE",
+  LEAKAGE_NOT_ALLOWED: "LEAKAGE_NOT_ALLOWED",
+  EXECUTION_PLAN_EXPIRED: "EXECUTION_PLAN_EXPIRED",
+  EXECUTION_PLAN_CHANGED: "EXECUTION_PLAN_CHANGED",
+  RESULT_UNVERIFIED: "RESULT_UNVERIFIED",
+  EXECUTION_REQUEST_INVALID: "EXECUTION_REQUEST_INVALID",
+  EXECUTION_ROUTE_UNAVAILABLE: "EXECUTION_ROUTE_UNAVAILABLE"
+});
+var EXECUTION_METADATA = Object.freeze(["model-id", "timing", "length", "access-patterns"]);
+var metadata = [...EXECUTION_METADATA];
 var plaintextLeakage = [...metadata, "plaintext"];
+var EXECUTION_BACKENDS = freeze({
+  "doppler-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: ["model-id", "timing", "length"] },
+  "doppler-partition-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: ["model-id", "timing", "length"] }
+});
+var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
 // shared/vendor/reploid/rules/contribution.rules.json
 var contribution_rules_default = {
