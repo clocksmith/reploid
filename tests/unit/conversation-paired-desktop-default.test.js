@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { creditCapText, renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -24,6 +24,12 @@ describe('Paired desktop default', () => {
     real.setCachedModels([]);
     return { model, viewState };
   };
+
+  it('states the most a priced route can cost, and nothing for a route without terms', () => {
+    expect(creditCapText({ creditCap: { maximum: 1600, unit: 'noncash-service-credit' } })).toBe(`This answer costs at most ${(1600).toLocaleString()} service credits.`);
+    expect(creditCapText({ creditCap: { maximum: 1 } })).toBe('This answer costs at most 1 service credit.');
+    for (const route of [{}, null, { creditCap: { maximum: 0 } }, { creditCap: { maximum: 1.5 } }]) expect(creditCapText(route)).toBe('');
+  });
 
   it('restricts a new conversation to the paired desktop and its ready model without opening any dialog', () => {
     const host = 'peer:91d1d9293ca2d973191156dc';

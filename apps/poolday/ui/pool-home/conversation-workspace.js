@@ -26,6 +26,12 @@ export { renderConversationWorkspace } from './conversation-view.js';
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const modelKey = model => model?.selectionId || model?.id;
 const modelIdentity = model => JSON.stringify([modelKey(model), model?.identity, (model?.adapters || []).map(adapter => adapter.identity)]);
+/** The quoted ceiling for a priced route, shown before Send. A free route, or one with no accepted terms, states nothing. */
+export const creditCapText = model => {
+  const maximum = model?.creditCap?.maximum;
+  return Number.isSafeInteger(maximum) && maximum > 0
+    ? `This answer costs at most ${maximum.toLocaleString()} service credit${maximum === 1 ? '' : 's'}.` : '';
+};
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 
 export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null, historyHandover = null } = {}) {
@@ -402,7 +408,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : '';
+          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : creditCapText(current);
         } else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
       // A paired desktop that cannot be reached: name it and say what brings it back. Nothing here can wake it.
