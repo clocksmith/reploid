@@ -5,7 +5,9 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
-import { assertCompleteCopy, findWeightDirectories, lockDirectory, killExactProcess, parseMemoryPressure, scanHostWeights, serviceAction } from '../../scripts/stage1/host-control.js';
+import { assertCompleteCopy, findWeightDirectories, lockDirectory, killExactProcess, parseMemoryPressure, processStart, readMemoryPressureText, scanHostWeights,
+  serviceAction, withinMemoryLimit } from '../../scripts/stage1/host-control.js';
+import { spawn } from 'node:child_process';
 import { createSessionOperations, harnessDigest, readHostIdentity, runHostAgent, runSoloLoad } from '../../scripts/stage1/host-agent.js';
 import { createCancelGate, createTokenTrace } from '../../scripts/stage1/stage-participant.js';
 import { runGatedCancel, verifySplitTokens } from '../../scripts/stage1/split-evidence.js';
@@ -164,6 +166,51 @@ it('parses memory pressure and refuses an unreadable value', () => {
   expect(() => parseMemoryPressure('nothing')).toThrow('memory-pressure-unreadable');
 });
 
+describe('a macOS stage host', () => {
+  it('reads the kernel pressure level with sysctl, where Linux reads the pressure-stall file', async () => {
+    const calls = [];
+    const exec = async (command, args) => { calls.push([command, ...args]); return { stdout: 'kern.memorystatus_vm_pressure_level: 2\n' }; };
+    const text = await readMemoryPressureText({ platform: 'darwin', exec, readFile: () => { throw Error('no /proc on macOS'); } });
+    expect(calls).toEqual([['sysctl', 'kern.memorystatus_vm_pressure_level']]);
+    expect(parseMemoryPressure(text)).toEqual({ level: 'warning' });
+    expect(await readMemoryPressureText({ platform: 'linux', exec, readFile: async file => `read ${file}` })).toBe('read /proc/pressure/memory');
+    expect(parseMemoryPressure('kern.memorystatus_vm_pressure_level: 1')).toEqual({ level: 'normal' });
+    expect(parseMemoryPressure('kern.memorystatus_vm_pressure_level: 4')).toEqual({ level: 'critical' });
+    expect(() => parseMemoryPressure('kern.memorystatus_vm_pressure_level: 3')).toThrow('memory-pressure-unreadable');
+  });
+
+  it('judges a reading only against a limit of its own kind', () => {
+    expect(withinMemoryLimit({ level: 'normal' }, { maxPressureLevel: 'normal' })).toBe(true);
+    expect(withinMemoryLimit({ level: 'warning' }, { maxPressureLevel: 'normal' })).toBe(false);
+    expect(withinMemoryLimit({ level: 'warning' }, { maxPressureLevel: 'warning' })).toBe(true);
+    expect(withinMemoryLimit({ level: 'critical' }, { maxPressureLevel: 'warning' })).toBe(false);
+    expect(withinMemoryLimit({ avg10: 1 }, { maxAvg10: 2 })).toBe(true);
+    // A Linux limit cannot pass a macOS reading, nor the reverse: a misconfigured host stops.
+    expect(withinMemoryLimit({ level: 'normal' }, { maxAvg10: 2 })).toBe(false);
+    expect(withinMemoryLimit({ avg10: 0 }, { maxPressureLevel: 'warning' })).toBe(false);
+  });
+
+  it('fixes the locale and time zone of a process start, so an SSH session\'s settings cannot change it', async () => {
+    const seen = [];
+    const exec = async (_command, args, options) => { seen.push(options.env); return { stdout: options.env.LC_ALL === 'C' ? 'Tue Nov  3 20:24:13 2026   \n' : 'mar. 3 nov. 15:24:13 2026' }; };
+    expect(await processStart(42, { exec })).toBe('Tue Nov 3 20:24:13 2026');
+    expect(seen[0]).toMatchObject({ LC_ALL: 'C', TZ: 'UTC' });
+    expect(await processStart(42, { exec: async () => { throw Object.assign(Error('no such process'), { code: 1 }); } })).toBeNull();
+  });
+
+  it('on this machine, gives a live process one stable start and a finished one none', async () => {
+    const child = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)'], { stdio: 'ignore' });
+    try {
+      const first = await processStart(child.pid);
+      expect(first).toMatch(/^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2} \d{4}$/);
+      expect(await processStart(child.pid)).toBe(first);
+      expect(await killExactProcess({ pid: child.pid, startId: 'another start', kill: () => { throw Error('must not signal'); } })).toEqual({ killed: false, reason: 'pid-reused' });
+    } finally { child.kill('SIGKILL'); }
+    await new Promise(resolve => child.once('exit', resolve));
+    expect(await processStart(child.pid)).toBeNull();
+  });
+});
+
 describe('the host agent', () => {
   const body = { directory: '/unused', messages: [], maxOutputTokens: 4, settings: { modelId: 'm' }, requiredBytes: 16941875200, pressure: null, timeoutMs: 5000 };
   const ports = extra => ({ assertCopy: async () => {}, readPressure: async () => 'some avg10=0.10', ...extra });
@@ -172,6 +219,12 @@ describe('the host agent', () => {
     else signal.addEventListener('abort', () => reject(signal.reason), { once: true });
   });
 
+  it('stops a solo load when a macOS host reaches warning pressure', async () => {
+    const darwin = ports({ readPressure: async () => 'kern.memorystatus_vm_pressure_level: 2', loadSolo: hang });
+    const result = await runSoloLoad({ body: { ...body, pressure: { maxPressureLevel: 'normal', pollMs: 10 } }, ports: darwin, controls: {} });
+    expect(result).toMatchObject({ outcome: 'failed', claimedFailure: null });
+    expect(JSON.stringify(result.failure)).toContain('memory-pressure');
+  });
   it('reports a completed solo load', async () => {
     expect(await runSoloLoad({ body, ports: ports({ loadSolo: async () => {} }), controls: {} })).toEqual({ outcome: 'completed', settings: body.settings });
   });

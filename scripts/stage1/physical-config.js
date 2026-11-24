@@ -62,9 +62,13 @@ function validateHost(host, index) {
       refuse(`${field}.fullCopyDirectory contains a weight root`);
     }
   }
+  // Linux hosts give `maxAvg10` (pressure-stall avg10); macOS hosts give `maxPressureLevel`, the highest kernel
+  // memory pressure level (`normal` or `warning`) the run tolerates. null runs the host without a memory guard.
   if (host.memoryPressure !== null) {
-    object(host.memoryPressure, `${field}.memoryPressure`, ['maxAvg10', 'pollMs']);
-    if (typeof host.memoryPressure.maxAvg10 !== 'number' || !(host.memoryPressure.maxAvg10 >= 0)) refuse(`${field}.memoryPressure.maxAvg10`);
+    const darwin = Boolean(host.memoryPressure) && typeof host.memoryPressure === 'object' && Object.hasOwn(host.memoryPressure, 'maxPressureLevel');
+    object(host.memoryPressure, `${field}.memoryPressure`, [darwin ? 'maxPressureLevel' : 'maxAvg10', 'pollMs']);
+    if (darwin && !['normal', 'warning'].includes(host.memoryPressure.maxPressureLevel)) refuse(`${field}.memoryPressure.maxPressureLevel`);
+    if (!darwin && (typeof host.memoryPressure.maxAvg10 !== 'number' || !(host.memoryPressure.maxAvg10 >= 0))) refuse(`${field}.memoryPressure.maxAvg10`);
     positive(host.memoryPressure.pollMs, `${field}.memoryPressure.pollMs`);
   }
   if (host.standingService !== null) {
@@ -76,13 +80,14 @@ function validateHost(host, index) {
 }
 
 /**
- * The optional earning device: a separate machine enrolled under the requester's account, serving a small catalog
- * whole model (never the split model) to a coordinator-side buyer, so the account earns before it spends.
+ * The optional earning device: a device enrolled under the requester's account, serving a small catalog whole model
+ * (never the split model) to a coordinator-side buyer, so the account earns before it spends. It may share the
+ * requester's machine, with its own participant key, identity file and state directory; never a stage host's.
  */
 function validateEarner(earner) {
   object(earner, 'earner', ['machineId', 'participantId', 'ssh', 'node', 'releaseRoot', 'identityFile', 'stateDirectory', 'modelDirectory', 'modelId']);
   validateTarget(earner, 'earner');
-  if (earner.ssh === null) refuse('earner.ssh is required: the earning device is a separate machine');
+  if (earner.ssh === null) refuse('earner.ssh is required for the earning device');
   directoryPath(earner.modelDirectory, 'earner.modelDirectory');
   const model = catalog.find(row => row.id === earner.modelId);
   if (!model || model.partitionPlanId || model.id === STAGE1_MODEL_ID) refuse('earner.modelId must name a whole-model catalog entry other than the split model');
@@ -122,10 +127,23 @@ export function validatePhysicalConfig(config) {
   config.hosts.forEach(validateHost);
   if (config.earner !== undefined) validateEarner(config.earner);
   const everyone = [config.requester, ...config.hosts, ...(config.earner ? [config.earner] : [])];
-  if (new Set(everyone.map(row => row.machineId)).size !== everyone.length) refuse('machineId values must be distinct');
+  // One machine per role, except that the earner may share the requester's machine; participant keys are always distinct.
+  const machines = [config.requester, ...config.hosts];
+  if (new Set(machines.map(row => row.machineId)).size !== machines.length) refuse('machineId values must be distinct');
   if (new Set(everyone.map(row => row.participantId)).size !== everyone.length) refuse('participantId values must be distinct');
-  const targets = everyone.map(row => row.ssh).filter(Boolean);
+  const targets = machines.map(row => row.ssh).filter(Boolean);
   if (new Set(targets).size !== targets.length) refuse('ssh targets must be distinct');
+  const earner = config.earner;
+  if (earner) {
+    if (config.hosts.some(host => host.machineId === earner.machineId || host.ssh === earner.ssh)) refuse('earner must not be on a stage host: machineId values must be distinct');
+    const shared = earner.machineId === config.requester.machineId;
+    if (!shared && earner.ssh === config.requester.ssh) refuse('ssh targets must be distinct: the earner shares the requester target but not its machineId');
+    if (shared) {
+      if (earner.identityFile === config.requester.identityFile) refuse('earner.identityFile must differ from the requester on a shared machine');
+      if (overlaps(earner.stateDirectory, config.requester.stateDirectory)) refuse('earner.stateDirectory overlaps the requester on a shared machine');
+      if (overlaps(earner.modelDirectory, config.requester.modelDirectory)) refuse('earner.modelDirectory overlaps the requester model directory on a shared machine');
+    }
+  }
   return config;
 }
 

@@ -15,7 +15,8 @@ import { createReceiptDraft, signReceiptDraft } from '../../packages/reploid/src
 import { measureWholeModelReceipt } from '../../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { effectiveRequestDigest, normalizeGenerationSettings } from '../../packages/reploid/src/mesh/generation-settings.js';
 import { measureDirectoryBytes, measureHeldRanges } from './inventory.js';
-import { assertCompleteCopy, killExactProcess, lockDirectory, parseMemoryPressure, processStart, scanHostWeights, serviceAction } from './host-control.js';
+import { assertCompleteCopy, killExactProcess, lockDirectory, parseMemoryPressure, processStart, readMemoryPressureText, scanHostWeights, serviceAction,
+  withinMemoryLimit } from './host-control.js';
 import { claimsMemory, classifySoloFailure } from './solo-failure.js';
 import { stageDirectoryOperation } from './build-stage-directory.js';
 import { STAGE1_MODEL_ID } from './expectations.js';
@@ -46,7 +47,7 @@ export async function readHostIdentity(file) {
 export function realHostPorts() {
   return {
     measure: measureHeldRanges,
-    readPressure: () => fs.readFile('/proc/pressure/memory', 'utf8'),
+    readPressure: () => readMemoryPressureText(),
     service: request => serviceAction(request),
     async openParticipant({ stageIndex, identity, config }) {
       const [{ createNativeGpuHost }, { openStage1Participant }] = await Promise.all([import('../../server/native-gpu-host.js'), import('./stage-participant.js')]);
@@ -119,7 +120,7 @@ export async function runSoloLoad({ body, ports, controls }) {
   controls.abort = () => halt('guard');
   const timer = setTimeout(() => halt('timeout'), timeoutMs);
   const poll = pressure ? setInterval(async () => {
-    try { if (!(parseMemoryPressure(await ports.readPressure()).avg10 <= pressure.maxAvg10)) halt('memory-pressure'); }
+    try { if (!withinMemoryLimit(parseMemoryPressure(await ports.readPressure()), pressure)) halt('memory-pressure'); }
     catch { halt('memory-pressure'); }
   }, pressure.pollMs) : null;
   try {

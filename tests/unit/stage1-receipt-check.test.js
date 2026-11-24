@@ -34,17 +34,21 @@ const outOfMemory = (extra = {}) => ({ outcome: 'failed', settings: soloSettings
   failure: { kind: 'out-of-memory', evidence: 'device-out-of-memory', operatorCapped: false, requiredBytes: 16994352128,
     during: 'whole-model-load', allocatedBeforeFailureBytes: 12884901888, failedBufferBytes: 268435456, ...extra } });
 
+/** A physical requester's measurement: no pinned piece of the requested model, other files recorded apart. */
+const requesterHolds = (pieces = 0, extra = {}) => ({ weightBytes: pieces * 16, otherModelBytes: 0, fileCount: 0, scope: 'requester-weight-directories', scannedRoots: 4,
+  heldRanges: { rangeCount: pieces, bytes: pieces * 16, scannedRanges: 5512 }, ...extra });
+
 function goodReceipt() {
   const receipt = { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: 'physical', hardStop: null, claim: null,
     phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'completed' }])), workload: structuredClone(workload),
-    serviceRestores: [], requester: { participantId: 'peer:r', computerId: 'computer-requester', machine: 'machine-r', preflight: { weightBytes: 0, fileCount: 0 }, afterSplit: { weightBytes: 0, fileCount: 0 } },
+    serviceRestores: [], requester: { participantId: 'peer:r', computerId: 'computer-requester', machine: 'machine-r', preflight: requesterHolds(), afterSplit: requesterHolds() },
     hosts: expectations.stages.map((stage, index) => ({ label: ['host-a', 'host-b'][index], stageIndex: index, participantId: `peer:${index}`,
       machine: `machine-${index}`, computerId: ['computer-a', 'computer-b'][index], assignedLayers: [...stage.layerRange],
       inventory: { preflight: inventory(stage), beforeSplit: inventory(stage), afterSplit: inventory(stage) },
       hostWeights: { beforeSplit: hostWeights(stage), afterSplit: { ...hostWeights(stage), outsideInFullCopy: 0, fullCopy: 'locked-not-entered' } },
       loaded: loaded(stage) })),
     soloControls: { 'host-a': outOfMemory(), 'host-b': outOfMemory() },
-    earn: { earner: { participantId: 'peer:earner', computerId: 'computer-requester' }, accountBefore: 0,
+    earn: { earner: { participantId: 'peer:earner', computerId: 'computer-requester', machine: 'machine-r' }, accountBefore: 0,
       settlements: [{ reservationId: 'earn', state: 'settled', charge: 4, outputTokens: 4, heldAfter: 0,
         journal: [{ accountId: 'computer-buyer', delta: -4 }, { accountId: 'computer-requester', delta: 4 }],
         replay: { attempted: true, journalBefore: 2, journalAfter: 2, balancesUnchanged: true, outcomeUnchanged: true } }] },
@@ -71,6 +75,13 @@ describe('earning before spending', () => {
     expect(codes(judged(r => { r.earn.earner.participantId = 'peer:r'; }))).toEqual(['earn-by-requester-device']);
     expect(codes(judged(r => { r.earn.earner.computerId = 'computer-a'; }))).toContain('earn-other-account');
     expect(codes(judged(r => { r.earn.settlements[0].journal[1].delta = 3; }))).toEqual(expect.arrayContaining(['earn-not-credited']));
+  });
+
+  it('accepts an earner on the requester\'s machine under its own key, never on a stage host or as one', () => {
+    expect(codes(judged(() => {}))).toEqual([]);
+    expect(codes(judged(r => { r.earn.earner.machine = 'machine-e'; }))).toEqual([]);
+    expect(codes(judged(r => { r.earn.earner.machine = 'machine-1'; }))).toEqual(['earn-on-executor']);
+    expect(codes(judged(r => { r.earn.earner.participantId = 'peer:0'; }))).toEqual(['earn-on-executor']);
   });
 
   it('refuses a seeded balance: the account must start at zero before it earns', () => {
@@ -279,9 +290,17 @@ describe('rejects', () => {
     expect(codes(verdict)).toEqual(['inventory-source']);
   });
 
-  it.each(['preflight', 'afterSplit'])('requester weight bytes at %s', when => {
-    const verdict = judged(receipt => { receipt.requester[when] = { weightBytes: 4096, fileCount: 1 }; });
+  it.each(['preflight', 'afterSplit'])('requester pieces of the requested model at %s', when => {
+    const verdict = judged(receipt => { receipt.requester[when] = requesterHolds(1); });
     expect(codes(verdict)).toEqual(['requester-holds-weights']);
+  });
+
+  it('records other files under the requester roots without counting them as the requested model', () => {
+    expect(codes(judged(receipt => { receipt.requester.preflight = requesterHolds(0, { otherModelBytes: 1100000000, fileCount: 3 }); }))).toEqual([]);
+  });
+
+  it('a requester measured by bytes, not by hash-identified pieces', () => {
+    expect(codes(judged(receipt => { receipt.requester.preflight = { weightBytes: 0, fileCount: 0 }; }))).toEqual(['requester-weights-unmeasured']);
   });
 
   it('a requester whose weights were never measured', () => {

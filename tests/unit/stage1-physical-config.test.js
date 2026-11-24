@@ -63,10 +63,36 @@ describe('the private host file', () => {
     expect(validatePhysicalConfig(withEarner()).earner.modelId).toBe(EARN_MODEL_ID);
   });
 
+  it('accepts an earner on the requester\'s machine under its own key, identity and state', () => {
+    const value = withEarner({ machineId: 'm-' + 'c'.repeat(16), ssh: 'operator@alpha-c' });
+    expect(validatePhysicalConfig(value).earner.machineId).toBe(value.requester.machineId);
+  });
+
+  it('accepts a macOS stage host: home paths, a kernel pressure level, no service, reached over SSH on the operator machine', () => {
+    const mac = host('host-a', 'a', { ssh: 'operator@localhost', node: '/Users/operator/.local/node/bin/node', releaseRoot: '/Users/operator/stage1/release',
+      identityFile: '/Users/operator/stage1/identity.json', stateDirectory: '/Users/operator/stage1/state', stageDirectory: '/Users/operator/models/stage-0',
+      fullCopyDirectory: '/Users/operator/models/full-27b', weightRoots: { model: ['/Users/operator/models'], cache: ['/Users/operator/Library/Caches/reploid'],
+        temporary: ['/Users/operator/stage1/tmp'] }, memoryPressure: { maxPressureLevel: 'normal', pollMs: 1000 }, standingService: null });
+    const value = config();
+    value.hosts[0] = mac;
+    expect(validatePhysicalConfig(value).hosts[0].memoryPressure).toEqual({ maxPressureLevel: 'normal', pollMs: 1000 });
+    value.hosts[0] = { ...mac, memoryPressure: null };
+    expect(validatePhysicalConfig(value).hosts[0].memoryPressure).toBeNull();
+    for (const memoryPressure of [{ maxPressureLevel: 'critical', pollMs: 1000 }, { maxPressureLevel: 'normal', maxAvg10: 1, pollMs: 1000 }]) {
+      value.hosts[0] = { ...mac, memoryPressure };
+      expect(() => validatePhysicalConfig(value)).toThrow('memoryPressure');
+    }
+  });
+
   it.each([
-    ['an earner on the requester machine', { machineId: 'm-' + 'c'.repeat(16) }, 'machineId'],
     ['an earner on a stage host', { machineId: 'm-' + 'a'.repeat(16) }, 'machineId'],
+    ['an earner reached at a stage host', { ssh: 'operator@alpha-a' }, 'earner must not be on a stage host'],
     ['an earner sharing a stage identity', { participantId: 'peer:' + 'b'.repeat(24) }, 'participantId'],
+    ['an earner sharing the requester key', { machineId: 'm-' + 'c'.repeat(16), participantId: 'peer:' + 'c'.repeat(24) }, 'participantId'],
+    ['an earner at the requester target on another machine', { ssh: 'operator@alpha-c' }, 'ssh targets must be distinct'],
+    ['an earner sharing the requester identity file', { machineId: 'm-' + 'c'.repeat(16), identityFile: '/srv/state-c/identity.json' }, 'earner.identityFile'],
+    ['an earner sharing the requester state', { machineId: 'm-' + 'c'.repeat(16), stateDirectory: '/srv/state-c/run/earner' }, 'earner.stateDirectory'],
+    ['an earner model inside the requester model directory', { machineId: 'm-' + 'c'.repeat(16), modelDirectory: '/srv/requester/empty/m' }, 'earner.modelDirectory'],
     ['an earner without its own machine', { ssh: null }, 'earner.ssh'],
     ['an earner serving the split model', { modelId: 'qwen-3-8-27b-text-q4k-ef16-af32' }, 'earner.modelId'],
     ['an earner serving an unknown model', { modelId: 'no-such-model' }, 'earner.modelId'],

@@ -95,17 +95,55 @@ export async function assertCompleteCopy({ directory, expectedIdentity }) {
   }
 }
 
+/** macOS `kern.memorystatus_vm_pressure_level`: the kernel's own pressure state, 1 normal, 2 warning, 4 critical. */
+const DARWIN_PRESSURE_LEVELS = Object.freeze({ 1: 'normal', 2: 'warning', 4: 'critical' });
+const PRESSURE_RANK = Object.freeze({ normal: 0, warning: 1, critical: 2 });
+
+/**
+ * One memory pressure reading. Linux: `/proc/pressure/memory`, giving `avg10`, the share of the last ten seconds some
+ * task stalled on memory. macOS has no pressure-stall file: `sysctl kern.memorystatus_vm_pressure_level` gives `level`.
+ */
 export function parseMemoryPressure(text) {
+  const darwin = /kern\.memorystatus_vm_pressure_level:\s*(\d+)/.exec(text)?.[1];
+  if (darwin !== undefined) {
+    const level = DARWIN_PRESSURE_LEVELS[darwin];
+    if (!level) throw coded('memory-pressure-unreadable', 'unknown pressure level');
+    return { level };
+  }
   const value = Number(/some avg10=([0-9.]+)/.exec(text)?.[1]);
   if (!Number.isFinite(value)) throw coded('memory-pressure-unreadable', 'no pressure reading');
   return { avg10: value };
 }
 
-const readProcessStart = async pid => {
-  try { return (await run('ps', ['-o', 'lstart=', '-p', String(pid)])).stdout.trim() || null; }
-  catch (error) { if (error.code === 1) return null; throw error; }
-};
-export const processStart = readProcessStart;
+/** The raw reading on this platform, for `parseMemoryPressure`. */
+export async function readMemoryPressureText({ platform = process.platform, exec = run, readFile = fs.readFile } = {}) {
+  if (platform === 'darwin') return (await exec('sysctl', ['kern.memorystatus_vm_pressure_level'], { env: { PATH: '/usr/sbin:/usr/bin:/sbin:/bin' } })).stdout;
+  return readFile('/proc/pressure/memory', 'utf8');
+}
+
+/**
+ * Whether a reading is inside a host's limit: `maxAvg10` judges a Linux reading, `maxPressureLevel` a macOS one. A
+ * reading of the other kind is never inside the limit, so a misconfigured host stops rather than running unguarded.
+ */
+export function withinMemoryLimit(reading, limit) {
+  if (Object.hasOwn(limit ?? {}, 'maxAvg10')) return typeof reading?.avg10 === 'number' && reading.avg10 <= limit.maxAvg10;
+  if (Object.hasOwn(limit ?? {}, 'maxPressureLevel')) return Object.hasOwn(PRESSURE_RANK, reading?.level ?? '') && PRESSURE_RANK[reading.level] <= PRESSURE_RANK[limit.maxPressureLevel];
+  return false;
+}
+export const describeMemoryPressure = reading => (reading?.level !== undefined ? `level ${reading.level}` : `avg10 ${reading?.avg10}`);
+
+/**
+ * A process's start time as `ps` prints it, used with its PID as an identity no reused PID shares. The same on Linux
+ * and macOS once the locale and time zone are fixed: macOS prints the start in the caller's locale and zone, which an
+ * SSH session may change between the agent that reported it and the control that checks it. Spacing is normalized.
+ */
+export async function processStart(pid, { exec = run } = {}) {
+  try {
+    const { stdout } = await exec('ps', ['-o', 'lstart=', '-p', String(pid)], { env: { PATH: process.env.PATH ?? '/usr/bin:/bin', LC_ALL: 'C', TZ: 'UTC' } });
+    return stdout.replace(/\s+/g, ' ').trim() || null;
+  } catch (error) { if (error.code === 1) return null; throw error; }
+}
+const readProcessStart = pid => processStart(pid);
 
 /** Signals only the process with this PID and start time, so a reused PID is never killed. */
 export async function killExactProcess({ pid, startId, readStart = readProcessStart, kill = process.kill.bind(process), selfPid = process.pid }) {

@@ -56,13 +56,21 @@ export async function measureHeldRanges({ directory, ranges, signal }) {
   return held;
 }
 
-/** Bytes and files under the directories a weightless requester may write to. Absent directories hold nothing. */
+/**
+ * Bytes and files under the directories a weightless requester may write to. Absent directories hold nothing, and a
+ * directory reached twice (nested roots) is counted once.
+ */
 export async function measureDirectoryBytes(directories) {
   let weightBytes = 0, fileCount = 0;
+  const visited = new Set();
   const visit = async directory => {
     let entries;
-    try { entries = await fs.readdir(directory, { withFileTypes: true }); }
-    catch (error) { if (error.code === 'ENOENT') return; throw error; }
+    try {
+      const real = await fs.realpath(directory);
+      if (visited.has(real)) return;
+      visited.add(real);
+      entries = await fs.readdir(real, { withFileTypes: true });
+    } catch (error) { if (error.code === 'ENOENT') return; throw error; }
     for (const entry of entries) {
       const file = path.join(directory, entry.name);
       if (entry.isDirectory()) await visit(file);

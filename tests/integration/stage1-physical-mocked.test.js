@@ -103,7 +103,8 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
         identityFile: path.join(base, 'requester', 'identity.json'), modelDirectory: path.join(base, 'requester', 'empty'), stateDirectory: path.join(base, 'requester', 'state'),
         weightRoots: { model: [path.join(base, 'requester', 'models')], cache: [path.join(base, 'requester', 'cache')], temporary: [path.join(base, 'requester', 'tmp')] } },
       hosts,
-      ...(earner ? { earner: { machineId: 'm-' + 'e'.repeat(16), participantId: earnerKey.peerId, ssh: 'mock-earner', node: process.execPath, releaseRoot: REPOSITORY,
+      // The earner shares the requester's machine under its own participant key, identity file and state directory.
+      ...(earner ? { earner: { machineId: 'm-' + 'c'.repeat(16), participantId: earnerKey.peerId, ssh: 'mock-earner', node: process.execPath, releaseRoot: REPOSITORY,
         identityFile: path.join(base, 'earner', 'identity.json'), stateDirectory: path.join(base, 'earner', 'state'),
         modelDirectory: path.join(base, 'earner', 'model'), modelId: EARN_MODEL_ID } } : {}) };
     await fs.mkdir(config.requester.modelDirectory, { recursive: true });
@@ -124,6 +125,8 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     const setup = await setUp('good', { service: true });
     const { receipt, verdict } = await run(setup);
     expect(verdict).toMatchObject({ ok: true, label: LABEL_POOLED, reasons: [] });
+    expect(receipt.earn.earner.machine).toBe(receipt.requester.machine);
+    expect(receipt.requester.preflight).toMatchObject({ weightBytes: 0, otherModelBytes: 0, heldRanges: { rangeCount: 0, bytes: 0, scannedRanges: 5512 } });
     expect(verdict.solo).toMatchObject({ 'host-a': { outcome: 'memory' }, 'host-b': { outcome: 'memory' } });
     expect(receipt.runtimeClass).toBe('physical');
     for (const label of ['host-a', 'host-b']) {

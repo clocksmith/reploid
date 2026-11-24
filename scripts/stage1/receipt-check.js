@@ -175,7 +175,16 @@ function checkRequester(receipt, expectations, fail) {
   }
   for (const when of ['preflight', 'afterSplit']) {
     const observed = receipt.requester?.[when];
-    if (!observed || !count(observed.weightBytes) || !count(observed.fileCount)) fail('requester-weights-unmeasured', when);
+    if (expectations.runtimeClass === 'physical') {
+      // The claim is zero pieces of the requested model, identified by hash under every weight root. Other files there,
+      // such as another model's weights, are recorded as otherModelBytes and do not count against it.
+      const held = observed?.heldRanges;
+      if (!observed || !count(observed.weightBytes) || !count(observed.otherModelBytes) || !count(held?.rangeCount) || !count(held?.bytes)
+        || !(held.scannedRanges > 0)) fail('requester-weights-unmeasured', when);
+      else if (observed.weightBytes !== 0 || held.rangeCount !== 0 || held.bytes !== 0) {
+        fail('requester-holds-weights', `${when} ${held.rangeCount} pieces, ${held.bytes} bytes of the requested model`);
+      }
+    } else if (!observed || !count(observed.weightBytes) || !count(observed.fileCount)) fail('requester-weights-unmeasured', when);
     else if (observed.weightBytes !== 0 || observed.fileCount !== 0) {
       fail('requester-holds-weights', `${when} ${observed.fileCount} files, ${observed.weightBytes} bytes`);
     }
@@ -234,6 +243,9 @@ function checkEarn(receipt, expectations, fail) {
   if (earn.accountBefore !== 0) fail('earn-seeded-balance', `the account held ${earn.accountBefore} before earning`);
   if (!account || earn.earner?.computerId !== account) fail('earn-other-account', `${earn.earner?.computerId} earned for ${account}`);
   if (earn.earner?.participantId === receipt.requester?.participantId) fail('earn-by-requester-device', 'the zero-weight requester served the control');
+  // The earner may share the requester's machine under its own key; it never runs on, or as, a stage host.
+  if ((receipt.hosts ?? []).some(host => host.participantId === earn.earner?.participantId
+    || (expectations.runtimeClass === 'physical' && host.machine === earn.earner?.machine))) fail('earn-on-executor', 'the earner is a stage host');
   if ((receipt.hosts ?? []).some(host => host.computerId === account)) fail('earn-account-is-executor', String(account));
   let earned = 0;
   for (const [index, trace] of (earn.settlements ?? []).entries()) {

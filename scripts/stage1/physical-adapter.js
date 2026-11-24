@@ -14,6 +14,7 @@ import { countersignReceipt } from '../../packages/reploid/src/artifacts/receipt
 import { createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { openAgentSession, parseControlReply } from './command-transport.js';
+import { describeMemoryPressure, withinMemoryLimit } from './host-control.js';
 import { harnessDigest } from './host-agent.js';
 import { stage1Decoding } from './expectations.js';
 import { startPhysicalCoordinator } from './physical-coordinator.js';
@@ -217,18 +218,19 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
   const replay = (attemptId, options = {}) => collectSettlementReplay({ requester: session('requester'), stages: stageSessions(), attemptId,
     policy: coordinator.credits.policy, computerOf, ...options });
   /**
-   * Zero only when the requester's model directory is empty and none of the model's ranges is found under any of its
-   * weight roots, the same roots a stage host is searched under. Counts only: the receipt never carries a private path.
+   * Pieces of the requested model the requester holds: every pinned range found by hash under its model directory and
+   * weight roots, the same search a stage host gets. The claim is zero such pieces. Everything else under those roots,
+   * such as an earning model on the same machine, is recorded as `otherModelBytes`. Counts only, never a private path.
    */
   async function requesterWeights(signal) {
     const roots = [...new Set([requesterTarget.modelDirectory, ...requesterTarget.weightRoots.model,
       ...requesterTarget.weightRoots.cache, ...requesterTarget.weightRoots.temporary])];
-    const [modelDirectory, scanned] = await Promise.all([
-      control(requesterTarget, 'directory-bytes', { directories: [requesterTarget.modelDirectory] }, { signal }),
+    const [underRoots, scanned] = await Promise.all([
+      control(requesterTarget, 'directory-bytes', { directories: roots }, { signal }),
       control(requesterTarget, 'scan-weights', { roots, allRanges, stageRanges: [], fullCopyDirectory: null, scope: 'requester-weight-directories' }, { signal })]);
     const held = scanned.inventory;
-    return { weightBytes: modelDirectory.weightBytes + held.bytes, fileCount: modelDirectory.fileCount,
-      scope: 'requester-weight-directories', scannedRoots: roots.length, modelDirectory,
+    return { weightBytes: held.bytes, otherModelBytes: Math.max(0, underRoots.weightBytes - held.bytes), fileCount: underRoots.fileCount,
+      scope: 'requester-weight-directories', scannedRoots: roots.length,
       heldRanges: { rangeCount: held.rangeCount, bytes: held.bytes, scannedRanges: held.scannedRanges } };
   }
 
@@ -244,7 +246,7 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
         let reading;
         try { reading = await control(host, 'memory-pressure', {}, { timeoutMs: 20000 }); }
         catch { throw stopWith('memory-pressure-unreadable', host.label); }
-        if (!(reading.avg10 <= host.memoryPressure.maxAvg10)) throw stopWith('memory-pressure', `${host.label} avg10 ${reading.avg10}`);
+        if (!withinMemoryLimit(reading, host.memoryPressure)) throw stopWith('memory-pressure', `${host.label} ${describeMemoryPressure(reading)}`);
       }
     },
     async preflight({ signal }) {

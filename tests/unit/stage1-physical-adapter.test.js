@@ -68,14 +68,15 @@ function mockHosts(config, scripted = {}) {
       return { inventory: observeInventory({ held, stageRanges: body.stageRanges, source: 'hashed-on-host', scope: body.scope, scannedRanges: body.allRanges.length }),
         outsideInFullCopy: 0, outsideElsewhere: held.length };
     },
-    'directory-bytes': () => ({ weightBytes: 0, fileCount: 0 }),
+    'directory-bytes': label => (label === 'requester' && scripted.requesterOtherBytes ? { weightBytes: scripted.requesterOtherBytes + (scripted.requesterHolds ? 32 : 0), fileCount: 2 }
+      : { weightBytes: scripted.requesterHolds ? 32 : 0, fileCount: scripted.requesterHolds ? 1 : 0 }),
     'stage-directory'(label, body) {
       log.push(`stage-directory:${label}:${body.action}`);
       bodies.push({ label, ...body });
       if (scripted.stageDirectoryFails?.[label]) throw Object.assign(Error('stage-directory-mismatch: the build record\'s stage differs from the pin'), { code: 'stage-directory-mismatch' });
       return { verified: 'record', stageIndex: body.stageIndex, ...summarizeRanges(body.stageRanges) };
     },
-    'memory-pressure': label => ({ avg10: scripted.pressure?.[label] ?? 1 }),
+    'memory-pressure': label => (scripted.pressureLevel?.[label] ? { level: scripted.pressureLevel[label] } : { avg10: scripted.pressure?.[label] ?? 1 }),
     'process-state': (_label, { pid }) => ({ running: running.has(pid) }),
     kill(_label, body) { const child = running.get(body.pid); if (child?.startId === body.startId) { running.delete(body.pid); child.emit('exit', 137); return { killed: true }; } return { killed: false, reason: 'gone' }; },
     'lock-directory'(label, { action, mode }) {
@@ -228,15 +229,21 @@ describe('the zero-weight requester', () => {
     const result = await runAdapter();
     // These mocks never open a participant, so the after-split measurement (the same call) is covered by the integration run.
     expect(result.log.filter(row => row.startsWith('requester-roots:'))).toEqual(['requester-roots:/srv/r/empty,/srv/r/models,/srv/r/cache,/srv/r/tmp']);
-    expect(result.receipt.requester.preflight).toEqual({ weightBytes: 0, fileCount: 0, scope: 'requester-weight-directories', scannedRoots: 4,
-      modelDirectory: { weightBytes: 0, fileCount: 0 }, heldRanges: { rangeCount: 0, bytes: 0, scannedRanges: 5 } });
+    expect(result.receipt.requester.preflight).toEqual({ weightBytes: 0, otherModelBytes: 0, fileCount: 0, scope: 'requester-weight-directories', scannedRoots: 4,
+      heldRanges: { rangeCount: 0, bytes: 0, scannedRanges: 5 } });
+    expect(result.log.filter(row => row.startsWith('control:requester:directory-bytes'))).toHaveLength(1);
     expect(result.verdict.reasons.filter(reason => reason.code === 'requester-holds-weights')).toEqual([]);
   });
-  it('fails the receipt when model ranges sit in a requester cache although its model directory is empty', async () => {
+  it('fails the receipt when pinned pieces of the requested model sit in a requester cache', async () => {
     const result = await runAdapter({ scripted: { requesterHolds: true } });
-    expect(result.receipt.requester.preflight).toMatchObject({ weightBytes: 32, fileCount: 0, modelDirectory: { weightBytes: 0, fileCount: 0 } });
+    expect(result.receipt.requester.preflight).toMatchObject({ weightBytes: 32, otherModelBytes: 0, heldRanges: { rangeCount: 2, bytes: 32 } });
     expect(codes(result)).toContain('requester-holds-weights');
     expect(result.verdict.ok).toBe(false);
+  });
+  it('records another model\'s files under its roots as otherModelBytes, apart from the claim of zero requested pieces', async () => {
+    const result = await runAdapter({ scripted: { requesterOtherBytes: 1100000000 } });
+    expect(result.receipt.requester.preflight).toMatchObject({ weightBytes: 0, otherModelBytes: 1100000000, fileCount: 2, heldRanges: { rangeCount: 0, bytes: 0 } });
+    expect(codes(result)).not.toContain('requester-holds-weights');
   });
 });
 
@@ -340,6 +347,15 @@ describe('stopping', () => {
     expect(result.log.filter(row => row.endsWith(':kill')).length).toBeGreaterThan(0);
     noProcessLeft(result);
     expect(result.coordinator.closed).toBe(1);
+  });
+  it('guards a macOS host by its kernel pressure level, and runs a host with no guard', async () => {
+    const mac = configuration(config => { config.hosts[0].memoryPressure = { maxPressureLevel: 'normal', pollMs: 1000 }; config.hosts[1].memoryPressure = null; });
+    const calm = await runAdapter({ config: mac, scripted: { pressureLevel: { 'host-a': 'normal' } } });
+    expect(calm.receipt.hardStop?.reason ?? '').not.toContain('memory-pressure');
+    expect(calm.log.filter(row => row === 'control:host-b:memory-pressure')).toEqual([]);
+    directory = await fs.mkdtemp(path.join(os.tmpdir(), 'stage1-physical-'));
+    const pressed = await runAdapter({ config: mac, scripted: { pressureLevel: { 'host-a': 'warning' } } });
+    expect(pressed.receipt.hardStop.reason).toContain('memory-pressure: host-a level warning');
   });
   it('stops before a phase under memory pressure', async () => {
     const result = await runAdapter({ scripted: { pressure: { 'host-b': 80 } } });
