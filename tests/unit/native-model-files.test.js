@@ -179,7 +179,9 @@ it('certifies the custody key its grants carry only when a participant identity 
     expect(await checkCustodyKeyCertificate(certificate, { publicJwk: identities[i].publicJwk, atMs: Date.now(),
       maxLifetimeMs: CUSTODY_CERTIFICATE_LIFETIME_MS, maxClockSkewMs: 0 })).toEqual([]);
   }
-  expect(await f.owners[0].custodyCertificate()).toBe(certificates[0]); expect(issued).toEqual(certificates);
+  expect(await f.owners[0].custodyCertificate()).toBe(certificates[0]); 
+  // The two keys sign concurrently, so they may finish in either order.
+  expect([...issued].sort((a, b) => a.custodyPeerId.localeCompare(b.custodyPeerId))).toEqual(certificates);
   await f.share(); const source = await f.owners[0].preparePartitionSource(f.model);
   try {
     await source.storage.loadShardRange(0, 0, 4);
