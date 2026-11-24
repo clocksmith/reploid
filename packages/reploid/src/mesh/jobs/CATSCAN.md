@@ -6,7 +6,7 @@ Parent: [Reploid Browser Library](../../../CATSCAN.md)
 Delegate complete requests to authorized network participants with explicit host ports and bounded lifecycle. Aggregate independently valid embedding units through these existing signed requests.
 
 ## Authority
-Owns bounded request, provider, cancellation, replay, independent-unit coordination and episode verification algorithms. The host supplies pinned operation contracts, policy, consent, model admission and execution ports. Transport delivery is bounded at-least-once. Requester aggregate persistence belongs to `artifacts/independent-unit-journal.js`; provider outcome journals retain their existing meaning.
+Owns bounded request, provider, cancellation, replay, independent-unit coordination and episode verification algorithms. The host supplies pinned operation contracts, policy, consent, model admission and execution ports. Transport delivery is bounded at-least-once. Requester aggregate persistence belongs to [`artifacts/independent-unit-journal.js`](../../artifacts/independent-unit-journal.js); provider outcome journals retain their existing meaning.
 
 ## Scope
 This directory and unchartered descendants.

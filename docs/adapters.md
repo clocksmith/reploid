@@ -80,7 +80,7 @@ Neither is held-out evaluation, so it shows "No evaluation evidence".
 
 ## Held-out evaluation
 
-[`self/pool/adapter-evaluation.js`](../apps/poolday/pool/adapter-evaluation.js) defines
+[`apps/poolday/pool/adapter-evaluation.js`](../apps/poolday/pool/adapter-evaluation.js) defines
 `reploid.adapter-evaluation-spec/v1` and `reploid.adapter-evaluation-receipt/v1`.
 A spec is frozen before training: task and prompt, pinned data files with
 licence, training, selection and held-out splits, the held-out and retention

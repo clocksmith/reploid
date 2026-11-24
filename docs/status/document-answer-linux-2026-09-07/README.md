@@ -147,8 +147,8 @@ It binds exact report bytes, captured inputs, raw source tokens, answer text,
 and the browser observation. The source archive also retains dependency
 versions, installation logs, the reference script, and source-file verification.
 Changing the completion flag in a separate extracted source report was rejected
-at the pinned report-hash boundary; [the rejection log](source-tamper-rejection.log)
-is retained. Original reports and archives were not changed by that negative test.
+at the pinned report-hash boundary; the rejection log was not committed with
+this evidence. Original reports and archives were not changed by that negative test.
 No weights or Python environment are archived. To rerun the source model,
 place the retained script, `source-inputs.json`, and `verification.jsonl` next
 to the seven verified upstream files in a fresh directory. Install the pinned

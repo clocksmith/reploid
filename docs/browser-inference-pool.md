@@ -233,7 +233,7 @@ request and result rules live in the biological sequence document.
 ```
 
 The server rejects job requests that do not exactly match this generation config.
-The signed receipt binds this exact object. At execution time only, `self/pool/doppler-runtime.js` translates `maxOutputTokens` to Doppler's public `maxTokens` option and passes greedy sampling as `temperature: 0`, `topK: 1`, and `topP: 1`. The translated Doppler options are not the receipt hash input.
+The signed receipt binds this exact object. At execution time only, `apps/poolday/pool/doppler-runtime.js` translates `maxOutputTokens` to Doppler's public `maxTokens` option and passes greedy sampling as `temperature: 0`, `topK: 1`, and `topP: 1`. The translated Doppler options are not the receipt hash input.
 
 ---
 
@@ -438,7 +438,7 @@ In the current hosted mode, the cloud remains authoritative for abuse gates, pol
 
 The target Reploid control plane is also peer-to-peer. The coordinator should disappear from the normal path. Any server should be optional bootstrap, public anchor, or compatibility bridge.
 
-The browser implementation starts in `self/pool/peer-control-plane.js`, `self/pool/peer-room.js`, and `self/pool/peer-rendezvous.js`. The control-plane module defines signed peer messages, workload-specific input validation, deterministic peer assignment planning, receipt agreement, signed ledger events, DataChannel-compatible peer buses, and deterministic points/network reducers. The peer room module wires the visible `/ask` and `/compute` paths through signed peer intents, provider adverts, WebRTC signaling, DataChannel input delivery, multi-provider receipt return, quorum agreement, requester countersignature, and ledger-event gossip without hosted job creation or hosted assignment polling. The rendezvous module supplies local BroadcastChannel rooms, in-memory test rooms, shareable invite URLs, and optional metadata relay buses.
+The browser implementation starts in `apps/poolday/pool/peer-control-plane.js`, `apps/poolday/pool/peer-room.js`, and `apps/poolday/pool/peer-rendezvous.js`. The control-plane module defines signed peer messages, workload-specific input validation, deterministic peer assignment planning, receipt agreement, signed ledger events, DataChannel-compatible peer buses, and deterministic points/network reducers. The peer room module wires the visible `/ask` and `/compute` paths through signed peer intents, provider adverts, WebRTC signaling, DataChannel input delivery, multi-provider receipt return, quorum agreement, requester countersignature, and ledger-event gossip without hosted job creation or hosted assignment polling. The rendezvous module supplies local BroadcastChannel rooms, in-memory test rooms, shareable invite URLs, and optional metadata relay buses.
 
 | Layer | Target owner |
 |-------|--------------|
@@ -700,7 +700,7 @@ Product routes rewrite to `/index.html`:
 
 The `/pool` namespace is split:
 
-- Static browser modules such as `/pool/sdk.js` and `/pool/provider-client.js` are served from `self/pool/`.
+- Static browser modules such as `/pool/sdk.js` and `/pool/provider-client.js` are served from `shared/pool/` and `apps/poolday/pool/`.
 - API paths such as `/pool/jobs`, `/pool/receipts/**`, and `/pool/providers/**` rewrite to the Cloud Run service `reploid-pool` in `us-central1`.
 
 Do not add a broad `/pool/**` backend rewrite. It would capture the browser module files and break the app shell.

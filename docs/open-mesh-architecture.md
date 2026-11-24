@@ -181,7 +181,7 @@ flowchart TB
 
 | Owner | Responsibility | Must not decide |
 | --- | --- | --- |
-| UI in `self/ui/pool-home/` | Render immutable state; dispatch thread, consent, contribution and stop actions | Routing, protocol retries, model math or implied permission |
+| UI in `apps/poolday/ui/pool-home/` | Render immutable state; dispatch thread, consent, contribution and stop actions | Routing, protocol retries, model math or implied permission |
 | Host in `self/host/` | Compose services, persist identity/history/grants, supply policy and storage ports | Invent partition semantics or silently expand grants |
 | `reploid/chat` | Thread and attempt state, approvals, ordered deltas, explicit retry | Select learned experts, verify model math or download models implicitly |
 | Mesh library | Eligibility, capacity reservations, automatic placement, repair decisions, observations | Override Doppler dependencies or resource/disclosure limits |

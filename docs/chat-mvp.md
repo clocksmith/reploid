@@ -81,7 +81,7 @@ numerical accuracy, answer quality and deployment remain separate claims.
 
 ## Explicit application generation policy
 
-The host resolves resident generation through `self/config/partition-generation.js`.
+The host resolves resident generation through `apps/poolday/config/partition-generation.js`.
 A host-selected model may supply a complete `generation` object using the pinned
 Doppler public contract. The resolver rejects unsupported fields, missing
 stochastic seeds and context/output limits above the existing host ceilings.

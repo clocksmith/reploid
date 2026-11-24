@@ -184,7 +184,7 @@ If that fails:
 - [CONFIGURATION.md](./CONFIGURATION.md)
 - [SECURITY.md](./SECURITY.md)
 - [API.md](./API.md)
-- [Doppler Architecture](../../doppler/docs/architecture.md)
+- [Doppler Architecture](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md)
 
 ---
 

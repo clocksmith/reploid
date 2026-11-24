@@ -40,7 +40,7 @@ evaluation, candidate self-approval or permission escalation.
 
 Work session composition delegates task validation to `work-task.js`, retention
 to `work-repository.js`, projections to `work-view.js`, and provider adaptation to
-`self/providers/work-provider.js`. Model IDs do not select providers by spelling.
+`apps/poolday/providers/work-provider.js`. Model IDs do not select providers by spelling.
 An absent selection uses the profile default; an unknown explicit ID fails.
 Cloud calls require the host's Firebase Auth and App Check headers. Client and
 server must both permit fallback, and records distinguish requested from actual

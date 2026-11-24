@@ -77,7 +77,7 @@ its own metadata.
 Bare `.js` files under `tests/`, `tests/e2e/` and `tests/contracts/` are
 standalone controllers or exported qualification harnesses. For example,
 `tests/e2e/research-plugin-smoke.js` launches its own browser, while
-`tests/contracts/doppler-partition-sessions.js` exports a caller-configured
+`tests/contracts/doppler-partition-session.js` exports a caller-configured
 qualification function. They are not Playwright specs to rename mechanically.
 Physical controllers require their explicit model/device/environment inputs;
 default software tests do not select or run them. The Python answer reference
