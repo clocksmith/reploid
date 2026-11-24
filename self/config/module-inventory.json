@@ -2868,7 +2868,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:b0d3fb8af936fcca3cadd3734e57cd1f6a5e36d62e9947f1b6a590975dc490c2",
+      "sha256": "sha256:971d4a1fea1dcb81e22e1743de3f7390ee871f5f1021edc26a209edc936352f3",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -4337,7 +4337,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b6d315c6b59849ddbd3f33ebbc17983cb8be635f467b398d5fc660cfaf6d3a5e",
+      "sha256": "sha256:f8dd470913f97ff327c554f5ce6822d6366c3224115e5eeb2289d57d2aa98f70",
       "imports": []
     },
     {

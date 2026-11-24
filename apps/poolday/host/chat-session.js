@@ -308,7 +308,7 @@ export function createChatSession({
     const local = execution.getLocalState();
     if (canonicalHistory && !publishable(historyState.publication, model) && !(canonicalHistory.supportsWholeModel && !model.partition)) return { ...model, availability: 'unavailable', networkAvailability: 'unavailable', localReady: false, localCached: false, reachableProviderIds: [] };
     if (model.partition) return { ...model, localReady: false, localCached: false };
-    return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
+    return !zeroRequesterWeights && local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
       ? { ...model, availability: 'ready', localReady: true }
       : isCached(model) ? { ...model, availability: 'cached', localCached: true } : model;
   }).concat(fleet.models()));
@@ -504,6 +504,8 @@ export function createChatSession({
       if (model === undefined) model = state.defaultModels[location] || state.defaultModel;
       assert(model, 'Model required to create thread');
       assert(['auto', 'local', 'network'].includes(executionLocation), 'Invalid execution location');
+      // Refused at selection, not at the first answer: this device would have to run the model.
+      assert(!zeroRequesterWeights || location !== 'local', ZERO_WEIGHT_NOTICE);
       assert(executionLocation !== 'local' || !model.partition, 'This model requires network execution');
       return workspace.createThread({
         model, automaticModel, privacy,
@@ -513,7 +515,11 @@ export function createChatSession({
       });
     },
     setExecutionPrivacy(threadId, privacy) { assertOpen(); return workspace.setExecutionPrivacy(threadId, privacy); },
-    setExecutionLocation(threadId, location) { assertOpen(); return workspace.setExecutionLocation(threadId, location); },
+    setExecutionLocation(threadId, location) {
+      assertOpen();
+      assert(!zeroRequesterWeights || location !== 'local', ZERO_WEIGHT_NOTICE);
+      return workspace.setExecutionLocation(threadId, location);
+    },
     /** The stored conversations, for a local data export. Reads only; nothing is sent or changed. */
     exportThreads() { assertOpen(); return { meshId, participantId, threads: copy(workspace.getState().threads) }; },
     /** Adds conversations from an export file, skipping ids already here. Ordinary browser history only. */
@@ -703,6 +709,7 @@ export function createChatSession({
     async setCachedFileContribution(enabled) {
       assertOpen();
       assert(swarm?.allowCachedFiles, 'File sharing is unavailable');
+      assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
       try { await swarm.allowCachedFiles(enabled); } finally { notifyAll(); }
     },
     getRoutePreference: () => routePreference?.get() ?? null,
@@ -715,11 +722,14 @@ export function createChatSession({
     async setComputeContribution(enabled) {
       assertOpen();
       assert(swarm?.allowCachedCompute, 'Contribution is unavailable');
+      assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
       try { await swarm.allowCachedCompute(enabled); } finally { notifyAll(); }
     },
     async setSharing(enabled, selectionId, approved) {
       assertOpen();
       assert(swarm, 'Contribution is unavailable');
+      // Contributing stores and runs a model here, a partition or an adapter model included.
+      assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
       try {
         if (enabled) {
           assert(approved === true, 'Approve public prompt execution before sharing');
@@ -736,6 +746,7 @@ export function createChatSession({
     async setFileSharing(enabled, selectionId, approved, controls) {
       assertOpen();
       assert(swarm?.shareFiles, 'File contribution is unavailable');
+      assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
       try {
         if (!enabled) { await swarm.stopFiles(); return; }
         assert(approved === true, 'Approve file distribution separately from compute');

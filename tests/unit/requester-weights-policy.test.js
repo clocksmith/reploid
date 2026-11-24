@@ -55,3 +55,39 @@ it.each([
   expect(scheduler.schedule).not.toHaveBeenCalled();
   expect(swarm.generate).not.toHaveBeenCalled();
 });
+
+it('refuses every contribution that would store or run a model here, a partition or adapter model included', async () => {
+  const swarm = { getState: () => ({ consumer: { peers: [] } }), connect: async () => {},
+    share: vi.fn(async () => {}), stop: vi.fn(async () => {}), shareFiles: vi.fn(async () => {}), stopFiles: vi.fn(async () => {}),
+    allowCachedFiles: vi.fn(async () => {}), allowCachedCompute: vi.fn(async () => {}) };
+  const session = open({ zeroRequesterWeights: true, swarm });
+  const [model] = CANONICAL_CHAT_MODELS;
+  await expect(session.setSharing(true, model.id, true)).rejects.toThrow('network computers only');
+  await expect(session.setFileSharing(true, model.id, true)).rejects.toThrow('network computers only');
+  await expect(session.setComputeContribution(true)).rejects.toThrow('network computers only');
+  await expect(session.setCachedFileContribution(true)).rejects.toThrow('network computers only');
+  expect(swarm.share).not.toHaveBeenCalled();
+  expect(swarm.shareFiles).not.toHaveBeenCalled();
+  expect(swarm.allowCachedCompute).not.toHaveBeenCalled();
+  expect(swarm.allowCachedFiles).not.toHaveBeenCalled();
+  // Turning contribution off stays available.
+  await session.setSharing(false);
+  await session.setFileSharing(false);
+  await session.setComputeContribution(false);
+  await session.setCachedFileContribution(false);
+  expect(swarm.stop).toHaveBeenCalled();
+  expect(swarm.stopFiles).toHaveBeenCalled();
+  expect(swarm.allowCachedCompute).toHaveBeenCalledWith(false);
+  expect(swarm.allowCachedFiles).toHaveBeenCalledWith(false);
+});
+
+it('refuses on-device execution when it is chosen, not when the first answer runs', () => {
+  const session = open({ zeroRequesterWeights: true });
+  const [model] = CANONICAL_CHAT_MODELS;
+  expect(() => session.createThread({ model, executionLocation: 'local' })).toThrow('network computers only');
+  expect(() => session.createThread({ model, sharingScope: 'local' })).toThrow('network computers only');
+  const threadId = session.createThread({ model, executionLocation: 'network' });
+  expect(() => session.setExecutionLocation(threadId, 'local')).toThrow('network computers only');
+  session.setExecutionLocation(threadId, 'auto');
+  expect(session.getState().threads.find(thread => thread.id === threadId).permissions.executionLocation).toBe('auto');
+});
