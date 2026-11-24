@@ -150,6 +150,8 @@ export function createPeerGenerationMesh({ config, ports }) {
   // The host's local block list: connection ids, or signing identities this requester verified on the
   // current channel. A requester-side choice only; nothing is sent to or withheld from the network.
   const blockedComputers = () => new Set(ports.getBlockedComputers?.() || []);
+  // Computers that stopped answering on an open connection. They get no new work until they answer again.
+  const unresponsivePeers = new Set();
   const isBlockedProvider = (peerId, blocked = blockedComputers()) => blocked.size > 0
     && (blocked.has(peerId) || blocked.has(peerIdentity?.getVerified(peerId)));
   // Identity and admission versions are compatibility gates, not evidence of protected computation.
@@ -172,7 +174,7 @@ export function createPeerGenerationMesh({ config, ports }) {
   const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined) => {
     const blocked = blockedComputers();
     let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)))
-    .filter(peer => !isBlockedProvider(peer.peerId, blocked) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots > 0))
+    .filter(peer => !isBlockedProvider(peer.peerId, blocked) && !unresponsivePeers.has(peer.peerId) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots > 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))
       && (!settings || supportsSettings(peer, settings)));
@@ -209,7 +211,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       const participantId = peerIdentity?.getVerified(peer.peerId) || null;
       // Never promote identity fields supplied by an advertisement into verified labels.
       return { ...(observedPeers.get(peer.peerId) || peer), participantId, identityVerified: !!participantId,
-        ...(isBlockedProvider(peer.peerId) ? { blocked: true } : {}) };
+        ...(isBlockedProvider(peer.peerId) ? { blocked: true } : {}),
+        ...(unresponsivePeers.has(peer.peerId) ? { unresponsive: true } : {}) };
     }))
   });
 
@@ -1016,6 +1019,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           swarmController.removePeer(peerId);
           observedPeers.delete(peerId);
           identificationAttempts.delete(peerId);
+          unresponsivePeers.delete(peerId);
           remoteRequests.retirePeer(peerId);
           for (const key of [...admitted.keys(), ...admitting]) if (key.startsWith(`${peerId}:`)) forgetAdmission(key);
           for (const [key, controller] of validatingInbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
@@ -1025,6 +1029,16 @@ export function createPeerGenerationMesh({ config, ports }) {
         };
         subscriptions.push(eventBus.on('swarm:peer-left', retirePeer, 'self-bridge'));
         subscriptions.push(eventBus.on('swarm:peer-disconnected', retirePeer, 'self-bridge'));
+        // Ends only the requests waiting on this computer. Its signed work is not reinterpreted, and it is told to stop.
+        subscriptions.push(eventBus.on('swarm:peer-unresponsive', ({ peerId }) => {
+          unresponsivePeers.add(peerId);
+          remoteRequests.retirePeer(peerId, { cancel: true });
+          emitSwarmState();
+        }, 'self-bridge'));
+        subscriptions.push(eventBus.on('swarm:peer-responsive', ({ peerId }) => {
+          unresponsivePeers.delete(peerId);
+          emitSwarmState();
+        }, 'self-bridge'));
         subscriptions.push(eventBus.on('swarm:state-change', () => {
           emitSwarmState();
         }, 'self-bridge'));

@@ -40,6 +40,7 @@ const WebRTCSwarm = {
     const MAX_BACKOFF_MS = policy.webrtc.maxBackoffMs;
     const HEARTBEAT_INTERVAL = policy.webrtc.heartbeatIntervalMs;
     const PEER_TIMEOUT = policy.webrtc.peerTimeoutMs;
+    const UNANSWERED_PROBE_MS = 1500;
     const MAX_PENDING_ICE_PER_PEER = policy.webrtc.maxPendingRemoteIceCandidates;
     const PENDING_ICE_TTL_MS = policy.webrtc.pendingRemoteIceTtlMs;
 
@@ -142,6 +143,24 @@ const WebRTCSwarm = {
     };
     // Retain bounded diagnostics only; these records never count as live peers.
     const getPeerStates = () => [...retiredPeerStates.values(), ...[..._peers.values()].map(peerState)];
+    // ICE reporting trouble is a question, so ask the computer directly. Anything it sends is an answer, however long
+    // its next token takes. Silence ends the requests waiting on it; the connection stays, since ICE may still recover.
+    const settlePeerProbe = peer => {
+      clearTimeout(peer.probeTimer); peer.probeTimer = null;
+      if (!peer.unresponsive) return;
+      peer.unresponsive = false;
+      EventBus.emit('swarm:peer-responsive', { peerId: peer.id, attemptId: peer.attemptId });
+    };
+    const probePeer = peer => {
+      if (peer.probeTimer || peer.unresponsive || peer.dataChannel?.readyState !== 'open' || _peers.get(peer.id) !== peer) return;
+      peer.probeTimer = setTimeout(() => {
+        peer.probeTimer = null;
+        if (_peers.get(peer.id) !== peer) return;
+        peer.unresponsive = true;
+        EventBus.emit('swarm:peer-unresponsive', { peerId: peer.id, attemptId: peer.attemptId });
+      }, UNANSWERED_PROBE_MS);
+      sendToPeer(peer.id, 'ping', { ts: Date.now() });
+    };
     const preparePeer = async (remote, exchange) => {
       const peer = { id: remote, attemptId: `${_peerId}:${_generation}:${++attemptSequence}`,
         authenticated: false, exchange, connection: null, dataChannel: null,
@@ -164,6 +183,8 @@ const WebRTCSwarm = {
           reportPeerProgress(peer, ice === 'disconnected' ? 'interrupted'
             : peer.status === 'connected' ? 'connected' : 'negotiating');
           refreshPeerPath(peer);
+          if (ice === 'disconnected') probePeer(peer);
+          else if (ice === 'connected' || ice === 'completed') settlePeerProbe(peer);
         };
         return peer;
       } catch (error) {
@@ -846,6 +867,7 @@ const WebRTCSwarm = {
       clearTimeout(negotiationTimers.get(remotePeerId)); negotiationTimers.delete(remotePeerId);
       const peer = _peers.get(remotePeerId);
       if (peer) {
+        clearTimeout(peer.probeTimer); peer.probeTimer = null;
         _peers.delete(remotePeerId);
         retiredPeerStates.delete(remotePeerId);
         retiredPeerStates.set(remotePeerId, { ...peerState(peer), phase: peer.phase === 'failed' ? 'failed' : 'disconnected',
@@ -930,6 +952,7 @@ const WebRTCSwarm = {
       const peer = _peers.get(remotePeerId);
       if (peer) {
         peer.lastSeen = Date.now();
+        settlePeerProbe(peer);
       }
 
       // Track stats

@@ -2896,7 +2896,7 @@
     {
       "path": "self/host/chat-view.js",
       "owner": "self",
-      "sha256": "sha256:463e24ad0fedaa58f4e349d8e4956ee3f1799dafde68bf83b7692245021d8c2f",
+      "sha256": "sha256:7e4a8806a528a665315f44bd1bc8c7ec576bc719a3793ec050b637eb95467cd2",
       "imports": []
     },
     {
@@ -4336,7 +4336,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:740f57e9befaa3d09f2326aa39b304a0eb36acd5985b6da839ea38b7159992a9",
+      "sha256": "sha256:d075548158507c3e91844724dee70892aa0e7b2dc371d1a6c252ee09dd5c548b",
       "imports": []
     },
     {
@@ -19759,7 +19759,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:c03e7f2488db9820710dd072c08388abed935d464d2c97379f0e48a00a5f83a7",
+      "sha256": "sha256:0c2565eb4578539d3b44fe58daa35f7683abf315e72d2594e9809a41090bf115",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
@@ -19813,7 +19813,7 @@
     {
       "path": "vendor/reploid/mesh/remote-generation-requests.js",
       "owner": "vendor",
-      "sha256": "sha256:7d71aa099f035a11560f30e89685cb8974a2f5e8bf8433b842e1ccd51049cd07",
+      "sha256": "sha256:4af2da6fcaae83e5968a7c568be206bc3b30ab23b743939d711901ca273ea797",
       "imports": []
     },
     {
@@ -20188,7 +20188,7 @@
     {
       "path": "vendor/reploid/transport/swarm.js",
       "owner": "vendor",
-      "sha256": "sha256:7932d21c548af830c5fbcb58cd9f38f7996a40280ca29ed79285f4e11a56cc3e",
+      "sha256": "sha256:220ecdc6aff8928340477a33ef29838c42eb42f3435a889cb18a3bbe1e7b832f",
       "imports": [
         "../config/index.js",
         "./connection-path.js",

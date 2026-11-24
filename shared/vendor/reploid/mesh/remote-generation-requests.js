@@ -40,9 +40,9 @@ export function createRemoteGenerationRequests({ timeoutMs, maxPending, sendCanc
       const pending = requests.get(String(requestId || ''));
       return pending?.providerPeerId === peerId ? pending : null;
     },
-    retirePeer(peerId) {
+    retirePeer(peerId, { cancel = false } = {}) {
       for (const pending of requests.values()) if (pending.providerPeerId === peerId) {
-        settle(pending, { error: new Error('Execution peer disconnected; retry requires a new attempt') });
+        settle(pending, { error: new Error('Execution peer disconnected; retry requires a new attempt'), cancel });
       }
     },
     close() {
