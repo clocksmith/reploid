@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
+import { createInference, EXECUTION_ERROR_CODES } from '../../shared/vendor/reploid/inference/index.js';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { verifyReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
 import { matchesWholeModelReceipt } from '../../shared/vendor/reploid/artifacts/whole-model-receipt.js';
@@ -15,6 +15,9 @@ import { PROFILE } from './rules.js';
 const digest = /^sha256:[a-f0-9]{64}$/;
 const requireValue = (ok, message) => { if (!ok) throw new Error(message); };
 const same = (left, right) => left !== undefined && canonicalize(left) === canonicalize(right);
+/** A daily turn's requirements: only the named provider reads the prompt, in plaintext. */
+const dailyExecution = providerId => ({ placement: 'network-allowed', participants: { kind: 'named', ids: [providerId] },
+  confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] });
 
 function promptRoute(host, pins) {
   const route = host.textParticipant.getState().models?.find(model => !model.partition
@@ -94,10 +97,24 @@ export async function runDailyFleet(host, pins, { prompt, target = null, signal 
     const model = promptRoute(host, pins);
     requireValue(model, 'The qualified daily provider is unavailable');
     const messages = [{ role: 'system', content: PROFILE.system }, { role: 'user', content: prompt }];
-    const request = { threadId, attemptId, model, messages, settings,
-      privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [providerId] }, computation: 'plaintext' }) };
-    const result = await host.runAccountedGeneration(request, { signal,
-      requestApproval(preview) {
+    // The turn is prepared and run through reploid/inference; the accounted fleet requester is its execution port.
+    let raw = null, failure = null;
+    const inference = createInference({
+      resolveRoute: () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: [providerId], selection: 'one-of' }),
+      async execute({ policy, request: run }, controls) {
+        try {
+          raw = await host.runAccountedGeneration({ threadId, attemptId, model, messages: run.messages, settings, privacy: policy }, controls,
+            (input, next) => host.textParticipant.generate(input, next));
+          return raw;
+        } catch (error) { failure = error; throw error; }
+      }
+    });
+    const plan = await inference.prepare({ model: { id: modelId, identity: modelIdentity, adapterIdentities: [] },
+      execution: dailyExecution(providerId) }, { signal });
+    const run = await inference.run({ planId: plan.id, requestId: attemptId, input: { messages } }, { signal, attemptId,
+      context: { controls: { onReservation() { dispatched = true; onDispatch?.(); } } },
+      // Runs after the plan has matched the disclosure's binding, before the prompt is sent.
+      approve(preview) {
         signal.throwIfAborted();
         requireValue(!approved && preview.attemptId === attemptId && preview.threadId === threadId
           && preview.modelId === modelId && preview.modelIdentity === modelIdentity
@@ -110,9 +127,14 @@ export async function runDailyFleet(host, pins, { prompt, target = null, signal 
         approved = true;
         requestId = preview.requestId;
         return true;
-      },
-      onReservation() { dispatched = true; onDispatch?.(); }
-    }, (input, controls) => host.textParticipant.generate(input, controls));
+      } });
+    const outcome = await run.result;
+    if (outcome.status !== 'completed') {
+      // The executor's own error keeps its dispatch outcome unless the inference API refused first.
+      throw failure && !Object.hasOwn(EXECUTION_ERROR_CODES, outcome.error.code) ? failure
+        : Object.assign(new Error(outcome.error.message), { code: outcome.error.code });
+    }
+    const result = raw;
     signal.throwIfAborted();
     const receipt = result.execution?.receipt, settlement = result.serviceCredit;
     requireValue(dispatched && approved && result.threadId === threadId && result.attemptId === attemptId
