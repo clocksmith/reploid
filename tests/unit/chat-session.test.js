@@ -27,13 +27,24 @@ describe('Chat host with injected execution, not actual inference', () => {
   });
   it('retains native provider usage in saved execution metadata without inventing credits', async () => {
     const model = { ...CANONICAL_CHAT_MODELS[0], selectionId: 'private:fixture:model',
-      fleet: { poolIdentity: 'fixture' }, availability: 'ready' };
+      fleet: { poolIdentity: 'fixture', requester: { participantId: 'peer:'.padEnd(29, 'a') } }, availability: 'ready' };
+    const recipients = ['peer:'.padEnd(29, 'a'), 'peer:'.padEnd(29, 'b')];
     const saved = storage(), fleet = { state: () => ({ connected: true }), models: () => [model], close() {},
-      execute: vi.fn(async request => ({ threadId: request.threadId, attemptId: request.attemptId,
-        modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'Native answer',
-        usage: { outputTokens: 5 }, execution: { provider: 'peer', peerId: 'native-fixture', placement: 'peer-whole-request' } })) };
+      describeRoute: async () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: recipients, selection: 'all' }),
+      execute: vi.fn(async (request, controls) => {
+        const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients,
+          route: { schema: 'reploid.paired-whole-route/v1', requester: recipients[0], providerIdentity: recipients[1] } }));
+        if (!await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
+          peerId: recipients[0], recipientIdentity: recipients[0], operation: 'generate', disclosure: 'public',
+          modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], expiresAt: Date.now() + 10000,
+          privateDelegation: { poolIdentity: 'fixture' }, inputRecipients: recipients, privacyBinding,
+          input: request.messages })) throw Error('Declined');
+        return { threadId: request.threadId, attemptId: request.attemptId,
+          modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'Native answer',
+          usage: { outputTokens: 5 }, execution: { provider: 'peer', peerId: 'native-fixture', placement: 'peer-whole-request' } };
+      }) };
     const session = createChatSession({ storage: saved, service: createChatTestService(), privateComputers: fleet });
-    const threadId = session.createThread({ model });
+    const threadId = session.createThread({ model, privacy: networkPolicy, executionLocation: 'network' });
     const result = await session.send(threadId, 'Hello');
     expect(result.error).toBeFalsy();
     expect(result.status).toBe('completed');

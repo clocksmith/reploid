@@ -7,7 +7,7 @@ import { createRoutePreference, DEFAULT_ROUTE_PREFERENCE, normalizeRoutePreferen
 const candidate = (name, availableSlots = 1) => ({ peerId: `conn-${name}`, verifiedIdentity: `peer:${name}`, contributionScore: 0, availableSlots });
 const answer = (recipient, { status = 'completed', error = null, characters = 100, seconds = 10, id, model = 'model-a' } = {}) => ({
   attempt: { id, responseId: `${id}-r`, status, error, createdAt: 1000, finishedAt: 1000 + seconds * 1000,
-    request: { model: { identity: model } }, privacyReceipt: { recipients: [recipient] } },
+    request: { model: { identity: model } }, privacyBinding: { route: { hops: [{ recipient, placement: 'remote', disclosure: 'plaintext' }] } } },
   message: { id: `${id}-r`, role: 'assistant', content: 'x'.repeat(characters) }
 });
 const thread = rows => {
@@ -43,7 +43,7 @@ describe('route observations', () => {
 
   it('ignores an answer that crossed several computers', () => {
     const row = thread([['peer:a', {}]]);
-    row.attempts[0].privacyReceipt.recipients = ['peer:a', 'peer:b'];
+    row.attempts[0].privacyBinding.route.hops.push({ recipient: 'peer:b', placement: 'remote', disclosure: 'plaintext' });
     expect(routeObservations([row]).size).toBe(0);
   });
 });

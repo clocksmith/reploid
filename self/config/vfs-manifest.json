@@ -2428,6 +2428,8 @@
     "vendor/reploid/improvement/index.js",
     "vendor/reploid/improvement/tool-objective.js",
     "vendor/reploid/index.js",
+    "vendor/reploid/inference/contract.js",
+    "vendor/reploid/inference/index.js",
     "vendor/reploid/measurement/capacity-utilization.js",
     "vendor/reploid/measurement/index.js",
     "vendor/reploid/measurement/readiness-records.js",

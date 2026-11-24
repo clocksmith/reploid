@@ -1,4 +1,4 @@
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding, executionPrivacyReceipt } from '../../../shared/vendor/reploid/chat/index.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding, executionError } from '../../../shared/vendor/reploid/chat/index.js';
 import { currentPartitionRoute } from './partition-release.js';
 /** Adapt identified chat attempts to existing execution ports; own only the scheduler we create. */
 import { createChatScheduler, remoteDisclosureKind } from '../../../shared/vendor/reploid/chat/index.js';
@@ -125,7 +125,7 @@ export function createChatExecution({ localExecution = true, service, swarm, par
         onDelta: text => controls.onDelta({ threadId, attemptId, sequence: sequence++, text }),
         onState: status => state(status, { provider: 'doppler', placement: 'local-webgpu' })
       });
-      return chatResult(request, result, { provider: 'doppler', placement: 'local-webgpu', privacy: executionPrivacyReceipt(binding) });
+      return chatResult(request, result, { provider: 'doppler', placement: 'local-webgpu' });
     }
 
     assert(swarm?.generate, 'No connected participant can execute this model');
@@ -162,12 +162,44 @@ export function createChatExecution({ localExecution = true, service, swarm, par
       ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
       : { provider: 'doppler', placement: 'local-webgpu' };
     assert(privacyBinding, 'Remote execution has no validated privacy binding');
-    return chatResult(request, result, { ...execution, privacy: executionPrivacyReceipt(privacyBinding) });
+    return chatResult(request, result, execution);
+  };
+
+  /**
+   * The route `execute` would take for this request, described without sending anything: the inference API's
+   * resolveRoute port. It follows the same branches as `execute`, which still enforces each of them.
+   */
+  const resolveRoute = async (request, { model: pin, policy }) => {
+    const unavailable = message => executionError('EXECUTION_ROUTE_UNAVAILABLE', `${message} Nothing was sent.`);
+    const { model } = request;
+    if (model?.id !== pin.id || model.identity !== pin.identity
+      || JSON.stringify((model.adapters || []).map(adapter => adapter.identity)) !== JSON.stringify(pin.adapterIdentities)) {
+      throw unavailable('The prepared model differs from the conversation model.');
+    }
+    const location = request.permissions?.executionLocation ?? 'auto', scope = request.permissions?.sharingScope;
+    if (model.fleet) {
+      if (!fleet?.describeRoute) throw unavailable('Private computers are not connected.');
+      return fleet.describeRoute({ ...request, privacy: policy });
+    }
+    if (model.partition) {
+      if (policy.placement === 'local-only' || location === 'local' || scope === 'local') throw unavailable('This model requires network execution.');
+      const partition = model.partition;
+      const stages = partition.route?.stages?.map(stage => stage.participantId) ?? [partition.participantA, partition.participantB];
+      return { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: [...new Set(stages)], selection: 'all',
+        planIdentity: partition.planId ?? null };
+    }
+    if (policy.placement === 'local-only' || runsHere(model, scope, location)) {
+      if (!localExecution) throw unavailable('This deployment answers on network computers only.');
+      return { shape: 'local', backend: 'doppler-plaintext/v1' };
+    }
+    if (policy.recipients.kind === 'named') return { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...policy.recipients.ids], selection: 'one-of' };
+    return { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' };
   };
 
   let closing = null;
   return Object.freeze({
     execute,
+    resolveRoute,
     /** The disclosure a request for this model would make, or null when it runs on this device. */
     remoteDisclosure: (model, sharingScope, location) => model.fleet ? 'public' : runsHere(model, sharingScope, location) ? null : remoteDisclosureKind(model),
     prepareLocal: model => sessionScheduler.prepare(model),

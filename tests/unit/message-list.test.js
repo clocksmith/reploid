@@ -125,16 +125,17 @@ describe('Stable message presentation', () => {
 });
 
 
-it('keeps privacy tied to the answer after thread policy changes and ignores an approval-only receipt', () => {
+it('keeps who could read the answer tied to its receipt after thread policy changes, and ignores a bare binding', () => {
   const root = document.createElement('div'), thread = conversation(), view = createMessageList(root);
   thread.model = { name: 'Model' };
-  const receipt = { schema: 'reploid.privacy-receipt/v2', computation: 'plaintext', recipients: [] };
-  thread.attempts[0].execution = { placement: 'local-webgpu', privacy: receipt };
+  const receipt = { schema: 'reploid.execution-receipt/v1', route: { shape: 'local', participants: [] }, disclosures: { metadata: [] },
+    evidence: { confidentiality: { verified: [{ claim: 'content-stayed-on-requester-device' }] }, integrity: { verified: [] } } };
+  thread.attempts[0].execution = { placement: 'local-webgpu', receipt };
   thread.privacy = { schema: 'reploid.execution-policy/v2', computation: 'plaintext', recipients: { kind: 'open', ids: [] } };
   view.update(thread, { usable: true, busy: false });
-  expect(root.querySelector('[data-metric="privacy"]').textContent).toBe('Plaintext · This device');
-  delete thread.attempts[0].execution.privacy;
-  thread.attempts[0].privacyReceipt = receipt;
+  expect(root.querySelector('[data-metric="privacy"]').textContent).toBe('Readable by This device');
+  delete thread.attempts[0].execution.receipt;
+  thread.attempts[0].privacyBinding = { route: { hops: [] } };
   view.update(thread, { usable: true, busy: false });
   expect(root.querySelector('[data-metric="privacy"]').textContent).toBe('Disclosure unrecorded');
   view.dispose();

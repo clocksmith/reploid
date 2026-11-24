@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 394,
     "self": 457,
-    "shared": 2510
+    "shared": 2514
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16742,6 +16742,26 @@
     {
       "served": "vendor/reploid/index.js",
       "source": "shared/vendor/reploid/index.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/contract.d.ts",
+      "source": "shared/vendor/reploid/inference/contract.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/contract.js",
+      "source": "shared/vendor/reploid/inference/contract.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/index.d.ts",
+      "source": "shared/vendor/reploid/inference/index.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/index.js",
+      "source": "shared/vendor/reploid/inference/index.js",
       "owner": "shared"
     },
     {

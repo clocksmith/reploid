@@ -1015,23 +1015,18 @@ test('model preview and inference privacy commit independently', async ({ page }
   await picker.locator('[data-model-picker-close]').click();
   await expect(picker).toBeHidden();
   expect(await opener.innerText()).toBe(original);
-  // One sheet chooses the computer and model; the detailed policy is under More options.
+  // One sheet chooses the computer and model; the execution presets are under "Who can read it".
   await page.locator('[data-open-model]').click();
   await expect(picker.locator('[data-execution-choice=local]')).toHaveAttribute('aria-pressed', 'true');
   await picker.screenshot({ path: info.outputPath('answer-on-sheet.png') });
   await picker.locator('[data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');
-  await expect(privacy.locator('option[value=cryptographic]')).toHaveJSProperty('disabled', true);
-  await expect(privacy.locator('option[value=attested]')).toHaveJSProperty('disabled', true);
-  const placement = privacy.locator('[data-privacy-placement]');
-  const recipientMode = privacy.locator('[data-privacy-recipient-mode]');
-  const recipients = privacy.locator('[data-privacy-recipients]');
-  await expect(placement).toHaveValue('local-only');
-  await expect(recipients).toBeHidden();
-  await placement.selectOption('network-allowed');
-  await expect(recipientMode).toHaveValue('none');
-  await recipientMode.selectOption('named');
-  await expect(recipients).toBeVisible();
+  // Each preset states its availability before Send; the confidential one is unavailable and cannot be chosen.
+  await expect(privacy.locator('[value=own-devices]')).toBeChecked();
+  await expect(privacy.locator('[value=no-device]')).toBeDisabled();
+  await expect(privacy.locator('[data-preset-note=no-device]')).toContainText('Unavailable');
+  await expect(privacy.locator('[data-preset-note=standard]')).toContainText('model identity, timing and message sizes');
+  await privacy.locator('[value=standard]').check();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
   await privacy.locator('[data-privacy-cancel]').click();
   await expect(picker).toBeHidden();

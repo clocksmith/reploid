@@ -41,6 +41,7 @@ it.each(['public', 'private'])('retains a %s whole-model receipt through history
       return answer(messages);
     } };
   const fleet = { state: () => ({ connected: true }), models: () => [model], close() {},
+    describeRoute: async () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: [consumer.peerId, provider.peerId], selection: 'all' }),
     async execute(request, controls) {
       const inputRecipients = [consumer.peerId, provider.peerId];
       const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: inputRecipients,

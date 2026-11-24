@@ -77,6 +77,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   // The paired desktop whether or not it is online, because an offline desktop is still the conversation's pin.
   const pairedDesktop = state => lockedDestination(state) ?? (state.ownerPairing?.hostParticipantId
     ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop', status: state.ownerPairing.status } : null);
+  /** Own devices for the presets: only the desktop this device paired with, never an invited host. */
+  const presetContext = state => ({ desktop: state.ownerPairing?.hostParticipantId
+    ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop' } : null });
   const currentRoute = state => {
     const key = destinationKey(state), ids = explicitPrivacy(state).recipients?.ids;
     return key === 'named' && ids?.length === 1 && ids[0] === state.ownerPairing?.hostParticipantId ? 'desktop' : key;
@@ -837,10 +840,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     render(state);
     if (privacyTrigger.disabled) return;
     editingThread = state.selectedId;
-    updatePrivacyControls(privacyNode, currentPolicy(state));
-    privacyDialog.open(privacyNode.querySelector('[data-privacy-placement]'), trigger);
+    updatePrivacyControls(privacyNode, currentPolicy(state), presetContext(state));
+    privacyDialog.open(privacyNode.querySelector('[data-privacy-preset]:checked') || privacyNode.querySelector('[data-privacy-preset]'), trigger);
   };
-  // One "Answer on" sheet: each row applies on tap. The detailed policy dialog stays under More options.
+  // One "Answer on" sheet: each row applies on tap. The execution presets stay under "Who can read it".
   // The model sheet is the one place to choose the computer and the model. Rows apply on tap.
   const openDestination = (trigger, { forSend = false } = {}) => {
     if (privacyTrigger.disabled) return;
@@ -886,7 +889,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-open-privacy]', 'click', event => { if (find('[data-model-picker]').open) picker.close(); openExecutionPolicy(event.currentTarget); });
   on('[data-review-network-execution]', 'click', event => openDestination(event.currentTarget, { forSend: true }));
   on('[data-privacy-controls]', 'change', event => {
-    if (event.target.matches('[data-privacy-recipient-mode], [data-privacy-placement]')) showPrivacyChoices(privacyNode);
+    if (event.target.matches('[data-privacy-preset]')) showPrivacyChoices(privacyNode, presetContext(session.getState()));
   });
   on('[data-privacy-cancel]', 'click', () => privacyDialog.close());
   on('[data-privacy-apply]', 'click', async () => {
@@ -895,7 +898,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const apply = find('[data-privacy-apply]');
     applyingPrivacy = apply.disabled = true;
     try {
-      const privacy = readPrivacyControls(privacyNode);
+      const privacy = readPrivacyControls(privacyNode, { ...presetContext(state), current: currentPolicy(state) });
       viewState.privacyTouched = true;
       if (state.activeThread) {
         await session.setExecutionPrivacy(state.activeThread.id, privacy);

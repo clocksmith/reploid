@@ -101,7 +101,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <p data-next-model-status role="status" hidden></p>
         <button class="pool-button btn-ghost" type="button" data-switch-local hidden>Switch to this device</button>
         ${renderModelSelectionDetails()}</div>
-        <div class="chat-network-actions"><button class="pool-button btn-primary" type="button" data-change-model>Done</button><button class="pool-button btn-ghost" type="button" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog">More options</button></div>
+        <div class="chat-network-actions"><button class="pool-button btn-primary" type="button" data-change-model>Done</button><button class="pool-button btn-ghost" type="button" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog">Who can read it</button></div>
       </dialog>
     </section>
     ${inspector ? renderModelSetupDialog() : ''}

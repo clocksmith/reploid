@@ -55,32 +55,31 @@ describe('Conversation workspace', () => {
     input.value = 'Keep this question'; input.dispatchEvent(new Event('input', { bubbles: true }));
     const shield = find('[data-model-picker] [data-open-privacy]');
     expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
-    // The composer's one control opens the Answer on sheet; the detailed policy sits under More options.
+    // The composer's one control opens the Answer on sheet; the execution presets sit under "Who can read it".
     const advanced = () => { find('[data-open-model]').click(); expect(find('[data-model-picker]').open).toBe(true); shield.click(); };
+    const choose = value => { for (const radio of dialog.querySelectorAll('[data-privacy-preset]')) radio.checked = radio.value === value;
+      dialog.querySelector(`[value="${value}"]`).dispatchEvent(new Event('change', { bubbles: true })); };
     advanced();
     const dialog = find('[data-privacy-dialog]');
     expect(dialog.open).toBe(true);
-    find('[data-privacy-placement]').value = 'network-allowed'; find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
-    expect(find('[data-privacy-recipients-label]').hidden).toBe(true);
-    find('[data-privacy-recipient-mode]').value = 'named'; find('[data-privacy-recipient-mode]').dispatchEvent(new Event('change', { bubbles: true }));
-    const ids = find('[data-privacy-recipients]'); ids.value = 'peer:a';
+    expect(shield.textContent).toBe('Who can read it');
+    // A new local conversation is on this device: "Only your devices". Each preset states availability before Send.
+    expect(dialog.querySelector('[value="own-devices"]').checked).toBe(true);
+    expect(dialog.querySelector('[value="no-device"]').disabled).toBe(true);
+    expect(dialog.querySelector('[data-preset-note="own-devices"]').textContent).toMatch(/^Available on this device only/);
+    expect(dialog.querySelector('[data-preset-note="no-device"]').textContent).toMatch(/^Unavailable/);
+    choose('standard');
     await session.renameThread(id, 'Refresh the workspace');
-    expect(ids.value).toBe('peer:a');
+    expect(dialog.querySelector('[value="standard"]').checked).toBe(true);
     find('[data-privacy-cancel]').click();
     expect(session.getState().activeThread.privacy).toMatchObject({ placement: 'local-only', recipients: { kind: 'none', ids: [] } });
     advanced();
-    expect(find('[data-privacy-placement]').value).toBe('local-only');
-    expect(ids.value).toBe('');
-    find('[data-privacy-placement]').value = 'network-allowed'; find('[data-privacy-placement]').dispatchEvent(new Event('change', { bubbles: true }));
-    expect(find('[data-privacy-recipients-label]').hidden).toBe(true);
-    find('[data-privacy-recipient-mode]').value = 'named'; find('[data-privacy-recipient-mode]').dispatchEvent(new Event('change', { bubbles: true }));
+    expect(dialog.querySelector('[value="own-devices"]').checked).toBe(true);
+    choose('standard');
     find('[data-privacy-apply]').click();
-    expect(dialog.open).toBe(true);
-    expect(find('[data-privacy-error]').textContent).toMatch(/at least one/);
-    ids.value = 'peer:b'; find('[data-privacy-apply]').click();
     await vi.waitFor(() => expect(dialog.open).toBe(false));
-    expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'named', ids: ['peer:b'] });
-    expect(find('[data-composer-model-source]').textContent).toBe('Named computers');
+    expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'open', ids: [] });
+    expect(find('[data-composer-model-source]').textContent).toBe('Contributors');
     expect(shield.title).toBe('');
     expect(input.value).toBe('Keep this question');
     expect(session.getState().activeThread.messages).toHaveLength(0);

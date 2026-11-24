@@ -10,7 +10,8 @@ import { availablePartitionRoute } from './partition-release.js';
  * fair device scheduling, and truthful execution placement.
  */
 import { createChatWorkspace, createRemotePermission, createSearchPermission, remotePermissionCovers, remotePermissionNeed,
-  searchPermissionWording, validPermissionWording, validateRemotePermission } from '../../../shared/vendor/reploid/chat/index.js';
+  searchPermissionWording, validPermissionWording, validateRemotePermission, executionRequirementsFor, EXECUTION_ERROR_CODES } from '../../../shared/vendor/reploid/chat/index.js';
+import { createInference } from '../../../shared/vendor/reploid/inference/index.js';
 import { createReploidDopplerRuntimeService } from '../../../shared/infrastructure/doppler-runtime-service.js';
 import { ROUTE_ENVELOPE_POLICY } from '../../../shared/vendor/reploid/mesh/partitions/partition-route-envelope.js';
 import { createModelAcquisition } from './model-acquisition.js';
@@ -193,6 +194,34 @@ export function createChatSession({
       notifyAll();
     } });
 
+  // Conversations use the same requester API as the CLI and the SDK: prepare a pinned route, then run it.
+  const inference = createInference({
+    resolveRoute: (request, { context }) => execution.resolveRoute(context.request, request),
+    async execute({ policy, request }, controls, context) {
+      try {
+        const value = await execution.execute({ ...context.request, privacy: policy, messages: request.messages }, controls);
+        context.raw = value;
+        return value;
+      } catch (error) { context.failure = error; throw error; }
+    }
+  });
+  async function runConversationRequest(request, controls) {
+    const context = { request, controls, raw: null, failure: null };
+    const plan = await inference.prepare({
+      model: { id: request.model.id, identity: request.model.identity, adapterIdentities: (request.model.adapters || []).map(adapter => adapter.identity) },
+      ...(request.maxOutputTokens !== undefined ? { generation: { maxOutputTokens: request.maxOutputTokens } } : {}),
+      execution: executionRequirementsFor(request.privacy)
+    }, { signal: controls.signal, context });
+    const run = await inference.run({ planId: plan.id, requestId: request.attemptId, input: { messages: request.messages } },
+      { signal: controls.signal, approve: preview => controls.requestApproval(preview), context });
+    const result = await run.result;
+    if (result.status === 'completed') return { raw: context.raw, result };
+    // Keep the executor's own error (with its credit outcome) unless the inference layer refused first.
+    if (context.failure && !Object.hasOwn(EXECUTION_ERROR_CODES, result.error.code)) throw context.failure;
+    throw Object.assign(new Error(result.error.message), { code: result.error.code,
+      ...(result.settlement ? { serviceCredit: result.settlement } : {}) });
+  }
+
   const workspace = createChatWorkspace({
     meshId,
     participantId,
@@ -231,12 +260,12 @@ export function createChatSession({
     retrieval,
     store,
     execute: async (request, controls) => {
-      const result = await execution.execute(request, controls);
+      const { raw, result } = await runConversationRequest(request, controls);
       // Retain the execution port's evidence with the saved attempt. Archiving it
       // neither verifies it again nor establishes a credit settlement.
-      return result.usage || result.executionReceipt ? { ...result, execution: { ...result.execution,
-        ...(result.usage ? { usage: result.usage } : {}),
-        ...(result.executionReceipt ? { executionReceipt: structuredClone(result.executionReceipt) } : {}) } } : result;
+      return { ...raw, execution: { ...raw.execution, receipt: result.executionReceipt,
+        ...(raw.usage ? { usage: raw.usage } : {}),
+        ...(raw.executionReceipt ? { executionReceipt: structuredClone(raw.executionReceipt) } : {}) } };
     },
     now,
     id

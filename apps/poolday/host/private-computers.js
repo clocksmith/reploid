@@ -1,11 +1,30 @@
 /** A paired native host owns the private room, keys, placement and credit ledger.
  * Browser history remains here. Pairing is explicit and limited to this tab. */
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, executionPrivacyReceipt } from '../../../shared/vendor/reploid/chat/index.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, bindExecutionRoute, executionError } from '../../../shared/vendor/reploid/chat/index.js';
 import { abortable } from '../../../shared/vendor/reploid/cancellation.js';
 
 const KEY = 'reploid.private-computers:v2';
 const ROUTE_PROTOCOL = 'reploid.paired-route/v3';
 const assert = (ok, message) => { if (!ok) throw Error(message); };
+/** The first enrolled, complete paired route that binds under the request's policy, in the host's order. */
+async function firstPairedBinding(input, selected, binding) {
+  const { model } = input;
+  for (const { route, selection } of selected.executionRoutes || []) {
+    try {
+      const enrolled = new Set([binding.requester.participantId, ...binding.computers.flatMap(row => row.participantIds)]);
+      const expected = new Set([binding.requester.participantId, ...(selection.partition?.schema === 'reploid.partition-selection/v2'
+        ? selection.partition.route.stages.map(stage => stage.participantId)
+        : [route.route?.providerIdentity])]);
+      assert([...expected].every(id => typeof id === 'string' && enrolled.has(id))
+        && route.hops.length === expected.size
+        && new Set(route.hops.map(hop => hop.recipient)).size === expected.size
+        && route.hops.every(hop => hop.placement === 'remote' && expected.has(hop.recipient)), 'Paired route recipient set is incomplete or changed');
+      assert(selection.id === model.id && selection.identity === model.identity, 'Paired route substituted the selected model');
+      return await bindExecutionRoute({ ...input, model: selection }, route);
+    } catch { /* This candidate does not meet the request requirements. */ }
+  }
+  return null;
+}
 export function createPrivateComputers({ storage = globalThis.sessionStorage, fetchImpl = globalThis.fetch, onChange = () => {} } = {}) {
   let connection = null, snapshot = null, error = '', busy = false, closed = false, epoch = 0;
   const active = new Map();
@@ -82,6 +101,19 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
         && stateAtSend.requester.participantId === snapshot?.requester?.participantId, 'Pairing changed before recovery');
       return (await call('/recover', { ...original, privacyBinding: checked, poolIdentity: stateAtSend.poolIdentity }, signal, target)).json();
     },
+    /** The paired route `execute` would bind, described for an inference plan. Sends nothing to the host. */
+    async describeRoute(request) {
+      const input = structuredClone(request);
+      const selected = models().find(model => model.selectionId === input.model.selectionId && model.identity === input.model.identity);
+      if (!state().connected || !selected || input.model.fleet?.poolIdentity !== snapshot.poolIdentity || snapshot.privacyProtocol !== ROUTE_PROTOCOL) {
+        throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'This private pool is unavailable or has changed. Nothing was sent.');
+      }
+      input.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(input));
+      const bound = await firstPairedBinding(input, selected, snapshot);
+      if (!bound) throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'No paired route satisfies this execution policy. Nothing was sent.');
+      return { shape: bound.route.backend === 'doppler-partition-plaintext/v1' ? 'split' : 'remote', backend: bound.route.backend,
+        participants: bound.route.hops.map(hop => hop.recipient), selection: 'all', maxCharge: selected.creditCap ?? null };
+    },
     async execute(request, controls) {
       assert(!closed, 'Private computers are closed');
       const input = structuredClone(request), target = connection, version = epoch;
@@ -100,22 +132,7 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
         'Private pairing changed. Retry starts a new authorized attempt.');
       };
       assert(binding.privacyProtocol === ROUTE_PROTOCOL, 'Paired execution requires current exact-route preflight');
-      let privacyBinding;
-      for (const { route, selection } of selected.executionRoutes || []) {
-        try {
-          const enrolled = new Set([binding.requester.participantId, ...binding.computers.flatMap(row => row.participantIds)]);
-          const expected = new Set([binding.requester.participantId, ...(selection.partition?.schema === 'reploid.partition-selection/v2'
-            ? selection.partition.route.stages.map(stage => stage.participantId)
-            : [route.route?.providerIdentity])]);
-          assert([...expected].every(id => typeof id === 'string' && enrolled.has(id))
-            && route.hops.length === expected.size
-            && new Set(route.hops.map(hop => hop.recipient)).size === expected.size
-            && route.hops.every(hop => hop.placement === 'remote' && expected.has(hop.recipient)), 'Paired route recipient set is incomplete or changed');
-          assert(selection.id === model.id && selection.identity === model.identity, 'Paired route substituted the selected model');
-          privacyBinding = await bindExecutionRoute({ ...input, model: selection }, route);
-          break;
-        } catch { /* This candidate does not meet the request requirements. */ }
-      }
+      const privacyBinding = await firstPairedBinding(input, selected, binding);
       assert(privacyBinding, 'No paired route satisfies this execution policy; nothing was sent');
       const recipients = privacyBinding.route.hops.map(hop => hop.recipient);
       const publicNames = Object.fromEntries(binding.computers.flatMap(row => row.participantIds.map(id => [id, row.name])));
@@ -191,7 +208,7 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
           execution: { ...result.execution, provider: 'peer', peerId: result.execution?.providerIdentity || result.execution?.peerId,
             stopReason: result.execution?.stopReason ?? result.execution?.completion?.stopReason,
             ...(result.execution?.admission || placement.admission ? { admission: result.execution?.admission ?? placement.admission } : {}),
-            privacy: executionPrivacyReceipt(privacyBinding), privateDelegation: placement.privateDelegation, serviceCredit: result.serviceCredit } };
+            privateDelegation: placement.privateDelegation, serviceCredit: result.serviceCredit } };
       } catch (error) {
         if (dispatched && !closed && version === epoch) controls.onState({ threadId, attemptId, status: 'executing', execution: {
           ...placement, serviceCredit: error.serviceCredit || placement.serviceCredit } });

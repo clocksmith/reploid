@@ -54,7 +54,8 @@ export function routeObservations(threads = [], modelIdentity = null) {
   const rows = new Map();
   for (const thread of threads || []) {
     for (const attempt of thread?.attempts || []) {
-      const recipients = attempt?.privacyReceipt?.recipients;
+      // The recipients the attempt's execution binding admitted before disclosure.
+      const recipients = attempt?.privacyBinding?.route?.hops?.filter(hop => hop.placement === 'remote').map(hop => hop.recipient);
       // An answer that crossed several computers says nothing about any one of them.
       if (!Array.isArray(recipients) || recipients.length !== 1) continue;
       const row = rows.get(recipients[0]) ?? { completed: 0, dropped: 0, rates: [] };

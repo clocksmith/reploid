@@ -20,15 +20,14 @@ async function chooseComputer(page, choice) {
   await expect(page.locator('[data-model-picker]')).toBeHidden();
 }
 
-// More options opens the detailed policy dialog from that sheet; "any eligible computer" keeps automatic placement.
+// "Who can read it" opens the execution presets from that sheet; Standard keeps automatic placement.
 async function allowOpenNetwork(page) {
   await page.locator('[data-open-model]').click();
   await page.locator('[data-model-picker] [data-open-privacy]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
   const policy = page.locator('[data-privacy-dialog]');
   await expect(policy).toBeVisible();
-  await policy.locator('[data-privacy-placement]').selectOption('network-allowed');
-  await policy.locator('[data-privacy-recipient-mode]').selectOption('open');
+  await policy.locator('[value=standard]').check();
   await policy.locator('[data-privacy-apply]').click();
   await expect(policy).toBeHidden();
 }
