@@ -167,6 +167,21 @@ none retaining the complete weight set, and a requester without weights. Verify
 per-executor inventories and selective acquisition. Separately authorized storage
 suppliers may retain a complete model; preserve full-model seeding under REP-5.
 
+| Inference route | Execution | Requester weights | Current qualification |
+| --- | --- | --- | --- |
+| Local solo | Requester runs all layers | Loads full weights | Supported under the `local-execution` entry in the [claim index](status/surface-claim-index.json). A [27B run on a 24 GiB Metal requester](../reports/fleet-browser/20261111/README.md#4-qwen3-8-27b-text-q4k-ehaf16-placement-comparison) matched the reference answer while paging memory. |
+| Remote solo | One peer runs all layers | Loads zero weights | Physically checked on Qwen 0.8B through the [signed API, with mid-stream cancellation and no open hold](../reports/release-015-qualification/signed-api-and-cancellation.json), and through a [fresh browser](../reports/release-015-qualification/fresh-browser-conversation.json). Both recorded zero requester weight downloads. |
+| Local + peer split | Requester executes a stage; a peer executes the rest | Loads only its own shard | Not qualified. A [2B run](../reports/fleet-native/20261110/README.md#retained-physical-checks) covered cancellation and released holds but not full numerical qualification. A [27B run](../reports/fleet-browser/20261111/README.md#4-qwen3-8-27b-text-q4k-ehaf16-placement-comparison) matched the reference answer, but its 17.00 GB requester acquisition is the full model size, so shard-only loading is not shown. |
+| Remote-only split | Two or more peers execute the stages | Loads zero weights | Not qualified. No retained public receipt shows physical peers completing a split for a requester holding zero weights. The [27B readiness record](../reports/release-015-qualification/fleet-27b-readiness.json) stopped before live execution because the second host was unreachable. A [two-host 0.8B CPU run](../reports/fleet-split/20261120/private-software.json) produced one token with the requester sharing a process with stage zero. |
+
+A weight supplier can serve a full model or shards without executing inference.
+Split executors exchange activations during inference, not weights at each token.
+
+Qualify both split routes on physical hosts with a pinned model and plan, per-host
+weight inventories, exact reference tokens, and cancellation without a stranded
+hold. The larger-than-either-host claim additionally needs both solo controls to
+fail at the same settings.
+
 Remote executors receive disclosed text, tokens and intermediate representations;
 tokens, transport encryption and signatures do not establish confidential execution.
 Describe prior turns and attached/retrieved context before relying on a grant.
@@ -215,4 +230,4 @@ sent for synthesis is limited to the current question and retrieved passages; fi
 and unrelated conversation history stay excluded from search. An active attempt
 cannot silently switch its search provider or execution recipients.
 
-*Last updated: October 2026*
+*Last updated: November 2026*

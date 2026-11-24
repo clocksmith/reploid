@@ -29,9 +29,11 @@ acceptance and do not establish demand or mandate concurrent implementation.
 ## Invariants
 
 - Qualification is scoped to the frozen model, audience, service terms and
-  contributor cohort. Whole-model generation is the default when an eligible
-  participant fits the exact model and execution envelope. Partition only when none
-  fits, and require a matched complete-request comparison.
+  contributor cohort. Automatic routing may prefer a qualified whole-model route.
+  An explicitly requested split may use a qualified split route even when a
+  whole-model host fits. Never change the recipient set or route type silently.
+  This is a target policy, not a claim that the chooser already supports it.
+  Split qualification requires a matched complete-request comparison.
   Failed thresholds or exhausted exposure caps close that cell without implicit
   expansion. Actual-use acceptance precedes transaction experiments; promised
   hardware alone establishes no supply. Preserve already accepted obligations.
@@ -91,4 +93,4 @@ Related: [GOALS.md](GOALS.md), [CATSCAN.md](CATSCAN.md).
 <a id="development-checks"></a>
 <a id="recorded-evidence"></a>
 
-*Last updated: October 2026*
+*Last updated: November 2026*

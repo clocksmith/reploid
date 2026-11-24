@@ -4,7 +4,9 @@
 
 Owner clarification, November 22, 2026: the target is an inference exchange.
 Contributors earn credits by serving others, then spend them from the same
-account on pooled compute they cannot supply alone. From a browser that downloads
+account on pooled compute they cannot supply alone.
+
+Pooled-capacity proof, not the bar for every request: from a browser that downloads
 zero weights, a developer runs a private coding task on a pinned model that
 neither participating machine can complete alone at the required context and
 precision, and the output matches a larger single-host reference. Before
@@ -58,10 +60,11 @@ contributors need not manually operate layers or rooms. This is the intended
 service, not a claim that interruption-free execution or product fit is established.
 Preserved conversation history is distinct from recovered inference state.
 
-Whole-model execution is the generation default whenever an eligible participant
-fits the exact model, context and execution state. Partitioning is eligible only
-when no such participant fits. Independent retrieval jobs, whole-model requests
-and partitioned inference have separate acceptance and economic evidence.
+Automatic routing may prefer a qualified whole-model route. An explicitly requested
+split may use a qualified split route even when a whole-model host fits. Never
+change the recipient set or route type silently. This is a target policy, not a
+claim that the chooser already supports it. Independent retrieval jobs, whole-model
+requests and partitioned inference have separate acceptance and economic evidence.
 
 Participants control contribution, disclosure, resource limits and stopping.
 Model identity, accepted permissions, deadlines and spending bounds constrain
@@ -90,9 +93,9 @@ supplies participation and authorized data-transfer infrastructure. Zero and X r
 their research scope. Research capabilities below do not select customer workloads.
 
 Poolday turns available consumer hardware into useful inference capacity that
-people can exchange or sell. When one machine runs a model efficiently, it handles
-the whole request. Machines combine only when that unlocks capacity or improves
-measured economics. Production is proven before monetization. On a few models
+people can exchange or sell. Machines combine when that unlocks capacity, improves
+measured economics, or the requester explicitly asks for a split route. Production
+is proven before monetization. On a few models
 and representative machines, measure output quality, prompt processing, delivered
 tokens per second, memory, loading cost and recovery after a contributor leaves.
 Compare whole-machine and distributed execution against credible alternatives.
@@ -114,8 +117,8 @@ browser library without inheriting a particular interface or credential system.
    practical capacity. Participation provides an otherwise unavailable capability,
    better results, greater reliability, or lower total resource cost, including
    through parallel investigations by complementary agents.
-2. Where no eligible participant fits the exact model, combine compatible
-   machines to provide otherwise unavailable execution capacity.
+2. Combine compatible machines to provide otherwise unavailable execution
+   capacity, or when a requester explicitly chooses a qualified split route.
    Qualify each advance with identified artifacts, declared numerical tolerances,
    and measured correctness, latency, allocation budgets, and availability.
 3. Reuse verified content and reduce repeated acquisition. Retain complementary
