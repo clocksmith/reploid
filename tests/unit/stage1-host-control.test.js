@@ -361,7 +361,7 @@ describe('token evidence', () => {
 });
 
 describe('fake token text', () => {
-  it.each([['22', 2], ['A multi-character answer that spans many more characters than tokens.', 7], ['short', 9], ['naïve 🙂 text', 4]])('rebuilds %j across %i tokens', (text, count) => {
+  it.each([['22', 2], ['A multi-character answer that spans many more characters than tokens.', 7], ['short', 9], ['naïve \u{1F642} text', 4]])('rebuilds %j across %i tokens', (text, count) => {
     const parts = fakeTokenTexts(text, count);
     expect(parts).toHaveLength(count);
     expect(parts.join('')).toBe(text);

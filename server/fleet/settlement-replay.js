@@ -30,7 +30,6 @@ import {
 } from './settlement-terms.js';
 
 export const SETTLEMENT_REPLAY_SCHEMA = 'reploid.settlement-replay/v1';
-const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 const ms = value => Date.parse(value);
 const signedBody = record => { const { publicJwk: _key, signature: _signature, ...body } = record; return body; };
 
