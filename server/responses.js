@@ -1,7 +1,8 @@
 /** Stateless Responses protocol with client function tools. No response store, continuation lookup or hosted tools. */
 import { randomUUID } from 'node:crypto';
 import { canonicalTextRequest, parseTextChatCompletion, stripDescriptiveKeywords } from './chat-completions.js';
-import { createTextRequester, fail, object, freeze } from './text-requester.js';
+import { createTextRequester } from './text-requester.js';
+import { fail, object, freeze } from './text-request-values.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 const MAX_CALL_ID = 128, ARGUMENT_FRAGMENT = 96;

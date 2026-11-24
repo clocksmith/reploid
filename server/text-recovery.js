@@ -1,6 +1,7 @@
 import { createHttpRequestOwner } from './http-request-owner.js';
 /** Authenticated recovery of an existing accepted request; this never generates. */
-import { readBody, fail, object } from './text-requester.js';
+import { readBody } from './text-requester.js';
+import { fail, object } from './text-request-values.js';
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 
 export const TEXT_RECOVERY_PATH = '/v1/reploid/recover';

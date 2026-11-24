@@ -1,4 +1,4 @@
-import { fail, object, freeze } from './text-requester.js';
+import { fail, object, freeze } from './text-request-values.js';
 import { compileExecutionRequirements, EXECUTION_BACKENDS } from '../shared/vendor/reploid/chat/execution-policy.js';
 
 /** HTTP status for each stable inference refusal code. The body's error.code is the code in lower case. */

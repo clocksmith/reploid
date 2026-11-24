@@ -1,5 +1,6 @@
 import { createInference } from '../shared/vendor/reploid/inference/index.js';
 import { createHttpRequestOwner } from './http-request-owner.js';
+import { fail, assert, object, freeze } from './text-request-values.js';
 import { parseExecutionExtension, executionFailure, STANDARD_HTTP_EXECUTION, EXECUTION_ERROR_STATUS } from './text-request-options.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../shared/vendor/reploid/mesh/partitions/partition-generation-request.js';
@@ -30,10 +31,6 @@ export function deriveStatelessConversationThreadId({ subject, modelIdentity, me
   return 'conv_' + createHash('sha256').update(JSON.stringify([salt, subject, modelIdentity, root])).digest('hex').slice(0, 32);
 }
 
-export const fail = (status, message, param = null) => Object.assign(new Error(message), { status, param });
-export const assert = (ok, message) => { if (!ok) throw fail(502, message); };
-export const object = value => value && typeof value === 'object' && !Array.isArray(value);
-export const freeze = value => { if (object(value) || Array.isArray(value)) { for (const item of Object.values(value)) freeze(item); Object.freeze(value); } return value; };
 const json = (res, status, value) => { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(value)); };
 const errorBody = (error, model) => ({ error: { message: error.message, type: error.status < 500 ? 'invalid_request_error' : 'server_error',
   param: error.param || null, code: Object.hasOwn(EXECUTION_ERROR_STATUS, error.code ?? '') ? error.code.toLowerCase()

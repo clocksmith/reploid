@@ -1,6 +1,7 @@
 /** Text Chat Completions protocol over the existing authenticated HTTP requester. */
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
-import { createTextRequester, fail, object, freeze } from './text-requester.js';
+import { createTextRequester } from './text-requester.js';
+import { fail, object, freeze } from './text-request-values.js';
 import { normalizeGenerationSettings } from '../shared/vendor/reploid/mesh/generation-settings.js';
 import { assertSupportedSchema } from '../shared/infrastructure/output-constraint.js';
 

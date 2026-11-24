@@ -1,7 +1,8 @@
 /** Stateless Anthropic-shaped Messages over declared local token semantics, with client tools. */
 import policy from '../apps/poolday/config/partition-policy.json' with { type: 'json' };
 import { canonicalTextRequest, parseTextChatCompletion, stripDescriptiveKeywords } from './chat-completions.js';
-import { createTextRequester, fail, object, freeze } from './text-requester.js';
+import { createTextRequester } from './text-requester.js';
+import { fail, object, freeze } from './text-request-values.js';
 import { EXECUTION_ERROR_STATUS } from './text-request-options.js';
 
 const MAX_TOOL_USE_ID = 128, INPUT_FRAGMENT = 96;
