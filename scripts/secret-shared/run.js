@@ -16,10 +16,15 @@
  *
  *   node scripts/secret-shared/run.js --hosts PRIVATE_FILE --work DIRECTORY --out RECEIPT_DIRECTORY
  *
- * The requester and share operators it starts are JavaScript under this Node binary: the requester (`jsRequester.script`, Doppler's JS
- * secret-shared requester) and each share operator (`operatorScript`, e.g. Doppler's `tools/secret-shared/gpu/operator-gpu.js`).
- * Reploid runs JavaScript only: the former Python requester and Go operator are refused. Until Doppler's JS requester
- * lands (branch secret-shared-2party), the host file cannot name one and the harness refuses.
+ * The requester and share operators it starts are JavaScript under this Node binary: the requester (`jsRequester.script`,
+ * Doppler's `tools/secret-shared/requester/requester.js`, branch secret-shared-2party-js) and each share operator
+ * (`operatorScript`, Doppler's `tools/secret-shared/gpu/operator-gpu.js`, run with `--device cpu` or `gpu`). Reploid runs
+ * JavaScript only: the former Python requester and Go operator are refused.
+ *
+ * Host file, per operator: `listen` (the operator listens; `endpoint` is { host, port }) or `connect` (the operator dials
+ * the requester, for hosts that accept no inbound connections; `endpoint` is { accept: 'HOST:PORT' } on the requester),
+ * and an optional `device` ('cpu' by default). `jsRequester` may set `threads` (default 1), `returnShift` (24 for 40-bit
+ * returns) and `prg` ('aes256-ctr'); the requester uses an option only with operators that advertise it.
  *
  * Operator processes are started per attempt and stopped after it; standing services are not touched. The receipt
  * carries no host path, SSH alias or address from the host file. A pass is not a security review, a separate-operator
@@ -121,12 +126,15 @@ export function validateSecretSharedConfig(config) {
   if (config?.schema !== SECRET_SHARED_HOSTS_SCHEMA) refuse('schema');
   if (config.python !== undefined) refuse('python: the Python requester was removed (Reploid runs JavaScript only); name Doppler\'s JS requester in jsRequester.script');
   if (!JS_SCRIPT.test(config.jsRequester?.script ?? '') || typeof config.jsRequester?.model !== 'string') {
-    refuse('jsRequester: needs { script, model } with a .js/.mjs script; Doppler\'s JS secret-shared requester (branch secret-shared-2party) has not landed, so this harness refuses until it does');
+    refuse('jsRequester: needs { script, model } with a .js/.mjs script: Doppler\'s tools/secret-shared/requester/requester.js (branch secret-shared-2party-js)');
   }
   if (!Array.isArray(config.operators) || config.operators.length < 2) refuse('operators');
   const stages = new Map();
   for (const op of config.operators) {
-    for (const key of ['label', 'machineId', 'stage', 'share', 'agent', 'identityFile', 'operatorScript', 'modelDirectory', 'listen', 'endpoint', 'workDirectory']) if (op[key] === undefined) refuse(`operator.${key}`);
+    for (const key of ['label', 'machineId', 'stage', 'share', 'agent', 'identityFile', 'operatorScript', 'modelDirectory', 'endpoint', 'workDirectory']) if (op[key] === undefined) refuse(`operator.${key}`);
+    if ((op.listen === undefined) === (op.connect === undefined)) refuse(`operator.listen or operator.connect: ${op.label} needs exactly one`);
+    if (op.connect !== undefined && typeof op.endpoint?.accept !== 'string') refuse(`operator.endpoint: ${op.label} dials the requester, so its endpoint is { accept: 'HOST:PORT' }`);
+    if (op.device !== undefined && !['cpu', 'gpu'].includes(op.device)) refuse(`operator.device: ${op.label} is cpu or gpu`);
     if (!JS_SCRIPT.test(op.operatorScript)) refuse(`operator.operatorScript: ${op.label} must be a JavaScript operator (.js/.mjs); the Go operator is refused`);
     stages.set(op.stage, [...(stages.get(op.stage) ?? []), op]);
   }
@@ -141,7 +149,7 @@ export function validateSecretSharedConfig(config) {
 
 export async function runSecretShared({ config, directory, log = () => {}, now = Date.now, transport = createSshTransport() }) {
   validateSecretSharedConfig(config);
-  await fs.access(config.jsRequester.script).catch(() => { throw Error('secret-shared-config: jsRequester.script does not exist; Doppler\'s JS requester has not landed'); });
+  await fs.access(config.jsRequester.script).catch(() => { throw Error('secret-shared-config: jsRequester.script does not exist (Doppler tools/secret-shared/requester/requester.js)'); });
   const redactor = createRedactor(config);
   const stamp = () => new Date(now()).toISOString();
   const steps = [];
@@ -313,7 +321,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
             await session.hello;
             await session.call('identity', { file: op.identityFile });
             await session.call('open', { operatorScript: op.operatorScript, plan: planBytes.toString('utf8'), modelDirectory: op.modelDirectory, stage: op.stage, share: op.share,
-              listen: op.listen, threads: op.threads ?? 0, token, workDirectory: op.workDirectory });
+              listen: op.listen, connect: op.connect, device: op.device ?? 'cpu', threads: op.threads ?? 0, token, workDirectory: op.workDirectory });
             held.acceptances.push(await session.call('accept', { terms: held.terms, partitionIndex: index + 1 }));
           }
           held.acceptances.push(await acceptSettlementTerms({ signer: signers.edgeOut, terms: held.terms, partitionIndex: stageIds.length - 1 }));
@@ -333,7 +341,9 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
           await fs.writeFile(opsFile, JSON.stringify({ token, stages: plan.stages.map(stage => [0, 1].map(share => proven.find(op => op.stage === stage.index && op.share === share).endpoint)) }), { mode: 0o600 });
           await fs.writeFile(requestFile, JSON.stringify({ messages, maxTokens: kase.maxTokens }));
           requesterChild = spawn(process.execPath, [config.jsRequester.script, 'run', '--model', config.jsRequester.model, '--plan', config.plan,
-            '--operators', opsFile, '--request', requestFile, '--out', reportFile, '--threads', String(config.jsRequester.threads ?? 4)], { stdio: ['pipe', 'pipe', 'pipe'] });
+            '--operators', opsFile, '--request', requestFile, '--out', reportFile, '--threads', String(config.jsRequester.threads ?? 1),
+            ...(config.jsRequester.returnShift ? ['--return-shift', String(config.jsRequester.returnShift)] : []),
+            ...(config.jsRequester.prg ? ['--prg', config.jsRequester.prg] : [])], { stdio: ['pipe', 'pipe', 'pipe'] });
           const stderr = [];
           readline.createInterface({ input: requesterChild.stderr }).on('line', line => { if (stderr.length < 50 && !/fast path/.test(line)) stderr.push(line.slice(0, 300)); });
           signal.addEventListener('abort', () => requesterChild.stdin.write('stop\n'), { once: true });

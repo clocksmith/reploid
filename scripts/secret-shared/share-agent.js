@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Supervisor for one share operator of a secret-shared split (Doppler `tools/secret-shared/operator`).
+ * Supervisor for one share operator of a secret-shared split (Doppler `tools/secret-shared/gpu/operator-gpu.js`).
  *
  * It holds the operator's signing identity, runs the JavaScript operator (e.g. Doppler's `tools/secret-shared/gpu/operator-gpu.js`)
  * under this Node binary as a child with `--gate` (Reploid runs JavaScript only; a Go operator binary is refused), and signs this share's
@@ -64,14 +64,17 @@ export function createShareAgent({ spawnOperator = (command, args, env) => spawn
       return { participantId: identity.peerId, publicJwk: identity.publicJwk, host: os.hostname().length > 0 };
     },
     /** Start the operator child for one stage share and wait until it listens. */
-    async open({ operatorScript, plan, modelDirectory, stage, share, listen, threads = 0, token, workDirectory }) {
+    async open({ operatorScript, plan, modelDirectory, stage, share, listen, connect, device = 'cpu', threads = 0, token, workDirectory }) {
       if (child) throw Error('An operator is already running');
       if (!/\.m?js$/.test(operatorScript ?? '')) throw Error('operator-refused: the operator must be a JavaScript script (.js/.mjs); Reploid runs JavaScript only');
       await fs.mkdir(workDirectory, { recursive: true });
       const planFile = path.join(workDirectory, `plan-${stage}-${share}.json`);
       await fs.writeFile(planFile, plan);
+      if ((listen === undefined) === (connect === undefined)) throw Error('operator-refused: give the operator exactly one of listen or connect');
+      if (!['cpu', 'gpu'].includes(device)) throw Error('operator-refused: device is cpu or gpu');
+      // --connect: the operator dials the requester (hosts that accept no inbound connections); the protocol is unchanged.
       child = spawnOperator(process.execPath, [operatorScript, '--plan', planFile, '--model-dir', modelDirectory, '--stage', String(stage), '--share', String(share),
-        '--listen', listen, '--threads', String(threads), '--gate'], { ...process.env, SS_TOKEN: token });
+        ...(connect !== undefined ? ['--connect', connect] : ['--listen', listen]), '--device', device, '--threads', String(threads), '--gate'], { ...process.env, SS_TOKEN: token });
       exited = new Promise(resolve => child.once('exit', (code, signal) => resolve({ code, signal })));
       ready = new Promise((resolve, reject) => {
         const lines = readline.createInterface({ input: child.stdout });
