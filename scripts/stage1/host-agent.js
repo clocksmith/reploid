@@ -186,6 +186,7 @@ export function createSessionOperations(ports) {
       return { assignedLayers: participant.assignedLayers() };
     },
     state: () => live().state(),
+    diagnose: () => live().diagnose(),
     activity: () => live().activity(),
     'assigned-layers': () => ({ assignedLayers: live().assignedLayers() }),
     'arm-gate': body => live().armGate(body),
