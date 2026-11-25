@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-25T08:09:58.014Z",
-  "finishedAt": "2026-11-25T08:10:04.910Z",
+  "generatedAt": "2026-11-25T08:51:08.075Z",
+  "finishedAt": "2026-11-25T08:51:15.250Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "73e73a223610590da38cfa4e013c42f2248adfee",
+  "commit": "7f3625a499e4805d72e2ecda2d67cbd5d510322c",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
@@ -45,27 +45,23 @@
   "totals": {
     "recordSets": 1246,
     "judgments": 1774,
-    "outcomeAgreed": 1754,
-    "amountsAgreed": 1759,
-    "outcomeAndAmountsAgreed": 1749,
-    "lateListSizeAgreed": 1763,
+    "outcomeAgreed": 1774,
+    "amountsAgreed": 1774,
+    "outcomeAndAmountsAgreed": 1774,
+    "lateListSizeAgreed": 1774,
     "foreignListSizeAgreed": 1774,
     "conflictListedAgreed": 1774,
-    "rejectedListSizeAgreed": 1699,
+    "rejectedListSizeAgreed": 1730,
     "rejectedListsCompared": 1730
   },
   "outcomePairs": {
     "conflict / conflict": 58,
-    "expired / expired": 251,
-    "expired / settled": 3,
-    "invalid / invalid": 60,
-    "invalid / threw": 6,
+    "expired / expired": 242,
+    "invalid / invalid": 90,
     "none / none": 2,
-    "open / open": 141,
-    "settled / settled": 867,
-    "unknown / expired": 1,
-    "unknown / settled": 10,
-    "unknown / unknown": 375
+    "open / open": 129,
+    "settled / settled": 893,
+    "unknown / unknown": 360
   },
   "families": {
     "unmutated, clock sweep": {
@@ -135,7 +131,7 @@
     },
     "terms that do not match the policy": {
       "judgments": 78,
-      "outcomeAgreed": 72,
+      "outcomeAgreed": 78,
       "amountsAgreed": 78
     },
     "withheld records": {
@@ -155,8 +151,8 @@
     },
     "field rules, validly signed": {
       "judgments": 212,
-      "outcomeAgreed": 198,
-      "amountsAgreed": 197
+      "outcomeAgreed": 212,
+      "amountsAgreed": 212
     },
     "terms from another requester": {
       "judgments": 55,
@@ -190,108 +186,12 @@
     }
   },
   "disagreements": {
-    "total": 25,
-    "byCause": {
-      "no policy supplied: the document says invalid, the service refuses to run": {
-        "classification": "d",
-        "count": 6,
-        "amountsDiffer": 0,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "no policy supplied to the verifier",
-            "clock": "after",
-            "independent": "invalid (step 3: the policy digest names no supplied policy) debit 0 credits [0,0]",
-            "service": "threw (At least one public policy is required) debit 0 credits [0,0]"
-          },
-          {
-            "base": "requester stops after 3 outputs",
-            "mutation": "no policy supplied to the verifier",
-            "clock": "after",
-            "independent": "invalid (step 3: the policy digest names no supplied policy) debit 0 credits [0,0]",
-            "service": "threw (At least one public policy is required) debit 0 credits [0,0]"
-          },
-          {
-            "base": "stage0 drops after 3 steps",
-            "mutation": "no policy supplied to the verifier",
-            "clock": "after",
-            "independent": "invalid (step 3: the policy digest names no supplied policy) debit 0 credits [0,0]",
-            "service": "threw (At least one public policy is required) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "signature with base64 padding: the document rejects it, the service accepts it": {
-        "classification": "d",
-        "count": 19,
-        "amountsDiffer": 15,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "terms signature with base64 padding appended",
-            "clock": "after",
-            "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "acceptance signature with base64 padding appended",
-            "clock": "after",
-            "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "top acknowledgment signature with base64 padding appended",
-            "clock": "after",
-            "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 12 credits [3,9]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          }
-        ]
-      }
-    }
+    "total": 0,
+    "byCause": {}
   },
   "sameOutcomeAndAmountsButListsDiffer": {
-    "total": 17,
-    "byCause": {
-      "signature with base64 padding: the document rejects the record, the service accepts it": {
-        "count": 6,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "final receipt signature with base64 padding appended",
-            "clock": "after",
-            "outcome": "settled",
-            "lists": "independent/service: late 0/0, foreign 0/0, rejected 1/0, conflict entries 0/0"
-          },
-          {
-            "base": "stage0 drops after 3 steps",
-            "mutation": "acceptance signature with base64 padding appended",
-            "clock": "after",
-            "outcome": "expired",
-            "lists": "independent/service: late 0/0, foreign 0/0, rejected 1/0, conflict entries 0/0"
-          }
-        ]
-      },
-      "a late stop: the document lists it as late, the service does not list it": {
-        "count": 11,
-        "examples": [
-          {
-            "base": "stage0 drops after 3 steps",
-            "mutation": "stop signed 5 s late (replacing any stop)",
-            "clock": "in-window",
-            "outcome": "open",
-            "lists": "independent/service: late 1/0, foreign 0/0, rejected 0/0, conflict entries 0/0"
-          },
-          {
-            "base": "stage0 drops after 3 steps",
-            "mutation": "stop signed 5 s late (replacing any stop)",
-            "clock": "after",
-            "outcome": "expired",
-            "lists": "independent/service: late 1/0, foreign 0/0, rejected 0/0, conflict entries 0/0"
-          }
-        ]
-      }
-    }
+    "total": 0,
+    "byCause": {}
   },
   "noted": [
     {
@@ -362,7 +262,7 @@
       "mutation": "terms signature with base64 padding appended",
       "clock": "after",
       "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "service": "unknown (no requester-signed terms were presented) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
@@ -445,15 +345,15 @@
       "base": "requester stops acknowledging",
       "mutation": "terms name K = 0",
       "clock": "after",
-      "independent": "settled (step 9: acknowledgments withheld, the acknowledged prefix is charged) debit 6 credits [1,5]",
-      "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 6 credits [1,5]"
+      "independent": "invalid (step 3: maxUnacknowledgedOutputs is not the receiver policy's K) debit 0 credits [0,0]",
+      "service": "invalid (the terms differ from the named policy) debit 0 credits [0,0]"
     },
     {
       "base": "requester stops acknowledging",
       "mutation": "terms name K = 5",
       "clock": "after",
-      "independent": "settled (step 9: ended by a stage under provider-loss-free terms, charges 0) debit 0 credits [0,0]",
-      "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "invalid (step 3: maxUnacknowledgedOutputs is not the receiver policy's K) debit 0 credits [0,0]",
+      "service": "invalid (the terms differ from the named policy) debit 0 credits [0,0]"
     },
     {
       "base": "every party signs with P-256",
