@@ -75,7 +75,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
   const roomId = 'reploid-swarm-stage1-' + randomUUID(), roomToken = randomBytes(24).toString('hex');
   const splitThread = 'stage1-split-' + randomUUID(), cancelThread = 'stage1-cancel-' + randomUUID(), dropThread = 'stage1-drop-' + randomUUID();
   const fixtureSha256 = createHash('sha256').update(fixtureBytes).digest('hex');
-  const witnessFile = role => path.join(directory, role, 'state', 'token-witness.json');
+  // One witness file per split thread, as on physical hosts, so a state directory can serve more than one run.
+  const witnessFile = role => path.join(directory, role, 'state', `witness-${splitThread}.json`);
   const inventorySource = 'fake-runtime-declared';
   let credits = null, service = null, signaling = null, httpServer = null, peers = null, earner = null, buyer = null;
   const accountBalance = computerId => credits.snapshot().accounts.find(row => row.id === computerId)?.balance ?? null;
@@ -257,8 +258,10 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       await Promise.all([...nodes.values()].map(item => item.exited ? null
         : Promise.race([once(item.child, 'exit'), delay(5000)])));
       const processesExited = [...nodes.values()].every(item => item.exited);
-      const heldCredits = credits.snapshot().accounts.reduce((sum, account) => sum + account.held, 0);
-      const result = { processesExited, heldCredits, openReservations: await openReservationCount(path.join(directory, 'credits.sqlite')) };
+      // Preflight can fail before the coordinator opens its ledger; then nothing could have been held or reserved.
+      const heldCredits = credits ? credits.snapshot().accounts.reduce((sum, account) => sum + account.held, 0) : 0;
+      const openReservations = credits ? await openReservationCount(path.join(directory, 'credits.sqlite')) : 0;
+      const result = { processesExited, heldCredits, openReservations, ...(credits ? {} : { ledgerOpened: false }) };
       await closeCoordinator();
       return result;
     },

@@ -173,6 +173,20 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
       .toEqual(expect.arrayContaining(['runtime-class', 'inventory-source', 'hosts-not-physically-distinct']));
   });
 
+  it('runs twice in the same state directories: each room gets its own stage-owner journal', async () => {
+    // A stage-owner journal is scoped to its room, and every run opens a new room. Before journals were named per room,
+    // the second run refused the first run's journal ("moved or belongs to another scope") and the split never started.
+    const shared = path.join(root, 'twice');
+    const first = await runLocalStage1({ directory: shared, limits: { maxRunMs: 110000, phaseMs: 60000 } });
+    expect(first.receipt.phases.split.status).toBe('completed');
+    // As in a physical run: a fresh coordinator ledger per run, while each host's state directory persists.
+    for (const name of await fs.readdir(shared)) if (name.startsWith('credits.sqlite')) await fs.rm(path.join(shared, name));
+    const second = await runLocalStage1({ directory: shared, limits: { maxRunMs: 110000, phaseMs: 60000 } });
+    expect(second.receipt.phases.split).toEqual({ status: 'completed' });
+    const journals = (await fs.readdir(path.join(shared, 'stage0', 'state'))).filter(name => /^stage-owner-[a-f0-9]{16}\.sqlite$/.test(name));
+    expect(journals).toHaveLength(2);
+  }, 230000);
+
   it('runs a 72-token multi-character reference and stops it before its final token', async () => {
     const source = JSON.parse(await fs.readFile(STAGE1_FIXTURE_FILE, 'utf8'));
     const visibleOutputIds = Array.from({ length: 71 }, (_, index) => 1000 + index);

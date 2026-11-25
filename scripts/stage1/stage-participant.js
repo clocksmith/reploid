@@ -13,7 +13,7 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import WebSocket from 'ws';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
@@ -119,7 +119,10 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     participant = await createNativeParticipant(common);
     requester = createFleetRequester({ participant, identity, credits, maxOutputTokens: config.maxOutputTokens });
   } else {
-    stageOwner = await openStageOwner({ file: path.join(config.stateDirectory, 'stage-owner.sqlite'), participantId: identity.peerId,
+    // The journal's scope includes the room, and every Stage 1 run opens a new room, so each room gets its own journal. A
+    // shared file would make the second run refuse the first run's journal as belonging to another scope.
+    const journalName = `stage-owner-${createHash('sha256').update(String(config.roomId)).digest('hex').slice(0, 16)}.sqlite`;
+    stageOwner = await openStageOwner({ file: path.join(config.stateDirectory, journalName), participantId: identity.peerId,
       roomId: config.roomId, serviceUrl: config.serviceUrl });
     const witness = await openStageTokenWitness(config.witness, { roomId: config.roomId, participantId: identity.peerId });
     // The tokenizer and any other non-weight file the stage opens come through the loader too, recorded as metadata.
