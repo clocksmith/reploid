@@ -83,10 +83,11 @@ verifier's time zone, and stages being paid for writing an earlier time into lat
 
 The comparison above is between two replays. `ledger-differential.js` asks a different question: does the ledger that
 moves the credits post what the replay computes? It opens a fresh ledger for each case and drives it as the live
-route does: reserve, dispatch and admit at the start, `collect` with what a route retains (each stage's latest
-receipt, the requester's latest acknowledgment and the receipt it acknowledged) at the moment the last of those was
-signed, and `recover` after the release window. The replay judges the same records after the window. The policy
-sets the request limit to the scenario's 30 s, so the ledger's deadline and the signed one are the same instant.
+route does: reserve, dispatch and admit at the start; `collect` with each acknowledgment and the receipt it
+acknowledged at the moment that acknowledgment was signed; `collect` again when the last record was signed, with
+each stage's latest receipt, the latest acknowledgment and the requester's signed stop if there is one; and
+`recover` after the release window. The replay judges the same records after the window. The policy sets the
+request limit to the scenario's 30 s, so the ledger's deadline and the signed one are the same instant.
 
 16 base attempts, each with all its records and with a stage's closing receipt or every receipt withheld, and with
 the requester's top acknowledgment or all but its charge binding withheld.
@@ -94,28 +95,32 @@ the requester's top acknowledgment or all but its charge binding withheld.
 | | Count |
 | --- | --- |
 | Cases | 109 |
-| Same debit and same credit for every stage | 102 |
-| Different amounts | 7 |
-
-The 7 have three causes:
-
-1. **Stages that close as failed on their own (2).** The requester acknowledged 3 outputs, then both stages closed
-   with a failed receipt and no requester stop exists. The ledger charges the 3 acknowledged outputs; the replay
-   charges nothing, as the document says for provider-loss-free terms. The ledger is never shown a stop on a split
-   route, so it cannot tell this from a requester that stopped the answer, which both charge the same.
-2. **Lateness inside the release window (1).** The last output, its acknowledgment and the closes fall 5 s after
-   the deadline. The ledger expires the hold and posts nothing; the replay charges the 4 outputs acknowledged in
-   time. One second late, inside the clock allowance, both agree.
-3. **An answer that runs past the signed ceiling (4).** Terms cap the answer at 3 outputs and the stages deliver 5.
-   The ledger refuses the receipts as not matching the admitted work and expires the hold; the replay charges the
-   ceiling.
+| Same debit and same credit for every stage | 109 |
+| Different amounts | 0 |
 
 Where the amounts agree the words can still differ: when a stage presents no receipt at all for a delivered answer,
-the ledger reports the hold expired and the replay reports `unknown`. Both move nothing.
+the ledger reports the hold expired and the replay reports `unknown` (8 cases). Both move nothing.
 
-The ledger sees less than the replay by design, so each difference is a question about which rule is meant, not
-automatically a defect in either. The first one sits next to a decision the owner has not made: what a voluntary
-stop on a split route should cost.
+### How it got to 109
+
+The first run of this comparison (commit 560f7440b) handed the ledger only the final `collect`, with no stop, and
+found 7 differences in three causes. Commits 4d845320a and fd2ece824 changed the ledger and the live route on each:
+
+| Cause | Before | Now |
+| --- | --- | --- |
+| The stages close as failed on their own after 3 acknowledged outputs | ledger charged 9, replay 0 | both 0 |
+| The last acknowledgment and the closes fall 5 s after the deadline, inside the release window | ledger 0, replay 12 | both 12 |
+| The answer runs past the signed ceiling of 3 outputs | ledger refused the receipts and posted 0, replay 9 | both 9 |
+
+The live route now signs the requester's stop and hands it to the ledger before stopping the stages, and hands over
+each acknowledgment as it is signed. `--latest-only` runs the comparison the old way, with only the final `collect`
+and no stop: 106 of 109. The three that differ show what the agreement depends on. Without the stop, the ledger
+reads a stopped answer as one the stages ended and charges nothing where the replay, which is shown the stop,
+charges the acknowledged outputs (2 cases). Without each acknowledgment as it is signed, the late case above
+returns (1 case).
+
+The charge for a requester's stop on a split route is unchanged by all of this, and what it should be is a decision
+the owner has not made.
 
 ## Agreement that still deserves a reader
 

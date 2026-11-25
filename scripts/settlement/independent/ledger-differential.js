@@ -6,16 +6,20 @@
  *
  * Each case is one attempt built with the production signers (scripts/settlement/scenario.js) and one choice of
  * which records the parties present. The ledger is driven through its public interface the way the live route
- * drives it: reserve, dispatch and admit at the start, then `collect` with what a live route retains (each stage's
- * latest receipt, the requester's latest acknowledgment and the receipt it acknowledged), at the moment the last of
- * those records was signed, then `recover` once the release window has passed. The replay judges the same records
+ * drives it: reserve, dispatch and admit at the start; `collect` with each acknowledgment and the receipt it
+ * acknowledged at the moment that acknowledgment was signed; `collect` again, at the moment the last record was
+ * signed, with what a live route retains (each stage's latest receipt, the latest acknowledgment and its receipt, and
+ * the requester's signed stop when there is one); then `recover` once the release window has passed. The replay judges the same records
  * after the window. A fresh ledger is opened for every case.
  *
  * The terms' deadline in scenario.js is 30 s after the start, so the policy used here sets `maxRequestMs` to 30 s:
  * the ledger's own deadline for the reservation is then the same instant as the signed one, as in the live requester,
  * which signs `deadline = notBefore + maxRequestMs`.
  *
- *   node scripts/settlement/independent/ledger-differential.js [--verbose] [--out FILE.json]
+ *   node scripts/settlement/independent/ledger-differential.js [--verbose] [--latest-only] [--out FILE.json]
+ *
+ * `--latest-only` hands the ledger only the final collect, without the acknowledgments as they were signed and
+ * without the stop: what a route that kept less would give it. It is a second question, not the default.
  *
  * Plain Node, no model, no GPU, no network. All parties are simulated identities on one machine. The ledger sees
  * less than the replay by design (latest records only, no stop on a split route), so a difference here is a question
@@ -29,12 +33,14 @@ import { fileURLToPath } from 'node:url';
 import { createSigningIdentity } from '../../../packages/reploid/src/artifacts/identity.js';
 import { OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA } from '../../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { openFleetCredits } from '../../../server/fleet/credits.js';
+import { SETTLEMENT_STOP_SCHEMA } from '../../../server/fleet/settlement-terms.js';
 import { replaySettlement } from '../../../server/fleet/settlement-replay.js';
 import { POLICY as SCENARIO_POLICY, T0, createParties, runAttempt } from '../scenario.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const flag = name => { const at = process.argv.indexOf(`--${name}`); return at === -1 ? null : process.argv[at + 1] ?? true; };
 const POLICY = Object.freeze({ ...SCENARIO_POLICY, maxRequestMs: 30000 });
+const LATEST_ONLY = Boolean(flag('latest-only'));
 const words = count => Array.from({ length: count }, (_, index) => ` w${index}`);
 
 const BASES = [
@@ -101,7 +107,21 @@ async function openLive(parties, ownStage = null) {
     const acknowledgment = acksOf(records).at(-1) ?? null;
     const acknowledgedReceipt = acknowledgment && acknowledgment.count > 0 ? receiptsOf(records, parties.stages.length - 1)
       .find(row => row.output?.count === acknowledgment.count && row.output.chain === acknowledgment.chain) ?? null : null;
-    return { identity: attempt.identity, receipts, ...(acknowledgment ? { acknowledgment } : {}), ...(acknowledgedReceipt ? { acknowledgedReceipt } : {}) };
+    const stop = records.find(row => row.schema === SETTLEMENT_STOP_SCHEMA) ?? null;
+    return { identity: attempt.identity, receipts, ...(acknowledgment ? { acknowledgment } : {}), ...(acknowledgedReceipt ? { acknowledgedReceipt } : {}),
+      ...(stop && !LATEST_ONLY ? { stop } : {}) };
+  };
+  /** As the live route does: each acknowledgment is handed over when it is signed. One the ledger refuses is not retried. */
+  live.collectAcknowledgments = async (attempt, records) => {
+    let refused = 0;
+    for (const acknowledgment of acksOf(records).filter(row => row.count > 0)) {
+      const acknowledgedReceipt = receiptsOf(records, parties.stages.length - 1)
+        .find(row => row.output?.count === acknowledgment.count && row.output.chain === acknowledgment.chain);
+      live.clock = Date.parse(acknowledgment.signedAt) + 1;
+      try { await live.ledger.collect(attempt.reservationId, { identity: attempt.identity, receipts: [], acknowledgment, ...(acknowledgedReceipt ? { acknowledgedReceipt } : {}) }); }
+      catch { refused += 1; }
+    }
+    return refused;
   };
   live.close = async () => { try { live.ledger.close(); } finally { await rm(directory, { recursive: true, force: true }); } };
   return live;
@@ -120,6 +140,7 @@ async function judge({ parties, base, variant, attempt }) {
       return { base: base.name, variant: variant.name, ledger: { status: 'refused the reservation', charge: 0, credits: shares.map(() => 0), reason: admitted.threw, atCollect: null },
         replay: { status: 'not asked', charge: 0, credits: shares.map(() => 0), reason: null }, amountsAgree: true };
     }
+    const refusedAcknowledgments = LATEST_ONLY ? 0 : await live.collectAcknowledgments(attempt, variant.records);
     // The ledger cannot hold a record before it was signed.
     live.clock = Math.max(T0 + 1, ...variant.records.map(row => Date.parse(row.signedAt))) + 1;
     const collectedAt = live.clock - T0;
@@ -131,7 +152,8 @@ async function judge({ parties, base, variant, attempt }) {
     const outcome = final.value ?? {};
     // A settled outcome carries its charge and credits and no status word.
     const ledger = { status: final.threw ? 'threw' : outcome.status ?? (Number.isSafeInteger(outcome.charge) ? 'settled' : 'none'), charge: outcome.charge ?? 0, credits: amountsOf(outcome.credits, shares),
-      reason: final.threw ?? outcome.reason ?? null, atCollect: collected.threw ? `threw: ${collected.threw}` : collected.value?.status ?? null, collectedAtMs: collectedAt };
+      reason: final.threw ?? outcome.reason ?? null, atCollect: collected.threw ? `threw: ${collected.threw}` : collected.value?.status ?? null, collectedAtMs: collectedAt,
+      refusedAcknowledgments };
     const replay = { status: row?.status ?? 'none', charge: row?.debit ?? 0, credits: amountsOf(row?.credits, shares), reason: row?.reason ?? null };
     return { base: base.name, variant: variant.name, ledger, replay,
       amountsAgree: ledger.charge === replay.charge && JSON.stringify(ledger.credits) === JSON.stringify(replay.credits) };
@@ -148,6 +170,7 @@ export const CAUSES = Object.freeze({
 });
 function causeOf(line) {
   if (line.amountsAgree) return null;
+  if (LATEST_ONLY && line.base.startsWith('requester signs a stop')) return 'the ledger was not handed the requester\'s stop';
   if (line.base.startsWith('stages close early on their own')) return CAUSES.failedClose;
   if (line.base.startsWith('last acknowledgment and closes')) return CAUSES.lateInsideWindow;
   if (line.base.startsWith('output ceiling')) return CAUSES.pastCeiling;
@@ -184,8 +207,8 @@ async function main() {
   const receipt = { schema: 'reploid.settlement-ledger-differential/v1', generatedAt: startedAt.toISOString(), finishedAt: new Date().toISOString(),
     command: 'node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json',
     commit, uncommittedChangesInComparedCode: dirty, node: process.version,
-    note: 'All parties are simulated identities on one machine under one operator. The ledger is given what a live route retains (latest records only) at the moment the last of them was signed, and asked again after the release window; the replay judges the same records after the window. Status pairs are ledger / replay.',
-    policy: POLICY, cases: lines.length, amountsAgreed: lines.length - differing.length, statusPairs: Object.fromEntries(Object.entries(statusPairs).sort()),
+    note: 'All parties are simulated identities on one machine under one operator. The ledger is given each acknowledgment when it was signed, then what a live route retains (latest records and the signed stop) at the moment the last of them was signed, and asked again after the release window; the replay judges the same records after the window. Status pairs are ledger / replay.',
+    policy: POLICY, handedToTheLedger: LATEST_ONLY ? 'the final collect only, no stop' : 'each acknowledgment as signed, then the final collect with the stop', cases: lines.length, amountsAgreed: lines.length - differing.length, statusPairs: Object.fromEntries(Object.entries(statusPairs).sort()),
     differences: { total: differing.length, byCause: Object.fromEntries(Object.entries(byCause).map(([cause, rows]) => [cause, { count: rows.length, cases: rows }])) },
     lines };
   const out = flag('out');
