@@ -358,9 +358,22 @@
 .chat-model-choice[data-choice-adapter] { margin-left: var(--pool-size-24); }
 .chat-model-adapter > p { margin: 0; overflow-wrap: anywhere; }
 
-/* Model choice scrolls independently; confirmation stays reachable on phones. */
-.pool-home [data-model-picker][open] { grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
-.chat-model-picker-body { min-height: 0; overflow-y: auto; display: grid; align-content: start; gap: var(--pool-size-8); }
+/* Answer on: a fixed-height sheet. The heading and the confirmation are pinned; computers, models, reasons and details
+   scroll between them, so availability arriving or a changed choice never resizes or moves the sheet. Nothing animates height. */
+.pool-home [data-model-picker][open] {
+  grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden;
+  block-size: min(var(--pool-size-720), calc(100dvh - var(--pool-space-page-gap) * 2));
+}
+.chat-model-picker-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; display: grid; align-content: start; gap: var(--pool-size-8); }
+/* Status lines keep their line while their text loads or changes. */
+.chat-model-picker-body :is([data-computer-state], [data-choice-status]) { display: block; min-block-size: var(--pool-size-20); }
+.chat-model-empty { display: flex; align-items: center; min-block-size: var(--pool-size-56); margin: 0; padding-inline: var(--pool-size-16); }
+/* The chosen model's reason and its fix sit beneath it, across the whole row. */
+.chat-model-choices [data-choice-row] > .chat-answer-issue { grid-column: 1 / -1; padding: 0 var(--pool-size-16) var(--pool-size-8); }
+.chat-answer-issue > .pool-button { justify-self: start; }
+/* It fades in without the shared dialog's travel, so its box is where it stays from the first frame. */
+.pool-home [data-model-picker][open] { animation-name: pool-dialog-fade; }
+@media (prefers-reduced-motion: reduce) { .pool-home [data-model-picker][open] { animation: none; } }
 .pool-home [data-model-picker] .chat-execution-location { display: grid; align-items: stretch; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .pool-home [data-model-picker] .chat-execution-location button { min-width: 0; padding: var(--pool-size-8) var(--pool-size-4); white-space: normal; }
 

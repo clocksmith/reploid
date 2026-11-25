@@ -18,7 +18,7 @@ import { routeAlternatives, updateRouteAlternatives } from './route-alternatives
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
 import { webSearchRecipient } from './web-search-settings.js';
-import { canDownloadModelHere, localFitText, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
+import { canDownloadModelHere, contributorBlock, localFitText, locationForModel, modelForLocation, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
 import { escapeHtml } from '../components/attachments.js';
 import { remotePermissionText, remotePermissionWording } from './remote-permission.js';
 export { renderConversationWorkspace } from './conversation-view.js';
@@ -70,7 +70,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const currentPolicy = explicitPrivacy;
   const privacyNode = find('[data-privacy-dialog]'), privacyTrigger = find('[data-open-privacy]');
   const privacyDialog = bindDialog(privacyNode);
-  let sendAfterDestination = false, pickerChoice = null;
+  // `stagedDestination` is a computer the sheet moved to for a model tap or a fix; it applies only when committed.
+  let sendAfterDestination = false, pickerChoice = null, stagedDestination = null;
+  const answerIssue = find('[data-answer-issue]');
   /** Which computer the current policy sends to: this device, the paired or invited computer, contributors, or named IDs. */
   const destinationKey = state => {
     const policy = explicitPrivacy(state), locked = lockedDestination(state);
@@ -117,6 +119,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     return null;
   };
+  /** Why contributors may not answer without an explicit preset change; null when the preset allows it. */
+  const blockFor = state => contributorBlock({ guest: !!lockedDestination(state)?.guest, activeThread: !!state.activeThread,
+    privacy: explicitPrivacy(state), preset: viewState.privacyPreset });
   // A locked destination is the default for a new conversation: only that computer may receive the prompt,
   // and the composer picks the model it reports ready. A manual policy choice wins, except over an invite.
   const applyPairedDesktopDefault = state => {
@@ -294,19 +299,23 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   }
   let fitRequest, fitKey, fitInfo;
   const updatePicker = snapshot => {
-    // The pressed computer row follows the sheet's run location (a finished download switches it to this device).
+    // Exactly one computer is pressed and it matches the side the model is judged against.
     if (pickerLocation === 'local') pickerChoice = 'device';
-    else if (pickerLocation === 'network' && pickerChoice === 'device') pickerChoice = null;
-    pickerModel = updateConversationModelPicker({ find, choices: nextModelChoices,
-      state: snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session),
+    else if (!pickerChoice || pickerChoice === 'device') pickerChoice = 'contributors';
+    const labelled = snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session);
+    const block = blockFor(snapshot), locked = lockedDestination(snapshot);
+    ({ model: pickerModel } = updateConversationModelPicker({ find, choices: nextModelChoices, state: labelled,
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
-      selectedId: modelSelect.value, localOnly: !!snapshot.activeThread && (explicitPrivacy(snapshot).placement === 'local-only'
-        || explicitPrivacy(snapshot).recipients.kind === 'none'),
-      canDownload: !!inspector.downloadModel, destination: pickerChoice || destinationKey(snapshot),
-      locked: lockedDestination(snapshot) });
-    // Opened by Send, the sheet's button sends the waiting message; it says so instead of Done.
-    const commit = find('[data-change-model]');
-    if (sendAfterDestination && commit.textContent === 'Done') commit.textContent = 'Send';
+      selectedId: modelSelect.value, canDownload: !!inspector.downloadModel, destination: pickerChoice,
+      locked, block, sending: sendAfterDestination, issue: answerIssue }));
+    // Who can read the prompt follows the staged computer, so a switch made by a model tap is never silent.
+    const disclosure = find('[data-prompt-disclosure]');
+    disclosure.textContent = pickerLocation === 'local' ? 'Nothing leaves this device.'
+      : pickerChoice === 'desktop' && locked ? `Sending to ${locked.label}. Its operator can read your prompt.`
+        : block ? 'Nothing leaves this device unless you choose Use contributors.'
+          : pickerModel?.partition ? 'Computers on this route can read the input for their own stages.'
+            : pickerModel?.fleet ? 'The answering computer in your private pool can read your prompt.'
+              : 'The answering computer can read your prompt.';
     const node = find('[data-local-fit]');
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
       && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
@@ -646,10 +655,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     inspector.close?.({ restoreFocus: false });
     pickerModel = alternative || (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
       || state.activeThread?.model || chosenModel || state.defaultModel || null;
-    pickerLocation = alternative ? 'network' : effectiveLocation(state);
-    find('[data-picker-title]').textContent = 'Answer on';
     // The pressed row is where this chat would actually run now ('auto' runs a stored model on this device).
-    pickerChoice = alternative ? 'contributors' : modelExecutionState(pickerModel, pickerLocation).source === 'local' ? 'device' : null;
+    const key = destinationKey(state);
+    pickerLocation = alternative ? 'network'
+      : key === 'device' || modelExecutionState(pickerModel, effectiveLocation(state)).source === 'local' ? 'local' : 'network';
+    pickerChoice = pickerLocation === 'local' ? 'device' : alternative || key === 'device' ? 'contributors' : key;
+    stagedDestination = null;
+    find('[data-picker-title]').textContent = 'Answer on';
     updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
     render(state);
@@ -677,19 +689,21 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerRevision++;
     if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
     pickerTouched = true;
-    pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
-    // A private-pool model runs only on its paired computers, never on this device. Choosing it leaves This device,
-    // as choosing Contributors would; the paired route still binds only the enrolled computers it names.
-    const leaveDevice = !!pickerModel?.fleet && (pickerLocation === 'local' || pickerChoice === 'device');
-    if (leaveDevice) {
-      pickerLocation = 'network'; pickerChoice = 'contributors';
-      if (!session.getState().activeThread) applyDraftDestination(pickerChoice);
+    const state = session.getState();
+    pickerModel = (state.models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
+    // A model that runs only elsewhere moves the computer with it, when the preset allows. The move is staged and
+    // shown (pressed computer, disclosure, primary label); it applies only when the person confirms it.
+    // A private-pool model runs only on its paired computers, never on this device: choosing it chooses that pool and
+    // applies on tap like any usable choice. The paired route still binds only the enrolled computers it names.
+    const side = locationForModel(pickerModel, pickerLocation, { block: blockFor(state), choice: pickerChoice });
+    const moved = side !== (pickerLocation === 'local' ? 'local' : 'network');
+    if (moved) {
+      pickerLocation = side; pickerChoice = side === 'local' ? 'device' : 'contributors';
+      stagedDestination = side === 'network' ? 'contributors' : null;
     }
-    updatePicker(session.getState());
-    render(session.getState());
-    const commit = () => { if (!arrowBrowsing && pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice(); };
-    if (leaveDevice && session.getState().activeThread) void act(async () => { await applyDestination(pickerChoice); commit(); });
-    else commit();
+    updatePicker(state);
+    render(state);
+    if ((!moved || pickerModel?.fleet) && !arrowBrowsing && pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice();
   });
   // Arrow keys move through models without committing; a tap, click or Enter applies the highlighted one.
   let arrowBrowsing = false;
@@ -712,33 +726,52 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
-  on('[data-switch-local]', 'click', () => {
-    if (changingModel || attachmentReader.pending || pickerLocation !== 'network') return;
+  // Download to this device from the sheet. From Contributors the sheet stays open and moves to this device when stored;
+  // from this device the reviewed download opens in its own dialog.
+  const downloadHere = () => {
+    if (changingModel || attachmentReader.pending) return;
     const state = session.getState();
     const model = state.models?.find(item => modelIdentity(item) === modelIdentity(pickerModel));
-    if (!model || modelExecutionState(model, 'network').usable) { updatePicker(state); return; }
+    if (!model || !downloadableHere(model, state) || busyAcquisition(state)) { updatePicker(state); return; }
+    if (pickerLocation !== 'network') { picker.close(); inspector.downloadModel(modelKey(model), find('[data-open-model]')); return; }
     const stageLocal = () => {
       const current = session.getState();
       const stored = current.models?.find(item => modelIdentity(item) === modelIdentity(model));
       if (!modelExecutionState(stored, 'local').usable) return;
-      pickerModel = stored; pickerTouched = true; pickerLocation = 'local'; updatePicker(current);
+      pickerModel = stored; pickerTouched = true; pickerLocation = 'local'; stagedDestination = null; updatePicker(current);
       find('[data-change-model]').focus();
     };
-    if (modelExecutionState(model, 'local').usable) stageLocal();
-    else if (downloadableHere(model, state) && !busyAcquisition(state)) {
-      const revision = ++pickerRevision, scope = queueScope(state, model);
-      inspector.downloadModel(modelKey(model), find('[data-switch-local]'), {
-        isCurrent(id) {
-          const current = session.getState();
-          return !controller.signal.aborted && find('[data-model-picker]').open && pickerRevision === revision
-            && pickerLocation === 'network' && id === modelKey(model) && queueScope(current, model) === scope
-            && !current.activeThread?.closed && !(current.runningIds || []).includes(current.selectedId)
-            && current.models?.some(item => modelIdentity(item) === modelIdentity(model));
-        },
-        onStored: stageLocal
-      });
+    const revision = ++pickerRevision, scope = queueScope(state, model);
+    inspector.downloadModel(modelKey(model), answerIssue.querySelector('[data-answer-action]'), {
+      isCurrent(id) {
+        const current = session.getState();
+        return !controller.signal.aborted && find('[data-model-picker]').open && pickerRevision === revision
+          && pickerLocation === 'network' && id === modelKey(model) && queueScope(current, model) === scope
+          && !current.activeThread?.closed && !(current.runningIds || []).includes(current.selectedId)
+          && current.models?.some(item => modelIdentity(item) === modelIdentity(model));
+      },
+      onStored: stageLocal
+    });
+  };
+  /** The sheet's one action, named on its primary button and beside the chosen model. */
+  const runAnswerAction = action => {
+    if (changingModel || attachmentReader.pending) return;
+    const state = session.getState();
+    if (action === 'commit') { commitPickerChoice(); return; }
+    if (action === 'download') { downloadHere(); return; }
+    if (action !== 'use-contributors' && action !== 'use-device') { updatePicker(state); return; }
+    pickerRevision++; pickerTouched = true;
+    if (action === 'use-device') { pickerLocation = 'local'; pickerChoice = 'device'; stagedDestination = null; }
+    else {
+      // The person asked for contributors by name: this is the explicit preset change. The answering computer reads the prompt.
+      viewState.privacyPreset = 'standard';
+      pickerLocation = 'network'; pickerChoice = 'contributors'; stagedDestination = 'contributors';
     }
-  });
+    pickerModel = modelForLocation(state.models, pickerModel, pickerLocation, { state, canDownload: !!inspector.downloadModel });
+    updatePicker(state);
+    commitPickerChoice();
+  };
+  on('[data-answer-action]', 'click', event => runAnswerAction(event.currentTarget.dataset.answerAction));
   // Done, or tapping a model or computer that can answer now, commits the sheet and returns to the draft.
   const resumeAfterChoice = () => { if (sendAfterDestination) { sendAfterDestination = false; submitDraft(); } };
   function commitPickerChoice() {
@@ -756,7 +789,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       }
       updatePicker(session.getState()); return;
     }
-    const privacy = explicitPrivacy(state);
+    // A computer staged by a model tap or a fix applies now, with its policy; a tapped row has already applied.
+    const staged = stagedDestination && stagedDestination !== destinationKey(state) ? stagedDestination : null;
+    if (staged && !state.activeThread) applyDraftDestination(staged);
+    const privacy = staged ? destinationPolicy(staged, state) : explicitPrivacy(state);
     // A computer tapped in this sheet decides the location, even before its policy change has been saved.
     const location = pickerChoice === 'device' ? 'local' : pickerChoice ? 'network'
       : privacy?.placement === 'local-only' ? 'local' : pickerLocation;
@@ -766,6 +802,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       try {
         if (controller.signal.aborted || selectedId !== origin || composerRevision !== revision) return;
         if (state.activeThread && (state.activeThread.model.selectionId || state.activeThread.model.id) === next) {
+          if (staged) await applyDestination(staged);
           await session.setExecutionLocation(state.activeThread.id, location);
           picker.close(); input.focus(); resumeAfterChoice(); return;
         }
@@ -799,12 +836,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         modelSelect.value = next; picker.close(); render(session.getState()); input.focus();
         resumeAfterChoice();
       } finally {
-        changingModel = false;
+        changingModel = false; stagedDestination = null;
         if (!controller.signal.aborted) render(session.getState());
       }
     });
   }
-  on('[data-change-model]', 'click', commitPickerChoice);
+  on('[data-change-model]', 'click', event => runAnswerAction(event.currentTarget.dataset.answerAction || 'commit'));
   on('[data-retry-connection]', 'click', event => {
     queuedSend = null; render(session.getState());
     const button = event.currentTarget;
@@ -913,6 +950,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     try {
       const privacy = readPrivacyControls(privacyNode, { ...presetContext(state), current: currentPolicy(state) });
       viewState.privacyTouched = true;
+      // A draft remembers the preset it was given here; a sent thread keeps it in its stored policy.
+      if (!state.activeThread) viewState.privacyPreset = privacyNode.querySelector('[data-privacy-preset]:checked')?.value;
       if (state.activeThread) {
         await session.setExecutionPrivacy(state.activeThread.id, privacy);
         if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none'
@@ -937,9 +976,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const choice = button.dataset.executionChoice;
     if (choice === 'desktop' && !desktopRecipient(session.getState())) { error('That desktop is no longer available. Nothing was changed.'); return; }
     pickerTouched = true;
+    const current = session.getState();
     pickerRevision++; pickerLocation = choice === 'local' ? 'local' : 'network';
     pickerChoice = choice === 'local' ? 'device' : choice === 'desktop' ? 'desktop' : 'contributors';
-    if (!session.getState().activeThread) applyDraftDestination(pickerChoice);
+    stagedDestination = null;
+    // Keep a model that runs on the tapped computer; a paired desktop reports its own models.
+    if (choice !== 'desktop') pickerModel = modelForLocation(current.models, pickerModel, pickerLocation, { state: current, canDownload: !!inspector.downloadModel });
+    // Under "Only your devices" a Contributors tap changes nothing: the sheet explains and offers Use contributors.
+    if (choice === 'network' && blockFor(current)) { updatePicker(current); return; }
+    if (!current.activeThread) applyDraftDestination(pickerChoice);
     updatePicker(session.getState());
     void act(async () => {
       if (session.getState().activeThread) await applyDestination(pickerChoice);
@@ -1109,6 +1154,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect(); stopVisibility?.disconnect();
+    // The reason line lives beneath the chosen model while bound; return it to its place in the markup first.
+    find('[data-model-details]')?.before(answerIssue); answerIssue.hidden = true;
     detachHelp(); nextModelChoices.dispose();
     production.dispose();
     detachInspector?.(); leftDrawer.dispose();

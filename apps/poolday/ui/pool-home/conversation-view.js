@@ -15,7 +15,7 @@ import { renderAdapterDetails } from './model-adapters.js';
 const renderModelControl = () => '<span data-model-control hidden><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
 
 const computerRow = (choice, name) => `<button class="pool-button btn-ghost pool-choice chat-model-choice" type="button" data-execution-choice="${choice}" aria-pressed="false"><span class="pool-stack"><span${name}</span><small class="pool-muted" data-computer-state></small></span><span class="pool-choice-mark" aria-hidden="true">${interfaceIcon('check')}</span></button>`;
-// Computer and model are separate choices in one sheet; each row applies on tap.
+// Computer and model are one consistent choice: a model tap moves the computer to where that model runs, and a computer tap keeps a model that runs there.
 const renderLocationControl = () => `<div class="pool-stack pool-gap-xs" data-execution-location role="group" aria-labelledby="chat-computer-label"><span class="pool-caption pool-muted" id="chat-computer-label">Computer</span>${computerRow('local', '>This device')}${computerRow('desktop', ' data-computer-desktop-name>Your desktop')}${computerRow('network', '>Contributors')}<p class="pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p></div>`;
 
 const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><p class="pool-small pool-muted" data-local-fit hidden></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p></div></details>`;
@@ -94,14 +94,13 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       </dialog>
       <dialog class="chat-model-setup pool-surface pool-small" data-model-picker aria-labelledby="chat-model-picker-title">
         <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-model-picker-title" data-picker-title>Answer on</h2><button class="pool-button btn-ghost pool-icon" type="button" data-model-picker-close aria-label="Close">${interfaceIcon('close')}</button></header>
-        ${renderLocationControl()}
         <div class="chat-model-picker-body">
+        ${renderLocationControl()}
         <p data-picker-thread-note hidden>A new model starts a new thread.</p>
         <span class="pool-caption pool-muted">Model</span>${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
-        <p data-next-model-status role="status" hidden></p>
-        <button class="pool-button btn-ghost" type="button" data-switch-local hidden>Switch to this device</button>
+        <div class="chat-answer-issue pool-stack pool-gap-xs" data-answer-issue hidden><p class="pool-small" data-next-model-status role="status"></p><button class="pool-button btn-ghost pool-caption" type="button" data-answer-action hidden></button></div>
         ${renderModelSelectionDetails()}</div>
-        <div class="chat-network-actions"><button class="pool-button btn-primary" type="button" data-change-model>Done</button><button class="pool-button btn-ghost" type="button" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog">Who can read it</button></div>
+        <div class="chat-network-actions"><button class="pool-button btn-primary" type="button" data-change-model>Answer on this device</button><button class="pool-button btn-ghost" type="button" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog">Who can read it</button></div>
       </dialog>
     </section>
     ${inspector ? renderModelSetupDialog() : ''}

@@ -43,6 +43,16 @@ API requirements, and the dialog states availability and exposure before Send.
 | Only your devices | `local-only`, or `network-allowed` with `participants: named` = the desktop this device paired with; `executor-readable` | Available on this device; and on your paired desktop when one is paired | This device, or your paired desktop, in plaintext | The readers also see access patterns. Local: nothing leaves the device. Desktop: a relay that carries the WebRTC connection can see timing and message sizes |
 | Confidential execution (a planned target) | `requester-only` | **Not available yet**. Shown disabled with that reason, never applied | Not applicable | Not applicable |
 
+The "Answer on" sheet keeps its computer and model consistent with these
+presets. Choosing a model that only contributors run moves the sheet to
+Contributors and states who can read the prompt before anything applies; a
+private-pool model, which never runs on this device, chooses its pool and applies
+at once, and its route binds only the enrolled computers it names. Under
+"Only your devices" (chosen in "Who can read it", or stored on a sent
+conversation) the sheet does not move: it explains the preset beside the model
+and offers "Use contributors", which changes the preset only when pressed. An
+invite link keeps its host as the only computer that may read prompts.
+
 "Only your devices" is placement plus named participants with
 executor-readable confidentiality, stated plainly: your devices read the
 content. Your paired desktop counts as yours because you approved its

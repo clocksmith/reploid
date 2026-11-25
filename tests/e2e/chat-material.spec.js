@@ -52,6 +52,28 @@ async function installConversation(page, theme, { network = true } = {}) {
         connections: peers.map(peer => ({ id: peer.peerId, phase: 'connected' })) };
       listeners.forEach(callback => callback(state));
     };
+    // The owner's "Answer on" report: one stored model, one shared model, one download and three unavailable ones.
+    // `phase` replays discovery: searching, then the shared model busy, then ready on one or two computers.
+    window.setVisualCatalog = ({ phase = 'ready', providers = 1, desktop = false } = {}) => {
+      const shared = phase === 'searching' ? 'unavailable' : phase === 'busy' ? 'busy' : 'ready';
+      const peerIds = phase === 'searching' ? [] : Array.from({ length: providers }, (_, i) => 'peer-' + i);
+      const entry = (id, name, extra) => ({ ...model, id, name, identity: 'sha256:' + id.padEnd(64, '0').slice(0, 64),
+        availability: 'unavailable', networkAvailability: 'unavailable', providerIds: [], ...extra });
+      state.models = [
+        entry('qwen-0-8b', 'Qwen 3.5 0.8B', { localCached: true, availability: 'cached' }),
+        entry('qwen-35b', 'Qwen 3.6 35B A3B', { availability: shared, networkAvailability: shared, providerIds: peerIds, reachableProviderIds: peerIds }),
+        entry('qwen-2b', 'Qwen 3.5 2B', { source: { baseUrl: 'https://models.example/qwen-2b/' } }),
+        entry('qwen-0-8b-ner', 'Qwen 3.5 0.8B NER JSON LoRA', {}),
+        entry('qwen-27b', 'Qwen 3.8 27B', {}),
+        entry('qwen-flash', 'Qwen 3.8 Flash-Next', {})
+      ];
+      state.defaultModel = state.models[1];
+      state.discoveryPhase = phase === 'searching' ? 'searching' : 'observed';
+      state.ownerPairing = desktop ? { status: 'online', hostParticipantId: 'peer:desktop', hostLabel: 'Studio' } : null;
+      state.network = { consumer: { connectionState: 'connected', peers: peerIds.map(peerId => ({ peerId, model: 'qwen-35b', readiness: 'ready' })) },
+        connections: peerIds.map(id => ({ id, phase: 'connected' })) };
+      listeners.forEach(callback => callback(state));
+    };
     window.setVisualTiming = timing => {
       state.activeThread.attempts[0].execution.timing = timing;
       listeners.forEach(callback => callback(state));
@@ -908,7 +930,10 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await page.screenshot({ path: info.outputPath(`shared-departed-${width}.png`) });
   await openModel();
   await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('[data-choice-group="network-unavailable"]')).toContainText('Qwen 3.5 0.8B');
+  // The list keeps its order; the stored model says why Contributors cannot answer and offers this device instead.
+  await expect(page.locator('[data-choice-group="local"]')).toContainText('Qwen 3.5 0.8B');
+  await expect(page.locator('[data-model-picker] [data-next-model-status]')).toContainText('It is on this device');
+  await expect(page.locator('[data-change-model]')).toHaveText('Use this device');
   await page.locator('[data-execution-choice=local]').click();
   await page.locator('[data-change-model]').click();
   await expect(source).toHaveText('This device');
@@ -1135,4 +1160,36 @@ test('the pairing screen handles desktop approval, link failure and cancellation
   await page.keyboard.press('Escape');
   await expect(pairing).toHaveCount(0);
   expect(await page.evaluate(() => window.pairingSignal.aborted)).toBe(true);
+});
+
+// The owner's report: the sheet grew and shrank as availability arrived and as choices changed.
+// After first paint its box must not move or resize, whatever loads or is chosen inside it.
+for (const [width, height] of [[1280, 900], [390, 844]]) test(`Answer on keeps its size and place while availability loads and choices change at ${width}`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'dark', { network: false });
+  await page.evaluate(() => window.setVisualCatalog({ phase: 'searching' }));
+  await page.locator('[data-open-model]').click();
+  const picker = page.locator('[data-model-picker]');
+  await expect(picker).toBeVisible();
+  const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const box = () => picker.evaluate(node => { const { x, y, width, height } = node.getBoundingClientRect(); return { x, y, width, height }; });
+  await settle();
+  const first = await box(), steps = [];
+  const record = async label => { await settle(); steps.push({ label, ...await box() }); };
+  for (const update of [{ phase: 'busy' }, { phase: 'ready' }, { phase: 'ready', providers: 2 }, { phase: 'searching' },
+    { phase: 'ready', desktop: true }, { phase: 'ready' }]) {
+    await page.evaluate(update => window.setVisualCatalog(update), update);
+    await record('availability ' + JSON.stringify(update));
+  }
+  await picker.locator('[data-model-details] > summary').click(); await record('details open');
+  await picker.locator('[data-execution-choice=network]').click(); await record('contributors');
+  await picker.locator('[data-execution-choice=local]').click(); await record('this device');
+  await picker.locator('.chat-model-choice input:checked').focus();
+  for (const key of ['ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowUp', 'ArrowUp']) { await page.keyboard.press(key); await record(key); }
+  await page.evaluate(() => window.setVisualCatalog({ phase: 'searching' })); await record('capacity departs');
+  await picker.locator('[data-model-details] > summary').click(); await record('details closed');
+  const moved = steps.map(step => ({ label: step.label, dx: step.x - first.x, dy: step.y - first.y, dw: step.width - first.width, dh: step.height - first.height }));
+  await info.attach('answer-on-boxes.json', { body: JSON.stringify({ first, moved }, null, 2), contentType: 'application/json' });
+  expect(moved.filter(step => step.dx || step.dy || step.dw || step.dh)).toEqual([]);
 });

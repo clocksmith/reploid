@@ -175,7 +175,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-next-model]').value).toBe(small.value);
     expect(small.checked).toBe(true);
     expect(find('[data-change-model]').disabled).toBe(true);
-    expect(find('[data-next-model-status]').textContent).toContain('No shared computer');
+    expect(find('[data-next-model-status]').textContent).toMatch(/^Finding computers…/);
     session.refreshNetwork();
     expect(choices.querySelector('input:checked')).toBe(small);
     expectSendDoesNotDispatch();
@@ -312,7 +312,9 @@ describe('Conversation workspace', () => {
     find('[data-open-model]').click();
     find('[data-execution-choice=network]').click();
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
-    expect(find('[data-change-model]').disabled).toBe(true);
+    // No contributor has it yet, but it is stored here: the fix is named instead of a dead button.
+    expect(find('[data-change-model]').textContent).toBe('Use this device');
+    expect(find('[data-next-model-status]').textContent).toMatch(/It is on this device/);
     peers = [{ peerId: 'shared', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
     session.refreshNetwork();
     find('[data-execution-choice=network]').click();
@@ -412,17 +414,20 @@ describe('Conversation workspace', () => {
       getModelDownload: async id => ({ id, sizeBytes: 1200000000 }) }, { viewState });
     const draft = find('[data-composer-input]'); draft.value = 'Keep this draft'; draft.dispatchEvent(new Event('input', { bubbles: true }));
     find('[data-open-model]').click();
-    const radio = find(`[data-choice-group="network-unavailable"] input[value="${small.id}"]`);
+    const radio = find(`[data-choice-group="download"] input[value="${small.id}"]`);
     radio.click();
+    // Nobody shares it: the reason and the Download fix sit beside it, and the primary button does the same.
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
-    expect(find('[data-change-model]').disabled).toBe(true);
-    expect(find('[data-switch-local]').hidden).toBe(false);
+    expect(find('[data-next-model-status]').textContent).toMatch(/^No contributor serves this model now/);
+    expect(find('[data-answer-action]').hidden).toBe(false);
+    expect(find('[data-change-model]').textContent).toBe('Download');
     peers.push(peer(small)); session.refreshNetwork();
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
     expect(find('[data-change-model]').disabled).toBe(false);
-    expect(find('[data-switch-local]').hidden).toBe(true);
+    expect(find('[data-change-model]').textContent).toBe('Answer with contributors');
+    expect(find('[data-answer-action]').hidden).toBe(true);
     peers = [peer(medium)]; session.refreshNetwork();
-    find('[data-switch-local]').click();
+    find('[data-answer-action]').click();
     expect(find('[data-model-dialog]').open).toBe(true);
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     expect(find('[data-download-size]').textContent).toBe('1200 MB download');
@@ -438,13 +443,13 @@ describe('Conversation workspace', () => {
     expect(find('[data-model-picker]').open).toBe(true);
     expect(find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true');
     downloadLocalModel.mockImplementation(async () => session.setCachedModels([small]));
-    find('[data-switch-local]').click();
+    find('[data-answer-action]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     find('[data-download-confirm]').click();
     await vi.waitFor(() => expect(find('[data-execution-choice=local]').getAttribute('aria-pressed')).toBe('true'));
     expect(downloadLocalModel).toHaveBeenCalledWith(small.id, true);
     expect(find('[data-next-model]').value).toBe(small.id);
-    expect(find('[data-change-model]').textContent).toBe('Done');
+    expect(find('[data-change-model]').textContent).toBe('Answer on this device');
     expect(find('[data-model-dialog]').open).toBe(false);
     expect(viewState.chosenModel.id).toBe(medium.id);
     find('[data-change-model]').click();
@@ -467,8 +472,8 @@ describe('Conversation workspace', () => {
       subscribe: fn => session.subscribe(state => fn({ ...state, localDownloadIssue: null })),
       getModelDownload: async id => ({ id, sizeBytes: 1200000000 }) });
     find('[data-open-model]').click();
-    find(`[data-choice-group="network-unavailable"] input[value="${small.id}"]`).click();
-    find('[data-switch-local]').click();
+    find(`[data-model-picker] input[value="${small.id}"]`).click();
+    find('[data-answer-action]').click();
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     find('[data-download-confirm]').click();
     await vi.waitFor(() => expect(downloadLocalModel).toHaveBeenCalledOnce());
@@ -518,7 +523,7 @@ describe('Conversation workspace', () => {
     expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('unavailable');
     expect(find('[data-change-model]').disabled).toBe(true);
     expect(find('[data-execution-choice=network]').disabled).toBe(false);
-    expect(find('[data-next-model-status]').textContent).toContain('No shared computer');
+    expect(find('[data-next-model-status]').textContent).toMatch(/^Finding computers…/);
     expect(find('[data-local-fit]').hidden).toBe(true);
     expect(find('[data-production-model]')).toBeNull();
     expect(downloadInfo).not.toHaveBeenCalled();
@@ -527,7 +532,7 @@ describe('Conversation workspace', () => {
     session.refreshNetwork();
     expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
     expect(find('[data-execution-choice=network]').disabled).toBe(false);
-    expect(find('[data-change-model]').textContent).toBe('Done');
+    expect(find('[data-change-model]').textContent).toBe('Answer with contributors');
     expect(find('[data-change-model]').disabled).toBe(false);
     peers = []; session.setCachedModels([model]);
     expect(choice.closest('[data-choice-group]').dataset.choiceGroup).toBe('local');
@@ -701,8 +706,15 @@ describe('Conversation workspace', () => {
     find('[data-open-model]').click();
     find('[data-next-model]').value = large.id; find('[data-next-model]').dispatchEvent(new Event('change', { bubbles: true }));
     expect(find('[data-execution-choice=local]').getAttribute('aria-pressed')).toBe('true');
-    expect(find('[data-change-model]').disabled).toBe(true);
+    // The preset is explained beside the model, and widening it is a separate, named action.
+    expect(find('[data-next-model-status]').textContent).toMatch(/^Only your devices can read this chat/);
+    expect(find('[data-change-model]').textContent).toBe('Use contributors');
+    expect(find('[data-prompt-disclosure]').textContent).toBe('Nothing leaves this device.');
+    // A Contributors tap under the preset applies nothing either; it keeps the explanation and the offer.
+    find('[data-execution-choice=network]').click();
+    expect(find('[data-prompt-disclosure]').textContent).toMatch(/unless you choose Use contributors/);
     expect(session.getState().activeThread.permissions.sharingScope).toBe('local');
+    expect(session.getState().activeThread.privacy.placement).toBe('local-only');
     expect(service.calls).toHaveLength(0);
   });
 
@@ -714,6 +726,51 @@ describe('Conversation workspace', () => {
     await chooseShared(model.id);
     expect(find('[data-model-digest]').textContent).toContain('Contributors');
     expect(find('[data-open-model]').textContent).toContain('Contributors');
+    expect(service.calls).toHaveLength(0);
+  });
+
+  it('never pairs this device with a shared-only model: a tap moves the computer, a preset needs Use contributors', async () => {
+    dispose();
+    const stored = { ...CANONICAL_CHAT_MODELS[0], localCached: true, availability: 'cached', networkAvailability: 'unavailable' };
+    const shared = { ...CANONICAL_CHAT_MODELS[1], availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] };
+    const state = { ...session.getState(), models: [stored, shared], defaultModel: shared, discoveryPhase: 'observed', localDownloadIssue: null };
+    const bind = viewState => bindWorkspace(root, { ...session, getState: () => state, subscribe(fn) { fn(state); return () => {}; } }, { viewState });
+    const choose = id => { const next = find('[data-next-model]'); next.value = id; next.dispatchEvent(new Event('change', { bubbles: true })); };
+    const pressed = () => find('[data-execution-location] [aria-pressed=true]').dataset.executionChoice;
+
+    // The owner's report: a fresh draft on this device opens with a shared-only model chosen.
+    let viewState = {}; dispose = bind(viewState);
+    find('[data-open-model]').click();
+    expect(pressed()).toBe('local');
+    expect(find('[data-next-model]').value).toBe(shared.id);
+    expect(find('[data-next-model-status]').textContent).toMatch(/runs on contributors’ computers/);
+    expect(find('[data-answer-issue]').closest('[data-choice-row]').querySelector('input').value).toBe(shared.id);
+    expect(find('[data-change-model]').disabled).toBe(false);
+    // This device keeps only a model that runs here; the shared model moves the computer to Contributors, staged and stated.
+    find('[data-execution-choice=network]').click(); find('[data-execution-choice=local]').click();
+    expect(find('[data-next-model]').value).toBe(stored.id);
+    expect(find('[data-change-model]').textContent).toBe('Answer on this device');
+    choose(shared.id);
+    expect(pressed()).toBe('network');
+    expect(find('[data-model-picker]').open).toBe(true);
+    expect(find('[data-prompt-disclosure]').textContent).toBe('The answering computer can read your prompt.');
+    expect(find('[data-change-model]').textContent).toBe('Answer with contributors');
+    find('[data-change-model]').click();
+    await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
+    expect(viewState.privacy.recipients.kind).toBe('open');
+    expect(find('[data-model-digest]').textContent).toContain('Contributors');
+
+    // Under "Only your devices" the same tap moves nothing; Use contributors is the explicit preset change.
+    dispose(); viewState = { privacy: createExecutionPolicy(), privacyPreset: 'own-devices' }; dispose = bind(viewState);
+    find('[data-open-model]').click();
+    choose(shared.id);
+    expect(pressed()).toBe('local');
+    expect(find('[data-next-model-status]').textContent).toMatch(/^Only your devices can read this chat/);
+    expect(viewState.privacy.placement).toBe('local-only');
+    find('[data-answer-action]').click();
+    await vi.waitFor(() => expect(find('[data-model-picker]').open).toBe(false));
+    expect(viewState.privacyPreset).toBe('standard');
+    expect(viewState.privacy.recipients.kind).toBe('open');
     expect(service.calls).toHaveLength(0);
   });
 

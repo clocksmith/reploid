@@ -26,8 +26,8 @@ export const modelFacts = model => [
   Number.isSafeInteger(model?.contextLength) && model.contextLength > 0 ? `${model.contextLength.toLocaleString()} tokens maximum` : null
 ].filter(Boolean).join(' · ');
 
-/** Presentation groups never change model identities or execution permissions. */
-export function modelChoiceGroups(models, { preferNetwork = true, location = 'auto' } = {}) {
+/** Presentation groups never change model identities or execution permissions. `keep` lists group ids shown even when empty. */
+export function modelChoiceGroups(models, { preferNetwork = true, location = 'auto', keep = [] } = {}) {
   const privateModels = [], shared = [], local = [], downloads = [], unavailable = [];
   for (const model of models) {
     if (model.fleet) privateModels.push(model);
@@ -47,7 +47,7 @@ export function modelChoiceGroups(models, { preferNetwork = true, location = 'au
     { id: location === 'network' ? 'network-unavailable' : 'unavailable', label: location === 'network' ? 'Unavailable on network' : 'Unavailable', models: unavailable }
   ];
   const ordered = preferNetwork ? groups : [groups[1], groups[0], ...groups.slice(2)];
-  return ordered.filter(group => group.models.length);
+  return ordered.filter(group => group.models.length || keep.includes(group.id));
 }
 
 /** One exact model artifact with its exact adapters. Whole-model and distributed routes are alternatives of it. */
@@ -100,7 +100,8 @@ const ownGroup = (model, preferNetwork, location) => modelChoiceGroups([model], 
 
 /** Native radios keep keyboard selection; the select remains the caller's value port.
  * With `variants`, one radio stands for an exact model/adapter variant and its routes stay with the caller;
- * adapter variants sit directly beneath their base model. `describe(model)` may return { status, facts, note } for a choice. */
+ * adapter variants sit directly beneath their base model. `describe(model)` may return { status, facts, note } for a choice.
+ * `keep` maps group ids to the line an empty group shows, so a group never appears or vanishes as capacity loads. */
 export function bindModelChoices(select, { onInspectProviders } = {}) {
   const group = document.createElement('fieldset');
   group.className = 'chat-model-choices pool-bare';
@@ -133,14 +134,14 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
   group.addEventListener('click', reselect);
   group.addEventListener('keydown', reselect);
   return {
-    update(models, { grouped = false, preferNetwork = true, variants = false, describe = null, compact = false, location = 'auto' } = {}) {
+    update(models, { grouped = false, preferNetwork = true, variants = false, describe = null, compact = false, location = 'auto', keep = {} } = {}) {
       group.hidden = select.hidden;
       const active = group.contains(document.activeElement) ? document.activeElement : null;
       const entries = variants ? modelVariants(models, { value: select.value, preferNetwork })
         : models.map(model => ({ key: model.selectionId || model.id, model, ids: [model.selectionId || model.id], value: model.selectionId || model.id }));
       const families = variants && !compact ? modelFamilies(entries) : entries.map(entry => ({ base: entry, adapters: [], members: [entry], lead: entry.model }));
       const byLead = new Map(families.map(family => [family.lead, family]));
-      const sections = grouped ? modelChoiceGroups(families.map(family => family.lead), { preferNetwork, location }) : [{ id: 'all', models: families.map(family => family.lead) }];
+      const sections = grouped ? modelChoiceGroups(families.map(family => family.lead), { preferNetwork, location, keep: Object.keys(keep) }) : [{ id: 'all', models: families.map(family => family.lead) }];
       const keys = new Set(entries.map(entry => entry.key));
       // Only this group's own choices; a caller may place other controls beneath a choice.
       const rows = new Map([...group.querySelectorAll('[data-choice-row]')].map(row => [row.dataset.choiceRow, row]));
@@ -164,6 +165,12 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
           if (sections.length === 1 || section.models.some(lead => byLead.get(lead).members.some(entry => entry.ids.includes(select.value)))) parent.open = true;
         }
         parents.set(section.id, parent);
+        let empty = parent.querySelector(':scope > [data-choice-empty]');
+        if (section.models.length) empty?.remove();
+        else {
+          if (!empty) { empty = document.createElement('p'); empty.className = 'pool-small pool-muted chat-model-empty'; empty.dataset.choiceEmpty = ''; parent.append(empty); }
+          empty.textContent = keep[section.id] || '';
+        }
         if (grouped) {
           const position = group.querySelectorAll(':scope > [data-choice-group]')[sectionIndex];
           if (position !== parent) group.insertBefore(parent, position || null);
