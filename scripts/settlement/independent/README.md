@@ -42,18 +42,18 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document with the owner's decided unfinished-answer rule and both verifiers at 1281fdd47. 22 base attempts
-(two added for the older provider-loss-free terms), 25 mutation families, Ed25519 and P-256 keys, seven clock values
+The document with the owner's decided unfinished-answer rule and the older terms shape, and both verifiers at
+bcfb67570. 22 base attempts (two added for the older provider-loss-free terms), 26 mutation families, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
 reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 1,448 |
-| Judgments (one row at one clock value) | 2,052 |
-| Same outcome, same debit, same credit for every stage | 2,052 |
-| Every documented member of the row the same | 2,052 |
-| Same records rejected, same `counts` and same balances per account | 2,008 of 2,008 runs |
+| Record sets | 1,524 |
+| Judgments (one row at one clock value) | 2,128 |
+| Same outcome, same debit, same credit for every stage | 2,128 |
+| Every documented member of the row the same | 2,128 |
+| Same records rejected, same `counts` and same balances per account | 2,084 of 2,084 runs |
 | Disagreements | 0 |
 
 Read this as: on these record sets, a verifier written from the document's text alone returns what the service's
@@ -70,6 +70,12 @@ reject the second form of a P-256 signature, count a closing receipt signed up t
 plus the clock allowance and list a later one as late, and keep a row `open` up to and including the instant the
 deadline, the release window and the clock allowance have passed.
 
+The family "terms signed before K" signs every base attempt's terms again without `maxUnacknowledgedOutputs`, as the
+first split trades of 2026-11-25 did: under the older unfinished-answer terms against a policy that publishes no `K`
+(both verifiers read them), against a policy that publishes `K` (`invalid`), and under the base attempt's own terms
+(malformed unless those are the older ones). Gap 82 of [DOC-GAPS.md](DOC-GAPS.md), step 9 naming a member such terms
+lack, was answered in the document in the same change; the second verifier had already read it that way.
+
 This verifier implements the replay, under the decided terms and under the older ones the document keeps. The
 ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger rule and are not implemented here.
 
@@ -84,6 +90,7 @@ ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger
 | a25242bc3 | updated from the text; the result shape now follows the document's member list | 1,904 of 1,904 | no verdict or amount; three small differences in other row members (an own-account stage in `credits`, conflict entry details, `closedAtLastStep`) |
 | 955bd5f7a | updated from the text | 1,936 of 1,936, every row member included | nothing |
 | 1281fdd47 | updated from the text with the decided unfinished-answer rule; result `schema` v2 | 2,052 of 2,052, every row member included | nothing; the amounts `replay.js` computes did not change, because it already charged the prefix under every value but the provider-loss-free one |
+| 9c7e04d77 | updated from the text with the older terms shape (terms signed before `K`) | 2,128 of 2,128 with the added family, every row member included | nothing |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
