@@ -42,18 +42,18 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document with the owner's decided unfinished-answer rule and the older terms shape, and both verifiers at
-bcfb67570. 22 base attempts (two added for the older provider-loss-free terms), 26 mutation families, Ed25519 and P-256 keys, seven clock values
+The document with the owner's decided unfinished-answer rule, the older terms shape and signed accounts, and both
+verifiers at 22570d1f1. 22 base attempts (two added for the older provider-loss-free terms), 27 mutation families, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
 reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 1,524 |
-| Judgments (one row at one clock value) | 2,128 |
-| Same outcome, same debit, same credit for every stage | 2,128 |
-| Every documented member of the row the same | 2,128 |
-| Same records rejected, same `counts` and same balances per account | 2,084 of 2,084 runs |
+| Record sets | 1,809 |
+| Judgments (one row at one clock value) | 2,527 |
+| Same outcome, same debit, same credit for every stage | 2,527 |
+| Every documented member of the row the same | 2,527 |
+| Same records rejected, same `counts` and same balances per account | 2,483 of 2,483 runs |
 | Disagreements | 0 |
 
 Read this as: on these record sets, a verifier written from the document's text alone returns what the service's
@@ -76,6 +76,14 @@ first split trades of 2026-11-25 did: under the older unfinished-answer terms ag
 (malformed unless those are the older ones). Gap 82 of [DOC-GAPS.md](DOC-GAPS.md), step 9 naming a member such terms
 lack, was answered in the document in the same change; the second verifier had already read it that way.
 
+The family "signed accounts" signs every base attempt's terms again with the requester's `debitAccount` and each
+acceptance with its stage's `payoutAccount`: every party under its own account, a stage naming the requester's account
+(the first, then the final), all stages sharing one, a stage naming none or two, terms without an account beside
+acceptances with one, and the same records judged with an enrollment (`accountOf`) that agrees with what was signed,
+places a stage or the requester under another account, or places nobody. 399 judgments. The `accounts` row member is
+compared like the others. Gap 89 of [DOC-GAPS.md](DOC-GAPS.md), found by the second verifier's author, is why the
+enrollment test exists: without it a signed account is only what its signer asked for.
+
 This verifier implements the replay, under the decided terms and under the older ones the document keeps. The
 ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger rule and are not implemented here.
 
@@ -91,6 +99,7 @@ ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger
 | 955bd5f7a | updated from the text | 1,936 of 1,936, every row member included | nothing |
 | 1281fdd47 | updated from the text with the decided unfinished-answer rule; result `schema` v2 | 2,052 of 2,052, every row member included | nothing; the amounts `replay.js` computes did not change, because it already charged the prefix under every value but the provider-loss-free one |
 | 9c7e04d77 | updated from the text with the older terms shape (terms signed before `K`) | 2,128 of 2,128 with the added family, every row member included | nothing |
+| 1f79a07e6 | updated from the text with signed accounts, in two rounds; the second added the enrollment test its author's gap 89 called for | 2,527 of 2,527 with the added family, every row member included | nothing |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
