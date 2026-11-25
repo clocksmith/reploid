@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 699791,
-      "sha256": "sha256:4fd3bd43d7130fc54dbbf6613e74245364035ebb0cdaec865f0bf9460a8a1182"
+      "byteLength": 698924,
+      "sha256": "sha256:76eff41a35c9ca0e971619611867b85672a3cf0de5c6094f0c13e6c937facf97"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 150001,
-      "sha256": "sha256:3bab890659ec9053a19b20f6709bf0c010880043ef6136d5c34c272d1203f565"
+      "byteLength": 149832,
+      "sha256": "sha256:cb66796be79323cf737d4dbfd8b5c30d7d672bd463debabdf3995eaaab9f665e"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1770,8 +1770,8 @@
     },
     {
       "path": "design.html",
-      "byteLength": 33063,
-      "sha256": "sha256:5fcb94b75825f74109d8c122d2175d4b0095ae502823d493736b3a3218859556"
+      "byteLength": 1113,
+      "sha256": "sha256:f792923024116555a6e8db390ca3e8aa1205ca757a7649dba238805be2ddd082"
     },
     {
       "path": "document-study.html",
@@ -3199,11 +3199,6 @@
       "sha256": "sha256:026bd1944e69ce4bfb931489d216ebfe22add4ed4ecefb9fe7348d4ed2feec3c"
     },
     {
-      "path": "poolday-design.html",
-      "byteLength": 591,
-      "sha256": "sha256:14d59b9c782a380a5677df02532099f2c339f6ff748cb31ef909133643b335d1"
-    },
-    {
       "path": "prompts/kernel.md",
       "byteLength": 4360,
       "sha256": "sha256:c9a174bb88b2cd8bcb921b9ffe6caa389e036f217cf914da85a4a2c10aefa5d0"
@@ -3314,11 +3309,6 @@
       "sha256": "sha256:04127d79ddacd89e173683e5b918f03042be18520312faca1aa816da075e386b"
     },
     {
-      "path": "styles/poolday-design.css",
-      "byteLength": 8433,
-      "sha256": "sha256:bb9ddd32976677b97b4bff95e0d1830cd2153289336ccad7480cca764c53d869"
-    },
-    {
       "path": "styles/poolday/compositions/conversation.css",
       "byteLength": 32362,
       "sha256": "sha256:d89e673c3f57e165ee78d74a4a3d3cffb509cbe01f9134d6dadefea52b9fb2e9"
@@ -3345,23 +3335,23 @@
     },
     {
       "path": "styles/poolday/primitives/base.css",
-      "byteLength": 9273,
-      "sha256": "sha256:894bd60c06e5b3aa1e034a6d2c9b508db1edd0b7d574c16d0aa1f66575d0de9a"
+      "byteLength": 9518,
+      "sha256": "sha256:c1f16f1392a939796a5dc3d8528a49d2469dfc7ffc163b911393a456fd5a6e3b"
     },
     {
       "path": "styles/poolday/primitives/choices.css",
-      "byteLength": 19176,
-      "sha256": "sha256:d525857fe541a65288ee2abad02792f20b58d965466a2181101fe326a4a82413"
+      "byteLength": 20574,
+      "sha256": "sha256:16811fa648c5eb38d69fec39b99f78a82688ada063896bdc33cadb7c56d0b477"
     },
     {
       "path": "styles/poolday/primitives/controls.css",
-      "byteLength": 14120,
-      "sha256": "sha256:5a14a830ba5bf7fed8a31eff86cd2d848ab629256795ba1cf21de287e52526ad"
+      "byteLength": 14417,
+      "sha256": "sha256:bb8becf36dc4ad522a21917f59f12cc4a4c9777367bc8ca2fb586256c3f2304a"
     },
     {
       "path": "styles/poolday/primitives/layout.css",
-      "byteLength": 1367,
-      "sha256": "sha256:2c2e7dcc92980f476c53456a2199be84b8e6d260f9f311db26a414ce7aba9200"
+      "byteLength": 4128,
+      "sha256": "sha256:1c5dcde685e922dbb65886c5729434f2ae8a3ba7e1eab745ef571d8f16bd4032"
     },
     {
       "path": "styles/poolday/primitives/optical.css",
@@ -3370,18 +3360,18 @@
     },
     {
       "path": "styles/poolday/primitives/surfaces.css",
-      "byteLength": 5365,
-      "sha256": "sha256:ad74d14576f3ec6224c708e17daef93f7f402d517368d341dc4380443a261707"
+      "byteLength": 8403,
+      "sha256": "sha256:3d493dac03b6e3a534a8356f63fe546de020498f2864d321786026b5b13cabc0"
     },
     {
       "path": "styles/poolday/primitives/text.css",
-      "byteLength": 3878,
-      "sha256": "sha256:a972655fa0f7edee292f24cf174e0cc3bc11dffec3905bace130827ad97b135d"
+      "byteLength": 4014,
+      "sha256": "sha256:7706e66a4c38b113162caf81bfa643cb42f244005e52be439251691db1079195"
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 14326,
-      "sha256": "sha256:e9358ae6d64cb090f3180e8daa7cea199065a0416955c94090909a1be1e29d75"
+      "byteLength": 14481,
+      "sha256": "sha256:0b9559e41761029b98da7cc50318840712c074d4d39b93c8821f6b7f1f40e984"
     },
     {
       "path": "styles/proto/components.css",
@@ -4399,26 +4389,6 @@
       "sha256": "sha256:2078e84630e51d4d3958dff8913455a24cabb6034e9af24ba83da05bea03258a"
     },
     {
-      "path": "ui/poolday-design/index.js",
-      "byteLength": 21193,
-      "sha256": "sha256:f322685005cfce09b7bbb7fefaaa7f53399683a50834a646e18433fe2c817a77"
-    },
-    {
-      "path": "ui/poolday-design/model.js",
-      "byteLength": 6483,
-      "sha256": "sha256:fe5427f530376ff61588f3fb007c8f2ef1d21759cef1c72ff5f90681245ff4eb"
-    },
-    {
-      "path": "ui/poolday-design/production-simulation.js",
-      "byteLength": 7270,
-      "sha256": "sha256:d9ddae903458f5f413c437013c48944693ba893c376959140636144b4fc5cb1d"
-    },
-    {
-      "path": "ui/poolday-design/specimens.js",
-      "byteLength": 17581,
-      "sha256": "sha256:832be214711dd953beb2c3c0401f1b2b0b49f55e36e18042f841a412c05c8961"
-    },
-    {
       "path": "ui/proto/index.js",
       "byteLength": 49200,
       "sha256": "sha256:a8e6f30a8793fa4e452d7a7b58a18179980e57a23cbef24ca106ca1c8cfff14b"
@@ -4457,6 +4427,11 @@
       "path": "ui/proto/workers.js",
       "byteLength": 6520,
       "sha256": "sha256:45412d256de654008c72d4302a6263285f6638402fb5c228372d4acd9e833fec"
+    },
+    {
+      "path": "ui/react/design.js",
+      "byteLength": 370949,
+      "sha256": "sha256:f23aafeed767fb4e9fb47c47467755dfbd04fbdfa351fb7d06db3210d4c526e5"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12789,6 +12764,11 @@
       "sha256": "sha256:0c29cf8925a41e69c6b183485d1fa85c4543c9a86712d313736f354849ca36c1"
     },
     {
+      "path": "x/design.html",
+      "byteLength": 33064,
+      "sha256": "sha256:d4c09fbc2b83878b7d8a74512fc84e752b418b72164916c15f58ee276fe8cea0"
+    },
+    {
       "path": "zero/agent.js",
       "byteLength": 9827,
       "sha256": "sha256:cc16035fcf077f02829bd9b107b76a179a908e129f8cd5db088257b596c21d89"
@@ -12849,5 +12829,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:dbaaae10bad8b4a425a19c9a058c6d0e884975186e8a762fcf3e0d6b9a1fde59"
+  "bundleHash": "sha256:b8689dd83cba35e8d0df868ddd0914662b19021f24f53b3e65e33eadcd7521d8"
 }

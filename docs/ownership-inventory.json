@@ -8,7 +8,7 @@
   "productEntries": [
     "index.html",
     "pool-entry.html",
-    "poolday-design.html",
+    "design.html",
     "document-study.html",
     "repair-smoke.html",
     "ui/pool-home/index.js"
@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 401,
+    "apps/poolday": 397,
     "self": 457,
     "shared": 2519
   },
@@ -2162,9 +2162,9 @@
     },
     {
       "served": "design.html",
-      "source": "shared/design.html",
-      "owner": "shared",
-      "basis": "RD design-system specimen and storage reset page served for every surface; load only shared styles."
+      "source": "apps/poolday/design.html",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "document-study.html",
@@ -4057,12 +4057,6 @@
       "basis": "Reached from native hosts and browser entries."
     },
     {
-      "served": "poolday-design.html",
-      "source": "apps/poolday/poolday-design.html",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "prompts/kernel.md",
       "source": "self/prompts/kernel.md",
       "owner": "self",
@@ -4138,7 +4132,7 @@
       "served": "reset.html",
       "source": "shared/reset.html",
       "owner": "shared",
-      "basis": "RD design-system specimen and storage reset page served for every surface; load only shared styles."
+      "basis": "Zero / X RD design-system specimen (/x/design) and storage reset page; load only shared styles."
     },
     {
       "served": "reward-policy.js",
@@ -4195,12 +4189,6 @@
       "basis": "Reached only from substrate entries."
     },
     {
-      "served": "styles/poolday-design.css",
-      "source": "apps/poolday/styles/poolday-design.css",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "styles/poolday/compositions/conversation.css",
       "source": "apps/poolday/styles/poolday/compositions/conversation.css",
       "owner": "apps/poolday",
@@ -4228,7 +4216,7 @@
       "served": "styles/poolday/layers.json",
       "source": "apps/poolday/styles/poolday/layers.json",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "styles/poolday/primitives/base.css",
@@ -5503,30 +5491,6 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "ui/poolday-design/index.js",
-      "source": "apps/poolday/ui/poolday-design/index.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/poolday-design/model.js",
-      "source": "apps/poolday/ui/poolday-design/model.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/poolday-design/production-simulation.js",
-      "source": "apps/poolday/ui/poolday-design/production-simulation.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/poolday-design/specimens.js",
-      "source": "apps/poolday/ui/poolday-design/specimens.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "ui/proto/index.js",
       "source": "self/ui/proto/index.js",
       "owner": "self",
@@ -5573,6 +5537,12 @@
       "source": "self/ui/proto/workers.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "ui/react/design.js",
+      "source": "apps/poolday/ui/react/design.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "ui/reploid-home/index.js",
@@ -17785,6 +17755,12 @@
       "served": "vendor/reploid/transport/tool-offer-channel.js",
       "source": "shared/vendor/reploid/transport/tool-offer-channel.js",
       "owner": "shared"
+    },
+    {
+      "served": "x/design.html",
+      "source": "shared/x/design.html",
+      "owner": "shared",
+      "basis": "Zero / X RD design-system specimen (/x/design) and storage reset page; load only shared styles."
     },
     {
       "served": "zero/agent.js",

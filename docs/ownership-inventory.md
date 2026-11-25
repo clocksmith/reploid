@@ -14,14 +14,14 @@ and JSON. A file reached from the product entries and the substrate entries is s
 traversal stops at the documented substrate entry points (`zero/boot.js`, `kernel/boot.js`).
 Files no entry reaches are assigned by the rules in the generator, with the reason shown.
 
-Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `document-study.html`, `repair-smoke.html`, `ui/pool-home/index.js`.
+Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study.html`, `repair-smoke.html`, `ui/pool-home/index.js`.
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 401 |
+| apps/poolday | 397 |
 | self | 457 |
 | shared | 2519 |
-| total | 3377 |
+| total | 3373 |
 
 Every file lives in its owner's root.
 
@@ -393,7 +393,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `core/worker-agent.js` | `self/core/worker-agent.js` | self | Reached only from substrate entries. |
 | `core/worker-manager.js` | `self/core/worker-manager.js` | self | Reached only from substrate entries. |
 | `core/zero-prompt.js` | `self/core/zero-prompt.js` | self | Reached only from substrate entries. |
-| `design.html` | `shared/design.html` | shared | RD design-system specimen and storage reset page served for every surface; load only shared styles. |
+| `design.html` | `apps/poolday/design.html` | apps/poolday | Reached only from product entries. |
 | `document-study.html` | `apps/poolday/document-study.html` | apps/poolday | Reached only from product entries. |
 | `dream-instance.js` | `self/dream-instance.js` | self | Reached only from substrate entries. |
 | `entry/seed-vfs.js` | `self/entry/seed-vfs.js` | self | Reached only from substrate entries. |
@@ -709,7 +709,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/sdk.js` | `shared/pool/sdk.js` | shared | Reached from product and substrate entries. |
 | `pool/sequence-result.js` | `apps/poolday/pool/sequence-result.js` | apps/poolday | Reached only from product entries. |
 | `pool/sequence-workload.js` | `shared/pool/sequence-workload.js` | shared | Reached from native hosts and browser entries. |
-| `poolday-design.html` | `apps/poolday/poolday-design.html` | apps/poolday | Reached only from product entries. |
 | `prompts/kernel.md` | `self/prompts/kernel.md` | self | Reached only from substrate entries. |
 | `providers/doppler-reploid.js` | `self/providers/doppler-reploid.js` | self | Reached only from substrate entries. |
 | `providers/external-brain.js` | `self/providers/external-brain.js` | self | Reached only from substrate entries. |
@@ -722,7 +721,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `providers/work-resident-provider.js` | `apps/poolday/providers/work-resident-provider.js` | apps/poolday | Reached only from product entries. |
 | `receipt.js` | `self/receipt.js` | self | Reached only from substrate entries. |
 | `repair-smoke.html` | `apps/poolday/repair-smoke.html` | apps/poolday | Reached only from product entries. |
-| `reset.html` | `shared/reset.html` | shared | RD design-system specimen and storage reset page served for every surface; load only shared styles. |
+| `reset.html` | `shared/reset.html` | shared | Zero / X RD design-system specimen (/x/design) and storage reset page; load only shared styles. |
 | `reward-policy.js` | `shared/reward-policy.js` | shared | Reached from native hosts and browser entries. |
 | `runtime.js` | `self/runtime.js` | self | Reached only from substrate entries. |
 | `shared/change-passport/contract.js` | `self/shared/change-passport/contract.js` | self | Reached only from substrate entries. |
@@ -732,12 +731,11 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `styles/audit.css` | `self/styles/audit.css` | self | Reached only from substrate entries. |
 | `styles/boot.css` | `apps/poolday/styles/boot.css` | apps/poolday | Reached only from product entries. |
 | `styles/capsule.css` | `self/styles/capsule.css` | self | Reached only from substrate entries. |
-| `styles/poolday-design.css` | `apps/poolday/styles/poolday-design.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/compositions/conversation.css` | `apps/poolday/styles/poolday/compositions/conversation.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/compositions/interaction.css` | `apps/poolday/styles/poolday/compositions/interaction.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/compositions/mobile-navigation.css` | `apps/poolday/styles/poolday/compositions/mobile-navigation.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/compositions/screens.css` | `apps/poolday/styles/poolday/compositions/screens.css` | apps/poolday | Reached only from product entries. |
-| `styles/poolday/layers.json` | `apps/poolday/styles/poolday/layers.json` | apps/poolday | Reached only from product entries. |
+| `styles/poolday/layers.json` | `apps/poolday/styles/poolday/layers.json` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `styles/poolday/primitives/base.css` | `apps/poolday/styles/poolday/primitives/base.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/choices.css` | `apps/poolday/styles/poolday/primitives/choices.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/controls.css` | `apps/poolday/styles/poolday/primitives/controls.css` | apps/poolday | Reached only from product entries. |
@@ -950,10 +948,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/work-tool-offers.js` | `apps/poolday/ui/pool-home/work-tool-offers.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/work.js` | `apps/poolday/ui/pool-home/work.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/workspace-navigation.js` | `apps/poolday/ui/pool-home/workspace-navigation.js` | apps/poolday | Reached only from product entries. |
-| `ui/poolday-design/index.js` | `apps/poolday/ui/poolday-design/index.js` | apps/poolday | Reached only from product entries. |
-| `ui/poolday-design/model.js` | `apps/poolday/ui/poolday-design/model.js` | apps/poolday | Reached only from product entries. |
-| `ui/poolday-design/production-simulation.js` | `apps/poolday/ui/poolday-design/production-simulation.js` | apps/poolday | Reached only from product entries. |
-| `ui/poolday-design/specimens.js` | `apps/poolday/ui/poolday-design/specimens.js` | apps/poolday | Reached only from product entries. |
 | `ui/proto/index.js` | `self/ui/proto/index.js` | self | Reached only from substrate entries. |
 | `ui/proto/optimization.js` | `self/ui/proto/optimization.js` | self | Reached only from substrate entries. |
 | `ui/proto/replay.js` | `self/ui/proto/replay.js` | self | Reached only from substrate entries. |
@@ -962,6 +956,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/proto/utils.js` | `self/ui/proto/utils.js` | self | Reached only from substrate entries. |
 | `ui/proto/vfs.js` | `self/ui/proto/vfs.js` | self | Reached only from substrate entries. |
 | `ui/proto/workers.js` | `self/ui/proto/workers.js` | self | Reached only from substrate entries. |
+| `ui/react/design.js` | `apps/poolday/ui/react/design.js` | apps/poolday | Reached only from product entries. |
 | `ui/reploid-home/index.js` | `self/ui/reploid-home/index.js` | self | Reached only from substrate entries. |
 | `ui/shared/reploid-contract.js` | `self/ui/shared/reploid-contract.js` | self | Reached only from substrate entries. |
 | `ui/toast.js` | `self/ui/toast.js` | self | Reached only from substrate entries. |
@@ -969,6 +964,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/zero/index.js` | `self/ui/zero/index.js` | self | Reached only from substrate entries. |
 | `ui/zero/replay-panel.js` | `self/ui/zero/replay-panel.js` | self | Reached only from substrate entries. |
 | `ui/zero/trace-view.js` | `self/ui/zero/trace-view.js` | self | Reached only from substrate entries. |
+| `x/design.html` | `shared/x/design.html` | shared | Zero / X RD design-system specimen (/x/design) and storage reset page; load only shared styles. |
 | `zero/agent.js` | `self/zero/agent.js` | self | Reached only from substrate entries. |
 | `zero/boot.js` | `self/zero/boot.js` | self | Reached only from substrate entries. |
 | `zero/config.json` | `self/zero/config.json` | self | Reached only from substrate entries. |

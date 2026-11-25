@@ -5593,39 +5593,6 @@
       ]
     },
     {
-      "path": "ui/poolday-design/index.js",
-      "owner": "ui",
-      "sha256": "sha256:f322685005cfce09b7bbb7fefaaa7f53399683a50834a646e18433fe2c817a77",
-      "imports": [
-        "../components/button-feedback.js",
-        "./model.js",
-        "./specimens.js"
-      ]
-    },
-    {
-      "path": "ui/poolday-design/model.js",
-      "owner": "ui",
-      "sha256": "sha256:fe5427f530376ff61588f3fb007c8f2ef1d21759cef1c72ff5f90681245ff4eb",
-      "imports": []
-    },
-    {
-      "path": "ui/poolday-design/production-simulation.js",
-      "owner": "ui",
-      "sha256": "sha256:d9ddae903458f5f413c437013c48944693ba893c376959140636144b4fc5cb1d",
-      "imports": [
-        "../components/mathematical-background.js",
-        "../pool-home/network-inspector.js",
-        "../pool-home/production.js",
-        "../pool-home/theme.js"
-      ]
-    },
-    {
-      "path": "ui/poolday-design/specimens.js",
-      "owner": "ui",
-      "sha256": "sha256:832be214711dd953beb2c3c0401f1b2b0b49f55e36e18042f841a412c05c8961",
-      "imports": []
-    },
-    {
       "path": "ui/proto/index.js",
       "owner": "ui",
       "sha256": "sha256:a8e6f30a8793fa4e452d7a7b58a18179980e57a23cbef24ca106ca1c8cfff14b",
@@ -5691,6 +5658,12 @@
       "imports": [
         "./utils.js"
       ]
+    },
+    {
+      "path": "ui/react/design.js",
+      "owner": "ui",
+      "sha256": "sha256:f23aafeed767fb4e9fb47c47467755dfbd04fbdfa351fb7d06db3210d4c526e5",
+      "imports": []
     },
     {
       "path": "ui/reploid-home/index.js",
