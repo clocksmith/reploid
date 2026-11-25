@@ -84,7 +84,7 @@ index.html                  Generated interactive preview
  build.mjs                  Regenerate the embedded preview
  server.mjs                 Read-only loopback server
  test/diagram.test.mjs       Data and geometry tests
- test/browser_check.py       Browser interaction checks
+ test/browser-check.mjs      Browser interaction checks (Playwright)
  ecosystem.svg              Static export
  interfaces.svg             Static export
  sequence.svg               Static export

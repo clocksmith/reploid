@@ -52,7 +52,7 @@ The tarball is `doppler-gpu` 0.6.0 from source revision
 All 1,779 installed files were compared byte-for-byte with the package. This is
 a retained installable candidate; it has not been published to npm.
 
-1. Run `python3 verify.py --extract /absolute/new-bundle-directory` from this
+1. Run `node verify.js --extract /absolute/new-bundle-directory` from this
    directory. Extraction refuses to overwrite an existing directory.
 2. Install the extracted `package/doppler-gpu-0.6.0.tgz` into a new consumer with
    `npm install --ignore-scripts --omit=optional --offline --no-audit --no-fund`.
@@ -63,7 +63,7 @@ a retained installable candidate; it has not been published to npm.
    configuration, and adapter-kernel recipe are retained under `source/`.
    Conversion must reproduce the declared hashes; replacing signed metadata
    with newly generated metadata changes the experiment's identity.
-4. Run `python3 restore-capsule.py /absolute/bundle /absolute/converted-model
+4. Run `node restore-capsule.js /absolute/bundle /absolute/converted-model
    /absolute/new-capsule-directory`. It checks all 54 dependencies before linking
    them into the new directory. It does not copy the base weights.
 5. Copy `replay/replay-config-debug-04.json` and set its explicit local paths:

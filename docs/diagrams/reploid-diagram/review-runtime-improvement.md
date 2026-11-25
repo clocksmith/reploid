@@ -45,17 +45,17 @@ From this diagram directory:
 ```sh
 npm run build
 npm test
-/tmp/reploid-diagram-venv/bin/python test/browser_check.py
+node test/browser-check.mjs
 node --check source/core.mjs
 node --check source/viewer.js
 node --check source/three-renderer.mjs
 ```
 
 From the repository root: `npm run verify:catscan` and `git diff --check`.
-All final commands pass. The browser check uses Python Playwright `1.58.0`
-in an isolated temporary environment and Chromium's offline SVG path.
-The initial system Python lacked Playwright; the first browser attempt after
-installation targeted empty space inside an SVG group's bounds. The corrected
+All final commands pass. The browser check runs Node Playwright (Reploid's
+`@playwright/test`) against Chromium's offline SVG path; it was ported from
+Python under the JavaScript-only rule. The first browser attempt
+targeted empty space inside an SVG group's bounds. The corrected
 test clicks the visible edge label, then checks the inspector's links.
 
 Product inference, improvement episodes, model-generated candidates, peer

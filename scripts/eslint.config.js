@@ -191,7 +191,7 @@ export default [
   { files: ['server/**/*.js', 'scripts/**/*.js', 'scripts/**/*.mjs', 'tools/**/*.js', 'bin/**/*.js',
     'packages/functions/**/*.js', '.github/actions/**/*.js',
     'docs/diagrams/reploid-diagram/{build,server}.mjs',
-    'docs/diagrams/reploid-diagram/test/**/*.mjs', 'docs/status/**/verify.js',
+    'docs/diagrams/reploid-diagram/test/**/*.mjs', 'docs/status/**/verify.js', 'docs/status/**/restore-capsule.js',
     'reports/local/**/native-control.js'], ignores: ['server/daily/site/**'],
     languageOptions: { globals: globals.node } },
   { files: browserHarnesses, languageOptions: { globals: globals.browser } },

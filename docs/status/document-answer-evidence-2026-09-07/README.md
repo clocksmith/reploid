@@ -39,15 +39,15 @@ cd docs/status/document-answer-evidence-2026-09-07
 shasum -a 256 -c SHA256SUMS
 mkdir extracted
 tar -xzf evidence.tar.gz -C extracted
-python3 - <<'PY'
-import hashlib, json
-from pathlib import Path
-for row in json.loads(Path('files.json').read_text()):
-    data = (Path('extracted') / row['path']).read_bytes()
-    assert len(data) == row['bytes'], row['path']
-    assert hashlib.sha256(data).hexdigest() == row['sha256'], row['path']
-print('All archived files verified')
-PY
+node --input-type=module -e "
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+for (const row of JSON.parse(readFileSync('files.json', 'utf8'))) {
+  const data = readFileSync('extracted/' + row.path);
+  if (data.length !== row.bytes || createHash('sha256').update(data).digest('hex') !== row.sha256) throw new Error(row.path);
+}
+console.log('All archived files verified');
+"
 ```
 
 Read both `execution.json` files before changing the evaluation. Citation syntax
@@ -59,11 +59,11 @@ For physical restoration, provision and convert the pinned source using the
 retained source reference and conversion configuration, then run:
 
 ```sh
-python3 extracted/reploid-qwen-adapter-closure/reproduction/restore-capsule.py \
+node ../qwen-adapter-2026-09-06/restore-capsule.js \
   extracted/reploid-qwen-adapter-closure /path/to/converted-model /path/to/new-capsule
 ```
 
-The restoration script verifies every dependency's size and hash before creating
+The restoration script (the JavaScript port of the archive's `reproduction/restore-capsule.py`) verifies every dependency's size and hash before creating
 the destination. Configure a new evaluation to use that destination and the
 archived `capsule/open-options.json`; do not regenerate signatures or substitute
 an unrelated model configuration.

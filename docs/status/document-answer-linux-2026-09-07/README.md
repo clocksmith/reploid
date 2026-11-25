@@ -85,7 +85,8 @@ node ../reploid/node_modules/doppler-gpu/tools/convert-safetensors-node.js \
   --output-dir /path/to/new-converted-model
 ```
 
-Run the original archive's `restore-capsule.py` against those converted bytes.
+Run `docs/status/qwen-adapter-2026-09-06/restore-capsule.js`, the JavaScript port of the original archive's
+`restore-capsule.py`, against those converted bytes.
 Create a separate copy of `evaluation-config.json` with paths and the actual
 physical browser/GPU identity for the receiving host. Preserve corpus digest,
 generation settings, trust keys, and accepted plans. From Reploid:
@@ -154,6 +155,8 @@ place the retained script, `source-inputs.json`, and `verification.jsonl` next
 to the seven verified upstream files in a fresh directory. Install the pinned
 CPU reference dependencies in an isolated environment and run
 `python source-reference.py`. Its output directory must not already exist.
+That script is a retained archive member, not Reploid code: Reploid runs JavaScript
+only, so a source-model rerun happens outside this repository.
 
 Component: document-answer qualification evidence and Doppler artifact restoration.
 Intent: preserved.
