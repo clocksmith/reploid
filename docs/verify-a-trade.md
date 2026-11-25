@@ -28,6 +28,22 @@ unfinished-answer terms the requester signed. The command exits 0 only when ever
 attempt passes. `--json` prints the full verdict; `--at ISO_TIME` replays as of
 another instant (an attempt still inside its release window is not final yet).
 
+### A package for someone without the repository
+
+`scripts/settlement/outsider-package.js` puts one or more receipts, this
+verifier and every file it imports (copied from one commit), the result each
+receipt gives now, and one command into a single folder:
+
+```sh
+node scripts/settlement/outsider-package.js --manifest MANIFEST.json --out NEW_DIRECTORY
+```
+
+The person checking needs only Node. They run `node verify.mjs` in the folder.
+It checks every file against `SHA256SUMS`, replays each receipt and compares the
+result with `expected.json`. Its `README.md` lists the expected output and the
+commit the verifier was copied from. `node verify.mjs --verifier REPLOID` runs
+the same check with their own clone instead.
+
 ## What it checks
 
 For each attempt, from the records in the receipt:
