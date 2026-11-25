@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-attack-matrix/v1",
-  "generatedAt": "2026-11-25T06:20:58.850Z",
+  "generatedAt": "2026-11-25T07:56:25.942Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -180,8 +180,8 @@
       "kind": "participant",
       "case": "P4 a stage withholds its closing receipt",
       "replay": {
-        "status": "unknown",
-        "reason": "the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 0"
+        "status": "settled",
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
       },
       "countersign": {
         "status": "unsettled: that stage never countersigns"

@@ -157,19 +157,22 @@ async function main() {
    */
   const judge = async (records, attempt, shown = []) => {
     const replayed = await replaySettlement({ records, policies: [POLICY], at: attempt.closesAt + 1 });
-    const r = replayed.reservations.find(row => row.reservationId === attempt.reservationId);
+    const r = replayed.reservations.find(row => row.reservationId === attempt.reservationId && row.requesterId === requesterId);
+    const others = replayed.reservations.filter(row => row.reservationId === attempt.reservationId && row !== r);
     const honestRun = new Set(attempt.all()), witness = createWitness(witnessIdentity);
     const queue = [...[...new Set(records)].filter(row => honestRun.has(row)).map(row => [row, ms(row.signedAt)]), ...shown].sort((a, b) => a[1] - b[1]);
     for (const [record, at] of queue) await witness.see(record, at);
     const b4 = await witnessedReplay({ records, statements: witness.statements, witnessKey: witnessIdentity.publicJwk, policies: [POLICY], at: attempt.closesAt + 1 });
-    const w = b4.replayed.reservations.find(row => row.reservationId === attempt.reservationId);
+    const w = b4.replayed.reservations.find(row => row.reservationId === attempt.reservationId && row.requesterId === requesterId);
     const tally = list => Object.fromEntries([...new Set(list)].map(reason => [reason, list.filter(item => item === reason).length]));
     const notes = (await debitNoteSettlement({ records, policies: [POLICY] })).filter(row => row.reservationId === attempt.reservationId);
     const mine = notes.find(row => row.requesterId === requesterId);
     const paid = credits => Object.fromEntries((credits ?? []).map(row => [name(row.participantId), row.amount]));
     return {
       replay: { status: r?.status ?? 'none', debit: r?.debit ?? 0, paid: paid(r?.credits), reason: r?.reason ?? null,
-        ...(r?.conflicts?.length ? { conflicts: r.conflicts.map(row => `${row.kind} by ${name(row.signer)}${row.blocking === false ? ' (recorded, not blocking)' : ''}`) } : {}) },
+        ...(r?.conflicts?.length ? { conflicts: r.conflicts.map(row => `${row.kind} by ${row.signer ? name(row.signer) : `${row.signers.map(name).join(' or ')} (undecidable)`}`
+          + `${row.blocking === false ? ' (recorded, not blocking)' : ''}`) } : {}),
+        ...(others.length ? { otherAttempts: others.map(row => `${name(row.requesterId)}: ${row.status}, debit ${row.debit ?? 0}`) } : {}) },
       debitNotes: { status: mine?.status ?? 'none', debit: mine?.debit ?? 0, paid: paid(mine?.credits),
         ...(notes.length > 1 ? { otherAgreements: notes.filter(row => row !== mine).map(row => `${name(row.requesterId)}: ${row.status}, debit ${row.debit ?? 0}`) } : {}) },
       witnessed: { status: w?.status ?? 'none', debit: w?.debit ?? 0, paid: paid(w?.credits), ...(b4.refused.length ? { refused: tally(b4.refused) } : {}) }

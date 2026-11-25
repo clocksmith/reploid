@@ -112,8 +112,14 @@ The policy fields the replay reads are `unit`, `creditsPerOutputToken`,
 `server/fleet/settlement-replay.js` takes the public policies, a verification time
 `at` and any set of these records. Records that fail their shape, key or
 signature checks are listed as `rejected` and play no further part. Identical
-bodies presented twice count once. The rest are grouped by `reservationId`, and
-each reservation is decided in this order. `inTime(t)` means
+bodies presented twice count once. The rest are grouped by `reservationId` and
+then by requester: terms, acknowledgments and stops go to the attempt of the
+`requesterId` they name, and acceptances and stage receipts, which name no
+requester, are offered to every attempt under that reservation. Each
+(reservation, requester) attempt is one row of the output, so a stranger that
+signs its own terms, acceptance and charge binding under a known reservation ID
+makes a separate attempt that can charge only the stranger. Each attempt is
+decided in this order. `inTime(t)` means
 `notBefore - maxClockSkewMs <= t <= deadline + maxClockSkewMs`, using the agreed
 terms and the policy they name.
 
@@ -125,9 +131,7 @@ terms and the policy they name.
    acknowledgment is presented, one must carry that `routeHash` with the terms'
    `requesterId`. Other terms are listed as `foreign` and can never cause a
    conflict. Terms whose own `signedAt` is outside their own window are listed as
-   `late` and ignored. If terms from more than one requester remain, only those
-   that a stage they name accepted are kept. If that does not leave exactly one
-   requester, the outcome is `unknown`.
+   `late` and ignored.
 2. **One set or several.** With no terms left the outcome is `unknown`. When one
    requester signed several sets, the set that every in-time acceptance names is
    agreed. The requester's equivocation is listed in `conflicts` with
@@ -145,28 +149,57 @@ terms and the policy they name.
    own share. Any of these signed outside `inTime` is listed as `late` and
    ignored. Records that name another attempt or come from a non-party are
    dropped without being listed.
-5. **Contradictions.** The outcome is `conflict` if any of these hold:
+5. **Acknowledged count and contradictions.** The final stage's committed chain
+   at a count is the chain its receipts give for that `output.count`; at count 0
+   it is the starting value, which anyone can compute. A count is *matched* when
+   an in-time acknowledgment of it carries the committed chain. The
+   **acknowledged** count is the highest matched count (0 if none).
+   - Another in-time acknowledgment of a matched count, with a different chain,
+     is the requester contradicting itself. It is listed in `conflicts` with
+     `kind: "acknowledgment-equivocation"`, `blocking: false`, the requester as
+     signer and the matched chain as `settledOn`. It never lowers the charge.
+   - An in-time acknowledgment of a count to which no presented final-stage
+     receipt commits is listed in `unmatched` and not charged.
+
+   The outcome is `conflict` if any of these hold:
    - a stage's receipts repeat a sequence, have steps that go backwards, or
      continue after a closing receipt (late receipts included);
-   - two in-time acknowledgments give different chains for one count;
-   - the final stage's receipt and an in-time acknowledgment give different
-     chains for one count;
-   - the charge binding's chain is not the starting value.
+   - the final stage's receipts give two chains for one count;
+   - the requester acknowledged a count in time, but none of its chains for that
+     count is the final stage's. The records cannot show which of the two lied,
+     so the entry has `signer: null` and `signers` naming both;
+   - the charge binding's chain is not the starting value and no other in-time
+     binding has it.
 6. **Closing.** A stage has closed when its latest in-time receipt is `settled`
    or `failed` and has `closedAt`. The answer was delivered when the final
-   stage's latest in-time receipt has `output.done` and the requester acknowledged
-   exactly that count in time.
-   - If not every stage closed and the answer was delivered, the outcome is
-     `unknown`.
+   stage's latest in-time receipt has `output.done` at count `N > 0` and the
+   acknowledged count is `N`.
+   - If the answer was delivered and some stage did not close, look at that
+     stage's latest in-time receipt. If it has `steps >= N`, the stage signed a
+     receipt for every step of the answer: it evidently computed all of it.
+     After the release window (`at >= deadline + releaseWindowMs`) it is treated
+     as closed at its last signed step, listed in `closedAtLastStep`, and paid
+     its share. Before then the outcome is `open`. A stage with no in-time
+     receipt covering the answer makes the outcome `unknown`.
    - Otherwise, if not every stage closed, the outcome is `open` while
      `at < deadline + releaseWindowMs`, and `expired` after it. An expired attempt
      charges nobody and pays nobody.
+
+   One stage withholding its closing receipt therefore cannot stop every
+   stage's payment for an answer the requester received and acknowledged in
+   full. The rule needs the final stage's signed `done` and the requester's
+   acknowledgment of that exact count with the final stage's chain. An answer
+   that did not finish (a lost provider, a stage ending early) never meets it
+   and stays `expired` or provider-loss free, as before. The live ledger
+   (`server/fleet/credits.js`) does not apply this rule yet: it still needs
+   every stage's closing receipt, so here the replay settles an attempt the
+   ledger has not.
 7. **Steps.** The outcome is `conflict` if any stage's latest receipt has fewer
-   `steps` than the requester's highest in-time acknowledged count.
+   `steps` than the acknowledged count.
 8. **Acceptances.** The outcome is `unknown` if any stage has no in-time
    acceptance of the agreed terms.
-9. **Settled.** Let `acknowledged` be the highest in-time acknowledged count and
-   `delivered` the final stage's latest `output`.
+9. **Settled.** Let `acknowledged` be the acknowledged count from step 5 and
+   `delivered` the final stage's latest in-time `output`.
    - The answer **finished** when `delivered.done` is true. The requester then
      owes every output it acknowledged in time, however many acknowledgments it
      withheld at the end.
@@ -195,7 +228,9 @@ ledger does, and `balances` sums per account.
 
 ## Outcomes
 
-- **settled:** every stage closed in time. The requester is debited for the
+- **settled:** every stage closed in time, or the answer was delivered and the
+  stages that did not close are treated as closed under step 6. The requester is
+  debited for the
   outputs it acknowledged in time, up to the signed output ceiling. Under
   provider-loss-free terms an unfinished answer is owed only if the requester
   ended it, by a signed stop or by withholding more than `K` acknowledgments. A
@@ -207,12 +242,12 @@ ledger does, and `balances` sums per account.
 - **open:** the release window has not passed yet.
 - **conflict:** a participant signed incompatible statements. `conflicts` names
   the signer and the kind.
-- **unknown:** the records cannot decide. Examples are a delivered answer with a
-  stage's closing receipt missing, or missing terms or acceptance.
+- **unknown:** the records cannot decide. Examples are a delivered answer where
+  one stage presented no receipt covering it, or missing terms or acceptance.
 - **invalid:** the terms do not match the named policy.
 
-Each reservation also lists `late` records (ignored), `foreign` terms (ignored)
-and `requesterId`. Edited records fail their signatures and are listed as
+Each row also lists `late` records (ignored), `foreign` terms (ignored),
+`unmatched` acknowledgments (not charged) and `requesterId`. Edited records fail their signatures and are listed as
 rejected.
 
 ### Who bears a conflict
@@ -225,11 +260,13 @@ amount. It follows that:
   and its partners'. Its partners can show the conflict names that stage;
 - a requester's second terms do not cause a conflict when the stages accepted
   one set. The replay settles on that set and records the equivocation;
-- a requester can still turn an attempt into a conflict by signing two different
-  in-time acknowledgments for one count, or an in-time acknowledgment whose chain
-  differs from the final stage's receipt. It then pays nothing. The record names
-  it in the first case. In the second, the record cannot show which of the two
-  signers lied, and the conflict is listed against the final stage.
+- a requester's second acknowledgment for a count, with another chain, does not
+  cause a conflict when it also signed the final stage's chain for that count.
+  The replay charges that count and lists the extra acknowledgment against the
+  requester as `acknowledgment-equivocation`, not blocking;
+- a requester can still turn an attempt into a conflict by signing, for some
+  count, only acknowledgments whose chain differs from the final stage's. The
+  record cannot show which of the two signers lied, so the entry names both.
 
 ## What it does and does not establish
 
@@ -243,19 +280,28 @@ It does not establish:
 - who owns a participant key.
 
 Known limits:
-- **A requester and a stage acting together** can make an answer free by having
-  that stage withhold its closing receipt. The other stage is then unpaid.
-- **Stall or provider: a stage can sign steps nobody received.** Under
+- **A requester and a stage acting together** can still make an answer free.
+  The stage withholds every receipt covering the answer, or withholds its
+  closing receipt while the requester withholds its last acknowledgment. The
+  other stage is then unpaid. One stage alone can no longer do this (step 6).
+- **L3, a faked stall: a stage can sign steps nobody received.** Under
   provider-loss-free terms a final stage that stops early earns nothing. But that
   stage can sign `K + 1` or more further step receipts that it never delivered,
   then close. The gap then reads as the requester withholding acknowledgments,
   and the acknowledged prefix is charged. The requester has no signed record
   showing it never received those outputs, so no verifier can tell this from a
-  requester that received them and stopped acknowledging. The bound still holds:
-  the requester pays only for outputs it acknowledged.
-- **A reservation ID is assumed to belong to one requester.** A complete second
-  attempt under the same ID, with its own keys as requester and stages, makes the
-  reservation `unknown` rather than `conflict`.
+  requester that received them and stopped acknowledging. The final stage alone
+  defeats the free-abandoned-answer rule this way. The bound still holds: the
+  requester pays only for outputs it acknowledged.
+- **L5, backdating.** Every signer writes its own `signedAt`. Stages that sign
+  their late receipts with in-time times are paid for an attempt that, by an
+  honest clock, ran past its deadline. A requester can likewise sign a second
+  acknowledgment afterwards; under step 5 that no longer lowers its charge.
+- **A disputed chain is undecidable.** A requester that signs, for the final
+  count, only an acknowledgment whose chain differs from the final stage's makes
+  the attempt `conflict`, because a verifier without the output text cannot tell
+  whether the stage or the requester lied. That count's honest acknowledgment,
+  if any party holds it, settles the attempt instead.
 
 In the Stage 1 harness (`scripts/stage1/`) these records are collected by the
 harness, not by live code: the requester signs its terms inside its own
@@ -273,19 +319,44 @@ ledger and the terms name the ledger's exact policy digest.
 ```sh
 npx vitest run --config tests/vitest.config.js tests/unit/settlement-replay.test.js
 node scripts/settlement/attack-matrix.js --out /absolute/path/matrix.json
+node scripts/settlement/baseline-matrix.js --out /absolute/path/baseline.json
 ```
 
 The unit tests include a check that the replay's charge and credits equal the
 live ledger's (`server/fleet/credits.js`) for the same signed records.
 
 The attack matrix judges the same attempts three ways with real signatures: the
-replay; an operator-signed usage log; and a usage log that the requester and every
-credited stage countersign after the attempt. Its rows are operator goals
-(overcharge, shift or drop a stage's credit, fabricate a request, charge an
+replay; an operator-signed usage log (B1); and a usage log that the requester and
+every credited stage countersign after the attempt (B2). Its rows are operator
+goals (overcharge, shift or drop a stage's credit, fabricate a request, charge an
 abandoned attempt, settle twice) and participant cases (a requester that stops
 paying, one that withholds only its last acknowledgment, equivocation, a withheld
-closing receipt, late evidence). The replay lets none of the six operator goals
-through, the operator-signed log all six and the countersigned log two.
+closing receipt, late evidence). B1 lets all six operator goals through and B2
+two. Neither log uses what the requester signs before and during the answer, so
+they are weak baselines, and the replay's 0 against them overstates its gap to a
+simple scheme.
+
+The strongest simple baseline is in `scripts/settlement/baseline-matrix.js`
+(B3): the requester-signed terms that every named stage accepted are an
+agreement, each requester acknowledgment is an accepted debit note for a
+cumulative output count, and the requester owes the highest count it accepted
+in time, split by the signed weights. Accepted debit notes let 1 of the 6
+operator goals through (charging an abandoned attempt), against 0 for the
+replay. The requester-signed terms and cumulative acknowledgments do most of the
+work: on every other operator goal, and on the participant cases where the
+requester stops paying or withholds its last acknowledgment, B3 and the replay
+reach the same amounts. What the stage receipts and the `done` flag add is that
+an abandoned answer is free (G5, P6, P7). The final stage alone can defeat that
+with a faked stall (L3), and then both schemes charge the acknowledged prefix.
+
+The replay used to lose three participant cases to B3: one stage vetoing every
+payment by withholding its closing receipt (L1), a requester voiding its own
+charge with a second acknowledgment (L2), and a stranger making a reservation
+undecidable under its ID (L4). With the rules above, the replay and B3 reach the
+same amounts in all three. The same file also runs the replay over records a
+third-party witness timestamped (B4). It lets 0 operator goals through and
+changes the replay's verdict only where a signer backdates (L5), at the cost of
+a new party that must be online and trusted for time.
 
 Two differences from the countersigned log come from this design:
 - The countersigned log lets an operator move or drop a stage's share when the
@@ -296,7 +367,11 @@ Two differences from the countersigned log come from this design:
 
 These are differences in how the parts are combined, not a new cryptographic
 primitive. Signed accountability logs (PeerReview), requester-accepted
-incremental billing (Golem debit notes), expiring holds (HTLCs) and signed
-split-serving receipts (mesh-llm) each cover part of it.
+incremental billing (Golem debit notes) and expiring holds (HTLCs) each cover
+part of it. The mesh-llm pull requests on signed inference receipts (#2851,
+closed unmerged on 2026-11-10; #2981, open and last updated on 2026-11-24) audit
+which model a peer served and gate payment on those audits. They are
+complementary prior art, not a scheme for settlement amounts, and Reploid has
+no counterpart to their payment gating.
 
-The committed matrix output is [scripts/settlement/receipts/attack-matrix.json](../scripts/settlement/receipts/attack-matrix.json). It was generated by `node scripts/settlement/attack-matrix.js --out scripts/settlement/receipts/attack-matrix.json`, with fresh keys on each run; the counts are deterministic. All parties in this matrix are simulated identities on one machine, so it is not evidence of separate operators or of an independent third-party replay.
+The committed matrix outputs are [scripts/settlement/receipts/attack-matrix.json](../scripts/settlement/receipts/attack-matrix.json) and [scripts/settlement/receipts/baseline-matrix.json](../scripts/settlement/receipts/baseline-matrix.json). They were generated by `node scripts/settlement/attack-matrix.js --out scripts/settlement/receipts/attack-matrix.json` and `node scripts/settlement/baseline-matrix.js --out scripts/settlement/receipts/baseline-matrix.json`, with fresh keys on each run; the counts are deterministic. All parties in this matrix are simulated identities on one machine, so it is not evidence of separate operators or of an independent third-party replay.

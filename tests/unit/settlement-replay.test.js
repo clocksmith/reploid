@@ -95,10 +95,14 @@ describe('settlement replay', () => {
     const copied = await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...bodyOf(a.terms), requesterId: stranger.peerId, shares: [...a.terms.shares].reverse()
       .map((row, index) => ({ ...row, partitionIndex: index })) });
     for (const records of [[own, ...a.all()], [copied, ...a.all()], [own, copied, ...a.all()]]) {
-      const out = await replay(records, a.closesAt + 1), r = out.reservations[0];
-      expect(r).toMatchObject({ status: 'settled', debit: 15, requesterId: parties.requester.peerId });
-      expect(r.foreign.length).toBe(records.length - a.all().length);
-      expect(r.foreign.every(row => row.signer === stranger.peerId)).toBe(true);
+      const out = await replay(records, a.closesAt + 1);
+      const r = out.reservations.find(row => row.requesterId === parties.requester.peerId);
+      const theirs = out.reservations.find(row => row.requesterId === stranger.peerId);
+      expect(r).toMatchObject({ status: 'settled', debit: 15, foreign: [], conflicts: [] });
+      // The stranger's terms form the stranger's own attempt, which sits on no route and settles nothing.
+      expect(theirs).toMatchObject({ reservationId: a.reservationId, status: 'unknown', debit: null });
+      expect(theirs.foreign.length).toBe(records.length - a.all().length);
+      expect(theirs.foreign.every(row => row.signer === stranger.peerId)).toBe(true);
       expect(out.balances[parties.requester.peerId]).toBe(-15);
       expect(out.balances[stranger.peerId]).toBeUndefined();
     }
@@ -171,13 +175,33 @@ describe('settlement replay', () => {
     expect(r.conflicts.some(c => c.kind === 'output-chain' || c.kind === 'stage-receipt')).toBe(true);
   });
 
-  it('answers unknown, not expired, when a delivered answer lacks one stage\'s closing receipt', async () => {
-    const parties = await createParties(2);
-    const a = await runAttempt(parties);
-    const records = a.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 0 && row.status !== 'executing'));
-    const r = (await replay(records, a.closesAt + 1)).reservations[0];
-    expect(r.status).toBe('unknown');
-    expect(r.debit).toBeNull();
+  it('pays a delivered answer after the release window when one stage withholds its closing receipt but signed every step', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const a = await runAttempt(parties, { tag: 'veto', outputs });
+    for (const index of [0, 1]) {
+      const records = a.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === index && row.status !== 'executing'));
+      expect((await replay(records, a.closesAt - 1)).reservations[0]).toMatchObject({ status: 'open', debit: null });
+      const r = (await replay(records, a.closesAt + 1)).reservations[0];
+      expect(r).toMatchObject({ status: 'settled', debit: 120, outputs: 40, chargedOutputs: 40, closedAtLastStep: [index] });
+      expect(r.credits.map(c => c.amount)).toEqual([30, 90]);
+    }
+    // A stage with no in-time receipt covering the whole answer stays undecided, whatever the time.
+    const partial = a.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 0 && (row.status !== 'executing' || row.steps > 20)));
+    for (const at of [a.closesAt - 1, a.closesAt + 1]) {
+      expect((await replay(partial, at)).reservations[0]).toMatchObject({ status: 'unknown', debit: null });
+    }
+  });
+
+  it('never turns a provider loss into a charge through the unclosed-stage rule', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    // The final stage drops after 10 of 40 outputs, every one acknowledged, and never closes; or the first stage drops.
+    for (const [vanishStage, vanishAfterStep] of [[1, 9], [0, 9], [0, 1]]) {
+      const lost = await runAttempt(parties, { tag: `loss-${vanishStage}-${vanishAfterStep}`, outputs, vanishStage, vanishAfterStep });
+      expect(lost.acknowledged).toBeGreaterThan(0);
+      const r = (await replay(lost.all(), lost.closesAt + 1)).reservations[0];
+      expect(r).toMatchObject({ status: 'expired', debit: 0 });
+      expect(r.credits.every(c => c.amount === 0)).toBe(true);
+    }
   });
 
   it('answers unknown when a stage\'s acceptance of the terms is missing, and when no terms are presented', async () => {
@@ -299,5 +323,82 @@ describe('settlement replay', () => {
       ledger.close();
       await rm(directory, { recursive: true, force: true });
     }
+  });
+  it('charges a requester that signs a second acknowledgment with another chain, and names it, not the stage', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const a = await runAttempt(parties, { tag: 'self', outputs });
+    const acks = [...new Set(a.all().filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA))].sort((x, y) => x.count - y.count);
+    const fake = 'sha256:' + 'e'.repeat(64);
+    const resign = (row, extra = {}) => createAttemptEvidenceSigner({ identity: parties.requester, now: () => Date.parse(extra.signedAt ?? row.signedAt) })
+      .sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA, { ...bodyOf(row), chain: fake, ...extra });
+    const byCount = count => acks.find(row => row.count === count);
+    for (const extra of [await resign(byCount(40)), await resign(byCount(1)), await resign(byCount(1), { signedAt: a.terms.notBefore }), await resign(byCount(0))]) {
+      const r = (await replay([...a.all(), extra], a.closesAt + 1)).reservations[0];
+      expect(r).toMatchObject({ status: 'settled', debit: 120, outputs: 40 });
+      expect(r.credits.map(c => c.amount)).toEqual([30, 90]);
+      expect(r.conflicts).toEqual([expect.objectContaining({ signer: parties.requester.peerId, kind: 'acknowledgment-equivocation', count: extra.count,
+        blocking: false, chains: [fake] })]);
+    }
+    // With no acknowledgment of a count matching the final stage's chain, the records cannot show who lied: blocking,
+    // and listed against neither signer alone.
+    const without = a.all().filter(row => !(row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count === 40));
+    const c = (await replay([...without, await resign(byCount(40))], a.closesAt + 1)).reservations[0];
+    expect(c).toMatchObject({ status: 'conflict', debit: null });
+    expect(c.conflicts).toEqual([{ signer: null, signers: [parties.stages[1].peerId, parties.requester.peerId], kind: 'output-chain', count: 40 }]);
+  });
+
+  it('matches the live ledger when the requester has signed a second acknowledgment with another chain', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const directory = await mkdtemp(path.join(tmpdir(), 'reploid-settlement-replay-'));
+    const people = [parties.requester, ...parties.stages];
+    const computers = people.map((identity, index) => ({ id: `computer-${index}`, name: `Computer ${index}`, ownerId: `owner-${index}`,
+      providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }] }));
+    const accountOf = new Map(computers.map(row => [row.providers[0].participantId, row.ownerId]));
+    let clock = T0;
+    const ledger = await openFleetCredits({ file: path.join(directory, 'credits.sqlite'), computers, policy: POLICY, now: () => clock });
+    try {
+      const a = await runAttempt(parties, { tag: 'self-ledger', outputs });
+      ledger.reserve({ id: a.reservationId, executionId: a.identity.attemptId, mode: 'partition', consumer: parties.requester.peerId,
+        providers: a.terms.shares.map(row => ({ participantId: row.participantId, weight: row.weight })),
+        model: { id: a.identity.route.modelId, identity: a.identity.route.modelIdentity, adapterIdentities: [] },
+        inputDigest: 'sha256:' + 'd'.repeat(64), maxOutputTokens: a.terms.maxOutputTokens, route: a.identity });
+      ledger.dispatch(a.reservationId, parties.requester.peerId);
+      clock = Date.parse(a.terms.notBefore) + 25000;
+      const closing = a.held.stages.map(rows => rows.filter(row => row.schema === STAGE_RECEIPT_SCHEMA).at(-1));
+      const acknowledgment = a.held.requester.filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA).at(-1);
+      const acknowledgedReceipt = a.held.requester.find(row => row.schema === STAGE_RECEIPT_SCHEMA && row.output?.count === acknowledgment.count);
+      const live = await ledger.settle(a.reservationId, { identity: a.identity, receipts: closing, acknowledgment, acknowledgedReceipt });
+      const second = await createAttemptEvidenceSigner({ identity: parties.requester, now: () => Date.parse(acknowledgment.signedAt) })
+        .sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA, { ...bodyOf(acknowledgment), chain: 'sha256:' + 'e'.repeat(64) });
+      const r = (await replaySettlement({ records: [...a.all(), second], policies: [POLICY], at: a.closesAt + 1, accountOf: id => accountOf.get(id) })).reservations[0];
+      expect(live.charge).toBe(120);
+      expect(r).toMatchObject({ status: 'settled', debit: live.charge });
+      expect(r.credits.map(row => [row.participantId, row.amount])).toEqual(live.credits.map(row => [row.participantId, row.amount]));
+    } finally {
+      ledger.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps a stranger\'s records under a known reservation ID in the stranger\'s own attempt', async () => {
+    const parties = await createParties(2), stranger = await createSigningIdentity({ algorithm: 'Ed25519' });
+    const outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const a = await runAttempt(parties, { tag: 'squat', outputs });
+    const binding = a.all().find(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count === 0);
+    const sign = body => createAttemptEvidenceSigner({ identity: stranger, now: () => Date.parse(body.signedAt) }).sign(body.schema, body);
+    const terms = await sign({ ...bodyOf(a.terms), requesterId: stranger.peerId, shares: [{ partitionIndex: 0, participantId: stranger.peerId, weight: 1 }] });
+    const acceptance = await sign({ schema: 'reploid.settlement-acceptance/v1', termsDigest: await termsDigest(bodyOf(terms)), reservationId: terms.reservationId,
+      attemptId: terms.attemptId, participantId: stranger.peerId, partitionIndex: 0, signedAt: terms.signedAt });
+    const own = await sign({ ...bodyOf(binding), requesterId: stranger.peerId });
+    const out = await replay([...a.all(), terms, acceptance, own], a.closesAt + 1);
+    expect(out.reservations).toHaveLength(2);
+    const real = out.reservations.find(row => row.requesterId === parties.requester.peerId);
+    const theirs = out.reservations.find(row => row.requesterId === stranger.peerId);
+    expect(real).toMatchObject({ reservationId: a.reservationId, status: 'settled', debit: 120, conflicts: [], foreign: [] });
+    expect(real.credits.map(c => c.amount)).toEqual([30, 90]);
+    expect(theirs.reservationId).toBe(a.reservationId);
+    expect((theirs.credits ?? []).every(c => c.participantId === stranger.peerId)).toBe(true);
+    expect(out.balances).toEqual({ [parties.requester.peerId]: -120, [parties.stages[0].peerId]: 30, [parties.stages[1].peerId]: 90,
+      ...(theirs.status === 'expired' ? { [stranger.peerId]: 0 } : {}) });
   });
 });
