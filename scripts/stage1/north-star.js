@@ -362,8 +362,19 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
 
     // 3. Spend: one request through reploid/inference with confidentiality 'requester-edges'.
     const accountId = `computer-${requesterAccount}`, before = balanceOfAccount(accountId);
-    const answer = await step('split generate (requester-edges)', () => s(config.requester.label).call('generate-edges',
-      { messages: fixtureSource.messages, threadId, maxOutputTokens: fixtureSource.maxOutputTokens }, { timeoutMs: limits.phaseMs }), limits.phaseMs);
+    let answer;
+    try {
+      answer = await step('split generate (requester-edges)', () => s(config.requester.label).call('generate-edges',
+        { messages: fixtureSource.messages, threadId, maxOutputTokens: fixtureSource.maxOutputTokens }, { timeoutMs: limits.phaseMs }), limits.phaseMs);
+    } catch (error) {
+      // Which boundary failed: each stage's own state, notes and what its resident had executed.
+      receipt.failure = { at: stamp(), stages: await Promise.all([...config.stages, config.requester].map(async target => ({ label: target.label,
+        diagnose: await s(target.label).call('diagnose', {}, { timeoutMs: 10000 }).catch(cause => ({ error: String(cause?.message ?? cause) })),
+        visibility: target === config.requester ? null : await s(target.label).call('visibility', {}, { timeoutMs: 10000 }).then(row => Object.fromEntries(
+          Object.entries(row.rows).map(([id, rows]) => [id, summarizeVisibility(rows)]))).catch(cause => ({ error: String(cause?.message ?? cause) })) }))) };
+      for (const row of receipt.failure.stages) log(`${stamp()} failure ${row.label} ${redactor.text(JSON.stringify(row)).slice(0, 4000)}`);
+      throw error;
+    }
     await step('split settlement', () => settled(answer.reservationId));
     const first = s(config.stages[0].label), last = s(config.stages.at(-1).label);
     const [input, output] = await step('split witnesses', () => Promise.all([first.call('witness'), last.call('witness')]));

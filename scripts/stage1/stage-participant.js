@@ -152,9 +152,12 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
   const credits = createFleetClient({ url: config.serviceUrl, identity, ...(ca ? { ca } : {}),
     outboxFile: path.join(config.stateDirectory, 'credit-outbox.json') });
   const { default: wrtc } = await import('@roamhq/wrtc');
+  // Warnings and errors are kept (bounded) for `diagnose`; nothing is printed.
+  const notes = [], note = level => (...args) => { notes.push(`${new Date().toISOString()} ${level} ${args.map(arg => String(arg?.stack ?? arg?.message ?? (typeof arg === 'object' ? JSON.stringify(arg) : arg))).join(' ')}`.slice(0, 1500)); if (notes.length > 40) notes.shift(); };
+  const logger = { ...SILENT, warn: note('warn'), error: note('error') };
   const common = { model, modelDirectory: config.modelDirectory, identity, rtc: createNativeRtcAdapter(wrtc), WebSocket: Socket,
     signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken: config.roomToken, cacheDirectory: null, nativeGpu,
-    logger: SILENT, getRtcConfig: () => ({ iceServers: [], iceTransportPolicy: 'all' }) };
+    logger, getRtcConfig: () => ({ iceServers: [], iceTransportPolicy: 'all' }) };
   const trace = createTokenTrace(), gate = createCancelGate({ holdMs: config.gateHoldMs }), visibility = createVisibilityTrace();
   const signer = createAttemptEvidenceSigner({ identity });
   // Requester: per attempt, its signed terms and stop, its acknowledgment view and how often it asked to disclose.
@@ -321,7 +324,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     diagnose() {
       const state = participant.getState(), scalar = value => (['string', 'number', 'boolean'].includes(typeof value) || value === null ? value : undefined);
       const flat = Object.fromEntries(Object.entries(state).map(([key, value]) => [key, scalar(value)]).filter(([, value]) => value !== undefined));
-      return { ...flat, keys: Object.keys(state), models: (state.models ?? []).map(row => ({ id: row.id, partition: Boolean(row.partition), availability: row.availability,
+      return { ...flat, notes: [...notes], keys: Object.keys(state), models: (state.models ?? []).map(row => ({ id: row.id, partition: Boolean(row.partition), availability: row.availability,
         providers: row.providerIds?.length ?? null, stages: row.partition?.route?.stages?.length ?? null })),
       descriptor: state.descriptor ? { ready: state.descriptor.ready ?? null, index: state.descriptor.index ?? null, layerRange: state.descriptor.layerRange ?? null } : null,
       progress: state.progress ? JSON.stringify(state.progress).slice(0, 400) : null, partitions: state.partitions ? JSON.stringify(state.partitions).slice(0, 1200) : null };
