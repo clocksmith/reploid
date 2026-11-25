@@ -2,7 +2,7 @@
 /**
  * Pilot reliability measurement through the page a first user sees. The same fixed rule as
  * scripts/pilot/reliability.js (RULE there): 100 requests or more, one at a time; a request is completed only when
- * the page marks the answer complete and shows output; everything else is a failure and is never retried; a request
+ * the page's execution line for the answer reads Complete and the answer has text; everything else is a failure and is never retried; a request
  * with no first character counts as slower than any limit; pass is 99% completed and a nearest-rank p95 first
  * character within 5 s.
  *
@@ -37,14 +37,19 @@ import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { PROMPTS, RULE, summarize } from './reliability.js';
 
-/** The page's own words for how an answer ended (apps/poolday/ui/pool-home/message-list.js), as failure labels. */
-export function labelOf({ statusText, outputChars, timedOut, sheetProblem }) {
+/**
+ * How an answer ended, in the page's own words. Each answer row has an execution line whose first word is the
+ * attempt's status (apps/poolday/ui/pool-home/execution-ribbon.js: Complete, Failed, Stopped, Interrupted,
+ * Disconnected) and, for a failure only, a system line that says why (message-list.js, "System · ...").
+ */
+export function labelOf({ activity = '', statusText = '', outputChars, timedOut, sheetProblem }) {
   if (sheetProblem) return 'unavailable';
   if (timedOut) return 'timeout';
-  const text = statusText ?? '';
-  if (/\bComplete ·/.test(text)) return outputChars > 0 ? null : 'wrong';
+  const text = statusText.replace(/^System · /, '');
+  // A completed answer may still carry a system note (a search that used some of its sources); the status decides.
+  if (/^Complete\b/.test(activity)) return outputChars > 0 ? null : 'wrong';
   if (/^Not sent\b|not enough service credits|still unfinished|spending limit|Community Access|declined sharing/i.test(text)) return 'refused';
-  if (/\bInterrupted\b|went away|was interrupted|Disconnected/i.test(text)) return 'transport';
+  if (/\bInterrupted\b|went away|was interrupted/i.test(text) || /^(Interrupted|Disconnected)\b/.test(activity)) return 'transport';
   if (/no (public |ready )?computer|nobody is serving|not available right now|unavailable/i.test(text)) return 'unavailable';
   if (/exceeded the available resources/i.test(text)) return 'resources';
   return 'other';
@@ -80,18 +85,21 @@ function installProbe() {
         sheetOpen: Boolean(globalThis.document.querySelector('[data-model-picker]')?.open),
         permissionShown: shown(globalThis.document.querySelector('[data-remote-permission] [data-remote-permission-allow]')),
         outputChars: (row?.querySelector('.chat-message-content')?.textContent ?? '').trim().length,
-        statusText: (row?.querySelector('[data-system-status]')?.textContent ?? '').trim().slice(0, 300)
+        statusText: (row?.querySelector('[data-system-status]')?.textContent ?? '').trim().slice(0, 300),
+        // The execution line: "<status> · ...". The page marks it data-active while the attempt runs.
+        activity: (row?.querySelector('[data-execution-trigger]')?.getAttribute('aria-label') ?? '').replace(/\. Execution details$/, '').slice(0, 200),
+        active: Boolean(row?.querySelector('[data-execution-activity]')?.hasAttribute('data-active'))
       };
     }
   };
 }
 
-const ENDED = /\bComplete ·|^Not sent\b|\bInterrupted\b|\bStopped\b|could not finish|was interrupted|exceeded the available resources|timed out|\bFailed\b|\bDisconnected\b/;
+const ENDED = /^(Complete|Failed|Stopped|Interrupted|Disconnected)\b/;
 
 /** One request in a new thread. Never throws for a product failure: every ending becomes a record. */
 async function measureOne(page, { prompt, timeoutMs }) {
   const record = { completed: false, failure: null, firstTokenMs: null, stages: { sendEnabledMs: null, firstTokenMs: null, endMs: null },
-    sheet: false, permissionPrompt: false, outputChars: 0, statusText: '', sendAt: null };
+    sheet: false, permissionPrompt: false, outputChars: 0, activity: '', statusText: '', sendAt: null };
   if (!await page.locator('[data-new-thread]').isVisible()) await page.locator('[data-toggle-thread-rail]').click().catch(() => {});
   await page.locator('[data-new-thread]').click({ timeout: 10000 }).catch(() => {});
   await page.locator('[data-composer-input]').fill(prompt);
@@ -114,8 +122,9 @@ async function measureOne(page, { prompt, timeoutMs }) {
       continue;
     }
     if (state.permissionShown) { record.permissionPrompt = true; await page.locator('[data-remote-permission] [data-remote-permission-allow]').click(); continue; }
-    if (!state.sendShown || state.outputChars > 0 || state.statusText) started = true;
-    if (started && state.sendShown && ENDED.test(state.statusText)) break;
+    if (!state.sendShown || state.active || state.outputChars > 0 || state.statusText || state.activity) started = true;
+    // Ended: Send is back, the execution line is no longer active, and it names a final status or a system line says why.
+    if (started && state.sendShown && !state.active && (ENDED.test(state.activity) || state.statusText)) break;
     if (state.elapsedMs > timeoutMs) {
       timedOut = true;
       await page.locator('[data-answer-stop]:visible, [data-composer-stop]:visible').first().click({ timeout: 5000 }).catch(() => {});
@@ -128,8 +137,9 @@ async function measureOne(page, { prompt, timeoutMs }) {
   record.firstTokenMs = record.stages.firstTokenMs = state.firstTokenMs;
   record.stages.endMs = state.elapsedMs;
   record.outputChars = state.outputChars;
+  record.activity = state.activity;
   record.statusText = sheetProblem ?? state.statusText;
-  record.failure = labelOf({ statusText: state.statusText, outputChars: state.outputChars, timedOut, sheetProblem });
+  record.failure = labelOf({ activity: state.activity, statusText: state.statusText, outputChars: state.outputChars, timedOut, sheetProblem });
   record.completed = record.failure === null;
   return record;
 }
@@ -181,27 +191,30 @@ const MOCK_PAGE = `<!doctype html><meta charset="utf-8"><title>mock</title>
 const $ = selector => document.querySelector(selector), stream = $('[data-message-stream]'), send = $('[data-composer-send]'), stop = $('[data-composer-stop]');
 let chosen = false, allowed = false, timers = [], current = null;
 const later = (ms, run) => timers.push(setTimeout(run, ms));
-const finish = (row, text) => { row.querySelector('[data-system-status]').textContent = text; send.hidden = false; stop.hidden = true; };
+// As the real page: the execution line carries the status and is data-active while running; the system line appears only for a failure.
+const line = (row, summary, active) => { row.querySelector('[data-execution-trigger]').setAttribute('aria-label', summary + '. Execution details'); row.querySelector('[data-execution-activity]').toggleAttribute('data-active', active); };
+const finish = (row, status, why = '') => { line(row, status + ' · 1 computer · Contributors', false); const system = row.querySelector('[data-system-status]'); system.hidden = !why; system.textContent = why ? 'System · ' + why : ''; send.hidden = false; stop.hidden = true; };
 function start() {
   const kind = $('[data-composer-input]').value.split(' ')[0];
   if (!chosen) { $('[data-model-picker]').showModal(); return; }
   if (!allowed) { $('[data-remote-permission]').hidden = false; return; }
   const user = document.createElement('div'); user.className = 'chat-message-row is-user'; stream.append(user);
   const row = document.createElement('div'); row.className = 'chat-message-row is-assistant';
-  row.innerHTML = '<div class="chat-message-content"></div><div class="chat-message-system" data-system-status></div>';
+  row.innerHTML = '<div class="chat-message-content"></div><div class="chat-message-system" data-system-status hidden></div><div data-execution-activity><button data-execution-trigger aria-label=""></button></div>';
   stream.append(row); current = row;
   const body = row.querySelector('.chat-message-content');
-  if (kind === 'refuse') { finish(row, 'Not sent. Not enough service credits: this answer can cost up to 192 and your account can spend 0 now.'); return; }
-  send.hidden = true; stop.hidden = false;
-  if (kind === 'ok') { later(80, () => { body.textContent = 'Hi'; }); later(160, () => finish(row, 'Complete · 2 tokens')); }
-  if (kind === 'slow') { later(40, () => { body.textContent = '  '; }); later(400, () => { body.textContent = 'Late'; }); later(450, () => finish(row, 'Complete · 1 token')); }
-  if (kind === 'drop') { later(60, () => { body.textContent = 'Half'; }); later(120, () => finish(row, 'Interrupted. That computer went away before finishing, so any text above is unverified.')); }
-  if (kind === 'empty') later(60, () => finish(row, 'Complete · 0 tokens'));
-  if (kind === 'fail') later(60, () => finish(row, 'This answer could not finish.'));
+  if (kind === 'refuse') { finish(row, 'Failed', 'Not sent. Not enough service credits: this answer can cost up to 192 and your account can spend 0 now.'); return; }
+  send.hidden = true; stop.hidden = false; line(row, 'Queued', true);
+  later(20, () => line(row, 'Generating · 1 computer', true));
+  if (kind === 'ok') { later(80, () => { body.textContent = 'Hi'; }); later(160, () => finish(row, 'Complete')); }
+  if (kind === 'slow') { later(40, () => { body.textContent = '  '; }); later(400, () => { body.textContent = 'Late'; }); later(450, () => finish(row, 'Complete')); }
+  if (kind === 'drop') { later(60, () => { body.textContent = 'Half'; }); later(120, () => finish(row, 'Interrupted', 'Interrupted. That computer went away before finishing, so any text above is unverified.')); }
+  if (kind === 'empty') later(60, () => finish(row, 'Complete'));
+  if (kind === 'fail') later(60, () => finish(row, 'Failed', 'This answer could not finish.'));
   if (kind === 'hang') later(60, () => { body.textContent = 'Start'; });
 }
 send.onclick = start;
-stop.onclick = () => { timers.forEach(clearTimeout); finish(current, 'Stopped. Your partial answer is saved.'); };
+stop.onclick = () => { timers.forEach(clearTimeout); finish(current, 'Stopped', 'Stopped. Your partial answer is saved.'); };
 $('[data-new-thread]').onclick = () => { stream.replaceChildren(); };
 $('[data-execution-choice]').onclick = () => { const button = $('[data-change-model]'); button.disabled = false; button.textContent = 'Send'; };
 $('[data-change-model]').onclick = () => { chosen = true; $('[data-model-picker]').close(); start(); };
@@ -229,8 +242,13 @@ async function selfCheck() {
     expect('the page still answers after a timeout', by(7).completed);
     const summary = summarize(results);
     expect('summary counts 3 of 8 completed and gives no verdict under 100 requests', summary.completed === 3 && /^not evaluated/.test(summary.verdict));
-    expect('labels map the page\'s wording', labelOf({ statusText: 'Not sent. Community Access cannot take this answer now.', outputChars: 0 }) === 'refused'
-      && labelOf({ statusText: 'Complete · 9 tokens', outputChars: 4 }) === null && labelOf({ statusText: '', outputChars: 0, sheetProblem: 'x' }) === 'unavailable');
+    expect('labels map the page\'s wording', labelOf({ activity: 'Failed', statusText: 'System · Not sent. Community Access cannot take this answer now.', outputChars: 0 }) === 'refused'
+      && labelOf({ activity: 'Complete · 1 computer · Contributors', statusText: '', outputChars: 4 }) === null
+      && labelOf({ activity: 'Disconnected', statusText: '', outputChars: 2 }) === 'transport'
+      && labelOf({ activity: 'Complete', statusText: 'System · Using 2 retrieved sources. Some pages were unavailable.', outputChars: 4 }) === null
+      && labelOf({ activity: 'Failed', statusText: 'System · This answer could not finish.', outputChars: 0 }) === 'other'
+      && labelOf({ outputChars: 0, sheetProblem: 'x' }) === 'unavailable');
+    expect('a completed answer shows no system line, only the execution line', by(0).statusText === '' && /^Complete/.test(by(0).activity));
     console.log(JSON.stringify({ selfCheck: problems.length === 0 ? 'pass' : 'fail', problems,
       results: results.map(row => ({ id: row.promptId, completed: row.completed, failure: row.failure, firstTokenMs: row.firstTokenMs, endMs: row.stages.endMs })) }, null, 2));
     process.exitCode = problems.length === 0 ? 0 : 1;
