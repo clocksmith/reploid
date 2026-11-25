@@ -26,7 +26,7 @@ Plain Node, about 10 seconds, no model, no GPU, no network.
 - **Who wrote it.** A second agent session working for the same operator as the service's verifier. It is not an
   independent party, and this is not a third-party replay.
 - **What the author read.** Only `docs/settlement-replay.md`, first at commit 20121ae60 and again in full at
-  4ee9dd6b2, c29bc5d44 and a25242bc3 when the document changed. It was told not to open the service's verifier, the signers, the tests, the
+  4ee9dd6b2, c29bc5d44, a25242bc3 and 955bd5f7a when the document changed. It was told not to open the service's verifier, the signers, the tests, the
   scenario builder, the attack matrix, this directory's comparison or any diff, and it reported opening none of
   them. That boundary is self-reported.
 - **What the author could not test.** It had no signer, so before the comparison it could only check the verifier
@@ -40,41 +40,35 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document at a25242bc3 and the service's verifier at f74ddede9. 20 base attempts, 25 mutation families, Ed25519
-and P-256 keys. The document reports one row per reservation and requester, and the comparison is keyed the same way.
+The document and the service's verifier at 955bd5f7a. 20 base attempts, 25 mutation families, Ed25519 and P-256
+keys, seven clock values around the deadline, the release window and the instant an attempt is decided. The
+document reports one row per reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 1,376 |
-| Judgments (one row at one clock value) | 1,904 |
-| Same outcome, same debit, same credit for every stage | 1,904 |
-| Disagreements on outcome or amounts | 0 |
-| Same records rejected, and the same balances per account | 1,860 of 1,860 runs |
-| Every documented member of the row the same | 1,852 |
+| Record sets | 1,388 |
+| Judgments (one row at one clock value) | 1,936 |
+| Same outcome, same debit, same credit for every stage | 1,936 |
+| Every documented member of the row the same | 1,936 |
+| Same records rejected, same `counts` and same balances per account | 1,892 of 1,892 runs |
+| Disagreements | 0 |
 
-Read this as: on these record sets, a verifier written from the document's text alone reaches every verdict and
-every amount the service's verifier reaches. It is not a proof that the two agree on all records.
+Read this as: on these record sets, a verifier written from the document's text alone returns what the service's
+verifier returns, member for member. It is not a proof that the two agree on all records.
 
-Since a25242bc3 the document names every member of a result row, so the comparison now covers all of them except
-the sentence in `reason`: `attemptId`, `status`, `debit`, `credits`, `outputs`, `chargedOutputs`,
-`unacknowledgedOutputs`, `beyondCeiling`, `closedAtLastStep`, `conflicts`, `late`, `foreign` and `unmatched`. List
-entries are compared without regard to order, which the document does not fix (two rows differ only in order).
-The 52 rows with a differing member have three causes, none of which changes a verdict or an amount:
+Every documented row member except the sentence in `reason` is compared: `attemptId`, `status`, `debit`,
+`credits`, `outputs`, `chargedOutputs`, `unacknowledgedOutputs`, `beyondCeiling`, `closedAtLastStep`, `conflicts`,
+`late`, `foreign` and `unmatched`. List entries are compared without regard to order, which the document does not
+fix; two rows differ only in the order of their entries.
 
-1. **`credits` for a stage on the requester's own account (40 rows).** The document says the stage is listed with
-   amount 0. The service's verifier leaves it out. One of the two should change.
-2. **`conflicts` entries for a stage's contradictory receipts (11 rows).** The document does not say which two
-   sequence numbers an entry carries or how many entries one stage gets, and the two verifiers chose differently.
-3. **`closedAtLastStep` on a row that ends `unknown` (1 row).** A stage was already treated as closed at its last
-   step when the row stopped for a missing acceptance. This verifier still lists it; the service's does not.
+The last mutation family covers the rules the document gained since c29bc5d44. Both verifiers reject ten other
+forms of a time, reject a signature or key coordinate whose last character is changed without changing its bytes,
+reject the second form of a P-256 signature, count a closing receipt signed up to the end of the release window
+plus the clock allowance and list a later one as late, and keep a row `open` up to and including the instant the
+deadline, the release window and the clock allowance have passed.
 
-`counts` is compared without its zero entries: this verifier lists all six outcomes, the service's only those with
-a row, and the document does not say which.
-
-The last mutation family covers the rules the document gained at c29bc5d44 and a25242bc3. Both verifiers reject ten
-other forms of a time, reject a signature or key coordinate whose last character is changed without changing its
-bytes, reject the second form of a P-256 signature (the document now requires the low-S form), and count a closing
-receipt signed up to the end of the release window plus the clock allowance.
+This verifier implements the replay. The document also describes the live ledger's interim rule for one case (its
+"Known difference" section); that rule is the ledger's and is compared in the next section, not here.
 
 ### How the comparison got here
 
@@ -84,7 +78,8 @@ receipt signed up to the end of the release window plus the clock allowance.
 | 20121ae60 | rewritten by a fresh author from the text alone | 1,704 of 1,731 | a padded signature accepted; a run with no policy refused |
 | 4ee9dd6b2 | updated from the text | 1,749 of 1,774 | the same two |
 | c29bc5d44 | updated from the text | 1,774 of 1,774, then 1,904 of 1,904 with the added family | nothing |
-| a25242bc3 | updated from the text; the result shape now follows the document's member list | 1,904 of 1,904 | no verdict or amount; three small differences in other row members |
+| a25242bc3 | updated from the text; the result shape now follows the document's member list | 1,904 of 1,904 | no verdict or amount; three small differences in other row members (an own-account stage in `credits`, conflict entry details, `closedAtLastStep`) |
+| 955bd5f7a | updated from the text | 1,936 of 1,936, every row member included | nothing |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
@@ -145,31 +140,33 @@ hand over. It shows what the agreement on the other cases depends on.
 The two verifiers agree on the following, because the document says so. Each is a property of the rules, not a
 difference between implementations.
 
+- **An unfinished answer with no signed stop costs nothing.** The requester asks for every step, so a requester
+  that stops asking leaves exactly these records and pays nothing, while signing a stop would cost it the
+  acknowledged outputs. Both verifiers agree, because that is the replay's rule. The live ledger charges the
+  acknowledged outputs instead, and the document labels this a known difference pending the owner's decision.
 - **The final stage closes with a null output.** A finished, acknowledged answer then settles at 0.
 - **Signers still write their own times.** The rules no longer reward a stage for backdating a late close, but no
   record can show when anything was really signed. The document lists this as a limit.
 
 ## What the document still leaves open
 
-[DOC-GAPS.md](DOC-GAPS.md) lists 74 items, numbered across all four versions of the document. Against the current
-text 39 are settled, 10 partly settled and 20 still stand; 5 are new, of which 3 are places the text does not decide
-and 2 look wrong. Those most likely to matter to another implementer:
+[DOC-GAPS.md](DOC-GAPS.md) lists 76 items, numbered across all five versions of the document. Against the current
+text 45 are settled, 10 partly settled and 19 still stand; 2 are new, and both are places where the text looks
+wrong rather than undecided. None of the open ones changed a result in this run. Those most likely to matter to
+another implementer:
 
-- **A late receipt and the acknowledged count.** One step says a late record never raises the acknowledged count;
-  the next says a receipt commits its chain "whenever it was signed", which lets a chain committed only by a late
-  receipt be charged.
-- **Two ends of the closing window.** A closing receipt counts up to the deadline plus the release window plus the
-  clock allowance, but a row is decided as soon as the deadline plus the release window has passed. In between, a
-  row is already `expired` or settled although an honest close signed then would still count and change it.
-- **Conflict entry details:** which sequences a `stage-receipt` entry carries, what `digests` holds, and the order
-  of entries. The comparison above shows the two verifiers choosing differently on the first.
-- **Result details:** whether `counts` names every outcome, and what `chargedOutputs` is when a stage ended the
-  answer.
+- **`knownDifferences`.** One paragraph says a Stage 1 receipt passes only when its replay lists the reservation in
+  `knownDifferences`, but the description of what the replay returns has no such member.
+- **How the known difference is worded.** It is stated without the provider-loss-free condition and without the
+  withheld case, and called the one case where ledger and replay differ, while another paragraph names a second
+  difference of status that moves nothing.
+- **Acceptances and late listings:** whether an in-time acceptance of another terms digest is listed as late, and
+  whether an `invalid` row lists late records.
+- **Conflict list details:** what `digests` holds and in what order, and the order of entries between kinds.
 - **Field types.** `attemptId`, `requesterId`, `participantId` and `maximum` have no stated type.
 
-Settled by the current text since the last version: the low-S form for P-256, where a verifier gets `K` (the
-policy's `maxUnacknowledgedOutputs`), the clock allowance on the closing window, late records as evidence of a
-contradiction, and the full list of a row's members.
+Settled by the current text since the last version: which sequences a conflict entry carries, what
+`closedAtLastStep` and `counts` hold, how a late receipt's chain is used, and when an attempt is decided.
 
 ## The first round
 
@@ -184,7 +181,7 @@ differential (745 record sets, 1,146 judgments, 808 full agreements) found that 
 
 Commit 20121ae60 fixed all four in the service's verifier, signed `K` into the terms and rewrote the document. The
 verifier here was then written again from the new document by an author who had seen neither the code nor the first
-verifier (commit 3bf842816), and updated from the document again at 4ee9dd6b2, c29bc5d44 and a25242bc3.
+verifier (commit 3bf842816), and updated from the document again at 4ee9dd6b2, c29bc5d44, a25242bc3 and 955bd5f7a.
 
 ## Limits
 

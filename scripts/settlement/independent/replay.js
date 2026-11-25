@@ -7,11 +7,14 @@
 // behaviour, the choice made here is marked CHOICE and may differ from the
 // reference. Node 22, built-in modules only.
 //
-// Follows the document's text as of commit a25242bc3 (551 lines): canonical base64url,
+// Follows the document's text as of commit 955bd5f7a (621 lines): canonical base64url,
 // low-S P-256 signatures and exact ISO times; one row per (reservation, requester)
 // attempt with exactly the members of its "Rows" table; K from the named policy, else
-// from the `maxUnacknowledgedOutputs` input; closesInTime for closing receipts; and late
-// records used only as evidence of a contradiction.
+// from the `maxUnacknowledgedOutputs` input; closesInTime for closing receipts; the
+// release window passing only after the last instant a close can count; and late records
+// used only as evidence of a contradiction, except that a late final-stage receipt still
+// commits its chain. This is the replay's rule set: the ledger's interim rule that the
+// document's "Known difference" section describes is not implemented here.
 
 import { createHash, createPublicKey, verify } from 'node:crypto';
 
@@ -23,7 +26,6 @@ const STOP = 'reploid.settlement-stop/v1';
 const OUTPUT_CHAIN = 'reploid.output-chain/v1';
 const RESULT_SCHEMA = 'reploid.settlement-replay/v1';
 const PROVIDER_LOSS_FREE = 'reploid.unfinished-answer/provider-loss-free/v1';
-const OUTCOMES = ['settled', 'expired', 'open', 'conflict', 'unknown', 'invalid'];
 const STATUSES = new Set(['executing', 'settled', 'failed']);
 const CLOSING = new Set(['settled', 'failed']);
 // The stages' receiver policy's K, used for a policy that does not name its own.
@@ -318,11 +320,12 @@ function policyFault(agreed, policy, receiverK) {
 /** A closing receipt: `settled` or `failed`, with `closedAt` (step 4). */
 const isClosing = (receipt) => CLOSING.has(receipt.body.status) && receipt.body.timing.closedAt !== null;
 
-// Step 5, first conflict bullet, over one stage's kept receipts sorted by sequence (late ones
-// included). Returns the pairs of sequences that conflict. CHOICE: the document does not say
-// which two, or how many entries. Here: [s, s] for a repeated sequence; [the earliest earlier
-// receipt with the most steps, s] when steps go backwards at s; [the first closing receipt, s]
-// for a receipt after it; each pair once per stage.
+// Step 5, first conflict bullet, over one stage's kept receipts in sequence order (late ones
+// included). Returns each distinct [earlier, later] pair once, in the order it is first found:
+// [s, s] when two different receipts carry sequence s; [h, s] when a receipt at s has fewer
+// steps than some receipt at a lower sequence, h being the lowest sequence with the most steps
+// below s; [c, s] for every receipt after the stage's first closing receipt, at sequence c.
+// CHOICE: when one sequence gives more than one pair, they are found in that order.
 function receiptConflicts(sorted) {
   const pairs = new Map();
   const add = (earlier, later) => pairs.set(`${earlier},${later}`, [earlier, later]);
@@ -503,9 +506,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     acked.get(ack.body.count).chains.add(ack.body.chain);
   }
   for (const ack of keptAcks.counting) acked.get(ack.body.count).timely.push(ack);
-  // CHOICE: step 4 says a late record never raises the acknowledged count, step 5 that a
-  // receipt commits "whenever it was signed" and that an in-time acknowledgment carrying the
-  // committed chain matches. Step 5 is followed: a late receipt's chain can be matched.
+  // Only an in-time acknowledgment is matched, and it may be matched against the chain a late
+  // receipt committed (step 4). A late acknowledgment never raises or lowers the count.
   let acknowledged = 0; // the highest matched count, 0 if none
   for (const count of [...acked.keys()].sort(ascending)) {
     const { chains, timely } = acked.get(count);
@@ -557,8 +559,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const answerDelivered = delivered?.done === true && delivered.count > 0 && acknowledged === delivered.count;
   const unclosed = stages.filter((stage) => !hasClosed(stage));
   if (unclosed.length > 0) {
+    // The release window has passed after the last instant at which closesInTime holds.
     // CHOICE: `at` is milliseconds since the epoch; without a usable one the window has not passed.
-    const windowPassed = typeof at === 'number' && at >= agreed.deadline + terms.releaseWindowMs;
+    const windowPassed = typeof at === 'number' && at > agreed.deadline + terms.releaseWindowMs + skew;
     if (!answerDelivered) {
       if (!windowPassed) return done('open', 'step 6: not every stage closed and the release window has not passed');
       await post(0n); // an expired attempt charges nobody and pays nobody
@@ -570,8 +573,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
       return done('unknown', `step 6: delivered, but stage ${uncovered.position} has no receipt covering the answer`);
     }
     if (!windowPassed) return done('open', 'step 6: delivered, a stage has not closed and the release window has not passed');
-    // Treated as closed at its last signed step. CHOICE: the indexes stay listed if step 7 or 8
-    // then decides the row.
+    // Treated as closed at its last signed step: the partition indexes, ascending, kept when
+    // step 7 or 8 then decides the row.
     row.closedAtLastStep = unclosed.map((stage) => stage.position);
   }
 
@@ -591,7 +594,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const stopped = keptStops.counting.length > 0;
   const withheld = delivered !== null && delivered.count - acknowledged > terms.maxUnacknowledgedOutputs;
   const endedByStage = terms.unfinishedTerms === PROVIDER_LOSS_FREE && !finished && !stopped && !withheld;
-  // CHOICE: `chargedOutputs` is 0 when a stage ended the answer; `beyondCeiling` does not depend on that.
+  // A row whose answer a stage ended is settled with `outputs > 0` and `chargedOutputs: 0`.
+  // CHOICE: `beyondCeiling` does not depend on whether anything is charged.
   row.chargedOutputs = endedByStage ? 0 : Math.min(acknowledged, terms.maxOutputTokens);
   row.unacknowledgedOutputs = delivered === null ? null : delivered.count - acknowledged;
   row.beyondCeiling = Math.max(0, acknowledged - terms.maxOutputTokens);
@@ -655,10 +659,11 @@ export async function replaySettlement({
     }
   }
 
-  // CHOICE: `counts` names every outcome, with 0 for those no row has. `balances` is an object
-  // keyed by account, debits negative, and names every account of a settled or expired row.
-  const counts = Object.fromEntries(OUTCOMES.map((outcome) => [outcome, 0]));
-  for (const row of reservations) counts[row.status] += 1;
+  // `counts` lists only the outcomes at least one row has (an empty object when there are no rows).
+  // CHOICE: `balances` is an object keyed by account, debits negative, and names every account
+  // of a settled or expired row, with 0 when nothing moved.
+  const counts = {};
+  for (const row of reservations) counts[row.status] = (counts[row.status] ?? 0) + 1;
   const balances = Object.fromEntries([...totals].map(([account, total]) => [account, Number(total)]));
   // CHOICE: `at` is read as milliseconds since the epoch; one that is not a valid time is reported as null.
   const usable = typeof at === 'number' && Number.isFinite(at) && Math.abs(at) <= 8.64e15;

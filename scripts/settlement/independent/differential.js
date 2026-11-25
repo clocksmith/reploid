@@ -474,6 +474,8 @@ const MUTATIONS = {
       await closeAt(ctx.deadline + POLICY.maxClockSkewMs + 1, 'every closing receipt signed one millisecond past the clock allowance');
       await closeAt(ctx.closesAt - 1, 'every closing receipt signed one millisecond before the release window ends');
       await closeAt(ctx.closesAt, 'every closing receipt signed exactly when the release window ends');
+      await closeAt(ctx.closesAt + POLICY.maxClockSkewMs, 'every closing receipt signed exactly at the end of the closing window');
+      await closeAt(ctx.closesAt + POLICY.maxClockSkewMs + 1, 'every closing receipt signed one millisecond past the closing window');
       const executing = ctx.receipts(0).filter(record => record.status === 'executing').at(-1);
       if (executing) await resign(executing, ctx.stageIdentity(0), body => { body.signedAt = iso(ctx.deadline + POLICY.maxClockSkewMs + 1); },
         'stage0 last step receipt signed one millisecond past the clock allowance');
@@ -522,13 +524,16 @@ const BASES = [
 ];
 const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements'];
 
+// An attempt is decided once the deadline, the release window and the clock allowance have all passed.
+const decidedAt = ctx => ctx.closesAt + POLICY.maxClockSkewMs;
 const CLOCKS = {
   'before-deadline': ctx => ctx.deadline - 1,
   'at-deadline': ctx => ctx.deadline,
   'in-window': ctx => ctx.deadline + 1,
   'window-end': ctx => ctx.closesAt,
-  after: ctx => ctx.closesAt + 1,
-  'long-after': ctx => ctx.closesAt + 10 * 60 * 1000
+  'decision-instant': ctx => decidedAt(ctx),
+  after: ctx => decidedAt(ctx) + 1,
+  'long-after': ctx => decidedAt(ctx) + 10 * 60 * 1000
 };
 
 // ---------------------------------------------------------------------------------------------------------------
