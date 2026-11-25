@@ -9,11 +9,14 @@ verifier. This directory tests that sentence.
 | [DOC-GAPS.md](DOC-GAPS.md) | Every place the document did not decide the behaviour, listed by the verifier's author before any comparison. |
 | [differential.js](differential.js) | Runs this verifier and the service's (`server/fleet/settlement-replay.js`) on the same signed record sets and reports every difference. |
 | [receipts/differential.json](receipts/differential.json) | The committed output of that run. |
+| [ledger-differential.js](ledger-differential.js) | Drives the live ledger (`server/fleet/credits.js`) through the same attempts and compares what it posts with what the service's replay computes. |
+| [receipts/ledger-differential.json](receipts/ledger-differential.json) | The committed output of that run. |
 
 ```sh
 node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json
 node scripts/settlement/independent/differential.js --verbose   # every disagreement
 node scripts/settlement/independent/differential.js --lists     # same verdict, different late, foreign or rejected lists
+node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json
 ```
 
 Plain Node, about 10 seconds, no model, no GPU, no network.
@@ -75,6 +78,44 @@ verifiers shared because the document said so, and the document and the service'
 requester voiding its own charge with a second acknowledgment, one stage vetoing every payment by withholding its
 closing receipt, a stranger making a reservation undecidable, a time without a zone making the charge depend on the
 verifier's time zone, and stages being paid for writing an earlier time into late receipts.
+
+## The ledger against the replay
+
+The comparison above is between two replays. `ledger-differential.js` asks a different question: does the ledger that
+moves the credits post what the replay computes? It opens a fresh ledger for each case and drives it as the live
+route does: reserve, dispatch and admit at the start, `collect` with what a route retains (each stage's latest
+receipt, the requester's latest acknowledgment and the receipt it acknowledged) at the moment the last of those was
+signed, and `recover` after the release window. The replay judges the same records after the window. The policy
+sets the request limit to the scenario's 30 s, so the ledger's deadline and the signed one are the same instant.
+
+16 base attempts, each with all its records and with a stage's closing receipt or every receipt withheld, and with
+the requester's top acknowledgment or all but its charge binding withheld.
+
+| | Count |
+| --- | --- |
+| Cases | 109 |
+| Same debit and same credit for every stage | 102 |
+| Different amounts | 7 |
+
+The 7 have three causes:
+
+1. **Stages that close as failed on their own (2).** The requester acknowledged 3 outputs, then both stages closed
+   with a failed receipt and no requester stop exists. The ledger charges the 3 acknowledged outputs; the replay
+   charges nothing, as the document says for provider-loss-free terms. The ledger is never shown a stop on a split
+   route, so it cannot tell this from a requester that stopped the answer, which both charge the same.
+2. **Lateness inside the release window (1).** The last output, its acknowledgment and the closes fall 5 s after
+   the deadline. The ledger expires the hold and posts nothing; the replay charges the 4 outputs acknowledged in
+   time. One second late, inside the clock allowance, both agree.
+3. **An answer that runs past the signed ceiling (4).** Terms cap the answer at 3 outputs and the stages deliver 5.
+   The ledger refuses the receipts as not matching the admitted work and expires the hold; the replay charges the
+   ceiling.
+
+Where the amounts agree the words can still differ: when a stage presents no receipt at all for a delivered answer,
+the ledger reports the hold expired and the replay reports `unknown`. Both move nothing.
+
+The ledger sees less than the replay by design, so each difference is a question about which rule is meant, not
+automatically a defect in either. The first one sits next to a decision the owner has not made: what a voluntary
+stop on a split route should cost.
 
 ## Agreement that still deserves a reader
 
