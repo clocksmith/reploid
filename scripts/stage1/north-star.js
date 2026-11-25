@@ -371,7 +371,7 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
       receipt.failure = { at: stamp(), stages: await Promise.all([...config.stages, config.requester].map(async target => ({ label: target.label,
         diagnose: await s(target.label).call('diagnose', {}, { timeoutMs: 10000 }).catch(cause => ({ error: String(cause?.message ?? cause) })),
         visibility: target === config.requester ? null : await s(target.label).call('visibility', {}, { timeoutMs: 10000 }).then(row => Object.fromEntries(
-          Object.entries(row.rows).map(([id, rows]) => [id, summarizeVisibility(rows)]))).catch(cause => ({ error: String(cause?.message ?? cause) })) }))) };
+          Object.entries(row.rows).map(([id, rows]) => [id, { ...summarizeVisibility(rows), failures: rows.filter(item => item.op === 'step-failed') }]))).catch(cause => ({ error: String(cause?.message ?? cause) })) }))) };
       for (const row of receipt.failure.stages) log(`${stamp()} failure ${row.label} ${redactor.text(JSON.stringify(row)).slice(0, 4000)}`);
       throw error;
     }
