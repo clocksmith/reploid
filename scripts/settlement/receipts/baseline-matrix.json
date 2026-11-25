@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-baseline-matrix/v1",
-  "generatedAt": "2026-11-25T08:33:04.398Z",
+  "generatedAt": "2026-11-25T10:05:56.167Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -12,7 +12,8 @@
     "maxClockSkewMs": 1000,
     "maxRequestMs": 120000,
     "allowSameOwner": false,
-    "partitionUnclaimedReleaseMs": 60000
+    "partitionUnclaimedReleaseMs": 60000,
+    "maxUnacknowledgedOutputs": 2
   },
   "command": "node scripts/settlement/baseline-matrix.js --out scripts/settlement/receipts/baseline-matrix.json",
   "note": "Every party, the witness included, is a simulated identity on one machine under one operator. B3 is this file's own 40-line rule over the replay's records, modelled on requester-accepted debit notes; it is not Golem's implementation. B4 models only PeerReview's witnessed, ordered commitments, not its log audits or its relay of disputed messages. Keys are fresh on each run; the amounts are deterministic.",
