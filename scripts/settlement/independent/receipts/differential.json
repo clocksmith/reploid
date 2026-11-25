@@ -1,12 +1,12 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-25T02:59:16.232Z",
-  "finishedAt": "2026-11-25T02:59:22.779Z",
+  "generatedAt": "2026-11-25T07:50:08.205Z",
+  "finishedAt": "2026-11-25T07:50:14.993Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "094689ce8db280d0687bf0b4805b642353adec82",
+  "commit": "3bf842816fe8a64b564a2215d466585984ba1349",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
-  "note": "All parties are simulated identities on one machine, and one author wrote the independent verifier, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the independent verifier.",
+  "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -20,7 +20,6 @@
     "allowSameOwner": false,
     "partitionUnclaimedReleaseMs": 60000
   },
-  "maxUnacknowledgedOutputs": 2,
   "baseAttempts": [
     "complete answer",
     "requester stops after 3 outputs",
@@ -36,130 +35,148 @@
     "three stages with equal weights",
     "requester computes stage0 itself",
     "requester stops before any output",
+    "every party signs with P-256",
+    "requester stops acknowledging, P-256 keys",
+    "identifiers with characters JSON escapes",
     "finished 40-output answer, last acknowledgment withheld",
     "finished 40-output answer, last two acknowledgments withheld",
     "finished 40-output answer, last three acknowledgments withheld"
   ],
   "totals": {
-    "recordSets": 745,
-    "judgments": 1146,
-    "outcomeAgreed": 879,
-    "amountsAgreed": 972,
-    "outcomeAndAmountsAgreed": 808,
-    "agreedOnceSkewSupplied": 867,
-    "lateListSizeAgreed": 939,
-    "rejectedListSizeAgreed": 1100,
-    "rejectedListsCompared": 1145
+    "recordSets": 1246,
+    "judgments": 1731,
+    "outcomeAgreed": 1709,
+    "amountsAgreed": 1714,
+    "outcomeAndAmountsAgreed": 1704,
+    "lateListSizeAgreed": 1719,
+    "foreignListSizeAgreed": 1725,
+    "conflictListedAgreed": 1731,
+    "rejectedListSizeAgreed": 1699,
+    "rejectedListsCompared": 1730
   },
   "outcomePairs": {
-    "conflict / conflict": 56,
-    "conflict / expired": 7,
-    "conflict / settled": 27,
-    "conflict / unknown": 2,
-    "expired / expired": 129,
-    "expired / settled": 6,
-    "invalid / invalid": 50,
-    "invalid / threw": 5,
+    "conflict / conflict": 80,
+    "expired / expired": 238,
+    "expired / settled": 3,
+    "invalid / invalid": 60,
+    "invalid / threw": 6,
     "none / none": 2,
-    "open / expired": 3,
-    "open / open": 92,
-    "open / settled": 26,
-    "open / unknown": 40,
-    "settled / conflict": 8,
-    "settled / expired": 3,
-    "settled / settled": 424,
-    "settled / unknown": 1,
-    "unknown / conflict": 10,
-    "unknown / expired": 46,
-    "unknown / open": 20,
-    "unknown / settled": 63,
-    "unknown / unknown": 126
+    "open / open": 102,
+    "settled / settled": 765,
+    "unknown / expired": 1,
+    "unknown / settled": 12,
+    "unknown / unknown": 462
   },
   "families": {
     "unmutated, clock sweep": {
-      "judgments": 102,
-      "outcomeAgreed": 87,
-      "amountsAgreed": 84
+      "judgments": 120,
+      "outcomeAgreed": 120,
+      "amountsAgreed": 120
     },
     "remove each record": {
-      "judgments": 84,
-      "outcomeAgreed": 82,
-      "amountsAgreed": 82
+      "judgments": 105,
+      "outcomeAgreed": 105,
+      "amountsAgreed": 105
     },
     "duplicate": {
-      "judgments": 15,
-      "outcomeAgreed": 15,
-      "amountsAgreed": 15
+      "judgments": 18,
+      "outcomeAgreed": 18,
+      "amountsAgreed": 18
     },
     "reorder": {
-      "judgments": 15,
-      "outcomeAgreed": 15,
-      "amountsAgreed": 15
+      "judgments": 18,
+      "outcomeAgreed": 18,
+      "amountsAgreed": 18
     },
     "edit a signed field": {
-      "judgments": 31,
-      "outcomeAgreed": 30,
-      "amountsAgreed": 29
+      "judgments": 37,
+      "outcomeAgreed": 37,
+      "amountsAgreed": 37
     },
     "re-sign with the wrong key": {
-      "judgments": 21,
-      "outcomeAgreed": 20,
-      "amountsAgreed": 19
+      "judgments": 25,
+      "outcomeAgreed": 25,
+      "amountsAgreed": 25
     },
     "valid records from a non-party": {
-      "judgments": 25,
-      "outcomeAgreed": 20,
-      "amountsAgreed": 25
+      "judgments": 30,
+      "outcomeAgreed": 30,
+      "amountsAgreed": 30
     },
     "two sets of terms": {
-      "judgments": 20,
-      "outcomeAgreed": 20,
-      "amountsAgreed": 20
+      "judgments": 24,
+      "outcomeAgreed": 24,
+      "amountsAgreed": 24
     },
     "acceptance problems": {
-      "judgments": 15,
-      "outcomeAgreed": 8,
-      "amountsAgreed": 12
+      "judgments": 18,
+      "outcomeAgreed": 18,
+      "amountsAgreed": 18
     },
     "two output chains for one count": {
-      "judgments": 25,
-      "outcomeAgreed": 20,
-      "amountsAgreed": 25
+      "judgments": 30,
+      "outcomeAgreed": 30,
+      "amountsAgreed": 30
     },
     "receipt sequence goes backwards": {
-      "judgments": 14,
-      "outcomeAgreed": 14,
-      "amountsAgreed": 14
+      "judgments": 17,
+      "outcomeAgreed": 17,
+      "amountsAgreed": 17
     },
     "records signed after the deadline": {
-      "judgments": 300,
-      "outcomeAgreed": 187,
-      "amountsAgreed": 202
+      "judgments": 366,
+      "outcomeAgreed": 366,
+      "amountsAgreed": 366
     },
     "acknowledgments beyond what was agreed or delivered": {
-      "judgments": 15,
-      "outcomeAgreed": 9,
-      "amountsAgreed": 13
+      "judgments": 18,
+      "outcomeAgreed": 18,
+      "amountsAgreed": 18
     },
     "terms that do not match the policy": {
-      "judgments": 65,
-      "outcomeAgreed": 57,
-      "amountsAgreed": 62
+      "judgments": 78,
+      "outcomeAgreed": 72,
+      "amountsAgreed": 78
     },
     "withheld records": {
-      "judgments": 300,
-      "outcomeAgreed": 231,
-      "amountsAgreed": 290
+      "judgments": 366,
+      "outcomeAgreed": 366,
+      "amountsAgreed": 366
     },
     "stop statements": {
-      "judgments": 55,
-      "outcomeAgreed": 24,
-      "amountsAgreed": 27
+      "judgments": 67,
+      "outcomeAgreed": 67,
+      "amountsAgreed": 67
+    },
+    "the signed acknowledgment allowance K": {
+      "judgments": 48,
+      "outcomeAgreed": 48,
+      "amountsAgreed": 48
+    },
+    "field rules, validly signed": {
+      "judgments": 212,
+      "outcomeAgreed": 196,
+      "amountsAgreed": 195
+    },
+    "terms from another requester": {
+      "judgments": 30,
+      "outcomeAgreed": 30,
+      "amountsAgreed": 30
+    },
+    "requester equivocates on terms": {
+      "judgments": 18,
+      "outcomeAgreed": 18,
+      "amountsAgreed": 18
+    },
+    "the edges of the time window": {
+      "judgments": 35,
+      "outcomeAgreed": 35,
+      "amountsAgreed": 35
     },
     "unsigned additions": {
-      "judgments": 36,
-      "outcomeAgreed": 32,
-      "amountsAgreed": 30
+      "judgments": 43,
+      "outcomeAgreed": 43,
+      "amountsAgreed": 43
     },
     "final stage invents outputs nobody received": {
       "judgments": 4,
@@ -173,425 +190,123 @@
     }
   },
   "disagreements": {
-    "total": 338,
+    "total": 27,
     "byCause": {
-      "finished answer, last acknowledgments withheld or late": {
-        "classification": "b",
-        "count": 39,
-        "amountsDiffer": 33,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "remove output-acknowledgment[count 5]",
-            "clock": "after",
-            "independent": "settled (answer_finished) debit 12 credits [3,9]",
-            "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "edit top acknowledgment time without re-signing",
-            "clock": "after",
-            "independent": "settled (answer_finished) debit 12 credits [3,9]",
-            "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "top acknowledgment re-signed by a stranger, signer field unchanged",
-            "clock": "after",
-            "independent": "settled (answer_finished) debit 12 credits [3,9]",
-            "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "terms from a second requester reported as the requester's conflict": {
-        "classification": "b",
-        "count": 5,
-        "amountsDiffer": 0,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "a stranger signs terms for the same reservation",
-            "clock": "after",
-            "independent": "unknown (terms_from_several_requesters) debit 0 credits [0,0]",
-            "service": "conflict (the requester signed different terms for one reservation) debit 0 credits [0,0]"
-          },
-          {
-            "base": "requester stops after 3 outputs",
-            "mutation": "a stranger signs terms for the same reservation",
-            "clock": "after",
-            "independent": "unknown (terms_from_several_requesters) debit 0 credits [0,0]",
-            "service": "conflict (the requester signed different terms for one reservation) debit 0 credits [0,0]"
-          },
-          {
-            "base": "stage0 drops after 3 steps",
-            "mutation": "a stranger signs terms for the same reservation",
-            "clock": "after",
-            "independent": "unknown (terms_from_several_requesters) debit 0 credits [0,0]",
-            "service": "conflict (the requester signed different terms for one reservation) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "stage accepted two sets of terms": {
-        "classification": "a",
-        "count": 5,
-        "amountsDiffer": 3,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "stage0 also accepts other terms",
-            "clock": "after",
-            "independent": "conflict (stage_accepted_two_sets_of_terms) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          },
-          {
-            "base": "requester stops after 3 outputs",
-            "mutation": "stage0 also accepts other terms",
-            "clock": "after",
-            "independent": "conflict (stage_accepted_two_sets_of_terms) debit 0 credits [0,0]",
-            "service": "settled (the requester signed a stop; the outputs it acknowledged are charged) debit 9 credits [2,7]"
-          },
-          {
-            "base": "stage0 drops after 3 steps",
-            "mutation": "stage0 also accepts other terms",
-            "clock": "after",
-            "independent": "conflict (stage_accepted_two_sets_of_terms) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "acknowledged chain differs from the stage chain": {
-        "classification": "a",
-        "count": 7,
-        "amountsDiffer": 2,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "top acknowledgment replaced by one whose chain is not the stage chain",
-            "clock": "after",
-            "independent": "unknown (acknowledged_chain_is_not_the_stage_chain) debit 0 credits [0,0]",
-            "service": "conflict (a participant signed incompatible statements) debit 0 credits [0,0]"
-          },
-          {
-            "base": "requester stops after 3 outputs",
-            "mutation": "top acknowledgment replaced by one whose chain is not the stage chain",
-            "clock": "after",
-            "independent": "unknown (acknowledged_chain_is_not_the_stage_chain) debit 0 credits [0,0]",
-            "service": "conflict (a participant signed incompatible statements) debit 0 credits [0,0]"
-          },
-          {
-            "base": "stage0 drops after 3 steps",
-            "mutation": "top acknowledgment replaced by one whose chain is not the stage chain",
-            "clock": "after",
-            "independent": "unknown (acknowledged_chain_is_not_the_stage_chain) debit 0 credits [0,0]",
-            "service": "conflict (a participant signed incompatible statements) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "precedence: delivered answer without a closing receipt, before the window ends": {
-        "classification": "a",
-        "count": 40,
-        "amountsDiffer": 0,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "every closing receipt signed 5 s late",
-            "clock": "in-window",
-            "independent": "open (release_window_not_passed) debit 0 credits [0,0]",
-            "service": "unknown (the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 0, 1) debit 0 credits [0,0]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "stage0 withholds its closing receipt",
-            "clock": "in-window",
-            "independent": "open (release_window_not_passed) debit 0 credits [0,0]",
-            "service": "unknown (the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 0) debit 0 credits [0,0]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "stage0 withholds every receipt",
-            "clock": "in-window",
-            "independent": "open (release_window_not_passed) debit 0 credits [0,0]",
-            "service": "unknown (the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 0) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "clock skew allowance": {
-        "classification": "a",
-        "count": 61,
-        "amountsDiffer": 53,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "every closing receipt signed 0.5 s late",
-            "clock": "in-window",
-            "independent": "open (release_window_not_passed) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "every closing receipt signed 0.5 s late",
-            "clock": "after",
-            "independent": "unknown (delivered_answer_without_every_closing_receipt) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "top acknowledgment signed 0.5 s late",
-            "clock": "in-window",
-            "independent": "settled (answer_finished) debit 12 credits [3,9]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          }
-        ]
-      },
-      "terms or acceptance signed after the deadline still settle": {
-        "classification": "b",
-        "count": 52,
-        "amountsDiffer": 32,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "stage0 acceptance signed 5 s late",
-            "clock": "in-window",
-            "independent": "unknown (acceptance_missing) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "stage0 acceptance signed 5 s late",
-            "clock": "after",
-            "independent": "unknown (acceptance_missing) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "terms and acceptances signed 5 s late",
-            "clock": "in-window",
-            "independent": "unknown (terms_signed_after_deadline) debit 0 credits [0,0]",
-            "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-          }
-        ]
-      },
-      "acknowledgment beyond what a stage computed": {
-        "classification": "c",
+      "no policy supplied: the document says invalid, the service refuses to run": {
+        "classification": "d",
         "count": 6,
-        "amountsDiffer": 2,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "acknowledgment above the signed output ceiling",
-            "clock": "after",
-            "independent": "settled (answer_finished) debit 192 credits [48,144]",
-            "service": "conflict (the requester acknowledged outputs a stage says it never computed) debit 0 credits [0,0]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "acknowledgment one above what the final stage delivered",
-            "clock": "after",
-            "independent": "settled (answer_finished) debit 18 credits [4,14]",
-            "service": "conflict (the requester acknowledged outputs a stage says it never computed) debit 0 credits [0,0]"
-          },
-          {
-            "base": "stages close early on their own",
-            "mutation": "acknowledgment above the signed output ceiling",
-            "clock": "after",
-            "independent": "settled (stage_closed_early) debit 0 credits [0,0]",
-            "service": "conflict (the requester acknowledged outputs a stage says it never computed) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "service refuses to run without a policy": {
-        "classification": "a",
-        "count": 5,
         "amountsDiffer": 0,
         "examples": [
           {
             "base": "complete answer",
             "mutation": "no policy supplied to the verifier",
             "clock": "after",
-            "independent": "invalid (policy_not_public) debit 0 credits [0,0]",
+            "independent": "invalid (step 3: the policy digest names no supplied policy) debit 0 credits [0,0]",
             "service": "threw (At least one public policy is required) debit 0 credits [0,0]"
           },
           {
             "base": "requester stops after 3 outputs",
             "mutation": "no policy supplied to the verifier",
             "clock": "after",
-            "independent": "invalid (policy_not_public) debit 0 credits [0,0]",
+            "independent": "invalid (step 3: the policy digest names no supplied policy) debit 0 credits [0,0]",
             "service": "threw (At least one public policy is required) debit 0 credits [0,0]"
           },
           {
             "base": "stage0 drops after 3 steps",
             "mutation": "no policy supplied to the verifier",
             "clock": "after",
-            "independent": "invalid (policy_not_public) debit 0 credits [0,0]",
+            "independent": "invalid (step 3: the policy digest names no supplied policy) debit 0 credits [0,0]",
             "service": "threw (At least one public policy is required) debit 0 credits [0,0]"
           }
         ]
       },
-      "precedence: missing acceptance against open or expired": {
-        "classification": "a",
-        "count": 34,
-        "amountsDiffer": 0,
+      "signature with base64 padding: the document rejects it, the service accepts it": {
+        "classification": "d",
+        "count": 21,
+        "amountsDiffer": 17,
         "examples": [
           {
             "base": "complete answer",
-            "mutation": "only the terms",
-            "clock": "in-window",
-            "independent": "unknown (acceptance_missing) debit 0 credits [0,0]",
-            "service": "open (not every stage has closed and the release window is still open) debit 0 credits [0,0]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "only the terms",
+            "mutation": "terms signature with base64 padding appended",
             "clock": "after",
-            "independent": "unknown (acceptance_missing) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
-          },
-          {
-            "base": "requester stops after 3 outputs",
-            "mutation": "only the terms",
-            "clock": "in-window",
-            "independent": "unknown (acceptance_missing) debit 0 credits [0,0]",
-            "service": "open (not every stage has closed and the release window is still open) debit 0 credits [0,0]"
-          }
-        ]
-      },
-      "what a stop's count means": {
-        "classification": "a",
-        "count": 51,
-        "amountsDiffer": 40,
-        "examples": [
-          {
-            "base": "complete answer",
-            "mutation": "two stops naming different counts",
-            "clock": "after",
-            "independent": "conflict (two_stops) debit 0 credits [0,0]",
+            "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
             "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
           },
           {
             "base": "complete answer",
-            "mutation": "stop naming two more than was acknowledged",
+            "mutation": "acceptance signature with base64 padding appended",
             "clock": "after",
-            "independent": "settled (answer_finished) debit 21 credits [5,16]",
+            "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
             "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
           },
           {
             "base": "complete answer",
-            "mutation": "stop naming one fewer than was acknowledged",
+            "mutation": "final receipt signature with base64 padding appended",
             "clock": "after",
-            "independent": "conflict (stop_understates_acknowledgments) debit 0 credits [0,0]",
+            "independent": "unknown (step 6: delivered but a stage did not close) debit 0 credits [0,0]",
             "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
           }
         ]
-      },
-      "extra member in a carried key": {
-        "classification": "b",
-        "count": 7,
-        "amountsDiffer": 6,
+      }
+    }
+  },
+  "sameOutcomeAndAmountsButListsDiffer": {
+    "total": 22,
+    "byCause": {
+      "terms of a second requester with its own charge binding: the service lists them as foreign, the document only drops them": {
+        "count": 6,
         "examples": [
           {
             "base": "complete answer",
-            "mutation": "final receipt key carries an extra member",
+            "mutation": "a stranger signs terms on the same route and its own charge binding",
             "clock": "after",
-            "independent": "settled (answer_finished) debit 15 credits [3,12]",
-            "service": "unknown (the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 1) debit 0 credits [0,0]"
-          },
-          {
-            "base": "complete answer",
-            "mutation": "top acknowledgment key carries an extra member",
-            "clock": "after",
-            "independent": "settled (answer_finished) debit 15 credits [3,12]",
-            "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+            "outcome": "settled",
+            "lists": "independent/service: late 0/0, foreign 0/1, rejected 0/0, conflict entries 0/0"
           },
           {
             "base": "requester stops after 3 outputs",
-            "mutation": "final receipt key carries an extra member",
+            "mutation": "a stranger signs terms on the same route and its own charge binding",
             "clock": "after",
-            "independent": "settled (requester_stopped) debit 9 credits [2,7]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+            "outcome": "settled",
+            "lists": "independent/service: late 0/0, foreign 0/1, rejected 0/0, conflict entries 0/0"
           }
         ]
       },
-      "unrecognized unfinished-answer terms": {
-        "classification": "a",
-        "count": 3,
-        "amountsDiffer": 3,
-        "examples": [
-          {
-            "base": "requester stops after 3 outputs",
-            "mutation": "unrecognized unfinished-answer terms",
-            "clock": "after",
-            "independent": "unknown (unfinished_terms_not_recognized) debit 0 credits [0,0]",
-            "service": "settled (the requester signed a stop; the outputs it acknowledged are charged) debit 9 credits [2,7]"
-          },
-          {
-            "base": "stages close early on their own",
-            "mutation": "unrecognized unfinished-answer terms",
-            "clock": "after",
-            "independent": "unknown (unfinished_terms_not_recognized) debit 0 credits [0,0]",
-            "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 9 credits [2,7]"
-          },
-          {
-            "base": "requester stops acknowledging",
-            "mutation": "unrecognized unfinished-answer terms",
-            "clock": "after",
-            "independent": "unknown (unfinished_terms_not_recognized) debit 0 credits [0,0]",
-            "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 6 credits [1,5]"
-          }
-        ]
-      },
-      "the instant the release window ends": {
-        "classification": "a",
-        "count": 3,
-        "amountsDiffer": 0,
+      "a late stop: the document lists it as late, the service does not list it": {
+        "count": 12,
         "examples": [
           {
             "base": "stage0 drops after 3 steps",
-            "mutation": "all records",
-            "clock": "window-end",
-            "independent": "open (release_window_not_passed) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+            "mutation": "stop signed 5 s late (replacing any stop)",
+            "clock": "in-window",
+            "outcome": "open",
+            "lists": "independent/service: late 1/0, foreign 0/0, rejected 0/0, conflict entries 0/0"
           },
           {
-            "base": "final stage drops after 3 steps",
-            "mutation": "all records",
-            "clock": "window-end",
-            "independent": "open (release_window_not_passed) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
-          },
-          {
-            "base": "final acknowledgment and closes 5 s after the deadline",
-            "mutation": "all records",
-            "clock": "window-end",
-            "independent": "open (release_window_not_passed) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+            "base": "stage0 drops after 3 steps",
+            "mutation": "stop signed 5 s late (replacing any stop)",
+            "clock": "after",
+            "outcome": "expired",
+            "lists": "independent/service: late 1/0, foreign 0/0, rejected 0/0, conflict entries 0/0"
           }
         ]
       },
-      "what counts as a delivered answer": {
-        "classification": "a",
-        "count": 20,
-        "amountsDiffer": 0,
+      "signature with base64 padding: the document rejects the record, the service accepts it": {
+        "count": 4,
         "examples": [
           {
-            "base": "answer delivered but stage0 never closes",
-            "mutation": "top acknowledgment signed 5 s late",
+            "base": "stage0 drops after 3 steps",
+            "mutation": "acceptance signature with base64 padding appended",
             "clock": "after",
-            "independent": "unknown (delivered_answer_without_every_closing_receipt) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+            "outcome": "expired",
+            "lists": "independent/service: late 0/0, foreign 0/0, rejected 1/0, conflict entries 0/0"
           },
           {
-            "base": "answer delivered but stage0 never closes",
-            "mutation": "top acknowledgment signed 5 s before the terms start",
+            "base": "stage0 drops after 3 steps",
+            "mutation": "final receipt signature with base64 padding appended",
             "clock": "after",
-            "independent": "unknown (delivered_answer_without_every_closing_receipt) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
-          },
-          {
-            "base": "answer delivered but stage0 never closes",
-            "mutation": "requester withholds every acknowledgment but the charge binding",
-            "clock": "after",
-            "independent": "unknown (delivered_answer_without_every_closing_receipt) debit 0 credits [0,0]",
-            "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+            "outcome": "expired",
+            "lists": "independent/service: late 0/0, foreign 0/0, rejected 1/0, conflict entries 0/0"
           }
         ]
       }
@@ -602,113 +317,176 @@
       "base": "complete answer",
       "mutation": "all records",
       "clock": "after",
-      "independent": "settled (answer_finished) debit 15 credits [3,12]",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
       "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "unknown (terms_from_several_requesters) debit 0 credits [0,0]",
-      "service": "conflict (the requester signed different terms for one reservation) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "requester signs second terms with other weights (no acceptances)",
       "clock": "after",
-      "independent": "conflict (two_sets_of_terms) debit 0 credits [0,0]",
-      "service": "conflict (the requester signed different terms for one reservation) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "requester acknowledges a second chain for its top count",
+      "clock": "after",
+      "independent": "conflict (step 5: acknowledgment-chains-differ, output-chain-differs-from-acknowledgment) debit 0 credits [0,0]",
+      "service": "conflict (a participant signed incompatible statements) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
       "mutation": "terms and acceptances signed 5 s late",
       "clock": "after",
-      "independent": "unknown (terms_signed_after_deadline) debit 0 credits [0,0]",
+      "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
+      "service": "unknown (no in-time requester-signed terms for this route were presented) debit 0 credits [0,0]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "stage0 withholds its closing receipt",
+      "clock": "after",
+      "independent": "unknown (step 6: delivered but a stage did not close) debit 0 credits [0,0]",
+      "service": "unknown (the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 0) debit 0 credits [0,0]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "terms without K",
+      "clock": "after",
+      "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
+      "service": "unknown (no requester-signed terms were presented) debit 0 credits [0,0]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "final stage closes with a null output",
+      "clock": "after",
+      "independent": "settled (step 9: ended by a stage under provider-loss-free terms, charges 0) debit 0 credits [0,0]",
+      "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "terms signature with base64 padding appended",
+      "clock": "after",
+      "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
       "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
+      "clock": "after",
+      "independent": "unknown (step 1: accepted terms leave 2 requesters, not exactly one) debit 0 credits [0,0]",
+      "service": "unknown (terms signed by more than one requester name this route; nothing is inferred) debit 0 credits [0,0]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "stage0 accepts the second terms, the other stages the first",
+      "clock": "after",
+      "independent": "conflict (step 2: in-time acceptances name different terms) debit 0 credits [0,0]",
+      "service": "conflict (the stages accepted different terms the requester signed for one reservation) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
       "mutation": "terms key carries an extra member",
       "clock": "after",
-      "independent": "settled (answer_finished) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
-    },
-    {
-      "base": "complete answer",
-      "mutation": "top acknowledgment key carries an extra member",
-      "clock": "after",
-      "independent": "settled (answer_finished) debit 15 credits [3,12]",
-      "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
+      "service": "unknown (no requester-signed terms were presented) debit 0 credits [0,0]"
     },
     {
       "base": "requester stops after 3 outputs",
       "mutation": "final stage signs three more steps after the last acknowledged output, then closes",
       "clock": "after",
-      "independent": "settled (requester_stopped) debit 9 credits [2,7]",
+      "independent": "settled (step 9: stopped by the requester, the acknowledged prefix is charged) debit 9 credits [2,7]",
       "service": "settled (the requester signed a stop; the outputs it acknowledged are charged) debit 9 credits [2,7]"
     },
     {
       "base": "stage0 drops after 3 steps",
       "mutation": "final stage signs three more steps after the last acknowledged output, then closes",
       "clock": "after",
-      "independent": "expired (release_window_passed) debit 0 credits [0,0]",
+      "independent": "expired (step 6: not every stage closed and the release window passed) debit 0 credits [0,0]",
       "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
     },
     {
       "base": "stages close early on their own",
       "mutation": "all records",
       "clock": "after",
-      "independent": "settled (stage_closed_early) debit 0 credits [0,0]",
+      "independent": "settled (step 9: ended by a stage under provider-loss-free terms, charges 0) debit 0 credits [0,0]",
       "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
     },
     {
       "base": "stages close early on their own",
       "mutation": "final stage signs three more steps after the last acknowledged output, then closes",
       "clock": "after",
-      "independent": "settled (requester_withheld_acknowledgments) debit 9 credits [2,7]",
+      "independent": "settled (step 9: acknowledgments withheld, the acknowledged prefix is charged) debit 9 credits [2,7]",
       "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 9 credits [2,7]"
     },
     {
       "base": "requester stops acknowledging",
       "mutation": "all records",
       "clock": "after",
-      "independent": "settled (requester_withheld_acknowledgments) debit 6 credits [1,5]",
+      "independent": "settled (step 9: acknowledgments withheld, the acknowledged prefix is charged) debit 6 credits [1,5]",
       "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 6 credits [1,5]"
     },
     {
       "base": "requester stops acknowledging",
       "mutation": "extra acknowledgment of one more output, signed 5 s late",
       "clock": "after",
-      "independent": "settled (requester_withheld_acknowledgments) debit 6 credits [1,5]",
-      "service": "conflict (a participant signed incompatible statements) debit 0 credits [0,0]"
+      "independent": "settled (step 9: acknowledgments withheld, the acknowledged prefix is charged) debit 6 credits [1,5]",
+      "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 6 credits [1,5]"
     },
     {
       "base": "requester stops acknowledging",
       "mutation": "final stage signs three more steps after the last acknowledged output, then closes",
       "clock": "after",
-      "independent": "settled (requester_withheld_acknowledgments) debit 6 credits [1,5]",
+      "independent": "settled (step 9: acknowledgments withheld, the acknowledged prefix is charged) debit 6 credits [1,5]",
       "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 6 credits [1,5]"
+    },
+    {
+      "base": "requester stops acknowledging",
+      "mutation": "terms name K = 0",
+      "clock": "after",
+      "independent": "settled (step 9: acknowledgments withheld, the acknowledged prefix is charged) debit 6 credits [1,5]",
+      "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 6 credits [1,5]"
+    },
+    {
+      "base": "requester stops acknowledging",
+      "mutation": "terms name K = 5",
+      "clock": "after",
+      "independent": "settled (step 9: ended by a stage under provider-loss-free terms, charges 0) debit 0 credits [0,0]",
+      "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+    },
+    {
+      "base": "every party signs with P-256",
+      "mutation": "all records",
+      "clock": "after",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "finished 40-output answer, last acknowledgment withheld",
       "mutation": "all records",
       "clock": "after",
-      "independent": "settled (answer_finished) debit 117 credits [29,88]",
-      "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 117 credits [29,88]",
+      "service": "settled (the answer was completed; the outputs the requester acknowledged in time are charged) debit 117 credits [29,88]"
     },
     {
       "base": "finished 40-output answer, last two acknowledgments withheld",
       "mutation": "all records",
       "clock": "after",
-      "independent": "settled (answer_finished) debit 114 credits [28,86]",
-      "service": "settled (a stage ended the answer before it finished; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 114 credits [28,86]",
+      "service": "settled (the answer was completed; the outputs the requester acknowledged in time are charged) debit 114 credits [28,86]"
     },
     {
       "base": "finished 40-output answer, last three acknowledgments withheld",
       "mutation": "all records",
       "clock": "after",
-      "independent": "settled (answer_finished) debit 111 credits [27,84]",
-      "service": "settled (the requester stopped acknowledging; the outputs it acknowledged are charged) debit 111 credits [27,84]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 111 credits [27,84]",
+      "service": "settled (the answer was completed; the outputs the requester acknowledged in time are charged) debit 111 credits [27,84]"
     }
   ]
 }
