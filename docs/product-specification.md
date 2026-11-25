@@ -185,22 +185,27 @@ fail for a measured memory reason at the same settings and to beat the strongest
 single-host CPU offload baseline.
 
 Remote executors receive disclosed text, tokens and intermediate representations;
-tokens, transport encryption and signatures do not establish confidential execution.
-Confidential execution (no executor can read the content) has no qualified
-backend and is refused before anything is sent. The chat offers three presets,
-each stating availability and exposed metadata before Send: Standard, Only your
-devices (this device or the desktop it paired with, which read the content in
-plaintext) and the unavailable confidential mode. See
-[confidential-execution.md](confidential-execution.md). Qualifying plaintext split
-routes (`executor-readable`) and researching single-evaluator confidential fixtures
+tokens, transport encryption and signatures do not keep content from executors.
+Each request states its `protection` (`plaintext`, `secret-sharing`,
+`homomorphic` or `attested`) and its `route` (`local`, `remote`, `split`,
+`split-local-edges` or `auto`, as that protection allows). Only `plaintext` runs on
+shipped surfaces; the others are refused before anything is sent. The chat's
+"Who can read it?" dialog lists the four protections, unranked, as Standard,
+Secret sharing, Compute on encrypted data and Verified hardware, with the
+unavailable ones disabled and their reasons, and a separate "Where it runs"
+route choice (This device, One computer, Several computers, Several computers
+with your devices at both ends, Let it choose). "Only your devices" is a
+participants choice: the devices paired with this one, which read the content in
+plaintext. Any plaintext split shows how many computers can read the message. See [confidential-execution.md](confidential-execution.md).
+Qualifying plaintext split routes and researching single-evaluator `homomorphic` fixtures
 are distinct stepping stones toward the long-term north star in
 [`GOALS.md`](../GOALS.md#operating-mission): proving that combined goal requires
 earning credits by serving someone else, spending them from a zero-weight requester
 on **one confidential split** across independently operated GPUs that each fail solo
 on memory and beat single-host CPU offload within frozen latency and quality limits,
 and verifying from that same run an independent security review of who could read
-what (without letting attested hardware or non-colluding secret shares silently pass
-`requester-only`), the reference answer, and outsider-reproducible debit and stage
+what (without letting `attested` or `secret-sharing` silently pass as
+`homomorphic`), the reference answer, and outsider-reproducible debit and stage
 payouts.
 Describe prior turns and attached/retrieved context before relying on a grant.
 Model selection does not establish trust in arbitrary computers. Sending a message

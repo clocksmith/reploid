@@ -30,7 +30,7 @@ describe('Chat host with injected execution, not actual inference', () => {
       fleet: { poolIdentity: 'fixture', requester: { participantId: 'peer:'.padEnd(29, 'a') } }, availability: 'ready' };
     const recipients = ['peer:'.padEnd(29, 'a'), 'peer:'.padEnd(29, 'b')];
     const saved = storage(), fleet = { state: () => ({ connected: true }), models: () => [model], close() {},
-      describeRoute: async () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: recipients, selection: 'all' }),
+      describeRoute: async () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: recipients, selection: 'all', maxCharge: { kind: 'capped', maximum: 48, unit: 'noncash-service-credit' } }),
       execute: vi.fn(async (request, controls) => {
         const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients,
           route: { schema: 'reploid.paired-whole-route/v1', requester: recipients[0], providerIdentity: recipients[1] } }));

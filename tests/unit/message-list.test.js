@@ -148,8 +148,9 @@ describe('Stable message presentation', () => {
 it('keeps who could read the answer tied to its receipt after thread policy changes, and ignores a bare binding', () => {
   const root = document.createElement('div'), thread = conversation(), view = createMessageList(root);
   thread.model = { name: 'Model' };
-  const receipt = { schema: 'reploid.execution-receipt/v1', route: { shape: 'local', participants: [] }, disclosures: { metadata: [] },
-    evidence: { confidentiality: { verified: [{ claim: 'content-stayed-on-requester-device' }] }, integrity: { verified: [] } } };
+  const receipt = { schema: 'reploid.execution-receipt/v2', protection: 'plaintext', route: { shape: 'local', participants: [] },
+    disclosure: { metadata: { items: [] } },
+    evidence: { privacy: { checks: [{ claim: 'content-stayed-on-requester-device' }] }, integrity: { checks: [] } } };
   thread.attempts[0].execution = { placement: 'local-webgpu', receipt };
   thread.privacy = { schema: 'reploid.execution-policy/v2', computation: 'plaintext', recipients: { kind: 'open', ids: [] } };
   view.update(thread, { usable: true, busy: false });

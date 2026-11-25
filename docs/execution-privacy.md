@@ -20,10 +20,14 @@ not automatic disclosure: a verified recipient must still be approved for the
 exact attempt. Transport configuration does not change any of these settings.
 
 Callers do not write this policy. They state requirements through
-[`reploid/inference`](confidential-execution.md) (placement, participants,
-confidentiality, allowed metadata), and `compileExecutionRequirements` compiles
-them into it. `requester-only` confidentiality has no qualified backend and is
-refused before disclosure with `CONFIDENTIAL_EXECUTION_UNAVAILABLE`.
+[`reploid/inference`](confidential-execution.md) (protection, route,
+participants, allowed metadata), and `compileExecutionRequirements` compiles
+them into it: `route: "local"` becomes `local-only` placement with no
+recipients, every other route `network-allowed` with the named or open
+participants. Only `protection: "plaintext"` compiles there;
+`homomorphic` and `secret-sharing` are refused before disclosure with
+`CONFIDENTIAL_EXECUTION_UNAVAILABLE` unless a host enables their unreviewed
+routes, and `attested` is always refused.
 
 Missing or obsolete policy is rejected at protected wire edges. There is no
 old-policy decoder, remote implication from placement, or downgrade retry.
@@ -31,7 +35,7 @@ Older conversation history remains readable: settings reset explicitly to
 local-only/no remote recipients, and old disclosure grants are discarded.
 This does not execute old policy or carry forward permission. A historical
 attempt using an unsupported policy cannot retry; review settings, then send a
-new request. Answers record a `reploid.execution-receipt/v1` that states what the
+new request. Answers record a `reploid.execution-receipt/v2` that states what the
 requester checked; older answers with the retired `reploid.privacy-receipt/v2`
 display their disclosure as unrecorded.
 
@@ -58,9 +62,9 @@ display their disclosure as unrecorded.
   `reploid` extension carries the same model pin and requirements on all three
   and may only narrow the policy that the authenticated operator composition
   provides. Native fleet composition binds the enrolled identity set,
-  intersected with the configured recipient list when present. Confidential
-  (`requester-only`) requests are refused there, because a JSON body is already
-  plaintext to the server that receives it.
+  intersected with the configured recipient list when present. Every protection
+  but `plaintext` is refused there, because a JSON body is already plaintext to
+  the server that receives it.
 - **Retrieval:** only host-installed paths with complete recipient disclosures
   can run. A qualified Brave server advertises
   `reploid.search-disclosure/v2` at the configured exact HTTPS origin

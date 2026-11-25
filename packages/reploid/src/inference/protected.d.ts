@@ -1,19 +1,14 @@
 import type { ProtectedPolicy, FrameChannel, RequesterKeyHolder, ProtectedJournal, SigningIdentity, TrapRequest } from '../mesh/protected-generation.js';
-import type { InferenceRoute } from './contract.js';
+import type { InferenceRoute, Disclosure, PrivacyEvidence, IntegrityEvidence } from './contract.js';
 export { PROTECTED_PROTOCOL, PROTECTED_BACKEND } from '../mesh/protected-generation.js';
 export { protectedError } from '../mesh/protected-generation.js';
 
 /** Never `available: true` in this build. */
 export declare const PROTECTED_EXECUTION_STATUS: Readonly<{ available: false; reason: 'awaiting independent security review' }>;
 export declare const PROTECTED_METADATA: readonly ['model-id', 'timing', 'length'];
-export interface ProtectedDisclosures {
-  contentReadableBy: { requesterDevice: true; participants: string[]; selection: 'all'; target?: true }; executorsReadContent: boolean;
-  confidentiality: { status: 'none' | 'target-not-established'; reason: string };
-  metadata: Array<'model-id' | 'timing' | 'length'>; computedBy: string[]; leaks: string[];
-  trapOracle: { learns: string[]; trusted: string } | null;
-  review: { available: false; reason: string }; statement: string;
-}
-export declare function protectedDisclosures(route: InferenceRoute): ProtectedDisclosures;
+export type ProtectedDisclosure = Disclosure & { extensions: Required<Pick<NonNullable<Disclosure['extensions']>, 'homomorphic'>> };
+export declare const PROTECTED_LEAKS: readonly string[];
+export declare function protectedDisclosure(route: InferenceRoute): ProtectedDisclosure;
 export interface ProtectedExecutionPorts {
   policy: ProtectedPolicy;
   discover(options: { signal?: AbortSignal; model: unknown }): Promise<Array<{ endpoint: unknown; advertisement: unknown }>>;
@@ -39,5 +34,5 @@ export interface FailureStore {
 export declare function createMemoryFailureStore(): FailureStore;
 export declare function createProtectedExecution(ports: ProtectedExecutionPorts): ProtectedExecution;
 export declare function protectedEvidence(input: { plan: unknown; admitted: unknown; evidence?: unknown; error?: unknown }): {
-  confidentiality: Record<string, unknown>; integrity: Record<string, unknown>;
+  privacy: PrivacyEvidence; integrity: IntegrityEvidence;
 };

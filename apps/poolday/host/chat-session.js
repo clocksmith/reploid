@@ -22,6 +22,11 @@ import { projectChatCatalog, projectChatPlacements, selectAvailableChatModel } f
 import { createChatDrafts } from './chat-drafts.js';
 import { createChatContext } from './chat-context.js';
 import { createAdapterEvidence } from './adapter-evidence.js';
+import { executionRouteFor } from './execution-route.js';
+
+/** The thread's requirements with the route its model and execution location stand for. */
+const withRoute = (requirements, request) => requirements.route === 'local' ? requirements
+  : { ...requirements, route: executionRouteFor({ privacy: request.privacy, model: request.model, executionLocation: request.permissions?.executionLocation }) };
 import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
@@ -218,7 +223,8 @@ export function createChatSession({
     const plan = await inference.prepare({
       model: { id: request.model.id, identity: request.model.identity, adapterIdentities: (request.model.adapters || []).map(adapter => adapter.identity) },
       ...(request.maxOutputTokens !== undefined ? { generation: { maxOutputTokens: request.maxOutputTokens } } : {}),
-      execution: executionRequirementsFor(request.privacy)
+      // The route is explicit on every request: local, split (a staged model), remote (network chosen) or auto.
+      execution: withRoute(executionRequirementsFor(request.privacy), request)
     }, { signal: controls.signal, context });
     const run = await inference.run({ planId: plan.id, requestId: request.attemptId, input: { messages: request.messages } },
       { signal: controls.signal, approve: preview => controls.requestApproval(preview), context });

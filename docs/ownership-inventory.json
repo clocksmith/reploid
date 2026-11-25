@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 399,
+    "apps/poolday": 400,
     "self": 457,
-    "shared": 2521
+    "shared": 2523
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2393,6 +2393,12 @@
       "source": "apps/poolday/host/earning/contribution.js",
       "owner": "apps/poolday",
       "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
+    },
+    {
+      "served": "host/execution-route.js",
+      "source": "apps/poolday/host/execution-route.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "host/file-access.js",
@@ -16796,6 +16802,16 @@
     {
       "served": "vendor/reploid/inference/protected.js",
       "source": "shared/vendor/reploid/inference/protected.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/protections.d.ts",
+      "source": "shared/vendor/reploid/inference/protections.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/protections.js",
+      "source": "shared/vendor/reploid/inference/protections.js",
       "owner": "shared"
     },
     {

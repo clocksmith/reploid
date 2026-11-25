@@ -124,7 +124,7 @@ export function verifyStageTokenWitnesses({ fixtureBytes, httpAttemptId, respons
   // The HTTP `reploid` record: the requester's execution receipt, the executor's own report, and the pool and conversation used.
   const evidence = response?.reploid, receipt = evidence?.executionReceipt;
   assert((capped ? response?.status === 'incomplete' && response.incomplete_details?.reason === 'max_output_tokens'
-    : response?.status === 'completed') && receipt?.schema === 'reploid.execution-receipt/v1' && receipt.attemptId === httpAttemptId
+    : response?.status === 'completed') && receipt?.schema === 'reploid.execution-receipt/v2' && receipt.attemptId === httpAttemptId
     && typeof httpAttemptId === 'string' && httpAttemptId.length > 0, 'Require the matching terminal HTTP response and attempt header');
   const target = referenceTokens(fixture), execution = evidence.execution;
   const binding = canonicalRouteAttemptBinding(execution.identity), route = binding.route;

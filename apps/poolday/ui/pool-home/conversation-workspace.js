@@ -1,6 +1,7 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
 import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
 import { describeCircleHost, parseCircleInviteUrl } from '../../host/circle-invites.js';
+import { locationForRoute } from '../../host/execution-route.js';
 import { allowsOpenPlaintext, namedPrivacyPreset, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
@@ -102,8 +103,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const pairedDesktop = state => lockedDestination(state) ?? (state.ownerPairing?.hostParticipantId
     ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop', status: state.ownerPairing.status } : null);
   /** Own devices for the presets: only the desktop this device paired with, never an invited host. */
+  // The paired desktop, the conversation's model and its execution location: what the dialog and the chip need to name
+  // the route a request sends.
   const presetContext = state => ({ desktop: state.ownerPairing?.hostParticipantId
-    ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop' } : null });
+    ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop' } : null,
+  model: state.activeThread?.model ?? chosenModel ?? null,
+  location: state.activeThread?.permissions?.executionLocation ?? executionLocation });
   const currentRoute = state => {
     const key = destinationKey(state), ids = explicitPrivacy(state).recipients?.ids;
     return key === 'named' && ids?.length === 1 && ids[0] === state.ownerPairing?.hostParticipantId ? 'desktop' : key;
@@ -467,12 +472,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacy = explicitPrivacy(state);
     const policy = currentPolicy(state);
     privacyTrigger.disabled = busy || !!thread?.closed;
-    // The composer's privacy button names the thread's preset; anything but Standard is also written beside the icon.
+    // The composer's chip beside "Answer on" always names the thread's protection (and "Your devices" when it runs only there).
     const named = namedPrivacyPreset(policy, presetContext(state)), privacyCaption = find('[data-privacy-caption]');
     privacyTrigger.setAttribute('aria-label', `Who can read it: ${named.label}`);
     privacyTrigger.title = `Who can read it: ${named.label}`;
-    privacyCaption.textContent = named.preset === 'own-devices' ? 'Your devices' : named.preset === 'standard' ? '' : named.label;
-    privacyCaption.hidden = named.preset === 'standard';
+    privacyCaption.textContent = named.label;
+    privacyCaption.hidden = false;
     const resetNotice = find('[data-execution-settings-reset]');
     resetNotice.hidden = thread?.executionSettingsReset !== true;
     const networkOptIn = find('[data-review-network-execution]');
@@ -967,9 +972,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (privacyTrigger.disabled) return;
     editingThread = state.selectedId;
     updatePrivacyControls(privacyNode, currentPolicy(state), presetContext(state));
-    privacyDialog.open(privacyNode.querySelector('[data-privacy-preset]:checked') || privacyNode.querySelector('[data-privacy-preset]'), trigger);
+    const protections = [...privacyNode.querySelectorAll('[data-privacy-protection]')];
+    privacyDialog.open(protections.find(input => input.checked) || protections[0], trigger);
   };
-  // One "Answer on" sheet: each row applies on tap. The execution presets are the composer's "Who can read it" button.
+  // One "Answer on" sheet: each row applies on tap. Protection and placement are the composer's "Who can read it" chip.
   // The model sheet is the one place to choose the computer and the model. Rows apply on tap.
   const openDestination = (trigger, { forSend = false } = {}) => {
     if (privacyTrigger.disabled) return;
@@ -1014,8 +1020,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   on('[data-open-privacy]', 'click', event => { if (find('[data-model-picker]').open) picker.close(); openExecutionPolicy(event.currentTarget); });
   on('[data-review-network-execution]', 'click', event => openDestination(event.currentTarget, { forSend: true }));
-  on('[data-privacy-controls]', 'change', event => {
-    if (event.target.matches('[data-privacy-preset]')) showPrivacyChoices(privacyNode, presetContext(session.getState()));
+  on('[data-privacy-dialog]', 'change', event => {
+    if (event.target.matches('[data-privacy-route], [data-privacy-own-devices]')) showPrivacyChoices(privacyNode, presetContext(session.getState()));
   });
   on('[data-privacy-cancel]', 'click', () => privacyDialog.close());
   on('[data-privacy-apply]', 'click', async () => {
@@ -1024,19 +1030,20 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const apply = find('[data-privacy-apply]');
     applyingPrivacy = apply.disabled = true;
     try {
-      const privacy = readPrivacyControls(privacyNode, { ...presetContext(state), current: currentPolicy(state) });
+      const { privacy, route } = readPrivacyControls(privacyNode, { ...presetContext(state), current: currentPolicy(state) });
       viewState.privacyTouched = true;
+      // The route is stored as the thread's execution location; the request derives `execution.route` from it.
+      const location = locationForRoute(route), model = presetContext(state).model;
       // A draft remembers the preset it was given here; a sent thread keeps it in its stored policy.
-      if (!state.activeThread) viewState.privacyPreset = privacyNode.querySelector('[data-privacy-preset]:checked')?.value;
+      if (!state.activeThread) viewState.privacyPreset = privacy.placement === 'local-only' || privacy.recipients.kind === 'named' ? 'own-devices' : 'standard';
       if (state.activeThread) {
         await session.setExecutionPrivacy(state.activeThread.id, privacy);
-        if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none'
-          && state.activeThread.permissions?.executionLocation === 'local') await session.setExecutionLocation(state.activeThread.id, 'auto');
+        if (!(location === 'local' && model?.partition) && state.activeThread.permissions?.executionLocation !== location) {
+          await session.setExecutionLocation(state.activeThread.id, location);
+        }
       } else {
         viewState.privacy = privacy;
-        if (privacy.placement === 'network-allowed' && privacy.recipients.kind !== 'none' && executionLocation === 'local') {
-          executionLocation = viewState.executionLocation = 'auto';
-        }
+        executionLocation = viewState.executionLocation = location;
       }
       if (privacyNode.open) privacyDialog.close();
       render(session.getState());

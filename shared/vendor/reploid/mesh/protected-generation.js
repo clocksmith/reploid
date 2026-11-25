@@ -1,5 +1,5 @@
 /**
- * `reploid.protected-generation/v1`: confidential (`requester-only`) generation on a peer that computes on
+ * `reploid.protected-generation/v1`: generation on a peer that computes on encrypted values (`protection: "homomorphic"`), over
  * ciphertext. RESEARCH ONLY: unavailable until the protocol passes independent security review.
  *
  * It sits beside peer-generation.js and shares no handler, journal, log or recovery path with plaintext

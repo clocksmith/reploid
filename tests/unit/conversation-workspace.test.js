@@ -57,39 +57,51 @@ describe('Conversation workspace', () => {
     const shield = find('.chat-composer-toolbar [data-open-privacy]');
     expect(find('[data-model-picker] [data-open-privacy]')).toBeNull();
     expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
-    // It names the thread's preset: a new local conversation is "Only your devices", written beside the icon.
-    expect(shield.getAttribute('aria-label')).toBe('Who can read it: Only your devices');
+    // The chip names the thread's protection, always written beside the icon: a new local conversation is
+    // Standard protection on your devices only.
+    expect(shield.getAttribute('aria-label')).toBe('Who can read it: Standard · Your devices');
     expect(shield.querySelector('svg')).not.toBeNull();
     expect(find('[data-privacy-caption]').hidden).toBe(false);
-    expect(find('[data-privacy-caption]').textContent).toBe('Your devices');
+    expect(find('[data-privacy-caption]').textContent).toBe('Standard · Your devices');
     // Opening it from under an open Answer on sheet closes the sheet first.
     const advanced = () => { find('[data-open-model]').click(); expect(find('[data-model-picker]').open).toBe(true); shield.click();
       expect(find('[data-model-picker]').open).toBe(false); };
-    const choose = value => { for (const radio of dialog.querySelectorAll('[data-privacy-preset]')) radio.checked = radio.value === value;
-      dialog.querySelector(`[value="${value}"]`).dispatchEvent(new Event('change', { bubbles: true })); };
+    const choose = value => { for (const radio of dialog.querySelectorAll('[data-privacy-route]')) radio.checked = radio.value === value;
+      dialog.querySelector(`[data-privacy-route][value="${value}"]`).dispatchEvent(new Event('change', { bubbles: true })); };
     advanced();
     const dialog = find('[data-privacy-dialog]');
     expect(dialog.open).toBe(true);
-    // A new local conversation is on this device: "Only your devices". Each preset states availability before Send.
-    expect(dialog.querySelector('[value="own-devices"]').checked).toBe(true);
-    expect(dialog.querySelector('[value="no-device"]').disabled).toBe(true);
-    expect(dialog.querySelector('[data-preset-note="own-devices"]').textContent).toMatch(/^Available on this device only/);
-    expect(dialog.querySelector('[data-preset-note="no-device"]').textContent).toMatch(/^Not available yet/);
-    choose('standard');
+    // A new local conversation is Standard protection, running only on your devices. The four protections are listed
+    // with their lines; the ones this browser cannot run are disabled with their reasons.
+    expect(dialog.querySelector('[data-privacy-protection][value="plaintext"]').checked).toBe(true);
+    expect([...dialog.querySelectorAll('[data-privacy-protection]')].map(radio => radio.value)).toEqual(['plaintext', 'secret-sharing', 'homomorphic', 'attested']);
+    expect(dialog.querySelector('[data-protection-status="plaintext"]').textContent).toBe('Computers that process your request can read the data they receive.');
+    for (const value of ['secret-sharing', 'homomorphic', 'attested']) {
+      expect(dialog.querySelector(`[data-privacy-protection][value="${value}"]`).disabled).toBe(true);
+      expect(dialog.querySelector(`[data-protection-status="${value}"]`).textContent).toMatch(/\. Unavailable: \S/);
+    }
+    // Where it runs: the five routes; a local conversation runs on this device, where "Only your devices" does not apply.
+    expect([...dialog.querySelectorAll('[data-privacy-route]')].map(radio => radio.value)).toEqual(['local', 'remote', 'split', 'split-local-edges', 'auto']);
+    expect(dialog.querySelector('[data-privacy-route][value="local"]').checked).toBe(true);
+    expect(dialog.querySelector('[data-privacy-route][value="split-local-edges"]').disabled).toBe(true);
+    expect(dialog.querySelector('[data-privacy-own-devices]').disabled).toBe(true);
+    expect(dialog.querySelector('[data-preset-note="own-devices"]').textContent).toMatch(/^Only this device runs the model/);
+    choose('auto');
     await session.renameThread(id, 'Refresh the workspace');
-    expect(dialog.querySelector('[value="standard"]').checked).toBe(true);
+    expect(dialog.querySelector('[data-privacy-route][value="auto"]').checked).toBe(true);
     find('[data-privacy-cancel]').click();
     expect(session.getState().activeThread.privacy).toMatchObject({ placement: 'local-only', recipients: { kind: 'none', ids: [] } });
     advanced();
-    expect(dialog.querySelector('[value="own-devices"]').checked).toBe(true);
-    choose('standard');
+    expect(dialog.querySelector('[data-privacy-route][value="local"]').checked).toBe(true);
+    choose('auto');
     find('[data-privacy-apply]').click();
     await vi.waitFor(() => expect(dialog.open).toBe(false));
     expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'open', ids: [] });
     expect(find('[data-composer-model-source]').textContent).toBe('Contributors');
-    // Standard is the default exposure: the button names it, and nothing is written beside the icon.
+    // Standard on approved computers: the chip shows "Standard".
     expect(shield.title).toBe('Who can read it: Standard');
-    expect(find('[data-privacy-caption]').hidden).toBe(true);
+    expect(find('[data-privacy-caption]').hidden).toBe(false);
+    expect(find('[data-privacy-caption]').textContent).toBe('Standard');
     expect(input.value).toBe('Keep this question');
     expect(session.getState().activeThread.messages).toHaveLength(0);
   });

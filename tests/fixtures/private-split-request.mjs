@@ -60,5 +60,5 @@ console.log(JSON.stringify({ model: selection, input: fixture.messages, stream: 
     model: { identity: model.identity, adapterIdentities: [], planIdentity: model.partitionPlanId },
     // Output is also disclosed back to this requester. The fleet server separately
     // constrains compute recipients to the two providers pinned above.
-    execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...providers, state.participantId] },
-      confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } } }, null, 2));
+    execution: { protection: 'plaintext', route: 'auto', participants: { kind: 'named', ids: [...providers, state.participantId] },
+       allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } } }, null, 2));

@@ -7,9 +7,10 @@
  *   2. spend: from that account, one request of the catalogued 27B, split across four ordered stages
  *      (edges-plan.js): the requester's own machine runs stage 0 (embedding, layer 0, tokenizer, coordinator) and
  *      stage 3 (layer 63, final norm, output head, sampling, detokenizing); two other machines run layers 1-31 and
- *      32-62. The request goes through `reploid/inference` with `confidentiality: 'requester-edges'`;
+ *      32-62. The request goes through `reploid/inference` with `protection: 'plaintext'` and
+ *      `route: 'split-local-edges'` (a placement rule for the split, not a protection);
  *   3. who read what: every stage process records what its resident was handed (visibility trace), each stage's loader
- *      records the weight pieces it served, and the plan's disclosures and the execution receipt state the tier;
+ *      records the weight pieces it served, and the plan's disclosure and the execution receipt state the protection and route;
  *   4. verify, in the same run: the answer's tokens against the frozen single-host reference (and the input and output
  *      witnesses), the debit and every payout on the ledger, and an independent replay of the settlement from the
  *      participants' own signed records, which must equal the ledger.
@@ -31,6 +32,7 @@ import catalog from '../../shared/config/chat-models.json' with { type: 'json' }
 import { createPeerIdFromPublicJwk, createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { countersignReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
+import { describeDisclosure } from '../../packages/reploid/src/inference/protections.js';
 import { createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { openAgentSession, parseControlReply, createSshTransport } from './command-transport.js';
@@ -281,11 +283,11 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
     await step('route ready', timeoutMs => until(async () => { const ready = (await s(config.requester.label).call('state')).ready; if (!ready) await diagnose(); return ready; },
       { timeoutMs, label: 'a ready route', pollMs: 500 }), limits.routeReadyMs ?? limits.phaseMs);
 
-    // 3. Spend: one request through reploid/inference with confidentiality 'requester-edges'.
+    // 3. Spend: one request through reploid/inference, a plaintext split with requester-held edges.
     const accountId = `computer-${requesterAccount}`, before = balanceOfAccount(accountId);
     let answer;
     try {
-      answer = await step('split generate (requester-edges)', () => s(config.requester.label).call('generate-edges',
+      answer = await step('split generate (plaintext, requester-held edges)', () => s(config.requester.label).call('generate-edges',
         { messages: fixtureSource.messages, threadId, maxOutputTokens: fixtureSource.maxOutputTokens }, { timeoutMs: limits.phaseMs }), limits.phaseMs);
     } catch (error) {
       // Which boundary failed: each stage's own state, notes and what its resident had executed.
@@ -313,12 +315,14 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
       route: answer.route, execution: answer.execution ?? null, settlement, settlementReplay: { ...settlementReplay, policy: coordinator.credits.policy }, account: { accountId, before, after: balanceOfAccount(accountId) },
       payouts: settlement.journal.map(row => ({ account: row.accountId, delta: row.delta })),
       inference: { plan: answer.inference.plan, events: answer.inference.events, result: answer.inference.result, admittedRouteId: answer.inference.admittedRouteId } };
-    const disclosure = answer.inference.plan.disclosures;
+    const disclosure = answer.inference.plan.disclosure;
+    const roleIds = (section, role) => (Array.isArray(section.readers) ? section.readers : []).filter(reader => reader.role === role).flatMap(reader => reader.ids ?? []);
     receipt.privacy = {
-      tier: 'requester-edges',
-      statement: disclosure.statement,
-      contentRecipients: disclosure.contentReadableBy.participants,
-      activationRecipients: disclosure.activationsReadableBy?.participants ?? [],
+      protection: answer.inference.plan.protection,
+      routeKind: answer.inference.plan.routeKind,
+      statement: describeDisclosure(disclosure),
+      contentRecipients: roleIds(disclosure.prompt, 'requester-edge-device'),
+      activationRecipients: roleIds(disclosure.intermediate, 'stage-operator'),
       bindingHops: answer.privacyBinding.route.hops,
       stages: config.stages.map((stage, index) => ({ label: stage.label, stageIndex: index, role: stage.role, participantId: stage.participantId,
         layerRange: inventory.stages[index].layerRange, visibility: summarizeVisibility(visibility[index].rows),
@@ -331,9 +335,9 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
         { who: 'ledger and signaling (operator machine)', reads: 'model identity, participant identities, timing, sizes, reservation and settlement records' }
       ],
       residualRisks: ['Activation inversion: an operator stage holds plaintext hidden states of every prompt and answer token and may reconstruct content from them.',
-        'Edge-device ownership is declared by the operator in the host file; Reploid does not verify it.',
+        'Edge-device binding comes from the operator\'s host file (ownStages, passed as requesterDevices); Reploid does not verify who owns the devices.',
         'Middle stages learn the prompt length and the answer length (token counts and step count).',
-        'No independent security review has examined this tier.'] };
+        'No independent security review has examined this split.'] };
 
     // 5. A requester-signed Stop partway. The final stage (requester-held) is held at `stopAtStep`; once the requester has
     // output, it signs its stop at the count it acknowledged and stops. The ledger charges that acknowledged prefix.
@@ -457,8 +461,8 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
   const cases = config.cases ?? {};
   receipt.verdict = checkNorthStar(receipt, { reference, weights, cases: ['stop', 'disconnect', 'drop'].filter(name => cases[name] !== false) });
   receipt.notEstablished = [
-    'An independent security review of the requester-edges tier (a visibility trace is not one).',
-    'Confidentiality from operators: they read plaintext activations; "nobody can read it" remains a target and requester-only still fails closed.',
+    'An independent security review of the plaintext split with requester-held edges (a visibility trace is not one).',
+    'Protection from operators: this is plaintext; they read activations that may reveal the prompt and answer, and homomorphic still fails closed.',
     'Separate operators: one person owns every machine; the accounts are separate only on the ledger.',
     'Capacity beyond one machine: the requester machine fit this model alone in Stage 1, and no solo or CPU-offload control ran here.',
     'Outsider reproduction: the replay ran in this harness from the participants\' signed records, not on an outsider\'s machine.'];

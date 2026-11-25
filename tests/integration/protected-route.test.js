@@ -26,7 +26,7 @@ const publicKeyOfSeed = file => {
   const der = Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'), Buffer.from(readFileSync(file, 'utf8').trim(), 'hex')]);
   return createPublicKey(createPrivateKey({ key: der, format: 'der', type: 'pkcs8' })).export({ format: 'jwk' }).x;
 };
-const execution = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] };
+const execution = { protection: 'homomorphic', route: 'remote', participants: { kind: 'open' }, allowMetadata: ['model-id', 'timing', 'length'] };
 
 describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real processes)', () => {
   let dir, engine, model, modelIdentity, policy, publicSetPolicy, reference, oracleEndpoint, rogueOracleEndpoint, trapFile, unlistedPrompt, unlistedReference;
@@ -139,41 +139,41 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     const { inference, protectedExecution } = inferenceFor([peers.honest.endpoint], { stateDir });
     const { events, result, plan } = await runOnce(inference);
     expect(plan.route.participants).toEqual([peers.honest.participantId]);
-    // The development ring is insecure: the disclosures must say no confidentiality and count the evaluator as a reader.
-    expect(plan.disclosures.contentReadableBy).toMatchObject({ requesterDevice: true, participants: [peers.honest.participantId] });
-    expect(plan.disclosures).toMatchObject({ executorsReadContent: true, confidentiality: { status: 'none' } });
-    expect(plan.disclosures.statement).toMatch(/NO confidentiality/);
-    expect(plan.disclosures.statement).not.toMatch(/Only this device can read/);
+    // The development ring is insecure: the disclosure must say no protection and count the evaluator as a reader.
+    expect(plan.disclosure.prompt.readers).toEqual([{ role: 'requester-device' }, { role: 'evaluator', ids: [peers.honest.participantId] }]);
+    expect(plan.disclosure).toMatchObject({ review: { state: 'not-reviewed' }, trustAssumptions: expect.arrayContaining(['insecure-development-parameters']),
+      extensions: { homomorphic: { status: { protection: 'none' } } } });
+    expect(plan).toMatchObject({ routeKind: 'remote', maxCharge: { kind: 'free' } });
     expect(result.status).toBe('completed');
     expect(result.output.text).toBe(reference);
     expect(events.filter(e => e.type === 'output.delta').map(e => e.text).join('')).toBe(reference);
-    const { confidentiality, integrity } = result.executionReceipt.evidence;
-    const traps = integrity.verified.find(item => item.claim === 'known-answer-traps').value;
+    const { privacy, integrity } = result.executionReceipt.evidence;
+    const traps = integrity.checks.find(item => item.claim === 'known-answer-traps').value;
     expect(traps).toMatchObject({ lanes: 4, trapLanes: 3, checks: 12, passed: 12 });
     expect(traps.maxAbsError).toBeLessThan(traps.tolerance);
-    expect(integrity.decryptions).toEqual({ trap: 12, real: 4 });
-    expect(confidentiality.uploaded.keyFrames).toBe(7);
+    expect(integrity.extensions.homomorphic.decryptions).toEqual({ trap: 12, real: 4 });
+    expect(privacy.extensions.homomorphic.uploaded.keyFrames).toBe(7);
     const held = protectedExecution.journal.entries().find(entry => entry.state === 'key-holder-closed');
     expect(held.keyHolder).toEqual({ encryptions: 4 * 3 + 3 * 4, decryptions: 16 });
     // Same key epoch: the evaluator still holds the keys, so nothing is uploaded but ciphertexts.
     const again = await runOnce(inference);
     expect(again.result.output.text).toBe(reference);
-    expect(again.result.executionReceipt.evidence.confidentiality.uploaded.keyFrames).toBe(0);
+    expect(again.result.executionReceipt.evidence.privacy.extensions.homomorphic.uploaded.keyFrames).toBe(0);
     expect(JSON.stringify(protectedExecution.journal.entries())).not.toContain(reference);
   }, 180000);
 
   it('an evaluator signing as another identity is not bound and receives no keys or ciphertext', async () => {
     const { result } = await runOnce(inferenceFor([peers.wrong.endpoint]).inference);
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'EXECUTION_PLAN_CHANGED' } });
-    expect(result.executionReceipt.evidence.confidentiality.uploaded).toEqual({ keyFrames: 0, stepFrames: 0, bytes: 0 });
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 0, real: 0 });
+    expect(result.executionReceipt.evidence.privacy.extensions.homomorphic.uploaded).toEqual({ keyFrames: 0, stepFrames: 0, bytes: 0 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 0, real: 0 });
   }, 120000);
 
   it('ignores a replayed result frame and does not blame the evaluator', async () => {
     const { inference } = inferenceFor([peers.replay.endpoint], { timeoutMs: 30000 });
     const { result } = await runOnce(inference);
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 3, real: 1 });
     await expect(inference.prepare({ model: { id: 'doppler-protected-tiny', identity: modelIdentity }, generation: { maxOutputTokens: 1 }, execution })).resolves.toBeTruthy();
   }, 120000);
 
@@ -186,7 +186,7 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
       const { result } = await runOnce(inferenceFor([proxy.endpoint]).inference);
       expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
       expect(result.error.message).toMatch(/signed digest/);
-      expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+      expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 3, real: 1 });
     } finally { await proxy.close(); }
   }, 120000);
 
@@ -198,7 +198,7 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
       const { result, events } = await runOnce(inference);
       expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
       expect(result.error.message).toMatch(/trap failed at step 1/);
-      expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 0 });
+      expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 3, real: 0 });
       expect(events.filter(event => event.type === 'output.delta')).toHaveLength(0);
       // The evaluator was fed the whole fixed schedule and a normal close.
       expect(proxy.state.upstreamKinds).toMatchObject({ step: 4, bye: 1 });
@@ -273,11 +273,11 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     const v1 = await runOnce(inferenceFor([peers.vanish.endpoint], { pins: publicSetPolicy }).inference, { content: unlistedPrompt, tokens: 2 });
     expect(v1.result.status).toBe('completed');                 // every published trap came back exact
     expect(v1.result.output.text).not.toBe(unlistedReference);   // and the real answer is the attacker's
-    expect(v1.result.executionReceipt.evidence.integrity.verified.find(item => item.claim === 'known-answer-traps').value.passed).toBe(6);
+    expect(v1.result.executionReceipt.evidence.integrity.checks.find(item => item.claim === 'known-answer-traps').value.passed).toBe(6);
     const v2 = await runOnce(inferenceFor([peers.vanish.endpoint]).inference, { content: unlistedPrompt, tokens: 2 });
     expect(v2.result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
     expect(v2.result.error.message).toMatch(/trap failed at step 1/);
-    expect(v2.result.executionReceipt.evidence.integrity.decryptions.real).toBe(0);
+    expect(v2.result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions.real).toBe(0);
   }, 180000);
 
   it('refuses traps from an oracle whose key is not pinned, before contacting the evaluator', async () => {
@@ -306,7 +306,7 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     expect(result.error.message).toMatch(/stale or replayed/);
   }, 120000);
 
-  it('with the flag off, requester-only is refused and no evaluator is contacted', async () => {
+  it('with the flag off, homomorphic is refused and no evaluator is contacted', async () => {
     const proxy = await startProxy(peers.honest.endpoint);
     try {
       const { inference } = inferenceFor([proxy.endpoint], { flag: false });

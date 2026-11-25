@@ -63,7 +63,7 @@ describe('independent work threads', () => {
     // Every peer step kept its execution receipt, naming the one recipient bound before the prompt left.
     expect(finished.peerSteps.map(step => [step.kind, step.receipt.status, step.receipt.route.participants])).toEqual([
       ['step', 'completed', ['peer-2']], ['step', 'completed', ['peer-3']]]);
-    expect(finished.execution.receipt).toMatchObject({ schema: 'reploid.execution-receipt/v1', api: 'reploid.inference/v1' });
+    expect(finished.execution.receipt).toMatchObject({ schema: 'reploid.execution-receipt/v2', api: 'reploid.inference/v2', protection: 'plaintext' });
     expect(service.open).not.toHaveBeenCalled();
     await app.close();
     const restored = createWorkSession({ ...ports, service });
@@ -125,7 +125,7 @@ it('enforces local-only and unavailable work backends before any remote data por
   const options = { model: DEFAULT_WORK_MODELS[0], service, swarm, controls: {}, signal: new AbortController().signal };
   await expect(createWorkNetworkProvider({ ...options, privacy: createExecutionPolicy() }).generate([{ content: 'secret' }])).rejects.toThrow('cannot execute');
   expect(swarm.connect).not.toHaveBeenCalled(); expect(swarm.generate).not.toHaveBeenCalled();
-  // A requester-only policy is refused by the inference API with its stable code, never answered on this device.
+  // A homomorphic policy is refused by the inference API with its stable code, never answered on this device.
   const confidential = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['approved-provider'] },
     computation: 'cryptographic', protocol: 'unsupported', keyContext: 'key', leakage: ['model-id', 'timing', 'length', 'access-patterns'] });
   await expect(createWorkNetworkProvider({ ...options, privacy: confidential }).generate([{ role: 'user', content: 'secret' }]))
@@ -166,7 +166,7 @@ describe('Work network steps through reploid/inference', () => {
     expect(approved).toEqual([['approved-provider']]);
     expect(result.content).toBe('Peer answer');
     expect(result.executionReceipt).toMatchObject({ status: 'completed', route: { shape: 'remote', participants: ['approved-provider'] },
-      requested: { execution: { placement: 'network-allowed', participants: { kind: 'named', ids: ['approved-provider'] }, confidentiality: 'executor-readable' } } });
+      routeKind: 'remote', requested: { execution: { protection: 'plaintext', route: 'remote', participants: { kind: 'named', ids: ['approved-provider'] } } } });
   });
 
   it('refuses a route change after approval and sends nothing more', async () => {
@@ -186,7 +186,7 @@ describe('Work network steps through reploid/inference', () => {
     expect(service.open).not.toHaveBeenCalled();
   });
 
-  it('refuses a requester-only Work thread before it is saved or anything is sent', async () => {
+  it('refuses a homomorphic Work thread before it is saved or anything is sent', async () => {
     const swarm = { connect: vi.fn(), hasProvider: () => true, generate: vi.fn() };
     const service = { isSupported: () => true, open: vi.fn() };
     const ports = store();

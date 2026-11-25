@@ -391,6 +391,12 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     return outcome;
   }
   return Object.freeze({ identity, state, select, reconcile, reconcileCredits, textParticipant,
+    /**
+     * The inference plan's charge ceiling for a request: capped from the service-credit terms when this host spends
+     * credits (the same quote its requester reserves), free when it has no credit service and so no charge path.
+     */
+    chargeCeiling: request => credits ? createFleetRequester(requesterPorts({ participant: textParticipant })).chargeCeiling(structuredClone(request))
+      : { kind: 'free' },
     outcome: id => lookupOutcome(id),
     async inspectOutcome(id) {
       const prior = lookupOutcome(id);
@@ -660,20 +666,24 @@ export function createOwnerInference({ host, config }) {
     const pins = config.textApi?.allowedRecipients;
     return [...await host.enrolledRecipients()].filter(id => !pins || pins.includes(id)).sort();
   };
+  // Charge: the host's credit ceiling for this request (capped from its credit terms; free without a credit service).
+  const maxChargeOf = async request => typeof host.chargeCeiling === 'function' ? host.chargeCeiling(request) : { kind: 'free' };
   const inference = createInference({
-    resolveRoute({ execution }, { context }) {
-      if (execution.placement !== 'network-allowed') return null; // This host runs prompts on enrolled computers only.
+    async resolveRoute({ execution }, { context }) {
+      if (execution.route === 'local') return null; // This host runs prompts on enrolled computers only.
       const partition = context.request.model?.partition;
       if (partition) {
         const stages = [...new Set(partition.route?.stages?.map(stage => stage.participantId)
           ?? [partition.participantA, partition.participantB].filter(Boolean))];
         return stages.length && stages.every(id => context.permitted.includes(id))
-          ? { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: stages, selection: 'all', planIdentity: partition.planId ?? null }
+          ? { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: stages, selection: 'all', planIdentity: partition.planId ?? null,
+            maxCharge: await maxChargeOf(context.chargeRequest) }
           : null;
       }
       const named = execution.participants.kind === 'named' ? execution.participants.ids : null;
       const participants = context.permitted.filter(id => !named || named.includes(id));
-      return participants.length ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants, selection: 'one-of' } : null;
+      return participants.length ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants, selection: 'one-of',
+        maxCharge: await maxChargeOf(context.chargeRequest) } : null;
     },
     async execute({ policy, request: run }, controls, context) {
       // The owner's enrolled set bounds the compiled requirements: an open request still reaches only those computers.
@@ -695,11 +705,12 @@ export function createOwnerInference({ host, config }) {
     const configured = config.models.find(entry => entry.model.id === request.model?.id && entry.model.identity === request.model?.identity);
     assert(configured, 'Model is outside owner preferences');
     const allowed = await permitted();
-    const execution = requested ?? (allowed.length ? { placement: 'network-allowed', participants: { kind: 'named', ids: allowed },
-      confidentiality: 'executor-readable', allowMetadata: [...OWNER_METADATA] } : null);
+    const execution = requested ?? (allowed.length ? { protection: 'plaintext', route: 'auto',
+      participants: { kind: 'named', ids: allowed }, allowMetadata: [...OWNER_METADATA] } : null);
     if (!execution) throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'No enrolled computer may receive this prompt. Nothing was sent.');
-    const context = { request, permitted: allowed, onRoute, controls: { onDelta }, raw: null, failure: null };
     const model = { ...configured.model, ...(request.model.partition ? { partition: request.model.partition } : {}) };
+    // The charge is quoted for the configured model (its output ceiling), the same model the host generates with.
+    const context = { request, chargeRequest: { ...request, model }, permitted: allowed, onRoute, controls: { onDelta }, raw: null, failure: null };
     const plan = await inference.prepare({ model: { id: model.id, identity: model.identity, adapterIdentities: partitionAdapterIdentities(model) },
       execution }, { context });
     const run = await inference.run({ planId: plan.id, requestId: request.attemptId, input: { messages: request.messages } },

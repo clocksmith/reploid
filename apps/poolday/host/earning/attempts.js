@@ -36,10 +36,12 @@ export class SpendingDeclinedError extends Error {
  * @param {Function} options.authorizeSpending ({ quote }) -> true to accept the disclosed terms
  * @param {object} [options.communityAccess] { decide({ quote }) -> true to ask for funded Community Access instead
  *   of spending this account's credits, pollMs }: a queued request is polled until admitted, unavailable or past its queue
+ * @param {Function} [options.chargeCeiling] () -> { kind: 'capped', maximum, unit }: the most this person can be charged
+ *   for one answer, for the inference plan; without it a partition plan cannot cap its charge and is refused
  * @param {Function} [options.now] clock in ms, the quote deadline's clock
  * @param {Function} [options.setTimer] (callback, ms) -> cancel
  */
-export function createEarningAttempts({ client, quoteRequest, authorizeSpending, communityAccess = null, now = Date.now, setTimer = defaultTimer } = {}) {
+export function createEarningAttempts({ client, quoteRequest, authorizeSpending, communityAccess = null, chargeCeiling = null, now = Date.now, setTimer = defaultTimer } = {}) {
   if (!client || typeof client.send !== 'function') throw new TypeError('Earning attempts require an enabled earning client');
   if (typeof quoteRequest !== 'function' || typeof authorizeSpending !== 'function') {
     throw new TypeError('Earning attempts require a quote request and a spending decision port');
@@ -217,6 +219,8 @@ export function createEarningAttempts({ client, quoteRequest, authorizeSpending,
 
   return Object.freeze({
     run,
+    /** The plan's charge ceiling for one answer, or undefined when none was given (the plan is then refused). */
+    chargeCeiling: () => typeof chargeCeiling === 'function' ? chargeCeiling() : undefined,
     /** Wrap a partition generate port. */
     wrap: execute => (request, controls) => run(request, controls, execute),
     getThread: async threadId => structuredClone(await readThread(threadId)),

@@ -274,10 +274,11 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
   }
 
   /**
-   * The north-star request: through `reploid/inference` with `confidentiality: 'requester-edges'`. The route's first and
-   * last stage must be stages this requester's operator declared its own (`config.ownStages`) and no middle stage may
-   * be; otherwise nothing is prepared or sent. The plan's disclosures, the admitted route and the execution receipt are
-   * returned with the answer.
+   * The north-star request: through `reploid/inference` with `protection: 'plaintext'` and
+   * `route: 'split-local-edges'`. The route's first and last stage must be stages this
+   * requester's operator declared its own (`config.ownStages`, passed to the API as `requesterDevices`) and no middle
+   * stage may be; otherwise nothing is prepared or sent. The plan's disclosure, the admitted route and the execution
+   * receipt are returned with the answer.
    */
   async function generateEdges({ messages, threadId, maxOutputTokens, keepPartial = false }) {
     if (stageIndex !== null) throw Error('Only the requester sends');
@@ -291,8 +292,11 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     }
     let bound = null, admitted = null, answer = null;
     const inference = createInference({
+      // The devices this requester's operator bound to it: the API refuses edges outside them before anything is sent.
+      requesterDevices: () => [...own],
+      // Charge: capped from the service-credit terms, the same quote the fleet requester reserves for this split.
       resolveRoute: async () => ({ shape: 'split', backend: EDGES_BACKEND, participants: [...new Set(stages)], selection: 'all',
-        planIdentity: route.partition.planId, edgeParticipants }),
+        planIdentity: route.partition.planId, edgeParticipants, maxCharge: await requester.chargeCeiling({ model: route, messages }) }),
       execute: async (job, controls) => {
         const privacyBinding = await bindExecutionRoute({ model: route, privacy: job.policy }, edgesExecutionRoute({ model: route }, { route: partitionRoute }));
         bound = privacyBinding;
@@ -304,8 +308,8 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
         return answer.raw;
       } });
     const plan = await inference.prepare({ model: { id: model.id, identity: model.identity }, generation: { maxOutputTokens },
-      execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...new Set(stages)] }, confidentiality: 'requester-edges',
-        allowMetadata: [...EXECUTION_METADATA] } });
+      execution: { protection: 'plaintext', route: 'split-local-edges',
+        participants: { kind: 'named', ids: [...new Set(stages)] }, allowMetadata: [...EXECUTION_METADATA] } });
     const run = await inference.run({ planId: plan.id, requestId: 'northstar-' + randomUUID(), input: { messages } },
       { context: { controls: { onDelta: () => {} } } });
     const events = [];

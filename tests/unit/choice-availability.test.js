@@ -1,24 +1,48 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CONFIDENTIAL_TARGET, fileModeChoices, startingLocalModel, privacyPresetChoices, routePreferenceChoices,
+  fileModeChoices, startingLocalModel, protectionChoices, routeChoices, ownDevicesChoice, routePreferenceChoices,
   sharingOptionChoices, webSearchAvailability
 } from '../../apps/poolday/ui/pool-home/choice-availability.js';
+import { PROTECTION_DISPLAY, ROUTE_DISPLAY, gatedCapabilities } from '../../packages/reploid/src/inference/protections.js';
 
 const byValue = (options, value) => options.find(option => option.value === value);
 
 describe('Poolday choices are derived from what can work now', () => {
-  it('never offers confidential execution as working, and names who reads content for the others', () => {
-    const presets = privacyPresetChoices({ desktop: 'Studio' });
-    expect(byValue(presets, 'no-device')).toMatchObject({ disabled: true, status: CONFIDENTIAL_TARGET });
-    expect(CONFIDENTIAL_TARGET).toMatch(/^Not available yet\. Planned:/);
-    expect(byValue(presets, 'own-devices')).toMatchObject({ disabled: false, status: expect.stringContaining('This device and Studio read') });
-    expect(byValue(privacyPresetChoices(), 'own-devices').status).toMatch(/nothing leaves it\. Pair a desktop/);
-    expect(byValue(presets, 'standard').status).toMatch(/computer that answers reads your messages/);
-    // A conversation whose requirements the presets cannot express is read-only: every preset says so.
-    const locked = privacyPresetChoices({ editable: false });
+  it('lists every protection unranked with its shared line, disabling each unavailable one with its reason', () => {
+    const protections = protectionChoices();
+    expect(protections.map(option => option.value)).toEqual(['plaintext', 'secret-sharing', 'homomorphic', 'attested']);
+    expect(byValue(protections, 'plaintext')).toMatchObject({ title: 'Standard', checked: true, disabled: false, status: PROTECTION_DISPLAY.plaintext.line });
+    for (const value of ['secret-sharing', 'homomorphic', 'attested']) {
+      expect(byValue(protections, value)).toMatchObject({ title: PROTECTION_DISPLAY[value].label, disabled: true, status: expect.stringMatching(/\. Unavailable: \S/) });
+    }
+    // A protection a host enabled but did not resolve is "unknown": offered, with its line, never claimed available.
+    const enabled = protectionChoices({ capabilities: gatedCapabilities({ enabled: ['plaintext', 'secret-sharing'] }) });
+    expect(byValue(enabled, 'secret-sharing')).toMatchObject({ disabled: false, status: PROTECTION_DISPLAY['secret-sharing'].line });
+    expect(byValue(enabled, 'attested').disabled).toBe(true);
+  });
+
+  it('lists the five routes, disables those this chat cannot use with reasons, and keeps only-your-devices a participants choice', () => {
+    const routes = routeChoices();
+    expect(routes.map(option => option.value)).toEqual(['local', 'remote', 'split', 'split-local-edges', 'auto']);
+    expect(routes.map(option => option.title)).toEqual(Object.values(ROUTE_DISPLAY).map(row => row.label));
+    expect(byValue(routes, 'auto')).toMatchObject({ checked: true, disabled: false });
+    expect(byValue(routes, 'split')).toMatchObject({ disabled: true, status: 'Unavailable: Only a model that runs in stages uses several computers.' });
+    expect(byValue(routes, 'split-local-edges')).toMatchObject({ disabled: true, status: 'Unavailable: This browser cannot bind both edge devices to you.' });
+    const staged = routeChoices({ model: { partition: {} }, value: 'split' });
+    expect(byValue(staged, 'split')).toMatchObject({ checked: true, disabled: false });
+    expect(byValue(staged, 'local').disabled).toBe(true);
+    expect(byValue(staged, 'remote').disabled).toBe(true);
+    expect(byValue(routeChoices({ canRunHere: false }), 'local').status).toMatch(/network computers only/);
+    // Only your devices: not a route; it needs a paired desktop and a network route.
+    expect(ownDevicesChoice({ desktop: 'Studio' })).toMatchObject({ title: 'Only your devices', disabled: false, status: expect.stringContaining('This device and Studio process') });
+    expect(ownDevicesChoice().status).toMatch(/Pair a desktop/);
+    expect(ownDevicesChoice({ desktop: 'Studio', route: 'local', checked: true })).toMatchObject({ disabled: true, checked: false });
+    // A conversation whose requirements these choices cannot express is read-only: every option says so.
+    const locked = routeChoices({ editable: false });
     expect(locked.every(option => option.disabled)).toBe(true);
-    expect(byValue(locked, 'standard').status).toMatch(/fixed/);
-    expect(byValue(locked, 'no-device').status).toBe(CONFIDENTIAL_TARGET);
+    expect(byValue(locked, 'auto').status).toMatch(/fixed/);
+    expect(ownDevicesChoice({ desktop: 'Studio', editable: false }).disabled).toBe(true);
+    expect(protectionChoices({ editable: false }).every(option => option.disabled)).toBe(true);
   });
 
   it('disables route preference with the reason when only one computer can answer', () => {

@@ -1,5 +1,5 @@
 /**
- * Requester-held edges (`confidentiality: 'requester-edges'`): the policy, the inference API contract and the ordered
+ * Requester-held edges (`protection: 'plaintext'`, `topology: { kind: 'split', edges: 'requester-devices' }`): the policy, the inference API contract and the ordered
  * route. The first and last stage run on the requester's own devices; every other stage gets activations and token
  * counts, never token IDs. These are contract tests with injected stages; they establish no physical inference.
  */
@@ -19,26 +19,27 @@ const hash = c => 'sha256:' + c.repeat(64);
 const model = { id: 'tiny', identity: hash('a') };
 const route = { planId: hash('p'), modelId: model.id, modelIdentity: model.identity,
   stages: ['edge-in', 'middle-1', 'middle-2', 'edge-out'].map((participantId, index) => ({ index, participantId })) };
-const execution = (confidentiality, ids = route.stages.map(stage => stage.participantId)) => ({ placement: 'network-allowed',
-  participants: { kind: 'named', ids }, confidentiality, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] });
+const EDGES = 'split-local-edges';
+const execution = (protection = 'plaintext', routeValue = EDGES, ids = route.stages.map(stage => stage.participantId)) => ({ protection, route: routeValue,
+  participants: { kind: 'named', ids }, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] });
 const binding = async (backendRoute = edgesExecutionRoute({ model }, { route })) => {
-  const privacy = compileExecutionRequirements(execution('requester-edges'));
+  const privacy = compileExecutionRequirements(execution());
   return bindExecutionRoute({ model, privacy }, backendRoute);
 };
 
 describe('requester-edges policy and route', () => {
-  it('compiles to a plaintext layered policy, refuses local-only and keeps requester-only failing closed', () => {
-    expect(compileExecutionRequirements(execution('requester-edges')).leakage).toContain('plaintext');
-    expect(() => compileExecutionRequirements({ ...execution('requester-edges'), placement: 'local-only', participants: { kind: 'none' } }))
-      .toThrow(expect.objectContaining({ code: 'EXECUTION_ROUTE_UNAVAILABLE' }));
-    expect(() => compileExecutionRequirements(execution('requester-only'))).toThrow(expect.objectContaining({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' }));
+  it('compiles to a plaintext layered policy and refuses any protected split with requester-held edges', () => {
+    expect(compileExecutionRequirements(execution()).leakage).toContain('plaintext');
+    for (const protection of ['secret-sharing', 'homomorphic', 'attested']) {
+      expect(() => compileExecutionRequirements(execution(protection))).toThrow(expect.objectContaining({ code: 'EXECUTION_REQUEST_INVALID' }));
+    }
   });
   it('marks only the first and last stage as content readers and validates that shape', async () => {
     const edges = edgesExecutionRoute({ model }, { route });
     expect(edges.backend).toBe(EDGES_BACKEND);
     expect(edges.hops.map(hop => hop.disclosure)).toEqual(['plaintext', 'activations', 'activations', 'plaintext']);
     expect(tokenContextStages(await binding())).toEqual([0, 3]);
-    const policy = compileExecutionRequirements(execution('requester-edges'));
+    const policy = compileExecutionRequirements(execution());
     const swapped = { ...edges, hops: edges.hops.map((hop, index) => ({ ...hop, disclosure: index === 1 ? 'plaintext' : hop.disclosure })) };
     expect(() => validateExecutionRoute(policy, swapped)).toThrow('edges route');
     expect(() => edgesExecutionRoute({ model }, { route: { ...route, stages: route.stages.slice(0, 2) } })).toThrow('between its two edges');
@@ -59,13 +60,14 @@ describe('requester-edges policy and route', () => {
 
 describe('requester-edges through reploid/inference', () => {
   const candidate = { shape: 'split', backend: EDGES_BACKEND, participants: route.stages.map(stage => stage.participantId),
-    selection: 'all', planIdentity: route.planId, edgeParticipants: ['edge-in', 'edge-out'] };
-  const prepare = (inference, confidentiality = 'requester-edges') => inference.prepare({ model: { id: model.id, identity: model.identity },
-    generation: { maxOutputTokens: 4 }, execution: execution(confidentiality) });
+    selection: 'all', planIdentity: route.planId, edgeParticipants: ['edge-in', 'edge-out'], maxCharge: { kind: 'free' } };
+  const prepare = (inference, routeValue = EDGES) => inference.prepare({ model: { id: model.id, identity: model.identity },
+    generation: { maxOutputTokens: 4 }, execution: execution('plaintext', routeValue) });
+  const mine = { requesterDevices: async () => ['edge-in', 'edge-out'] };
 
   it('states exactly who reads content and who reads activations, and records it in the receipt', async () => {
     const bound = await binding();
-    const inference = createInference({ resolveRoute: async () => candidate,
+    const inference = createInference({ ...mine, resolveRoute: async () => candidate,
       async execute(job, controls) {
         expect(await controls.requestApproval({ privacyBinding: bound })).toBe(true);
         controls.onDelta({ text: 'ok' });
@@ -73,32 +75,52 @@ describe('requester-edges through reploid/inference', () => {
       } });
     const plan = await prepare(inference);
     expect(plan.route.edgeParticipants).toEqual(['edge-in', 'edge-out']);
-    expect(plan.disclosures.contentReadableBy.participants).toEqual(['edge-in', 'edge-out']);
-    expect(plan.disclosures.activationsReadableBy.participants).toEqual(['middle-1', 'middle-2']);
-    expect(plan.disclosures.executorsReadContent).toBe(false);
-    expect(plan.disclosures.statement).toMatch(/never token IDs or text/);
-    expect(plan.disclosures.statement).toMatch(/not confidential execution/);
+    expect(plan).toMatchObject({ protection: 'plaintext', routeKind: EDGES });
+    const edges = { role: 'requester-edge-device', ids: ['edge-in', 'edge-out'] };
+    for (const section of ['prompt', 'answer']) expect(plan.disclosure[section].readers).toEqual([{ role: 'requester-device' }, edges]);
+    expect(plan.disclosure.intermediate.readers).toEqual([{ role: 'requester-device' }, edges, { role: 'stage-operator', selection: 'all', ids: ['middle-1', 'middle-2'] }]);
+    expect(plan.disclosure.intermediate.assumptions).toContain('activations-may-reveal-content');
+    expect(plan.disclosure.prompt.assumptions).toEqual(['edge-devices-bound-to-requester']);
     const run = await inference.run({ planId: plan.id, requestId: 'r1', input: { messages: [{ role: 'user', content: 'hi' }] } });
     const result = await run.result;
     expect(result.status).toBe('completed');
-    const evidence = result.executionReceipt.evidence.confidentiality;
-    expect(evidence.mode).toBe('requester-edges');
+    expect(result.executionReceipt).toMatchObject({ protection: 'plaintext', routeKind: EDGES });
+    const evidence = result.executionReceipt.evidence.privacy;
+    expect(evidence).toMatchObject({ protection: 'plaintext', routeKind: EDGES });
     expect(evidence.contentReadBy.participants).toEqual(['edge-in', 'edge-out']);
-    expect(evidence.activationsReadBy.participants).toEqual(['middle-1', 'middle-2']);
-    expect(evidence.notVerified).toEqual(expect.arrayContaining(['activation-inversion-resistance', 'edge-device-ownership']));
+    expect(evidence.intermediateReadBy.participants).toEqual(['edge-in', 'edge-out', 'middle-1', 'middle-2']);
+    expect(evidence.checks.map(check => check.claim)).toEqual(['edge-devices-bound-to-requester', 'content-recipients', 'activation-only-recipients']);
+    expect(evidence.notVerified).toEqual(expect.arrayContaining(['activation-inversion-resistance']));
+  });
+  it('refuses edges it cannot bind to the requester, before anything is sent', async () => {
+    const execute = vi.fn();
+    for (const requesterDevices of [undefined, async () => ['edge-in'], async () => { throw Error('no binding store'); }, async () => 'edge-in,edge-out']) {
+      const inference = createInference({ requesterDevices, resolveRoute: async () => candidate, execute });
+      await expect(prepare(inference)).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE', message: expect.stringMatching(/bound to this requester/) });
+    }
+    // A binding lost between prepare and run is refused at run, before the input is released.
+    let devices = ['edge-in', 'edge-out'];
+    const inference = createInference({ requesterDevices: async () => devices, resolveRoute: async () => candidate, execute });
+    const plan = await prepare(inference);
+    devices = ['edge-in'];
+    await expect(inference.run({ planId: plan.id, requestId: 'lost', input: { messages: [{ role: 'user', content: 'hi' }] } }))
+      .rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    expect(execute).not.toHaveBeenCalled();
   });
   it('fails closed when only a readable split exists, and refuses a binding that widens who reads content', async () => {
-    const readable = createInference({ resolveRoute: async () => ({ ...candidate, backend: 'doppler-partition-plaintext/v1', edgeParticipants: undefined }),
+    const readable = createInference({ ...mine, resolveRoute: async () => ({ ...candidate, backend: 'doppler-partition-plaintext/v1', edgeParticipants: undefined }),
       execute: async () => { throw Error('must not run'); } });
     await expect(prepare(readable)).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
-    // A readable request never runs on an edges route either.
-    const edgesOnly = createInference({ resolveRoute: async () => candidate, execute: async () => { throw Error('must not run'); } });
-    await expect(prepare(edgesOnly, 'executor-readable')).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    // An ordinary split, auto or whole request never runs on an edges route either.
+    const edgesOnly = createInference({ ...mine, resolveRoute: async () => candidate, execute: async () => { throw Error('must not run'); } });
+    for (const routeValue of ['auto', 'remote', 'split']) {
+      await expect(prepare(edgesOnly, routeValue)).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    }
     let approved = null;
-    const policy = compileExecutionRequirements(execution('requester-edges'));
+    const policy = compileExecutionRequirements(execution());
     const widened = await bindExecutionRoute({ model, privacy: policy }, plaintextExecutionRoute({ model, privacy: policy },
       { recipients: route.stages.map(stage => stage.participantId), route }));
-    const inference = createInference({ resolveRoute: async () => candidate,
+    const inference = createInference({ ...mine, resolveRoute: async () => candidate,
       async execute(job, controls) { approved = await controls.requestApproval({ privacyBinding: widened }); throw Error('declined'); } });
     const plan = await prepare(inference);
     const result = await (await inference.run({ planId: plan.id, requestId: 'r2', input: { messages: [{ role: 'user', content: 'hi' }] } })).result;

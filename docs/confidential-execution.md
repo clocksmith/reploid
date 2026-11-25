@@ -1,4 +1,4 @@
-# Confidential execution and the inference API
+# Protection and route: the inference API
 
 Parked 2026-11-25: the Orin kill gate failed (latency, memory and key-size limits); the route stays disabled and unmaintained beyond safety fixes.
 
@@ -6,85 +6,170 @@ Parked 2026-11-25: the Orin kill gate failed (latency, memory and key-size limit
 `reploid ask` CLI and the SDK all use it, and the OpenAI- and Anthropic-shaped
 HTTP endpoints are adapters over it. So are the native fleet host's owner
 `generate` command, the daily game's fleet turn, Work's network steps and AskPeer
-tool, and the model-imitation study. This page describes what each execution
-mode guarantees and exposes. It also gives the request, plan, event, result and
-receipt shapes, and the stable refusal codes.
+tool, and the model-imitation study. This page describes what each protection
+and route guarantees and exposes. It also gives the request, capability, plan,
+event, result and receipt shapes, and the stable refusal codes.
 
 Source: [`packages/reploid/src/inference/`](../packages/reploid/src/inference/),
 [`chat/execution-policy.js`](../packages/reploid/src/chat/execution-policy.js)
 (requirement compiler and backend registry),
+[`inference/protections.js`](../packages/reploid/src/inference/protections.js)
+(the one source of display names, lines and code texts),
 [`chat/execution-offers.js`](../packages/reploid/src/chat/execution-offers.js)
 (backend eligibility). The layered peer policy underneath is described in
 [execution-privacy.md](execution-privacy.md).
 
-## Names
+## Execution requirements
 
-- **Confidential execution**: no executor can read the content it processes.
-  In the API this is `confidentiality: "requester-only"`. **No backend
-  qualifies today**, so every such request fails closed with
-  `CONFIDENTIAL_EXECUTION_UNAVAILABLE` and nothing is sent. The error's
-  `reason` is `awaiting independent security review`. A research
-  [protected route](#protected-route-research-unavailable) exists behind an
-  explicit host flag that is off everywhere Reploid ships.
-- **Executor-readable**: `confidentiality: "executor-readable"`. Each computer
-  that runs the model reads the content in plaintext. Every route that runs
-  today, apart from requester-held edges below, is executor-readable.
-- **Requester-held edges**: `confidentiality: "requester-edges"`. A split whose
-  first and last stage run on devices the requester names as its own. Only
-  those two stages read the prompt and the answer; every other stage reads
-  plaintext intermediate activations and token counts. It is a narrower
-  disclosure, not confidential execution: see
-  [Requester-held edges](#requester-held-edges-requester-edges). API only; the
-  Poolday chat does not offer it yet.
-- **Encrypted** is not used as a product term. WebRTC (DTLS) and HTTPS protect
-  the wire. The computer that runs the model still reads the content.
-- **Participants** are the computers allowed to read content: the providers
-  that execute it, and, for a paired native host, its coordinator.
+A request states two things: `protection`, how data is processed, and `route`,
+where and how the model runs. The request is typed per protection, so a route a
+protection cannot take cannot be written:
 
-## Presets in the Poolday chat
+```ts
+type Participants = { kind: "open" } | { kind: "named"; ids: string[] };
 
-The chat's "Who can read it" dialog, opened from the shield button in the
-composer beside "Answer on", offers three presets. The button names the
-conversation's current preset, which is stored per conversation and applies to
-every request in it. Each one is a set of
-API requirements, and the dialog states availability and exposure before Send.
+type Execution =
+  | { protection: "plaintext"; route: "local"; allowMetadata: MetadataKind[] }
+  | { protection: "plaintext"; route: "remote" | "split" | "split-local-edges" | "auto";
+      participants: Participants; allowMetadata: MetadataKind[] }
+  | { protection: "secret-sharing"; route: "split" | "auto"; participants: Participants; allowMetadata: MetadataKind[] }
+  | { protection: "homomorphic"; route: "remote" | "auto"; participants: Participants; allowMetadata: MetadataKind[] }
+  | { protection: "attested"; route: "remote" | "auto"; participants: Participants; allowMetadata: MetadataKind[] };
+```
 
-| Preset | Requirements | Availability | Who reads the content | What else is exposed |
-| --- | --- | --- | --- | --- |
-| Standard: the computer that answers reads your messages | `network-allowed`, `participants: open` (or the computer chosen in "Answer on"), `executor-readable` | Available | The computer that answers, approved before anything is sent; on a split, every stage | The readers also see access patterns. Model identity, timing and message sizes can be visible to coordinators, credit ledgers and relays |
-| Only your devices | `local-only`, or `network-allowed` with `participants: named` = the desktop this device paired with; `executor-readable` | Available on this device; and on your paired desktop when one is paired | This device, or your paired desktop, in plaintext | The readers also see access patterns. Local: nothing leaves the device. Desktop: a relay that carries the WebRTC connection can see timing and message sizes |
-| Confidential execution (a planned target) | `requester-only` | **Not available yet**. Shown disabled with that reason, never applied | Not applicable | Not applicable |
+`protection` and `route` are required; neither has a default. JSON cannot be
+type-checked, so runtime validation refuses anything outside this union with
+`EXECUTION_REQUEST_INVALID`, and the error names the routes that protection
+allows (for example `protection secret-sharing takes route split, auto`). A
+`local` request has no `participants` field: this device has no participants.
+
+The routes:
+
+| `route` | Meaning |
+| --- | --- |
+| `local` | This device runs the whole model. Plaintext only. |
+| `remote` | One other computer runs the whole model. |
+| `split` | Several computers run the model in stages, with any eligible computers at the edges. |
+| `split-local-edges` | Several computers, with two devices bound to the requester holding the first and last stage. Plaintext only; both edges must be bound to the requester, otherwise the request is refused. |
+| `auto` | Any route this protection allows. |
+
+`auto` never chooses weaker protection, but under `plaintext` it may choose any
+of `local`, `remote` and `split`. It includes `local` when the model is on this
+device, since local means fewer readers. It can also choose a split, which
+widens who reads the message: "never weaker protection" does not mean "never
+more readers". The plan states the chosen route and its readers before anything
+is sent. `auto` never chooses `split-local-edges`, which must be asked for. Plans
+and receipts record the concrete `routeKind` (`local`, `remote`, `split` or
+`split-local-edges`), never `auto`.
+
+`participants` is `{ kind: "open" }` or `{ kind: "named", ids }`. `open` permits
+discovery, not disclosure: every recipient is still bound and checked against
+the plan before anything is sent. A device that holds one share is a participant
+even though it cannot read the underlying value.
+
+| `protection` | Routes | Status in this build | Refusal when it cannot run |
+| --- | --- | --- | --- |
+| `plaintext` | `local`, `remote`, `split`, `split-local-edges`, `auto` | Available. Each computer that processes the request reads what it receives | Ordinary route refusals |
+| `secret-sharing` | `split`, `auto` | Off unless a host enables its unreviewed route; the protocol (`reploid.secret-shared-2party/v1`) is pinned in the plan and callers choose no share count | `CONFIDENTIAL_EXECUTION_UNAVAILABLE`, reason `secret-shared execution is unreviewed and off by default` |
+| `homomorphic` | `remote`, `auto` | Off unless a host enables the unreviewed [protected route](#protected-route-research-unavailable) | `CONFIDENTIAL_EXECUTION_UNAVAILABLE`, reason `awaiting independent security review` |
+| `attested` | `remote`, `auto` | Reserved. Accepted as a value and always refused: the attested route is parked and no verified hardware is qualified | `CONFIDENTIAL_EXECUTION_UNAVAILABLE`, reason `no attested route is enabled in this build, so no hardware or its software is verified` |
+
+A refusal happens before discovery or disclosure. Nothing is sent, and a
+request is never retried with another protection, made local, or run on a
+weaker route.
+
+**Requester-held edges** (`route: "split-local-edges"`) is a strict placement
+rule for a plaintext split, not a protection. The first and last stages run on
+two devices bound to the requester; every other stage reads plaintext
+intermediate activations. Both edge identities must be among the devices the
+host's `requesterDevices` port binds to this requester, or the request is
+refused with `EXECUTION_ROUTE_UNAVAILABLE`. A protected split has its own route
+and disclosure. See [Requester-held edges](#requester-held-edges).
+
+Values before 2026-11-25 map as follows (a clean cutover; the old fields are
+refused as `EXECUTION_REQUEST_INVALID`, and the `placement` and `topology`
+fields of the first cutover are gone too):
+
+| Old `confidentiality` | Now |
+| --- | --- |
+| `executor-readable` | `protection: "plaintext"`, with `route: "local"` for local-only placement and otherwise the route asked for (`auto` when none was) |
+| `requester-edges` | `protection: "plaintext"`, `route: "split-local-edges"` |
+| `secret-shared-2party` | `protection: "secret-sharing"`, `route: "split"` or `"auto"` |
+| `requester-only` | `protection: "homomorphic"`, `route: "remote"` or `"auto"` |
+
+**Encrypted** is not used as a product term for the wire. WebRTC (DTLS) and
+HTTPS protect the wire; under `plaintext` the computer that runs the model
+still reads the content.
+
+## "Who can read it?" in the Poolday chat
+
+The chat's "Who can read it?" dialog opens from the chip beside "Answer on" in
+the composer. The chip shows the thread's protection label. The protection is
+stored per thread and sent explicitly on every request. The dialog lists every
+protection with its line; protections are not ranked, and list order is not
+strength. A protection this route cannot use is shown disabled with its reason.
+
+| Label | `protection` | Line |
+| --- | --- | --- |
+| Standard | `plaintext` | Computers that process your request can read the data they receive. |
+| Secret sharing | `secret-sharing` | Each peer gets one share. Two peers on the same stage can combine their shares to read intermediate data. Your device recombines the intermediate results. |
+| Compute on encrypted data | `homomorphic` | Your device keeps the key. Remote computers compute on encrypted values. |
+| Verified hardware | `attested` | Approved software can read your data inside protected hardware. You're trusting that hardware and software. |
+
+No label promises speed. A latency estimate is shown only from a relevant
+measurement (`listCapabilities` returns one only when the host has it).
+
+**Where it runs** is a separate choice: the route, not the protection.
+
+| Label | `route` |
+| --- | --- |
+| This device | `local` |
+| One computer | `remote` |
+| Several computers | `split` |
+| Several computers, your devices at both ends | `split-local-edges` |
+| Let it choose | `auto` |
+
+A route the current protection or model cannot use is shown disabled with its
+reason.
+
+**Only your devices** is a participants choice, not a route: `protection:
+"plaintext"` with `route: "remote"` or `"split"` and `participants: named`
+limited to the devices paired with this one. Your paired desktop counts as
+yours because you approved its single-use pairing code on that desktop
+([owner pairing](../apps/poolday/host/owner-pairing.js)). Reploid does not
+otherwise verify who owns a computer. A host that invited you as a guest is
+never counted as one of your devices, and open discovery is never permission to
+disclose.
+
+**Any plaintext split** shows how many computers can read the message, counted
+from the plan's prompt readers, for example "3 computers can read your
+message." A plaintext split with requester-held edges keeps its own line instead:
+"Your devices handle the prompt and answer. Other computers see intermediate data that may reveal both."
+A protected split states its own disclosure, never that warning.
 
 The "Answer on" sheet keeps its computer and model consistent with these
-presets. Choosing a model that only contributors run moves the sheet to
+choices. Choosing a model that only contributors run moves the sheet to
 Contributors and states who can read the prompt before anything applies; a
 private-pool model, which never runs on this device, chooses its pool and applies
 at once, and its route binds only the enrolled computers it names. Under
-"Only your devices" (chosen in "Who can read it", or stored on a sent
-conversation) the sheet does not move: it explains the preset beside the model
-and offers "Use contributors", which changes the preset only when pressed. An
+"Only your devices" the sheet does not move: it explains the choice beside the
+model and offers "Use contributors", which changes it only when pressed. An
 invite link keeps its host as the only computer that may read prompts.
-
-"Only your devices" is placement plus named participants with
-executor-readable confidentiality, stated plainly: your devices read the
-content. Your paired desktop counts as yours because you approved its
-single-use pairing code on that desktop
-([owner pairing](../apps/poolday/host/owner-pairing.js)). Reploid does not
-otherwise verify who owns a computer. A host that invited you as a guest is
-never counted as one of your devices.
 
 ## The native API
 
 ```js
 import { createInference } from 'reploid/inference';
 
+const { capabilities } = await inference.listCapabilities({ model, constraints: { participants: { kind: 'open' } } });
+
 const plan = await inference.prepare({
   model: { id: 'qwen-3-5-2b-q4k-ef16-af32', identity: 'sha256:…', adapterIdentities: [] },
   generation: { maxOutputTokens: 128 },
   execution: {
-    placement: 'network-allowed',                     // or 'local-only' (participants { kind: 'none' })
-    participants: { kind: 'named', ids: ['peer:…'] }, // or { kind: 'open' }
-    confidentiality: 'executor-readable',             // or 'requester-only'
+    protection: 'plaintext',                          // required: plaintext | secret-sharing | homomorphic | attested
+    route: 'auto',                                    // required; per protection, see the table above
+    participants: { kind: 'named', ids: ['peer:…'] }, // or { kind: 'open' }; absent for route 'local'
     allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] // a plaintext route discloses all four
   }
 }, { signal });
@@ -95,21 +180,78 @@ const result = await run.result;
 ```
 
 The host provides two ports. `resolveRoute` describes the route a request would
-take without sending anything. `execute(job, controls)` runs it through the
-existing peer binding, and must call `controls.requestApproval(preview)` with
-the execution binding before any remote disclosure.
+take without sending anything, including its charge ceiling. `execute(job,
+controls)` runs it through the existing peer binding, and must call
+`controls.requestApproval(preview)` with the execution binding before any remote
+disclosure. Optional ports: `requesterDevices({ signal, context })` lists the
+device identities bound to this requester (required for `split-local-edges`),
+and `latencyEstimate({ protection, model, route })` returns a measured estimate
+(`{ milliseconds, measuredAt, source }`) or nothing.
+
+**Times.** Every time in the API is a string in exactly the form
+`YYYY-MM-DDTHH:MM:SS.sssZ`, matching the settlement records: the plan's
+`expiresAt`, `checkedAt` and `latency.measuredAt` in capabilities, a `reviewed`
+review's `at`, and the receipt's `issuedAt`. There are no epoch numbers. The
+receipt's delivery `timeline` is the one exception in kind, not format: its
+`at` values are milliseconds from the first frame, a duration rather than a
+time.
+
+### listCapabilities
+
+`listCapabilities({ model?, constraints? })` takes no prompt and sends none.
+`constraints` may set `participants` and `allowMetadata`. For each protection it
+lists every route that protection allows, each `available`, `unavailable` or
+`unknown`, with the reason, what was checked and when. The protection's own
+`status` is its best route's:
+
+```json
+{
+  "advisory": true,
+  "checkedAt": "2026-11-25T17:10:00.000Z",
+  "capabilities": [
+    { "protection": "plaintext", "status": "available", "reason": "a remote route resolved for this model and these constraints", "code": null,
+      "checked": ["host-configuration", "requirements", "route-resolution", "disclosure", "charge-ceiling"], "checkedAt": "2026-11-25T17:10:00.000Z",
+      "routes": [
+        { "route": "local", "status": "unavailable", "reason": "This device has no route for this model. Nothing was sent.", "code": "EXECUTION_ROUTE_UNAVAILABLE",
+          "checked": ["host-configuration", "requirements", "route-resolution"], "checkedAt": "2026-11-25T17:10:00.000Z" },
+        { "route": "remote", "status": "available", "reason": "a remote route resolved for this model and these constraints", "code": null,
+          "checked": ["host-configuration", "requirements", "route-resolution", "disclosure", "charge-ceiling"], "checkedAt": "2026-11-25T17:10:00.000Z",
+          "latency": { "milliseconds": 820, "measuredAt": "2026-11-24T21:03:11.000Z", "source": "receipt p50" } },
+        { "route": "split", "…": "…" }, { "route": "split-local-edges", "…": "…" }, { "route": "auto", "…": "…" }
+      ] },
+    { "protection": "secret-sharing", "status": "unavailable", "reason": "secret-shared execution is unreviewed and off by default",
+      "code": "CONFIDENTIAL_EXECUTION_UNAVAILABLE", "checked": ["host-configuration"], "checkedAt": "2026-11-25T17:10:00.000Z",
+      "routes": [{ "route": "split", "status": "unavailable", "…": "same reason" }, { "route": "auto", "status": "unavailable", "…": "same reason" }] },
+    { "protection": "homomorphic", "status": "unavailable", "reason": "awaiting independent security review",
+      "code": "CONFIDENTIAL_EXECUTION_UNAVAILABLE", "checked": ["host-configuration"], "checkedAt": "2026-11-25T17:10:00.000Z",
+      "routes": [{ "route": "remote", "…": "…" }, { "route": "auto", "…": "…" }] },
+    { "protection": "attested", "status": "unavailable", "reason": "no attested route is enabled in this build, so no hardware or its software is verified",
+      "code": "CONFIDENTIAL_EXECUTION_UNAVAILABLE", "checked": ["host-configuration"], "checkedAt": "2026-11-25T17:10:00.000Z",
+      "routes": [{ "route": "remote", "…": "…" }, { "route": "auto", "…": "…" }] }
+  ]
+}
+```
+
+Without a model, an enabled protection's routes are `unknown` (no route was
+resolved). A resolution that fails for a reason outside the stable codes is
+`unknown`, never `available`. `latency` appears only when the host returned a
+measurement with a `measuredAt` in the API's time format. Capabilities are
+advisory, never permission to send: `prepare` and `run` check everything again.
 
 ### prepare
 
-`prepare` takes no prompts, tools or prompt hashes. Any other field is
-`EXECUTION_REQUEST_INVALID`. It compiles the requirements into the verified
-peer policy (`reploid.execution-policy/v2`), refuses unsupported confidentiality
-and disallowed metadata, and pins a route. It places no credit hold.
+`prepare({ model, execution, generation })` takes no prompts, tools or prompt
+hashes. Any other field is `EXECUTION_REQUEST_INVALID`. It compiles the
+requirements into the verified peer policy (`reploid.execution-policy/v2`),
+refuses an unavailable protection and disallowed metadata, and pins a route. It
+places no credit hold and no charge. It returns an expiring plan:
 
 ```json
 {
   "id": "plan_6f0c…",
-  "expiresAt": 1795557597507,
+  "expiresAt": "2026-11-25T17:12:00.000Z",
+  "protection": "plaintext",
+  "routeKind": "remote",
   "route": {
     "id": "sha256:83ee…",
     "schema": "reploid.inference-route/v1",
@@ -121,19 +263,28 @@ and disallowed metadata, and pins a route. It places no credit hold.
     "model": { "id": "qwen-3-5-2b-q4k-ef16-af32", "identity": "sha256:…", "adapterIdentities": [] },
     "planIdentity": null
   },
-  "maxCharge": { "maximum": 128, "unit": "noncash-service-credit" },
-  "disclosures": {
-    "contentReadableBy": { "requesterDevice": false, "participants": ["peer:4b1d…"], "selection": "one-of" },
-    "executorsReadContent": true,
-    "metadata": ["model-id", "timing", "length", "access-patterns"],
-    "statement": "One of the listed participants reads the content in plaintext. …"
+  "maxCharge": { "kind": "capped", "maximum": 128, "unit": "noncash-service-credit" },
+  "disclosure": {
+    "prompt": { "readers": [{ "role": "requester-device" }, { "role": "answering-computer", "selection": "one-of", "ids": ["peer:4b1d…"] }],
+                "assumptions": ["recipient-conduct-unchecked", "named-device-ownership-unchecked"],
+                "verified": true, "check": "route-binding-before-release" },
+    "intermediate": { "…": "as prompt" },
+    "answer": { "…": "as prompt" },
+    "metadata": { "items": ["model-id", "timing", "length", "access-patterns"],
+                  "readers": [{ "role": "requester-device" }, { "role": "answering-computer", "selection": "one-of", "ids": ["peer:4b1d…"] },
+                              { "role": "carrier" }],
+                  "assumptions": [], "verified": false, "check": null },
+    "trustAssumptions": ["recipient-conduct-unchecked", "named-device-ownership-unchecked"],
+    "review": { "state": "not-applicable" }
   }
 }
 ```
 
+- `routeKind` is the concrete route the plan chose: `local`, `remote`, `split`
+  or `split-local-edges`, never `auto`.
 - `shape` is `local`, `remote` or `split`. A split route also carries its
   partition `planIdentity`.
-- `selection` says how `participants` relates to who reads:
+- `selection` is the allowed participant set or selection rule:
   - `all`: every listed participant reads the content. Used for a split, or a
     paired native coordinator plus its provider.
   - `one-of`: exactly one listed participant will. Used for named whole-model
@@ -141,26 +292,111 @@ and disallowed metadata, and pins a route. It places no credit hold.
   - `any-eligible`: an open whole-model request. The provider's identity is
     proved at admission, so the plan cannot name it in advance. The `admitted`
     event names it before anything is sent.
-- `maxCharge` is the route's service-credit ceiling when it quotes one (a
-  paired private pool), otherwise `null`.
-- `disclosures` describe the backend, not the permission. `metadata` is what the
-  route can expose. A plaintext executor reads the content, so it also observes
-  its access patterns: both plaintext backends list `access-patterns` with
-  `model-id`, `timing` and `length`, and an executor-readable request must allow
-  all four (providers on earlier releases refuse a plaintext policy that omits
-  any of them). Coordinators, credit ledgers and relays can see the other three.
-  The protected backend computes data-independently and does not list
-  `access-patterns`. A local route exposes nothing.
+- `maxCharge` is `{ kind: "capped", maximum, unit }` or `{ kind: "free" }`,
+  never null or unknown. A local route is free. A network route whose resolver
+  does not state a cap is refused with `EXECUTION_ROUTE_UNAVAILABLE` ("The
+  charge for this route cannot be capped"): nothing that could charge is
+  planned without a ceiling. At `run`, a free plan must stay free, and a capped
+  plan's ceiling may not rise or change unit.
+- `disclosure` is broken into `prompt`, `intermediate` (intermediate state),
+  `answer` and `metadata`. Each names who can read it (`readers`), under which
+  `assumptions`, whether that reader set is checked by this requester
+  (`verified`, with the `check` method: `local-route`,
+  `route-binding-before-release` or `null`), and for metadata the `items`
+  exposed. `readers` is a non-empty list of readers, or `"unknown"`: never an
+  empty list, which would read as "nobody" without conditions. Every route
+  names at least `requester-device`. `trustAssumptions` collects the
+  assumptions. A plan whose disclosure is incomplete, or uses a role or
+  assumption outside the fixed codes, is refused with
+  `EXECUTION_ROUTE_UNAVAILABLE`.
+- `review` is `{ state: "not-applicable" }` (plaintext), `{ state:
+  "not-reviewed" }` (secret sharing, computing on encrypted data), or `{ state:
+  "reviewed", by, at, reference }` once an independent review exists (none
+  does in this build).
+- The disclosure carries codes, never prose. `describeDisclosure(disclosure)`
+  in `inference/protections.js` renders it as text from the display tables
+  below; the CLI and the chat use it. Backend details live under a typed
+  `extensions` object: `extensions.secretSharing` (protocol, collusion model,
+  `sharesHeldBy`) and `extensions.homomorphic` (status, `computedBy`, `leaks`,
+  `trapOracle`).
+- The disclosure describes the backend, not the permission. A plaintext
+  executor reads the content, so it also observes its access patterns: both
+  plaintext backends list `access-patterns` with `model-id`, `timing` and
+  `length`, and a plaintext request must allow all four (providers on earlier
+  releases refuse a plaintext policy that omits any of them). Coordinators,
+  credit ledgers and relays can see the other three. The protected backend
+  computes data-independently and does not list `access-patterns`. A local
+  route exposes nothing beyond this device.
+
+**Reader roles** are fixed codes. A reader is `{ role, ids?, selection?,
+stages?, when? }`; `when` makes it conditional. The display text comes from
+`READER_ROLE_DISPLAY`:
+
+| `role` | Display text | Used for |
+| --- | --- | --- |
+| `requester-device` | this device | Every route |
+| `requester-edge-device` | your devices at both ends | `split-local-edges`: prompt and answer |
+| `answering-computer` | the computer that answers | `remote` (named, or `any-eligible` with no ids) |
+| `stage-operator` | the computers that run each stage | `split`; the middle stages of `split-local-edges` |
+| `share-holder` | peers that each hold one share | Secret sharing |
+| `evaluator` | the computer that computes on encrypted values | Computing on encrypted data |
+| `carrier` | coordinators, credit ledgers and relays | Metadata |
+| `signaling` | the signaling server | Reserved |
+| `network-observer` | observers of the network | Reserved |
+
+Secret sharing names a **conditional reader**: two share holders of the same
+stage, if they combine their shares, can read that stage's intermediate data and
+from it reconstruct the prompt and the answer. It is expressed, and tested, as
+
+```json
+{ "role": "share-holder", "ids": ["peer:a", "peer:b", "peer:c", "peer:d"],
+  "when": { "collusion": { "sameStage": true, "count": 2 } },
+  "stages": [{ "stage": 0, "layers": [0, 11], "ids": ["peer:a", "peer:b"] }, { "stage": 1, "layers": [12, 23], "ids": ["peer:c", "peer:d"] }] }
+```
+
+beside `requester-device` in the prompt, intermediate and answer readers, never
+as an empty list meaning "nobody".
+
+**Assumptions** are fixed codes too, with their text in `ASSUMPTION_DISPLAY`:
+
+| Code | Display text |
+| --- | --- |
+| `recipient-conduct-unchecked` | Recipients keep what they read: their conduct, retention and erasure are not checked. |
+| `named-device-ownership-unchecked` | Reploid does not check who owns a named device. |
+| `edge-devices-bound-to-requester` | Both edge devices are bound to you; the binding is checked before release, their conduct is not. |
+| `activations-may-reveal-content` | Intermediate data is plaintext model state and may reveal the prompt and the answer. |
+| `share-holders-do-not-collude` | Two peers on the same stage do not combine their shares. |
+| `requester-recombines-intermediates` | Your device recombines the intermediate results. |
+| `semi-honest-operators` | Peers follow the protocol and return correct results; nothing here checks them. |
+| `not-independently-reviewed` | Not independently reviewed. |
+| `parameters-not-estimated` | The parameters have not been security-estimated. |
+| `insecure-development-parameters` | Insecure development parameters: the evaluator can read everything it receives. |
+| `requester-key-holder-unchecked` | Your device's key holder alone holds the secret key; this client does not check it. |
+| `traps-detect-blind-tampering-only` | Known-answer checks detect only blind tampering. |
+| `trap-oracle-does-not-collude` | The trap oracle does not collude with the evaluator. |
+| `hardware-vendor-trusted` | You trust the hardware vendor and the approved software. |
 
 ### run
 
-`run` rechecks the pinned route, its charge ceiling and the plan's expiry before
-anything sensitive leaves. A plan runs once; a repeated `requestId` returns the
-same run. When the executor asks to disclose, the admitted binding must match
-the plan's backend, protocol, model, adapters and participants, and its policy
-may only narrow the requested one. Otherwise the run fails with
-`EXECUTION_PLAN_CHANGED`, and the approval returns false before any content is
-sent. After the first admission no other route is accepted.
+`run({ planId, requestId, input })` takes the input on the requester side.
+Before releasing it, it resolves the pinned route again, binds and authenticates
+the actual participants, completes any required authorization, and checks them,
+the backend, the disclosure, the charge ceiling and the plan's expiry against
+the plan. If anything no longer fits, the run is refused (`EXECUTION_PLAN_CHANGED`
+or `EXECUTION_PLAN_EXPIRED`) and a new plan is required. It never downgrades.
+When the executor asks to disclose, the admitted binding must match the plan's
+backend, protocol, model, adapters and participants, and its policy may only
+narrow the requested one; otherwise the approval returns false before any
+content is sent. After the first admission no other route is accepted.
+
+A plan runs once. `requestId` is the caller's idempotency key: a repeated
+`requestId` for the same plan returns the same run, a `requestId` that already
+ran is never dispatched or charged again (`EXECUTION_REQUEST_INVALID`), and a
+run refused before anything was sent frees its `requestId`.
+
+Protected input never goes through an ordinary JSON endpoint that can read it:
+the HTTP adapters and the browser bridge refuse every protection but
+`plaintext`.
 
 Events, in order:
 
@@ -194,62 +430,90 @@ verified.
 
 ### Execution receipt
 
-`reploid.execution-receipt/v1` binds the requested requirements and their policy
-identity, the actual route, the backend and protocol identity, and the
-disclosures. It keeps evidence for confidentiality and for result integrity
-separate. `by: "requester"` means this inference client checked the claim
-itself. A claim not listed was not checked.
+`reploid.execution-receipt/v2` is returned on completion, cancellation and
+failure. It records when it was issued, the protection and the concrete
+`routeKind`, the requested requirements and their policy identity, the route
+and parties that actually ran, the backend and protocol identity, and the
+disclosure. Its evidence keeps three records separate: `privacy` (the checks
+this requester made and their limits), `integrity` (answer checks) and
+`credits` (charged or released, as reported). `by: "requester"` means this
+inference client checked the claim itself. A claim not listed was not checked.
+Every field is typed: there are no open index signatures, and backend details
+sit in typed `extensions` objects.
 
 ```json
 {
-  "schema": "reploid.execution-receipt/v1",
-  "api": "reploid.inference/v1",
+  "schema": "reploid.execution-receipt/v2",
+  "api": "reploid.inference/v2",
   "requestId": "caller-key-1", "attemptId": "attempt_…", "planId": "plan_6f0c…", "status": "completed",
+  "issuedAt": "2026-11-25T17:10:04.218Z",
+  "protection": "plaintext",
+  "routeKind": "remote",
   "requested": { "model": { "id": "…", "identity": "sha256:…", "adapterIdentities": [] },
-                 "execution": { "placement": "network-allowed", "participants": { "kind": "named", "ids": ["peer:4b1d…"] },
-                                "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
+                 "execution": { "protection": "plaintext", "route": "auto",
+                                "participants": { "kind": "named", "ids": ["peer:4b1d…"] },
+                                "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
                  "policyId": "sha256:…" },
   "route": { "planRouteId": "sha256:83ee…", "admittedRouteId": "sha256:…", "policyId": "sha256:…", "shape": "remote",
              "participants": ["peer:4b1d…"], "backend": "doppler-plaintext/v1", "protocol": null, "planIdentity": null },
-  "disclosures": { "…": "as in the plan" },
+  "disclosure": { "…": "as in the plan" },
   "evidence": {
-    "confidentiality": {
-      "mode": "executor-readable",
-      "contentReadBy": { "requesterDevice": false, "participants": ["peer:4b1d…"] },
-      "verified": [{ "claim": "content-recipients", "by": "requester", "method": "route-binding-before-disclosure", "value": ["peer:4b1d…"] }],
-      "notVerified": ["recipient-conduct", "erasure", "hardware-attestation", "cryptographic-protection"]
+    "privacy": {
+      "protection": "plaintext",
+      "routeKind": "remote",
+      "contentReadBy": { "requesterDevice": true, "participants": ["peer:4b1d…"] },
+      "intermediateReadBy": { "participants": ["peer:4b1d…"] },
+      "checks": [{ "claim": "content-recipients", "by": "requester", "method": "route-binding-before-release", "value": ["peer:4b1d…"] }],
+      "notVerified": ["recipient-conduct", "erasure", "hardware-attestation"]
     },
     "integrity": {
-      "verified": [
+      "checks": [
         { "claim": "model-identity", "by": "requester", "method": "answer-identity", "value": "sha256:…" },
         { "claim": "adapter-identities", "by": "requester", "method": "answer-identity", "value": [] },
         { "claim": "stream-matches-answer", "by": "requester", "method": "text-comparison" }
       ],
       "providerReceipt": { "digest": "sha256:…", "checkedHere": false },
       "notVerified": ["correct-computation", "reported-token-counts"]
+    },
+    "credits": {
+      "record": { "kind": "service-credit", "unit": "noncash-service-credit", "charge": 3, "outputTokens": 3 },
+      "digest": "sha256:…",
+      "checkedHere": false,
+      "notVerified": ["charge-amount", "confidentiality-from-billing"]
     }
   }
 }
 ```
+
+`checks` are typed claims whose `claim` is one of a fixed set of codes:
+`content-stayed-on-requester-device`, `content-recipients`,
+`edge-devices-bound-to-requester`, `activation-only-recipients`,
+`share-recipients`, `fresh-shares-every-round`, `evaluator-session-binding`,
+`no-evaluator-requests-answered`, `model-identity`, `adapter-identities`,
+`stream-matches-answer`, `known-answer-traps` and `frame-binding`.
 
 `content-recipients` means the requester bound the request to that recipient
 set before sending, under the peer admission protocol. It says nothing about
 what a recipient did afterwards. A local route records
 `content-stayed-on-requester-device` instead. `providerReceipt` is a digest of
 the provider's signed record when one was returned. The inference layer retains
-it and does not re-verify it.
+it and does not re-verify it. `credits.record` is a typed service-credit record
+(`kind: "service-credit"` with optional `id`, `reservationId`, `status`,
+`unit`, `settledAt`, `charge`, `charged`, `released` and `outputTokens`), as the
+executor or ledger reported it; fields outside that record are dropped and
+kept only in `digest`. A signed bill is not proof of confidentiality.
 
 ### Refusal codes
 
 | Code | When | Sent |
 | --- | --- | --- |
-| `CONFIDENTIAL_EXECUTION_UNAVAILABLE` | `confidentiality: "requester-only"`. No backend qualifies. The request is never retried as readable and never made local | Nothing |
+| `CONFIDENTIAL_EXECUTION_UNAVAILABLE` | `protection` is `attested` (always), or `homomorphic` / `secret-sharing` on a host that did not enable its unreviewed route. The request is never retried with weaker protection and never made local | Nothing |
 | `LEAKAGE_NOT_ALLOWED` | The route exposes metadata that `allowMetadata` omits | Nothing |
 | `EXECUTION_PLAN_EXPIRED` | The plan lapsed, was already run, or never existed | Nothing |
 | `EXECUTION_PLAN_CHANGED` | The route, participants, backend, model, adapters or charge ceiling differ from the plan, before or at disclosure | Nothing beyond what the plan admitted |
 | `RESULT_UNVERIFIED` | The answer names another model or adapters, contradicts its stream, exceeds the limit, or arrives without an admitted route | The plan's participants already had the content; no result is returned |
-| `EXECUTION_REQUEST_INVALID` | Malformed requirements, a prompt or tool given to `prepare`, an invalid `requestId` | Nothing |
-| `EXECUTION_ROUTE_UNAVAILABLE` | No route meets the requirements, for example local-only on a network-only deployment, a split outside the named participants, or `requester-edges` without a route whose ends are the requester's own (it never falls back to a readable split) | Nothing |
+| `EXECUTION_REQUEST_INVALID` | Requirements outside the per-protection union (a route that protection does not take, `participants` on a `local` request, a missing `protection` or `route`, an old `confidentiality`, `placement` or `topology` field), a prompt or tool given to `prepare`, an invalid or already-run `requestId` | Nothing |
+| `EXECUTION_ROUTE_UNAVAILABLE` | No route meets the requirements, for example `local` on a network-only deployment, an explicit route with no such route available, a route outside the named participants, a network route that cannot cap its charge, or `split-local-edges` whose two edges cannot be established as bound to the requester (it never falls back to an ordinary split) | Nothing |
 
 On the research protected route, `RESULT_UNVERIFIED` also covers a failed
 known-answer trap and a protocol violation the evaluator signed (an
@@ -280,8 +544,9 @@ requirements as `prepare`, plus the private pool and conversation:
 {
   "reploid": {
     "model": { "identity": "sha256:…", "adapterIdentities": [], "planIdentity": "sha256:…" },
-    "execution": { "placement": "network-allowed", "participants": { "kind": "named", "ids": ["peer:4b1d…"] },
-                   "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
+    "execution": { "protection": "plaintext", "route": "auto",
+                   "participants": { "kind": "named", "ids": ["peer:4b1d…"] },
+                   "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
     "poolId": "reploid-swarm-team",
     "conversationId": "conv-alpha"
   }
@@ -297,15 +562,20 @@ POST /v1/responses         { "model": "…", "input": "Hi", "reploid": { … } }
 ```
 
 The adapter reads the extension before the protocol parses any message. A body
-without one runs under the standard requirements (`open`, executor-readable,
-`model-id`, `timing`, `length` and `access-patterns` allowed), bounded by the operator's
-`executionPolicyFor` policy. The caller's requirements may narrow the operator's
-policy but never widen it.
+without one runs under the standard requirements (`protection: "plaintext"`,
+`route: "auto"`, `open` participants, `model-id`, `timing`, `length` and
+`access-patterns` allowed), bounded by the operator's `executionPolicyFor`
+policy. The caller's requirements may narrow the operator's policy but never
+widen it. These endpoints run on network participants, so `route: "local"` is
+refused.
 
-**Confidential execution is refused on these endpoints.** An ordinary JSON body
-is plaintext to the server that receives it, so these endpoints cannot protect
-it afterwards. A `requester-only` request is answered with HTTP 422 and
-`code: "confidential_execution_unavailable"`. It is not authorized, executed or
+**Every protection but `plaintext` is refused on these endpoints**, and so is
+`route: "split-local-edges"`. An ordinary JSON body is plaintext to the server
+that receives it, so these endpoints cannot protect it, or keep it on the
+requester's devices, afterwards. A `secret-sharing`, `homomorphic` or `attested`
+request is answered with HTTP 422 and `code:
+"confidential_execution_unavailable"`; requester-held edges with HTTP 503 and
+`code: "execution_route_unavailable"`. Neither is authorized, executed or
 forwarded. The bytes have still reached this server's process. A client that
 must keep content from the server must not send it over plain JSON.
 
@@ -315,7 +585,7 @@ Messages on `message_delta`, and Responses on the final response object:
 
 ```json
 "reploid": {
-  "executionReceipt": { "schema": "reploid.execution-receipt/v1", "…": "as above" },
+  "executionReceipt": { "schema": "reploid.execution-receipt/v2", "…": "as above" },
   "execution": { "…": "the executor's own report (timing, partition summary), carried as reported" },
   "poolId": "reploid-swarm-team",
   "conversationId": "conv-alpha"
@@ -324,7 +594,7 @@ Messages on `message_delta`, and Responses on the final response object:
 
 Error bodies carry the stable code in lower case: `error.code` on Chat Completions
 and Responses, `error.code` inside the Anthropic-shaped `error` on Messages. The
-HTTP statuses are 400 (invalid), 422 (confidential unavailable, leakage), 409
+HTTP statuses are 400 (invalid), 422 (protection unavailable, leakage), 409
 (plan changed or expired), 503 (no route) and 502 (unverified result).
 
 Responses no longer requires `store: false`. This server stores no responses,
@@ -335,14 +605,18 @@ offered and is refused.
 
 ```sh
 npx reploid ask 2b "Hello" --participant peer:4b1d… --allow-metadata model-id,timing,length,access-patterns
-npx reploid ask 2b "Hello" --confidentiality requester-only   # refused before discovery: CONFIDENTIAL_EXECUTION_UNAVAILABLE
+npx reploid ask 2b "Hello" --protection homomorphic   # refused before discovery: CONFIDENTIAL_EXECUTION_UNAVAILABLE
+npx reploid ask 2b "Hello" --protection plaintext --route remote
 ```
 
 `--participant` (repeatable) names who may read the prompt. `--allow-metadata`
 lists the metadata the route may expose; it defaults to all four, which is what a
-plaintext route discloses. `--confidentiality` defaults to
-`executor-readable`. The flags configure the inference request and never the
-participant process.
+plaintext route discloses. `--protection` is `plaintext`, `secret-sharing`,
+`homomorphic` or `attested` and defaults to `plaintext` on the CLI (the API
+itself has no default). `--route` is one of the routes the protection allows;
+it defaults to `auto`. `ask` cannot bind edge devices to the requester, so it
+does not offer `split-local-edges`. The flags configure the inference request
+and never the participant process.
 
 ## Work and the model-imitation study
 
@@ -361,7 +635,8 @@ which prepares and runs it through `reploid/inference`:
   disclosure matched the plan. Each answer keeps its receipt in the study
   record and its export.
 
-The refusals are the API's: a requester-only policy is
+The refusals are the API's: a policy for any protection this host has not
+enabled (`homomorphic`, `secret-sharing`, and always `attested`) is
 `CONFIDENTIAL_EXECUTION_UNAVAILABLE` before anything is sent, and is never run on
 this device instead. A Work thread with such a policy is refused before it is
 saved. A second recipient proposed after the first approval is
@@ -376,35 +651,51 @@ operations under its own operation-consent protocol, not this API.
 inference execute ports call it: the one in `peer-inference.js`, and the
 conversation port in `host/chat-execution.js`.
 
-## Threat model per mode
+## Threat model per protection and route
 
-- **Executor-readable, open:** any provider that passes admission for the exact
+- **Plaintext, open:** any provider that passes admission for the exact
   model can read the prompt and answer. The requester binds the request to one
   identity-proved recipient before sending (metadata and a salted commitment
   first, messages only after a matching admission). A dishonest recipient can
   keep, copy or misuse what it reads, and it sees the access patterns of the
   content it reads. Signaling, relays and credit ledgers can
   see timing, sizes, model identity and participant identities.
-- **Executor-readable, named (including "Only your devices"):** the same, with
+- **Plaintext, named (including "Only your devices"):** the same, with
   readers limited to the named participants. A provider outside the list
   receives nothing, even if it is the only one ready. With your paired desktop
   as the only participant, no computer outside your devices reads the content.
   The desktop's own software and anyone with control of it can.
-- **Local-only:** nothing leaves this device. Software on the device can read
-  the content.
-- **Requester-edges:** the two edge stages, which the requester names as its
-  own devices, read the prompt and the answer. Each middle stage reads the
-  plaintext activations entering and leaving its layers, the step's token
-  count, the generation settings and timing, and signed settlement records
+- **Plaintext, `local`:** nothing leaves this device. Software on the device can
+  read the content.
+- **Plaintext `split`:** every stage operator reads the prompt and the answer;
+  the plan counts them, and the chat shows that count before Send.
+- **Plaintext `auto`:** whichever concrete route the plan states. It may be a
+  split, with more readers than one computer; the plan's readers are shown
+  before anything is sent.
+- **Plaintext `split-local-edges` (requester-held edges):** the two edge stages, on devices
+  bound to the requester, read the prompt and the answer. Each middle stage
+  reads the plaintext activations entering and leaving its layers, the step's
+  token count, the generation settings and timing, and signed settlement records
   whose output chain carries no text. An operator of a middle stage can try to
   reconstruct the prompt or the answer from those activations (inversion), and
   learns the prompt and answer lengths. Middle stages that collude learn nothing
   more than each learns alone, apart from pooling their activations.
-- **Requester-only (confidential execution):** intended to keep content from
-  every executor, including under collusion of all remote parties
-  (`collusion: "all-remote"`). No cryptographic or attested backend is qualified,
-  so it is refused before disclosure on every surface. The research protected
-  route below is the candidate; its threat model is stated there.
+- **Secret sharing:** each share operator receives one fresh random share of
+  each value it computes on and, alone, learns nothing beyond lengths, counts,
+  timing and sizes. Two operators of the same stage that combine their shares
+  read that stage's intermediate data, from which the prompt and answer can be
+  reconstructed: the disclosure names them as a conditional `share-holder`
+  reader. The requester's device recombines every intermediate result and
+  evaluates every nonlinear step. Unreviewed and off by default.
+- **Compute on encrypted data (`homomorphic`):** intended to keep content from
+  every remote party, including under collusion of all of them
+  (`collusion: "all-remote"`). Not established: its disclosure lists the readers
+  beyond this device as `"unknown"`. The research protected route below is the
+  candidate; its threat model is stated there. Off by default.
+- **Verified hardware (`attested`):** approved software would read the data
+  inside protected hardware, trusting that hardware and software. Not stronger
+  or weaker than secret sharing; a different trust assumption. Reserved and
+  always refused in this build.
 
 ## Protected route (research, unavailable)
 
@@ -430,12 +721,13 @@ const protectedExecution = createProtectedExecution({ policy, discover, connect,
 const inference = createInference({ resolveRoute, execute, protectedExecution, unreviewedProtectedExecution: true });
 ```
 
-Without both, `prepare` with `requester-only` throws
+Without both, `prepare` with `protection: "homomorphic"` throws
 `CONFIDENTIAL_EXECUTION_UNAVAILABLE` before discovery, exactly as before, and
 `PROTECTED_EXECUTION_STATUS` is `{ available: false, reason: "awaiting
 independent security review" }`. The HTTP adapters, the CLI and the chat never
-pass the flag, no advertisement or capability list mentions the route, and
-`server/fleet/browser-bridge.js` keeps refusing `requester-only`. The ports:
+pass the flag, `listCapabilities` reports `homomorphic` as unavailable with that
+reason, and `server/fleet/browser-bridge.js` keeps refusing every protection but
+`plaintext`. The ports:
 
 - `discover({ signal, model })` returns signed advertisements. It sends no
   content, no prompt length and no model choice the advertisement did not
@@ -467,26 +759,37 @@ pass the flag, no advertisement or capability list mentions the route, and
    tolerance and a longest key epoch. `prepare` sees no prompt and contacts no
    oracle. It returns the route (one named evaluator, `selection: "one-of"`, and
    a `protected` block with the descriptor, parameter-set and circuit digests,
-   the trap source with its oracle keys, and the lane counts) and these
-   disclosures (plus `trapOracle`, what the oracle learns):
+   the trap source with its oracle keys, and the lane counts) and this
+   disclosure (with `extensions.homomorphic.trapOracle`, what the oracle learns):
 
    ```json
-   { "contentReadableBy": { "requesterDevice": true, "participants": [], "selection": "all", "target": true },
-     "executorsReadContent": false,
-     "confidentiality": { "status": "target-not-established", "reason": "parameters not estimated; awaiting independent security review" },
-     "metadata": ["model-id", "timing", "length"],
-     "computedBy": ["peer:…"],
-     "leaks": ["model and circuit identity", "prompt length (in the bind offer, before the endpoint proves its key) and generated token count",
-               "lane count", "ciphertext and message sizes", "timing of each step", "session linkage through the key epoch",
-               "after a session, whether a verification failed (through the evaluator lockout and key-epoch rotation): exposure bounded to log2(n + 1) chosen bits per evaluator per key epoch over n sessions, not closed",
-               "evaluator and requester identities and network metadata"],
-     "review": { "available": false, "reason": "awaiting independent security review" } }
+   { "prompt": { "readers": "unknown",
+                 "assumptions": ["parameters-not-estimated", "not-independently-reviewed", "requester-key-holder-unchecked"],
+                 "verified": false, "check": null },
+     "intermediate": { "…": "as prompt" },
+     "answer": { "…": "as prompt" },
+     "metadata": { "items": ["model-id", "timing", "length"], "readers": [{ "role": "requester-device" }, { "role": "evaluator", "ids": ["peer:…"] },
+                   { "role": "carrier" }], "assumptions": [], "verified": false, "check": null },
+     "trustAssumptions": ["parameters-not-estimated", "not-independently-reviewed", "requester-key-holder-unchecked",
+                          "traps-detect-blind-tampering-only", "trap-oracle-does-not-collude"],
+     "review": { "state": "not-reviewed" },
+     "extensions": { "homomorphic": {
+       "status": { "protection": "target-not-established", "reason": "parameters not estimated; awaiting independent security review" },
+       "computedBy": ["peer:…"],
+       "leaks": ["model and circuit identity", "prompt length (in the bind offer, before the endpoint proves its key) and generated token count",
+                 "lane count", "ciphertext and message sizes", "timing of each step", "session linkage through the key epoch",
+                 "after a session, whether a verification failed (through the evaluator lockout and key-epoch rotation): exposure bounded to log2(n + 1) chosen bits per evaluator per key epoch over n sessions, not closed",
+                 "evaluator and requester identities and network metadata"],
+       "trapOracle": { "learns": ["that a session is starting", "prompt length, generated count and trap count", "request time and network address"],
+                       "trusted": "not to collude with the evaluator" } } } }
    ```
 
-   On an insecure development parameter set the same disclosures list the
-   evaluator in `contentReadableBy.participants`, set `executorsReadContent:
-   true` and `confidentiality.status: "none"`, and the statement says there is
-   no confidentiality. A request that does not allow all of `model-id`,
+   On an insecure development parameter set the same disclosure lists the
+   evaluator beside `requester-device` as a reader of the prompt, intermediate
+   state and answer, with the single assumption
+   `insecure-development-parameters`, and sets
+   `extensions.homomorphic.status.protection: "none"`. The route is free
+   (`maxCharge: { kind: "free" }`). A request that does not allow all of `model-id`,
    `timing` and `length` is `LEAKAGE_NOT_ALLOWED`. `run` resolves the route again and refuses any change
    (`EXECUTION_PLAN_CHANGED`) before connecting.
 3. **Binding before upload.** The requester sends a `bind-offer` signed with a
@@ -517,7 +820,7 @@ pass the flag, no advertisement or capability list mentions the route, and
      `ready`, `result` and a signed `abort`), including a decrypt request.
 
    The bind offer carries the prompt length and lane count before the endpoint
-   has proved its key; the disclosures list this. Expiries tolerate five
+   has proved its key; the disclosure lists this. Expiries tolerate five
    minutes of clock skew between the two machines. The requester's session
    lasts 25 minutes and the evaluator accepts up to 30.
 5. **Steps.** One `step` per generated token: the prefill carries every lane's
@@ -586,7 +889,7 @@ Node host posts it over HTTP
 requester is anonymous to the oracle. **The oracle learns** that a session is
 starting, its prompt length, generated count and trap count, the request time
 and the network address. It never learns the prompt, the answer or which
-evaluator runs the session. The disclosures say so in `trapOracle`, and the
+evaluator runs the session. The disclosure says so in `trapOracle`, and the
 receipt records the batch id and the oracle key.
 
 **Trust assumption.** The oracle must not collude with the evaluator. An oracle
@@ -709,7 +1012,7 @@ stops the route after `total` failures per window, so at most `total`
 evaluators per window see a predicate come out true. The bound is the
 requester's own accounting under these mechanisms, not a proof: the
 selective-failure leak is limited, not closed, and it is one reason
-requester-only stays off.
+`homomorphic` stays off.
 
 Each bit is a predicate the evaluator chose, so a targeted guess is confirmed
 outright when it is right. The user's own reactions are outside this bound:
@@ -717,17 +1020,18 @@ retrying the same prompt elsewhere, or rewording it.
 
 ### Threat model
 
-- **Confidentiality is a target, not an established property.** The design
+- **Keeping content from remote parties is a target, not an established property.** The design
   rests on RLWE with one secret key that never leaves the requester's key
   holder, and aims to hold if every remote party colludes. Nothing here shows
   that it does. The parameters were never security-estimated, the protocol is
   unreviewed, and on the insecure development parameter set
-  (`dev-insecure-n12`, used by the tests) there is **no confidentiality**. There,
-  the disclosures list the evaluator as a reader. The disclosures and receipts
-  never claim that no one else can read the prompt. They state
-  `confidentiality.status`: `none` for insecure parameters,
-  `target-not-established` otherwise, and the receipt lists `confidentiality`
-  and `requester-held-key` as not verified. The
+  (`dev-insecure-n12`, used by the tests) there is **no protection**. There,
+  the disclosure lists the evaluator as a reader; otherwise its readers beyond
+  this device are `"unknown"`. The disclosure and receipts never claim that no
+  one else can read the prompt. They state `status.protection`: `none` for
+  insecure parameters, `target-not-established` otherwise, and the receipt's
+  `evidence.privacy` lists `protection` and `requester-held-key` as not
+  verified. The
   evaluator sees the model and circuit identity, the evaluation keys, the prompt
   length, the generated count, ciphertext sizes, per-step timing (Lattigo is not
   constant-time) and network metadata. The requester never returns a decrypted
@@ -804,7 +1108,7 @@ the independent review). These findings from that review remain open:
 - Not done: a WebRTC channel adapter, a WebAssembly key holder, the two-machine
   run, a parameter-security estimate and the independent review.
 
-Fixed since the review: honest disclosures, the abort oracle bounded (silent
+Fixed since the review: an honest disclosure, the abort oracle bounded (silent
 failure, epoch retirement, lockout and budget), the gate on
 `createProtectedExecution`, abort and other unauthenticated frames verified
 before use and never blamed on the evaluator, `maxKeyEpochSeconds`, clock skew
@@ -831,12 +1135,16 @@ pooled split exchange requires one end-to-end run that earns credits by serving
 someone else and spends them on a confidential request **split across multiple
 independently operated GPUs** where every participating GPU fails solo on memory,
 the split beats single-host CPU offload within frozen latency and quality limits,
-the privacy tier is named honestly (neither hardware-attested execution nor
-non-colluding secret sharing may silently pass `requester-only`), and an
+the protection is named honestly (neither `attested` nor `secret-sharing` may
+silently pass as `homomorphic`), and an
 independent security review, the reference answer, and outsider-reproducible
 requester debit and stage payouts are all verified from that same run.
 
-## Requester-held edges (`requester-edges`)
+## Requester-held edges
+
+`route: "split-local-edges"` with `protection: "plaintext"` (formerly
+`confidentiality: "requester-edges"`). It is a placement rule for a plaintext
+split, not a protection.
 
 Source: [`chat/execution-policy.js`](../packages/reploid/src/chat/execution-policy.js)
 (`EDGES_BACKEND`, `edgesExecutionRoute`),
@@ -846,7 +1154,7 @@ and [`partition-ordered-peer.js`](../packages/reploid/src/mesh/partitions/partit
 [`partition-attempt-evidence.js`](../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js),
 [`inference/contract.js`](../packages/reploid/src/inference/contract.js).
 
-### Why this tier
+### Why this placement rule
 
 The goal is a split request whose operators cannot read the prompt,
 intermediate state or answer. The mechanisms considered, against what runs on
@@ -858,8 +1166,8 @@ ordinary mesh computers today:
 - **Homomorphic encryption** (the parked protected route) failed its latency
   and memory limits for any useful model on fleet GPUs.
 - **Two-server secret sharing of the linear layers** (Doppler's research
-  shares route) hides the input from each provider if the two do not collude,
-  and is strictly stronger than this tier. Its measured small-model runs take
+  shares route, now `protection: "secret-sharing"`) hides the input from each
+  provider if the two do not collude, and discloses less than this rule. Its measured small-model runs take
   seconds per token over the network with the requester computing every
   non-linear step; it is not integrated with ordered stages, the 27B's packed
   weights or settlement, so it does not run a catalogued split today.
@@ -874,7 +1182,11 @@ ordinary mesh computers today:
 
 ### What it enforces
 
-- The requester names a route whose first and last stage are its own devices.
+- The requester names a route whose first and last stage are its own devices,
+  and both edge identities must be among the devices the host's
+  `requesterDevices` port binds to this requester. If that cannot be
+  established, the request is refused with `EXECUTION_ROUTE_UNAVAILABLE` before
+  anything is sent, at `prepare` and again at `run`.
   The execution binding (`doppler-partition-edges/v1`) marks those two hops
   `plaintext` and every other hop `activations`; any other shape is refused.
 - The coordinator's signed grant names only the two edge stages as token
@@ -887,27 +1199,34 @@ ordinary mesh computers today:
   step with empty text on this route. A chain over each step's text would let a
   middle stage recover the answer by trying every vocabulary entry. The final
   stage and the requester, which compute the chain, are the same principal here.
-- `reploid/inference` accepts the value only for such a route: no readable split
-  substitutes for it, and a readable request never runs on one. The plan's
-  `disclosures` list content readers (`contentReadableBy`) and activation readers
-  (`activationsReadableBy`) separately, and the receipt records the tier with
-  `activation-inversion-resistance` and `edge-device-ownership` as not verified.
+- `reploid/inference` accepts this route only for such a split: no ordinary
+  split substitutes for it, `auto` never chooses it, and no other request runs
+  on one. The plan's `routeKind` is `split-local-edges`. Its disclosure lists the
+  edge devices as the only readers of the prompt and answer
+  (`requester-edge-device`, assumption `edge-devices-bound-to-requester`) and
+  the middle stages as readers of intermediate state (`stage-operator`,
+  assumption `activations-may-reveal-content`). Its
+  line in the dialog: "Your devices handle the prompt and answer. Other
+  computers see intermediate data that may reveal both." The receipt records the
+  edge binding check and lists `activation-inversion-resistance` as not
+  verified.
 
 ### What it does not protect
 
 - Middle-stage activations are plaintext model state; inversion attacks can
   recover inputs from them, more easily from early layers. A middle operator also
   learns lengths, timing, the model and the generation settings.
-- Reploid does not verify that the edge devices belong to the requester.
-- Requester-only stays unavailable and keeps failing closed. This tier is not a
-  step on the way to passing it silently: it is a separately named disclosure.
+- The edge binding shows the two devices are bound to the requester; it does
+  not check what software runs on them or who else controls them.
+- It is not a protection: `protection` stays `plaintext`, and no other
+  protection is satisfied by it.
 - No independent security review has examined it.
 
 ## Not claimed
 
 - No trustless compute, hardware attestation or cryptographic protection
   from executors. Neither the backend registry nor any advertisement can enable
-  them, and no surface turns a requester-only request into a readable one.
+  them, and no surface turns a protected request into a plaintext one.
 - A recipient's conduct after it reads content: retention, copying, erasure.
 - Correct computation. The receipt checks identities and stream consistency,
   not numerical correctness, and reported token counts are the provider's.

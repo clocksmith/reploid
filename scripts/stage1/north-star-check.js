@@ -95,9 +95,11 @@ export function checkNorthStar(receipt, { reference, weights, creditsPerOutputTo
     || witnessDigest(split.tokens.outputIds) !== reference.sampleDigest) fail('answer-tokens-differ', 'output tokens differ from the reference');
   if (split?.parityExact !== true) fail('answer-witness', 'the stage witnesses do not verify');
   if (split?.text !== reference.outputText) fail('answer-text-differs', 'answer text differs from the reference text');
-  // 5. The privacy tier: named, bound before disclosure, and observed at every stage.
-  const evidence = split?.inference?.result?.executionReceipt?.evidence?.confidentiality;
-  if (evidence?.mode !== 'requester-edges') fail('tier-not-named', evidence?.mode);
+  // 5. The protection and route: named, bound before disclosure, and observed at every stage.
+  const evidence = split?.inference?.result?.executionReceipt?.evidence?.privacy;
+  if (evidence?.protection !== 'plaintext' || evidence?.routeKind !== 'split-local-edges') {
+    fail('tier-not-named', JSON.stringify({ protection: evidence?.protection, routeKind: evidence?.routeKind }));
+  }
   if (privacy) {
     for (const stage of privacy.stages) {
       const seen = stage.visibility;

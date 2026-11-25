@@ -137,7 +137,7 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       expect(floating).toBe(0);
     });
 
-    test('"Who can read it" keeps its box while presets are compared, and says why confidential execution is unavailable', async ({ page, baseURL }) => {
+    test('"Who can read it" keeps its box while routes are compared, and says why each unavailable protection is unavailable', async ({ page, baseURL }) => {
       await open(page, baseURL);
       await page.locator('.chat-composer-toolbar [data-open-privacy]').click();
       const dialog = page.locator('[data-privacy-dialog]');
@@ -146,12 +146,16 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       await expect(dialog.locator('[data-privacy-detail]')).not.toHaveAttribute('open', '');
       await dialog.locator('[data-privacy-detail] > summary').click();
       await watchBox(dialog);
-      await expect(dialog.locator('[data-preset-status=no-device]')).toHaveText(/^Not available yet\. Planned:/);
-      await expect(dialog.locator('[value=no-device]')).toBeDisabled();
-      for (const preset of ['standard', 'own-devices', 'standard']) {
-        await dialog.locator(`[value=${preset}]`).check();
-        await expect(dialog.locator(`[data-preset-note=${preset}]`)).toBeVisible();
+      for (const protection of ['secret-sharing', 'homomorphic', 'attested']) {
+        await expect(dialog.locator(`[data-protection-status=${protection}]`)).toHaveText(/\. Unavailable: \S/);
+        await expect(dialog.locator(`[data-privacy-protection][value=${protection}]`)).toBeDisabled();
       }
+      // Let it choose names what the approved computers see; This device names what stays here.
+      for (const [route, note] of [['auto', 'standard'], ['local', 'own-devices'], ['auto', 'standard']]) {
+        await dialog.locator(`[data-privacy-route][value=${route}]`).check();
+        await expect(dialog.locator(`[data-preset-note=${note}]`)).toBeVisible();
+      }
+      await expect(dialog.locator('[data-privacy-route][value=split-local-edges]')).toBeDisabled();
       await page.waitForTimeout(500);
       expect(await boxChange(page)).toBe(0);
       expect(await misalignedRows(dialog)).toEqual([]);

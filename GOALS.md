@@ -31,7 +31,8 @@ conditions together in the same request:
    weakening).** Name the privacy mode and its trust assumption explicitly:
    **attested execution** trusts approved hardware and code; **secret sharing**
    trusts peers not to collude. Both are useful milestones, but **neither may
-   silently pass Reploid's strongest requester-only bar**. Require an
+   silently pass as `homomorphic` (computing on encrypted data with a
+   requester-held key)**. Require an
    **independent security review** (a visibility trace alone does not establish
    secrecy), with pre-dispatch disclosure and fail-closed refusal on policy or
    privacy failure.
@@ -71,8 +72,9 @@ disclosed route and Reploid enforced it: executing hosts still read what their
 stage needs, so never describe a plaintext request as confidential from them.
 Confidentiality from individual GPU operators requires an independently
 security-reviewed confidential split backend qualified on that exact route,
-with its trust assumption (attested hardware/code, non-colluding secret shares,
-or requester-only secrecy) stated explicitly. Evidence is in the
+with its protection and trust assumption (`attested` hardware/code,
+non-colluding `secret-sharing`, or `homomorphic` with a requester-held key)
+stated explicitly. Evidence is in the
 [claim index](docs/status/surface-claim-index.json).
 
 ## The service

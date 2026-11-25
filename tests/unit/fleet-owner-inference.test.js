@@ -13,8 +13,10 @@ const request = (extra = {}) => ({ threadId: 'thread-1', attemptId: 'attempt-1',
 
 /** Discloses to `recipient` under the policy the host was given, the way the mesh binds a whole-model request. */
 function fixtureHost({ enrolled = [peer, other], recipient = peer, boundModel = null } = {}) {
-  const host = { sent: [], calls: [],
+  const host = { sent: [], calls: [], charged: [],
     enrolledRecipients: async () => new Set(enrolled),
+    // The plan's charge ceiling, as the real host quotes it from its credit terms.
+    async chargeCeiling(req) { host.charged.push(req.model.id); return { kind: 'capped', maximum: 48, unit: 'noncash-service-credit' }; },
     async generate(req, onDelta, onRoute, _onAdmission, { signal, approve }) {
       host.calls.push(structuredClone(req));
       const bound = boundModel ? { ...req, model: boundModel } : req;
@@ -49,19 +51,23 @@ it('runs the stdin generate command through prepare and run, bound to the enroll
   expect(host.calls[0].privacy).toMatchObject({ schema: 'reploid.execution-policy/v2', placement: 'network-allowed',
     recipients: { kind: 'named', ids: [peer, other].sort() }, computation: 'plaintext' });
   expect(result).toMatchObject({ content: 'Hi', serviceCredit: { status: 'completed' } });
-  expect(result.executionReceipt).toMatchObject({ schema: 'reploid.execution-receipt/v1', requestId: 'attempt-1', status: 'completed',
-    requested: { execution: { participants: { kind: 'named', ids: [peer, other].sort() }, confidentiality: 'executor-readable' } },
+  expect(result.executionReceipt).toMatchObject({ schema: 'reploid.execution-receipt/v2', requestId: 'attempt-1', status: 'completed',
+    protection: 'plaintext', routeKind: 'remote', issuedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+    requested: { execution: { participants: { kind: 'named', ids: [peer, other].sort() }, protection: 'plaintext', route: 'auto' } },
     route: { shape: 'remote', participants: [peer], backend: 'doppler-plaintext/v1' } });
-  expect(result.executionReceipt.evidence.confidentiality.verified).toEqual([{ claim: 'content-recipients', by: 'requester',
-    method: 'route-binding-before-disclosure', value: [peer] }]);
+  expect(result.executionReceipt.evidence.privacy.checks).toEqual([{ claim: 'content-recipients', by: 'requester',
+    method: 'route-binding-before-release', value: [peer] }]);
+  // The charge was capped from the host's credit terms before anything was sent; the receipt keeps the reported credits.
+  expect(host.charged.length).toBeGreaterThan(0);
+  expect(result.executionReceipt.evidence.credits.record).toEqual({ kind: 'service-credit', status: 'completed', charge: 1 });
 });
 
-it('reports the stable refusal code on stdin and sends nothing for confidential execution', async () => {
+it.each(['homomorphic', 'attested', 'secret-sharing'])('reports the stable refusal code on stdin and sends nothing for protection %s', async protection => {
   const host = fixtureHost(), input = new PassThrough(), lines = [];
   vi.spyOn(console, 'log').mockImplementation(line => lines.push(JSON.parse(line)));
   const running = runFleetNativeCommands({ host, input, signals: new EventEmitter(), config: config() });
-  input.end(JSON.stringify({ id: 'cmd-2', op: 'generate', request: request({ execution: { placement: 'network-allowed',
-    participants: { kind: 'open' }, confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] } }) }) + '\n');
+  input.end(JSON.stringify({ id: 'cmd-2', op: 'generate', request: request({ execution: { protection, route: 'auto',
+    participants: { kind: 'open' }, allowMetadata: ['model-id', 'timing', 'length'] } }) }) + '\n');
   await running;
   expect(lines).toEqual([expect.objectContaining({ id: 'cmd-2', code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' })]);
   expect(host.calls).toEqual([]);
@@ -69,20 +75,20 @@ it('reports the stable refusal code on stdin and sends nothing for confidential 
 
 it.each([
   ['a participant the owner has not enrolled', { participants: { kind: 'named', ids: [outsider] } }, 'EXECUTION_ROUTE_UNAVAILABLE'],
-  ['local-only placement on a network host', { placement: 'local-only', participants: { kind: 'none' } }, 'EXECUTION_ROUTE_UNAVAILABLE'],
+  ['route local on a network host', { route: 'local', participants: undefined }, 'EXECUTION_ROUTE_UNAVAILABLE'],
   ['metadata the route exposes but the request forbids', { allowMetadata: ['model-id'] }, 'LEAKAGE_NOT_ALLOWED']
 ])('refuses %s before anything is sent', async (_name, change, code) => {
   const host = fixtureHost();
   const generate = createOwnerInference({ host, config: config() });
-  const execution = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'executor-readable',
-    allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'], ...change };
+  const execution = Object.fromEntries(Object.entries({ protection: 'plaintext', route: 'auto', participants: { kind: 'open' },
+    allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'], ...change }).filter(([, value]) => value !== undefined));
   await expect(generate(request({ execution }))).rejects.toMatchObject({ code });
   expect(host.calls).toEqual([]);
 });
 
 it('keeps an open request within the pinned computers and refuses a substituted route at disclosure', async () => {
   const pinned = createOwnerInference({ host: fixtureHost(), config: config({ textApi: { allowedRecipients: [peer] } }) });
-  const open = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] };
+  const open = { protection: 'plaintext', route: 'auto', participants: { kind: 'open' }, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] };
   const answered = await pinned(request({ execution: open }));
   expect(answered.executionReceipt.route.participants).toEqual([peer]);
   // A disclosure bound to another model artifact is not the planned route: refused before the prompt is sent.

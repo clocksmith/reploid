@@ -46,8 +46,9 @@ export function createPeerInference({ swarm }) {
       if (policy.placement !== 'network-allowed' || policy.recipients.kind === 'none') throw unavailable('Peer inference needs network placement.');
       if (typeof swarm?.generate !== 'function') throw unavailable('No connected participant can execute this model.');
       return policy.recipients.kind === 'named'
-        ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...policy.recipients.ids], selection: 'one-of' }
-        : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' };
+        // Free: a peer step places no charge; this provider has no spending path.
+        ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...policy.recipients.ids], selection: 'one-of', maxCharge: { kind: 'free' } }
+        : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible', maxCharge: { kind: 'free' } };
     },
     async execute({ policy, request }, controls, context) {
       try {
@@ -68,9 +69,12 @@ export function createPeerInference({ swarm }) {
     requestId = crypto.randomUUID() }) {
     if (model?.provider !== 'doppler' || model.partition) throw unavailable('Peer inference runs whole Doppler models only.');
     const context = { model, contextId, onProgress, record, onPartial, raw: null, failure: null };
-    // A requester-only policy compiles to CONFIDENTIAL_EXECUTION_UNAVAILABLE here and is never relaxed or made local.
+    // The thread's protection is sent explicitly. Anything but plaintext compiles to CONFIDENTIAL_EXECUTION_UNAVAILABLE
+    // here and is never relaxed or made local. The peer binding runs whole models on one other computer: route remote.
+    const requirements = executionRequirementsFor(privacy);
+    if (requirements.route === 'local') throw unavailable('Peer inference needs network placement.');
     const plan = await inference.prepare({ model: { id: model.id, identity: model.identity, adapterIdentities: adapterIdentitiesOf(model) },
-      execution: executionRequirementsFor(privacy) }, { signal, context });
+      execution: { ...requirements, route: 'remote' } }, { signal, context });
     const run = await inference.run({ planId: plan.id, requestId, input: { messages } }, { signal, approve, context });
     const result = await run.result;
     if (result.status === 'completed') return { ...context.raw, executionReceipt: result.executionReceipt };

@@ -33,13 +33,13 @@ async function preparedPolicy(execution, backend = 'doppler-plaintext/v1') {
     resolveRoute: input => {
       policy = input.policy;
       return backend === 'doppler-partition-plaintext/v1'
-        ? { shape: 'split', backend, participants: ['peer:a', 'peer:b'], selection: 'all' }
-        : { shape: 'remote', backend, participants: ['peer:a'], selection: 'one-of' };
+        ? { shape: 'split', backend, participants: ['peer:a', 'peer:b'], selection: 'all', maxCharge: { kind: 'free' } }
+        : { shape: 'remote', backend, participants: ['peer:a'], selection: 'one-of', maxCharge: { kind: 'free' } };
     },
     execute: async () => { throw new Error('not reached'); }
   });
   const plan = await inference.prepare({ model: { id: 'm', identity }, execution });
-  expect(plan.disclosures.metadata).toEqual(FOUR);
+  expect(plan.disclosure.metadata.items).toEqual(FOUR);
   return policy;
 }
 

@@ -29,6 +29,14 @@ export function createTextApi({ participant, authenticate, authorize, accounting
   };
   const execute = (request, controls) => { assertRoute(request); return participant.generate(request, controls); };
   const requester = { ...participant,
+    /**
+     * The inference plan's charge ceiling. Unbilled test execution (no accounting) has no charge path and is free; an
+     * accounting owner states its own cap, and one that cannot is refused before anything is planned.
+     */
+    async chargeCeiling(request, controls) {
+      if (!accounting) return { kind: 'free' };
+      return typeof accounting.chargeCeiling === 'function' ? accounting.chargeCeiling(structuredClone(request), controls) : null;
+    },
     getState() {
       const state = participant.getState();
       return { ...state, models: (state.models || []).filter(model => !model.partition || availablePartitionRoute(model, approvals)) };

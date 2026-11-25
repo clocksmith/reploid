@@ -181,14 +181,17 @@ export function createChatExecution({ localExecution = true, service, swarm, par
       const partition = model.partition;
       const stages = partition.route?.stages?.map(stage => stage.participantId) ?? [partition.participantA, partition.participantB];
       return { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: [...new Set(stages)], selection: 'all',
-        planIdentity: partition.planId ?? null };
+        planIdentity: partition.planId ?? null,
+        // A configured earning client charges partition attempts within the person's standing limit; without one, nothing is charged.
+        maxCharge: earning ? await earning.chargeCeiling?.() : { kind: 'free' } };
     }
     if (policy.placement === 'local-only' || runsHere(model, scope, location)) {
       if (!localExecution) throw unavailable('This deployment answers on network computers only.');
       return { shape: 'local', backend: 'doppler-plaintext/v1' };
     }
-    if (policy.recipients.kind === 'named') return { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...policy.recipients.ids], selection: 'one-of' };
-    return { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' };
+    // Free: the browser has no spending path for a whole-model mesh answer; earning covers partition attempts only.
+    if (policy.recipients.kind === 'named') return { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...policy.recipients.ids], selection: 'one-of', maxCharge: { kind: 'free' } };
+    return { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible', maxCharge: { kind: 'free' } };
   };
 
   let closing = null;

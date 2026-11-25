@@ -85,7 +85,20 @@ export function createFleetRequester({
   const signStop = (binding, acknowledged) => signSettlementStop({ signer: createAttemptEvidenceSigner({ identity }), acknowledged,
     terms: { requesterId: identity.peerId, reservationId: binding.id, attemptId: binding.executionId } });
   const settleStop = async binding => credits.settle(binding.id, await signStop(binding, 0));
+  // The output limit a request is quoted and reserved for: the caller's limit, never above the model or policy ceiling.
+  const outputLimitOf = (request, settings) => Math.min(maxOutputTokens, request.generationRequest?.maxOutputTokens ?? maxOutputTokens,
+    request.model.generation?.maxTokens ?? maxOutputTokens, settings?.maxOutputTokens ?? maxOutputTokens);
   return Object.freeze({
+    /**
+     * The most this request can charge, from the same credit terms and output limit `generate` quotes it with, for the
+     * inference plan's `maxCharge`. Sends nothing to any provider.
+     */
+    async chargeCeiling(request) {
+      const mode = request.model.partition ? 'partition' : 'whole-model';
+      const terms = await credits.call('terms', { id: request.model.id, identity: request.model.identity });
+      const { maximum, unit } = fleetCreditQuote(terms.policy, outputLimitOf(request, normalizeGenerationSettings(request.settings)), mode);
+      return { kind: 'capped', maximum, unit };
+    },
     async generate(request, controls) {
       request = structuredClone(request);
       assert(typeof controls?.requestApproval === 'function' && controls.signal, 'Explicit disclosure and cancellation required');
@@ -97,8 +110,7 @@ export function createFleetRequester({
       let settings = normalizeGenerationSettings(request.settings);
       assert(!settings || !partition, 'Generation settings are not supported on a partition route');
       if (settings) request.settings = structuredClone(settings);
-      const outputLimit = Math.min(maxOutputTokens, request.generationRequest?.maxOutputTokens ?? maxOutputTokens,
-        request.model.generation?.maxTokens ?? maxOutputTokens, settings?.maxOutputTokens ?? maxOutputTokens);
+      const outputLimit = outputLimitOf(request, settings);
       assert(Number.isSafeInteger(outputLimit) && outputLimit > 0, 'Explicit bounded output required');
       // A whole-model provider admits for its prepared model ceiling unless the request names a smaller limit, so a
       // requester whose own cap is below the model's would be refused. It sends that cap as the request's limit.

@@ -176,7 +176,21 @@ var EXECUTION_BACKENDS = freeze({
     metadata: [...PLAINTEXT_METADATA]
   }
 });
-var CONFIDENTIALITY_MODES = Object.freeze(["requester-only", "requester-edges", "secret-shared-2party", "executor-readable"]);
+var PROTECTIONS = Object.freeze(["plaintext", "secret-sharing", "homomorphic", "attested"]);
+var ROUTE_KINDS = Object.freeze(["local", "remote", "split", "split-local-edges"]);
+var EXECUTION_ROUTES = Object.freeze([...ROUTE_KINDS, "auto"]);
+var PROTECTION_ROUTES = Object.freeze({
+  plaintext: Object.freeze(["local", "remote", "split", "split-local-edges", "auto"]),
+  "secret-sharing": Object.freeze(["split", "auto"]),
+  homomorphic: Object.freeze(["remote", "auto"]),
+  attested: Object.freeze(["remote", "auto"])
+});
+var AUTO_ROUTES = Object.freeze({
+  plaintext: Object.freeze(["local", "remote", "split"]),
+  "secret-sharing": Object.freeze(["split"]),
+  homomorphic: Object.freeze(["remote"]),
+  attested: Object.freeze(["remote"])
+});
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
 // shared/vendor/reploid/mesh/request-delivery.js

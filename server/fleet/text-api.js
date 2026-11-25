@@ -85,6 +85,9 @@ export async function startFleetTextApi({ host, token, listenHost = '127.0.0.1',
     },
     accounting: {
       run: (request, controls, execute) => host.runAccountedGeneration(request, controls, execute),
+      // The same service-credit quote the accounted requester reserves for this request. A host without the port cannot
+      // cap the charge, so its requests are refused before anything is planned.
+      ...(typeof host.chargeCeiling === 'function' ? { chargeCeiling: request => host.chargeCeiling(request) } : {}),
       ...(typeof host.recoverAccountedGeneration === 'function'
         ? { recover: (input, controls, recoverExecution) => host.recoverAccountedGeneration(input, controls, recoverExecution) }
         : {})

@@ -30,18 +30,34 @@ it('turns ask execution flags into inference requirements and never passes them 
   const command = nativeCommand(['ask', 'hello', '--participant', 'peer:a', '--participant', 'peer:a', '--participant', 'peer:b',
     '--allow-metadata', 'model-id,timing', '--room', 'my-team']);
   expect(command.args).toEqual(['--connect-only', '--room', 'my-team']);
-  expect(command.execution).toEqual({ placement: 'network-allowed', participants: { kind: 'named', ids: ['peer:a', 'peer:b'] },
-    confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing'] });
-  expect(nativeCommand(['ask', 'hello', '--confidentiality', 'requester-only']).execution.confidentiality).toBe('requester-only');
+  expect(command.execution).toEqual({ protection: 'plaintext', route: 'auto',
+    participants: { kind: 'named', ids: ['peer:a', 'peer:b'] }, allowMetadata: ['model-id', 'timing'] });
+  expect(nativeCommand(['ask', 'hello', '--protection', 'homomorphic']).execution.protection).toBe('homomorphic');
   expect(() => nativeCommand(['ask', 'hello', '--allow-metadata', 'plaintext'])).toThrow('--allow-metadata');
-  expect(() => nativeCommand(['ask', 'hello', '--confidentiality', 'encrypted'])).toThrow('--confidentiality');
+  expect(() => nativeCommand(['ask', 'hello', '--protection', 'encrypted'])).toThrow('--protection');
+  // The old flag is gone: no compatibility alias.
+  expect(() => nativeCommand(['ask', 'hello', '--confidentiality', 'executor-readable'])).toThrow('Unknown option');
+  expect(() => nativeCommand(['ask', 'hello', '--topology', 'split'])).toThrow('Unknown option');
   expect(nativeCommand(['ask', 'hello'])).not.toHaveProperty('execution');
 });
 
-it('refuses requester-only confidentiality before discovery and sends nothing', async () => {
+it('takes --route per protection and refuses what ask cannot run, naming the allowed routes', () => {
+  expect(nativeCommand(['ask', 'hello', '--route', 'split']).execution.route).toBe('split');
+  expect(nativeCommand(['ask', 'hello', '--route', 'remote']).execution.route).toBe('remote');
+  expect(nativeCommand(['ask', 'hello', '--protection', 'homomorphic', '--route', 'remote']).execution).toMatchObject({ protection: 'homomorphic', route: 'remote' });
+  // A route the protection does not allow is refused with the routes it does allow.
+  expect(() => nativeCommand(['ask', 'hello', '--protection', 'homomorphic', '--route', 'split'])).toThrow('--protection homomorphic takes --route remote, auto');
+  expect(() => nativeCommand(['ask', 'hello', '--protection', 'secret-sharing', '--route', 'remote'])).toThrow('takes --route split, auto');
+  expect(() => nativeCommand(['ask', 'hello', '--route', 'ring'])).toThrow('--route');
+  // ask sends to network providers and cannot bind edge devices to you: both are refused before discovery.
+  expect(() => nativeCommand(['ask', 'hello', '--route', 'local'])).toThrow('--route local');
+  expect(() => nativeCommand(['ask', 'hello', '--route', 'split-local-edges'])).toThrow('cannot establish');
+});
+
+it.each(['homomorphic', 'attested', 'secret-sharing'])('refuses --protection %s before discovery and sends nothing', async protection => {
   const getState = vi.fn(() => ({ models: [] })), generate = vi.fn();
   await expect(askMesh({ getState, generate, roomId: 'team' }, { name: 'Small' }, 'secret',
-    { signal: new AbortController().signal, execution: askExecution({ confidentiality: 'requester-only' }) }))
+    { signal: new AbortController().signal, execution: askExecution({ protection }) }))
     .rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' });
   expect(getState).not.toHaveBeenCalled();
   expect(generate).not.toHaveBeenCalled();

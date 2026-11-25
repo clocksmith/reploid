@@ -110,8 +110,12 @@ export function createTextRequester({ participant, authenticate, authorize, stat
   const activeThreads = activeDerivedThreads.get(participant);
   // The JSON protocols are adapters over reploid/inference: each request is prepared against a pinned
   // route, then run through the same plan checks and receipt as the browser and the CLI.
+  // Charge: the requester's own cap (the accounting owner's accepted quote or credit terms). A participant with no charge
+  // port has no credit path and is free; a port that cannot state a cap returns null and the request is refused.
   const inference = createInference({
-    resolveRoute: (_request, { context }) => context.route,
+    resolveRoute: async (_request, { context }) => ({ ...context.route,
+      maxCharge: typeof participant.chargeCeiling === 'function' ? await participant.chargeCeiling(structuredClone(context.request), context.controls)
+        : { kind: 'free' } }),
     async execute({ policy }, controls, context) {
       try { context.raw = await participant.generate({ ...context.request, privacy: policy }, controls); return context.raw; }
       catch (error) { context.failure = error; throw error; }

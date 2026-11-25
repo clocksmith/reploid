@@ -17,8 +17,8 @@ const digest = /^sha256:[a-f0-9]{64}$/;
 const requireValue = (ok, message) => { if (!ok) throw new Error(message); };
 const same = (left, right) => left !== undefined && canonicalize(left) === canonicalize(right);
 /** A daily turn's requirements: only the named provider reads the prompt, in plaintext, with the metadata that discloses. */
-const dailyExecution = providerId => ({ placement: 'network-allowed', participants: { kind: 'named', ids: [providerId] },
-  confidentiality: 'executor-readable', allowMetadata: [...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata] });
+const dailyExecution = providerId => ({ protection: 'plaintext', route: 'remote',
+  participants: { kind: 'named', ids: [providerId] }, allowMetadata: [...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata] });
 
 function promptRoute(host, pins) {
   const route = host.textParticipant.getState().models?.find(model => !model.partition
@@ -101,7 +101,9 @@ export async function runDailyFleet(host, pins, { prompt, target = null, signal 
     // The turn is prepared and run through reploid/inference; the accounted fleet requester is its execution port.
     let raw = null, failure = null;
     const inference = createInference({
-      resolveRoute: () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: [providerId], selection: 'one-of' }),
+      // Charge: capped from the host's service-credit terms for this turn, the same quote the accounted requester reserves.
+      resolveRoute: async () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: [providerId], selection: 'one-of',
+        maxCharge: typeof host.chargeCeiling === 'function' ? await host.chargeCeiling({ threadId, attemptId, model, messages, settings }) : null }),
       async execute({ policy, request: run }, controls) {
         try {
           raw = await host.runAccountedGeneration({ threadId, attemptId, model, messages: run.messages, settings, privacy: policy }, controls,

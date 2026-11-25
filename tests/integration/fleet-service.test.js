@@ -423,6 +423,8 @@ async function privateSplitApi() {
   const host = { identity: keys[0], allowsModel: model => model.identity === selected.identity,
     enrolledRecipients: async () => new Set(keys.slice(1).map(key => key.peerId)),
     textParticipant: { roomId: 'private-split-test', executionClass: 'private-pool', partitionOutputLimit: () => 3, getState: () => ({ models: [advertised] }), generate },
+    // The plan's charge cap, quoted from the same credit terms as the accounted requester (the real host's port).
+    chargeCeiling: request => createFleetRequester({ participant: { generate }, identity: keys[0], credits: client, maxOutputTokens: 3 }).chargeCeiling(request),
     runAccountedGeneration(request, controls, execute) {
       if (replaceAtDispatch) advertised = { ...selected, partition: { ...selected.partition, planId: 'another-plan' } };
       return createFleetRequester({ participant: { generate: execute }, identity: keys[0], credits: client, maxOutputTokens: 3 }).generate(request, controls);
@@ -474,8 +476,8 @@ it('streams execution evidence and settles once for a Responses request bound to
     const model = f.route.model;
     const named = keys.slice(0, 3).map(key => key.peerId);
     const binding = { poolId: 'private-split-test', model: { identity: model.identity, adapterIdentities: [], planIdentity: model.partition.planId },
-      execution: { placement: 'network-allowed', participants: { kind: 'named', ids: named }, confidentiality: 'executor-readable',
-        allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } };
+      execution: { protection: 'plaintext', route: 'split',
+        participants: { kind: 'named', ids: named }, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } };
     const response = await fetch(f.url + '/responses', { method: 'POST', headers: f.headers,
       body: JSON.stringify({ model: model.selectionId || model.id, input: [{ role: 'user', content: 'test' }],
         store: false, stream: true, max_output_tokens: 2, reploid: binding }) });
@@ -487,13 +489,14 @@ it('streams execution evidence and settles once for a Responses request bound to
     expect(final.response.usage.output_tokens).toBe(2);
     expect(final.response.output[0].content[0].text).toBe('01');
     const receipt = final.response.reploid.executionReceipt;
-    expect(receipt).toMatchObject({ schema: 'reploid.execution-receipt/v1', status: 'completed',
+    expect(receipt).toMatchObject({ schema: 'reploid.execution-receipt/v2', status: 'completed', protection: 'plaintext',
+      routeKind: 'split',
       requested: { model: { identity: model.identity, adapterIdentities: [] }, execution: binding.execution },
       route: { shape: 'split', backend: 'doppler-partition-plaintext/v1', protocol: null } });
     // Every stage that read the content is named in the route, and every one of them was named by the caller.
     expect(receipt.route.participants.length).toBeGreaterThan(0);
     expect(receipt.route.participants.every(id => named.includes(id))).toBe(true);
-    expect(receipt.evidence.confidentiality.contentReadBy.participants).toEqual(receipt.route.participants);
+    expect(receipt.evidence.privacy.contentReadBy.participants).toEqual(receipt.route.participants);
     const reservation = response.headers.get('x-reploid-reservation-id');
     expect(reservation).toBeTruthy();
     const settled = await client.call('request', { id: reservation });

@@ -32,7 +32,8 @@ const canSplit = model => !model.executionModes || model.executionModes.includes
 const modelNames = models => models.flatMap(m => [shortNames[m.id], m.id].filter(Boolean));
 const askOptions = ['model', 'model-config', 'ordered-config', 'room', 'room-token-file', 'rtc-config-file', 'signaling-url', 'origin', 'identity-file'];
 // Execution requirements for ask. They configure the inference request, never the participant process.
-const askExecutionOptions = { participant: { type: 'string', multiple: true }, confidentiality: { type: 'string' }, 'allow-metadata': { type: 'string' } };
+const askExecutionOptions = { participant: { type: 'string', multiple: true }, protection: { type: 'string' }, route: { type: 'string' },
+  'allow-metadata': { type: 'string' } };
 const doctorOptions = ['origin', 'signaling-url'];
 const subset = names => Object.fromEntries(names.map(name => [name, participantOptions[name]]));
 const commandNames = [...Object.keys(commands), 'help'];
@@ -52,7 +53,9 @@ const details = {
   ask: `npx reploid ask [model] "Your question"
 Send one ordinary request. The selected provider can read the prompt. Without a model, it uses the smallest model a ready provider serves; the room defaults to the public room. Private room options: --room reploid-swarm-NAME --room-token-file PATH --signaling-url URL.
 Execution: --participant ID (repeatable) limits who may read the prompt; --allow-metadata model-id,timing,length lists the metadata the route may expose;
---confidentiality requester-only asks that no executor can read the prompt. No backend qualifies for that yet, so it is refused before anything is sent.`,
+--route remote|split|auto chooses where the model runs (default auto: any route the protection allows; the plan names the chosen one). split-local-edges needs edge devices bound to you and is refused here.
+--protection plaintext|secret-sharing|homomorphic|attested chooses how data is processed (default plaintext, "Standard": computers that process your request can read the data they receive).
+This command runs plaintext only: any other protection is refused before anything is sent, never retried as plaintext.`,
   doctor: 'npx reploid doctor [--signaling-url URL] [--origin URL]\nCheck Node, host RAM, the installed Doppler version, GPU adapter and signaling connectivity.',
   serve: 'npx reploid serve [model] [--weights DIRECTORY]\nServe the whole model; without a model, the 0.8B. Missing weights can come from authorized peers or a pinned origin.',
   split: `npx reploid split <model> --stage 0|1 [--weights DIRECTORY]
@@ -174,7 +177,8 @@ export function nativeCommand(argv) {
   if (prompt === undefined) return { args };
   // Without a model, ask uses whichever model a ready provider serves (askMesh), not the serving default.
   const anyModel = command === 'ask' && name === undefined && !values['model-config'];
-  const execution = values.participant || values.confidentiality || values['allow-metadata'] !== undefined
-    ? askExecution({ participants: values.participant ?? [], confidentiality: values.confidentiality, allowMetadata: values['allow-metadata'] }) : undefined;
+  const execution = values.participant || values.protection || values.route || values['allow-metadata'] !== undefined
+    ? askExecution({ participants: values.participant ?? [], protection: values.protection, route: values.route,
+      allowMetadata: values['allow-metadata'] }) : undefined;
   return { args, prompt, ...(execution ? { execution } : {}), ...(anyModel ? { anyModel } : {}) };
 }

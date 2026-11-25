@@ -171,6 +171,19 @@ export function createTextAccounting({ ledger, backend, trialBackend, trialPolic
         || record.receipt.jobHash !== jobHash) return null;
       return { reservationId: record.reservationId, attemptId: record.attemptId, settled: record.phase === 'settled' };
     },
+    /**
+     * The inference plan's charge ceiling: the accepted quote's maximum charge. It reads the existing acceptance and
+     * places no hold; without an accepted quote the charge cannot be capped and the request is not planned.
+     */
+    async chargeCeiling(request, controls) {
+      if (!text(controls?.principal?.subject)) return null;
+      const accepted = await resolveAcceptedRequest({ principal: controls.principal, request: structuredClone(request), signal: controls.signal });
+      if (!text(accepted?.reservationId)) return null;
+      const reservation = await ledger.getReservation(accepted.reservationId), quote = reservation && await ledger.getQuote(reservation.quoteId);
+      if (quote?.status !== 'accepted' || !Number.isSafeInteger(quote.pricing?.maxCharge)) return null;
+      const unit = typeof quote.unit === 'string' ? quote.unit : quote.unit?.name ?? 'credit';
+      return { kind: 'capped', maximum: quote.pricing.maxCharge, unit };
+    },
     async run(request, controls, execute) {
       assertNoSettings(request);
       request = structuredClone(request);

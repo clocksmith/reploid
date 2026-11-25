@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { availablePartitionRoute, currentPartitionRoute, matchesPartitionDisclosure } from '../apps/poolday/host/partition-release.js';
-import { createExecutionPolicy, compileExecutionRequirements, EXECUTION_BACKENDS, EXECUTION_METADATA } from '../shared/vendor/reploid/chat/execution-policy.js';
-import { createInference } from '../shared/vendor/reploid/inference/index.js';
+import { createExecutionPolicy, compileExecutionRequirements, EXECUTION_BACKENDS, EXECUTION_METADATA, PROTECTIONS, PROTECTION_ROUTES } from '../shared/vendor/reploid/chat/execution-policy.js';
+import { createInference, describeDisclosure, FREE } from '../shared/vendor/reploid/inference/index.js';
 import { partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { setTimeout as delay } from 'node:timers/promises';
 import chatModels from '../shared/config/chat-models.json' with { type: 'json' };
@@ -15,25 +15,38 @@ export function smallestServed(eligible, catalog = chatModels) {
   return [...eligible].sort((a, b) => Number(!!a.partition) - Number(!!b.partition) || order(a.id) - order(b.id))[0] ?? null;
 }
 
-/** `reploid ask` without execution flags: any eligible provider may read the prompt, and the metadata a plaintext route discloses is allowed. */
-export const DEFAULT_ASK_EXECUTION = Object.freeze({ placement: 'network-allowed', participants: Object.freeze({ kind: 'open' }),
-  confidentiality: 'executor-readable', allowMetadata: Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]) });
+/**
+ * `reploid ask` without execution flags: plaintext on any route a provider offers (`auto`), any eligible provider may
+ * read the prompt, and the metadata a plaintext route discloses is allowed. Open participants permit discovery, not
+ * disclosure: the recipient is still checked against the plan before anything is sent.
+ */
+export const DEFAULT_ASK_EXECUTION = Object.freeze({ protection: 'plaintext', route: 'auto',
+  participants: Object.freeze({ kind: 'open' }), allowMetadata: Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]) });
+/** `--route` values `ask` can run: it asks network providers only, and it cannot bind edge devices to the requester. */
+export const ASK_ROUTES = Object.freeze(['remote', 'split', 'auto']);
 
 /** The inference requirements `reploid ask` flags select. Unknown values are refused here, before discovery. */
-export function askExecution({ participants = [], confidentiality = 'executor-readable', allowMetadata } = {}) {
+export function askExecution({ participants = [], protection = 'plaintext', route = 'auto', allowMetadata } = {}) {
   const metadata = allowMetadata === undefined ? [...DEFAULT_ASK_EXECUTION.allowMetadata]
     : allowMetadata.split(',').map(item => item.trim()).filter(Boolean);
   if (metadata.some(item => !EXECUTION_METADATA.includes(item))) throw Error(`--allow-metadata takes ${EXECUTION_METADATA.join(', ')}`);
-  if (!['executor-readable', 'requester-only'].includes(confidentiality)) throw Error('--confidentiality is executor-readable or requester-only');
-  return { placement: 'network-allowed', participants: participants.length ? { kind: 'named', ids: [...new Set(participants)] } : { kind: 'open' },
-    confidentiality, allowMetadata: metadata };
+  if (!PROTECTIONS.includes(protection)) throw Error(`--protection is one of ${PROTECTIONS.join(', ')}`);
+  if (!PROTECTION_ROUTES[protection].includes(route)) throw Error(`--protection ${protection} takes --route ${PROTECTION_ROUTES[protection].join(', ')}`);
+  if (route === 'local') throw Error('--route local runs on this device; ask sends to network providers. Use remote, split or auto');
+  if (route === 'split-local-edges') {
+    throw Error('--route split-local-edges needs both edge devices bound to you, which ask cannot establish. Nothing was sent; use split, remote or auto');
+  }
+  return { protection, route,
+    participants: participants.length ? { kind: 'named', ids: [...new Set(participants)] } : { kind: 'open' }, allowMetadata: metadata };
 }
 
 /** One prompt through `reploid/inference`, the same API the browser and the SDK use. */
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000,
   execution = DEFAULT_ASK_EXECUTION, anyModel = false, catalog = null, settleMs = 2000 } = {}) {
-  // Unsupported guarantees (requester-only) and malformed requirements fail before discovery or any message.
+  // Protections this command cannot run (secret-sharing, homomorphic, attested) and malformed requirements fail before
+  // discovery or any message, with their stable codes. Nothing is retried as plaintext.
   compileExecutionRequirements(structuredClone(execution));
+  const routeKind = execution.route;
   const discovery = AbortSignal.timeout(discoveryMs);
   const waiting = AbortSignal.any([signal, discovery]);
   let route, firstReadyAt = null;
@@ -42,7 +55,9 @@ export async function askMesh(participant, model, prompt, { signal, report = con
       waiting.throwIfAborted();
       const eligible = (participant.getState().models || []).filter(candidate =>
         (anyModel || candidate.id === model.id && candidate.identity === model.identity) && candidate.availability === 'ready'
-        && !candidate.adapters?.length && (!candidate.partition || participant.executionClass === 'private-pool' || availablePartitionRoute(candidate)));
+        && !candidate.adapters?.length && (!candidate.partition || participant.executionClass === 'private-pool' || availablePartitionRoute(candidate))
+        // An explicit route is held exactly; auto may choose either.
+        && (routeKind === 'auto' || (routeKind === 'split') === Boolean(candidate.partition)));
       route = anyModel ? smallestServed(eligible, catalog) : eligible.find(candidate => !candidate.partition) ?? eligible[0];
       // Providers advertise one by one: without a named model, a smaller one has a moment to appear after the first.
       if (route && anyModel && (firstReadyAt ??= Date.now()) + settleMs > Date.now()) route = null;
@@ -60,12 +75,13 @@ export async function askMesh(participant, model, prompt, { signal, report = con
   const stages = route.partition && [...new Set(route.partition.route?.stages?.map(stage => stage.participantId)
     ?? [route.partition.participantA, route.partition.participantB])];
   const messages = [{ role: 'user', content: prompt }];
+  // Charge: free. `ask` sends through a mesh participant with no service-credit path; nothing here reserves or pays.
   const inference = createInference({
     resolveRoute: (_request, { context }) => context.stages
-      ? { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: context.stages, selection: 'all', planIdentity: route.partition.planId ?? null }
+      ? { shape: 'split', backend: 'doppler-partition-plaintext/v1', participants: context.stages, selection: 'all', planIdentity: route.partition.planId ?? null, maxCharge: FREE }
       : context.execution.participants.kind === 'named'
-        ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...context.execution.participants.ids], selection: 'one-of' }
-        : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' },
+        ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: [...context.execution.participants.ids], selection: 'one-of', maxCharge: FREE }
+        : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible', maxCharge: FREE },
     // A split binds its exact stages; the plan already checked they are within the caller's participants.
     execute: ({ policy, request }, controls) => participant.generate({ model: route, threadId, attemptId, messages: request.messages,
       privacy: stages ? createExecutionPolicy({ ...policy, recipients: { kind: 'named', ids: stages } }) : policy }, controls)
@@ -86,7 +102,7 @@ export async function askMesh(participant, model, prompt, { signal, report = con
         || previewed?.length !== 1 || previewed[0].role !== 'user' || previewed[0].content !== prompt) return false;
       if (stages && (stages.some(id => !recipients.includes(id))
         || recipients.some(id => id !== participant.identity && !stages.includes(id)))) return false;
-      report(`Sending to ${recipients.join(', ')} in ${participant.roomId}. ${plan.disclosures.statement}`);
+      report(`Sending to ${recipients.join(', ')} in ${participant.roomId}. ${describeDisclosure(plan.disclosure)}`);
       return true;
     } });
   const result = await run.result;

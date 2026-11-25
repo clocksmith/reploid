@@ -16,9 +16,9 @@ export { withWorkDevice } from './work-device.js';
 export function createWorkNetworkProvider(options) {
   const { model, service, scope, signal, swarm, controls, onProgress } = options;
   const privacy = options.privacy ? validateExecutionPolicy(options.privacy) : null;
-  // A requester-only policy is not refused here: the peer inference prepare refuses it with its stable code.
-  const requesterOnly = privacy ? executionRequirementsFor(privacy).confidentiality === 'requester-only' : false;
-  if (privacy && !requesterOnly) assertAvailableExecutionPolicy(privacy);
+  // A protected policy (anything but plaintext) is not refused here: the peer inference prepare refuses it with its stable code.
+  const protectedRequest = privacy ? executionRequirementsFor(privacy).protection !== 'plaintext' : false;
+  if (privacy && !protectedRequest) assertAvailableExecutionPolicy(privacy);
   if (privacy && model.provider !== 'doppler') throw Error('This provider has no qualified complete privacy route');
   const peers = createPeerInference({ swarm });
   return Object.freeze({
@@ -30,8 +30,8 @@ export function createWorkNetworkProvider(options) {
         const provider = await openWorkProvider({ ...options, signal: combined });
         return provider.generate(messages, onUpdate, { signal: combined });
       }
-      // Peer inference: prepared and run through reploid/inference. Requester-only never reaches this device.
-      if (requesterOnly || swarm?.generate && privacy?.placement === 'network-allowed' && privacy.recipients.kind !== 'none') {
+      // Peer inference: prepared and run through reploid/inference. A protected request never runs on this device.
+      if (protectedRequest || swarm?.generate && privacy?.placement === 'network-allowed' && privacy.recipients.kind !== 'none') {
         return peers.generate({ model, privacy, messages, approve: controls?.approve, record: controls?.record,
           signal: combined, onPartial: onUpdate, contextId, onProgress });
       }

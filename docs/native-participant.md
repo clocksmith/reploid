@@ -588,8 +588,9 @@ replacing, the host's existing authorization:
 ```json
 {
   "model": { "identity": "sha256:REPLACE-WITH-READY-MODEL-IDENTITY", "adapterIdentities": [], "planIdentity": "REPLACE-OR-OMIT" },
-  "execution": { "placement": "network-allowed", "participants": { "kind": "named", "ids": ["REPLACE-WITH-ADMITTED-PEER-THUMBPRINT"] },
-                 "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
+  "execution": { "protection": "plaintext", "route": "auto",
+                 "participants": { "kind": "named", "ids": ["REPLACE-WITH-ADMITTED-PEER-THUMBPRINT"] },
+                 "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
   "poolId": "valera-private-pool-v1",
   "conversationId": "optional-conversation-id"
 }
@@ -598,16 +599,17 @@ replacing, the host's existing authorization:
 The native host exposes its authoritative `roomId` and `executionClass`. A given
 `poolId` that differs, or a public or unknown class, fails closed, and so do
 model, adapter and plan mismatches and any participant outside `participants`.
-The extension is read before the protocol's messages. `confidentiality:
-"requester-only"` is refused with 422 `confidential_execution_unavailable`,
-because a JSON body is already plaintext to this server. Checks span execution
+The extension is read before the protocol's messages. Every `protection` but
+`plaintext` is refused with 422 `confidential_execution_unavailable`, because a
+JSON body is already plaintext to this server. Checks span execution
 authorization, the plan's route admission, disclosure authorization and
 completion. Expected adapters must be active on the selected route, not merely
 available.
 
 With the extension, every route returns a top-level `reploid` record: the
-`reploid.execution-receipt/v1` (requested requirements, admitted route,
-backend, disclosures, and separate confidentiality and integrity evidence), the
+`reploid.execution-receipt/v2` (issue time, protection and concrete route, requested
+requirements, admitted route, backend, disclosure, and separate privacy,
+integrity and credit evidence), the
 executor's own `execution` report as reported, `poolId` and `conversationId`.
 Headers retain request/attempt/model identity and the raw-token usage schema
 when admitted. The executor report is provider-reported; HTTP compatibility does

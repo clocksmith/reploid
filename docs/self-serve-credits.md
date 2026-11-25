@@ -173,7 +173,7 @@ The operator **cannot**:
 - read prompts or answers. They travel between the requester's host and the
   provider over WebRTC (DTLS). The ledger receives an input digest and signed
   token counts. The provider that answers reads the content in plaintext, as
-  in every [executor-readable](confidential-execution.md#threat-model-per-mode)
+  in every [plaintext](confidential-execution.md#threat-model-per-protection-and-route)
   route;
 - sign as a computer. Keys stay on the computer, and the service receives only
   public keys;

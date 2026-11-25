@@ -1040,7 +1040,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   await picker.locator('[data-model-picker-close]').click();
   await expect(picker).toBeHidden();
   expect(await opener.innerText()).toBe(original);
-  // One sheet chooses the computer and model; the execution presets are the composer's "Who can read it" button.
+  // One sheet chooses the computer and model; protection and placement are the composer's "Who can read it" chip.
   await page.locator('[data-open-model]').click();
   await expect(picker.locator('[data-execution-choice=local]')).toHaveAttribute('aria-checked', 'true');
   await picker.screenshot({ path: info.outputPath('answer-on-sheet.png') });
@@ -1048,12 +1048,16 @@ test('model preview and inference privacy commit independently', async ({ page }
   await expect(picker).toBeHidden();
   await page.locator('.chat-composer-toolbar [data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');
-  // Each preset states its availability before Send; the confidential one is unavailable and cannot be chosen.
-  await expect(privacy.locator('[value=own-devices]')).toBeChecked();
-  await expect(privacy.locator('[value=no-device]')).toBeDisabled();
-  await expect(privacy.locator('[data-preset-status=no-device]')).toContainText('Not available yet');
+  // Four protections with their lines; those this browser cannot run are disabled with their reasons.
+  await expect(privacy.locator('[data-privacy-protection][value=plaintext]')).toBeChecked();
+  await expect(privacy.locator('[data-protection-status=plaintext]')).toHaveText('Computers that process your request can read the data they receive.');
+  await expect(privacy.locator('[data-privacy-protection][value=attested]')).toBeDisabled();
+  await expect(privacy.locator('[data-protection-status=attested]')).toContainText('Unavailable');
+  // Where it runs: a local conversation runs on this device; "Only your devices" is a separate participants choice.
+  await expect(privacy.locator('[data-privacy-route][value=local]')).toBeChecked();
+  await expect(privacy.locator('[data-privacy-own-devices]')).toBeDisabled();
   await expect(privacy.locator('[data-preset-note=standard]')).toContainText('model identity, timing and message sizes');
-  await privacy.locator('[value=standard]').check();
+  await privacy.locator('[data-privacy-route][value=auto]').check();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });
   await privacy.locator('[data-privacy-cancel]').click();
   await expect(picker).toBeHidden();

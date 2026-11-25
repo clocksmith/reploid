@@ -98,6 +98,9 @@ async function fixture({ execute, capability = limitOnly, intercept = null, expe
       getNetworkState: () => mesh.requesterMesh.getSwarmSnapshot(),
       generate: (request, controls) => wholeRequester.generate(request, controls),
       recoverGeneration: (request, reference, controls) => wholeRequester.recover(request, reference, controls) },
+    // The plan's charge cap, quoted from the same credit terms as the accounted requester (the real host's port).
+    chargeCeiling: request => createFleetRequester({ participant: { generate: () => { throw Error('not sent'); } }, identity: keys[0],
+      credits: requesterCredits, maxOutputTokens: 16 }).chargeCeiling(request),
     async runAccountedGeneration(request, controls, run) {
       const requester = createFleetRequester({ participant: { generate: run }, identity: keys[0], credits: requesterCredits, maxOutputTokens: 16 });
       const result = await requester.generate(request, { ...controls, onReservation(id) { reservations.push(id); controls.onReservation?.(id); } });

@@ -649,8 +649,8 @@ async function runSignedApiAndCancellation() {
         reploid: {
           poolId: room,
           model: { identity: CATALOG_MODEL.identity },
-          execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [providerKey.peerId] },
-            confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] },
+          execution: { protection: 'plaintext', route: 'auto',
+            participants: { kind: 'named', ids: [providerKey.peerId] }, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] },
         },
       }),
     });

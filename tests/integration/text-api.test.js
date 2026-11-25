@@ -87,7 +87,8 @@ it('applies the same durable trial slot to both protocols before dispatch, then 
   let release, entered;
   const holding = new Promise(resolve => { release = resolve; });
   const admitted = new Promise(resolve => { entered = resolve; });
-  const accounting = { async run(request, controls, execute) {
+  // The accounting owner states the plan's charge cap (its quote's maximum); one that cannot is refused before planning.
+  const accounting = { chargeCeiling: async () => ({ kind: 'capped', maximum: 5, unit: 'USD-minor' }), async run(request, controls, execute) {
     const reservationId = request.attemptId, accountId = controls.principal.subject;
     reservations.set(reservationId, { reservationId, accountId, accepted: true, currency: 'USD',
       quoteIdentity: 'fixture-quote', maxSubsidyMinor: 5, expiresAt: Date.now() + 10000 });

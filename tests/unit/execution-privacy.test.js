@@ -1,7 +1,8 @@
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute,
-  validateExecutionRoute, bindExecutionRoute, compileExecutionRequirements, executionRequirementsFor, narrowsExecutionPolicy
+  validateExecutionRoute, bindExecutionRoute, compileExecutionRequirements, executionRequirementsFor, narrowsExecutionPolicy,
+  PROTECTIONS, PROTECTION_ROUTES, EXECUTION_ROUTES
 } from '../../packages/reploid/src/chat/execution-policy.js';
 import { eligibleExecutionOffers } from '../../packages/reploid/src/chat/execution-offers.js';
 import { remotePermissionNeed, createRemotePermission, remotePermissionCovers } from '../../packages/reploid/src/chat/remote-permission.js';
@@ -68,25 +69,59 @@ describe('request privacy at the disclosure boundary', () => {
     expect(Object.isFrozen(binding.route.hops)).toBe(true);
   });
   it('compiles caller requirements into the peer policy and refuses what no backend can meet', () => {
-    const execution = { placement: 'network-allowed', participants: { kind: 'named', ids: ['mine'] },
-      confidentiality: 'executor-readable', allowMetadata: ['length', 'model-id', 'timing'] };
+    const execution = { protection: 'plaintext', route: 'auto', participants: { kind: 'named', ids: ['mine'] },
+      allowMetadata: ['length', 'model-id', 'timing'] };
     const policy = compileExecutionRequirements(execution);
     expect(policy).toMatchObject({ placement: 'network-allowed', recipients: { kind: 'named', ids: ['mine'] }, computation: 'plaintext',
       collusion: 'none', leakage: ['model-id', 'timing', 'length', 'plaintext'], allowDowngrade: false });
     expect(executionRequirementsFor(policy)).toEqual({ ...execution, allowMetadata: ['model-id', 'timing', 'length'] });
-    expect(() => compileExecutionRequirements({ ...execution, confidentiality: 'requester-only' })).toThrow(expect.objectContaining({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' }));
-    for (const bad of [{ ...execution, placement: 'local-only' }, { ...execution, allowMetadata: ['plaintext'] }, { ...execution, extra: true },
-      { ...execution, participants: { kind: 'named', ids: [] } }, { ...execution, confidentiality: 'encrypted' }]) {
+    const local = { protection: 'plaintext', route: 'local', allowMetadata: [] };
+    expect(compileExecutionRequirements(local)).toMatchObject({ placement: 'local-only', recipients: { kind: 'none', ids: [] } });
+    expect(executionRequirementsFor(compileExecutionRequirements(local))).toEqual(local);
+    // Every protection but plaintext is refused here with its stable code and a reason, never compiled as plaintext.
+    for (const protection of ['homomorphic', 'secret-sharing', 'attested']) {
+      expect(() => compileExecutionRequirements({ ...execution, protection })).toThrow(expect.objectContaining({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE',
+        reason: expect.any(String) }));
+    }
+    const { protection: _omitted, ...noProtection } = execution;
+    for (const bad of [{ ...execution, allowMetadata: ['plaintext'] }, { ...execution, extra: true }, { ...local, participants: { kind: 'open' } },
+      { ...execution, participants: { kind: 'named', ids: [] } }, { ...execution, participants: { kind: 'none' } }, { ...execution, protection: 'encrypted' },
+      { ...execution, confidentiality: 'executor-readable' }, noProtection, { ...execution, route: 'whole' }, { ...execution, placement: 'network-allowed' },
+      { ...execution, protection: 'secret-sharing', route: 'split-local-edges' }]) {
       expect(() => compileExecutionRequirements(bad)).toThrow(expect.objectContaining({ code: 'EXECUTION_REQUEST_INVALID' }));
     }
-    // A policy the API cannot express is refused, never widened, and a confidential one maps to requester-only.
+    expect(compileExecutionRequirements({ ...execution, route: 'split-local-edges' }).computation).toBe('plaintext');
+    // A policy the API cannot express is refused, never widened; an encrypted one maps to homomorphic.
     expect(() => executionRequirementsFor(createExecutionPolicy({ retention: 'ephemeral' }))).toThrow('cannot express');
-    expect(executionRequirementsFor(createExecutionPolicy({ computation: 'cryptographic', protocol: 'fhe/v1', keyContext: 'k' })).confidentiality).toBe('requester-only');
+    expect(executionRequirementsFor(createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] },
+      computation: 'cryptographic', protocol: 'fhe/v1', keyContext: 'k', leakage: [] })).protection).toBe('homomorphic');
     // Narrowing: fewer recipients and less metadata pass; more of either does not.
     const open = compileExecutionRequirements({ ...execution, participants: { kind: 'open' } });
     expect(narrowsExecutionPolicy(open, policy)).toBe(true);
     expect(narrowsExecutionPolicy(policy, open)).toBe(false);
     expect(narrowsExecutionPolicy(compileExecutionRequirements({ ...execution, allowMetadata: [] }), policy)).toBe(false);
+  });
+
+  it('accepts exactly the protection x route table and refuses every other pair, naming the allowed routes', () => {
+    const table = { plaintext: ['local', 'remote', 'split', 'split-local-edges', 'auto'], 'secret-sharing': ['split', 'auto'],
+      homomorphic: ['remote', 'auto'], attested: ['remote', 'auto'] };
+    expect(PROTECTION_ROUTES).toEqual(table);
+    for (const protection of PROTECTIONS) {
+      for (const route of [...EXECUTION_ROUTES, 'whole', 'edges', '']) {
+        const execution = route === 'local' ? { protection, route, allowMetadata: [] } : { protection, route, participants: { kind: 'open' }, allowMetadata: [] };
+        let error = null;
+        try { compileExecutionRequirements(execution); } catch (caught) { error = caught; }
+        if (!table[protection].includes(route)) {
+          expect(error, `${protection} x ${route}`).toMatchObject({ code: 'EXECUTION_REQUEST_INVALID',
+            message: expect.stringContaining(`protection ${protection} takes route ${table[protection].join(', ')}`) });
+        } else if (protection === 'plaintext') {
+          expect(error, `${protection} x ${route}`).toBe(null);
+        } else {
+          // Accepted by the union, then refused because its route is off here: a reason, never plaintext.
+          expect(error, `${protection} x ${route}`).toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE', reason: expect.any(String) });
+        }
+      }
+    }
   });
   it('qualifies an offer only by the requester\'s own backend registry, never by its advertised kind', () => {
     const policy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });

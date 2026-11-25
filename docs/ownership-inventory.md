@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 399 |
+| apps/poolday | 400 |
 | self | 457 |
-| shared | 2521 |
-| total | 3377 |
+| shared | 2523 |
+| total | 3380 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 2069 | shared |
-| `vendor/reploid/` | 367 | shared |
+| `vendor/reploid/` | 369 | shared |
 
 ## Files
 
@@ -432,6 +432,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/earning/attempts.js` | `apps/poolday/host/earning/attempts.js` | apps/poolday | Reached only from product entries. |
 | `host/earning/client.js` | `apps/poolday/host/earning/client.js` | apps/poolday | Reached only from product entries. |
 | `host/earning/contribution.js` | `apps/poolday/host/earning/contribution.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
+| `host/execution-route.js` | `apps/poolday/host/execution-route.js` | apps/poolday | Reached only from product entries. |
 | `host/file-access.js` | `self/host/file-access.js` | self | Reached only from substrate entries. |
 | `host/fleet-account.js` | `apps/poolday/host/fleet-account.js` | apps/poolday | Reached only from product entries. |
 | `host/guest-join.js` | `apps/poolday/host/guest-join.js` | apps/poolday | Reached only from product entries. |

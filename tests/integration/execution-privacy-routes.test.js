@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createInference } from '../../packages/reploid/src/inference/index.js';
+import { createInference, FREE } from '../../packages/reploid/src/inference/index.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
@@ -95,7 +95,7 @@ it('never serves a stronger tier through a weaker one: each unmet requirement re
 describe('the inference API over the authenticated mesh', () => {
   const model = { id: 'model', identity: 'sha256:' + 'a'.repeat(64), name: 'Model', provider: 'doppler' };
   const readable = (participants = { kind: 'open' }, allowMetadata = ['model-id', 'timing', 'length', 'access-patterns']) => ({
-    placement: 'network-allowed', participants, confidentiality: 'executor-readable', allowMetadata });
+    protection: 'plaintext', route: 'auto', participants, allowMetadata });
   async function boot({ resolve } = {}) {
     let whole, clock = 1000;
     const f = await createRecoveryMesh(cleanup, { modelId: model.id, modelIdentity: model.identity,
@@ -105,8 +105,8 @@ describe('the inference API over the authenticated mesh', () => {
     const executed = [];
     const inference = createInference({ now: () => clock,
       resolveRoute: resolve ?? ((request) => request.execution.participants.kind === 'named'
-        ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: request.execution.participants.ids, selection: 'one-of' }
-        : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' }),
+        ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: request.execution.participants.ids, selection: 'one-of', maxCharge: FREE }
+        : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible', maxCharge: FREE }),
       execute: ({ policy, request }, controls) => { executed.push(request.requestId); return whole.generate({ model: whole.getModels()[0],
         threadId: 'thread', attemptId: request.attemptId, privacy: policy, messages: request.messages }, controls); } });
     const prompt = f.messages[0].content;
@@ -127,8 +127,15 @@ describe('the inference API over the authenticated mesh', () => {
     const { f, ask, sent, provider } = await boot();
     for (const [requestId, execution] of [['open-1', readable()], ['named-1', readable({ kind: 'named', ids: [provider] })]]) {
       const { plan, result, events } = await ask(execution, requestId);
-      expect(plan.disclosures).toMatchObject({ executorsReadContent: true, metadata: ['model-id', 'timing', 'length', 'access-patterns'],
-        contentReadableBy: { requesterDevice: false } });
+      expect(plan).toMatchObject({ protection: 'plaintext', routeKind: 'remote', maxCharge: { kind: 'free' } });
+      expect(plan.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      expect(plan.disclosure.metadata.items).toEqual(['model-id', 'timing', 'length', 'access-patterns']);
+      // Every section names its readers: this device and the remote executor, never an empty list.
+      for (const section of ['prompt', 'intermediate', 'answer']) {
+        expect(plan.disclosure[section].readers[0]).toEqual({ role: 'requester-device' });
+        expect(plan.disclosure[section].readers).toHaveLength(2);
+        expect(plan.disclosure[section].readers[1].role).toBe('answering-computer');
+      }
       // This provider answers without streaming, so no output.delta arrives between admission and the terminal event.
       expect(events).toEqual(['admitted', 'completed']);
       expect(result).toMatchObject({ requestId, status: 'completed', output: { text: 'actual answer', finishReason: 'stop' },
@@ -137,22 +144,25 @@ describe('the inference API over the authenticated mesh', () => {
       expect(receipt.requested.execution).toEqual(execution);
       expect(receipt.route).toMatchObject({ planRouteId: plan.route.id, shape: 'remote', participants: [provider],
         backend: 'doppler-plaintext/v1', protocol: null });
-      expect(receipt.evidence.confidentiality.verified).toEqual([{ claim: 'content-recipients', by: 'requester',
-        method: 'route-binding-before-disclosure', value: [provider] }]);
-      expect(receipt.evidence.confidentiality.notVerified).toEqual(['recipient-conduct', 'erasure', 'hardware-attestation', 'cryptographic-protection']);
-      expect(receipt.evidence.integrity.verified.map(row => row.claim)).toEqual(['model-identity', 'adapter-identities', 'stream-matches-answer']);
+      expect(receipt.evidence.privacy.checks).toEqual([{ claim: 'content-recipients', by: 'requester',
+        method: 'route-binding-before-release', value: [provider] }]);
+      expect(receipt.evidence.privacy.notVerified).toEqual(['recipient-conduct', 'erasure', 'hardware-attestation']);
+      expect(receipt.evidence.integrity.checks.map(row => row.claim)).toEqual(['model-identity', 'adapter-identities', 'stream-matches-answer']);
+      expect(receipt.evidence.credits).toMatchObject({ checkedHere: false });
       expect(receipt.evidence.integrity.notVerified).toContain('correct-computation');
       expect(JSON.stringify(receipt)).not.toContain(f.messages[0].content);
     }
     expect(sent()).toHaveLength(2);
   });
 
-  it('refuses requester-only confidentiality and disallowed leakage before any route lookup or message, and never retries as readable', async () => {
-    const resolve = vi.fn(() => ({ shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' }));
+  it('refuses an unavailable protection and disallowed leakage before any route lookup or message, and never retries as plaintext', async () => {
+    const resolve = vi.fn(() => ({ shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible', maxCharge: FREE }));
     const { inference, sent, leaked, executed } = await boot({ resolve });
     const before = resolve.mock.calls.length;
-    await expect(inference.prepare({ model: { id: model.id, identity: model.identity }, execution: { ...readable(), confidentiality: 'requester-only' } }))
-      .rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' });
+    for (const protection of ['homomorphic', 'attested', 'secret-sharing']) {
+      await expect(inference.prepare({ model: { id: model.id, identity: model.identity }, execution: { ...readable(), protection } }))
+        .rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' });
+    }
     expect(resolve.mock.calls.length).toBe(before);
     await expect(inference.prepare({ model: { id: model.id, identity: model.identity }, execution: readable({ kind: 'open' }, ['model-id']) }))
       .rejects.toMatchObject({ code: 'LEAKAGE_NOT_ALLOWED' });
@@ -164,7 +174,7 @@ describe('the inference API over the authenticated mesh', () => {
   it('refuses a substituted participant, a changed route and an expired plan with nothing sent', async () => {
     // The plan pins a participant the mesh will not pick: the admission check refuses before the prompt leaves.
     const { f, ask, sent, leaked } = await boot({ resolve: () => ({ shape: 'remote', backend: 'doppler-plaintext/v1',
-      participants: ['peer:pinned-elsewhere'], selection: 'one-of' }) });
+      participants: ['peer:pinned-elsewhere'], selection: 'one-of', maxCharge: FREE }) });
     const substituted = await ask(readable(), 'substituted');
     expect(substituted.result).toMatchObject({ status: 'failed', output: null, error: { code: 'EXECUTION_PLAN_CHANGED' } });
     expect(substituted.events).toEqual(['failed']);
@@ -172,8 +182,8 @@ describe('the inference API over the authenticated mesh', () => {
     expect(sent()).toEqual([]); expect(leaked()).toEqual([]); expect(f.executions).toBe(0);
 
     let moved = false;
-    const moving = await boot({ resolve: () => moved ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: ['peer:other'], selection: 'one-of' }
-      : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible' } });
+    const moving = await boot({ resolve: () => moved ? { shape: 'remote', backend: 'doppler-plaintext/v1', participants: ['peer:other'], selection: 'one-of', maxCharge: FREE }
+      : { shape: 'remote', backend: 'doppler-plaintext/v1', selection: 'any-eligible', maxCharge: FREE } });
     const plan = await moving.inference.prepare({ model: { id: model.id, identity: model.identity }, execution: readable() });
     moved = true;
     await expect(moving.inference.run({ planId: plan.id, requestId: 'moved', input: { messages: moving.f.messages } }))

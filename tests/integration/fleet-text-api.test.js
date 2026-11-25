@@ -20,8 +20,8 @@ const model = { id: 'qwen-3-5-2b-q4k-ef16-af32', identity: 'sha256:' + 'a'.repea
 const token = 'synthetic-fleet-api-bearer-secret-0123456789abcdef';
 const roomId = 'reploid-swarm-fleet-fixture';
 /** The one `reploid` extension: pinned model, the named participants allowed to read the prompt, and the private pool. */
-const extension = (ids, more = {}) => ({ poolId: roomId, model: { identity: model.identity }, execution: { placement: 'network-allowed',
-  participants: { kind: 'named', ids }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] }, ...more });
+const extension = (ids, more = {}) => ({ poolId: roomId, model: { identity: model.identity }, execution: { protection: 'plaintext', route: 'auto',
+  participants: { kind: 'named', ids }, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] }, ...more });
 
 let root, keys, credits, service, requesterCredits, providerCredits;
 beforeEach(async () => {
@@ -108,6 +108,9 @@ function createHostAdapter(wholeRequester, mesh = null) {
       return new Set((network.computers || []).flatMap(row => row.participantIds || []));
     },
     textParticipant,
+    // The plan's charge cap, quoted from the same credit terms as the accounted requester (the real host's port).
+    chargeCeiling: request => createFleetRequester({ participant: textParticipant, identity: keys[0], credits: requesterCredits, maxOutputTokens: 16 })
+      .chargeCeiling(request),
     async runAccountedGeneration(request, controls, execute) {
       if (request.generationRequest && request.generationRequest.maxOutputTokens > 16) {
         throw Object.assign(Error('max_output_tokens exceeds fleet credit policy'), { status: 400, param: 'max_output_tokens' });
@@ -165,7 +168,8 @@ it('rejects an explicit private network request under a local-only operator poli
     participant: { roomId, executionClass: 'private-pool',
       getState: () => ({ models: [{ ...model, availability: 'ready', providerIds: ['connection'] }] }), generate },
     authenticate: async () => ({ subject: 'fixture' }), authorize: async () => true,
-    accounting: { run }, executionPolicyFor: () => createExecutionPolicy()
+    accounting: { run, chargeCeiling: async () => ({ kind: 'capped', maximum: 16, unit: 'noncash-service-credit' }) },
+    executionPolicyFor: () => createExecutionPolicy()
   });
   const server = http.createServer(api.handle);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -242,9 +246,9 @@ it('streams authenticated /v1/responses over whole-model fleet capacity and sett
     expect(final.output[0].content[0].text).toBe('{"ok":true}');
     expect(final.usage).toEqual({ input_tokens: 11, output_tokens: 4, total_tokens: 15 });
     expect(final.reploid.executionReceipt).toMatchObject({
-      schema: 'reploid.execution-receipt/v1', status: 'completed', requested: { model: { id: model.id, identity: model.identity } },
+      schema: 'reploid.execution-receipt/v2', status: 'completed', protection: 'plaintext', requested: { model: { id: model.id, identity: model.identity } },
       route: { shape: 'remote', participants: [keys[1].peerId], backend: 'doppler-plaintext/v1', protocol: null },
-      evidence: { confidentiality: { mode: 'executor-readable', contentReadBy: { participants: [keys[1].peerId] } } }
+      evidence: { privacy: { protection: 'plaintext', contentReadBy: { participants: [keys[1].peerId] } } }
     });
     expect(final.reploid).toMatchObject({
       execution: {

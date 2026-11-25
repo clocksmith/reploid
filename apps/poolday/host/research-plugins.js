@@ -39,7 +39,7 @@ export function createResearchPlugins({ chat, swarm, storage }) {
         && JSON.stringify(input.messages).length <= 48000, 'Study request exceeds its declared bounds');
       const scope = frozen.authorizedModels?.find(entry => entry.id === input.model.id && entry.identity === input.model.identity);
       assert(scope, 'Saved study needs fresh approval for its verified recipients. Start a new study.');
-      // Availability is the inference API's decision: a requester-only policy is refused there, with nothing sent.
+      // Availability is the inference API's decision: a protected (non-plaintext) policy is refused there, with nothing sent.
       const privacy = validateExecutionPolicy(scope.privacy);
       assert(privacy.placement === 'network-allowed' && privacy.recipients.kind === 'named', 'Study requires named recipient approval');
       const permissions = [];

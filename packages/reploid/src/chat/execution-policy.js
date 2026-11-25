@@ -28,9 +28,9 @@ export const executionError = (code, message) => {
   if (!Object.hasOwn(EXECUTION_ERROR_CODES, code)) throw new Error(`Unknown execution error code ${code}`);
   return Object.assign(new Error(message), { code });
 };
-/** Why requester-only is unavailable. The research protected route stays off until this review is done. */
+/** Why `homomorphic` is unavailable. The research protected route stays off until this review is done. */
 export const CONFIDENTIAL_EXECUTION_REVIEW_REASON = 'awaiting independent security review';
-/** Metadata names a caller may allow. Content itself is governed by confidentiality, never by this list. */
+/** Metadata names a caller may allow. Content itself is governed by `protection`, never by this list. */
 export const EXECUTION_METADATA = Object.freeze(['model-id', 'timing', 'length', 'access-patterns']);
 const metadata = [...EXECUTION_METADATA];
 const plaintextLeakage = [...metadata, 'plaintext'];
@@ -57,18 +57,42 @@ export const EXECUTION_BACKENDS = freeze({
     metadata: [...PLAINTEXT_METADATA] }
 });
 /**
- * The confidentiality values the API accepts. `requester-only` always fails closed; `requester-edges` needs an edges route;
- * `secret-shared-2party` fails closed unless a host enables its unreviewed route (inference/secret-shared.js).
+ * How data is processed (`execution.protection`). `plaintext` always compiles; `secret-sharing` and `homomorphic` fail
+ * closed unless a host enables their unreviewed routes (inference/secret-shared.js, inference/protected.js); `attested`
+ * is reserved and always refused: its route is parked and no verified hardware is qualified in this build.
  */
-export const CONFIDENTIALITY_MODES = Object.freeze(['requester-only', 'requester-edges', 'secret-shared-2party', 'executor-readable']);
+export const PROTECTIONS = Object.freeze(['plaintext', 'secret-sharing', 'homomorphic', 'attested']);
 /**
- * Two-party additive secret sharing per stage: each stage's projections run on two fresh random shares held by two
- * operators who must not collude. It is a trust assumption, not requester-only secrecy, so it has its own collusion
- * model and protocol identity and never satisfies `requester-only`.
+ * Where and how the model runs (`execution.route`), typed per protection so an invalid pair cannot be written:
+ *  - `local`: this device runs the whole model (plaintext only; the request has no participants);
+ *  - `remote`: one other computer runs the whole model;
+ *  - `split`: several computers run it in stages, with any eligible computers at the edges;
+ *  - `split-local-edges`: several computers, with two devices bound to the requester holding the first and last stage
+ *    (plaintext only; both edges must be bound to the requester, otherwise refused);
+ *  - `auto`: any route this protection allows. Under plaintext that includes `local` when the model is on this device,
+ *    and it can choose a split, which widens who reads the message; the plan states the chosen route and its readers
+ *    before anything is sent. `auto` never chooses weaker protection.
  */
+export const ROUTE_KINDS = Object.freeze(['local', 'remote', 'split', 'split-local-edges']);
+export const EXECUTION_ROUTES = Object.freeze([...ROUTE_KINDS, 'auto']);
+export const PROTECTION_ROUTES = Object.freeze({
+  plaintext: Object.freeze(['local', 'remote', 'split', 'split-local-edges', 'auto']),
+  'secret-sharing': Object.freeze(['split', 'auto']),
+  homomorphic: Object.freeze(['remote', 'auto']),
+  attested: Object.freeze(['remote', 'auto'])
+});
+/** The concrete routes `auto` may choose under each protection. */
+export const AUTO_ROUTES = Object.freeze({
+  plaintext: Object.freeze(['local', 'remote', 'split']),
+  'secret-sharing': Object.freeze(['split']),
+  homomorphic: Object.freeze(['remote']),
+  attested: Object.freeze(['remote'])
+});
 export const SECRET_SHARED_PROTOCOL = 'reploid.secret-shared-2party/v1';
 export const SECRET_SHARED_COLLUSION = 'non-colluding-share-pairs';
 export const SECRET_SHARED_REVIEW_REASON = 'secret-shared execution is unreviewed and off by default';
+/** Why `attested` is refused. The attested route is parked; nothing in this build verifies hardware or its software. */
+export const ATTESTED_UNAVAILABLE_REASON = 'no attested route is enabled in this build, so no hardware or its software is verified';
 export const executionBackend = backend => Object.hasOwn(EXECUTION_BACKENDS, backend) ? EXECUTION_BACKENDS[backend] : null;
 const plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 const exact = (object, keys) => object && typeof object === 'object' && !Array.isArray(object)
@@ -125,97 +149,113 @@ export function assertAvailableExecutionPolicy(policy) {
 }
 
 const invalid = message => executionError('EXECUTION_REQUEST_INVALID', `Execution requirements: ${message}`);
+const unavailable = (message, reason) => Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE', message), { reason });
+/** True when the route is a split whose first and last stages run on two devices bound to the requester. */
+export const requesterEdges = execution => execution?.route === 'split-local-edges';
 
 /**
- * Compile a caller's execution requirements into the verified peer policy. `requester-only` means no executor
- * may read the content; no backend qualifies for it, so it fails closed here and is never relaxed to a readable mode.
+ * Shape checks shared by every compiler. JSON cannot be type-checked, so anything outside the per-protection union is
+ * refused here with EXECUTION_REQUEST_INVALID, naming the routes that protection allows.
  */
-export function compileExecutionRequirements(execution) {
-  if (!exact(execution, ['placement', 'participants', 'confidentiality', 'allowMetadata'])) {
-    throw invalid('placement, participants, confidentiality and allowMetadata are required, with no other fields');
+function checkRequirements(execution) {
+  if (!execution || typeof execution !== 'object' || Array.isArray(execution)) throw invalid('execution must be { protection, route, participants?, allowMetadata }');
+  const { protection, route, participants, allowMetadata } = execution;
+  if (!PROTECTIONS.includes(protection)) throw invalid(`protection must be one of ${PROTECTIONS.join(', ')}`);
+  const routes = PROTECTION_ROUTES[protection];
+  if (!routes.includes(route)) throw invalid(`protection ${protection} takes route ${routes.join(', ')}`);
+  const local = route === 'local';
+  const keys = local ? ['protection', 'route', 'allowMetadata'] : ['protection', 'route', 'participants', 'allowMetadata'];
+  if (!exact(execution, keys)) {
+    throw invalid(local ? 'route local takes protection, route and allowMetadata only: a local request has no participants'
+      : `route ${route} takes ${keys.join(', ')}, with no other fields`);
   }
-  const { placement, participants, confidentiality, allowMetadata } = execution;
-  if (!['local-only', 'network-allowed'].includes(placement)) throw invalid('placement must be local-only or network-allowed');
-  if (!CONFIDENTIALITY_MODES.includes(confidentiality)) throw invalid(`confidentiality must be one of ${CONFIDENTIALITY_MODES.join(', ')}`);
   if (!Array.isArray(allowMetadata) || new Set(allowMetadata).size !== allowMetadata.length
     || !allowMetadata.every(item => metadata.includes(item))) throw invalid(`allowMetadata must be distinct items of ${metadata.join(', ')}`);
+  if (local) return { kind: 'none', placement: 'local-only' };
   const kind = participants?.kind;
   const shaped = kind === 'named' ? exact(participants, ['kind', 'ids']) && participants.ids?.length > 0 && list(participants.ids)
-    : ['open', 'none'].includes(kind) && exact(participants, ['kind']);
-  if (!shaped) throw invalid('participants must be { kind: "open" }, { kind: "none" } or { kind: "named", ids: [unique ids] }');
-  if ((placement === 'local-only') !== (kind === 'none')) throw invalid('local-only placement takes { kind: "none" } participants, and only it does');
-  if (confidentiality === 'requester-only') {
-    throw Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
-      'No backend that keeps content from its executors is qualified. Nothing was sent; the request is not retried as readable or local.'),
-    { reason: CONFIDENTIAL_EXECUTION_REVIEW_REASON });
+    : kind === 'open' && exact(participants, ['kind']);
+  if (!shaped) throw invalid('participants must be { kind: "open" } or { kind: "named", ids: [unique ids] }');
+  return { kind, placement: 'network-allowed' };
+}
+
+/**
+ * Compile a caller's execution requirements into the verified peer policy. Only `plaintext` compiles here; every other
+ * protection fails closed with CONFIDENTIAL_EXECUTION_UNAVAILABLE and is never relaxed to plaintext or made local.
+ */
+export function compileExecutionRequirements(execution) {
+  const { kind, placement } = checkRequirements(execution);
+  const { protection, participants, allowMetadata } = execution;
+  if (protection === 'attested') {
+    throw unavailable('Verified hardware is unavailable. Nothing was sent; the request is not retried with another protection.', ATTESTED_UNAVAILABLE_REASON);
   }
-  if (confidentiality === 'secret-shared-2party') {
-    throw Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
-      'Secret-shared execution is off unless this host enables its unreviewed route. Nothing was sent; the request is not retried as readable.'),
-    { reason: SECRET_SHARED_REVIEW_REASON });
+  if (protection === 'homomorphic') {
+    throw unavailable('Computing on encrypted data is off unless this host enables its unreviewed route. Nothing was sent; the request is not retried as plaintext or local.',
+      CONFIDENTIAL_EXECUTION_REVIEW_REASON);
+  }
+  if (protection === 'secret-sharing') {
+    throw unavailable('Secret sharing is off unless this host enables its unreviewed route. Nothing was sent; the request is not retried as plaintext.',
+      SECRET_SHARED_REVIEW_REASON);
   }
   // Requester-held edges compile to the plaintext layered policy: the middle stages do read plaintext activations. What
-  // narrows disclosure is the route (EDGES_BACKEND), which the inference API requires for this value and never relaxes.
-  if (confidentiality === 'requester-edges' && placement !== 'network-allowed') {
-    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Requester-held edges need network stages; local-only has no such route. Nothing was sent.');
-  }
+  // narrows disclosure is the route (EDGES_BACKEND), which the inference API requires for this route and never relaxes.
   return createExecutionPolicy({ placement, recipients: { kind, ids: kind === 'named' ? [...participants.ids] : [] },
     leakage: [...metadata.filter(item => allowMetadata.includes(item)), 'plaintext'] });
 }
 
 /**
- * The verified policy for a `requester-only` request on a protected protocol. Only the inference API calls this,
- * and only when its host enabled the unreviewed protected route explicitly; `compileExecutionRequirements` above
- * still refuses requester-only for every other caller. The shape checks are the readable compiler's own.
+ * The verified policy for a `homomorphic` request on a protected protocol. Only the inference API calls this, and only
+ * when its host enabled the unreviewed protected route explicitly; `compileExecutionRequirements` above still refuses
+ * `homomorphic` for every other caller. The protected route evaluates the whole model on one evaluator: route
+ * `remote` or `auto`.
  */
 export function compileProtectedExecutionRequirements(execution, protocol) {
-  if (!exact(execution, ['placement', 'participants', 'confidentiality', 'allowMetadata']) || execution.confidentiality !== 'requester-only') {
-    throw invalid('protected execution compiles requester-only requirements only');
-  }
-  compileExecutionRequirements({ ...execution, confidentiality: 'executor-readable' });
-  if (execution.placement !== 'network-allowed') {
-    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Confidential execution runs on a network evaluator; local-only has no protected route. Nothing was sent.');
-  }
+  if (execution?.protection !== 'homomorphic') throw invalid('protected execution compiles homomorphic requirements only');
+  const { kind } = checkRequirements(execution);
   if (!id(protocol)) throw invalid('protected execution needs a protocol identity');
   const { participants, allowMetadata } = execution;
-  return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: participants.kind, ids: participants.kind === 'named' ? [...participants.ids] : [] },
+  return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind, ids: kind === 'named' ? [...participants.ids] : [] },
     computation: 'cryptographic', collusion: 'all-remote', protocol, keyContext: `requester-held-key/${protocol}`,
     leakage: metadata.filter(item => allowMetadata.includes(item)) });
 }
 
 /**
- * The verified policy for a `secret-shared-2party` request. Only the inference API calls this, and only when its host
+ * The verified policy for a `secret-sharing` request. Only the inference API calls this, and only when its host
  * enabled the unreviewed secret-shared route explicitly; `compileExecutionRequirements` refuses the value otherwise.
  * No executor reads plaintext, so `plaintext` is not in the leakage set; non-collusion of each stage's two share
- * operators is the stated trust assumption.
+ * operators is the stated trust assumption. The route is a split: `split` or `auto`.
  */
 export function compileSecretSharedExecutionRequirements(execution) {
-  if (!exact(execution, ['placement', 'participants', 'confidentiality', 'allowMetadata']) || execution.confidentiality !== 'secret-shared-2party') {
-    throw invalid('secret-shared execution compiles secret-shared-2party requirements only');
-  }
-  compileExecutionRequirements({ ...execution, confidentiality: 'executor-readable' });
-  if (execution.placement !== 'network-allowed') {
-    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Secret-shared execution runs on network share operators; local-only has no such route. Nothing was sent.');
-  }
+  if (execution?.protection !== 'secret-sharing') throw invalid('secret-shared execution compiles secret-sharing requirements only');
+  const { kind } = checkRequirements(execution);
   const { participants, allowMetadata } = execution;
-  return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: participants.kind, ids: participants.kind === 'named' ? [...participants.ids] : [] },
+  return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind, ids: kind === 'named' ? [...participants.ids] : [] },
     computation: 'cryptographic', collusion: SECRET_SHARED_COLLUSION, protocol: SECRET_SHARED_PROTOCOL,
     keyContext: `requester-held-shares/${SECRET_SHARED_PROTOCOL}`, leakage: metadata.filter(item => allowMetadata.includes(item)) });
 }
 
-/** The caller requirements a stored policy stands for. Policies outside the API's vocabulary are refused, never widened. */
+/**
+ * The caller requirements a stored policy stands for: `local` for a local-only policy, otherwise `auto` over its
+ * recipients. Policies outside the API's vocabulary are refused, never widened.
+ */
 export function executionRequirementsFor(policy) {
   policy = validateExecutionPolicy(policy);
   const confidential = policy.computation !== 'plaintext' || policy.collusion !== 'none' || !policy.leakage.includes('plaintext');
   if (!confidential && (policy.retention !== 'execution-and-recovery' || policy.protocol || policy.attestation || policy.keyContext)) {
     throw invalid('this policy has requirements the inference API cannot express');
   }
-  return freeze({ placement: policy.placement,
-    participants: policy.recipients.kind === 'named' ? { kind: 'named', ids: [...policy.recipients.ids] } : { kind: policy.recipients.kind },
-    // A secret-shared policy stands for its own value: it trusts non-collusion, so it never reads as requester-only.
-    confidentiality: policy.collusion === SECRET_SHARED_COLLUSION && policy.protocol === SECRET_SHARED_PROTOCOL ? 'secret-shared-2party'
-      : confidential ? 'requester-only' : 'executor-readable',
-    allowMetadata: metadata.filter(item => policy.leakage.includes(item)) });
+  // A secret-shared policy stands for its own value: it trusts non-collusion, so it never reads as homomorphic.
+  const protection = policy.computation === 'attested' ? 'attested'
+    : policy.collusion === SECRET_SHARED_COLLUSION && policy.protocol === SECRET_SHARED_PROTOCOL ? 'secret-sharing'
+      : confidential ? 'homomorphic' : 'plaintext';
+  const allowMetadata = metadata.filter(item => policy.leakage.includes(item));
+  if (policy.placement === 'local-only') {
+    if (protection !== 'plaintext') throw invalid('only plaintext runs on this device');
+    return freeze({ protection, route: 'local', allowMetadata });
+  }
+  if (policy.recipients.kind === 'none') throw invalid('a network policy with no recipients has no route');
+  return freeze({ protection, route: 'auto',
+    participants: policy.recipients.kind === 'named' ? { kind: 'named', ids: [...policy.recipients.ids] } : { kind: 'open' }, allowMetadata });
 }
 
 /** True when `narrowed` grants no recipient, leakage or mode that `base` does not. Used to accept operator narrowing. */

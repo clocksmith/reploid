@@ -6,7 +6,7 @@ import { compileExecutionRequirements, compileSecretSharedExecutionRequirements,
 
 const hash = c => 'sha256:' + c.repeat(64);
 const model = { id: 'qwen-tiny', identity: hash('a') };
-const execution = (overrides = {}) => ({ placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'secret-shared-2party',
+const execution = (overrides = {}) => ({ protection: 'secret-sharing', route: 'auto', participants: { kind: 'open' },
   allowMetadata: ['model-id', 'timing', 'length'], ...overrides });
 const route = (stages = [['peer:a', 'peer:b'], ['peer:c', 'peer:d']]) => ({ id: 'route-1', shape: 'split', selection: 'all',
   backend: SECRET_SHARED_BACKEND, protocol: SECRET_SHARED_PROTOCOL, model: { ...model, adapterIdentities: [] }, planIdentity: hash('p'),
@@ -27,7 +27,7 @@ function port({ routeValue = route(), outcome = null } = {}) {
     } }) };
 }
 
-describe('secret-shared-2party is off by default and never readable', () => {
+describe('secret-sharing is off by default and never plaintext', () => {
   it('refuses the value without both the port and the unreviewed flag, before anything is sent', async () => {
     expect(() => compileExecutionRequirements(execution())).toThrow(expect.objectContaining({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' }));
     const { port: ss } = port();
@@ -38,13 +38,17 @@ describe('secret-shared-2party is off by default and never readable', () => {
     expect(SECRET_SHARED_STATUS.available).toBe(false);
   });
 
-  it('compiles to its own collusion model and never stands for requester-only', () => {
+  it('compiles to its own collusion model and never stands for homomorphic', () => {
     const policy = compileSecretSharedExecutionRequirements(execution());
     expect(policy).toMatchObject({ computation: 'cryptographic', collusion: 'non-colluding-share-pairs', protocol: SECRET_SHARED_PROTOCOL });
     expect(policy.leakage).not.toContain('plaintext');
-    expect(executionRequirementsFor(policy).confidentiality).toBe('secret-shared-2party');
-    expect(() => compileSecretSharedExecutionRequirements(execution({ placement: 'local-only', participants: { kind: 'none' } })))
-      .toThrow(expect.objectContaining({ code: 'EXECUTION_ROUTE_UNAVAILABLE' }));
+    expect(executionRequirementsFor(policy).protection).toBe('secret-sharing');
+    // Secret sharing takes split or auto only: no local, whole-model or requester-held-edges route.
+    for (const route of ['local', 'remote', 'split-local-edges']) {
+      expect(() => compileSecretSharedExecutionRequirements(execution({ route }))).toThrow(expect.objectContaining({ code: 'EXECUTION_REQUEST_INVALID',
+        message: expect.stringContaining('takes route split, auto') }));
+    }
+    expect(compileSecretSharedExecutionRequirements(execution({ route: 'split' })).protocol).toBe(SECRET_SHARED_PROTOCOL);
   });
 
   it('refuses a route where one operator holds both shares of a stage', async () => {
@@ -53,26 +57,34 @@ describe('secret-shared-2party is off by default and never readable', () => {
     await expect(inference.prepare({ model, execution: execution() })).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
   });
 
-  it('states the non-collusion assumption and keeps "nobody can read it" a target', async () => {
+  it('states the non-collusion assumption, names every share holder and pins the protocol in the plan', async () => {
     const { port: ss } = port();
     const inference = createInference({ ...unusedPorts, secretSharedExecution: ss, unreviewedSecretSharedExecution: true });
     const plan = await inference.prepare({ model, generation: { maxOutputTokens: 8 }, execution: execution() });
-    expect(plan.disclosures.contentReadableBy).toMatchObject({ requesterDevice: true, participants: [], target: true });
-    expect(plan.disclosures.executorsReadContent).toBe(false);
-    expect(plan.disclosures.sharesHeldBy).toEqual([{ stage: 0, layers: [0, 11], shareA: 'peer:a', shareB: 'peer:b' },
+    expect(plan).toMatchObject({ protection: 'secret-sharing', routeKind: 'split', maxCharge: { kind: 'capped', unit: 'noncash-service-credit', maximum: 32 },
+      route: { protocol: SECRET_SHARED_PROTOCOL, participants: ['peer:a', 'peer:b', 'peer:c', 'peer:d'] } });
+    // Two share holders of the same stage, if they collude: a conditional reader, testable as data.
+    const pair = { role: 'share-holder', ids: ['peer:a', 'peer:b', 'peer:c', 'peer:d'], when: { collusion: { sameStage: true, count: 2 } },
+      stages: [{ stage: 0, layers: [0, 11], ids: ['peer:a', 'peer:b'] }, { stage: 1, layers: [12, 23], ids: ['peer:c', 'peer:d'] }] };
+    for (const section of ['prompt', 'intermediate', 'answer']) {
+      expect(plan.disclosure[section]).toMatchObject({ readers: [{ role: 'requester-device' }, pair], verified: false });
+      expect(plan.disclosure[section].assumptions).toContain('share-holders-do-not-collude');
+    }
+    expect(plan.disclosure.intermediate.assumptions).toContain('requester-recombines-intermediates');
+    // A device that holds one share is still a participant.
+    expect(plan.disclosure.metadata.readers[1]).toEqual({ role: 'share-holder', selection: 'all', ids: ['peer:a', 'peer:b', 'peer:c', 'peer:d'] });
+    expect(plan.disclosure.review).toEqual({ state: 'not-reviewed' });
+    expect(plan.disclosure.extensions.secretSharing.sharesHeldBy).toEqual([{ stage: 0, layers: [0, 11], shareA: 'peer:a', shareB: 'peer:b' },
       { stage: 1, layers: [12, 23], shareA: 'peer:c', shareB: 'peer:d' }]);
-    expect(plan.disclosures.statement).toMatch(/do not collude/);
-    expect(plan.disclosures.statement).toMatch(/"Nobody can read it" remains a target/);
-    expect(plan.disclosures.collusion.ifBroken[0].together).toEqual(['peer:a', 'peer:b']);
   });
 
-  it('a requester-only or readable request never runs on a secret-shared route', async () => {
+  it('a homomorphic or plaintext request never runs on a secret-shared route', async () => {
     const { port: ss } = port();
     const inference = createInference({ resolveRoute: async () => ({ ...route(), backend: SECRET_SHARED_BACKEND }), execute: async () => ({}),
       secretSharedExecution: ss, unreviewedSecretSharedExecution: true });
-    await expect(inference.prepare({ model, execution: execution({ confidentiality: 'requester-only' }) }))
+    await expect(inference.prepare({ model, execution: execution({ protection: 'homomorphic' }) }))
       .rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' });
-    await expect(inference.prepare({ model, execution: execution({ confidentiality: 'executor-readable' }) })).rejects.toThrow();
+    await expect(inference.prepare({ model, execution: execution({ protection: 'plaintext' }) })).rejects.toThrow();
   });
 
   it('streams, admits the pinned route and writes secret-shared evidence into the receipt', async () => {
@@ -83,11 +95,16 @@ describe('secret-shared-2party is off by default and never readable', () => {
     const result = await run.result;
     expect(result).toMatchObject({ status: 'completed', output: { text: 'Hello', stopReason: 'eos' }, settlement: { reservationId: 'r1' } });
     expect(calls[0].messages).toEqual([{ role: 'user', content: 'hi' }]);
-    const evidence = result.executionReceipt.evidence.confidentiality;
-    expect(evidence).toMatchObject({ mode: 'secret-shared-2party', assumption: 'non-colluding-share-pairs' });
-    expect(evidence.verified.map(row => row.claim)).toEqual(['share-recipients', 'fresh-shares-every-round']);
+    expect(result.executionReceipt).toMatchObject({ schema: 'reploid.execution-receipt/v2', protection: 'secret-sharing' });
+    const evidence = result.executionReceipt.evidence.privacy;
+    expect(evidence).toMatchObject({ protection: 'secret-sharing', routeKind: 'split', extensions: { secretSharing: { collusion: 'non-colluding-share-pairs' } } });
+    expect(evidence.checks.map(row => row.claim)).toEqual(['share-recipients', 'fresh-shares-every-round']);
     expect(evidence.notVerified).toContain('non-collusion');
-    expect(result.executionReceipt.route.secretShared.stages).toHaveLength(2);
+    // Credits are their own record, never evidence of privacy.
+    expect(result.executionReceipt.evidence.credits).toMatchObject({ record: { kind: 'service-credit', reservationId: 'r1' }, checkedHere: false,
+      notVerified: expect.arrayContaining(['confidentiality-from-billing']) });
+    expect(result.executionReceipt.route.extensions.secretSharing.stages).toHaveLength(2);
+    expect(result.executionReceipt.issuedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
   });
 
   it('a stopped answer is cancelled with its partial text; text that differs from the stream is unverified', async () => {

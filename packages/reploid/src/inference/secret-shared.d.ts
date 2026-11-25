@@ -1,3 +1,4 @@
+import type { Disclosure } from './contract.js';
 /** Secret-shared split execution: two-party additive shares per stage, non-colluding share operators. Off by default. */
 export declare const SECRET_SHARED_PROTOCOL: 'reploid.secret-shared-2party/v1';
 export declare const SECRET_SHARED_BACKEND: 'doppler-secret-shared-2party/v1';
@@ -10,13 +11,7 @@ export interface SecretSharedRoute {
   model: { id: string; identity: string; adapterIdentities: string[] }; planIdentity?: string; participants: string[];
   secretShared: { stages: SecretSharedStage[]; [key: string]: unknown };
 }
-export interface SecretSharedDisclosures {
-  contentReadableBy: { requesterDevice: true; participants: []; selection: 'all'; target: true };
-  executorsReadContent: false; executorsReadActivations: false;
-  sharesHeldBy: { stage: number; layers: [number, number]; shareA: string; shareB: string }[];
-  collusion: { assumption: 'non-colluding-share-pairs'; ifBroken: { together: string[]; read: string }[]; otherCoalitions: string };
-  metadata: string[]; leaks: string[]; review: { available: false; reason: string }; statement: string;
-}
+export type SecretSharedDisclosure = Disclosure & { extensions: Required<Pick<NonNullable<Disclosure['extensions']>, 'secretSharing'>> };
 export interface SecretSharedExecuteJob {
   plan: unknown; pinned: unknown; requestId: string; attemptId: string; messages: { role: string; content: string }[];
   generation: { maxOutputTokens: number | null }; signal: AbortSignal;
@@ -26,11 +21,12 @@ export interface SecretSharedOutcome {
   text: string; stopReason: string | null; usage: { inputTokens: number; outputTokens: number } | null; settlement?: unknown; evidence?: unknown;
 }
 export interface SecretSharedExecutionPorts {
-  resolve(request: unknown, options: { signal?: AbortSignal }): Promise<{ route: SecretSharedRoute; maxCharge?: { unit: string; maximum: number } | null; pinned?: unknown }>;
+  /** maxCharge is required: a secret-shared split that cannot cap its charge is not planned. */
+  resolve(request: unknown, options: { signal?: AbortSignal }): Promise<{ route: SecretSharedRoute; maxCharge: { kind: 'capped'; unit: string; maximum: number } | { kind: 'free' } | { unit: string; maximum: number }; pinned?: unknown }>;
   execute(job: SecretSharedExecuteJob): Promise<SecretSharedOutcome>;
 }
 export interface SecretSharedExecution { kind: 'reploid.secret-shared-execution/v1'; resolve: SecretSharedExecutionPorts['resolve']; execute: SecretSharedExecutionPorts['execute'] }
 export declare function validateSecretSharedRoute(route: unknown): SecretSharedRoute;
-export declare function secretSharedDisclosures(route: SecretSharedRoute): SecretSharedDisclosures;
+export declare function secretSharedDisclosure(route: SecretSharedRoute): SecretSharedDisclosure;
 export declare function secretSharedEvidence(input: { plan: unknown; admitted: unknown; evidence?: unknown; error?: unknown }): unknown;
 export declare function createSecretSharedExecution(ports: SecretSharedExecutionPorts): SecretSharedExecution;

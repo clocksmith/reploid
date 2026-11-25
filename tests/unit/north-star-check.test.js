@@ -28,7 +28,7 @@ function passing() {
       settlement: settledTrace(84, 88, [{ accountId: 'computer-requester', delta: -84 }, { accountId: 'computer-host-b', delta: 42 }, { accountId: 'computer-host-c', delta: 42 }]),
       settlementReplay: { problems: [], ledgerPolicyDigest: 'p', termsPolicyDigest: 'p', result: { reservations: [{ reservationId: 'r', status: 'settled', debit: 84,
         credits: [{ participantId: ids[0], amount: 0 }, { participantId: ids[1], amount: 42 }, { participantId: ids[2], amount: 42 }, { participantId: ids[3], amount: 0 }] }] } },
-      inference: { result: { executionReceipt: { evidence: { confidentiality: { mode: 'requester-edges' } } } } } },
+      inference: { result: { executionReceipt: { evidence: { privacy: { protection: 'plaintext', routeKind: 'split-local-edges' } } } } } },
     privacy: { contentRecipients: [ids[0], ids[3]], bindingHops: ids.map((recipient, index) => ({ recipient, disclosure: index === 0 || index === 3 ? 'plaintext' : 'activations' })),
       stages: stages.map(stage => ({ ...stage, visibility: stage.role === 'operator' ? { ...operatorRows } : { ...operatorRows, tokenContext: ['sent'], nonzeroTokenIdsReceived: 5 } })) },
     cleanup: { processesExited: true, heldCredits: 0, openReservations: 0 }
@@ -39,6 +39,14 @@ const codes = receipt => checkNorthStar(receipt, { reference, weights }).problem
 describe('north-star receipt check', () => {
   it('passes a run whose ledger omits own-account stages and whose replay lists them at zero', () => {
     expect(codes(passing())).toEqual([]);
+  });
+  it('fails a receipt that does not record a plaintext split with requester-held edges', () => {
+    for (const privacy of [{ protection: 'plaintext', routeKind: 'split' },
+      { protection: 'secret-sharing', routeKind: 'split-local-edges' }, { mode: 'requester-edges' }]) {
+      const receipt = passing();
+      receipt.split.inference.result.executionReceipt.evidence.privacy = privacy;
+      expect(codes(receipt)).toContain('tier-not-named');
+    }
   });
   it('fails a wrong payout amount, on the ledger or in the replay', () => {
     const ledger = passing();

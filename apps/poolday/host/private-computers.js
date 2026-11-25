@@ -114,7 +114,9 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
       const bound = await firstPairedBinding(input, selected, snapshot);
       if (!bound) throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'No paired route satisfies this execution policy. Nothing was sent.');
       return { shape: bound.route.backend === 'doppler-partition-plaintext/v1' ? 'split' : 'remote', backend: bound.route.backend,
-        participants: bound.route.hops.map(hop => hop.recipient), selection: 'all', maxCharge: selected.creditCap ?? null };
+        participants: bound.route.hops.map(hop => hop.recipient), selection: 'all',
+        // The host's credit terms cap one answer; without accepted terms the charge cannot be capped and the route is refused.
+        maxCharge: selected.creditCap ? { kind: 'capped', maximum: selected.creditCap.maximum, unit: selected.creditCap.unit } : undefined };
     },
     async execute(request, controls) {
       assert(!closed, 'Private computers are closed');

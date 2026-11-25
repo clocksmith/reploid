@@ -2,7 +2,7 @@
 import { afterEach, expect, it } from 'vitest';
 import { createJourneyNetwork } from '../helpers/journey-network.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
-import { createInference } from '../../packages/reploid/src/inference/index.js';
+import { createInference, FREE } from '../../packages/reploid/src/inference/index.js';
 
 const cleanup = [];
 afterEach(async () => { for (const close of cleanup.splice(0).reverse()) await close(); });
@@ -145,12 +145,12 @@ it('through the inference API, a provider lost mid-answer fails the run: streame
   await fixture.expectReady(2);
   let stopping;
   const inference = createInference({
-    resolveRoute: request => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: request.execution.participants.ids, selection: 'one-of' }),
+    resolveRoute: request => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: request.execution.participants.ids, selection: 'one-of', maxCharge: FREE }),
     execute: ({ policy, request }, controls) => requester.generate({ model, messages: request.messages, threadId: 'inference-loss',
       attemptId: request.attemptId, privacy: policy }, { ...controls, onDelta(envelope) { stopping ??= fixture.stop('named'); return controls.onDelta(envelope); } })
   });
-  const plan = await inference.prepare({ model: { id: model.id, identity: model.identity }, execution: { placement: 'network-allowed',
-    participants: { kind: 'named', ids: [named.identity.peerId] }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } });
+  const plan = await inference.prepare({ model: { id: model.id, identity: model.identity }, execution: { protection: 'plaintext', route: 'auto',
+    participants: { kind: 'named', ids: [named.identity.peerId] }, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } });
   const run = await inference.run({ planId: plan.id, requestId: 'lost-provider', input: { messages } }, { signal: AbortSignal.timeout(5000) });
   const events = [];
   for await (const event of run.events) events.push(event.type);
@@ -161,7 +161,7 @@ it('through the inference API, a provider lost mid-answer fails the run: streame
   expect(events.at(-1)).toBe('failed');
   expect(result).toMatchObject({ requestId: 'lost-provider', status: 'failed', output: null, usage: null });
   expect(result.executionReceipt).toMatchObject({ status: 'failed', route: { participants: [named.identity.peerId] } });
-  expect(result.executionReceipt.evidence.integrity.verified).toEqual([]);
+  expect(result.executionReceipt.evidence.integrity.checks).toEqual([]);
   // The plan pinned the named provider. The ready one that was not named received nothing.
   expect(toOther.filter(row => row.type === 'reploid:generation-request')).toEqual([]);
   expect(toOther.filter(row => row.carriesPrompt)).toEqual([]);

@@ -5,20 +5,60 @@
  * a fix only opens the place where the person decides.
  */
 import { ROUTE_PREFERENCES } from '../../host/route-preference.js';
+import { PROTECTION_DISPLAY, ROUTE_DISPLAY, PARTICIPANTS_DISPLAY, gatedCapabilities } from '../../../../shared/vendor/reploid/inference/protections.js';
 
-/** "Who can read it" presets. Confidential execution is a target, never offered as working. */
-export const CONFIDENTIAL_TARGET = 'Not available yet. Planned: no computer, not even the one answering, can read your prompt.';
+const LOCKED = 'This conversation’s requirements are fixed.';
 
-export function privacyPresetChoices({ desktop = null, editable = true } = {}) {
-  const locked = editable ? null : 'This conversation’s requirements are fixed.';
-  return [
-    { value: 'standard', title: 'Standard', disabled: !editable,
-      status: locked || 'The computer that answers reads your messages. You approve it first.' },
-    { value: 'own-devices', title: 'Only your devices', disabled: !editable,
-      status: locked || (desktop ? `This device and ${desktop} read your messages. No other computer can.`
-        : 'This device reads your messages; nothing leaves it. Pair a desktop in Computers to add it.') },
-    { value: 'no-device', title: 'Confidential execution', disabled: true, status: CONFIDENTIAL_TARGET }
-  ];
+/**
+ * "Who can read it?": one row per protection, in the shared order (not ranked), with the shared label and line. A
+ * protection this page cannot run is disabled with "Unavailable" and its reason. This browser runs plaintext only, so
+ * the default capabilities come from host configuration alone; they are advisory, never permission to send.
+ */
+export function protectionChoices({ capabilities = gatedCapabilities({ enabled: ['plaintext'] }), editable = true, value = 'plaintext' } = {}) {
+  return capabilities.map(({ protection, status, reason }) => {
+    const unavailable = status === 'unavailable';
+    return { value: protection, title: PROTECTION_DISPLAY[protection].label, checked: protection === value,
+      disabled: unavailable || !editable,
+      // The line always shows; an unavailable protection adds "Unavailable" and its reason after it.
+      status: unavailable ? `${PROTECTION_DISPLAY[protection].line} Unavailable: ${reason[0].toUpperCase()}${reason.slice(1)}.`
+        : !editable ? LOCKED : PROTECTION_DISPLAY[protection].line };
+  });
+}
+
+/**
+ * "Where it runs": the five `execution.route` values, single choice. A route this chat cannot use is disabled with its
+ * reason. `model` is the conversation's model (a staged model runs on several computers); `canRunHere` is false when
+ * this deployment answers on network computers only.
+ */
+export function routeChoices({ model = null, canRunHere = true, editable = true, value = 'auto' } = {}) {
+  const staged = !!model?.partition;
+  const reasons = {
+    local: staged ? 'This model runs in stages on several computers.' : !canRunHere ? 'This deployment answers on network computers only.' : null,
+    remote: staged ? 'This model runs in stages on several computers.' : null,
+    split: staged ? null : 'Only a model that runs in stages uses several computers.',
+    'split-local-edges': 'This browser cannot bind both edge devices to you.',
+    auto: null
+  };
+  return Object.entries(ROUTE_DISPLAY).map(([route, { label }]) => {
+    const reason = reasons[route];
+    return { value: route, title: label, checked: route === value, disabled: !!reason || !editable,
+      status: reason ? `Unavailable: ${reason}` : !editable ? LOCKED : ROUTE_LINES[route] };
+  });
+}
+const ROUTE_LINES = {
+  local: 'This device runs the whole model. Nothing leaves it.',
+  remote: 'One other computer runs the whole model.',
+  split: 'Several computers run the model in stages.',
+  'split-local-edges': 'Several computers run the model; your own devices run the first and last stage.',
+  auto: 'Any route the chosen protection allows. The computers that can read it are shown before anything is sent.'
+};
+
+/** "Only your devices": a participants choice, not a route. It needs a paired desktop and a network route. */
+export function ownDevicesChoice({ desktop = null, route = 'auto', editable = true, checked = false } = {}) {
+  const reason = route === 'local' ? 'This device runs it; nothing leaves it.' : !desktop ? 'Pair a desktop in Computers to add it.' : null;
+  return { value: 'own-devices', title: PARTICIPANTS_DISPLAY['own-devices'].label, checked: checked && !reason,
+    disabled: !!reason || !editable,
+    status: reason ? `Unavailable: ${reason}` : !editable ? LOCKED : `This device and ${desktop} process your request. No other computer can.` };
 }
 
 /**

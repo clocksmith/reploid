@@ -67,8 +67,8 @@ if (positionals[0] === 'pins') {
     protectedExecution, unreviewedProtectedExecution: true });
   const started = Date.now();
   const plan = await inference.prepare({ model: { id: 'doppler-protected-tiny', identity: pins.modelIdentity },
-    generation: { maxOutputTokens: Number(values.generate) }, execution: { placement: 'network-allowed', participants: { kind: 'open' },
-      confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] } });
+    generation: { maxOutputTokens: Number(values.generate) }, execution: { protection: 'homomorphic', route: 'remote',
+      participants: { kind: 'open' }, allowMetadata: ['model-id', 'timing', 'length'] } });
   const handle = await inference.run({ planId: plan.id, requestId: `two-machine-${started}`, input: { messages: [{ role: 'user', content: values.prompt }] } });
   const events = [];
   for await (const event of handle.events) {
@@ -79,7 +79,7 @@ if (positionals[0] === 'pins') {
   process.stdout.write('\n');
   const matches = result.status === 'completed' && pins.reference?.prompt === values.prompt && result.output.text === pins.reference.approximateText;
   // The report keeps the prompt and answer because the operator chose them for this check; the protected journals do not.
-  writeFileSync(values.report, JSON.stringify({ schema: 'reploid.protected-route-run/v1', at: new Date(started).toISOString(), plan: { route: plan.route, disclosures: plan.disclosures },
+  writeFileSync(values.report, JSON.stringify({ schema: 'reploid.protected-route-run/v1', at: new Date(started).toISOString(), plan: { protection: plan.protection, routeKind: plan.routeKind, route: plan.route, disclosure: plan.disclosure },
     events, status: result.status, error: result.error ?? null, output: result.output, matchesReference: matches,
     receipt: result.executionReceipt, journal: protectedExecution.journal.entries(), seconds: (Date.now() - started) / 1000 }, null, 1));
   const ok = values.expect ? result.status === 'failed' && result.error?.code === values.expect : matches;

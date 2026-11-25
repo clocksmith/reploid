@@ -18,7 +18,7 @@ const orderedParticipant = mesh => ({
 const preview = (request, recipients=['stage']) => bindPreview(request, {threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
 const model={id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true,participantA:'actual-stage'}};
 // The one Reploid extension: the same model pin and execution requirements as reploid/inference prepare().
-const named=ids=>({placement:'network-allowed',participants:{kind:'named',ids},confidentiality:'executor-readable',allowMetadata:['model-id','timing','length','access-patterns']});
+const named=ids=>({protection:'plaintext',route:'auto',participants:{kind:'named',ids},allowMetadata:['model-id','timing','length','access-patterns']});
 const extension=(ids,extra={})=>({poolId:'valera-private-pool-v1',model:{identity:model.identity},execution:named(ids),...extra});
 const input={model:model.id,input:'hello',store:false}, owners=[];
 afterEach(async()=>{for(const close of owners.splice(0).reverse())await close();});
@@ -127,7 +127,7 @@ it('binds a caller token ceiling, JSON output and private recipients to the actu
   const response=await f.post({...input,stream:true,max_output_tokens:2,text:{format:{type:'json_object'}},reploid:extension(['actual-stage'])});
   expect(response.status).toBe(200);const rows=events(await response.text()),final=rows.at(-1).response;
   expect(final.status).toBe('completed');expect(final.usage).toEqual({input_tokens:7,output_tokens:2,total_tokens:9});
-  expect(final.reploid).toMatchObject({executionReceipt:{schema:'reploid.execution-receipt/v1',status:'completed',requested:{model:{identity:model.identity},execution:named(['actual-stage'])},
+  expect(final.reploid).toMatchObject({executionReceipt:{schema:'reploid.execution-receipt/v2',status:'completed',requested:{model:{identity:model.identity},execution:named(['actual-stage'])},
     route:{shape:'split',participants:['actual-stage'],backend:'doppler-partition-plaintext/v1'}},execution:{receipt:{identity:'retained-provider-evidence'}}});
   // The provider's own receipt is referenced by digest and not described as checked here.
   expect(final.reploid.executionReceipt.evidence.integrity.providerReceipt).toMatchObject({checkedHere:false});
@@ -244,7 +244,7 @@ it.each([
   expect(thrown?.status).toBe(400);expect(thrown.message).toContain(message);
 });
 
-it('one reploid extension gives one receipt on chat completions, messages and responses; requester-only is refused on all three before generation', async () => {
+it('one reploid extension gives one receipt on chat completions, messages and responses; protected input is refused on all three before generation', async () => {
   const whole={id:'whole-model',identity:'sha256:'+'d'.repeat(64),availability:'ready',providerIds:['provider'],textGeneration:{schema:'reploid.text-generation/v1',usage:'raw-model-tokens/v1'}};
   const recipient='peer:'+'e'.repeat(24);
   const generate=vi.fn(async(request,controls)=>{
@@ -270,19 +270,29 @@ it('one reploid extension gives one receipt on chat completions, messages and re
   for(const [path,body] of Object.entries(send(reploid))){
     const response=await post(path,body);expect(response.status,path).toBe(200);
     const {executionReceipt}=(await response.json()).reploid;
-    expect(executionReceipt,path).toMatchObject({schema:'reploid.execution-receipt/v1',api:'reploid.inference/v1',status:'completed'});
-    const {requestId:_requestId,attemptId:_attemptId,planId:_planId,...rest}=executionReceipt;receipts.push(rest);
+    expect(executionReceipt,path).toMatchObject({schema:'reploid.execution-receipt/v2',api:'reploid.inference/v2',status:'completed',protection:'plaintext'});
+    expect(executionReceipt.issuedAt,path).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    const {requestId:_requestId,attemptId:_attemptId,planId:_planId,issuedAt:_issuedAt,...rest}=executionReceipt;receipts.push(rest);
   }
   expect(receipts[0]).toMatchObject({requested:{model:{id:whole.id,identity:whole.identity,adapterIdentities:[]},execution:named([recipient])},
     route:{shape:'remote',participants:[recipient],backend:'doppler-plaintext/v1',protocol:null},
-    evidence:{confidentiality:{mode:'executor-readable',contentReadBy:{requesterDevice:false,participants:[recipient]}}}});
-  // Same requested policy, same pinned and admitted route, same disclosures and the same evidence on every protocol.
+    evidence:{privacy:{protection:'plaintext',contentReadBy:{requesterDevice:true,participants:[recipient]}}}});
+  // Same requested policy, same pinned and admitted route, same disclosure and the same evidence on every protocol.
   expect(receipts[1]).toEqual(receipts[0]);expect(receipts[2]).toEqual(receipts[0]);
   expect(generate).toHaveBeenCalledTimes(3);
-  const strict={...reploid,execution:{...reploid.execution,confidentiality:'requester-only'}};
-  for(const [path,body] of Object.entries(send(strict))){
+  // An ordinary JSON body is already readable by this server: no protection but plaintext is accepted, and it is never
+  // retried as plaintext. Requester-held edges are refused for the same reason.
+  for(const protection of ['homomorphic','secret-sharing','attested']){
+    const strict={...reploid,execution:{...reploid.execution,protection}};
+    for(const [path,body] of Object.entries(send(strict))){
+      const response=await post(path,body),error=(await response.json()).error;
+      expect(response.status,path).toBe(422);expect(error.code,path).toBe('confidential_execution_unavailable');
+    }
+  }
+  const edges={...reploid,execution:{...reploid.execution,route:'split-local-edges'}};
+  for(const [path,body] of Object.entries(send(edges))){
     const response=await post(path,body),error=(await response.json()).error;
-    expect(response.status,path).toBe(422);expect(error.code,path).toBe('confidential_execution_unavailable');
+    expect(response.status,path).toBe(503);expect(error.code,path).toBe('execution_route_unavailable');
   }
   expect(generate).toHaveBeenCalledTimes(3);
 });

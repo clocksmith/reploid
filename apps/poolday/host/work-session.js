@@ -104,7 +104,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     const model = selectWorkModel({ models, modelId, defaultModelId: policy.defaultModelId });
     const isDopplerModel = model.provider === 'doppler';
     if (privacy !== null) {
-      // The inference API's compiler refuses requester-only (CONFIDENTIAL_EXECUTION_UNAVAILABLE) before anything is saved or sent.
+      // The inference API's compiler refuses every protection but plaintext (CONFIDENTIAL_EXECUTION_UNAVAILABLE) before anything is saved or sent.
       privacy = validateExecutionPolicy(privacy);
       compileExecutionRequirements(executionRequirementsFor(privacy));
       privacy = assertAvailableExecutionPolicy(privacy);

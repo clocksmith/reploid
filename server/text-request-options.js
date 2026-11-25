@@ -1,5 +1,5 @@
 import { fail, object, freeze } from './text-request-values.js';
-import { compileExecutionRequirements, EXECUTION_BACKENDS } from '../shared/vendor/reploid/chat/execution-policy.js';
+import { compileExecutionRequirements, requesterEdges, EXECUTION_BACKENDS } from '../shared/vendor/reploid/chat/execution-policy.js';
 import { SERVICE_CREDIT_REFUSAL_STATUS } from './fleet/contract.js';
 
 /** HTTP status for each stable inference refusal code. The body's error.code is the code in lower case. */
@@ -26,17 +26,18 @@ export const executionFailure = error => Object.hasOwn(EXECUTION_ERROR_STATUS, e
   ? Object.assign(fail(EXECUTION_ERROR_STATUS[error.code], error.message, error.param ?? (EXTENSION_CODES.includes(error.code) ? 'reploid' : null)),
     { code: error.code }) : error;
 
-/** The requirements a standard JSON request runs under when it carries no extension: any participant the operator allows. */
-export const STANDARD_HTTP_EXECUTION = Object.freeze({ placement: 'network-allowed', participants: Object.freeze({ kind: 'open' }),
-  confidentiality: 'executor-readable', allowMetadata: Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]) });
+/** The requirements a standard JSON request runs under when it carries no extension: plaintext, any participant the operator allows. */
+export const STANDARD_HTTP_EXECUTION = Object.freeze({ protection: 'plaintext', route: 'auto',
+  participants: Object.freeze({ kind: 'open' }), allowMetadata: Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]) });
 
 const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/u.test(value);
 
 /**
  * The one `reploid` extension of /v1/chat/completions, /v1/messages and /v1/responses: the same `model` pin and
  * `execution` requirements as `reploid/inference` prepare(), plus the private pool and conversation to use.
- * It is read before the protocol's messages. A request for requester-only confidentiality is refused here:
- * an ordinary JSON body is already plaintext to this server, so it can never be protected afterwards.
+ * It is read before the protocol's messages. Any protection other than plaintext is refused here
+ * (CONFIDENTIAL_EXECUTION_UNAVAILABLE), and so is a split with requester-held edges: an ordinary JSON body is already
+ * plaintext to this server, so it can never be protected, or kept on the requester's devices, afterwards.
  */
 export function parseExecutionExtension(value) {
   if (value === undefined) return undefined;
@@ -62,7 +63,11 @@ export function parseExecutionExtension(value) {
     catch (error) {
       throw executionFailure(Object.hasOwn(EXECUTION_ERROR_STATUS, error.code) ? error : Object.assign(error, { code: 'EXECUTION_REQUEST_INVALID' }));
     }
-    if (value.execution.placement !== 'network-allowed') throw invalid('This API runs on network participants; local-only placement is not available here');
+    if (value.execution.route === 'local') throw invalid('This API runs on network participants; route local is not available here');
+    if (requesterEdges(value.execution)) {
+      throw executionFailure(Object.assign(new Error('Requester-held edges keep the prompt on your own devices; this server already received it. Nothing was sent.'),
+        { code: 'EXECUTION_ROUTE_UNAVAILABLE' }));
+    }
   }
   return freeze(structuredClone(value));
 }

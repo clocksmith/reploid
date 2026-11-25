@@ -165,6 +165,11 @@ export function createEarningAccount({ client, signIn, service, storage, origin,
       set({ spendingLimit: limit, message: '' });
       return limit;
     },
+    /**
+     * The most one answer can charge this account: a quote above the standing limit, or any quote with no limit set, is
+     * declined before anything is sent, and Community Access charges the pool, not the person.
+     */
+    chargeCeiling: () => ({ kind: 'capped', maximum: readLimit() ?? 0, unit: 'credit' }),
     /** The spending port: accept a quote whose maximum charge is within the standing limit; record it either way. */
     async authorizeSpending({ quote }) {
       const limit = readLimit();
@@ -222,7 +227,7 @@ export async function openBrowserEarning({ location = globalThis.location, stora
   const identity = await loadIdentity({ storage });
   const client = createEarningClient({ config, identity, host: 'browser', signIn: signIn.signIn, storage: createWebStorageEarningStorage(storage), fetch });
   const account = createEarningAccount({ client, signIn, service, storage, origin, fetch, ...(navigate ? { navigate } : {}) });
-  const attempts = createEarningAttempts({ client, quoteRequest, authorizeSpending: account.authorizeSpending,
+  const attempts = createEarningAttempts({ client, quoteRequest, authorizeSpending: account.authorizeSpending, chargeCeiling: account.chargeCeiling,
     ...(service.communityAccess === true ? { communityAccess: { decide: account.useCommunityAccess } } : {}) });
   // Pending reports and claims from an earlier visit resend once this device is signed in again.
   let reconciled = false;
@@ -245,6 +250,11 @@ export function deferredEarning(opening) {
     async run(request, controls, execute) {
       const opened = await opening.catch(() => null);
       return opened ? opened.earning.run(request, controls, execute) : execute(request, controls);
+    },
+    /** Without an earning service attempts run uncharged, so the plan is free; with one, the account's ceiling. */
+    async chargeCeiling() {
+      const opened = await opening.catch(() => null);
+      return opened ? opened.earning.chargeCeiling() : { kind: 'free' };
     }
   });
 }

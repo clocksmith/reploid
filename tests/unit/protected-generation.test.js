@@ -213,7 +213,7 @@ async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = 
     setAdvertisement: value => { advertisement = value; }, policy, envelope, oracle, publicPrompts };
 }
 
-const execution = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] };
+const execution = { protection: 'homomorphic', route: 'auto', participants: { kind: 'open' }, allowMetadata: ['model-id', 'timing', 'length'] };
 const prepareInput = (overrides = {}) => ({ model: { id: 'toy', identity: MODEL }, generation: { maxOutputTokens: 4 }, execution, ...overrides });
 async function runToEnd(inference, plan, content = 'bdf', requestId = 'r1') {
   const handle = await inference.run({ planId: plan.id, requestId, input: { messages: [{ role: 'user', content }] } });
@@ -224,7 +224,7 @@ async function runToEnd(inference, plan, content = 'bdf', requestId = 'r1') {
 const toText = tokens => tokens.map(t => ALPHABET[t]).join('');
 
 describe('protected route flag', () => {
-  it('without the flag, requester-only is refused before discovery and nothing is sent', async () => {
+  it('without the flag, homomorphic is refused before discovery and nothing is sent', async () => {
     const { counts } = await setup();
     let discovered = 0;
     let asked = 0;
@@ -251,22 +251,25 @@ describe('prepare', () => {
     expect(counts).toMatchObject({ discover: 1, connect: 0 });
     expect(plan.route).toMatchObject({ backend: 'doppler-protected-ckks/v1', protocol: 'reploid.protected-generation/v1', shape: 'remote',
       selection: 'one-of', participants: [identity.peerId], protected: { circuit: CIRCUIT, parameterSet: PROFILE, lanes: 4, trapLanes: 3 } });
-    expect(plan.disclosures).toMatchObject({ contentReadableBy: { requesterDevice: true, participants: [] }, executorsReadContent: false,
-      metadata: ['model-id', 'timing', 'length'], review: { available: false, reason: 'awaiting independent security review' } });
-    expect(plan.disclosures.confidentiality).toEqual({ status: 'target-not-established', reason: 'parameters not estimated; awaiting independent security review' });
-    expect(plan.disclosures.statement).toMatch(/Target, not established/);
-    expect(plan.disclosures.statement).not.toMatch(/Only this device can read|even if every remote party colludes/);
+    expect(plan).toMatchObject({ protection: 'homomorphic', routeKind: 'remote', maxCharge: { kind: 'free' } });
+    // Not established, so the readers are unknown: never an empty list that reads as "nobody".
+    for (const section of ['prompt', 'intermediate', 'answer']) expect(plan.disclosure[section]).toMatchObject({ readers: 'unknown', verified: false });
+    expect(plan.disclosure.metadata).toMatchObject({ items: ['model-id', 'timing', 'length'], verified: false });
+    expect(plan.disclosure.review).toEqual({ state: 'not-reviewed' });
+    expect(plan.disclosure.prompt.assumptions).toEqual(['parameters-not-estimated', 'not-independently-reviewed', 'requester-key-holder-unchecked']);
+    expect(plan.disclosure.extensions.homomorphic.status).toEqual({ protection: 'target-not-established', reason: 'parameters not estimated; awaiting independent security review' });
+
   });
 
-  it('an insecure development parameter set is disclosed as no confidentiality, with the evaluator as a reader', async () => {
+  it('an insecure development parameter set is disclosed as no protection, with the evaluator as a reader', async () => {
     const { inference, identity } = await setup({ insecure: true, allowInsecure: true });
     const plan = await inference.prepare(prepareInput());
-    expect(plan.disclosures).toMatchObject({ executorsReadContent: true, confidentiality: { status: 'none' },
-      contentReadableBy: { requesterDevice: true, participants: [identity.peerId] } });
-    expect(plan.disclosures.statement).toMatch(/NO confidentiality/);
+    expect(plan.disclosure.extensions.homomorphic.status).toMatchObject({ protection: 'none' });
+    expect(plan.disclosure.prompt.readers).toEqual([{ role: 'requester-device' }, { role: 'evaluator', ids: [identity.peerId] }]);
+    expect(plan.disclosure.prompt.assumptions).toEqual(['insecure-development-parameters']);
     const { result } = await runToEnd(inference, plan);
-    expect(result.executionReceipt.evidence.confidentiality).toMatchObject({ status: 'none', contentReadBy: { participants: [identity.peerId] } });
-    expect(result.executionReceipt.evidence.confidentiality.notVerified).toEqual(expect.arrayContaining(['confidentiality', 'requester-held-key']));
+    expect(result.executionReceipt.evidence.privacy).toMatchObject({ extensions: { homomorphic: { status: 'none' } }, contentReadBy: { participants: [identity.peerId] } });
+    expect(result.executionReceipt.evidence.privacy.notVerified).toEqual(expect.arrayContaining(['protection', 'requester-held-key']));
   });
 
   it('refuses a route whose leakage the request does not allow', async () => {
@@ -287,13 +290,13 @@ describe('prepare', () => {
     expect(plan.route.participants).not.toContain(other.peerId);
     await expect((await setup()).inference.prepare(prepareInput({ execution: { ...execution, participants: { kind: 'named', ids: [other.peerId] } } })))
       .rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
-    await expect((await setup()).inference.prepare(prepareInput({ execution: { ...execution, placement: 'local-only', participants: { kind: 'none' } } })))
-      .rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    await expect((await setup()).inference.prepare(prepareInput({ execution: { protection: 'homomorphic', route: 'local', allowMetadata: execution.allowMetadata } })))
+      .rejects.toMatchObject({ code: 'EXECUTION_REQUEST_INVALID', message: expect.stringContaining('takes route remote, auto') });
   });
 });
 
 describe('run', () => {
-  it('streams the reference continuation after traps pass and returns separate confidentiality and integrity evidence', async () => {
+  it('streams the reference continuation after traps pass and returns separate privacy and integrity evidence', async () => {
     const { inference, requesterJournal, evaluatorJournal, holder } = await setup();
     const plan = await inference.prepare(prepareInput());
     const { events, result } = await runToEnd(inference, plan);
@@ -301,13 +304,12 @@ describe('run', () => {
     expect(result.status).toBe('completed');
     expect(result.output.text).toBe(expected);
     expect(events.map(e => e.type)).toEqual(['admitted', 'output.delta', 'output.delta', 'output.delta', 'output.delta', 'completed']);
-    const { confidentiality, integrity } = result.executionReceipt.evidence;
-    expect(confidentiality).toMatchObject({ mode: 'requester-only', contentReadBy: { requesterDevice: true, participants: [] },
-      review: { reason: 'awaiting independent security review' } });
-    expect(confidentiality.notVerified).toContain('independent-security-review');
-    const traps = integrity.verified.find(item => item.claim === 'known-answer-traps').value;
+    const { privacy, integrity } = result.executionReceipt.evidence;
+    expect(privacy).toMatchObject({ protection: 'homomorphic', routeKind: 'remote', contentReadBy: 'unknown', review: { state: 'not-reviewed' } });
+    expect(privacy.notVerified).toContain('independent-security-review');
+    const traps = integrity.checks.find(item => item.claim === 'known-answer-traps').value;
     expect(traps).toMatchObject({ lanes: 4, trapLanes: 3, checks: 12, passed: 12, detectionProbabilityPerSession: 0.75 });
-    expect(integrity.decryptions).toEqual({ trap: 12, real: 4 });
+    expect(integrity.extensions.homomorphic.decryptions).toEqual({ trap: 12, real: 4 });
     expect(result.executionReceipt.route.admittedRouteId).toMatch(/^sha256:/);
     expect(holder().stats.decryptions).toBe(16);
     // The protected journals hold digests and verdicts, never the prompt or the answer.
@@ -340,7 +342,7 @@ describe('run', () => {
     const { inference, served } = await setup({ wrongIdentity: true });
     const { result } = await runToEnd(inference, await inference.prepare(prepareInput()));
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'EXECUTION_PLAN_CHANGED' } });
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 0, real: 0 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 0, real: 0 });
     const session = (await Promise.all(served)).at(-1);
     expect(session.frames.key ?? 0).toBe(0);
     expect(session.frames.step ?? 0).toBe(0);
@@ -351,7 +353,7 @@ describe('run', () => {
     const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
     // The replay is ignored; the evaluator then never sends step 2's result, so the session times out.
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 3, real: 1 });
     await expect(s.inference.prepare(prepareInput())).resolves.toBeTruthy(); // not locked out
     expect(s.holder().stats.retired).toBeUndefined();
   });
@@ -365,7 +367,7 @@ describe('run', () => {
     const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
     expect(result.error.message).toMatch(/signed digest.*without blaming the evaluator/);
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 3, real: 1 });
     await expect(s.inference.prepare(prepareInput())).resolves.toBeTruthy();
   });
 
@@ -373,7 +375,7 @@ describe('run', () => {
     const { inference, holder, served } = await setup({ engine: fakeEngine({ lie: () => true }) });
     const { events, result } = await runToEnd(inference, await inference.prepare(prepareInput()));
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 0 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 3, real: 0 });
     expect(holder().stats.decryptions).toBe(3);
     expect(events.filter(event => event.type === 'output.delta')).toHaveLength(0);
     // Silent failure: the evaluator served the whole fixed schedule and a normal close.
@@ -406,7 +408,7 @@ describe('run', () => {
     const { result } = await runToEnd(inference, await inference.prepare(prepareInput()));
     expect(result.status).toBe('completed');
     expect(result.output.text).toBe('aaaa');
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 12, real: 4 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 12, real: 4 });
     expect(totalArgmax([NaN, NaN, 1, NaN])).toBe(2);
     expect(totalArgmax([NaN, NaN])).toBe(0);
   });
@@ -497,7 +499,7 @@ describe('trap verification v2: secret fresh traps from a pinned oracle', () => 
       const v2 = await setup({ engine: fakeEngine({ vanishOn: listed }) });
       const two = await runToEnd(v2.inference, await v2.inference.prepare(prepareInput({ generation: { maxOutputTokens: 1 } })), toText(real), `v2-${i}`);
       expect(two.result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
-      expect(two.result.executionReceipt.evidence.integrity.decryptions.real).toBe(0);
+      expect(two.result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions.real).toBe(0);
     }
   }, 60000);
 
@@ -538,7 +540,7 @@ describe('trap verification v2: secret fresh traps from a pinned oracle', () => 
     expect(Object.keys(request).sort()).toEqual(['circuit', 'count', 'generate', 'promptLength', 'requesterKey', 'requesterNonce', 'schema']);
     expect(request).toMatchObject({ promptLength: 3, generate: 4, count: 3 });
     expect(JSON.stringify(request)).not.toMatch(/bdf|\[1,3,5\]/);
-    const traps = result.executionReceipt.evidence.integrity.verified.find(item => item.claim === 'known-answer-traps');
+    const traps = result.executionReceipt.evidence.integrity.checks.find(item => item.claim === 'known-answer-traps');
     expect(traps.method).toMatch(/secret-fresh-traps/);
     expect(traps.value).toMatchObject({ source: 'oracle', passed: 12 });
     expect(result.executionReceipt.evidence.integrity.notVerified).toContain('trap-oracle-independence-from-the-evaluator');
@@ -650,7 +652,7 @@ describe('post-binding frames that fail authentication are ignored, never blamed
     const s = await setup({ tap, now: () => time });
     const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_EXPIRED' } });
-    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+    expect(result.executionReceipt.evidence.integrity.extensions.homomorphic.decryptions).toEqual({ trap: 3, real: 1 });
   });
 });
 

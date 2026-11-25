@@ -67,15 +67,15 @@ it('runs each study call through reploid/inference and keeps its execution recei
   expect(sent).toHaveLength(effects.length);
   for (const effect of effects) {
     const recipient = 'signed-' + effect.input.model.id;
-    expect(effect.output.executionReceipt).toMatchObject({ schema: 'reploid.execution-receipt/v1', status: 'completed',
+    expect(effect.output.executionReceipt).toMatchObject({ schema: 'reploid.execution-receipt/v2', status: 'completed', protection: 'plaintext',
       requested: { model: { id: effect.input.model.id, identity: effect.input.model.identity },
-        execution: { participants: { kind: 'named', ids: [recipient] }, confidentiality: 'executor-readable' } },
+        execution: { participants: { kind: 'named', ids: [recipient] }, protection: 'plaintext', route: 'remote' } },
       route: { shape: 'remote', participants: [recipient], backend: 'doppler-plaintext/v1' } });
     expect(effect.output.permissions).toEqual([{ stage: 'approved', recipient }]);
   }
 });
 
-it('refuses a route change after approval and a requester-only study call, with nothing sent', async () => {
+it('refuses a route change after approval and a homomorphic study call, with nothing sent', async () => {
   const { data, storage, peers } = fixture(), sent = [];
   peers.push({ ...peers[0], peerId: 'small-2', participantId: 'signed-small-2' });
   const swarm = { getState: () => ({ consumer: { peers } }),

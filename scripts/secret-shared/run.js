@@ -5,7 +5,7 @@
  *   1. earn: a device enrolled under the requester's account serves another account's whole-model answers (the
  *      north-star earn step, unchanged), so the requester spends credits it earned;
  *   2. quote: the ledger reserves the request and quotes its credit cap before anything leaves the requester;
- *   3. spend: one request through `reploid/inference` with `confidentiality: 'secret-shared-2party'`, split into stages
+ *   3. spend: one request through `reploid/inference` with `protection: 'secret-sharing'`, `route: 'split'`, split into stages
  *      whose projections each run on two share operators (Doppler `tools/secret-shared/`). The requester's machine holds
  *      two own-account stages (edge-in: embedding and the shares it deals; edge-out: sampling and the output chain);
  *   4. record: every share operator signs its acceptance, a stage receipt per token and a delivery record per token
@@ -40,7 +40,7 @@ import { openFleetCredits } from '../../server/fleet/credits.js';
 import { fleetCreditQuote } from '../../server/fleet/contract.js';
 import { createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
-import { createInference, createSecretSharedExecution, SECRET_SHARED_BACKEND } from '../../packages/reploid/src/inference/index.js';
+import { createInference, createSecretSharedExecution, SECRET_SHARED_BACKEND, describeDisclosure } from '../../packages/reploid/src/inference/index.js';
 import { SECRET_SHARED_PROTOCOL } from '../../packages/reploid/src/chat/execution-policy.js';
 import { ledgerTrace, openReservationCount } from '../stage1/split-evidence.js';
 import { startPhysicalCoordinator } from '../stage1/physical-coordinator.js';
@@ -248,7 +248,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
         accountBefore: before, settlements, accountAfter: balance(accountId) };
     }
 
-    // 2-5. One attempt per case, each through reploid/inference with confidentiality 'secret-shared-2party'.
+    // 2-5. One attempt per case, each through reploid/inference with protection 'secret-sharing'.
     const runCase = async kase => {
       const attemptId = `ss-${kase.name}-${randomUUID()}`, reservationId = `secret-shared-${kase.name}-${randomUUID()}`, threadId = `ss-thread-${randomUUID()}`;
       const token = randomBytes(16).toString('hex');
@@ -270,7 +270,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
           secretShared: { stages: plan.stages.map(stage => ({ index: stage.index, layers: stage.layers,
             shares: [0, 1].map(share => proven.find(op => op.stage === stage.index && op.share === share).participantId) })),
           fixedPoint: { ring: 'Z_2^64', fx: plan.fx, fw: plan.fw }, requesterHolds: ['embedding', 'norm weights', 'DeltaNet convolution, A_log, dt_bias', 'KV and recurrent state', 'sampling'] } },
-        maxCharge: { unit: credits.policy.unit, maximum: kase.maxTokens * credits.policy.creditsPerOutputToken } }),
+        maxCharge: { kind: 'capped', unit: credits.policy.unit, maximum: kase.maxTokens * credits.policy.creditsPerOutputToken } }),
         async execute({ signal, onAdmitted, onDelta }) {
           // Quote and hold the cap before any input leaves this machine.
           const quote = fleetCreditQuote(credits.policy, kase.maxTokens, 'partition');
@@ -369,9 +369,9 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
       const inference = createInference({ resolveRoute: async () => { throw Error('readable routes are not used here'); }, execute: async () => { throw Error('unused'); },
         secretSharedExecution: secretShared, unreviewedSecretSharedExecution: true });
       const prepared = await inference.prepare({ model: { id: model.id, identity: model.identity }, generation: { maxOutputTokens: kase.maxTokens },
-        execution: { placement: 'network-allowed', participants: { kind: 'named', ids: proven.map(op => op.participantId) }, confidentiality: 'secret-shared-2party',
-          allowMetadata: ['model-id', 'timing', 'length'] } });
-      record.disclosures = prepared.disclosures;
+        execution: { protection: 'secret-sharing', route: 'split',
+          participants: { kind: 'named', ids: proven.map(op => op.participantId) }, allowMetadata: ['model-id', 'timing', 'length'] } });
+      record.disclosure = prepared.disclosure;
       record.maxCharge = prepared.maxCharge;
       const run = await inference.run({ planId: prepared.id, requestId: `req-${attemptId}`, input: { messages } }, { attemptId });
       const result = await run.result;
@@ -435,8 +435,9 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
 /** Who could read what on this run, per party and per coalition, in the receipt's words. */
 function privacyStatement(attempt, proven) {
   if (!attempt) return null;
-  const freshness = attempt.executionReceipt?.evidence?.confidentiality?.verified?.find(row => row.claim === 'fresh-shares-every-round')?.value ?? null;
-  return { tier: 'secret-shared-2party', assumption: 'non-colluding-share-pairs', statement: attempt.disclosures?.statement ?? null,
+  const freshness = attempt.executionReceipt?.evidence?.privacy?.checks?.find(row => row.claim === 'fresh-shares-every-round')?.value ?? null;
+  return { protection: 'secret-sharing', routeKind: attempt.executionReceipt?.routeKind ?? null, assumption: 'non-colluding-share-pairs',
+    statement: attempt.disclosure ? describeDisclosure(attempt.disclosure) : null,
     freshShares: freshness,
     whoCouldRead: [
       { who: 'requester machine (requester, edge-in, edge-out)', reads: 'prompt, answer, token IDs and every activation: it is the data owner and evaluates every nonlinear step' },

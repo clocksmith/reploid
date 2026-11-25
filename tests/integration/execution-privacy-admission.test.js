@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
-import { createInference } from '../../packages/reploid/src/inference/index.js';
+import { createInference, FREE } from '../../packages/reploid/src/inference/index.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { GENERATION_SETTINGS_CAPABILITY, GENERATION_SETTINGS_SCHEMA } from '../../packages/reploid/src/mesh/generation-settings.js';
 
@@ -286,12 +286,12 @@ it('through the inference API, a provider that declines admission fails the run 
   await vi.waitFor(() => expect(whole.getModels()).toHaveLength(1));
   const approvals = [];
   const inference = createInference({
-    resolveRoute: () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: [f.identities[1].peerId], selection: 'one-of' }),
+    resolveRoute: () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: [f.identities[1].peerId], selection: 'one-of', maxCharge: FREE }),
     execute: ({ policy, request }, controls) => whole.generate({ model: whole.getModels()[0], threadId: 'thread', attemptId: request.attemptId,
       privacy: policy, messages: request.messages }, controls)
   });
-  const plan = await inference.prepare({ model: { id: 'model', identity: modelIdentity }, execution: { placement: 'network-allowed',
-    participants: { kind: 'named', ids: [f.identities[1].peerId] }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } });
+  const plan = await inference.prepare({ model: { id: 'model', identity: modelIdentity }, execution: { protection: 'plaintext', route: 'auto',
+    participants: { kind: 'named', ids: [f.identities[1].peerId] }, allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } });
   const run = await inference.run({ planId: plan.id, requestId: 'declined', input: { messages: f.messages } },
     { signal: AbortSignal.timeout(5000), approve: (preview, route) => { approvals.push({ route, requests: of(f, 'reploid:generation-request').length }); return true; } });
   const result = await run.result;
