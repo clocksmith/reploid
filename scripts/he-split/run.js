@@ -447,7 +447,7 @@ function privacyStatement(proven) {
 
 function integrityStatement() {
   return { traps: 'not on this route', detail: 'Trap verification v2 (secret fresh known-answer traps from a trap oracle, with key-epoch retirement after a failure) exists on Doppler branch protected-route and Reploid main\'s parked protected route, for the single-evaluator CPU protocol. It is not wired into the WebGPU split; this run decrypted every result unverified.',
-    devCheck: 'On the development ring, the split\'s result equalled a CPU (Lattigo) whole-model evaluator\'s byte for byte at 6 of 6 steps (Doppler gpu_test.go TestWebGPUSplitEqualsCPUEvaluator, run on the Orin GPU).',
+    devCheck: 'On the development ring, the split\'s result equalled a CPU (Lattigo) whole-model evaluator\'s byte for byte at 6 of 6 steps (the steps of Doppler gpu_test.go TestWebGPUSplitEqualsCPUEvaluator, run by hand on the Orin GPU).',
     transcript: 'Each stage signed, per step, the digest of the ciphertexts it received and sent; stage A\'s output digest must equal stage B\'s input digest at every step.' };
 }
 
