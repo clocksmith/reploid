@@ -17,7 +17,7 @@ function orderedScope(request, preview, requesterIdentity) {
       || route.planId !== request.model.partition.planId || preview.planId !== route.planId
       || preview.coordinatorId !== coordinator || preview.peerId !== coordinator || preview.recipientIdentity !== coordinator) return null;
     const disclosure = orderedPartitionDisclosure({ schema: 'reploid.partition-attempt/v2', route,
-      requesterId: requesterIdentity, threadId: preview.threadId, attemptId: preview.attemptId, placementGeneration: 0 });
+      requesterId: requesterIdentity, threadId: preview.threadId, attemptId: preview.attemptId, placementGeneration: 0 }, preview.privacyBinding ?? null);
     const recipients = [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])];
     if (!sameJson(preview.disclosure, disclosure) || !sameJson(preview.input?.recipients, recipients)) return null;
     return { recipientIdentity: coordinator, disclosure: orderedDisclosure, planId: route.planId,

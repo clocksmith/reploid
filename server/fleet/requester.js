@@ -173,7 +173,9 @@ export function createFleetRequester({
             binding.route = routeIdentity;
             binding.providers = disclosure.route.stages.map((stage, index) => ({ participantId: stage.participantId, weight: plan.creditWeights[index] }));
             acknowledgments = await openOutputAcknowledgments({ signer: createAttemptEvidenceSigner({ identity }),
-              reservationId: binding.id, identity: routeIdentity });
+              reservationId: binding.id, identity: routeIdentity,
+              // Requester-held edges: the chain that reaches every stage carries no answer text (partition-attempt-evidence.js).
+              textlessOutputs: request.privacyBinding?.route?.backend === 'doppler-partition-edges/v1' });
             // Optional read-only view of the requester's own signed acknowledgments, for a caller that keeps its evidence.
             const held = acknowledgments;
             controls.onAcknowledgments?.(Object.freeze({ evidence: () => held.evidence(), count: () => held.state().count }));

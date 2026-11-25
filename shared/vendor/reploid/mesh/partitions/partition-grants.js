@@ -134,7 +134,7 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
     exact(claim.limits, bounds);
     assert(claim.schema === ORDERED_SCHEMA && claim.meshId === meshId
       && claim.coordinatorId === binding.route.stages[0].participantId
-      && canonicalPartitionJson(claim.disclosure) === canonicalPartitionJson(orderedPartitionDisclosure(binding)),
+      && canonicalPartitionJson(claim.disclosure) === canonicalPartitionJson(orderedPartitionDisclosure(binding, claim.privacyBinding)),
     'Explicit ordered route disclosure mismatch');
     assert(typeof claim.id === 'string' && claim.id.length > 0 && claim.id.length <= 128
       && /^sha256:[a-f0-9]{64}$/.test(claim.generationDigest)
@@ -168,7 +168,8 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
         let recipients;
         if (input.action === 'mesh.execute_partition_stage') { if (!validStage) return DECLINED; }
         else if (input.action === 'mesh.transfer_token_context') {
-          if (!validStage) return DECLINED;
+          // Only a stage the disclosure names as a token recipient may receive token context (edges routes narrow it).
+          if (!validStage || !claim.disclosure.tokenRecipients.includes(stages[input.partitionIndex].participantId)) return DECLINED;
           recipients = [...new Set([claim.coordinatorId, stages[input.partitionIndex].participantId])];
         } else if (input.action === 'mesh.transfer_intermediate_activation') {
           if (!Number.isSafeInteger(input.fromStage) || input.fromStage < 0 || input.toStage !== input.fromStage + 1

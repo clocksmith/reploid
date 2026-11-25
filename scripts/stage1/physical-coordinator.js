@@ -36,21 +36,23 @@ async function readPrivateKey(file) {
  * earner serves, and `earnModel` the whole model it serves.
  */
 export async function startPhysicalCoordinator({ config, peers, directory, expectations, model, fixture, buyer = null, earnModel = null,
-  onSecret = () => {} }) {
+  onSecret = () => {}, computers: accounts = null, allowSameOwner = false, roomPrefix = 'reploid-swarm-stage1-' }) {
   const { coordinator, credit } = config;
   const [key, cert, ca] = await Promise.all([readPrivateKey(coordinator.tls.keyFile), fs.readFile(coordinator.tls.certFile), fs.readFile(coordinator.tls.caFile)]);
   verifyCoordinatorTls({ key, cert, ca, publicHost: coordinator.publicHost });
-  const roomId = 'reploid-swarm-stage1-' + randomUUID(), roomToken = randomBytes(24).toString('hex'), accessToken = randomBytes(32).toString('hex');
+  const roomId = roomPrefix + randomUUID(), roomToken = randomBytes(24).toString('hex'), accessToken = randomBytes(32).toString('hex');
   onSecret(roomToken); onSecret(accessToken);
   const ledgerFile = path.join(directory, 'credits.sqlite');
   const credits = await openFleetCredits({ file: ledgerFile,
-    computers: [...['requester', 'host-a', 'host-b'].map(label => ({ id: `computer-${label}`, name: label, ownerId: `owner-${label}`,
+    // `accounts` (the north-star run) lists `{ label, participants: [{ participantId, publicJwk }] }` per owner account.
+    computers: [...(accounts ? accounts.map(({ label, participants }) => ({ id: `computer-${label}`, name: label, ownerId: `owner-${label}`, providers: participants }))
+      : ['requester', 'host-a', 'host-b'].map(label => ({ id: `computer-${label}`, name: label, ownerId: `owner-${label}`,
       providers: [{ participantId: peers[label].participantId, publicJwk: peers[label].publicJwk },
-        ...(label === 'requester' && peers.earner ? [{ participantId: peers.earner.participantId, publicJwk: peers.earner.publicJwk }] : [])] })),
+        ...(label === 'requester' && peers.earner ? [{ participantId: peers.earner.participantId, publicJwk: peers.earner.publicJwk }] : [])] }))),
     ...(buyer ? [{ id: 'computer-buyer', name: 'buyer', ownerId: 'owner-buyer', providers: [{ participantId: buyer.participantId, publicJwk: buyer.publicJwk }] }] : [])],
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'stage1-physical/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: expectations.creditsPerOutputToken, maxDebt: credit.maxDebt, maxOutputTokens: fixture.maxOutputTokens,
-      maxPendingPerComputer: 2, maxClockSkewMs: credit.maxClockSkewMs ?? STAGE1_CLOCK_SKEW_MS, maxRequestMs: credit.maxRequestMs, allowSameOwner: false, wholeModelTerminalCharge: 0,
+      maxPendingPerComputer: 2, maxClockSkewMs: credit.maxClockSkewMs ?? STAGE1_CLOCK_SKEW_MS, maxRequestMs: credit.maxRequestMs, allowSameOwner, wholeModelTerminalCharge: 0,
       partitionUnclaimedReleaseMs: credit.partitionUnclaimedReleaseMs } });
   let service = null, server = null, signaling = null;
   const close = async () => {

@@ -530,8 +530,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       requireGenerationCapability(model, requested);
       const route = canonicalPartitionRoute(model.partition.route), identityBinding = { schema: 'reploid.partition-attempt/v2', route,
         requesterId: identity.peerId, threadId: request.threadId, attemptId: request.attemptId, placementGeneration: request.placementGeneration ?? 0 };
-      const disclosure = orderedPartitionDisclosure(identityBinding);
       const privacyBinding = await partitionPrivacyBinding(request, route.stages.map(stage => stage.participantId), route);
+      const disclosure = orderedPartitionDisclosure(identityBinding, privacyBinding);
       let expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
         operation: 'generate-partition', peerId: route.stages[0].participantId, recipientIdentity: route.stages[0].participantId,

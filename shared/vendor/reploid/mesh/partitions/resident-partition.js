@@ -50,7 +50,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     if (!evidence || request.charge === undefined || request.charge === null) return;
     const binding = routeBinding.identity(request.identity);
     if (tallies.has(binding.attemptId)) return;
-    const opening = openStageReceipts({ signer: evidence, identity: binding, partitionIndex: index, charge: request.charge });
+    // An edges route (its signed disclosure gives token context to the first and last stage only) chains outputs without text.
+    const textlessOutputs = request.executionGrant?.claim?.disclosure?.kind === 'coordinator-mediated-activations-and-edge-tokens';
+    const opening = openStageReceipts({ signer: evidence, identity: binding, partitionIndex: index, charge: request.charge, textlessOutputs });
     tallies.set(binding.attemptId, opening);
     try { await opening; } catch (cause) { tallies.delete(binding.attemptId); throw cause; }
   };

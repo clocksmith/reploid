@@ -29,6 +29,10 @@ import { MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner } from '../../p
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
 import { UNFINISHED_ANSWER_TERMS } from '../../server/fleet/credit-shares.js';
 import { STAGE1_MODEL_ID } from './expectations.js';
+import { loadEdgesModel } from './edges-plan.js';
+import { createInference } from '../../packages/reploid/src/inference/index.js';
+import { bindExecutionRoute, edgesExecutionRoute, EDGES_BACKEND, EXECUTION_METADATA } from '../../packages/reploid/src/chat/execution-policy.js';
+import { canonicalPartitionRoute } from '../../packages/reploid/src/contracts/partition.js';
 import { createStageLoader, readPieceBytes } from './stage-loader.js';
 import { metadataPieces, readPieceIndexBytes } from './stage-metadata.js';
 
@@ -47,6 +51,39 @@ export function createTokenTrace() {
       }
       return result;
     } })
+  };
+}
+
+/**
+ * What this stage process's resident was handed, per attempt and step: whether it received token IDs (and how many were
+ * nonzero), how many activation bytes came in, what it produced, and every tokenize call. Content itself is never kept:
+ * token IDs only as a digest. This is the stage's own view after the wire, recorded by the harness, not a proof of
+ * secrecy: it shows what this process received through Reploid, not what an operator could learn by other means.
+ */
+export function createVisibilityTrace() {
+  const rows = new Map();
+  const push = (attemptId, row) => rows.set(attemptId, [...(rows.get(attemptId) ?? []), row]);
+  const digestOf = ids => 'sha256:' + createHash('sha256').update(JSON.stringify(ids)).digest('hex');
+  return {
+    rows: attemptId => (attemptId ? [...(rows.get(attemptId) ?? [])] : Object.fromEntries([...rows].map(([id, list]) => [id, [...list]]))),
+    wrap: resident => ({ ...resident,
+      ...(typeof resident.tokenize === 'function' ? { async tokenize(input) {
+        const result = await resident.tokenize(input);
+        push(input.identity?.attemptId ?? 'unknown', { op: 'tokenize', messages: Array.isArray(input.messages) ? input.messages.length : 0,
+          promptTokens: result?.tokenIds?.length ?? null });
+        return result;
+      } } : {}),
+      async executeStage(input) {
+        const ids = Array.isArray(input.inputTokenIds) ? input.inputTokenIds : null;
+        const result = await resident.executeStage(input);
+        push(input.identity?.attemptId ?? 'unknown', { op: 'step', step: input.step, inputTokenCount: input.inputTokenCount,
+          tokenContext: input.tokenContext ?? (ids ? 'sent' : 'absent'), tokenIds: ids ? { count: ids.length, nonzero: ids.filter(id => id !== 0).length,
+            digest: digestOf(ids) } : null,
+          activationInBytes: input.activation?.tensorData?.byteLength ?? 0,
+          output: Number.isSafeInteger(result?.tokenId) ? 'token' : result?.activationTensor ? 'activation' : 'other',
+          activationOutBytes: result?.activationTensor?.data?.byteLength ?? 0, deltaCharacters: typeof result?.delta === 'string' ? result.delta.length : 0 });
+        return result;
+      } })
   };
 }
 
@@ -98,7 +135,9 @@ const loaderSource = loader => async ({ model, modelDirectory, signal }) => {
  * of the stage loader returning one) and `readBytes` (the loader's byte reader) are what differ between a real host and a fake.
  */
 export async function openStage1Participant({ stageIndex, identity, config, nativeGpu, sourceRuntime = null, readBytes = readPieceBytes }) {
-  const model = catalog.find(row => row.id === STAGE1_MODEL_ID);
+  // `config.edges`: the north-star run's four-stage plan of the same catalogued model (edges-plan.js).
+  const model = config.edges ? (await loadEdgesModel()).model : catalog.find(row => row.id === STAGE1_MODEL_ID);
+  const models = catalog.map(row => (row.id === model.id ? model : row));
   await fs.mkdir(config.modelDirectory, { recursive: true, mode: 0o700 });
   await fs.mkdir(config.stateDirectory, { recursive: true, mode: 0o700 });
   const ca = config.serviceCa ?? undefined;
@@ -109,7 +148,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
   const common = { model, modelDirectory: config.modelDirectory, identity, rtc: createNativeRtcAdapter(wrtc), WebSocket: Socket,
     signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken: config.roomToken, cacheDirectory: null, nativeGpu,
     logger: SILENT, getRtcConfig: () => ({ iceServers: [], iceTransportPolicy: 'all' }) };
-  const trace = createTokenTrace(), gate = createCancelGate({ holdMs: config.gateHoldMs });
+  const trace = createTokenTrace(), gate = createCancelGate({ holdMs: config.gateHoldMs }), visibility = createVisibilityTrace();
   const signer = createAttemptEvidenceSigner({ identity });
   // Requester: per attempt, its signed terms and stop, its acknowledgment view and how often it asked to disclose.
   // Stage: per attempt, the tally evidence it handed to the ledger and each step receipt it checkpointed.
@@ -124,7 +163,9 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     const journalName = `stage-owner-${createHash('sha256').update(String(config.roomId)).digest('hex').slice(0, 16)}.sqlite`;
     stageOwner = await openStageOwner({ file: path.join(config.stateDirectory, journalName), participantId: identity.peerId,
       roomId: config.roomId, serviceUrl: config.serviceUrl });
-    const witness = await openStageTokenWitness(config.witness, { roomId: config.roomId, participantId: identity.peerId });
+    // The token witness sits on the input and final stage only; a middle stage of the edges plan has none.
+    const witness = config.witness ? await openStageTokenWitness(config.witness, { roomId: config.roomId, participantId: identity.peerId })
+      : { wrap: resident => resident };
     // The tokenizer and any other non-weight file the stage opens come through the loader too, recorded as metadata.
     const index = await readPieceIndexBytes({ model, modelDirectory: config.modelDirectory });
     loader = createStageLoader({ directory: config.modelDirectory, assignedRanges: config.assignedRanges,
@@ -142,8 +183,8 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
         return admission.checkpoint(request, index, receipt);
       } } : {}) };
     participant = await createNativeParticipant({ ...common, ...(fake ? { sourceRuntime: fake } : { resolvePartitionSource: loaderSource(loader) }),
-      localStageWitness: { wrap: resident => gate.wrap(trace.wrap(witness.wrap(resident))) },
-      ordered: shortcutOrderedParticipation({ model, models: catalog, stageIndex }),
+      localStageWitness: { wrap: resident => gate.wrap(trace.wrap(visibility.wrap(witness.wrap(resident)))) },
+      ordered: shortcutOrderedParticipation({ model, models, stageIndex }),
       executionAdmission: observed });
     await participant.contribute(true);
   }
@@ -160,8 +201,11 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
       unfinishedTerms: UNFINISHED_ANSWER_TERMS, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS });
   }
 
-  /** `keepPartial` returns a failed answer with the text received so far instead of throwing. */
-  async function generate({ messages, threadId, keepPartial = false }) {
+  /**
+   * `keepPartial` returns a failed answer with the text received so far instead of throwing. `edges` (from
+   * `generateEdges`) replaces the readable route's policy, binding and approval with the inference API's.
+   */
+  async function generate({ messages, threadId, keepPartial = false, edges = null }) {
     const route = readyRoute();
     if (!route) throw Error('No ready split route');
     const stages = route.partition.route.stages.map(stage => stage.participantId);
@@ -171,13 +215,16 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
       received: { deltas: 0, text: '' }, outcome: 'running' };
     records.set(attemptId, record);
     threads.set(threadId, [...(threads.get(threadId) ?? []), attemptId]);
-    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [...new Set(stages)] } });
+    const privacy = edges?.policy ?? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [...new Set(stages)] } });
     let text = '';
     const requestApproval = async preview => {
       record.approvals += 1;
       const recipients = preview.recipients ?? preview.input?.recipients ?? [];
+      // Content recipients: every stage on a readable split; only the requester-held first and last stage on an edges route.
+      const readers = edges ? [stages[0], stages.at(-1)] : stages;
       if (!(preview.modelIdentity === model.identity && preview.planId === model.partitionPlanId
-        && stages.every(id => recipients.includes(id)) && recipients.every(id => id === identity.peerId || stages.includes(id)))) return false;
+        && readers.every(id => recipients.includes(id)) && recipients.every(id => id === identity.peerId || readers.includes(id)))) return false;
+      if (edges && await edges.requestApproval(preview) !== true) return false;
       // Inside the approval: the route is chosen and nothing is reserved or dispatched yet.
       try { record.terms = await signTerms(preview, { threadId, attemptId }); }
       catch (error) { record.termsError = String(error?.message ?? error); }
@@ -185,13 +232,15 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     };
     const onDelta = value => { run.deltas += 1; text += value?.text ?? ''; record.received = { deltas: run.deltas, text }; };
     try {
-      const result = await requester.generate({ model: route, threadId, attemptId, privacy, messages },
-        { signal: controller.signal, requestApproval, onDelta, onReservation: id => { run.reservationId = id; record.reservationId = id; },
+      const result = await requester.generate({ model: route, threadId, attemptId, privacy, messages, ...(edges ? { privacyBinding: edges.privacyBinding } : {}) },
+        { signal: controller.signal, requestApproval, onDelta: edges ? value => { onDelta(value); edges.onDelta(value); } : onDelta, onReservation: id => { run.reservationId = id; record.reservationId = id; },
           onAcknowledgments: view => { record.view = view; } });
       record.outcome = 'completed';
       return { attemptId, reservationId: run.reservationId, completed: true, text: result.content,
         route: { stages, planId: route.partition.planId, quantization: route.quantization ?? null, modelId: result.modelId,
-          modelIdentity: result.modelIdentity }, execution: withoutSettlement(result.execution) };
+          modelIdentity: result.modelIdentity }, execution: withoutSettlement(result.execution),
+        ...(edges ? { raw: { content: result.content, modelId: result.modelId, modelIdentity: result.modelIdentity, usage: result.usage ?? null,
+          execution: { stopReason: result.execution?.stopReason ?? null } } } : {}) };
     } catch (error) {
       record.outcome = controller.signal.aborted ? 'stopped' : 'failed';
       if (controller.signal.aborted) return { attemptId, reservationId: run.reservationId, completed: false, text, deltas: run.deltas, stopped: true };
@@ -199,6 +248,48 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
       return { attemptId, reservationId: run.reservationId, completed: false, text, deltas: run.deltas, stopped: false,
         failed: true, error: String(error?.message ?? error) };
     } finally { if (active === run) active = null; }
+  }
+
+  /**
+   * The north-star request: through `reploid/inference` with `confidentiality: 'requester-edges'`. The route's first and
+   * last stage must be stages this requester's operator declared its own (`config.ownStages`) and no middle stage may
+   * be; otherwise nothing is prepared or sent. The plan's disclosures, the admitted route and the execution receipt are
+   * returned with the answer.
+   */
+  async function generateEdges({ messages, threadId, maxOutputTokens }) {
+    if (stageIndex !== null) throw Error('Only the requester sends');
+    const route = readyRoute();
+    if (!route) throw Error('No ready split route');
+    const partitionRoute = canonicalPartitionRoute(route.partition.route);
+    const stages = partitionRoute.stages.map(stage => stage.participantId), own = config.ownStages ?? [];
+    const edgeParticipants = [stages[0], stages.at(-1)];
+    if (!edgeParticipants.every(id => own.includes(id)) || stages.slice(1, -1).some(id => own.includes(id))) {
+      throw Object.assign(Error('The route\'s first and last stage are not both this requester\'s own devices, or a middle stage is'), { code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    }
+    let bound = null, admitted = null, answer = null;
+    const inference = createInference({
+      resolveRoute: async () => ({ shape: 'split', backend: EDGES_BACKEND, participants: [...new Set(stages)], selection: 'all',
+        planIdentity: route.partition.planId, edgeParticipants }),
+      execute: async (job, controls) => {
+        const privacyBinding = await bindExecutionRoute({ model: route, privacy: job.policy }, edgesExecutionRoute({ model: route }, { route: partitionRoute }));
+        bound = privacyBinding;
+        answer = await generate({ messages: job.request.messages, threadId, edges: { policy: job.policy, privacyBinding,
+          requestApproval: async preview => { const ok = await controls.requestApproval(preview); if (ok) admitted = preview.privacyBinding?.routeId ?? null; return ok; },
+          onDelta: value => controls.onDelta({ text: value?.text ?? '' }) } });
+        return answer.raw;
+      } });
+    const plan = await inference.prepare({ model: { id: model.id, identity: model.identity }, generation: { maxOutputTokens },
+      execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...new Set(stages)] }, confidentiality: 'requester-edges',
+        allowMetadata: [...EXECUTION_METADATA] } });
+    const run = await inference.run({ planId: plan.id, requestId: 'northstar-' + randomUUID(), input: { messages } },
+      { context: { controls: { onDelta: () => {} } } });
+    const events = [];
+    for await (const event of run.events) events.push(event.type === 'output.delta' ? { type: event.type, sequence: event.sequence } : event.type === 'admitted' ? event : { type: event.type });
+    const result = await run.result;
+    if (result.status !== 'completed' || !answer) {
+      throw Object.assign(Error(`Edges request ${result.status}: ${result.error?.message ?? ''}`), { code: result.error?.code ?? null });
+    }
+    return { ...answer, inference: { plan, events, result, admittedRouteId: admitted }, privacyBinding: bound };
   }
 
   /** What this participant itself holds for one attempt. Nothing here is read from the ledger. */
@@ -244,7 +335,9 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
       return { cancelled: true };
     },
     trace: ({ attemptId }) => ({ tokenIds: trace.tokens(attemptId) }),
+    visibility: ({ attemptId = null } = {}) => ({ participantId: identity.peerId, stageIndex, rows: visibility.rows(attemptId) }),
     generate,
+    generateEdges,
     settlementRecords,
     /** A stage's signed acceptance of the requester's terms at its own index, with its own key. */
     acceptTerms({ terms }) {

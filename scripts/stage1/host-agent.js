@@ -115,7 +115,9 @@ export function createControlOperations(ports) {
     },
     service: body => ports.service(body),
     /** Builds this host's stage directory from its full copy, or checks an existing one against the pin. */
-    'stage-directory': body => (ports.stageDirectory ?? stageDirectoryOperation)(body)
+    'stage-directory': body => (ports.stageDirectory ?? stageDirectoryOperation)(body),
+    /** The north-star plan's stage directory (edges-plan.js): ranges derived here from this host's own pinned files. */
+    'edges-stage-directory': async body => (ports.edgesStageDirectory ?? (await import('./edges-plan.js')).edgesStageDirectory)(body)
   };
 }
 
@@ -145,7 +147,8 @@ export async function runSoloLoad({ body, ports, controls }) {
 }
 
 async function prepareWitness(config) {
-  if (config.stageIndex === null) return config;
+  // The requester has no witness; neither has a middle stage of the north-star plan (`witness: null`).
+  if (config.stageIndex === null || config.witness === null) return config;
   const bytes = Buffer.from(config.fixtureBase64, 'base64');
   const sha256 = createHash('sha256').update(bytes).digest('hex');
   if (sha256 !== config.fixtureSha256) throw Error('The reference fixture changed in transit');
@@ -191,6 +194,8 @@ export function createSessionOperations(ports) {
     cancel: () => live().cancel(),
     trace: body => live().trace(body),
     generate: body => live().generate(body),
+    'generate-edges': body => live().generateEdges(body),
+    visibility: body => live().visibility(body),
     async witness() { return JSON.parse(await fs.readFile(witnessFile, 'utf8')); },
     'settlement-records': body => live().settlementRecords(body),
     'accept-terms': body => live().acceptTerms(body),

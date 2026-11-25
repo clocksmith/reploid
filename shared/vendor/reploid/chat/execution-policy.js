@@ -42,10 +42,22 @@ const plaintextLeakage = [...metadata, 'plaintext'];
  * Providers on earlier releases require all four in a plaintext policy, so a narrower default would be refused.
  */
 const PLAINTEXT_METADATA = ['model-id', 'timing', 'length', 'access-patterns'];
+/**
+ * `doppler-partition-edges/v1` is an ordered split whose first stage (embedding and the first layers, and the
+ * coordinator that tokenizes) and last stage (the last layers, final norm and LM head, which samples and detokenizes)
+ * run on the requester's own devices. Only those two stages receive prompt and answer tokens or text; every other stage
+ * receives plaintext intermediate activations and token counts, never token IDs. Activations can leak content to the
+ * operator that reads them (inversion), so this is a narrower disclosure, not confidential execution.
+ */
+export const EDGES_BACKEND = 'doppler-partition-edges/v1';
 export const EXECUTION_BACKENDS = freeze({
   'doppler-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] },
-  'doppler-partition-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] }
+  'doppler-partition-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] },
+  [EDGES_BACKEND]: { computation: 'plaintext', protocol: null, executorsReadContent: false, executorsReadActivations: true,
+    metadata: [...PLAINTEXT_METADATA] }
 });
+/** The confidentiality values the API accepts. `requester-only` always fails closed; `requester-edges` needs an edges route. */
+export const CONFIDENTIALITY_MODES = Object.freeze(['requester-only', 'requester-edges', 'executor-readable']);
 export const executionBackend = backend => Object.hasOwn(EXECUTION_BACKENDS, backend) ? EXECUTION_BACKENDS[backend] : null;
 const plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 const exact = (object, keys) => object && typeof object === 'object' && !Array.isArray(object)
@@ -113,7 +125,7 @@ export function compileExecutionRequirements(execution) {
   }
   const { placement, participants, confidentiality, allowMetadata } = execution;
   if (!['local-only', 'network-allowed'].includes(placement)) throw invalid('placement must be local-only or network-allowed');
-  if (!['requester-only', 'executor-readable'].includes(confidentiality)) throw invalid('confidentiality must be requester-only or executor-readable');
+  if (!CONFIDENTIALITY_MODES.includes(confidentiality)) throw invalid(`confidentiality must be one of ${CONFIDENTIALITY_MODES.join(', ')}`);
   if (!Array.isArray(allowMetadata) || new Set(allowMetadata).size !== allowMetadata.length
     || !allowMetadata.every(item => metadata.includes(item))) throw invalid(`allowMetadata must be distinct items of ${metadata.join(', ')}`);
   const kind = participants?.kind;
@@ -125,6 +137,11 @@ export function compileExecutionRequirements(execution) {
     throw Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
       'No backend that keeps content from its executors is qualified. Nothing was sent; the request is not retried as readable or local.'),
     { reason: CONFIDENTIAL_EXECUTION_REVIEW_REASON });
+  }
+  // Requester-held edges compile to the plaintext layered policy: the middle stages do read plaintext activations. What
+  // narrows disclosure is the route (EDGES_BACKEND), which the inference API requires for this value and never relaxes.
+  if (confidentiality === 'requester-edges' && placement !== 'network-allowed') {
+    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Requester-held edges need network stages; local-only has no such route. Nothing was sent.');
   }
   return createExecutionPolicy({ placement, recipients: { kind, ids: kind === 'named' ? [...participants.ids] : [] },
     leakage: [...metadata.filter(item => allowMetadata.includes(item)), 'plaintext'] });
@@ -191,8 +208,48 @@ export function validateExecutionRoute(policy, route) {
   assert(exact(route, ['schema', 'modelId', 'modelIdentity', 'adapterIdentities', 'backend', 'protocol', 'route', 'hops'])
     && route.schema === 'reploid.execution-route/v1' && plaintextBackends.includes(route.backend)
     && route.protocol === null && Array.isArray(route.hops) && route.hops.length <= 128, 'unsupported execution route');
-  validatePlaintextHops(policy, route.hops, EXECUTION_BACKENDS[route.backend].metadata);
+  if (route.backend === EDGES_BACKEND) validateEdgeHops(route);
+  validatePlaintextHops(policy, route.hops, EXECUTION_BACKENDS[route.backend].metadata, { activations: route.backend === EDGES_BACKEND });
   return freeze(structuredClone(route));
+}
+
+/**
+ * An edges route lists one remote hop per ordered stage, in stage order: the first and last stage read plaintext
+ * (`disclosure: 'plaintext'`), and every stage between them reads activations only (`disclosure: 'activations'`).
+ * There must be at least one such middle stage, and the two edge stages must be distinct participants.
+ */
+function validateEdgeHops(route) {
+  const stages = route.route?.stages;
+  assert(Array.isArray(stages) && stages.length >= 3 && stages.length === route.hops.length
+    && stages.every((stage, index) => stage?.index === index && route.hops[index]?.recipient === stage.participantId
+      && route.hops[index].placement === 'remote'
+      && route.hops[index].disclosure === (index === 0 || index === stages.length - 1 ? 'plaintext' : 'activations')),
+  'an edges route needs one hop per stage: plaintext at the first and last stage, activations only in between');
+}
+
+/** Builds the edges route for a partition request: the requester names the ordered route whose ends it runs itself. */
+export function edgesExecutionRoute(request, { route }) {
+  assert(id(request.model?.id) && hash(request.model?.identity), 'exact model identity required');
+  const stages = route?.stages;
+  assert(Array.isArray(stages) && stages.length >= 3, 'an edges route needs at least one stage between its two edges');
+  const adapters = (request.model.adapters || []).map(adapter => adapter.identity);
+  assert(adapters.every(hash), 'exact adapter identities required');
+  return freeze({ schema: 'reploid.execution-route/v1', modelId: request.model.id, modelIdentity: request.model.identity,
+    adapterIdentities: adapters, backend: EDGES_BACKEND, protocol: null, route: structuredClone(route),
+    hops: stages.map((stage, index) => ({ recipient: stage.participantId, placement: 'remote',
+      disclosure: index === 0 || index === stages.length - 1 ? 'plaintext' : 'activations' })) });
+}
+
+/**
+ * The stage indexes that may receive token IDs under a bound route: every stage for a plaintext split, only the
+ * first and last for an edges route. Null when the binding names no ordered route.
+ */
+export function tokenContextStages(binding) {
+  const stages = binding?.route?.route?.stages;
+  if (!Array.isArray(stages)) return null;
+  if (binding.route.backend !== EDGES_BACKEND) return stages.map((_, index) => index);
+  validateEdgeHops(binding.route);
+  return [0, stages.length - 1];
 }
 
 export async function bindExecutionRoute(request, route) {
@@ -220,13 +277,14 @@ export async function partitionPrivacyBinding(request, recipients, route) {
 }
 
 /** Shared plaintext disclosure requirements for inference and auxiliary operations. */
-export function validatePlaintextHops(policy, hops, exposed = EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata) {
+export function validatePlaintextHops(policy, hops, exposed = EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata, { activations = false } = {}) {
   policy = assertAvailableExecutionPolicy(policy);
   assert(Array.isArray(hops) && hops.length <= 128, 'bounded disclosure hops required');
   assert(new Set(hops.map(hop => hop?.recipient)).size === hops.length, 'duplicate route recipient');
   for (const hop of hops) {
     assert(exact(hop, ['recipient', 'placement', 'disclosure']) && id(hop.recipient)
-      && ['local', 'remote'].includes(hop.placement) && hop.disclosure === 'plaintext', 'unqualified route hop');
+      && ['local', 'remote'].includes(hop.placement) && (hop.disclosure === 'plaintext'
+        || activations && hop.disclosure === 'activations' && hop.placement === 'remote'), 'unqualified route hop');
     if (hop.placement === 'local') continue;
     assert(policy.placement !== 'local-only', 'local-only policy excludes remote hops');
     assert(policy.recipients.kind === 'open' || policy.recipients.kind === 'named'
