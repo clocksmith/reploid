@@ -30,6 +30,7 @@ export { createFairLaneScheduler } from './fair-lane-scheduler.js';
 import { assert, fleetCreditQuote, text, same } from './contract.js';
 import { openComputerIdentity, readOwnFile } from './computer-identity.js';
 import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { createAttemptEvidenceSigner } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 export { openComputerIdentity, readOwnFile };
 
@@ -199,7 +200,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
 
   const stageOwner = credits && config.models.some(entry => entry.mode === 'partition' && entry.ordered?.stage)
     ? await openStageOwner({ file: config.identityFile + '.stage-owner.sqlite', participantId: identity.peerId,
-      roomId: config.roomId, serviceUrl: config.serviceUrl }) : null;
+      roomId: config.roomId, serviceUrl: config.serviceUrl, signer: createAttemptEvidenceSigner({ identity }) }) : null;
   let startupProviderCleaned = false;
   async function reconcileCredits() {
     if (!credits) return [];

@@ -7,7 +7,7 @@
  * directory whose fingerprint is unchanged since (see SEARCH_EVIDENCE). What a stage process actually read is the stage
  * loader's own record (`loaded`), measured during the answer; the searches show what each machine held around it.
  */
-import { UNFINISHED_ANSWER_TERMS, WALK_AWAY_DIFFERENCE, creditSettlementDeltas, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V3, WALK_AWAY_DIFFERENCE, creditSettlementDeltas, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
 import { SETTLEMENT_TERMS_SCHEMA } from '../../server/fleet/settlement-terms.js';
 import { WEIGHT_ROLES } from './stage-metadata.js';
 
@@ -321,7 +321,10 @@ function checkCancel(receipt, expectations, fail) {
 
 /**
  * The forced provider drop: a stage process killed mid-answer. The requester keeps its partial text, nothing is resent,
- * and under the provider-loss-free terms nobody is charged or paid: the hold is released (expired, or settled at zero).
+ * and under the provider-loss-free and provider-relief terms nobody is charged or paid: the hold is released (expired,
+ * or settled at zero). Under the failed-stage terms (UNFINISHED_ANSWER_TERMS_V3) the killed stage forfeits its own share
+ * and the stages that closed are paid for the acknowledged outputs: the requester is charged exactly what the replay
+ * computes, every forfeiting stage is paid nothing, and checkReplay requires the ledger to post the same amounts.
  */
 function checkDrop(receipt, expectations, fail) {
   const drop = receipt.drop, answer = expectations.reference.outputIds.length;
@@ -339,11 +342,29 @@ function checkDrop(receipt, expectations, fail) {
   if (!trace) { fail('drop-stranded-hold', 'no ledger trace'); return; }
   if (trace.state !== 'settled' || trace.heldAfter !== 0) fail('drop-stranded-hold', `${trace.state}, ${trace.heldAfter} held`);
   const journal = Array.isArray(trace.journal) ? trace.journal : [];
+  const accounts = journal.map(row => row.accountId);
+  if (new Set(accounts).size !== accounts.length) fail('double-settlement', 'drop journal repeats an account');
+  if (drop.settlementReplay?.unfinishedTerms === UNFINISHED_ANSWER_TERMS_V3) {
+    const row = (drop.settlementReplay.result?.reservations ?? []).find(item => item.reservationId === trace.reservationId);
+    const forfeited = row?.forfeited ?? [];
+    if (row?.status === 'settled' && row.outputs > 0 && forfeited.length === 0) fail('drop-not-forfeited', 'no stage forfeited its share');
+    for (const { partitionIndex } of forfeited) {
+      // The ledger trace names each credit's computer; the receipt's hosts say which computer runs which participant.
+      const participantId = row.credits?.[partitionIndex]?.participantId;
+      const computerId = (receipt.hosts ?? []).find(host => host.participantId === participantId)?.computerId;
+      const paid = (trace.credits ?? []).filter(item => (item.participantId ?? null) === participantId || (computerId && item.computerId === computerId))
+        .reduce((sum, item) => sum + item.amount, 0);
+      if (paid !== 0) fail('drop-forfeit-paid', `stage ${partitionIndex} was paid ${paid}`);
+    }
+    if (journal.reduce((sum, item) => sum + item.delta, 0) !== 0) fail('drop-not-conserved', canonical(journal));
+    if (!Number.isSafeInteger(drop.accountBefore) || !Number.isSafeInteger(trace.charge) || drop.accountAfter !== drop.accountBefore - trace.charge) {
+      fail('drop-charged', `the requester balance moved from ${drop.accountBefore} to ${drop.accountAfter}, charge ${trace.charge}`);
+    }
+    return;
+  }
   if (trace.charge !== 0 || journal.some(row => row.delta !== 0) || (trace.credits ?? []).some(row => row.amount !== 0)) {
     fail('drop-charged', `charge ${trace.charge}, journal ${canonical(journal)}`);
   }
-  const accounts = journal.map(row => row.accountId);
-  if (new Set(accounts).size !== accounts.length) fail('double-settlement', 'drop journal repeats an account');
   if (!Number.isSafeInteger(drop.accountBefore) || drop.accountAfter !== drop.accountBefore) {
     fail('drop-charged', `the requester balance moved from ${drop.accountBefore} to ${drop.accountAfter}`);
   }
@@ -367,8 +388,15 @@ function checkReplay(receipt, name, expectations, fail) {
   }
   const row = rows.find(item => item.reservationId === trace?.reservationId);
   if (!row) { fail('replay-reservation-missing', name); return; }
-  if (name === 'drop') {
+  // Under the failed-stage terms a drop settles like any attempt (the dropped stage forfeits), so it is compared with
+  // the ledger below; under earlier terms it must charge nothing.
+  const failedStageDrop = name === 'drop' && replay.unfinishedTerms === UNFINISHED_ANSWER_TERMS_V3;
+  if (name === 'drop' && !failedStageDrop) {
     if (!(row.status === 'expired' || row.status === 'settled' && row.debit === 0)) fail('replay-drop-charged', `${row.status} debit ${row.debit}`);
+    return;
+  }
+  if (failedStageDrop && row.status === 'expired') {
+    if (trace.charge !== 0) fail('replay-differs-from-ledger', `drop replay expired, ledger charged ${trace.charge}`);
     return;
   }
   if (row.status !== 'settled') {

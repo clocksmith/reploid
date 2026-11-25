@@ -7,9 +7,9 @@ import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/p
 import { assert, creditPolicy, creditRefusal, digest, enrollComputer, enrollComputers, enrollmentKey, fleetCreditQuote, integer, same, text,
   withCreditPolicyDefaults } from './contract.js';
 import { createCreditRecovery } from './credit-recovery.js';
-import { verifyCreditEvidence } from './credit-evidence.js';
-import { accountSettlement, settledCreditUnits, SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V1, UNFINISHED_ANSWER_TERMS,
-  UNFINISHED_ANSWER_TERMS_V2 } from './credit-shares.js';
+import { forfeitRules, verifyCreditEvidence } from './credit-evidence.js';
+import { accountSettlement, settledCreditUnits, FORFEIT_REASON, SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V1, SETTLEMENT_RULES_V2,
+  UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, UNFINISHED_ANSWER_TERMS_V3 } from './credit-shares.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 /** Balances are kept per owner account: every computer and key an owner enrolled spends and earns one balance. */
@@ -116,14 +116,18 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       evidence: evidence ? JSON.parse(evidence.payload) : null } : null;
   };
   const sha256 = value => createHash('sha256').update(canonicalize(value)).digest('hex');
-  // Which stages were treated as closed, or exited, is not part of the economics: the same answer settles once.
+  // Which stages were treated as closed, or exited, is not part of the economics: the same answer settles once. The
+  // stages that forfeit (`forfeitedStages`, failed-stage rules only) are: a forfeit changes the charge and the credits.
   const economicHashOf = ({ interruptedStages: _interrupted, closedAtLastStep: _closed, ...economics }) => sha256(economics);
   /** Posts one verified settlement. Runs inside the caller's transaction; the request must still be open. */
   const postSettlement = (id, observed, evidence) => {
     const current = read(id);
     assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
     const request = current.binding, totalUnits = settledCreditUnits(request, observed, policy.creditsPerOutputToken);
-    const { credits, ownComputeUnits, charge, entries, deltas } = accountSettlement(request, totalUnits, placeOf);
+    // Failed-stage rules: a forfeiting stage is credited 0 and the charge falls by exactly its share (credit-shares.js).
+    const forfeitedStages = observed.forfeitedStages?.length ? observed.forfeitedStages : null;
+    const { credits, ownComputeUnits, charge, entries, deltas } = accountSettlement(request, totalUnits, placeOf,
+      (forfeitedStages ?? []).map(row => row.partitionIndex));
     for (const work of observed.workIds) db.prepare('INSERT INTO fleet_work VALUES (?,?)').run(work, id);
     for (const [accountId, delta] of deltas) {
       const account = db.prepare('SELECT balance FROM fleet_accounts WHERE id=?').get(accountId);
@@ -136,20 +140,29 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         .run(id, entry.accountId, entry.delta, now(), entry.computerId);
     }
     db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, holdAccount(request));
-    const { interruptedStages, closedAtLastStep, beyondCeiling } = observed;
+    const { interruptedStages, closedAtLastStep, beyondCeiling, beyondStageSteps } = observed;
     const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens,
       ...(observed.terminalStatus ? { status: observed.terminalStatus, usage: null } : {}),
       ...(interruptedStages ? { status: 'failed', reason: 'interrupted-stage-owner', interruptedStages } : {}),
       ...(closedAtLastStep ? { reason: 'closed-at-last-signed-step-after-window', closedAtLastStep } : {}),
       // An unfinished answer the stages closed with no requester stop and no withheld acknowledgments. Under
-      // SETTLEMENT_RULES (v2) it is an unattributed disconnect and charges the acknowledged prefix, as the replay does.
+      // SETTLEMENT_RULES_V2 and SETTLEMENT_RULES it is an unattributed disconnect and charges the acknowledged prefix, as the replay does.
       // Under the interim rules it charged the acknowledged prefix (where the replay charged nothing); under
       // SETTLEMENT_RULES_V1 it charged nothing.
       ...(observed.stageEnded ? { reason: request.settlementRules === SETTLEMENT_RULES_V1 ? 'stage-ended-unfinished-answer'
         : 'unfinished-answer-closed-without-requester-stop' } : {}),
       ...(observed.unattributedDisconnect ? { reason: 'unattributed-disconnect-acknowledged-prefix' } : {}),
+      // Failed-stage rules (SETTLEMENT_RULES): the stages that failed and why, in the replay row's words. Each is
+      // credited 0; every other stage is credited as if all had closed, and the requester is charged those shares.
+      // A stage that forfeits by its owner's interruption claim without having closed (cause `fault`) died mid-answer:
+      // the answer is reported `failed`, as an interrupted execution was under the earlier rules.
+      ...(forfeitedStages ? { ...(forfeitedStages.some(row => row.cause === 'fault') ? { status: 'failed' } : {}), reason: FORFEIT_REASON,
+        forfeitedStages } : {}),
       // Outputs acknowledged past the signed ceiling: recorded, never charged.
       ...(beyondCeiling ? { beyondCeiling } : {}),
+      // Failed-stage rules, final stage on the requester's own account: outputs the requester acknowledged past the
+      // steps the paid stages signed for. Recorded, never charged.
+      ...(beyondStageSteps ? { beyondStageSteps } : {}),
       credits, evidenceHash: sha256(evidence), economicHash: economicHashOf(observed), settledAt: now() };
     db.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
     db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
@@ -208,14 +221,16 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       }
       assert(value.unfinishedTerms === undefined && value.settlementRules === undefined, 'Unfinished-answer terms are set by the ledger');
       // A retry of a reservation made before these terms, before the replay's rules, or under an earlier version of
-      // them (SETTLEMENT_RULES_V1, SETTLEMENT_RULES_INTERIM) must still find it; it keeps the rules it was accepted under.
+      // them (SETTLEMENT_RULES_V1, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V2) must still find it; it keeps the rules
+      // it was accepted under.
       const hashOf = item => createHash('sha256').update(canonicalize(item)).digest('hex');
       const earlierHashes = [hashOf(value)];
       if (value.mode === 'partition') {
         const earlier = { ...value, unfinishedTerms: UNFINISHED_ANSWER_TERMS };
         earlierHashes.push(hashOf(earlier), hashOf({ ...earlier, settlementRules: SETTLEMENT_RULES_V1 }),
-          hashOf({ ...earlier, settlementRules: SETTLEMENT_RULES_INTERIM }));
-        value.unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2;
+          hashOf({ ...earlier, settlementRules: SETTLEMENT_RULES_INTERIM }),
+          hashOf({ ...value, unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, settlementRules: SETTLEMENT_RULES_V2 }));
+        value.unfinishedTerms = UNFINISHED_ANSWER_TERMS_V3;
         value.settlementRules = SETTLEMENT_RULES;
       }
       const requestHash = hashOf(value);
@@ -262,8 +277,15 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       evidence = structuredClone(evidence);
       const row = read(id); assert(row, 'Unknown credit reservation');
       assert(row.state !== 'settled' || row.outcome?.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
+      const interrupted = recovery.interrupted(id);
+      // Failed-stage rules: a stage owner's interruption claim is that stage's signed fault, so a request cannot be
+      // settled around a claim this ledger holds. (Once settled, the evidence it settled on stands as it is.)
+      if (row.state !== 'settled' && forfeitRules(row.binding)) {
+        assert(interrupted.every(held => evidence?.interruptedOwners?.some?.(claim => same(claim, held.closure))),
+          'This request holds a stage owner\'s interruption claim; settlement evidence must present it');
+      }
       const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id),
-        interrupted: recovery.interrupted(id), releaseWindowMs: policy.partitionUnclaimedReleaseMs, maxUnacknowledgedOutputs });
+        interrupted, releaseWindowMs: policy.partitionUnclaimedReleaseMs, maxUnacknowledgedOutputs });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
       const economicHash = economicHashOf(observed);
       const previousEconomicHash = row.outcome?.economicHash ?? (row.evidence ? sha256(

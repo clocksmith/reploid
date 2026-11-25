@@ -35,6 +35,7 @@ import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { describeDisclosure } from '../../packages/reploid/src/inference/protections.js';
 import { createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
+import { UNFINISHED_ANSWER_TERMS_V3 } from '../../server/fleet/credit-shares.js';
 import { openAgentSession, parseControlReply, createSshTransport } from './command-transport.js';
 import { harnessDigest, readReleaseSha } from './host-agent.js';
 import { startPhysicalCoordinator } from './physical-coordinator.js';
@@ -443,7 +444,9 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
         visibility: { ...visibilityBefore, ...(await caseVisibility(attemptId, config.stages.filter(stage => stage !== target).map(stage => stage.label))) },
         // Which rule decided the relief, from the requester's signed terms; the receipt states it rather than resolving it.
         reliefRule: { unfinishedTerms: terms?.unfinishedTerms ?? null,
-          appliedRule: 'A stage named in the terms has no counting close after the release window and the answer was not delivered: the attempt expires, nobody is charged or paid.',
+          appliedRule: terms?.unfinishedTerms === UNFINISHED_ANSWER_TERMS_V3
+            ? 'A stage named in the terms has no counting close after the release window: it forfeits its own share, and the stages that closed are paid for the outputs the requester acknowledged.'
+            : 'A stage named in the terms has no counting close after the release window and the answer was not delivered: the attempt expires, nobody is charged or paid.',
           ...(cases.reliefNote ? { note: cases.reliefNote } : {}) } };
     }
 

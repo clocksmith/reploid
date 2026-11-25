@@ -6,6 +6,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { assert, same } from './contract.js';
+import { signStageFaultRecord } from './settlement-terms.js';
 
 async function processLocation() {
   if (process.platform !== 'linux') return { pid: process.pid };
@@ -34,8 +35,14 @@ async function predecessorExited(prior, current) {
   catch (error) { if (error.code === 'ESRCH') return true; throw error; }
 }
 
-export async function openStageOwner({ file, participantId, roomId, serviceUrl }) {
+/**
+ * `signer` (createAttemptEvidenceSigner over this host's enrolled identity) lets an interruption report carry the
+ * stage's signed fault record, so that the settlement replay can read the stage's failure from records alone
+ * (docs/settlement-replay.md, "Failed stages"). Without it the report is sent as before.
+ */
+export async function openStageOwner({ file, participantId, roomId, serviceUrl, signer = null }) {
   assert(path.isAbsolute(file), 'Absolute stage-owner journal required');
+  assert(signer === null || signer.participantId === participantId && typeof signer.sign === 'function', 'Stage fault signer differs from this stage owner');
   const handle = await fs.open(file, constants.O_RDWR | constants.O_CREAT | constants.O_NOFOLLOW, 0o600);
   let stat;
   try {
@@ -54,6 +61,8 @@ export async function openStageOwner({ file, participantId, roomId, serviceUrl }
       CREATE TABLE IF NOT EXISTS owner_scope (id INTEGER PRIMARY KEY, value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS work (id TEXT NOT NULL, stage INTEGER NOT NULL, epoch TEXT NOT NULL, owner TEXT NOT NULL, process_owner TEXT NOT NULL,
         checkpoint TEXT, terminal TEXT, PRIMARY KEY(id,stage)); COMMIT;`);
+    // A journal written before interruption reports carried a signed fault has no column for it.
+    if (!db.prepare('PRAGMA table_info(work)').all().some(column => column.name === 'fault')) db.exec('ALTER TABLE work ADD COLUMN fault TEXT');
     const prior = db.prepare('SELECT value FROM owner_scope WHERE id=1').get();
     if (prior) assert(same(JSON.parse(prior.value), scope), 'Stage-owner journal was moved or belongs to another scope');
     else db.prepare('INSERT INTO owner_scope VALUES(1,?)').run(JSON.stringify(scope));
@@ -127,8 +136,18 @@ export async function openStageOwner({ file, participantId, roomId, serviceUrl }
             else {
               assert(await predecessorExited(JSON.parse(record.process_owner), processOwner),
                 'Prior stage process death is unconfirmed; keeping its credit evidence open');
+              const checkpoint = record.checkpoint ? JSON.parse(record.checkpoint) : null;
+              // The stage's own signed fault for this attempt: it failed and gives up its share. Its last signed step
+              // names the attempt and route; a stage that signed no step has none to name and sends no fault. It is
+              // signed once and journaled first, so a repeated report after a lost reply carries the same record.
+              let fault = record.fault ? JSON.parse(record.fault) : null;
+              if (!fault && signer && checkpoint) {
+                fault = await signStageFaultRecord({ signer, reservationId: checkpoint.reservationId, attemptId: checkpoint.attemptId,
+                  routeHash: checkpoint.routeHash, partitionIndex: record.stage });
+                db.prepare('UPDATE work SET fault=? WHERE id=? AND stage=? AND owner=?').run(JSON.stringify(fault), record.id, record.stage, record.owner);
+              }
               const reply = await credits.call('closeStageOwner', { id: record.id, partitionIndex: record.stage, owner: record.owner,
-                receipt: record.checkpoint ? JSON.parse(record.checkpoint) : null });
+                receipt: checkpoint, ...(fault ? { fault } : {}) });
               assert(reply.stageOwner === 'closed', 'Coordinator did not fence the interrupted stage');
               result = reply.outcome;
             }

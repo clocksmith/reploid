@@ -109,6 +109,32 @@ describe('the forced provider drop', () => {
   });
 });
 
+describe('the forced provider drop under the failed-stage terms', () => {
+  const V3 = 'reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1';
+  /** host-a (stage 0) was killed after 1 acknowledged output: it forfeits, host-b closed and is paid 1. */
+  const forfeited = r => {
+    r.drop.settlement = { reservationId: 'drop', state: 'settled', charge: 1, outputTokens: 1, heldAfter: 0, reason: 'failed-stage-forfeits-own-share',
+      credits: [{ computerId: 'computer-a', amount: 0 }, { computerId: 'computer-b', amount: 1 }],
+      journal: [{ accountId: 'computer-requester', delta: -1 }, { accountId: 'computer-a', delta: 0 }, { accountId: 'computer-b', delta: 1 }],
+      replay: { attempted: false } };
+    r.drop.accountAfter = r.drop.accountBefore - 1;
+    r.drop.settlementReplay = { ...replayOf(r.drop.settlement, 'settled', { acceptancesSigned: 'during-attempt' }), unfinishedTerms: V3 };
+    Object.assign(r.drop.settlementReplay.result.reservations[0], { outputs: 1, forfeited: [{ partitionIndex: 0, cause: 'no-close' }] });
+  };
+  it('accepts the stage that closed being paid for the acknowledged output, and the killed stage paid nothing', () => {
+    expect(codes(judged(forfeited))).toEqual([]);
+  });
+  it.each([
+    ['the killed stage paid', r => { forfeited(r); r.drop.settlement.credits[0].amount = 1; r.drop.settlement.charge = 2; r.drop.accountAfter = -2;
+      r.drop.settlementReplay.result.reservations[0].debit = 2; r.drop.settlementReplay.result.reservations[0].credits[0].amount = 1; }, ['drop-forfeit-paid']],
+    ['no stage forfeiting', r => { forfeited(r); r.drop.settlementReplay.result.reservations[0].forfeited = []; }, ['drop-not-forfeited']],
+    ['a balance that moved by other than the charge', r => { forfeited(r); r.drop.accountAfter = r.drop.accountBefore; }, ['drop-charged']],
+    ['a ledger charge other than the replay\'s', r => { forfeited(r); r.drop.settlementReplay.result.reservations[0].debit = 0; }, ['replay-differs-from-ledger']]
+  ])('refuses %s', (_name, change, expected) => {
+    expect(codes(judged(change))).toEqual(expected);
+  });
+});
+
 describe('the settlement replay', () => {
   it.each([
     ['a missing replay', r => { r.split.settlementReplay = null; }, ['replay-missing']],

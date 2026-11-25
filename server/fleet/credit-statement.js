@@ -7,7 +7,8 @@
  * request bindings, without trusting the operator's running total or SQLite
  * tables. Verifies expired unclaimed holds, enforces policy claim-release
  * windows so late receipts cannot reopen settlement, accepts a delivered answer
- * settled at the window with stages closed at their last signed step, and reports any journal
+ * settled at the window with stages closed at their last signed step, accepts under the
+ * failed-stage rules a settlement in which a failed stage forfeited its own share, and reports any journal
  * entry whose proof is missing, unsigned, replayed or mismatched in `unchecked`.
  */
 import fs from 'node:fs/promises';
@@ -20,7 +21,7 @@ import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-js
 import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { assert, creditPolicy, digest, enrollComputers, FLEET_SERVICE_REQUEST_SCHEMA, integer, same, text } from './contract.js';
-import { releaseWindowPassed, verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
+import { forfeitRules, releaseWindowPassed, verifyClaimedFault, verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
 import { accountSettlement, creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS, UNFINISHED_TERMS_OF_RULES } from './credit-shares.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
@@ -96,7 +97,7 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
   'Request ceiling or deadline differs from policy terms');
 }
 
-async function verifyInterruptedOwners(request, evidence, enrollment, settledAt, skew) {
+async function verifyInterruptedOwners(request, evidence, enrollment, settledAt, skew, releaseWindowMs = null) {
   if (request.mode !== 'partition' || !Array.isArray(evidence?.interruptedOwners) || evidence.interruptedOwners.length === 0) {
     return [];
   }
@@ -111,7 +112,9 @@ async function verifyInterruptedOwners(request, evidence, enrollment, settledAt,
       && Number.isSafeInteger(signed.at) && signed.at >= request.createdAt - skew && signed.at <= settledAt + skew
       && enrolled && await verifyParticipantSignature(enrolled.publicJwk, FLEET_SERVICE_REQUEST_SCHEMA, signed, signature),
     'Enrolled stage owner signature required');
-    assert(Object.keys(signed.payload).length === 4 && id === request.id
+    // A claim may carry the stage's signed fault record; it is checked as the ledger checked it.
+    const withFault = Object.hasOwn(signed.payload ?? {}, 'fault');
+    assert(Object.keys(signed.payload).length === (withFault ? 5 : 4) && id === request.id
       && typeof owner === 'string' && /^[a-f0-9]{64}$/.test(owner)
       && Number.isSafeInteger(stage) && stage >= 0 && !seenStages.has(stage)
       && request.providers[stage]?.participantId === signed.participantId,
@@ -119,6 +122,10 @@ async function verifyInterruptedOwners(request, evidence, enrollment, settledAt,
     assert(receipt === null || receipt?.partitionIndex === stage && receipt.status === 'executing', 'Invalid recovered step checkpoint');
     if (receipt) {
       await verifyPartitionComponents(request, { identity: request.route, receipts: [receipt] }, enrollment, settledAt, skew);
+    }
+    if (withFault) {
+      await verifyClaimedFault(request, stage, signed.payload.fault, enrollment, settledAt, skew, forfeitRules(request) && Number.isSafeInteger(releaseWindowMs)
+        ? { closesBy: request.deadline + releaseWindowMs + skew } : {});
     }
     seenStages.add(stage);
     verified.push({ stage, closure: envelope });
@@ -173,13 +180,13 @@ export async function verifyCreditStatement(statement, { computers, participantI
   const holdUnit = request => (perAccount ? request.accountId ?? enrollment.byId.get(request.computerId)?.ownerId : request.computerId);
   const placeOf = peer => { const { computerId, ownerId } = enrollment.byPeer.get(peer); return { computerId, accountId: ownerId }; };
   /** This statement's share of one settled request: its delta, and for v2 the computers that delta is attributed to. */
-  const shareOf = (request, totalUnits) => {
+  const shareOf = (request, totalUnits, forfeited) => {
     if (!perAccount) {
-      const split = creditSettlementDeltas(request, totalUnits, peer => enrollment.byPeer.get(peer).computerId);
+      const split = creditSettlementDeltas(request, totalUnits, peer => enrollment.byPeer.get(peer).computerId, forfeited);
       assert(split.deltas.has(holder), 'Journal entry account did not participate in settled request');
       return { split, delta: split.deltas.get(holder), attribution: null };
     }
-    const split = accountSettlement(request, totalUnits, placeOf);
+    const split = accountSettlement(request, totalUnits, placeOf, forfeited);
     assert(split.deltas.has(holder), 'Journal entry account did not participate in settled request');
     return { split, delta: split.deltas.get(holder),
       attribution: split.entries.filter(row => row.accountId === holder).map(row => ({ computerId: row.computerId, delta: row.delta })) };
@@ -234,12 +241,14 @@ export async function verifyCreditStatement(statement, { computers, participantI
         && entry.at <= statement.issuedAt + policy.maxClockSkewMs, 'Journal timestamp is outside request or statement bounds');
       assert(entry.evidence !== null && entry.evidence !== undefined, 'Missing signed settlement evidence');
       // A delivered answer whose unclosed stages covered it settles at the window instead (settlement replay, step 6):
-      // verifyCreditEvidence accepts that evidence only at or after the deadline plus the window.
-      const atWindow = entry.request.mode === 'partition' && entry.evidence.closedAtLastStep !== undefined;
+      // verifyCreditEvidence accepts that evidence only at or after the deadline plus the window. So does, under the
+      // failed-stage rules, an answer in which a stage with no closing receipt forfeits its share.
+      const atWindow = entry.request.mode === 'partition' && (entry.evidence.closedAtLastStep !== undefined
+        || forfeitRules(entry.request) && Array.isArray(entry.evidence.forfeitedStages) && entry.evidence.forfeitedStages.some(row => row?.cause === 'no-close'));
       if (Number.isSafeInteger(window) && !atWindow) {
         assert(!windowPassed(entry.request, entry.at, window, policy), 'Claim window closed before settlement');
       }
-      const interrupted = await verifyInterruptedOwners(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs);
+      const interrupted = await verifyInterruptedOwners(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs, window);
       const observed = await verifyCreditEvidence(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs,
         { interrupted, releaseWindowMs: atWindow ? window : null, maxUnacknowledgedOutputs });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
@@ -248,7 +257,8 @@ export async function verifyCreditStatement(statement, { computers, participantI
         assert(!seenWorkIds.has(workId), 'Duplicate settled work evidence');
       }
       const totalUnits = settledCreditUnits(entry.request, observed, policy.creditsPerOutputToken);
-      const { split, delta, attribution } = shareOf(entry.request, totalUnits);
+      // Failed-stage rules: the stages the evidence shows as failed are credited 0, and the charge falls by their shares.
+      const { split, delta, attribution } = shareOf(entry.request, totalUnits, (observed.forfeitedStages ?? []).map(row => row.partitionIndex));
       recomputedDelta = delta;
       if (attribution) {
         const stated = Array.isArray(entry.attribution) ? entry.attribution.map(row => ({ computerId: row?.computerId, delta: row?.delta })) : null;
@@ -261,7 +271,8 @@ export async function verifyCreditStatement(statement, { computers, participantI
       recomputedBalance += recomputedDelta;
       if (entry.outcome !== null && entry.outcome !== undefined) {
         assert(entry.outcome.charge === split.charge && entry.outcome.ownComputeUnits === split.ownComputeUnits
-          && same(entry.outcome.credits, split.credits), 'Recorded settlement outcome differs from recomputed shares');
+          && same(entry.outcome.credits, split.credits) && same(entry.outcome.forfeitedStages ?? [], observed.forfeitedStages ?? []),
+        'Recorded settlement outcome differs from recomputed shares');
       }
       assert(recomputedDelta === statedDelta, 'Stated journal delta differs from recomputed share');
       verified.push({
@@ -303,7 +314,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
           assert(!windowPassed(request, at, window, policy), 'Claim window closed before settlement');
         }
         assert(claim.evidence !== null && claim.evidence !== undefined, 'Missing signed settlement evidence');
-        const interrupted = await verifyInterruptedOwners(request, claim.evidence, enrollment, at, policy.maxClockSkewMs);
+        const interrupted = await verifyInterruptedOwners(request, claim.evidence, enrollment, at, policy.maxClockSkewMs, window);
         const observed = await verifyCreditEvidence(request, claim.evidence, enrollment, at, policy.maxClockSkewMs, { interrupted, maxUnacknowledgedOutputs });
         for (const workId of observed.workIds) {
           assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');

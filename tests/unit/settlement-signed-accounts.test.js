@@ -9,6 +9,7 @@ import { replaySettlement } from '../../server/fleet/settlement-replay.js';
 import {
   SETTLEMENT_ACCEPTANCE_SCHEMA, acceptSettlementTerms, verifySettlementAcceptance, verifySettlementTerms
 } from '../../server/fleet/settlement-terms.js';
+import { UNFINISHED_ANSWER_TERMS_V2 } from '../../server/fleet/credit-shares.js';
 import { POLICY, createParties, runAttempt } from '../../scripts/settlement/scenario.js';
 
 const bodyOf = record => { const { publicJwk: _key, signature: _signature, ...body } = record; return body; };
@@ -94,12 +95,20 @@ describe('signed accounts', () => {
     const row = (await replay([...a.all(), second], a.decidedAt)).reservations[0];
     expect(row).toMatchObject({ status: 'conflict', debit: null });
     expect(row.conflicts).toContainEqual({ signer: parties.stages[1].peerId, kind: 'payout-account', blocking: true, accounts: ['owner-b', 'owner-elsewhere'] });
-    // The requester's own key running a stage must name the requester's account there too.
+    // The requester's own key running a stage names a second account there. Under the provider-relief terms that blocks.
     const self = { requester: parties.requester, stages: [parties.requester, parties.stages[1]] };
-    const split = await runAttempt(self, { weights: [1, 3], accounts: { requester: 'owner-requester', stages: ['owner-other', 'owner-b'] } });
+    const selfAccounts = { requester: 'owner-requester', stages: ['owner-other', 'owner-b'] };
+    const relief = await runAttempt(self, { tag: 'self-relief', weights: [1, 3], accounts: selfAccounts, unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
+    const reliefRow = (await replay(relief.all(), relief.decidedAt)).reservations[0];
+    expect(reliefRow.status).toBe('conflict');
+    expect(reliefRow.conflicts).toContainEqual({ signer: parties.requester.peerId, kind: 'payout-account', blocking: true, accounts: ['owner-other', 'owner-requester'] });
+    // Under the failed-stage terms nothing a requester's own stage signs reduces what outside stages are paid: the
+    // second account is listed, does not block, and the stage stays the requester's own (paid nothing).
+    const split = await runAttempt(self, { weights: [1, 3], accounts: selfAccounts });
     const selfRow = (await replay(split.all(), split.decidedAt)).reservations[0];
-    expect(selfRow.status).toBe('conflict');
-    expect(selfRow.conflicts).toContainEqual({ signer: parties.requester.peerId, kind: 'payout-account', blocking: true, accounts: ['owner-other', 'owner-requester'] });
+    expect(selfRow).toMatchObject({ status: 'settled', debit: 12 });
+    expect(selfRow.credits.map(credit => credit.amount)).toEqual([0, 12]);
+    expect(selfRow.conflicts).toEqual([{ signer: parties.requester.peerId, kind: 'payout-account', blocking: false, accounts: ['owner-other', 'owner-requester'] }]);
   });
 
   it('do not change an attempt whose terms name no account, even when a stage names one', async () => {

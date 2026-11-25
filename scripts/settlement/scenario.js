@@ -9,7 +9,7 @@ import {
   ACKNOWLEDGMENT_OVERDUE, MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner, openOutputAcknowledgments, openStageReceipts
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
-import { UNFINISHED_ANSWER_TERMS_V2 } from '../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS_V3 } from '../../server/fleet/credit-shares.js';
 
 export const POLICY = Object.freeze({
   schema: 'reploid.service-credit-policy/v1', unit: 'noncash-service-credit', version: 'settlement-replay-1',
@@ -48,7 +48,8 @@ const route = (parties, tag) => ({
  *  requesterStopAfter: the requester signs a stop after this many outputs and the stages close
  *  stagesFailAfter: the stages close with a failed receipt after this many outputs, the requester having acknowledged all
  *  maxOutputTokens: the ceiling in the requester's signed terms
- *  unfinishedTerms: the signed unfinished-answer terms (by default the decided ones, UNFINISHED_ANSWER_TERMS_V2)
+ *  unfinishedTerms: the signed unfinished-answer terms (by default the failed-stage terms a new split reservation
+ *    settles under, UNFINISHED_ANSWER_TERMS_V3; pass an earlier value to replay the earlier rules)
  *  maxUnacknowledgedOutputs: K in the signed terms and the stages' acceptances (the stages' tallies enforce the receiver policy's K)
  *  accounts: `{ requester, stages: [...] }` signs the requester's `debitAccount` into the terms and each stage's
  *    `payoutAccount` into its acceptance (signed accounts, docs/settlement-replay.md step 8); by default none are signed
@@ -57,7 +58,7 @@ const route = (parties, tag) => ({
 export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answer', ' is', ' 26', '.'], weights = [1, 3],
   stopAckingAfter = Infinity, vanishStage = null, vanishAfterStep = Infinity, lateAckDelayMs = null, clock = createClock(),
   requesterStopAfter = null, stagesFailAfter = null, maxOutputTokens = 64, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
-  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, policy = POLICY, accounts = null } = {}) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V3, policy = POLICY, accounts = null } = {}) {
   const r = route(parties, tag);
   const identity = { schema: 'reploid.partition-attempt/v2', threadId: `thread-${tag}`, attemptId: `attempt-${tag}`,
     requesterId: parties.requester.peerId, placementGeneration: 0, route: r };

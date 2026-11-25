@@ -50,7 +50,8 @@ describe.runIf(wrtc)('Stage 1 harness: a disconnect with no signed stop', () => 
   it('replays from the signed records to the same charge, and the outsider kit verifies it', async () => {
     const [row] = gone.settlementReplay.result.reservations;
     expect(row).toMatchObject({ status: 'settled', debit: gone.settlement.charge, chargedOutputs: gone.settlement.outputTokens });
-    expect(row.reason).toContain('no signed stop and no verified provider failure');
+    expect(row.reason).toContain('closed an unfinished answer with no signed stop');
+    expect(row.forfeited).toEqual([]);
     expect(gone.settlementReplay).toMatchObject({ problems: [], stopSigned: false });
     const verdict = await verifyTrade({ receipt: { requester: preflight.requester, hosts: preflight.hosts, disconnect: gone }, at: Date.now() + 24 * 3600 * 1000 });
     expect(verdict.attempts.flatMap(item => item.problems)).toEqual([]);

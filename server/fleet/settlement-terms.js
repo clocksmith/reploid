@@ -16,7 +16,7 @@ import {
   isCanonicalParticipantProof, normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature
 } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
-import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2 } from './credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V3 } from './credit-shares.js';
 
 export const SETTLEMENT_TERMS_SCHEMA = 'reploid.settlement-terms/v1';
 export const SETTLEMENT_ACCEPTANCE_SCHEMA = 'reploid.settlement-acceptance/v1';
@@ -134,8 +134,20 @@ export async function signStageFault({ signer, terms, partitionIndex, now = sign
   const checked = await verifySettlementTerms(terms);
   if (!checked.ok) throw Error(`Settlement terms do not verify: ${checked.problem}`);
   if (checked.body.shares[partitionIndex]?.participantId !== signer?.participantId) throw Error('A stage signs a fault only for its own share');
-  const body = { schema: SETTLEMENT_FAULT_SCHEMA, reservationId: checked.body.reservationId, attemptId: checked.body.attemptId,
-    routeHash: checked.body.routeHash, partitionIndex, participantId: signer.participantId, signedAt: new Date(now()).toISOString() };
+  return signStageFaultRecord({ signer, reservationId: checked.body.reservationId, attemptId: checked.body.attemptId, routeHash: checked.body.routeHash,
+    partitionIndex, now });
+}
+
+/**
+ * The same fault record, signed by a stage that does not hold the requester's terms: a stage host that restarts after
+ * its process died knows only what its own last signed step receipt carries (reservation, attempt and route hash) and
+ * its stage index (stage-owner.js). The record names its signer; whether that participant runs this stage of this
+ * attempt is decided by whoever reads it, from the terms (the replay) or from the reservation (the ledger).
+ */
+export async function signStageFaultRecord({ signer, reservationId, attemptId, routeHash, partitionIndex, now = signer?.now ?? Date.now }) {
+  if (typeof signer?.participantId !== 'string' || typeof signer.sign !== 'function') throw Error('A stage fault needs the stage\'s own signing identity');
+  const body = { schema: SETTLEMENT_FAULT_SCHEMA, reservationId, attemptId, routeHash, partitionIndex, participantId: signer.participantId,
+    signedAt: new Date(now()).toISOString() };
   if (faultProblem(body)) throw Error('Stage fault is invalid');
   return signer.sign(SETTLEMENT_FAULT_SCHEMA, body);
 }
@@ -153,11 +165,12 @@ export async function signSettlementStop({ signer, terms, acknowledged, now = si
  * `maxUnacknowledgedOutputs` is K, the acknowledgment bound the stages enforce (MAX_UNACKNOWLEDGED_OUTPUTS); it is
  * signed so that a verifier reads it from the terms rather than assuming a constant. A policy that publishes K
  * (`policy.maxUnacknowledgedOutputs`) supplies it, and terms naming another K are refused. `unfinishedTerms` names the
- * rule for an unfinished answer; by default the decided one, which the stages accept (acceptSettlementTerms).
+ * rule for an unfinished answer; by default the failed-stage terms (UNFINISHED_ANSWER_TERMS_V3) that every new split
+ * reservation settles under, which the stages accept (acceptSettlementTerms).
  * `debitAccount`, when given, is the ledger account the requester is charged from; the stages then sign theirs.
  */
 export async function signSettlementTerms({ signer, identity, reservationId, policy, maxOutputTokens, weights, notBefore, deadline,
-  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs, debitAccount = undefined,
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V3, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs, debitAccount = undefined,
   now = signer?.now ?? Date.now }) {
   const binding = canonicalRouteAttemptBinding(identity);
   if (signer?.participantId !== binding.requesterId) throw Error('Settlement terms need the requester\'s own signing identity');
@@ -187,12 +200,13 @@ export async function signSettlementTerms({ signer, identity, reservationId, pol
  * are accepted only with it.
  */
 export async function acceptSettlementTerms({ signer, terms, partitionIndex, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
-  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, payoutAccount = undefined, now = signer?.now ?? Date.now }) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V3, payoutAccount = undefined, now = signer?.now ?? Date.now }) {
   const checked = await verifySettlementTerms(terms);
   if (!checked.ok) throw Error(`Settlement terms do not verify: ${checked.problem}`);
   if (checked.body.maxUnacknowledgedOutputs !== maxUnacknowledgedOutputs) throw Error('The terms name another acknowledgment bound than this stage enforces');
-  // A stage settles under one unfinished-answer rule, by default the decided one: terms that name another, such as the
-  // older provider-loss-free terms signed after the decision, get no acceptance and stay `unknown` in the replay.
+  // A stage settles under one unfinished-answer rule, by default the failed-stage terms: terms that name another, such
+  // as the provider-relief or the older provider-loss-free terms signed after the decision, get no acceptance and stay
+  // `unknown` in the replay.
   if (checked.body.unfinishedTerms !== unfinishedTerms) throw Error('The terms name other unfinished-answer terms than this stage settles under');
   const share = checked.body.shares[partitionIndex];
   if (!share || share.participantId !== signer?.participantId) throw Error('A stage accepts only its own share');

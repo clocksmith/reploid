@@ -170,12 +170,15 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     // Earned from zero on a separate machine, then spent.
     expect(receipt.earn).toMatchObject({ accountBefore: 0, runtime: 'fake-whole-model', earner: { machine: setup.config.earner.machineId } });
     expect(receipt.split.account.before).toBeGreaterThanOrEqual(receipt.split.settlement.charge);
-    // The drop: host-a's process killed by exact PID, partial answer kept, nothing resent or charged, hold released.
+    // The drop: host-a's process killed by exact PID, partial answer kept, nothing resent, hold released. Under the
+    // failed-stage terms host-a forfeits its share and host-b, which closed, is paid for the acknowledged outputs.
     expect(receipt.drop).toMatchObject({ killed: { host: 'host-a', how: 'exact-process-kill', confirmedGone: true }, completed: false,
       resend: { requesterApprovals: 1, requesterAttemptsOnThread: 1, ledgerReservations: 1 },
-      settlement: { state: 'settled', status: 'expired', charge: 0, heldAfter: 0 } });
-    expect(receipt.drop.accountAfter).toBe(receipt.drop.accountBefore);
-    for (const [name, status] of [['split', 'settled'], ['cancel', 'settled'], ['drop', 'expired']]) {
+      settlement: { state: 'settled', reason: 'failed-stage-forfeits-own-share', heldAfter: 0 } });
+    expect(receipt.drop.settlement.forfeitedStages).toContainEqual({ partitionIndex: 0, cause: 'no-close' });
+    expect(receipt.drop.settlement.credits[0].amount).toBe(0);
+    expect(receipt.drop.accountAfter).toBe(receipt.drop.accountBefore - receipt.drop.settlement.charge);
+    for (const [name, status] of [['split', 'settled'], ['cancel', 'settled'], ['drop', 'settled']]) {
       expect(receipt[name].settlementReplay).toMatchObject({ termsCollectedBy: 'stage1-harness', problems: [] });
       expect(receipt[name].settlementReplay.result.reservations.map(row => row.status)).toEqual([status]);
     }

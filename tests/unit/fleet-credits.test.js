@@ -139,7 +139,9 @@ describe('enrolled fleet service credits', () => {
     clock += policy.maxClockSkewMs;
     expect(ledger.snapshot().accounts[0].held).toBe(10);
     clock += 1;
-    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
+    // The split hold is then decided under the failed-stage rules: stage 0 never closed and forfeits its share, and
+    // stage 1, which closed, is paid its share of the acknowledged output.
+    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[-2, 0], [0, 0], [2, 0]]);
   });
   it.each(['cancelled', 'failed'])('settles signed %s cleanup without inventing token usage, even after the deadline', async status => {
     const input = request('terminal'); dispatch(input); ledger.admit(input.id, 0);
@@ -547,26 +549,27 @@ describe('enrolled fleet service credits', () => {
     expect(await ledger.recover(input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
     expect(balances()).toEqual([[0, 10], [0, 0], [0, 0]]);
 
-    // After the stated window the request is final: nobody is charged or paid, and the hold is gone. The final stage
-    // signed `done` and the requester acknowledged it, but stage 0 has no receipt covering the answer: the replay's
-    // `unknown`, which the outcome names.
+    // After the stated window the request is final. Under the failed-stage rules stage 0, which has no closing receipt,
+    // forfeits its own share; the final stage, which closed, is paid its share of the 7 acknowledged outputs (5 of 7),
+    // and the requester is charged exactly that.
     clock = at + policy.maxRequestMs + 5000 + policy.maxClockSkewMs;
     expect(await ledger.recover(input.id)).toMatchObject({ status: 'pending', awaitingStages: [0] });
     clock += 1;
     const final = await ledger.recover(input.id);
-    expect(final).toMatchObject({ status: 'expired', reason: 'unknown-delivered-answer-without-covering-receipt', charge: 0, credits: [],
-      acknowledgedOutputTokens: 7, unclaimedStages: [{ stage: 0, participantId: identities[1].peerId, cleanup: 'unverified' }] });
-    expect(balances()).toEqual([[0, 0], [0, 0], [0, 0]]);
+    expect(final).toMatchObject({ reason: 'failed-stage-forfeits-own-share', charge: 5, outputTokens: 7,
+      forfeitedStages: [{ partitionIndex: 0, cause: 'no-close' }] });
+    expect(balances()).toEqual([[-5, 0], [0, 0], [5, 0]]);
+    const journal = ledger.snapshot().journal.length;
 
-    // The host comes back late with a valid receipt. Neither a claim nor new evidence can reopen or pay the request.
-    await expect(ledger.settle(input.id, { identity, receipts, acknowledgment })).rejects.toThrow('Claim window closed');
-    await expect(ledger.collect(input.id, { identity, receipts, acknowledgment })).rejects.toThrow();
+    // The host comes back late with a valid receipt. New evidence can neither reopen the request nor pay stage 0.
+    await expect(ledger.settle(input.id, { identity, receipts, acknowledgment })).rejects.toThrow();
+    expect(await ledger.collect(input.id, { identity, receipts, acknowledgment })).toEqual(final);
     // The outcome survives a restart, and repeated recovery or claims change nothing.
     ledger.close(); ledger = await openFleetCredits(bounded);
     expect(await ledger.recover(input.id)).toEqual(final);
-    await expect(ledger.settle(input.id, { identity, receipts, acknowledgment })).rejects.toThrow('Claim window closed');
-    expect(balances()).toEqual([[0, 0], [0, 0], [0, 0]]);
-    expect(ledger.snapshot().journal).toHaveLength(0);
+    await expect(ledger.settle(input.id, { identity, receipts, acknowledgment })).rejects.toThrow();
+    expect(balances()).toEqual([[-5, 0], [0, 0], [5, 0]]);
+    expect(ledger.snapshot().journal).toHaveLength(journal);
 
     // The requester retries as a new request with both hosts present: charged once, both stages paid once.
     clock = at;
@@ -575,7 +578,7 @@ describe('enrolled fleet service credits', () => {
     const paid = await ledger.settle(retry.input.id, { identity: retry.identity, receipts: retry.receipts, acknowledgment: retry.acknowledgment });
     expect(paid.charge).toBe(7);
     expect(paid.credits.map(row => row.amount)).toEqual([2, 5]);
-    expect(balances()).toEqual([[-7, 0], [2, 0], [5, 0]]);
+    expect(balances()).toEqual([[-12, 0], [2, 0], [10, 0]]);
   });
   it('releases a split hold after deadline plus the default window and the clock allowance when the policy names none', async () => {
     ledger.close();
@@ -590,8 +593,9 @@ describe('enrolled fleet service credits', () => {
     clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS + policy.maxClockSkewMs;
     expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
     clock += 1;
-    expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'expired', charge: 0, reason: 'unknown-delivered-answer-without-covering-receipt' });
-    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 0 });
+    expect(await ledger.recover(lost.input.id)).toMatchObject({ charge: 5, reason: 'failed-stage-forfeits-own-share',
+      forfeitedStages: [{ partitionIndex: 0, cause: 'no-close' }] });
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: -5, held: 0 });
   });
   it('reconciles orphaned requester reservations on process restart without touching active or unresolved admitted holds', async () => {
     ledger.close();

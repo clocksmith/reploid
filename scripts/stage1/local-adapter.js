@@ -31,7 +31,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const EARN_MODEL = Object.freeze({ id: 'stage1-earn-control', identity: 'sha256:' + createHash('sha256').update('stage1-earn-control').digest('hex') });
 const EARN_REQUESTS = 2;
 /**
- * A short credit policy so a dropped answer expires within the test: the normal split finishes in a few seconds, well
+ * A short credit policy so a dropped answer is decided within the test: the normal split finishes in a few seconds, well
  * inside `maxRequestMs`, and the ledger's own expiry releases the dropped hold one window after its deadline.
  */
 const LOCAL_MAX_REQUEST_MS = 15000, LOCAL_RELEASE_WINDOW_MS = 1000;
@@ -135,7 +135,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
     const { maxRequestMs, partitionUnclaimedReleaseMs } = credits.policy;
     // snapshot() runs the ledger's expiry; nothing here releases the hold itself.
     await until(() => { credits.snapshot(); return credits.request(reservationId)?.state === 'settled'; },
-      { timeoutMs: maxRequestMs + partitionUnclaimedReleaseMs + 15000, label: 'the dropped hold to expire on the ledger', signal, pollMs: 250 });
+      { timeoutMs: maxRequestMs + partitionUnclaimedReleaseMs + 15000, label: 'the dropped hold to be decided on the ledger', signal, pollMs: 250 });
     const settlementReplay = await replay(attemptId, { acceptancesSigned: 'during-attempt',
       prefetched: { acceptances: collected.acceptances, stageRecords: [collected.killedRecords, null] } });
     const own = await requester.call('settlement-records', { attemptId });

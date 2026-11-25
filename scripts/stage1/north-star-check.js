@@ -2,7 +2,7 @@
  * The north-star receipt's checks (north-star.js), kept apart from the runner so they can be applied to a written
  * receipt, and tested, without opening a ledger or a host. Each check is named; nothing short-circuits.
  */
-import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS_V3, creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
 import { createHash } from 'node:crypto';
 import { canonicalPartitionJson } from '../../packages/reploid/src/contracts/partition.js';
 
@@ -181,17 +181,29 @@ export function checkNorthStar(receipt, { reference, weights, creditsPerOutputTo
       operatorsBlind('disconnect', gone.visibility);
     }
   }
-  // 7. A dropped stage host, no stop: verified-provider-failure relief. Nothing charged, nobody paid, nothing held.
+  // 7. A dropped stage host, no stop. Under the provider-relief terms: verified-provider-failure relief, nothing charged,
+  // nobody paid, nothing held. Under the failed-stage terms the dropped stage forfeits its own share, the stages that
+  // closed are paid for the acknowledged outputs, and the ledger posts what the replay computes.
   if (cases.includes('drop')) {
     const drop = receipt.drop, ledgerTrace = drop?.settlement;
     if (!ledgerTrace) fail('drop-missing', 'no drop case');
     else {
+      const forfeits = drop.reliefRule?.unfinishedTerms === UNFINISHED_ANSWER_TERMS_V3;
       if (ledgerTrace.state !== 'settled' || ledgerTrace.heldAfter !== 0) fail('stranded-hold', `drop ${ledgerTrace.state} held ${ledgerTrace.heldAfter}`);
-      if (ledgerTrace.charge !== 0 || (ledgerTrace.credits ?? []).some(item => item.amount !== 0)) fail('drop-charged', `charge ${ledgerTrace.charge}`);
-      if (drop.account.after !== drop.account.before) fail('drop-charged', `balance ${drop.account.before} -> ${drop.account.after}`);
+      if (!forfeits && (ledgerTrace.charge !== 0 || (ledgerTrace.credits ?? []).some(item => item.amount !== 0))) fail('drop-charged', `charge ${ledgerTrace.charge}`);
+      if (drop.account.after !== drop.account.before - (forfeits ? ledgerTrace.charge : 0)) fail('drop-charged', `balance ${drop.account.before} -> ${drop.account.after}`);
       if (drop.stopSigned !== false || drop.killed?.confirmedGone !== true) fail('drop-shape', JSON.stringify({ stop: drop.stopSigned, killed: drop.killed }));
       const row = drop.settlementReplay?.result?.reservations?.find(item => item.reservationId === ledgerTrace.reservationId);
-      if (!row || !(row.status === 'expired' || (row.status === 'settled' && (row.debit ?? 0) === 0))) fail('replay-drop-charged', `${row?.status} ${row?.debit}`);
+      const dropped = stages.find(stage => stage.label === drop.killed?.host);
+      if (forfeits) {
+        if (!row || !['settled', 'expired'].includes(row.status)) fail('replay-drop-charged', `${row?.status} ${row?.debit}`);
+        else {
+          if (row.status === 'settled' && dropped && !(row.forfeited ?? []).some(item => row.credits?.[item.partitionIndex]?.participantId === dropped.participantId)) {
+            fail('drop-not-forfeited', `${drop.killed?.host} is not listed as forfeiting`);
+          }
+          sameAsLedger('drop', ledgerTrace, row, drop.account.accountId);
+        }
+      } else if (!row || !(row.status === 'expired' || (row.status === 'settled' && (row.debit ?? 0) === 0))) fail('replay-drop-charged', `${row?.status} ${row?.debit}`);
       else sameAsLedger('drop', ledgerTrace, row, drop.account.accountId);
       operatorsBlind('drop', drop.visibility);
     }

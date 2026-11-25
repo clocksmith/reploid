@@ -281,7 +281,10 @@ describe('offline service-credit statement verification', () => {
     const closeSignature = await signAsParticipant(identities[1], FLEET_SERVICE_REQUEST_SCHEMA, closeBody);
     await ledger.closeStageOwner({ ...closeBody, signature: closeSignature });
 
-    for (const [index, expected] of [0, 0, 0].map((val, idx) => [idx, val])) {
+    // Under the failed-stage rules the interrupted stage forfeits its own share and nothing else: the final stage,
+    // which closed, is paid its share of the 4 acknowledged outputs and the requester pays exactly that.
+    expect(ledger.request(split.input.id).outcome).toMatchObject({ charge: 2, forfeitedStages: [{ partitionIndex: 0, cause: 'fault' }] });
+    for (const [index, expected] of [-2, 0, 2].map((val, idx) => [idx, val])) {
       const checked = await verifyCreditStatement(ledger.statement(`computer-${index}`));
       expect(checked).toMatchObject({ ok: true, statedBalance: expected, recomputedBalance: expected, uncheckedCount: 0 });
     }
@@ -332,7 +335,8 @@ describe('offline service-credit statement verification', () => {
       .rejects.toThrow(/participant identities/);
 
     // 2. Partition cancelled at 0 outputs where stage 1 never signed (operator SQLite unadmitted state):
-    // delta is 0, but offline verification reports that stage 1 lacks a signed closing receipt.
+    // delta is 0, but offline verification reports that stage 1 lacks a signed closing receipt (under the failed-stage
+    // rules a stage with no closing receipt is decided only after the release window, for acknowledged output).
     const unadmittedSplit = await partitionBundle('split-unadmitted-stage', [1, 2], [1, 1], 0, 0);
     dispatch(unadmittedSplit.input);
     ledger.admit(unadmittedSplit.input.id, 0);
@@ -350,7 +354,7 @@ describe('offline service-credit statement verification', () => {
         requestId: 'split-unadmitted-stage',
         statedDelta: 0,
         recomputedDelta: null,
-        reason: expect.stringMatching(/stage receipt/i),
+        reason: expect.stringMatching(/no closing receipt/i),
       }),
     ]);
   });
@@ -413,7 +417,10 @@ describe('offline service-credit statement verification', () => {
     ledger.close();
     ledger = await openFleetCredits({ file: boundedFile, computers, policy: boundedPolicy, now: () => clock });
 
-    // Attempt 1: stage 0 disconnects after admission; stage 1 and requester acknowledgment arrive before deadline.
+    // Attempt 1: stage 0 disconnects after admission; stage 1's receipt arrives before the deadline, and the requester's
+    // acknowledgment never reaches the ledger. With nothing acknowledged and a stage that did not close, the hold
+    // expires at the window under every rule set (under the failed-stage rules an acknowledged answer would instead
+    // settle there, with stage 0 forfeiting its share: settlement-replay.test.js).
     const attempt1 = await partitionBundle('split-attempt-1', [1, 2], [1, 2], 7, 0);
     dispatch(attempt1.input);
     ledger.admit(attempt1.input.id, 0);
@@ -421,7 +428,6 @@ describe('offline service-credit statement verification', () => {
     await ledger.collect(attempt1.input.id, {
       identity: attempt1.identity,
       receipts: [attempt1.receipts[1]],
-      acknowledgment: attempt1.acknowledgment,
     });
 
     // Advance past deadline + partitionUnclaimedReleaseMs with NO intermediate snapshot/reserve calls.

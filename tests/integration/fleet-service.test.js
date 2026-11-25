@@ -1072,8 +1072,10 @@ it.each([
     host = await boot(); // Normal startup recovers before connecting to peers or starting the model.
     await host.reconcileCredits();
     const result = await client.call('recover', { id });
-    // A stage owner that vanished leaves an unfinished answer, which is free. With only the reply lost, the stage closed normally.
-    const charged = lostReply ? acknowledged : 0, spent = charged ? -charged : 0;
+    // With only the reply lost, the stage closed normally. A stage owner that vanished forfeits its own share under the
+    // failed-stage rules, and the stage that closed is paid its share of the acknowledged output: one credit split
+    // equally goes to the later stage by the stage-order rule, so the requester pays it only when stage 0 vanished.
+    const charged = lostReply || index === 0 ? acknowledged : 0, spent = charged ? -charged : 0;
     expect(result).toMatchObject({ charge: charged, outputTokens: acknowledged });
     expect(await httpRecover()).toMatchObject({ status: 200, body: { status: lostReply ? 'completed' : 'failed',
       serviceCredit: { charge: charged, outputTokens: acknowledged }, outcome: { acknowledged: { acknowledgedOutputTokens: acknowledged } } } });

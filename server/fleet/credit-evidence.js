@@ -6,20 +6,26 @@ import {
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
-import { SETTLEMENT_STOP_SCHEMA, verifySettlementStop } from './settlement-terms.js';
-import { SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { SETTLEMENT_STOP_SCHEMA, verifySettlementFault, verifySettlementStop } from './settlement-terms.js';
+import { SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V2, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
 /** A split reservation made since the ledger applies the settlement replay's charge rules (docs/settlement-replay.md). */
 export const replayRules = request => request.mode === 'partition' && SETTLEMENT_RULE_SETS.includes(request.settlementRules);
 
 /**
+ * A split reservation under the failed-stage rules (SETTLEMENT_RULES, docs/settlement-replay.md "Failed stages"): a
+ * stage that fails forfeits its own share and nothing else. Every earlier rules id keeps the rule it was reserved under.
+ */
+export const forfeitRules = request => request.mode === 'partition' && request.settlementRules === SETTLEMENT_RULES;
+
+/**
  * Whether a split request's release window has passed at `now`, so that it can be decided without the missing
- * closes. Under the interim rules (SETTLEMENT_RULES_INTERIM) and the decided ones (SETTLEMENT_RULES) that is after
- * deadline + window + clock allowance, the last instant a closing receipt counts (docs/settlement-replay.md, step 6);
- * earlier reservations keep deadline + window.
+ * closes. Under the interim rules (SETTLEMENT_RULES_INTERIM) and every later id (SETTLEMENT_RULES_V2, SETTLEMENT_RULES)
+ * that is after deadline + window + clock allowance, the last instant a closing receipt counts
+ * (docs/settlement-replay.md, step 6); earlier reservations keep deadline + window.
  */
 export const releaseWindowPassed = (request, now, releaseWindowMs, skew) => (request.mode === 'partition'
-  && [SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES].includes(request.settlementRules)
+  && [SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V2, SETTLEMENT_RULES].includes(request.settlementRules)
   ? now > request.deadline + releaseWindowMs + skew : now >= request.deadline + releaseWindowMs);
 
 /**
@@ -107,9 +113,131 @@ export function stagesClosedAtLastStep(request, { receipts, acknowledgment, ackn
   return unclosed.length ? unclosed : null;
 }
 
+/**
+ * The signed stage-fault record a stage owner's interruption claim may carry (settlement-terms.js
+ * `reploid.settlement-stage-fault/v1`), checked against the reservation: it names this reservation, attempt, route
+ * and stage, and it is signed by the stage's enrolled key, no earlier than the reservation (less the clock allowance)
+ * and no later than `now` (plus it). The ledger keeps it with the claim so that the settlement replay, which reads no
+ * ledger claim, can reach the same result from records alone. `closesBy` (failed-stage rules, while the request is
+ * undecided) is the last instant at which the replay counts a fault: a record signed later would be late there.
+ */
+export async function verifyClaimedFault(request, stage, fault, enrollment, now, skew, { closesBy = Infinity } = {}) {
+  const checked = await verifySettlementFault(fault);
+  const provider = request.providers[stage], signedAt = checked.ok ? Date.parse(checked.body.signedAt) : NaN;
+  assert(checked.ok && provider && checked.body.reservationId === request.id && checked.body.attemptId === request.executionId
+    && checked.body.routeHash === await attemptRouteHash(request.route) && checked.body.partitionIndex === stage
+    && checked.body.participantId === provider.participantId
+    && same(normalizeParticipantPublicKey(fault.publicJwk), enrollment.byPeer.get(provider.participantId)?.publicJwk)
+    && signedAt >= request.createdAt - skew && signedAt <= now + skew, 'Stage fault does not match the accepted request');
+  assert(signedAt <= closesBy, 'Stage fault is signed after the release window');
+}
+
+/**
+ * Failed-stage rules: whether a stage is the requester's own, that is, on the reservation's owner account (the test
+ * accountSettlement uses to charge and credit nothing for it). Nothing such a stage signs or withholds may reduce what
+ * the other, outside, stages are paid (docs/settlement-replay.md, "The requester's own stages").
+ */
+export const ownStageOf = (request, enrollment) => index => request.accountId !== undefined
+  && enrollment.byPeer.get(request.providers[index]?.participantId)?.ownerId === request.accountId;
+
+/**
+ * Failed-stage rules: which stages are paid and which forfeit, from already verified components (steps 6 and 7 of
+ * docs/settlement-replay.md, as the settlement replay applies them to the same records).
+ *
+ * `claims` are the stage owners' interruption claims that count (`[{ stage, closure }]`). A claim is the ledger's
+ * signed fault: a claimed stage forfeits with cause `fault`, or `fault-and-close` when it also has a closing receipt.
+ * A claim that carries no fault record forfeits only a stage that has not closed: the replay has no record of such a
+ * claim, sees the stage's close and pays it, and the ledger posts the same.
+ *
+ * A stage with neither a closing receipt nor a claim is `silent`. Once the release window has passed it is treated as
+ * closed at its last signed step when the answer was delivered (the final stage signed `done` at N > 0 and the
+ * requester acknowledged N with that chain in time) and its in-time receipts cover all N steps; otherwise it forfeits
+ * with cause `no-close`. A stage that was never admitted, with nothing acknowledged, owes no close and is `skipped`.
+ * `short` lists the stages that would be paid but whose closing receipt is behind the acknowledged output: the
+ * replay calls that a conflict and moves nothing, so such a request cannot settle.
+ *
+ * `own(index)` says whether a stage is the requester's own (ownStageOf). Such a stage is never paid, so its steps are
+ * not tested. When the final stage is the requester's own, only the requester vouches for the acknowledged count: no
+ * stage is `short`, the requester's acknowledgment needs no matching chain to show a delivered answer, and the charge
+ * stops at `stepCap`, the fewest steps signed by any outside stage that is paid (Infinity when there is none).
+ */
+export function decideFailedStages(request, { receipts, acknowledgment, acknowledgedReceipt }, { claims = [], unadmitted = [], skew, own = () => false }) {
+  const count = acknowledgment?.count ?? 0, finalIndex = request.providers.length - 1, ownFinal = own(finalIndex);
+  const inTime = value => Date.parse(value) <= request.deadline + skew;
+  const held = index => [receipts.find(row => row.partitionIndex === index), index === finalIndex ? acknowledgedReceipt : null]
+    .filter(Boolean).sort((a, b) => a.sequence - b.sequence);
+  const delivered = held(finalIndex).filter(row => inTime(row.signedAt)).at(-1)?.output;
+  const answerDelivered = count > 0 && inTime(acknowledgment.signedAt) && delivered?.done === true && delivered.count === count
+    && (ownFinal || delivered.chain === acknowledgment.chain);
+  const closedAtLastStep = [], forfeitedStages = [], silent = [], skipped = [], short = [], paidSteps = [];
+  for (let index = 0; index <= finalIndex; index++) {
+    const receipt = receipts.find(row => row.partitionIndex === index), closed = Boolean(receipt && closedReceipt(receipt));
+    const claim = claims.find(row => row.stage === index);
+    if (claim && (claim.closure.payload.fault || !closed)) { forfeitedStages.push({ partitionIndex: index, cause: closed ? 'fault-and-close' : 'fault' }); continue; }
+    if (closed) {
+      if (!own(index)) { paidSteps.push(receipt.steps); if (!ownFinal && receipt.steps < count) short.push(index); }
+      continue;
+    }
+    if (!receipt && unadmitted.includes(index) && count === 0) { skipped.push(index); continue; }
+    silent.push(index);
+    const covering = held(index).filter(row => inTime(row.signedAt)).at(-1);
+    if (answerDelivered && covering && covering.steps >= count) { closedAtLastStep.push(index); if (!own(index)) paidSteps.push(covering.steps); }
+    else forfeitedStages.push({ partitionIndex: index, cause: 'no-close' });
+  }
+  return { closedAtLastStep, forfeitedStages, silent, skipped, short, stepCap: ownFinal && paidSteps.length ? Math.min(...paidSteps) : Infinity };
+}
+
+/**
+ * What a split request under the failed-stage rules settles as, from already verified components: the observation
+ * verifyCreditEvidence returns for it. Signatures are not checked here; the ledger also calls it, at window expiry, on
+ * components it verified when it collected them, so both reach the same observation for the same evidence.
+ *
+ * `stated` holds the evidence's own `closedAtLastStep` and `forfeitedStages`: evidence names the stages it treats as
+ * closed and the stages that forfeit, and this accepts it only when the rule gives exactly those. A silent stage is
+ * decided only once the release window has passed (`windowPassed`), and only with acknowledged output: with nothing
+ * acknowledged the request expires instead and nobody is charged or paid.
+ *
+ * When the final stage is the requester's own (`own`, ownStageOf), the requester's acknowledgment counts by itself,
+ * with no final-stage receipt committing its chain, and the charged output stops at the step cap; what was
+ * acknowledged past it is recorded as `beyondStageSteps` and never charged.
+ */
+export function observeFailedStageRules(request, proof, { claims = [], unadmitted = [], stated = {}, windowPassed = false, stop = null,
+  maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS, skew, own = () => false }) {
+  const { receipts, acknowledgment, acknowledgedReceipt } = proof, count = acknowledgment.count;
+  const decided = decideFailedStages(request, proof, { claims, unadmitted, skew, own });
+  assert(decided.short.length === 0, 'Settled stage receipt does not match the acknowledged work');
+  assert(decided.silent.length === 0 || windowPassed && count > 0,
+    'A stage with no closing receipt is decided only after the release window, and only for acknowledged output');
+  assert(same(stated.closedAtLastStep ?? [], decided.closedAtLastStep) && (stated.closedAtLastStep === undefined || decided.closedAtLastStep.length > 0),
+    'A stage is treated as closed at its last signed step only after the release window, for a delivered and acknowledged answer');
+  assert(same(stated.forfeitedStages ?? [], decided.forfeitedStages) && (stated.forfeitedStages === undefined || decided.forfeitedStages.length > 0),
+    'The forfeiting stages differ from the stages that failed');
+  if (count > 0 && !own(request.providers.length - 1)) {
+    const final = acknowledgedReceipt ?? receipts.find(row => row.partitionIndex === request.providers.length - 1);
+    assert(final?.output?.count === count && final.output.chain === acknowledgment.chain, 'Final output differs from requester acknowledgment');
+  }
+  const workIds = request.providers.flatMap((provider, index) => (decided.skipped.includes(index) ? []
+    : [`stage:${provider.participantId}:${request.id}:${request.executionId}:${index}`]));
+  // The charge rule is the provider-relief one (step 9): the acknowledged output, capped at the signed ceiling. An
+  // unfinished answer that every stage closed, with no stop, is still an unattributed disconnect; one with a failed
+  // stage is not, and names the forfeit instead.
+  const delivered = finalReceiptOf(request, proof)?.output ?? null;
+  const finished = delivered?.done === true;
+  const withheld = Boolean(delivered) && delivered.count - count > maxUnacknowledgedOutputs;
+  const unattributedDisconnect = !finished && !stop && !withheld && count > 0 && decided.forfeitedStages.length === 0;
+  const beyondCeiling = Math.max(0, count - request.maxOutputTokens), ceiling = Math.min(count, request.maxOutputTokens);
+  const outputTokens = Math.min(ceiling, decided.stepCap), beyondStageSteps = ceiling - outputTokens;
+  return { outputTokens, outputIdentity: acknowledgment.chain, workIds,
+    ...(decided.closedAtLastStep.length ? { closedAtLastStep: decided.closedAtLastStep } : {}),
+    ...(decided.forfeitedStages.length ? { forfeitedStages: decided.forfeitedStages } : {}),
+    ...(unattributedDisconnect ? { unattributedDisconnect: true } : {}), ...(beyondCeiling ? { beyondCeiling } : {}),
+    ...(beyondStageSteps ? { beyondStageSteps } : {}) };
+}
+
 /** Reuse execution signatures; the credit service never treats a completed counter as evidence.
  * `releaseWindowMs` (split only) admits evidence that names `closedAtLastStep`: it verifies only at or after the
- * deadline plus that window, and only when stagesClosedAtLastStep names exactly those stages. */
+ * deadline plus that window, and only when stagesClosedAtLastStep names exactly those stages. Under the failed-stage
+ * rules it admits, the same way, evidence in which a stage with no closing receipt forfeits (`forfeitedStages`). */
 export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [], releaseWindowMs = null,
   maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS } = {}) {
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
@@ -155,6 +283,17 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   const { receipts, acknowledgment, acknowledgedReceipt } = proof;
   assert(acknowledgment, proof.lateAcknowledgment ? 'Requester acknowledgment signed after the deadline is not charged'
     : 'Matching requester acknowledgment required');
+  if (forfeitRules(request)) {
+    // Failed-stage rules. A claim counts when the evidence presents it and the caller holds it (the ledger: the claims it
+    // retained; a statement check: the claims whose signatures it verified); the evidence may present no other.
+    const presented = evidence.interruptedOwners ?? [];
+    assert(Array.isArray(presented) && presented.every(claim => interrupted.some(row => same(claim, row.closure))), 'Unmatched interrupted stage owner closure');
+    const claims = interrupted.filter(row => presented.some(claim => same(claim, row.closure)));
+    const stop = evidence.stop === undefined || evidence.stop === null ? null : await verifySplitStop(request, evidence.stop, enrollment, now, skew);
+    return observeFailedStageRules(request, proof, { claims, unadmitted, stop, maxUnacknowledgedOutputs, skew, own: ownStageOf(request, enrollment),
+      stated: { closedAtLastStep: evidence.closedAtLastStep, forfeitedStages: evidence.forfeitedStages },
+      windowPassed: Number.isSafeInteger(releaseWindowMs) && releaseWindowPassed(request, now, releaseWindowMs, skew) });
+  }
   const closedAtLastStep = evidence.closedAtLastStep ?? null;
   if (closedAtLastStep !== null) {
     assert(Number.isSafeInteger(releaseWindowMs) && releaseWindowPassed(request, now, releaseWindowMs, skew)
@@ -193,7 +332,7 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   // The settlement replay's charge rule (docs/settlement-replay.md, step 9). The signed ceiling caps the charge: outputs
   // past `maxOutputTokens` are recorded and never charged. An unfinished answer the stages closed, `settled` or
   // `failed`, with no in-time requester stop and no more than K acknowledgments withheld is marked: under
-  // SETTLEMENT_RULES (v2) as `unattributedDisconnect`, which charges the acknowledged prefix exactly as the replay does;
+  // SETTLEMENT_RULES_V2 as `unattributedDisconnect`, which charges the acknowledged prefix exactly as the replay does;
   // under the older provider-loss-free rules as `stageEnded`, free under SETTLEMENT_RULES_V1 and charged the prefix
   // under SETTLEMENT_RULES_INTERIM (credit-shares.js settledCreditUnits). A closed stage's `failed` status is not a
   // verified provider failure: a stage also signs it when the requester's abort reaches a step in flight.
@@ -203,8 +342,9 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   const finished = delivered?.done === true;
   const withheld = Boolean(delivered) && delivered.count - acknowledgment.count > maxUnacknowledgedOutputs;
   const endedWithoutStop = !finished && !stop && !withheld && acknowledgment.count > 0 && !interruptedStages.length;
-  const stageEnded = endedWithoutStop && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && request.settlementRules !== SETTLEMENT_RULES;
-  const unattributedDisconnect = endedWithoutStop && request.settlementRules === SETTLEMENT_RULES;
+  // (Reservations under SETTLEMENT_RULES, the failed-stage rules, returned above.)
+  const stageEnded = endedWithoutStop && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && request.settlementRules !== SETTLEMENT_RULES_V2;
+  const unattributedDisconnect = endedWithoutStop && request.settlementRules === SETTLEMENT_RULES_V2;
   const beyondCeiling = Math.max(0, acknowledgment.count - request.maxOutputTokens);
   return { outputTokens: Math.min(acknowledgment.count, request.maxOutputTokens), outputIdentity: acknowledgment.chain, workIds,
     ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}),

@@ -27,7 +27,7 @@ import { openStageOwner } from '../../server/fleet/stage-owner.js';
 import { openStageTokenWitness } from '../../server/fleet/stage-token-witness.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
-import { UNFINISHED_ANSWER_TERMS_V2 } from '../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS_V3 } from '../../server/fleet/credit-shares.js';
 import { STAGE1_MODEL_ID } from './expectations.js';
 import { loadEdgesModel } from './edges-plan.js';
 import { createInference } from '../../packages/reploid/src/inference/index.js';
@@ -183,7 +183,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     // shared file would make the second run refuse the first run's journal as belonging to another scope.
     const journalName = `stage-owner-${createHash('sha256').update(String(config.roomId)).digest('hex').slice(0, 16)}.sqlite`;
     stageOwner = await openStageOwner({ file: path.join(config.stateDirectory, journalName), participantId: identity.peerId,
-      roomId: config.roomId, serviceUrl: config.serviceUrl });
+      roomId: config.roomId, serviceUrl: config.serviceUrl, signer });
     // The token witness sits on the input and final stage only; a middle stage of the edges plan has none.
     const witness = config.witness ? await openStageTokenWitness(config.witness, { roomId: config.roomId, participantId: identity.peerId })
       : { wrap: resident => resident };
@@ -219,7 +219,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     return signSettlementTerms({ signer, reservationId: `service:${identity.peerId}:${attemptId}`, policy,
       identity: { schema: 'reploid.partition-attempt/v2', threadId, attemptId, requesterId: identity.peerId, placementGeneration: 0, route: preview.route },
       maxOutputTokens: preview.serviceCreditQuote?.maxOutputTokens, weights, notBefore, deadline: notBefore + policy.maxRequestMs,
-      unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS,
+      unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS,
       // The ledger account this requester is charged from, as its operator configured it (signed accounts).
       ...(config.accountId ? { debitAccount: config.accountId } : {}) });
   }

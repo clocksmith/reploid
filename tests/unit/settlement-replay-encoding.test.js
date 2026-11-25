@@ -20,6 +20,7 @@ import {
   SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, signSettlementStop, verifySettlementAcceptance,
   verifySettlementStop, verifySettlementTerms
 } from '../../server/fleet/settlement-terms.js';
+import { UNFINISHED_ANSWER_TERMS_V2 } from '../../server/fleet/credit-shares.js';
 import { POLICY, T0, createParties, runAttempt } from '../../scripts/settlement/scenario.js';
 
 const replay = (records, at, options = {}) => replaySettlement({ records, policies: [POLICY], at, ...options });
@@ -125,7 +126,8 @@ describe('settlement replay encodings', () => {
     const late = Date.parse(lost.terms.deadline) + POLICY.maxClockSkewMs + 5000;
     const stop = await signSettlementStop({ signer: createAttemptEvidenceSigner({ identity: parties.requester, now: () => late }),
       terms: lost.terms, acknowledged: lost.acknowledged });
-    for (const [at, status] of [[lost.closesAt - 1, 'open'], [lost.decidedAt, 'expired']]) {
+    // Under the failed-stage terms the stage that vanished forfeits and the attempt settles at the window.
+    for (const [at, status] of [[lost.closesAt - 1, 'open'], [lost.decidedAt, 'settled']]) {
       const r = (await replay([...lost.all(), stop], at)).reservations[0];
       expect(r.status).toBe(status);
       expect(r.late).toEqual([{ kind: 'stop', acknowledged: lost.acknowledged }]);
@@ -186,12 +188,14 @@ describe('closing after the deadline (L5)', () => {
     // Only the requester's late acknowledgment is listed; the closes inside the window are not late.
     expect(honest.late).toEqual([{ kind: 'acknowledgment', count: 40 }]);
     // The closing window carries the clock allowance at both ends, as the ordinary one does: a close dated up to the
-    // window's end plus the allowance counts, and one dated later does not, so the stages never closed and the attempt
-    // expires.
+    // window's end plus the allowance counts, and one dated later does not, so the stages never closed and, under the
+    // failed-stage terms, both forfeit: nobody is charged or paid.
     const skewed = (await replay(await redate(parties, run, new Date(run.closesAt + POLICY.maxClockSkewMs).toISOString()), run.closesAt + 2000)).reservations[0];
     expect(skewed).toMatchObject({ status: 'settled', debit: honest.debit });
     const afterWindow = (await replay(await redate(parties, run, new Date(run.closesAt + POLICY.maxClockSkewMs + 1).toISOString()), run.closesAt + 2000)).reservations[0];
-    expect(afterWindow).toMatchObject({ status: 'expired', debit: 0 });
+    expect(afterWindow).toMatchObject({ status: 'settled', debit: 0,
+      forfeited: [{ partitionIndex: 0, cause: 'no-close' }, { partitionIndex: 1, cause: 'no-close' }] });
+    expect(afterWindow.credits.map(c => c.amount)).toEqual([0, 0]);
     expect(afterWindow.late.filter(row => row.kind === 'stage-receipt')).toHaveLength(2);
   });
 
@@ -283,12 +287,22 @@ describe('settlement replay, round 4', () => {
     const acks = ofSchema(a.all(), OUTPUT_ACKNOWLEDGMENT_SCHEMA).sort((x, y) => x.count - y.count), top = acks.at(-1);
     const late = new Date(Date.parse(a.terms.deadline) + POLICY.maxClockSkewMs + 5000).toISOString(), fake = 'sha256:' + 'e'.repeat(64);
     // A late acknowledgment of the final count with another chain than the final stage's: the requester and the stage
-    // signed incompatible statements, so the attempt is a conflict, as an in-time one would make it.
-    const lateFake = await resign(parties.requester, top, { ...bodyOf(top), chain: fake, signedAt: late });
-    const disputed = (await replay([...a.all().filter(row => row !== top), lateFake], a.decidedAt)).reservations[0];
+    // signed incompatible statements. Under the provider-relief terms the attempt is a conflict, as an in-time one
+    // would make it.
+    const earlier = await runAttempt(parties, { tag: 'late-evidence-relief', unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
+    const earlierTop = ofSchema(earlier.all(), OUTPUT_ACKNOWLEDGMENT_SCHEMA).sort((x, y) => x.count - y.count).at(-1);
+    const earlierFake = await resign(parties.requester, earlierTop, { ...bodyOf(earlierTop), chain: fake, signedAt: late });
+    const disputed = (await replay([...earlier.all().filter(row => row !== earlierTop), earlierFake], earlier.decidedAt)).reservations[0];
     expect(disputed.status).toBe('conflict');
-    expect(disputed.late).toContainEqual({ kind: 'acknowledgment', count: top.count });
-    expect(disputed.conflicts).toContainEqual(expect.objectContaining({ kind: 'output-chain', signer: null, count: top.count, blocking: true }));
+    expect(disputed.late).toContainEqual({ kind: 'acknowledgment', count: earlierTop.count });
+    expect(disputed.conflicts).toContainEqual(expect.objectContaining({ kind: 'output-chain', signer: null, count: earlierTop.count, blocking: true }));
+    // Under the failed-stage terms the requester signed only a wrong chain for that count: it is not charged, and
+    // nothing is blocked.
+    const lateFake = await resign(parties.requester, top, { ...bodyOf(top), chain: fake, signedAt: late });
+    const unblocked = (await replay([...a.all().filter(row => row !== top), lateFake], a.decidedAt)).reservations[0];
+    expect(unblocked).toMatchObject({ status: 'settled', outputs: top.count - 1, debit: (top.count - 1) * POLICY.creditsPerOutputToken });
+    expect(unblocked.late).toContainEqual({ kind: 'acknowledgment', count: top.count });
+    expect(unblocked.conflicts.every(row => !row.blocking)).toBe(true);
     // The requester's in-time wrong chain, then its late right one: the right one shows the requester contradicted
     // itself, which does not block, and the late count is still not charged.
     const timelyFake = await resign(parties.requester, top, { ...bodyOf(top), chain: fake });
@@ -303,11 +317,17 @@ describe('settlement replay, round 4', () => {
     const parties = await createParties(2);
     const members = ['reservationId', 'attemptId', 'requesterId', 'status', 'reason', 'debit', 'credits', 'outputs', 'chargedOutputs',
       'unacknowledgedOutputs', 'beyondCeiling', 'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched'].sort();
-    const settled = await runAttempt(parties, { tag: 'shape-settled' });
-    const lost = await runAttempt(parties, { tag: 'shape-lost', vanishStage: 0, vanishAfterStep: 1 });
-    const rows = [...(await replay([...settled.all(), ...lost.all()], settled.decidedAt)).reservations,
-      ...(await replay([settled.terms], settled.closesAt - 1)).reservations, ...(await replaySettlement({ records: settled.all(), at: 0 })).reservations];
-    expect(rows.map(row => row.status).sort()).toEqual(['expired', 'invalid', 'open', 'settled']);
-    for (const row of rows) expect(Object.keys(row).sort(), row.status).toEqual(members);
+    // Under the provider-relief terms; a row under the failed-stage terms also has `forfeited` once it passed step 3
+    // (an `invalid` row decided at step 1, 2 or 3 never has it).
+    for (const [tag, unfinishedTerms, expected] of [['relief', UNFINISHED_ANSWER_TERMS_V2, members], ['failed-stage', undefined, [...members, 'forfeited'].sort()]]) {
+      const settled = await runAttempt(parties, { tag: `shape-settled-${tag}`, unfinishedTerms });
+      // Nothing acknowledged reaches the replay for this one, and a stage never closes: it expires under both terms.
+      const lost = await runAttempt(parties, { tag: `shape-lost-${tag}`, vanishStage: 0, vanishAfterStep: 1, unfinishedTerms });
+      const unacknowledged = lost.all().filter(row => row.schema !== OUTPUT_ACKNOWLEDGMENT_SCHEMA || row.count === 0);
+      const rows = [...(await replay([...settled.all(), ...unacknowledged], settled.decidedAt)).reservations,
+        ...(await replay([settled.terms], settled.closesAt - 1)).reservations, ...(await replaySettlement({ records: settled.all(), at: 0 })).reservations];
+      expect(rows.map(row => row.status).sort()).toEqual(['expired', 'invalid', 'open', 'settled']);
+      for (const row of rows) expect(Object.keys(row).sort(), `${tag} ${row.status}`).toEqual(row.status === 'invalid' ? members : expected);
+    }
   });
 });

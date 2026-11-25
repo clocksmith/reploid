@@ -15,7 +15,8 @@ import { openFleetCredits } from '../../server/fleet/credits.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
 import { verifyCreditStatement } from '../../server/fleet/credit-statement.js';
 import {
-  SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V1, UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, settledCreditUnits
+  FORFEIT_REASON, SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V1, SETTLEMENT_RULES_V2, UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2,
+  UNFINISHED_ANSWER_TERMS_V3, settledCreditUnits
 } from '../../server/fleet/credit-shares.js';
 import {
   SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementTerms, termsDigest, verifySettlementAcceptance,
@@ -24,6 +25,12 @@ import {
 import { POLICY, T0, createClock, createParties, runAttempt } from '../../scripts/settlement/scenario.js';
 
 const replay = (records, at) => replaySettlement({ records, policies: [POLICY], at });
+/**
+ * The provider-relief terms (UNFINISHED_ANSWER_TERMS_V2), which reservations under reploid.settlement-replay/v2 keep.
+ * Cases that state their relief sign these explicitly; new reservations sign the failed-stage terms, whose own cases
+ * are in tests/unit/settlement-failed-stage-forfeits.test.js and tests/unit/settlement-own-stage-ledger.test.js.
+ */
+const PROVIDER_RELIEF = Object.freeze({ unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
 
 /**
  * A live ledger over the parties' enrolled keys, one owner account each. `admit(a)` reserves and dispatches the
@@ -107,18 +114,18 @@ describe('settlement replay', () => {
     expect(r).toMatchObject({ status: 'settled', outputs: 6, debit: 18 });
   });
 
-  it('expires a provider-lost attempt with no charge, but only once the release window has passed', async () => {
+  it('expires a provider-lost attempt with no charge under the provider-relief terms, but only once the release window has passed', async () => {
     const parties = await createParties(2);
-    const a = await runAttempt(parties, { vanishStage: 0, vanishAfterStep: 1 });
+    const a = await runAttempt(parties, { vanishStage: 0, vanishAfterStep: 1, ...PROVIDER_RELIEF });
     expect((await replay(a.all(), a.closesAt - 1)).reservations[0].status).toBe('open');
     const r = (await replay(a.all(), a.decidedAt)).reservations[0];
     expect(r).toMatchObject({ status: 'expired', debit: 0 });
     expect(r.credits.every(c => c.amount === 0)).toBe(true);
   });
 
-  it('settles a dropped attempt and its fresh retry separately: one expired, one charged', async () => {
+  it('settles a dropped attempt and its fresh retry separately: one expired (provider-relief terms), one charged', async () => {
     const parties = await createParties(2), clock = createClock();
-    const dropped = await runAttempt(parties, { tag: 'first', vanishStage: 1, vanishAfterStep: 0, clock });
+    const dropped = await runAttempt(parties, { tag: 'first', vanishStage: 1, vanishAfterStep: 0, clock, ...PROVIDER_RELIEF });
     const retry = await runAttempt(parties, { tag: 'retry', clock });
     const out = await replay([...dropped.all(), ...retry.all(), ...retry.all()], Math.max(dropped.closesAt, retry.closesAt) + 1);
     expect(out.counts).toEqual({ expired: 1, settled: 1 });
@@ -226,7 +233,7 @@ describe('settlement replay', () => {
     const olderTerms = await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...bodyOf(a.terms), unfinishedTerms: UNFINISHED_ANSWER_TERMS });
     await expect(acceptSettlementTerms({ signer: createAttemptEvidenceSigner({ identity: parties.stages[0] }), terms: olderTerms, partitionIndex: 0 }))
       .rejects.toThrow('unfinished-answer terms');
-    expect(a.terms.unfinishedTerms).toBe(UNFINISHED_ANSWER_TERMS_V2);
+    expect(a.terms.unfinishedTerms).toBe(UNFINISHED_ANSWER_TERMS_V3);
     // A stage that stopped K + 1 outputs ahead of the requester: under the terms' K the requester withheld, so the
     // acknowledged prefix is owed. Under the older provider-loss-free terms that signed a larger K the same gap reads
     // as the stage ending early; under the decided terms it is charged either way.
@@ -270,7 +277,9 @@ describe('settlement replay', () => {
 
   it('pays a delivered answer after the release window when one stage withholds its closing receipt but signed every step', async () => {
     const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
-    const a = await runAttempt(parties, { tag: 'veto', outputs });
+    // Under the provider-relief terms; the failed-stage terms decide the uncovered case below differently (the stage
+    // forfeits and the others are paid: settlement-failed-stage-forfeits.test.js, "a delivered answer").
+    const a = await runAttempt(parties, { tag: 'veto', outputs, ...PROVIDER_RELIEF });
     for (const index of [0, 1]) {
       const records = a.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === index && row.status !== 'executing'));
       expect((await replay(records, a.closesAt - 1)).reservations[0]).toMatchObject({ status: 'open', debit: null });
@@ -318,10 +327,11 @@ describe('settlement replay', () => {
     }
   });
 
-  it('expires provider-loss attempts in the live ledger with no charge, as the replay does', async () => {
+  it('settles provider-loss attempts in the live ledger as the replay does: the stage that did not close forfeits its share', async () => {
     const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
     const live = await openLiveLedger(parties);
     try {
+      const paid = [0, 0, 0];
       for (const [vanishStage, vanishAfterStep] of [[1, 9], [0, 9], [0, 1]]) {
         const lost = await runAttempt(parties, { tag: `live-loss-${vanishStage}-${vanishAfterStep}`, outputs, vanishStage, vanishAfterStep });
         expect(lost.acknowledged).toBeGreaterThan(0);
@@ -330,12 +340,20 @@ describe('settlement replay', () => {
         live.clock = live.decidedAt;
         const outcome = await live.ledger.recover(lost.reservationId);
         const r = (await live.replay(lost.all(), lost.decidedAt)).reservations[0];
-        expect(r).toMatchObject({ status: 'expired', debit: 0 });
-        expect(outcome).toMatchObject({ status: 'expired', charge: 0, credits: [], reason: 'stage-unclaimed-after-window' });
+        const forfeited = [{ partitionIndex: vanishStage, cause: 'no-close' }];
+        expect(r).toMatchObject({ status: 'settled', forfeited });
+        expect(r.credits[vanishStage].amount).toBe(0);
+        expect(r.debit).toBe(r.credits[1 - vanishStage].amount);
+        expect(outcome).toMatchObject({ charge: r.debit, reason: FORFEIT_REASON, forfeitedStages: forfeited });
         expect(outcome.closedAtLastStep).toBeUndefined();
+        expect(amounts(outcome.credits.filter(row => row.amount))).toEqual(amounts(r.credits.filter(row => row.amount)));
+        paid[0] -= r.debit;
+        r.credits.forEach((row, index) => { paid[index + 1] += row.amount; });
       }
-      expect(live.balances()).toEqual([['owner-0', 0, 0], ['owner-1', 0, 0], ['owner-2', 0, 0]]);
-      expect(live.ledger.snapshot().journal).toHaveLength(0);
+      expect(live.balances()).toEqual([['owner-0', paid[0], 0], ['owner-1', paid[1], 0], ['owner-2', paid[2], 0]]);
+      // Under the provider-relief terms the same records made the answer free.
+      const relief = await runAttempt(parties, { tag: 'live-loss-relief', outputs, vanishStage: 1, vanishAfterStep: 9, ...PROVIDER_RELIEF });
+      expect((await live.replay(relief.all(), relief.decidedAt)).reservations[0]).toMatchObject({ status: 'expired', debit: 0 });
     } finally {
       await live.close();
     }
@@ -360,10 +378,11 @@ describe('settlement replay', () => {
       await expect(live.ledger.settle(a.reservationId, { ...full, closedAtLastStep: [0, 1] })).rejects.toThrow();
       expect({ balances: live.balances(), journal: live.ledger.snapshot().journal.length }).toEqual(before);
 
-      // A provider-loss hold that expired stays expired whatever arrives later.
+      // A hold that expired stays expired whatever arrives later. Under the failed-stage terms a hold expires when
+      // nothing was acknowledged and a stage has not closed: here the requester's acknowledgments never reach the ledger.
       const lost = await runAttempt(parties, { tag: 'live-late-loss', outputs, vanishStage: 0, vanishAfterStep: 9 });
       live.admit(lost);
-      await live.collect(lost, lost.all());
+      await live.collect(lost, lost.all().filter(row => row.schema !== OUTPUT_ACKNOWLEDGMENT_SCHEMA || row.count === 0));
       live.clock = live.decidedAt + 1000;
       expect(await live.ledger.recover(lost.reservationId)).toMatchObject({ status: 'expired', charge: 0 });
       const lostEvidence = live.evidence(lost, lost.all());
@@ -390,19 +409,27 @@ describe('settlement replay', () => {
         live.admit(a);
         await live.collect(a, withoutClosing(a, index));
       }
+      // A stage that vanished: under the failed-stage terms it forfeits its share at the window and the other is paid.
       const lost = await runAttempt(parties, { tag: 'live-statement-loss', outputs, vanishStage: 1, vanishAfterStep: 9 });
       live.admit(lost);
       await live.collect(lost, lost.all());
+      // Nothing acknowledged reaches the ledger for this one, and its first stage never closes: it expires.
+      const unseen = await runAttempt(parties, { tag: 'live-statement-unseen', outputs, vanishStage: 0, vanishAfterStep: 9 });
+      live.admit(unseen);
+      await live.collect(unseen, unseen.all().filter(row => row.schema !== OUTPUT_ACKNOWLEDGMENT_SCHEMA || row.count === 0));
       live.clock = live.decidedAt;
       live.ledger.expire();
       for (const owner of live.owners) {
         const statement = live.ledger.statement(owner);
         const verdict = await verifyCreditStatement(statement);
-        expect(verdict).toMatchObject({ ok: true, uncheckedCount: 0, verifiedCount: 2, expiredCount: 1, balanceMatches: true });
+        expect(verdict).toMatchObject({ ok: true, uncheckedCount: 0, verifiedCount: 3, expiredCount: 1, balanceMatches: true });
         expect(verdict.recomputedBalance).toBe(statement.balance);
       }
+      const forfeit = (await live.replay(lost.all(), lost.decidedAt)).reservations[0];
+      expect(forfeit).toMatchObject({ status: 'settled', forfeited: [{ partitionIndex: 1, cause: 'no-close' }] });
+      expect(live.ledger.request(lost.reservationId).outcome).toMatchObject({ charge: forfeit.debit, forfeitedStages: forfeit.forfeited });
       const statement = live.ledger.statement('owner-0');
-      expect(statement.balance).toBe(-240);
+      expect(statement.balance).toBe(-240 - forfeit.debit);
       // The same entry dated before the window, or listing a stage that did close, does not verify.
       const early = structuredClone(statement);
       early.entries[0].at = live.decidedAt - 1;
@@ -415,11 +442,11 @@ describe('settlement replay', () => {
     }
   });
 
-  it('never turns a provider loss into a charge through the unclosed-stage rule', async () => {
+  it('never turns a provider loss into a charge through the unclosed-stage rule, under the provider-relief terms', async () => {
     const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
     // The final stage drops after 10 of 40 outputs, every one acknowledged, and never closes; or the first stage drops.
     for (const [vanishStage, vanishAfterStep] of [[1, 9], [0, 9], [0, 1]]) {
-      const lost = await runAttempt(parties, { tag: `loss-${vanishStage}-${vanishAfterStep}`, outputs, vanishStage, vanishAfterStep });
+      const lost = await runAttempt(parties, { tag: `loss-${vanishStage}-${vanishAfterStep}`, outputs, vanishStage, vanishAfterStep, ...PROVIDER_RELIEF });
       expect(lost.acknowledged).toBeGreaterThan(0);
       const r = (await replay(lost.all(), lost.decidedAt)).reservations[0];
       expect(r).toMatchObject({ status: 'expired', debit: 0 });
@@ -466,7 +493,7 @@ describe('settlement replay', () => {
   it('charges the acknowledged prefix when the stages close an unfinished answer with no stop: an unattributed disconnect', async () => {
     const parties = await createParties(2), outputs = Array.from({ length: 12 }, (_, i) => `t${i}`);
     for (const [tag, options] of [['failed', { stagesFailAfter: 6 }], ['unsigned-stop', { requesterStopAfter: 6 }]]) {
-      const a = await runAttempt(parties, { tag, outputs, ...options });
+      const a = await runAttempt(parties, { tag, outputs, ...options, ...PROVIDER_RELIEF });
       expect(a.acknowledged).toBe(6);
       // The stages closed (`failed` or `settled`); without a signed stop the records cannot say who ended the answer.
       const records = a.all().filter(row => row.schema !== SETTLEMENT_STOP_SCHEMA);
@@ -480,21 +507,21 @@ describe('settlement replay', () => {
     expect((await replay(capped.all(), capped.decidedAt)).reservations[0]).toMatchObject({ status: 'settled', debit: 12, chargedOutputs: 4, beyondCeiling: 2 });
   });
 
-  it('gives relief for a verified provider failure: a stage with no closing receipt makes the unfinished answer cost nothing', async () => {
+  it('gives relief under the provider-relief terms for a verified provider failure: a stage with no closing receipt makes the unfinished answer cost nothing', async () => {
     const parties = await createParties(2), outputs = Array.from({ length: 12 }, (_, i) => `t${i}`);
     for (const vanishStage of [0, 1]) {
-      const a = await runAttempt(parties, { tag: `vanish-${vanishStage}`, outputs, vanishStage, vanishAfterStep: 4 });
+      const a = await runAttempt(parties, { tag: `vanish-${vanishStage}`, outputs, vanishStage, vanishAfterStep: 4, ...PROVIDER_RELIEF });
       expect(a.acknowledged).toBeGreaterThan(0);
       const r = (await replay(a.all(), a.decidedAt)).reservations[0];
       expect(r).toMatchObject({ status: 'expired', debit: 0 });
       expect(r.credits.every(c => c.amount === 0)).toBe(true);
     }
     // A requester's silence is not a provider failure: the stages close, and the acknowledged prefix is owed.
-    const silent = await runAttempt(parties, { tag: 'silent', outputs, stopAckingAfter: 6 });
+    const silent = await runAttempt(parties, { tag: 'silent', outputs, stopAckingAfter: 6, ...PROVIDER_RELIEF });
     expect((await replay(silent.all(), silent.decidedAt)).reservations[0]).toMatchObject({ status: 'settled', debit: 18 });
     // A stage withholding its closing receipt of an unfinished answer is the same verified failure; it also costs
     // its partners their pay, so it is never in a stage's interest.
-    const ended = await runAttempt(parties, { tag: 'ended', outputs, stagesFailAfter: 6 });
+    const ended = await runAttempt(parties, { tag: 'ended', outputs, stagesFailAfter: 6, ...PROVIDER_RELIEF });
     expect((await replay(withoutClosing(ended, 1), ended.decidedAt)).reservations[0]).toMatchObject({ status: 'expired', debit: 0 });
   });
 
@@ -593,12 +620,19 @@ describe('settlement replay', () => {
       expect(r.conflicts).toEqual([expect.objectContaining({ signer: parties.requester.peerId, kind: 'acknowledgment-equivocation', count: extra.count,
         blocking: false, chains: [fake] })]);
     }
-    // With no acknowledgment of a count matching the final stage's chain, the records cannot show who lied: blocking,
-    // and listed against neither signer alone.
-    const without = a.all().filter(row => !(row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count === 40));
-    const c = (await replay([...without, await resign(byCount(40))], a.decidedAt)).reservations[0];
+    // With no acknowledgment of a count matching the final stage's chain, the records cannot show who lied. Under the
+    // provider-relief terms that blocks, listed against neither signer alone.
+    const earlier = await runAttempt(parties, { tag: 'self-relief', outputs, ...PROVIDER_RELIEF });
+    const earlierAcks = earlier.all().filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA);
+    const earlierWithout = earlier.all().filter(row => !(row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count === 40));
+    const c = (await replay([...earlierWithout, await resign(earlierAcks.find(row => row.count === 40))], earlier.decidedAt)).reservations[0];
     expect(c).toMatchObject({ status: 'conflict', debit: null });
     expect(c.conflicts).toEqual([{ signer: null, signers: [parties.stages[1].peerId, parties.requester.peerId], kind: 'output-chain', blocking: true, count: 40 }]);
+    // Under the failed-stage terms that count is not charged and nothing is blocked: the counts whose chains agree are.
+    const without = a.all().filter(row => !(row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count === 40));
+    const v3 = (await replay([...without, await resign(byCount(40))], a.decidedAt)).reservations[0];
+    expect(v3).toMatchObject({ status: 'settled', debit: 117, chargedOutputs: 39 });
+    expect(v3.conflicts.every(row => !row.blocking)).toBe(true);
   });
 
   it('matches the live ledger when the requester has signed a second acknowledgment with another chain', async () => {
@@ -692,9 +726,9 @@ describe('the live ledger posts what the replay computes', () => {
         expect(r).toMatchObject({ status: 'settled', debit: charge, outputs: charge / 3, chargedOutputs: charge / 3 });
         expect(amounts(outcome.credits)).toEqual(amounts(r.credits));
       }
-      // New split reservations take the decided rules and terms.
+      // New split reservations take the failed-stage rules and terms.
       expect(live.ledger.request('reservation-ended-failed').binding).toMatchObject({ settlementRules: SETTLEMENT_RULES,
-        unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
+        unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
     } finally { await live.close(); }
   });
 
@@ -703,7 +737,7 @@ describe('the live ledger posts what the replay computes', () => {
     const observed = { outputTokens: 39, stageEnded: true };
     expect(settledCreditUnits({ ...request, settlementRules: SETTLEMENT_RULES_V1 }, observed, 3)).toBe(0);
     expect(settledCreditUnits({ ...request, settlementRules: SETTLEMENT_RULES_INTERIM }, observed, 3)).toBe(117);
-    expect(settledCreditUnits({ mode: 'partition', unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, settlementRules: SETTLEMENT_RULES },
+    expect(settledCreditUnits({ mode: 'partition', unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, settlementRules: SETTLEMENT_RULES_V2 },
       { outputTokens: 39, unattributedDisconnect: true }, 3)).toBe(117);
     // A stage owner's interruption claim is relief under both the old and the decided terms.
     for (const terms of [UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2]) {
@@ -745,7 +779,7 @@ describe('the live ledger posts what the replay computes', () => {
     } finally { await live.close(); }
   });
 
-  it('names a delivered answer that one stage has no receipt covering as the replay\'s unknown, and moves nothing', async () => {
+  it('pays the other stage of a delivered answer that one stage has no receipt covering, as the replay does; that stage forfeits', async () => {
     const parties = await createParties(2), live = await openLiveLedger(parties, SAME_DEADLINE);
     try {
       const a = await runAttempt(parties, { tag: 'uncovered', policy: SAME_DEADLINE });
@@ -754,8 +788,15 @@ describe('the live ledger posts what the replay computes', () => {
       await live.collectAsSigned(a, records);
       live.clock = live.decidedAt;
       const outcome = await live.ledger.recover(a.reservationId);
-      expect((await live.replay(records, a.decidedAt)).reservations[0]).toMatchObject({ status: 'unknown' });
-      expect(outcome).toMatchObject({ status: 'expired', charge: 0, credits: [], reason: 'unknown-delivered-answer-without-covering-receipt' });
+      const r = (await live.replay(records, a.decidedAt)).reservations[0];
+      expect(r).toMatchObject({ status: 'settled', debit: 12, forfeited: [{ partitionIndex: 0, cause: 'no-close' }] });
+      expect(outcome).toMatchObject({ charge: 12, reason: FORFEIT_REASON, forfeitedStages: r.forfeited });
+      expect(amounts(outcome.credits.filter(row => row.amount))).toEqual(amounts(r.credits.filter(row => row.amount)));
+      // Under the provider-relief terms the replay leaves it unknown: settlement-v2-rules.test.js replays the ledger's
+      // frozen v2 outcome for it.
+      const relief = await runAttempt(parties, { tag: 'uncovered-relief', policy: SAME_DEADLINE, ...PROVIDER_RELIEF });
+      const reliefRecords = relief.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 0));
+      expect((await live.replay(reliefRecords, relief.decidedAt)).reservations[0]).toMatchObject({ status: 'unknown' });
     } finally { await live.close(); }
   });
 });
@@ -806,6 +847,9 @@ describe('row members as docs/settlement-replay.md states them', () => {
     const lost = await runAttempt(parties, { tag: 'decision-time', outputs, vanishStage: 0, vanishAfterStep: 9 });
     const at = lost.closesAt + POLICY.maxClockSkewMs;
     expect((await replay(lost.all(), at)).reservations[0].status).toBe('open');
-    expect((await replay(lost.all(), at + 1)).reservations[0].status).toBe('expired');
+    expect((await replay(lost.all(), at + 1)).reservations[0]).toMatchObject({ status: 'settled', forfeited: [{ partitionIndex: 0, cause: 'no-close' }] });
+    const relief = await runAttempt(parties, { tag: 'decision-time-relief', outputs, vanishStage: 0, vanishAfterStep: 9, ...PROVIDER_RELIEF });
+    expect((await replay(relief.all(), at)).reservations[0].status).toBe('open');
+    expect((await replay(relief.all(), at + 1)).reservations[0].status).toBe('expired');
   });
 });

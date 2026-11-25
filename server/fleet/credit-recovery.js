@@ -3,7 +3,8 @@ import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-js
 import { assert, same, FLEET_SERVICE_REQUEST_SCHEMA } from './contract.js';
 import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import {
-  deliveredWithoutCoveringReceipt, releaseWindowPassed, replayRules, stagesClosedAtLastStep, verifyCreditEvidence, verifyPartitionComponents, verifySplitStop
+  decideFailedStages, deliveredWithoutCoveringReceipt, forfeitRules, observeFailedStageRules, ownStageOf, releaseWindowPassed, replayRules, stagesClosedAtLastStep,
+  verifyClaimedFault, verifyCreditEvidence, verifyPartitionComponents, verifySplitStop
 } from './credit-evidence.js';
 
 /** Durable admission fences and independently verified proof components. No timeout asserts
@@ -30,6 +31,14 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
     const acknowledgedOutputTokens = data.ack?.acknowledgment.count ?? null;
     const stages = request.providers.map((_, index) => data[`stage:${index}`]);
     const awaitingStages = [];
+    if (forfeitRules(request)) {
+      // Failed-stage rules: a stage whose owner claimed an interruption has decided itself (it forfeits), so nobody
+      // waits for it. Every other stage still owes a closing receipt that covers the acknowledged output.
+      const decided = decideFailedStages(request, { receipts: stages.filter(Boolean), ...data.ack }, { claims: interrupted, unadmitted: missing, skew: policy.maxClockSkewMs,
+        own: ownStageOf(request, enrollment) });
+      awaitingStages.push(...[...decided.silent, ...decided.short].sort((a, b) => a - b));
+      return { data, missing, interrupted, acknowledgedOutputTokens, stages, awaitingStages };
+    }
     for (const [index, receipt] of stages.entries()) {
       if (!receipt && missing.includes(index) && (acknowledgedOutputTokens ?? 0) === 0) continue;
       const exited = interrupted.find(row => row.stage === index);
@@ -54,6 +63,29 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
       observed: { outputTokens: Math.min(acknowledgment.count, ceiling), outputIdentity: acknowledgment.chain, closedAtLastStep,
         ...(beyondCeiling ? { beyondCeiling } : {}),
         workIds: request.providers.map((provider, index) => `stage:${provider.participantId}:${request.id}:${request.executionId}:${index}`) } };
+  };
+  /**
+   * Failed-stage rules: the evidence and observation a split request settles on from its retained components, or null
+   * when it cannot settle. `windowPassed` decides the stages that have neither closed nor been claimed: each is treated
+   * as closed at its last signed step (a delivered answer its receipts cover) or forfeits with cause `no-close`. A
+   * stage whose owner claimed an interruption forfeits at any time. Null when nothing was acknowledged and a stage has
+   * not closed (the request expires, nobody is charged or paid), and when a stage that would be paid closed behind the
+   * acknowledged output (the replay's conflict, which moves nothing). The retained components were verified when
+   * they were collected.
+   */
+  const failedStageSettlement = (request, { data, stages, interrupted, missing }, windowPassed) => {
+    if (!data.ack) return null;
+    try {
+      const receipts = stages.filter(Boolean), proof = { receipts, ...data.ack }, claims = interrupted, own = ownStageOf(request, enrollment);
+      const decided = decideFailedStages(request, proof, { claims, unadmitted: missing, skew: policy.maxClockSkewMs, own });
+      if (decided.short.length || decided.silent.length && !(windowPassed && data.ack.acknowledgment.count > 0)) return null;
+      const stated = { ...(decided.closedAtLastStep.length ? { closedAtLastStep: decided.closedAtLastStep } : {}),
+        ...(decided.forfeitedStages.length ? { forfeitedStages: decided.forfeitedStages } : {}) };
+      const observed = observeFailedStageRules(request, proof, { claims, unadmitted: missing, stated, windowPassed, stop: data.stop ?? null,
+        maxUnacknowledgedOutputs, skew: policy.maxClockSkewMs, own });
+      return { observed, evidence: { identity: request.route, receipts, ...(claims.length ? { interruptedOwners: claims.map(row => row.closure) } : {}),
+        ...data.ack, ...(data.stop ? { stop: data.stop } : {}), ...stated } };
+    } catch { return null; }
   };
   const expiry = () => transaction(() => {
     for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state IN ('reserved','dispatched')").all()) {
@@ -80,6 +112,11 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
     // those stages are treated as closed at their last signed step and every stage is paid its share
     // (stagesClosedAtLastStep). One stage withholding its closing receipt cannot veto the others' payment. An answer
     // that did not finish never qualifies and still expires with no charge.
+    //
+    // Under the failed-stage rules (SETTLEMENT_RULES) a stage that never closed no longer makes the answer free. When
+    // output was acknowledged, the request settles at the window: each stage with no closing receipt is treated as
+    // closed at its last signed step as above, or forfeits its own share, and every other stage is paid
+    // (failedStageSettlement). With nothing acknowledged it expires with no charge, as before.
     for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state='closing'").all()) {
       const request = read(row.id), split = request.binding.mode !== 'whole-model';
       const window = split ? policy.partitionUnclaimedReleaseMs : policy.wholeModelUnclaimedReleaseMs;
@@ -92,13 +129,15 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
       if (split) {
         const progress = splitProgress(row.id, request.binding);
         if (progress.acknowledgedOutputTokens !== null && progress.awaitingStages.length === 0) continue;
-        const delivered = closedAtLastStepSettlement(request.binding, progress);
+        const failedStages = forfeitRules(request.binding);
+        const delivered = failedStages ? failedStageSettlement(request.binding, progress, true) : closedAtLastStepSettlement(request.binding, progress);
         if (delivered) { post(row.id, delivered.observed, delivered.evidence); continue; }
         const unsigned = progress.stages.map((receipt, index) => (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
           || progress.awaitingStages.includes(index)) ? index : null).filter(index => index !== null);
         // A delivered answer that some stage has no receipt covering is the replay's `unknown`: nothing moves either way,
         // and the outcome names it rather than calling it an unclaimed stage.
-        const undecided = Boolean(progress.data.ack) && deliveredWithoutCoveringReceipt(request.binding,
+        // (Under the failed-stage rules such a stage forfeits and the answer settled above.)
+        const undecided = !failedStages && Boolean(progress.data.ack) && deliveredWithoutCoveringReceipt(request.binding,
           { receipts: progress.stages.filter(Boolean), ...progress.data.ack }, policy.maxClockSkewMs);
         outcome = { ...outcome, reason: undecided ? 'unknown-delivered-answer-without-covering-receipt' : 'stage-unclaimed-after-window',
           acknowledgedOutputTokens: progress.acknowledgedOutputTokens,
@@ -122,7 +161,10 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         && Number.isSafeInteger(signed.at) && Math.abs(now() - signed.at) <= policy.maxClockSkewMs
         && enrolled && await verifyParticipantSignature(enrolled.publicJwk, FLEET_SERVICE_REQUEST_SCHEMA, signed, signature),
       'Enrolled stage owner signature required');
-      assert(Object.keys(signed.payload).length === 4 && typeof id === 'string' && id.length <= 160
+      // The claim may carry one more member, `fault`: the stage's signed fault record (settlement-terms.js), kept with
+      // the claim so that the settlement replay can reach the ledger's result from records alone.
+      const { fault } = signed.payload, withFault = Object.hasOwn(signed.payload, 'fault');
+      assert(Object.keys(signed.payload).length === (withFault ? 5 : 4) && typeof id === 'string' && id.length <= 160
         && typeof owner === 'string' && /^[a-f0-9]{64}$/.test(owner) && Number.isSafeInteger(stage) && stage >= 0,
       'Malformed stage owner closure');
       const row = read(id);
@@ -131,12 +173,21 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
       assert(row.state !== 'settled' || row.outcome?.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
       assert(receipt === null || receipt?.partitionIndex === stage && receipt.status === 'executing', 'Invalid recovered step checkpoint');
       if (receipt) await verifyPartitionComponents(row.binding, { identity: row.binding.route, receipts: [receipt] }, enrollment, now(), policy.maxClockSkewMs);
+      // Under the failed-stage rules, while the request is undecided, a fault the replay would call late is refused:
+      // the stage is then decided at the window like any stage that did not close, in the ledger as in the replay.
+      if (withFault) {
+        await verifyClaimedFault(row.binding, stage, fault, enrollment, now(), policy.maxClockSkewMs, forfeitRules(row.binding) && row.state !== 'settled'
+          ? { closesBy: row.binding.deadline + policy.partitionUnclaimedReleaseMs + policy.maxClockSkewMs } : {});
+      }
       const result = transaction(() => {
         const owned = db.prepare('SELECT owner,closure FROM fleet_stage_owners WHERE request_id=? AND stage=?').get(id, stage);
         if (owned) assert(owned.owner === owner, 'Another process owns the stage admission');
         else assert(!admitted(id).includes(stage), 'Historical admission has no matching exclusive owner');
         if (owned?.closure) {
-          assert(same(JSON.parse(owned.closure).payload, signed.payload), 'Conflicting interrupted stage checkpoint');
+          // The same claim again. It may be repeated with or without its fault record (a host that restarted on
+          // other software); the claim first recorded stands.
+          const claimed = ({ fault: _fault, ...payload }) => payload;
+          assert(same(claimed(JSON.parse(owned.closure).payload), claimed(signed.payload)), 'Conflicting interrupted stage checkpoint');
           return 'closed';
         }
         // Fence even if the earlier HTTP admission is still in flight. A late packet cannot reopen this stage.
@@ -186,7 +237,12 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
       if (proof.acknowledgment?.count > 0 && !proof.acknowledgedReceipt) {
         proof.acknowledgedReceipt = proof.receipts.find(receipt => receipt.partitionIndex === row.binding.providers.length - 1
           && receipt.output?.count === proof.acknowledgment.count && receipt.output.chain === proof.acknowledgment.chain);
-        assert(proof.acknowledgedReceipt, 'Acknowledgment needs its signed output prefix');
+        // Failed-stage rules, final stage on the requester's own account: the requester signed both sides, so its own
+        // signed acknowledgment counts by itself and any participant of the request may hand it in. It was verified
+        // above against the requester's enrolled key and this reservation, attempt and route. Keeping back the final
+        // stage's receipts then no longer leaves nothing acknowledged (docs/settlement-replay.md, step 5).
+        const ownFinal = forfeitRules(row.binding) && ownStageOf(row.binding, enrollment)(row.binding.providers.length - 1);
+        assert(proof.acknowledgedReceipt || ownFinal, 'Acknowledgment needs its signed output prefix');
       }
       if (row.state === 'settled') {
         assert(row.outcome.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
@@ -212,7 +268,10 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         const ack = proof.acknowledgment, prior = retained.ack?.acknowledgment;
         if (ack && (!prior || ack.count >= prior.count)) {
           assert(!prior || ack.count !== prior.count || ack.chain === prior.chain, 'Conflicting acknowledged output');
-          store(id, 'ack', { acknowledgment: ack, acknowledgedReceipt: proof.acknowledgedReceipt });
+          // Failed-stage rules: an acknowledgment handed in again without its receipt never replaces the pair already
+          // kept. Earlier rules keep the last one handed in, as they did when their reservations were made.
+          if (!forfeitRules(row.binding) || !prior || ack.count > prior.count || proof.acknowledgedReceipt) store(id, 'ack', { acknowledgment: ack,
+            acknowledgedReceipt: forfeitRules(row.binding) ? proof.acknowledgedReceipt ?? undefined : proof.acknowledgedReceipt });
         }
       });
       return this.recover(id);
@@ -294,12 +353,15 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
           return outcome;
         });
       }
-      const { acknowledgedOutputTokens, stages, interrupted, awaitingStages } = splitProgress(id, request);
+      const progress = splitProgress(id, request), { acknowledgedOutputTokens, stages, interrupted, awaitingStages } = progress;
       if (acknowledgedOutputTokens === null || awaitingStages.length) {
         return { id, status: 'pending', heldCredits: request.maximum, acknowledgedOutputTokens, awaitingStages };
       }
-      return settle(id, { identity: request.route, receipts: stages.filter(Boolean), ...(interrupted.length ? { interruptedOwners: interrupted.map(row => row.closure) } : {}),
-        ...data.ack, ...(data.stop ? { stop: data.stop } : {}) });
+      // Failed-stage rules: every stage has closed or been claimed by its owner, so the claimed stages forfeit and the
+      // rest are paid; the evidence names the forfeiting stages.
+      const decided = forfeitRules(request) ? failedStageSettlement(request, progress, false) : null;
+      return settle(id, decided?.evidence ?? { identity: request.route, receipts: stages.filter(Boolean),
+        ...(interrupted.length ? { interruptedOwners: interrupted.map(row => row.closure) } : {}), ...data.ack, ...(data.stop ? { stop: data.stop } : {}) });
     }
   };
 }

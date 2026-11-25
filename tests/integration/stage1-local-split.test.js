@@ -61,28 +61,34 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
     expect(good.receipt.cleanup).toEqual({ processesExited: true, heldCredits: 0, openReservations: 0 });
   });
 
-  it('dropped a stage mid-answer: partial text kept, nothing resent, the ledger expiry released the hold and charged nobody', () => {
+  it('dropped a stage mid-answer: partial text kept, nothing resent, the killed stage forfeited its share at the window', () => {
     const { drop } = good.receipt;
     expect(drop).toMatchObject({ killed: { host: 'host-a', how: 'SIGKILL', exited: true }, completed: false,
       resend: { requesterApprovals: 1, requesterAttemptsOnThread: 1, ledgerReservations: 1 },
-      settlement: { state: 'settled', status: 'expired', charge: 0, journal: [], heldAfter: 0 } });
+      settlement: { state: 'settled', reason: 'failed-stage-forfeits-own-share', heldAfter: 0 } });
+    expect(drop.settlement.forfeitedStages).toContainEqual({ partitionIndex: 0, cause: 'no-close' });
+    expect(drop.settlement.forfeitedStages).toEqual(drop.settlementReplay.result.reservations[0].forfeited);
+    // host-a is paid nothing; the stage that closed is paid its share of the acknowledged output, which is the charge.
+    expect(drop.settlement.credits.filter(row => row.computerId === 'computer-stage0').every(row => row.amount === 0)).toBe(true);
+    expect(drop.settlement.journal.reduce((sum, row) => sum + row.delta, 0)).toBe(0);
     expect(drop.outputsReceived).toBeGreaterThanOrEqual(1);
     expect(drop.outputsReceived).toBeLessThan(3);
     expect(drop.partialText).toBe('2');
-    expect(drop.accountAfter).toBe(drop.accountBefore);
+    expect(drop.accountAfter).toBe(drop.accountBefore - drop.settlement.charge);
   });
 
   it('replays every attempt from the participants\' own signed records to the ledger\'s outcome', () => {
     const rows = name => good.receipt[name].settlementReplay.result.reservations;
     expect(rows('split')).toMatchObject([{ status: 'settled', debit: 3 }]);
     expect(rows('cancel')).toMatchObject([{ status: 'settled', debit: good.receipt.cancel.settlement.charge }]);
-    expect(rows('drop')).toMatchObject([{ status: 'expired', debit: 0 }]);
+    expect(rows('drop')).toMatchObject([{ status: 'settled', debit: good.receipt.drop.settlement.charge }]);
+    expect(rows('drop')[0].forfeited).toContainEqual({ partitionIndex: 0, cause: 'no-close' });
     for (const name of ['split', 'cancel', 'drop']) {
       const replay = good.receipt[name].settlementReplay;
       expect(replay).toMatchObject({ termsCollectedBy: 'stage1-harness', termsSigned: 'in-approval-before-dispatch', problems: [] });
       expect(replay.termsPolicyDigest).toBe(replay.ledgerPolicyDigest);
-      // Signed under the decided rules, so the receipt carries no known difference to tolerate.
-      expect(replay.unfinishedTerms).toBe('reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1');
+      // Signed under the failed-stage rules, so the receipt carries no known difference to tolerate.
+      expect(replay.unfinishedTerms).toBe('reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1');
       expect(replay.knownDifferences).toBeUndefined();
     }
     expect(good.receipt.drop.settlementReplay.acceptancesSigned).toBe('during-attempt');
@@ -111,8 +117,9 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
   });
 
   it('rejects the same run with a charged, held, empty or resent drop', () => {
-    expect(codes(tampered(receipt => { receipt.drop.settlement.charge = 1; receipt.drop.settlement.journal = [{ accountId: 'computer-requester', delta: -1 },
-      { accountId: 'computer-stage1', delta: 1 }]; }))).toEqual(['drop-charged']);
+    // Under the failed-stage terms a drop may charge what the replay computes; a charge it does not compute is refused.
+    expect(codes(tampered(receipt => { receipt.drop.settlement.charge += 1; receipt.drop.settlement.journal = [{ accountId: 'computer-requester', delta: -1 },
+      { accountId: 'computer-stage1', delta: 1 }]; }))).toEqual(['drop-charged', 'replay-differs-from-ledger']);
     expect(codes(tampered(receipt => { receipt.drop.accountAfter -= 1; }))).toEqual(['drop-charged']);
     expect(codes(tampered(receipt => { receipt.drop.settlement.state = 'closing'; }))).toEqual(['drop-stranded-hold']);
     expect(codes(tampered(receipt => { receipt.drop.outputsReceived = 0; receipt.drop.partialText = ''; }))).toEqual(['drop-no-partial-output']);
