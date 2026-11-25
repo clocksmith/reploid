@@ -5,54 +5,16 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 import { inspectNativeRuntimeSource } from '../../server/native-runtime-source.js';
 import { inspectPeerRuntime } from '../fixtures/peers/pooled/runtime-identity.js';
+import { protocolRun } from '../fixtures/peers/pooled/compare-complete.js';
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-const run = promisify(execFile);
-it('keeps the bounded client failure and graceful-exit subprocess contracts in the focused suite', async () => {
-  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'complete_request_client_test.py'],
-    { cwd: repo, timeout: 8000, maxBuffer: 1024 ** 2 });
-  expect(result.stderr).toContain('Ran 18 tests');
-  expect(result.stderr).toContain('OK');
-}, 10000);
-it('keeps protected service cgroup and GPU-owner observations in the focused suite', async () => {
-  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'provider_state_test.py'],
-    { cwd: repo, timeout: 8000, maxBuffer: 1024 ** 2 });
-  expect(result.stderr).toContain('Ran 6 tests');
-  expect(result.stderr).toContain('OK');
-}, 10000);
-it('keeps full-model lifecycle execution separate from timed requests and requires complete cancellation receipts', async () => {
-  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'native_lifecycle_runner_test.py'],
-    { cwd: repo, timeout: 8000, maxBuffer: 1024 ** 2 });
-  expect(result.stderr).toContain('Ran 7 tests');
-  expect(result.stderr).toContain('OK');
-}, 10000);
-it('enforces hardened host Shmem/MemFree, AMD GPU GTT/512MiB carve-out, bulk-copy, and cold-cache preflight gates', async () => {
-  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'compare_complete_preflight_test.py'],
-    { cwd: repo, timeout: 8000, maxBuffer: 1024 ** 2 });
-  expect(result.stderr).toContain('Ran 8 tests');
-  expect(result.stderr).toContain('OK');
-}, 10000);
-it('measures matched two-machine split startup, post-open first request, and repeats on one requester clock', async () => {
-  const result = await run('python3', ['-B', '-m', 'unittest', 'discover', '-s', 'tests/unit', '-p', 'compare_split_single_clock_test.py'],
-    { cwd: repo, timeout: 10000, maxBuffer: 1024 ** 2 });
-  expect(result.stderr).toContain('Ran 2 tests');
-  expect(result.stderr).toContain('OK');
-}, 12000);
-async function protocol(command, requests, root) {
-  const script = `import sys,json,importlib.util,pathlib
-p=pathlib.Path(sys.argv[1])/'tests/fixtures/peers/pooled/compare-complete.py'
-s=importlib.util.spec_from_file_location('comparison',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
-v=m.protocol_run(json.loads(sys.argv[2]),json.loads(sys.argv[3]),pathlib.Path(sys.argv[4])/'stdout.log',5)
-print(json.dumps(v))`;
-  const result = await run('python3', ['-B', '-c', script, repo, JSON.stringify(command), JSON.stringify(requests), root],
-    { timeout: 8000, maxBuffer: 1024 ** 2 });
-  return JSON.parse(result.stdout);
-}
+// The bounded client, provider-state, lifecycle, preflight and split suites live in their own
+// test files; these two cases drive actual workers through compare-complete's protocolRun.
+const protocol = (command, requests, root) => protocolRun(command, requests, path.join(root, 'stdout.log'), 5);
+
 it('uses the shared client with the actual native metadata worker without importing a runtime or GPU', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-client-boundary-'));
   try {

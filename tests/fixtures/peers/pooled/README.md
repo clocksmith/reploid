@@ -42,7 +42,7 @@ compare those fields as matched setup or silently apply the new clock to an old
 receipt that did not record it.
 
 ```sh
-python3 compare-complete.py /absolute/freeze.json \
+node compare-complete.js /absolute/freeze.json \
   --sha256 FREEZE_SHA256 --output /absolute/new-preflight-directory
 ```
 
@@ -136,6 +136,10 @@ requires it to remain inactive (`MainPID=0`) across every arm; `report.json`
 records `runsBesideProtectedProvider` explicitly. These endpoint snapshots do
 not establish global GPU idleness between observations.
 
+`--execute` holds the freeze's `locks` (exclusive on the first path, shared on
+the second, both non-blocking) through util-linux `flock(1)`, because Node has
+no `flock(2)`; the execute path therefore needs a Linux host with `flock`.
+
 Host and GPU preflight (`--check-host-preflight` for a read-only check, and
 mandatory before admission and before every arm under `--execute`) gates on:
 `MemAvailable`, truly free `MemFree` (`>= 16 GiB` default), `Shmem` (`<= 4 GiB`
@@ -152,7 +156,7 @@ above `64 MiB/s`. When `protectedCachePolicy` is `"clear_before_candidate"` or
 removed synchronously before each cold candidate arm (and after candidate close
 for `"clear_each_arm"`).
 
-For matched two-machine split comparisons (`compare-split-single-clock.py`,
+For matched two-machine split comparisons (`compare-split-single-clock.js`,
 `split-complete-workers.js`, and `local-swarm-signaling.js`), one requester
 monotonic clock (`single-requester-clock-monotonic/v1`) drives both engines over
 the same owned JSONL protocol (`open`, three `request` calls, `receipts`, `close`)

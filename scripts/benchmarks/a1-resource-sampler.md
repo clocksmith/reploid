@@ -1,6 +1,6 @@
 # Passive A1 resource sampling (unqualified diagnostic)
 
-The companion Python script records Linux process I/O counters and `fincore`
+The companion Node script (`a1-resource-sampler.js`) records Linux process I/O counters and `fincore`
 residency without loading model contents, hashing them, warming caches, evicting
 pages, locking memory, starting an inference process, or modifying a harness.
 Use it alongside both comparison arms under the same instrumentation policy.
@@ -9,7 +9,7 @@ It does not establish performance, source identity, causal attribution or a win.
 Example using explicit benchmark-owned process IDs and files:
 
 ```sh
-python3 scripts/benchmarks/a1-resource-sampler.py \
+node scripts/benchmarks/a1-resource-sampler.js \
   --pid 12345 --file /absolute/model.gguf --samples 60 --interval 1 \
   --phase-marker /absolute/phase.json --out /absolute/new-observations.jsonl
 ```
@@ -43,13 +43,13 @@ Counter semantics and limits:
   bracket the start rather than mixing a begin timestamp with an end timestamp. File output is exclusive and never replaces
   prior evidence. All recorded paths and counters remain local unless reviewed.
 
-Validation: `python3 -m unittest discover -s scripts/benchmarks -p test_a1_resource_sampler.py`.
+Validation: `npx vitest run --config tests/vitest.config.js tests/unit/a1-resource-sampler.test.js`.
 CPU tests and a live shell smoke establish instrumentation behavior only. No A1
 model campaign, GPU benchmark or acceptance comparison has been run with this helper.
 
 ## Existing frozen harness integration
 
-The existing `compare-complete.py` publishes `report.json` before and after each
+The existing `compare-complete.js` publishes `report.json` before and after each
 arm. Supply `--harness-report /absolute/campaign/report.json --freeze-sha256 HEX`
 to retain its arm context after checking the expected freeze identity. This only
 reads the existing report and needs no source, freeze, control or protocol changes.

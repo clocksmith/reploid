@@ -100,9 +100,13 @@ try {
   out.loaded = snapshot();
   if (cfg.coldFiles?.length) {
     // Only this experiment's newly provisioned files; never drop global caches.
-    execFileSync('python3', ['-c',
-      'import os,sys\nfor p in sys.argv[1:]:\n f=os.open(p,os.O_RDONLY)\n try:\n  os.fsync(f)\n  os.posix_fadvise(f,0,0,os.POSIX_FADV_DONTNEED)\n finally: os.close(f)',
-      ...cfg.coldFiles], { stdio: 'pipe' });
+    // Node has no posix_fadvise: fsync here, then GNU dd's `iflag=nocache count=0`
+    // issues POSIX_FADV_DONTNEED over the whole file without reading it.
+    for (const file of cfg.coldFiles) {
+      const fd = fs.openSync(file, 'r');
+      try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+      execFileSync('dd', [`if=${file}`, 'iflag=nocache', 'count=0', 'status=none'], { stdio: 'pipe' });
+    }
     out.fileCacheAdvice = { at: new Date().toISOString(), operation: 'POSIX_FADV_DONTNEED', files: cfg.coldFiles };
   }
   write();
