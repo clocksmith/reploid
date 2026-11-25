@@ -157,6 +157,13 @@ function receiptConflicts(rows) {
   return [...pairs.values()];
 }
 
+/**
+ * The signed account step 8 gave each participant of a settled row with signed accounts, for `balances`. A row's
+ * `accounts` lists `null` for a stage that named two accounts; under the failed-stage terms such a stage on the
+ * requester's own account is still summed under `debitAccount`, as step 8 says. Kept beside the row, not in it.
+ */
+const postedAccounts = new WeakMap();
+
 async function replayOne(reservationId, requesterId, group, { policies, at, computerOf, enrolled = null, maxUnacknowledgedOutputs }) {
   // Every row has exactly these members (docs/settlement-replay.md, "Rows").
   const base = { reservationId, attemptId: null, requesterId, status: null, reason: null, debit: null, credits: null, outputs: null,
@@ -211,6 +218,19 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   }
   if (signedAccounts) base.accounts = { requester: agreed.debitAccount, stages: payout.map(named => (named.size === 1 ? [...named][0] : null)) };
 
+  // Failed-stage terms (step 6 on). Under them nothing a stage on the requester's own account signs or withholds
+  // can reduce what the other stages are paid. A stage is the requester's own when the requester's key runs it; with
+  // signed accounts, when a counting acceptance of its participant names the requester's account; without them, when
+  // the caller's grouping places both under one account.
+  const forfeitRules = agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS_V3;
+  const ownStage = index => {
+    const id = agreed.shares[index].participantId;
+    if (id === agreed.requesterId) return true;
+    return signedAccounts ? agreed.shares.some((share, at) => share.participantId === id && payout[at].has(agreed.debitAccount))
+      : computerOf(id) === computerOf(agreed.requesterId);
+  };
+  const ownFinal = forfeitRules && ownStage(finalIndex);
+
   // Stage receipts: one tally per stage, cumulative by sequence. Two different bodies at one sequence, or steps that
   // go backwards, are the stage contradicting itself.
   const perStage = Array.from({ length: stages }, () => []);
@@ -218,18 +238,22 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     if (row.routeHash !== agreed.routeHash || agreed.shares[row.partitionIndex]?.participantId !== row.participantId) continue;
     perStage[row.partitionIndex].push(row);
   }
-  const latest = [];
+  const latest = [], contradicted = new Set();
   for (const [index, rows] of perStage.entries()) {
     rows.sort((a, b) => a.sequence - b.sequence);
-    for (const sequences of receiptConflicts(rows)) {
-      base.conflicts.push({ signer: agreed.shares[index].participantId, kind: 'stage-receipt', blocking: true, partitionIndex: index, sequences });
+    // Under the failed-stage terms the requester's own stage cannot block settlement by contradicting itself: its
+    // entries are listed, it is failed (step 6) and it has no latest receipt (as the final stage, its last receipt
+    // still shows how the answer ended, below).
+    const own = forfeitRules && ownStage(index), pairs = receiptConflicts(rows);
+    for (const sequences of pairs) {
+      base.conflicts.push({ signer: agreed.shares[index].participantId, kind: 'stage-receipt', blocking: !own, partitionIndex: index, sequences });
     }
     rows.filter(row => !counted(row)).forEach(row => base.late.push({ kind: 'stage-receipt', partitionIndex: index, sequence: row.sequence }));
-    latest[index] = rows.filter(counted).at(-1) ?? null;
+    if (own && pairs.length) contradicted.add(index);
+    latest[index] = contradicted.has(index) ? null : rows.filter(counted).at(-1) ?? null;
   }
   // Failed stages (step 6): under the terms that name them, a stage's own signed fault counts when signed by the
   // closing bound, as a closing receipt does. Under any other terms a fault is dropped without being listed.
-  const forfeitRules = agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS_V3;
   const faulted = new Set();
   if (forfeitRules) {
     base.forfeited = [];
@@ -266,7 +290,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     if (held === undefined) committed.set(row.output.count, row.output.chain);
     else if (held !== row.output.chain && !base.conflicts.some(item => item.kind === 'output-chain' && item.count === row.output.count)) {
       // The final stage's own two chains for one count (or a starting value other than the computable one).
-      base.conflicts.push({ signer: row.participantId, kind: 'output-chain', blocking: true, count: row.output.count });
+      base.conflicts.push({ signer: row.participantId, kind: 'output-chain', blocking: !ownFinal, count: row.output.count });
     }
   }
   // Every chain the requester signed for each count, in time or late, and the counts it acknowledged in time.
@@ -278,7 +302,9 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const matchedCounts = [];
   for (const [count, chains] of [...chainsAt.entries()].sort(([a], [b]) => a - b)) {
     const stageChain = committed.get(count), others = [...chains].filter(chain => chain !== stageChain).sort();
-    const matched = stageChain !== undefined && Boolean(timelyAt.get(count)?.has(stageChain));
+    // When the final stage is the requester's own (failed-stage terms), the requester signed both sides: every count
+    // it acknowledged in time is matched, whatever chain it carries and whether or not a receipt commits one.
+    const matched = ownFinal ? timelyAt.has(count) : stageChain !== undefined && Boolean(timelyAt.get(count)?.has(stageChain));
     if (stageChain !== undefined && chains.has(stageChain)) {
       // The requester signed the final stage's chain for this count; charged only when that acknowledgment is in time.
       if (matched) matchedCounts.push(count);
@@ -288,14 +314,18 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
       }
     } else if (stageChain === undefined) {
       // No presented final-stage receipt commits to this count: an in-time acknowledgment is listed and not charged.
-      if (timelyAt.has(count)) base.unmatched.push({ kind: 'acknowledgment', count });
+      if (matched) matchedCounts.push(count);
+      else if (timelyAt.has(count)) base.unmatched.push({ kind: 'acknowledgment', count });
       if (others.length > 1) base.conflicts.push({ signer: agreed.requesterId, kind: 'acknowledgment-equivocation', count, blocking: false, chains: others });
     } else if (count === 0) {
-      base.conflicts.push({ signer: agreed.requesterId, kind: 'charge-binding', blocking: true, count: 0 });
+      base.conflicts.push({ signer: agreed.requesterId, kind: 'charge-binding', blocking: !ownFinal, count: 0 });
+      if (matched) matchedCounts.push(count);
     } else {
       // Every chain the requester signed for this count differs from the final stage's: one of the two signed something
-      // false, and the records cannot show which.
-      base.conflicts.push({ signer: null, signers: [finalParticipant, agreed.requesterId], kind: 'output-chain', blocking: true, count });
+      // false, and the records cannot show which. Under the failed-stage terms that does not block: the count is not
+      // matched, so the requester owes the counts whose chains agree, as if it had withheld this acknowledgment.
+      base.conflicts.push({ signer: null, signers: [finalParticipant, agreed.requesterId], kind: 'output-chain', blocking: !forfeitRules, count });
+      if (matched) matchedCounts.push(count);
     }
   }
   if (base.conflicts.slice(noted).some(row => row.blocking !== false)) {
@@ -303,7 +333,14 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   }
 
   const acknowledged = Math.max(0, ...matchedCounts);
-  const final = latest[finalIndex], delivered = final?.output ?? null;
+  // A requester's own final stage that contradicted itself has no latest receipt, but its contradiction must not cost
+  // the outside stages their pay: how the answer ended is still read from its highest-sequence counting receipt, when
+  // no other receipt of it has that sequence.
+  const ownFinalEnd = () => {
+    const last = perStage[finalIndex].filter(counted).at(-1);
+    return last && perStage[finalIndex].filter(row => row.sequence === last.sequence).length === 1 ? last.output ?? null : null;
+  };
+  const final = latest[finalIndex], delivered = contradicted.has(finalIndex) ? ownFinalEnd() : final?.output ?? null;
   const closed = latest.map(row => Boolean(row && closingReceipt(row)));
   const answerDelivered = Boolean(delivered?.done && acknowledged === delivered.count && acknowledged > 0);
   const unclosed = closed.flatMap((ok, index) => (ok ? [] : [index]));
@@ -314,8 +351,9 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     // forfeits whether or not it closed. Past the window an unclosed stage is treated as closed at its last step when
     // the answer was delivered and its in-time receipts cover all of it, and forfeits otherwise. Nobody else's payment
     // waits on it or is lost with it.
-    const faults = [...faulted].sort((a, b) => a - b).map(index => ({ partitionIndex: index, cause: closed[index] ? 'fault-and-close' : 'fault' }));
-    const silent = unclosed.filter(index => !faulted.has(index));
+    const faults = [...new Set([...faulted, ...contradicted])].sort((a, b) => a - b)
+      .map(index => ({ partitionIndex: index, cause: contradicted.has(index) ? 'contradiction' : closed[index] ? 'fault-and-close' : 'fault' }));
+    const silent = unclosed.filter(index => !faulted.has(index) && !contradicted.has(index));
     if (silent.length && windowOpen) {
       return { ...base, status: 'open', outputs: acknowledged, forfeited: faults,
         reason: `stage ${silent.join(', ')} has neither closed nor signed a fault and the release window is still open` };
@@ -352,8 +390,14 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   }
   // A forfeited stage is paid nothing whatever its receipts say, so its steps are not tested (and it may have none).
   const forfeits = new Set((base.forfeited ?? []).map(row => row.partitionIndex));
-  const short = latest.flatMap((row, index) => (!forfeits.has(index) && row.steps < acknowledged ? [index] : []));
-  if (short.length) {
+  // Under the failed-stage terms only the stages that are paid are tested: the requester's own stages are never paid.
+  const tested = index => !forfeits.has(index) && !(forfeitRules && ownStage(index));
+  const short = latest.flatMap((row, index) => (tested(index) && row.steps < acknowledged ? [index] : []));
+  // When the final stage is the requester's own, nobody but the requester vouches for the acknowledged count, so a
+  // count beyond what the paid stages signed for is no conflict of theirs: the charge stops at the fewest steps any of
+  // them signed.
+  const stepCap = ownFinal ? Math.min(Infinity, ...agreed.shares.flatMap((_, index) => (tested(index) ? [latest[index].steps] : []))) : Infinity;
+  if (short.length && !ownFinal) {
     return { ...base, status: 'conflict', outputs: acknowledged, reason: 'the requester acknowledged outputs a stage says it never computed',
       conflicts: [...base.conflicts, ...short.map(index => ({ signer: latest[index].participantId, kind: 'steps', blocking: true, partitionIndex: index }))] };
   }
@@ -368,7 +412,15 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
       for (const account of payout[index]) own.add(account);
       named.set(share.participantId, own);
     });
-    const split = [...named].filter(([, own]) => own.size > 1);
+    const named2 = [...named].filter(([, own]) => own.size > 1);
+    // Failed-stage terms: a participant on the requester's own account that also named another stays the requester's
+    // own. It is listed, it is never paid, and it blocks nobody.
+    const ownSplit = forfeitRules ? named2.filter(([signer, own]) => signer === agreed.requesterId || own.has(agreed.debitAccount)) : [];
+    for (const [signer, own] of ownSplit) {
+      base.conflicts.push({ signer, kind: 'payout-account', blocking: false, accounts: [...own].sort() });
+      named.set(signer, new Set([agreed.debitAccount]));
+    }
+    const split = named2.filter(entry => !ownSplit.includes(entry));
     if (split.length) {
       return { ...base, status: 'conflict', outputs: acknowledged, reason: 'a participant named more than one account',
         conflicts: [...base.conflicts, ...split.map(([signer, own]) => ({ signer, kind: 'payout-account', blocking: true, accounts: [...own].sort() }))] };
@@ -391,7 +443,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   }
 
   // The signed quote is a ceiling: outputs past `maxOutputTokens` are never charged, whoever acknowledged them.
-  const chargeable = Math.min(acknowledged, agreed.maxOutputTokens);
+  const chargeable = Math.min(acknowledged, agreed.maxOutputTokens, stepCap);
   // The final stage signed its last output (`done`). Then the answer finished whatever the requester acknowledged,
   // and the outputs it acknowledged in time are owed: withholding the last acknowledgments never makes it free.
   const finished = Boolean(delivered?.done);
@@ -419,7 +471,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     if (forfeits.has(index)) debit -= amount;
     return { participantId: row.participantId, amount: forfeits.has(index) ? 0 : amount };
   });
-  const reason = forfeits.size ? `stage ${[...forfeits].sort((a, b) => a - b).join(', ')} failed (it signed a fault, or did not close in time) and forfeits `
+  const reason = forfeits.size ? `stage ${[...forfeits].sort((a, b) => a - b).join(', ')} failed (a signed fault, no close in time, or a contradiction by the requester's own stage) and forfeits `
     + 'its share; the stages that closed are paid for the outputs the requester acknowledged'
     : closedAtLastStep.length ? `the answer was completed and acknowledged; stage ${closedAtLastStep.join(', ')} signed no closing `
     + 'receipt and is treated as closed at its last signed step'
@@ -432,9 +484,11 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
             : disconnected && forfeitRules ? 'the stages closed an unfinished answer with no signed stop; the outputs the requester acknowledged are charged'
             : disconnected ? 'the stages closed an unfinished answer; under these terms the outputs the requester acknowledged are charged'
               : 'the requester stopped acknowledging; the outputs it acknowledged are charged';
-  return { ...base, status: 'settled', debit, credits,
+  const row = { ...base, status: 'settled', debit, credits,
     outputs: acknowledged, chargedOutputs: providerEnded ? 0 : chargeable, unacknowledgedOutputs: delivered ? delivered.count - acknowledged : null,
     beyondCeiling: Math.max(0, acknowledged - agreed.maxOutputTokens), closedAtLastStep, reason };
+  if (signedAccounts) postedAccounts.set(row, accountFor);
+  return row;
 }
 
 /**
@@ -467,7 +521,8 @@ export async function replaySettlement({ records, policies = [], at, computerOf 
     // A row with signed accounts is summed under them (step 8 has refused any the enrollment contradicts).
     const signed = row.accounts ? new Map([...row.credits.map((credit, index) => [credit.participantId, row.accounts.stages[index]]),
       [row.requesterId, row.accounts.requester]]) : null;
-    const idOf = id => (signed ? signed.get(id) ?? id : accountOf ? accountOf(id) : id);
+    const posted = postedAccounts.get(row);
+    const idOf = id => (posted ? posted(id) : signed ? signed.get(id) ?? id : accountOf ? accountOf(id) : id);
     add(idOf(row.requesterId), -row.debit);
     for (const credit of row.credits) add(idOf(credit.participantId), credit.amount);
   }

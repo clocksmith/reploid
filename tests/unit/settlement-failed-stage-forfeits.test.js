@@ -201,23 +201,120 @@ describe('a stage on the requester\'s own account never gives relief', () => {
   });
 });
 
-describe('what these terms do not stop', () => {
-  it('a requester whose own final stage presents no receipt at all: no chain is committed, so nothing is acknowledged or charged', async () => {
+const FAKE_CHAIN = `sha256:${'e'.repeat(64)}`;
+const isAck = record => record.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA;
+/** The requester's acknowledgment of `count`, signed again with other members. */
+const reacknowledge = (parties, a, count, changes) => {
+  const original = a.all().find(record => isAck(record) && record.count === count);
+  return signerOf(parties.requester, Date.parse(original.signedAt)).sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA, { ...bodyOf(original), ...changes });
+};
+/** A second, different receipt at the sequence of the stage's first receipt. */
+const secondReceipt = async (parties, a, index) => {
+  const first = a.all().find(record => isReceiptOf(index)(record) && record.sequence === 1);
+  return signerOf(parties.stages[index], Date.parse(first.signedAt) + 1).sign(STAGE_RECEIPT_SCHEMA,
+    { ...bodyOf(first), signedAt: new Date(Date.parse(first.signedAt) + 1).toISOString() });
+};
+
+describe('nothing a stage on the requester\'s own account signs or withholds reduces what outside stages are paid', () => {
+  it('attack: the requester\'s own final stage presents no receipt at all. Its own signed acknowledgments are charged', async () => {
     const parties = await createParties(4);
-    const a = await edges(parties, { vanishStage: 3, vanishAfterStep: 2, unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
-    const hidden = await row(without(a.all(), isReceiptOf(3)), a.decidedAt);
-    expect(hidden).toMatchObject({ status: 'expired', debit: 0, outputs: 0 });
-    expect(amounts(hidden)).toEqual([0, 0, 0, 0]);
+    const hidden = a => without(a.all(), isReceiptOf(3));
+    const before = await edges(parties, { vanishStage: 3, vanishAfterStep: 2, unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
+    expect(await row(hidden(before), before.decidedAt)).toMatchObject({ status: 'expired', debit: 0, outputs: 0 });
+
+    const a = await edges(parties, { tag: 'r2', vanishStage: 3, vanishAfterStep: 2, unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    const settled = await row(hidden(a), a.decidedAt);
+    expect(settled).toMatchObject({ status: 'settled', debit: 8, outputs: 3, chargedOutputs: 3, unmatched: [], conflicts: [],
+      forfeited: [{ partitionIndex: 3, cause: 'no-close' }] });
+    expect(amounts(settled)).toEqual([0, 4, 4, 0]);
   });
 
-  it('a requester whose own stage signs two receipts at one sequence: the attempt is a conflict and moves nothing', async () => {
+  it('an outside final stage that presents no receipt still leaves nothing acknowledged: only its own stage can commit the chain', async () => {
+    const parties = await createParties(3);
+    const a = await runAttempt(parties, { outputs: SIX, weights: [1, 3, 2], vanishStage: 2, vanishAfterStep: 2, unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    const hidden = await row(without(a.all(), isReceiptOf(2)), a.decidedAt);
+    expect(hidden).toMatchObject({ status: 'expired', debit: 0, outputs: 0 });
+    expect(hidden.unmatched.length).toBeGreaterThan(0);
+  });
+
+  it('attack: the requester acknowledges more outputs than the operators signed for. They are paid for what they signed, with no conflict', async () => {
+    const parties = await createParties(4);
+    // The whole answer: 6 outputs, 18 units, shares 0, 8, 8 and 2.
+    const a = await edges(parties, { unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    const inflated = await reacknowledge(parties, a, 6, { count: 50, chain: FAKE_CHAIN });
+    const settled = await row([...a.all(), inflated], a.decidedAt);
+    expect(settled).toMatchObject({ status: 'settled', debit: 16, outputs: 50, chargedOutputs: 6, conflicts: [], unmatched: [], forfeited: [] });
+    expect(amounts(settled)).toEqual([0, 8, 8, 0]);
+    // With an outside final stage the same acknowledgment is only an unmatched count, as before.
+    const outside = await runAttempt(parties, { tag: 'r2', outputs: SIX, weights: [1, 10, 10, 1], unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    const unmatched = await row([...outside.all(), await reacknowledge(parties, outside, 6, { count: 50, chain: FAKE_CHAIN })], outside.decidedAt);
+    expect(unmatched).toMatchObject({ status: 'settled', debit: 18, outputs: 6, unmatched: [{ kind: 'acknowledgment', count: 50 }] });
+  });
+
+  it('attack: the requester\'s own stage signs two receipts at one sequence. Earlier terms made that a conflict that paid nobody', async () => {
+    const parties = await createParties(4);
+    const before = await edges(parties, { unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
+    expect(await row([...before.all(), await secondReceipt(parties, before, 0)], before.decidedAt)).toMatchObject({ status: 'conflict', debit: null });
+
+    const a = await edges(parties, { tag: 'r2', unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    expect(await row(a.all(), a.decidedAt)).toMatchObject({ status: 'settled', debit: 16 });
+    const first = await row([...a.all(), await secondReceipt(parties, a, 0)], a.deadline);
+    expect(first).toMatchObject({ status: 'settled', debit: 16, outputs: 6, forfeited: [{ partitionIndex: 0, cause: 'contradiction' }],
+      conflicts: [{ signer: parties.stages[0].peerId, kind: 'stage-receipt', blocking: false, partitionIndex: 0, sequences: [1, 1] }] });
+    expect(amounts(first)).toEqual([0, 8, 8, 0]);
+    // The same from its own final stage: the acknowledgments still decide the count.
+    const last = await row([...a.all(), await secondReceipt(parties, a, 3)], a.deadline);
+    expect(last).toMatchObject({ status: 'settled', debit: 16, outputs: 6, forfeited: [{ partitionIndex: 3, cause: 'contradiction' }] });
+    expect(amounts(last)).toEqual([0, 8, 8, 0]);
+    expect(last.conflicts.every(entry => entry.blocking === false)).toBe(true);
+  });
+
+  it('an outside stage that signs two receipts at one sequence still makes the attempt a conflict', async () => {
     const parties = await createParties(4);
     const a = await edges(parties, { unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
-    expect(await row(a.all(), a.decidedAt)).toMatchObject({ status: 'settled', debit: 16 });
-    const first = a.all().find(record => isReceiptOf(0)(record) && record.sequence === 1);
-    const second = await signerOf(parties.stages[0], Date.parse(first.signedAt) + 1).sign(STAGE_RECEIPT_SCHEMA,
-      { ...bodyOf(first), signedAt: new Date(Date.parse(first.signedAt) + 1).toISOString() });
-    expect(await row([...a.all(), second], a.decidedAt)).toMatchObject({ status: 'conflict', debit: null,
-      conflicts: [{ signer: parties.stages[0].peerId, kind: 'stage-receipt', blocking: true, partitionIndex: 0, sequences: [1, 1] }] });
+    expect(await row([...a.all(), await secondReceipt(parties, a, 1)], a.decidedAt)).toMatchObject({ status: 'conflict', debit: null,
+      conflicts: [{ signer: parties.stages[1].peerId, kind: 'stage-receipt', blocking: true, partitionIndex: 1, sequences: [1, 1] }] });
+  });
+
+  it('attack: the requester\'s own stage signs fewer steps than were acknowledged. Its steps are not tested', async () => {
+    const parties = await createParties(4);
+    const a = await edges(parties, { unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    // Stage 0 presents only its first receipts and a close signed again with 2 steps.
+    const close = a.all().find(isCloseOf(0));
+    const shortClose = await signerOf(parties.stages[0], Date.parse(close.signedAt)).sign(STAGE_RECEIPT_SCHEMA, { ...bodyOf(close), sequence: 3, steps: 2 });
+    const records = [...without(a.all(), record => isReceiptOf(0)(record) && record.sequence >= 3), shortClose];
+    const settled = await row(records, a.decidedAt);
+    expect(settled).toMatchObject({ status: 'settled', debit: 16, outputs: 6, conflicts: [] });
+    expect(amounts(settled)).toEqual([0, 8, 8, 0]);
+  });
+
+  it('attack: the requester signs only a wrong chain for the last output. Earlier terms made that a conflict; these charge the outputs whose chains agree', async () => {
+    const parties = await createParties(3);
+    const disputed = async a => [...without(a.all(), record => isAck(record) && record.count === 5), await reacknowledge(parties, a, 5, { chain: FAKE_CHAIN })];
+    const before = await runAttempt(parties, { weights: [1, 3, 2], unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
+    expect(await row(await disputed(before), before.decidedAt)).toMatchObject({ status: 'conflict', debit: null });
+
+    // 4 outputs with agreed chains: 12 units, shares 2, 6 and 4.
+    const a = await runAttempt(parties, { tag: 'r2', weights: [1, 3, 2], unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    const settled = await row(await disputed(a), a.decidedAt);
+    expect(settled).toMatchObject({ status: 'settled', debit: 12, outputs: 4, chargedOutputs: 4,
+      conflicts: [{ signer: null, signers: [parties.stages[2].peerId, parties.requester.peerId], kind: 'output-chain', blocking: false, count: 5 }] });
+    expect(amounts(settled)).toEqual([2, 6, 4]);
+  });
+
+  it('attack: the requester\'s own stage names a second payout account. It stays the requester\'s own and nobody else is affected', async () => {
+    const parties = await createParties(4);
+    const a = await edges(parties, { unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    const acceptance = a.all().find(record => record.schema === 'reploid.settlement-acceptance/v1' && record.partitionIndex === 0);
+    const second = await signerOf(parties.stages[0], Date.parse(acceptance.signedAt)).sign('reploid.settlement-acceptance/v1',
+      { ...bodyOf(acceptance), payoutAccount: 'owner-elsewhere' });
+    const settled = await row([...a.all(), second], a.decidedAt);
+    expect(settled).toMatchObject({ status: 'settled', debit: 16,
+      conflicts: [{ signer: parties.stages[0].peerId, kind: 'payout-account', blocking: false, accounts: ['owner-elsewhere', 'owner-requester'] }] });
+    expect(amounts(settled)).toEqual([0, 8, 8, 0]);
+    // An operator that names two accounts still makes the attempt a conflict.
+    const operator = a.all().find(record => record.schema === 'reploid.settlement-acceptance/v1' && record.partitionIndex === 1);
+    const two = await signerOf(parties.stages[1], Date.parse(operator.signedAt)).sign('reploid.settlement-acceptance/v1', { ...bodyOf(operator), payoutAccount: 'owner-elsewhere' });
+    expect(await row([...a.all(), two], a.decidedAt)).toMatchObject({ status: 'conflict', debit: null });
   });
 });

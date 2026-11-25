@@ -617,18 +617,66 @@ const MUTATIONS = {
     out.push({ name: 'a fault under the terms as first signed', records: [...ctx.records, first], clocks: DECIDED });
     out.push({ name: 'only the terms, their acceptances and a fault', records: [terms, ...records.filter(record => record.schema === SCHEMAS.acceptance), first], clocks: SWEEP });
 
-    // The same with signed accounts (step 8), stage 0 on the requester's own account.
-    const REQUESTER = 'account-requester', accountOfStage = index => (index === 0 ? REQUESTER : `account-stage-${index}`);
-    const own = await sign(ctx.requester, { ...bodyOf(terms), debitAccount: REQUESTER });
-    const ownDigest = await termsDigest(bodyOf(own));
-    const ownRecords = [...without(records, terms, ...records.filter(record => record.schema === SCHEMAS.acceptance)), own,
-      ...await Promise.all(ctx.acceptances.map(acceptance => sign(ctx.stageIdentity(acceptance.partitionIndex),
-        { ...bodyOf(acceptance), termsDigest: ownDigest, payoutAccount: accountOfStage(acceptance.partitionIndex) })))];
-    out.push({ name: 'stage 0 on the requester\'s own account', records: ownRecords, clocks: DECIDED });
+    // The same with signed accounts (step 8) and a stage on the requester's own account, and what such a stage, or the
+    // requester, can sign or withhold: nothing of it may reduce what the other stages are paid.
+    const REQUESTER = 'account-requester';
+    const accounted = async ownIndexes => {
+      const signed = await sign(ctx.requester, { ...bodyOf(terms), debitAccount: REQUESTER });
+      const digest = await termsDigest(bodyOf(signed));
+      const accept = (acceptance, account) => sign(ctx.stageIdentity(acceptance.partitionIndex), { ...bodyOf(acceptance), termsDigest: digest, payoutAccount: account });
+      const accountOfStage = index => (ownIndexes.includes(index) ? REQUESTER : `account-stage-${index}`);
+      return { accept, records: [...without(records, terms, ...records.filter(record => record.schema === SCHEMAS.acceptance)), signed,
+        ...await Promise.all(ctx.acceptances.map(acceptance => accept(acceptance, accountOfStage(acceptance.partitionIndex))))] };
+    };
+    // A second, different receipt at the sequence of the stage's first receipt; `null` when it presented none.
+    const again = index => { const first = ctx.receipts(index)[0]; return first ? sign(ctx.stageIdentity(index), { ...bodyOf(first), signedAt: iso(Date.parse(first.signedAt) + 1) }) : null; };
+    const top = ctx.topAck;
+    // The requester's top acknowledgment signed only with a chain that is not the final stage's, and one of a count
+    // far beyond anything a stage signed for.
+    const disputed = async from => (top && top.count > 0 ? [...without(from, ...ctx.acks.filter(ack => ack.count === top.count)), await sign(ctx.requester, { ...bodyOf(top), chain: FAKE_CHAIN })] : null);
+    const inflated = async from => (top ? [...from, await sign(ctx.requester, { ...bodyOf(top), count: top.count + 40, chain: FAKE_CHAIN })] : null);
+    const push = (name, list, clocks = DECIDED, extra = {}) => { if (list && !list.includes(null)) out.push({ name, records: list, clocks, ...extra }); };
+
+    const ownFirst = await accounted([0]);
+    out.push({ name: 'stage 0 on the requester\'s own account', records: ownFirst.records, clocks: DECIDED });
     for (const index of stages) {
-      out.push({ name: `own-account stage 0: stage ${index} signs a fault`, records: [...ownRecords, await fault(index)], clocks: DECIDED });
-      out.push({ name: `own-account stage 0: stage ${index} withholds its close`, records: without(ownRecords, ...closesOf(index)), clocks: SWEEP });
+      out.push({ name: `own-account stage 0: stage ${index} signs a fault`, records: [...ownFirst.records, await fault(index)], clocks: DECIDED });
+      out.push({ name: `own-account stage 0: stage ${index} withholds its close`, records: without(ownFirst.records, ...closesOf(index)), clocks: SWEEP });
+      push(`own-account stage 0: stage ${index} signs two receipts at one sequence`, [...ownFirst.records, await again(index)], SWEEP);
     }
+    push('own-account stage 0 presents only its first receipt', without(ownFirst.records, ...ctx.receipts(0).slice(1)), SWEEP);
+    push('own-account stage 0 signs two receipts at one sequence and a fault', [...ownFirst.records, await again(0), first]);
+    const firstAcceptance = ctx.acceptances.find(row => row.partitionIndex === 0);
+    if (firstAcceptance) {
+      push('own-account stage 0 also names another account', [...ownFirst.records, await ownFirst.accept(firstAcceptance, 'account-elsewhere')]);
+      const outside = ctx.acceptances.find(row => row.partitionIndex === ctx.finalIndex);
+      if (outside && ctx.finalIndex !== 0) push('own-account stage 0: the final stage names two accounts', [...ownFirst.records, await ownFirst.accept(outside, 'account-elsewhere')]);
+    }
+    push('own-account stage 0: only a wrong chain for the top acknowledged count', await disputed(ownFirst.records));
+
+    const ownLast = await accounted([ctx.finalIndex]);
+    out.push({ name: 'the final stage on the requester\'s own account', records: ownLast.records, clocks: SWEEP });
+    push('own-account final stage presents no receipt', without(ownLast.records, ...ctx.receipts(ctx.finalIndex)), SWEEP);
+    push('own-account final stage withholds its close', without(ownLast.records, ...closesOf(ctx.finalIndex)), SWEEP);
+    push('own-account final stage signs two receipts at one sequence', [...ownLast.records, await again(ctx.finalIndex)], SWEEP);
+    push('own-account final stage: only a wrong chain for the top acknowledged count', await disputed(ownLast.records));
+    push('own-account final stage: an acknowledgment far beyond any receipt', await inflated(ownLast.records));
+    push('own-account final stage presents no receipt and the requester acknowledges far beyond any receipt',
+      await inflated(without(ownLast.records, ...ctx.receipts(ctx.finalIndex))));
+    push('own-account final stage presents no receipt and stage 0 withholds its close',
+      without(ownLast.records, ...ctx.receipts(ctx.finalIndex), ...(ctx.finalIndex === 0 ? [] : closesOf(0))), SWEEP);
+    push('own-account final stage: only late acknowledgments',
+      top ? [...without(ownLast.records, ...ctx.acks.filter(ack => ack.count > 0)), await sign(ctx.requester, { ...bodyOf(top), signedAt: iso(ctx.deadline + skew + 1) })] : null);
+
+    // Without signed accounts the caller's grouping says whose a stage is.
+    const grouped = index => id => (id === ctx.requester.peerId || id === terms.shares[index].participantId ? 'account-grouped' : id);
+    push('grouping places the final stage with the requester: it presents no receipt', without(records, ...ctx.receipts(ctx.finalIndex)), SWEEP, { accountOf: grouped(ctx.finalIndex) });
+    push('grouping places stage 0 with the requester: it signs two receipts at one sequence', [...records, await again(0)], DECIDED, { accountOf: grouped(0) });
+
+    // An outside final stage: the requester's own statements still cannot block.
+    push('only a wrong chain for the top acknowledged count', await disputed(records), SWEEP);
+    push('an acknowledgment far beyond any receipt', await inflated(records));
+    push('stage 0 signs two receipts at one sequence', [...records, await again(0)]);
     return out;
   }
 };
