@@ -1,0 +1,3 @@
+# The Stage 1 operator compares a digest of these files' raw bytes with each host's copy
+# (scripts/stage1/host-agent.js, harnessDigest), so a checkout must not rewrite their line endings.
+scripts/stage1/*.js text eol=lf
