@@ -154,7 +154,7 @@ const checkRouteLayout = async () => {
           const responseUrl = new URL(response.url());
           if (failure && responseUrl.hostname === 'identitytoolkit.googleapis.com'
             && responseUrl.pathname.endsWith('/accounts:signUp')) authenticationFailure = failure;
-          else diagnostics.add('Optional earning service is not published (GET /v1/client: HTTP 404)');
+          else if (!failure) diagnostics.add(`Optional service is not published (GET ${responseUrl.pathname}: HTTP 404)`);
         });
         page.on('requestfailed', (request) => {
           const url = new URL(request.url());

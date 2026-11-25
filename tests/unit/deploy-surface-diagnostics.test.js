@@ -12,6 +12,14 @@ describe('deployment route diagnostics', () => {
     expect(check('/v1/client', 404, 'POST')).toContain('HTTP 404');
     expect(httpResponseFailure({ url: 'https://other.test/v1/client', status: 404 }, base)).toContain('HTTP 404');
   });
+  it('accepts only an absent self-serve discovery route, not the rest of /v1/fleet', () => {
+    expect(check('/v1/fleet/client', 404)).toBeNull();
+    expect(check('/v1/fleet/client', 500)).toContain('HTTP 500');
+    expect(check('/v1/fleet/client', 404, 'POST')).toContain('HTTP 404');
+    expect(check('/v1/fleet/account', 404)).toContain('HTTP 404');
+    expect(check('/v1/fleet', 404)).toContain('HTTP 404');
+    expect(httpResponseFailure({ url: 'https://other.test/v1/fleet/client', status: 404 }, base)).toContain('HTTP 404');
+  });
   it('fails required modules and signaling/authentication responses without logging query secrets', () => {
     for (const [path, status] of [['/ui/pool-home/app.bundle.js', 404], ['/pool/signals?token=secret', 400], ['/rtc-config', 401]]) {
       const failure = check(path, status);
