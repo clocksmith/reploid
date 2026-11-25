@@ -115,3 +115,7 @@
 .pool-home:has(> .pool-workspace) { padding: 0; gap: 0; min-block-size: 0; }
 /* Buttons that carry an icon box keep the icon and the label on one centre line. */
 .pool-home .pool-button:has(> .pool-icon-box) { display: inline-flex; align-items: center; justify-content: center; gap: var(--pool-size-8); }
+/* For anyone who prefers reduced motion, the bar and the drawers change state without any transition. */
+@media (prefers-reduced-motion: reduce) {
+  .pool-home :is(.pool-bar-button, .pool-drawer) { transition: none !important; animation: none !important; }
+}

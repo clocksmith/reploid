@@ -3420,8 +3420,8 @@
     },
     {
       "path": "styles/poolday/primitives/workspace.css",
-      "byteLength": 5723,
-      "sha256": "sha256:83755f806c15db1283f8ab4ea88da9f7a8ac631cade18ef7e7c25afa3d89fe46"
+      "byteLength": 5983,
+      "sha256": "sha256:c9959d073fa34666dad6d5ee52de2c4a1859cdaed4d7cb871658d09f758cf350"
     },
     {
       "path": "styles/poolday/tokens.css",
@@ -12829,5 +12829,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:04120c70e5e35737a2edc7e06c89e6da0508f87ab6177f5eeaac2452b617a5cd"
+  "bundleHash": "sha256:7b6b8faf7a50499acbcdf946c97c57274e78175e6eae5026d86426fe01b5701c"
 }
