@@ -7,7 +7,8 @@ export declare const ATTESTED_PLATFORMS: readonly ['amd-sev-snp', 'intel-tdx'];
 export declare const GPU_CC_MODES: readonly ['on', 'off', 'devtools'];
 export type AttestationReason = 'evidence-invalid' | 'nonce-mismatch' | 'evidence-stale' | 'platform-unsupported' | 'measurement-unknown' | 'model-mismatch'
   | 'key-unbound' | 'debug-enabled' | 'gpu-not-cc' | 'gpu-measurement-unknown' | 'gpu-count' | 'signature-invalid'
-  | 'certificate-expired' | 'certificate-invalid' | 'certificate-revoked' | 'revocation-unchecked' | 'tcb-out-of-date';
+  | 'certificate-expired' | 'certificate-invalid' | 'certificate-revoked' | 'revocation-unchecked' | 'tcb-out-of-date'
+  | 'quoting-enclave-unknown';
 export declare const ATTESTATION_REASONS: readonly AttestationReason[];
 export declare function attestationRejected(reason: AttestationReason, message: string): Error & { code: 'ATTESTATION_REJECTED'; reason: AttestationReason };
 export interface AttestedLaunch { image: string; runtime: { name: string; version: string; digest: string }; model: { id: string; identity: string } }
@@ -19,6 +20,8 @@ export interface AttestedPolicy {
   gpu: { measurementSets: Array<{ label: string; measurements: Record<string, string> }>; minCount: number; maxCount: number };
   revocation: { gpuOcsp: 'required'; maxOcspAgeMs: number; cpu: 'hook' | 'not-checked' };
   tdxCollateral: 'hook' | 'not-checked'; snp?: { minimumTcb?: { bootloader: number; tee: number; snp: number; microcode: number } };
+  /** Intel's TD quoting enclave. Required whenever a launch is `intel-tdx`. */
+  tdxQe?: { mrSigner: string[]; isvProdId: number; minIsvSvn: number };
   clockSkewMs: number; maxEvidenceAgeMs: number; maxSessionMs: number; maxCreditsPerOutputToken: number;
 }
 export interface VerifierHooks {

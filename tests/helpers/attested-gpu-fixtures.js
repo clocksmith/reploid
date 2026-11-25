@@ -105,7 +105,7 @@ export async function makeSnpReport({ reportData, measurement, policy = 0x30000n
 
 const pem = der => `-----BEGIN CERTIFICATE-----\n${Buffer.from(der).toString('base64').match(/.{1,64}/g).join('\n')}\n-----END CERTIFICATE-----\n`;
 
-export async function makeTdxQuote({ reportData, mrTd, rtmr, tdAttributes = 0n, attestationKey, pck, pckChainDer }) {
+export async function makeTdxQuote({ reportData, mrTd, rtmr, tdAttributes = 0n, attestationKey, pck, pckChainDer, qe = SYNTHETIC_MEASUREMENTS.qe }) {
   const header = new Uint8Array(48);
   writeLe(header, 0, 4, 2); writeLe(header, 2, 2, 2); writeLe(header, 4, 0x81, 4);
   const body = new Uint8Array(584);
@@ -118,7 +118,10 @@ export async function makeTdxQuote({ reportData, mrTd, rtmr, tdAttributes = 0n, 
   const signature = await signRaw(attestationKey, 'SHA-256', signed);
   const attKey = new Uint8Array(await subtle.exportKey('raw', attestationKey.publicKey)).subarray(1);
   const qeAuth = globalThis.crypto.getRandomValues(new Uint8Array(32));
+  // The QE's SGX report body: ATTRIBUTES.flags at 48 (bit 1 is DEBUG), MRSIGNER at 128, ISVPRODID at 256, ISVSVN at 258.
   const qeReport = new Uint8Array(384);
+  writeLe(qeReport, 48, qe.debug ? 0x17n : 0x15n, 8);
+  qeReport.set(fromHex(qe.mrSigner), 128); writeLe(qeReport, 256, qe.isvProdId, 2); writeLe(qeReport, 258, qe.isvSvn, 2);
   qeReport.set(new Uint8Array(await subtle.digest('SHA-256', concatBytes(attKey, qeAuth))), 320);
   const qeSignature = await signRaw(pck, 'SHA-256', qeReport);
   const chain = utf8(pckChainDer.map(pem).join(''));
@@ -155,7 +158,8 @@ const h32 = seed => toHex(new Uint8Array(32).map((_, i) => (seed * 17 + i * 3) &
 export const SYNTHETIC_MODEL = Object.freeze({ id: 'qwen-3-8-27b-text-q4k-ef16-af32', identity: 'sha256:74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972' });
 export const SYNTHETIC_LAUNCH = Object.freeze({ image: 'sha256:' + '5'.repeat(64),
   runtime: { name: 'reploid-native-doppler', version: '0.1.5', digest: 'sha256:' + '6'.repeat(64) }, model: SYNTHETIC_MODEL });
-export const SYNTHETIC_MEASUREMENTS = Object.freeze({ snp: h48(1), mrTd: h48(2), rtmr: [h48(3), h48(4), h48(5), null], gpu: { 2: h48(6), 9: h48(7), 12: h48(8) } });
+export const SYNTHETIC_MEASUREMENTS = Object.freeze({ snp: h48(1), mrTd: h48(2), rtmr: [h48(3), h48(4), h48(5), null], gpu: { 2: h48(6), 9: h48(7), 12: h48(8) },
+  qe: Object.freeze({ mrSigner: h32(11), isvProdId: 2, isvSvn: 4 }) });
 
 export async function createSyntheticWorld({ now = Date.UTC(2026, 10, 25, 12), expireGpuLeaf = false } = {}) {
   const valid = { notBefore: now - 30 * DAY, notAfter: now + 365 * DAY };
@@ -201,6 +205,7 @@ export async function createSyntheticWorld({ now = Date.UTC(2026, 10, 25, 12), e
     gpu: { measurementSets: [{ label: 'Synthetic H100 driver and VBIOS reference (test only)', measurements: { ...SYNTHETIC_MEASUREMENTS.gpu } }], minCount: 1, maxCount: 1 },
     revocation: { gpuOcsp: 'required', maxOcspAgeMs: 2 * DAY, cpu: 'not-checked' },
     tdxCollateral: 'not-checked',
+    tdxQe: { mrSigner: [SYNTHETIC_MEASUREMENTS.qe.mrSigner], isvProdId: SYNTHETIC_MEASUREMENTS.qe.isvProdId, minIsvSvn: SYNTHETIC_MEASUREMENTS.qe.isvSvn },
     clockSkewMs: 60000, maxEvidenceAgeMs: 120000, maxSessionMs: 15 * 60000, maxCreditsPerOutputToken: 4
   };
   return { now, policy, keys: { vcek, pck, qeAttestation, nvLeaf }, chains: { amd: [vcekDer, askDer, arkDer], intelPck: [pckDer, platformCaDer, sgxRootDer], gpu: gpuChain },
@@ -209,7 +214,7 @@ export async function createSyntheticWorld({ now = Date.UTC(2026, 10, 25, 12), e
 
 /**
  * A synthetic confidential-VM host for serveAttestedSession. `faults` change one thing at a time:
- *   ccMode, devToolsMode, snpDebug, tdxDebug, measurement, rtmr, gpuMeasurements, unboundKey, wrongNonce, badGpuSignature,
+ *   ccMode, devToolsMode, snpDebug, tdxDebug, measurement, rtmr, qe, gpuMeasurements, unboundKey, wrongNonce, badGpuSignature,
  *   revokedLeaf, staleOcsp, model, answer, failRuntime
  */
 export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, participantId = 'peer:attested-synthetic', record = {} } = {}) {
@@ -233,7 +238,8 @@ export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, pa
       }
       return { report: await makeTdxQuote({ reportData: data, mrTd: faults.measurement ?? SYNTHETIC_MEASUREMENTS.mrTd,
         rtmr: faults.rtmr ?? [SYNTHETIC_MEASUREMENTS.rtmr[0], SYNTHETIC_MEASUREMENTS.rtmr[1], SYNTHETIC_MEASUREMENTS.rtmr[2], h48(9)],
-        tdAttributes: faults.tdxDebug ? 1n : 0n, attestationKey: world.keys.qeAttestation, pck: world.keys.pck, pckChainDer: world.chains.intelPck }), certificates: [] };
+        tdAttributes: faults.tdxDebug ? 1n : 0n, attestationKey: world.keys.qeAttestation, pck: world.keys.pck, pckChainDer: world.chains.intelPck,
+        qe: { ...SYNTHETIC_MEASUREMENTS.qe, ...faults.qe } }), certificates: [] };
     },
     async generate({ messages, onDelta }) {
       record.messages = structuredClone(messages);

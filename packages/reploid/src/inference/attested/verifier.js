@@ -28,7 +28,8 @@ export const GPU_CC_MODES = Object.freeze(['on', 'off', 'devtools']);
 export const ATTESTATION_REASONS = Object.freeze([
   'evidence-invalid', 'nonce-mismatch', 'evidence-stale', 'platform-unsupported', 'measurement-unknown', 'model-mismatch',
   'key-unbound', 'debug-enabled', 'gpu-not-cc', 'gpu-measurement-unknown', 'gpu-count', 'signature-invalid',
-  'certificate-expired', 'certificate-invalid', 'certificate-revoked', 'revocation-unchecked', 'tcb-out-of-date'
+  'certificate-expired', 'certificate-invalid', 'certificate-revoked', 'revocation-unchecked', 'tcb-out-of-date',
+  'quoting-enclave-unknown'
 ]);
 
 export function attestationRejected(reason, message) {
@@ -60,6 +61,9 @@ function validLaunch(launch) {
  *   gpu:         { measurementSets: [{ label, measurements: { index: hex } }], minCount, maxCount }
  *   revocation:  { gpuOcsp: 'required', maxOcspAgeMs, cpu: 'hook' | 'not-checked' }
  *   tdxCollateral: 'hook' | 'not-checked'; snp: { minimumTcb? }
+ *   tdxQe:       { mrSigner: [hex], isvProdId, minIsvSvn }: Intel's TD quoting enclave, from Intel's published QE identity.
+ *                Required whenever a launch is TDX. A PCK certificate vouches for any enclave its platform certified,
+ *                so a quote from an unpinned enclave proves nothing about the trust domain.
  *   clockSkewMs, maxEvidenceAgeMs, maxSessionMs, maxCreditsPerOutputToken
  */
 export function validateAttestedPolicy(input) {
@@ -94,6 +98,12 @@ export function validateAttestedPolicy(input) {
   if (!object(revocation) || revocation.gpuOcsp !== 'required' || !Number.isSafeInteger(revocation.maxOcspAgeMs) || revocation.maxOcspAgeMs <= 0
     || !['hook', 'not-checked'].includes(revocation.cpu)) bad('revocation: gpuOcsp is required, with maxOcspAgeMs; cpu is hook or not-checked');
   if (!['hook', 'not-checked'].includes(policy.tdxCollateral)) bad('tdxCollateral is hook or not-checked');
+  const qe = policy.tdxQe;
+  if ((qe !== undefined || policy.launches.some(entry => entry.platform === 'intel-tdx')) && !(exact(qe, ['mrSigner', 'isvProdId', 'minIsvSvn'])
+    && Array.isArray(qe.mrSigner) && qe.mrSigner.length >= 1 && qe.mrSigner.length <= 4 && qe.mrSigner.every(value => hexOf(value, 32))
+    && [qe.isvProdId, qe.minIsvSvn].every(value => Number.isSafeInteger(value) && value >= 0 && value <= 0xffff))) {
+    bad('tdxQe must pin the TDX quoting enclave: mrSigner (1 to 4 values, 32 bytes of hex each), isvProdId and minIsvSvn');
+  }
   for (const key of ['clockSkewMs', 'maxEvidenceAgeMs', 'maxSessionMs', 'maxCreditsPerOutputToken']) {
     if (!Number.isSafeInteger(policy[key]) || policy[key] < 0) bad(`${key} must be a non-negative integer`);
   }
@@ -222,11 +232,18 @@ export async function verifyAttestedEvidence(evidence, { policy, expected, now, 
     let chain;
     try { chain = await verifyCertificateChain(cpu.pckChain, { roots: policy.roots.intelSgxRoot, now }); } catch (error) { throw chainError(error); }
     if (!await verifyTdxQuoteSignatures(cpu)) reject('signature-invalid', 'The TDX quote signature chain does not verify');
+    // The PCK key signs the report of any enclave its platform certified, so the quote counts only from the pinned one.
+    const qe = policy.tdxQe;
+    if (!qe || !Array.isArray(qe.mrSigner) || !qe.mrSigner.includes(cpu.qe.mrSigner) || cpu.qe.isvProdId !== qe.isvProdId) {
+      reject('quoting-enclave-unknown', 'The TDX quote was not made by the quoting enclave this requester pins');
+    }
+    if (cpu.qe.debug) reject('debug-enabled', 'The TDX quote was made by a debug quoting enclave');
+    if (!(cpu.qe.isvSvn >= qe.minIsvSvn)) reject('tcb-out-of-date', 'The quoting enclave is older than policy allows');
     if (policy.tdxCollateral === 'hook') {
       if (typeof hooks.checkTdxCollateral !== 'function') reject('revocation-unchecked', 'No TDX collateral checker is configured');
       const verdict = await hooks.checkTdxCollateral({ quote: cpu, pckChain: chain });
       if (verdict?.status !== 'up-to-date') reject('tcb-out-of-date', `TDX TCB status is ${verdict?.status ?? 'unknown'}`);
-    } else notChecked.push('tdx-tcb-status-and-qe-identity');
+    } else notChecked.push('tdx-tcb-status');
     const pinned = launch.measurement;
     if (cpu.mrTd !== pinned.mrTd || pinned.rtmr.some((value, index) => value !== null && cpu.rtmr[index] !== value)) {
       reject('measurement-unknown', 'The TDX measurements are not the approved image');

@@ -4,7 +4,8 @@
  * - AMD SEV-SNP ATTESTATION_REPORT (SEV-SNP ABI 1.55, table 22): 1184 bytes, ECDSA P-384 / SHA-384 by the VCEK,
  *   signature r and s little-endian at 0x2A0.
  * - Intel TDX quote v4 (DCAP quote format): 48-byte header, 584-byte TD report body, ECDSA P-256 quote signature
- *   by the QE attestation key, QE report signed by the PCK key, PCK chain as PEM in certification data type 5.
+ *   by the QE attestation key, QE report (a 384-byte SGX report body) signed by the PCK key, PCK chain as PEM in
+ *   certification data type 5.
  * - NVIDIA GPU attestation report: an SPDM 1.1 GET_MEASUREMENTS request (with the 32-byte requester nonce) followed
  *   by its MEASUREMENTS response, signed with ECDSA P-384 / SHA-384 over request || response-without-signature
  *   by the GPU's attestation key (the leaf of its device certificate chain).
@@ -85,6 +86,7 @@ export function parseTdxQuote(bytes) {
   const certType = u16(bytes, o), certSize = u32(bytes, o + 2); o += 6;
   if (certType !== 6 || o + certSize > bytes.length) throw malformed('expected QE report certification data (type 6)');
   const qeReport = bytes.slice(o, o + 384), qeReportSignature = bytes.slice(o + 384, o + 448); o += 448;
+  if (qeReport.length !== 384 || qeReportSignature.length !== 64) throw malformed('truncated QE report');
   const authSize = u16(bytes, o); const qeAuthData = bytes.slice(o + 2, o + 2 + authSize); o += 2 + authSize;
   const innerType = u16(bytes, o), innerSize = u32(bytes, o + 2); o += 6;
   if (innerType !== 5 || o + innerSize > bytes.length) throw malformed('expected a PCK certificate chain (type 5)');
@@ -92,14 +94,18 @@ export function parseTdxQuote(bytes) {
   if (!pckChain.length) throw malformed('empty PCK certificate chain');
   return {
     platform: 'intel-tdx', version, ...body, debug: (tdAttributes & TDX_ATTRIBUTE_DEBUG) !== 0n,
-    signed: bytes.slice(0, b + TDX_BODY_BYTES), signature, attestationKey, qeReport, qeReportSignature, qeAuthData, pckChain
+    signed: bytes.slice(0, b + TDX_BODY_BYTES), signature, attestationKey, qeReport, qeReportSignature, qeAuthData, pckChain,
+    // The quoting enclave's identity, from its SGX report body: ATTRIBUTES.flags at 48 (bit 1 is DEBUG), MRSIGNER at 128,
+    // ISVPRODID at 256 and ISVSVN at 258. It means something only after verifyTdxQuoteSignatures has passed.
+    qe: { debug: (u64(qeReport, 48) & 2n) !== 0n, mrSigner: hex(qeReport, 128, 32), isvProdId: u16(qeReport, 256), isvSvn: u16(qeReport, 258) }
   };
 }
 
 /**
  * The quote's own signature chain: PCK leaf signs the QE report; the QE report binds the attestation key
  * (report data = SHA-256(attestation key || QE auth data) || 32 zero bytes); the attestation key signs the quote.
- * The PCK chain itself, TCB status and QE identity are checked by the verifier and its collateral hook.
+ * This proves only that some enclave the platform's PCK certified made the quote. The verifier checks the PCK chain
+ * and that the enclave is the pinned quoting enclave; TCB status is left to its collateral hook.
  */
 export async function verifyTdxQuoteSignatures(quote) {
   const pck = parseCertificate(quote.pckChain[0]);

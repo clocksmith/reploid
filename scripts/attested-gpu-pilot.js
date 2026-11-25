@@ -194,9 +194,12 @@ async function inspect(executorUrl) {
   const cpu = evidence.cpu.platform === 'intel-tdx' ? parseTdxQuote(raw) : parseSnpReport(raw);
   return { offer, platform: evidence.cpu.platform, launch: evidence.session.launch, debug: cpu.debug,
     measurement: evidence.cpu.platform === 'intel-tdx' ? { mrTd: cpu.mrTd, rtmr: cpu.rtmr, mrSeam: cpu.mrSeam, tdAttributes: cpu.tdAttributes.toString(16) } : { measurement: cpu.measurement, policy: cpu.policy.toString(16), reportedTcb: cpu.reportedTcb },
+    // Shown for comparison only. `inspect` verifies nothing, so this is whatever enclave the executor presented.
+    ...(evidence.cpu.platform === 'intel-tdx' ? { quotingEnclavePresented: cpu.qe } : {}),
     gpus: evidence.gpus.map(gpu => ({ index: gpu.index, architecture: gpu.architecture, ccMode: gpu.ccMode, devToolsMode: gpu.devToolsMode,
       measurements: parseGpuReport(decodeBase64Url(gpu.report)).measurements, certificates: gpu.certificates.length, ocsp: gpu.ocsp.length })),
-    note: 'Recorded from one boot of this image. Pin these values only after comparing GPU measurements with NVIDIA\'s RIMs for the installed driver and VBIOS.' };
+    note: 'Recorded from one boot of this image. Pin these values only after comparing GPU measurements with NVIDIA\'s RIMs for the installed driver and VBIOS. '
+      + 'Take tdxQe from Intel\'s published TD quoting enclave identity, never from this output.' };
 }
 
 async function main() {

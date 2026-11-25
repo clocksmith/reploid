@@ -883,6 +883,9 @@ executor cannot add to it. It holds:
 - the launch allowlist: platform, CPU measurement, the exact image, runtime and
   model, and coverage;
 - GPU reference measurements taken from NVIDIA's RIMs;
+- for TDX, the identity of Intel's quoting enclave (`tdxQe`: signer, product
+  id and lowest version), taken from Intel's published QE identity. A policy
+  with a TDX launch and no `tdxQe` is refused;
 - revocation and freshness limits, and the highest credit price.
 
 Its digest is the execution policy's `attestation` requirement.
@@ -897,6 +900,11 @@ The executor returns one bundle per session (`reploid.attested-gpu-evidence/v1`)
   - the chain to the pinned root, the report signature (for TDX, the QE report
     and attestation-key chain too), and the DEBUG bit (SNP guest policy bit 19,
     TDX `TD_ATTRIBUTES` bit 0);
+  - for TDX, that the quote was made by the pinned quoting enclave: its signer,
+    its product id, a lowest version, and not a debug enclave. A PCK
+    certificate vouches for any enclave its platform certified, so a quote from
+    another enclave proves nothing about the trust domain
+    (`quoting-enclave-unknown`);
   - the minimum TCB, when its policy sets one;
   - the launch measurement against the allowlist: SNP `MEASUREMENT`, or TDX
     `MRTD` plus RTMR0 to RTMR2, with RTMR3 optional.
@@ -926,10 +934,12 @@ the RIMs. RIMs are fetched and compared when the policy is published, not per
 request; the policy pins the resulting reference sets. An NRAS token can be added
 as an optional cross-check hook; it is never required and never sufficient.
 
-CPU certificate revocation (AMD and Intel CRLs), TDX TCB status and QE identity
-(Intel PCS collateral) run through hooks the policy names. A policy may mark
-them `not-checked`. That is then listed in every receipt's `notVerified`, never
-silently skipped.
+CPU certificate revocation (AMD and Intel CRLs) and TDX TCB status (Intel PCS
+collateral) run through hooks the policy names. A policy may mark them
+`not-checked`. That is then listed in every receipt's `notVerified`
+(`cpu-certificate-revocation`, `tdx-tcb-status`), never silently skipped. The
+quoting enclave's identity is not one of them: it is pinned in the policy and
+checked on every TDX quote.
 
 ### Binding
 
@@ -1034,7 +1044,8 @@ fails with no output.
 | Evidence too old, or a session longer than policy | `evidence-stale` |
 | CPU measurement or launch not on the allowlist | `measurement-unknown` |
 | Launch serves another model | `model-mismatch` (or the executor refuses first) |
-| SNP DEBUG, TDX DEBUG, or GPU developer-tools mode | `debug-enabled` |
+| SNP DEBUG, TDX DEBUG, a debug quoting enclave, or GPU developer-tools mode | `debug-enabled` |
+| TDX quote made by an enclave other than the pinned quoting enclave | `quoting-enclave-unknown` |
 | GPU CC mode off | `gpu-not-cc` |
 | REPORT_DATA or the GPU nonce does not bind this session and key | `key-unbound` |
 | Expired certificate | `certificate-expired` |
@@ -1043,7 +1054,7 @@ fails with no output.
 | OCSP missing, stale or unknown, or a required hook missing | `revocation-unchecked` |
 | GPU measurements match no RIM reference set | `gpu-measurement-unknown` |
 | Report signature does not verify | `signature-invalid` |
-| TCB below policy, TDX collateral not up to date | `tcb-out-of-date` |
+| TCB below policy, quoting enclave below the pinned version, TDX collateral not up to date | `tcb-out-of-date` |
 | Not enough credits for the ceiling | the ledger's refusal, before sealing |
 | Tampered, reordered or unknown frame after binding | `ATTESTED_PROTOCOL_VIOLATION`, no output, credits released |
 | Runtime failure inside the VM | `ATTESTED_RUNTIME_FAILED` (a code only), credits released |
@@ -1129,6 +1140,8 @@ confidential split gate.
     in each pinned TDX RTMR, and the TD quote body layout stated independently
     of the fixture builder;
   - SNP, TDX and GPU debug, GPU not in CC mode;
+  - a TDX quote from an unpinned, debug or outdated quoting enclave, and a
+    policy that pins none;
   - unbound key (both platforms);
   - expired, revoked and stale-OCSP certificates, an unpinned root;
   - unknown GPU measurements, a bad report signature, another model;

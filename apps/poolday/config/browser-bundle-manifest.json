@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 702149,
-      "sha256": "sha256:c34a00fe0ab9bc58699c74266bc2730a6454ea28e0536f52195df2ade634204d"
+      "sha256": "sha256:31d72b90f8793d21ed60a8f58026c989c59f923787c299df2e1bcfe9e7593883"
     },
     {
       "path": "config/module-registry.json",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2819861,
-      "sha256": "sha256:cde69be9243fb01ab83c4e4a27a3463712e2570742727c15c4597f818c01ecba"
+      "byteLength": 2819887,
+      "sha256": "sha256:331ffe1dc8f71572f7b19c07cc55e6249cff494ec6d299a5b1ff94dc7591656c"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12190,8 +12190,8 @@
     },
     {
       "path": "vendor/reploid/inference/attested/reports.js",
-      "byteLength": 10259,
-      "sha256": "sha256:85166f3a6b54a875f8132361142b653bc472659dd4cf0c1559e88851d490726e"
+      "byteLength": 10887,
+      "sha256": "sha256:f269190f88577f2adaa8bb7d101b626155060a9276e9527178fb27415cc36c53"
     },
     {
       "path": "vendor/reploid/inference/attested/session.js",
@@ -12200,8 +12200,8 @@
     },
     {
       "path": "vendor/reploid/inference/attested/verifier.js",
-      "byteLength": 20515,
-      "sha256": "sha256:272328bfde84a59e5aab8bc2dc5c76da673ab81b23030f1888bf079cdd6d082e"
+      "byteLength": 22033,
+      "sha256": "sha256:d4ec7916733cac2f8ca4908781aafe5145163c6a1de5ec426d19fdc8c5cfe7a6"
     },
     {
       "path": "vendor/reploid/inference/attested/websocket-channel.js",
@@ -12601,7 +12601,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 64741,
-      "sha256": "sha256:88cdf0b20831b16feb69a96ae98696752bbefdda1411a4edcf22bada8d9ffe1d"
+      "sha256": "sha256:8a8672e19fb70fde73b5e631b97063c29ab801734feed62c6377d8d46e9cd315"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12889,5 +12889,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:d29786887a99bfef68d4446d9617621a379ab892364e30bbfb587174e7bf41d1"
+  "bundleHash": "sha256:75e6b60dbb2053da92051d84a8c65ae91e5ca3580ec0042f2327940e2f686297"
 }

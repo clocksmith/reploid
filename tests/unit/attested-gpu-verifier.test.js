@@ -21,7 +21,7 @@ beforeAll(async () => {
 }, 60000);
 
 /** One session. `tamper(frame)` may rewrite frames from requester to host (a network attacker or a replayed challenge). */
-async function attempt({ w = world, platform = 'amd-sev-snp', faults = {}, policy = w.policy, tamper = null, requesterNow = w.now } = {}) {
+async function attempt({ w = world, platform = 'amd-sev-snp', faults = {}, policy = w.policy, tamper = null, requesterNow = w.now, validate = true } = {}) {
   const [requester, hostEnd] = createAttestedChannelPair();
   const seen = [];
   const hostChannel = { ...hostEnd, receive: async options => { const value = await hostEnd.receive(options); seen.push(value.header.kind); return tamper ? tamper(value) : value; } };
@@ -29,7 +29,7 @@ async function attempt({ w = world, platform = 'amd-sev-snp', faults = {}, polic
   const served = serveAttestedSession({ channel: hostChannel, host: syntheticHost(w, { platform, faults, record }), now: () => w.now });
   let result = null, error = null;
   try {
-    result = await runAttestedRequesterSession({ channel: requester, policy: validateAttestedPolicy(policy), model: SYNTHETIC_MODEL, requestId: 'r1',
+    result = await runAttestedRequesterSession({ channel: requester, policy: validate ? validateAttestedPolicy(policy) : policy, model: SYNTHETIC_MODEL, requestId: 'r1',
       messages: [{ role: 'user', content: 'SENSITIVE build log' }], generation: { maxOutputTokens: 64 }, now: () => requesterNow, timeoutMs: 5000 });
   } catch (caught) { error = caught; }
   return { result, error, record, hostFrames: seen, host: await served };
@@ -65,7 +65,7 @@ describe('attested GPU session: valid evidence', () => {
     expect(outcome.result.attestation).toMatchObject({ platform, participantId: 'peer:attested-synthetic', gpus: [{ ccMode: 'on', architecture: 'hopper' }] });
     expect(outcome.hostFrames).toEqual(['challenge', 'request']);
     expect(outcome.result.attestation.notChecked).toContain('cpu-certificate-revocation');
-    if (platform === 'intel-tdx') expect(outcome.result.attestation.notChecked).toContain('runtime-and-model-measured-only-by-the-executor-itself');
+    if (platform === 'intel-tdx') expect(outcome.result.attestation.notChecked).toEqual(expect.arrayContaining(['tdx-tcb-status', 'runtime-and-model-measured-only-by-the-executor-itself']));
   });
 });
 
@@ -91,6 +91,21 @@ describe('attested GPU session: every failure is refused before the prompt is se
     const policy = structuredClone(world.policy);
     policy.launches[1].measurement.rtmr[3] = 'dd'.repeat(48);
     expectRejected(await attempt({ platform: 'intel-tdx', faults: { rtmr }, policy }), 'measurement-unknown');
+  });
+  it('TDX quote signed by a quoting enclave other than the pinned one', async () => {
+    // A PCK certificate vouches for any enclave its platform certified, so the signer and product must be Intel's.
+    expectRejected(await attempt({ platform: 'intel-tdx', faults: { qe: { mrSigner: 'c7'.repeat(32) } } }), 'quoting-enclave-unknown');
+    expectRejected(await attempt({ platform: 'intel-tdx', faults: { qe: { isvProdId: 1 } } }), 'quoting-enclave-unknown');
+  });
+  it('TDX quote checked under a policy that pins no quoting enclave', async () => {
+    const { tdxQe, ...unpinned } = world.policy;
+    expectRejected(await attempt({ platform: 'intel-tdx', policy: unpinned, validate: false }), 'quoting-enclave-unknown');
+  });
+  it('TDX quote signed by a debug quoting enclave', async () => {
+    expectRejected(await attempt({ platform: 'intel-tdx', faults: { qe: { debug: true } } }), 'debug-enabled');
+  });
+  it('TDX quoting enclave older than the policy minimum', async () => {
+    expectRejected(await attempt({ platform: 'intel-tdx', faults: { qe: { isvSvn: 3 } } }), 'tcb-out-of-date');
   });
   it('SEV-SNP guest launched with DEBUG allowed', async () => {
     expectRejected(await attempt({ faults: { snpDebug: true } }), 'debug-enabled');
@@ -183,6 +198,13 @@ describe('policy and framing', () => {
     expect(() => validateAttestedPolicy({ ...world.policy, roots: { ...world.policy.roots, nvidiaDevice: [] } })).toThrow(/NVIDIA device root/);
     expect(() => validateAttestedPolicy({ ...world.policy, launches: [{ ...world.policy.launches[0], coverage: undefined }] })).toThrow(/coverage/);
     expect(() => validateAttestedPolicy({ ...world.policy, gpu: { ...world.policy.gpu, maxCount: 0 } })).toThrow(/count/);
+  });
+  it('requires a pinned quoting enclave for every TDX launch, and only for TDX', () => {
+    const { tdxQe, ...unpinned } = world.policy;
+    expect(() => validateAttestedPolicy(unpinned)).toThrow(/tdxQe/);
+    expect(() => validateAttestedPolicy({ ...world.policy, tdxQe: { ...tdxQe, mrSigner: [] } })).toThrow(/tdxQe/);
+    expect(() => validateAttestedPolicy({ ...world.policy, tdxQe: { mrSigner: tdxQe.mrSigner, isvProdId: 2 } })).toThrow(/tdxQe/);
+    expect(validateAttestedPolicy({ ...unpinned, launches: [world.policy.launches[0]] }).tdxQe).toBeUndefined();
   });
   it('bounds frames before buffering and round-trips the wire encoding', () => {
     expect(() => inspectAttestedHeader({ schema: 'reploid.attested-gpu/v1', kind: 'delta', blobs: [1 << 20] })).toThrow(/ceiling/);
