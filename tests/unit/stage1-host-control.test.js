@@ -244,6 +244,24 @@ describe('a macOS stage host', () => {
     expect(await processStart(42, { exec: async () => { throw Object.assign(Error('no such process'), { code: 1 }); } })).toBeNull();
   });
 
+  // The Windows branch through an injected exec. No Windows machine has run it.
+  it('reads a Windows process start from the process table, without a shell', async () => {
+    const calls = [];
+    const exec = async (command, args) => { calls.push([command, args]); return { stdout: '638683922531234567\r\n' }; };
+    expect(await processStart(4242, { exec, platform: 'win32' })).toBe('ticks 638683922531234567');
+    expect(calls[0][0]).toBe('powershell.exe');
+    expect(calls[0][1].slice(0, 3)).toEqual(['-NoProfile', '-NonInteractive', '-Command']);
+    expect(calls[0][1][3]).toContain('Get-Process -Id 4242 ');
+    expect(await processStart(4242, { exec: async () => ({ stdout: '\r\n' }), platform: 'win32' })).toBeNull();
+    expect(await processStart(4242, { exec: async () => ({ stdout: 'Get-Process : access denied' }), platform: 'win32' })).toBeNull();
+    for (const pid of ['4242; Remove-Item x', 4.5, -1, null]) {
+      await expect(processStart(pid, { exec, platform: 'win32' })).rejects.toMatchObject({ code: 'process-id-invalid' });
+    }
+    expect(calls).toHaveLength(1);
+    await expect(processStart(4242, { exec: async () => { throw Object.assign(Error('spawn powershell.exe ENOENT'), { code: 'ENOENT' }); }, platform: 'win32' }))
+      .rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
   it('on this machine, gives a live process one stable start and a finished one none', async () => {
     const child = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)'], { stdio: 'ignore' });
     try {
@@ -309,9 +327,12 @@ describe('the host agent', () => {
     expect((await readHostIdentity(file)).peerId).toBe(identity.peerId);
     await fs.chmod(file, 0o644);
     await expect(readHostIdentity(file)).rejects.toMatchObject({ code: 'identity-unavailable' });
+    // Windows reports no owner-only mode bits, so the mode is not checked there; the identity must still be self-consistent.
+    expect((await readHostIdentity(file, { ownerOnlyModes: false })).peerId).toBe(identity.peerId);
     await fs.writeFile(file, JSON.stringify({ ...identity, peerId: 'peer:' + '0'.repeat(24) }), { mode: 0o600 });
     await fs.chmod(file, 0o600);
     await expect(readHostIdentity(file)).rejects.toMatchObject({ code: 'identity-unavailable' });
+    await expect(readHostIdentity(file, { ownerOnlyModes: false })).rejects.toMatchObject({ code: 'identity-unavailable' });
   });
 
   it('serves a whole-model answer on the earning device as a provider-signed measured receipt, never the split model', async () => {

@@ -39,9 +39,11 @@ export async function readReleaseSha(directory = STAGE1_DIRECTORY) {
 }
 
 /** The persistent enrolled identity. It must already exist: enrollment is an operator step, not a side effect. */
-export async function readHostIdentity(file) {
+export async function readHostIdentity(file, { ownerOnlyModes = Boolean(process.getuid) } = {}) {
   const stat = await fs.lstat(file).catch(() => null);
-  if (!stat?.isFile() || (stat.mode & 0o077) !== 0) throw Object.assign(Error('identity-unavailable: a private identity file is required'), { code: 'identity-unavailable' });
+  // Windows reports no owner-only mode bits (server/fleet/computer-identity.js makes the same exception); the file's
+  // access list is the operator's to set there.
+  if (!stat?.isFile() || (ownerOnlyModes && (stat.mode & 0o077) !== 0)) throw Object.assign(Error('identity-unavailable: a private identity file is required'), { code: 'identity-unavailable' });
   const identity = JSON.parse(await fs.readFile(file, 'utf8'));
   if (!identity.privateJwk || await createPeerIdFromPublicJwk(identity.publicJwk) !== identity.peerId) {
     throw Object.assign(Error('identity-unavailable: the identity file is invalid'), { code: 'identity-unavailable' });

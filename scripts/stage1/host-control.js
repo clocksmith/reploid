@@ -228,11 +228,23 @@ export const describeMemoryPressure = reading => (reading?.level !== undefined ?
  * and macOS once the locale and time zone are fixed: macOS prints the start in the caller's locale and zone, which an
  * SSH session may change between the agent that reported it and the control that checks it. Spacing is normalized.
  */
-export async function processStart(pid, { exec = run } = {}) {
+export async function processStart(pid, { exec = run, platform = process.platform } = {}) {
+  if (platform === 'win32') return windowsProcessStart(pid, exec);
   try {
     const { stdout } = await exec('ps', ['-o', 'lstart=', '-p', String(pid)], { env: { PATH: process.env.PATH ?? '/usr/bin:/bin', LC_ALL: 'C', TZ: 'UTC' } });
     return stdout.replace(/\s+/g, ' ').trim() || null;
   } catch (error) { if (error.code === 1) return null; throw error; }
+}
+/**
+ * Windows has no `ps`. The process table's creation time, in UTC ticks, is the same kind of identity. The PID goes
+ * into a PowerShell command, so it must be a plain integer. Not yet run on a Windows host.
+ */
+async function windowsProcessStart(pid, exec) {
+  if (!Number.isSafeInteger(pid) || pid < 0) throw coded('process-id-invalid', 'not a process id');
+  const { stdout } = await exec('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+    `$p = Get-Process -Id ${pid} -ErrorAction SilentlyContinue; if ($p) { $p.StartTime.ToUniversalTime().Ticks }`]);
+  const ticks = stdout.trim();
+  return /^\d{1,20}$/.test(ticks) ? `ticks ${ticks}` : null;
 }
 const readProcessStart = pid => processStart(pid);
 
