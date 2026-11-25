@@ -39,6 +39,7 @@ export function Button({
   label,
   icon,
   href,
+  external = false,
   pending = false,
   pendingLabel,
   variant = 'secondary',
@@ -58,6 +59,8 @@ export function Button({
   readonly label: string;
   readonly icon?: IconName;
   readonly href?: string;
+  /** A destination on another site: it opens in a new tab and shares nothing with this page. */
+  readonly external?: boolean;
   readonly pending?: boolean;
   readonly pendingLabel?: string;
 }) {
@@ -70,7 +73,7 @@ export function Button({
   );
   if (href !== undefined) {
     return (
-      <a className={cx(className, 'pool-plain')} href={href} aria-current={current ? 'page' : undefined} aria-label={accessibleLabel} title={title} {...dataProps(data)}>
+      <a className={cx(className, 'pool-plain')} href={href} aria-current={current ? 'page' : undefined} aria-label={accessibleLabel} title={title} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} {...dataProps(data)}>
         {content}
       </a>
     );

@@ -695,7 +695,35 @@ for (const width of [1600, 1280, 390, 320]) test(`two drawers preserve conversat
   expect(await input.evaluate(node => [node === window.originalComposer, node.selectionStart, node.selectionEnd])).toEqual([true, 3, 7]);
 });
 
-// The vanilla drawers' mirrored "sevens" slide was a decoration of the vanilla stylesheet; the React drawers open in place.
+test('drawers open mirrored, reverse without stale hiding, and respect reduced motion', async ({ page }) => {
+  await page.setViewportSize({ width: 1600, height: 900 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  const threads = page.locator('[data-threads-dialog]'), settings = page.locator('[data-inspector-pane="settings"]');
+  await page.locator('[data-toggle-thread-rail]').click();
+  await page.locator('[data-inspector-section="settings"]').click();
+  await expect(threads).toBeVisible(); await expect(settings).toBeVisible();
+  // Each drawer enters from its own side: the start drawer from the left, the end drawer from the right.
+  const starts = await page.evaluate(() => [...document.querySelectorAll('.pool-drawer:not([hidden])')].map(node => {
+    const name = getComputedStyle(node).animationName;
+    const rule = [...document.styleSheets].flatMap(sheet => { try { return [...sheet.cssRules]; } catch { return []; } })
+      .find(item => item.type === CSSRule.KEYFRAMES_RULE && item.name === name);
+    return rule?.findRule('from')?.style.clipPath ?? null;
+  }));
+  // A reveal from the drawer's own edge: the box never moves, so nothing beside it shifts while it opens.
+  expect(starts).toEqual(['inset(0px 100% 0px 0px)', 'inset(0px 0px 0px 100%)']);
+  // Rapid reversals settle on the last state, with nothing left hidden or half-moved.
+  for (let i = 0; i < 5; i++) {
+    await page.locator('[data-close-threads]').click(); await page.locator('[data-toggle-thread-rail]').click();
+    await page.locator('[data-inspector-pane="settings"] [data-close-inspector]').click(); await page.locator('[data-inspector-section="settings"]').click();
+  }
+  await expect(threads).toBeVisible(); await expect(settings).toBeVisible();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('[data-close-threads]').click(); await page.locator('[data-toggle-thread-rail]').click();
+  expect(await page.locator('.pool-drawer').evaluateAll(nodes => nodes.flatMap(node => node.getAnimations()).length)).toBe(0);
+  await page.locator('[data-close-threads]').click();
+  await page.locator('[data-inspector-pane="settings"] [data-close-inspector]').click();
+  await expect(threads).toBeHidden(); await expect(settings).toBeHidden();
+});
 
 test('answer inspection stays bound to the selected receipt as later answers arrive', async ({ page }) => {
   await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');

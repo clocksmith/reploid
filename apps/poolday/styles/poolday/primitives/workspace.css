@@ -119,3 +119,9 @@
 @media (prefers-reduced-motion: reduce) {
   .pool-home :is(.pool-bar-button, .pool-drawer) { transition: none !important; animation: none !important; }
 }
+/* Drawers open from their own side, mirrored (the 7 to the 7 transition), as a reveal that never moves their box;
+   reduced motion turns it off above. */
+.pool-home .pool-drawer-start:not([hidden]) { animation: pool-drawer-in-start var(--pool-motion-drawer-duration) var(--pool-motion-nav-easing); }
+.pool-home .pool-drawer-end:not([hidden]) { animation: pool-drawer-in-end var(--pool-motion-drawer-duration) var(--pool-motion-nav-easing); }
+@keyframes pool-drawer-in-start { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes pool-drawer-in-end { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }

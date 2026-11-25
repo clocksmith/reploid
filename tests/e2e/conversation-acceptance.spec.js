@@ -37,7 +37,8 @@ async function mount(page, { available = true } = {}) {
           expiresAt: Date.now() + 60000 });
         if (!approved) throw Error('Disclosure declined');
         controls.signal.throwIfAborted();
-        controls.onState({ ...ids, status: 'executing', execution: { placement: 'peer-partitions' } });
+        controls.onState({ ...ids, status: 'executing', execution: { provider: 'peer', placement: 'two-device-layer-partition',
+          participantA: model.partition.participantA, participantB: model.partition.participantB } });
         let content = '', sequence = 0;
         await new Promise((resolve, reject) => {
           const cleanup = () => { controls.signal.removeEventListener('abort', abort); jobs.delete(ids.threadId); };
@@ -60,10 +61,13 @@ async function mount(page, { available = true } = {}) {
     // These journeys have already opted into contributors; a first visitor's default is "Your devices".
     const { createExecutionPolicy } = await import('/vendor/reploid/chat/execution-policy.js');
     const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
-    mountPoolday(root, { host: { chat: session, close: async () => {} }, viewState: { privacy } });
+    // The scripted route is the conversation's model, as if chosen in Answer on.
+    mountPoolday(root, { host: { chat: session, close: async () => {} }, viewState: { privacy, chosenModel: model, executionLocation: 'network' } });
     window.journey = { session, jobs };
   }, { available, partition: fixturePartition });
 }
+// Stop is the composer's, or the answer's own while that answer is in view.
+const stop = page => page.locator('[data-composer-stop]:visible, [data-answer-stop]:visible').first();
 async function send(page, text) {
   await page.locator('[data-composer-input]').fill(text);
   await page.locator('[data-composer-send]').click();
@@ -127,7 +131,7 @@ test('scripted multitasking: Stop is isolated; completed answer and draft surviv
   const first = await page.evaluate(() => window.journey.session.getState().selectedId);
   await newThread(page); await send(page, 'Second question'); await approve(page); await emit(page, 'Second partial', false);
   const second = await page.evaluate(() => window.journey.session.getState().selectedId);
-  await select(page, first); await page.locator('[data-composer-stop]').click();
+  await select(page, first); await stop(page).click();
   await expect.poll(() => page.evaluate(() => window.journey.session.getState().runningIds)).toEqual([second]);
   await select(page, second); await emit(page, ' complete.');
   await page.locator('[data-composer-input]').fill('Saved follow-up');
@@ -145,14 +149,15 @@ test('scripted contributor loss: explicit retry keeps the partial response separ
   await approve(page); await emit(page, 'Complete replacement answer.');
   await expect(page.locator('[data-message-role="assistant"]')).toHaveCount(2);
   await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('Partial before departure.');
-  await expect(page.locator('[data-message-role="assistant"]').last()).toContainText('New attempt');
+  // The retry is its own answer; the failed one keeps its partial text and its note.
+  await expect(page.locator('[data-message-role="assistant"]').last()).toContainText('Complete replacement answer.');
 });
 
 test('scripted Send grants no future sharing and Stop preserves the partial answer', async ({ page }) => {
   await mount(page); await send(page, 'First message'); await approve(page); await emit(page, 'First answer.');
   await send(page, 'Follow-up'); await approve(page); await emit(page, 'Partial follow-up', false);
   expect(await page.evaluate(() => window.journey.session.getState().activeThread.grants)).toEqual([]);
-  await page.locator('[data-composer-stop]').click();
+  await stop(page).click();
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBe(0);
   await expect(page.locator('[data-message-role="assistant"]').last()).toContainText('Partial follow-up');
   await page.setViewportSize({ width: 390, height: 460 });

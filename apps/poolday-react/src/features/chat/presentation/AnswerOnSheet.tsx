@@ -138,7 +138,7 @@ export function AnswerOnSheet({
                   </Text>
                 ))
               )}
-              <Button variant="quiet" label={t.sheet.adapterGuide} href={open.adapterGuide} data={{ 'data-adapter-guide': true }} />
+              <Button variant="quiet" label={t.sheet.adapterGuide} href={open.adapterGuide} external data={{ 'data-adapter-guide': true }} />
             </Stack>
           </Disclosure>
         </Stack>
