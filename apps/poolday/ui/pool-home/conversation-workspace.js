@@ -18,6 +18,7 @@ import { routeAlternatives, updateRouteAlternatives } from './route-alternatives
 import { bindHistoryHandover } from './history-handover-view.js';
 import { bindProductionControls } from './contribution-models.js';
 import { webSearchRecipient } from './web-search-settings.js';
+import { startingLocalModel } from './choice-availability.js';
 import { canDownloadModelHere, contributorBlock, localFitText, locationForModel, modelForLocation, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
 import { escapeHtml } from '../components/attachments.js';
 import { remotePermissionText, remotePermissionWording } from './remote-permission.js';
@@ -353,7 +354,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (pinnedModel && !models.some(model => keyFor(model) === keyFor(pinnedModel))) models.push(unavailableModelChoice(pinnedModel));
     const location = effectiveLocation(state);
     const defaultModel = state.defaultModels?.[location] || state.defaultModel;
-    const current = keyFor(pinnedModel)
+    // On this device, start with a model that runs or downloads here, so the chip never names a pair that cannot answer.
+    const localStart = !pinnedModel && location === 'local'
+      ? startingLocalModel(models, { defaultModel, canDownloadHere: model => canDownloadModelHere(model, state, !!inspector.downloadModel) }) : null;
+    const current = keyFor(pinnedModel) || keyFor(localStart)
       || keyFor(models.find(model => keyFor(model) === keyFor(defaultModel) && selectable(model)))
       || keyFor(models.find(selectable)) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true, grouped: true, preferNetwork: location !== 'local' });
@@ -742,7 +746,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       find('[data-change-model]').focus();
     };
     const revision = ++pickerRevision, scope = queueScope(state, model);
-    inspector.downloadModel(modelKey(model), answerIssue.querySelector('[data-answer-action]'), {
+    inspector.downloadModel(modelKey(model), find('[data-change-model]'), {
       isCurrent(id) {
         const current = session.getState();
         return !controller.signal.aborted && find('[data-model-picker]').open && pickerRevision === revision
@@ -771,7 +775,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     updatePicker(state);
     commitPickerChoice();
   };
-  on('[data-answer-action]', 'click', event => runAnswerAction(event.currentTarget.dataset.answerAction));
   // Done, or tapping a model or computer that can answer now, commits the sheet and returns to the draft.
   const resumeAfterChoice = () => { if (sendAfterDestination) { sendAfterDestination = false; submitDraft(); } };
   function commitPickerChoice() {

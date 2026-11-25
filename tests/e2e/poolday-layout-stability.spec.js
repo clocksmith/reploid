@@ -112,6 +112,16 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       const picker = page.locator('[data-model-picker]');
       await expect(picker).toBeVisible();
       await watchBox(picker);
+      // It never opens with a computer and a model that disagree, and the composer chip names the same computer.
+      const opening = await picker.evaluate(node => {
+        const computer = node.querySelector('[data-execution-location] [aria-checked="true"]')?.dataset.executionChoice;
+        const model = [...node.querySelectorAll('.chat-model-choices input')].find(input => input.checked);
+        return { computer, group: model?.closest('[data-choice-group]')?.dataset.choiceGroup ?? null,
+          chip: document.querySelector('[data-composer-model-source]')?.textContent };
+      });
+      const agrees = { local: ['local', 'download'], network: ['shared', 'private'], desktop: ['shared', 'private', 'local'] }[opening.computer] || [];
+      expect(opening.group === null || agrees.includes(opening.group), JSON.stringify(opening)).toBe(true);
+      expect(opening.chip).toBe({ local: 'This device', network: 'Contributors' }[opening.computer] ?? opening.chip);
       await expect(picker.locator('[data-execution-location]')).toHaveAttribute('role', 'radiogroup');
       await expect(picker.locator('[data-execution-choice]').first()).toHaveAttribute('role', 'radio');
       await picker.locator('[data-execution-choice=network]').click();

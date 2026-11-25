@@ -71,3 +71,16 @@ export function webSearchAvailability({ url = '', builtInAvailable = false } = {
   return { disabled: true, reason: 'No search service is available. Add a search server to turn this on.',
     fix: { label: 'Add server', action: 'open-search-server' } };
 }
+
+/**
+ * The model a new conversation starts with on this device: one stored here (the default first), else the default
+ * or first model this device can download. Never a model that only the network runs, so the computer and the model
+ * a fresh visitor sees always agree. Returns null when nothing can run here; the caller keeps its own fallback.
+ */
+export function startingLocalModel(models = [], { defaultModel = null, canDownloadHere = () => false } = {}) {
+  const key = model => model?.selectionId || model?.id;
+  const isDefault = model => !!defaultModel && (key(model) === key(defaultModel) || model.id === defaultModel.id);
+  const pick = test => models.find(model => isDefault(model) && test(model)) || models.find(test) || null;
+  const stored = model => !model.partition && !model.fleet && (model.localReady || model.localCached || model.availability === 'cached');
+  return pick(stored) || pick(model => !model.partition && !model.fleet && canDownloadHere(model));
+}

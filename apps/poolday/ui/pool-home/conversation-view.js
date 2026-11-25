@@ -17,7 +17,8 @@ const renderModelControl = () => '<span data-model-control hidden><select class=
 // One row anatomy for every choice in the sheet: title, one status line, a trailing check (the single-select list primitive).
 const computerRow = (choice, name) => `<button class="pool-option chat-model-choice" type="button" role="radio" data-execution-choice="${choice}" aria-checked="false"><span class="pool-row-text"><span class="pool-row-title"${name}</span><span class="pool-row-status" data-computer-state></span></span><span class="pool-option-mark" aria-hidden="true">${interfaceIcon('check')}</span></button>`;
 // Computer and model are one consistent choice: a model tap moves the computer to where that model runs, and a computer tap keeps a model that runs there.
-const renderLocationControl = () => `<div class="pool-options" data-execution-location role="radiogroup" aria-labelledby="chat-computer-label"><span class="pool-options-label" id="chat-computer-label">Computer</span>${computerRow('local', '>This device')}${computerRow('desktop', ' data-computer-desktop-name>Your desktop')}${computerRow('network', '>Contributors')}<p class="pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p></div>`;
+// Two sections with one heading style: Computer (its rows, then who can read the prompt as the section's note) and Model.
+const renderLocationControl = () => `<section class="pool-section" aria-labelledby="chat-computer-label"><h3 class="pool-section-title" id="chat-computer-label">Computer</h3><div class="pool-options" data-execution-location role="radiogroup" aria-labelledby="chat-computer-label">${computerRow('local', '>This device')}${computerRow('desktop', ' data-computer-desktop-name>Your desktop')}${computerRow('network', '>Contributors')}</div><p class="pool-section-note" id="chat-prompt-disclosure" data-prompt-disclosure></p></section>`;
 
 const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><p class="pool-small pool-muted" data-local-fit hidden></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p></div></details>`;
 
@@ -98,8 +99,8 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <div class="chat-model-picker-body">
         ${renderLocationControl()}
         <p data-picker-thread-note hidden>A new model starts a new thread.</p>
-        <span class="pool-caption pool-muted">Model</span>${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div>
-        <div class="chat-answer-issue pool-stack pool-gap-xs" data-answer-issue hidden><p class="pool-small" data-next-model-status role="status"></p><button class="pool-button btn-ghost pool-caption" type="button" data-answer-action hidden></button></div>
+        <section class="pool-section" aria-labelledby="chat-model-section-title"><h3 class="pool-section-title" id="chat-model-section-title">Model</h3>${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div></section>
+        <div class="chat-answer-issue" data-answer-issue hidden><p class="pool-caption pool-muted" data-next-model-status role="status"></p></div>
         ${renderModelSelectionDetails()}</div>
         <div class="chat-network-actions"><button class="pool-button btn-primary" type="button" data-change-model>Answer on this device</button><button class="pool-button btn-ghost" type="button" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog">Who can read it</button></div>
       </dialog>

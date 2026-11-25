@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CONFIDENTIAL_TARGET, fileModeChoices, privacyPresetChoices, routePreferenceChoices,
+  CONFIDENTIAL_TARGET, fileModeChoices, startingLocalModel, privacyPresetChoices, routePreferenceChoices,
   sharingOptionChoices, webSearchAvailability
 } from '../../apps/poolday/ui/pool-home/choice-availability.js';
 
@@ -58,5 +58,17 @@ describe('Poolday choices are derived from what can work now', () => {
     expect(webSearchAvailability({ url: 'https://search.example' })).toEqual({ disabled: false, reason: '', fix: null });
     expect(webSearchAvailability({ builtInAvailable: true }).disabled).toBe(false);
     expect(webSearchAvailability()).toMatchObject({ disabled: true, reason: expect.stringMatching(/No search service/), fix: { action: 'open-search-server' } });
+  });
+
+  it('starts this device on a stored model, else a downloadable one, never a network-only model', () => {
+    const shared = { id: 'shared', networkAvailability: 'ready' };
+    const small = { id: 'small', source: { baseUrl: 'x' } }, large = { id: 'large', source: { baseUrl: 'x' } };
+    const stored = { id: 'stored', localCached: true };
+    const canDownloadHere = model => !!model.source;
+    expect(startingLocalModel([shared, large, small, stored], { defaultModel: small, canDownloadHere })).toBe(stored);
+    expect(startingLocalModel([shared, large, small], { defaultModel: small, canDownloadHere })).toBe(small);
+    expect(startingLocalModel([shared, large, small], { canDownloadHere })).toBe(large);
+    expect(startingLocalModel([shared], { defaultModel: shared, canDownloadHere })).toBeNull();
+    expect(startingLocalModel([{ ...stored, partition: true }, { id: 'fleet', fleet: {}, localCached: true }], { canDownloadHere })).toBeNull();
   });
 });

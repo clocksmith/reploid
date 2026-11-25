@@ -75,8 +75,11 @@ describe('Answer on selection', () => {
     expect(preset.issue).toMatch(/^Only your devices can read this chat/);
     expect(describeAnswerChoice(shared, 'network', { state, block: 'own-devices' }).action).toBe('use-contributors');
 
-    expect(describeAnswerChoice(download, 'local', { state, canDownload: true })).toMatchObject({ action: 'download', label: 'Download' });
-    expect(describeAnswerChoice(download, 'network', { state, canDownload: true })).toMatchObject({ action: 'download', label: 'Download' });
+    // The download action names the model it downloads.
+    expect(describeAnswerChoice(download, 'local', { state, canDownload: true })).toMatchObject({ action: 'download', label: `Download ${download.name || download.id}` });
+    expect(describeAnswerChoice(download, 'network', { state, canDownload: true })).toMatchObject({ action: 'download', label: `Download ${download.name || download.id}` });
+    // On this device a downloadable model's runnable route is its download, even when contributors also share it.
+    expect(describeAnswerChoice({ ...download, networkAvailability: 'ready', providerIds: ['peer'] }, 'local', { state, canDownload: true, block: 'own-devices' }).action).toBe('download');
     expect(describeAnswerChoice(stored, 'network', { state })).toMatchObject({ action: 'use-device', label: 'Use this device' });
     expect(describeAnswerChoice(missing, 'local', { state }).issue).toMatch(/Choose a model marked Ready/);
     expect(describeAnswerChoice(missing, 'network', { state: { discoveryPhase: 'searching' } }).issue).toMatch(/^Finding computers/);

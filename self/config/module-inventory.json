@@ -4319,7 +4319,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:205674ea84165a0f16094bda847e5c111991931af5b2b5476fd4302c869dd63a",
+      "sha256": "sha256:ee7ffff94f7b92722df666282e500c09ea15abd361986135f68c17954383e3c6",
       "imports": [
         "./attachments.js",
         "./interface-icons.js"
@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:3cd722bb81edb81734f27c0567014ca844d4382bbc4038ec76b168c418dd1444",
+      "sha256": "sha256:19e852b3244e076e28370f14ff22aaf1ac396ad196e43db7b9ea72470ad0b100",
       "imports": []
     },
     {
@@ -4392,7 +4392,7 @@
     {
       "path": "ui/pool-home/choice-availability.js",
       "owner": "ui",
-      "sha256": "sha256:679ff8b446b92d8aaff4a93acda74ec6184dc28b7ba2830ae9fe22a60f836f5e",
+      "sha256": "sha256:ab5dc4dac8537f0789b0043d7c83eefadb9a8269b2a0e2feead5adec00b03877",
       "imports": [
         "../../host/route-preference.js"
       ]
@@ -4519,7 +4519,7 @@
     {
       "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:9f728b536f4e34b314c841adfbfe8fabe0d7472398a9ac7bdb7d5e9713c86d36",
+      "sha256": "sha256:5fada05e1d5fff0e5cd58b78ee3a113890f93f72de1ebfd20046d6e2c2e29a44",
       "imports": [
         "../components/model-select.js",
         "./model-adapters.js",
@@ -4530,7 +4530,7 @@
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:9902cdff30c8bd5841ab8a504ba9d37641feab7aeecaa7d08bce4e7d02362f66",
+      "sha256": "sha256:3cdb3b0ba229322767a4dfb108c61d7836add45f3339b60a63b4abd5cb4eb2b5",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -4549,7 +4549,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:42cd9550b92dda1ddd4e0343a3ed061b51c8301640e61c94a691d9e6a90caf34",
+      "sha256": "sha256:1fa3ab454cdf0834cc6ab728e3c75ec688f0d04a3e127cab33cf2258bca3fa44",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",
@@ -4560,6 +4560,7 @@
         "../components/drawer.js",
         "../components/interface-icons.js",
         "../components/model-select.js",
+        "./choice-availability.js",
         "./computer-labels.js",
         "./contribution-models.js",
         "./conversation-list.js",

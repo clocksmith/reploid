@@ -98,20 +98,22 @@ export function describeAnswerChoice(model, location, { state = {}, block = null
   const fix = (text, action, label) => ({ issue: text, action, label });
   if (!model) return stuck('No model is available right now. Models appear here as computers share them.');
   if (acquiring?.phase === 'downloading') return stuck(acquiring.progress?.message || 'Downloading to this device…');
+  const downloadLabel = `Download ${model.name || model.id}`;
   if (side === 'local') {
     if (here) return ready;
+    // On this device, the runnable route for a model that is not stored is its download; the network comes only by choice.
+    if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'Not on this device yet. You see its size before it downloads.', 'download', downloadLabel);
     if ((there || model.fleet) && block !== 'guest') {
       return block ? fix(blockText(model), 'use-contributors', useRemote)
         : fix(`This model runs on ${model.fleet ? 'your private computers' : 'contributors’ computers'}, not this device. The answering computer reads your messages.`, 'use-contributors', useRemote);
     }
-    if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'Not on this device yet. Download it to run it here; you see its size first.', 'download', 'Download');
     return stuck(state.localDownloadIssue || 'Nothing can run this model right now. Choose a model marked Ready or On this device.');
   }
   if (block === 'guest') return there || choice === 'desktop' ? ready : stuck(`Only ${locked?.label || 'the inviting computer'} may read your messages. Choose a model it runs.`);
   if (block && there) return fix(blockText(model), 'use-contributors', useRemote);
   if (there || choice === 'desktop') return ready;
   if (here) return fix('No contributor serves this model now. It is on this device.', 'use-device', 'Use this device');
-  if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'No contributor serves this model now. Download it to run it on this device; you see its size first.', 'download', 'Download');
+  if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'No contributor serves this model now. Download it to run it here; you see its size first.', 'download', downloadLabel);
   if (['loading', 'preparing'].includes(model.networkAvailability)) return stuck('A contributor is preparing this model. It becomes Ready here when it can answer.');
   if (state.discoveryPhase === 'searching') return stuck('Finding computers… This model becomes Ready here when one shares it.');
   return stuck('No shared computer can answer with this model right now. Choose a model marked Ready.');
@@ -151,7 +153,9 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   const side = sheetSide(pickerLocation);
   find('[data-next-model]').disabled = changingModel;
   updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork: false });
-  choices.update(models, { grouped: true, preferNetwork: false, variants: true, compact: true,
+  // On this device, stored and downloadable models lead their own groups, so the chosen row always sits under a
+  // heading that agrees with the chosen computer.
+  choices.update(models, { grouped: true, preferNetwork: false, location: side === 'local' ? 'local' : 'auto', variants: true, compact: true,
     describe: describeModelChoice(state), keep: stableGroups(state) });
   // Exact variants remain selectable; provider and format facts stay in the disclosure.
   updateAdapterDetails(find('[data-model-picker]'), state, selected || pickerModel);
@@ -175,16 +179,12 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
   }
   const outcome = describeAnswerChoice(selected || (pickerModel ? unavailableModelChoice(pickerModel) : null), side,
     { state, block, canDownload, choice: pressed === 'desktop' ? 'desktop' : null, locked, sending });
-  // The reason and its fix sit beneath the chosen model, not in a dead button.
-  const status = issue.querySelector('[data-next-model-status]'), fix = issue.querySelector('[data-answer-action]');
+  // The reason is one muted line beneath the chosen model; its fix is the sheet's primary button, never a second link.
+  const status = issue.querySelector('[data-next-model-status]');
   const host = choices.checkedChoice()?.closest('[data-choice-row]') || find('[data-model-picker] .chat-model-choices');
   if (host && issue.parentElement !== host) host.append(issue);
   status.textContent = outcome.issue || '';
   issue.hidden = !outcome.issue;
-  fix.hidden = !outcome.action || outcome.action === 'commit';
-  fix.textContent = fix.hidden ? '' : outcome.label;
-  fix.dataset.answerAction = outcome.action || '';
-  fix.disabled = changingModel || outcome.action === 'download' && state.acquisition?.phase === 'downloading';
   const commit = find('[data-change-model]');
   commit.textContent = outcome.label;
   commit.dataset.answerAction = outcome.action || '';

@@ -40,9 +40,9 @@ it('asks once where to run before a first visitor prompt can reach a network pro
   expect(f.find('[data-model-picker]').open).toBe(true);
   expect(f.find('[data-picker-title]').textContent).toBe('Where should this run?');
   expect(f.find('[data-execution-choice=local]').getAttribute('aria-checked')).toBe('true');
-  // The shared model cannot run here: the sheet says so beside it and offers the fix, never a dead button.
-  expect(f.find('[data-next-model-status]').textContent).toMatch(/runs on contributors’ computers/);
-  expect(f.find('[data-answer-action]').textContent).toBe('Use contributors');
+  // A first visitor starts on this device with a model it can run there: its download. Never a network-only pair.
+  expect(f.find('[data-next-model-status]').textContent).toMatch(/^Not on this device yet/);
+  expect(f.find('[data-change-model]').textContent).toBe(`Download ${model.name}`);
   expect(f.find('[data-change-model]').disabled).toBe(false);
   expect(f.api.connect).not.toHaveBeenCalled();
   f.find('[data-execution-choice=network]').click();
@@ -235,3 +235,23 @@ it('returns a failed local cache to acquisition recovery while preserving the co
   expect(session.getState().activeThread.messages[0].content).toBe('Keep this question');
   await session.close();
 });
+
+// The owner's contradiction: a fresh visitor must never see a computer and a model that disagree.
+for (const [preset, viewState, expected] of [
+  ['Only your devices (a fresh visitor)', null, { computer: 'local', group: 'download', action: /^Download /, chip: 'This device' }],
+  ['Standard', { privacy: openPolicy }, { computer: 'network', group: 'shared', action: /^Answer with contributors$/, chip: 'Contributors' }]
+]) {
+  it(`starts a fresh draft with a runnable computer and model under ${preset}`, () => {
+    const f = viewState ? fixture({ viewState }) : fixture({ fresh: true });
+    const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] };
+    f.publish({ ...observedDiscovery, models: [model], defaultModel: model });
+    f.find('[data-open-model]').click();
+    const checked = f.find('[data-execution-location] [aria-checked=true]').dataset.executionChoice;
+    expect(checked).toBe(expected.computer);
+    const row = [...f.find('[data-model-picker]').querySelectorAll('.chat-model-choices input')].find(input => input.checked);
+    expect(row.closest('[data-choice-group]').dataset.choiceGroup).toBe(expected.group);
+    expect(f.find('[data-change-model]').textContent).toMatch(expected.action);
+    expect(f.find('[data-change-model]').disabled).toBe(false);
+    expect(f.find('[data-composer-model-source]').textContent).toBe(expected.chip);
+  });
+}

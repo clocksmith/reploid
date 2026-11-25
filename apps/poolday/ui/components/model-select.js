@@ -31,6 +31,9 @@ export function modelChoiceGroups(models, { preferNetwork = true, location = 'au
   const privateModels = [], shared = [], local = [], downloads = [], unavailable = [];
   for (const model of models) {
     if (model.fleet) privateModels.push(model);
+    // On this device, a stored or downloadable model is listed as such even when the network also shares it.
+    else if (location === 'local' && (model.localReady || model.localCached || model.availability === 'cached') && !model.partition) local.push(model);
+    else if (location === 'local' && isDownloadableBaseModel(model)) downloads.push(model);
     else if (isSharedModelChoice(model)) shared.push(model);
     else if (location === 'network') unavailable.push(model);
     else if (model.localReady || model.localCached || model.availability === 'cached') local.push(model);
@@ -46,7 +49,8 @@ export function modelChoiceGroups(models, { preferNetwork = true, location = 'au
     { id: 'download', label: 'Download to this device', models: downloads },
     { id: location === 'network' ? 'network-unavailable' : 'unavailable', label: location === 'network' ? 'Unavailable on network' : 'Unavailable', models: unavailable }
   ];
-  const ordered = preferNetwork ? groups : [groups[1], groups[0], ...groups.slice(2)];
+  const ordered = location === 'local' ? [groups[1], groups[3], groups[0], groups[2], groups[4]]
+    : preferNetwork ? groups : [groups[1], groups[0], ...groups.slice(2)];
   return ordered.filter(group => group.models.length || keep.includes(group.id));
 }
 
@@ -155,7 +159,7 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
           parent = document.createElement(folded ? 'details' : 'div'); parent.dataset.choiceGroup = section.id;
           parent.className = 'pool-stack pool-gap-xs'; parent.setAttribute('role', 'group');
           parent.setAttribute('aria-label', section.label);
-          const heading = document.createElement(folded ? 'summary' : 'p'); heading.className = 'pool-caption pool-muted';
+          const heading = document.createElement(folded ? 'summary' : 'p'); heading.className = 'pool-options-label';
           heading.dataset.choiceGroupLabel = '';
           heading.textContent = section.label; parent.append(heading); group.append(parent);
         }
