@@ -1,275 +1,295 @@
 # Gaps found in `docs/settlement-replay.md` while writing `replay.js`
 
-Source read: `docs/settlement-replay.md` only, as of commit 4ee9dd6b2 (377 lines). Line numbers refer to that version.
-Items 1-44 were written against commit 20121ae60, before the verifier was compared with anything. Their numbering is kept; their line numbers and "Chosen" text were brought up to 4ee9dd6b2, and each ends with a status line. Items 45-58 are new at 4ee9dd6b2. The author has still not read the reference code, the other files beside this one, or any comparison result.
-Each item gives the question, the reading `replay.js` implements ("Chosen"), and the other plausible reading(s) ("Other").
-Items 1-37 and 45-54 are places where the text does not determine behaviour. Items 38-44 and 55-58 are places where the text looks self-contradictory or wrong.
+Source read: `docs/settlement-replay.md` only, as of commit c29bc5d44 (the commit is the one the coordinator named; the author may not run git and checked only the text: 477 lines, sha256 `25546ee8f49d...`). Line numbers refer to that text.
+Items 1-44 were written against commit 20121ae60, before the verifier was compared with anything; items 45-58 were added at 4ee9dd6b2; items 59-69 are new at c29bc5d44. The numbering is kept. Every item's line numbers and "Chosen" text were brought up to c29bc5d44, and each ends with a status line for that text. The author has still not read the reference code, the other files beside this one, or any comparison result.
+Each open item gives the question, the reading `replay.js` implements ("Chosen"), and the other plausible reading(s) ("Other"). A settled item keeps its question and says what settled it.
+Items 1-37, 45-54 and 59-66 are places where the text does not determine behaviour. Items 38-44, 55-58 and 67-69 are places where the text looks self-contradictory or wrong.
 
-Status at 4ee9dd6b2 of the 44 old items: 4 settled (19, 23, 29, 39), 7 partly settled (18, 22, 27, 30, 34, 37, 38), 33 still stand.
+Status at c29bc5d44 of items 1-58: 29 settled (2, 6, 12, 17, 19, 22, 23, 24, 27, 29, 30, 32, 34, 38, 39, 40, 41, 42, 43, 44, 47, 48, 50, 52, 53, 55, 56, 57, 58), 7 partly settled (3, 13, 18, 26, 28, 37, 49), 22 still stand (1, 4, 5, 7, 8, 9, 10, 11, 14, 15, 16, 20, 21, 25, 31, 33, 35, 36, 45, 46, 51, 54). New at c29bc5d44: 11 (59-69).
 
-## Encoding (lines 31-68)
+## Encoding (lines 37-87)
 
-1. **L33-38. Non-JSON values in a record handed over as an object.** "Records contain only finite JSON values" does not say what a verifier does with an `undefined` member, `NaN`, a class instance, a sparse array, a symbol key or a getter.
+1. **L39-44. Non-JSON values in a record handed over as an object.** "Records contain only finite JSON values" does not say what a verifier does with an `undefined` member, `NaN`, a class instance, a sparse array, a symbol key or a getter.
    Chosen: the whole record is rejected. `-0` is accepted and written `0`.
    Other: serialise as `JSON.stringify` would (drop `undefined` members, write `NaN` as `null`) and then check the signature.
    Status: still stands (text unchanged).
 
-2. **L41-44, L48-50. Key coordinates are constrained only by a pattern.** Two base64url strings that differ only in unused trailing bits decode to the same key (checked: Node imports both and the signature verifies under both), but the participant ID hashes the text, so one key has 4 valid IDs (Ed25519) or 16 (P-256). Lengths other than 43 pass the pattern too.
-   Chosen: accept whatever Node's JWK import accepts; an unusable coordinate fails at the signature check.
-   Other: require the canonical encoding and exact length, rejecting the aliases at the key check.
-   Status: still stands. It matters more now: rows are keyed by requester ID (L118-119), so one requester key can open several rows under one reservation.
+2. **L47-57. Key coordinates were constrained only by a pattern**, so one key had several texts and several participant IDs.
+   Status: Settled at c29bc5d44: a coordinate is canonical base64url of 32 bytes, 43 characters, and "one key therefore has one text and one participant ID" (L47-57). `replay.js` now rejects every other text at the key check. A coordinate that is canonical but not a point still fails only at the signature check, which changes the reason and nothing else.
 
-3. **L45-47. Signature strictness.** No pattern is given for the alphabet; non-canonical base64url is not addressed; the Ed25519 verification variant (small-order keys, non-canonical encodings) and high-S ECDSA are not addressed.
-   Chosen: `^[A-Za-z0-9_-]{1,256}$`, lenient decode, must decode to exactly 64 bytes for both algorithms, OpenSSL behaviour through `node:crypto`, high-S accepted.
-   Other: strict canonical base64url; RFC 8032 strict or ZIP-215 style Ed25519.
-   Status: still stands.
+3. **L47-52, L58-60. Signature strictness.**
+   Chosen: canonical base64url of exactly 64 bytes; OpenSSL behaviour through `node:crypto` for the verification itself; high-S ECDSA accepted.
+   Other: RFC 8032 strict or ZIP-215 style Ed25519; low-S only.
+   Status: partly settled. Settled at c29bc5d44: the alphabet, no padding, the canonical text and the 64 bytes / 86 characters (L47-52, L58-60). Still open: which Ed25519 verification variant (small-order keys, non-canonical point encodings), and whether a high-S P-256 signature is accepted (item 67).
 
-4. **L48-49. Case of the 24 hex digits of a participant ID.** Digests say lowercase (L52); the ID rule does not.
+4. **L61-62. Case of the 24 hex digits of a participant ID.** Digests say lowercase (L65); the ID rule does not.
    Chosen: lowercase.
    Status: still stands.
 
-5. **L52-53 with L72-74. "digest" is used as a field type but is not defined in "Record fields".**
+5. **L65-66 with L91-93. "digest" is used as a field type but is not defined in "Record fields".**
    Chosen: a string matching `^sha256:[0-9a-f]{64}$`.
    Other: any text; uppercase hex allowed.
    Status: still stands.
 
-6. **L67-68. "Strings ... that `Date.parse` accepts" depends on the engine and the time zone.** In Node 22, `"x 1"` and `"2026"` parse, and `"2026-11-25T10:00:00"` (no zone) parses as local time, so the same signed record can be in time on one machine and late on another. A verifier in another language cannot reproduce it.
-   Chosen: Node's `Date.parse`, anything that is not `NaN`, at most 40 UTF-16 code units.
-   Other: accept only the exact `toISOString` form (round trip).
-   Status: still stands.
+6. **L80-87. Time fields were "strings that `Date.parse` accepts"**, which depends on the engine and the time zone.
+   Status: Settled at c29bc5d44: exactly the `toISOString` form, a fixed pattern, naming a real instant, for every time field (L80-87). `replay.js` now checks the pattern and the round trip; the 40-character rule is gone.
 
-7. **L73. Unit of "maximum length".**
+7. **L92. Unit of "maximum length".**
    Chosen: UTF-16 code units (`string.length`).
    Other: code points or UTF-8 bytes.
    Status: still stands.
 
-## Record fields (lines 70-108)
+## Record fields (lines 89-129)
 
-8. **L76-102. No type is given for `attemptId`, `requesterId`, `participantId` (including `shares[].participantId`) or `schema`.**
+8. **L95-121. No type is given for `attemptId`, `requesterId`, `participantId` (including `shares[].participantId`) or `schema`.**
    Chosen: the IDs are text 256; signer fields must also equal the carried key's ID; `schema` is the schema string of the kind.
    Other: `attemptId` text 160 like `reservationId`; `shares[].participantId` must match `peer:` plus 24 hex (then terms naming a malformed stage are rejected instead of being merely unsatisfiable).
    Status: still stands.
 
-9. **L78-79. `maximum` has no type, and the product can exceed 2^53.**
+9. **L97-98. `maximum` has no type, and the product can exceed 2^53.**
    Chosen: a safe integer equal to the exact (BigInt) product, so terms whose product is not a safe integer are rejected.
    Other: double arithmetic, `maximum === maxOutputTokens * creditsPerOutputToken`.
    Status: still stands.
 
-10. **L79-81. May one participant hold two stages?** Nothing forbids it.
+10. **L98-100. May one participant hold two stages?** Nothing forbids it.
     Chosen: allowed.
     Other: rejected as a malformed `shares`.
     Status: still stands.
 
-11. **L92. "`sequence`, an integer `>= 1` that rises by one per receipt".** Is a gap (1, 2, 4), or a first presented receipt that is not 1, a fault? Step 5 (L165) names only a repeated sequence.
+11. **L111. "`sequence`, an integer `>= 1` that rises by one per receipt".** Is a gap (1, 2, 4), or a first presented receipt that is not 1, a fault? Step 5 (L195) names only a repeated sequence.
     Chosen: any safe integer `>= 1`; gaps are ignored.
     Other: a gap is a conflict, or makes the stage's history incomplete (`unknown`).
     Status: still stands.
 
-12. **L92-96 with L165-166 and L173-174. `status` against `timing.closedAt`.** No field rule relates them.
-    Chosen: every combination passes the shape check. A `settled` or `failed` receipt without `closedAt` does not close the stage in step 6, but is "a closing receipt" for step 5. "Closed in time" is judged by `signedAt`, never by `closedAt`.
-    Other: reject a closing receipt without `closedAt`, or an `executing` receipt with one.
-    Status: still stands.
+12. **L111-115 with L175, L196 and L204-205. `status` against `timing.closedAt`**: what closes a stage, and for which step.
+    Status: Settled at c29bc5d44: a closing receipt is `settled` or `failed` with `closedAt` (L175), in steps 4, 5 and 6 alike, and it is timed by its `signedAt` (`closesInTime`). `replay.js` changed: a `settled` or `failed` receipt without `closedAt` is no longer "a closing receipt" in step 5. Every combination of `status` and `closedAt` still passes the shape check, since no field rule relates them.
 
-13. **L96-99. "`output` is `null` except on the final stage" cannot be checked per record.** It needs the terms, and L113-114 says shape failures are rejected before grouping.
-    Chosen: the shape check accepts `null` or the exact object on any receipt. Once terms are agreed, a non-final stage's `output` is never read; a final-stage receipt with `output: null` stays in play as "not done, no count, no chain": it commits no chain in step 5, and cannot make the answer delivered (step 6) or withheld (step 9).
+13. **L115-118, L180-181. "`output` is `null` except on the final stage" cannot be checked per record.** It needs the terms, and L134-135 says shape failures are rejected before grouping.
+    Chosen: the shape check accepts `null` or the exact object on any receipt. A non-final stage's `output` is never read. A final-stage receipt with `output: null` stays in play: it commits no chain, and as the latest receipt it is "not done, no count", so it cannot make the answer delivered (step 6) or withheld (step 9).
     Other: drop or reject such receipts once the stage position is known; read a null output's count as `steps`.
-    Status: still stands. Step 5 now leans on it: a final stage that signs `output: null` makes every acknowledgment above 0 `unmatched`.
+    Status: partly settled. L180-181 ("every kept receipt of the final stage with an `output` commits") settles that one without an output commits nothing. The rest stands.
 
-14. **L104-108, L140-143. Policy field types, and a missing field.**
-    Chosen: a step-3 comparison against a missing or wrongly typed field fails, so the outcome is `invalid`. A missing or non-count `maxClockSkewMs`, which step 3 does not mention, is also `invalid`. A supplied policy that is not a JSON object cannot be named by any terms.
+14. **L123-129, L164-169. Policy field types, and a missing field.**
+    Chosen: a step-3 comparison against a missing or wrongly typed field fails, so the outcome is `invalid`. A missing or non-count `maxClockSkewMs`, which step 3 does not mention, is also `invalid` (see item 65 for steps 1 and 2). A supplied policy that is not a JSON object cannot be named by any terms.
     Other: a missing `maxClockSkewMs` means 0.
     Status: still stands.
 
-## Deciding an outcome (lines 110-216)
+## Deciding an outcome (lines 131-253)
 
-15. **L113-114. A record with an unknown or missing `schema`; the form of `rejected`.**
+15. **L134-135. A record with an unknown or missing `schema`; the form of `rejected`.**
     Chosen: rejected with reason `unknown schema`. Entries are `{ index, reason }`; the reason texts are mine.
     Other: silently ignored.
     Status: still stands.
 
-16. **L114-115. "Identical bodies presented twice count once."** Which copy is the record?
+16. **L136. "Identical bodies presented twice count once."** Which copy is the record?
     Chosen: the first copy that passes its checks; its index is the one used in `late`, `foreign` and `unmatched`. Later copies are reported nowhere. A copy with a bad signature is rejected while the valid copy counts. The same body under two different valid signatures counts once.
     Status: still stands.
 
-17. **L133-134 with L122-124. "Outside their own window" in step 1.** Does the window include the clock-skew allowance, and which allowance when the named policy is not supplied (the policy is only checked in step 3)?
-    Chosen: the terms' own `notBefore` and `deadline`, widened by the named policy's `maxClockSkewMs`, or by 0 when that policy is missing or has no usable value.
-    Other: no allowance in step 1; or terms with an unsupplied policy are never late and fall through to `invalid` (my reading can give `unknown` instead).
-    Status: still stands.
+17. **L155-157 with L142-144. "Outside their own window" in step 1**: with or without the skew allowance, and with which allowance when the named policy is not supplied.
+    Status: Settled at c29bc5d44: `inTime` with the terms' own `notBefore`, `deadline` and named policy; terms that name an unsupplied policy are not timed and reach step 3 (L155-157). `replay.js` changed (it used an allowance of 0).
 
-18. **L126-132. Scope of the route test.**
-    (a) "at least one acknowledgment": from any requester?
-    (b) "If any acknowledgment is presented": chosen, any for the terms' `attemptId`. Other: any acknowledgment in the row, whatever its `attemptId`.
+18. **L147-154. Scope of the route test.**
+    (a) Whose acknowledgments count. (b) Which acknowledgments "any acknowledgment" means.
     (c) Records that step 4 would later call late still count here (chosen).
-    (d) Terms that are both off the route and outside their window are listed as `foreign` only (chosen). Other: both lists.
-    Status: partly settled. Settled at 4ee9dd6b2: (a), because L115-118 sends an acknowledgment only to the row of the requester it names, so another requester's acknowledgment is never seen. (b), (c) and (d) still stand.
+    (d) Terms that are both contradicted and outside their window are listed as `foreign` only (chosen). Other: both lists.
+    Status: partly settled. (a) was settled at 4ee9dd6b2 (an acknowledgment goes only to its requester's attempt, L136-139). Settled at c29bc5d44: (b), "look at the records with the terms' `attemptId`" (L147-148). (c) and (d) still stand.
 
-19. **Old L128-130. "only those that a stage they name accepted are kept."** Must that acceptance be in time, and must it carry the terms' `attemptId`?
-    Status: Settled at 4ee9dd6b2: the sentence is gone. Each requester has its own row (L115-121), so terms from two requesters never meet.
+19. **"Only those that a stage they name accepted are kept"** (a sentence of 20121ae60).
+    Status: Settled at 4ee9dd6b2, and still: the sentence is gone and each requester has its own attempt (L32-35, L136-141).
 
-20. **L136 with L122-124. "In-time acceptance" before any terms are agreed.** `inTime` is defined on the agreed terms, and this step is choosing them.
+20. **L158-160 with L142-144. "In-time acceptance" before any terms are agreed.** `inTime` is defined on the agreed terms, and this step is choosing them.
     Chosen: each acceptance is timed against the set it names and that set's policy.
     Other: against every remaining set, or against the widest window.
     Status: still stands.
 
-21. **L135-139. An in-time acceptance that names a digest outside the remaining sets** (foreign, late or never presented terms).
+21. **L158-163. An in-time acceptance that names a digest outside the remaining sets** (foreign, late or never presented terms).
     Chosen: ignored.
     Other: counts as "acceptances name different sets", so `conflict`.
     Status: still stands.
 
-22. **L137-139. What `conflicts` holds in step 2.** The entry for the `conflict` outcome is not described, and the member that carries "the settled digest" is not named.
-    Chosen: `{ signer: requester, kind: 'terms-equivocation', blocking: true }` for the conflict. The non-blocking entry carries the agreed terms digest as `settledOn`.
-    Other: another member name for the digest (`termsDigest`, `digest`).
-    Status: partly settled. L160 names `settledOn` for the acknowledgment entry; step 2 still says only "the settled digest", so `settledOn` there is by analogy. The blocking entry is still not described.
+22. **L160-163, L300. What `conflicts` holds in step 2.**
+    Status: Settled at c29bc5d44: the agreed digest is `settledOn` (L161-162), and the table gives both forms of the entry, non-blocking with `settledOn` and blocking without, each with `digests` and the requester as `signer` (L300). `replay.js` follows it. What `digests` holds is item 60.
 
-23. **Old L131-135. `requesterId` when step 2 ends in `conflict`.**
-    Status: Settled at 4ee9dd6b2: a row is one (reservation, requester) attempt (L118-119), so every row carries its requester whatever the outcome. `replay.js` now always sets it.
+23. **`requesterId` when step 2 ends in `conflict`.**
+    Status: Settled at 4ee9dd6b2, and stated outright now: an attempt is one (`reservationId`, `requesterId`) pair and one row (L32-35).
 
-24. **L136. Several sets from one requester with different `attemptId`s** (a retry under the same reservation ID).
-    Chosen: treated exactly like equivocation: needs in-time acceptances of exactly one set, else `conflict`.
-    Other: each `attemptId` is decided separately.
-    Status: still stands, and item 55 makes it sharper.
+24. **L158-159. Several sets from one requester with different `attemptId`s.**
+    Status: Settled at c29bc5d44: "several sets (whatever their `attemptId`s)" are one equivocation (L158-159). `replay.js` already did this; a second set under an `attemptId` with no records now passes step 1 (item 41), so it takes part.
 
-25. **L144-151. A party's record of the agreed attempt that fails another test** (a receipt or acknowledgment with a different `routeHash`, an acceptance of another digest). It is neither "another attempt" nor "from a non-party".
-    Chosen: dropped without being listed, so a late acceptance of non-agreed terms appears nowhere.
-    Other: listed, or treated as a contradiction by its signer.
-    Status: still stands.
+25. **L170-179. A party's record with the agreed `attemptId` that fails another test** (a receipt or acknowledgment with a different `routeHash`, an acceptance of another digest or for a share that is not its own). It is neither "another `attemptId`" nor "from a non-party".
+    Chosen: not kept, and dropped without being listed.
+    Other: listed as `late`. The new wording invites it: "An acceptance counts only for the agreed terms digest and its own share" uses "counts" where the two sentences before it state keeping conditions, and "a kept record that does not count is listed as `late`" would then list an in-time acceptance of another digest as late.
+    Status: still stands, and is sharper.
 
-26. **L149-150. `late` when the outcome is decided in steps 1 to 3.**
-    Chosen: only late terms are listed; step-4 records are classified only if step 4 is reached. Entries are `{ index, schema }`. The same holds for `unmatched`, which is filled only in step 5.
-    Other: classify against the agreed terms whenever terms are agreed (for `invalid`).
-    Status: still stands.
+26. **L177-178. `late` when the outcome is decided in steps 1 to 3.**
+    Chosen: only late terms are listed; step-4 records are classified only if step 4 is reached, so not on an `invalid` row nor on a step-2 `conflict` or `unknown`. The same holds for `unmatched`. Entries are `{ index, schema }`.
+    Other: classify against the agreed terms whenever terms are agreed and their policy is supplied, `invalid` rows included.
+    Status: partly settled. "Whatever the outcome" (L177-178) settles that the listing does not depend on what a later step decides. It does not say whether it also covers a row decided at step 3, before any record is "kept".
 
-27. **L164-172, L197-198, L243-244. Conflict `kind`s.** The text names `terms-equivocation` (L138) and `acknowledgment-equivocation` (L159) only.
-    Chosen (invented) for the rest: `receipt-sequence-repeated`, `receipt-steps-backwards`, `receipt-after-closing` (L165-166); `output-chain-equivocation` (L167); `disputed-chain` (L168-170); `charge-binding-not-starting-chain` (L171-172); `steps-below-acknowledged` (L197-198). One entry per signer and kind for receipt faults and for the final stage's two chains, one per count for `disputed-chain`, all `blocking: true`.
-    Status: partly settled. Settled at 4ee9dd6b2: the requester's second acknowledgment has a named kind. The five blocking cases still have none.
+27. **L291-306. Conflict `kind`s.**
+    Status: Settled at c29bc5d44: the table names every kind (`terms-equivocation`, `acknowledgment-equivocation`, `stage-receipt`, `output-chain`, `charge-binding`, `steps`) with its signer and members. `replay.js` uses them and no longer invents any.
 
-28. **L165-166. Order for "steps that go backwards"; what "a closing receipt" is.**
-    Chosen: order by `sequence`. A closing receipt is any `settled` or `failed` receipt, with or without `closedAt`; any receipt with a higher `sequence` continues after it.
-    Other: order by `signedAt`; only a receipt with `closedAt` closes.
-    Status: still stands.
+28. **L195-196 with L175 and L302. Order for "steps that go backwards"; what "a closing receipt" is.**
+    Chosen: order by `sequence`.
+    Other: order by `signedAt`.
+    Status: partly settled. Settled at c29bc5d44: a closing receipt (L175). The order is still not stated, though `sequences` (L302) and "highest-`sequence`" (L204) point to sequence order.
 
-29. **Old L151-153. Requester signs two chains for one count: who is listed?**
-    Status: Settled at 4ee9dd6b2: when one of them is the final stage's chain the count is charged and the other is a non-blocking `acknowledgment-equivocation` against the requester (L157-160, L263-266); when none is, the outcome is `conflict` with `signer: null` and `signers` naming both (L168-170). `replay.js` follows both.
+29. **Requester signs two chains for one count: who is listed?**
+    Status: Settled at 4ee9dd6b2, and still: non-blocking `acknowledgment-equivocation` when one of them is the final stage's chain (L188-190, L301), an `output-chain` entry with `signer: null` when none is (L200-201, L304, L308-310).
 
-30. **L152-153, L167. Which of the final stage's receipts are compared.**
-    Chosen: every in-time receipt of the final stage that carries an `output`.
-    Status: partly settled. Settled at 4ee9dd6b2: "its receipts" (L152-153, L167) means all of them, not only the latest. Whether late receipts count is still open: see item 47.
+30. **L180-182, L194. Which of the final stage's receipts are compared.**
+    Status: Settled at c29bc5d44: "every kept receipt of the final stage with an `output` ..., whenever it was signed" (L180-182), and the conflict tests hold "late receipts included" (L194).
 
-31. **L171-172 with L65-66. A missing charge binding.** The text covers only a wrong chain.
-    Chosen: no in-time count-0 acknowledgment is not a contradiction and does not prevent `settled`. A wrong one, with no right one beside it, is listed against the requester.
+31. **L202-203 with L78-79. A missing charge binding.** The text covers only a wrong chain.
+    Chosen: no in-time count-0 acknowledgment is not a contradiction and does not prevent `settled`.
     Other: `unknown` or `conflict` when it is missing.
     Status: still stands.
 
-32. **L173-175, L178, L197, L202. "Latest".**
-    Chosen: the highest `sequence` among in-time receipts (step 5 leaves no ties).
-    Other: the greatest `signedAt`.
-    Status: still stands.
+32. **L204-205. "Latest".**
+    Status: Settled at c29bc5d44: "its highest-`sequence` receipt that counts (step 4)".
 
-33. **L180, L184-185. The verification time.**
-    Chosen: no skew allowance on `deadline + releaseWindowMs`; `at` equal to it is past the window. Nothing relates `at` to record times, so a record dated after `at` counts. When `at` is not a number the window has not passed (`open`).
+33. **L213, L216-217. The verification time.**
+    Chosen: nothing relates `at` to record times, so a record dated after `at` counts. When `at` is not a number the window has not passed (`open`).
     Other: ignore records signed after `at`; `expired` or an error for an unusable `at`.
-    Status: still stands. L180 now writes `at >= deadline + releaseWindowMs` out, which agrees with the chosen boundary.
+    Status: still stands. The boundary itself is written out (`at < deadline + releaseWindowMs` is before the window).
 
-34. **L197-198. Signer of the step-7 conflict; the count with no acknowledgment.**
-    Chosen: each stage whose latest receipt has fewer steps.
-    Other: the requester (it acknowledged outputs a stage says it did not compute), or both.
-    Status: partly settled. Settled at 4ee9dd6b2: the acknowledged count is "0 if none" (L156). The signer is still not stated. Under the new step 5, read as in item 47, only a non-final stage can be behind.
+34. **L234-235, L306. Signer of the step-7 conflict; the count with no acknowledgment.**
+    Status: Settled at c29bc5d44: the entry is `steps`, against that stage, with `partitionIndex` (L306); the count was settled at 4ee9dd6b2 ("0 if none", L185).
 
-## Split and result (lines 218-251)
+## Split and result (lines 255-310)
 
-35. **L220-225. An own-account stage in the credits.**
+35. **L257-262. An own-account stage in the credits.**
     Chosen: its entry is kept with `amount: 0`, and the debit is `U` minus its share, so the listed credits sum to the debit, not to `U`.
     Other: list the raw share and mark it; leave the entry out.
     Status: still stands.
 
-36. **L225-227. `accountOf` and `balances`.** The signature of `accountOf`, whether it is synchronous, what it returns and what an unplaced participant means are not stated ("as the ledger does" points at code I may not read). The place, shape and sign of `balances` are not stated.
+36. **L262-264. `accountOf` and `balances`.** The signature of `accountOf`, whether it is synchronous, what it returns and what an unplaced participant means are not stated ("as the ledger does" points at code I may not read). The place, shape and sign of `balances` are not stated.
     Chosen: `accountOf` is a function (or a Map) from participant ID to an account key, awaited, compared with `===`; a participant it does not place is its own account. `balances` is not produced.
     Status: still stands.
 
-37. **L115-121, L231-251. The result's shape.**
-    Chosen: the interface I was given (`reservationId`, `outcome`, `reason`, `requesterId`, `termsDigest`, `units`, `debit`, `credits`, `late`, `foreign`, `conflicts`), one entry per (reservation, requester), plus the two members the text now names, `unmatched` and `closedAtLastStep`.
-    Status: partly settled. Settled at 4ee9dd6b2: what a row is (L118-119), and the row members `unmatched` (L162, L250) and `closedAtLastStep` (L181). Still open: the names of the amount members, the entry shapes (items 51 and 54), and which rows exist (item 45).
+37. **L32-35, L287-306. The result's shape.**
+    Chosen: the interface I was given (`reservationId`, `outcome`, `reason`, `requesterId`, `termsDigest`, `units`, `debit`, `credits`, `late`, `foreign`, `conflicts`), one entry per attempt, plus `unmatched` and `closedAtLastStep`.
+    Status: partly settled. Settled: what a row is (L32-35), and at c29bc5d44 the members of every `conflicts` entry (L291-306). Still open: the names of the amount members, the entry shapes of `late`, `foreign`, `unmatched` (item 51) and `closedAtLastStep` (item 54), and which rows exist (item 45). L287-289 lists a row's members without `closedAtLastStep` or `conflicts`.
 
-## Looks self-contradictory or wrong
+## Looks self-contradictory or wrong (items of 20121ae60)
 
-38. **L62-64 against L153-154.** "A verifier ... cannot recompute them" is said of chain values, but the starting value can and must be recomputed.
-    Status: partly settled. Step 5 now says the starting value is one "anyone can compute" (L153-154). The sentence at L62-64 is unchanged and still reads as if no chain value can be recomputed.
+38. **L76-77.** "Cannot recompute them" was said of chain values although the starting value must be recomputed.
+    Status: Settled at c29bc5d44: "cannot recompute any value after the first" (L76-77).
 
-39. **Old L224-225 against old step 5.** "A stage that signs two chains ... loses its own payment", but no bullet covered two final-stage receipts with different chains for one count.
-    Status: Settled at 4ee9dd6b2: "the final stage's receipts give two chains for one count" is now a conflict (L167). `replay.js` lists it against the final stage.
+39. **A stage that signs two chains** had no step-5 bullet.
+    Status: Settled at 4ee9dd6b2, and still (L197-199, L303).
 
-40. **L210-216.** The last bullet, "Otherwise the charge units are ...", follows a bullet that has already covered both branches.
-    Chosen: the units are 0 only under provider-loss-free terms when the answer did not finish, was not stopped and was not withheld; in every other case they are `min(acknowledged, maxOutputTokens) * creditsPerOutputToken`.
-    Status: still stands.
+40. **L247-253.** The last bullet of step 9 began "Otherwise" after a bullet that had covered both branches.
+    Status: Settled at c29bc5d44: "In every other case, including `unfinishedTerms: null` (older terms) or any other value, the charge units are ..." (L251-253).
 
-41. **L126-132 against L240-242.** Terms with no receipt and no acknowledgment are `foreign`. A row that has terms and acceptances but never started is therefore `unknown` for ever, never `open` or `expired`, although "expired" is described as the state of an attempt whose release window passed without closing.
-    Chosen: the literal step 1.
-    Status: still stands.
+41. **L153-154, L218-219, L276-278.** Terms with no receipt and no acknowledgment were `foreign`, so an attempt that never started was `unknown` for ever.
+    Status: Settled at c29bc5d44: such terms pass step 1 and the attempt is `open`, then `expired` (L153-154, L218-219, L276-278). `replay.js` changed.
 
-42. **L236-238 against L210-214.** "A stage that closes early on its own, even with a `failed` receipt, earns nothing and costs the requester nothing" reads as unconditional. By step 9 it holds only under provider-loss-free terms, and `failed` against `settled` never changes an amount.
-    Chosen: step 9. A `failed` stage is paid its share whenever units are charged.
-    Status: still stands.
+42. **L270-275.** "A stage that closes early on its own, even with a `failed` receipt, earns nothing" read as unconditional.
+    Status: Settled at c29bc5d44: it is now tied to provider-loss-free terms, and "`failed` and `settled` closes are paid alike" otherwise (L270-275).
 
-43. **L310-311 against L122-124.** "Those acceptances count only when signed before the deadline plus the clock skew allowance" gives only the upper bound of `inTime`.
-    Chosen: both bounds.
-    Status: still stands.
+43. **L377-379.** The Stage 1 paragraph gave only the upper bound of `inTime`.
+    Status: Settled at c29bc5d44: "signed `inTime`, between `notBefore` and the deadline, each widened by the clock skew allowance".
 
-44. **L24-29 against L104-108 and L140-143.** `K` is said to be fixed by the stages' receiver policy, but the replay reads no such value and step 3 does not check `maxUnacknowledgedOutputs`. Terms with a very large `K` can never be "withheld", and the replay cannot tell.
-    Chosen: no check.
-    Status: still stands.
+44. **L28-29, L127-129, L166-168.** The replay did not check `maxUnacknowledgedOutputs`.
+    Status: Settled at c29bc5d44: step 3 is `invalid` unless it equals the receiver policy's `K`. `replay.js` changed. How a verifier is given `K` is item 59.
 
-## New at 4ee9dd6b2: not determined by the text
+## Added at 4ee9dd6b2: not determined by the text
 
-45. **L115-121. A reservation whose records name no requester.** Acceptances and stage receipts are "offered to every attempt under that reservation"; with no terms, acknowledgment or stop there is no attempt.
+45. **L136-139. A reservation whose records name no requester.** Acceptances and stage receipts are "offered to every attempt under their `reservationId`"; with no terms, acknowledgment or stop there is no attempt.
     Chosen: no row. Those records are reported nowhere. (A lone acknowledgment or stop does make a row, which is `unknown` at step 2.)
     Other: one row with `requesterId: null` and outcome `unknown`.
+    Status: still stands.
 
-46. **L118-119. Order of the rows.**
+46. **L32-34. Order of the rows.**
     Chosen: by `reservationId`, then `requesterId`, both in UTF-16 code unit order.
     Other: order of first appearance in the input.
+    Status: still stands.
 
-47. **L152-153, L161-162, L167. Which final-stage receipts commit a chain.** Step 4 says late records are ignored and only the first conflict bullet says "late receipts included", but L161 says "no presented final-stage receipt".
-    Chosen: in-time receipts only, for the committed chain, for `unmatched` and for "two chains for one count". An acknowledgment of a count that only a late receipt commits to is `unmatched`.
-    Other: late receipts commit too (then that acknowledgment is matched, or at least not `unmatched`, and a late second chain is a conflict).
+47. **L180-182, L191-194. Which final-stage receipts commit a chain**: in-time ones only, or late ones too.
+    Status: Settled at c29bc5d44: every kept receipt, "whenever it was signed", and the conflict tests include late receipts. `replay.js` changed (it used in-time receipts only).
 
-48. **L153-154, L167. A final-stage receipt whose count-0 chain is not the starting value.**
-    Chosen: the committed chain at count 0 is the starting value whatever a receipt says; one such receipt alone is not a conflict; two receipts with different count-0 chains are.
-    Other: the starting value counts as the first chain at count 0, so a receipt that gives another is "two chains for one count" against the final stage.
+48. **L182-183, L197-199. A final-stage receipt whose count-0 chain is not the starting value.**
+    Status: Settled at c29bc5d44: it is "two chains for one count", a conflict against the final stage, acknowledged or not. `replay.js` changed (it was not a conflict).
 
-49. **L168-172. The third and fourth conflict bullets overlap at count 0; signer of a wrong charge binding.** A wrong binding with no right one is literally also "none of its chains for that count is the final stage's".
-    Chosen: count 0 is judged by the charge-binding bullet only, with one entry against the requester (the starting value is computable, so the record does show who is wrong). The `signer: null` entry is used for counts above 0.
-    Other: the `signer: null` entry at count 0 too, or both entries.
+49. **L200-203, L304-305. The disputed-chain and charge-binding bullets overlap at count 0.** A wrong binding with no right one is literally also "none of its chains for that count is the final stage's".
+    Chosen: at count 0 only the `charge-binding` entry. The `output-chain` entry with `signer: null` is used for counts above 0.
+    Other: both entries at count 0.
+    Status: partly settled. Settled at c29bc5d44: the entry for a wrong binding is `charge-binding`, against the requester, with `count: 0` (L305). The overlap is still not addressed.
 
-50. **L157-160. How many `acknowledgment-equivocation` entries.** The entry has no count and no record index, so two extra acknowledgments of one count give identical entries.
-    Chosen: one entry per extra acknowledgment, in count order.
-    Other: one per count; or the entry carries the count or the record index.
+50. **L188-190, L301. How many `acknowledgment-equivocation` entries.**
+    Status: Settled at c29bc5d44: the entry carries `count` and `chains` (the other chains), so there is one per count (L301). `replay.js` changed (it listed one per extra acknowledgment). The unmatched case is item 61.
 
-51. **L161-162, L249-250. Shape of an `unmatched` entry.**
+51. **L191-192, L287-288. Shape of an `unmatched` entry.**
     Chosen: `{ index, count }`.
     Other: `{ index }` or `{ index, schema }` like `late`.
+    Status: still stands.
 
-52. **L168-170. Order of `signers`; which entries carry `signers` and `settledOn`.**
-    Chosen: `[requester, final stage]`. `signers` appears only on that entry and `settledOn` only on the two equivocation entries; no other entry has those members. The order of entries inside `conflicts` is step 2, receipt faults in stage order, the final stage's two chains, then per count ascending.
-    Other: final stage first, or sorted; every entry carries all members with `null`.
+52. **L298-306. Order of `signers`; which entries carry which members.**
+    Status: Settled at c29bc5d44: "`signers`: the final stage and the requester" (L304), and the table gives each kind's members. `replay.js` changed the order to final stage, then requester. The order of entries inside `conflicts` is item 63.
 
-53. **L177-183. `open` against `unknown` for a delivered answer before the release window.** "Before then the outcome is `open`" is said of a stage that has a covering receipt; "A stage with no in-time receipt covering the answer makes the outcome `unknown`" has no time condition.
-    Chosen: `unknown` at any time when some unclosed stage has no in-time receipt with `steps >= N`; otherwise `open` before the window and settled after it.
-    Other: `open` for every delivered, unclosed attempt until the window passes, `unknown` only after it.
+53. **L208-213. `open` against `unknown` for a delivered answer before the release window.**
+    Status: Settled at c29bc5d44: "the outcome is `unknown`, whatever the time" (L209-210). `replay.js` already did this.
 
-54. **L180-182. Shape of a `closedAtLastStep` entry, and whether it survives a later step.**
+54. **L213-215. Shape of a `closedAtLastStep` entry, and whether it survives a later step.**
     Chosen: `{ partitionIndex, participantId }`, one per stage treated as closed. The entries stay on the row if step 7 or step 8 then decides it (`conflict` or `unknown`).
     Other: partition indexes or participant IDs alone; emptied unless the row settles.
+    Status: still stands.
 
-## New at 4ee9dd6b2: looks self-contradictory or wrong
+## Added at 4ee9dd6b2: looked self-contradictory or wrong
 
-55. **L115-121 against L126-151. "Attempt" now has two meanings.** It is the (reservation, requester) row at L116-121, and the `attemptId` at L127, L145 and L150 ("Records that name another attempt"); "the attempt's route" (L126) and "Records of this attempt" (L144) can be read either way. One requester with two `attemptId`s under a reservation is one "attempt" in the first sense and two in the second; the text does not say which governs (item 24).
-    Chosen: one row per (reservation, requester); the `attemptId` only filters records inside it.
+55. **"Attempt" had two meanings.**
+    Status: Settled at c29bc5d44: an attempt is always one (`reservationId`, `requesterId`) pair, and the field is always called `attemptId` (L32-35).
 
-56. **L203-205, L233-234 and L238-239 against L152-162.** "The requester then owes every output it acknowledged in time" and "debited for the outputs it acknowledged in time", but an in-time acknowledgment that is `unmatched` is not charged, and the charge follows the highest matched count.
+56. **"Owes every output it acknowledged in time"** against the matched count.
+    Status: Settled at c29bc5d44: "the one charge rule" is the acknowledged count of step 5 (L185-187), and steps 9 and "settled" now refer to it (L240-242, L270).
+
+57. **"`conflicts` names the signer"** against the entry with `signer: null` and the non-blocking entries.
+    Status: Settled at c29bc5d44 (L280-281, L293-296, L315-317).
+
+58. **Replay against ledger.**
+    Status: Settled at c29bc5d44: the ledger applies the step-6 rule at window expiry (L226-228), and L385-393 says where the two agree and where they differ.
+
+## New at c29bc5d44: not determined by the text
+
+59. **L127-129, L166-168. How a verifier is given `K`.** The replay "reads" it from the stages' receiver policy, which is not one of the public policies, and "a verifier may be given another value for stages that publish one"; no input is named, and "for stages" may mean one value or one per stage.
+    Chosen: an optional input `receiverPolicy`, an object with `maxUnacknowledgedOutputs`. Without a usable one `K` is 2, the value the text gives. One value serves every stage.
+    Other: a bare number under another name; a value per stage; `invalid` when none is given.
+
+60. **L160-162, L300. What `digests` holds.**
+    Chosen: the digest of every set left after step 1 (so not foreign or late sets), sorted in code unit order.
+    Other: every set the requester signed; presentation order; the agreed digest first.
+
+61. **L188-190, L301. `acknowledgment-equivocation` on a count that is not matched.** Step 5 lists the entry only for a matched count; the table gives `settledOn` "when the count is matched", which implies entries where it is not, and "`chains` (the other chains)" has no meaning without a matched chain.
+    Chosen: one entry for every count that has two or more different in-time acknowledged chains. When the count is matched, `chains` holds the chains other than `settledOn`; when it is not (an `unmatched` count, a disputed chain, or two wrong charge bindings), `chains` holds all of them and there is no `settledOn`. `chains` is sorted.
+    Other: entries for matched counts only.
+
+62. **L195-196, L302. `stage-receipt` entries.** One kind covers three faults, and "`sequences` (the two that conflict)" does not say which two when the fault is against an earlier, not adjacent, receipt, nor how many entries a stage gets.
+    Chosen: per stage, one entry per distinct pair: `[s, s]` for a repeated sequence; `[the earliest earlier receipt with the most steps, s]` when the steps at `s` are below it; `[the first closing receipt, s]` for every receipt after it.
+    Other: adjacent receipts only; one entry per stage; the first fault only.
+
+63. **L293-306. Order of the entries in `conflicts`.**
+    Chosen: step order: `terms-equivocation`; `stage-receipt` by stage, then sequence; the final stage's `output-chain` by count; then per acknowledged count ascending, the `charge-binding` or `signer: null` entry followed by `acknowledgment-equivocation`; `steps` by stage.
+    Other: any other order; sorted by kind.
+
+64. **L293. "Every contradiction found, on any outcome."** Are contradictions looked for in steps a row never reaches?
+    Chosen: no. A row decided at step 2 or 3 has no step-5 entries, and a row that step 5 makes `conflict` has no `steps` entry.
+    Other: every test runs whenever terms are agreed.
+
+65. **L155-160. Timing against a policy that cannot give an allowance.** Step 1 says terms that name an unsupplied policy "are not timed here". It does not say the same of a supplied policy with no usable `maxClockSkewMs`, nor of step 2's "in-time acceptance" for a set whose policy is unsupplied.
+    Chosen: none of them is timed: such terms are never `late`, acceptances of them count as in time in step 2, and the attempt is `invalid` if it reaches step 3 with them.
+    Other: an allowance of 0; such acceptances never count.
+
+66. **L208-210. An unclosed stage with no receipt that counts, in a delivered answer.** "If any such stage has `steps < N`" presumes a latest receipt.
+    Chosen: a stage with no latest receipt has none that covers the answer, so `unknown` (as L282-283 puts it). In JavaScript `undefined < N` is false, so a literal transcription would treat that stage as covered and pay it.
+
+## New at c29bc5d44: looks self-contradictory or wrong
+
+67. **L47-52 against L58-60.** "A record accepts only this one [text], because neither member is signed and a relay could otherwise make a second accepted form of a record." For P-256 a relay still can: for a valid `r || s`, `r || (n - s)` also verifies over the same body and is canonical base64url of 64 bytes. Nothing requires low-S. The outcome is unaffected, because identical bodies count once (L136).
+    Chosen: both forms are accepted.
+
+68. **L142-145.** `inTime` ends at `deadline + maxClockSkewMs`, inclusive; `closesInTime` ends at `deadline + releaseWindowMs`, exclusive and with no skew allowance. Nothing requires `partitionUnclaimedReleaseMs` to exceed `maxClockSkewMs`, so under a policy where it does not, a closing receipt has a shorter window than an ordinary one: a `settled` receipt with `closedAt` can be late at an instant where the same receipt without `closedAt` would count.
+    Chosen: the two definitions as written.
+
+69. **L177-178 against L180-182 and L194.** Step 4 says a kept record that does not count is "listed as `late` and ignored". Step 5 then uses late receipts to commit chains and in every conflict test, so a late receipt is not ignored.
     Chosen: step 5.
-
-57. **L243-244 and L256-257 against L137-138, L158-160 and L168-170.** "`conflicts` names the signer and the kind" and "The listed signer is the party that contradicted itself", but the disputed-chain entry has `signer: null`, and `conflicts` also holds non-blocking entries on rows whose outcome is not `conflict`.
-    Chosen: the step text.
-
-58. **L193-196 against L311-315 and L325-326.** Step 6 says the replay now settles an attempt the live ledger has not. The Stage 1 rule that a receipt "fails unless the replay matches the ledger", and the claim that the unit tests check the replay's charge and credits equal the ledger's "for the same signed records", are stated without that exception.
-    Chosen: nothing to implement; the replay does not read the ledger.
