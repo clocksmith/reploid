@@ -75,7 +75,13 @@ export function createVisibilityTrace() {
       } } : {}),
       async executeStage(input) {
         const ids = Array.isArray(input.inputTokenIds) ? input.inputTokenIds : null;
-        const result = await resident.executeStage(input);
+        let result;
+        try { result = await resident.executeStage(input); }
+        catch (error) {
+          push(input.identity?.attemptId ?? 'unknown', { op: 'step-failed', step: input.step, inputTokenCount: input.inputTokenCount,
+            tokenContext: input.tokenContext ?? (ids ? 'sent' : 'absent'), error: String(error?.stack ?? error?.message ?? error).slice(0, 1500) });
+          throw error;
+        }
         push(input.identity?.attemptId ?? 'unknown', { op: 'step', step: input.step, inputTokenCount: input.inputTokenCount,
           tokenContext: input.tokenContext ?? (ids ? 'sent' : 'absent'), tokenIds: ids ? { count: ids.length, nonzero: ids.filter(id => id !== 0).length,
             digest: digestOf(ids) } : null,
