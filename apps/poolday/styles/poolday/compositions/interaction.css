@@ -1,6 +1,5 @@
 /* Shared settings, contribution, changes, and execution inspection. */
-.permission-content { white-space: pre-wrap; overflow-wrap: anywhere;  }
-.permission-summary pre { white-space: pre-wrap; overflow-wrap: anywhere;  }
+.permission-content, .permission-summary pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 .attachment-chip { display: inline-flex; align-items: center; gap: var(--pool-size-4); }
 /* Network and changes reuse the conversation materials and disclosure treatment. */
 .network-workspace { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); align-items: start; }
@@ -167,5 +166,4 @@ ul:not([data-show-quiet="true"]) > .network-peer-row[data-quiet="true"] { displa
 .network-peer-facts caption span { display: block; }
 .network-peer-identifiers { display: grid; gap: var(--pool-size-12); }
 .network-peer-identifiers > div { display: grid; gap: var(--pool-size-4); min-width: 0; }
-.network-peer-details [data-computer-rename] > button { align-self: start; }
-.network-peer-details [data-computer-block] > button { align-self: start; }
+.network-peer-details :is([data-computer-rename], [data-computer-block]) > button { align-self: start; }

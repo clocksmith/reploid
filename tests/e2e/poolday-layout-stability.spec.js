@@ -197,3 +197,46 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
     });
   });
 }
+
+/*
+ * Opening a side drawer never moves the conversation, and never leaves a composer control under the drawer. A window
+ * wide enough holds the drawers in its side margins; a narrower one lets the drawer lie over the conversation's edge,
+ * and the composer gives up that strip.
+ */
+for (const width of [800, 1100, 1280, 1366, 1440, 1728]) {
+  test(`drawers leave the conversation in place and the composer's controls uncovered at ${width} px`, async ({ page, baseURL }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await open(page, baseURL, '/?view=chat');
+    await expect(page.locator('[data-composer-input]')).toBeVisible();
+    // Two frames first: with reduced motion a changed box settles on the frame after the change, not within it.
+    const measure = () => page.evaluate(async () => {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const edges = node => { const box = node.getBoundingClientRect(); return { left: Math.round(box.left), right: Math.round(box.right) }; };
+      const drawers = [...document.querySelectorAll('.chat-inspector-slot, .chat-threads-dialog')].filter(node => !node.hidden && node.getBoundingClientRect().width);
+      const under = [];
+      for (const control of document.querySelectorAll('[data-composer-area] :is(button, textarea, select)')) {
+        const box = control.getBoundingClientRect();
+        if (!box.width || !box.height) continue;
+        for (const drawer of drawers) {
+          const cover = drawer.getBoundingClientRect();
+          if (Math.min(box.right, cover.right) - Math.max(box.left, cover.left) > 0.5) under.push(control.getAttribute('aria-label') || control.tagName);
+        }
+      }
+      const toolbar = document.querySelector('.chat-composer-toolbar');
+      return { composer: edges(document.querySelector('[data-composer-area]')), transcript: edges(document.querySelector('[data-chat-transcript]')),
+        drawers: drawers.length, under, toolbarOverflow: toolbar.scrollWidth - toolbar.clientWidth };
+    });
+    const closed = await measure();
+    expect(closed.drawers).toBe(0);
+    for (const view of ['computers', 'settings', 'threads']) {
+      await page.locator(`[data-workspace-view="${view}"]:visible`).first().click();
+      await expect(page.locator(view === 'threads' ? '[data-threads-dialog]' : '#network-inspector-panel')).toBeVisible();
+      const opened = await measure();
+      expect(opened.drawers, `${view}: a drawer is open`).toBeGreaterThan(0);
+      expect(opened.composer, `${view}: the composer's box`).toEqual(closed.composer);
+      expect(opened.transcript, `${view}: the transcript's box`).toEqual(closed.transcript);
+      expect(opened.under, `${view}: composer controls under a drawer`).toEqual([]);
+      expect(opened.toolbarOverflow, `${view}: the composer's toolbar fits its row`).toBeLessThanOrEqual(1);
+    }
+  });
+}

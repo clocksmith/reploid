@@ -620,12 +620,16 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
       expect(rect.x).toBeGreaterThanOrEqual(field.x); expect(rect.x + rect.width).toBeLessThanOrEqual(field.x + field.width);
       expect(rect.height).toBeGreaterThanOrEqual(44);
     }
+    const chatBefore = await page.locator('[data-conversation-area]').boundingBox();
     await page.locator('[data-inspector-section="conversation"]').click();
     await expect(page.locator('[data-conversation-area]')).toBeVisible();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     const chat = await page.locator('[data-conversation-area]').boundingBox(), pane = await page.locator('[data-chat-inspector-slot]').boundingBox();
-    if (viewport.width >= 1100) expect(pane.x).toBeGreaterThanOrEqual(chat.x + chat.width);
-    else { expect(pane.x).toBeGreaterThanOrEqual(0); expect(pane.y + pane.height).toBeLessThanOrEqual(viewport.height); }
+    if (viewport.width > 760) {
+      // The drawer lies over the page: the conversation keeps its box, and the composer ends before the drawer begins.
+      expect(chat).toEqual(chatBefore);
+      await expect.poll(async () => { const open = await page.locator('[data-composer-field]').boundingBox(); return open.x + open.width; }).toBeLessThanOrEqual(pane.x);
+    } else { expect(pane.x).toBeGreaterThanOrEqual(0); expect(pane.y + pane.height).toBeLessThanOrEqual(viewport.height); }
     expect(await page.locator('[data-inspector-route]').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath('conversation-inspection.png') });
     await page.keyboard.press('Escape');
@@ -656,7 +660,9 @@ test('browser storage leases prevent removal across tabs until every owner relea
   await other.evaluate(() => window.releaseStorageProof()); expect(await attempt()).toBe('unused'); await other.close();
 });
 
-for (const width of [1280, 390, 320]) test(`two drawers preserve conversation and history at ${width}`, async ({ page }, info) => {
+// Both drawers stay open together only where each fits in a page margin (BOTH_DRAWERS_MIN_WIDTH, 1576 px).
+for (const width of [1600, 1280, 390, 320]) test(`two drawers preserve conversation and history at ${width}`, async ({ page }, info) => {
+  const both = width >= 1576;
   await page.setViewportSize({ width, height: 844 }); await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, width === 390 ? 'dark' : 'light');
   await page.evaluate(() => { window.setVisualState('completed'); window.setVisualThreads(); });
@@ -665,7 +671,7 @@ for (const width of [1280, 390, 320]) test(`two drawers preserve conversation an
   await page.locator('[data-toggle-thread-rail]').click(); await expect(left).toBeVisible();
   await expect(page.locator('[data-show-active]')).toBeChecked();
   await page.locator('[data-inspector-section="settings"]').click(); await expect(right).toBeVisible();
-  if (width >= 1200) { await expect(left).toBeVisible(); await expect(page).toHaveURL(/view=settings&threads=open/); }
+  if (both) { await expect(left).toBeVisible(); await expect(page).toHaveURL(/view=settings&threads=open/); }
   else { await expect(left).toBeHidden(); await expect(page).toHaveURL(/view=settings$/); }
   await expect(page.locator('[data-conversation-area]')).toBeVisible();
   const computers = page.locator('[data-workspace-view="computers"]');
@@ -677,11 +683,16 @@ for (const width of [1280, 390, 320]) test(`two drawers preserve conversation an
   await expect.poll(() => right.getAttribute('data-drawer-moving')).toBeNull();
   const l = await left.boundingBox(), r = await right.boundingBox(), c = await page.locator('[data-conversation-area]').boundingBox();
   expect(r.x).toBeGreaterThanOrEqual(0); expect(r.x + r.width).toBeLessThanOrEqual(width);
-  if (width >= 1200) { expect(c.x).toBeGreaterThanOrEqual(l.x + l.width); expect(c.x + c.width).toBeLessThanOrEqual(r.x); }
+  expect(c.width).toBeGreaterThan(0);
+  if (both) {
+    // The composer sits between the two drawers; neither covers it.
+    const field = await page.locator('[data-composer-field]').boundingBox();
+    expect(field.x).toBeGreaterThanOrEqual(l.x + l.width); expect(field.x + field.width).toBeLessThanOrEqual(r.x);
+  }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath(`two-drawers-${width}.png`) });
   await page.locator('[data-close-inspector]').click();
-  if (width >= 1200) await page.locator('[data-close-threads]').click();
+  if (both) await page.locator('[data-close-threads]').click();
   await expect(input).toHaveValue('Preserve this draft');
   expect(await input.evaluate(node => [node === window.originalComposer, node.selectionStart, node.selectionEnd])).toEqual([true, 3, 7]);
 });
@@ -833,17 +844,23 @@ test('unchanged provider updates preserve a reader near the transcript bottom', 
 });
 
 
-test('composer shrinks and rewraps after drawer changes without losing text', async ({ page }) => {
+test('composer narrows beside an open drawer and returns, without losing text', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 844 }); await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
-  const input = page.locator('[data-composer-input]');
+  const input = page.locator('[data-composer-input]'), draft = 'Wrapped draft text with several words. '.repeat(6);
   const baseline = (await input.boundingBox()).height;
-  await input.fill('Wrapped draft text with several words. '.repeat(6));
-  const wide = (await input.boundingBox()).height;
-  await page.locator('[data-toggle-thread-rail]').click(); await page.locator('[data-workspace-view=settings]').click();
-  await expect.poll(async () => (await input.boundingBox()).height).toBeGreaterThan(wide);
-  await page.locator('[data-close-inspector]').click(); await page.locator('[data-close-threads]').click();
-  await expect.poll(async () => (await input.boundingBox()).height).toBe(wide);
+  await input.fill(draft);
+  const wide = await input.boundingBox();
+  // At this width the Settings drawer lies over the composer's edge, and the composer gives up that strip: its text
+  // has less room, so it may wrap onto more lines and never onto fewer.
+  await page.locator('[data-workspace-view=settings]').click();
+  await expect.poll(async () => (await input.boundingBox()).width).toBeLessThan(wide.width);
+  const narrow = await input.boundingBox();
+  expect(narrow.x).toBe(wide.x); expect(narrow.height).toBeGreaterThanOrEqual(wide.height);
+  await expect(input).toHaveValue(draft);
+  await page.locator('[data-close-inspector]').click();
+  await expect.poll(async () => { const box = await input.boundingBox(); return [box.width, box.height]; }).toEqual([wide.width, wide.height]);
+  await expect(input).toHaveValue(draft);
   await input.fill('Short'); await expect.poll(async () => (await input.boundingBox()).height).toBe(baseline);
 });
 

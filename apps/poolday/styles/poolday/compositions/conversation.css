@@ -78,8 +78,7 @@
 .chat-message-meta { display: flex; flex-wrap: wrap; gap: var(--pool-size-8); }
 .chat-message-meta svg { width: var(--pool-size-16); height: var(--pool-size-16); flex: none; }
 .chat-message-meta > span { min-width: 0; white-space: nowrap; }
-.chat-message-meta [data-available="false"] { display: none; }
-.chat-receipt-label { display: none; }
+.chat-message-meta [data-available="false"], .chat-receipt-label { display: none; }
 .chat-message-footer { flex-wrap: wrap; min-height: var(--pool-size-44); }
 .chat-message-footer .chat-execution-activity { margin-left: 0; flex: none; }
 .chat-message-footer .chat-message-actions { min-width: var(--pool-size-44); }
@@ -384,7 +383,13 @@
 .pool-home [data-model-picker] .chat-execution-location button { min-width: 0; padding: var(--pool-size-8) var(--pool-size-4); white-space: normal; }
 
 /* The conversation keeps its place and width whether a drawer is open or not: the drawers lie over the page's side
-   margins and reserve no column. On a window too narrow for that, an open drawer covers the conversation's edge. */
+   margins and reserve no column. On a window too narrow for that, an open drawer covers the conversation's edge, and
+   the composer gives up exactly that strip so none of its controls sits under the drawer. Its other edge and the
+   transcript stay where they were. */
+@media (min-width: 761px) {
+  .pool-home[data-network-panel-open] .chat-composer-area { padding-inline-end: max(0px, calc(var(--pool-layout-inspector) + var(--pool-param-chat-gutter) + var(--pool-size-16) - (100vw - var(--pool-size-720)) / 2)); }
+  .reploid-chat-workspace[data-threads-open] .chat-composer-area { padding-inline-start: max(0px, calc(var(--pool-layout-threads) + var(--pool-param-chat-gutter) + var(--pool-size-16) - (100vw - var(--pool-size-720)) / 2)); }
+}
 @media (max-width: 760px) {
   .chat-inspector-slot, .chat-threads-dialog {
     top: var(--pool-size-8);
