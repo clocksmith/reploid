@@ -160,7 +160,7 @@ test('Settings measures browser model storage and removal uses the installed sto
   await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await page.locator('[data-workspace-view=settings]').click();
   await expect(page.locator('[data-model-storage]')).toBeVisible();
-  await expect(page.locator('[data-storage-status]')).toHaveText('No model downloads stored.');
+  await expect(page.locator('[data-storage-status]')).toHaveText('No model downloads stored. Choose a model in Answer on to download one.');
   // This isolated browser context contains only tiny test files, never user model weights.
   const proof = await page.evaluate(async () => {
     const { createModelStorage } = await import('/host/model-storage.js');

@@ -7,7 +7,7 @@ import policy from '../../config/computer-preferences.json' with { type: 'json' 
 import { setComputerNames, setBlockedComputers } from './computer-labels.js';
 import { hardwareText } from './execution-ribbon.js';
 
-export const renderComputerDiagnostic = () => `<details class="pool-disclosure" data-computer-diagnostic hidden>
+export const renderComputerDiagnostic = () => `<details class="pool-disclosure pool-disclosure-quiet" data-computer-diagnostic hidden>
   <summary>GPU check (optional)</summary><div class="pool-stack pool-gap-sm">
   <p class="pool-caption pool-muted">Runs a small test on this device’s GPU. Measurements and saved names stay in this browser. This check does not verify a computer’s identity.</p>
   <div class="pool-row pool-gap-sm"><button class="pool-button" type="button" data-gpu-check>Run GPU check</button><button class="pool-button" type="button" data-gpu-stop hidden>Stop check</button></div>

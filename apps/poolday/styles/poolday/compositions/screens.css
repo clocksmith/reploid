@@ -2871,9 +2871,9 @@ body[data-pool-route-id='home'] #app {
 .pool-settings > summary::-webkit-details-marker { display: none; }
 .pool-settings-panel {
   position: absolute; z-index: var(--pool-z-dropdown); right: 0;
-  top: calc(100% + var(--pool-size-8)); width: var(--pool-size-240);
+  top: calc(100% + var(--pool-size-8)); width: var(--pool-size-320);
   max-width: calc(100vw - var(--pool-space-page-gutter) * 2);
-  padding: var(--pool-size-8); display: grid; gap: var(--pool-size-16);
+  padding: var(--pool-size-16); display: grid; gap: var(--pool-size-16);
 }
 .pool-home .pool-theme-selector .pool-segment { flex: 1; min-width: 0; padding-inline: var(--pool-size-8); }
 @media (max-width: 760px) {

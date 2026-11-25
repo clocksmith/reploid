@@ -10,9 +10,9 @@ import { escapeHtml } from '../components/attachments.js';
 import { fileModeChoices } from './choice-availability.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 
-export const renderConnectionControl = () => `${renderToggleRow({ id: 'network-connection', title: 'Public network', status: 'Disconnected',
+export const renderConnectionControl = () => `<div>${renderToggleRow({ id: 'network-connection', title: 'Public network', status: 'Disconnected', icon: 'peers',
   statusAttrs: { 'data-connection-label': true }, switchAttrs: { 'aria-label': 'Connect to network', 'data-mesh-connect': true } })}
-<p class="pool-status-line pool-caption pool-muted" data-connection-detail role="status"></p>`;
+<p class="pool-status-line pool-caption pool-muted" data-connection-detail role="status"></p></div>`;
 
 /** Compute contribution: the Computers pane's "This device" controls. */
 export const renderComputeSharingControls = () => `<div class="pool-stack pool-gap-sm">
@@ -30,11 +30,10 @@ let fileModeLists = 0;
 /** File sharing and its download options; each rendering is its own radio group. */
 export const renderFileSharingControls = () => `<div class="pool-stack pool-gap-sm" data-file-sharing-row>
     ${renderToggleRow({ id: 'file-sharing', title: 'Share model files', status: 'Not sharing', statusAttrs: { 'data-file-contribution-label': true },
-      switchAttrs: { 'aria-label': 'Store and share model files', 'data-toggle-file-contribution': true } })}
-    <p class="pool-caption pool-muted">Let others download model files stored on this device.</p>
+      switchAttrs: { 'aria-label': 'Store and share model files', 'data-toggle-file-contribution': true }, icon: 'copy' })}
     <p class="pool-small" data-file-progress role="status" hidden></p>
   </div>
-  <details class="pool-disclosure" data-model-sharing-limits><summary>Download options</summary><div class="pool-stack pool-gap-md">
+  <details class="pool-disclosure pool-disclosure-quiet" data-model-sharing-limits><summary>Download options</summary><div class="pool-stack pool-gap-md">
     <label class="pool-stack pool-gap-xs">Model<select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
     ${renderOptions({ id: `file-mode-${++fileModeLists}`, label: 'Files to share', options: fileModeChoices().map(option => ({ ...option, key: option.value,
       title: escapeHtml(option.title), status: escapeHtml(option.status), inputAttrs: { 'data-file-mode': true } })) })}
@@ -61,7 +60,7 @@ const connectionPath = connection => ['relayed', 'direct'].includes(connection?.
 const CONNECTION_PATH_LABELS = { relayed: 'Relayed', direct: 'Direct' };
 
 /** Tables share the existing typography; raw identifiers stay one disclosure deeper. */
-const renderComputerDetails = () => `<details class="pool-disclosure network-peer-details" data-computer-details>
+const renderComputerDetails = () => `<details class="pool-disclosure pool-disclosure-quiet network-peer-details" data-computer-details>
   <summary>Details</summary><div class="pool-stack pool-gap-md">
     <div class="pool-table network-peer-facts"><table aria-label="Connection details"><tbody>
       <tr><th scope="row">Connection</th><td data-computer-path></td></tr>
@@ -77,14 +76,14 @@ const renderComputerDetails = () => `<details class="pool-disclosure network-pee
         <tr><th scope="row">Served receipts</th><td data-computer-served-receipts></td></tr>
         <tr><th scope="row">Consumed receipts</th><td data-computer-consumed-receipts></td></tr>
       </tbody></table></div>
-    <details class="pool-disclosure" data-computer-identifiers><summary>Technical IDs</summary>
+    <details class="pool-disclosure pool-disclosure-quiet" data-computer-identifiers><summary>Technical IDs</summary>
       <dl class="pool-facts pool-small network-peer-identifiers">
         <div><dt>Connection ID</dt><dd><code class="pool-mono" data-computer-connection-id></code></dd></div>
         <div><dt>Attempt ID</dt><dd><code class="pool-mono" data-computer-attempt></code></dd></div>
         <div><dt>Model ID</dt><dd><code class="pool-mono" data-computer-identity></code></dd></div>
       </dl>
     </details>
-    <details class="pool-disclosure" data-computer-preferences hidden><summary>Local preferences</summary>
+    <details class="pool-disclosure pool-disclosure-quiet" data-computer-preferences hidden><summary>Local preferences</summary>
       <div class="pool-stack pool-gap-md">${renderComputerRename()}${renderComputerBlock()}</div>
     </details>
   </div></details>`;
@@ -200,10 +199,10 @@ export function renderPeerRows(list, state, filter = null) {
     let row = existing.get(peer.id);
     if (!row) {
       row = list.ownerDocument.createElement('li'); row.className = 'network-peer-row'; row.dataset.computerId = peer.id;
-      row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-small" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
-        + '<dl class="pool-facts pool-small network-peer-summary"><div><dt data-computer-model-label>Model</dt><dd data-computer-model></dd></div>'
+      row.innerHTML = '<div><div class="network-peer-heading"><span class="pool-row-title" data-computer-name></span><span class="network-status pool-badge" data-computer-status></span></div>'
+        + '<dl class="pool-facts pool-caption network-peer-summary"><div><dt data-computer-model-label>Model</dt><dd data-computer-model></dd></div>'
         + '<div data-computer-hardware-row><dt>GPU <span class="pool-caption">(reported)</span></dt><dd data-computer-hardware></dd></div></dl>'
-        + '<p class="pool-small pool-muted" data-computer-detail></p><progress class="pool-progress" hidden></progress>'
+        + '<p class="pool-caption pool-muted" data-computer-detail></p><progress class="pool-progress" hidden></progress>'
         + renderComputerDetails() + '</div>';
     }
     existing.delete(peer.id);
@@ -216,6 +215,11 @@ export function renderPeerRows(list, state, filter = null) {
     let suffix = 6;
     while (suffix < peer.id.length && sameLabel.some(id => id !== peer.id && id.slice(-suffix) === peer.id.slice(-suffix))) suffix++;
     set('[data-computer-name]', sameLabel.length > 1 ? `${label} · connection ${peer.id.slice(-suffix)}` : label); set('[data-computer-status]', peer.status);
+    // One tone per state, used only on the status: ready to answer, on its way, or not available.
+    const tone = ['ready', 'executing'].includes(peer.phase) ? 'pool-tone-ready'
+      : ['loading', 'preparing', 'connecting', 'connected', 'waiting'].includes(peer.phase) ? 'pool-tone-pending' : 'pool-tone-unavailable';
+    const badge = row.querySelector('[data-computer-status]');
+    if (!badge.classList.contains(tone)) { badge.classList.remove('pool-tone-ready', 'pool-tone-pending', 'pool-tone-unavailable'); badge.classList.add(tone); }
     if (peer.model !== 'Model status pending') row.dataset.lastModel = peer.model;
     const lastModel = peer.model === 'Model status pending' && row.dataset.lastModel;
     set('[data-computer-model-label]', lastModel ? 'Last model' : 'Model');
@@ -250,15 +254,14 @@ export function renderPeerRows(list, state, filter = null) {
   if (ordered.length !== current.length || ordered.some((node, index) => node !== current[index])) for (const node of ordered) list.append(node);
   {
   for (const row of existing.values()) row.remove();
-  if (!rows.length) list.innerHTML = `<li class="network-empty pool-small pool-muted">${filter ? 'No computers currently offer this model.' : 'No computers connected yet'}</li>`;
+  if (!rows.length) list.innerHTML = `<li class="network-empty pool-small pool-muted">${filter ? 'No computer offers this model right now. Show all computers to choose another.' : 'No computers are connected yet. They appear here as they join; this device can still answer.'}</li>`;
   }
   const summary = list.parentElement.querySelector('[data-peer-readiness]');
   const count = phase => rows.filter(peer => peer.phase === phase).length, plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
   // One line of totals: how many can answer now and on which models, then only the states that are not zero.
-  const answering = rows.filter(peer => ['ready', 'executing'].includes(peer.phase) && peer.partitionIndex === null);
-  const byModel = new Map(); for (const peer of answering) byModel.set(peer.model, (byModel.get(peer.model) || 0) + 1);
+  // A count, not a roster: each row below already names its model.
   if (summary) summary.textContent = [`${plural(count('ready') + count('executing'), 'computer')} ready`,
-    ...[...byModel].map(([model, n]) => `${model} on ${n}`), count('executing') ? `${count('executing')} working` : '', count('failed') ? `${count('failed')} unavailable` : '']
+    count('executing') ? `${count('executing')} working` : '', count('failed') ? `${count('failed')} unavailable` : '']
     .filter(Boolean).join(' · ');
   const quiet = rows.filter(peer => !['ready', 'executing', 'loading', 'preparing'].includes(peer.phase)).length;
   let toggle = list.parentElement.querySelector('[data-quiet-computers]');
@@ -271,7 +274,7 @@ export function renderPeerRows(list, state, filter = null) {
   toggle.setAttribute('aria-expanded', String(list.dataset.showQuiet === 'true')); toggle.textContent = toggle.dataset[list.dataset.showQuiet === 'true' ? 'hideLabel' : 'showLabel'];
   let help = list.parentElement.querySelector('[data-computer-usage-help]');
   if (!help) {
-    list.insertAdjacentHTML('afterend', '<details class="pool-disclosure" data-computer-usage-help><summary>About contribution counts</summary>'
+    list.insertAdjacentHTML('afterend', '<details class="pool-disclosure pool-disclosure-quiet" data-computer-usage-help><summary>About contribution counts</summary>'
       + '<p class="pool-small pool-muted" data-computer-usage-scope>Peer-reported reward-eligible contribution, not total traffic or lifetime usage. Small requests and repeated pairs may be excluded. Consumed token counts are not reported. Receipts are not token counts or proof of correctness.</p></details>');
     help = list.parentElement.querySelector('[data-computer-usage-help]');
   }

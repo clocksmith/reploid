@@ -138,7 +138,7 @@
 .network-peer-row > div { width: 100%; }
 .network-peer-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--pool-size-8); min-height: var(--pool-size-24); }
 .network-peer-row progress { width: 100%; height: var(--pool-size-8); accent-color: var(--pool-color-ink); }
-.pool-app-shortcuts { display: flex; gap: var(--pool-size-8); }
+.pool-app-shortcuts { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--pool-size-96), 1fr)); gap: var(--pool-size-8); }
 .pool-home .pool-app-shortcuts > .pool-button:not(.pool-icon):has(> svg) { align-items: flex-start; }
 .pool-app-shortcuts > .pool-button { display: flex; flex: 1; flex-direction: column; gap: var(--pool-size-4); min-width: 0; min-height: var(--pool-size-44); padding: var(--pool-size-8) var(--pool-size-4); }
 

@@ -27,7 +27,7 @@ export function remotePermissionWording(need) {
 
 export function renderRemotePermissionSettings() {
   return `<section class="pool-stack pool-gap-xs" data-remote-permission-settings aria-labelledby="remote-permission-title">
-    ${renderToggleRow({ id: 'remote-permission', title: 'Allow network answers', statusAttrs: { 'data-remote-permission-status': true, role: 'status' },
+    ${renderToggleRow({ id: 'remote-permission', title: 'Allow network answers', icon: 'peers', statusAttrs: { 'data-remote-permission-status': true, role: 'status' },
       switchAttrs: { 'data-remote-answers-toggle': true } })}
   </section>`;
 }

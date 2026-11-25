@@ -267,7 +267,7 @@ it('keeps an exact model roster filtered as offers change and restores all compu
     snapshot.models = [{ ...selected, adapters: [{ id: 'other', identity: 'adapter-b' }] }];
     for (const listener of listeners) listener(snapshot);
     expect(ids()).toEqual([]);
-    expect(document.querySelector('[data-insp-device-list]').textContent).toContain('No computers currently offer this model');
+    expect(document.querySelector('[data-insp-device-list]').textContent).toContain('No computer offers this model right now');
     document.querySelector('[data-clear-roster-filter]').click();
     expect(ids()).toEqual(['ready-a', 'other']);
   } finally { inspector.dispose(); }

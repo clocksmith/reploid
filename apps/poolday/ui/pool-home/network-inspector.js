@@ -56,40 +56,44 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
   return `<aside class="chat-network-rail${material}" data-network-rail${mounted ? ' data-mounted' : ''} aria-label="Inspector">
     ${navigation ? renderInspectorNavigation() : ''}
     <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" id="network-inspector-panel" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Conversation details</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-inspector aria-label="Close">${interfaceIcon('close')}</button></header>
+    <header class="chat-network-heading"><h2 class="pool-heading" id="network-inspector-title" tabindex="-1">Conversation details</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-inspector aria-label="Close">${interfaceIcon('close')}</button></header>
     <div class="network-inspector-body">
-    <section class="pool-stack pool-gap-lg" data-inspector-pane="conversation" aria-label="Conversation details">
-      <div class="execution-ribbon-route" data-inspector-route></div>
-      <p class="pool-small" data-inspector-status role="status"></p>
-      <div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
-      <details class="pool-disclosure" data-attempt-details><summary>Execution details</summary><div class="pool-stack pool-gap-sm"><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details class="pool-disclosure"><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></div></details>
-      <section class="pool-stack pool-gap-sm" data-thread-permissions hidden><h3 class="pool-subheading">Current permissions</h3>
-        <p class="pool-small pool-muted">Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul class="pool-list pool-stack pool-gap-sm" data-thread-grants></ul></section>
-      <section class="pool-stack pool-gap-sm" data-conversation-context aria-label="Context">
-        <h3 class="pool-subheading">Context</h3>
-        <p class="pool-caption pool-muted" data-inspector-context-detail></p>
-        <fieldset class="pool-stack pool-gap-sm" data-context-controls hidden><legend class="pool-small">Context prompt</legend>
+    <section class="pool-stack pool-gap-xl" data-inspector-pane="conversation" aria-label="Conversation details">
+      <section class="pool-section" aria-label="Last answer"><h3 class="pool-section-title">Last answer</h3>
+        <div class="execution-ribbon-route" data-inspector-route></div>
+        <p class="pool-small" data-inspector-status role="status"></p>
+        <div class="chat-execution-activity pool-stack pool-gap-sm" data-inspected-activity></div>
+        <details class="pool-disclosure pool-disclosure-quiet" data-attempt-details><summary>Execution details</summary><div class="pool-stack pool-gap-sm"><div class="execution-inspector-facts pool-facts" data-ribbon-facts></div><button class="pool-button btn-ghost" type="button" data-credit-receipt hidden>Save service receipt</button><p class="pool-caption pool-muted" data-credit-receipt-status hidden></p><details class="pool-disclosure pool-disclosure-quiet"><summary class="pool-small">Timeline</summary><ol data-ribbon-timeline></ol></details></div></details>
+      </section>
+      <section class="pool-section" data-thread-permissions hidden><h3 class="pool-section-title">Current permissions</h3>
+        <ul class="pool-group" data-thread-grants></ul>
+        <p class="pool-section-note">Revoking stops this thread’s sharing. It cannot recall data already sent.</p></section>
+      <section class="pool-section" data-conversation-context aria-label="Context">
+        <h3 class="pool-section-title">Context</h3>
+        <p class="pool-section-note" data-inspector-context-detail></p>
+        <fieldset class="pool-group" data-context-controls hidden><legend class="pool-visually-hidden">Context prompt</legend>
           <label class="pool-toggle-row"><span class="pool-row-text"><span class="pool-row-title">Include app context</span><span class="pool-row-status">A short description of the app, added before each message.</span></span><input class="pool-switch" type="checkbox" role="switch" data-context-enabled></label>
-          <label class="pool-stack pool-gap-xs"><span class="pool-small">Word cap</span><select class="pool-input" data-context-cap aria-label="Context prompt word cap">${contextPolicy.wordLimits.map(limit => `<option value="${limit}">${limit}</option>`).join('')}</select></label>
-          <p class="chat-setup-hint pool-small pool-muted" data-context-count></p><p class="chat-setup-hint pool-small pool-muted" data-context-preview></p>
+          <label class="pool-toggle-row"><span class="pool-row-text"><span class="pool-row-title">Word cap</span><span class="pool-row-status">The most words the description may use.</span></span><select class="pool-input" data-context-cap aria-label="Context prompt word cap">${contextPolicy.wordLimits.map(limit => `<option value="${limit}">${limit}</option>`).join('')}</select></label>
+          <div class="pool-stack pool-gap-xs"><p class="pool-caption pool-muted" data-context-count></p><p class="pool-caption pool-muted" data-context-preview></p></div>
         </fieldset>
       </section>
-      <button class="pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
+      <div class="pool-row"><button class="pool-button btn-ghost" type="button" data-conversation-download hidden>${interfaceIcon('download')}<span>Download conversation</span></button></div>
     </section>
-    <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
+    <section class="pool-stack pool-gap-xl" data-inspector-pane="participants" aria-label="Computers" hidden>
       ${renderFleetAccount()}
-      ${renderOwnerPairingControls()}
-      ${renderPrivateComputers()}
-      ${renderCircleInviteControls()}
-      <section class="pool-stack pool-gap-sm" aria-label="Public network">
-        ${renderConnectionControl()}<div class="pool-row pool-row-between pool-gap-sm" data-roster-filter hidden><span data-roster-filter-label></span><button class="pool-button btn-ghost" type="button" data-clear-roster-filter>Show all computers</button></div><p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
+      <section class="pool-section" aria-label="Your computers"><h3 class="pool-section-title">Your computers</h3>
+        <div class="pool-group">${renderOwnerPairingControls()}${renderPrivateComputers()}${renderCircleInviteControls()}</div></section>
+      <section class="pool-section" aria-label="Public network"><h3 class="pool-section-title">Public network</h3>
+        <div class="pool-group">
+        ${renderConnectionControl()}<div class="pool-row pool-row-between pool-gap-sm" data-roster-filter hidden><span class="pool-small" data-roster-filter-label></span><button class="pool-button btn-ghost pool-caption" type="button" data-clear-roster-filter>Show all computers</button></div><p class="network-readiness pool-small pool-muted" data-peer-readiness></p>
         <ul class="network-peer-list pool-list" data-insp-device-list></ul>
         <button class="pool-button btn-ghost" type="button" data-mesh-invite hidden>Copy private invitation</button>
-      </section>
-      <details class="pool-disclosure" data-production-device><summary>Contribute this computer</summary>
-        <div class="pool-stack pool-gap-sm" data-this-computer>
-          <h3 class="pool-subheading">This computer <span class="pool-muted" data-device-state-summary></span></h3>
-          <p class="pool-caption pool-muted" data-local-computer></p>
+        </div></section>
+      <section class="pool-section" aria-label="This computer"><h3 class="pool-section-title">This computer</h3>
+      <div class="pool-group"><details class="pool-disclosure pool-disclosure-quiet" data-production-device><summary>Contribute this computer</summary>
+        <div class="pool-stack pool-gap-md" data-this-computer>
+          <div class="pool-stack pool-gap-xs"><p class="pool-small">This computer <span class="pool-muted" data-device-state-summary></span></p>
+          <p class="pool-caption pool-muted" data-local-computer></p></div>
           <dl class="pool-stats pool-columns computer-usage" aria-label="Recorded output tokens">
             <div><dt>Tokens supplied</dt><dd data-device-supplied>—</dd></div>
             <div><dt>Tokens consumed</dt><dd data-device-consumed>—</dd></div>
@@ -97,27 +101,30 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
           <p class="pool-caption pool-muted" data-device-usage-scope></p>
           <p class="pool-small pool-muted" data-device-usage-error role="status" hidden></p>
           ${renderComputeSharingControls()}
-          <div class="pool-stack pool-gap-md">
+          ${contribution}
+          ${renderContributionLimits()}
+          <div class="pool-stack pool-gap-xs">
             ${renderComputerDiagnostic()}
-            ${contribution}
-
-            ${renderContributionLimits()}
-            <details class="pool-disclosure" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
+            <details class="pool-disclosure pool-disclosure-quiet" data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
           </div>
         </div>
-      </details>
+      </details></div></section>
     </section>
-    <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
-      <section class="pool-stack pool-gap-sm"><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
-      <section class="pool-stack pool-gap-sm" data-settings-routing><h3 class="pool-subheading">Answers</h3><p class="pool-small pool-muted">When several computers can answer, prefer</p>${renderSegmented({ name: 'route-preference', label: 'When several computers can answer, prefer', options: ROUTE_PREFERENCES.map(({ id, label }) => ({ value: id, label, inputAttrs: { 'data-route-preference': true } })) })}<div class="pool-row pool-row-between pool-gap-sm"><p class="pool-status-line pool-caption pool-grow" data-route-preference-reason></p><button class="pool-button btn-ghost pool-caption" type="button" data-route-preference-fix hidden>Network answers</button></div><p class="pool-caption pool-muted">Only computers that meet the conversation’s privacy choice are ordered.</p></section>
-      <section class="pool-stack pool-gap-md" data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-small pool-muted" data-settings-storage-summary>No downloaded models</p>${renderFileSharingControls()}</section>
+    <section class="pool-stack pool-gap-xl" data-inspector-pane="settings" aria-label="Settings" hidden>
+      <section class="pool-section"><h3 class="pool-section-title">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
+      <section class="pool-section" data-settings-routing><h3 class="pool-section-title" id="route-preference-title">When several computers can answer</h3>
+        ${renderSegmented({ name: 'route-preference', label: 'When several computers can answer, prefer', options: ROUTE_PREFERENCES.map(({ id, label }) => ({ value: id, label, inputAttrs: { 'data-route-preference': true } })) })}
+        <div class="pool-row pool-row-between pool-gap-sm"><p class="pool-status-line pool-section-note pool-grow" data-route-preference-reason></p><button class="pool-button btn-ghost pool-caption" type="button" data-route-preference-fix hidden>Network answers</button></div>
+        <p class="pool-section-note">Only computers that meet the conversation’s privacy choice are ordered.</p></section>
+      <section class="pool-section" data-settings-storage><h3 class="pool-section-title">Storage</h3>
+        <div class="pool-group">${renderModelStorage()}<p class="pool-small pool-muted" data-settings-storage-summary>No downloaded models</p>${renderFileSharingControls()}</div></section>
       ${renderLocalData()}
       ${renderAccountPanel()}
-      <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
-        ${renderRemotePermissionSettings()}
-        ${renderWebSearchSettings()}
+      <section class="pool-section"><h3 class="pool-section-title">Advanced</h3><div class="pool-group">
+      <details class="pool-disclosure pool-disclosure-quiet" data-settings-advanced><summary>Network answers, search and apps</summary><div class="pool-stack pool-gap-md">
+        <div class="pool-list pool-stack">${renderRemotePermissionSettings()}${renderWebSearchSettings()}</div>
         <div data-settings-apps>${apps}</div>
-      </div></details>
+      </div></details></div></section>
     </section>
     <p data-network-message role="status" hidden></p>
     <p data-inspector-error role="alert" hidden></p>
@@ -135,7 +142,7 @@ export function renderModelSetupDialog() {
     ${renderOptions({ id: 'download-sharing', label: 'Sharing on this device', type: 'checkbox', options: sharing, attrs: { 'data-download-sharing': true } })}
     <p class="pool-small pool-muted" data-download-explanation>Download a model to answer public requests while this page is open. Pause anytime.</p>
     <p data-download-fit class="pool-small pool-muted"></p>
-    <details class="pool-disclosure"><summary>Limits</summary><p data-download-compute-limits></p></details>`,
+    <details class="pool-disclosure pool-disclosure-quiet"><summary>Limits</summary><p data-download-compute-limits></p></details>`,
     // The primary acts or says why it cannot, beside it: checking the size, or the failed check with Retry.
     footer: `<p class="pool-status-line" data-download-size role="status">Checking download size…</p><button class="pool-button btn-ghost" type="button" data-retry-download-check hidden>Retry</button><button class="pool-button btn-ghost" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download & share</button>` });
 }
@@ -335,9 +342,9 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const next = JSON.stringify([state.selectedId, grants]);
     if (next !== grantsKey) {
       grantsKey = next;
-      find('[data-thread-grants]').innerHTML = grants.map((grant, index) => `<li><strong>Recipient ${index + 1}</strong> · ${escape(state.activeThread.model.name)}
-        <details class="pool-disclosure"><summary>Permission details</summary><pre>${escape(JSON.stringify(grant, null, 2))}</pre></details>
-        <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
+      find('[data-thread-grants]').innerHTML = grants.map((grant, index) => `<li><div class="pool-toggle-row"><span class="pool-row-text"><span class="pool-row-title">Recipient ${index + 1}</span><span class="pool-row-status">${escape(state.activeThread.model.name)}</span></span>
+        <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></div>
+        <details class="pool-disclosure pool-disclosure-quiet"><summary class="pool-small">Permission record</summary><pre class="pool-caption pool-mono">${escape(JSON.stringify(grant, null, 2))}</pre></details></li>`).join('');
     }
   };
   for (const type of ['change', 'click']) find('[data-settings-routing]')?.addEventListener(type, event => {

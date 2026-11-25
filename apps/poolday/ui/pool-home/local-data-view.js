@@ -3,15 +3,18 @@
  * names and blocks. The file format, validation and merge rules belong to host/local-data.js.
  */
 import { bindDialog } from '../components/dialog.js';
-import { renderDialog } from '../components/choices.js';
+import { renderActionRow, renderDialog } from '../components/choices.js';
 import { createLocalData, LOCAL_DATA_MAX_BYTES } from '../../host/local-data.js';
 
-export const renderLocalData = () => `<section class="pool-stack pool-gap-sm" data-settings-data hidden>
-  <h3 class="pool-subheading">Your data</h3>
-  <p class="pool-small pool-muted">Conversations, computer names and blocked computers saved in this browser, as one file. The file is not encrypted. It holds no private keys and no model files.</p>
-  <div class="pool-row pool-gap-sm"><button class="pool-button" type="button" data-data-export>Export my data</button><button class="pool-button" type="button" data-data-import>Import data</button></div>
+export const renderLocalData = () => `<section class="pool-section" data-settings-data hidden>
+  <h3 class="pool-section-title">Your data</h3>
+  <div class="pool-group">
+    ${renderActionRow({ title: 'Export my data', status: 'One file: conversations, computer names and blocks', icon: 'download', attrs: { 'data-data-export': true } })}
+    ${renderActionRow({ title: 'Import data', status: 'Adds conversations from an export file', icon: 'upload', attrs: { 'data-data-import': true } })}
+  </div>
+  <p class="pool-section-note">The file is not encrypted. It holds no private keys and no model files.</p>
   <input type="file" accept=".json,application/json" data-data-file aria-label="Data export file" hidden>
-  <p class="pool-status-line pool-small" data-data-status role="status" hidden></p>
+  <p class="pool-status-line pool-section-note" data-data-status role="status" hidden></p>
   ${renderDialog({ titleId: 'data-import-title', title: 'Import data?', attrs: { 'data-data-dialog': true }, closeAttrs: { 'data-dialog-close': true },
     body: '<p class="pool-body" data-data-summary></p><p class="pool-small pool-muted">Imported conversations are added to this browser. Nothing is sent, and sharing permissions are not imported.</p>',
     footer: '<p class="pool-status-line" data-data-error role="alert" hidden></p><button class="pool-button btn-ghost" type="button" data-data-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-data-confirm>Import</button>' })}

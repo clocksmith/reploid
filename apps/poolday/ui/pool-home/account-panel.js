@@ -42,10 +42,10 @@ const LOCAL_FORM = `<form class="pool-stack pool-gap-xs" data-earning-local-form
   <p class="pool-small pool-muted" data-earning-local-signed-in hidden></p>`;
 
 export function renderAccountPanel() {
-  return `<section class="pool-stack pool-gap-sm" data-earning-account aria-labelledby="earning-account-title" hidden>
-    <h3 class="pool-subheading" id="earning-account-title">Credits</h3>
-    <div class="pool-stack pool-gap-sm" data-earning-sign-in></div>
-    <div class="pool-stack pool-gap-sm" data-earning-ready hidden>
+  return `<section class="pool-section" data-earning-account aria-labelledby="earning-account-title" hidden>
+    <h3 class="pool-section-title" id="earning-account-title">Credits</h3>
+    <div class="pool-group pool-stack pool-gap-sm" data-earning-sign-in></div>
+    <div class="pool-group pool-stack pool-gap-sm" data-earning-ready hidden>
       <p class="pool-small" role="status" data-earning-balance></p>
       <div class="pool-row" data-earning-top-ups></div>
       <p class="pool-small pool-muted" data-earning-checkout hidden></p>
@@ -56,7 +56,7 @@ export function renderAccountPanel() {
         <div class="pool-row"><button class="pool-button" type="submit" data-earning-limit-save>Save limit</button></div>
       </form>
       <p class="pool-small pool-muted" data-earning-quote></p>
-      <details class="pool-disclosure" data-earning-activity><summary>Recent activity</summary><ol class="pool-list pool-small" data-earning-journal></ol></details>
+      <details class="pool-disclosure pool-disclosure-quiet" data-earning-activity><summary>Recent activity</summary><ol class="pool-list pool-small" data-earning-journal></ol></details>
       <div class="pool-row"><button class="pool-button btn-ghost" type="button" data-earning-sign-out hidden>Sign out</button></div>
     </div>
     <p class="pool-small pool-muted" role="status" data-earning-status></p>

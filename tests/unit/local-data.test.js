@@ -187,7 +187,7 @@ describe('Settings data controls', () => {
     const from = mount(source), to = mount(target);
     try {
       expect(from.find('[data-settings-data]').hidden).toBe(false);
-      expect(from.find('[data-data-export]').textContent).toBe('Export my data'); expect(from.find('[data-data-import]').textContent).toBe('Import data');
+      expect(from.find('[data-data-export] .pool-row-title').textContent).toBe('Export my data'); expect(from.find('[data-data-import] .pool-row-title').textContent).toBe('Import data');
       from.find('[data-data-export]').click(); await settle();
       expect(click).toHaveBeenCalledOnce(); expect(blobs[0].type).toBe('application/json');
       expect(from.find('[data-data-status]').textContent).toBe('Exported 2 conversations.');

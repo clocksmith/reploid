@@ -7,7 +7,7 @@ import { renderDialog } from '../components/choices.js';
 
 export const renderModelStorage = () => `<div class="pool-stack pool-gap-sm" data-model-storage hidden>
   <ul class="pool-list pool-stack pool-gap-sm" data-stored-models hidden></ul>
-  <div class="pool-row pool-row-between pool-gap-sm"><p class="pool-status-line pool-caption pool-muted pool-grow" data-storage-status role="status"></p>
+  <div class="pool-toggle-row"><p class="pool-status-line pool-caption pool-muted" data-storage-status role="status"></p>
   <button class="pool-button btn-ghost pool-caption" type="button" data-storage-refresh>Refresh</button></div>
   ${renderDialog({ titleId: 'storage-remove-title', title: 'Remove download?', attrs: { 'data-storage-dialog': true }, closeAttrs: { 'data-dialog-close': true },
     body: '<p class="pool-body" data-storage-remove-name></p><p class="pool-small pool-muted">Conversation history stays. Files used by other models stay. Download this model again to run it locally.</p>',
@@ -42,7 +42,7 @@ export function bindModelStorage(root, storage) {
       }));
       list.hidden = !rows.length;
       find('[data-storage-status]').textContent = rows.length
-        ? 'Measured stored files, including partial downloads. Shared files may count toward more than one model.' : 'No model downloads stored.';
+        ? 'Measured stored files, including partial downloads. Shared files may count toward more than one model.' : 'No model downloads stored. Choose a model in Answer on to download one.';
     } catch (error) {
       if (!abort.signal.aborted && current === revision) find('[data-storage-status]').textContent = error.message;
     }

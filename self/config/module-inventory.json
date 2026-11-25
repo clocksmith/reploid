@@ -4301,7 +4301,7 @@
     {
       "path": "ui/components/interface-icons.js",
       "owner": "ui",
-      "sha256": "sha256:557334cd380e2caa77237b2ce875ba732b7189df8ca3c2ef35141e5e9efb0a8f",
+      "sha256": "sha256:820fc87eb33b151ee947bed660b0f86a48f0cb1e9e83f70aa43521eee46726b8",
       "imports": []
     },
     {
@@ -4348,7 +4348,7 @@
     {
       "path": "ui/pool-home/account-panel.js",
       "owner": "ui",
-      "sha256": "sha256:d199cc8dd1ef0ab864be5a81b2292cbf3b4e598268c87e9b37825d5c05d773b6",
+      "sha256": "sha256:453798ae00f26b8043a51abdc2d5848a4f96f65d7ccab373719f5f02610f5e7c",
       "imports": [
         "../components/attachments.js",
         "./account-sign-in.js"
@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:8017817b073f2a55c353e82d72b7f25585f2496078193384d700529b46bc7d41",
+      "sha256": "sha256:44cecf7decfe03b4e8bee40f5681fbeccd3b8cf39fdec66b59e60076119a57f4",
       "imports": []
     },
     {
@@ -4409,7 +4409,7 @@
     {
       "path": "ui/pool-home/circle-invites-view.js",
       "owner": "ui",
-      "sha256": "sha256:637af79f444f7e79487533b0578b44a4806ffe12529619bfaaa0700d95293bf1",
+      "sha256": "sha256:a4b95e3aaf13ef15d5fa3ef74637e9dd8d1a440cbada9ab80dd89e95022b0bb8",
       "imports": [
         "../components/attachments.js"
       ]
@@ -4425,7 +4425,7 @@
     {
       "path": "ui/pool-home/computer-preferences-view.js",
       "owner": "ui",
-      "sha256": "sha256:a49dfc9a80ca47e12682882b76cc743d3e02986e7467d5c9877cb813fef835d0",
+      "sha256": "sha256:72b62e5af59a790fc29fcd2322ce804e5f42922e86a64205f2153963768bf2dc",
       "imports": [
         "../../config/computer-preferences.json",
         "./computer-labels.js",
@@ -4452,7 +4452,7 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:f6d4e794ddd410d6c8e9f45faf72f6d434bfccfeef74390e2b718df42c3f589d",
+      "sha256": "sha256:719111f66abb7d6c2656413ede5b06e1b637161d6da774c20070b10ae451f98a",
       "imports": [
         "../components/choices.js",
         "../components/dialog.js",
@@ -4690,7 +4690,7 @@
     {
       "path": "ui/pool-home/local-data-view.js",
       "owner": "ui",
-      "sha256": "sha256:c1137f14ab59445a54913e40c573b65d14751436e3c9e623842d1f3dd70b8df1",
+      "sha256": "sha256:5e3c4ea8e0d923529a8d1bd3b6d439fc38798fbb26510826dcb795ac17dfcf8f",
       "imports": [
         "../../host/local-data.js",
         "../components/choices.js",
@@ -4748,7 +4748,7 @@
     {
       "path": "ui/pool-home/model-storage-view.js",
       "owner": "ui",
-      "sha256": "sha256:574cb55f1e60cb188e3b68f812f2358dbe997992a1e96a2152feee84d490e96b",
+      "sha256": "sha256:66024de153373954b06dcc06f67072dd49542fad6130db5bdda2225c1abc1637",
       "imports": [
         "../components/choices.js",
         "../components/dialog.js"
@@ -4765,7 +4765,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:d57ddf91685d0104b8c6017e781b74be887788a0feaaba089bad64cd752fb3e2",
+      "sha256": "sha256:9953eb36c415cc943bdee38404d0c354778c7c3838c24471a49182cdea43f91d",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",
@@ -4782,7 +4782,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:d93d977ad3a16bba9fad676e324f8098f3ee866e2256cf36ac9fe01c6ed493e4",
+      "sha256": "sha256:1b98a28552d36dd44c6027361ef80d03697f3a8879264a4ea70ab47c209ceff0",
       "imports": [
         "../../config/chat-context-policy.json",
         "../../host/route-preference.js",
@@ -4837,7 +4837,7 @@
     {
       "path": "ui/pool-home/owner-pairing-view.js",
       "owner": "ui",
-      "sha256": "sha256:e23a69542dc42457e98a014b1114b02e41796b8c688fa164feaa130d9bf55daa",
+      "sha256": "sha256:c65932a14de838179eee707e0593e08368aafba7b5de10a9ed27b0f8f411d4be",
       "imports": [
         "../../host/owner-pairing.js",
         "../components/choices.js",
@@ -4931,7 +4931,7 @@
     {
       "path": "ui/pool-home/private-computers-view.js",
       "owner": "ui",
-      "sha256": "sha256:b7d3a40f2747f083e37f9aeeafb158c360735ef1d78c570235dc2e4db961634a",
+      "sha256": "sha256:7c9a35375572f97784647d0ed80ee6c23fb0ed2c256625f694e75560a0c37bd0",
       "imports": [
         "../components/attachments.js",
         "./service-credit-text.js"
@@ -5012,7 +5012,7 @@
     {
       "path": "ui/pool-home/remote-permission.js",
       "owner": "ui",
-      "sha256": "sha256:ffd43123be55a439cb7065beb11887eb739bdd3a80430811c437e7956b2dcd41",
+      "sha256": "sha256:78680e9b3137ff82e4a4a097e2416c22fc651b87f1635b6b59938a9b960fad31",
       "imports": [
         "../components/choices.js"
       ]
@@ -5490,7 +5490,7 @@
     {
       "path": "ui/pool-home/web-search-settings.js",
       "owner": "ui",
-      "sha256": "sha256:d983117d6bc1f8c9e9ef9417711747a5b2a64bcd9f07bb226b9b8c84ddc7a51e",
+      "sha256": "sha256:d6823d3622207985ef6e516af40e7efdc628d65ac78fecd84afa23449f55dd45",
       "imports": [
         "../components/choices.js",
         "./choice-availability.js"

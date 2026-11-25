@@ -6,11 +6,11 @@ import { webSearchAvailability } from './choice-availability.js';
 export function renderWebSearchSettings() {
   const fix = webSearchAvailability().fix;
   return `<section class="pool-stack pool-gap-sm" data-web-search-settings aria-labelledby="web-search-title">
-    ${renderToggleRow({ id: 'web-search', title: 'Web search', statusAttrs: { 'data-web-search-reason': true }, switchAttrs: { 'data-web-search-toggle': true } })}
+    ${renderToggleRow({ id: 'web-search', title: 'Web search', icon: 'search', statusAttrs: { 'data-web-search-reason': true }, switchAttrs: { 'data-web-search-toggle': true } })}
     <div class="pool-row" data-web-search-fix-row hidden><button class="pool-button btn-ghost pool-caption" type="button" data-web-search-fix>${fix.label}</button></div>
-    <details class="pool-disclosure" data-search-disclosure-details><summary>Who receives the search?</summary>
+    <details class="pool-disclosure pool-disclosure-quiet" data-search-disclosure-details><summary>Who receives the search?</summary>
     <p class="pool-small pool-muted" data-web-search-disclosure></p></details>
-    <details class="pool-disclosure" data-web-search-config><summary>Search server (MCP)</summary><div class="pool-stack pool-gap-sm">
+    <details class="pool-disclosure pool-disclosure-quiet" data-web-search-config><summary>Search server (MCP)</summary><div class="pool-stack pool-gap-sm">
     <label class="pool-stack pool-gap-xs pool-small">MCP server URL
       <input class="pool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://" data-web-search-url></label>
     <label class="pool-stack pool-gap-xs pool-small">Access token (optional, this tab only)
