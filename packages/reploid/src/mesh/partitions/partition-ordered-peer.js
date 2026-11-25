@@ -82,7 +82,9 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     return ok;
   };
   const execution = (request, settlement = false) => permit(request, 'mesh.execute_partition_stage', request.executionGrant, {}, settlement);
-  const token = request => permit(request, 'mesh.transfer_token_context', request.tokenContextGrant,
+  // Whether this stage receives token IDs: the signed disclosure names it (an edges route names only its first and last stage).
+  const tokenStage = request => request.executionGrant?.claim?.disclosure?.tokenRecipients?.includes(stage.participantId) === true;
+  const token = request => !tokenStage(request) || permit(request, 'mesh.transfer_token_context', request.tokenContextGrant,
     { recipients: unique([coordinatorId, stage.participantId]) });
   const activation = (request, outgoing) => {
     const fromStage = outgoing ? index : index - 1, toStage = fromStage + 1;
@@ -97,8 +99,9 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     && request.maxTokens <= request.executionGrant?.claim?.limits?.maxTokens
     && Number.isSafeInteger(request.tokenPosition) && request.tokenPosition >= 0
     && Number.isSafeInteger(request.inputTokenCount) && request.inputTokenCount > 0
-    && Array.isArray(request.inputTokenIds) && request.inputTokenIds.length === request.inputTokenCount
-    && request.inputTokenIds.every(id => Number.isSafeInteger(id) && id >= 0 && id < plan.vocabSize);
+    && (tokenStage(request) ? Array.isArray(request.inputTokenIds) && request.inputTokenIds.length === request.inputTokenCount
+      && request.inputTokenIds.every(id => Number.isSafeInteger(id) && id >= 0 && id < plan.vocabSize)
+      : request.inputTokenIds === undefined);
   const validFrame = (request, byteLength, frame = request.frame) => {
     const layout = route.activation;
     return validStep(request) && frame?.schema === layout.schema && matchingPartitionActivation(frame, layout, true)
@@ -146,7 +149,11 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
       assert(serving && contributor.canAccept(request.identity), 'Ordered contributor unavailable');
       const frame = { ...request.frame, buffer: request.payload.slice().buffer };
       const decoded = runtime.validateActivationFrameForPlan(frame, plan);
-      const result = await contributor.executeStage({ ...request, activation: decoded, signal });
+      // A stage outside the token context gets none. Doppler's resident still takes a token array of the step's length;
+      // a stage without the embedding or head never reads its values (its layers consume the activation), so it is
+      // given zeros. Answer parity against the single-host reference is what checks that claim on a real model.
+      const tokens = tokenStage(request) ? {} : { inputTokenIds: new Array(request.inputTokenCount).fill(0), tokenContext: 'withheld' };
+      const result = await contributor.executeStage({ ...request, ...tokens, activation: decoded, signal });
       if (index === route.stages.length - 1) {
         assert(typeof result.delta === 'string', 'Ordered final delta required');
         const total = (outputCharacters.get(request.identity.attemptId) || 0) + result.delta.length;

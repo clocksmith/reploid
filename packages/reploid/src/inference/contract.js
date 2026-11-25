@@ -8,7 +8,7 @@
 import { hashJson } from '../artifacts/signatures.js';
 import { canonicalPartitionJson } from '../contracts/partition.js';
 import {
-  EXECUTION_ERROR_CODES, EXECUTION_METADATA, executionError, executionBackend,
+  EXECUTION_ERROR_CODES, EXECUTION_METADATA, executionError, executionBackend, EDGES_BACKEND,
   compileExecutionRequirements, compileProtectedExecutionRequirements, narrowsExecutionPolicy
 } from '../chat/execution-policy.js';
 
@@ -113,14 +113,24 @@ export async function describeRoute(candidate, model) {
   if (maxCharge !== null && !(object(maxCharge) && Number.isSafeInteger(maxCharge.maximum) && maxCharge.maximum >= 0 && label(maxCharge.unit))) {
     throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'The resolved route has an invalid charge ceiling. Nothing was sent.');
   }
+  // An edges route names, among its participants, the two requester-held stages that read content; the rest read activations.
+  const edges = candidate.backend === EDGES_BACKEND;
+  const edgeParticipants = candidate.edgeParticipants ?? null;
+  if (edges ? !(candidate.shape === 'split' && selection === 'all' && Array.isArray(edgeParticipants) && edgeParticipants.length === 2
+      && new Set(edgeParticipants).size === 2 && edgeParticipants.every(id => participants.includes(id)) && participants.length >= 3)
+    : edgeParticipants !== null) {
+    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'The resolved edges route is incomplete. Nothing was sent.');
+  }
   const route = { schema: EXECUTION_ROUTE_SCHEMA, shape: candidate.shape, selection, participants: [...participants].sort(),
-    backend: candidate.backend, protocol: backend.protocol, model: structuredClone(model), planIdentity };
+    backend: candidate.backend, protocol: backend.protocol, model: structuredClone(model), planIdentity,
+    ...(edges ? { edgeParticipants: [...edgeParticipants].sort() } : {}) };
   return { route: freezeDeep({ id: await hashJson(route), ...route }), maxCharge: maxCharge && freezeDeep({ ...maxCharge }) };
 }
 
 /** Who can read content on this route, and what metadata its backend exposes beyond them. Not a copy of the permission. */
 export function routeDisclosures(route, execution) {
   const backend = executionBackend(route.backend);
+  if (route.backend === EDGES_BACKEND) return edgesDisclosures(route, backend);
   const local = route.shape === 'local';
   const named = execution.participants.kind === 'named';
   // An executor that reads the content observes its access patterns; the rest also reaches the carriers.
@@ -142,6 +152,27 @@ export function routeDisclosures(route, execution) {
   });
 }
 
+/**
+ * Requester-held edges: who reads what, stated exactly. Content (prompt and answer, as text or token IDs) reaches only
+ * the two edge stages. Every other stage reads plaintext activations, which an operator may invert into content.
+ */
+function edgesDisclosures(route, backend) {
+  const middle = route.participants.filter(id => !route.edgeParticipants.includes(id));
+  return freezeDeep({
+    contentReadableBy: { requesterDevice: false, participants: [...route.edgeParticipants], selection: 'all' },
+    activationsReadableBy: { participants: middle, selection: 'all' },
+    executorsReadContent: false,
+    metadata: [...backend.metadata],
+    statement: ['Your prompt and the answer, as text and as token IDs, are read only by the two stages you named as your own devices:',
+      'they run the embedding, the first layers, the last layers, the final norm and the output head, and they tokenize, sample and detokenize.',
+      'Every other stage receives intermediate activations and token counts, never token IDs or text.',
+      'Activations are plaintext model state: an operator who reads them can try to reconstruct the prompt or the answer from them, so this is not confidential execution.',
+      'Reploid does not check who owns the devices you name.',
+      `The route can also expose ${backend.metadata.join(', ')} to the stages, coordinators, credit ledgers and relays that carry it.`,
+      'No backend that keeps content from its executors is qualified.'].join(' ')
+  });
+}
+
 export function assertLeakageAllowed(disclosures, allowMetadata) {
   const missing = disclosures.metadata.filter(item => !allowMetadata.includes(item));
   if (missing.length) throw executionError('LEAKAGE_NOT_ALLOWED', `This route exposes ${missing.join(', ')}, which the request does not allow. Nothing was sent.`);
@@ -153,6 +184,12 @@ export function assertRouteWithinRequirements(route, execution) {
   if (placement === 'local-only' && route.shape !== 'local') throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Local-only execution has no local route. Nothing was sent.');
   if (participants.kind === 'named' && !route.participants.every(id => participants.ids.includes(id))) {
     throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'The only available route includes a participant that was not named. Nothing was sent.');
+  }
+  // Requester-held edges never fall back to a route whose stages read content, and no other request runs on one.
+  if ((execution.confidentiality === 'requester-edges') !== (route.backend === EDGES_BACKEND)) {
+    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', execution.confidentiality === 'requester-edges'
+      ? 'No route keeps the prompt and answer on your own edge devices. Nothing was sent; the request is not retried as readable.'
+      : 'This route is reserved for requester-held edges. Nothing was sent.');
   }
 }
 
@@ -174,6 +211,10 @@ export function admitRoute(plan, policy, binding) {
       : route.selection === 'one-of' ? remote.length === 1 && route.participants.includes(remote[0])
         : remote.length === 1);
   if (!fits) throw changed('The participants differ from the prepared route');
+  if (route.backend === EDGES_BACKEND) {
+    const readers = binding.route.hops.filter(hop => hop.disclosure === 'plaintext').map(hop => hop.recipient).sort();
+    if (!same(readers, route.edgeParticipants)) throw changed('The stages that read content differ from the prepared edges');
+  }
   return freezeDeep({ id: binding.routeId, planRouteId: route.id, policyId: binding.policyId, shape: route.shape,
     participants: [...remote].sort(), backend: route.backend, protocol: route.protocol });
 }
@@ -228,10 +269,28 @@ export function deliveryTimeline(delivery) {
 }
 
 const NOT_CONFIDENTIAL = ['recipient-conduct', 'erasure', 'hardware-attestation', 'cryptographic-protection'];
+const NOT_CONFIDENTIAL_EDGES = [...NOT_CONFIDENTIAL, 'activation-inversion-resistance', 'edge-device-ownership'];
+
+/** What the requester bound before disclosure on an edges route: who reads content, who reads activations only. */
+function edgesEvidence(plan, admitted) {
+  const readers = [...plan.route.edgeParticipants];
+  const middle = admitted ? admitted.participants.filter(id => !readers.includes(id)) : [];
+  return {
+    mode: 'requester-edges',
+    contentReadBy: admitted ? { requesterDevice: false, participants: readers } : null,
+    activationsReadBy: admitted ? { participants: middle } : null,
+    verified: admitted ? [
+      { claim: 'content-recipients', by: 'requester', method: 'route-binding-before-disclosure', value: readers },
+      { claim: 'activation-only-recipients', by: 'requester', method: 'route-binding-before-disclosure', value: middle }
+    ] : [],
+    notVerified: NOT_CONFIDENTIAL_EDGES
+  };
+}
 
 /** The receipt binds the requested policy, the actual route, backend and protocol identity, and the disclosures. */
 export async function executionReceipt({ plan, requestId, attemptId, status, admitted, read = null, timeline = null }) {
   const local = admitted?.shape === 'local';
+  const edges = plan.route.backend === EDGES_BACKEND;
   timeline = read?.timeline ?? timeline;
   return freezeDeep({
     schema: EXECUTION_RECEIPT_SCHEMA, api: INFERENCE_API_VERSION, requestId, attemptId, planId: plan.id, status,
@@ -242,7 +301,7 @@ export async function executionReceipt({ plan, requestId, attemptId, status, adm
       participants: [...admitted.participants], backend: admitted.backend, protocol: admitted.protocol, planIdentity: plan.route.planIdentity } : null,
     disclosures: structuredClone(plan.disclosures),
     evidence: {
-      confidentiality: {
+      confidentiality: edges ? edgesEvidence(plan, admitted) : {
         mode: 'executor-readable',
         contentReadBy: admitted ? { requesterDevice: local, participants: [...admitted.participants] } : null,
         verified: admitted ? [{ claim: local ? 'content-stayed-on-requester-device' : 'content-recipients', by: 'requester',

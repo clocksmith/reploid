@@ -184,7 +184,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         onQueued: () => controls.onState?.({ threadId: identity.threadId, attemptId: identity.attemptId, status: 'queued',
           execution: { placement: 'ordered-layer-partition', identity } }) });
       signal.throwIfAborted();
-      const disclosure = orderedPartitionDisclosure(identity), expiresAt = Math.min(now() + grantTtlMs, request.disclosureExpiresAt ?? Infinity);
+      const disclosure = orderedPartitionDisclosure(identity, privacyBinding), expiresAt = Math.min(now() + grantTtlMs, request.disclosureExpiresAt ?? Infinity);
       assert(expiresAt > now(), 'Requester disclosure expired during preparation');
       signal.throwIfAborted();
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: identity.threadId,
@@ -235,6 +235,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       let sequence = 0;
       // A charged attempt's signed binding reaches every stage; outputs return for acknowledgment.
       const operation = runner.execute({ identity, tokenIds: input.tokenIds, generation,
+        // An edges binding keeps token IDs on the first and last stage; the others get activations and counts only.
+        tokenStages: route.stages.map((_, index) => index).filter(index => disclosure.tokenRecipients.includes(route.stages[index].participantId)),
         maxTokens: generation.maxTokens, signal,
         ...(request.charge ? { charge: request.charge, acknowledgmentDeadlineAt: expiresAt,
           ...(typeof controls.onOutput === 'function' ? { onOutput: controls.onOutput } : {}) } : {}),

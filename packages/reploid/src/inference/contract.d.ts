@@ -23,10 +23,14 @@ export interface ValidatedPrepareRequest {
 export interface InferenceRoute {
   id: string; schema: 'reploid.inference-route/v1'; shape: RouteShape; selection: RouteSelection; participants: string[];
   backend: string; protocol: string | null; model: Required<ModelPin>; planIdentity: string | null;
+  /** Edges routes only: the two requester-held stages that read content. */
+  edgeParticipants?: string[];
 }
 export interface ChargeCeiling { maximum: number; unit: string }
 export interface Disclosures {
   contentReadableBy: { requesterDevice: boolean; participants: string[]; selection: RouteSelection };
+  /** Edges routes only: the stages that read intermediate activations and never content. */
+  activationsReadableBy?: { participants: string[]; selection: 'all' };
   executorsReadContent: boolean; metadata: ExecutionMetadata[]; statement: string;
 }
 export interface ExecutionPlan { id: string; expiresAt: number; route: InferenceRoute; maxCharge: ChargeCeiling | null; disclosures: Disclosures }
@@ -46,7 +50,8 @@ export interface ExecutionReceipt {
   route: { planRouteId: string; admittedRouteId: string | null; policyId: string | null; shape: RouteShape; participants: string[]; backend: string; protocol: string | null; planIdentity: string | null } | null;
   disclosures: Disclosures;
   evidence: {
-    confidentiality: { mode: 'executor-readable'; contentReadBy: { requesterDevice: boolean; participants: string[] } | null; verified: EvidenceClaim[]; notVerified: string[] };
+    confidentiality: { mode: 'executor-readable' | 'requester-edges'; contentReadBy: { requesterDevice: boolean; participants: string[] } | null;
+      activationsReadBy?: { participants: string[] } | null; verified: EvidenceClaim[]; notVerified: string[] };
     integrity: { verified: EvidenceClaim[]; providerReceipt: { digest: string; checkedHere: false } | null; notVerified: string[] };
   };
 }
@@ -64,7 +69,9 @@ export type InferenceEvent =
 export declare function validateModelPin(model: unknown): Required<ModelPin>;
 export declare function validatePrepareRequest(input: unknown, options?: { protectedProtocol?: string | null }): ValidatedPrepareRequest;
 export declare function validateRunRequest(input: unknown): { planId: string; requestId: string; messages: RunRequest['input']['messages'] };
-export interface RouteCandidate { shape: RouteShape; backend: string; participants?: string[]; selection?: RouteSelection; maxCharge?: ChargeCeiling | null; planIdentity?: string | null }
+export interface RouteCandidate { shape: RouteShape; backend: string; participants?: string[]; selection?: RouteSelection; maxCharge?: ChargeCeiling | null; planIdentity?: string | null;
+  /** Required for the edges backend: the requester-held first and last stage participants. */
+  edgeParticipants?: string[] }
 export declare function describeRoute(candidate: RouteCandidate, model: Required<ModelPin>): Promise<{ route: InferenceRoute; maxCharge: ChargeCeiling | null }>;
 export declare function routeDisclosures(route: InferenceRoute, execution: ExecutionRequirements): Disclosures;
 export declare function assertLeakageAllowed(disclosures: Disclosures, allowMetadata: ExecutionMetadata[]): void;

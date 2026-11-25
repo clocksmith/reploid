@@ -71,6 +71,12 @@ export const attemptRouteHash = identity => digestText(canonicalPartitionJson(ca
 export const outputChainGenesis = ({ reservationId, routeHash }) => digestText(canonicalPartitionJson({ schema: OUTPUT_CHAIN_SCHEMA, reservationId, routeHash }));
 /** One step's output appended to the chain; `delta` is that step's text, empty when it published none. */
 export const extendOutputChain = (previous, { step, delta }) => digestText(canonicalPartitionJson({ previous, step, delta }));
+/**
+ * On an edges route the final stage and the requester are the same principal, and the chain travels to every stage in
+ * the requester's acknowledgments. A chain over each step's text would let a middle stage recover the answer by
+ * enumerating the vocabulary, so there both sides chain each step with empty text: the chain binds counts and steps only.
+ */
+const chainedDelta = (delta, textless) => (textless ? '' : delta);
 
 /** Signing port over a host's persistent participant identity and its clock; the host keeps the identity. */
 export function createAttemptEvidenceSigner({ identity, now = Date.now }) {
@@ -168,7 +174,7 @@ async function checkChargeBinding(charge, binding, routeHash) {
  * Stage side: cumulative signed receipts of one charged attempt at one stage.
  * A repeated step never advances the tally twice; a closed tally signs nothing new.
  */
-export async function openStageReceipts({ signer, identity, partitionIndex, charge, now = signer?.now ?? Date.now }) {
+export async function openStageReceipts({ signer, identity, partitionIndex, charge, now = signer?.now ?? Date.now, textlessOutputs = false }) {
   const binding = canonicalRouteAttemptBinding(identity);
   const stage = binding.route.stages[partitionIndex];
   assert(stage && typeof signer?.sign === 'function' && signer.participantId === stage.participantId, 'Stage receipts need this stage\'s own signing identity');
@@ -199,7 +205,7 @@ export async function openStageReceipts({ signer, identity, partitionIndex, char
       state.steps += 1; state.processed += inputTokenCount; state.timing.lastStepAt = at;
       if (state.output) {
         assert(typeof delta === 'string', 'Final stage output delta required');
-        state.output = { count: state.steps, chain: await extendOutputChain(state.output.chain, { step, delta }), done: done === true,
+        state.output = { count: state.steps, chain: await extendOutputChain(state.output.chain, { step, delta: chainedDelta(delta, textlessOutputs) }), done: done === true,
           stopReason: done === true && typeof stopReason === 'string' ? stopReason.slice(0, 64) : null };
       }
       return sign('executing');
@@ -246,7 +252,7 @@ export async function openStageReceipts({ signer, identity, partitionIndex, char
  * deltas this device received. A receipt that does not match is not
  * acknowledged, and nothing after it can be.
  */
-export async function openOutputAcknowledgments({ signer, identity, reservationId, now = signer?.now ?? Date.now, restore = null }) {
+export async function openOutputAcknowledgments({ signer, identity, reservationId, now = signer?.now ?? Date.now, restore = null, textlessOutputs = false }) {
   const binding = canonicalRouteAttemptBinding(identity);
   assert(typeof signer?.sign === 'function' && signer.participantId === binding.requesterId && text(reservationId, 160),
     'Acknowledgments need the requester\'s own signing identity and reservation');
@@ -270,7 +276,7 @@ export async function openOutputAcknowledgments({ signer, identity, reservationI
       if (state.broken || step !== state.count || typeof delta !== 'string') { state.broken = true; return null; }
       const checked = await verifyStageReceipt(receipt);
       const body = checked.body;
-      const chain = await extendOutputChain(state.chain, { step, delta });
+      const chain = await extendOutputChain(state.chain, { step, delta: chainedDelta(delta, textlessOutputs) });
       if (!checked.ok || body.reservationId !== reservationId || body.attemptId !== binding.attemptId || body.routeHash !== routeHash
         || body.partitionIndex !== finalStage.index || body.participantId !== finalStage.participantId
         || body.output?.count !== step + 1 || body.output.chain !== chain) { state.broken = true; return null; }

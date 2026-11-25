@@ -8,7 +8,7 @@ export interface ExecutionPolicy {
 }
 export interface ExecutionRoute {
   schema: 'reploid.execution-route/v1'; modelId: string; modelIdentity: string; adapterIdentities: string[];
-  backend: string; protocol: null; route: unknown; hops: Array<{ recipient: string; placement: 'local' | 'remote'; disclosure: 'plaintext' }>;
+  backend: string; protocol: null; route: unknown; hops: Array<{ recipient: string; placement: 'local' | 'remote'; disclosure: 'plaintext' | 'activations' }>;
 }
 export interface ExecutionBinding { schema: 'reploid.execution-binding/v2'; policy: ExecutionPolicy; route: ExecutionRoute; policyId: string; routeId: string }
 export interface PrivacyRequest { model: { id: string; identity: string; partition?: unknown; adapters?: Array<{identity: string}> }; privacy?: ExecutionPolicy | null; permissions?: Record<string, unknown> }
@@ -20,13 +20,16 @@ export declare const EXECUTION_ERROR_CODES: Readonly<{ [K in ExecutionErrorCode]
 export declare function executionError(code: ExecutionErrorCode, message: string): Error & { code: ExecutionErrorCode };
 export type ExecutionMetadata = 'model-id' | 'timing' | 'length' | 'access-patterns';
 export declare const EXECUTION_METADATA: readonly ExecutionMetadata[];
-export interface ExecutionBackend { computation: 'plaintext'; protocol: null; executorsReadContent: boolean; metadata: ExecutionMetadata[] }
+export interface ExecutionBackend { computation: 'plaintext'; protocol: null; executorsReadContent: boolean; executorsReadActivations?: true; metadata: ExecutionMetadata[] }
 export declare const EXECUTION_BACKENDS: Readonly<Record<string, ExecutionBackend>>;
+export declare const EDGES_BACKEND: 'doppler-partition-edges/v1';
+export type Confidentiality = 'requester-only' | 'requester-edges' | 'executor-readable';
+export declare const CONFIDENTIALITY_MODES: readonly Confidentiality[];
 export declare function executionBackend(backend: string): ExecutionBackend | null;
 export interface ExecutionRequirements {
   placement: 'local-only' | 'network-allowed';
   participants: { kind: 'open' } | { kind: 'none' } | { kind: 'named'; ids: string[] };
-  confidentiality: 'requester-only' | 'executor-readable';
+  confidentiality: Confidentiality;
   allowMetadata: ExecutionMetadata[];
 }
 export declare function compileExecutionRequirements(execution: ExecutionRequirements): ExecutionPolicy;
@@ -40,6 +43,8 @@ export declare function requestExecutionPolicy(request: PrivacyRequest): Executi
 export declare function assertAvailableExecutionPolicy(policy: ExecutionPolicy): ExecutionPolicy;
 export declare function plaintextExecutionRoute(request: PrivacyRequest, options?: { recipients?: string[]; local?: boolean; route?: unknown }): ExecutionRoute;
 export declare function validateExecutionRoute(policy: ExecutionPolicy, route: ExecutionRoute): ExecutionRoute;
+export declare function edgesExecutionRoute(request: PrivacyRequest, options: { route: { stages: Array<{ index: number; participantId: string }> } }): ExecutionRoute;
+export declare function tokenContextStages(binding: unknown): number[] | null;
 export declare function bindExecutionRoute(request: PrivacyRequest, route: ExecutionRoute): Promise<ExecutionBinding>;
 export declare function sameExecutionBinding(a: unknown, b: unknown): boolean;
 
@@ -48,5 +53,5 @@ export declare function partitionPrivacyBinding(request: PrivacyRequest & {priva
 export interface AuxiliaryPath {schema: 'reploid.auxiliary-path/v1'; id: string; version: string; hops: ExecutionRoute['hops']}
 export interface AuxiliaryDetail {operation: 'search' | 'extract' | 'check'; id: string; version: string; resourceOrigin?: string; requestId?: string}
 export interface AuxiliaryBinding {schema: 'reploid.auxiliary-binding/v2'; policy: ExecutionPolicy; policyId: string; pathId: string; path: AuxiliaryDetail & {schema: 'reploid.auxiliary-path/v1'; complete: boolean; hops: ExecutionRoute['hops']}}
-export declare function validatePlaintextHops(policy: ExecutionPolicy, hops: ExecutionRoute['hops'], exposed?: readonly ExecutionMetadata[]): ExecutionRoute['hops'];
+export declare function validatePlaintextHops(policy: ExecutionPolicy, hops: ExecutionRoute['hops'], exposed?: readonly ExecutionMetadata[], options?: { activations?: boolean }): ExecutionRoute['hops'];
 export declare function bindAuxiliaryDisclosure(policy: ExecutionPolicy, detail: AuxiliaryDetail, declared: AuxiliaryPath): Promise<AuxiliaryBinding>;

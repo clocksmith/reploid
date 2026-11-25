@@ -63,7 +63,7 @@ export interface StageReceiptTally {
   evidence(): AttemptEvidenceBundle;
 }
 export function openStageReceipts(options: { signer: AttemptEvidenceSigner; identity: RouteAttemptBinding; partitionIndex: number;
-  charge: OutputAcknowledgment; now?: () => number }): Promise<StageReceiptTally>;
+  charge: OutputAcknowledgment; now?: () => number; /** Edges routes: chain steps without their text. */ textlessOutputs?: boolean }): Promise<StageReceiptTally>;
 export interface OutputAcknowledgments {
   readonly routeHash: string; readonly charge: OutputAcknowledgment;
   observe(output: { step: number; delta: string; done?: boolean; receipt: StageReceipt | null }): Promise<AcknowledgedOutput | null>;
@@ -71,7 +71,7 @@ export interface OutputAcknowledgments {
   evidence(): AttemptEvidenceBundle;
 }
 export function openOutputAcknowledgments(options: { signer: AttemptEvidenceSigner; identity: RouteAttemptBinding; reservationId: string;
-  now?: () => number; restore?: Record<string, unknown> | null }): Promise<OutputAcknowledgments>;
+  now?: () => number; restore?: Record<string, unknown> | null; /** Edges routes: chain steps without their text. */ textlessOutputs?: boolean }): Promise<OutputAcknowledgments>;
 
 declare const api: {
   STAGE_RECEIPT_SCHEMA: typeof STAGE_RECEIPT_SCHEMA;

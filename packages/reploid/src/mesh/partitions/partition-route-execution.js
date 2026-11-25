@@ -123,8 +123,12 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
    * `deadlineAt` (ms epoch) is the attempt's answer deadline: reaching it fails the attempt as
    * ANSWER_DEADLINE_EXCEEDED and settles every stage, before any grant could expire.
    */
+  /**
+   * `tokenStages` lists the stage indexes that receive token IDs (default: every stage). It must include the first
+   * and last stage; every other stage then receives its step's token count and activations, never the token IDs.
+   */
   async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {}, onStep = null,
-    charge = null, onOutput = null, acknowledgmentDeadlineAt = null, deadlineAt = null }) {
+    charge = null, onOutput = null, acknowledgmentDeadlineAt = null, deadlineAt = null, tokenStages = null }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
     assert((charge === null || charge && typeof charge === 'object' && !Array.isArray(charge))
@@ -149,6 +153,9 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       && Array.isArray(grants.activation) && grants.activation.length === devices.length - 1
       && grants.activation.every(value => value && typeof value === 'object') && grants.output,
     'Grants for every stage, adjacent edge and final output required');
+    const holders = new Set(tokenStages ?? devices.map((_, index) => index));
+    assert(Array.isArray(tokenStages ?? []) && [...holders].every(index => Number.isSafeInteger(index) && index >= 0 && index < devices.length)
+      && holders.has(0) && holders.has(devices.length - 1), 'Token context must reach the first and last stage, and only listed stages');
     assert(!attempts.has(binding.attemptId), 'Attempt already used; replacement requires a fresh authorized attempt');
     // The route's attempt history and concurrent slots (unsettled cleanup keeps its slot) are capacity.
     assertCapacity(attempts.size < policy.maxAttempts);
@@ -238,7 +245,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     async function permitRoute(step) {
       for (let index = 0; index < devices.length; index++) {
         await permit('mesh.execute_partition_stage', authority.execution[index], { ...step, partitionIndex: index });
-        await permit('mesh.transfer_token_context', authority.tokenContext[index], { ...step, partitionIndex: index,
+        if (holders.has(index)) await permit('mesh.transfer_token_context', authority.tokenContext[index], { ...step, partitionIndex: index,
           recipients: recipients(coordinatorId, devices[index].id) });
         if (index) await permit('mesh.transfer_intermediate_activation', authority.activation[index - 1],
           { ...step, fromStage: index - 1, toStage: index,
@@ -279,11 +286,12 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
             const result = await lease(stage, async () => {
               // Recheck authority after queueing, immediately before disclosure.
               await permit('mesh.execute_partition_stage', authority.execution[stage], { ...step, partitionIndex: stage });
-              await permit('mesh.transfer_token_context', authority.tokenContext[stage], { ...step, partitionIndex: stage,
+              const tokens = holders.has(stage);
+              if (tokens) await permit('mesh.transfer_token_context', authority.tokenContext[stage], { ...step, partitionIndex: stage,
                 recipients: recipients(coordinatorId, devices[stage].id) });
               const started = performance.now();
               const output = clone(await bounded(stage, stageSignal => devices[stage].executeStage({ identity: binding, partitionIndex: stage, ...step,
-                inputTokenIds: [...input], generation: settings, continuation: continuations[stage], activation,
+                ...(tokens ? { inputTokenIds: [...input] } : {}), generation: settings, continuation: continuations[stage], activation,
                 executionGrant: authority.execution[stage], tokenContextGrant: authority.tokenContext[stage],
                 ...(stage > 0 ? { incomingActivationGrant: authority.activation[stage - 1] } : {}),
                 ...(stage < devices.length - 1 ? { outgoingActivationGrant: authority.activation[stage] } : {}),
