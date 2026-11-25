@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:db2d1b369e5569d8891ce2b5198f13ae44c1177f3375c6cb3bfb5548b0861bf8",
+      "sha256": "sha256:8017817b073f2a55c353e82d72b7f25585f2496078193384d700529b46bc7d41",
       "imports": []
     },
     {
@@ -5415,7 +5415,7 @@
     {
       "path": "ui/pool-home/service-credit-text.js",
       "owner": "ui",
-      "sha256": "sha256:1f420c528b2fcb08f2e27a2be7032c0b784b40da623037c0a94ee725cada2fb5",
+      "sha256": "sha256:0095fd16950efca0975327a791c75f6b7e7b01efffb6c8e3cdcdb6296d403c4e",
       "imports": []
     },
     {

@@ -28,10 +28,11 @@ export function serviceCreditOutcomeText(credit) {
   return `${credits(charge)} charged${Number.isSafeInteger(credit.outputTokens) ? ` for ${plural(credit.outputTokens, 'output token')}` : ''}`;
 }
 
-/** The paying account from a ledger snapshot: the requester's own computer account, separate from the others. */
+/** The paying account from a ledger snapshot: the owner account the requester's computer belongs to (shared by all of
+ * that owner's computers), separate from the others. `ownId` is the requester's computer ID. */
 export function creditAccounts(snapshot, ownId) {
   const rows = Array.isArray(snapshot?.accounts) ? snapshot.accounts : [];
-  const own = rows.find(row => row.id === ownId) ?? null;
+  const own = rows.find(row => Array.isArray(row.computerIds) ? row.computerIds.includes(ownId) : row.id === ownId) ?? null;
   return { own, others: rows.filter(row => row !== own) };
 }
 

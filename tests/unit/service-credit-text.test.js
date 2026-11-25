@@ -35,6 +35,10 @@ describe('service-credit account and statement wording', () => {
     expect(accountText(own)).toBe('10 credits · 8 credits held for unfinished answers · 2 credits available');
     expect(accountText(others[0])).toBe('5 credits');
     expect(creditAccounts({ accounts: [] }, 'b').own).toBeNull();
+    // An owner account holds every computer of that owner: the requester's computer finds its account among them.
+    const owners = { accounts: [{ id: 'them', computerIds: ['c'], balance: -3, held: 0 }, { id: 'you', computerIds: ['laptop', 'desktop'], balance: 3, held: 0 }] };
+    expect(creditAccounts(owners, 'laptop').own.id).toBe('you');
+    expect(creditAccounts(owners, 'you').own).toBeNull();
   });
 
   it('lists earned, spent and released holds newest first within a bound', () => {
