@@ -87,7 +87,7 @@ export const renderOwnerPairingControls = () => `
       <p class="pool-small pool-muted">Start Reploid on your desktop. Scan the code it shows with this device’s camera, or paste the pairing link here.</p>
       <form class="pool-stack pool-gap-sm" data-owner-pairing-form>
         <label class="pool-stack pool-gap-xs pool-small">Pairing link<input class="pool-input" name="link" type="url" placeholder="Paste the link from your desktop" autocomplete="off"></label>
-        <div class="pool-row"><button class="pool-button btn-primary" type="submit">Connect</button></div>
+        <div class="pool-row pool-gap-md"><button class="pool-button btn-primary" type="submit">Connect</button><p class="pool-status-line pool-small pool-muted pool-grow" role="status" data-owner-pairing-status></p></div>
         <details class="pool-disclosure pool-disclosure-quiet" data-pairing-manual>
           <summary class="pool-small">Enter the details by hand (for experts)</summary>
           <div class="pool-stack pool-gap-sm">
@@ -99,7 +99,6 @@ export const renderOwnerPairingControls = () => `
         </details>
       </form>
       <button class="pool-button btn-ghost" type="button" data-owner-pairing-unpair hidden>Forget computer</button>
-      <p class="pool-status-line pool-small" role="status" data-owner-pairing-status></p>
     </div>
   </details>`;
 

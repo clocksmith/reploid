@@ -53,6 +53,8 @@ it('prefills from a fragment-only QR link without local address fields, pairs, a
 
   // QR link prefilled the form including the nondefault room routing hint and opened the panel.
   expect(query('[data-owner-pairing]').open).toBe(true);
+  // The raw fields stay folded for experts even when a link fills them.
+  expect(query('[data-pairing-manual]').open).toBe(false);
   expect(query('input[name="hostParticipantId"]').value).toBe(hostParticipantId);
   expect(query('input[name="code"]').value).toBe(code);
   expect(query('input[name="hostLabel"]').value).toBe("Alex's PC");

@@ -67,8 +67,8 @@ export function allowsOpenPlaintext(policy) {
   } catch { return false; }
 }
 
-// One single-select list: title and one status line per preset. The checked preset's full exposure
-// statement sits below the list; every statement shares one cell, so changing the choice never resizes the dialog.
+// One single-select list: title and one status line per preset. The checked preset's full exposure statement
+// (metadata that coordinators and relays can see) waits in a collapsed "What else can be seen" disclosure.
 const presetOptions = () => privacyPresetChoices().map(({ value, title, status, disabled }) => renderOption({
   id: `chat-privacy-${value}`, name: 'execution-preset', value, title: escapeHtml(title), status: escapeHtml(status), disabled,
   inputAttrs: { 'data-privacy-preset': true }, statusAttrs: { 'data-preset-status': value }
@@ -79,8 +79,9 @@ export const renderPrivacyControls = () => renderDialog({
   attrs: { id: 'chat-privacy-dialog', 'data-privacy-dialog': true },
   closeAttrs: { 'data-dialog-close': true },
   body: `<fieldset class="pool-options" role="radiogroup" aria-labelledby="chat-privacy-title" data-privacy-controls>${presetOptions()}</fieldset>
-    <div class="pool-reserve pool-small pool-muted" data-privacy-detail>${EXECUTION_PRESETS.map(preset => `<p data-preset-note="${preset}" hidden></p>`).join('')}</div>
-    <p class="pool-caption pool-muted">Applies to new messages only.</p>`,
+    <p class="pool-caption pool-muted">Applies to new messages only.</p>
+    <details class="pool-disclosure pool-disclosure-quiet" data-privacy-detail><summary class="pool-small">What else can be seen</summary>
+      <div class="pool-reserve pool-small pool-muted">${EXECUTION_PRESETS.map(preset => `<p data-preset-note="${preset}" hidden></p>`).join('')}</div></details>`,
   footer: '<p class="pool-status-line" role="alert" data-privacy-error hidden></p><button type="button" class="pool-button btn-ghost" data-privacy-cancel>Cancel</button><button type="button" class="pool-button btn-primary" data-privacy-apply>Apply</button>'
 });
 

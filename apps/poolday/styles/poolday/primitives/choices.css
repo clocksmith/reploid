@@ -113,8 +113,6 @@
 .pool-home .pool-option:has(> input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
 .pool-home .pool-option:has(> input:disabled) { cursor: not-allowed; }
 .pool-home .pool-option:has(> input:disabled) .pool-row-title { color: var(--pool-color-muted); }
-/* The reason stays readable: a disabled row dims its title, never its reason. */
-.pool-home .pool-option:has(> input:disabled) .pool-row-status { color: var(--pool-color-ink); }
 .pool-home .pool-option-mark {
   display: inline-grid;
   place-items: center;

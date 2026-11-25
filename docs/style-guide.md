@@ -219,7 +219,7 @@ Empty states say what is missing and the next action, in one sentence.
 ### Unavailable options: disabled with a reason
 
 An option that cannot work right now is either left out or shown disabled with
-its reason in its own status line, which stays visible (only the title dims). When
+its reason in its own status line, which stays visible in the same muted style as every other row's status (only the title dims). When
 something can fix it, the row shows the fix in its trailing slot: a button for an
 action, or a link to the Computers or Settings view, which closes the dialog. Never
 leave a primary button disabled without a reason beside it in the footer.
@@ -235,8 +235,9 @@ preset.
 
 Status that comes and goes uses `pool-status-line`: a hidden or empty status
 keeps its line, so the surrounding rows never move. Alternative texts for the
-same place (each preset's exposure statement) share one cell in `pool-reserve`,
-and the tallest one sets the height. Badges have a fixed height and never wrap.
+same place can share one cell in `pool-reserve`, where the tallest sets the
+height; text that only repeats a chosen row belongs in a collapsed disclosure
+instead. Badges have a fixed height and never wrap.
 
 Dialogs use the shell from `renderDialog`: a fixed header (title and Close), a
 scrolling body and a pinned footer. A dialog whose body shows live data

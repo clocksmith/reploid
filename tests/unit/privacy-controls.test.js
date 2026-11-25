@@ -22,7 +22,8 @@ it('offers three presets, states availability and exposure before Send, and neve
   expect(find('[data-preset-note="no-device"]').textContent).toMatch(/^Not available yet\. Planned: .*refused before anything is sent/);
   expect(find('[data-preset-status="no-device"]').textContent).toBe('Not available yet. Planned: no computer, not even the one answering, can read your prompt.');
   expect(find('[data-preset-status="own-devices"]').textContent).toBe('This device and Studio read your messages. No other computer can.');
-  // Only the checked preset's exposure statement is shown; the others keep its cell so the dialog never resizes.
+  // Only the checked preset's exposure statement is shown, inside a collapsed disclosure under the rows.
+  expect(find('[data-privacy-detail]').open).toBe(false);
   expect(find('[data-preset-note="standard"]').hidden).toBe(false);
   expect(find('[data-preset-note="own-devices"]').hidden).toBe(true);
   // Only your devices: the paired desktop is the one named participant, executor-readable.

@@ -112,6 +112,9 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       await page.locator('[data-model-picker] [data-open-privacy]').click();
       const dialog = page.locator('[data-privacy-dialog]');
       await expect(dialog).toBeVisible();
+      // The exposure statement waits collapsed; opened, it keeps one height whichever preset is chosen.
+      await expect(dialog.locator('[data-privacy-detail]')).not.toHaveAttribute('open', '');
+      await dialog.locator('[data-privacy-detail] > summary').click();
       await watchBox(dialog);
       await expect(dialog.locator('[data-preset-status=no-device]')).toHaveText(/^Not available yet\. Planned:/);
       await expect(dialog.locator('[value=no-device]')).toBeDisabled();
