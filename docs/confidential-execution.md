@@ -669,6 +669,18 @@ integration (no readable fallback, state and log separation). Until that review
 and the two-machine end-to-end run both pass, the flag stays off, no surface
 offers the mode, and `PROTECTED_EXECUTION_STATUS.available` stays false.
 
+Passing that review would qualify only a **single-evaluator** (`selection: "one-of"`)
+fixture route, which remains a stepping stone rather than Reploid's long-term
+product goal in [`GOALS.md`](../GOALS.md#operating-mission). Proving confidential
+pooled split exchange requires one end-to-end run that earns credits by serving
+someone else and spends them on a confidential request **split across multiple
+independently operated GPUs** where every participating GPU fails solo on memory,
+the split beats single-host CPU offload within frozen latency and quality limits,
+the privacy tier is named honestly (neither hardware-attested execution nor
+non-colluding secret sharing may silently pass `requester-only`), and an
+independent security review, the reference answer, and outsider-reproducible
+requester debit and stage payouts are all verified from that same run.
+
 ## Not claimed
 
 - No trustless compute, hardware attestation or cryptographic protection

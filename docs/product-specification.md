@@ -181,7 +181,8 @@ Split executors exchange activations during inference, not weights at each token
 Qualify both split routes on physical hosts with a pinned model and plan, per-host
 weight inventories, exact reference tokens, and cancellation without a stranded
 hold. The larger-than-either-host claim additionally needs both solo controls to
-fail at the same settings.
+fail for a measured memory reason at the same settings and to beat the strongest
+single-host CPU offload baseline.
 
 Remote executors receive disclosed text, tokens and intermediate representations;
 tokens, transport encryption and signatures do not establish confidential execution.
@@ -190,7 +191,17 @@ backend and is refused before anything is sent. The chat offers three presets,
 each stating availability and exposed metadata before Send: Standard, Only your
 devices (this device or the desktop it paired with, which read the content in
 plaintext) and the unavailable confidential mode. See
-[confidential-execution.md](confidential-execution.md).
+[confidential-execution.md](confidential-execution.md). Qualifying plaintext split
+routes (`executor-readable`) and researching single-evaluator confidential fixtures
+are distinct stepping stones toward the long-term north star in
+[`GOALS.md`](../GOALS.md#operating-mission): proving that combined goal requires
+earning credits by serving someone else, spending them from a zero-weight requester
+on **one confidential split** across independently operated GPUs that each fail solo
+on memory and beat single-host CPU offload within frozen latency and quality limits,
+and verifying from that same run an independent security review of who could read
+what (without letting attested hardware or non-colluding secret shares silently pass
+`requester-only`), the reference answer, and outsider-reproducible debit and stage
+payouts.
 Describe prior turns and attached/retrieved context before relying on a grant.
 Model selection does not establish trust in arbitrary computers. Sending a message
 or explicitly retrying authorizes eligible contributors under the app's network-answer
