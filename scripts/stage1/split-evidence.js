@@ -178,7 +178,7 @@ export async function collectSettlementReplay({ requester, stages, attemptId, po
     ...bundleRecords(own.acknowledgments),
     ...stageRecords.flatMap(row => (row?.error ? [] : [...bundleRecords(row?.closing), ...(row?.checkpoints ?? [])]))];
   const result = await replaySettlement({ records, policies: [policy], at: at(), computerOf });
-  // Rows in the one case where the ledger's interim rule and the replay differ, labelled so the receipt check can
+  // Rows in the one case that moves credits where the ledger's interim rule and the replay differ, labelled so the receipt check can
   // tolerate exactly those (docs/settlement-replay.md, "Known difference, pending owner decision").
   const knownDifferences = (result.reservations ?? []).filter(isWalkAwayRow).map(row => ({ case: WALK_AWAY_DIFFERENCE,
     reservationId: row.reservationId, requesterId: row.requesterId, acknowledgedOutputs: row.outputs }));

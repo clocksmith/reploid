@@ -462,16 +462,23 @@ the clock skew allowance. Every Stage 1 receipt replays the split, stopped and
 dropped attempts from those records and the participants' own stage receipts and
 acknowledgments, labels the result `termsCollectedBy: 'stage1-harness'`, and fails
 unless the replay matches the ledger and the terms name the ledger's exact policy
-digest. The one exception is the known difference below: a receipt passes with
-it only when its replay lists the reservation in `knownDifferences` as
-`unfinished-split-answer-closed-without-stop` with the same acknowledged count,
-and the ledger charged exactly that prefix. None of the three phases should meet
-it: the split answer finishes, the cancelled one signs a stop (and the check
+digest. The one exception is the known difference below that moves credits.
+Each attempt's `settlementReplay` in the receipt (built by
+`scripts/stage1/split-evidence.js`) holds the replay's return as `result` and,
+next to it, `knownDifferences`: one entry `{ case:
+'unfinished-split-answer-closed-without-stop', reservationId, requesterId,
+acknowledgedOutputs }` per `result.reservations` row that is `settled` with
+`outputs > 0` and `chargedOutputs: 0`, where `acknowledgedOutputs` is the row's
+`outputs` (an empty list when there is none). A receipt passes with the
+difference only when such an entry names the reservation with the row's
+acknowledged count, and the ledger charged exactly that prefix: its output count
+equals `outputs` and its charge is that count at the policy rate. None of the
+three phases should meet it: the split answer finishes, the cancelled one signs a stop (and the check
 still requires that stop), and the dropped one has a killed stage that never
 closes, so it expires in both.
 
 The replay and the live ledger agree once both are final, not at every moment,
-and except in the one case of the next section.
+and except in the case of the next section that moves credits.
 Until the release window has passed (`deadline + releaseWindowMs +
 maxClockSkewMs`), an answer with an unclosed stage is `open` in the replay and
 pending in the ledger, and after it both settle or expire it under step 6. The ledger times records against its own request deadline (its creation
@@ -481,7 +488,7 @@ signed by the deadline plus the skew allowance, ignores a step receipt signed
 later, and accepts closing receipts until the window has passed, whatever the
 step times they report. It applies step 9 to the records it holds: the final stage's
 latest receipt decides `finished` and `withheld`, and the requester's stop
-decides `stopped`, with the one difference in the next section. The live split
+decides `stopped`, with the difference in the next section. The live split
 route collects the stop: when the
 person stops a split answer, the requester signs it and hands it to the ledger
 before its stages are told to stop, so the ledger holds it before any stage
@@ -498,12 +505,19 @@ Reservations made before these rules keep the ones they were accepted under.
 
 ## Known difference, pending owner decision
 
-One case settles differently in the replay and in the live ledger: **an
-unfinished split answer whose stages closed (`settled` or `failed`), with no
-in-time requester stop and no more than `K` acknowledgments withheld.** Step 9
-reads it as ended by a stage.
+The replay and the live ledger differ in one case that moves credits, and in
+one difference of status only that moves none (a delivered answer with no
+covering receipt, `unknown` in the replay and `expired` in the ledger, above).
+The case that moves credits is **an unfinished split answer under
+`unfinishedTerms` equal to `reploid.unfinished-answer/provider-loss-free/v1`
+whose stages closed (`settled` or `failed`), with no in-time requester stop and
+no more than `K` acknowledgments withheld.** Step 9 reads it as ended by a stage.
+It does not arise under `unfinishedTerms: null` or any other value, or when more
+than `K` acknowledgments were withheld: step 9 then charges the acknowledged
+prefix, the same as the ledger.
 
-- **The replay's rule (step 9, unchanged): an unfinished split answer costs
+- **The replay's rule (step 9, unchanged): under provider-loss-free terms, an
+  unfinished split answer with no more than `K` acknowledgments withheld costs
   nothing unless the requester signs a stop.** The requester drives every step:
   a stage computes the next output only after the requester asks for it. A
   requester that has read what it wants can just stop asking; the stages then
@@ -546,8 +560,8 @@ node scripts/settlement/baseline-matrix.js --out /absolute/path/baseline.json
 The unit tests (`tests/unit/settlement-replay.test.js` and
 `tests/unit/settlement-replay-encoding.test.js`) include a check that the
 replay's charge and credits equal the live ledger's (`server/fleet/credits.js`)
-for the same signed records (and that they differ, as named, in the one known
-difference), including an answer settled at window expiry with a
+for the same signed records (and that they differ, as named, in the known
+difference that moves credits), including an answer settled at window expiry with a
 stage closed at its last signed step and an answer whose stages closed after the
 deadline with the requester's last acknowledgment late, and that provider-loss
 attempts expire with no charge in both. They also run one record set under
@@ -574,7 +588,10 @@ replay. The requester-signed terms and cumulative acknowledgments do most of the
 work: on every other operator goal, and on the participant cases where the
 requester stops paying, withholds its last acknowledgment, or acknowledges and
 closes after the deadline (P5), B3 and the replay reach the same amounts. What the stage receipts and the `done` flag add is that
-an abandoned answer is free (G5, P6, P7). The final stage alone can defeat that
+an abandoned answer is free (G5, P6, P7); the matrix lists P6 and P7 as cases
+the replay loses to debit notes, because a requester that stops asking leaves
+the same records (see
+[Known difference, pending owner decision](#known-difference-pending-owner-decision)). The final stage alone can defeat that
 with a faked stall (L3), and then both schemes charge the acknowledged prefix.
 
 The replay used to lose three participant cases to B3: one stage vetoing every

@@ -375,7 +375,7 @@ function checkReplay(receipt, name, fail) {
     return;
   }
   const amounts = (row.credits ?? []).map(credit => credit.amount), ledger = (trace.credits ?? []).map(credit => credit.amount);
-  // The one known difference (docs/settlement-replay.md, "Known difference, pending owner decision"): an unfinished
+  // The known difference that moves credits (docs/settlement-replay.md, "Known difference, pending owner decision"): an unfinished
   // answer the stages closed with no stop is free in the replay and charged its acknowledged prefix by the ledger. It
   // is tolerated only when the receipt labels it for this reservation and the ledger charged exactly that prefix.
   const labelled = (replay.knownDifferences ?? []).some(item => item?.case === WALK_AWAY_DIFFERENCE && item.reservationId === row.reservationId
