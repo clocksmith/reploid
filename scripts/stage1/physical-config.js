@@ -9,6 +9,8 @@ import { STAGE1_MODEL_ID } from './expectations.js';
 
 export const STAGE1_HOSTS_SCHEMA = 'reploid.stage1-hosts/v1';
 export const STAGE1_HOST_LABELS = Object.freeze(['host-a', 'host-b']);
+/** The coordinator ledger's clock allowance across machines, unless `credit.maxClockSkewMs` names another. */
+export const STAGE1_CLOCK_SKEW_MS = 10000;
 const SSH_TARGET = /^[A-Za-z0-9][A-Za-z0-9._-]*(@[A-Za-z0-9][A-Za-z0-9._-]*)?$/;
 const SAFE_PATH = /^\/[A-Za-z0-9._\/ +@=-]*$/;
 // A Windows stage host's paths travel unquoted in its remote command (command-transport.js), so they carry no space.
@@ -128,11 +130,17 @@ export function validatePhysicalConfig(config) {
   for (const key of ['keyFile', 'certFile', 'caFile']) directoryPath(coordinator.tls[key], `coordinator.tls.${key}`);
   // The release window is the ledger's partitionUnclaimedReleaseMs: a dropped split's hold is released that long after
   // its deadline, and signed settlement terms carry it.
-  const credit = object(config.credit, 'credit', ['weights', 'maxDebt', 'maxRequestMs', 'partitionUnclaimedReleaseMs']);
+  // `maxClockSkewMs` (optional, default 10 s) is the ledger's clock allowance; the release window must be longer.
+  const credit = object(config.credit, 'credit', ['weights', 'maxDebt', 'maxRequestMs', 'partitionUnclaimedReleaseMs',
+    ...(config.credit && typeof config.credit === 'object' && Object.hasOwn(config.credit, 'maxClockSkewMs') ? ['maxClockSkewMs'] : [])]);
   if (!Array.isArray(credit.weights) || credit.weights.length !== 2) refuse('credit.weights');
   credit.weights.forEach((weight, index) => positive(weight, `credit.weights[${index}]`));
   positive(credit.maxDebt, 'credit.maxDebt'); positive(credit.maxRequestMs, 'credit.maxRequestMs');
   positive(credit.partitionUnclaimedReleaseMs, 'credit.partitionUnclaimedReleaseMs');
+  if (Object.hasOwn(credit, 'maxClockSkewMs')) positive(credit.maxClockSkewMs, 'credit.maxClockSkewMs');
+  if (credit.partitionUnclaimedReleaseMs <= (credit.maxClockSkewMs ?? STAGE1_CLOCK_SKEW_MS)) {
+    refuse('credit.partitionUnclaimedReleaseMs must be longer than the clock skew allowance');
+  }
   // `bookkeepingMs` (optional) bounds each of the split's checks before and after its answer, apart from the generation.
   const limits = object(config.limits, 'limits', ['phaseMs', 'abortGraceMs', 'hardStopMs', 'stopMarginMs', 'serviceRestoreMs',
     ...(config.limits && typeof config.limits === 'object' && Object.hasOwn(config.limits, 'bookkeepingMs') ? ['bookkeepingMs'] : [])]);

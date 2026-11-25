@@ -8,6 +8,7 @@ import path from 'node:path';
 import SignalingServer from '../../server/signaling-server.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { startFleetService } from '../../server/fleet/service.js';
+import { STAGE1_CLOCK_SKEW_MS } from './physical-config.js';
 
 const refuse = reason => { throw Object.assign(Error(`coordinator-tls-refused: ${reason}`), { code: 'coordinator-tls-refused' }); };
 
@@ -49,7 +50,7 @@ export async function startPhysicalCoordinator({ config, peers, directory, expec
     ...(buyer ? [{ id: 'computer-buyer', name: 'buyer', ownerId: 'owner-buyer', providers: [{ participantId: buyer.participantId, publicJwk: buyer.publicJwk }] }] : [])],
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'stage1-physical/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: expectations.creditsPerOutputToken, maxDebt: credit.maxDebt, maxOutputTokens: fixture.maxOutputTokens,
-      maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: credit.maxRequestMs, allowSameOwner: false, wholeModelTerminalCharge: 0,
+      maxPendingPerComputer: 2, maxClockSkewMs: credit.maxClockSkewMs ?? STAGE1_CLOCK_SKEW_MS, maxRequestMs: credit.maxRequestMs, allowSameOwner: false, wholeModelTerminalCharge: 0,
       partitionUnclaimedReleaseMs: credit.partitionUnclaimedReleaseMs } });
   let service = null, server = null, signaling = null;
   const close = async () => {

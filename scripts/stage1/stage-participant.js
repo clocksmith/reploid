@@ -228,7 +228,10 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     armGate: ({ threadId, step }) => { gate.arm(threadId, step); return {}; },
     gateState: ({ threadId }) => ({ entered: gate.isEntered(threadId) }),
     progress: () => ({ attemptId: active?.attemptId ?? null, deltas: active?.deltas ?? 0 }),
-    /** The requester ends the answer: it signs its stop at the count it has acknowledged, then stops. */
+    /**
+     * The requester ends the answer: it signs its stop at the count it has acknowledged, then stops as a person's Stop
+     * does (`requesterStop`), so the live requester hands its own signed stop to the ledger before the stages stop.
+     */
     async cancel() {
       const run = active;
       if (!run) return { cancelled: false };
@@ -237,7 +240,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
         try { record.stop = await signSettlementStop({ signer, terms: record.terms, acknowledged: record.view?.count() ?? 0 }); }
         catch (error) { record.stopError = String(error?.message ?? error); }
       } else if (record) record.stopError = 'no signed terms to stop';
-      run.controller.abort(new DOMException('Stopped by harness', 'AbortError'));
+      run.controller.abort(Object.assign(new DOMException('Stopped by harness', 'AbortError'), { requesterStop: true }));
       return { cancelled: true };
     },
     trace: ({ attemptId }) => ({ tokenIds: trace.tokens(attemptId) }),

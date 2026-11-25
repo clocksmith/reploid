@@ -35,6 +35,8 @@ const EARN_REQUESTS = 2;
  * inside `maxRequestMs`, and the ledger's own expiry releases the dropped hold one window after its deadline.
  */
 const LOCAL_MAX_REQUEST_MS = 15000, LOCAL_RELEASE_WINDOW_MS = 1000;
+/** Every local process reads one clock; the allowance only has to stay below the release window, as the policy requires. */
+const LOCAL_CLOCK_SKEW_MS = 500;
 
 function startProcess(role, directory) {
   const child = fork(PROCESS_FILE, [role], { cwd: directory, stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
@@ -103,7 +105,7 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       { id: 'computer-buyer', name: 'buyer', ownerId: 'owner-buyer', providers: [{ participantId: buyer.peerId, publicJwk: buyer.publicJwk }] }],
       policy: { schema: 'reploid.service-credit-policy/v1', version: 'stage1-local/1', unit: 'noncash-service-credit',
         creditsPerOutputToken: expectations.creditsPerOutputToken, maxDebt: 1000, maxOutputTokens: fixture.maxOutputTokens,
-        maxPendingPerComputer: 2, maxClockSkewMs: 10000, maxRequestMs: LOCAL_MAX_REQUEST_MS, allowSameOwner: false, wholeModelTerminalCharge: 0,
+        maxPendingPerComputer: 2, maxClockSkewMs: LOCAL_CLOCK_SKEW_MS, maxRequestMs: LOCAL_MAX_REQUEST_MS, allowSameOwner: false, wholeModelTerminalCharge: 0,
         partitionUnclaimedReleaseMs: LOCAL_RELEASE_WINDOW_MS } });
     service = await startFleetService({ credits, models: [{ ...model, plans: [{ id: model.partitionPlanId, creditWeights: expectations.creditWeights }] }, { ...EARN_MODEL }],
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });

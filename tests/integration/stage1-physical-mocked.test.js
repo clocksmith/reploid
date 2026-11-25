@@ -99,7 +99,7 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     const config = { schema: 'reploid.stage1-hosts/v1',
       coordinator: { listenHost: '127.0.0.1', publicHost: '127.0.0.1', servicePort: await freePort(), signalingPort: await freePort(), tls },
       // A short request deadline and release window so the dropped hold expires inside the test.
-      credit: { weights: [16, 84], maxDebt: 1000, maxRequestMs: 20000, partitionUnclaimedReleaseMs: 2000 },
+      credit: { weights: [16, 84], maxDebt: 1000, maxRequestMs: 20000, partitionUnclaimedReleaseMs: 2000, maxClockSkewMs: 1000 },
       limits: { phaseMs: 45000, abortGraceMs: 3000, hardStopMs: 20000, stopMarginMs: 25000, serviceRestoreMs: 5000 },
       requester: { machineId: 'm-' + 'c'.repeat(16), participantId: requesterKey.peerId, ssh: 'mock-requester', node: process.execPath, releaseRoot: REPOSITORY,
         identityFile: path.join(base, 'requester', 'identity.json'), modelDirectory: path.join(base, 'requester', 'empty'), stateDirectory: path.join(base, 'requester', 'state'),
