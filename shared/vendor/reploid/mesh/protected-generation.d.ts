@@ -12,6 +12,7 @@ export declare const TRAP_BATCH_SCHEMA: 'doppler.protected-trap-batch/v1';
 export declare const TRAP_BATCH_ENVELOPE_SCHEMA: 'doppler.protected-trap-batch-envelope/v1';
 export declare const TRAP_SOURCES: readonly ['oracle', 'public-set'];
 export declare const PROTECTED_FRAME_CEILINGS: Readonly<Record<string, number>>;
+export declare const PROTECTED_CLOCK_SKEW_MS: number;
 export declare const PROTECTED_REQUESTER_FRAME_KINDS: string[];
 
 export interface SigningIdentity { peerId: string; publicJwk: JsonWebKey; privateJwk?: JsonWebKey; algorithm?: string; version?: number }
@@ -46,6 +47,8 @@ export interface TrapBatchEnvelope { schema: 'doppler.protected-trap-batch-envel
 export interface ProtectedPolicy {
   protocols: string[]; engines: string[]; parameterSets: Array<{ id: string; digest: string; insecureDevelopment: boolean }>;
   allowInsecureDevelopment: boolean; allowPublicTrapSet: boolean; circuits: PinnedCircuit[]; trapLanes: number; maxTrapTolerance: number; maxKeyEpochSeconds: number;
+  /** Defaults to { perEvaluator: 1, total: 3, windowSeconds: 86400 }. */
+  failureLimits?: { perEvaluator: number; total: number; windowSeconds: number };
 }
 export interface Trap { id: string; prompt: number[]; continuation: number[]; expectedLogits: number[][] }
 export interface VerifiedTrapSet {
@@ -63,6 +66,8 @@ export interface RequesterKeyHolder {
   epoch: { id: string; expiresAt: number; keysDigest: string | null; reused?: boolean };
   generateKeys(onKey: (blob: Uint8Array) => unknown): Promise<string>;
   commitKeys(keysDigest: string): Promise<void>;
+  /** Delete the stored epoch after a failed verification. */
+  retireEpoch?(): Promise<void>;
   encrypt(tokens: number[]): Promise<Uint8Array[]>;
   decrypt(blob: Uint8Array): Promise<ArrayLike<number> | null>;
   close(): Promise<{ encryptions: number; decryptions: number } | null>;
@@ -124,12 +129,12 @@ export declare function requestProtectedAdvertisement(channel: FrameChannel, opt
 export declare function createProtectedJournal(options?: { limit?: number }): ProtectedJournal;
 export declare function runProtectedRequesterSession(options: {
   channel: FrameChannel; crypto: RequesterKeyHolder; identity: SigningIdentity; verified: VerifiedAdvertisement; planId: string; routeId: string;
-  expiresAt: number; trapSet: VerifiedTrapSet; trapLanes: number; promptTokens: number[]; generate: number; journal?: ProtectedJournal;
+  expiresAt: number; trapSet: VerifiedTrapSet; trapLanes: number; promptTokens: number[]; generate: number; maxKeyEpochSeconds?: number; journal?: ProtectedJournal;
   onToken?: (token: number, step: number) => unknown; onBound?: (binding: { bindingDigest: string; session: string }) => unknown;
   randomInt?: (n: number) => number; now?: () => number; timeoutMs?: number; signal?: AbortSignal;
 }): Promise<{ tokens: number[]; evidence: ProtectedSessionEvidence }>;
 export declare function serveProtectedEvaluatorSession(options: {
   channel: FrameChannel; identity: SigningIdentity; advertisement: ProtectedAdvertisement; backend: EvaluatorEngine; seenNonces: Map<string, number>;
-  journal?: ProtectedJournal; now?: () => number; timeoutMs?: number; misbehave?: 'ask-decrypt' | 'replay-result' | null; signingIdentity?: SigningIdentity;
+  journal?: ProtectedJournal; now?: () => number; timeoutMs?: number; misbehave?: 'ask-decrypt' | 'replay-result' | 'wrong-offer-digest' | null; signingIdentity?: SigningIdentity;
 }): Promise<{ outcome: 'advertised' | 'completed' | 'failed' | 'misbehaved'; error?: string; session?: string; bindingDigest?: string;
   frames?: Record<string, number>; bytes?: { received: number; sent: number } }>;

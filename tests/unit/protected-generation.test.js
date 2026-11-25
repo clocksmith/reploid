@@ -113,6 +113,7 @@ function fakeKeyHolder({ keysDigest = null } = {}) {
       return sha(new Uint8Array(blobs.flatMap(b => [...b])));
     },
     async commitKeys() {},
+    async retireEpoch() { stats.retired = (stats.retired ?? 0) + 1; },
     async encrypt(tokens) { stats.encryptions += tokens.length; return tokens.map(t => new Uint8Array([0xce, t, ...crypto.getRandomValues(new Uint8Array(14))])); },
     async decrypt(blob) { if (blob.length !== 8 * VOCAB) return null; stats.decryptions++; return decodeLogits(blob); },
     async close() { return { ...stats }; }
@@ -154,7 +155,8 @@ const manifest = { protocol: 'toy-engine/v0', implementation: 'fake', scheme: 'c
 
 async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = false, tap = null, insecure = false, allowInsecure = false,
   extraAdvertisements = [], now = Date.now, keyHolder = () => fakeKeyHolder(), trapLanes = 3, randomInt,
-  trapSource = 'oracle', allowPublicTrapSet = false, oracleAnswer = null, publicSet = null } = {}) {
+  trapSource = 'oracle', allowPublicTrapSet = false, oracleAnswer = null, publicSet = null, failureLimits, maxKeyEpochSeconds = 86400,
+  timeoutMs = 2000, portFlag = true } = {}) {
   const oracle = await fakeOracle();
   const identity = await createSigningIdentity({ algorithm: 'ECDSA' });
   const signingIdentity = wrongIdentity ? await createSigningIdentity({ algorithm: 'ECDSA' }) : identity;
@@ -173,10 +175,10 @@ async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = 
     circuits: [{ identity: CIRCUIT, modelIdentity: MODEL, tokenizer: { alphabet: ALPHABET }, vocab: VOCAB, context: CONTEXT, inputLevel: 36, logSlots: 6,
       rotations: [1, 2, 4, 8, 16, 32], traps: trapSource === 'oracle' ? { source: 'oracle', endpoint: 'oracle:1', oracleKeys: [oracle.publicKey] }
         : { source: 'public-set', envelope, publisherKeys: [publicKey] } }],
-    trapLanes, maxTrapTolerance: 1, maxKeyEpochSeconds: 86400, allowPublicTrapSet };
+    trapLanes, maxTrapTolerance: 1, maxKeyEpochSeconds, allowPublicTrapSet, ...(failureLimits ? { failureLimits } : {}) };
   let holder = null;
   const requesterJournal = createProtectedJournal();
-  const protectedExecution = createProtectedExecution({ policy, journal: requesterJournal, now, randomInt,
+  const protectedExecution = createProtectedExecution({ policy, journal: requesterJournal, now, randomInt, timeoutMs, unreviewedProtectedExecution: portFlag,
     async discover() {
       counts.discover++;
       const [mine, theirs] = createMemoryFrameChannelPair();
@@ -190,7 +192,14 @@ async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = 
       // A network position between the two: `tap(frame, direction)` may rewrite or drop frames.
       const [proxyToEvaluator, evaluatorSide] = createMemoryFrameChannelPair();
       serve(evaluatorSide);
-      const pump = async (from, to, direction) => { try { for (;;) { const frame = await tap(await from.receive({ timeoutMs: 5000 }), direction); if (frame) await to.send(frame); } } catch { from.close(); to.close(); } };
+      const pump = async (from, to, direction) => {
+        try {
+          for (;;) {
+            const out = await tap(await from.receive({ timeoutMs: 5000 }), direction);
+            for (const frame of out?.inject ? [...out.inject, out.frame] : [out]) if (frame) await to.send(frame);
+          }
+        } catch { from.close(); to.close(); }
+      };
       pump(evaluator, proxyToEvaluator, 'up'); pump(proxyToEvaluator, evaluator, 'down');
       return requester;
     },
@@ -337,32 +346,39 @@ describe('run', () => {
     expect(session.frames.step ?? 0).toBe(0);
   });
 
-  it('refuses a replayed result frame', async () => {
-    const { inference } = await setup({ misbehave: 'replay-result' });
-    const { result } = await runToEnd(inference, await inference.prepare(prepareInput()));
-    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
-    expect(result.error.message).toMatch(/sequence/);
+  it('ignores a replayed result frame and never blames the evaluator for it', async () => {
+    const s = await setup({ misbehave: 'replay-result' });
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
+    // The replay is ignored; the evaluator then never sends step 2's result, so the session times out.
+    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
     expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+    await expect(s.inference.prepare(prepareInput())).resolves.toBeTruthy(); // not locked out
+    expect(s.holder().stats.retired).toBeUndefined();
   });
 
-  it('refuses a result tampered in transit before decrypting it', async () => {
+  it('closes on a result altered in transit, before decrypting it, without blaming the evaluator', async () => {
     const tap = async (frame, direction) => {
       if (direction === 'down' && frame.header.kind === 'result' && frame.header.fields.step === 2) frame.blobs[1][3] ^= 1;
       return frame;
     };
-    const { inference } = await setup({ tap });
-    const { result } = await runToEnd(inference, await inference.prepare(prepareInput()));
-    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
-    expect(result.error.message).toMatch(/signed digest/);
+    const s = await setup({ tap });
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
+    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
+    expect(result.error.message).toMatch(/signed digest.*without blaming the evaluator/);
     expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+    await expect(s.inference.prepare(prepareInput())).resolves.toBeTruthy();
   });
 
   it('an evaluator lying on every lane fails a trap and the real result is never decrypted', async () => {
-    const { inference, holder } = await setup({ engine: fakeEngine({ lie: () => true }) });
-    const { result } = await runToEnd(inference, await inference.prepare(prepareInput()));
+    const { inference, holder, served } = await setup({ engine: fakeEngine({ lie: () => true }) });
+    const { events, result } = await runToEnd(inference, await inference.prepare(prepareInput()));
     expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
-    expect(result.executionReceipt.evidence.integrity.decryptions.real).toBe(0);
-    expect(holder().stats.decryptions).toBe(1);
+    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 0 });
+    expect(holder().stats.decryptions).toBe(3);
+    expect(events.filter(event => event.type === 'output.delta')).toHaveLength(0);
+    // Silent failure: the evaluator served the whole fixed schedule and a normal close.
+    const session = (await Promise.all(served)).at(-1);
+    expect(session).toMatchObject({ outcome: 'completed', frames: { step: 4, bye: 1 } });
   });
 
   it('refuses an evaluator decrypt request without decrypting anything', async () => {
@@ -531,5 +547,182 @@ describe('trap verification v2: secret fresh traps from a pinned oracle', () => 
   it('a public trap set is ineligible unless explicitly allowed for comparison', async () => {
     const s = await setup({ trapSource: 'public-set' });
     await expect(s.inference.prepare(prepareInput())).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+  });
+});
+
+describe('selective failure (review finding 1)', () => {
+  // The attack: a perturbation that fires on every lane exactly when some lane's prompt is the one the evaluator
+  // guesses ('h.k', which the oracle's letters-only sampler never draws, so traps never fire it). With an abort, the
+  // session's end would tell the evaluator whether the user's prompt is 'h.k'.
+  const guessing = () => {
+    const engine = fakeEngine();
+    return { async open(schedule) {
+      const session = await engine.open(schedule);
+      const prompts = [];
+      return { ...session, async step(input) {
+        const per = input.blobs.length / schedule.lanes;
+        if (input.seq === 1) for (let lane = 0; lane < schedule.lanes; lane++) prompts.push(input.blobs.slice(lane * per, (lane + 1) * per).map(b => b[1]).join(','));
+        const out = await session.step(input);
+        if (!prompts.includes('7,27,10')) return out;
+        return out.map(blob => { const l = decodeLogits(blob); l[25] += 20; return encodeLogits([...l]); });
+      } };
+    } };
+  };
+  const evaluatorView = outcome => ({ outcome: outcome.outcome, frames: outcome.frames, bytes: outcome.bytes.received });
+
+  it('the evaluator sees the same session whether the predicate fired or not; the verdict stays on the requester', async () => {
+    const hit = await setup({ engine: guessing() });
+    const fired = await runToEnd(hit.inference, await hit.inference.prepare(prepareInput()), 'h.k');
+    const miss = await setup({ engine: guessing() });
+    const quiet = await runToEnd(miss.inference, await miss.inference.prepare(prepareInput()), 'bdf');
+    expect(fired.result.error.code).toBe('RESULT_UNVERIFIED');
+    expect(quiet.result.status).toBe('completed');
+    const [a, b] = [(await Promise.all(hit.served)).at(-1), (await Promise.all(miss.served)).at(-1)];
+    expect(evaluatorView(a)).toEqual(evaluatorView(b));
+    expect(a).toMatchObject({ outcome: 'completed', frames: { step: 4, bye: 1 } });
+  });
+
+  it('after a failed verification: the key epoch is retired, the evaluator is locked out, and nothing retries', async () => {
+    const s = await setup({ engine: guessing() });
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()), 'h.k');
+    expect(result.error.code).toBe('RESULT_UNVERIFIED');
+    expect(result.error.message).toMatch(/Do not retry automatically/);
+    expect(s.holder().stats.retired).toBe(1);
+    const connects = s.counts.connect;
+    await expect(s.inference.prepare(prepareInput())).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    expect(s.counts.connect).toBe(connects);
+    expect(s.requesterJournal.entries().some(entry => entry.state === 'verification-failed')).toBe(true);
+  });
+
+  it('a total failure budget closes the route, and the window reopens it', async () => {
+    let time = Date.now();
+    const s = await setup({ engine: fakeEngine({ lie: () => true }), now: () => time, failureLimits: { perEvaluator: 5, total: 1, windowSeconds: 3600 } });
+    expect((await runToEnd(s.inference, await s.inference.prepare(prepareInput()))).result.error.code).toBe('RESULT_UNVERIFIED');
+    await expect(s.inference.prepare(prepareInput())).rejects.toThrow(/closed after 1 failed verifications/);
+    time += 3601 * 1000;
+    await expect(s.inference.prepare(prepareInput())).resolves.toBeTruthy();
+  });
+
+  it('places the real lane uniformly', () => {
+    const traps = [1, 2, 3, 4, 5].map(i => ({ id: `t${i}`, prompt: [1, 2], continuation: [3], expectedLogits: [] }));
+    const counts = [0, 0, 0, 0];
+    for (let i = 0; i < 4000; i++) counts[planProtectedLanes({ trapSet: { traps }, promptLength: 2, generate: 1, trapLanes: 3 }).findIndex(l => l.kind === 'real')]++;
+    // Binomial(4000, 1/4): mean 1000, sd 27; five standard deviations.
+    for (const count of counts) expect(Math.abs(count - 1000)).toBeLessThan(137);
+  });
+});
+
+describe('post-binding frames that fail authentication are ignored, never blamed', () => {
+  it('a session completes through injected junk: bad signature, other session, reflected, replayed, wrong schema, unsigned abort', async () => {
+    let earlier = null, mine = null, injected = 0;
+    const tap = async (frame, direction) => {
+      if (direction === 'up' && frame.header.kind === 'step') mine = { header: structuredClone(frame.header), blobs: [] };
+      if (direction === 'down' && frame.header.kind === 'result' && frame.header.fields.step === 1) earlier = { header: structuredClone(frame.header), blobs: frame.blobs };
+      if (direction === 'down' && frame.header.kind === 'result' && frame.header.fields.step === 2 && !injected) {
+        const copy = () => structuredClone(frame.header);
+        const junk = [
+          { header: { ...copy(), fields: { ...frame.header.fields, step: 9 } }, blobs: frame.blobs },          // signature no longer matches
+          { header: { ...structuredClone(earlier.header), session: 'ps_' + '0'.repeat(32) }, blobs: earlier.blobs }, // another session
+          mine,                                                                                                  // reflected
+          earlier,                                                                                               // replayed
+          { header: { ...copy(), schema: 'reploid.protected-generation/v0' }, blobs: frame.blobs },              // wrong schema
+          { header: { schema: 'reploid.protected-generation/v1', kind: 'abort', session: frame.header.session, binding: frame.header.binding,
+            seq: frame.header.seq, sender: frame.header.sender, fields: {}, blobs: [] }, blobs: [] }               // unsigned abort
+        ];
+        injected = junk.length;
+        return { inject: junk, frame };
+      }
+      return frame;
+    };
+    const s = await setup({ tap });
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()), 'bdf');
+    expect(injected).toBe(6);
+    expect(result.status).toBe('completed');
+    expect(result.output.text).toBe(toText(greedy([1, 3, 5], 4)));
+  });
+
+  it('a session whose binding expires while waiting uses nothing that arrives late', async () => {
+    let time = Date.now();
+    const tap = async (frame, direction) => {
+      if (direction === 'down' && frame.header.kind === 'result' && frame.header.fields.step === 2) time += 26 * 60 * 1000;
+      return frame;
+    };
+    const s = await setup({ tap, now: () => time });
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
+    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_EXPIRED' } });
+    expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+  });
+});
+
+describe('gates, allowlist and journal (review items 2, 4, 7)', () => {
+  it('the flag without a port, and a port without its own flag, both refuse before anything is sent', async () => {
+    const plain = { resolveRoute() { throw new Error('plaintext route'); }, execute() { throw new Error('plaintext executor'); } };
+    await expect(createInference({ ...plain, unreviewedProtectedExecution: true }).prepare(prepareInput()))
+      .rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' });
+    const s = await setup({ portFlag: false });
+    await expect(s.inference.prepare(prepareInput())).rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE', reason: 'awaiting independent security review' });
+    expect(s.counts.discover).toBe(0);
+  });
+
+  it('a correctly signed advertisement failing exactly one allowlist field is ineligible', async () => {
+    const other = await createSigningIdentity({ algorithm: 'ECDSA' });
+    const variants = {
+      control: manifest,
+      parameterSet: { ...manifest, profileDigest: 'sha256:' + '7'.repeat(64) },
+      profileId: { ...manifest, profile: 'toy-n13' },
+      engineProtocol: { ...manifest, protocol: 'toy-engine/v9' },
+      circuit: { ...manifest, circuit: 'sha256:' + '6'.repeat(64) },
+      model: { ...manifest, model: 'sha256:' + '5'.repeat(64) },
+      rotations: { ...manifest, rotations: [1, 2, 4, 8, 16] },
+      vocab: { ...manifest, vocab: 64 },
+      lanes: { ...manifest, maxLanes: 3 }
+    };
+    for (const [name, variant] of Object.entries(variants)) {
+      const advertisement = await createProtectedAdvertisement({ identity: other, manifest: variant });
+      const s = await setup({ extraAdvertisements: [{ endpoint: 'mem:2', advertisement }] });
+      const named = s.inference.prepare(prepareInput({ execution: { ...execution, participants: { kind: 'named', ids: [other.peerId] } } }));
+      if (name === 'control') await expect(named).resolves.toMatchObject({ route: { participants: [other.peerId] } });
+      else await expect(named, name).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    }
+  });
+
+  it('enforces the requester\'s own longest key epoch', async () => {
+    const s = await setup({ maxKeyEpochSeconds: 60 });
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
+    expect(result).toMatchObject({ status: 'failed', error: { code: 'EXECUTION_ROUTE_UNAVAILABLE' } });
+    expect(result.error.message).toMatch(/requester's own limit/);
+  });
+
+  it('the journal refuses unknown nested keys and control characters, and recover() leaves finished sessions alone', () => {
+    const journal = createProtectedJournal();
+    expect(() => journal.record({ role: 'requester', session: 's1', state: 'step', frames: { text: 'bdf' } })).toThrow(/refuses the value of frames/);
+    expect(() => journal.record({ role: 'requester', session: 's1', state: 'step', reason: 'line\nbreak' })).toThrow(/refuses/);
+    journal.record({ role: 'requester', session: 'done', state: 'binding' });
+    journal.record({ role: 'requester', session: 'done', state: 'completed' });
+    journal.record({ role: 'requester', session: 'req-1', state: 'key-holder-closed', keyHolder: { encryptions: 1, decryptions: 1 } });
+    journal.record({ role: 'requester', session: 'live', state: 'step', step: 2 });
+    expect(journal.recover()).toEqual(['live']);
+  });
+});
+
+describe('handshake and trap-set rejections', () => {
+  it('a bind-accept signed over another offer is refused before any upload', async () => {
+    const s = await setup({ misbehave: 'wrong-offer-digest' });
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
+    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'EXECUTION_PLAN_CHANGED' } });
+    expect(result.error.message).toMatch(/accepted a different session offer/);
+    const session = (await Promise.all(s.served)).at(-1);
+    expect(session.frames.key ?? 0).toBe(0);
+    expect(session.frames.step ?? 0).toBe(0);
+  });
+
+  it('an altered or unpinned public trap set is refused at prepare, even where public sets are allowed', async () => {
+    const published = await signedTrapSet();
+    const altered = { ...published, envelope: { ...published.envelope, body: published.envelope.body.replace('"tolerance"', '"tolerance" ') } };
+    for (const publicSet of [altered, { envelope: published.envelope, publicKey: (await signedTrapSet()).publicKey }]) {
+      const s = await setup({ trapSource: 'public-set', allowPublicTrapSet: true, publicSet });
+      await expect(s.inference.prepare(prepareInput())).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+      expect(s.counts.connect).toBe(0);
+    }
   });
 });

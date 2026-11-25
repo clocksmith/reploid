@@ -7,7 +7,7 @@ import { spawn } from 'node:child_process';
 import { frameStream, goHeaderInspector } from './frame-socket.js';
 
 const BRIDGE_PROTOCOL = 'doppler-protected-bridge/v1';
-const inspect = goHeaderInspector({ opened: 0, key: 1 << 30, 'keys-done': 0, committed: 0, ciphertexts: 64 * (64 << 20),
+const inspect = goHeaderInspector({ opened: 0, key: 1 << 30, 'keys-done': 0, committed: 0, retired: 0, ciphertexts: 64 * (64 << 20),
   plaintext: 8 * 1024, refused: 0, closed: 0 });
 
 export async function openGoRequesterBridge({ binary, profile, allowInsecureDevelopment = false, stateDir = null, keyTtlSeconds = 86400,
@@ -47,6 +47,8 @@ export async function openGoRequesterBridge({ binary, profile, allowInsecureDeve
       }
     }),
     commitKeys: keysDigest => serial(async () => { await request('commit-keys', { keysDigest }); await expect('committed'); }),
+    /** Delete the stored epoch (secret key included): the next session starts a new key. */
+    retireEpoch: () => serial(async () => { await request('retire-epoch'); await expect('retired'); }),
     encrypt: tokens => serial(async () => { await request('encrypt', { tokens }); return (await expect('ciphertexts')).blobs; }),
     /** Decrypt one result. Returns null, without decrypting, when the ciphertext does not have the pinned shape. */
     decrypt: blob => serial(async () => {

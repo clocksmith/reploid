@@ -1,5 +1,7 @@
 # Confidential execution and the inference API
 
+Parked 2026-11-25: the Orin kill gate failed (latency, memory and key-size limits); the route stays disabled and unmaintained beyond safety fixes.
+
 `reploid/inference` is Reploid's native inference API. The browser chat, the
 `reploid ask` CLI and the SDK all use it, and the OpenAI- and Anthropic-shaped
 HTTP endpoints are adapters over it. So are the native fleet host's owner
@@ -240,12 +242,18 @@ it and does not re-verify it.
 | `EXECUTION_ROUTE_UNAVAILABLE` | No route meets the requirements, for example local-only on a network-only deployment or a split outside the named participants | Nothing |
 
 On the research protected route, `RESULT_UNVERIFIED` also covers a failed
-known-answer trap and any protocol violation after binding (a replayed,
-re-sequenced, unsigned or tampered frame, an unsolicited frame such as a
-decrypt request). `EXECUTION_PLAN_CHANGED` covers an evaluator that cannot be
-bound as the planned identity, before anything is uploaded. Two executor codes
-are the route's own: `PROTECTED_SESSION_CLOSED` (the evaluator dropped or timed
-out) and `PROTECTED_SESSION_EXPIRED` (the session binding lapsed).
+known-answer trap and a protocol violation the evaluator signed (an
+authenticated, in-sequence frame of the wrong kind or for the wrong step, such
+as a decrypt request). `EXECUTION_PLAN_CHANGED` covers an evaluator that cannot
+be bound as the planned identity, before anything is uploaded. Two executor
+codes are the route's own:
+
+- `PROTECTED_SESSION_CLOSED`: the evaluator dropped or timed out, or a frame
+  failed authentication in a way anyone on the path could cause. That covers a
+  blob altered in transit and lost frames. Such failures are never blamed on
+  the evaluator.
+- `PROTECTED_SESSION_EXPIRED`: the session binding lapsed, checked again after
+  every wait.
 
 The first five codes come from the owner's API specification. The last two are
 additions for malformed input and for routes that do not exist. Errors that
@@ -450,8 +458,10 @@ pass the flag, no advertisement or capability list mentions the route, and
      "confidentiality": { "status": "target-not-established", "reason": "parameters not estimated; awaiting independent security review" },
      "metadata": ["model-id", "timing", "length"],
      "computedBy": ["peer:…"],
-     "leaks": ["model and circuit identity", "prompt length and generated token count", "ciphertext and message sizes",
-               "timing of each step", "evaluator and requester identities and network metadata"],
+     "leaks": ["model and circuit identity", "prompt length (in the bind offer, before the endpoint proves its key) and generated token count",
+               "lane count", "ciphertext and message sizes", "timing of each step", "session linkage through the key epoch",
+               "after a session, whether a verification failed (through the evaluator lockout and key-epoch rotation): exposure bounded to log2(n + 1) chosen bits per evaluator per key epoch over n sessions, not closed",
+               "evaluator and requester identities and network metadata"],
      "review": { "available": false, "reason": "awaiting independent security review" } }
    ```
 
@@ -473,13 +483,25 @@ pass the flag, no advertisement or capability list mentions the route, and
    signed `bind-confirm`. Only then are evaluation keys (or `keys-held`) and
    ciphertexts sent. The `admitted` event carries the binding digest as the
    admitted route id.
-4. **Frames.** Every frame after the offer carries the binding digest, the
-   session id, a per-direction sequence number starting at zero, and the size and
-   SHA-256 of each blob, all signed by the sender. A frame of another session, out
-   of sequence, unsigned by the bound peer or with a blob that does not match its
-   digest ends the session. The requester accepts only `bind-accept`, `ready` and
-   `result`; anything else, including a decrypt request, ends the session with
-   nothing more decrypted.
+4. **Frames.** Every frame after the offer carries the schema, the binding
+   digest, the session id, a per-direction sequence number starting at zero, and
+   the size and SHA-256 of each blob, all signed by the sender. The requester
+   authenticates before anything else, and only an authenticated, in-sequence
+   frame can be held against the evaluator:
+   - Ignored (up to 16 per session): junk, wrong schema, bad or missing
+     signature, an unsigned `abort`, a frame of another session, a reflected
+     requester frame, a replayed old frame. None of these can make the requester
+     end or blame anything.
+   - Closed with `PROTECTED_SESSION_CLOSED`, not blamed: a signed frame whose
+     blob was altered, and a sequence gap.
+   - `RESULT_UNVERIFIED`, held against the evaluator: an authenticated frame of
+     a kind the requester is not waiting for (it accepts only `bind-accept`,
+     `ready`, `result` and a signed `abort`), including a decrypt request.
+
+   The bind offer carries the prompt length and lane count before the endpoint
+   has proved its key; the disclosures list this. Expiries tolerate five
+   minutes of clock skew between the two machines. The requester's session
+   lasts 25 minutes and the evaluator accepts up to 30.
 5. **Steps.** One `step` per generated token: the prefill carries every lane's
    prompt tokens, each decode one token per lane, each a fresh encryption. The
    evaluator returns one logits ciphertext per lane. The schedule is fixed and
@@ -556,7 +578,10 @@ check a sample of the evaluator's work against outputs the oracle computed, and
 prove nothing about the real lane itself. The receipt lists
 `trap-oracle-independence-from-the-evaluator` as not verified.
 
-**Detection versus trap ratio.** With K = T + 1 lanes:
+**Detection versus trap ratio.** These odds hold only for an evaluator that
+tampers blindly, or by a predicate of the input it cannot aim at traps. An
+evaluator that knows the traps (an oracle colluding with it) or the real lane is
+never caught. With K = T + 1 lanes:
 
 - An evaluator that tampers lanes it cannot tell apart is caught with
   probability 1 − C(K − T, m) / C(K, m) for m tampered lanes. That is T / K for
@@ -568,6 +593,14 @@ prove nothing about the real lane itself. The receipt lists
   T = 3, 0.049 at T = 7.
 - Under v1 a public set made p ≈ 1 with zero detection. Under v2 a perturbation
   that vanishes on fresh traps must also vanish on most real prompts like them.
+
+**Tokens streamed before a failure.** The real index is drawn once per session,
+so steps do not compound. From step 2 on, a failing step follows real tokens
+that were already decrypted, checked only by earlier steps' traps, and streamed
+as `output.delta` events. The run then fails and returns no result, but the
+streamed tokens came from an evaluator that was caught tampering: treat them as
+unverified. A caller's `cancel()` also ends the schedule early, and the
+evaluator sees that.
 
 **What v2 does not catch.**
 
@@ -594,6 +627,75 @@ prove nothing about the real lane itself. The receipt lists
 
 Dual evaluation (two evaluators, byte-identical results) remains an optional
 extra in Doppler's own requester, not this route's guarantee.
+
+**Trap freshness and revocation.** v1 trap sets carry no expiry and cannot be
+revoked, another reason they are ineligible. v2 batches expire 10 minutes after
+issue, open once (the requester remembers batch ids until they expire), and are
+bound to one request's nonce and one-time key. Revoking an oracle key means
+removing it from the requester's pins. The tests and the two-machine script pin
+the oracle key out of band: from the seed file the test wrote, or from the
+oracle host's own log. They never take it from the endpoint it authenticates.
+
+### Selective failure: the trap verdict as an oracle
+
+A trap verdict depends on the evaluator's output, and the evaluator can make its
+output depend on the real input. On ciphertext it can add to every lane a term
+that is zero on trap-like inputs and large when the real prompt satisfies a
+predicate P of its choosing ("is the prompt exactly `hkn`?"). If the requester
+aborted when a trap failed, the abort would reveal P(prompt), one bit per step.
+A user retrying would feed a search. The verdict would also be a pass/fail
+decryption oracle on evaluator-chosen ciphertexts under the key epoch.
+
+The route's response limits this exposure; it does not close it:
+
+1. **Silent failure.** When a trap fails, the requester stops decrypting
+   anything, trap or real. It keeps feeding every lane fresh encryptions on the
+   fixed schedule (the real lane gets a dummy token), sends `bye` as usual, and
+   only then reports `RESULT_UNVERIFIED` to its caller. The evaluator's view
+   (frames, kinds, sizes, schedule, close) is the same as for a passing session.
+   Every step decrypts all T traps before judging, so the count of decryptions
+   per step does not depend on which trap failed.
+2. **Key epoch retired** on any `RESULT_UNVERIFIED`: the key holder deletes the
+   stored secret key and epoch, so each key answers at most one failed verdict,
+   and the next session makes a new key and uploads new evaluation keys.
+3. **Lockout and budget.** A requester does not use an evaluator again for
+   `failureLimits.windowSeconds` (default 24 hours) after
+   `failureLimits.perEvaluator` failures (default 1). After
+   `failureLimits.total` failures in the window (default 3) the whole route is
+   closed. The host may persist the record (`failureStore`); otherwise it lasts
+   as long as the protected execution object.
+4. **No automatic retry.** Nothing in Reploid retries a protected run. The error
+   says not to retry automatically, and the lockout makes an immediate retry
+   against the same evaluator impossible.
+5. **Layouts.** The real lane's index is uniform per session (tested over 4,000
+   draws). Re-randomizing it per step was considered and rejected: each lane
+   holds its own encrypted KV cache, so moving the real input between lanes
+   would need an oblivious permutation on ciphertext.
+
+**Exposure, bounded but not closed.** These channels stay open:
+
+- **Timing within a session.** After a failure the requester skips its
+  decryptions, a few milliseconds per lane-step on the fixture against seconds of
+  evaluator compute per step. It is small, but not removed.
+- **After the session.** The verdict shows through the lockout (the requester
+  stops coming back), the rotated key epoch (a new epoch id and a key upload in
+  the next session, visible to any colluding evaluator), and whatever the user
+  does out of band.
+
+Each of these reveals at most which session first failed. Exposure is
+bounded to log2(n + 1) bits per evaluator per key epoch, where n is the number
+of sessions that evaluator served under the epoch. A locked-out evaluator gets
+nothing more until its window ends, and then only under a new epoch. Colluding
+evaluators get at most the sum of these over the evaluators used. The budget
+stops the route after `total` failures per window, so at most `total`
+evaluators per window see a predicate come out true. The bound is the
+requester's own accounting under these mechanisms, not a proof: the
+selective-failure leak is limited, not closed, and it is one reason
+requester-only stays off.
+
+Each bit is a predicate the evaluator chose, so a targeted guess is confirmed
+outright when it is right. The user's own reactions are outside this bound:
+retrying the same prompt elsewhere, or rewording it.
 
 ### Threat model
 
@@ -634,6 +736,12 @@ extra in Doppler's own requester, not this route's guarantee.
   single-lane liar. Trap v2 cases: the vanishing perturbation undetected under
   v1 and caught under v2, forged or altered batches refused, a stale batch
   replayed into a later session refused, the oracle request carrying only sizes.
+  Review cases: silent trap failure (the evaluator's view equal for a fired and
+  a quiet predicate), epoch retirement, lockout, failure budget and window,
+  uniform real-lane placement, six kinds of injected post-binding frames
+  ignored, expiry after waiting, single-field allowlist failures, the flag and
+  port gates, the requester's own longest key epoch, and journal value checks
+  and recovery.
 - [`tests/integration/protected-route.test.js`](../tests/integration/protected-route.test.js)
   runs real processes: this process as requester through `reploid/inference`,
   Doppler's key holder as its child, Doppler's trap oracle as its own process,
@@ -655,6 +763,35 @@ WebGPU evaluator implements the same port, computes the same pinned circuit
 (same profile digest and circuit digest, so the same trap oracle applies), returns
 one logits ciphertext per lane at the pinned layout, and never constructs a
 secret key. Nothing in the protocol, the API or the traps changes.
+
+### Known, unfixed issues
+
+The route is parked. A second session of the same operator reviewed it (not
+the independent review). These findings from that review remain open:
+
+- The bind offer sends the prompt length and lane count before the endpoint
+  proves its key. This is disclosed, not moved after the key proof.
+- The selective-failure exposure is bounded, not closed: the timing residual,
+  the lockout and the epoch rotation remain (see above).
+- A caller's `cancel()` ends the fixed schedule early, visibly to the evaluator.
+- The receipt cannot verify that the secret key stayed in the key holder; it
+  records the key holder's report.
+- Session linkage: every session in one key epoch carries the same epoch id.
+- Traps cover only the oracle's distribution, margins of at least 2.5 and
+  deviations above the tolerance (see "What v2 does not catch").
+- The descriptor's scheme, implementation label and issue time are not checked
+  against the allowlist.
+- The key holder's last 2 KB of stderr is quoted into error messages. Its
+  contents were not audited.
+- Not done: a WebRTC channel adapter, a WebAssembly key holder, the two-machine
+  run, a parameter-security estimate and the independent review.
+
+Fixed since the review: honest disclosures, the abort oracle bounded (silent
+failure, epoch retirement, lockout and budget), the gate on
+`createProtectedExecution`, abort and other unauthenticated frames verified
+before use and never blamed on the evaluator, `maxKeyEpochSeconds`, clock skew
+and the expiry recheck, the frame schema, the journal's nested values and
+`recover()`, and `request.protected` selecting the protected path.
 
 ### Before review
 

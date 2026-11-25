@@ -28,7 +28,8 @@ const freeze = value => {
 export const PROTECTED_EXECUTION_STATUS = freeze({ available: false, reason: PROTECTED_REVIEW_REASON });
 /** What a protected route exposes beyond the requester: always these three. */
 export const PROTECTED_METADATA = freeze(['model-id', 'timing', 'length']);
-const SESSION_TTL_MS = 30 * 60 * 1000;
+// Below the evaluator's 30-minute binding limit, so clock skew between machines does not refuse every bind.
+const SESSION_TTL_MS = 25 * 60 * 1000;
 
 /**
  * Disclosures for a protected route. They state only what holds. Keeping content from every remote party is the
@@ -50,7 +51,7 @@ export function protectedDisclosures(route) {
     computedBy: [...route.participants],
     leaks: ['model and circuit identity', 'prompt length (in the bind offer, before the endpoint proves its key) and generated token count',
       'lane count', 'ciphertext and message sizes', 'timing of each step', 'session linkage through the key epoch',
-      'whether a session ends early: a trap failure is visible to the evaluator and can be steered by it',
+      'after a session, whether a verification failed (through the evaluator lockout and key-epoch rotation): exposure bounded to log2(n + 1) chosen bits per evaluator per key epoch over n sessions, not closed',
       'evaluator and requester identities and network metadata'],
     trapOracle: oracle ? { learns: ['that a session is starting', 'prompt length, generated count and trap count', 'request time and network address'],
       trusted: 'not to collude with the evaluator' } : null,
@@ -65,7 +66,7 @@ export function protectedDisclosures(route) {
       + 'that tampers blindly, '
       + (oracle ? 'they assume the trap oracle does not collude with the evaluator (it learns that a session happened, its size and its time), '
         : 'a public trap set is defeated by a perturbation that vanishes on it, ')
-      + 'and a failed check can reveal one chosen fact about the prompt per attempt. '
+      + 'and a failed check, hidden within the session, can still reveal one chosen fact about the prompt afterwards. '
       + `${PROTECTED_REVIEW_REASON[0].toUpperCase()}${PROTECTED_REVIEW_REASON.slice(1)}.`
   });
 }
@@ -82,8 +83,24 @@ function tokenize(messages, alphabet) {
   return tokens;
 }
 
-export function createProtectedExecution({ policy: inputPolicy, discover, connect, openCrypto, requestTraps = null, identity = null,
-  journal = createProtectedJournal(), randomInt = secureRandomInt, now = Date.now, timeoutMs = SESSION_TTL_MS }) {
+/** Failure records ({ evaluator, at, code }), in memory. */
+export function createMemoryFailureStore() {
+  const items = [];
+  return Object.freeze({ list: async () => items.slice(), record: async item => { items.push(freeze({ ...item })); } });
+}
+
+/**
+ * The protected execution port. Gated like `createInference`: without `unreviewedProtectedExecution: true` its
+ * `resolve` and `execute` refuse with CONFIDENTIAL_EXECUTION_UNAVAILABLE before any port is called.
+ */
+export function createProtectedExecution({ policy: inputPolicy, discover, connect, openCrypto, requestTraps = null, failureStore = null, identity = null,
+  journal = createProtectedJournal(), randomInt = secureRandomInt, now = Date.now, timeoutMs = SESSION_TTL_MS, unreviewedProtectedExecution = false }) {
+  const gate = () => {
+    if (unreviewedProtectedExecution !== true) {
+      throw Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE', 'The protected route is not enabled. Nothing was sent.'),
+        { reason: PROTECTED_REVIEW_REASON });
+    }
+  };
   for (const [name, port] of Object.entries({ discover, connect, openCrypto })) {
     if (typeof port !== 'function') throw new TypeError(`Protected execution port ${name} is required`);
   }
@@ -93,6 +110,10 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
   }
   // Batch ids this requester has opened, until they expire: a batch is good for one session.
   const usedBatches = new Map();
+  // Verification failures by evaluator. A host may persist them (`failureStore`); memory otherwise.
+  const failures = failureStore ?? createMemoryFailureStore();
+  const limits = policy.failureLimits;
+  const recentFailures = async () => (await failures.list()).filter(item => item.at > now() - limits.windowSeconds * 1000);
   const trapSets = new Map();
   const trapSetFor = circuit => {
     if (!trapSets.has(circuit.identity)) {
@@ -105,16 +126,25 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
 
   /** Find an eligible evaluator for `prepare`. It sees no prompt and sends none. */
   async function resolve(request, { signal } = {}) {
+    gate();
     signal?.throwIfAborted();
     const offered = await discover({ signal, model: structuredClone(request.model) });
     signal?.throwIfAborted();
     const named = request.execution.participants.kind === 'named' ? request.execution.participants.ids : null;
+    const recent = await recentFailures();
+    if (recent.length >= limits.total) {
+      throw executionError('EXECUTION_ROUTE_UNAVAILABLE', `The protected route is closed after ${recent.length} failed verifications in the last `
+        + `${limits.windowSeconds} s. Nothing was sent.`);
+    }
+    const lockedOut = new Set(Object.entries(recent.reduce((counts, item) => ({ ...counts, [item.evaluator]: (counts[item.evaluator] ?? 0) + 1 }), {}))
+      .filter(([, count]) => count >= limits.perEvaluator).map(([evaluator]) => evaluator));
     const candidates = [];
     for (const item of Array.isArray(offered) ? offered.slice(0, 64) : []) {
       let verified;
       try { verified = await verifyProtectedAdvertisement(item?.advertisement); } catch { continue; }
       const eligibility = protectedEligibility(policy, verified, request.model);
-      if (!eligibility.eligible || (named && !named.includes(verified.descriptor.evaluator.participantId))) continue;
+      if (!eligibility.eligible || (named && !named.includes(verified.descriptor.evaluator.participantId))
+        || lockedOut.has(verified.descriptor.evaluator.participantId)) continue;
       candidates.push({ endpoint: item.endpoint, verified, ...eligibility });
     }
     candidates.sort((a, b) => a.verified.descriptor.evaluator.participantId.localeCompare(b.verified.descriptor.evaluator.participantId));
@@ -140,6 +170,7 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
    * the caller turns the error into a failed result with no output.
    */
   async function execute({ plan, pinned, requestId, messages, signal, onAdmitted, onToken }) {
+    gate();
     const { circuit, parameterSet, trapSet, verified, endpoint } = pinned;
     const promptTokens = tokenize(messages, circuit.tokenizer.alphabet);
     const generate = plan.generation.maxOutputTokens ?? Math.min(4, circuit.context - promptTokens.length + 1);
@@ -169,12 +200,28 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
       signal?.addEventListener('abort', abort, { once: true });
       try {
         return await runProtectedRequesterSession({ channel, crypto, identity: requester, verified, planId: plan.id, routeId: plan.route.id,
-          expiresAt: now() + SESSION_TTL_MS, trapSet: traps, trapLanes: policy.trapLanes, promptTokens, generate, journal, randomInt, now, timeoutMs, signal,
+          expiresAt: now() + SESSION_TTL_MS, trapSet: traps, trapLanes: policy.trapLanes, maxKeyEpochSeconds: policy.maxKeyEpochSeconds, promptTokens, generate, journal, randomInt, now, timeoutMs, signal,
           onBound: onAdmitted, onToken: (token, step) => onToken(circuit.tokenizer.alphabet[token], step) });
+      } catch (error) {
+        if (error?.code === 'RESULT_UNVERIFIED') {
+          // A failed verification: never reuse this key (the verdict was a pass/fail decryption of evaluator-chosen
+          // ciphertexts under it), never use this evaluator again within the window, and never retry automatically.
+          await crypto.retireEpoch?.();
+          await failures.record({ evaluator: verified.descriptor.evaluator.participantId, at: now(), code: error.code });
+          try {
+            journal.record({ role: 'requester', session: requestId, state: 'verification-failed', at: now(), evaluator: verified.descriptor.evaluator.participantId,
+              keyEpoch: crypto.epoch.id, reason: 'key epoch retired; evaluator locked out' });
+          } catch { /* journal refused or full */ }
+        }
+        throw error;
       } finally { signal?.removeEventListener('abort', abort); }
     } finally {
       const stats = await crypto.close().catch(() => null);
-      if (stats) journal.record({ role: 'requester', session: requestId, state: 'key-holder-closed', at: now(), keyHolder: stats });
+      // Bookkeeping never replaces the run's outcome.
+      try {
+        if (stats) journal.record({ role: 'requester', session: requestId, state: 'key-holder-closed', at: now(),
+          keyHolder: { encryptions: stats.encryptions, decryptions: stats.decryptions } });
+      } catch { /* journal refused or full */ }
     }
   }
 

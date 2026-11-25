@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:df3c48925561f7a2ccd4a6330b44fe996d349e203a17d3fde9e187377fe3ef05",
+      "sha256": "sha256:d1a606438707edf20565e9b78885268d301a58f8d31e287e9bdbaa4da46dcaec",
       "imports": []
     },
     {
@@ -19298,7 +19298,7 @@
     {
       "path": "vendor/reploid/inference/index.js",
       "owner": "vendor",
-      "sha256": "sha256:64d6fe739752022163d074f94f1d7ac4db68dc0c1b797edc0f82de3e007406f9",
+      "sha256": "sha256:bb782acfb6d710e74e043223a6d7dedfc44bb403abcf19cbba2b09f5b9206247",
       "imports": [
         "../artifacts/signatures.js",
         "./contract.js",
@@ -19308,7 +19308,7 @@
     {
       "path": "vendor/reploid/inference/protected.js",
       "owner": "vendor",
-      "sha256": "sha256:314cb5770542ccac5e931c1fa94575837f337b97689777fd44f3a7b8cea22383",
+      "sha256": "sha256:0c4489af2abc70511a4cd8d7138a843bd20f2c433edbb69ffb8ec25491a8edc0",
       "imports": [
         "../artifacts/identity.js",
         "../artifacts/signatures.js",
@@ -19921,7 +19921,7 @@
     {
       "path": "vendor/reploid/mesh/protected-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:b9e7ea6a2a8374a901f20eb56b93d42d551f258d14e76592c7b839d5e563f7f0",
+      "sha256": "sha256:940e8dd3cd97079bcbf13d8195b60675294febab8f3c518d242cdc1d74586d4f",
       "imports": [
         "../artifacts/canonical-json.js",
         "../artifacts/identity.js",

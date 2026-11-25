@@ -134,7 +134,8 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
     let admitted = null, refusal = null, streamed = null, sequence = 0;
     const emit = event => channel.push(freezeDeep(event));
     const admit = route => { if (!admitted) { admitted = route; emit({ type: 'admitted', requestId, attemptId, route }); } };
-    if (entry.pinned) {
+    if (entry.request.protected) {
+      if (!entry.pinned) throw executionError('EXECUTION_PLAN_CHANGED', 'The protected route lost its pinned backend. Nothing was sent.');
       const result = runProtected({ entry, plan, requestId, attemptId, messages, runSignal, emit, admit,
         admittedRoute: () => admitted, delta: text => emit({ type: 'output.delta', requestId, attemptId, sequence: sequence++, text }),
         finish: () => { channel.end(); plans.delete(planId); } });

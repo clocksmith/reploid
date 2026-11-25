@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, existsSync, rmSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { createHash, createPrivateKey, createPublicKey } from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
 import { createInference } from '../../shared/vendor/reploid/inference/index.js';
@@ -21,6 +21,11 @@ const backendDir = process.env.REPLOID_PROTECTED_BACKEND_DIR;
 const enabled = !!backendDir && existsSync(path.join(backendDir ?? '', 'go.mod'));
 const root = path.resolve(import.meta.dirname, '../..');
 const PROFILE = 'dev-insecure-n12';
+/** The Ed25519 public key of a seed file this test wrote: pinned out of band, never read from what it authenticates. */
+const publicKeyOfSeed = file => {
+  const der = Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'), Buffer.from(readFileSync(file, 'utf8').trim(), 'hex')]);
+  return createPublicKey(createPrivateKey({ key: der, format: 'der', type: 'pkcs8' })).export({ format: 'jwk' }).x;
+};
 const execution = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] };
 
 describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real processes)', () => {
@@ -44,9 +49,9 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     return peers[name];
   };
 
-  const inferenceFor = (endpoints, { stateDir = mkdtempSync(path.join(dir, 'requester-')), flag = true, now, pins = policy, requestTraps } = {}) => {
-    const protectedExecution = createNodeProtectedExecution({ endpoints, engine, policy: pins, stateDir, ...(now ? { now } : {}),
-      ...(requestTraps ? { requestTraps } : {}) });
+  const inferenceFor = (endpoints, { stateDir = mkdtempSync(path.join(dir, 'requester-')), flag = true, now, pins = policy, requestTraps, timeoutMs } = {}) => {
+    const protectedExecution = createNodeProtectedExecution({ endpoints, engine, policy: pins, stateDir, unreviewedProtectedExecution: flag,
+      ...(now ? { now } : {}), ...(requestTraps ? { requestTraps } : {}), ...(timeoutMs ? { timeoutMs } : {}) });
     return { protectedExecution, inference: createInference({ resolveRoute() { throw new Error('plaintext route used'); }, execute() { throw new Error('plaintext executor used'); },
       protectedExecution, unreviewedProtectedExecution: flag, ...(now ? { now } : {}) }) };
   };
@@ -96,9 +101,7 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
       for (const deadline = Date.now() + 30000; !existsSync(ready); await new Promise(resolve => setTimeout(resolve, 50))) {
         if (Date.now() > deadline) throw new Error('trap oracle did not start');
       }
-      const endpoint = `http://${readFileSync(ready, 'utf8')}`;
-      const descriptor = await (await fetch(new URL('/v1/descriptor', endpoint))).json();
-      return { endpoint, key: descriptor.oracleKey };
+      return { endpoint: `http://${readFileSync(ready, 'utf8')}`, key: publicKeyOfSeed(path.join(dir, `${name}.key`)) };
     };
     const oracle = await startOracle('oracle'), rogue = await startOracle('rogue');
     oracleEndpoint = oracle.endpoint;
@@ -114,7 +117,7 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
       trapLanes: 3, maxTrapTolerance: 1, maxKeyEpochSeconds: 86400, allowPublicTrapSet: false };
     // v1, for the comparison only: the same pins with the published trap set.
     publicSetPolicy = { ...policy, allowPublicTrapSet: true,
-      circuits: [{ ...policy.circuits[0], traps: { source: 'public-set', envelope: trapSet, publisherKeys: [trapSet.publicKey] } }] };
+      circuits: [{ ...policy.circuits[0], traps: { source: 'public-set', envelope: trapSet, publisherKeys: [publicKeyOfSeed(path.join(dir, 'publisher.key'))] } }] };
     const listed = new Set(JSON.parse(trapSet.body).traps.map(trap => trap.prompt.join(',')));
     const letters = "abcdefghijklmnopqrstuvwxyz";
     unlistedPrompt = Array.from({ length: 26 }, (_, a) => letters[a] + letters[(a + 2) % 26] + letters[(a + 4) % 26])
@@ -166,40 +169,52 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 0, real: 0 });
   }, 120000);
 
-  it('refuses a replayed result frame', async () => {
-    const { result } = await runOnce(inferenceFor([peers.replay.endpoint]).inference);
-    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
-    expect(result.error.message).toMatch(/sequence/);
+  it('ignores a replayed result frame and does not blame the evaluator', async () => {
+    const { inference } = inferenceFor([peers.replay.endpoint], { timeoutMs: 30000 });
+    const { result } = await runOnce(inference);
+    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
     expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
+    await expect(inference.prepare({ model: { id: 'doppler-protected-tiny', identity: modelIdentity }, generation: { maxOutputTokens: 1 }, execution })).resolves.toBeTruthy();
   }, 120000);
 
-  it('refuses a result tampered in transit before decrypting it', async () => {
+  it('closes on a result altered in transit, before decrypting it, without blaming the evaluator', async () => {
     const proxy = await startProxy(peers.honest.endpoint, async (frame, direction) => {
       if (direction === 'down' && frame.header.kind === 'result' && frame.header.fields.step === 2) frame.blobs[0][100] ^= 1;
       return frame;
     });
     try {
       const { result } = await runOnce(inferenceFor([proxy.endpoint]).inference);
-      expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
+      expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'PROTECTED_SESSION_CLOSED' } });
       expect(result.error.message).toMatch(/signed digest/);
       expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 1 });
     } finally { await proxy.close(); }
   }, 120000);
 
-  it('an evaluator returning valid ciphertexts of wrong answers fails a trap; nothing real is decrypted', async () => {
-    const { result } = await runOnce(inferenceFor([peers.liar.endpoint]).inference);
-    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
-    expect(result.error.message).toMatch(/trap failed at step 1/);
-    expect(result.executionReceipt.evidence.integrity.decryptions.real).toBe(0);
+  it('a trap failure is silent to the evaluator; then the epoch is retired and the evaluator locked out', async () => {
+    const proxy = await startProxy(peers.liar.endpoint);
+    try {
+      const stateDir = mkdtempSync(path.join(dir, 'requester-'));
+      const { inference } = inferenceFor([proxy.endpoint], { stateDir });
+      const { result, events } = await runOnce(inference);
+      expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
+      expect(result.error.message).toMatch(/trap failed at step 1/);
+      expect(result.executionReceipt.evidence.integrity.decryptions).toEqual({ trap: 3, real: 0 });
+      expect(events.filter(event => event.type === 'output.delta')).toHaveLength(0);
+      // The evaluator was fed the whole fixed schedule and a normal close.
+      expect(proxy.state.upstreamKinds).toMatchObject({ step: 4, bye: 1 });
+      expect(existsSync(path.join(stateDir, 'key-epoch.sk'))).toBe(false);
+      await expect(inference.prepare({ model: { id: 'doppler-protected-tiny', identity: modelIdentity }, generation: { maxOutputTokens: 1 }, execution }))
+        .rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
+    } finally { await proxy.close(); }
   }, 120000);
 
   it('records the detection rate of an evaluator that lies on one lane it cannot identify', async () => {
     const trials = Number(process.env.REPLOID_PROTECTED_TRIALS || 16);
-    const { inference } = inferenceFor([peers.random.endpoint]);
     const firstToken = JSON.parse(execFileSync(engine, ['reference', '--model', model, '--prompt', 'bdf', '--generate', '1'])).approximateText;
     let detected = 0, undetectedWrong = 0;
     for (let i = 0; i < trials; i++) {
-      const { result } = await runOnce(inference, { tokens: 1, requestId: `trial-${i}` });
+      // A fresh requester per trial: after a failure a requester locks the evaluator out.
+      const { result } = await runOnce(inferenceFor([peers.random.endpoint]).inference, { tokens: 1, requestId: `trial-${i}` });
       if (result.status === 'failed') { expect(result.error.code).toBe('RESULT_UNVERIFIED'); detected++; }
       else { expect(result.output.text).not.toBe(firstToken); undetectedWrong++; }
     }

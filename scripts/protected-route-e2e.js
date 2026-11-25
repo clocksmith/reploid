@@ -7,9 +7,10 @@
  *      <bin> trap-oracle --model tiny-model.json --key oracle.key --new-key --listen 0.0.0.0:7462
  *    Then the pins, on any machine with the public model (not the requester process):
  *      node scripts/protected-route-e2e.js pins --engine <bin> --model tiny-model.json --profile research-n16 \
- *        --oracle http://<oracle-host>:7462 --out pins.json
+ *        --oracle http://<oracle-host>:7462 --oracle-key <key the oracle host printed> --out pins.json
  *    writes the requester's pins: engine protocol, parameter-set digest, circuit layout, the oracle endpoint and the
- *    oracle's Ed25519 key (check it out of band against the key the oracle host printed).
+ *    oracle's Ed25519 key. The key is given out of band (copied from the oracle host's own log), never taken from
+ *    the endpoint it authenticates; pins refuses an oracle that answers with another key.
  * 2. Evaluator host:
  *      node server/protected-route/evaluator-peer.js --engine <bin> --model tiny-model.json --profile research-n16 \
  *        --identity-file evaluator.identity.json --listen 0.0.0.0:7461 --state-dir evaluator-state
@@ -32,7 +33,7 @@ import { createNodeProtectedExecution } from '../server/protected-route/requeste
 
 const { positionals, values } = parseArgs({ allowPositionals: true, options: {
   engine: { type: 'string' }, model: { type: 'string' }, profile: { type: 'string', default: 'research-n16' },
-  oracle: { type: 'string' }, out: { type: 'string', default: 'pins.json' }, pins: { type: 'string' },
+  oracle: { type: 'string' }, 'oracle-key': { type: 'string' }, out: { type: 'string', default: 'pins.json' }, pins: { type: 'string' },
   endpoint: { type: 'string', multiple: true }, prompt: { type: 'string', default: 'bdf' }, generate: { type: 'string', default: '4' },
   'state-dir': { type: 'string' }, report: { type: 'string', default: 'protected-route-report.json' }, expect: { type: 'string' },
   'trap-lanes': { type: 'string', default: '3' }
@@ -40,8 +41,9 @@ const { positionals, values } = parseArgs({ allowPositionals: true, options: {
 const fail = message => { console.error(message); process.exit(2); };
 
 if (positionals[0] === 'pins') {
-  if (!values.engine || !values.model || !values.oracle) fail('pins needs --engine, --model and --oracle');
+  if (!values.engine || !values.model || !values.oracle || !values['oracle-key']) fail('pins needs --engine, --model, --oracle and --oracle-key');
   const oracle = await (await fetch(new URL('/v1/descriptor', values.oracle))).json();
+  if (oracle.oracleKey !== values['oracle-key']) fail('the oracle answers with a key other than the one given out of band');
   const manifest = JSON.parse(execFileSync(values.engine, ['evaluator', '--describe', '--profile', values.profile, '--model', values.model]));
   const modelIdentity = 'sha256:' + createHash('sha256').update(readFileSync(values.model)).digest('hex');
   const pins = { schema: 'reploid.protected-route-pins/v1', profile: manifest.profile, modelIdentity,
@@ -50,7 +52,7 @@ if (positionals[0] === 'pins') {
       allowInsecureDevelopment: manifest.insecureDevelopment,
       circuits: [{ identity: manifest.circuit, modelIdentity, tokenizer: { alphabet: "abcdefghijklmnopqrstuvwxyz .,!?'" }, vocab: manifest.vocab,
         context: manifest.context, inputLevel: manifest.inputLevel, logSlots: manifest.logSlots, rotations: manifest.rotations,
-        traps: { source: 'oracle', endpoint: values.oracle, oracleKeys: [oracle.oracleKey] } }],
+        traps: { source: 'oracle', endpoint: values.oracle, oracleKeys: [values['oracle-key']] } }],
       trapLanes: Number(values['trap-lanes']), maxTrapTolerance: 1, maxKeyEpochSeconds: 86400, allowPublicTrapSet: false },
     reference: JSON.parse(execFileSync(values.engine, ['reference', '--model', values.model, '--prompt', values.prompt, '--generate', values.generate])) };
   writeFileSync(values.out, JSON.stringify(pins, null, 1));
@@ -60,7 +62,7 @@ if (positionals[0] === 'pins') {
   if (!values.engine || !values.pins || !values.endpoint?.length) fail('run needs --engine, --pins and --endpoint');
   const pins = JSON.parse(readFileSync(values.pins, 'utf8'));
   const protectedExecution = createNodeProtectedExecution({ endpoints: values.endpoint, engine: values.engine, policy: pins.policy,
-    stateDir: values['state-dir'] ?? null });
+    stateDir: values['state-dir'] ?? null, unreviewedProtectedExecution: true });
   const inference = createInference({ resolveRoute() { throw new Error('plaintext route'); }, execute() { throw new Error('plaintext executor'); },
     protectedExecution, unreviewedProtectedExecution: true });
   const started = Date.now();

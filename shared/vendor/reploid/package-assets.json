@@ -941,18 +941,18 @@
     },
     {
       "path": "inference/index.js",
-      "bytes": 14158,
-      "sha256": "64d6fe739752022163d074f94f1d7ac4db68dc0c1b797edc0f82de3e007406f9"
+      "bytes": 14308,
+      "sha256": "bb782acfb6d710e74e043223a6d7dedfc44bb403abcf19cbba2b09f5b9206247"
     },
     {
       "path": "inference/protected.d.ts",
-      "bytes": 2519,
-      "sha256": "1e1200c2c6c45387b897bdb5e2a8970cdbb645bcb10bedcb01be285661b2d2d8"
+      "bytes": 3046,
+      "sha256": "2d708034099f282f819a03524d05e1afbb5727c3f52796950fd4601ccb5050a3"
     },
     {
       "path": "inference/protected.js",
-      "bytes": 15580,
-      "sha256": "314cb5770542ccac5e931c1fa94575837f337b97689777fd44f3a7b8cea22383"
+      "bytes": 18650,
+      "sha256": "0c4489af2abc70511a4cd8d7138a843bd20f2c433edbb69ffb8ec25491a8edc0"
     },
     {
       "path": "measurement/capacity-utilization.js",
@@ -1531,13 +1531,13 @@
     },
     {
       "path": "mesh/protected-generation.d.ts",
-      "bytes": 11190,
-      "sha256": "ebf65d63592985bbc03a189e92a6186915307f497356dcf9c6860cf34abe1fd1"
+      "bytes": 11547,
+      "sha256": "ddd45f93be82346fa09f9cd5e4376acd606052d3553c931ddb576c16bcdc02ce"
     },
     {
       "path": "mesh/protected-generation.js",
-      "bytes": 53975,
-      "sha256": "b9e7ea6a2a8374a901f20eb56b93d42d551f258d14e76592c7b839d5e563f7f0"
+      "bytes": 58983,
+      "sha256": "940e8dd3cd97079bcbf13d8195b60675294febab8f3c518d242cdc1d74586d4f"
     },
     {
       "path": "mesh/provider-hardware.d.ts",

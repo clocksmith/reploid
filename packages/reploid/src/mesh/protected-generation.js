@@ -46,6 +46,8 @@ const ADVERTISEMENT_DOMAIN = 'reploid.protected-advertisement/v1';
 const MAX_HEADER_BYTES = 64 << 10;
 const MAX_LANES = 8;
 const MAX_BINDING_MS = 30 * 60 * 1000;
+/** Clocks on two machines disagree: an evaluator accepts expiries this far beyond its own limits. */
+export const PROTECTED_CLOCK_SKEW_MS = 5 * 60 * 1000;
 /** Blob byte ceilings per frame kind, enforced from the header before any blob byte is buffered. */
 export const PROTECTED_FRAME_CEILINGS = Object.freeze({
   'advertise-request': 0, advertisement: 0, 'bind-offer': 0, 'bind-accept': 0, 'bind-confirm': 0,
@@ -149,7 +151,8 @@ const validTrapSource = traps => traps?.source === 'oracle' ? exact(traps, ['sou
   : traps?.source === 'public-set' && exact(traps, ['source', 'envelope', 'publisherKeys']) && object(traps.envelope) && keyList(traps.publisherKeys);
 
 /**
- * The requester's own allowlist. Every field a descriptor states is checked against this, never trusted.
+ * The requester's own allowlist. The descriptor's protocol, engine protocol, parameter set, circuit, layout and lane
+ * limit are checked against it and never trusted; its scheme, implementation label and issue time are informational.
  * `parameterSets[].insecureDevelopment` is the requester's own knowledge of a parameter set, not the evaluator's.
  */
 export function validateProtectedPolicy(input) {
@@ -166,8 +169,13 @@ export function validateProtectedPolicy(input) {
       && validTrapSource(item.traps))
     && Number.isSafeInteger(value.trapLanes) && value.trapLanes >= 1 && value.trapLanes < MAX_LANES
     && typeof value.maxTrapTolerance === 'number' && value.maxTrapTolerance > 0
-    && Number.isSafeInteger(value.maxKeyEpochSeconds) && value.maxKeyEpochSeconds > 0;
+    && Number.isSafeInteger(value.maxKeyEpochSeconds) && value.maxKeyEpochSeconds > 0
+    && (value.failureLimits === undefined || exact(value.failureLimits, ['perEvaluator', 'total', 'windowSeconds'])
+      && [value.failureLimits.perEvaluator, value.failureLimits.total, value.failureLimits.windowSeconds].every(n => Number.isSafeInteger(n) && n >= 1));
   if (!ok) throw protectedError('EXECUTION_REQUEST_INVALID', 'Protected execution policy is malformed');
+  // After a failed verification an evaluator is not used again, and a few failures close the route: each failure the
+  // evaluator can observe (through this lockout or the key-epoch rotation) is a chosen bit about some session.
+  value.failureLimits ??= { perEvaluator: 1, total: 3, windowSeconds: 86400 };
   return freeze(value);
 }
 
@@ -477,25 +485,29 @@ export async function signProtectedFrame(identity, fields, blobs = []) {
 }
 
 /**
- * Check a received frame: allowed kind, session, binding digest, the exact next sequence number, sender, the
- * sender's signature over the header, and every blob's digest. Any mismatch is a protocol violation.
+ * Check a received frame, authentication first: schema, sender and the sender's signature over the header, session
+ * and binding digest, every blob's size and digest, then the exact next sequence number, then the allowed kind.
+ * Each failure names its `violation` and whether it is `attributable` to the bound peer: only an authenticated,
+ * in-sequence frame of the wrong kind is. Anything else can come from whoever carries the bytes (junk, a reflected
+ * or replayed frame, a frame altered in transit) and is never blamed on the peer.
  */
 export async function verifyProtectedFrame(frame, { kinds, session, binding, seq, sender, publicJwk }) {
   const { header, blobs } = frame;
-  if (!kinds.includes(header?.kind)) {
-    throw Object.assign(new Error(`refused unsolicited "${header?.kind}" frame while waiting for ${kinds.join(' or ')}`), { violation: 'kind', kind: header?.kind });
-  }
+  const refuse = (violation, message, attributable = false) => { throw Object.assign(new Error(message), { violation, attributable, kind: header?.kind }); };
+  if (!object(header) || header.schema !== PROTECTED_PROTOCOL) refuse('schema', 'frame does not carry this protocol\'s schema');
   const { signature, ...signed } = header;
-  if (header.session !== session || header.binding !== binding) throw Object.assign(new Error('frame is not bound to this session'), { violation: 'binding' });
-  if (header.seq !== seq) throw Object.assign(new Error(`frame sequence ${header.seq}, expected ${seq}`), { violation: 'sequence' });
-  if (header.sender !== sender || !await verify(publicJwk, FRAME_DOMAIN, signed, signature)) {
-    throw Object.assign(new Error('frame is not signed by the bound peer'), { violation: 'signature' });
-  }
-  if (!Array.isArray(header.blobs) || header.blobs.length !== blobs.length) throw Object.assign(new Error('frame blob count differs'), { violation: 'blobs' });
+  if (header.sender !== sender || !await verify(publicJwk, FRAME_DOMAIN, signed, signature)) refuse('signature', 'frame is not signed by the bound peer');
+  if (header.session !== session || header.binding !== binding) refuse('binding', 'frame is bound to another session');
+  if (!Array.isArray(header.blobs) || header.blobs.length !== blobs.length) refuse('blob-digest', 'frame blob count differs from its signed header');
   for (let i = 0; i < blobs.length; i++) {
     if (blobs[i].length !== header.blobs[i].bytes || await bytesDigest(blobs[i]) !== header.blobs[i].digest) {
-      throw Object.assign(new Error('frame blob does not match its signed digest'), { violation: 'blob-digest' });
+      refuse('blob-digest', 'frame blob does not match its signed digest');
     }
+  }
+  if (!Number.isSafeInteger(header.seq) || header.seq < seq) refuse('replay', `frame sequence ${header.seq} was already received`);
+  if (header.seq > seq) refuse('sequence', `frame sequence ${header.seq}, expected ${seq}: frames were lost`);
+  if (!kinds.includes(header.kind)) {
+    refuse('kind', `refused unsolicited "${header.kind}" frame while waiting for ${kinds.join(' or ')}`, true);
   }
   return header;
 }
@@ -520,25 +532,40 @@ export async function requestProtectedAdvertisement(channel, { timeoutMs = 30000
 
 const JOURNAL_KEYS = new Set(['role', 'session', 'state', 'at', 'planId', 'bindingDigest', 'descriptorDigest', 'evaluator', 'requester',
   'keyEpoch', 'lanes', 'trapLanes', 'step', 'trapChecks', 'resultDigests', 'code', 'reason', 'frames', 'bytes', 'computeSeconds', 'keysUploaded', 'keyHolder']);
+/** Keys allowed inside nested journal values (frame counts, byte counts, key-holder counts, trap verdicts). */
+const JOURNAL_NESTED_KEYS = new Set(['sent', 'received', 'encryptions', 'decryptions', 'step', 'trap', 'pass', 'maxAbsError',
+  'advertise-request', 'advertisement', 'bind-offer', 'bind-accept', 'bind-confirm', 'key', 'keys-held', 'ready', 'step', 'result', 'bye', 'abort', 'decrypt-request']);
+/** States of a session that is still running; `recover()` looks at these only. */
+const IN_PROGRESS = new Set(['binding', 'bound', 'keys-ready', 'step']);
+const journalValue = (value, depth = 0) => {
+  if (value === null || typeof value === 'boolean' || (typeof value === 'number' && (Number.isFinite(value) || value === Infinity))) return true;
+  // Strings are identifiers, digests, codes and fixed reasons, never content: bounded and printable.
+  if (typeof value === 'string') return value.length <= 256 && !/[\x00-\x1f\x7f]/.test(value);
+  if (depth >= 2) return false;
+  if (Array.isArray(value)) return value.length <= 64 && value.every(item => journalValue(item, depth + 1));
+  return object(value) && Object.keys(value).every(key => JOURNAL_NESTED_KEYS.has(key) && journalValue(value[key], depth + 1));
+};
 
 /**
- * In-memory protected journal, separate from the plaintext generation journal. Records are checked against an
- * allowlist of field names; tokens, logits, text and ciphertexts have no field to go in.
+ * In-memory protected journal, separate from the plaintext generation journal. Field names are allowlisted at the
+ * top level and inside nested values, and values are bounded identifiers, numbers or verdicts; tokens, logits, text
+ * and ciphertexts have no field to go in.
  */
 export function createProtectedJournal({ limit = 256 } = {}) {
   const records = [];
   return Object.freeze({
     record(entry) {
       for (const key of Object.keys(entry)) if (!JOURNAL_KEYS.has(key)) throw new Error(`Protected journal does not record ${key}`);
+      for (const [key, value] of Object.entries(entry)) if (!journalValue(value)) throw new Error(`Protected journal refuses the value of ${key}`);
       records.push(freeze(structuredClone(entry)));
       while (records.length > limit) records.shift();
     },
     entries: () => records.slice(),
-    /** Recovery never resumes a protected session: every unfinished one is marked abandoned for a fresh start. */
+    /** Recovery never resumes a protected session: every session last seen running is marked abandoned for a fresh start. */
     recover(now = Date.now()) {
       const last = new Map();
-      for (const entry of records) last.set(`${entry.role}:${entry.session}`, entry);
-      const abandoned = [...last.values()].filter(entry => !['completed', 'failed', 'abandoned'].includes(entry.state));
+      for (const entry of records) if (entry.session) last.set(`${entry.role}:${entry.session}`, entry);
+      const abandoned = [...last.values()].filter(entry => IN_PROGRESS.has(entry.state));
       for (const entry of abandoned) this.record({ role: entry.role, session: entry.session, state: 'abandoned', at: now, reason: 'no resume' });
       return abandoned.map(entry => entry.session);
     }
@@ -554,7 +581,7 @@ export function createProtectedJournal({ limit = 256 } = {}) {
  * On any failure the error carries `protected` details: stage, decryptions, and what was uploaded.
  */
 export async function runProtectedRequesterSession({
-  channel, crypto, identity, verified, planId, routeId, expiresAt, trapSet, trapLanes, promptTokens, generate,
+  channel, crypto, identity, verified, planId, routeId, expiresAt, trapSet, trapLanes, promptTokens, generate, maxKeyEpochSeconds = Infinity,
   journal = createProtectedJournal(), onToken = () => {}, onBound = () => {}, randomInt = secureRandomInt,
   now = Date.now, timeoutMs = 30 * 60 * 1000, signal
 }) {
@@ -569,12 +596,13 @@ export async function runProtectedRequesterSession({
   const K = lanes.length, realLane = lanes.findIndex(lane => lane.kind === 'real');
   const session = 'ps_' + randomHex(16);
   const stats = { stage: 'binding', decryptions: { trap: 0, real: 0 }, uploaded: { keyFrames: 0, stepFrames: 0, bytes: 0 },
-    frames: { sent: 0, received: 0 }, bytes: { sent: 0, received: 0 } };
+    frames: { sent: 0, received: 0 }, bytes: { sent: 0, received: 0 }, keyEpoch: crypto.epoch.id, evaluator: verified.descriptor.evaluator.participantId,
+    failedTrapStep: null, ignoredFrames: 0 };
   const fail = (code, message) => protectedError(code, message, structuredClone(stats));
   const epoch = crypto.epoch;
   const nowSeconds = Math.floor(now() / 1000);
-  if (!(epoch.expiresAt > nowSeconds && epoch.expiresAt <= nowSeconds + descriptor.keyEpochs.maxTtlSeconds)) {
-    throw fail('EXECUTION_ROUTE_UNAVAILABLE', 'The key epoch outlives what the evaluator keeps keys for. Nothing was sent.');
+  if (!(epoch.expiresAt > nowSeconds && epoch.expiresAt <= nowSeconds + Math.min(descriptor.keyEpochs.maxTtlSeconds, maxKeyEpochSeconds))) {
+    throw fail('EXECUTION_ROUTE_UNAVAILABLE', 'The key epoch outlives what the evaluator keeps keys for, or this requester\'s own limit. Nothing was sent.');
   }
   const offer = { schema: PROTECTED_BINDING_SCHEMA, protocol: PROTECTED_PROTOCOL, session, planId, routeId, descriptorDigest,
     evaluator: evaluator.participantId, requester: { participantId: identity.peerId, publicJwk: identity.publicJwk },
@@ -590,28 +618,37 @@ export async function runProtectedRequesterSession({
     if (kind === 'key') { stats.uploaded.keyFrames++; stats.uploaded.bytes += bytes; }
     if (kind === 'step') { stats.uploaded.stepFrames++; stats.uploaded.bytes += bytes; }
   };
-  const receive = async (kinds, extra = {}) => {
-    signal?.throwIfAborted();
-    if (now() > expiresAt) throw fail('PROTECTED_SESSION_EXPIRED', `The session binding expired at ${stats.stage}; nothing more was decrypted.`);
-    let frame;
-    try { frame = await channel.receive({ timeoutMs, signal }); } catch (error) {
-      if (signal?.aborted) throw signal.reason;
-      throw fail('PROTECTED_SESSION_CLOSED', `The evaluator dropped the session at ${stats.stage}: ${error.message}`);
+  const MAX_IGNORED_FRAMES = 16;
+  const receive = async kinds => {
+    for (;;) {
+      signal?.throwIfAborted();
+      if (now() > expiresAt) throw fail('PROTECTED_SESSION_EXPIRED', `The session binding expired at ${stats.stage}; nothing more was decrypted.`);
+      let frame;
+      try { frame = await channel.receive({ timeoutMs, signal }); } catch (error) {
+        if (signal?.aborted) throw signal.reason;
+        throw fail('PROTECTED_SESSION_CLOSED', `The evaluator dropped the session at ${stats.stage}: ${error.message}`);
+      }
+      // Re-checked after the wait: a result that arrives after the binding expired is never used.
+      if (now() > expiresAt) throw fail('PROTECTED_SESSION_EXPIRED', `The session binding expired at ${stats.stage}; nothing more was decrypted.`);
+      stats.frames.received++; stats.bytes.received += frame.blobs.reduce((total, blob) => total + blob.length, 0);
+      try {
+        await verifyProtectedFrame(frame, { kinds: binding ? [...kinds, 'abort'] : kinds, session, binding, seq: recvSeq,
+          sender: evaluator.participantId, publicJwk: evaluator.publicJwk });
+      } catch (error) {
+        // Before the binding exists, nothing has been uploaded: the plan's evaluator could not be bound.
+        if (!binding) throw fail('EXECUTION_PLAN_CHANGED', `The evaluator could not be bound as the planned identity: ${error.message}. Nothing was uploaded.`);
+        if (error.attributable) throw fail('RESULT_UNVERIFIED', `Protocol violation at ${stats.stage}: ${error.message}. Nothing more was decrypted.`);
+        if (['schema', 'signature', 'binding', 'replay'].includes(error.violation) && ++stats.ignoredFrames <= MAX_IGNORED_FRAMES) {
+          // Junk, reflected, replayed or foreign frames: ignored, never blamed on the evaluator.
+          continue;
+        }
+        throw fail('PROTECTED_SESSION_CLOSED', `A frame failed authentication at ${stats.stage} (${error.message}); the session was closed `
+          + 'without blaming the evaluator. Nothing more was decrypted.');
+      }
+      recvSeq++;
+      if (frame.header.kind === 'abort') throw fail('PROTECTED_SESSION_CLOSED', `The evaluator ended the session at ${stats.stage}.`);
+      return frame;
     }
-    stats.frames.received++; stats.bytes.received += frame.blobs.reduce((total, blob) => total + blob.length, 0);
-    if (frame.header?.kind === 'abort' && kinds.includes('abort') === false) {
-      throw fail(binding ? 'PROTECTED_SESSION_CLOSED' : 'EXECUTION_PLAN_CHANGED', `The evaluator ended the session at ${stats.stage}. ${binding ? '' : 'Nothing was uploaded.'}`.trim());
-    }
-    try {
-      await verifyProtectedFrame(frame, { kinds, session, binding, seq: recvSeq, sender: evaluator.participantId, publicJwk: evaluator.publicJwk, ...extra });
-    } catch (error) {
-      // Before the binding exists, nothing has been uploaded: the plan's evaluator could not be bound.
-      throw fail(binding ? 'RESULT_UNVERIFIED' : 'EXECUTION_PLAN_CHANGED',
-        binding ? `Protocol violation at ${stats.stage}: ${error.message}. Nothing more was decrypted.`
-          : `The evaluator could not be bound as the planned identity: ${error.message}. Nothing was uploaded.`);
-    }
-    recvSeq++;
-    return frame;
   };
   const record = entry => journal.record({ role: 'requester', session, at: now(), ...entry });
   try {
@@ -644,11 +681,15 @@ export async function runProtectedRequesterSession({
     record({ state: 'keys-ready', keysUploaded });
 
     const tokens = [], trapChecks = [];
-    let maxAbsError = 0;
+    let maxAbsError = 0, failedAt = null;
+    // A trap failure is SILENT inside the session: the requester stops decrypting anything, keeps feeding every lane
+    // fresh encryptions on the fixed schedule (the real lane gets a dummy token) and closes normally. The evaluator's
+    // view is the same as for a passing session, so a perturbation it steers by a predicate of the real input cannot
+    // read the verdict from an abort. The verdict is reported to the caller only after `bye`.
     for (let step = 1; step <= generate; step++) {
       stats.stage = `step ${step}`;
       const inputs = lanes.map(lane => lane.kind === 'real'
-        ? (step === 1 ? promptTokens : [tokens[step - 2]])
+        ? (step === 1 ? promptTokens : [failedAt === null ? tokens[step - 2] : 0])
         : (step === 1 ? lane.trap.prompt : [lane.trap.continuation[step - 2]]));
       const blobs = await crypto.encrypt(inputs.flat());
       await send('step', { step, phase: step === 1 ? 'prefill' : 'decode', lanes: K, tokensPerLane: inputs[0].length }, blobs);
@@ -656,27 +697,36 @@ export async function runProtectedRequesterSession({
       if (result.header.fields.step !== step || result.blobs.length !== K) {
         throw fail('RESULT_UNVERIFIED', `The result is not for step ${step} of ${K} lanes. Nothing more was decrypted.`);
       }
-      // Every trap lane first. Rejection depends only on trap results, never on the real lane's values.
-      for (let lane = 0; lane < K; lane++) {
-        if (lanes[lane].kind !== 'trap') continue;
-        const logits = await crypto.decrypt(result.blobs[lane]);
-        stats.decryptions.trap++;
-        const check = logits ? checkTrapResult(lanes[lane].trap.expectedLogits[step - 1], logits, trapSet.tolerance)
-          : { pass: false, maxAbsError: Infinity, argmaxOk: false };
-        trapChecks.push({ step, trap: lanes[lane].trap.id, pass: check.pass, maxAbsError: check.maxAbsError });
-        maxAbsError = Math.max(maxAbsError, check.maxAbsError);
-        if (!check.pass) {
-          record({ state: 'failed', step, code: 'RESULT_UNVERIFIED', reason: 'trap', trapChecks: trapChecks.slice(-K) });
-          throw fail('RESULT_UNVERIFIED', `A known-answer trap failed at step ${step}; the real result was not decrypted.`);
+      if (failedAt === null) {
+        // Every trap lane first, all of them, so the decryption count per step does not depend on which trap failed.
+        for (let lane = 0; lane < K; lane++) {
+          if (lanes[lane].kind !== 'trap') continue;
+          const logits = await crypto.decrypt(result.blobs[lane]);
+          stats.decryptions.trap++;
+          const check = logits ? checkTrapResult(lanes[lane].trap.expectedLogits[step - 1], logits, trapSet.tolerance)
+            : { pass: false, maxAbsError: Infinity, argmaxOk: false };
+          trapChecks.push({ step, trap: lanes[lane].trap.id, pass: check.pass, maxAbsError: check.maxAbsError });
+          maxAbsError = Math.max(maxAbsError, check.maxAbsError);
+          if (!check.pass && failedAt === null) failedAt = step;
         }
       }
-      const logits = await crypto.decrypt(result.blobs[realLane]);
-      if (!logits) throw fail('RESULT_UNVERIFIED', `The result at step ${step} does not have the pinned ciphertext shape.`);
-      stats.decryptions.real++;
-      const token = totalArgmax(logits);
-      tokens.push(token);
+      if (failedAt === null) {
+        const logits = await crypto.decrypt(result.blobs[realLane]);
+        if (!logits) throw fail('RESULT_UNVERIFIED', `The result at step ${step} does not have the pinned ciphertext shape.`);
+        stats.decryptions.real++;
+        const token = totalArgmax(logits);
+        tokens.push(token);
+        await onToken(token, step);
+      }
       record({ state: 'step', step, resultDigests: result.header.blobs.map(blob => blob.digest) });
-      await onToken(token, step);
+    }
+    if (failedAt !== null) {
+      stats.stage = 'closing';
+      await send('bye');
+      stats.failedTrapStep = failedAt;
+      record({ state: 'failed', step: failedAt, code: 'RESULT_UNVERIFIED', reason: 'trap', trapChecks: trapChecks.filter(check => !check.pass) });
+      throw fail('RESULT_UNVERIFIED', `A known-answer trap failed at step ${failedAt}. Nothing real was decrypted from that step on; the session ran `
+        + 'to its fixed end so the evaluator could not observe the failure. Do not retry automatically.');
     }
     stats.stage = 'closing';
     await send('bye');
@@ -692,7 +742,9 @@ export async function runProtectedRequesterSession({
     });
   } catch (error) {
     if (!error.protected) Object.assign(error, { protected: structuredClone(stats) });
-    try { record({ state: 'failed', code: typeof error.code === 'string' ? error.code : null, reason: stats.stage }); } catch { /* journal full or closed */ }
+    if (stats.failedTrapStep === null) {
+      try { record({ state: 'failed', code: typeof error.code === 'string' ? error.code : null, reason: stats.stage }); } catch { /* journal full or closed */ }
+    }
     throw error;
   } finally {
     channel.close();
@@ -726,6 +778,7 @@ export async function serveProtectedEvaluatorSession({
   const receive = async kinds => {
     if (now() > bindingExpiresAt) throw new Error('session binding expired');
     const frame = await channel.receive({ timeoutMs });
+    if (now() > bindingExpiresAt) throw new Error('session binding expired');
     frames[frame.header?.kind] = (frames[frame.header?.kind] ?? 0) + 1;
     bytes.received += frame.blobs.reduce((total, blob) => total + blob.length, 0);
     await verifyProtectedFrame(frame, { kinds, session, binding, seq: recvSeq, sender: requester.participantId, publicJwk: requester.publicJwk });
@@ -749,9 +802,10 @@ export async function serveProtectedEvaluatorSession({
       && typeof session === 'string' && /^ps_[a-f0-9]{32}$/.test(session) && first.header.session === session
       && offer.evaluator === identity.peerId && offer.descriptorDigest === descriptorDigest
       && label(offer.planId) && digest(offer.routeId) && nonce(offer.requesterNonce)
-      && Number.isSafeInteger(offer.expiresAt) && offer.expiresAt > t && offer.expiresAt <= t + MAX_BINDING_MS
+      && Number.isSafeInteger(offer.expiresAt) && offer.expiresAt > t && offer.expiresAt <= t + MAX_BINDING_MS + PROTECTED_CLOCK_SKEW_MS
       && object(offer.keyEpoch) && /^[a-f0-9]{32}$/.test(offer.keyEpoch.id) && Number.isSafeInteger(offer.keyEpoch.expiresAt)
-      && offer.keyEpoch.expiresAt > t / 1000 && offer.keyEpoch.expiresAt <= t / 1000 + descriptor.keyEpochs.maxTtlSeconds
+      && offer.keyEpoch.expiresAt > t / 1000
+      && offer.keyEpoch.expiresAt <= (t + PROTECTED_CLOCK_SKEW_MS) / 1000 + descriptor.keyEpochs.maxTtlSeconds
       && object(schedule) && Number.isSafeInteger(schedule.lanes) && schedule.lanes >= 2 && schedule.lanes <= descriptor.lanes.max
       && Number.isSafeInteger(schedule.promptTokens) && schedule.promptTokens >= 1 && Number.isSafeInteger(schedule.generatedTokens)
       && schedule.generatedTokens >= 1 && schedule.promptTokens + schedule.generatedTokens - 1 <= descriptor.circuit.context
@@ -771,7 +825,8 @@ export async function serveProtectedEvaluatorSession({
       throw new Error('engine manifest differs from the advertised descriptor');
     }
     const evaluatorNonce = randomHex(32);
-    await send('bind-accept', { offerDigest: await hashJson(offer), evaluatorNonce, heldKeysDigest: engine.manifest.heldKeysDigest || '' });
+    const offerDigest = misbehave === 'wrong-offer-digest' ? await hashJson({ ...offer, planId: 'another-plan' }) : await hashJson(offer);
+    await send('bind-accept', { offerDigest, evaluatorNonce, heldKeysDigest: engine.manifest.heldKeysDigest || '' });
     binding = await bindingDigest(offer, evaluatorNonce);
     record({ state: 'binding', planId: offer.planId, requester: requester.participantId, keyEpoch: offer.keyEpoch.id, lanes: schedule.lanes });
     const confirm = await receive(['bind-confirm']);
