@@ -13,7 +13,8 @@
  * provider's prefill and the network. It does not include discovery before Send was enabled; that wait is recorded
  * separately as `sendEnabledMs`.
  *
- * Before the measured requests, one unmeasured setup request takes the "Where should this run?" sheet and the
+ * Before the measured requests, the script waits for the page to finish "Finding computers…" (recorded as the setup's
+ * `discoveryMs`), then sends one unmeasured setup request that takes the "Where should this run?" sheet and the
  * remote-contributor permission, which a person meets once. If the sheet or the permission prompt appears again
  * during a measured request, the script answers it and the time it took stays in that request's measurement.
  *
@@ -201,7 +202,13 @@ export async function runBrowserPilot({ url, prompts, model = null, intervalMs =
     await page.addInitScript(installProbe);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.locator('[data-composer-send]').waitFor({ state: 'visible', timeout: 60000 });
-    const setup = await measureOne(page, { prompt: 'Say hello in one word.', timeoutMs, model, sheetWaitMs });
+    // Send is offered while the page is still "Finding computers…". A person would wait for that line to change;
+    // pressed earlier, the sheet can read as if nobody serves the model. The wait is recorded, not hidden.
+    const opened = Date.now();
+    await page.waitForFunction(() => !/Finding computers/i.test(globalThis.document.querySelector('[data-model-status]')?.textContent ?? ''),
+      null, { timeout: 60000 }).catch(() => {});
+    const discoveryMs = Date.now() - opened;
+    const setup = { discoveryMs, ...await measureOne(page, { prompt: 'Say hello in one word.', timeoutMs, model, sheetWaitMs }) };
     const answerOn = (await page.locator('[data-open-model]').getAttribute('aria-label').catch(() => null)) ?? null;
     if (!setup.completed) return { setup, answerOn, results: [], notStarted: `the setup request did not complete (${setup.failure}): ${setup.statusText || setup.activity || 'no status shown'}` };
     const results = [];
@@ -228,6 +235,7 @@ const MOCK_PAGE = `<!doctype html><meta charset="utf-8"><title>mock</title>
 <div data-message-stream></div>
 <dialog data-model-picker><button data-model-picker-close>Close</button><button data-execution-choice="local">This device</button><button data-execution-choice="network">Contributors</button><span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
 <div data-remote-permission hidden><button data-remote-permission-allow>Allow</button></div>
+<p data-model-status>Finding computers…</p>
 <textarea data-composer-input></textarea><button data-composer-send>Send</button><button data-composer-stop hidden>Stop</button>
 <script>
 const $ = selector => document.querySelector(selector), stream = $('[data-message-stream]'), send = $('[data-composer-send]'), stop = $('[data-composer-stop]');
@@ -256,6 +264,7 @@ function start() {
   if (kind === 'fail') later(60, () => finish(row, 'Failed', 'This answer could not finish.'));
   if (kind === 'hang') later(60, () => { body.textContent = 'Start'; });
 }
+setTimeout(() => { $('[data-model-status]').textContent = ''; }, 300);
 send.onclick = start;
 stop.onclick = () => { timers.forEach(clearTimeout); finish(current, 'Stopped', 'Stopped. Your partial answer is saved.'); };
 $('[data-new-thread]').onclick = () => { stream.replaceChildren(); };
@@ -278,6 +287,7 @@ async function selfCheck() {
     const problems = [], expect = (what, ok) => { if (!ok) problems.push(what); };
     const by = index => results[index];
     expect('setup took the sheet and the permission prompt', setup.sheet && setup.permissionPrompt);
+    expect('setup waited for discovery to settle before pressing Send', setup.discoveryMs >= 250 && setup.discoveryMs < 5000);
     expect('no measured request met the sheet again', results.every(row => !row.sheet && !row.permissionPrompt));
     expect('ok completes with a first character near 80 ms', by(0).completed && by(0).firstTokenMs >= 70 && by(0).firstTokenMs < 300);
     expect('slow ignores whitespace and times the first real character near 400 ms', by(1).completed && by(1).firstTokenMs >= 390 && by(1).firstTokenMs < 700);
