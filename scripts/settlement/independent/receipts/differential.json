@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-25T11:07:25.291Z",
-  "finishedAt": "2026-11-25T11:07:33.100Z",
+  "generatedAt": "2026-11-25T11:22:51.338Z",
+  "finishedAt": "2026-11-25T11:22:59.180Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "4170e0abff56e4c5d8a9e7a7a60b494257ec0ba8",
+  "commit": "37221d16ae2dd6d38fd8ffa9f55557af24ea7a71",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Every documented row member except the sentence in `reason` is compared; list entries are compared without regard to order, and `counts` without its zero entries. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
