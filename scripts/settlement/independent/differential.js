@@ -1,11 +1,13 @@
 /**
  * Differential run of two settlement verifiers over the same record sets: the service's
- * (server/fleet/settlement-replay.js) and the independent one beside this file (replay.js).
+ * (server/fleet/settlement-replay.js) and the second one beside this file (replay.js), which was written from
+ * docs/settlement-replay.md alone.
  *
  * Base attempts are built with the production signing code through scripts/settlement/scenario.js. Each mutation
  * removes, repeats, reorders, edits or adds records, re-signing with real keys where the mutation needs a valid
  * signature. Both verifiers judge every set at one or more clock values; the outcome, the requester's debit and each
- * stage's credit are compared, and the late and rejected lists are compared by size.
+ * stage's credit are compared. The late, foreign and rejected lists are compared by size, and the conflict lists
+ * by whether each has an entry (the document does not name the conflict kinds).
  *
  *   node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json
  *
@@ -15,13 +17,17 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { replaySettlement as independentReplay, SCHEMAS, DEFAULT_MAX_UNACKNOWLEDGED_OUTPUTS } from './replay.js';
+import { replaySettlement as independentReplay } from './replay.js';
 import { replaySettlement as serviceReplay } from '../../../server/fleet/settlement-replay.js';
-import { termsDigest } from '../../../server/fleet/settlement-terms.js';
+import { policyDigest, termsDigest } from '../../../server/fleet/settlement-terms.js';
 import { createAttemptEvidenceSigner } from '../../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createSigningIdentity } from '../../../packages/reploid/src/artifacts/identity.js';
 import { POLICY, createParties, runAttempt } from '../scenario.js';
 
+const SCHEMAS = Object.freeze({
+  terms: 'reploid.settlement-terms/v1', acceptance: 'reploid.settlement-acceptance/v1', receipt: 'reploid.stage-receipt/v1',
+  acknowledgment: 'reploid.output-acknowledgment/v1', stop: 'reploid.settlement-stop/v1'
+});
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../../..');
 const flag = name => { const at = process.argv.indexOf(`--${name}`); return at === -1 ? null : process.argv[at + 1] ?? true; };
@@ -71,7 +77,8 @@ function contextOf(attempt, parties, stranger) {
 
 /** New terms from the requester, with the stages' acceptances of exactly those terms. */
 async function reterm(ctx, changes, { signedAt = null, acceptedAt = null } = {}) {
-  const body = { ...bodyOf(ctx.terms), ...changes };
+  const body = bodyOf(ctx.terms);
+  if (typeof changes === 'function') changes(body); else Object.assign(body, changes);
   if (signedAt !== null) body.signedAt = iso(signedAt);
   const terms = await sign(ctx.requester, body);
   const digest = await termsDigest(bodyOf(terms));
@@ -238,7 +245,6 @@ const MUTATIONS = {
   async 'terms that do not match the policy'(ctx) {
     const price = ctx.terms.creditsPerOutputToken + 1;
     const otherPolicy = { ...POLICY, version: 'not-published' };
-    const { policyDigest } = await import('../../../server/fleet/settlement-terms.js');
     return [
       { name: 'unit differs from the policy', records: await withTerms(ctx, { unit: 'another-unit' }) },
       { name: 'price differs from the policy', records: await withTerms(ctx, { creditsPerOutputToken: price, maximum: ctx.terms.maxOutputTokens * price }) },
@@ -286,7 +292,7 @@ const MUTATIONS = {
     if (!closing || !last || last.output?.done) return [];
     const identity = ctx.stageIdentity(ctx.finalIndex), added = [];
     let previous = last;
-    for (let extra = 1; extra <= DEFAULT_MAX_UNACKNOWLEDGED_OUTPUTS + 1; extra++) {
+    for (let extra = 1; extra <= ctx.terms.maxUnacknowledgedOutputs + 1; extra++) {
       const body = bodyOf(previous);
       Object.assign(body, { sequence: previous.sequence + 1, steps: previous.steps + 1, tokens: { ...previous.tokens, processed: previous.tokens.processed + 1 },
         output: { count: previous.steps + 1, chain: `sha256:${String(extra).repeat(64)}`, done: false, stopReason: null } });
@@ -295,6 +301,121 @@ const MUTATIONS = {
     }
     const close = await sign(identity, { ...bodyOf(previous), sequence: previous.sequence + 1, status: closing.status, timing: closing.timing });
     return [{ name: 'final stage signs three more steps after the last acknowledged output, then closes', records: [...without(ctx.records, closing), ...added, close] }];
+  },
+  async 'the signed acknowledgment allowance K'(ctx) {
+    const out = [];
+    for (const k of [0, 1, 5, 64]) {
+      if (k !== ctx.terms.maxUnacknowledgedOutputs) out.push({ name: `terms name K = ${k}`, records: await withTerms(ctx, { maxUnacknowledgedOutputs: k }) });
+    }
+    out.push({ name: 'terms without K', records: await withTerms(ctx, body => { delete body.maxUnacknowledgedOutputs; }) });
+    out.push({ name: 'terms with K = -1', records: await withTerms(ctx, { maxUnacknowledgedOutputs: -1 }) });
+    out.push({ name: 'terms with K = 1.5', records: await withTerms(ctx, { maxUnacknowledgedOutputs: 1.5 }) });
+    out.push({ name: 'terms with K as text', records: await withTerms(ctx, { maxUnacknowledgedOutputs: '2' }) });
+    return out;
+  },
+  // Every record here carries a valid signature from the right key, so only a field rule can reject it.
+  async 'field rules, validly signed'(ctx) {
+    const out = [], long = n => 'x'.repeat(n);
+    const terms = (name, changes) => withTerms(ctx, changes).then(records => out.push({ name, records }));
+    await terms('terms maximum is not the ceiling times the price', { maximum: ctx.terms.maximum + 1 });
+    await terms('terms carry an extra signed member', { note: 'signed' });
+    await terms('terms share indexes do not match their positions', body => { body.shares = body.shares.map((row, index, all) => ({ ...row, partitionIndex: all.length - 1 - index })); });
+    await terms('terms share with weight 0', body => { body.shares[0] = { ...body.shares[0], weight: 0 }; });
+    await terms('terms share with an extra member', body => { body.shares[0] = { ...body.shares[0], note: 'x' }; });
+    await terms('terms with no shares', { shares: [] });
+    await terms('terms deadline equal to notBefore', body => { body.deadline = body.notBefore; });
+    await terms('terms unfinishedTerms is empty text', { unfinishedTerms: '' });
+    await terms('terms unit of 65 characters', { unit: long(65) });
+    await terms('terms attemptId of 257 characters', { attemptId: long(257) });
+    await terms('terms signedAt in another form Date.parse accepts', body => { body.signedAt = new Date(Date.parse(body.signedAt)).toUTCString(); });
+    await terms('terms signedAt is not a time', { signedAt: 'yesterday' });
+    await terms('terms signedAt of 49 characters that Date.parse accepts', body => { body.signedAt = new Date(Date.parse(body.signedAt)).toUTCString() + ' '.repeat(20); });
+    await terms('terms creditsPerOutputToken as text', { creditsPerOutputToken: String(ctx.terms.creditsPerOutputToken) });
+    await terms('terms members signed in another order', body => { const copy = Object.fromEntries(Object.entries(body).reverse()); for (const key of Object.keys(body)) delete body[key]; Object.assign(body, copy); });
+
+    const swap = async (record, identity, edit, name) => {
+      if (!record) return;
+      const body = bodyOf(record);
+      edit(body);
+      out.push({ name, records: [...without(ctx.records, record), await sign(identity, body)] });
+    };
+    const final = ctx.receipts(ctx.finalIndex).at(-1), finalId = ctx.stageIdentity(ctx.finalIndex);
+    const first = ctx.receipts(0).at(-1), firstId = ctx.stageIdentity(0);
+    await swap(ctx.acceptances[0], firstId, body => { body.note = 'signed'; }, 'acceptance carries an extra signed member');
+    await swap(ctx.acceptances[0], firstId, body => { body.termsDigest = body.termsDigest.toUpperCase().replace('SHA256', 'sha256'); }, 'acceptance names the terms digest in upper-case hex');
+    if (final?.output) {
+      await swap(final, finalId, body => { body.output = { ...body.output, count: body.output.count + 1 }; }, 'final receipt output count differs from its steps');
+      await swap(final, finalId, body => { body.output = { ...body.output, stopReason: long(65) }; }, 'final receipt stopReason of 65 characters');
+      await swap(final, finalId, body => { body.output = { ...body.output, done: 1 }; }, 'final receipt done is 1, not true');
+      await swap(final, finalId, body => { body.output = null; }, 'final stage closes with a null output');
+    }
+    await swap(final, finalId, body => { body.sequence = 0; }, 'final receipt with sequence 0');
+    await swap(final, finalId, body => { body.status = 'closed'; }, 'final receipt with a status outside the three');
+    await swap(final, finalId, body => { body.tokens = { ...body.tokens, cached: 0 }; }, 'final receipt tokens with an extra member');
+    await swap(final, finalId, body => { const { closedAt: _closedAt, ...timing } = body.timing; body.timing = timing; }, 'final receipt timing without a closedAt member');
+    await swap(final, finalId, body => { body.timing = { ...body.timing, closedAt: null }; }, 'final stage closes with closedAt null');
+    if (first && final?.output && ctx.finalIndex !== 0) {
+      await swap(first, firstId, body => { body.output = { ...final.output, count: body.steps }; }, 'stage0, not the final stage, carries an output');
+    }
+    if (ctx.topAck.count > 0) {
+      await swap(ctx.topAck, ctx.requester, body => { body.note = 'signed'; }, 'top acknowledgment carries an extra signed member');
+      await swap(ctx.topAck, ctx.requester, body => { body.chain = body.chain.toUpperCase().replace('SHA256', 'sha256'); }, 'top acknowledgment chain in upper-case hex');
+      await swap(ctx.topAck, ctx.requester, body => { body.count = String(body.count); }, 'top acknowledgment count as text');
+    }
+    await swap(ctx.stops[0], ctx.requester, body => { body.note = 'signed'; }, 'stop carries an extra signed member');
+    for (const [record, label] of [[ctx.terms, 'terms'], [ctx.acceptances[0], 'acceptance'], [final, 'final receipt'], [ctx.topAck, 'top acknowledgment'], [ctx.stops[0], 'stop']]) {
+      if (record) out.push({ name: `${label} signature with base64 padding appended`, records: [...without(ctx.records, record), { ...record, signature: `${record.signature}=` }] });
+    }
+    out.push({ name: 'terms record without its key', records: [...without(ctx.records, ctx.terms), (({ publicJwk: _key, ...rest }) => rest)(ctx.terms)] });
+    return out;
+  },
+  async 'terms from another requester'(ctx) {
+    const id = ctx.stranger.peerId, out = [];
+    const theirs = await sign(ctx.stranger, { ...bodyOf(ctx.terms), requesterId: id });
+    const binding = await sign(ctx.stranger, { ...bodyOf(ctx.acks[0]), requesterId: id });
+    const elsewhere = await sign(ctx.stranger, { ...bodyOf(ctx.terms), requesterId: id, routeHash: OTHER_DIGEST });
+    const theirDigest = await termsDigest(bodyOf(theirs));
+    out.push({ name: 'a stranger signs terms on the same route and its own charge binding', records: [...ctx.records, theirs, binding] });
+    out.push({ name: 'a stranger signs terms naming another route', records: [...ctx.records, elsewhere] });
+    out.push({ name: 'a stranger signs terms and a binding, and stage0 accepts the stranger\'s terms too', records: [...ctx.records, theirs, binding,
+      await sign(ctx.stageIdentity(0), { ...bodyOf(ctx.acceptances[0]), termsDigest: theirDigest })] });
+    out.push({ name: 'only a stranger\'s terms and binding, with the stages\' real receipts', records: [...without(ctx.records, ctx.terms, ...ctx.acceptances, ...ctx.acks), theirs, binding] });
+    // A complete attempt of the stranger's own under this reservation ID: it is requester and only stage.
+    const own = await sign(ctx.stranger, { ...bodyOf(ctx.terms), requesterId: id, shares: [{ partitionIndex: 0, participantId: id, weight: 1 }] });
+    const ownAcceptance = await sign(ctx.stranger, { schema: SCHEMAS.acceptance, termsDigest: await termsDigest(bodyOf(own)), reservationId: own.reservationId,
+      attemptId: own.attemptId, participantId: id, partitionIndex: 0, signedAt: own.signedAt });
+    out.push({ name: 'a stranger signs its own terms, acceptance and charge binding under this reservation ID', records: [...ctx.records, own, ownAcceptance, binding] });
+    return out;
+  },
+  async 'requester equivocates on terms'(ctx) {
+    if (ctx.stageCount < 2) return [];
+    const weights = ctx.terms.shares.map((row, index) => ({ ...row, weight: row.weight + (index === 0 ? 5 : 0) }));
+    const second = await reterm(ctx, { shares: weights });
+    const split = [...without(ctx.records, ctx.acceptances.find(row => row.partitionIndex === 0)), second.terms, second.acceptances.find(row => row.partitionIndex === 0)];
+    const late = await reterm(ctx, { shares: weights }, { acceptedAt: ctx.deadline + 5000 });
+    return [
+      { name: 'stage0 accepts the second terms, the other stages the first', records: split },
+      { name: 'stages accept the second terms only after the deadline', records: [...ctx.records, late.terms, ...late.acceptances] },
+      { name: 'second terms signed after the deadline, accepted by no stage', records: [...ctx.records, (await reterm(ctx, { shares: weights }, { signedAt: ctx.deadline + 5000 })).terms] }
+    ];
+  },
+  async 'the edges of the time window'(ctx) {
+    if (ctx.topAck.count === 0) return [];
+    const skew = POLICY.maxClockSkewMs, out = [], clocks = ['after'];
+    const top = at => sign(ctx.requester, { ...bodyOf(ctx.topAck), signedAt: iso(at) });
+    for (const [label, at] of [['exactly the deadline plus the skew allowance', ctx.deadline + skew], ['one millisecond past the deadline plus the skew allowance', ctx.deadline + skew + 1],
+      ['exactly the start minus the skew allowance', Date.parse(ctx.terms.notBefore) - skew], ['one millisecond before the start minus the skew allowance', Date.parse(ctx.terms.notBefore) - skew - 1]]) {
+      out.push({ name: `top acknowledgment signed at ${label}`, clocks, records: [...without(ctx.records, ctx.topAck), await top(at)] });
+    }
+    const closing = ctx.receipts(0).find(record => record.status !== 'executing');
+    if (closing) {
+      const after = ctx.deadline + skew + 5000;
+      out.push({ name: 'stage0 signs an executing receipt after its closing one, outside the window', clocks, records: [...ctx.records,
+        await sign(ctx.stageIdentity(0), { ...bodyOf(closing), sequence: closing.sequence + 1, status: 'executing', timing: { ...closing.timing, closedAt: null }, signedAt: iso(after) })] });
+    }
+    out.push({ name: 'charge binding replaced by one with another chain', clocks, records: [...without(ctx.records, ctx.acks[0]),
+      await sign(ctx.requester, { ...bodyOf(ctx.acks[0]), chain: FAKE_CHAIN })] });
+    return out;
   },
   async 'unsigned additions'(ctx) {
     const targets = [[ctx.terms, 'terms'], [ctx.acceptances[0], 'acceptance'], [ctx.receipts(ctx.finalIndex).at(-1), 'final receipt'],
@@ -328,6 +449,9 @@ const BASES = [
   { name: 'three stages with equal weights', options: { weights: [1, 1, 1] }, stages: 3 },
   { name: 'requester computes stage0 itself', options: {}, own: true },
   { name: 'requester stops before any output', options: { requesterStopAfter: 0 } },
+  { name: 'every party signs with P-256', options: {}, full: true, curve: 'ECDSA' },
+  { name: 'requester stops acknowledging, P-256 keys', options: { outputs: Array.from({ length: 8 }, (_, i) => ` w${i}`), stopAckingAfter: 2 }, curve: 'ECDSA' },
+  { name: 'identifiers with characters JSON escapes', options: {}, tag: 'q"\\\u00e9\u2028\u{10348}\u0007 z' },
   // A finished answer whose last acknowledgments never arrive. No mutation: scenario.js produces these directly.
   { name: 'finished 40-output answer, last acknowledgment withheld', options: { outputs: FORTY, stopAckingAfter: 39 }, sweepOnly: true },
   { name: 'finished 40-output answer, last two acknowledgments withheld', options: { outputs: FORTY, stopAckingAfter: 38 }, sweepOnly: true },
@@ -349,87 +473,63 @@ const CLOCKS = {
 // ---------------------------------------------------------------------------------------------------------------
 
 const byStage = (shares, credits) => shares.map(row => credits.filter(credit => credit.participantId === row.participantId).reduce((sum, credit) => sum + credit.amount, 0));
+const EMPTY = shares => ({ reason: null, debit: 0, credits: shares.map(() => 0), late: 0, foreign: 0, conflicts: 0, conflictKinds: [] });
 function independentView(result, shares) {
-  return new Map(result.reservations.map(row => [row.reservationId, { outcome: row.outcome, reason: row.reason, debit: row.requesterDebit,
+  return new Map(result.reservations.map(row => [row.reservationId, { outcome: row.outcome, reason: row.reason, debit: row.debit,
     credits: shares.map((share, index) => row.credits.filter(credit => credit.partitionIndex === index).reduce((sum, credit) => sum + credit.amount, 0)),
-    late: row.late.length }]));
+    late: row.late.length, foreign: row.foreign.length, conflicts: row.conflicts.length, conflictKinds: [...new Set(row.conflicts.map(item => item.kind))].sort() }]));
 }
 function serviceView(result, shares) {
   return new Map(result.reservations.map(row => [row.reservationId, { outcome: row.status, reason: row.reason, debit: row.debit ?? 0,
-    credits: byStage(shares, row.credits ?? []), late: (row.late ?? []).length, conflictKinds: [...new Set((row.conflicts ?? []).map(item => item.kind))] }]));
+    credits: byStage(shares, row.credits ?? []), late: (row.late ?? []).length, foreign: (row.foreign ?? []).length, conflicts: (row.conflicts ?? []).length,
+    conflictKinds: [...new Set((row.conflicts ?? []).map(item => item.kind))].sort() }]));
 }
 
 async function judge({ records, policies, at, shares }) {
-  const independent = independentReplay({ policies, records, now: at, maxUnacknowledgedOutputs: DEFAULT_MAX_UNACKNOWLEDGED_OUTPUTS });
-  // Second pass with the one unstated number supplied, used only to attribute disagreements to it.
-  const skewed = independentView(independentReplay({ policies, records, now: at, clockSkewMs: POLICY.maxClockSkewMs }), shares);
-  let service, serviceError = null;
+  let independent, independentError = null, service, serviceError = null;
+  try { independent = await independentReplay({ policies, records, at }); } catch (error) { independentError = String(error?.message ?? error); }
   try { service = await serviceReplay({ records, policies, at }); } catch (error) { serviceError = String(error?.message ?? error); }
-  const mine = independentView(independent, shares);
+  const mine = independentError ? new Map() : independentView(independent, shares);
   const theirs = serviceError ? new Map() : serviceView(service, shares);
   const rows = [];
   for (const reservationId of new Set([...mine.keys(), ...theirs.keys()])) {
-    const a = mine.get(reservationId) ?? { outcome: 'none', reason: null, debit: 0, credits: shares.map(() => 0), late: 0 };
-    const b = theirs.get(reservationId) ?? { outcome: serviceError ? 'threw' : 'none', reason: serviceError, debit: 0, credits: shares.map(() => 0), late: 0 };
-    const k = skewed.get(reservationId) ?? { outcome: 'none', reason: null, debit: 0, credits: shares.map(() => 0), late: 0 };
-    const same = (x, y) => x.outcome === y.outcome && x.debit === y.debit && JSON.stringify(x.credits) === JSON.stringify(y.credits);
-    rows.push({ reservationId, independent: a, withSkew: k, service: b, outcomeAgrees: a.outcome === b.outcome,
-      amountsAgree: a.debit === b.debit && JSON.stringify(a.credits) === JSON.stringify(b.credits), lateAgrees: a.late === b.late,
-      agreesWithSkew: same(k, b) });
+    const a = mine.get(reservationId) ?? { outcome: independentError ? 'threw' : 'none', ...EMPTY(shares), reason: independentError };
+    const b = theirs.get(reservationId) ?? { outcome: serviceError ? 'threw' : 'none', ...EMPTY(shares), reason: serviceError };
+    rows.push({ reservationId, independent: a, service: b, outcomeAgrees: a.outcome === b.outcome,
+      amountsAgree: a.debit === b.debit && JSON.stringify(a.credits) === JSON.stringify(b.credits), lateAgrees: a.late === b.late, foreignAgrees: a.foreign === b.foreign });
   }
-  if (rows.length === 0) rows.push({ reservationId: null, independent: { outcome: 'none', debit: 0, credits: [], late: 0 },
-    service: { outcome: serviceError ? 'threw' : 'none', reason: serviceError, debit: 0, credits: [], late: 0 }, outcomeAgrees: !serviceError, amountsAgree: true, lateAgrees: true });
-  const independentRejected = independent.rejected.length + independent.reservations.reduce((sum, row) => sum + row.rejected.filter(entry => entry.signer !== null).length, 0);
+  if (rows.length === 0) rows.push({ reservationId: null, independent: { outcome: independentError ? 'threw' : 'none', ...EMPTY([]), reason: independentError },
+    service: { outcome: serviceError ? 'threw' : 'none', ...EMPTY([]), reason: serviceError }, outcomeAgrees: !serviceError && !independentError,
+    amountsAgree: true, lateAgrees: true, foreignAgrees: true });
+  const independentRejected = independentError ? null : independent.rejected.length;
   const serviceRejected = serviceError ? null : (service.rejected ?? []).length;
   return { rows, rejected: { independent: independentRejected, service: serviceRejected, agrees: independentRejected === serviceRejected } };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 // Why two judgments differ. Each disagreement gets one named cause; README.md explains and classifies each cause as
-// (a) a reading of a sentence the document leaves open, (b) a defect in the service's verifier, or (c) a defect in
-// the independent one.
+// (a) a reading of a sentence the document leaves open, (b) a defect in the service's verifier, (c) a defect in
+// the independent one, or (d) the document and the service's verifier saying different things.
 // ---------------------------------------------------------------------------------------------------------------
 
 export const CAUSES = Object.freeze({
-  'finished answer, last acknowledgments withheld or late': 'b',
-  'terms from a second requester reported as the requester\'s conflict': 'b',
-  'terms or acceptance signed after the deadline still settle': 'b',
-  'extra member in a carried key': 'b',
-  'clock skew allowance': 'a',
-  'what a stop\'s count means': 'a',
-  'stage accepted two sets of terms': 'a',
-  'acknowledged chain differs from the stage chain': 'a',
-  'unrecognized unfinished-answer terms': 'a',
-  'precedence: missing acceptance against open or expired': 'a',
-  'precedence: delivered answer without a closing receipt, before the window ends': 'a',
-  'what counts as a delivered answer': 'a',
-  'the instant the release window ends': 'a',
-  'service refuses to run without a policy': 'a',
-  'acknowledgment beyond what a stage computed': 'c'
+  'no policy supplied: the document says invalid, the service refuses to run': 'd',
+  'signature with base64 padding: the document rejects it, the service accepts it': 'd'
 });
 
 function causeOf(line) {
-  const s = line.service, name = line.mutation;
-  if (s.outcome === 'threw') return 'service refuses to run without a policy';
-  if (line.agreesWithSkew) return 'clock skew allowance';
-  const i = line.withSkew, reason = i.reason ?? '';
-  if (reason === 'terms_from_several_requesters') return 'terms from a second requester reported as the requester\'s conflict';
-  if (reason === 'terms_signed_after_deadline' || (reason === 'acceptance_missing' && name.includes('acceptance signed 5 s late'))) {
-    return 'terms or acceptance signed after the deadline still settle';
-  }
-  if (name.includes('key carries an extra member')) return 'extra member in a carried key';
-  if (reason.includes('stage_accepted_two_sets_of_terms')) return 'stage accepted two sets of terms';
-  if (reason.includes('two_stops') || reason.includes('stop_understates')) return 'what a stop\'s count means';
-  if (i.outcome === 'settled' && s.outcome === 'settled' && name.startsWith('stop naming')) return 'what a stop\'s count means';
-  if (reason === 'acknowledged_chain_is_not_the_stage_chain' || (s.conflictKinds ?? []).includes('output-chain')) return 'acknowledged chain differs from the stage chain';
-  if (reason === 'unfinished_terms_not_recognized') return 'unrecognized unfinished-answer terms';
-  if ((s.reason ?? '').includes('never computed')) return 'acknowledgment beyond what a stage computed';
-  if (reason === 'acceptance_missing') return 'precedence: missing acceptance against open or expired';
-  if (i.outcome === 'settled' && s.outcome === 'settled' && reason === 'answer_finished') return 'finished answer, last acknowledgments withheld or late';
-  if (i.outcome === 'settled' && s.outcome === 'settled' && reason === 'requester_stopped') return 'what a stop\'s count means';
-  if (i.outcome === 'open' && s.outcome === 'unknown') return 'precedence: delivered answer without a closing receipt, before the window ends';
-  if (i.outcome === 'open' && s.outcome === 'expired' && line.clock === 'window-end') return 'the instant the release window ends';
-  if (i.outcome === 'unknown' && reason.startsWith('delivered_answer')) return 'what counts as a delivered answer';
+  if (line.service.outcome === 'threw') return 'no policy supplied: the document says invalid, the service refuses to run';
+  if (line.mutation.includes('signature with base64 padding appended')) return 'signature with base64 padding: the document rejects it, the service accepts it';
+  return 'unclassified';
+}
+
+/** Same outcome and amounts, but a list differs. */
+function listCauseOf(line) {
+  const i = line.independent, s = line.service;
+  if (line.mutation.includes('signature with base64 padding appended')) return 'signature with base64 padding: the document rejects the record, the service accepts it';
+  if (i.late !== s.late && (line.mutation.startsWith('stop ') || line.mutation.includes('stops naming') || line.base.includes('requester stops'))) return 'a late stop: the document lists it as late, the service does not list it';
+  if (i.foreign !== s.foreign) return 'terms of a second requester with its own charge binding: the service lists them as foreign, the document only drops them';
+  if ((i.conflicts > 0) !== (s.conflicts > 0)) return 'one verifier lists a conflict entry where the other lists none';
   return 'unclassified';
 }
 
@@ -441,14 +541,16 @@ async function main() {
   const startedAt = new Date();
   const stranger = await createSigningIdentity({ algorithm: 'Ed25519' });
   const two = await createParties(2), three = await createParties(3);
+  const p256 = async () => createSigningIdentity({ algorithm: 'ECDSA' });
+  const curved = { requester: await p256(), stages: [await p256(), await p256()] };
   const cases = [];
   const add = (base, family, entry, ctx) => cases.push({ base: base.name, family, name: entry.name, records: entry.records,
     policies: entry.policies ?? [POLICY], clocks: entry.clocks ?? ['after'], ctx });
 
   const contexts = [];
   for (const [index, base] of BASES.entries()) {
-    const parties = base.stages === 3 ? three : base.own ? { requester: two.requester, stages: [two.requester, two.stages[1]] } : two;
-    const attempt = await runAttempt(parties, { tag: `b${index}`, ...base.options });
+    const parties = base.curve ? curved : base.stages === 3 ? three : base.own ? { requester: two.requester, stages: [two.requester, two.stages[1]] } : two;
+    const attempt = await runAttempt(parties, { tag: base.tag ?? `b${index}`, ...base.options });
     const ctx = contextOf(attempt, parties, stranger);
     contexts.push(ctx);
     add(base, 'unmutated, clock sweep', { name: 'all records', records: ctx.records, clocks: Object.keys(CLOCKS) }, ctx);
@@ -465,8 +567,9 @@ async function main() {
     records: contexts[0].records.map(record => ({ ...record, signature: record.signature.split('').reverse().join('') })) }, contexts[0]);
 
   const families = new Map(), disagreements = [], all = [];
-  const totals = { recordSets: cases.length, judgments: 0, outcomeAgreed: 0, amountsAgreed: 0, outcomeAndAmountsAgreed: 0, agreedOnceSkewSupplied: 0,
-    lateListSizeAgreed: 0, rejectedListSizeAgreed: 0, rejectedListsCompared: 0 };
+  const totals = { recordSets: cases.length, judgments: 0, outcomeAgreed: 0, amountsAgreed: 0, outcomeAndAmountsAgreed: 0,
+    lateListSizeAgreed: 0, foreignListSizeAgreed: 0, conflictListedAgreed: 0, rejectedListSizeAgreed: 0, rejectedListsCompared: 0 };
+  const listDifferences = [];
   const outcomePairs = {};
   for (const item of cases) {
     for (const clock of item.clocks) {
@@ -483,14 +586,17 @@ async function main() {
         if (row.amountsAgree) { totals.amountsAgreed += 1; family.amountsAgreed += 1; }
         if (row.outcomeAgrees && row.amountsAgree) totals.outcomeAndAmountsAgreed += 1;
         if (row.lateAgrees) totals.lateListSizeAgreed += 1;
+        if (row.foreignAgrees) totals.foreignListSizeAgreed += 1;
+        const conflictListed = (row.independent.conflicts > 0) === (row.service.conflicts > 0);
+        if (conflictListed) totals.conflictListedAgreed += 1;
         families.set(item.family, family);
         const pair = `${row.independent.outcome} / ${row.service.outcome}`;
         outcomePairs[pair] = (outcomePairs[pair] ?? 0) + 1;
         const line = { base: item.base, family: item.family, mutation: item.name, clock, independent: row.independent, service: row.service,
-          withSkew: row.withSkew, agreesWithSkew: row.agreesWithSkew, rejected: { independent: rejected.independent, service: rejected.service } };
+          rejected: { independent: rejected.independent, service: rejected.service } };
         all.push(line);
-        if (row.agreesWithSkew) totals.agreedOnceSkewSupplied += 1;
         if (!row.outcomeAgrees || !row.amountsAgree) disagreements.push({ ...line, cause: causeOf(line) });
+        else if (!row.lateAgrees || !row.foreignAgrees || !rejected.agrees || !conflictListed) listDifferences.push({ ...line, listCause: listCauseOf(line) });
       }
     }
   }
@@ -505,15 +611,26 @@ async function main() {
     if (line.independent.debit !== line.service.debit || JSON.stringify(line.independent.credits) !== JSON.stringify(line.service.credits)) entry.amountsDiffer += 1;
     if (entry.examples.length < 3) entry.examples.push(compact(line));
   }
+  const listCauses = {};
+  for (const line of listDifferences) {
+    const entry = listCauses[line.listCause] ??= { count: 0, examples: [] };
+    entry.count += 1;
+    if (entry.examples.length < 2) entry.examples.push({ base: line.base, mutation: line.mutation, clock: line.clock, outcome: line.independent.outcome,
+      lists: `independent/service: late ${line.independent.late}/${line.service.late}, foreign ${line.independent.foreign}/${line.service.foreign}, rejected ${line.rejected.independent}/${line.rejected.service}, conflict entries ${line.independent.conflicts}/${line.service.conflicts}` });
+  }
   // Judgments worth reading whether or not the verifiers agree: the receipt carries them in full.
   const NOTED = [
     line => line.base.startsWith('finished 40-output answer') && line.clock === 'after',
     line => line.mutation.startsWith('final stage signs three more steps'),
     line => line.base === 'stages close early on their own' && line.mutation === 'all records' && line.clock === 'after',
     line => line.base === 'complete answer' && line.clock === 'after' && ['all records', 'a stranger signs terms for the same reservation',
-      'requester signs second terms with other weights (no acceptances)', 'terms and acceptances signed 5 s late',
-      'top acknowledgment key carries an extra member', 'terms key carries an extra member'].includes(line.mutation),
-    line => line.base === 'requester stops acknowledging' && line.clock === 'after' && ['all records', 'extra acknowledgment of one more output, signed 5 s late'].includes(line.mutation)
+      'a stranger signs its own terms, acceptance and charge binding under this reservation ID', 'requester acknowledges a second chain for its top count',
+      'requester signs second terms with other weights (no acceptances)', 'stage0 accepts the second terms, the other stages the first',
+      'terms and acceptances signed 5 s late', 'terms key carries an extra member', 'terms without K', 'final stage closes with a null output',
+      'stage0 withholds its closing receipt', 'terms signature with base64 padding appended'].includes(line.mutation),
+    line => line.base === 'requester stops acknowledging' && line.clock === 'after' && ['all records', 'terms name K = 5', 'terms name K = 0',
+      'extra acknowledgment of one more output, signed 5 s late'].includes(line.mutation),
+    line => line.base === 'every party signs with P-256' && line.mutation === 'all records' && line.clock === 'after'
   ];
   const noted = all.filter(line => NOTED.some(test => test(line))).map(compact);
   let commit = 'unknown', dirty = null;
@@ -528,13 +645,14 @@ async function main() {
     finishedAt: new Date().toISOString(),
     command: 'node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json',
     commit, uncommittedChangesInComparedCode: dirty, node: process.version,
-    note: 'All parties are simulated identities on one machine, and one author wrote the independent verifier, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the independent verifier.',
-    policy: POLICY, maxUnacknowledgedOutputs: DEFAULT_MAX_UNACKNOWLEDGED_OUTPUTS,
+    note: 'All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.',
+    policy: POLICY,
     baseAttempts: BASES.map(base => base.name),
     totals,
     outcomePairs: Object.fromEntries(Object.entries(outcomePairs).sort()),
     families: Object.fromEntries(families),
     disagreements: { total: disagreements.length, byCause },
+    sameOutcomeAndAmountsButListsDiffer: { total: listDifferences.length, byCause: listCauses },
     noted
   };
   const out = flag('out');
@@ -544,7 +662,10 @@ async function main() {
     writeFileSync(path, `${JSON.stringify(receipt, null, 2)}\n`);
   }
   if (flag('all')) for (const line of all) console.log(JSON.stringify(line));
+  if (flag('lists')) for (const line of listDifferences) console.log(`${line.listCause} | ${line.base} | ${line.mutation} | ${line.clock} | ${line.independent.outcome} | late ${line.independent.late}/${line.service.late} foreign ${line.independent.foreign}/${line.service.foreign} rejected ${line.rejected.independent}/${line.rejected.service} conflicts ${line.independent.conflicts}/${line.service.conflicts}`);
   console.log(JSON.stringify({ totals, outcomePairs: receipt.outcomePairs }, null, 2));
+  console.log(`\nSame outcome and amounts, a list differs: ${listDifferences.length}`);
+  for (const [cause, entry] of Object.entries(listCauses)) console.log(`  ${String(entry.count).padStart(4)}  ${cause}`);
   console.log('\nDisagreements by cause (classification, count, of which amounts differ):');
   for (const [cause, entry] of Object.entries(byCause).sort((a, b) => b[1].count - a[1].count)) {
     console.log(`  (${entry.classification ?? '?'}) ${String(entry.count).padStart(4)} ${String(entry.amountsDiffer).padStart(4)}  ${cause}`);
