@@ -1,10 +1,10 @@
 /** Bind the conversation view to its host-owned session and independent drafts. */
 import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
 import { describeCircleHost, parseCircleInviteUrl } from '../../host/circle-invites.js';
-import { allowsOpenPlaintext, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
+import { allowsOpenPlaintext, namedPrivacyPreset, readPrivacyControls, showPrivacyChoices, updatePrivacyControls } from './privacy-controls.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import { bindControlHelp } from '../components/control-help.js';
-import { bindWorkspaceNavigation } from './workspace-navigation.js';
+import { BOTH_DRAWERS_MIN_WIDTH, bindWorkspaceNavigation } from './workspace-navigation.js';
 import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
@@ -207,7 +207,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   let workspaceNavigation = null, applyingView = false;
   const threadsDialogNode = find('[data-threads-dialog]');
   const leftDrawer = bindDrawer(threadsDialogNode, { side: 'left', markRoot: find('[data-thread-rail-brand]') });
-  const allowBoth = () => (globalThis.innerWidth || 0) >= 1200;
+  const allowBoth = () => (globalThis.innerWidth || 0) >= BOTH_DRAWERS_MIN_WIDTH;
   const rightView = () => ({ participants: 'computers' }[inspector.section?.()] || inspector.section?.());
   const setThreads = (open, reflect = true) => {
     if (open && !allowBoth()) { const previous = applyingView; applyingView = true; inspector.close?.({ restoreFocus: false }); applyingView = previous; }
@@ -467,6 +467,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const privacy = explicitPrivacy(state);
     const policy = currentPolicy(state);
     privacyTrigger.disabled = busy || !!thread?.closed;
+    // The composer's privacy button names the thread's preset; anything but Standard is also written beside the icon.
+    const named = namedPrivacyPreset(policy, presetContext(state)), privacyCaption = find('[data-privacy-caption]');
+    privacyTrigger.setAttribute('aria-label', `Who can read it: ${named.label}`);
+    privacyTrigger.title = `Who can read it: ${named.label}`;
+    privacyCaption.textContent = named.preset === 'own-devices' ? 'Your devices' : named.preset === 'standard' ? '' : named.label;
+    privacyCaption.hidden = named.preset === 'standard';
     const resetNotice = find('[data-execution-settings-reset]');
     resetNotice.hidden = thread?.executionSettingsReset !== true;
     const networkOptIn = find('[data-review-network-execution]');
@@ -963,7 +969,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     updatePrivacyControls(privacyNode, currentPolicy(state), presetContext(state));
     privacyDialog.open(privacyNode.querySelector('[data-privacy-preset]:checked') || privacyNode.querySelector('[data-privacy-preset]'), trigger);
   };
-  // One "Answer on" sheet: each row applies on tap. The execution presets stay under "Who can read it".
+  // One "Answer on" sheet: each row applies on tap. The execution presets are the composer's "Who can read it" button.
   // The model sheet is the one place to choose the computer and the model. Rows apply on tap.
   const openDestination = (trigger, { forSend = false } = {}) => {
     if (privacyTrigger.disabled) return;

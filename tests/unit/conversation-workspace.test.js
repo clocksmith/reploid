@@ -53,16 +53,23 @@ describe('Conversation workspace', () => {
     const id = session.createThread({ sharingScope: 'mesh' });
     const input = find('[data-composer-input]');
     input.value = 'Keep this question'; input.dispatchEvent(new Event('input', { bubbles: true }));
-    const shield = find('[data-model-picker] [data-open-privacy]');
+    // "Who can read it" is its own button in the composer, beside "Answer on"; the sheet no longer carries a copy.
+    const shield = find('.chat-composer-toolbar [data-open-privacy]');
+    expect(find('[data-model-picker] [data-open-privacy]')).toBeNull();
     expect(find('[data-model-picker] [data-privacy-controls]')).toBeNull();
-    // The composer's one control opens the Answer on sheet; the execution presets sit under "Who can read it".
-    const advanced = () => { find('[data-open-model]').click(); expect(find('[data-model-picker]').open).toBe(true); shield.click(); };
+    // It names the thread's preset: a new local conversation is "Only your devices", written beside the icon.
+    expect(shield.getAttribute('aria-label')).toBe('Who can read it: Only your devices');
+    expect(shield.querySelector('svg')).not.toBeNull();
+    expect(find('[data-privacy-caption]').hidden).toBe(false);
+    expect(find('[data-privacy-caption]').textContent).toBe('Your devices');
+    // Opening it from under an open Answer on sheet closes the sheet first.
+    const advanced = () => { find('[data-open-model]').click(); expect(find('[data-model-picker]').open).toBe(true); shield.click();
+      expect(find('[data-model-picker]').open).toBe(false); };
     const choose = value => { for (const radio of dialog.querySelectorAll('[data-privacy-preset]')) radio.checked = radio.value === value;
       dialog.querySelector(`[value="${value}"]`).dispatchEvent(new Event('change', { bubbles: true })); };
     advanced();
     const dialog = find('[data-privacy-dialog]');
     expect(dialog.open).toBe(true);
-    expect(shield.textContent).toBe('Who can read it');
     // A new local conversation is on this device: "Only your devices". Each preset states availability before Send.
     expect(dialog.querySelector('[value="own-devices"]').checked).toBe(true);
     expect(dialog.querySelector('[value="no-device"]').disabled).toBe(true);
@@ -80,7 +87,9 @@ describe('Conversation workspace', () => {
     await vi.waitFor(() => expect(dialog.open).toBe(false));
     expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'open', ids: [] });
     expect(find('[data-composer-model-source]').textContent).toBe('Contributors');
-    expect(shield.title).toBe('');
+    // Standard is the default exposure: the button names it, and nothing is written beside the icon.
+    expect(shield.title).toBe('Who can read it: Standard');
+    expect(find('[data-privacy-caption]').hidden).toBe(true);
     expect(input.value).toBe('Keep this question');
     expect(session.getState().activeThread.messages).toHaveLength(0);
   });

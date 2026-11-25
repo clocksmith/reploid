@@ -20,10 +20,9 @@ async function chooseComputer(page, choice) {
   await expect(page.locator('[data-model-picker]')).toBeHidden();
 }
 
-// "Who can read it" opens the execution presets from that sheet; Standard keeps automatic placement.
+// "Who can read it" is the composer's privacy button; Standard keeps automatic placement.
 async function allowOpenNetwork(page) {
-  await page.locator('[data-open-model]').click();
-  await page.locator('[data-model-picker] [data-open-privacy]').click();
+  await page.locator('.chat-composer-toolbar [data-open-privacy]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
   const policy = page.locator('[data-privacy-dialog]');
   await expect(policy).toBeVisible();

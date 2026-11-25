@@ -43,7 +43,10 @@ Source: [`packages/reploid/src/inference/`](../packages/reploid/src/inference/),
 
 ## Presets in the Poolday chat
 
-The chat's "Who can read it" dialog offers three presets. Each one is a set of
+The chat's "Who can read it" dialog, opened from the shield button in the
+composer beside "Answer on", offers three presets. The button names the
+conversation's current preset, which is stored per conversation and applies to
+every request in it. Each one is a set of
 API requirements, and the dialog states availability and exposure before Send.
 
 | Preset | Requirements | Availability | Who reads the content | What else is exposed |

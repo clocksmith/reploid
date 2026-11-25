@@ -139,8 +139,7 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
 
     test('"Who can read it" keeps its box while presets are compared, and says why confidential execution is unavailable', async ({ page, baseURL }) => {
       await open(page, baseURL);
-      await page.locator('[data-open-model]').click();
-      await page.locator('[data-model-picker] [data-open-privacy]').click();
+      await page.locator('.chat-composer-toolbar [data-open-privacy]').click();
       const dialog = page.locator('[data-privacy-dialog]');
       await expect(dialog).toBeVisible();
       // The exposure statement waits collapsed; opened, it keeps one height whichever preset is chosen.

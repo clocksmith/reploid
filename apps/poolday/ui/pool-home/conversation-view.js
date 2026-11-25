@@ -81,6 +81,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
             <label class="pool-button btn-ghost pool-icon pool-file chat-file-label pool-focus-within">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach text files</span><input type="file" multiple data-composer-files aria-label="Attach text files" accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
             <button class="pool-button btn-ghost chat-search-toggle" type="button" data-search-toggle aria-pressed="false" aria-label="Search for this answer" hidden>${interfaceIcon('search')}<span class="pool-caption" data-web-search-on hidden>Search</span></button>
             <button class="pool-button chat-composer-model btn-ghost" type="button" data-open-model aria-describedby="chat-model-status" aria-label="Answer on" aria-haspopup="dialog"><span class="pool-small" data-model-caption>Answer on</span><span class="pool-small" data-model-digest><span class="pool-dot" data-composer-availability aria-hidden="true"></span><span data-composer-model-source></span><span data-model-separator aria-hidden="true"> · </span><span data-composer-model-name></span></span><span data-model-chevron>${interfaceIcon('chevron')}</span></button>
+            <button class="pool-button btn-ghost" type="button" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog" aria-label="Who can read it">${interfaceIcon('privacy')}<span data-privacy-caption hidden></span></button>
             <div class="chat-composer-submit">
               <button class="pool-button btn-primary pool-icon" type="submit" data-composer-send aria-describedby="chat-prompt-disclosure" aria-label="Send">${interfaceIcon('send')}</button>
               <button class="pool-button btn-primary pool-icon" type="button" data-composer-stop aria-label="Stop" hidden>${interfaceIcon('stop')}</button>
@@ -102,7 +103,7 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
         <section class="pool-section" aria-labelledby="chat-model-section-title"><h3 class="pool-section-title" id="chat-model-section-title">Model</h3>${renderModelControl()}<div><select class="pool-input" data-next-model aria-label="Model"></select></div></section>
         <div class="chat-answer-issue" data-answer-issue hidden><p class="pool-caption pool-muted" data-next-model-status role="status"></p></div>
         ${renderModelSelectionDetails()}</div>
-        <div class="chat-network-actions"><button class="pool-button btn-primary" type="button" data-change-model>Answer on this device</button><button class="pool-button btn-ghost" type="button" data-open-privacy aria-haspopup="dialog" aria-controls="chat-privacy-dialog">Who can read it</button></div>
+        <div class="chat-network-actions"><button class="pool-button btn-primary" type="button" data-change-model>Answer on this device</button></div>
       </dialog>
     </section>
     ${inspector ? renderModelSetupDialog() : ''}

@@ -1040,11 +1040,13 @@ test('model preview and inference privacy commit independently', async ({ page }
   await picker.locator('[data-model-picker-close]').click();
   await expect(picker).toBeHidden();
   expect(await opener.innerText()).toBe(original);
-  // One sheet chooses the computer and model; the execution presets are under "Who can read it".
+  // One sheet chooses the computer and model; the execution presets are the composer's "Who can read it" button.
   await page.locator('[data-open-model]').click();
   await expect(picker.locator('[data-execution-choice=local]')).toHaveAttribute('aria-checked', 'true');
   await picker.screenshot({ path: info.outputPath('answer-on-sheet.png') });
-  await picker.locator('[data-open-privacy]').click();
+  await picker.locator('[data-model-picker-close]').click();
+  await expect(picker).toBeHidden();
+  await page.locator('.chat-composer-toolbar [data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');
   // Each preset states its availability before Send; the confidential one is unavailable and cannot be chosen.
   await expect(privacy.locator('[value=own-devices]')).toBeChecked();

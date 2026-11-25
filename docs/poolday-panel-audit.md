@@ -31,7 +31,7 @@ its defects for completeness and builds on that fix.
 | Computers drawer | `/?view=computers`, `network-inspector.js`, `network-controls.js`, `owner-pairing-view.js`, `private-computers-view.js`, `circle-invites-view.js`, `contribution-models.js`, `operation-sharing.js` |
 | Settings drawer | `/?view=settings`, `network-inspector.js`, `theme.js`, `model-storage-view.js`, `local-data-view.js`, `account-panel.js`, `remote-permission.js`, `web-search-settings.js` |
 | Answer on sheet | composer model button, `conversation-view.js`, `conversation-workspace.js`, `conversation-model-picker.js` |
-| Who can read it dialog | from Answer on, `privacy-controls.js` |
+| Who can read it dialog | from the composer's privacy button, `privacy-controls.js` |
 | Start sharing / Download model dialog | from a model to share or a local download, `network-inspector.js` |
 | Change model dialog | Contribute this computer, `contribution-models.js` |
 | Remove download dialog | Settings, Storage |

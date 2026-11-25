@@ -109,6 +109,14 @@ export function showPrivacyChoices(root, context = {}, { editable = true } = {})
   root.querySelector('[data-privacy-error]').hidden = true;
 }
 
+/** The preset a stored policy stands for and its name, as the composer's privacy button states it. */
+export function namedPrivacyPreset(privacy, context = {}) {
+  let preset = null;
+  try { preset = presetForPolicy(validateExecutionPolicy(privacy), ownDevicesOf(context)); }
+  catch { /* An unsupported policy is named as such, never as a preset it is not. */ }
+  return { preset, label: preset === 'standard' ? 'Standard' : preset === 'own-devices' ? 'Only your devices' : 'Fixed requirements' };
+}
+
 export function updatePrivacyControls(root, privacy, context = {}) {
   const fields = root.querySelector('[data-privacy-controls]');
   const apply = root.querySelector('[data-privacy-apply]');
