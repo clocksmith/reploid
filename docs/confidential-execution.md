@@ -26,6 +26,13 @@ Source: [`packages/reploid/src/inference/`](../packages/reploid/src/inference/),
   `reason` is `awaiting independent security review`. A research
   [protected route](#protected-route-research-unavailable) exists behind an
   explicit host flag that is off everywhere Reploid ships.
+- **Attested execution**: `confidentiality: "attested-execution"`, a separate
+  value. The content is readable only inside an attested enclave: an NVIDIA GPU
+  in confidential-computing mode inside a confidential VM (AMD SEV-SNP or Intel
+  TDX), running an approved runtime. That holds only if the hardware vendors'
+  attestation is sound. It never satisfies `requester-only`. It is **off by
+  default**: every request fails closed with `ATTESTED_EXECUTION_UNAVAILABLE`
+  unless a host enables the [attested GPU route](#attested-gpu-route-unreviewed-off-by-default).
 - **Executor-readable**: `confidentiality: "executor-readable"`. Each computer
   that runs the model reads the content in plaintext. Every route that runs
   today is executor-readable.
@@ -240,6 +247,8 @@ it and does not re-verify it.
 | `RESULT_UNVERIFIED` | The answer names another model or adapters, contradicts its stream, exceeds the limit, or arrives without an admitted route | The plan's participants already had the content; no result is returned |
 | `EXECUTION_REQUEST_INVALID` | Malformed requirements, a prompt or tool given to `prepare`, an invalid `requestId` | Nothing |
 | `EXECUTION_ROUTE_UNAVAILABLE` | No route meets the requirements, for example local-only on a network-only deployment or a split outside the named participants | Nothing |
+| `ATTESTED_EXECUTION_UNAVAILABLE` | `confidentiality: "attested-execution"` where the attested route is not enabled (every shipped surface) | Nothing |
+| `ATTESTATION_REJECTED` | The executor's proof failed one check. `reason` names which (see [failure modes](#failure-modes)) | A fresh nonce only; never the prompt |
 
 On the research protected route, `RESULT_UNVERIFIED` also covers a failed
 known-answer trap and a protocol violation the evaluator signed (an
@@ -255,8 +264,9 @@ codes are the route's own:
 - `PROTECTED_SESSION_EXPIRED`: the session binding lapsed, checked again after
   every wait.
 
-The first five codes come from the owner's API specification. The last two are
-additions for malformed input and for routes that do not exist. Errors that
+The first five codes come from the owner's API specification. The next two are
+additions for malformed input and for routes that do not exist, and the last two
+belong to the attested route. Errors that
 the executor itself raises keep their own messages and are not given these
 codes.
 
@@ -314,7 +324,7 @@ Messages on `message_delta`, and Responses on the final response object:
 
 Error bodies carry the stable code in lower case: `error.code` on Chat Completions
 and Responses, `error.code` inside the Anthropic-shaped `error` on Messages. The
-HTTP statuses are 400 (invalid), 422 (confidential unavailable, leakage), 409
+HTTP statuses are 400 (invalid), 422 (confidential or attested unavailable, attestation rejected, leakage), 409
 (plan changed or expired), 503 (no route) and 502 (unverified result).
 
 Responses no longer requires `store: false`. This server stores no responses,
@@ -387,6 +397,11 @@ conversation port in `host/chat-execution.js`.
   (`collusion: "all-remote"`). No cryptographic or attested backend is qualified,
   so it is refused before disclosure on every surface. The research protected
   route below is the candidate; its threat model is stated there.
+- **Attested execution:** content readable only inside an attested GPU enclave
+  in a confidential VM. The cloud operator is outside the trust boundary; the
+  hardware and the approved runtime are inside it; NVIDIA, and AMD or Intel, are
+  trusted. Refused on every shipped surface; see the
+  [attested GPU route](#attested-gpu-route-unreviewed-off-by-default).
 
 ## Protected route (research, unavailable)
 
@@ -818,11 +833,324 @@ non-colluding secret sharing may silently pass `requester-only`), and an
 independent security review, the reference answer, and outsider-reproducible
 requester debit and stage payouts are all verified from that same run.
 
+## Attested GPU route (unreviewed, off by default)
+
+Source: [`inference/attested/`](../packages/reploid/src/inference/attested/)
+(verifier, HPKE, session protocol, report parsers, API port),
+[`server/attested-gpu/`](../server/attested-gpu/) (the executor that runs inside
+the confidential VM, and its evidence collectors),
+[`scripts/attested-gpu-pilot.js`](../scripts/attested-gpu-pilot.js) (pilot
+harness). The route is **an optional hosted tier**: one operator's machine, one
+GPU, one model. It does not move the confidential split gate (see
+[Split stages across operators](#split-stages-across-operators)).
+
+**What it claims.** The content is readable only inside the attested enclave,
+assuming the hardware vendors' attestation is sound. "Nobody can read it" stays a
+labelled target and is not claimed. Speed on confidential hardware is not
+claimed until it is measured.
+
+**Trust boundary.**
+
+- **Inside:** the GPU in confidential-computing (CC) mode, the confidential VM,
+  and the approved runtime and model named by the attested launch.
+- **Outside:** the cloud operator, its hypervisor and staff, whoever rents or
+  administers the machine, and the relays, coordinators and credit ledgers that
+  carry the session.
+- **Trusted:** NVIDIA, and AMD or Intel, for sound attestation and hardware
+  isolation; and the publisher of the requester's launch allowlist.
+
+### Enabling it
+
+```js
+import { createInference, createAttestedExecution, connectWebSocketFrames } from 'reploid/inference';
+
+const attestedExecution = createAttestedExecution({ policy, discover, connect: url => connectWebSocketFrames(url), credits, hooks });
+const inference = createInference({ resolveRoute, execute, attestedExecution, unreviewedAttestedExecution: true });
+```
+
+Without both arguments, `prepare` refuses `attested-execution` with
+`ATTESTED_EXECUTION_UNAVAILABLE` before discovery, and `ATTESTED_EXECUTION_STATUS`
+is `{ available: false, reason: "awaiting a measured pilot on attested hardware
+and independent security review" }`. The peer policy compiler, the HTTP adapters,
+the CLI and the chat never pass the flag. `requester-only` keeps its meaning and
+never runs on this route.
+
+The policy belongs to the requester (`reploid.attested-gpu-policy/v1`). The
+executor cannot add to it. It holds:
+
+- pinned roots, as SubjectPublicKeyInfo digests: AMD ARK, Intel SGX root and
+  NVIDIA device root;
+- the launch allowlist: platform, CPU measurement, the exact image, runtime and
+  model, and coverage;
+- GPU reference measurements taken from NVIDIA's RIMs;
+- revocation and freshness limits, and the highest credit price.
+
+Its digest is the execution policy's `attestation` requirement.
+
+### Evidence
+
+The executor returns one bundle per session (`reploid.attested-gpu-evidence/v1`):
+
+- **The CPU TEE report.** Either an AMD SEV-SNP `ATTESTATION_REPORT` with its
+  VCEK, ASK and ARK chain, or an Intel TDX quote v4 with its PCK chain. The
+  requester checks:
+  - the chain to the pinned root, the report signature (for TDX, the QE report
+    and attestation-key chain too), and the DEBUG bit (SNP guest policy bit 19,
+    TDX `TD_ATTRIBUTES` bit 0);
+  - the minimum TCB, when its policy sets one;
+  - the launch measurement against the allowlist: SNP `MEASUREMENT`, or TDX
+    `MRTD` plus RTMR0 to RTMR2, with RTMR3 optional.
+- **The NVIDIA GPU report.** An SPDM GET_MEASUREMENTS request, which carries the
+  32-byte nonce, plus its signed MEASUREMENTS response. With it come the GPU's
+  device certificate chain and one stapled OCSP response per non-root
+  certificate. The requester checks:
+  - the chain to the pinned NVIDIA root;
+  - each OCSP response: signed by the issuer or its delegated responder, `good`,
+    and current;
+  - the report signature (P-384) and the nonce;
+  - the measurements against a RIM-derived reference set;
+  - the CC state: `on`, and developer-tools (debug) mode off. The measured guest
+    reads this through NVML and binds it into the CPU report.
+
+**Verified locally in the requester, not through NRAS.** The browser re-implements
+the checks of NVIDIA's local verifier: chain, OCSP, report signature, nonce and
+reference measurements. It uses Web Crypto only, so a light requester can run
+them. NRAS is left out for three reasons:
+
+- NRAS would make a third party's verdict the decision.
+- It would add a live dependency on every request.
+- NVIDIA would learn the timing of every session.
+
+NVIDIA stays trusted as the root of the GPU chain, for its OCSP answers, and for
+the RIMs. RIMs are fetched and compared when the policy is published, not per
+request; the policy pins the resulting reference sets. An NRAS token can be added
+as an optional cross-check hook; it is never required and never sufficient.
+
+CPU certificate revocation (AMD and Intel CRLs), TDX TCB status and QE identity
+(Intel PCS collateral) run through hooks the policy names. A policy may mark
+them `not-checked`. That is then listed in every receipt's `notVerified`, never
+silently skipped.
+
+### Binding
+
+```
+session       = { protocol, requesterNonce, executor: { participantId, kem, publicKey },
+                  platform, launch: { image, runtime, model }, issuedAt, expiresAt }
+sessionDigest = SHA-256(canonical JSON of session)      -> the nonce of every GPU report
+reportData    = SHA-512(canonical JSON of { session: sessionDigest,
+                  gpus: [{ index, architecture, ccMode, devToolsMode, report digest }] })
+                                                        -> the 64-byte REPORT_DATA of the CPU report
+```
+
+The executor generates the X25519 key inside the VM for one session. The private
+half is non-extractable and is dropped when the session ends. The CPU TEE
+therefore signs four things:
+
+- the requester's fresh nonce;
+- the key the prompt is encrypted to;
+- the launch claims;
+- the GPU evidence it collected.
+
+Each GPU signs the same session. A proof replayed to another key, nonce or GPU
+fails `key-unbound`.
+
+The requester then seals the prompt with HPKE (RFC 9180 base mode:
+DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, AES-256-GCM, checked against the RFC's
+vectors). The `info` and the associated data are the session digest. Answers come
+back under a key exported from the same HPKE context. Each frame carries its
+sequence number in the associated data.
+
+**Coverage.** Each allowlist entry states what its measurement covers:
+
+- `full-image`: the measurement covers the root filesystem, for example a
+  dm-verity root hash on the measured kernel command line. The runtime and model
+  claims then come from measured code.
+- `boot-chain-only`: the measurement covers firmware, kernel and command line
+  only. The runtime and model claims are then the executor's own statement, and
+  every receipt lists `runtime-and-model-measured-only-by-the-executor-itself`.
+
+### The route
+
+1. **`prepare`** takes no content. It discovers unsigned offers (participant,
+   platform, launch id, model, operator, credit price) and keeps only those on
+   the requester's allowlist within its price ceiling. It pins one, and requires
+   `generation.maxOutputTokens`, so `maxCharge` = limit × price in
+   `noncash-service-credit`. All four metadata names must be allowed.
+2. **`run`** connects and sends a challenge with a fresh 32-byte nonce, the model
+   and the launch id. The executor answers with evidence. The requester verifies
+   all of it, and checks that the attested participant, launch and platform are
+   the planned ones (`EXECUTION_PLAN_CHANGED` otherwise).
+3. **Credits.** Only after verification does it reserve the credit ceiling, and
+   only then does it seal and send the prompt. With no valid proof it sends
+   `abort` and nothing else. Nothing falls back to readable, local or another
+   executor.
+4. **The answer** streams as `output.delta` events. The result has the ordinary
+   shape: `output`, `usage`, and `settlement` with the charge in Reploid credits
+   (output tokens × the planned price). The `executionReceipt` names the
+   requested model. Its confidentiality evidence lists what this requester
+   checked:
+   - `requester-nonce`
+   - `cpu-confidential-vm`
+   - `gpu-confidential-computing`
+   - `approved-launch`
+   - `session-key-binding`
+   - `sealed-to-attested-key`
+
+   It also lists what it did not check, and the requester's own timings.
+
+**What is disclosed.** Disclosed to the hardware operator, carriers and the
+credit ledger:
+
+- the model identity and attested launch;
+- prompt and answer sizes, and the timing of every frame;
+- page-level memory access patterns, which confidential VMs do not hide from the
+  hypervisor (hence `access-patterns`);
+- the participant, operator, region and network metadata.
+
+Disclosed to the vendors: trust in NVIDIA, and in AMD or Intel.
+
+**Not claimed:**
+
+- that nobody can read the content;
+- side-channel resistance;
+- correct computation;
+- the runtime's conduct beyond what its measurement covers;
+- availability, since an operator can always refuse or stop the VM;
+- independent review.
+
+A one-GPU pass proves a useful hosted option and nothing about splits.
+
+### Failure modes
+
+Every row fails closed: no prompt is sealed, no credits are held, and the run
+fails with no output.
+
+| Failure | Result |
+| --- | --- |
+| Route not enabled | `ATTESTED_EXECUTION_UNAVAILABLE` before discovery |
+| No allowlisted offer, price above ceiling, unnamed participant | `EXECUTION_ROUTE_UNAVAILABLE` |
+| Leakage not allowed, no output ceiling | `LEAKAGE_NOT_ALLOWED`, `EXECUTION_REQUEST_INVALID` |
+| Evidence answers another nonce | `ATTESTATION_REJECTED` `nonce-mismatch` |
+| Evidence too old, or a session longer than policy | `evidence-stale` |
+| CPU measurement or launch not on the allowlist | `measurement-unknown` |
+| Launch serves another model | `model-mismatch` (or the executor refuses first) |
+| SNP DEBUG, TDX DEBUG, or GPU developer-tools mode | `debug-enabled` |
+| GPU CC mode off | `gpu-not-cc` |
+| REPORT_DATA or the GPU nonce does not bind this session and key | `key-unbound` |
+| Expired certificate | `certificate-expired` |
+| Unpinned root, broken chain | `certificate-invalid` |
+| OCSP says revoked | `certificate-revoked` |
+| OCSP missing, stale or unknown, or a required hook missing | `revocation-unchecked` |
+| GPU measurements match no RIM reference set | `gpu-measurement-unknown` |
+| Report signature does not verify | `signature-invalid` |
+| TCB below policy, TDX collateral not up to date | `tcb-out-of-date` |
+| Not enough credits for the ceiling | the ledger's refusal, before sealing |
+| Tampered, reordered or unknown frame after binding | `ATTESTED_PROTOCOL_VIOLATION`, no output, credits released |
+| Runtime failure inside the VM | `ATTESTED_RUNTIME_FAILED` (a code only), credits released |
+| Session expired before the request | `ATTESTED_SESSION_EXPIRED` |
+
+### What a confidential-VM host exposes
+
+The executor ([`server/attested-gpu/executor.js`](../server/attested-gpu/executor.js))
+serves three endpoints:
+
+- `GET /offer`, the unsigned offer;
+- `GET /ready`;
+- `WS /attested`, one session per connection.
+
+It runs on top of four host ports:
+
+- `collectCpuEvidence(reportData)`: Linux configfs-tsm (`inblob`, `outblob`,
+  `auxblob`). For SNP it reads the VCEK from the extended report's certificate
+  table, or from AMD KDS. For TDX it reads the quote with its PCK chain.
+- `collectGpuEvidence(nonce)`: NVML through
+  [`gpu-evidence.py`](../server/attested-gpu/gpu-evidence.py), giving the
+  attestation report, the certificate chain and the CC state, plus OCSP
+  responses fetched and stapled by the host. Stapling is safe because the
+  requester verifies each response.
+- `generate`: a loopback OpenAI-compatible runtime in the same VM. That is
+  Reploid's native host with Doppler, or a CUDA runtime if the Vulkan path is
+  unavailable in CC mode. Either way it must not log prompts.
+- `launch`: from a `reploid.attested-gpu-launch/v1` manifest whose runtime and
+  model files are hashed at start. Any mismatch refuses to start.
+
+The executor logs sizes, timings and codes only.
+
+The platform must give the guest a raw CPU report with guest-chosen REPORT_DATA.
+GCP's TDX confidential VMs do (configfs-tsm). Azure's SEV-SNP confidential VMs
+generate the report below the guest, through a paravisor and vTPM, and bind
+guest data only through a vTPM quote. That needs a vTPM adapter, which is not
+built.
+
+### Split stages across operators
+
+The design extends to a protected handoff between split stages run by separate
+operators. It is not built.
+
+**The concrete next step:**
+
+1. **Attest every stage.** The requester runs the challenge and verification
+   above against every stage of a partition plan before sending anything. Each
+   stage has its own nonce, key and launch, and each launch pins the Doppler
+   partition build for that stage.
+2. **Route ticket.** The requester signs a ticket for each stage with a key
+   named in its challenge. The ticket carries the route id, the stage's index,
+   and the attested HPKE key and session digest of the next stage (the last
+   stage's next hop is the requester).
+3. **Sealed activations.** Stage *i* seals each boundary activation to stage
+   *i + 1* with HPKE. The associated data binds the route id, stage index,
+   decode step and sequence. The KV cache never leaves a stage. Operator A sees
+   stage B's traffic only as ciphertext, sizes and timing.
+4. **Failure.** Any stage that fails attestation refuses the whole route before
+   the prompt is sealed. Any frame that fails authentication ends the session.
+
+**What is missing:**
+
+- the ticket and per-hop sealing in `mesh/partitions/`;
+- Doppler's partition boundary carried through that sealed channel;
+- a measurement of the added per-token latency between operators.
+
+Until that handoff exists and passes a test with two operators, attested
+execution remains an optional hosted tier, and a one-GPU pilot does not move the
+confidential split gate.
+
+### Tests
+
+- [`tests/unit/attested-gpu-hpke.test.js`](../tests/unit/attested-gpu-hpke.test.js)
+  checks HPKE against the RFC 9180 A.1 vectors, plus tampering, context and
+  sequence checks.
+- [`tests/unit/attested-gpu-verifier.test.js`](../tests/unit/attested-gpu-verifier.test.js)
+  runs the verifier and session against **synthetic** fixture reports from
+  [`tests/helpers/attested-gpu-fixtures.js`](../tests/helpers/attested-gpu-fixtures.js).
+  The structures are real (X.509 DER, OCSP, SNP report v3, TDX quote v4, SPDM)
+  and the keys are test-only. It covers valid evidence on both platforms, and
+  each case fails before the prompt is sealed:
+  - wrong nonce, stale evidence, unknown measurement (both platforms);
+  - SNP, TDX and GPU debug, GPU not in CC mode;
+  - unbound key (both platforms);
+  - expired, revoked and stale-OCSP certificates, an unpinned root;
+  - unknown GPU measurements, a bad report signature, another model;
+  - a missing revocation hook.
+- [`tests/unit/attested-gpu-route.test.js`](../tests/unit/attested-gpu-route.test.js)
+  checks the API end to end: off by default everywhere, distinct from
+  requester-only, the disclosures, the receipt with model and credit charge, and
+  the credit hold released or never placed.
+- [`tests/integration/attested-gpu-executor.test.js`](../tests/integration/attested-gpu-executor.test.js)
+  runs the executor over a loopback WebSocket with the pilot's requester flow, a
+  streamed loopback runtime, launch measurement, the SNP certificate table and
+  OCSP requests.
+
+The configfs-tsm and NVML collectors have not run on real hardware. The first
+pilot is their first exercise.
+
 ## Not claimed
 
-- No trustless compute, hardware attestation or cryptographic protection
-  from executors. Neither the backend registry nor any advertisement can enable
-  them, and no surface turns a requester-only request into a readable one.
+- No trustless compute, and no cryptographic protection from executors.
+  Hardware attestation is checked only on the unreviewed attested GPU route,
+  which no shipped surface enables, and only under the assumptions stated there.
+  Neither the backend registry nor any advertisement can enable a protected or
+  attested route, and no surface turns a requester-only or attested-execution
+  request into a readable one.
 - A recipient's conduct after it reads content: retention, copying, erasure.
 - Correct computation. The receipt checks identities and stream consistency,
   not numerical correctness, and reported token counts are the provider's.

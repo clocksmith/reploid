@@ -22,7 +22,9 @@ export const EXECUTION_ERROR_CODES = Object.freeze({
   EXECUTION_PLAN_CHANGED: 'EXECUTION_PLAN_CHANGED',
   RESULT_UNVERIFIED: 'RESULT_UNVERIFIED',
   EXECUTION_REQUEST_INVALID: 'EXECUTION_REQUEST_INVALID',
-  EXECUTION_ROUTE_UNAVAILABLE: 'EXECUTION_ROUTE_UNAVAILABLE'
+  EXECUTION_ROUTE_UNAVAILABLE: 'EXECUTION_ROUTE_UNAVAILABLE',
+  ATTESTED_EXECUTION_UNAVAILABLE: 'ATTESTED_EXECUTION_UNAVAILABLE',
+  ATTESTATION_REJECTED: 'ATTESTATION_REJECTED'
 });
 export const executionError = (code, message) => {
   if (!Object.hasOwn(EXECUTION_ERROR_CODES, code)) throw new Error(`Unknown execution error code ${code}`);
@@ -30,6 +32,10 @@ export const executionError = (code, message) => {
 };
 /** Why requester-only is unavailable. The research protected route stays off until this review is done. */
 export const CONFIDENTIAL_EXECUTION_REVIEW_REASON = 'awaiting independent security review';
+/** Why attested execution is unavailable. The attested GPU route stays off until a measured pilot and review. */
+export const ATTESTED_EXECUTION_REVIEW_REASON = 'awaiting a measured pilot on attested hardware and independent security review';
+/** Confidentiality a caller may request. `attested-execution` is distinct from `requester-only` and never satisfies it. */
+export const EXECUTION_CONFIDENTIALITY = Object.freeze(['executor-readable', 'requester-only', 'attested-execution']);
 /** Metadata names a caller may allow. Content itself is governed by confidentiality, never by this list. */
 export const EXECUTION_METADATA = Object.freeze(['model-id', 'timing', 'length', 'access-patterns']);
 const metadata = [...EXECUTION_METADATA];
@@ -113,7 +119,7 @@ export function compileExecutionRequirements(execution) {
   }
   const { placement, participants, confidentiality, allowMetadata } = execution;
   if (!['local-only', 'network-allowed'].includes(placement)) throw invalid('placement must be local-only or network-allowed');
-  if (!['requester-only', 'executor-readable'].includes(confidentiality)) throw invalid('confidentiality must be requester-only or executor-readable');
+  if (!EXECUTION_CONFIDENTIALITY.includes(confidentiality)) throw invalid('confidentiality must be executor-readable, requester-only or attested-execution');
   if (!Array.isArray(allowMetadata) || new Set(allowMetadata).size !== allowMetadata.length
     || !allowMetadata.every(item => metadata.includes(item))) throw invalid(`allowMetadata must be distinct items of ${metadata.join(', ')}`);
   const kind = participants?.kind;
@@ -125,6 +131,11 @@ export function compileExecutionRequirements(execution) {
     throw Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
       'No backend that keeps content from its executors is qualified. Nothing was sent; the request is not retried as readable or local.'),
     { reason: CONFIDENTIAL_EXECUTION_REVIEW_REASON });
+  }
+  if (confidentiality === 'attested-execution') {
+    throw Object.assign(executionError('ATTESTED_EXECUTION_UNAVAILABLE',
+      'No attested confidential-computing backend is enabled here. Nothing was sent; the request is not retried as readable or local.'),
+    { reason: ATTESTED_EXECUTION_REVIEW_REASON });
   }
   return createExecutionPolicy({ placement, recipients: { kind, ids: kind === 'named' ? [...participants.ids] : [] },
     leakage: [...metadata.filter(item => allowMetadata.includes(item)), 'plaintext'] });
@@ -150,6 +161,25 @@ export function compileProtectedExecutionRequirements(execution, protocol) {
     leakage: metadata.filter(item => allowMetadata.includes(item)) });
 }
 
+/**
+ * The verified policy for an `attested-execution` request. Only the inference API calls this, and only when its host
+ * enabled the unreviewed attested route; `compileExecutionRequirements` refuses attested-execution for every other
+ * caller. `attestation` is the digest of the requester's attestation policy (roots, launch allowlist, GPU references).
+ */
+export function compileAttestedExecutionRequirements(execution, protocol, attestation) {
+  if (!exact(execution, ['placement', 'participants', 'confidentiality', 'allowMetadata']) || execution.confidentiality !== 'attested-execution') {
+    throw invalid('attested execution compiles attested-execution requirements only');
+  }
+  compileExecutionRequirements({ ...execution, confidentiality: 'executor-readable' });
+  if (execution.placement !== 'network-allowed') {
+    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Attested execution runs on a remote confidential VM; local-only has no attested route. Nothing was sent.');
+  }
+  if (!id(protocol) || !hash(attestation)) throw invalid('attested execution needs a protocol identity and an attestation policy digest');
+  const { participants, allowMetadata } = execution;
+  return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: participants.kind, ids: participants.kind === 'named' ? [...participants.ids] : [] },
+    computation: 'attested', protocol, attestation, leakage: metadata.filter(item => allowMetadata.includes(item)) });
+}
+
 /** The caller requirements a stored policy stands for. Policies outside the API's vocabulary are refused, never widened. */
 export function executionRequirementsFor(policy) {
   policy = validateExecutionPolicy(policy);
@@ -159,7 +189,7 @@ export function executionRequirementsFor(policy) {
   }
   return freeze({ placement: policy.placement,
     participants: policy.recipients.kind === 'named' ? { kind: 'named', ids: [...policy.recipients.ids] } : { kind: policy.recipients.kind },
-    confidentiality: confidential ? 'requester-only' : 'executor-readable',
+    confidentiality: policy.computation === 'attested' ? 'attested-execution' : confidential ? 'requester-only' : 'executor-readable',
     allowMetadata: metadata.filter(item => policy.leakage.includes(item)) });
 }
 

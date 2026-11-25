@@ -14,7 +14,7 @@ export function askExecution({ participants = [], confidentiality = 'executor-re
   const metadata = allowMetadata === undefined ? [...DEFAULT_ASK_EXECUTION.allowMetadata]
     : allowMetadata.split(',').map(item => item.trim()).filter(Boolean);
   if (metadata.some(item => !EXECUTION_METADATA.includes(item))) throw Error(`--allow-metadata takes ${EXECUTION_METADATA.join(', ')}`);
-  if (!['executor-readable', 'requester-only'].includes(confidentiality)) throw Error('--confidentiality is executor-readable or requester-only');
+  if (!['executor-readable', 'requester-only', 'attested-execution'].includes(confidentiality)) throw Error('--confidentiality is executor-readable, requester-only or attested-execution');
   return { placement: 'network-allowed', participants: participants.length ? { kind: 'named', ids: [...new Set(participants)] } : { kind: 'open' },
     confidentiality, allowMetadata: metadata };
 }
@@ -22,7 +22,7 @@ export function askExecution({ participants = [], confidentiality = 'executor-re
 /** One prompt through `reploid/inference`, the same API the browser and the SDK use. */
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000,
   execution = DEFAULT_ASK_EXECUTION } = {}) {
-  // Unsupported guarantees (requester-only) and malformed requirements fail before discovery or any message.
+  // Unsupported guarantees (requester-only, attested-execution) and malformed requirements fail before discovery or any message.
   compileExecutionRequirements(structuredClone(execution));
   const discovery = AbortSignal.timeout(discoveryMs);
   const waiting = AbortSignal.any([signal, discovery]);

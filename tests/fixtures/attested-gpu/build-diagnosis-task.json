@@ -1,0 +1,38 @@
+{
+  "schema": "reploid.attested-gpu-pilot-task/v1",
+  "synthetic": true,
+  "note": "A made-up project written for this pilot. It contains no real code, names, credentials or customer data.",
+  "id": "build-diagnosis-invoice-cli-1",
+  "instruction": "You are diagnosing a failing build. Read the build log and the source files. Answer with: (1) the root cause of each compiler error, citing file and line; (2) the smallest code change that fixes each one; (3) anything else in the log that will fail next. Be concise.",
+  "log": "$ npm run build\n\n> invoice-cli@2.4.0 build\n> tsc -p tsconfig.json\n\nsrc/commands/export.ts:3:10 - error TS2305: Module '\"../config\"' has no exported member 'loadSettings'.\n\n3 import { loadSettings, type Settings } from '../config';\n           ~~~~~~~~~~~~\n\nsrc/commands/export.ts:18:30 - error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'.\n\n18   const target = resolveTarget(process.env.EXPORT_DIR, invoice.id);\n                                  ~~~~~~~~~~~~~~~~~~~~~~\n\n\nFound 2 errors in the same file, starting at: src/commands/export.ts:3\n\nnpm error Lifecycle script `build` failed with error:\nnpm error code 2\nnpm error path /workspace/invoice-cli\nnpm error command failed\nnpm error command sh -c tsc -p tsconfig.json\n\n$ git log --oneline -3\n9c1e2f4 config: rename loadSettings to readSettings and validate currency codes\n4b7a0d1 export: write invoices to EXPORT_DIR\n1f0e9aa tsconfig: enable strict mode\n",
+  "files": [
+    {
+      "path": "tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"ES2022\",\n    \"moduleResolution\": \"Bundler\",\n    \"strict\": true,\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\"\n  },\n  \"include\": [\"src\"]\n}\n"
+    },
+    {
+      "path": "src/config.ts",
+      "content": "import { readFileSync } from 'node:fs';\n\nexport interface Settings {\n  currency: string;\n  locale: string;\n  roundTo: number;\n}\n\nconst CURRENCY = /^[A-Z]{3}$/;\n\nexport function readSettings(path = 'invoice.config.json'): Settings {\n  const raw = JSON.parse(readFileSync(path, 'utf8'));\n  if (!CURRENCY.test(raw.currency)) {\n    throw new Error(`Invalid currency code: ${raw.currency}`);\n  }\n  return { currency: raw.currency, locale: raw.locale ?? 'en-US', roundTo: raw.roundTo ?? 2 };\n}\n"
+    },
+    {
+      "path": "src/commands/export.ts",
+      "content": "import { writeFileSync, mkdirSync } from 'node:fs';\nimport { join } from 'node:path';\nimport { loadSettings, type Settings } from '../config';\nimport { formatInvoice, type Invoice } from '../format';\n\nfunction resolveTarget(dir: string, id: string): string {\n  mkdirSync(dir, { recursive: true });\n  return join(dir, `${id}.txt`);\n}\n\nexport function exportInvoice(invoice: Invoice, settings?: Settings): string {\n  const active = settings ?? loadSettings();\n  const body = formatInvoice(invoice, active);\n  if (!body.trim()) {\n    throw new Error(`Invoice ${invoice.id} rendered empty`);\n  }\n\n  const target = resolveTarget(process.env.EXPORT_DIR, invoice.id);\n  writeFileSync(target, body);\n  return target;\n}\n"
+    },
+    {
+      "path": "src/format.ts",
+      "content": "import type { Settings } from './config.js';\n\nexport interface Invoice {\n  id: string;\n  customer: string;\n  lines: Array<{ description: string; quantity: number; unitPrice: number }>;\n}\n\nexport function formatInvoice(invoice: Invoice, settings: Settings): string {\n  const money = new Intl.NumberFormat(settings.locale, { style: 'currency', currency: settings.currency });\n  const rows = invoice.lines.map(line => `${line.description}  x${line.quantity}  ${money.format(line.quantity * line.unitPrice)}`);\n  const total = invoice.lines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);\n  return [`Invoice ${invoice.id} for ${invoice.customer}`, ...rows, `Total ${money.format(total)}`].join('\\n');\n}\n"
+    },
+    {
+      "path": "invoice.config.json",
+      "content": "{\n  \"currency\": \"usd\",\n  \"locale\": \"en-US\",\n  \"roundTo\": 2\n}\n"
+    }
+  ],
+  "expected": {
+    "findings": [
+      "config.ts exports readSettings after commit 9c1e2f4; export.ts line 3 still imports loadSettings",
+      "process.env.EXPORT_DIR is string | undefined under strict mode; resolveTarget needs a string (default or guard)",
+      "invoice.config.json has currency \"usd\"; readSettings (added in 9c1e2f4) accepts only three upper-case letters, so the export will throw 'Invalid currency code: usd' at run time once the build passes"
+    ],
+    "scoring": "Pass when the answer names both compiler errors with their causes and fixes. The lower-case currency code is the follow-on finding."
+  }
+}

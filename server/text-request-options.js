@@ -5,7 +5,8 @@ import { SERVICE_CREDIT_REFUSAL_STATUS } from './fleet/contract.js';
 /** HTTP status for each stable inference refusal code. The body's error.code is the code in lower case. */
 export const EXECUTION_ERROR_STATUS = Object.freeze({
   EXECUTION_REQUEST_INVALID: 400, CONFIDENTIAL_EXECUTION_UNAVAILABLE: 422, LEAKAGE_NOT_ALLOWED: 422,
-  EXECUTION_ROUTE_UNAVAILABLE: 503, EXECUTION_PLAN_EXPIRED: 409, EXECUTION_PLAN_CHANGED: 409, RESULT_UNVERIFIED: 502
+  EXECUTION_ROUTE_UNAVAILABLE: 503, EXECUTION_PLAN_EXPIRED: 409, EXECUTION_PLAN_CHANGED: 409, RESULT_UNVERIFIED: 502,
+  ATTESTED_EXECUTION_UNAVAILABLE: 422, ATTESTATION_REJECTED: 422
 });
 /**
  * A service-credit refusal (server/fleet/contract.js `creditRefusal`) made before any hold or disclosure: 402 when
@@ -21,7 +22,7 @@ export const creditRefusalFields = error => {
   return { code: code.toLowerCase(), service_credit: structuredClone(details) };
 };
 // Only refusals of the caller's own extension point at the `reploid` parameter.
-const EXTENSION_CODES = ['EXECUTION_REQUEST_INVALID', 'CONFIDENTIAL_EXECUTION_UNAVAILABLE', 'LEAKAGE_NOT_ALLOWED'];
+const EXTENSION_CODES = ['EXECUTION_REQUEST_INVALID', 'CONFIDENTIAL_EXECUTION_UNAVAILABLE', 'ATTESTED_EXECUTION_UNAVAILABLE', 'LEAKAGE_NOT_ALLOWED'];
 export const executionFailure = error => Object.hasOwn(EXECUTION_ERROR_STATUS, error?.code)
   ? Object.assign(fail(EXECUTION_ERROR_STATUS[error.code], error.message, error.param ?? (EXTENSION_CODES.includes(error.code) ? 'reploid' : null)),
     { code: error.code }) : error;

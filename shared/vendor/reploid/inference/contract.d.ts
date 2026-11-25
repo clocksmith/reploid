@@ -19,6 +19,8 @@ export interface ValidatedPrepareRequest {
   model: Required<ModelPin>; generation: { maxOutputTokens: number | null }; execution: ExecutionRequirements; policy: ExecutionPolicy;
   /** Set only when the host enabled the unreviewed protected route and the request is requester-only. */
   protected?: true;
+  /** Set only when the host enabled the unreviewed attested route and the request is attested-execution. */
+  attested?: true;
 }
 export interface InferenceRoute {
   id: string; schema: 'reploid.inference-route/v1'; shape: RouteShape; selection: RouteSelection; participants: string[];

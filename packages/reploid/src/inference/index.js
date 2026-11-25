@@ -12,6 +12,7 @@
  */
 import { hashJson } from '../artifacts/signatures.js';
 import { protectedEvidence, PROTECTED_PROTOCOL } from './protected.js';
+import { attestedEvidence, ATTESTED_PROTOCOL } from './attested/execution.js';
 import {
   executionError, freezeDeep, validatePrepareRequest, validateRunRequest, describeRoute,
   routeDisclosures, assertLeakageAllowed, assertRouteWithinRequirements, admitRoute, admitLocalRoute,
@@ -20,6 +21,8 @@ import {
 
 export * from './contract.js';
 export { createProtectedExecution, PROTECTED_EXECUTION_STATUS, protectedDisclosures } from './protected.js';
+export { createAttestedExecution, ATTESTED_EXECUTION_STATUS, attestedDisclosures, ATTESTED_TRUST_BOUNDARY } from './attested/execution.js';
+export { connectWebSocketFrames } from './attested/websocket-channel.js';
 
 const DEFAULT_PLAN_TTL_MS = 120000;
 const MAX_PLANS = 64;
@@ -57,12 +60,17 @@ const errorRecord = error => ({ code: typeof error?.code === 'string' ? error.co
 /**
  * `protectedExecution` (from createProtectedExecution) is used only together with `unreviewedProtectedExecution:
  * true`. Both are off by default; without them requester-only is CONFIDENTIAL_EXECUTION_UNAVAILABLE, unchanged.
+ * `attestedExecution` (from createAttestedExecution) likewise needs `unreviewedAttestedExecution: true`; without
+ * both, attested-execution is ATTESTED_EXECUTION_UNAVAILABLE.
  */
 export function createInference({ resolveRoute, execute, now = Date.now, planTtlMs = DEFAULT_PLAN_TTL_MS,
-  randomId = () => globalThis.crypto.randomUUID(), protectedExecution = null, unreviewedProtectedExecution = false }) {
+  randomId = () => globalThis.crypto.randomUUID(), protectedExecution = null, unreviewedProtectedExecution = false,
+  attestedExecution = null, unreviewedAttestedExecution = false }) {
   if (typeof resolveRoute !== 'function' || typeof execute !== 'function') throw new Error('Inference requires resolveRoute and execute ports');
   const protectedPort = unreviewedProtectedExecution === true && protectedExecution?.kind === 'reploid.protected-execution/v1'
     ? protectedExecution : null;
+  const attestedPort = unreviewedAttestedExecution === true && attestedExecution?.kind === 'reploid.attested-execution/v1'
+    ? attestedExecution : null;
   if (!Number.isSafeInteger(planTtlMs) || planTtlMs <= 0) throw new Error('Inference plan lifetime must be a positive integer');
   const plans = new Map(), runs = new Map();
   const prune = () => {
@@ -73,8 +81,8 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
 
   async function resolve(request, signal, context) {
     signal?.throwIfAborted();
-    if (request.protected) {
-      const resolved = await protectedPort.resolve(request, { signal });
+    if (request.protected || request.attested) {
+      const resolved = await (request.attested ? attestedPort : protectedPort).resolve(request, { signal });
       assertRouteWithinRequirements(resolved.route, request.execution);
       assertLeakageAllowed(resolved.disclosures, request.execution.allowMetadata);
       return resolved;
@@ -91,7 +99,8 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
 
   /** Describe and pin the route. Takes no content, places no credit hold and sends nothing. */
   async function prepare(input, { signal, context } = {}) {
-    const request = validatePrepareRequest(input, { protectedProtocol: protectedPort ? PROTECTED_PROTOCOL : null });
+    const request = validatePrepareRequest(input, { protectedProtocol: protectedPort ? PROTECTED_PROTOCOL : null,
+      attested: attestedPort ? { protocol: ATTESTED_PROTOCOL, attestation: await attestedPort.policyDigest() } : null });
     const { route, maxCharge, disclosures, pinned = null } = await resolve(request, signal, context);
     prune();
     const plan = freezeDeep({ id: 'plan_' + randomId().replaceAll('-', ''), expiresAt: now() + planTtlMs, route, maxCharge, disclosures });
@@ -134,9 +143,9 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
     let admitted = null, refusal = null, streamed = null, sequence = 0;
     const emit = event => channel.push(freezeDeep(event));
     const admit = route => { if (!admitted) { admitted = route; emit({ type: 'admitted', requestId, attemptId, route }); } };
-    if (entry.request.protected) {
-      if (!entry.pinned) throw executionError('EXECUTION_PLAN_CHANGED', 'The protected route lost its pinned backend. Nothing was sent.');
-      const result = runProtected({ entry, plan, requestId, attemptId, messages, runSignal, emit, admit,
+    if (entry.request.protected || entry.request.attested) {
+      if (!entry.pinned) throw executionError('EXECUTION_PLAN_CHANGED', `The ${entry.request.attested ? 'attested' : 'protected'} route lost its pinned backend. Nothing was sent.`);
+      const result = (entry.request.attested ? runAttested : runProtected)({ entry, plan, requestId, attemptId, messages, runSignal, emit, admit,
         admittedRoute: () => admitted, delta: text => emit({ type: 'output.delta', requestId, attemptId, sequence: sequence++, text }),
         finish: () => { channel.end(); plans.delete(planId); } });
       const handle = Object.freeze({ requestId, attemptId, planId, events: channel.events, result,
@@ -228,6 +237,39 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
         return value;
       } finally { finish(); }
     })();
+  }
+
+  /** An attested run: verify before sealing, no executor port, no approval callback, no readable fallback. */
+  function runAttested({ entry, plan, requestId, attemptId, messages, runSignal, emit, admit, admittedRoute, delta, finish }) {
+    let streamed = '', outcome = null;
+    return (async () => {
+      try {
+        outcome = await attestedPort.execute({ plan, pinned: entry.pinned, requestId, messages, signal: runSignal,
+          onAdmitted: ({ bindingDigest }) => admit(freezeDeep({ id: bindingDigest, planRouteId: plan.route.id, policyId: plan.policyId,
+            shape: 'remote', participants: [...plan.route.participants], backend: plan.route.backend, protocol: plan.route.protocol })),
+          onToken: text => { streamed += text; delta(text); } });
+        runSignal.throwIfAborted();
+        if (!admittedRoute()) throw executionError('RESULT_UNVERIFIED', 'The executor answered without an attested admission');
+        if (streamed && streamed !== outcome.output.text) throw executionError('RESULT_UNVERIFIED', 'The final answer differs from its streamed text');
+        const value = freezeDeep({ requestId, attemptId, status: 'completed', output: structuredClone(outcome.output), usage: structuredClone(outcome.usage),
+          settlement: structuredClone(outcome.settlement), executionReceipt: await attestedReceipt({ plan, requestId, attemptId, status: 'completed',
+            admitted: admittedRoute(), evidence: outcome.evidence }) });
+        emit({ type: 'completed', result: value });
+        return value;
+      } catch (error) {
+        const status = runSignal.aborted ? 'cancelled' : 'failed';
+        const value = freezeDeep({ requestId, attemptId, status, output: null, usage: null, settlement: null, error: errorRecord(error),
+          executionReceipt: await attestedReceipt({ plan, requestId, attemptId, status, admitted: admittedRoute(), evidence: null }) });
+        emit({ type: status, result: value });
+        return value;
+      } finally { finish(); }
+    })();
+  }
+
+  async function attestedReceipt({ plan, requestId, attemptId, status, admitted, evidence }) {
+    const base = await executionReceipt({ plan, requestId, attemptId, status, admitted });
+    return freezeDeep({ ...structuredClone(base), route: base.route && { ...structuredClone(base.route), attested: structuredClone(plan.route.attested) },
+      evidence: attestedEvidence({ plan, admitted, evidence }) });
   }
 
   async function protectedReceipt({ plan, requestId, attemptId, status, admitted, evidence = null, error = null }) {

@@ -21,15 +21,16 @@ Specification: [confidential execution](../../../../docs/confidential-execution.
 ## Invariants
 - prepare takes no prompts, tools or prompt hashes and places no credit hold.
 - Requester-only confidentiality fails closed with `CONFIDENTIAL_EXECUTION_UNAVAILABLE`; it is never retried as readable or made local.
+- Attested-execution fails closed (`ATTESTED_EXECUTION_UNAVAILABLE`) unless a host enables `attested/`; then no prompt is sealed before its proof verifies.
 - No content leaves before the admitted binding matches the plan; no route substitution after admission.
 - Partial text is never a successful result.
 - A receipt lists only what this requester checked, with separate confidentiality and integrity evidence.
 
 ## Acceptance
-Evidence: [routes](../../../../tests/integration/execution-privacy-routes.test.js), [admission](../../../../tests/integration/execution-privacy-admission.test.js), [faults](../../../../tests/integration/execution-privacy-faults.test.js), [presets](../../../../tests/unit/privacy-controls.test.js). Injected generators; physical inference is separate.
+Evidence: [attested](../../../../tests/unit/attested-gpu-route.test.js), [routes](../../../../tests/integration/execution-privacy-routes.test.js), [admission](../../../../tests/integration/execution-privacy-admission.test.js), [faults](../../../../tests/integration/execution-privacy-faults.test.js), [presets](../../../../tests/unit/privacy-controls.test.js). Injected generators; physical inference is separate.
 
 ## Non-goals
-Cryptographic or attested backends, model mathematics, transport, UI.
+Model mathematics, transport, UI.
 
 ## Freedom
 Preserve boundaries and acceptance.

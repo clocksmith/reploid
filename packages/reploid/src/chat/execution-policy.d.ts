@@ -15,7 +15,8 @@ export interface PrivacyRequest { model: { id: string; identity: string; partiti
 export declare const EXECUTION_POLICY_SCHEMA: 'reploid.execution-policy/v2';
 export declare const EXECUTION_BINDING_SCHEMA: 'reploid.execution-binding/v2';
 export type ExecutionErrorCode = 'CONFIDENTIAL_EXECUTION_UNAVAILABLE' | 'LEAKAGE_NOT_ALLOWED' | 'EXECUTION_PLAN_EXPIRED'
-  | 'EXECUTION_PLAN_CHANGED' | 'RESULT_UNVERIFIED' | 'EXECUTION_REQUEST_INVALID' | 'EXECUTION_ROUTE_UNAVAILABLE';
+  | 'EXECUTION_PLAN_CHANGED' | 'RESULT_UNVERIFIED' | 'EXECUTION_REQUEST_INVALID' | 'EXECUTION_ROUTE_UNAVAILABLE'
+  | 'ATTESTED_EXECUTION_UNAVAILABLE' | 'ATTESTATION_REJECTED';
 export declare const EXECUTION_ERROR_CODES: Readonly<{ [K in ExecutionErrorCode]: K }>;
 export declare function executionError(code: ExecutionErrorCode, message: string): Error & { code: ExecutionErrorCode };
 export type ExecutionMetadata = 'model-id' | 'timing' | 'length' | 'access-patterns';
@@ -26,12 +27,15 @@ export declare function executionBackend(backend: string): ExecutionBackend | nu
 export interface ExecutionRequirements {
   placement: 'local-only' | 'network-allowed';
   participants: { kind: 'open' } | { kind: 'none' } | { kind: 'named'; ids: string[] };
-  confidentiality: 'requester-only' | 'executor-readable';
+  confidentiality: 'requester-only' | 'executor-readable' | 'attested-execution';
   allowMetadata: ExecutionMetadata[];
 }
 export declare function compileExecutionRequirements(execution: ExecutionRequirements): ExecutionPolicy;
 export declare const CONFIDENTIAL_EXECUTION_REVIEW_REASON: 'awaiting independent security review';
 export declare function compileProtectedExecutionRequirements(execution: ExecutionRequirements, protocol: string): ExecutionPolicy;
+export declare const ATTESTED_EXECUTION_REVIEW_REASON: string;
+export declare const EXECUTION_CONFIDENTIALITY: readonly ['executor-readable', 'requester-only', 'attested-execution'];
+export declare function compileAttestedExecutionRequirements(execution: ExecutionRequirements, protocol: string, attestation: string): ExecutionPolicy;
 export declare function executionRequirementsFor(policy: ExecutionPolicy): ExecutionRequirements;
 export declare function narrowsExecutionPolicy(base: ExecutionPolicy, narrowed: ExecutionPolicy): boolean;
 export declare function createExecutionPolicy(overrides?: Partial<ExecutionPolicy>): ExecutionPolicy;

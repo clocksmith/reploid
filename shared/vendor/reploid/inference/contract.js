@@ -9,7 +9,7 @@ import { hashJson } from '../artifacts/signatures.js';
 import { canonicalPartitionJson } from '../contracts/partition.js';
 import {
   EXECUTION_ERROR_CODES, EXECUTION_METADATA, executionError, executionBackend,
-  compileExecutionRequirements, compileProtectedExecutionRequirements, narrowsExecutionPolicy
+  compileExecutionRequirements, compileProtectedExecutionRequirements, compileAttestedExecutionRequirements, narrowsExecutionPolicy
 } from '../chat/execution-policy.js';
 
 export { EXECUTION_ERROR_CODES, executionError };
@@ -49,7 +49,7 @@ export function validateModelPin(model) {
 }
 
 /** prepare() input. It takes no prompts, tools or prompt hashes: only the pin, limits and requirements. */
-export function validatePrepareRequest(input, { protectedProtocol = null } = {}) {
+export function validatePrepareRequest(input, { protectedProtocol = null, attested = null } = {}) {
   if (!object(input)) throw invalid('prepare needs { model, generation?, execution }');
   onlyKeys(input, ['model', 'generation', 'execution'], 'prepare (it takes no prompts, tools or prompt hashes)');
   const model = validateModelPin(input.model);
@@ -68,6 +68,10 @@ export function validatePrepareRequest(input, { protectedProtocol = null } = {})
   // comes from the one compiler.
   if (protectedProtocol !== null && execution.confidentiality === 'requester-only') {
     return freezeDeep({ model, generation, execution, policy: compileProtectedExecutionRequirements(execution, protectedProtocol), protected: true });
+  }
+  // Likewise only a host that enabled the unreviewed attested route passes `attested` ({ protocol, attestation }).
+  if (attested !== null && execution.confidentiality === 'attested-execution') {
+    return freezeDeep({ model, generation, execution, policy: compileAttestedExecutionRequirements(execution, attested.protocol, attested.attestation), attested: true });
   }
   const policy = compileExecutionRequirements(execution);
   return freezeDeep({ model, generation, execution, policy });
