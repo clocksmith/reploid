@@ -105,7 +105,7 @@ export function sentenceCount(text) {
   return count;
 }
 
-const BULLET = new RegExp(`^${S}*[-*+•‣▪◦]${S}+${NOT_S}`, 'u');
+const BULLET = new RegExp(`^${S}*[-*+\u2022\u2023\u25AA\u25E6]${S}+${NOT_S}`, 'u');
 const NUMBERED = new RegExp(`^${S}*\\p{Nd}+[.)]${S}+${NOT_S}`, 'u');
 const NUMBER_MARK = new RegExp(`^${S}*\\p{Nd}+[.)]${S}+`, 'u');
 
