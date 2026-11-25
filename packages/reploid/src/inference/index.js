@@ -12,6 +12,7 @@
  */
 import { hashJson } from '../artifacts/signatures.js';
 import { protectedEvidence, PROTECTED_PROTOCOL } from './protected.js';
+import { secretSharedEvidence, SECRET_SHARED_EXECUTION_KIND } from './secret-shared.js';
 import {
   executionError, freezeDeep, validatePrepareRequest, validateRunRequest, describeRoute,
   routeDisclosures, assertLeakageAllowed, assertRouteWithinRequirements, admitRoute, admitLocalRoute,
@@ -20,6 +21,7 @@ import {
 
 export * from './contract.js';
 export { createProtectedExecution, PROTECTED_EXECUTION_STATUS, protectedDisclosures } from './protected.js';
+export { createSecretSharedExecution, SECRET_SHARED_STATUS, secretSharedDisclosures } from './secret-shared.js';
 
 const DEFAULT_PLAN_TTL_MS = 120000;
 const MAX_PLANS = 64;
@@ -59,10 +61,14 @@ const errorRecord = error => ({ code: typeof error?.code === 'string' ? error.co
  * true`. Both are off by default; without them requester-only is CONFIDENTIAL_EXECUTION_UNAVAILABLE, unchanged.
  */
 export function createInference({ resolveRoute, execute, now = Date.now, planTtlMs = DEFAULT_PLAN_TTL_MS,
-  randomId = () => globalThis.crypto.randomUUID(), protectedExecution = null, unreviewedProtectedExecution = false }) {
+  randomId = () => globalThis.crypto.randomUUID(), protectedExecution = null, unreviewedProtectedExecution = false,
+  secretSharedExecution = null, unreviewedSecretSharedExecution = false }) {
   if (typeof resolveRoute !== 'function' || typeof execute !== 'function') throw new Error('Inference requires resolveRoute and execute ports');
   const protectedPort = unreviewedProtectedExecution === true && protectedExecution?.kind === 'reploid.protected-execution/v1'
     ? protectedExecution : null;
+  // Off by default like the protected route: both the port and the explicit unreviewed flag are required.
+  const secretSharedPort = unreviewedSecretSharedExecution === true && secretSharedExecution?.kind === SECRET_SHARED_EXECUTION_KIND
+    ? secretSharedExecution : null;
   if (!Number.isSafeInteger(planTtlMs) || planTtlMs <= 0) throw new Error('Inference plan lifetime must be a positive integer');
   const plans = new Map(), runs = new Map();
   const prune = () => {
@@ -73,6 +79,12 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
 
   async function resolve(request, signal, context) {
     signal?.throwIfAborted();
+    if (request.secretShared) {
+      const resolved = await secretSharedPort.resolve(request, { signal });
+      assertRouteWithinRequirements(resolved.route, request.execution);
+      assertLeakageAllowed(resolved.disclosures, request.execution.allowMetadata);
+      return resolved;
+    }
     if (request.protected) {
       const resolved = await protectedPort.resolve(request, { signal });
       assertRouteWithinRequirements(resolved.route, request.execution);
@@ -91,7 +103,7 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
 
   /** Describe and pin the route. Takes no content, places no credit hold and sends nothing. */
   async function prepare(input, { signal, context } = {}) {
-    const request = validatePrepareRequest(input, { protectedProtocol: protectedPort ? PROTECTED_PROTOCOL : null });
+    const request = validatePrepareRequest(input, { protectedProtocol: protectedPort ? PROTECTED_PROTOCOL : null, secretShared: Boolean(secretSharedPort) });
     const { route, maxCharge, disclosures, pinned = null } = await resolve(request, signal, context);
     prune();
     const plan = freezeDeep({ id: 'plan_' + randomId().replaceAll('-', ''), expiresAt: now() + planTtlMs, route, maxCharge, disclosures });
@@ -134,6 +146,16 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
     let admitted = null, refusal = null, streamed = null, sequence = 0;
     const emit = event => channel.push(freezeDeep(event));
     const admit = route => { if (!admitted) { admitted = route; emit({ type: 'admitted', requestId, attemptId, route }); } };
+    if (entry.request.secretShared) {
+      const result = runSecretShared({ entry, plan, requestId, attemptId, messages, runSignal, emit, admit,
+        admittedRoute: () => admitted, delta: text => emit({ type: 'output.delta', requestId, attemptId, sequence: sequence++, text }),
+        finish: () => { channel.end(); plans.delete(planId); } });
+      const handle = Object.freeze({ requestId, attemptId, planId, events: channel.events, result,
+        cancel: reason => controller.abort(reason ?? new Error('Cancelled by the caller')) });
+      prune();
+      runs.set(requestId, { planId, handle });
+      return handle;
+    }
     if (entry.request.protected) {
       if (!entry.pinned) throw executionError('EXECUTION_PLAN_CHANGED', 'The protected route lost its pinned backend. Nothing was sent.');
       const result = runProtected({ entry, plan, requestId, attemptId, messages, runSignal, emit, admit,
@@ -228,6 +250,48 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
         return value;
       } finally { finish(); }
     })();
+  }
+
+  /**
+   * A secret-shared run: the host port shares, dispatches and reconstructs; this API admits the pinned route, streams
+   * the text and writes the receipt. A stopped answer keeps its partial text and is `cancelled`; a failure keeps none.
+   */
+  function runSecretShared({ entry, plan, requestId, attemptId, messages, runSignal, emit, admit, admittedRoute, delta, finish }) {
+    let text = '';
+    return (async () => {
+      let outcome = null;
+      try {
+        outcome = await secretSharedPort.execute({ plan, pinned: entry.pinned, requestId, attemptId, messages, generation: entry.request.generation,
+          signal: runSignal,
+          onAdmitted: ({ bindingDigest }) => admit(freezeDeep({ id: bindingDigest, planRouteId: plan.route.id, policyId: plan.policyId,
+            shape: 'split', participants: [...plan.route.participants].sort(), backend: plan.route.backend, protocol: plan.route.protocol })),
+          onDelta: piece => { if (!admittedRoute()) throw executionError('RESULT_UNVERIFIED', 'Output arrived before route admission'); text += piece; delta(piece); } });
+        if (!admittedRoute()) throw executionError('RESULT_UNVERIFIED', 'The secret-shared port answered without admitting its route');
+        if (typeof outcome?.text !== 'string' || outcome.text !== text) throw executionError('RESULT_UNVERIFIED', 'The final answer differs from its streamed text');
+        const stopped = outcome.stopReason === 'requester-stop';
+        const limit = plan.generation.maxOutputTokens;
+        if (limit !== null && outcome.usage?.outputTokens > limit) throw executionError('RESULT_UNVERIFIED', 'The answer exceeds the output limit');
+        const value = freezeDeep({ requestId, attemptId, status: stopped ? 'cancelled' : 'completed',
+          output: { text, stopReason: outcome.stopReason ?? null, finishReason: stopped ? 'stop'
+            : ['length', 'max-tokens'].includes(outcome.stopReason) ? 'length' : outcome.stopReason ? 'stop' : 'unknown' },
+          usage: outcome.usage ?? null, settlement: structuredClone(outcome.settlement ?? null),
+          executionReceipt: await secretSharedReceipt({ plan, requestId, attemptId, status: stopped ? 'cancelled' : 'completed', admitted: admittedRoute(), evidence: outcome.evidence ?? null }) });
+        emit({ type: value.status, result: value });
+        return value;
+      } catch (error) {
+        const status = runSignal.aborted ? 'cancelled' : 'failed';
+        const value = freezeDeep({ requestId, attemptId, status, output: null, usage: null, settlement: structuredClone(error?.serviceCredit ?? null),
+          error: errorRecord(error), executionReceipt: await secretSharedReceipt({ plan, requestId, attemptId, status, admitted: admittedRoute(), error }) });
+        emit({ type: status, result: value });
+        return value;
+      } finally { finish(); }
+    })();
+  }
+
+  async function secretSharedReceipt({ plan, requestId, attemptId, status, admitted, evidence = null, error = null }) {
+    const base = await executionReceipt({ plan, requestId, attemptId, status, admitted });
+    return freezeDeep({ ...structuredClone(base), route: base.route && { ...structuredClone(base.route), secretShared: structuredClone(plan.route.secretShared) },
+      evidence: secretSharedEvidence({ plan, admitted, evidence, error }) });
   }
 
   async function protectedReceipt({ plan, requestId, attemptId, status, admitted, evidence = null, error = null }) {

@@ -9,8 +9,11 @@ import { hashJson } from '../artifacts/signatures.js';
 import { canonicalPartitionJson } from '../contracts/partition.js';
 import {
   EXECUTION_ERROR_CODES, EXECUTION_METADATA, executionError, executionBackend, EDGES_BACKEND,
-  compileExecutionRequirements, compileProtectedExecutionRequirements, narrowsExecutionPolicy
+  compileExecutionRequirements, compileProtectedExecutionRequirements, compileSecretSharedExecutionRequirements, narrowsExecutionPolicy
 } from '../chat/execution-policy.js';
+
+/** The secret-shared split backend: two-party additive shares per stage (inference/secret-shared.js). */
+export const SECRET_SHARED_BACKEND = 'doppler-secret-shared-2party/v1';
 
 export { EXECUTION_ERROR_CODES, executionError };
 export const INFERENCE_API_VERSION = 'reploid.inference/v1';
@@ -49,7 +52,7 @@ export function validateModelPin(model) {
 }
 
 /** prepare() input. It takes no prompts, tools or prompt hashes: only the pin, limits and requirements. */
-export function validatePrepareRequest(input, { protectedProtocol = null } = {}) {
+export function validatePrepareRequest(input, { protectedProtocol = null, secretShared = false } = {}) {
   if (!object(input)) throw invalid('prepare needs { model, generation?, execution }');
   onlyKeys(input, ['model', 'generation', 'execution'], 'prepare (it takes no prompts, tools or prompt hashes)');
   const model = validateModelPin(input.model);
@@ -68,6 +71,10 @@ export function validatePrepareRequest(input, { protectedProtocol = null } = {})
   // comes from the one compiler.
   if (protectedProtocol !== null && execution.confidentiality === 'requester-only') {
     return freezeDeep({ model, generation, execution, policy: compileProtectedExecutionRequirements(execution, protectedProtocol), protected: true });
+  }
+  // Only a host that enabled the unreviewed secret-shared route passes `secretShared`; otherwise the one compiler refuses it.
+  if (secretShared === true && execution.confidentiality === 'secret-shared-2party') {
+    return freezeDeep({ model, generation, execution, policy: compileSecretSharedExecutionRequirements(execution), secretShared: true });
   }
   const policy = compileExecutionRequirements(execution);
   return freezeDeep({ model, generation, execution, policy });
@@ -184,6 +191,12 @@ export function assertRouteWithinRequirements(route, execution) {
   if (placement === 'local-only' && route.shape !== 'local') throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Local-only execution has no local route. Nothing was sent.');
   if (participants.kind === 'named' && !route.participants.every(id => participants.ids.includes(id))) {
     throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'The only available route includes a participant that was not named. Nothing was sent.');
+  }
+  // A secret-shared request never falls back to a readable route, and no other request runs on a secret-shared one.
+  if ((execution.confidentiality === 'secret-shared-2party') !== (route.backend === SECRET_SHARED_BACKEND)) {
+    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', execution.confidentiality === 'secret-shared-2party'
+      ? 'No secret-shared route is available. Nothing was sent; the request is not retried as readable.'
+      : 'This route is reserved for secret-shared requests. Nothing was sent.');
   }
   // Requester-held edges never fall back to a route whose stages read content, and no other request runs on one.
   if ((execution.confidentiality === 'requester-edges') !== (route.backend === EDGES_BACKEND)) {

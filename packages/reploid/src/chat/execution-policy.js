@@ -56,8 +56,19 @@ export const EXECUTION_BACKENDS = freeze({
   [EDGES_BACKEND]: { computation: 'plaintext', protocol: null, executorsReadContent: false, executorsReadActivations: true,
     metadata: [...PLAINTEXT_METADATA] }
 });
-/** The confidentiality values the API accepts. `requester-only` always fails closed; `requester-edges` needs an edges route. */
-export const CONFIDENTIALITY_MODES = Object.freeze(['requester-only', 'requester-edges', 'executor-readable']);
+/**
+ * The confidentiality values the API accepts. `requester-only` always fails closed; `requester-edges` needs an edges route;
+ * `secret-shared-2party` fails closed unless a host enables its unreviewed route (inference/secret-shared.js).
+ */
+export const CONFIDENTIALITY_MODES = Object.freeze(['requester-only', 'requester-edges', 'secret-shared-2party', 'executor-readable']);
+/**
+ * Two-party additive secret sharing per stage: each stage's projections run on two fresh random shares held by two
+ * operators who must not collude. It is a trust assumption, not requester-only secrecy, so it has its own collusion
+ * model and protocol identity and never satisfies `requester-only`.
+ */
+export const SECRET_SHARED_PROTOCOL = 'reploid.secret-shared-2party/v1';
+export const SECRET_SHARED_COLLUSION = 'non-colluding-share-pairs';
+export const SECRET_SHARED_REVIEW_REASON = 'secret-shared execution is unreviewed and off by default';
 export const executionBackend = backend => Object.hasOwn(EXECUTION_BACKENDS, backend) ? EXECUTION_BACKENDS[backend] : null;
 const plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 const exact = (object, keys) => object && typeof object === 'object' && !Array.isArray(object)
@@ -80,7 +91,7 @@ export function validateExecutionPolicy(input) {
     'protocol', 'attestation', 'keyContext', 'retention', 'publication', 'reuse', 'allowDowngrade'];
   assert(exact(value, keys) && value.schema === EXECUTION_POLICY_SCHEMA,
     'current layered policy required; review execution settings before sending');
-  assert(['local-only', 'network-allowed'].includes(value.placement) && ['none', 'all-remote'].includes(value.collusion),
+  assert(['local-only', 'network-allowed'].includes(value.placement) && ['none', 'all-remote', SECRET_SHARED_COLLUSION].includes(value.collusion),
     'invalid placement or collusion model');
   assert(exact(value.recipients, ['kind', 'ids']) && ['none', 'named', 'open'].includes(value.recipients.kind)
     && list(value.recipients.ids) && (value.recipients.kind === 'named' ? value.recipients.ids.length > 0 : value.recipients.ids.length === 0),
@@ -138,6 +149,11 @@ export function compileExecutionRequirements(execution) {
       'No backend that keeps content from its executors is qualified. Nothing was sent; the request is not retried as readable or local.'),
     { reason: CONFIDENTIAL_EXECUTION_REVIEW_REASON });
   }
+  if (confidentiality === 'secret-shared-2party') {
+    throw Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
+      'Secret-shared execution is off unless this host enables its unreviewed route. Nothing was sent; the request is not retried as readable.'),
+    { reason: SECRET_SHARED_REVIEW_REASON });
+  }
   // Requester-held edges compile to the plaintext layered policy: the middle stages do read plaintext activations. What
   // narrows disclosure is the route (EDGES_BACKEND), which the inference API requires for this value and never relaxes.
   if (confidentiality === 'requester-edges' && placement !== 'network-allowed') {
@@ -167,6 +183,26 @@ export function compileProtectedExecutionRequirements(execution, protocol) {
     leakage: metadata.filter(item => allowMetadata.includes(item)) });
 }
 
+/**
+ * The verified policy for a `secret-shared-2party` request. Only the inference API calls this, and only when its host
+ * enabled the unreviewed secret-shared route explicitly; `compileExecutionRequirements` refuses the value otherwise.
+ * No executor reads plaintext, so `plaintext` is not in the leakage set; non-collusion of each stage's two share
+ * operators is the stated trust assumption.
+ */
+export function compileSecretSharedExecutionRequirements(execution) {
+  if (!exact(execution, ['placement', 'participants', 'confidentiality', 'allowMetadata']) || execution.confidentiality !== 'secret-shared-2party') {
+    throw invalid('secret-shared execution compiles secret-shared-2party requirements only');
+  }
+  compileExecutionRequirements({ ...execution, confidentiality: 'executor-readable' });
+  if (execution.placement !== 'network-allowed') {
+    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Secret-shared execution runs on network share operators; local-only has no such route. Nothing was sent.');
+  }
+  const { participants, allowMetadata } = execution;
+  return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: participants.kind, ids: participants.kind === 'named' ? [...participants.ids] : [] },
+    computation: 'cryptographic', collusion: SECRET_SHARED_COLLUSION, protocol: SECRET_SHARED_PROTOCOL,
+    keyContext: `requester-held-shares/${SECRET_SHARED_PROTOCOL}`, leakage: metadata.filter(item => allowMetadata.includes(item)) });
+}
+
 /** The caller requirements a stored policy stands for. Policies outside the API's vocabulary are refused, never widened. */
 export function executionRequirementsFor(policy) {
   policy = validateExecutionPolicy(policy);
@@ -176,7 +212,9 @@ export function executionRequirementsFor(policy) {
   }
   return freeze({ placement: policy.placement,
     participants: policy.recipients.kind === 'named' ? { kind: 'named', ids: [...policy.recipients.ids] } : { kind: policy.recipients.kind },
-    confidentiality: confidential ? 'requester-only' : 'executor-readable',
+    // A secret-shared policy stands for its own value: it trusts non-collusion, so it never reads as requester-only.
+    confidentiality: policy.collusion === SECRET_SHARED_COLLUSION && policy.protocol === SECRET_SHARED_PROTOCOL ? 'secret-shared-2party'
+      : confidential ? 'requester-only' : 'executor-readable',
     allowMetadata: metadata.filter(item => policy.leakage.includes(item)) });
 }
 
