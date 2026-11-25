@@ -72,7 +72,8 @@ async function main() {
     return;
   }
   if (command.doctor) {
-    const result = await runDoctor(command.doctor);
+    // The adapter check compares against the model `reploid serve` runs without a model id.
+    const result = await runDoctor({ model: DEFAULT_MODEL, ...command.doctor });
     console.log(result.text);
     if (!result.ok) process.exitCode = 1;
     return;

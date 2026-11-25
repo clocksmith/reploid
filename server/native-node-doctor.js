@@ -5,7 +5,10 @@ import path from 'node:path';
 import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import dopplerPin from '../shared/config/doppler-package.json' with { type: 'json' };
 import { installedPackageDirectory } from './native-shader-cache.js';
-import { nativeGpuBackend } from './native-gpu-host.js';
+import { existsSync } from 'node:fs';
+import { describeNativeGpuTries, nativeGpuBackends, requestNativeAdapter, selectNativeGpuBackend, windowsVulkanLoader } from './native-gpu-host.js';
+import { modelGpuNeeds } from './native-gpu-features.js';
+import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 
 export function readHostMemory() {
   const totalBytes = os.totalmem();
@@ -21,24 +24,49 @@ async function checkRuntime() {
   return `${version} matches the pinned version`;
 }
 
-export async function inspectNativeAdapter() {
+/** Probes the backends the host would try, in its order, against the features `model`'s manifest requires, and
+ * reports each one tried and the one the host would choose. Doctor never copies files: on Windows it says whether
+ * Dawn can open Vulkan and prints the one-line fix the host otherwise applies itself at startup. */
+export async function inspectNativeAdapter({ model = null, platform = process.platform, resolveNeeds = modelGpuNeeds } = {}) {
   const { create } = await import('webgpu');
-  const backend = nativeGpuBackend();
-  const gpu = create(['backend=' + backend]);
-  const adapter = await gpu.requestAdapter();
-  if (!adapter) throw Error(`no ${backend} adapter found; check the GPU driver and the optional webgpu package`);
-  const name = adapter.info?.description || adapter.info?.device || adapter.info?.vendor || 'adapter available';
-  const limits = adapter.limits;
-  return { backend, name, shaderF16: adapter.features?.has('shader-f16') ?? null,
+  const needs = model ? await resolveNeeds({ model, mode: 'whole-model' }).catch(() => null) : null;
+  const loader = platform === 'win32' ? windowsVulkanLoader() : null;
+  const selection = await selectNativeGpuBackend({ backends: nativeGpuBackends(platform), needs,
+    probe: async backend => ({ adapter: await requestNativeAdapter(create(['backend=' + backend])) }) }).catch(error => {
+    const tried = describeNativeGpuTries(error.tried ?? []);
+    throw Error(`no adapter found (${tried}); check the GPU driver and the optional webgpu package${vulkanHint(error.tried, loader)}`);
+  });
+  const adapter = selection.probed.adapter, limits = adapter.limits;
+  return { backend: selection.chosen, name: selection.tried.find(row => row.backend === selection.chosen).adapter,
+    shaderF16: adapter.features?.has('shader-f16') ?? null, tried: selection.tried, remap: selection.remap, unmet: selection.unmet,
+    modelId: needs?.modelId ?? null, required: needs?.required ?? null, vulkanLoader: loader && vulkanHint(selection.tried, loader),
     maxBufferSize: limits?.maxBufferSize ?? null, maxStorageBufferBindingSize: limits?.maxStorageBufferBindingSize ?? null,
     maxStorageBuffersPerShaderStage: limits?.maxStorageBuffersPerShaderStage ?? null };
 }
 
-async function checkAdapter() {
-  const adapter = await inspectNativeAdapter();
+// Dawn on Windows opens Vulkan only with vulkan-1.dll beside its binary (native-gpu-host.js windowsVulkanLoader).
+function vulkanHint(tried, loader) {
+  if (!loader?.fix || !existsSync(loader.from) || existsSync(loader.to)) return '';
+  if (!tried?.some(row => row.backend === 'vulkan' && !row.adapter)) return '';
+  return `; vulkan-1.dll is not beside Dawn (the host copies it at startup), or run: ${loader.fix}`;
+}
+
+async function checkAdapter(model) {
+  const adapter = await inspectNativeAdapter({ model });
   const binding = adapter.maxStorageBufferBindingSize == null ? '' : `, max storage binding ${adapter.maxStorageBufferBindingSize} B`;
   const f16 = adapter.shaderF16 == null ? '' : adapter.shaderF16 ? ', shader-f16' : ', no shader-f16 (f16-kernel models will not load)';
-  return `${adapter.backend}, ${adapter.name}${binding}${f16}`;
+  const lines = [`${adapter.backend}, ${adapter.name}${binding}${f16}`];
+  if (adapter.modelId) {
+    lines.push(`      ${adapter.modelId} requires ${adapter.required.length ? adapter.required.join(', ') : 'no optional features'}`);
+  }
+  for (const row of adapter.tried) {
+    lines.push(`      tried ${row.backend}: ${row.adapter ? `${row.adapter}, ${row.missing.length ? 'lacks ' + row.missing.join(', ') : 'has every required feature'}`
+      : `no adapter (${row.error})`}`);
+  }
+  const how = adapter.unmet.length ? `; lacks ${adapter.unmet.join(', ')}, which Doppler cannot remap, so the model may not load`
+    : adapter.remap.length ? `; Doppler's capability remap stands in for ${adapter.remap.join(', ')}` : '';
+  lines.push(`      chosen ${adapter.backend}${how}${adapter.vulkanLoader || ''}`);
+  return lines.join('\n');
 }
 
 async function checkSignaling(signalingUrl, origin) {
@@ -60,7 +88,9 @@ async function checkSignaling(signalingUrl, origin) {
 }
 
 /** No request, identity, weight download, model load, or GPU device is needed for these checks. */
-export async function runDoctor({ signalingUrl = bootstrap.signalingUrl, origin = 'http://localhost:8000' } = {}) {
+/** `model` (a catalog id) is the model whose required GPU features the adapter check compares; null checks none. */
+export async function runDoctor({ signalingUrl = bootstrap.signalingUrl, origin = 'http://localhost:8000', model = null } = {}) {
+  const selected = model ? catalog.find(row => row.id === model) ?? null : null;
   const checks = [
     ['Node', () => {
       const [major, minor] = process.versions.node.split('.').map(Number);
@@ -73,7 +103,7 @@ export async function runDoctor({ signalingUrl = bootstrap.signalingUrl, origin 
       return `${gib(availableBytes)} GiB currently available to Node, ${gib(totalBytes)} GiB physical`;
     }],
     ['Doppler version', checkRuntime],
-    ['WebGPU adapter', checkAdapter],
+    ['WebGPU adapter', () => checkAdapter(selected)],
     ['Signaling', () => checkSignaling(signalingUrl, origin)],
   ];
   const results = await Promise.allSettled(checks.map(([, check]) => Promise.resolve().then(check)));

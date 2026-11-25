@@ -158,8 +158,10 @@ export async function main({ argv, runOnce, anyModel = false } = {}) {
   const rtc = createNativeRtcAdapter(rtcModule.default || rtcModule);
   const Socket = wsModule.default || wsModule.WebSocket;
   class HostWebSocket extends Socket { constructor(url) { super(url, { origin: values.origin || 'http://localhost:8000' }); } }
-  const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']),
-    sourceRuntime ? { loadTooling: async () => sourceRuntime.tooling } : {});
+  // The backend report names every backend tried, the required features each lacked and the one chosen.
+  const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']), {
+    onBackend: report => { if (!runOnce) console.log(JSON.stringify({ event: 'gpu-backend', ...report })); },
+    ...(sourceRuntime ? { loadTooling: async () => sourceRuntime.tooling } : {}) });
   // Optional readiness records (reploid.readiness-span/v1, reploid.stage-admission/v1) for the utilization CLI;
   // identities, times and slot counts only. The session starts here, before any stage is prepared.
   const readinessLog = values['readiness-log'] === undefined ? null : await openNativeReadinessLog({ file: values['readiness-log'],
@@ -219,7 +221,7 @@ export async function main({ argv, runOnce, anyModel = false } = {}) {
     webWorker, ownerPairing, guestAccess,
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       sha256Hex(values.room || bootstrap.publicRoomId)) } : null,
-    nativeGpu: () => gpuHost.open(), owner, shaderCache, earning, readiness,
+    nativeGpu: request => gpuHost.open(request), owner, shaderCache, earning, readiness,
     onCustodyCertificate: certificate => { if (!runOnce) console.log(JSON.stringify({ event: 'custody-certificate', certificate })); },
     onChange: state => {
       statusLog('partition-state', { ...summarizeNativePartitionState(state), owner: nativeOwnerStatus(owner) });

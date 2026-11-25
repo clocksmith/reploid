@@ -13,7 +13,7 @@ afterEach(() => {
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return {promise,resolve}; };
 async function fixture() {
   Object.defineProperty(globalThis, 'navigator', {configurable:true,value:{hostMarker:true}});
-  const lost = deferred(), provider = { requestAdapter(){} };
+  const lost = deferred(), provider = { requestAdapter: async () => ({ features: new Set() }) };
   const device = {queue:{onSubmittedWorkDone:vi.fn(async()=>{})},lost:lost.promise,destroy:vi.fn()};
   state.device = device;
   const host = createNativeGpuHost(async()=>({globals:{},create:()=>provider})); await host.open();
@@ -119,16 +119,3 @@ it('latches the first refusal on a device with every line and the bytes then all
   expect(failure).toMatchObject({ failedBufferBytes: 4096, allocatedBeforeFailureBytes: 2048 });
   expect(host.outOfMemory().message.length).toBeLessThanOrEqual(500);
 });
-
-it('asks Dawn for Direct3D 12 on Windows, Metal on macOS and Vulkan elsewhere', async () => {
-  const { nativeGpuBackend, createNativeGpuHost: createHost } = await import('../../server/native-gpu-host.js');
-  expect(['win32', 'darwin', 'linux'].map(platform => nativeGpuBackend(platform, ''))).toEqual(['d3d12', 'metal', 'vulkan']);
-  expect(nativeGpuBackend('win32', 'vulkan')).toBe('vulkan');
-  expect(() => nativeGpuBackend('win32', 'opengl')).toThrow('REPLOID_GPU_BACKEND must be metal, vulkan or d3d12');
-  let asked = null;
-  const host = createHost(async () => ({ globals: {}, create: args => { asked = args; return {}; } }), { backend: 'd3d12' });
-  await host.open();
-  expect(asked).toEqual(['backend=d3d12']);
-  expect(() => createHost(async () => ({}), { backend: 'opengl' })).toThrow('metal, vulkan or d3d12');
-});
-

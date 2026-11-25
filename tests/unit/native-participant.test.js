@@ -38,7 +38,7 @@ async function fixture() {
 
 describe('native host boundary', () => {
   it.each(['metal', 'vulkan'])('selects the explicit %s backend without substituting another provider', async backend => {
-    const create = vi.fn(() => ({ requestAdapter() {} }));
+    const create = vi.fn(() => ({ requestAdapter: async () => ({ features: new Set() }) }));
     const navigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
     const host = createNativeGpuHost(async () => ({ globals: {}, create }), { backend });
     try {
@@ -59,7 +59,7 @@ describe('native host boundary', () => {
       destroy: () => order.push('source device') };
     const loadTooling = vi.fn(async () => ({ getDevice: () => sourceDevice,
       destroyBufferPool: device => { expect(device).toBe(sourceDevice); order.push('source pool'); } }));
-    const host = createNativeGpuHost(async () => ({ globals: {}, create: () => ({}) }), { loadTooling });
+    const host = createNativeGpuHost(async () => ({ globals: {}, create: () => ({ requestAdapter: async () => ({}) }) }), { loadTooling });
     await host.open();
     try { await host.close(); } finally { await host.close(); }
     expect(loadTooling).toHaveBeenCalledOnce();
@@ -82,7 +82,7 @@ describe('native host boundary', () => {
     let attempts = 0;
     const host = createNativeGpuHost(async () => {
       if (++attempts === 1) throw new Error('provider temporarily unavailable');
-      return { globals: { __nativeGpuTestBinding: 17 }, create: () => ({ requestAdapter() {} }) };
+      return { globals: { __nativeGpuTestBinding: 17 }, create: () => ({ requestAdapter: async () => ({}) }) };
     });
     try {
       await expect(host.open()).rejects.toThrow('temporarily unavailable');

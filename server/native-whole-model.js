@@ -107,7 +107,8 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
           throw new Error('Native whole-model manifest differs from the catalog');
         }
         if (!enabled || closed) throw new Error('Whole-model contribution stopped');
-        const gpu = await nativeGpu();
+        // The backend is chosen for this model's manifest: the first whose adapter has the features it requires.
+        const gpu = await nativeGpu({ model, mode: 'whole-model', manifestBytes: manifest });
         if (!enabled || closed) throw new Error('Whole-model contribution stopped');
         const loadOptions = structuredClone(model.loadOptions || {});
         const budget = loadOptions.runtimeConfig?.shared?.bufferPool?.budget;

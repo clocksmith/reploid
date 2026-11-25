@@ -284,7 +284,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       loadProgram: async (selected, index, controls) => {
         const program = await openNativePartition({ model: selected, index, modelDirectory, resolveSource: resolvePartitionSource, sourceRuntime,
           releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
-          nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
+          nativeGpu: request => gpuPromise ||= nativeGpu(request).catch(error => { gpuPromise = null; throw error; }), files, ...controls, evidenceSigner, shaderCache,
           onEvidence: executionAdmission ? bundle => executionAdmission.partitionReceipt(bundle) : null,
           ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}),
           ...(ownerGate ? { gpuBufferBytes: ownerGate.gpuBufferBytes(selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes) } : {}) });

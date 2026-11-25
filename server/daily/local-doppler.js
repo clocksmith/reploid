@@ -43,7 +43,7 @@ export async function openDailyPhysical(directory) {
   const service = createReploidDopplerRuntimeService({loadModule: () => import('dopplerx/compat')});
   let session;
   const measuredService = {...service, async open(options) { session = await service.open(options); return session; }};
-  const whole = createNativeWholeModel({model, modelDirectory, service:measuredService, nativeGpu: () => gpu.open()});
+  const whole = createNativeWholeModel({model, modelDirectory, service:measuredService, nativeGpu: request => gpu.open(request)});
   const close = async () => { try { await whole.close(); } finally { await gpu.close(); } };
   try {
     if (!(await whole.contribute(true)).ready) throw Error('Model failed to open');

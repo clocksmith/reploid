@@ -109,7 +109,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   class WebSocket extends Socket { constructor(url) { super(url, { origin: config.origin || 'http://localhost:8000' }); } }
   const serviceCa = config.serviceCaFile ? (assert(path.isAbsolute(config.serviceCaFile), 'Absolute service CA certificate path required'),
     await fs.readFile(config.serviceCaFile)) : null;
-  const gpu = createNativeGpuHost(loadGpu), credits = config.serviceUrl ? createFleetClient({ url: config.serviceUrl, identity, ca: serviceCa,
+  const gpu = createNativeGpuHost(loadGpu, { onBackend: report => onChange({ gpuBackend: report }) }), credits = config.serviceUrl ? createFleetClient({ url: config.serviceUrl, identity, ca: serviceCa,
     outboxFile: path.join(path.dirname(config.identityFile), 'service-credit-outbox.json') }) : null;
   const owner = config.ownerPolicyFile ? await openNativeOwnerControls({ file: config.ownerPolicyFile, custody: custodyPolicy,
     readGpuBuffers: async () => (await import('dopplerx/partitions')).inspectDeviceMemory() }) : null;
@@ -262,7 +262,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       const present = await fs.access(path.join(entry.directory, 'manifest.json')).then(() => true, () => false);
       if (present || !fillable) assert(await manifestIdentity() === entry.model.identity, 'Owner-selected model manifest changed');
       participant = await createNativeParticipant({ model: entry.model, modelDirectory: entry.directory, identity, rtc, WebSocket,
-        signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: () => gpu.open(),
+        signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: request => gpu.open(request),
         ...(config.hostCandidatesOnly ? { getRtcConfig: () => ({ iceServers: [], iceTransportPolicy: 'all' }) } : {}),
         cacheDirectory: config.cacheDirectory ?? null, maxCacheBytes: config.maxCacheBytes,
         owner, executionMode: entry.mode, ordered: entry.ordered ?? null,

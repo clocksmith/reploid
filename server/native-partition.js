@@ -38,7 +38,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     'Canonical native contribution requires declared generation, provider capability and durable epochs');
     canonical.epochs.assertCurrent();
   }
-  const gpu = await nativeGpu(); signal.throwIfAborted();
+  const gpu = await nativeGpu({ model: selected, mode: 'partition' }); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: gpuBufferBytes ?? selected.partitionRuntime?.maxGpuBufferBytes?.[index] ?? policy.maxGpuBufferBytes });
   const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files, resolveSource,
     gather: sourceRuntime?.gather ?? null });
