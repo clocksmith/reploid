@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-25T08:51:08.075Z",
-  "finishedAt": "2026-11-25T08:51:15.250Z",
+  "generatedAt": "2026-11-25T09:00:38.413Z",
+  "finishedAt": "2026-11-25T09:00:45.964Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "7f3625a499e4805d72e2ecda2d67cbd5d510322c",
+  "commit": "321203da9b5131a39aa7625ae757232d617c91c6",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
@@ -43,25 +43,25 @@
     "finished 40-output answer, last three acknowledgments withheld"
   ],
   "totals": {
-    "recordSets": 1246,
-    "judgments": 1774,
-    "outcomeAgreed": 1774,
-    "amountsAgreed": 1774,
-    "outcomeAndAmountsAgreed": 1774,
-    "lateListSizeAgreed": 1774,
-    "foreignListSizeAgreed": 1774,
-    "conflictListedAgreed": 1774,
-    "rejectedListSizeAgreed": 1730,
-    "rejectedListsCompared": 1730
+    "recordSets": 1376,
+    "judgments": 1904,
+    "outcomeAgreed": 1904,
+    "amountsAgreed": 1904,
+    "outcomeAndAmountsAgreed": 1904,
+    "lateListSizeAgreed": 1904,
+    "foreignListSizeAgreed": 1904,
+    "conflictListedAgreed": 1904,
+    "rejectedListSizeAgreed": 1860,
+    "rejectedListsCompared": 1860
   },
   "outcomePairs": {
     "conflict / conflict": 58,
-    "expired / expired": 242,
+    "expired / expired": 269,
     "invalid / invalid": 90,
     "none / none": 2,
     "open / open": 129,
-    "settled / settled": 893,
-    "unknown / unknown": 360
+    "settled / settled": 973,
+    "unknown / unknown": 383
   },
   "families": {
     "unmutated, clock sweep": {
@@ -169,6 +169,11 @@
       "outcomeAgreed": 35,
       "amountsAgreed": 35
     },
+    "canonical encodings, time forms and the closing window": {
+      "judgments": 130,
+      "outcomeAgreed": 130,
+      "amountsAgreed": 130
+    },
     "unsigned additions": {
       "judgments": 43,
       "outcomeAgreed": 43,
@@ -205,15 +210,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
-      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
+      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
@@ -268,15 +273,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
-      "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
+      "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
@@ -284,6 +289,41 @@
       "clock": "after",
       "independent": "conflict (step 2: in-time acceptances name different terms) debit 0 credits [0,0]",
       "service": "conflict (the stages accepted different terms the requester signed for one reservation) debit 0 credits [0,0]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "top acknowledgment signedAt with a +00:00 offset",
+      "clock": "after",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 12 credits [3,9]",
+      "service": "settled (the answer was completed; the outputs the requester acknowledged in time are charged) debit 12 credits [3,9]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "top acknowledgment signedAt without a zone",
+      "clock": "after",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 12 credits [3,9]",
+      "service": "settled (the answer was completed; the outputs the requester acknowledged in time are charged) debit 12 credits [3,9]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "terms signature with another final character for the same bytes",
+      "clock": "after",
+      "independent": "unknown (step 2: no terms left) debit 0 credits [0,0]",
+      "service": "unknown (no requester-signed terms were presented) debit 0 credits [0,0]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "every closing receipt signed one millisecond past the clock allowance",
+      "clock": "after",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+    },
+    {
+      "base": "complete answer",
+      "mutation": "every closing receipt signed exactly when the release window ends",
+      "clock": "after",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged; step 6: 2 stage(s) closed at their last step) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged; stage 0, 1 signed no closing receipt and is treated as closed at its last signed step) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
@@ -358,6 +398,20 @@
     {
       "base": "every party signs with P-256",
       "mutation": "all records",
+      "clock": "after",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+    },
+    {
+      "base": "every party signs with P-256",
+      "mutation": "terms carry the second valid P-256 signature",
+      "clock": "after",
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+    },
+    {
+      "base": "every party signs with P-256",
+      "mutation": "every record carries the second valid P-256 signature",
       "clock": "after",
       "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
       "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
