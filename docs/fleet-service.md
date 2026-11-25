@@ -15,7 +15,8 @@ see [self-serve accounts](self-serve-credits.md).
 
 An owner-only `identityFile` retains an Ed25519 signing identity across launches.
 The coordinator enrollment maps its public key to the computer ID, display name
-and owner. Several provider keys may belong to one computer account. Generate
+and owner. Several provider keys may belong to one computer, and several
+computers to one owner. Generate
 enrollment from the workspace fleet registry; do not maintain another static
 machine inventory in this repository.
 
@@ -27,9 +28,72 @@ copied signing key can impersonate its enrolled computer.
 
 Before sending a prompt, the requester reserves its maximum charge and records
 dispatch. Providers independently check that admission before executing. The
-credit policy explicitly sets the integer rate, debt limit, output limit,
-pending-request limit and whether computers belonging to one owner may trade.
-Negative balances are permitted within the configured debt limit.
+credit policy sets the integer rate, debt limit, output limit, pending-request
+limit and whether computers belonging to one owner may trade. Negative balances
+are permitted within the debt limit.
+
+### One balance per owner account
+
+The balance belongs to the owner (`ownerId` in the enrollment), not to one
+computer or key. Credit your desktop earns by serving pays for an answer your
+laptop asks for, as long as both computers are enrolled under the same owner.
+Work one of an owner's computers does for another of that owner's computers is
+neither charged nor credited. The pending-request limit still counts per
+computer.
+
+Each journal row keeps the computer its delta is attributed to (`computer_id`),
+so a statement still shows which computer earned and which spent. A ledger
+snapshot has one row per owner account, with its `computerIds`, the joined
+computer names and its debt limit. A self-serve account
+([self-serve accounts](self-serve-credits.md)) is its own owner, with each
+paired computer as a key on it, so it is the same unit.
+
+A ledger written before owner accounts kept one balance per computer. It refuses
+to open until the operator migrates it explicitly, with the same service
+configuration it runs with:
+
+```sh
+node server/fleet/credit-migration.js /absolute/operator/service.json
+```
+
+`migrateFleetCredits` in `server/fleet/credit-migration.js` sums each owner's
+computer balances and holds into one account, records which computer every
+existing journal row belongs to, and stores the before and after balances with
+the policy change in one SQLite transaction. Totals are conserved; nothing is
+issued, forgiven or converted. A request reserved before the migration settles
+with the per-computer arithmetic it was accepted under. The same migration adds
+the default release windows and debt limit below when the stored policy left
+them out; that needs a new policy `version`. It cannot change the enrollment, the
+unit, the rate, the output ceiling, the request deadline, the terminal charge or
+the same-owner rule. Repeating it returns the retained record.
+
+### First request and starter allowance
+
+There is one allowance mechanism: an account's debt limit, the most it may owe.
+These are non-cash service credits with no cash value. A negative balance is
+not issued credit: every credit has an equal debit on another account. A policy
+that omits `maxDebt` gets one answer at the policy's own output ceiling
+(`maxOutputTokens × creditsPerOutputToken`). A new account with a zero balance
+can then make its first request, of any size the policy allows, and its
+computers earn by serving. Until it has earned, it cannot ask for a second
+answer. An explicit `maxDebt`, including 0, is kept as written. With `maxDebt:
+0` and every balance at zero, nobody can ask, so nobody can earn.
+
+An enrolled computer's `debtLimit`, or a self-serve account's starter debt
+(`starterDebt`), lowers the limit for that account, never above `maxDebt`. An
+owner whose computers set different limits gets the smallest. The optional
+`creditPolicy.maxTotalDebt` caps what all accounts may owe together.
+
+### Refusals
+
+A request the account cannot cover is refused before any hold or disclosure.
+The ledger error carries `creditRefusal: { code, quote, ... }`. The authenticated
+text API answers `402` with `error.code` `service_credit_insufficient`, or `409`
+with `service_credit_pending_limit` when the account has too many unfinished
+answers. `error.service_credit` holds the refused quote and what can be spent
+(or the pending count). The message text is unchanged. A refusal by the
+network-wide debt cap is `service_credit_insufficient` with
+`reason: "network-debt-cap"`.
 
 Completed whole-model work requires a provider-signed, requester-countersigned
 receipt. Partitioned work requires the ordered stages' signed closing receipts
@@ -65,6 +129,33 @@ still required. `heldCredits` is the outstanding reservation, and
 the ledger is waiting for the requester’s acknowledgment. Zero means the
 requester signed the empty prefix. Recovery reads those facts across restarts.
 
+### Stop
+
+A person's Stop is signed. The browser's **Stop** (the bridge's `/cancel`), the
+native host's `cancel` command and `POST /v1/reploid/recover` with
+`"stop": true` make the requester sign `reploid.settlement-stop/v1` for the
+reservation. For a whole-model answer the requester has not countersigned a
+receipt for, that stop settles the hold at once, as `cancelled` with zero
+charge and no credit. This also covers a Stop that arrives after the provider has
+finished, when nobody signs a cancellation. Whole-model output has no per-token
+acknowledgment, so the acknowledged count is zero. That is the same economic
+outcome as the provider's own signed `cancelled` cleanup, which is later
+accepted with no second effect. A countersigned receipt can only exist if the
+requester accepted the answer. Whichever signed closing statement reaches the
+ledger first settles the request, and a conflicting later one is refused. If the
+requester countersigned just before the Stop and the receipt arrives second, the
+provider is not paid for that answer.
+
+A split answer settles on its stages' signed closing receipts and the
+requester's signed acknowledgments: the acknowledged count is charged, or zero
+when a stage owner vanished, under the provider-loss-free terms
+(`credit-shares.js`, `settlement-replay.js`).
+
+A lost connection is not a Stop: a closed HTTP stream or browser stream leaves
+the answer recoverable through `POST /v1/reploid/recover` until its deadline
+plus the release window. The credit outcome of a Stop is final, but it does not
+establish GPU cleanup; the provider still reports that.
+
 For whole-model cancellation or failure, the provider retains and submits
 `reploid.generation-terminal/v1` only after its execution owner confirms cleanup.
 Usage remains unknown. Setting `creditPolicy.wholeModelTerminalCharge` to `0`
@@ -89,19 +180,18 @@ Both the service and the stage need the owned-admission operation. Legacy stages
 admission protocol. Historical holds without a matching owner claim remain unresolved if a stage signature
 is missing. Use a private local filesystem with SQLite locking for the journal and retain it across restarts.
 
-A whole-model provider that admitted a request and then never returns leaves
-the requester's hold open: no timeout asserts remote cleanup. Setting
-`creditPolicy.wholeModelUnclaimedReleaseMs` bounds that. The provider has the
-request deadline plus this window to submit completion or cleanup evidence;
-after it the hold is released with status `expired`, no charge and no credit,
-and a later claim for that request is refused. A provider that did the work but
-returns after the window is therefore not paid for it. The field is part of the
-frozen credit policy, so adding it to an existing ledger needs an explicit
-migration; omitted, such holds stay open as before.
+### Release windows
+
+No hold outlives its request deadline plus a release window. A whole-model
+provider that admitted a request and then never returns has the deadline plus
+`creditPolicy.wholeModelUnclaimedReleaseMs` to submit completion or cleanup
+evidence. After that the hold is released with status `expired`, no charge and
+no credit, and a later claim for that request is refused. A provider that did the
+work but returns after the window is therefore not paid for it.
 
 A split request has the same gap, and a wider one: settlement needs every
-stage's signed closure, so one stage host that disappears for good strands the
-hold even when the other stages signed. `creditPolicy.partitionUnclaimedReleaseMs`
+stage's signed closure, so one stage host that disappears for good would strand
+the hold even when the other stages signed. `creditPolicy.partitionUnclaimedReleaseMs`
 bounds it. After the request deadline plus this window, a split request whose
 proof is still incomplete reaches one final outcome: status `expired`, reason
 `stage-unclaimed-after-window`, no charge, and no credit to any stage, including
@@ -110,10 +200,14 @@ lists each stage that never signed with `cleanup: "unverified"` (or
 `"never-admitted"`); it asserts nothing about what a silent host did. A later
 claim or late receipt for that request is refused and pays nobody, and the
 outcome survives a restart. A requester that retries does so as a new request,
-charged once. A request whose proof is already complete is settled normally and
-is never expired. Like the whole-model window, the field is part of the frozen
-credit policy and is off unless set. Whether a stage that signed should be paid
-when another stage vanishes is an open policy question; today it is not.
+charged once. A request whose proof is complete is settled when that proof
+arrives and is never expired. Whether a stage that signed should be paid when
+another stage vanishes is an open policy question; today it is not.
+
+Both windows default to 120000 ms (`DEFAULT_UNCLAIMED_RELEASE_MS` in
+`server/fleet/contract.js`) when a policy omits them, and cannot be switched
+off. They are part of the frozen credit policy, so a ledger created without them
+gets them through the explicit migration above.
 `acceptFleetTerminalPolicy` in `server/fleet/terminal-policy.js` records an
 operator-approved zero-charge policy migration and an explicit list of unresolved
 whole-model reservations to which it applies. It cannot change metered rates,
@@ -129,10 +223,15 @@ alone does not establish that work was never performed. There is no automatic
 hold forgiveness or cash conversion. Enrollment or policy changes require an
 explicit migration; editing a JSON file cannot reinterpret existing balances.
 
-Each enrolled computer can export its own journal statement (`statementMine` on
-the service, `client.statement()`, or `{"id":"1","op":"statement"}` on the
-native host control stream) and verify its balance offline without trusting the
-service operator:
+Each owner account can export its own journal statement
+(`reploid.fleet-credit-statement/v2`, from `statementMine` on the service,
+`client.statement()`, or `{"id":"1","op":"statement"}` on the native host control
+stream) and verify its balance offline without trusting the service operator.
+It names the account (`accountId`) and its `computerIds`. Each entry is one
+settled request with the account's total delta and its `attribution` per
+computer. The verifier recomputes both from the signed evidence, so moving a
+delta between the account's own computers is detected. A v1 statement, issued
+per computer before owner accounts, still verifies:
 
 ```sh
 node server/fleet/credit-statement.js /absolute/statement.json [/absolute/enrollment.json] [--late-claim /absolute/late-claim.json]
@@ -147,7 +246,7 @@ acknowledgments), duplicate-work replay rules, claim-release windows
 unclaimed holds (`statement.expired`) and integer stage shares
 (`server/fleet/credit-shares.js`), then compares the recomputed balance against
 the stated balance. Pass `computers` to pin an external enrollment file,
-`participantIds` to pin the contributor's own signing keys without the full
+`participantIds` to pin the account's own signing keys (all its computers') without the full
 registry, or `lateClaims` (`--late-claim`) to confirm offline that a late
 receipt arriving after hold expiry cannot reopen settlement. Any entry whose
 proof is missing, unsigned (for example a split cancellation relying only on the
@@ -231,6 +330,20 @@ peers can reach one another directly, set `hostCandidatesOnly: true` to use
 WebRTC host candidates with an empty ICE server list. Configure the private
 signaling URL separately. A pair behind incompatible NATs may fail to connect
 with this setting.
+
+Two host settings are easy to get wrong:
+
+- **Which mode asks.** A model entry with `mode: "whole-model"` loads that model
+  to serve it; its process has no requester and cannot ask other computers. A
+  computer that asks for a model it does not serve uses `mode: "partition"`
+  with `ordered: null`. Selecting a whole-model entry without contribution
+  (for example `initialContribution: false`) is refused at startup with that
+  explanation, rather than waiting for providers it would never see.
+- **A smaller output cap.** A requester whose `maxOutputTokens` is below the
+  model's `generation.maxTokens` sends its own cap as the request's
+  `maxOutputTokens` setting, so the provider admits and generates within it. A
+  provider that would still generate past the reserved limit is refused with
+  an error naming both limits.
 
 `observationFile`, `auto: true` and `pollMs` enable reconciliation. `daemon: true`
 keeps the host running after standard input closes. `initialModel` and
@@ -367,7 +480,7 @@ cost. A request the account cannot cover is refused before any hold or disclosur
 and the answer says so with the quote and what can be spent. Each answer states
 what was charged, including a Stop or failure that settled at zero. An answer whose
 hold is still pending shows the held amount, and Execution details re-reads the
-ledger when the answer is opened again. Stop requests cancellation; a lost stream leaves a pending outcome until
+ledger when the answer is opened again. Stop is signed and settles a whole-model hold at zero (see Stop above); a lost stream leaves a pending outcome until
 the native owners reconcile. There is no automatic resend after interruption.
 Browser history, drafts and reload use the existing conversation store; the bridge
 does not retain prompt text. Signing keys and durable accounting remain native.
@@ -434,6 +547,12 @@ and optional `stream` and `max_completion_tokens`. A bare base model ID
 continues to prefer available whole-model providers. Approval is local to the
 configured fleet host and is checked again before dispatch. A changed stage
 requires a new review. Public route approval is managed separately.
+
+A credit refusal before anything is sent is `402` (`service_credit_insufficient`)
+or `409` (`service_credit_pending_limit`) with the refused quote in
+`error.service_credit`, on every protocol; see Refusals above. `POST
+/v1/reploid/recover` with the original messages and `"stop": true` ends an
+unsettled whole-model answer with the requester's signed stop, at zero.
 
 For a split interrupted by a provider disconnect, the Chat Completions and
 Responses APIs return the `connection_lost` error code, including when a stream

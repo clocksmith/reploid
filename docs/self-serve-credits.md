@@ -193,7 +193,8 @@ every key and every enrollment change, so a key nobody paired is visible.
 
 `GET /v1/fleet/statement`, **Save statement** in Your account, and the host's
 existing `statement` command return one statement
-(`reploid.fleet-credit-statement/v1`). It has every journal entry with its
+(`reploid.fleet-credit-statement/v2`, per owner account; see
+[fleet service](fleet-service.md#one-balance-per-owner-account)). It has every journal entry with its
 accepted terms, outcome and complete signed evidence, the expired holds, the
 policy, the account's debt limit and its enrollment journal. `computers` holds
 only the accounts this one dealt with, not the whole enrollment. Check it
