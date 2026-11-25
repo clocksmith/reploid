@@ -65,7 +65,11 @@ describe('attested GPU session: valid evidence', () => {
     expect(outcome.result.attestation).toMatchObject({ platform, participantId: 'peer:attested-synthetic', gpus: [{ ccMode: 'on', architecture: 'hopper' }] });
     expect(outcome.hostFrames).toEqual(['challenge', 'request']);
     expect(outcome.result.attestation.notChecked).toContain('cpu-certificate-revocation');
-    if (platform === 'intel-tdx') expect(outcome.result.attestation.notChecked).toEqual(expect.arrayContaining(['tdx-tcb-status', 'runtime-and-model-measured-only-by-the-executor-itself']));
+    // The synthetic TDX launch is boot-chain-only and the SNP one is full-image.
+    const selfReported = ['runtime-and-model-measured-only-by-the-executor-itself', 'gpu-cc-mode-reported-only-by-the-executor-itself'];
+    if (platform === 'intel-tdx') expect(outcome.result.attestation.notChecked).toEqual(expect.arrayContaining(['tdx-tcb-status', ...selfReported]));
+    else for (const label of selfReported) expect(outcome.result.attestation.notChecked).not.toContain(label);
+    expect(outcome.result.attestation.coverage).toBe(platform === 'intel-tdx' ? 'boot-chain-only' : 'full-image');
   });
 });
 

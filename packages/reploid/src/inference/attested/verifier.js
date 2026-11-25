@@ -254,7 +254,8 @@ export async function verifyAttestedEvidence(evidence, { policy, expected, now, 
     await cpuRevocation(policy, hooks, session.platform, chain, notChecked);
   }
   if (!equalBytes(cpu.reportData, reportData)) reject('key-unbound', 'The CPU report does not bind this session, its key and its GPUs');
-  if (launch.coverage === 'boot-chain-only') notChecked.push('runtime-and-model-measured-only-by-the-executor-itself');
+  // Nothing after the boot chain is measured, so what the executor says about itself and its GPU is its own statement.
+  if (launch.coverage !== 'full-image') notChecked.push('runtime-and-model-measured-only-by-the-executor-itself', 'gpu-cc-mode-reported-only-by-the-executor-itself');
 
   return Object.freeze({
     platform: session.platform, launchId: launch.id, launchLabel: launch.label, coverage: launch.coverage, launch: structuredClone(session.launch),

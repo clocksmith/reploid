@@ -31,6 +31,13 @@ export const ATTESTED_EXECUTION_STATUS = freeze({ available: false, reason: ATTE
  * and confidential VMs do not hide page-level access patterns from it, so all four are disclosed.
  */
 export const ATTESTED_METADATA = freeze(['model-id', 'timing', 'length', 'access-patterns']);
+/** Coverage as the claims use it: anything that is not exactly `full-image` gets the weaker boot-chain-only wording. */
+const claimCoverage = coverage => coverage === 'full-image' ? 'full-image' : 'boot-chain-only';
+/**
+ * The trust boundary of a `full-image` launch. Its measurement covers the root filesystem, so the runtime and the model
+ * are measured and whoever rents or administers the machine is outside. A route's own boundary depends on its launch's
+ * coverage: read it with `attestedTrustBoundary(coverage)`.
+ */
 export const ATTESTED_TRUST_BOUNDARY = freeze({
   inside: ['the attested GPU in confidential-computing mode', 'the attested confidential VM (AMD SEV-SNP or Intel TDX)',
     'the approved runtime and model named by the attested launch measurement'],
@@ -38,28 +45,54 @@ export const ATTESTED_TRUST_BOUNDARY = freeze({
     'relays, coordinators and credit ledgers that carry the session'],
   trusted: ['NVIDIA, and AMD or Intel, for sound attestation and hardware isolation', 'the publisher of this requester\'s launch allowlist']
 });
+/**
+ * A `boot-chain-only` launch measures firmware, kernel and command line and nothing after them. Whatever runs in the VM,
+ * and anyone who can log in to it, can read the content, so they are inside the boundary; only the cloud operator and the
+ * carriers are outside.
+ */
+const BOOT_CHAIN_ONLY_TRUST_BOUNDARY = freeze({
+  inside: ['the attested GPU in confidential-computing mode', 'the attested confidential VM (AMD SEV-SNP or Intel TDX)',
+    'everything that runs in the VM after its measured boot chain: the runtime and the model are the executor\'s own statement, not measured',
+    'anyone with a login or root in the VM, so whoever built or administers its machine image'],
+  outside: ['the cloud operator, its hypervisor and its staff', 'relays, coordinators and credit ledgers that carry the session'],
+  trusted: ['NVIDIA, and AMD or Intel, for sound attestation and hardware isolation', 'the publisher of this requester\'s launch allowlist']
+});
+/** The trust boundary for a launch's coverage. Any coverage other than `full-image` gets the boot-chain-only boundary. */
+export const attestedTrustBoundary = coverage => claimCoverage(coverage) === 'full-image' ? ATTESTED_TRUST_BOUNDARY : BOOT_CHAIN_ONLY_TRUST_BOUNDARY;
 export const ATTESTED_CLAIM = 'Readable only inside the attested enclave, assuming the hardware vendors\' attestation is sound.';
 
-/** Disclosures for an attested route: who can read content, who cannot, whom it trusts, and what still leaks. */
+/**
+ * Disclosures for an attested route: who can read content, who cannot, whom it trusts, and what still leaks. What they
+ * say was measured follows the launch's coverage (`route.attested.coverage`).
+ */
 export function attestedDisclosures(route) {
+  const coverage = claimCoverage(route.attested.coverage);
+  const full = coverage === 'full-image';
   return freeze({
     contentReadableBy: { requesterDevice: true, participants: [], selection: 'one-of',
-      attestedEnclave: { participantId: route.participants[0], platform: route.attested.platform, launchId: route.attested.launchId } },
+      attestedEnclave: { participantId: route.participants[0], platform: route.attested.platform, launchId: route.attested.launchId, coverage } },
     executorsReadContent: true,
     operatorReadsContent: false,
     metadata: [...ATTESTED_METADATA],
     computedBy: [...route.participants],
-    trustBoundary: structuredClone(ATTESTED_TRUST_BOUNDARY),
+    trustBoundary: structuredClone(attestedTrustBoundary(coverage)),
     claim: ATTESTED_CLAIM,
     target: { statement: 'Nobody can read it', status: 'a target, not claimed' },
     leaks: ['model identity and the attested launch', 'prompt and answer sizes', 'timing of each output frame',
       'page-level memory access patterns visible to the hypervisor', 'the hardware operator, its region and network metadata'],
     performance: { claimed: false, reason: 'speed on confidential hardware is not claimed until it is measured' },
     review: { ...ATTESTED_EXECUTION_STATUS },
-    statement: `${ATTESTED_CLAIM} The prompt is sealed to a key that only the measured confidential VM holds, after this device `
-      + 'checked the CPU report, the GPU report in confidential-computing mode and the approved runtime measurement. '
-      + `The cloud operator is outside the trust boundary; the hardware and the approved runtime are inside it; NVIDIA, and AMD or Intel, are trusted. `
-      + `It sees timing, sizes and access patterns. Speed is not claimed. Unreviewed route, ${ATTESTED_EXECUTION_REVIEW_REASON}.`
+    statement: full
+      ? `${ATTESTED_CLAIM} The prompt is sealed to a key that only the measured confidential VM holds, after this device `
+        + 'checked the CPU report, the GPU report in confidential-computing mode and the approved runtime measurement. '
+        + `The cloud operator is outside the trust boundary; the hardware and the approved runtime are inside it; NVIDIA, and AMD or Intel, are trusted. `
+        + `It sees timing, sizes and access patterns. Speed is not claimed. Unreviewed route, ${ATTESTED_EXECUTION_REVIEW_REASON}.`
+      : `${ATTESTED_CLAIM} The prompt is sealed to a key held inside the confidential VM, after this device `
+        + 'checked the CPU report, the GPU report in confidential-computing mode and the approved boot-chain measurement (firmware, kernel and command line). '
+        + 'The runtime and the model are the executor\'s own statement, not measured, so anyone with a login or root in the VM, '
+        + 'which includes whoever built or administers its machine image, can read the content. '
+        + `The cloud operator is outside the trust boundary; the hardware, the VM and everyone with access inside it are inside the boundary; NVIDIA, and AMD or Intel, are trusted. `
+        + `The operator sees timing, sizes and access patterns. Speed is not claimed. Unreviewed route, ${ATTESTED_EXECUTION_REVIEW_REASON}.`
   });
 }
 
@@ -99,12 +132,14 @@ export function createAttestedExecution({ policy: inputPolicy, discover, connect
     const offered = await discover({ signal, model: structuredClone(request.model) });
     signal?.throwIfAborted();
     const named = request.execution.participants.kind === 'named' ? request.execution.participants.ids : null;
-    const candidates = (Array.isArray(offered) ? offered.slice(0, 64) : []).filter(item => {
+    const candidates = (Array.isArray(offered) ? offered.slice(0, 64) : []).flatMap(item => {
       const offer = item?.offer;
-      if (!offerShape(offer) || (named && !named.includes(offer.participantId))) return false;
+      if (!offerShape(offer) || (named && !named.includes(offer.participantId))) return [];
       const launch = policy.launches.find(entry => entry.id === offer.launchId && entry.platform === offer.platform);
-      return launch && launch.launch.model.id === request.model.id && launch.launch.model.identity === request.model.identity
+      const eligible = launch && launch.launch.model.id === request.model.id && launch.launch.model.identity === request.model.identity
         && !request.model.adapterIdentities.length && offer.price.creditsPerOutputToken <= policy.maxCreditsPerOutputToken;
+      // The coverage comes from the requester's own allowlist entry, never from the offer.
+      return eligible ? [{ endpoint: item.endpoint, offer, coverage: launch.coverage }] : [];
     }).sort((a, b) => a.offer.price.creditsPerOutputToken - b.offer.price.creditsPerOutputToken
       || a.offer.participantId.localeCompare(b.offer.participantId));
     const chosen = candidates[0];
@@ -112,7 +147,8 @@ export function createAttestedExecution({ policy: inputPolicy, discover, connect
     const { offer } = chosen;
     const body = { schema: 'reploid.inference-route/v1', shape: 'remote', selection: 'one-of', participants: [offer.participantId],
       backend: ATTESTED_BACKEND, protocol: ATTESTED_PROTOCOL, model: structuredClone(request.model), planIdentity: null,
-      attested: { policyDigest: await digest, launchId: offer.launchId, platform: offer.platform, operator: offer.operator, price: structuredClone(offer.price) } };
+      attested: { policyDigest: await digest, launchId: offer.launchId, platform: offer.platform, coverage: chosen.coverage, operator: offer.operator,
+        price: structuredClone(offer.price) } };
     const route = freeze({ id: await hashJson(body), ...body });
     return { route, maxCharge: freeze({ maximum: limit * offer.price.creditsPerOutputToken, unit: CREDIT_UNIT }), disclosures: attestedDisclosures(route),
       pinned: { endpoint: chosen.endpoint, offer: structuredClone(offer) } };
@@ -166,37 +202,47 @@ export function createAttestedExecution({ policy: inputPolicy, discover, connect
   return freeze({ kind: 'reploid.attested-execution/v1', protocol: ATTESTED_PROTOCOL, policyDigest: () => digest, resolve, execute });
 }
 
-/** The receipt evidence for an attested run: confidentiality and integrity kept separate, review status stated. */
+/**
+ * The receipt evidence for an attested run: confidentiality and integrity kept separate, review status stated.
+ * It lists the runtime, the model and the launch as verified only when the launch's coverage is `full-image`. On a
+ * `boot-chain-only` launch they are the executor's own statement: the model identity moves to `notVerified`, and the
+ * trust boundary is the one that has everyone with access to the VM inside it.
+ */
 export function attestedEvidence({ plan, admitted, evidence }) {
   const summary = evidence?.attestation ?? null;
+  const full = claimCoverage(plan.route.attested.coverage) === 'full-image' && (!summary || summary.coverage === 'full-image');
+  const coverage = full ? 'full-image' : 'boot-chain-only';
   return {
     confidentiality: {
       mode: 'attested-execution',
       contentReadBy: admitted ? { requesterDevice: true, participants: [],
-        attestedEnclave: { participantId: plan.route.participants[0], platform: plan.route.attested.platform, launchId: plan.route.attested.launchId } } : null,
+        attestedEnclave: { participantId: plan.route.participants[0], platform: plan.route.attested.platform, launchId: plan.route.attested.launchId, coverage } } : null,
       verified: summary ? [
         { claim: 'requester-nonce', by: 'requester', method: 'fresh-32-byte-nonce-in-the-session' },
         { claim: 'cpu-confidential-vm', by: 'requester', method: summary.platform === 'intel-tdx' ? 'tdx-quote-v4/pck-chain-to-pinned-intel-root' : 'sev-snp-report/vcek-chain-to-pinned-amd-root',
           value: { platform: summary.platform, measurement: summary.measurement, debug: false } },
         { claim: 'gpu-confidential-computing', by: 'requester', method: 'spdm-report/nvidia-device-chain/stapled-ocsp/rim-reference-measurements',
           value: summary.gpus.map(gpu => ({ index: gpu.index, architecture: gpu.architecture, ccMode: gpu.ccMode, measurementSet: gpu.measurementSet })) },
-        { claim: 'approved-launch', by: 'requester', method: 'launch-measurement-allowlist', value: { launchId: summary.launchId, launch: summary.launch } },
+        full ? { claim: 'approved-launch', by: 'requester', method: 'launch-measurement-allowlist', value: { launchId: summary.launchId, coverage, launch: summary.launch } }
+          // Only the boot chain matched the allowlist. The image, runtime and model are what the executor said it runs.
+          : { claim: 'approved-launch', by: 'requester', method: 'boot-chain-measurement-allowlist',
+            value: { launchId: summary.launchId, coverage, executorStatement: summary.launch } },
         { claim: 'session-key-binding', by: 'requester', method: 'report-data-sha512-of-session-and-gpus', value: summary.sessionDigest },
         { claim: 'sealed-to-attested-key', by: 'requester', method: 'hpke-x25519-hkdf-sha256-aes-256-gcm' }
       ] : [],
       notVerified: [...(summary?.notChecked ?? []), 'hardware-vendor-attestation-soundness', 'side-channels', 'runtime-conduct-beyond-its-measurement',
         'operator-denial-of-service', 'independent-security-review'],
-      trustBoundary: structuredClone(ATTESTED_TRUST_BOUNDARY),
+      trustBoundary: structuredClone(attestedTrustBoundary(coverage)),
       claim: ATTESTED_CLAIM,
       review: { ...ATTESTED_EXECUTION_STATUS }
     },
     integrity: {
       verified: summary && evidence?.frames ? [
-        { claim: 'model-identity', by: 'requester', method: 'attested-launch', value: plan.route.model.identity },
+        ...(full ? [{ claim: 'model-identity', by: 'requester', method: 'attested-launch', value: plan.route.model.identity }] : []),
         { claim: 'stream-matches-answer', by: 'requester', method: 'sequenced-aead-frames' }
       ] : [],
       providerReceipt: null,
-      notVerified: ['correct-computation', 'reported-token-counts']
+      notVerified: [...(full ? [] : ['model-identity']), 'correct-computation', 'reported-token-counts']
     },
     ...(evidence?.timing ? { timing: structuredClone(evidence.timing) } : {})
   };

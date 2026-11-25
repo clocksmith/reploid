@@ -30,7 +30,11 @@ Source: [`packages/reploid/src/inference/`](../packages/reploid/src/inference/),
   value. The content is readable only inside an attested enclave: an NVIDIA GPU
   in confidential-computing mode inside a confidential VM (AMD SEV-SNP or Intel
   TDX), running an approved runtime. That holds only if the hardware vendors'
-  attestation is sound. It never satisfies `requester-only`. It is **off by
+  attestation is sound, and the runtime counts as approved only when the
+  launch's measurement covers it (`full-image`). On a `boot-chain-only` launch
+  the runtime and the model are the executor's own statement, and anyone with a
+  login in the VM can read the content. It never satisfies `requester-only`.
+  It is **off by
   default**: every request fails closed with `ATTESTED_EXECUTION_UNAVAILABLE`
   unless a host enables the [attested GPU route](#attested-gpu-route-unreviewed-off-by-default).
 - **Executor-readable**: `confidentiality: "executor-readable"`. Each computer
@@ -400,7 +404,9 @@ conversation port in `host/chat-execution.js`.
 - **Attested execution:** content readable only inside an attested GPU enclave
   in a confidential VM. The cloud operator is outside the trust boundary; the
   hardware and the approved runtime are inside it; NVIDIA, and AMD or Intel, are
-  trusted. Refused on every shipped surface; see the
+  trusted. On a `boot-chain-only` launch nothing after the boot chain is
+  measured, so everyone with a login or root in the VM is inside the boundary
+  too. Refused on every shipped surface; see the
   [attested GPU route](#attested-gpu-route-unreviewed-off-by-default).
 
 ## Protected route (research, unavailable)
@@ -847,9 +853,14 @@ GPU, one model. It does not move the confidential split gate (see
 **What it claims.** The content is readable only inside the attested enclave,
 assuming the hardware vendors' attestation is sound. "Nobody can read it" stays a
 labelled target and is not claimed. Speed on confidential hardware is not
-claimed until it is measured.
+claimed until it is measured. Who is inside the enclave depends on what the
+launch's measurement covers.
 
-**Trust boundary.**
+**Trust boundary.** It follows the launch's coverage (see **Coverage** under
+[Binding](#binding)). `attestedTrustBoundary(coverage)` returns it, and the
+disclosure and the receipt carry the one for their route.
+
+For a `full-image` launch (also exported as `ATTESTED_TRUST_BOUNDARY`):
 
 - **Inside:** the GPU in confidential-computing (CC) mode, the confidential VM,
   and the approved runtime and model named by the attested launch.
@@ -858,6 +869,18 @@ claimed until it is measured.
   carry the session.
 - **Trusted:** NVIDIA, and AMD or Intel, for sound attestation and hardware
   isolation; and the publisher of the requester's launch allowlist.
+
+For a `boot-chain-only` launch:
+
+- **Inside:** the GPU in CC mode, the confidential VM, everything that runs in
+  the VM after its measured boot chain, and anyone with a login or root in the
+  VM, so whoever built or administers its machine image. The runtime and the
+  model are the executor's own statement, not measured.
+- **Outside:** the cloud operator, its hypervisor and staff, and the relays,
+  coordinators and credit ledgers that carry the session. Nobody else.
+- **Trusted:** the same as above.
+
+Any coverage other than `full-image` gets the `boot-chain-only` boundary.
 
 ### Enabling it
 
@@ -926,8 +949,11 @@ The executor returns one bundle per session (`reploid.attested-gpu-evidence/v1`)
     and current;
   - the report signature (P-384) and the nonce;
   - the measurements against a RIM-derived reference set;
-  - the CC state: `on`, and developer-tools (debug) mode off. The measured guest
-    reads this through NVML and binds it into the CPU report.
+  - the CC state: `on`, and developer-tools (debug) mode off. The guest reads
+    this through NVML and binds it into the CPU report. On a `full-image`
+    launch the code that reads it is measured. On a `boot-chain-only` launch it
+    is not, and the receipt lists
+    `gpu-cc-mode-reported-only-by-the-executor-itself` under `notVerified`.
 
 **Verified locally in the requester, not through NRAS.** The browser re-implements
 the checks of NVIDIA's local verifier: chain, OCSP, report signature, nonce and
@@ -979,14 +1005,36 @@ vectors). The `info` and the associated data are the session digest. Answers com
 back under a key exported from the same HPKE context. Each frame carries its
 sequence number in the associated data.
 
-**Coverage.** Each allowlist entry states what its measurement covers:
+**Coverage.** Each allowlist entry states what its measurement covers, and
+everything the route says was verified follows it. The coverage comes from the
+requester's own allowlist entry, never from the offer; `prepare` puts it on the
+route as `route.attested.coverage`.
 
 - `full-image`: the measurement covers the root filesystem, for example a
   dm-verity root hash on the measured kernel command line. The runtime and model
   claims then come from measured code.
+  - The disclosure says this device checked the CPU report, the GPU report in
+    CC mode and the approved runtime measurement.
+  - The receipt lists `approved-launch` by `launch-measurement-allowlist`, and
+    `model-identity` as verified by `attested-launch`.
+  - Whoever rents or administers the machine is outside the trust boundary.
 - `boot-chain-only`: the measurement covers firmware, kernel and command line
-  only. The runtime and model claims are then the executor's own statement, and
-  every receipt lists `runtime-and-model-measured-only-by-the-executor-itself`.
+  only. The runtime and model claims are then the executor's own statement.
+  - The disclosure says this device checked the CPU report, the GPU report in
+    CC mode and the approved boot-chain measurement, and that the runtime and
+    the model are the executor's own statement, not measured.
+  - The receipt lists `approved-launch` by `boot-chain-measurement-allowlist`,
+    with the image, runtime and model under `executorStatement`. It never lists
+    `model-identity` as verified: that is under the integrity `notVerified`.
+    The confidentiality `notVerified` lists
+    `runtime-and-model-measured-only-by-the-executor-itself` and
+    `gpu-cc-mode-reported-only-by-the-executor-itself`.
+  - Anyone with a login or root in the VM, so whoever built or administers its
+    machine image, can read the content and is inside the trust boundary. Only
+    the cloud operator, its hypervisor and its staff, and the carriers, are
+    outside.
+
+An image without a verified root filesystem can only be `boot-chain-only`.
 
 ### The route
 
@@ -1006,12 +1054,14 @@ sequence number in the associated data.
 4. **The answer** streams as `output.delta` events. The result has the ordinary
    shape: `output`, `usage`, and `settlement` with the charge in Reploid credits
    (output tokens × the planned price). The `executionReceipt` names the
-   requested model. Its confidentiality evidence lists what this requester
-   checked:
+   requested model; that identity is listed as verified only on a `full-image`
+   launch (see **Coverage**). Its confidentiality evidence lists what this
+   requester checked:
    - `requester-nonce`
    - `cpu-confidential-vm`
    - `gpu-confidential-computing`
-   - `approved-launch`
+   - `approved-launch` (the whole launch on `full-image`; the boot chain only
+     on `boot-chain-only`)
    - `session-key-binding`
    - `sealed-to-attested-key`
 
@@ -1162,7 +1212,10 @@ confidential split gate.
   checks the API end to end: off by default everywhere, including the port
   called directly without its own flag, distinct from
   requester-only, the disclosures, the receipt with model and credit charge, and
-  the credit hold released or never placed.
+  the credit hold released or never placed. It also checks that the disclosure,
+  the receipt and the trust boundary follow the launch's coverage: a
+  `boot-chain-only` launch never lists the runtime or the model as measured and
+  has everyone with a login in the VM inside the boundary, also on a failed run.
 - [`tests/integration/attested-gpu-executor.test.js`](../tests/integration/attested-gpu-executor.test.js)
   runs the executor over a loopback WebSocket with the pilot's requester flow, a
   streamed loopback runtime, a requester that leaves while evidence is being

@@ -5,7 +5,7 @@
  * ordinary answers (model identity and a charge in Reploid credits).
  */
 import { describe, it, expect, beforeAll, vi } from 'vitest';
-import { createInference, ATTESTED_EXECUTION_STATUS, createAttestedExecution } from '../../packages/reploid/src/inference/index.js';
+import { createInference, ATTESTED_EXECUTION_STATUS, createAttestedExecution, ATTESTED_TRUST_BOUNDARY, attestedTrustBoundary } from '../../packages/reploid/src/inference/index.js';
 import { compileExecutionRequirements, executionRequirementsFor } from '../../packages/reploid/src/chat/execution-policy.js';
 import { serveAttestedSession, createAttestedChannelPair } from '../../packages/reploid/src/inference/attested/session.js';
 import { createSyntheticWorld, syntheticHost, SYNTHETIC_MODEL } from '../helpers/attested-gpu-fixtures.js';
@@ -142,6 +142,79 @@ describe('an attested run', () => {
     expect(receipt.evidence.confidentiality.notVerified).toEqual(expect.arrayContaining(['hardware-vendor-attestation-soundness', 'side-channels', 'independent-security-review']));
     expect(receipt.evidence.timing).toMatchObject({ measuredBy: 'requester' });
     expect(scoreAnswer(task, result.output.text).passedKeywords).toBe(true);
+  });
+
+  it('a boot-chain-only launch never lists the runtime or the model as measured', async () => {
+    const { inference } = setup({ platform: 'intel-tdx' });   // the synthetic TDX launch is boot-chain-only
+    const { plan, result } = await runOnce(inference);
+    expect(plan.route.attested.coverage).toBe('boot-chain-only');
+    expect(plan.disclosures.contentReadableBy.attestedEnclave.coverage).toBe('boot-chain-only');
+    expect(plan.disclosures.statement).toMatch(/boot-chain measurement/);
+    expect(plan.disclosures.statement).not.toMatch(/approved runtime measurement/);
+    const { confidentiality, integrity } = result.executionReceipt.evidence;
+    expect(confidentiality.verified.find(item => item.claim === 'approved-launch').value).toMatchObject({ launchId: 'synthetic-tdx-27b', coverage: 'boot-chain-only' });
+    expect(confidentiality.notVerified).toEqual(expect.arrayContaining(['runtime-and-model-measured-only-by-the-executor-itself', 'gpu-cc-mode-reported-only-by-the-executor-itself']));
+    expect(integrity.verified.map(item => item.claim)).toEqual(['stream-matches-answer']);
+    expect(integrity.notVerified).toContain('model-identity');
+  });
+
+  it('a full-image launch lists the model as attested', async () => {
+    const { inference } = setup({ platform: 'amd-sev-snp' });   // the synthetic SNP launch is full-image
+    const { plan, result } = await runOnce(inference);
+    expect(plan.route.attested.coverage).toBe('full-image');
+    expect(plan.disclosures.statement).toMatch(/approved runtime measurement/);
+    const { confidentiality, integrity } = result.executionReceipt.evidence;
+    expect(confidentiality.notVerified).not.toContain('runtime-and-model-measured-only-by-the-executor-itself');
+    expect(integrity.verified.map(item => item.claim)).toEqual(['model-identity', 'stream-matches-answer']);
+    expect(integrity.notVerified).not.toContain('model-identity');
+  });
+
+  it('a boot-chain-only launch says what was measured and puts everyone with a login in the VM inside the boundary', async () => {
+    const { inference } = setup({ platform: 'intel-tdx' });
+    const { plan, result } = await runOnce(inference);
+    const { statement, trustBoundary } = plan.disclosures;
+    expect(statement).toMatch(/checked the CPU report, the GPU report in confidential-computing mode and the approved boot-chain measurement \(firmware, kernel and command line\)/);
+    expect(statement).toMatch(/The runtime and the model are the executor's own statement, not measured/);
+    expect(statement).toMatch(/login or root in the VM/);
+    expect(trustBoundary).toEqual(attestedTrustBoundary('boot-chain-only'));
+    expect(trustBoundary.outside).not.toContain('whoever rents or administers the machine');
+    expect(trustBoundary.outside[0]).toBe('the cloud operator, its hypervisor and its staff');
+    expect(trustBoundary.inside.join(' | ')).toMatch(/anyone with a login or root in the VM/);
+    expect(trustBoundary.inside.join(' | ')).toMatch(/built or administers its machine image/);
+    expect(trustBoundary.inside.join(' | ')).not.toMatch(/approved runtime and model named by the attested launch measurement/);
+    const { confidentiality } = result.executionReceipt.evidence;
+    expect(confidentiality.trustBoundary).toEqual(trustBoundary);
+    expect(confidentiality.contentReadBy.attestedEnclave.coverage).toBe('boot-chain-only');
+    const launch = confidentiality.verified.find(item => item.claim === 'approved-launch');
+    expect(launch.method).toBe('boot-chain-measurement-allowlist');
+    expect(launch.value).not.toHaveProperty('launch');
+    expect(launch.value.executorStatement.model).toEqual(SYNTHETIC_MODEL);
+  });
+
+  it('a full-image launch keeps the renter outside the boundary and the launch as measured', async () => {
+    const { inference } = setup({ platform: 'amd-sev-snp' });
+    const { plan, result } = await runOnce(inference);
+    expect(plan.disclosures.trustBoundary).toEqual(ATTESTED_TRUST_BOUNDARY);
+    expect(attestedTrustBoundary('full-image')).toEqual(ATTESTED_TRUST_BOUNDARY);
+    expect(plan.disclosures.trustBoundary.outside).toContain('whoever rents or administers the machine');
+    expect(plan.disclosures.statement).not.toMatch(/boot-chain|executor's own statement/);
+    const { confidentiality } = result.executionReceipt.evidence;
+    expect(confidentiality.trustBoundary).toEqual(ATTESTED_TRUST_BOUNDARY);
+    const launch = confidentiality.verified.find(item => item.claim === 'approved-launch');
+    expect(launch).toMatchObject({ method: 'launch-measurement-allowlist', value: { coverage: 'full-image', launch: { model: SYNTHETIC_MODEL } } });
+    expect(launch.value).not.toHaveProperty('executorStatement');
+  });
+
+  it('a coverage it does not know gets the weaker boundary, and a failed boot-chain-only run still states it', async () => {
+    expect(attestedTrustBoundary(undefined)).toEqual(attestedTrustBoundary('boot-chain-only'));
+    expect(attestedTrustBoundary('anything-else')).toEqual(attestedTrustBoundary('boot-chain-only'));
+    const { inference } = setup({ platform: 'intel-tdx', faults: { ccMode: 'off' } });
+    const { result } = await runOnce(inference);
+    expect(result.status).toBe('failed');
+    const { confidentiality, integrity } = result.executionReceipt.evidence;
+    expect(confidentiality.trustBoundary).toEqual(attestedTrustBoundary('boot-chain-only'));
+    expect(integrity.verified).toEqual([]);
+    expect(integrity.notVerified).toContain('model-identity');
   });
 
   it('a failed proof sends no prompt, holds no credits and returns no output', async () => {
