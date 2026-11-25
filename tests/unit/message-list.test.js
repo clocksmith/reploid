@@ -98,6 +98,26 @@ describe('Stable message presentation', () => {
       expect(root.querySelector('[data-retry-attempt]').disabled).toBe(false);
     }
   });
+  it('explains a service-credit refusal as not sent and a dropped computer’s pending hold with its amount', () => {
+    const root = document.createElement('div'), view = createMessageList(root), thread = conversation();
+    thread.messages[1].content = '';
+    thread.attempts[0] = { id: 'attempt', status: 'failed', error: 'Service-credit admission limit reached: not enough service credits. '
+      + 'This answer can cost up to 48 and 32 can be spent now. Nothing was sent.',
+    execution: { serviceCredit: { status: 'cancelled_queued', charge: 0, settledAt: 1 } } };
+    view.update(thread, { usable: true, busy: false });
+    expect(root.textContent).toContain('Not sent. Not enough service credits: this answer can cost up to 48 and your account can spend 32 now.');
+    expect(root.textContent).not.toContain('could not finish');
+    thread.attempts[0] = { id: 'attempt', status: 'failed', error: 'Service-credit admission limit reached: 4 unfinished answers on this account. Nothing was sent.' };
+    view.update(thread, { usable: true, busy: false });
+    expect(root.textContent).toContain('Not sent. 4 answers on this account are still unfinished.');
+    thread.messages[1].content = 'First words';
+    thread.attempts[0] = { id: 'attempt', status: 'failed', error: 'Provider disconnected',
+      execution: { serviceCredit: { id: 'service:held', status: 'pending', heldCredits: 48 } } };
+    view.update(thread, { usable: true, busy: false });
+    expect(root.textContent).toContain('Interrupted.');
+    expect(root.textContent).toContain('48 service credits stay held until this answer is settled');
+    view.dispose();
+  });
   it('presents declined sharing as not sent rather than a network failure', () => {
     const root = document.createElement('div'), view = createMessageList(root), thread = conversation();
     thread.messages[1].content = '';

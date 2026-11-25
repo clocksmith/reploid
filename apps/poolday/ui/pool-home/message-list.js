@@ -5,7 +5,23 @@ import { escapeHtml as escape } from '../components/attachments.js';
 
 import { updateMessageMarkdown } from '../components/message-markdown.js';
 
+// An unsettled dispatched answer keeps its hold; say how much, since the ledger settles it later.
+function heldNote(attempt) {
+  const credit = attempt.execution?.serviceCredit;
+  return credit && typeof credit.settledAt !== 'number' && Number.isSafeInteger(credit.heldCredits) && credit.heldCredits > 0
+    ? ` ${credit.heldCredits.toLocaleString()} service credits stay held until this answer is settled; Computers, Service credits shows the outcome.` : '';
+}
+
 function failureLabel(attempt) {
+  // The paired host's ledger refused before any hold or disclosure (server/fleet/credits.js).
+  const short = /not enough service credits\. This answer can cost up to (\d+) and (\d+) can be spent now/.exec(attempt.error || '');
+  if (short) return `Not sent. Not enough service credits: this answer can cost up to ${short[1]} and your account can spend ${short[2]} now. Serving answers for others earns more.`;
+  const unfinished = /Service-credit admission limit reached: (\d+) unfinished answers/.exec(attempt.error || '');
+  if (unfinished) return `Not sent. ${unfinished[1]} answers on this account are still unfinished. Try again when one settles.`;
+  return failureReason(attempt) + heldNote(attempt);
+}
+
+function failureReason(attempt) {
   if (attempt.retrieval?.error?.code === 'timeout' || /retrieval exceeded its time limit/i.test(attempt.error || '')) {
     const stage = attempt.retrieval?.error?.stage;
     const action = stage === 'search' ? 'Web search' : stage === 'extraction' ? 'Reading search results' : 'Source retrieval';

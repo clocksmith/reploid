@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698868,
-      "sha256": "sha256:f1efb915464e1d8cbff108d17a8595b153200b2eaec2cc4bdbd400578a012e23"
+      "sha256": "sha256:acbe4fabc53c6a91f2299e7b158d4f3c823b72de7646d5ed07636adc23d9a958"
     },
     {
       "path": "config/module-registry.json",
@@ -3825,8 +3825,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2771321,
-      "sha256": "sha256:32d1bff7a12575310f7e010624a6784004efb0c2c06bfc423683ccfdb843c889"
+      "byteLength": 2772109,
+      "sha256": "sha256:1082824faa8c9f720b2a3d5b4bf2c0c7f87d671d4b0a6a9a7231e17e43b134e7"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3975,8 +3975,8 @@
     },
     {
       "path": "ui/pool-home/message-list.js",
-      "byteLength": 13771,
-      "sha256": "sha256:43a6e2162d6355150958699a68ba2e6d65e6d860db9c4417aa5f9849a232b412"
+      "byteLength": 14981,
+      "sha256": "sha256:f86f8c5418ef05484f33bc7650ec4ea68a78c1b6d2f0180f5f2b03fdaceac237"
     },
     {
       "path": "ui/pool-home/model-adapters.js",
@@ -12834,5 +12834,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:60ecd6ff883b3d6b292c64334d5df1e34f8e244326dc9234d3558e13fee18fad"
+  "bundleHash": "sha256:9536aecc5d8d3571062bb60e324c6b3bbd9929d6e46c6a566e78b2b285b2dadf"
 }
