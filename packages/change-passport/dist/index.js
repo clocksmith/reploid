@@ -164,10 +164,19 @@ var EXECUTION_METADATA = Object.freeze(["model-id", "timing", "length", "access-
 var metadata = [...EXECUTION_METADATA];
 var plaintextLeakage = [...metadata, "plaintext"];
 var PLAINTEXT_METADATA = ["model-id", "timing", "length", "access-patterns"];
+var EDGES_BACKEND = "doppler-partition-edges/v1";
 var EXECUTION_BACKENDS = freeze({
   "doppler-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] },
-  "doppler-partition-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] }
+  "doppler-partition-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] },
+  [EDGES_BACKEND]: {
+    computation: "plaintext",
+    protocol: null,
+    executorsReadContent: false,
+    executorsReadActivations: true,
+    metadata: [...PLAINTEXT_METADATA]
+  }
 });
+var CONFIDENTIALITY_MODES = Object.freeze(["requester-only", "requester-edges", "executor-readable"]);
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
 // shared/vendor/reploid/mesh/request-delivery.js

@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 699791,
-      "sha256": "sha256:d77615a0efa6ffb9fdbdbb4001d597664ae50644eb144f62a96f20480f3c14cf"
+      "sha256": "sha256:4fd3bd43d7130fc54dbbf6613e74245364035ebb0cdaec865f0bf9460a8a1182"
     },
     {
       "path": "config/module-registry.json",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2811422,
-      "sha256": "sha256:d1a606438707edf20565e9b78885268d301a58f8d31e287e9bdbaa4da46dcaec"
+      "byteLength": 2816076,
+      "sha256": "sha256:f2ef0b800fc8dc887c6b3fdfd9c5a753f97ed5983047ab7a2bf8accd90fca07b"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12010,13 +12010,13 @@
     },
     {
       "path": "vendor/reploid/chat/execution-policy.js",
-      "byteLength": 18577,
-      "sha256": "sha256:7fcc3822b7c792e588f4454c83064b298d83b8cad949b515076f659cddc452e0"
+      "byteLength": 22737,
+      "sha256": "sha256:5ce7b78c88be954b9f9325151bd38bdb10db106e38ec1662210328be20b61bfb"
     },
     {
       "path": "vendor/reploid/chat/index.js",
-      "byteLength": 1484,
-      "sha256": "sha256:212f53e6662bb378ae32cb2485206b4bfd9d57aa9923651e1599b26daa6d2793"
+      "byteLength": 1563,
+      "sha256": "sha256:4d1e8e14a2f98ff9b8d438bce79035ad96dc3478ae50b991fda9b39f0113cbf8"
     },
     {
       "path": "vendor/reploid/chat/policy.json",
@@ -12055,8 +12055,8 @@
     },
     {
       "path": "vendor/reploid/chat/thread-grants.js",
-      "byteLength": 7554,
-      "sha256": "sha256:7a3e8840c3e59fba3d02547222c4b8e2eda3788f54c2f2ec60a03d0cea738674"
+      "byteLength": 7586,
+      "sha256": "sha256:6e009a39eae9dfd76f0d39bdd53fa79da7bd20b3f0f1035bd90d3d013eacf300"
     },
     {
       "path": "vendor/reploid/chat/workspace-history.js",
@@ -12130,8 +12130,8 @@
     },
     {
       "path": "vendor/reploid/contracts/partition-disclosure.js",
-      "byteLength": 737,
-      "sha256": "sha256:32f5ce44661be8a104a2359f5751db0038686e2bdeba7da6a2fc31d3204e934a"
+      "byteLength": 1325,
+      "sha256": "sha256:95a26756c2dc41ab65296d25b8347a27a275ac264861c484a0b00edcc6fe789b"
     },
     {
       "path": "vendor/reploid/contracts/partition-publication.js",
@@ -12175,8 +12175,8 @@
     },
     {
       "path": "vendor/reploid/inference/contract.js",
-      "byteLength": 18771,
-      "sha256": "sha256:1743fabfaf540b17178eb61132903bbd0dd5791bdf6218a88de6560e697823b9"
+      "byteLength": 22953,
+      "sha256": "sha256:a8eb7f6de7bdf9140a795f33338571e00e02a32a4a05ebe14db167e1c2dcace1"
     },
     {
       "path": "vendor/reploid/inference/index.js",
@@ -12290,8 +12290,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
-      "byteLength": 47325,
-      "sha256": "sha256:d60f07b2d08ef762f3bb83013b4d96e290fd2f4137f82ffdc5cc6bdaeb1b1e5d"
+      "byteLength": 47341,
+      "sha256": "sha256:a772fd8a26d3abaa34bef7883360a68206dcdc3d2745c0368c5dbe108cdb0685"
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
@@ -12300,8 +12300,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-attempt-evidence.js",
-      "byteLength": 20945,
-      "sha256": "sha256:987ea07ae156a179bb908e6c788a76aaada38b5071f39a84f08260aabee6aa5e"
+      "byteLength": 21501,
+      "sha256": "sha256:df7b15337e88b25201c1dbd2aee2c8668676f01edd5095ff31ca40a4324b5341"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-attempt-queue-policy.json",
@@ -12365,8 +12365,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-grants.js",
-      "byteLength": 22994,
-      "sha256": "sha256:0b70615486ba8d50e111bf09bb8e5af3a61ad0c981bc8513f8a754ca4202eee8"
+      "byteLength": 23226,
+      "sha256": "sha256:bc73a779f45908635d8a15b36babd7bc6eacd12808c8ea88d1d02b7239cf1274"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-link.js",
@@ -12380,13 +12380,13 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-chat.js",
-      "byteLength": 22968,
-      "sha256": "sha256:a064d79cc799a750d16ddb7a8630761b0aa02c02fb1a487872871bcdd608b5c2"
+      "byteLength": 23249,
+      "sha256": "sha256:063dcd55da94c6ceaebf07d6492a71b863201cc6a5b771b87700c90a7b76497b"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-peer.js",
-      "byteLength": 31583,
-      "sha256": "sha256:ece71df776e75f3100101d481382a91c414d5a8f8e094352aa5860955d11edd5"
+      "byteLength": 32436,
+      "sha256": "sha256:835e408652cee51fb73f863d53bf35b02ae8d5b2cd5e532c5604cb1602f3fa60"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-publication.js",
@@ -12430,8 +12430,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-execution.js",
-      "byteLength": 27975,
-      "sha256": "sha256:c0b18c12bff42f56074b185305a5d90716a93bf4b3271be192089baf390beaad"
+      "byteLength": 28705,
+      "sha256": "sha256:c6ebf3e4cbdb49b9caed8e2ab67caec91dcc227bfdd3ff3e07c553db4e0e7c92"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-route-network.js",
@@ -12480,8 +12480,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
-      "byteLength": 22132,
-      "sha256": "sha256:ef219fe8365bd348c7aaeea90890ffafb90a167afcedb09ca1f1bf28081336c0"
+      "byteLength": 22409,
+      "sha256": "sha256:2aeb6232db533f90f83d5e9c3fb2d64a78a2d48ea9aaa3d0f58897f8b6e83b7d"
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-route.js",
@@ -12560,8 +12560,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 62743,
-      "sha256": "sha256:65340389ade3e33a164f7071d783639a7b05d1902266e8cc08c60c0fa48bf089"
+      "byteLength": 62744,
+      "sha256": "sha256:68f6943d9de452d28daf9a53589ac19addfe7e88bba500c6327aa2d1fa124a29"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12849,5 +12849,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:621b4ecedf12334b4db64cf1d75d83c519fec7a21bc072259417ad3cc664aa83"
+  "bundleHash": "sha256:dbaaae10bad8b4a425a19c9a058c6d0e884975186e8a762fcf3e0d6b9a1fde59"
 }
