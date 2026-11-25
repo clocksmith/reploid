@@ -1,14 +1,25 @@
 /**
  * Node host ports for a protected requester: discovery by asking listed endpoints for their signed advertisements,
- * the protected wire over TCP, Doppler's key holder as a child process, and trap batches from the pinned oracle. A browser host implements the same
- * three ports with its own transport and a WebAssembly key holder.
+ * the protected wire over TCP, the caller's key holder, and trap batches from the pinned oracle. A browser host implements the same
+ * ports with its own transport.
+ *
+ * The key holder used to be Doppler's Go `privacy-protected bridge` child process. Reploid runs JavaScript only, so
+ * that bridge is removed; until a JavaScript key holder exists, `openKeyHolder` must be supplied or the route refuses.
  */
 import { createProtectedExecution } from '../../shared/vendor/reploid/inference/index.js';
 import { requestProtectedAdvertisement } from '../../shared/vendor/reploid/mesh/protected-generation.js';
 import { connectFrameSocket } from './frame-socket.js';
-import { openGoRequesterBridge } from './go-bridge.js';
 
-export function createNodeProtectedExecution({ endpoints, engine, policy, stateDir = null, keyTtlSeconds = 86400, connectTimeoutMs = 30000, ...options }) {
+export const PROTECTED_KEY_HOLDER_UNAVAILABLE = 'PROTECTED_KEY_HOLDER_UNAVAILABLE';
+
+/** The default key holder: refuses, because the Go bridge is removed and no JavaScript key holder exists yet. */
+export async function refuseKeyHolder() {
+  throw Object.assign(new Error('No protected key holder: Doppler\'s Go privacy-protected bridge was removed (Reploid runs JavaScript only), '
+    + 'and no JavaScript key holder exists yet'), { code: PROTECTED_KEY_HOLDER_UNAVAILABLE });
+}
+
+export function createNodeProtectedExecution({ endpoints, policy, openKeyHolder = refuseKeyHolder, stateDir = null, keyTtlSeconds = 86400,
+  connectTimeoutMs = 30000, ...options }) {
   return createProtectedExecution({
     policy,
     async discover({ signal }) {
@@ -21,7 +32,7 @@ export function createNodeProtectedExecution({ endpoints, engine, policy, stateD
       return found.filter(Boolean);
     },
     connect: (endpoint, { signal }) => connectFrameSocket(endpoint, { signal, timeoutMs: connectTimeoutMs }),
-    openCrypto: ({ parameterSet }) => openGoRequesterBridge({ binary: engine, profile: parameterSet.id,
+    openCrypto: ({ parameterSet }) => openKeyHolder({ profile: parameterSet.id,
       allowInsecureDevelopment: parameterSet.insecureDevelopment && policy.allowInsecureDevelopment, stateDir, keyTtlSeconds }),
     // The batch is signed by the oracle and encrypted to this request's one-time key, so plain HTTP carries it; a
     // network observer learns the same sizes and timing the oracle does.

@@ -2,7 +2,7 @@
 /**
  * reploid.protected-generation/v1 with in-process fakes: a fake key holder whose "ciphertexts" are tagged tokens
  * and a fake engine computing a fixed toy model. These pin the protocol (eligibility, binding, frames, traps,
- * flag, trap oracle v2 and the vanishing perturbation) and the trap detection rate cheaply; tests/integration/protected-route.test.js runs the real CKKS backend.
+ * flag, trap oracle v2 and the vanishing perturbation) and the trap detection rate cheaply; the real CKKS backend was Go and is removed (JavaScript only).
  */
 import { describe, it, expect } from 'vitest';
 import { createInference, PROTECTED_EXECUTION_STATUS } from '../../packages/reploid/src/inference/index.js';

@@ -709,6 +709,15 @@ Doppler's `protected-route` branch): Go and Lattigo on the CPU, a one-block
 It is a research fixture, not a catalogued model, and the route is not a product
 capability.
 
+Reploid runs JavaScript only, so it no longer spawns that Go backend. The Node
+key-holder bridge, the Go evaluator adapter and the Go-built integration test
+were removed; `scripts/protected-route-e2e.js` and the
+`evaluator-peer.js` command line refuse, and `createNodeProtectedExecution`
+refuses to open a key holder unless the caller supplies `openKeyHolder`. The
+route returns when JavaScript implementations of the key holder and the
+evaluator engine port exist. The results below were recorded with the Go
+backend before its removal.
+
 ### Enabling it
 
 Nothing in Reploid enables it. A host must construct the port and pass the flag
@@ -736,10 +745,9 @@ reason, and `server/fleet/browser-bridge.js` keeps refusing every protection but
   [`frame-socket.js`](../server/protected-route/frame-socket.js) carries it over
   TCP; a WebRTC data channel adapter is still to be written.
 - `openCrypto({ parameterSet })` returns the requester's key holder. In Node it
-  is Doppler's `privacy-protected bridge` child process
-  ([`go-bridge.js`](../server/protected-route/go-bridge.js)); in a browser it
-  would be the same Lattigo code built for WebAssembly. The secret key is made
-  and kept inside the key holder and never crosses its interface.
+  was Doppler's `privacy-protected bridge` Go child process, now removed; the
+  Node host takes an `openKeyHolder` port and refuses without one. The secret
+  key is made and kept inside the key holder and never crosses its interface.
 
 ### Protocol `reploid.protected-generation/v1`
 
@@ -1064,24 +1072,20 @@ retrying the same prompt elsewhere, or rewording it.
   ignored, expiry after waiting, single-field allowlist failures, the flag and
   port gates, the requester's own longest key epoch, and journal value checks
   and recovery.
-- [`tests/integration/protected-route.test.js`](../tests/integration/protected-route.test.js)
-  runs real processes: this process as requester through `reploid/inference`,
+- The removed Go-built integration test ran real processes: this process as requester through `reploid/inference`,
   Doppler's key holder as its child, Doppler's trap oracle as its own process,
   and each evaluator peer as a separate Node process with its own Go CKKS
   evaluator, on the insecure development ring. The vanishing-perturbation peer
-  computes the attack homomorphically. It
-  is skipped unless `REPLOID_PROTECTED_BACKEND_DIR` names Doppler's
-  `tools/privacy-protected` and Go is installed.
-- [`scripts/protected-route-e2e.js`](../scripts/protected-route-e2e.js) runs the
+  computes the attack homomorphically.
+- [`scripts/protected-route-e2e.js`](../scripts/protected-route-e2e.js) ran the
   requester and an evaluator peer on two machines over the network, with the
-  secure ring by default.
+  secure ring by default. It now refuses (JavaScript only).
 
 ### Swapping in the GPU evaluator
 
 The evaluator peer talks to its engine through one port (`describe(profile)`,
 `open(schedule)` returning `sendKey`, `keysHeld`, `ready`, `step`, `close`);
-[`go-evaluator.js`](../server/protected-route/go-evaluator.js) is the CPU one. A
-WebGPU evaluator implements the same port, computes the same pinned circuit
+the removed Go CPU evaluator was the only one. A JavaScript (WebGPU) evaluator implements the same port, computes the same pinned circuit
 (same profile digest and circuit digest, so the same trap oracle applies), returns
 one logits ciphertext per lane at the pinned layout, and never constructs a
 secret key. Nothing in the protocol, the API or the traps changes.

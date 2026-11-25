@@ -1,44 +1,35 @@
 #!/usr/bin/env node
 /**
  * A protected evaluator peer: a Reploid signing identity, a signed backend advertisement, and
- * `reploid.protected-generation/v1` sessions over TCP, computed by a local engine (Doppler's Go CPU evaluator).
- * RESEARCH ONLY: requesters refuse this route unless their host enabled the unreviewed protected route.
+ * `reploid.protected-generation/v1` sessions over TCP, computed by an engine port the caller supplies
+ * (`describe(profile)`, `open(schedule)`, `stop()`). RESEARCH ONLY: requesters refuse this route unless their host
+ * enabled the unreviewed protected route.
  *
- *   node server/protected-route/evaluator-peer.js --engine <privacy-protected binary> --model <tiny-model.json>
- *     --profile research-n16 --identity-file <path> [--listen 127.0.0.1:0] [--ready-file <path>] [--state-dir <dir>]
+ * The engine used to be Doppler's Go CPU evaluator as a child process. Reploid runs JavaScript only, so that engine
+ * is removed and the command line refuses until a JavaScript engine exists.
  *
  * Logs carry sizes, timings and digests only: the evaluator never has plaintext to log.
- * `--misbehave` is for tests and the negative runs of the two-machine script; `vanish:<published trap set>` is the
+ * `misbehave` is for tests and negative runs; engine misbehaviours (lie-all, lie-random, tamper, lie-lane=N) belong to the engine; `vanish:<published trap set>` is the
  * vanishing-perturbation attack on public traps.
  */
-import { readFile, writeFile } from 'node:fs/promises';
-import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { createSigningIdentity } from '../../shared/vendor/reploid/artifacts/identity.js';
 import { createProtectedAdvertisement, serveProtectedEvaluatorSession, createProtectedJournal } from '../../shared/vendor/reploid/mesh/protected-generation.js';
 import { listenFrameSocket } from './frame-socket.js';
-import { startGoEvaluator } from './go-evaluator.js';
 
 const ENGINE_MISBEHAVIOUR = ['lie-all', 'lie-random', 'tamper'];
 const SESSION_MISBEHAVIOUR = ['ask-decrypt', 'replay-result', 'wrong-identity'];
 
-async function loadIdentity(file) {
-  try { return JSON.parse(await readFile(file, 'utf8')); } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    const identity = await createSigningIdentity({ algorithm: 'ECDSA' });
-    await writeFile(file, JSON.stringify(identity), { mode: 0o600 });
-    return identity;
+export async function startProtectedEvaluatorPeer({ engine, profile, identity, listen = '127.0.0.1:0', misbehave = '', maxLanes = 8,
+  keyEpochMaxTtlSeconds = 86400, log = () => {} }) {
+  if (typeof engine?.describe !== 'function' || typeof engine?.open !== 'function' || typeof engine?.stop !== 'function') {
+    throw Object.assign(new Error('No protected evaluator engine: the Go engine was removed (Reploid runs JavaScript only); pass a JavaScript engine port'),
+      { code: 'PROTECTED_ENGINE_UNAVAILABLE' });
   }
-}
-
-export async function startProtectedEvaluatorPeer({ engine: binary, model, profile, identity, listen = '127.0.0.1:0', stateDir = null,
-  misbehave = '', maxLanes = 8, keyEpochMaxTtlSeconds = 86400, log = () => {} }) {
   if (misbehave && !ENGINE_MISBEHAVIOUR.includes(misbehave) && !SESSION_MISBEHAVIOUR.includes(misbehave) && !/^lie-lane=\d$/.test(misbehave)
     && !/^vanish:\S+$/.test(misbehave)) {
     throw new Error(`Unknown misbehaviour ${misbehave}`);
   }
-  const engineMisbehave = SESSION_MISBEHAVIOUR.includes(misbehave) ? '' : misbehave;
-  const engine = await startGoEvaluator({ binary, model, stateDir, misbehave: engineMisbehave, maxLanes, log: line => log({ engine: line }) });
   const manifest = await engine.describe(profile);
   const advertisement = await createProtectedAdvertisement({ identity, manifest, keyEpochMaxTtlSeconds, maxLanes });
   const signingIdentity = misbehave === 'wrong-identity' ? await createSigningIdentity({ algorithm: 'ECDSA' }) : identity;
@@ -60,22 +51,7 @@ export async function startProtectedEvaluatorPeer({ engine: binary, model, profi
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { values } = parseArgs({ options: {
-    engine: { type: 'string' }, model: { type: 'string' }, profile: { type: 'string', default: 'research-n16' },
-    'identity-file': { type: 'string' }, listen: { type: 'string', default: '127.0.0.1:0' }, 'ready-file': { type: 'string' },
-    'state-dir': { type: 'string' }, misbehave: { type: 'string', default: '' }, 'max-lanes': { type: 'string', default: '8' }
-  } });
-  if (!values.engine || !values.model || !values['identity-file']) {
-    console.error('usage: evaluator-peer.js --engine <binary> --model <tiny-model.json> --identity-file <path> [--profile id] [--listen host:port]');
-    process.exit(2);
-  }
-  const log = record => process.stderr.write(JSON.stringify({ at: new Date().toISOString(), ...record }) + '\n');
-  const peer = await startProtectedEvaluatorPeer({ engine: values.engine, model: values.model, profile: values.profile,
-    identity: await loadIdentity(values['identity-file']), listen: values.listen, stateDir: values['state-dir'] ?? null,
-    misbehave: values.misbehave, maxLanes: Number(values['max-lanes']), log });
-  log({ listening: peer.endpoint, participant: peer.participantId, descriptor: peer.advertisement.descriptor.parameterSet });
-  if (values['ready-file']) await writeFile(values['ready-file'], JSON.stringify({ endpoint: peer.endpoint, participantId: peer.participantId }), { mode: 0o600 });
-  const stop = () => peer.close().then(() => process.exit(0));
-  process.on('SIGTERM', stop);
-  process.on('SIGINT', stop);
+  console.error('evaluator-peer.js: refused. Its engine was Doppler\'s Go privacy-protected evaluator, removed because Reploid runs '
+    + 'JavaScript only. Import startProtectedEvaluatorPeer with a JavaScript engine port once one exists.');
+  process.exit(2);
 }

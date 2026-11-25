@@ -1,8 +1,7 @@
 /**
  * Length-prefixed frames over a Node byte stream: the protected wire between requester and evaluator peers, and
- * the two local links to Doppler's Go processes (the requester's key holder over stdio, the evaluator engine over
- * loopback TCP). All three use u32 header length | header JSON | blobs; they differ in how a header announces
- * its blob sizes, which `inspect` decides before any blob byte is buffered.
+ * any local link to an engine or key holder. All use u32 header length | header JSON | blobs; they differ in how a
+ * header announces its blob sizes, which `inspect` decides before any blob byte is buffered.
  */
 import net from 'node:net';
 import { createFrameDecoder, encodeProtectedFrame, inspectProtectedHeader } from '../../shared/vendor/reploid/mesh/protected-generation.js';
@@ -94,8 +93,8 @@ export function listenFrameSocket({ host = '127.0.0.1', port = 0, onChannel, ins
   });
 }
 
-/** Header inspection for Doppler's Go framing: `blobs` is an array of sizes, with a per-kind ceiling. */
-export const goHeaderInspector = ceilings => header => {
+/** Header inspection for engine framing: `blobs` is an array of sizes, with a per-kind ceiling. */
+export const ceilingHeaderInspector = ceilings => header => {
   if (!header || typeof header.kind !== 'string' || !Object.hasOwn(ceilings, header.kind)) throw new RangeError(`Unexpected engine frame ${header?.kind}`);
   const sizes = header.blobs ?? [];
   if (!Array.isArray(sizes) || !sizes.every(size => Number.isSafeInteger(size) && size >= 0)) throw new RangeError('Invalid engine blob sizes');
