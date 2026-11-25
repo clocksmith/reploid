@@ -3,9 +3,13 @@ import { requireValue } from './native-host-utils.js';
 /** The standalone host owns the Node provider and the only device in this
  * process. Final close follows resident settlement; stopping contribution alone
  * keeps the provider reusable. No private Doppler imports are needed. */
-export function createNativeGpuHost(loadProvider, { backend = process.platform === 'darwin' ? 'metal' : 'vulkan',
+/** The backend Dawn is asked for. Windows always has Direct3D 12; Vulkan there needs a separately installed loader,
+ * and forcing it left a Windows host with no adapter at all. */
+export const nativeGpuBackend = (platform = process.platform) => platform === 'darwin' ? 'metal' : platform === 'win32' ? 'd3d12' : 'vulkan';
+
+export function createNativeGpuHost(loadProvider, { backend = nativeGpuBackend(),
   loadTooling = () => import('dopplerx/tooling') } = {}) {
-  requireValue(['metal', 'vulkan'].includes(backend), 'Native GPU backend must be metal or vulkan');
+  requireValue(['metal', 'vulkan', 'd3d12'].includes(backend), 'Native GPU backend must be metal, vulkan or d3d12');
   let opening = null, closing = null, restore = null, retirement = null, stopped = false;
   let ownedDevice = null, lost = null, queueSettled = false, queueRejected = false, lossResolved = false, poolDestroyed = false, deviceDestroyed = false;
   // Dawn reports a refused allocation as an uncaptured device error and still returns a buffer object, so a

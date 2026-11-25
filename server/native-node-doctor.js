@@ -5,6 +5,7 @@ import path from 'node:path';
 import bootstrap from '../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import dopplerPin from '../shared/config/doppler-package.json' with { type: 'json' };
 import { installedPackageDirectory } from './native-shader-cache.js';
+import { nativeGpuBackend } from './native-gpu-host.js';
 
 export function readHostMemory() {
   const totalBytes = os.totalmem();
@@ -22,7 +23,7 @@ async function checkRuntime() {
 
 export async function inspectNativeAdapter() {
   const { create } = await import('webgpu');
-  const backend = process.platform === 'darwin' ? 'metal' : 'vulkan';
+  const backend = nativeGpuBackend();
   const gpu = create(['backend=' + backend]);
   const adapter = await gpu.requestAdapter();
   if (!adapter) throw Error(`no ${backend} adapter found; check the GPU driver and the optional webgpu package`);

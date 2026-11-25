@@ -119,3 +119,14 @@ it('latches the first refusal on a device with every line and the bytes then all
   expect(failure).toMatchObject({ failedBufferBytes: 4096, allocatedBeforeFailureBytes: 2048 });
   expect(host.outOfMemory().message.length).toBeLessThanOrEqual(500);
 });
+
+it('asks Dawn for Direct3D 12 on Windows, Metal on macOS and Vulkan elsewhere', async () => {
+  const { nativeGpuBackend, createNativeGpuHost: createHost } = await import('../../server/native-gpu-host.js');
+  expect(['win32', 'darwin', 'linux'].map(nativeGpuBackend)).toEqual(['d3d12', 'metal', 'vulkan']);
+  let asked = null;
+  const host = createHost(async () => ({ globals: {}, create: args => { asked = args; return {}; } }), { backend: 'd3d12' });
+  await host.open();
+  expect(asked).toEqual(['backend=d3d12']);
+  expect(() => createHost(async () => ({}), { backend: 'opengl' })).toThrow('metal, vulkan or d3d12');
+});
+
