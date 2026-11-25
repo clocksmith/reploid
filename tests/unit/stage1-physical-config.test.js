@@ -245,3 +245,58 @@ describe('the command transport', () => {
     await expect(call).rejects.toThrow('exited');
   });
 });
+
+// A Windows stage host. These cases prove what the host file accepts and what is sent to ssh; no Windows machine
+// has run the harness, and how its SSH server passes the command to its shell is not shown here.
+describe('a Windows stage host', () => {
+  const windowsHost = (extra = {}) => host('host-a', 'a', { platform: 'windows', node: 'C:\\tools\\node\\node.exe', releaseRoot: 'C:\\stage1\\release',
+    identityFile: 'C:\\stage1\\state\\identity.json', stateDirectory: 'C:\\stage1\\state\\run', stageDirectory: 'D:\\data\\stage',
+    fullCopyDirectory: 'D:\\data\\full', weightRoots: { model: ['D:\\data\\models'], cache: ['D:\\data\\cache'], temporary: ['D:\\data\\tmp'] },
+    memoryPressure: null, standingService: null, ...extra });
+  const withWindows = (extra = {}) => { const value = config(); value.hosts[0] = windowsHost(extra); return value; };
+
+  it('is accepted beside a POSIX host, and a host without the field is still POSIX', () => {
+    expect(validatePhysicalConfig(withWindows()).hosts[0].platform).toBe('windows');
+    const explicit = config(); explicit.hosts[1].platform = 'posix';
+    expect(validatePhysicalConfig(explicit).hosts[1].platform).toBe('posix');
+    expect(Object.hasOwn(validatePhysicalConfig(config()).hosts[0], 'platform')).toBe(false);
+  });
+
+  it.each([
+    ['an unknown platform', { platform: 'beos' }, 'platform'],
+    ['a POSIX path', { stageDirectory: '/data/a/stage' }, 'stageDirectory'],
+    ['forward slashes after the drive', { stageDirectory: 'D:/data/stage' }, 'stageDirectory'],
+    ['a space in a path', { releaseRoot: 'C:\\Program Files\\release' }, 'releaseRoot'],
+    ['a parent step in a path', { stateDirectory: 'C:\\stage1\\..\\run' }, 'stateDirectory'],
+    ['a trailing separator', { stageDirectory: 'D:\\data\\stage\\' }, 'stageDirectory'],
+    ['a path directly under the drive', { stageDirectory: 'D:\\stage' }, 'stageDirectory'],
+    ['a network share', { stageDirectory: '\\\\server\\share\\stage' }, 'stageDirectory'],
+    ['a shell character in a path', { node: 'C:\\tools\\node%x%\\node.exe' }, 'node'],
+    ['a full copy inside the stage directory in another case', { fullCopyDirectory: 'd:\\DATA\\Stage\\full' }, 'fullCopyDirectory overlaps stageDirectory'],
+    ['a weight root inside the full copy in another case', { weightRoots: { model: ['d:\\data\\FULL\\models'], cache: ['D:\\data\\cache'], temporary: ['D:\\data\\tmp'] } }, 'contains a weight root'],
+    ['a memory guard', { memoryPressure: { maxAvg10: 10, pollMs: 1000 } }, 'memoryPressure is not available on a Windows host'],
+    ['a standing service', { standingService: { manager: 'systemd-user', unit: 'private-worker.service', approveStopForSolo: false } }, 'standingService is not available on a Windows host']
+  ])('refuses %s', (_name, extra, field) => {
+    expect(() => validatePhysicalConfig(withWindows(extra))).toThrow(field);
+  });
+
+  it('refuses a Windows path on a POSIX host and a platform on the requester', () => {
+    const posix = config(); posix.hosts[1].stageDirectory = 'D:\\data\\stage';
+    expect(() => validatePhysicalConfig(posix)).toThrow('stageDirectory');
+    const requester = config(); requester.requester.platform = 'windows';
+    expect(() => validatePhysicalConfig(requester)).toThrow('unknown field');
+  });
+
+  it('sends its command with no quoting, and refuses an argument that would need any', () => {
+    const target = { ssh: 'alias', platform: 'windows' };
+    const args = sshArguments(target, ['C:\\tools\\node\\node.exe', 'C:\\stage1\\release/scripts/stage1/host-agent.js', '--control']);
+    expect(args.at(-2)).toBe('alias');
+    expect(args.at(-1)).toBe('C:\\tools\\node\\node.exe C:\\stage1\\release/scripts/stage1/host-agent.js --control');
+    for (const bad of ['C:\\Program Files\\node.exe', 'a&b', 'a"b', "a'b", '%PATH%', 'a;b', 'a|b', '$(x)', '']) {
+      let message = null;
+      try { sshArguments(target, ['C:\\tools\\node\\node.exe', bad]); } catch (error) { message = error.message; }
+      expect(message).toBe('A Windows host command argument would need quoting');
+    }
+    expect(sshArguments({ ssh: 'alias', platform: 'posix' }, ['/opt/node', '--control']).at(-1)).toBe("'/opt/node' '--control'");
+  });
+});

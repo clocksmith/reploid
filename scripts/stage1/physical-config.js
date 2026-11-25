@@ -11,6 +11,9 @@ export const STAGE1_HOSTS_SCHEMA = 'reploid.stage1-hosts/v1';
 export const STAGE1_HOST_LABELS = Object.freeze(['host-a', 'host-b']);
 const SSH_TARGET = /^[A-Za-z0-9][A-Za-z0-9._-]*(@[A-Za-z0-9][A-Za-z0-9._-]*)?$/;
 const SAFE_PATH = /^\/[A-Za-z0-9._\/ +@=-]*$/;
+// A Windows stage host's paths travel unquoted in its remote command (command-transport.js), so they carry no space.
+const WINDOWS_PATH = /^[A-Za-z]:(\\[A-Za-z0-9._-]+)+$/;
+export const STAGE1_HOST_PLATFORMS = Object.freeze(['posix', 'windows']);
 const MACHINE_ID = /^m-[a-f0-9]{16,64}$/;
 const PARTICIPANT_ID = /^peer:[a-f0-9]{24}$/;
 const SERVICE_UNIT = /^[A-Za-z0-9][A-Za-z0-9_.@-]{0,127}\.service$/;
@@ -25,43 +28,58 @@ const object = (value, field, allowed) => {
   return value;
 };
 const positive = (value, field) => { if (!Number.isSafeInteger(value) || value <= 0) refuse(field); return value; };
-const directoryPath = (value, field) => {
+const directoryPath = (value, field, platform = 'posix') => {
+  if (platform === 'windows') {
+    if (typeof value !== 'string' || !WINDOWS_PATH.test(value) || path.win32.normalize(value) !== value || value.split('\\').length < 3) refuse(field);
+    return value;
+  }
   if (typeof value !== 'string' || !SAFE_PATH.test(value) || path.resolve(value) !== value || value.split('/').length < 3) refuse(field);
   return value;
 };
-const directories = (value, field) => {
+const directories = (value, field, platform = 'posix') => {
   if (!Array.isArray(value)) refuse(field);
-  value.forEach((row, index) => directoryPath(row, `${field}[${index}]`));
+  value.forEach((row, index) => directoryPath(row, `${field}[${index}]`, platform));
   return value;
 };
-const overlaps = (a, b) => a === b || a.startsWith(b + '/') || b.startsWith(a + '/');
+// Windows paths compare without regard to case.
+const inside = (child, parent, platform = 'posix') => (platform === 'windows'
+  ? child.toLowerCase().startsWith(parent.toLowerCase() + '\\') : child.startsWith(parent + '/'));
+const overlaps = (a, b, platform = 'posix') => (platform === 'windows' ? a.toLowerCase() === b.toLowerCase() : a === b)
+  || inside(a, b, platform) || inside(b, a, platform);
 
-function validateTarget(target, field) {
+function validateTarget(target, field, platform = 'posix') {
   if (!MACHINE_ID.test(target.machineId ?? '')) refuse(`${field}.machineId must be opaque`);
   if (!PARTICIPANT_ID.test(target.participantId ?? '')) refuse(`${field}.participantId`);
   if (target.ssh !== null && (typeof target.ssh !== 'string' || !SSH_TARGET.test(target.ssh))) refuse(`${field}.ssh`);
-  for (const key of ['node', 'releaseRoot', 'identityFile', 'stateDirectory']) directoryPath(target[key], `${field}.${key}`);
+  for (const key of ['node', 'releaseRoot', 'identityFile', 'stateDirectory']) directoryPath(target[key], `${field}.${key}`, platform);
 }
 
 function validateHost(host, index) {
   const field = `hosts[${index}]`;
+  // `platform` is optional: a host file without it describes a POSIX host, as every host file did before the field existed.
   object(host, field, ['label', 'machineId', 'participantId', 'ssh', 'node', 'releaseRoot', 'identityFile', 'stateDirectory',
-    'stageDirectory', 'fullCopyDirectory', 'weightRoots', 'memoryPressure', 'standingService']);
+    'stageDirectory', 'fullCopyDirectory', 'weightRoots', 'memoryPressure', 'standingService',
+    ...(host && typeof host === 'object' && Object.hasOwn(host, 'platform') ? ['platform'] : [])]);
+  const platform = Object.hasOwn(host, 'platform') ? host.platform : 'posix';
+  if (!STAGE1_HOST_PLATFORMS.includes(platform)) refuse(`${field}.platform`);
   if (host.label !== STAGE1_HOST_LABELS[index]) refuse(`${field}.label`);
-  validateTarget(host, field);
+  validateTarget(host, field, platform);
   if (host.ssh === null) refuse(`${field}.ssh is required for a stage host`);
-  directoryPath(host.stageDirectory, `${field}.stageDirectory`);
+  directoryPath(host.stageDirectory, `${field}.stageDirectory`, platform);
   object(host.weightRoots, `${field}.weightRoots`, ['model', 'cache', 'temporary']);
-  for (const key of ['model', 'cache', 'temporary']) directories(host.weightRoots[key], `${field}.weightRoots.${key}`);
+  for (const key of ['model', 'cache', 'temporary']) directories(host.weightRoots[key], `${field}.weightRoots.${key}`, platform);
   if (host.fullCopyDirectory !== null) {
-    directoryPath(host.fullCopyDirectory, `${field}.fullCopyDirectory`);
+    directoryPath(host.fullCopyDirectory, `${field}.fullCopyDirectory`, platform);
     for (const key of ['stageDirectory', 'stateDirectory', 'releaseRoot']) {
-      if (overlaps(host.fullCopyDirectory, host[key])) refuse(`${field}.fullCopyDirectory overlaps ${key}`);
+      if (overlaps(host.fullCopyDirectory, host[key], platform)) refuse(`${field}.fullCopyDirectory overlaps ${key}`);
     }
-    if ([...host.weightRoots.model, ...host.weightRoots.cache, ...host.weightRoots.temporary].some(root => root.startsWith(host.fullCopyDirectory + '/'))) {
+    if ([...host.weightRoots.model, ...host.weightRoots.cache, ...host.weightRoots.temporary].some(root => inside(root, host.fullCopyDirectory, platform))) {
       refuse(`${field}.fullCopyDirectory contains a weight root`);
     }
   }
+  // The host agent has no memory reading and no service manager for Windows yet, so a Windows host must not claim either.
+  if (platform === 'windows' && host.memoryPressure !== null) refuse(`${field}.memoryPressure is not available on a Windows host`);
+  if (platform === 'windows' && host.standingService !== null) refuse(`${field}.standingService is not available on a Windows host`);
   // Linux hosts give `maxAvg10` (pressure-stall avg10); macOS hosts give `maxPressureLevel`, the highest kernel
   // memory pressure level (`normal` or `warning`) the run tolerates. null runs the host without a memory guard.
   if (host.memoryPressure !== null) {

@@ -8,10 +8,24 @@ import { createInterface } from 'node:readline';
 
 export const shellQuote = value => `'${String(value).replaceAll("'", "'\\''")}'`;
 
+/**
+ * The command line a host's SSH server receives. A POSIX host gets each argument in single quotes. Windows OpenSSH
+ * hands the line to cmd.exe or PowerShell, and both keep single quotes as part of the word, so a host with
+ * `platform: 'windows'` gets the arguments with no quoting at all, and each must need none in either shell. The
+ * host file's Windows path rule (physical-config.js) keeps paths inside that set.
+ * Not yet run against a real Windows host: how its SSH server passes the line to the shell is still to be seen there.
+ */
+const WINDOWS_PLAIN = /^[A-Za-z0-9_.:\\/-]+$/;
+export function remoteCommand(target, argv) {
+  if (target.platform !== 'windows') return argv.map(shellQuote).join(' ');
+  if (!argv.every(value => typeof value === 'string' && WINDOWS_PLAIN.test(value))) throw new TypeError('A Windows host command argument would need quoting');
+  return argv.join(' ');
+}
+
 /** Credentials travel on standard input, so they never appear in a process list on either machine. */
 export function sshArguments(target, argv, { connectTimeoutSeconds = 15 } = {}) {
   return ['-T', '-o', 'BatchMode=yes', '-o', `ConnectTimeout=${connectTimeoutSeconds}`, '-o', 'ServerAliveInterval=15',
-    '-o', 'ServerAliveCountMax=3', '--', target.ssh, argv.map(shellQuote).join(' ')];
+    '-o', 'ServerAliveCountMax=3', '--', target.ssh, remoteCommand(target, argv)];
 }
 
 export function createSshTransport({ spawn = spawnProcess } = {}) {
