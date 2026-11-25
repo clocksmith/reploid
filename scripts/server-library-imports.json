@@ -16,6 +16,7 @@
     "src/mesh/partitions/partition-generation-request.js",
     "src/mesh/partitions/partition-summary.js",
     "src/mesh/partitions/preparation-owner.js",
+    "src/mesh/protected-generation.js",
     "src/retrieval/disclosure-path.js",
     "src/retrieval/model-reviewer.js",
     "src/retrieval/page-fetch.json",

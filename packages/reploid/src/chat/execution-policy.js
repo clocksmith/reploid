@@ -28,6 +28,8 @@ export const executionError = (code, message) => {
   if (!Object.hasOwn(EXECUTION_ERROR_CODES, code)) throw new Error(`Unknown execution error code ${code}`);
   return Object.assign(new Error(message), { code });
 };
+/** Why requester-only is unavailable. The research protected route stays off until this review is done. */
+export const CONFIDENTIAL_EXECUTION_REVIEW_REASON = 'awaiting independent security review';
 /** Metadata names a caller may allow. Content itself is governed by confidentiality, never by this list. */
 export const EXECUTION_METADATA = Object.freeze(['model-id', 'timing', 'length', 'access-patterns']);
 const metadata = [...EXECUTION_METADATA];
@@ -117,11 +119,32 @@ export function compileExecutionRequirements(execution) {
   if (!shaped) throw invalid('participants must be { kind: "open" }, { kind: "none" } or { kind: "named", ids: [unique ids] }');
   if ((placement === 'local-only') !== (kind === 'none')) throw invalid('local-only placement takes { kind: "none" } participants, and only it does');
   if (confidentiality === 'requester-only') {
-    throw executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
-      'No backend that keeps content from its executors is qualified. Nothing was sent; the request is not retried as readable or local.');
+    throw Object.assign(executionError('CONFIDENTIAL_EXECUTION_UNAVAILABLE',
+      'No backend that keeps content from its executors is qualified. Nothing was sent; the request is not retried as readable or local.'),
+    { reason: CONFIDENTIAL_EXECUTION_REVIEW_REASON });
   }
   return createExecutionPolicy({ placement, recipients: { kind, ids: kind === 'named' ? [...participants.ids] : [] },
     leakage: [...metadata.filter(item => allowMetadata.includes(item)), 'plaintext'] });
+}
+
+/**
+ * The verified policy for a `requester-only` request on a protected protocol. Only the inference API calls this,
+ * and only when its host enabled the unreviewed protected route explicitly; `compileExecutionRequirements` above
+ * still refuses requester-only for every other caller. The shape checks are the readable compiler's own.
+ */
+export function compileProtectedExecutionRequirements(execution, protocol) {
+  if (!exact(execution, ['placement', 'participants', 'confidentiality', 'allowMetadata']) || execution.confidentiality !== 'requester-only') {
+    throw invalid('protected execution compiles requester-only requirements only');
+  }
+  compileExecutionRequirements({ ...execution, confidentiality: 'executor-readable' });
+  if (execution.placement !== 'network-allowed') {
+    throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'Confidential execution runs on a network evaluator; local-only has no protected route. Nothing was sent.');
+  }
+  if (!id(protocol)) throw invalid('protected execution needs a protocol identity');
+  const { participants, allowMetadata } = execution;
+  return createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: participants.kind, ids: participants.kind === 'named' ? [...participants.ids] : [] },
+    computation: 'cryptographic', collusion: 'all-remote', protocol, keyContext: `requester-held-key/${protocol}`,
+    leakage: metadata.filter(item => allowMetadata.includes(item)) });
 }
 
 /** The caller requirements a stored policy stands for. Policies outside the API's vocabulary are refused, never widened. */

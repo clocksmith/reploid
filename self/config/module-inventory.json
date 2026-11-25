@@ -4351,7 +4351,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a2437cb3b25c704fd07b5d5fc3c00fa76b0266b0d3bb56c0ed18dbf32ca8eb6a",
+      "sha256": "sha256:7851c9a68ffe9deda52a996b837b43d7790730927f724acbe80a21a5ea70923a",
       "imports": []
     },
     {
@@ -19003,7 +19003,7 @@
     {
       "path": "vendor/reploid/chat/execution-policy.js",
       "owner": "vendor",
-      "sha256": "sha256:d50ab98b92729b109bd739bd3c14c8c1887cce94588563e501e44b64b7b175cd",
+      "sha256": "sha256:42f454ab14b880b8b34f48086982fc61ba2cb8fa3eba1e61a5cb87636bf754eb",
       "imports": [
         "../artifacts/signatures.js",
         "../contracts/partition.js"
@@ -19222,7 +19222,7 @@
     {
       "path": "vendor/reploid/inference/contract.js",
       "owner": "vendor",
-      "sha256": "sha256:92c5a8c388b5e11113a71e8230951d0d2182dcdd523c3d2fb298723f69ccb203",
+      "sha256": "sha256:e182628cfb590423547f981d34e6e1bd5d9afd03ad75c269d63e292210221a37",
       "imports": [
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",
@@ -19232,10 +19232,22 @@
     {
       "path": "vendor/reploid/inference/index.js",
       "owner": "vendor",
-      "sha256": "sha256:96bee2b1e84ad4b8a33c29140894e53c70ed484b4882378489d982cd86ef4177",
+      "sha256": "sha256:712552b05c651003517598cac1fb513492f9b8f0b9b99979a7b510593f2dc4bc",
       "imports": [
         "../artifacts/signatures.js",
-        "./contract.js"
+        "./contract.js",
+        "./protected.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/inference/protected.js",
+      "owner": "vendor",
+      "sha256": "sha256:fd26d5d1badd45069b17040f29c6d24cbc628e96b75ef73708abfb665a491a61",
+      "imports": [
+        "../artifacts/identity.js",
+        "../artifacts/signatures.js",
+        "../chat/execution-policy.js",
+        "../mesh/protected-generation.js"
       ]
     },
     {
@@ -19838,6 +19850,17 @@
       "owner": "vendor",
       "sha256": "sha256:e96c88f01937c04990a4519e7ee67b4c033e51dc9e83026d4821d3f0d6410edd",
       "imports": []
+    },
+    {
+      "path": "vendor/reploid/mesh/protected-generation.js",
+      "owner": "vendor",
+      "sha256": "sha256:8b8e37f49229a58686ed32ea57dcdc52a141adbf30c94913b262b97b7f06c8bc",
+      "imports": [
+        "../artifacts/canonical-json.js",
+        "../artifacts/identity.js",
+        "../artifacts/signatures.js",
+        "../chat/execution-policy.js"
+      ]
     },
     {
       "path": "vendor/reploid/mesh/provider-hardware.js",

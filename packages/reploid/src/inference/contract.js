@@ -9,7 +9,7 @@ import { hashJson } from '../artifacts/signatures.js';
 import { canonicalPartitionJson } from '../contracts/partition.js';
 import {
   EXECUTION_ERROR_CODES, EXECUTION_METADATA, executionError, executionBackend,
-  compileExecutionRequirements, narrowsExecutionPolicy
+  compileExecutionRequirements, compileProtectedExecutionRequirements, narrowsExecutionPolicy
 } from '../chat/execution-policy.js';
 
 export { EXECUTION_ERROR_CODES, executionError };
@@ -49,7 +49,7 @@ export function validateModelPin(model) {
 }
 
 /** prepare() input. It takes no prompts, tools or prompt hashes: only the pin, limits and requirements. */
-export function validatePrepareRequest(input) {
+export function validatePrepareRequest(input, { protectedProtocol = null } = {}) {
   if (!object(input)) throw invalid('prepare needs { model, generation?, execution }');
   onlyKeys(input, ['model', 'generation', 'execution'], 'prepare (it takes no prompts, tools or prompt hashes)');
   const model = validateModelPin(input.model);
@@ -63,7 +63,12 @@ export function validatePrepareRequest(input) {
   }
   if (!object(input.execution)) throw invalid('execution requirements are required');
   const execution = structuredClone(input.execution);
-  // Refusals (CONFIDENTIAL_EXECUTION_UNAVAILABLE, EXECUTION_REQUEST_INVALID) come from the one compiler.
+  // Only a host that enabled the unreviewed protected route passes `protectedProtocol`; then requester-only compiles
+  // to the protected policy. Every other refusal (CONFIDENTIAL_EXECUTION_UNAVAILABLE, EXECUTION_REQUEST_INVALID)
+  // comes from the one compiler.
+  if (protectedProtocol !== null && execution.confidentiality === 'requester-only') {
+    return freezeDeep({ model, generation, execution, policy: compileProtectedExecutionRequirements(execution, protectedProtocol), protected: true });
+  }
   const policy = compileExecutionRequirements(execution);
   return freezeDeep({ model, generation, execution, policy });
 }

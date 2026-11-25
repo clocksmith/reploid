@@ -17,6 +17,8 @@ export interface PrepareRequest { model: ModelPin; generation?: { maxOutputToken
 export interface RunRequest { planId: string; requestId: string; input: { messages: Array<{ role: string; content: string; [key: string]: unknown }> } }
 export interface ValidatedPrepareRequest {
   model: Required<ModelPin>; generation: { maxOutputTokens: number | null }; execution: ExecutionRequirements; policy: ExecutionPolicy;
+  /** Set only when the host enabled the unreviewed protected route and the request is requester-only. */
+  protected?: true;
 }
 export interface InferenceRoute {
   id: string; schema: 'reploid.inference-route/v1'; shape: RouteShape; selection: RouteSelection; participants: string[];
@@ -55,7 +57,7 @@ export type InferenceEvent =
   | { type: 'completed' | 'cancelled' | 'failed'; result: InferenceResult };
 
 export declare function validateModelPin(model: unknown): Required<ModelPin>;
-export declare function validatePrepareRequest(input: unknown): ValidatedPrepareRequest;
+export declare function validatePrepareRequest(input: unknown, options?: { protectedProtocol?: string | null }): ValidatedPrepareRequest;
 export declare function validateRunRequest(input: unknown): { planId: string; requestId: string; messages: RunRequest['input']['messages'] };
 export interface RouteCandidate { shape: RouteShape; backend: string; participants?: string[]; selection?: RouteSelection; maxCharge?: ChargeCeiling | null; planIdentity?: string | null }
 export declare function describeRoute(candidate: RouteCandidate, model: Required<ModelPin>): Promise<{ route: InferenceRoute; maxCharge: ChargeCeiling | null }>;

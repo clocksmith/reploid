@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 395,
     "self": 457,
-    "shared": 2514
+    "shared": 2518
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16771,6 +16771,16 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/inference/protected.d.ts",
+      "source": "shared/vendor/reploid/inference/protected.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/protected.js",
+      "source": "shared/vendor/reploid/inference/protected.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/measurement/capacity-utilization.js",
       "source": "shared/vendor/reploid/measurement/capacity-utilization.js",
       "owner": "shared"
@@ -17343,6 +17353,16 @@
     {
       "served": "vendor/reploid/mesh/preparation-progress.js",
       "source": "shared/vendor/reploid/mesh/preparation-progress.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/protected-generation.d.ts",
+      "source": "shared/vendor/reploid/mesh/protected-generation.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/protected-generation.js",
+      "source": "shared/vendor/reploid/mesh/protected-generation.js",
       "owner": "shared"
     },
     {

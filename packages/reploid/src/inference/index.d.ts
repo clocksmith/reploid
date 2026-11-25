@@ -1,6 +1,8 @@
 import type { ExecutionPolicy } from '../chat/execution-policy.js';
 import type { ExecutionPlan, PrepareRequest, RunRequest, RouteCandidate, InferenceEvent, InferenceResult, AdmittedRoute, ValidatedPrepareRequest } from './contract.js';
 export * from './contract.js';
+export { createProtectedExecution, PROTECTED_EXECUTION_STATUS, protectedDisclosures } from './protected.js';
+import type { ProtectedExecution } from './protected.js';
 
 export interface InferenceJob {
   plan: ExecutionPlan & { execution: PrepareRequest['execution']; generation: { maxOutputTokens: number | null }; policyId: string };
@@ -17,6 +19,9 @@ export interface InferencePorts {
   resolveRoute(request: ValidatedPrepareRequest, options: { signal?: AbortSignal; context?: unknown }): RouteCandidate | Promise<RouteCandidate>;
   execute(job: InferenceJob, controls: InferenceControls, context?: unknown): Promise<unknown>;
   now?: () => number; planTtlMs?: number; randomId?: () => string;
+  /** Used only with `unreviewedProtectedExecution: true`; both are off by default. */
+  protectedExecution?: ProtectedExecution | null;
+  unreviewedProtectedExecution?: boolean;
 }
 export interface InferenceRun {
   requestId: string; attemptId: string; planId: string;

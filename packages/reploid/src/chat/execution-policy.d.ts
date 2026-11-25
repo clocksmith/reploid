@@ -30,6 +30,8 @@ export interface ExecutionRequirements {
   allowMetadata: ExecutionMetadata[];
 }
 export declare function compileExecutionRequirements(execution: ExecutionRequirements): ExecutionPolicy;
+export declare const CONFIDENTIAL_EXECUTION_REVIEW_REASON: 'awaiting independent security review';
+export declare function compileProtectedExecutionRequirements(execution: ExecutionRequirements, protocol: string): ExecutionPolicy;
 export declare function executionRequirementsFor(policy: ExecutionPolicy): ExecutionRequirements;
 export declare function narrowsExecutionPolicy(base: ExecutionPolicy, narrowed: ExecutionPolicy): boolean;
 export declare function createExecutionPolicy(overrides?: Partial<ExecutionPolicy>): ExecutionPolicy;
