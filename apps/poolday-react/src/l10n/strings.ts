@@ -171,8 +171,6 @@ export const strings = {
     title: 'Settings',
     appearance: 'Appearance',
     system: 'System',
-    noModel: 'No model',
-    waitingFor: 'Waiting for a computer running',
     light: 'Light',
     dark: 'Dark',
     privacy: 'Privacy',
