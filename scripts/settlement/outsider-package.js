@@ -112,11 +112,13 @@ that, the verifier says so in a note.
 ## Where the verifier comes from
 
 \`verifier/\` is \`${ENTRY}\` and every file it imports, copied unchanged from the public repository
-https://github.com/clocksmith/reploid at commit \`${commit}\`. To use your own copy of the repository instead:
+https://github.com/clocksmith/reploid at commit \`${commit}\`. To check with your own copy of that commit
+instead (this needs git, and downloads that one commit only, not the repository's history):
 
 \`\`\`
-git clone https://github.com/clocksmith/reploid
-git -C reploid checkout ${commit}
+git init reploid
+git -C reploid fetch --depth 1 https://github.com/clocksmith/reploid ${commit}
+git -C reploid checkout --quiet FETCH_HEAD
 node verify.mjs --verifier reploid
 \`\`\`
 `;
