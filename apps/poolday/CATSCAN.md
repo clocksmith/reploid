@@ -22,8 +22,10 @@ Inputs:
 
 Outputs:
 - replo.id routes through [index.html](index.html) and the [product bundle](ui/pool-home/app.bundle.js).
+- `/design` through [design.html](design.html): the design system page, built from `@reploid/poolday-ui` ([contract](../../docs/poolday-ui-architecture.md)).
 
 ## Invariants
+- New and migrated screens compose `@reploid/poolday-ui` only (React, [apps/poolday-react](../poolday-react)); the legacy vanilla UI may only shrink.
 - A route resolves to one declared surface and authority profile.
 - Recovery state and mutable state remain distinguishable.
 - Browser-local claims and UI labels cannot imply stronger evidence than the underlying record.
@@ -32,7 +34,7 @@ Outputs:
 
 ## Acceptance
 - Routes boot, render and keep their boundaries.
-- Evidence: [browser boot test](../../tests/e2e/boot.spec.js), [UI tests](../../tests/unit/production-surface.test.js), [CSS verification](../../scripts/verify-poolday-css-layers.js) and [boundary check](../../scripts/verify-browser-boundaries.js).
+- Evidence: [browser boot test](../../tests/e2e/boot.spec.js), [UI tests](../../tests/unit/production-surface.test.js), [CSS verification](../../scripts/verify-poolday-css-layers.js), [boundary check](../../scripts/verify-browser-boundaries.js) and the [design-system check](../../scripts/check-poolday-ui-boundaries.mjs).
 
 ## Non-goals
 - Making substrate capabilities visible in the product.

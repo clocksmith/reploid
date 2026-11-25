@@ -78,3 +78,26 @@ jobs:
           npm run verify:browser-bundle:local
       - run: npm run build:browser-bundle
       - run: npm run package:hosting
+
+  design-system:
+    # The Poolday UI uses only @reploid/poolday-ui: no raw elements, ad hoc styles or forbidden
+    # imports outside the design system, tokens only, a framework-free API bridge, and a legacy
+    # count that only goes down. Deterministic and fast; it runs no browser.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
+      - name: Install test parser
+        run: |
+          ROLLUP_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@rollup/rollup-linux-x64-gnu'].version")
+          npm install --no-save --ignore-scripts --omit=optional --no-audit --no-fund "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
+      - run: npm run verify:poolday-ui
+      - run: npm run verify:pool:css
+      - run: npm run test:poolday-ui

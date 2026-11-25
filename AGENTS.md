@@ -33,6 +33,44 @@ Where each surface keeps its owner docs (a lookup, not a reading list):
 - **Zero / X operational discipline:** Diagnose Zero behavior from process parentage, provider status, VFS state, tool logs, and resume state. All agent-generated changes must pass the Verification Worker sandbox and preserve Genesis Kernel rollback. Governed self-improvement (L0–L4) follows [INTENT.md](INTENT.md) and [rsi-improvement-episodes.md](docs/rsi-improvement-episodes.md); model or Arena scoring never grants activation permission.
 - **Symbols:** Enforce [`docs/EMOJI.md`](docs/EMOJI.md); use only approved Unicode symbols, no emojis.
 
+## Poolday design system
+
+Poolday UI code composes `@reploid/poolday-ui` components only. The full contract and the
+assessment behind it are in [docs/poolday-ui-architecture.md](docs/poolday-ui-architecture.md).
+
+- **One library.** `packages/poolday-ui` (import `@reploid/poolday-ui`, nothing deeper) is the
+  design system. Its components render the primitive classes in
+  `apps/poolday/styles/poolday/primitives/*.css` over `tokens.css`; those stylesheets are the
+  implementation and the single source of every value. No second component set, no page CSS.
+- **Layers** (`apps/poolday-react/src`, checked by `scripts/poolday-ui-architecture.json`):
+
+  | Layer | Path | May import |
+  | --- | --- | --- |
+  | ui | `packages/poolday-ui/src/` | ui, `react` |
+  | domain | `features/<f>/domain/` | domain |
+  | infrastructure | `features/<f>/infrastructure/` | domain, platform globals, the API bridge's public entries and `apps/poolday/host/` |
+  | presentation | `features/<f>/presentation/` | ui, domain, application, l10n, React hooks and types |
+  | composition | `app/`, `main-*.tsx` | everything, `react-dom/client`, platform globals |
+  | l10n | `l10n/` | l10n |
+
+  Features never import each other; the composition layer joins them.
+- **Rules.** Outside `packages/poolday-ui`: no HTML elements (so no raw `button`, `input`,
+  `select`, `textarea` or `a`), no `className`, `style` or `dangerouslySetInnerHTML`, no
+  literal colours, sizes or durations. Inside it: values come from tokens, and `style` may set
+  only `--pool-param-*`. Pick choice controls by the decision (style guide table): exactly one
+  is `SingleChoice`, several is `MultiChoice`, on/off is `Toggle`.
+- **The API bridge stays pure.** `packages/reploid/src` has no React, JSX, DOM rendering or
+  presentation state, and every public entry has `.d.ts` types. Only infrastructure adapts it.
+- **Adding a primitive.** Add the component to `packages/poolday-ui/src` and export it from
+  `index.ts`; put any new look in a primitives stylesheet using tokens (`npm run verify:pool:css`);
+  add it to `PRIMITIVE_ORDER` in `scripts/build-poolday-design-index.mjs`, a specimen in
+  `apps/poolday-react/src/features/design/presentation/primitiveSpecimens.tsx` and an interaction
+  and accessibility test in `tests/unit/poolday-ui/components.test.tsx`; then
+  `npm run build:browser-bundle`. It appears on `/design` with its tokens and compositions.
+- **Checks.** `npm run verify:poolday-ui` (boundaries, the legacy ratchet, the design index,
+  types; part of `npm run lint` and the CI `design-system` job) and `npm run test:poolday-ui`.
+  The ratchet (`scripts/poolday-ui-ratchet.json`) counts the legacy vanilla UI and may only go down.
+
 ## Run and verify
 
 - `npm start` starts the local application; `npm run start:signaling` starts the

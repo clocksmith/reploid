@@ -1,0 +1,117 @@
+{
+  "origin": "Adapted from clocksmith/react-starter tool/architecture.json at cd07713; layers renamed to Reploid's layout.",
+  "sourceRoots": ["packages/poolday-ui/src", "apps/poolday-react/src"],
+  "extensions": [".ts", ".tsx"],
+  "workspacePackages": {
+    "@reploid/poolday-ui": {
+      "root": "packages/poolday-ui",
+      "layer": "ui",
+      "entries": ["."],
+      "dependencies": [],
+      "peerDependencies": ["react", "react-dom"]
+    }
+  },
+  "layers": {
+    "ui": {
+      "paths": ["^packages/poolday-ui/src/"],
+      "dependsOn": ["ui"],
+      "packages": ["react"],
+      "markup": true,
+      "platform": true,
+      "styleParams": true
+    },
+    "domain": {
+      "paths": ["^apps/poolday-react/src/features/[^/]+/domain/"],
+      "dependsOn": ["domain"],
+      "packages": []
+    },
+    "application": {
+      "paths": ["^apps/poolday-react/src/features/[^/]+/application/"],
+      "dependsOn": ["domain", "application"],
+      "packages": []
+    },
+    "infrastructure": {
+      "paths": ["^apps/poolday-react/src/features/[^/]+/infrastructure/"],
+      "dependsOn": ["domain", "infrastructure"],
+      "packages": [],
+      "platform": true,
+      "bridge": true
+    },
+    "presentation": {
+      "paths": ["^apps/poolday-react/src/features/[^/]+/presentation/"],
+      "dependsOn": ["ui", "domain", "application", "presentation", "l10n"],
+      "packages": ["react"],
+      "reactSymbols": [
+        "createContext",
+        "useCallback",
+        "useContext",
+        "useEffect",
+        "useId",
+        "useMemo",
+        "useReducer",
+        "useRef",
+        "useState",
+        "useSyncExternalStore",
+        "ReactNode"
+      ]
+    },
+    "composition": {
+      "paths": ["^apps/poolday-react/src/app/", "^apps/poolday-react/src/main-[a-z-]+\\.tsx$"],
+      "dependsOn": ["ui", "domain", "application", "infrastructure", "presentation", "composition", "l10n"],
+      "packages": ["react", "react-dom/client"],
+      "platform": true,
+      "reactSymbols": [
+        "StrictMode",
+        "createContext",
+        "useCallback",
+        "useContext",
+        "useEffect",
+        "useMemo",
+        "useRef",
+        "useState",
+        "useSyncExternalStore",
+        "ReactNode"
+      ]
+    },
+    "l10n": {
+      "paths": ["^apps/poolday-react/src/l10n/"],
+      "dependsOn": ["l10n"],
+      "packages": []
+    }
+  },
+  "bridge": {
+    "root": "packages/reploid/src",
+    "manifest": "packages/reploid/package.json",
+    "hostRoots": ["apps/poolday/host/", "apps/poolday/pool/"],
+    "legacyDecisionModules": [
+      "apps/poolday/ui/pool-home/conversation-model-picker.js",
+      "apps/poolday/ui/components/model-select.js",
+      "apps/poolday/ui/pool-home/privacy-controls.js",
+      "apps/poolday/ui/pool-home/message-list.js"
+    ],
+    "forbiddenPackages": ["react", "react-dom", "@reploid/poolday-ui"],
+    "forbiddenMembers": ["innerHTML", "outerHTML", "insertAdjacentHTML"],
+    "forbiddenGlobals": ["document", "HTMLElement", "customElements"]
+  },
+  "platformGlobals": [
+    "window",
+    "document",
+    "navigator",
+    "location",
+    "history",
+    "localStorage",
+    "sessionStorage",
+    "indexedDB",
+    "caches",
+    "fetch",
+    "XMLHttpRequest",
+    "WebSocket",
+    "EventSource",
+    "crypto",
+    "process",
+    "matchMedia",
+    "requestAnimationFrame"
+  ],
+  "markupAttributes": ["className", "style", "dangerouslySetInnerHTML"],
+  "literalPattern": "#[0-9a-fA-F]{3,8}\\b|\\b(?:rgba?|hsla?|oklch|oklab|lab|lch|color-mix)\\(|(?<![\\w.])-?\\d*\\.?\\d+(?:px|rem|em|ms|vh|vw|dvh|svh|lvh|pt)\\b"
+}

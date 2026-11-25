@@ -127,6 +127,7 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 
 - **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Current Poolday runtime, peer, coordinator, and deployment contract
 - **[docs/poolday/claims-and-nonclaims.md](./poolday/claims-and-nonclaims.md)** - Poolday claim boundary
+- **[docs/poolday-ui-architecture.md](./poolday-ui-architecture.md)** - React Poolday UI: the `@reploid/poolday-ui` design system, layers, the checks that keep the UI to its components, and the assessment behind it
 - **[docs/poolday-panel-audit.md](./poolday-panel-audit.md)** - Audit of Poolday panels, dialogs and choice controls, and the choice primitives that replaced them
 - **[docs/poolday/threat-model.md](./poolday/threat-model.md)** - Poolday adversaries, trust boundaries, and evidence
 - **[docs/poolday/receipt-schema.md](./poolday/receipt-schema.md)** - Provider receipts and requester acceptances
