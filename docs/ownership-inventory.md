@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 397 |
+| apps/poolday | 399 |
 | self | 457 |
 | shared | 2519 |
-| total | 3373 |
+| total | 3375 |
 
 Every file lives in its owner's root.
 
@@ -417,6 +417,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/chat-view.js` | `apps/poolday/host/chat-view.js` | apps/poolday | Reached only from product entries. |
 | `host/circle-http-client.js` | `apps/poolday/host/circle-http-client.js` | apps/poolday | Reached only from product entries. |
 | `host/circle-invites.js` | `apps/poolday/host/circle-invites.js` | apps/poolday | Reached only from product entries. |
+| `host/coalesced-refresh.js` | `apps/poolday/host/coalesced-refresh.js` | apps/poolday | Reached only from product entries. |
 | `host/computer-preferences.js` | `apps/poolday/host/computer-preferences.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `apps/poolday/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-resume.js` | `apps/poolday/host/contribution-resume.js` | apps/poolday | Reached only from product entries. |
@@ -833,6 +834,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/account-panel.js` | `apps/poolday/ui/pool-home/account-panel.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/account-sign-in.js` | `apps/poolday/ui/pool-home/account-sign-in.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/agent-network.js` | `apps/poolday/ui/pool-home/agent-network.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/answer-choice.js` | `apps/poolday/ui/pool-home/answer-choice.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/app.bundle.js` | `apps/poolday/ui/pool-home/app.bundle.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/capability-controls.js` | `apps/poolday/ui/pool-home/capability-controls.js` | apps/poolday | Reached only from product entries. |

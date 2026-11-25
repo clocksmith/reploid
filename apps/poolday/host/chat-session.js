@@ -142,7 +142,11 @@ export function createChatSession({
     }
   };
   startObservation('pending');
-  const discoveryPhase = network => {
+  // Discovery has seen enough once a computer advertises a model it serves over an open channel: from then on
+  // "Finding computers…" would only hide a computer that can answer. The 8 s window stays the bound when no
+  // advertisement comes; if the only one goes away inside the window, absence is not yet known and it searches again.
+  const servedEvidence = catalog => catalog.some(model => ['ready', 'busy'].includes(model.networkAvailability));
+  const discoveryPhase = (network, catalog = []) => {
     const transport = network.introductionState ?? network.consumer?.connectionState;
     // Bind the observation window to continuous introductions. A surviving data
     // channel can still serve requests when the introduction service is down.
@@ -151,7 +155,7 @@ export function createChatSession({
     const stage = network.paused ? 'paused' : transport === 'connected' ? 'connected' : failed ? 'interrupted' : 'pending';
     if (stage !== observationState) startObservation(stage);
     if (stage === 'interrupted' || stage === 'paused') return stage;
-    if (!peerDiscoveryTimedOut) return 'searching';
+    if (!peerDiscoveryTimedOut && !(stage === 'connected' && servedEvidence(catalog))) return 'searching';
     return stage === 'connected' ? 'observed' : 'interrupted';
   };
   const acquisition = createModelAcquisition({ onChange: () => notifyAll() });
@@ -397,7 +401,7 @@ export function createChatSession({
       })).filter(entry => entry.cells.length),
       defaultModels,
       defaultModel: defaultModels.auto || preferred(catalog) || null,
-      discoveryPhase: discoveryPhase(network), discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: zeroRequesterWeights ? ZERO_WEIGHT_NOTICE : acquisition.supportError(), zeroRequesterWeights,
+      discoveryPhase: discoveryPhase(network, catalog), discovering, peerDiscoveryTimedOut, acquisition: acquisition.getState(), localDownloadIssue: zeroRequesterWeights ? ZERO_WEIGHT_NOTICE : acquisition.supportError(), zeroRequesterWeights,
       localModel: execution.getLocalState(),
       network,
       computerUsage: projectComputerUsage({ threads: wsState.threads, network,

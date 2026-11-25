@@ -617,3 +617,37 @@ it('bounds stalled discovery and starts a new healthy observation window after r
     expect(phase()).toBe('paused');
   } finally { await session.close(); vi.useRealTimers(); }
 });
+
+it('settles discovery on the first served-model advertisement instead of waiting out the window, within the same bound', async () => {
+  vi.useFakeTimers();
+  const model = CANONICAL_CHAT_MODELS[1];
+  const served = { peerId: 'served', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true,
+    availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 };
+  const link = (id, phase, channelState) => ({ id, phase, channelState, iceState: channelState === 'open' ? 'connected' : 'checking' });
+  const network = { introductionState: 'connected', connections: [], consumer: { connectionState: 'connected', peers: [] } };
+  const session = createChatSession({ storage: storage(), service: createChatTestService(), models: [model],
+    swarm: { getState: () => network, connect: async () => {} } });
+  try {
+    const phase = () => session.getState().discoveryPhase;
+    expect(phase()).toBe('searching');
+    // An open channel without a model advertisement, or an advertisement without an open channel, is not evidence.
+    network.connections = [link('served', 'connected', 'open')];
+    vi.advanceTimersByTime(1000);
+    expect(phase()).toBe('searching');
+    network.consumer.peers = [served]; network.connections = [link('served', 'negotiating', 'connecting')];
+    expect(phase()).toBe('searching');
+    // Both: settled at 1.5 s, not after the 8 s window.
+    vi.advanceTimersByTime(500);
+    network.connections = [link('served', 'connected', 'open')];
+    expect(session.getState().models[0].networkAvailability).toBe('ready');
+    expect(phase()).toBe('observed');
+    // The only advertisement goes away inside the window: absence is not known yet, so it searches until the bound.
+    network.consumer.peers = [];
+    expect(phase()).toBe('searching');
+    vi.advanceTimersByTime(6500);
+    expect(phase()).toBe('observed');
+    // Without signaling, an advertisement does not end an interruption.
+    network.consumer.peers = [served]; network.introductionState = 'retrying';
+    expect(phase()).toBe('interrupted');
+  } finally { await session.close(); vi.useRealTimers(); }
+});

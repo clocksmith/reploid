@@ -22,6 +22,7 @@ import { startingLocalModel } from './choice-availability.js';
 import { canDownloadModelHere, contributorBlock, localFitText, locationForModel, modelForLocation, recoverySharedModel, updateConversationModelPicker } from './conversation-model-picker.js';
 import { escapeHtml } from '../components/attachments.js';
 import { remotePermissionText, remotePermissionWording } from './remote-permission.js';
+import { answerChoiceOf, findAnswerChoice, readAnswerChoice, writeAnswerChoice } from './answer-choice.js';
 export { renderConversationWorkspace } from './conversation-view.js';
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
@@ -39,7 +40,8 @@ export const creditCapText = model => {
 };
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 
-export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null, historyHandover = null } = {}) {
+export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector, webSearch = null, search = null, historyHandover = null,
+  choiceStorage = null } = {}) {
   const container = root.querySelector('[data-chat-workspace]');
   if (!container || !session) return () => {};
   const surface = container.closest('.pool-home');
@@ -69,6 +71,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
   const localPolicy = createExecutionPolicy();
+  // The model and computer last chosen in "Answer on" (answer-choice.js). New thread and a reload start from it;
+  // a paired desktop or an invite still decides a new conversation's computer. `provisionalChoice` marks a
+  // remembered model not yet seen served or stored: it is kept through the bounded discovery wait, then dropped.
+  let rememberedChoice = chosenModel ? null : readAnswerChoice(choiceStorage), provisionalChoice = false;
+  if (rememberedChoice?.route && viewState.privacy === undefined && !viewState.privacyTouched) {
+    const device = rememberedChoice.route === 'device';
+    viewState.privacy = device ? localPolicy
+      : createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
+    if (!device) viewState.privacyPreset = 'standard';
+    executionLocation = viewState.executionLocation = device ? 'local' : 'network';
+  }
+  const rememberChoice = (model, privacy, location) => writeAnswerChoice(choiceStorage, model,
+    location === 'local' || privacy?.placement === 'local-only' ? 'device' : privacy?.recipients?.kind === 'open' ? 'contributors' : null);
   const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy) ?? localPolicy;
   const currentPolicy = explicitPrivacy;
   const privacyNode = find('[data-privacy-dialog]'), privacyTrigger = find('[data-open-privacy]');
@@ -141,6 +156,31 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       if (model) chosenModel = viewState.chosenModel = model;
     }
   };
+  const choiceAvailable = (model, state) => {
+    const execution = modelExecutionState(model, effectiveLocation(state));
+    return execution.usable || ['loading', 'preparing'].includes(execution.status);
+  };
+  // Discovery may settle on the first computer to advertise; a remembered model from a slower one still has until
+  // the observation window ends. An interrupted or paused network is not evidence that nothing serves it.
+  const choiceWaitOver = state => state.peerDiscoveryTimedOut === true && state.discoveryPhase === 'observed';
+  const applyRememberedChoice = state => {
+    if (state.activeThread) return;
+    if (rememberedChoice && !chosenModel && !viewState.draftModel) {
+      const model = findAnswerChoice(rememberedChoice, state.models);
+      if (model) { chosenModel = viewState.chosenModel = model; provisionalChoice = true; rememberedChoice = null; }
+      else if (choiceWaitOver(state)) rememberedChoice = null;
+    }
+    if (!provisionalChoice) return;
+    const current = chosenModel && findAnswerChoice(answerChoiceOf(chosenModel), state.models);
+    if (current && choiceAvailable(current, state)) { chosenModel = viewState.chosenModel = current; provisionalChoice = false; }
+    else if (!chosenModel || choiceWaitOver(state) && !input.value.trim() && !files.length) {
+      chosenModel = viewState.chosenModel = null; provisionalChoice = false;
+    }
+  };
+  // While a remembered model may still be advertised, the composer reads as searching for it, not as absent:
+  // Send waits for it as it would during discovery.
+  const withChoiceWait = state => provisionalChoice && !state.activeThread && state.discoveryPhase === 'observed' && !choiceWaitOver(state)
+    ? { ...state, discoveryPhase: 'searching' } : state;
   const pairedDesktopSummary = state => {
     const destination = lockedDestination(state), privacy = explicitPrivacy(state);
     if (!destination || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
@@ -345,9 +385,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (attachmentReader.pending || recoverySelection && !matchesRecovery(snapshot)) find('[data-change-model]').disabled = true;
   };
   const render = snapshot => {
-    const state = withComputerLabels(snapshot, session);
+    let state = withComputerLabels(snapshot, session);
     if (controller.signal.aborted) return;
     applyPairedDesktopDefault(state);
+    applyRememberedChoice(state);
+    state = withChoiceWait(state);
     if (selectedId !== state.selectedId) {
       pickerRevision++;
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; attachmentReader.reset();
@@ -395,7 +437,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const phase = state.discoveryPhase;
     const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
     const freshVisitor = !thread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
-    const publicCanAnswer = freshVisitor && modelExecutionState(selectedModel, 'network').usable;
+    // Discovery settles on the first advertisement, which may be for another model than the one this device would
+    // start with; a Contributors tap in the sheet follows to a model they serve, so a public computer can answer.
+    const publicCanAnswer = freshVisitor && (modelExecutionState(selectedModel, 'network').usable
+      || catalogModels.some(model => !model.fleet && !model.partition && modelExecutionState(model, 'network').usable));
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
       && location !== 'network' && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel)
       && !publicCanAnswer && (phase === 'observed' || (location === 'local' && (!freshVisitor || exhausted)));
@@ -736,9 +781,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').checked = false; find('[data-show-active]').checked = true; setThreads(false); render(session.getState()); input.focus(); }));
+  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false });
+    // A new thread starts on the model chosen last, once the catalog still lists it as served or stored for this computer.
+    if (chosenModel) rememberedChoice = answerChoiceOf(chosenModel);
+    chosenModel = null; provisionalChoice = false; viewState.chosenModel = null; archived = false; find('[data-show-archived]').checked = false; find('[data-show-active]').checked = true; setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
-  on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
+  on('[data-active-model-select]', 'change', () => { const state = session.getState();
+    chosenModel = (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel;
+    rememberedChoice = null; provisionalChoice = false; if (!state.activeThread) rememberChoice(chosenModel, explicitPrivacy(state), effectiveLocation(state));
+    render(state); input.focus(); });
   // Download to this device from the sheet. From Contributors the sheet stays open and moves to this device when stored;
   // from this device the reviewed download opens in its own dialog.
   const downloadHere = () => {
@@ -843,9 +894,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
           if (controller.signal.aborted || selectedId !== destination) return;
         }
         viewState.privacy = privacy;
-        chosenModel = model; viewState.chosenModel = chosenModel;
+        chosenModel = model; viewState.chosenModel = chosenModel; rememberedChoice = null; provisionalChoice = false;
         executionLocation = location;
         viewState.executionLocation = executionLocation;
+        rememberChoice(model, privacy, location);
         modelSelect.value = next; picker.close(); render(session.getState()); input.focus();
         resumeAfterChoice();
       } finally {
@@ -1023,7 +1075,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     void act(async () => { await applyDestination(key); render(session.getState()); input.focus(); });
   });
   on('[data-queue-send]', 'click', () => {
-    const state = session.getState(), location = effectiveLocation(state);
+    const state = withChoiceWait(session.getState()), location = effectiveLocation(state);
     const model = state.models?.find(item => modelKey(item) === modelSelect.value);
     if (!input.value.trim() || state.discoveryPhase !== 'searching' || !canWaitForPublicModel(state, model, location)
       || modelExecutionState(model, location).usable) return;
@@ -1033,7 +1085,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-cancel-queued-send]', 'click', () => { queuedSend = null; render(session.getState()); });
   on('[data-composer-form]', 'submit', event => { event.preventDefault(); submitDraft(); });
   function submitDraft(intent = null) {
-    const draftText = input.value, content = draftText.trim(), state = session.getState();
+    const draftText = input.value, content = draftText.trim(), state = withChoiceWait(session.getState());
     if (!content || attachmentReader.pending || submitting || (state.runningIds || []).includes(state.selectedId)) return;
     if (intent ? !readyForQueuedSend(state, intent) : find('[data-composer-send]').disabled) return;
     const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);

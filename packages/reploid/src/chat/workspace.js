@@ -16,6 +16,11 @@ import failureMessages from '../transport/partition-errors.json' with { type: 'j
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
+// A streaming answer changes once per token, and every notification copies the whole history for each observer,
+// so its cost grows with the history. Between checkpoints, observers hear of new text at most once per this
+// interval, or twice the time the last notification took when that is longer, so a loaded page keeps time for
+// its other work. The first character, checkpoints, terminal states and every other change notify at once.
+const STREAM_NOTIFY_MS = 50;
 const activeStatuses = new Set(['queued', 'loading', 'executing', 'approval', 'cancelling']);
 // Disclosures whose durable output the requester's transaction owner publishes.
 const publishedDisclosures = new Set(['partition-activations-and-tokens', 'ordered-partition-activations-and-tokens']);
@@ -165,7 +170,18 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         approval: attempt.approval, execution: attempt.execution }] : [];
     }) } : {}),
     limits: { maxThreads: limits.maxThreads, maxMessageCharacters: limits.maxMessageCharacters } });
-  const notify = () => { notifyObservers(listeners, snapshot, onListenerError); };
+  let streamTimer = null, notifyCostMs = 0;
+  const notify = () => {
+    clearTimeout(streamTimer); streamTimer = null;
+    const started = performance.now();
+    notifyObservers(listeners, snapshot, onListenerError);
+    notifyCostMs = performance.now() - started;
+  };
+  const notifyStreaming = () => {
+    if (streamTimer !== null) return;
+    streamTimer = setTimeout(() => { streamTimer = null; if (!closed) notify(); }, Math.max(STREAM_NOTIFY_MS, 2 * notifyCostMs));
+    streamTimer.unref?.();
+  };
   const persist = () => {
     assert(!storageError, `History storage failed: ${storageError}`);
     try {
@@ -372,7 +388,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             run.nextSequence++;
             response.content += envelope.text; response.status = 'streaming'; attempt.status = 'executing';
             if (run.nextSequence === 1 || run.nextSequence % checkpointDeltas === 0) persist();
-            else notify();
+            else notifyStreaming();
           },
           onActivity(envelope) {
             // Ephemeral execution metadata only; never persisted and never output text.
@@ -757,7 +773,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     },
     cancel(threadId) { const run = runs.get(threadId); run?.controller.abort(new Error('Response stopped')); return run?.completion || Promise.resolve(); },
     async close() {
-      closed = true;
+      closed = true; clearTimeout(streamTimer); streamTimer = null;
       const pending = [...runs.values()];
       for (const run of pending) run.controller.abort(new Error('Workspace closed'));
       await Promise.allSettled(pending.map(run => run.completion));

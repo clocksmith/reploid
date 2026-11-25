@@ -666,8 +666,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 57683,
-      "sha256": "aa65e76fb970f0ea613d24b9ff4e9c2ce5ff1766eea3b1d713857e20b95feff8"
+      "bytes": 58631,
+      "sha256": "88b620914511ed0be2d718b83084f7546d37ea37c6e383e644e43867e4993060"
     },
     {
       "path": "config/defaults.json",

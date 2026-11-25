@@ -205,13 +205,93 @@ describe('Conversation workspace', () => {
     const select = find('[data-active-model-select]'); select.value = small.id;
     select.dispatchEvent(new Event('change', { bubbles: true }));
     publish([small, medium]); expect(select.value).toBe(small.id);
+    // New thread keeps the person's choice while a computer still serves it, and new capacity does not replace it.
     find('[data-new-thread]').click();
-    await vi.waitFor(() => expect(select.value).toBe(medium.id));
-    publish([small, medium, large]); expect(select.value).toBe(large.id);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(select.value).toBe(small.id);
+    publish([small, medium, large]); expect(select.value).toBe(small.id);
+    // Nothing serves it now, but computers are still being looked for: a new thread keeps it until that wait ends.
+    publish([medium, large]);
+    find('[data-new-thread]').click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(select.value).toBe(small.id);
     session.createThread({ model: large });
     publish([small, medium]);
     expect(session.getState().activeThread.model.id).toBe(large.id);
     expect(find('[data-model-digest]').textContent).toContain(large.name);
+  });
+
+  it('keeps the chosen model and computer for each new thread and the next visit while a computer serves it', async () => {
+    dispose(); await session.close();
+    let peers = [];
+    const [small, medium] = CANONICAL_CHAT_MODELS;
+    const serve = list => {
+      peers = list.map(model => ({ peerId: model.id, model: model.id, modelIdentity: model.identity,
+        readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
+      session.refreshNetwork();
+    };
+    session = createChatSession({ storage: null, service, swarm: { connect: async () => {},
+      getState: () => ({ introductionState: 'connected', consumer: { connectionState: 'connected', peers } }) } });
+    const saved = new Map(), choiceStorage = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, String(value)) };
+    // A first visitor: no computer chosen yet.
+    const bind = () => bindWorkspace(root, session, { viewState: {}, choiceStorage });
+    dispose = bind();
+    serve([small, medium]);
+    const select = () => find('[data-active-model-select]').value, source = () => find('[data-composer-model-source]').textContent;
+    expect(select()).toBe(medium.id);
+    await chooseShared(small.id);
+    expect(select()).toBe(small.id); expect(source()).toBe('Contributors');
+    expect(JSON.parse(saved.get('reploid.answer-choice.v1'))).toEqual({ selectionId: small.id, identity: small.identity, route: 'contributors' });
+    // An answered thread, then New thread: the same model and computer, not the default.
+    session.createThread({ model: small, privacy: openPolicy, executionLocation: 'network' });
+    await vi.waitFor(() => expect(session.getState().activeThread).not.toBeNull());
+    find('[data-new-thread]').click();
+    await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
+    expect(select()).toBe(small.id); expect(source()).toBe('Contributors');
+    expect(find('[data-composer-send]').disabled).toBe(false);
+    // The next visit starts there too, without asking again where to run.
+    dispose(); dispose = bind();
+    expect(select()).toBe(small.id); expect(source()).toBe('Contributors');
+    expect(find('[data-composer-send]').disabled).toBe(false);
+    // A later visit where another computer advertises first: discovery settles on that advertisement, but the
+    // remembered model keeps its place and the composer still reads as finding computers until its own arrives.
+    vi.useFakeTimers();
+    try {
+      const visit = list => {
+        dispose(); void session.close();
+        session = createChatSession({ storage: null, service, swarm: { connect: async () => {},
+          getState: () => ({ introductionState: 'connected', consumer: { connectionState: 'connected', peers } }) } });
+        serve(list); dispose = bind();
+      };
+      visit([medium]);
+      expect(session.getState().discoveryPhase).toBe('observed');
+      expect(select()).toBe(small.id);
+      expect(find('[data-model-status]').textContent).toBe('Finding computers…');
+      expectSendDoesNotDispatch();
+      serve([small, medium]);
+      expect(select()).toBe(small.id); expect(find('[data-composer-send]').disabled).toBe(false);
+      // A visit where it never arrives: after the bounded wait the default answers instead of a choice that cannot.
+      visit([medium]);
+      expect(select()).toBe(small.id);
+      vi.advanceTimersByTime(8000);
+      expect(select()).toBe(medium.id);
+      // The choice stays remembered for a visit where it is served again.
+      expect(JSON.parse(saved.get('reploid.answer-choice.v1')).selectionId).toBe(small.id);
+      visit([small, medium]);
+      expect(select()).toBe(small.id);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('remembers This device as the computer for the next visit', async () => {
+    dispose();
+    const model = CANONICAL_CHAT_MODELS[1];
+    session.setCachedModels([model]);
+    const saved = new Map([['reploid.answer-choice.v1', JSON.stringify({ selectionId: model.id, identity: model.identity, route: 'device' })]]);
+    const choiceStorage = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, String(value)) };
+    dispose = bindWorkspace(root, session, { viewState: {}, choiceStorage });
+    expect(find('[data-active-model-select]').value).toBe(model.id);
+    expect(find('[data-composer-model-source]').textContent).toBe('This device');
+    expect(find('[data-prompt-disclosure]').textContent).toBe('Nothing leaves this device.');
   });
 
   it('updates an untouched open picker with discovered capacity but keeps a staged explicit choice', async () => {

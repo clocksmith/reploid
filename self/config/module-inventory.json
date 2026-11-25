@@ -2879,7 +2879,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:c5d97711ef508040173504a5741cfc992cd0b09e65f1993813f000a7192748d4",
+      "sha256": "sha256:1cbabfea443c3c7fa3421efa71f1db7ed7c237c55147b805e1d725fb52de115b",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -2927,6 +2927,12 @@
         "../vendor/reploid/transport/index.js",
         "./circle-http-client.js"
       ]
+    },
+    {
+      "path": "self/host/coalesced-refresh.js",
+      "owner": "self",
+      "sha256": "sha256:ee16e8111ca048cc279f7d40d506d22d7257a4ba3f75a6a1fd304f4fb72fe53f",
+      "imports": []
     },
     {
       "path": "self/host/computer-preferences.js",
@@ -3216,7 +3222,7 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:263a502d1dc382b509741d6bc6da96310faab10de9ca7ee7013e0f50b88ee3d3",
+      "sha256": "sha256:d72d9ae582cfeb2ca10c599ac87eed26bb4932881caeaa1a73a6b785cfe3837f",
       "imports": [
         "../config/doppler-metadata-contract.js",
         "../config/ordered-participation.json",
@@ -3232,6 +3238,7 @@
         "../pool/requester-client.js",
         "./chat-history.js",
         "./chat-session.js",
+        "./coalesced-refresh.js",
         "./computer-preferences.js",
         "./contributor-search.js",
         "./device-search.js",
@@ -4367,9 +4374,15 @@
       "imports": []
     },
     {
+      "path": "ui/pool-home/answer-choice.js",
+      "owner": "ui",
+      "sha256": "sha256:346bfefe2e9ed98e6689a41a8d00a1bfad936c3811243c50574a856f03abd3dd",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:f2ef0b800fc8dc887c6b3fdfd9c5a753f97ed5983047ab7a2bf8accd90fca07b",
+      "sha256": "sha256:db9b5470a570a9ad4a8493769a3e2ff74939bed2029a9bb5fb04d34291acaaf1",
       "imports": []
     },
     {
@@ -4549,7 +4562,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:14583480ba37c17b9ff21b4b5a43f89819fd5c43d965217d24a1e125e70bc275",
+      "sha256": "sha256:ca5c0c21a578d8212977e0c15da0ae5386c5b243f1f2ba9c3adc2f387590c5b7",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",
@@ -4560,6 +4573,7 @@
         "../components/drawer.js",
         "../components/interface-icons.js",
         "../components/model-select.js",
+        "./answer-choice.js",
         "./choice-availability.js",
         "./computer-labels.js",
         "./contribution-models.js",
@@ -4662,7 +4676,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:73fe5e3c27c255b4d13d3be5285238a8262c9a64e19fe35465ac3e4d04d32f5c",
+      "sha256": "sha256:53598eee631aebb53ae6383faddb28a2935151dbda9e914057ba56b52b6b3a35",
       "imports": [
         "../../host/credits/browser.js",
         "../../host/product-context.js",
@@ -19122,7 +19136,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:aa65e76fb970f0ea613d24b9ff4e9c2ce5ff1766eea3b1d713857e20b95feff8",
+      "sha256": "sha256:88b620914511ed0be2d718b83084f7546d37ea37c6e383e644e43867e4993060",
       "imports": [
         "../contracts/partition-activity.js",
         "../contracts/partition-publication.js",

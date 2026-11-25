@@ -38,6 +38,32 @@ describe('conversation workspace', () => {
     await holder.app.close();
   });
 
+  it('tells observers of a streaming answer its first character at once, then at a bounded rate, never losing text', async () => {
+    vi.useFakeTimers();
+    try {
+      let streamed = null, release;
+      const holder = fixture(async (request, controls) => {
+        for (let sequence = 0; sequence < 40; sequence++) controls.onDelta({ ...result(request, ''), text: 'a', sequence });
+        streamed = true; await new Promise(resolve => { release = resolve; });
+        return result(request, 'a'.repeat(40));
+      }, { policy: { ...policy, streamCheckpointDeltas: 1000 } });
+      const seen = [];
+      holder.app.subscribe(state => seen.push(state.threads[0]?.messages.at(-1)?.content ?? null));
+      const thread = holder.app.createThread({ model });
+      const sent = holder.app.send(thread, 'Question');
+      for (let turn = 0; turn < 100 && !streamed; turn++) await Promise.resolve();
+      expect(streamed).toBe(true);
+      // 40 tokens in one burst: the first character was told at once, the other 39 wait for one coalesced notice.
+      const during = seen.filter(content => content?.startsWith('a'));
+      expect(during).toEqual(['a']);
+      await vi.advanceTimersByTimeAsync(50);
+      expect(seen.filter(content => content?.startsWith('a'))).toEqual(['a', 'a'.repeat(40)]);
+      release(); expect((await sent).status).toBe('completed');
+      expect(seen.at(-1)).toBe('a'.repeat(40));
+      await holder.app.close();
+    } finally { vi.useRealTimers(); }
+  });
+
   it('fences a failed later stream checkpoint and exposes only the last committed partial', async () => {
     const holder = fixture(async (request, controls) => {
       for (let sequence = 0; sequence < 8; sequence++) controls.onDelta({ ...result(request, ''), text: 'a', sequence });

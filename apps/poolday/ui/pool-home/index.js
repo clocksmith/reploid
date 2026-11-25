@@ -142,7 +142,8 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null,
       bindNavigation();
       try {
         if (workspaceRoute) {
-          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover });
+          detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector, webSearch: host.webSearch, search: host.search, historyHandover: host.historyHandover,
+            choiceStorage: globalThis.localStorage });
         } else {
           if (routeId === 'experiments') {
             const plugins = await import('./research-plugins.js');

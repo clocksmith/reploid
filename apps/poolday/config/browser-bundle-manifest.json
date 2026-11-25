@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 698924,
-      "sha256": "sha256:76eff41a35c9ca0e971619611867b85672a3cf0de5c6094f0c13e6c937facf97"
+      "byteLength": 699375,
+      "sha256": "sha256:4e514cf1507ed9755e802748049ddb3e44fa7b98a849cbc14c8599569780b1d5"
     },
     {
       "path": "config/module-registry.json",
@@ -1870,8 +1870,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 49385,
-      "sha256": "sha256:c5d97711ef508040173504a5741cfc992cd0b09e65f1993813f000a7192748d4"
+      "byteLength": 49920,
+      "sha256": "sha256:1cbabfea443c3c7fa3421efa71f1db7ed7c237c55147b805e1d725fb52de115b"
     },
     {
       "path": "host/chat-view.js",
@@ -1887,6 +1887,11 @@
       "path": "host/circle-invites.js",
       "byteLength": 2980,
       "sha256": "sha256:79a2716cf66de14dfd4ea35ad2f5fa66eff89a9865d04416996bce36c2d45816"
+    },
+    {
+      "path": "host/coalesced-refresh.js",
+      "byteLength": 1064,
+      "sha256": "sha256:ee16e8111ca048cc279f7d40d506d22d7257a4ba3f75a6a1fd304f4fb72fe53f"
     },
     {
       "path": "host/computer-preferences.js",
@@ -2050,8 +2055,8 @@
     },
     {
       "path": "host/product-session.js",
-      "byteLength": 15197,
-      "sha256": "sha256:263a502d1dc382b509741d6bc6da96310faab10de9ca7ee7013e0f50b88ee3d3"
+      "byteLength": 15810,
+      "sha256": "sha256:d72d9ae582cfeb2ca10c599ac87eed26bb4932881caeaa1a73a6b785cfe3837f"
     },
     {
       "path": "host/provider-contribution-session.js",
@@ -3819,9 +3824,14 @@
       "sha256": "sha256:28a9b93d02cbc77dc67452e404670aa338ca5cad1ac2ec630d3c132f0398fb70"
     },
     {
+      "path": "ui/pool-home/answer-choice.js",
+      "byteLength": 1985,
+      "sha256": "sha256:346bfefe2e9ed98e6689a41a8d00a1bfad936c3811243c50574a856f03abd3dd"
+    },
+    {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2816076,
-      "sha256": "sha256:f2ef0b800fc8dc887c6b3fdfd9c5a753f97ed5983047ab7a2bf8accd90fca07b"
+      "byteLength": 2818583,
+      "sha256": "sha256:db9b5470a570a9ad4a8493769a3e2ff74939bed2029a9bb5fb04d34291acaaf1"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3910,8 +3920,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 83309,
-      "sha256": "sha256:14583480ba37c17b9ff21b4b5a43f89819fd5c43d965217d24a1e125e70bc275"
+      "byteLength": 87293,
+      "sha256": "sha256:ca5c0c21a578d8212977e0c15da0ae5386c5b243f1f2ba9c3adc2f387590c5b7"
     },
     {
       "path": "ui/pool-home/dashboard-controls.js",
@@ -3955,8 +3965,8 @@
     },
     {
       "path": "ui/pool-home/index.js",
-      "byteLength": 13238,
-      "sha256": "sha256:73fe5e3c27c255b4d13d3be5285238a8262c9a64e19fe35465ac3e4d04d32f5c"
+      "byteLength": 13290,
+      "sha256": "sha256:53598eee631aebb53ae6383faddb28a2935151dbda9e914057ba56b52b6b3a35"
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -12045,8 +12055,8 @@
     },
     {
       "path": "vendor/reploid/chat/workspace.js",
-      "byteLength": 57683,
-      "sha256": "sha256:aa65e76fb970f0ea613d24b9ff4e9c2ce5ff1766eea3b1d713857e20b95feff8"
+      "byteLength": 58631,
+      "sha256": "sha256:88b620914511ed0be2d718b83084f7546d37ea37c6e383e644e43867e4993060"
     },
     {
       "path": "vendor/reploid/config/defaults.json",
@@ -12536,7 +12546,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 62744,
-      "sha256": "sha256:68f6943d9de452d28daf9a53589ac19addfe7e88bba500c6327aa2d1fa124a29"
+      "sha256": "sha256:20c0480c53bce6059264c33c9991db67d2607fadd25e05bfa4ad912793a8950d"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12829,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:b8689dd83cba35e8d0df868ddd0914662b19021f24f53b3e65e33eadcd7521d8"
+  "bundleHash": "sha256:8d0dfcc18d7536ef4e5c0dc3cf0351e1cd36d45e67aece467628e4833d34f549"
 }

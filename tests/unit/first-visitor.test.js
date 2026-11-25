@@ -74,6 +74,24 @@ it('waits calmly when a first visitor picks contributors before discovery settle
   expect(primary.disabled).toBe(false);
   expect(f.find('[data-answer-issue]').hidden).toBe(true);
 });
+it('offers Send, not a download, when the first advertisement is also what settles discovery', async () => {
+  const f = fixture({ fresh: true });
+  const [first, second] = CANONICAL_CHAT_MODELS;
+  f.publish({ models: [first, second] });
+  const chosen = f.find('[data-active-model-select]').value;
+  const served = [first, second].find(model => (model.selectionId || model.id) !== chosen);
+  f.find('[data-composer-input]').value = 'First question';
+  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
+  f.find('[data-execution-choice=network]').click();
+  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
+  expect(f.find('[data-next-model-status]').textContent).toMatch(/^Finding computers/);
+  // The session settles discovery on the same update that brings the first served model (chat-session.js).
+  f.publish({ ...observedDiscovery, models: [first, second].map(model => model === served ? { ...model, availability: 'ready',
+    networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] } : model) });
+  expect(f.find('[data-next-model]').value).toBe(served.selectionId || served.id);
+  expect(f.find('[data-change-model]').textContent).toBe('Send to contributors');
+  expect(f.find('[data-change-model]').disabled).toBe(false);
+});
 it('offers the download only once discovery has settled with no contributor for the model', async () => {
   const f = fixture({ fresh: true });
   f.find('[data-composer-input]').value = 'First question';
@@ -96,6 +114,19 @@ it('tells a first visitor a public computer can answer instead of reporting a de
   // The Answer on sheet opened from its own control does not say Send: nothing is waiting to be sent.
   f.find('[data-open-model]').click();
   expect(f.find('[data-change-model]').textContent).not.toMatch(/^Send/);
+});
+
+it('says a public computer can answer when contributors serve another model than the one this device starts with', () => {
+  const f = fixture({ fresh: true }), status = f.find('[data-model-status]');
+  const [first, second] = CANONICAL_CHAT_MODELS;
+  f.publish({ ...observedDiscovery, models: [first, second] });
+  const starting = f.find('[data-active-model-select]').value;
+  // Discovery settled on the first advertisement, for the model this device would not start with.
+  f.publish({ models: [first, second].map(model => (model.selectionId || model.id) === starting ? model
+    : { ...model, availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] }) });
+  expect(f.find('[data-active-model-select]').value).toBe(starting);
+  expect(status.textContent).toBe('Not on this device. A public computer can answer.');
+  expect(f.find('[data-download-local]').hidden).toBe(true);
 });
 
 it('bounds the host discovery window even when signaling never connects, without acquiring anything', async () => {

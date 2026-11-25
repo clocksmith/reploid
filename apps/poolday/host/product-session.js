@@ -30,8 +30,11 @@ import { createDocumentAssistant } from '../pool/document-delegation.js';
 import poolConfiguration from '../../../shared/pool/pool-config.json' with { type: 'json' };
 import { createComputerPreferences } from './computer-preferences.js';
 import { createRoutePreference, rankRoutes, routeObservations } from './route-preference.js';
+import { createCoalescedRefresh } from './coalesced-refresh.js';
 
 const HISTORY_OWNED_ELSEWHERE = 'Another tab owns this conversation history';
+// Shortest spacing between swarm-driven chat refreshes.
+const NETWORK_REFRESH_MS = 100;
 const ordinaryReason = cause => `History stays ordinary: ${cause}; ordered answers are not published to requester-owned storage.`;
 
 /** Requester-owned history for ordered sessions. Ordered publication needs only
@@ -75,9 +78,13 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
   // participation keeps its own configured identity.
   let computers = null;
   const routePreference = createRoutePreference({ storage });
+  // The swarm reports every peer step, advertisement and failure, and each chat refresh copies and re-renders the
+  // whole conversation state. In a busy room on a loaded computer that kept the page too busy to answer its peers'
+  // pings for minutes, so swarm-driven refreshes are coalesced (coalesced-refresh.js).
+  const networkRefresh = createCoalescedRefresh(() => chat?.refreshNetwork(), { minimumMs: NETWORK_REFRESH_MS });
   const swarm = createWorkSwarm({ storage, evolution, service, getBlockedComputers: () => computers?.getBlocked() || [],
     rankProviders: (candidates, route) => rankRoutes(candidates, routePreference.get(), routeObservations(chat?.getState().threads, route?.modelIdentity)), networkOptions: swarmNetworkOptions, canonical, ordered, webWorker: webContribution,
-    ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { chat?.refreshNetwork(); notifySearch(); } });
+    ...(participantIdentity && !canonical ? { participantIdentity } : {}), onChange: () => { networkRefresh.request(); notifySearch(); } });
   computers = createComputerPreferences({ storage,
     verifyPeer: (id, signal) => swarm.verifyPeerIdentity(id, signal) });
   // A changed block list changes which models have a computer that can answer.
@@ -175,7 +182,7 @@ export function createProductSession({ storage, networkOptions, swarmNetworkOpti
       },
       close() {
         if (closing) return closing;
-        closed = true; autoconnect.close(); modelCache.close();
+        closed = true; networkRefresh.close(); autoconnect.close(); modelCache.close();
         // Requester-owned history must report unsettled cleanup; ordinary history never did.
         const requesterOwned = !!canonical || chat.getState?.().history?.mode === 'transactional';
         const owners = [() => computers.close(), () => training?.close(), () => localFiles.close(), () => swarm.close(), () => work?.close(), () => chat.close(), () => documents?.close(),
