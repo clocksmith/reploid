@@ -151,6 +151,10 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     if (!policy) throw Error('This model has no kernel path policy to remap');
     policy.onIncompatible = 'remap';
   }
+  // A stage may prefill in smaller token chunks (shorter GPU submissions); results are unchanged by the chunking contract.
+  if (Number.isSafeInteger(config.prefillTokenChunkSize) && config.prefillTokenChunkSize > 0) {
+    model.partitionRuntime.runtimeConfig.inference.session.prefillTokenChunkSize = config.prefillTokenChunkSize;
+  }
   const models = catalog.map(row => (row.id === model.id ? model : row));
   await fs.mkdir(config.modelDirectory, { recursive: true, mode: 0o700 });
   await fs.mkdir(config.stateDirectory, { recursive: true, mode: 0o700 });

@@ -341,6 +341,7 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
       const edge = index === 0 || index === config.stages.length - 1;
       await step(`open stage ${stage.label}`, () => s(stage.label).call('open', { ...shared, stageIndex: index, modelDirectory: stage.stageDirectory,
         stateDirectory: stage.stateDirectory, assignedRanges: inventory.stages[index].ranges, capabilityRemap: stage.capabilityRemap === true,
+        ...(stage.prefillTokenChunkSize ? { prefillTokenChunkSize: stage.prefillTokenChunkSize } : {}),
         ...(edge ? { fixtureBase64: fixtureBytes.toString('base64'), fixtureSha256, witness } : { witness: null }) }), limits.phaseMs);
     }
     const ownStages = config.stages.filter(stage => stage.role === 'requester').map(stage => stage.participantId);
