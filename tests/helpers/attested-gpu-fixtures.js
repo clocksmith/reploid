@@ -111,7 +111,8 @@ export async function makeTdxQuote({ reportData, mrTd, rtmr, tdAttributes = 0n, 
   const body = new Uint8Array(584);
   writeLe(body, 120, tdAttributes, 8);
   body.set(fromHex(mrTd), 136);
-  rtmr.forEach((value, index) => body.set(fromHex(value), 376 + index * 48));
+  // TD quote body v4: MROWNERCONFIG ends at 328, RTMR0 to RTMR3 follow, REPORTDATA starts at 520.
+  rtmr.forEach((value, index) => body.set(fromHex(value), 328 + index * 48));
   body.set(reportData, 520);
   const signed = concatBytes(header, body);
   const signature = await signRaw(attestationKey, 'SHA-256', signed);
@@ -208,7 +209,7 @@ export async function createSyntheticWorld({ now = Date.UTC(2026, 10, 25, 12), e
 
 /**
  * A synthetic confidential-VM host for serveAttestedSession. `faults` change one thing at a time:
- *   ccMode, devToolsMode, snpDebug, tdxDebug, measurement, gpuMeasurements, unboundKey, wrongNonce, badGpuSignature,
+ *   ccMode, devToolsMode, snpDebug, tdxDebug, measurement, rtmr, gpuMeasurements, unboundKey, wrongNonce, badGpuSignature,
  *   revokedLeaf, staleOcsp, model, answer, failRuntime
  */
 export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, participantId = 'peer:attested-synthetic', record = {} } = {}) {
@@ -231,7 +232,7 @@ export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, pa
           policy: faults.snpDebug ? 0x30000n | (1n << 19n) : 0x30000n }), certificates: world.chains.amd };
       }
       return { report: await makeTdxQuote({ reportData: data, mrTd: faults.measurement ?? SYNTHETIC_MEASUREMENTS.mrTd,
-        rtmr: [SYNTHETIC_MEASUREMENTS.rtmr[0], SYNTHETIC_MEASUREMENTS.rtmr[1], SYNTHETIC_MEASUREMENTS.rtmr[2], h48(9)],
+        rtmr: faults.rtmr ?? [SYNTHETIC_MEASUREMENTS.rtmr[0], SYNTHETIC_MEASUREMENTS.rtmr[1], SYNTHETIC_MEASUREMENTS.rtmr[2], h48(9)],
         tdAttributes: faults.tdxDebug ? 1n : 0n, attestationKey: world.keys.qeAttestation, pck: world.keys.pck, pckChainDer: world.chains.intelPck }), certificates: [] };
     },
     async generate({ messages, onDelta }) {

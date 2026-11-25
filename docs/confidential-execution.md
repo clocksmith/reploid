@@ -1125,7 +1125,9 @@ confidential split gate.
   The structures are real (X.509 DER, OCSP, SNP report v3, TDX quote v4, SPDM)
   and the keys are test-only. It covers valid evidence on both platforms, and
   each case fails before the prompt is sealed:
-  - wrong nonce, stale evidence, unknown measurement (both platforms);
+  - wrong nonce, stale evidence, unknown measurement (both platforms), a change
+    in each pinned TDX RTMR, and the TD quote body layout stated independently
+    of the fixture builder;
   - SNP, TDX and GPU debug, GPU not in CC mode;
   - unbound key (both platforms);
   - expired, revoked and stale-OCSP certificates, an unpinned root;

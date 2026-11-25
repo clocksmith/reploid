@@ -946,8 +946,8 @@
     },
     {
       "path": "inference/attested/reports.js",
-      "bytes": 10171,
-      "sha256": "618e2cdd139c4223959fdc7fe1cc48d761690b28c155739829bee83593fe0df0"
+      "bytes": 10259,
+      "sha256": "85166f3a6b54a875f8132361142b653bc472659dd4cf0c1559e88851d490726e"
     },
     {
       "path": "inference/attested/session.d.ts",

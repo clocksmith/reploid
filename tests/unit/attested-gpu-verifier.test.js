@@ -6,10 +6,12 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { X509Certificate } from 'node:crypto';
-import { createSyntheticWorld, syntheticHost, SYNTHETIC_MODEL, SYNTHETIC_MEASUREMENTS, makeCertificate, ecKey } from '../helpers/attested-gpu-fixtures.js';
+import { createSyntheticWorld, syntheticHost, SYNTHETIC_MODEL, SYNTHETIC_MEASUREMENTS, makeCertificate, makeTdxQuote, ecKey } from '../helpers/attested-gpu-fixtures.js';
 import { runAttestedRequesterSession, serveAttestedSession, createAttestedChannelPair, inspectAttestedHeader } from '../../packages/reploid/src/inference/attested/session.js';
 import { validateAttestedPolicy, ATTESTATION_REASONS } from '../../packages/reploid/src/inference/attested/verifier.js';
 import { parseCertificate, verifyCertificateChain } from '../../packages/reploid/src/inference/attested/x509.js';
+import { parseTdxQuote } from '../../packages/reploid/src/inference/attested/reports.js';
+import { toHex } from '../../packages/reploid/src/inference/attested/bytes.js';
 import { encodeAttestedFrame, decodeAttestedFrame } from '../../packages/reploid/src/inference/attested/websocket-channel.js';
 
 let world, expiredWorld;
@@ -78,6 +80,18 @@ describe('attested GPU session: every failure is refused before the prompt is se
   it.each(['amd-sev-snp', 'intel-tdx'])('%s: unknown launch measurement', async platform => {
     expectRejected(await attempt({ platform, faults: { measurement: 'ab'.repeat(48) } }), 'measurement-unknown');
   });
+  it.each([0, 1, 2])('intel-tdx: RTMR%i that differs from the pinned one', async index => {
+    const rtmr = [...SYNTHETIC_MEASUREMENTS.rtmr.slice(0, 3), 'ee'.repeat(48)];
+    rtmr[index] = 'ab'.repeat(48);
+    expectRejected(await attempt({ platform: 'intel-tdx', faults: { rtmr } }), 'measurement-unknown');
+  });
+  it('intel-tdx: RTMR3 is compared only when the policy pins it', async () => {
+    const rtmr = [...SYNTHETIC_MEASUREMENTS.rtmr.slice(0, 3), 'ee'.repeat(48)];
+    expect((await attempt({ platform: 'intel-tdx', faults: { rtmr } })).error).toBeNull();
+    const policy = structuredClone(world.policy);
+    policy.launches[1].measurement.rtmr[3] = 'dd'.repeat(48);
+    expectRejected(await attempt({ platform: 'intel-tdx', faults: { rtmr }, policy }), 'measurement-unknown');
+  });
   it('SEV-SNP guest launched with DEBUG allowed', async () => {
     expectRejected(await attempt({ faults: { snpDebug: true } }), 'debug-enabled');
   });
@@ -142,6 +156,25 @@ describe('attested GPU session: after binding', () => {
     serveAttestedSession({ channel: hostEnd, host: syntheticHost(world, { faults: { failRuntime: true } }), now: () => world.now });
     await expect(runAttestedRequesterSession({ channel: requester, policy: world.policy, model: SYNTHETIC_MODEL, requestId: 'r', messages: [{ role: 'user', content: 'x' }],
       generation: {}, now: () => world.now, timeoutMs: 5000 })).rejects.toMatchObject({ code: 'ATTESTED_RUNTIME_FAILED' });
+  });
+});
+
+describe('report layouts', () => {
+  // Offsets in the TD quote body are Intel's (TDX DCAP quote v4, sgx_report2_body_t), stated here independently
+  // of the fixture builder: the body starts after the 48-byte header.
+  it('reads MRTD, every RTMR and REPORTDATA of a TDX quote v4 at their own offsets', async () => {
+    const fill = byte => toHex(new Uint8Array(48).fill(byte));
+    const rtmr = [fill(0xa0), fill(0xa1), fill(0xa2), fill(0xa3)];
+    const reportData = new Uint8Array(64).fill(0x5d);
+    const raw = await makeTdxQuote({ reportData, mrTd: fill(0x3d), rtmr, attestationKey: world.keys.qeAttestation, pck: world.keys.pck, pckChainDer: world.chains.intelPck });
+    const at = (offset, length) => toHex(raw.subarray(48 + offset, 48 + offset + length));
+    expect(at(136, 48)).toBe(fill(0x3d));
+    expect([328, 376, 424, 472].map(offset => at(offset, 48))).toEqual(rtmr);
+    expect(at(520, 64)).toBe(toHex(reportData));
+    const quote = parseTdxQuote(raw);
+    expect(quote.mrTd).toBe(fill(0x3d));
+    expect(quote.rtmr).toEqual(rtmr);
+    expect(toHex(quote.reportData)).toBe(toHex(reportData));
   });
 });
 

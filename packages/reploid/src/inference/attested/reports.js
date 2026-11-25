@@ -70,7 +70,8 @@ export function parseTdxQuote(bytes) {
   if (teeType !== 0x81) throw malformed('not a TDX quote');
   const b = TDX_HEADER_BYTES;
   const tdAttributes = u64(bytes, b + 120);
-  const rtmr = index => hex(bytes, b + 376 + index * 48, 48);
+  // RTMR0 to RTMR3 follow MROWNERCONFIG (which ends at 328); REPORTDATA starts at 520.
+  const rtmr = index => hex(bytes, b + 328 + index * 48, 48);
   const body = {
     teeTcbSvn: hex(bytes, b, 16), mrSeam: hex(bytes, b + 16, 48), mrSignerSeam: hex(bytes, b + 64, 48),
     seamAttributes: hex(bytes, b + 112, 8), tdAttributes, xfam: hex(bytes, b + 128, 8), mrTd: hex(bytes, b + 136, 48),
