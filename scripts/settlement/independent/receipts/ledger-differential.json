@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-ledger-differential/v1",
-  "generatedAt": "2026-11-25T10:18:57.973Z",
-  "finishedAt": "2026-11-25T10:19:00.601Z",
+  "generatedAt": "2026-11-25T11:03:20.269Z",
+  "finishedAt": "2026-11-25T11:03:22.941Z",
   "command": "node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json",
-  "commit": "0d2591486f29ee92a6d4cbab234f19bcf45acf66",
+  "commit": "00b8f43ff23cef8a8d37aeb37959f4e11dc34f15",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine under one operator. The ledger is given each acknowledgment when it was signed, then what a live route retains (latest records and the signed stop) at the moment the last of them was signed, and asked again after the release window; the replay judges the same records after the window. Status pairs are ledger / replay.",
@@ -23,15 +23,23 @@
   },
   "handedToTheLedger": "each acknowledgment as signed, then the final collect with the stop",
   "cases": 109,
-  "amountsAgreed": 109,
+  "amountsAgreed": 107,
   "statusPairs": {
     "expired / expired": 49,
     "expired / unknown": 8,
     "settled / settled": 52
   },
   "differences": {
-    "total": 0,
-    "byCause": {}
+    "total": 2,
+    "byCause": {
+      "KNOWN DIFFERENCE, pending the owner's decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing": {
+        "count": 2,
+        "cases": [
+          "stages close early on their own after 3 outputs | all records",
+          "stages close early on their own after 3 outputs | requester withholds its top acknowledgment"
+        ]
+      }
+    }
   },
   "lines": [
     {
@@ -1308,12 +1316,12 @@
       "variant": "all records",
       "ledger": {
         "status": "settled",
-        "charge": 0,
+        "charge": 9,
         "credits": [
-          0,
-          0
+          2,
+          7
         ],
-        "reason": "stage-ended-unfinished-answer",
+        "reason": "unfinished-answer-closed-without-requester-stop",
         "atCollect": null,
         "collectedAtMs": 1501,
         "refusedAcknowledgments": 0
@@ -1327,8 +1335,8 @@
         ],
         "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
       },
-      "amountsAgree": true,
-      "cause": null
+      "amountsAgree": false,
+      "cause": "KNOWN DIFFERENCE, pending the owner's decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing"
     },
     {
       "base": "stages close early on their own after 3 outputs",
@@ -1443,12 +1451,12 @@
       "variant": "requester withholds its top acknowledgment",
       "ledger": {
         "status": "settled",
-        "charge": 0,
+        "charge": 6,
         "credits": [
-          0,
-          0
+          1,
+          5
         ],
-        "reason": "stage-ended-unfinished-answer",
+        "reason": "unfinished-answer-closed-without-requester-stop",
         "atCollect": null,
         "collectedAtMs": 1501,
         "refusedAcknowledgments": 0
@@ -1462,8 +1470,8 @@
         ],
         "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
       },
-      "amountsAgree": true,
-      "cause": null
+      "amountsAgree": false,
+      "cause": "KNOWN DIFFERENCE, pending the owner's decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing"
     },
     {
       "base": "stages close early on their own after 3 outputs",
